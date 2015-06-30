@@ -28,7 +28,7 @@ static URL options_to_voms_url(const std::string& host, int port, const TCPSec& 
   if(sec.enc == RequireEnc) {
     url.AddOption("encryption","required",true);
   } else if(sec.enc == PreferEnc) {
-    url.AddOption("encryption","prefered",true);
+    url.AddOption("encryption","preferred",true);
   } else if(sec.enc == OptionalEnc) {
     url.AddOption("encryption","optional",true);
   } else if(sec.enc == NoEnc) {

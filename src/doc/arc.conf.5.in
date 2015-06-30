@@ -1256,7 +1256,7 @@ localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
 .B norootpower
 norootpower yes|no - if set to yes, all job management proccesses
 will switch to mapped user's identity while accessing session
-directory. This is usefull if session directory is on NFS
+directory. This is useful if session directory is on NFS
 root squashing turned on. Default is no.
 
 .IR Example:
@@ -1349,7 +1349,7 @@ http_proxy="proxy.mydomain.org:3128"
 fixdirectories yes|missing|no - specifies during startup A-REX should
 create all directories needed for it operation and set suitable default
 permissions. If "no" is specified then A-REX does nothing to prepare its
-operational environement. In case of "missing" A-REX only creates and
+operational environment. In case of "missing" A-REX only creates and
 sets permissions for directories which are not present yet.  For "yes"
 all directories are created and permisisons for all used directories are
 set to default safe values. Default behaviour is as if "yes" is specified.
@@ -1367,7 +1367,7 @@ an https URL defining the endpoint port and path:
      https://<hostname>:<port>/<path>
 
 In order to submit job a client must specify the exact published
-path. Make sure the choosen port is not blocked by firewall
+path. Make sure the chosen port is not blocked by firewall
 or other security rules.
 
 .IR Example:
@@ -1780,7 +1780,7 @@ logsize="100000 2"
 .TP
 .B pidfile
 pidfile path - Specify location of file containig PID of daemon process.
-This is usefull for automatic star/stop scripts. 
+This is useful for automatic star/stop scripts. 
 
 .IR Example:
 .br
@@ -1958,7 +1958,7 @@ unixvo="ATLAS unixuser atlas:atlas"
 [gridftpd/filedir] "fileplugin" storage block
 subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
 gridftp plugins are shared libraries.
-"filedir" is a unique label. The acess control is set by using the 
+"filedir" is a unique label. The access control is set by using the 
 "dir" configuration option
 
 

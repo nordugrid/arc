@@ -803,7 +803,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     if(!constraints["validityPeriod"].empty()) {
-      // If period is explicitely set then start is derived from end and period
+      // If period is explicitly set then start is derived from end and period
       validityStart = validityEnd - validityPeriod;
     } else {
       // otherwise start - optionally - and end are set, period is derived
@@ -865,7 +865,7 @@ int main(int argc, char *argv[]) {
   Arc::Time proxy_start = validityStart;
   Arc::Period proxy_period = validityPeriod;
   if (constraints["validityStart"].empty() && constraints["validityEnd"].empty()) {
-    // If start/end is not explicitely specified then add 5 min back gap.
+    // If start/end is not explicitly specified then add 5 min back gap.
     proxy_start = proxy_start - Arc::Period(300);
     proxy_period.SetPeriod(proxy_period.GetPeriod() + 300);
   }

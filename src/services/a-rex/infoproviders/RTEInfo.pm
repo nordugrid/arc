@@ -35,7 +35,7 @@ sub collect($) {
 sub add_static_rtes {
     my ($runtimedir, $rtes) = @_;
     unless (opendir DIR, $runtimedir) {
-       $log->warning("Can't acess runtimedir: $runtimedir: $!");
+       $log->warning("Can't access runtimedir: $runtimedir: $!");
        return;
     }
     closedir DIR;

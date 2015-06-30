@@ -278,7 +278,7 @@ AC_ARG_ENABLE(pedantic-compile, AC_HELP_STRING([--enable-pedantic-compile], [add
 [enables_pedantic_compile="yes"], [enables_pedantic_compile="no"])
 if test "x$enables_pedantic_compile" = "xyes"; then
   # This check need to be enhanced. It won't work in case of cross-compilation
-  # and if path to compiler is explicitely specified.
+  # and if path to compiler is explicitly specified.
   if test x"$CXX" = x"g++"; then
     # GNU C/C++ flags
     AM_CXXFLAGS="-Wall -Wextra -Werror -Wno-sign-compare -Wno-unused"
@@ -1971,7 +1971,7 @@ AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
 AM_CONDITIONAL([PYDOXYGEN],[test -f python/python/arc/index.xml -o "x$DOXYGEN" != "x"])
 AM_CONDITIONAL([ALTPYDOXYGEN],[test -f python/altpython/arc/index.xml -o "x$DOXYGEN" != "x"])
 
-# Check for explicitely and implicitely disabled services
+# Check for explicitly and implicitely disabled services
 if test "x$WIN32" = "xyes" ; then
   AC_MSG_NOTICE([In WIN32 environment many (all) services are not supported yet])
 fi
@@ -2127,7 +2127,7 @@ fi
 # unit tests also require python >=2.6
 AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5"])
 
-# Check for explicitely and implicitely disabled clients
+# Check for explicitly and implicitely disabled clients
 AC_ARG_ENABLE(compute_client, AC_HELP_STRING([--disable-compute-client], [disable building compute (job management) client tools]),
   [enables_compute_client=$enableval],[])
 AC_MSG_NOTICE([Compute client tools enabled: $enables_compute_client])

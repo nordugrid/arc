@@ -1013,7 +1013,7 @@ using namespace Arc;
         transfer_failure = true;
         break;
       }
-      // pick up usefull information from HTTP header
+      // pick up useful information from HTTP header
       point.modified = transfer_info.lastModified;
       retries = 0;
       // Pull from stream and store in buffer
@@ -1159,7 +1159,7 @@ using namespace Arc;
         transfer_failure = true;
         break;
       }
-      // pick up usefull information from HTTP header
+      // pick up useful information from HTTP header
       point.modified = transfer_info.lastModified;
       retries = 0;
       // Exclude chunks after EOF. Normally that is not needed.

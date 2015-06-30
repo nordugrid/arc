@@ -413,7 +413,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         logger.msg(Arc::ERROR, "input is not SOAP");
         return make_fault(outmsg);
     }
-    // Convert incomming message to python object
+    // Convert incoming message to python object
     arg = Py_BuildValue("(l)", (long int)inmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create inmsg argument");
@@ -448,7 +448,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         logger.msg(Arc::ERROR, "Failed to create SOAP containers");
         return make_fault(outmsg);
     }
-    // Convert incomming and outcoming messages to python objects
+    // Convert incoming and outcoming messages to python objects
     arg = Py_BuildValue("(l)", (long int)outmsg_ptr);
     if (arg == NULL) {
         logger.msg(Arc::ERROR, "Cannot create outmsg argument");

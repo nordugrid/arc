@@ -60,7 +60,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
   }
   if(cfg["Encryption"] == "required") {
-  } else if(cfg["Encryption"] == "prefered") {
+  } else if(cfg["Encryption"] == "preferred") {
     cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
   } else if(cfg["Encryption"] == "optional") {
     cipher_list_ = "eNULL:TLSv1:SSLv3:!aNULL";

@@ -281,7 +281,7 @@ namespace Arc {
       if (itPluginName != interfacePluginMap.end()) {
         arg->pluginName = itPluginName->second;
       }
-      logger.msg(DEBUG, "Starting querying of suspended endpoint (%s) - no other endpoints for this service is being queried or has been queried succesfully.", suspended->str());
+      logger.msg(DEBUG, "Starting querying of suspended endpoint (%s) - no other endpoints for this service is being queried or has been queried successfully.", suspended->str());
       statusLock.lock();
       statuses[*suspended] = EndpointQueryingStatus::STARTED;
       statusLock.unlock();

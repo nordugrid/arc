@@ -78,7 +78,7 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
 
 void RunRedirected::initializer(void* arg) {
 #ifdef WIN32
-#error This functionality is not available in Windows environement
+#error This functionality is not available in Windows environment
 #else
   // child
   RunRedirected* it = (RunRedirected*)arg;

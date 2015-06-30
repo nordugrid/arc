@@ -33,7 +33,7 @@ namespace ArcDMCLDAP {
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
     if(!(factory && module)) {
-      logger.msg(ERROR, "Missing reference to factory and/or module. Curently safe unloading of LDAP DMC is not supported. Report to developers.");
+      logger.msg(ERROR, "Missing reference to factory and/or module. Currently safe unloading of LDAP DMC is not supported. Report to developers.");
       return NULL;
     }
     // It looks like this DMC can't ensure all started threads are stopped

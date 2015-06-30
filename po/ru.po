@@ -4442,7 +4442,7 @@ msgstr "Истекло время ожидания ответа на запро�
 
 #: src/hed/dmc/ldap/DataPointLDAP.cpp:36
 msgid ""
-"Missing reference to factory and/or module. Curently safe unloading of LDAP "
+"Missing reference to factory and/or module. Currently safe unloading of LDAP "
 "DMC is not supported. Report to developers."
 msgstr ""
 "Отсутствует ссылка на фабрику и/или модуль. В настоящее время безопасная "
@@ -8170,7 +8170,7 @@ msgstr "Попытка активации временно исключённо�
 #, c-format
 msgid ""
 "Starting querying of suspended endpoint (%s) - no other endpoints for this "
-"service is being queried or has been queried succesfully."
+"service is being queried or has been queried successfully."
 msgstr ""
 "Начинается опрос отложенной точки входа (%s) - другие точки входа этого "
 "сервиса не опрашиваются, либо были уже успешно опрошены."
@@ -9762,9 +9762,9 @@ msgstr ""
 #: src/hed/libs/common/UserConfig.cpp:512
 #, c-format
 msgid ""
-"Proxy certificate path was not explicitely set or does not exist or has\n"
+"Proxy certificate path was not explicitly set or does not exist or has\n"
 "improper permissions/ownership and not found at default location.\n"
-"Key/certificate paths were not explicitely set or do not exist or have\n"
+"Key/certificate paths were not explicitly set or do not exist or have\n"
 "improper permissions/ownership and usercert.pem/userkey.pem not found\n"
 "at default locations:\n"
 "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
@@ -15461,7 +15461,7 @@ msgid ""
 "  vomsACvalidityLeft - duration of VOMS attribute validity left in seconds.\n"
 "  proxyPolicy\n"
 "  keybits - size of proxy certificate key in bits.\n"
-"  signingAlgorithm - algorith used to sign proxy certificate.\n"
+"  signingAlgorithm - algorithm used to sign proxy certificate.\n"
 "Items are printed in requested order and are separated by newline.\n"
 "If item has multiple values they are printed in same line separated by |.\n"
 "\n"
@@ -15472,7 +15472,7 @@ msgid ""
 "  all - for any purspose.\n"
 "\n"
 "Supported password sources are:\n"
-"  quoted string (\"password\") - explicitely specified password\n"
+"  quoted string (\"password\") - explicitly specified password\n"
 "  int - interactively request password from console\n"
 "  stdin - read password from standard input delimited by newline\n"
 "  file:filename - read password from file named filename\n"
@@ -18303,7 +18303,7 @@ msgstr "Соединение с %s:%i"
 
 #: src/services/gridftpd/auth/auth_ldap.cpp:57
 #, c-format
-msgid "Quering at %s"
+msgid "Querying at %s"
 msgstr "Запрос к %s"
 
 #: src/services/gridftpd/auth/auth_ldap.cpp:62
@@ -19638,7 +19638,7 @@ msgstr "Задан нестандартный тип эталонного тес
 
 #: src/services/a-rex/jura/JobLogFile.cpp:1079
 #, c-format
-msgid "Ignored incomming benchmark value: %s, Use float value!"
+msgid "Ignored incoming benchmark value: %s, Use float value!"
 msgstr ""
 "Игнорируется полученное значение эталонного теста: %s, используйте значение "
 "с плавающей запятой!"
@@ -20201,7 +20201,7 @@ msgstr "Формирование записи журнала программы 
 
 #: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:229
 #, c-format
-msgid "Writting the info the the BLAH parser log: %s"
+msgid "Writing the info the the BLAH parser log: %s"
 msgstr "Запись информации в журнал программы разбора BLAH: %s"
 
 #: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:237
@@ -20354,13 +20354,13 @@ msgstr "%s: Эта задача, возможно, ещё исполняется
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:162
 #, c-format
-msgid "%s: Cancelation failed (probably job finished) - cleaning anyway"
+msgid "%s: Cancellation failed (probably job finished) - cleaning anyway"
 msgstr ""
 "%s: Прерывание не удалось (вероятно, задача закончилась) - всё равно удаляем"
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:170
 #, c-format
-msgid "%s: Cancelation probably succeeded - cleaning"
+msgid "%s: Cancellation probably succeeded - cleaning"
 msgstr "%s: Прерывание, вероятно, удалось - удаление"
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:234
@@ -21312,7 +21312,7 @@ msgstr "Невозможно определить тип файла настро
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:35
 #, c-format
-msgid "Missing cancel-%s-job - job cancelation may not work"
+msgid "Missing cancel-%s-job - job cancellation may not work"
 msgstr "Не найден скрипт cancel-%s-job - прерывание задачи может не работаь"
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:39
@@ -28111,7 +28111,7 @@ msgstr "Ожидание завершено."
 #~ msgstr "Код возврата"
 
 #, fuzzy
-#~ msgid "Job description succesfully stored in sandbox"
+#~ msgid "Job description successfully stored in sandbox"
 #~ msgstr "описание засылаемой задачи: %s"
 
 #, fuzzy

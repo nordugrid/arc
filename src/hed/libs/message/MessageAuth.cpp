@@ -258,7 +258,7 @@ static void add_new_elements(XMLNode item,XMLNode element) {
 }
 
 // Subject, Resource, Action, Context  RequestItem in each component
-// goes into one seperated output <RequestItem>.
+// goes into one separated output <RequestItem>.
 // The Subject from all of the SecAttr goes into every output <RequestItem>,
 // because there is only one request entity (with a few SubjectAttribute)
 //for the incoming  message chain
@@ -287,7 +287,7 @@ bool MessageAuth::Export(SecAttrFormat format,XMLNode &val) const {
       if(((bool)item) && ( ((bool)(item["Resource"])) || ((bool)(item["Action"])) ))
         newitem=newreq.NewChild("ra:RequestItem");
 
-      //Collect all of the <Subject/>s. Since in HED each incomming/outgoing message
+      //Collect all of the <Subject/>s. Since in HED each incoming/outgoing message
       //is supposed to implicitly have only one meaningful entity(Subject), it doesn't hurt
       //if we put all of the <Subject/>s together and merge(later) them into one <Subject/> (with
       //a number of <Attribute/>s from different original <Subject>s).

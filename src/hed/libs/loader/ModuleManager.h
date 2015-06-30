@@ -59,7 +59,7 @@ typedef void (*arc_module_destructor_func)(Glib::Module*, ModuleManager*);
   in constructor and destructor of Plugin class. Having non-zero usage counter 
   prevents library from being unloaded. 
    Please note that destructor of ModuleManager waits for all usage counters to
-  reach zero. This is especially useful in multithreaded environements. To avoid
+  reach zero. This is especially useful in multithreaded environments. To avoid
   dealocks make sure Plugins loaded by instance of ModuleManager are destroyed
   before destroying ModuleManager or in independent threads.
  */

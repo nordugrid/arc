@@ -23,7 +23,7 @@ Software::Software(const std::string& name_version) : family(""), version("") {
     // Look for dashes in the input string.
     pos = name_version.find_first_of("-", pos);
     if (pos != std::string::npos) {
-      // 'name' and 'version' is defined to be seperated at the first dash which
+      // 'name' and 'version' is defined to be separated at the first dash which
       // is followed by a digit.
       if (isdigit(name_version[pos+1])) {
         name = name_version.substr(0, pos);

@@ -52,7 +52,7 @@ RANDFILE	= $dir/private/.rand	# private random number file
 
 x509_extensions	= usr_cert		# The extentions to add to the cert
 
-# Comment out the following two lines for the "traditional"
+# Comment out the following two lines for the "tradditional"
 # (and highly broken) format.
 name_opt 	= ca_default		# Subject Name options
 cert_opt 	= ca_default		# Certificate field options

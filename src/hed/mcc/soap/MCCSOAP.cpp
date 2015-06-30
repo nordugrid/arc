@@ -353,10 +353,10 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     return make_soap_fault(outmsg,nextoutmsg,false,errstr.c_str());
   };
   if(!nextoutmsg.Payload()) {
-    return make_soap_fault(outmsg,nextoutmsg,false,"No response for SOAP message recieved");
+    return make_soap_fault(outmsg,nextoutmsg,false,"No response for SOAP message received");
   };
   MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,false,"No valid response for SOAP message recieved");
+  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,false,"No valid response for SOAP message received");
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
   if(!outpayload) {
     return make_soap_fault(outmsg,nextoutmsg,false,"Response is not SOAP");

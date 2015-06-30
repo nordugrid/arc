@@ -67,13 +67,13 @@ class MessageAuthContext: public MessageAuth {
  are subject to following policies:
 
   1. All objects created inside call to process() method using new command must 
-     be explicitely destroyed within same call using delete command  with 
+     be explicitly destroyed within same call using delete command  with 
      following exceptions.
    a) Objects which are assigned to 'response' Message.
    b) Objects whose management is completely acquired by objects assigned to 
       'response' Message.
 
-  2. All objects not created inside call to process() method are not explicitely
+  2. All objects not created inside call to process() method are not explicitly
      destroyed within that call with following exception.
    a) Objects which are part of 'response' Method returned from call to next's 
       process() method. Unless those objects are passed further to calling

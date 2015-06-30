@@ -324,7 +324,7 @@
 ##    edg-mkgridmap://
 ##               - local configuration file used by edg-mkgridmap tool.
 ##                 nordugridmap will parse configuration from file and
-##                 process it as aditional [vo] block that will be refered
+##                 process it as additional [vo] block that will be refered
 ##                 authomatically in place URL specified. This allow
 ##                 easy migration from edg-mkgridmap solution without
 ##                 rewriting your previous configuration (NOTE that rarely
@@ -837,7 +837,7 @@
 
 ## norootpower yes|no - if set to yes, all job management proccesses
 ## will switch to mapped user's identity while accessing session
-## directory. This is usefull if session directory is on NFS
+## directory. This is useful if session directory is on NFS
 ## root squashing turned on. Default is no.
 #norootpower="yes"
 
@@ -882,7 +882,7 @@
 ## fixdirectories yes|missing|no - specifies during startup A-REX should
 ## create all directories needed for it operation and set suitable default
 ## permissions. If "no" is specified then A-REX does nothing to prepare its
-## operational environement. In case of "missing" A-REX only creates and
+## operational environment. In case of "missing" A-REX only creates and
 ## sets permissions for directories which are not present yet.  For "yes"
 ## all directories are created and permisisons for all used directories are
 ## set to default safe values. Default behavior is as if "yes" is specified.
@@ -893,7 +893,7 @@
 ##  an https URL defining the endpoint port and path:
 ##      https://<hostname>:<port>/<path>
 ##  In order to submit job a client must specify the exact published
-##  path. Make sure the choosen port is not blocked by firewall
+##  path. Make sure the chosen port is not blocked by firewall
 ##  or other security rules.
 #arex_mount_point="https://piff.hep.lu.se:60000/arex"
 
@@ -1123,7 +1123,7 @@
 #logsize="100000 2"
 
 ## pidfile path - Specify location of file containig PID of daemon process.
-## This is usefull for automatic star/stop scripts.
+## This is useful for automatic star/stop scripts.
 #pidfile="/var/run/gridftpd.pid"
 
 ## port bindport - Port to listen on (default 2811)
@@ -1217,7 +1217,7 @@
 ## [gridftpd/filedir] "fileplugin" storage block
 ## subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
 ## gridftp plugins are shared libraries.
-## "filedir" is a unique label. The acess control is set by using the
+## "filedir" is a unique label. The access control is set by using the
 ## "dir" config option
 ##
 #[gridftpd/filedir]

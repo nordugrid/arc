@@ -52,7 +52,7 @@ int main(void) {
   // Creating SecHandler configuration with allowed DNs
   Arc::DNListHandlerConfig dncfg(dns,"outgoing");
   // Adding SecHandler to client at TLS level.
-  // We have to explicitely specify method of ClientTCP 
+  // We have to explicitly specify method of ClientTCP 
   // class to attach SecHandler at proper location.
   client.Arc::ClientTCP::AddSecHandler(dncfg,Arc::TLSSec); 
   logger.msg(Arc::INFO, "Client side MCCs are loaded");

@@ -88,7 +88,7 @@ bool RunParallel::run(const GMConfig& config,const Arc::User& user,const char* j
 
 void RunParallel::initializer(void* arg) {
 #ifdef WIN32
-#error This functionality is not available in Windows environement
+#error This functionality is not available in Windows environment
 #else
   // child
   RunParallel* it = (RunParallel*)arg;

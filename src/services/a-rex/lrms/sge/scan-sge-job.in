@@ -162,7 +162,7 @@ handle_failedcode () {
       echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
       
     elif [ "$exitcode" = "0" ]; then
-      #olog "SGE job $id finished succesfully"
+      #olog "SGE job $id finished successfully"
       echo "0" > "$donefile"
 	    
     else

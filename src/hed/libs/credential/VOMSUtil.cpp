@@ -1203,11 +1203,11 @@ err:
           return false;
         }
         //attribute.append("/grantor=").append(grantor).append("/").append(qualifier).append(":").append(name).append("=").append(value);
-        std::string seperator;
-        if(qualifier.substr(0,1) != "/") seperator = "/";
+        std::string separator;
+        if(qualifier.substr(0,1) != "/") separator = "/";
         attribute.append("/voname=").append(voname).
                   append("/hostname=").append(uri).
-                  append(seperator).append(qualifier).append(":").append(name).
+                  append(separator).append(qualifier).append(":").append(name).
                   append("=").append(value);
         attributes.push_back(attribute);
       }

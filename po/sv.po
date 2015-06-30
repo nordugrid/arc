@@ -12640,7 +12640,7 @@ msgstr "felaktigt nummer i maxjobs"
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:32
 #, c-format
-msgid "Missing cancel-%s-job - job cancelation may not work"
+msgid "Missing cancel-%s-job - job cancellation may not work"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:36
@@ -13284,13 +13284,13 @@ msgstr "%s: Detta job kan fortfarande vara exekverande - avbryter"
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:352
 #, c-format
-msgid "%s: Cancelation failed (probably job finished) - cleaning anyway"
+msgid "%s: Cancellation failed (probably job finished) - cleaning anyway"
 msgstr ""
 "%s: Avbrytande misslyckades (troligen är jobbet avslutat) - rensar ändå"
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:358
 #, c-format
-msgid "%s: Cancelation probably succeeded - cleaning"
+msgid "%s: Cancellation probably succeeded - cleaning"
 msgstr "%s: Avbrytande troligen lyckosamt - rensar"
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:385

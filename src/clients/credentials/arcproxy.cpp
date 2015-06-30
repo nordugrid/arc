@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
                                     "  vomsACvalidityLeft - duration of VOMS attribute validity left in seconds.\n"
                                     "  proxyPolicy\n"
                                     "  keybits - size of proxy certificate key in bits.\n"
-                                    "  signingAlgorithm - algorith used to sign proxy certificate.\n"
+                                    "  signingAlgorithm - algorithm used to sign proxy certificate.\n"
                                     "Items are printed in requested order and are separated by newline.\n"
                                     "If item has multiple values they are printed in same line separated by |.\n"
                                     "\n"
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
                                     "  all - for any purspose.\n"
                                     "\n"
                                     "Supported password sources are:\n"
-                                    "  quoted string (\"password\") - explicitely specified password\n"
+                                    "  quoted string (\"password\") - explicitly specified password\n"
                                     "  int - interactively request password from console\n"
                                     "  stdin - read password from standard input delimited by newline\n"
                                     "  file:filename - read password from file named filename\n"
@@ -966,7 +966,7 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     if(!constraints["validityPeriod"].empty()) {
-      // If period is explicitely set then start is derived from end and period
+      // If period is explicitly set then start is derived from end and period
       validityStart = validityEnd - validityPeriod;
     } else {
       // otherwise start - optionally - and end are set, period is derived
@@ -1203,7 +1203,7 @@ int main(int argc, char *argv[]) {
   Arc::Time proxy_start = validityStart;
   Arc::Period proxy_period = validityPeriod;
   if (constraints["validityStart"].empty() && constraints["validityEnd"].empty()) {
-    // If start/end is not explicitely specified then add 5 min back gap.
+    // If start/end is not explicitly specified then add 5 min back gap.
     proxy_start = proxy_start - Arc::Period(300);
     proxy_period.SetPeriod(proxy_period.GetPeriod() + 300);
   }

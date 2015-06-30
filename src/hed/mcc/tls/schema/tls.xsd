@@ -181,14 +181,14 @@
             <xsd:documentation xml:lang="en">
             Encryption level to use. Can choose from 
               required - only ciphers with encryption are allowed (default for client),
-              prefered - ciphers with encryption prefered and without encryption allowd (default for server),
-              optional - ciphers with encryption allowed but without encryption prefered,
+              preferred - ciphers with encryption preferred and without encryption allowd (default for server),
+              optional - ciphers with encryption allowed but without encryption preferred,
               off - only ciphers without encryption are allowed.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="required"/>
-            <xsd:enumeration value="prefered"/>
+            <xsd:enumeration value="preferred"/>
             <xsd:enumeration value="optional"/>
             <xsd:enumeration value="off"/>
         </xsd:restriction>

@@ -186,7 +186,7 @@ namespace Arc {
     // This will not help against misbehaving information system 
     // because actual state of interface is not propagated to 
     // OtherEndpoints. But it should prevent submission to sites 
-    // where ldapng is explicitely disabled.
+    // where ldapng is explicitly disabled.
     bool ldapng_interface_present = false;
     for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
       if (((*it)->InterfaceName == "org.nordugrid.ldapng") &&

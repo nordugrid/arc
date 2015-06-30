@@ -170,7 +170,7 @@ namespace Arc {
       if (sec.enc == RequireEnc) {
         comp.NewChild("Encryption") = "required";
       } else if (sec.enc == PreferEnc) {
-        comp.NewChild("Encryption") = "prefered";
+        comp.NewChild("Encryption") = "preferred";
       } else if (sec.enc == OptionalEnc) {
         comp.NewChild("Encryption") = "optional";
       } else if (sec.enc == NoEnc) {
@@ -340,7 +340,7 @@ namespace Arc {
     sec.enc = RequireEnc;
     if(url.Option("encryption") == "required") {
       sec.enc = RequireEnc;
-    } else if(url.Option("encryption") == "prefered") {
+    } else if(url.Option("encryption") == "preferred") {
       sec.enc = PreferEnc;
     } else if(url.Option("encryption") == "optional") {
       sec.enc = OptionalEnc;

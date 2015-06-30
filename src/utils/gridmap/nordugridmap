@@ -593,7 +593,7 @@ sub write_mapfiles_data {
             my ($gmf, $tmp_mapfile) = tempfile($mapfile . "XXXXX", UNLINK => 1) or 
                 &Logger("Cannot open temporary file to write $mapfile data", FATAL);
 
-            &Logger("Writting mapfile data for $mapfile", INFO);
+            &Logger("Writing mapfile data for $mapfile", INFO);
 
             while ( my ($dn, $map) = each(%{$ref_mapfile_data->{$mapfile}}) ) {
                 print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (not enough disk space?) to $tmp_mapfile", FATAL);
@@ -1259,7 +1259,7 @@ sub write_cached_subjects {
 
     my $cache_file = &get_subject_cache_location($url);
 
-    &Logger("Writting cached subjects for $url to $cache_file", DEBUG);
+    &Logger("Writing cached subjects for $url to $cache_file", DEBUG);
     store($ref_subjects, $cache_file) or &Logger("Failed to write to the cache file $cache_file", WARNING);
 }
 

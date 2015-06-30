@@ -1739,7 +1739,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       if(!c) {
         found=false;
         // Probably it is wrong to create new delegation if
-        // client explicitely requests to renew.
+        // client explicitly requests to renew.
         //if(!(c = AddConsumer(id,client))) {
           GDS20FAULT(out,"Wrong identifier"); // ?
           return true;

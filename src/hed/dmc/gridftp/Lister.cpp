@@ -628,22 +628,22 @@ namespace ArcDMCGridFTP {
         GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       if (sresp) {
         logger.msg(INFO, "EPSV failed: %s", sresp);
-        result.SetDesc("EPSV comand failed at "+urlstr+" : "+sresp);
+        result.SetDesc("EPSV command failed at "+urlstr+" : "+sresp);
         free(sresp);
       } else {
         logger.msg(INFO, "EPSV failed");
-        result.SetDesc("EPSV comand failed at "+urlstr);
+        result.SetDesc("EPSV command failed at "+urlstr);
       }
       // Now try PASV. It will fail on IPv6 unless server provides IPv4 data channel.
       if (send_command("PASV", NULL, true, &sresp, NULL, '(') !=
           GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
         if (sresp) {
           logger.msg(INFO, "PASV failed: %s", sresp);
-          result.SetDesc("PASV comand failed at "+urlstr+" : "+sresp);
+          result.SetDesc("PASV command failed at "+urlstr+" : "+sresp);
           free(sresp);
         } else {
           logger.msg(INFO, "PASV failed");
-          result.SetDesc("PASV comand failed at "+urlstr);
+          result.SetDesc("PASV command failed at "+urlstr);
         }
         return result;
       }

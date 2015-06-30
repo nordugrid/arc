@@ -530,7 +530,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
                    proxycertinfo->proxyPolicy->policy->data,
                    proxycertinfo->proxyPolicy->policy->length);
               }
-              /* Use : as seperator for policies parsed from different proxy certificate*/
+              /* Use : as separator for policies parsed from different proxy certificate*/
               /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!
                  !!!!  policy collected anyway !!!! */
@@ -582,7 +582,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
             policy_string = (char*)PROXYPOLICY_get_policy(proxycertinfo->proxypolicy, &length);
             if(policy_string && (length > 0)) {
               vctx->proxy_policy.append(policy_string, length);
-              /* Use : as seperator for policies parsed from different
+              /* Use : as separator for policies parsed from different
                  proxy certificate*/
               /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!

@@ -508,7 +508,7 @@ namespace Arc {
     /**
      * When communicating with a service the timeout specifies how long,
      * in seconds, the communicating instance should wait for a
-     * response. If the response have not been recieved before this
+     * response. If the response have not been received before this
      * period in time, the connection is typically dropped, and an error
      * will be reported.
      *

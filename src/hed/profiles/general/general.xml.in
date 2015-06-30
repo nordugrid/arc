@@ -1142,7 +1142,7 @@ attributes depending on how the mapping should be done.
       </shep:StoreCfg>
 
       <shep:BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</shep:BackendClass>
-      <!-- BackendCfg: the configuration of the choosen backend -->
+      <!-- BackendCfg: the configuration of the chosen backend -->
       <shep:BackendCfg>
         <!-- StoreDir: path of the local directory to store the files -->
         <shep:StoreDir inisections="shepherd" initag="storedir" inidefaultvalue="/var/spool/arc/shepherd_store"/>

@@ -1076,7 +1076,7 @@ namespace Arc
         if (float_value==0)
           {
             Arc::Logger::rootLogger.msg(Arc::WARNING,
-                                        "Ignored incomming benchmark value: %s, Use float value!",
+                                        "Ignored incoming benchmark value: %s, Use float value!",
                                         value);
           }
         else

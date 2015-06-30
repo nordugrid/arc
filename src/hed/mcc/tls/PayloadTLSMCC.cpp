@@ -443,7 +443,7 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
     sslctx_ = NULL;
   }
   // bio_ was passed to ssl_ and hence does not need to
-  // be destroyed explicitely.
+  // be destroyed explicitly.
 }
 
 void PayloadTLSMCC::SetFailure(const std::string& err) {

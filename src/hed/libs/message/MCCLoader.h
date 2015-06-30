@@ -76,7 +76,7 @@ namespace Arc {
        creation of Message Chains.
        It is taken out from constructor to make it easier to reconfigure
        chains in a future.
-       Returns true if all objects were succesfully initialized 
+       Returns true if all objects were successfully initialized 
        and all links created. */
     bool make_elements(Config& cfg, int level = 0,
 		       mcc_connectors_t *mcc_connectors = NULL,

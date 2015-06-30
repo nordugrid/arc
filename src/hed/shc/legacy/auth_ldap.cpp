@@ -55,7 +55,7 @@ int AuthUser::match_ldap(const char* line) {
       std::string usersn("");
       gridftpd::LdapQuery ldap(url.Host(), url.Port(), false, usersn);
       logger.msg(Arc::INFO, "Connecting to %s:%i", url.Host(), url.Port());
-      logger.msg(Arc::INFO, "Quering at %s", url.Path());
+      logger.msg(Arc::INFO, "Querying at %s", url.Path());
       std::vector<std::string> attrs; attrs.push_back("description");
       try {
         ldap.Query(url.Path(),"",attrs,gridftpd::LdapQuery::onelevel);

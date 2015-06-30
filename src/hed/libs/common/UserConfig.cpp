@@ -509,9 +509,9 @@ namespace Arc {
               fts1 = file_test_success; fts2 = file_test_success;
               // Not found
               logger.msg(require?WARNING:VERBOSE, 
-                "Proxy certificate path was not explicitely set or does not exist or has\n"
+                "Proxy certificate path was not explicitly set or does not exist or has\n"
                 "improper permissions/ownership and not found at default location.\n"
-                "Key/certificate paths were not explicitely set or do not exist or have\n"
+                "Key/certificate paths were not explicitly set or do not exist or have\n"
                 "improper permissions/ownership and usercert.pem/userkey.pem not found\n"
                 "at default locations:\n"
                 "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"

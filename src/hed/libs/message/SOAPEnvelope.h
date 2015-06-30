@@ -43,7 +43,7 @@ class SOAPFault {
      Version of Fault element is picked from SOAP Body version. */
   SOAPFault(XMLNode body,SOAPFaultCode code,const char* reason);
   /** Creates Fault element inside @body SOAP Body node with specified @code and @reason.
-     SOAP version of Fault element must be specified explicitely. */
+     SOAP version of Fault element must be specified explicitly. */
   SOAPFault(XMLNode body,SOAPFaultCode code,const char* reason,bool ver12);
   /** Returns true if instance refers to SOAP Fault */
   operator bool(void) { return (bool)fault; };

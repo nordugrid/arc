@@ -32,7 +32,7 @@ void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
   std::string tool_path;
   tool_path=Arc::ArcLocation::GetDataDir()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
-    logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
+    logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancellation may not work",default_lrms);
   }
   tool_path=Arc::ArcLocation::GetDataDir()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {

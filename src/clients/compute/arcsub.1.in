@@ -244,7 +244,7 @@ Dumping the job description is done as follows:
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the ARC client
 configuration file. Registry and computing element services can be specified
-in seperate sections of the config. The default services can be specified by
+in separate sections of the config. The default services can be specified by
 adding 'default=yes' attribute to the section of the service,
 thus when no \fB--cluster\fR or \fB--index\fR
 options are given these will be used for submission. Each service has an alias,

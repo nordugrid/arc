@@ -43,7 +43,7 @@ Reference to another VO configuration block
 .B edg-mkgridmap://
 Local configuration file used by \fBedg-mkgridmap\fP tool.
 \fBnordugridmap\fP(8) will parse configuration from file and 
-process it as aditional VO configuration block that will be refered 
+process it as additional VO configuration block that will be refered 
 authomatically in place URL specified.
 .PP
 We are STRONGLY RECOMMEND TO READ tne Nordugruid ARC documentation, \fBarc.conf\fP(5) 

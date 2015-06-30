@@ -41,7 +41,7 @@ search    /usr/sbin/arc-infoindex-relay /var/run/arc/infosys/giis-fifo
 access to * by * write
 .fi
 
-When a query for the configured database is recieved by the slapd
+When a query for the configured database is received by the slapd
 server, the server will call out to the arc-infoindex-relay. The
 arc-infoindex-relay will then open a unique return FIFO for this query
 and then forward the query and the name of the return FIFO to the

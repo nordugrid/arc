@@ -159,7 +159,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id);
   bool state_changed = false;
   if(!state_submitting(i,state_changed,true)) {
-    logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id);
+    logger.msg(Arc::WARNING,"%s: Cancellation failed (probably job finished) - cleaning anyway",i->job_id);
     UnlockDelegation(i);
     job_clean_final(*i,config);
     if(i->local) delete i->local;
@@ -167,7 +167,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
     return true;
   }
   if(!state_changed) { ++i; return false; } // child still running
-  logger.msg(Arc::INFO,"%s: Cancelation probably succeeded - cleaning",i->job_id);
+  logger.msg(Arc::INFO,"%s: Cancellation probably succeeded - cleaning",i->job_id);
   UnlockDelegation(i);
   job_clean_final(*i,config);
   if(i->local) delete i->local;

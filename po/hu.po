@@ -12436,7 +12436,7 @@ msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:34
 #, c-format
-msgid "Missing cancel-%s-job - job cancelation may not work"
+msgid "Missing cancel-%s-job - job cancellation may not work"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:38
@@ -13217,12 +13217,12 @@ msgstr ""
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:356
 #, c-format
-msgid "%s: Cancelation failed (probably job finished) - cleaning anyway"
+msgid "%s: Cancellation failed (probably job finished) - cleaning anyway"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:362
 #, c-format
-msgid "%s: Cancelation probably succeeded - cleaning"
+msgid "%s: Cancellation probably succeeded - cleaning"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/jobs/states.cpp:389
@@ -14726,7 +14726,7 @@ msgstr ""
 
 #: src/services/gridftpd/auth/auth_ldap.cpp:50
 #, c-format
-msgid "Quering at %s"
+msgid "Querying at %s"
 msgstr ""
 
 #: src/services/gridftpd/auth/auth_ldap.cpp:55

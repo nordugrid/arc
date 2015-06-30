@@ -515,7 +515,7 @@ namespace Arc {
 
     /// Update ExecutionTarget after succesful job submission
     /**
-     * Method to update the ExecutionTarget after a job succesfully
+     * Method to update the ExecutionTarget after a job successfully
      * has been submitted to the computing resource it
      * represents. E.g. if a job is sent to the computing resource and
      * is expected to enter the queue, then the WaitingJobs attribute

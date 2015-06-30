@@ -348,7 +348,7 @@ echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLAT
 
 echo 'ret=$?' >>$LRMS_JOB_BOINC
 if [ $ret -eq 0 ];then
-echo "succesfully submitted workunit $wu"
+echo "successfully submitted workunit $wu"
 fi
 echo 'exit $ret' >>$LRMS_JOB_BOINC
 sh $LRMS_JOB_BOINC

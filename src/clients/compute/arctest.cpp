@@ -312,7 +312,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorte
   for (ets.reset(); !ets.endOfList(); ets.next()) {
     Arc::JobDescription preparedTestJob(testJob);
     std::string jobdesc;
-    // Prepare the test jobdescription according to the choosen ExecutionTarget
+    // Prepare the test jobdescription according to the chosen ExecutionTarget
     if (!preparedTestJob.Prepare(*ets)) {
       logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
       continue;

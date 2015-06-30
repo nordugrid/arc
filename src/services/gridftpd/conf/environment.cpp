@@ -186,7 +186,7 @@ namespace gridftpd {
       cert_dir_loc_=Arc::GetEnv("X509_CERT_DIR");
     };
   
-    // Set all environement variables for other tools
+    // Set all environment variables for other tools
     Arc::SetEnv("ARC_CONFIG",nordugrid_config_loc_);
     if(support_mail_address_.empty()) {
       char hn[100];
