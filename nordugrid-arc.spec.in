@@ -660,6 +660,7 @@ Components (DMCs).
 Summary:	ARC proxy client based on canl
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-client = %{version}-%{release}
 
 %description arcproxyalt
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1552,6 +1553,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files arcproxyalt
 %defattr(-,root,root,-)
 %{_bindir}/arcproxyalt
+%doc %{_mandir}/man1/arcproxyalt.1*
 %endif
 
 %if %{with_xrootd}

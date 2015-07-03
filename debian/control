@@ -53,14 +53,14 @@ Description: ARC command line interface
 
 Package: nordugrid-arc-arcproxyalt
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
-Description: ARC command line interface
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-client (= ${binary:Version})
+Description: ARC alternative arcproxy command based on caNl++
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  Technology preview for the ARC integration with caNl. This package
- provides arcproxyalt based on caNl.
+ provides arcproxyalt based on caNl++.
 
 Package: nordugrid-arc-hed
 Provides: nordugrid-arc1-server, nordugrid-arc-nox-hed
@@ -138,7 +138,7 @@ Description: ARC LDAP infosys service
  .
  This package contains the LDAP based information system for ARC.
  This package is not self-contained. it should be pulled in by either
- nordugrid-arc-arex to be a part of a local information system or by
+ nordugrid-arc-aris to be a part of a local information system or by
  nordugrid-arc-egiis to be a part of a EGIIS service.
 
 Package: nordugrid-arc-aris
@@ -151,10 +151,9 @@ Description: ARC local information system
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the LDAP based information system for ARC.
- This package is not self-contained. it should be pulled in by either
- nordugrid-arc-arex to be a part of a local information system or by
- nordugrid-arc-egiis to be a part of a EGIIS service.
+ This package contains the local information system for ARC.
+ This package is not self-contained but is closely connected to
+ nordugrid-arc-arex.
 
 Package: nordugrid-arc-egiis
 Provides: nordugrid-arc-nox-giis
