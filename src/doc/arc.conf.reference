@@ -1266,7 +1266,7 @@
 ##       dirlist - allow obtaining list of the files
 ##       cd      - allow to make this directory current
 ##       create owner:group permissions_or:permissions_and  - allow creating
-##                 new files. File will be owned by 'owner' ang owning group
+##                 new files. File will be owned by 'owner' and owning group
 ##                 will be 'group'. If '*' is used, the user/group to which
 ##                 connected user is mapped will be used. The permissions
 ##                 will be set to permissions_or & permissions_and. (second
