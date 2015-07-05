@@ -1,4 +1,4 @@
-EXTRA_DIST = changelog compat control copyright rules source/format \
+EXTRA_DIST = changelog compat control copyright rules watch source/format \
              $(srcdir)/*.install $(srcdir)/*.docs \
              $(srcdir)/*.default $(srcdir)/*.logrotate \
              $(srcdir)/*.postinst $(srcdir)/*.postrm \
