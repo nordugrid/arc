@@ -15,7 +15,7 @@ DIST_SUBDIRS = external doc hed libs tests services clients utils doxygen
 # some autotools experts fix it.
 if HED_ENABLED
 install-exec-hook:
-	test "x$(build_triplet)" = "x$(host_triplet)" && env LD_LIBRARY_PATH=$(DESTDIR)$(libdir):$(LD_LIBRARY_PATH) $(top_builddir)/src/utils/hed/arcplugin$(EXEEXT) -c $(DESTDIR)$(pkglibdir) -c  $(DESTDIR)$(pkglibdir)/test || echo "No .apd files since we are cross-compiling"
+	if test "x$(build_triplet)" = "x$(host_triplet)"; then env LD_LIBRARY_PATH=$(DESTDIR)$(libdir):$(LD_LIBRARY_PATH) $(top_builddir)/src/utils/hed/arcplugin$(EXEEXT) -c $(DESTDIR)$(pkglibdir) -c  $(DESTDIR)$(pkglibdir)/test; else echo "No .apd files since we are cross-compiling"; fi
 
 uninstall-local:
 	test "x$(build_triplet)" = "x$(host_triplet)" && rm -f $(DESTDIR)$(pkglibdir)/*.apd $(DESTDIR)$(pkglibdir)/test/*.apd
