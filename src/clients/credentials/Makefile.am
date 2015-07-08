@@ -32,14 +32,6 @@ arcproxyalt_LDADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(CANLXX_LIBS)
-
-install-data-hook:
-	cd $(DESTDIR)$(mandir)/man1 && rm -f arcproxyalt.1 && \
-        $(LN_S) arcproxy.1 arcproxyalt.1
-
-uninstall-hook:
-	cd $(DESTDIR)$(mandir)/man1 && rm -f arcproxyalt.1
-
 endif
 
 test2vomsserver_SOURCES = test2vomsserver.cpp

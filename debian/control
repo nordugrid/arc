@@ -53,7 +53,7 @@ Description: ARC command line interface
 
 Package: nordugrid-arc-arcproxyalt
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-client (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC alternative arcproxy command based on caNl++
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
