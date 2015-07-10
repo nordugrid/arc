@@ -1042,7 +1042,7 @@
 ## default is no
 #passivetransfer="no"
 
-## localtransfer yes|no - If yes, then the data download from to Grid to the
+## localtransfer yes|no - If yes, then the data download from Grid to the
 ## session directory (stagein) will be part of the batch job (prior to the
 ## execution of the binary). Default is no.
 #localtransfer="no"
