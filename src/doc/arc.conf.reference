@@ -1976,7 +1976,7 @@
 ##  https://github.com/OGF-GLUE/Enumerations
 ## However the sysadmin is free to enter new values if these are not
 ## present in the above registry.
-## If present, they will have the following effect:
+## If defined, these commands will have the following effect:
 ## GLUE2 rendering: their values override whatever is defined in opsys
 ## NorduGrid: their value will be added as an new entry to 
 ## existing nordugrid-cluster-opsys or nordugrid-queue-opsys  new entry
