@@ -1971,7 +1971,7 @@
 ## configuration variable. They define which operating system is running
 ## on the hardware (ExecutionEnvironment) behind a ComputingShare 
 ## (a specific set of resources, for example a batch system queue)
-## These strings are not supposed to be free text but they should be 
+## These strings are lowercase text and they should be
 ## listed and existing in the GLUE2 open enumerations at:
 ##  https://github.com/OGF-GLUE/Enumerations
 ## However the sysadmin is free to enter new values if these are not
