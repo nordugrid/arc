@@ -1878,6 +1878,8 @@
 ## If the NODES are inhomogeneous with respect to this attribute do NOT set it on
 ## cluster level, arrange your nodes into homogeneous groups assigned to a queue
 ## and use queue-level attributes.
+## opsys will be used to fill GLUE2 OSName, OSVersion and OSFamily unless
+## these values are explicitly defined. See below for their usage.
 #opsys="Linux-2.6.18"
 #opsys="glibc-2.5.58"
 #opsys="CentOS-5.6"
@@ -1964,6 +1966,35 @@
 ## by the underlying LRMS. In general there is no need to configure it.
 #cpudistribution=1cpu:3,2cpu:4,4cpu:1
 
+### GLUE2 specific attributes
+## OSName, OSVersion and OSFamily are a replacement for nordugrid opsys
+## configuration variable. They define which operating system is running
+## on the hardware (ExecutionEnvironment) behind a ComputingShare 
+## (a specific set of resources, for example a batch system queue)
+## These strings are not supposed to be free text but they should be 
+## listed and existing in the GLUE2 open enumerations at:
+##  https://github.com/OGF-GLUE/Enumerations
+## However the sysadmin is free to enter new values if these are not
+## present in the above registry.
+## If present, they will have the following effect:
+## GLUE2 rendering: their values override whatever is defined in opsys
+## NorduGrid: their value will be added as an new entry to 
+## existing nordugrid-cluster-opsys or nordugrid-queue-opsys  new entry
+## with the following format:
+## nordugrid-queue-opsys: <OSName value>-<OSversion value>
+## OSName - Name of the operating system distribution or product name. Lowercase.
+## Example: centos
+## Example: windowsxp
+# OSName="Ubuntu"
+## OSVersion - Vendor specific string that identifies the operating system
+## version.
+## Example: 6.6
+# OSVersion="12.04"
+## OSFamily - Name that identify a family of operating systems, e.g. linux 
+## kernel or windows kernel based. Lowercase.
+## Example: solaris
+## Example: windows
+# OSFamily="linux"
 
 ####################################################################
 ##
@@ -2124,13 +2155,19 @@
 ## attributes. When the frontend's architecture or cputype agrees with the queue
 ## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to
 ## request automatic determination of architecture or nodecpu.
+## For GLUE2, fine tune configuration of OSName, OSVersion, OSFamily
+## is allowed as described in the [cluster] block.
 #nodecpu="adotf"
 #nodememory="512"
 #architecture="adotf"
 #opsys="Fedora 16"
 #opsys="Linux-3.0"
+#OSName="Fedora"
+#OSVersion="16"
+#OSFamily="linux"
 #benchmark="SPECINT2000  222"
 #benchmark="SPECFP2000 333"
+
 
 ## queue access policy rules based on VOMS attributes in user's
 ## proxy certificate (requires the arc-vomsac-check plugin to be enabled).
