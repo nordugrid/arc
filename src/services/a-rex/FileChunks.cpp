@@ -89,9 +89,9 @@ void FileChunks::Remove(void) {
   if(refcount <= 0) {
     if(self != list.files.end()) {
       lock.unlock();
-      delete self->second;
       list.files.erase(self);
       list.lock.unlock();
+      delete this;
       return;
     }
   }
