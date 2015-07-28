@@ -454,12 +454,18 @@ Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 8
+Requires(post):		policycoreutils-python-utils
+Requires(postun):	policycoreutils-python-utils
+%else
 %if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
 Requires(post):		policycoreutils-python
 Requires(postun):	policycoreutils-python
+%else
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+Requires(post):		policycoreutils
+Requires(postun):	policycoreutils
+%endif
 %endif
 %endif
 
@@ -495,12 +501,18 @@ Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 8
+Requires(post):		policycoreutils-python-utils
+Requires(postun):	policycoreutils-python-utils
+%else
 %if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
 Requires(post):		policycoreutils-python
 Requires(postun):	policycoreutils-python
+%else
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+Requires(post):		policycoreutils
+Requires(postun):	policycoreutils
+%endif
 %endif
 %endif
 
