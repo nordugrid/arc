@@ -122,10 +122,7 @@ namespace ArcDMCRucio {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "rucio")
       return NULL;
-    // Change URL protocol to https
-    std::string rucio_url(((const URL&)(*dmcarg)).fullstr());
-    rucio_url.replace(0, 5, "https");
-    return new DataPointRucio(URL(rucio_url), *dmcarg, arg);
+    return new DataPointRucio(*dmcarg, *dmcarg, arg);
   }
 
   DataStatus DataPointRucio::Check(bool check_meta) {
@@ -279,7 +276,11 @@ namespace ArcDMCRucio {
     // SSL error happens if client certificate is specified, so only set CA dir
     MCCConfig cfg;
     cfg.AddCADir(usercfg.CACertificatesDirectory());
-    ClientHTTP client(cfg, url, usercfg.Timeout());
+    // Switch rucio protocol to http for lookup
+    URL rucio_url(url);
+    rucio_url.ChangeProtocol("http");
+    rucio_url.ChangePort(80);
+    ClientHTTP client(cfg, rucio_url, usercfg.Timeout());
 
     std::multimap<std::string, std::string> attrmap;
     std::string method("GET");
