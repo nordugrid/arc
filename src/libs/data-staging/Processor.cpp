@@ -223,6 +223,17 @@ namespace DataStaging {
           request->get_source()->NextLocation();
         }
       }
+      // Check that there are still replicas to use
+      if (!request->get_source()->HaveLocations()) {
+        request->get_logger()->msg(Arc::ERROR, "No locations left for %s", request->get_source()->str());
+        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "Could not resolve any source replicas for " + request->get_source()->str());
+        request->set_status(DTRStatus::RESOLVED);
+        request->connect_logger();
+        DTR::push(request, SCHEDULER);
+        return;
+      }
       // reset retries
       request->get_source()->SetTries(tries);
     }
