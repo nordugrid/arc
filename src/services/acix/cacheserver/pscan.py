@@ -65,8 +65,11 @@ def getARCCacheDirs():
     config = ARC_CONF
     if 'ARC_CONFIG' in os.environ:
         config = os.environ['ARC_CONFIG']
+    ingm = False
     for line in file(config):
-        if line.startswith('cachedir') or line.startswith('remotecachedir'):
+        if line.startswith('['):
+            ingm = line.startswith('[grid-manager]')
+        if ingm and line.startswith('cachedir') or line.startswith('remotecachedir'):
             args = line.split('=', 2)[1]
             cache_dir = args.split(' ')[0].replace('"', '').strip()
             cache_dirs.append(cache_dir)
