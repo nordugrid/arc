@@ -324,6 +324,28 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "No replicas found for " + request->get_source()->str());
       }
+      // If using ACIX, remove sources on our own host
+      if (request->get_use_acix()) {
+        int tries = request->get_source()->GetTries();
+        while (request->get_source()->LocationValid()) {
+          if (request->get_source()->CurrentLocation().Host() == Processor::hostname) {
+            request->get_logger()->msg(Arc::INFO, "Skipping replica on local host %s", request->get_source()->CurrentLocation().str());
+            request->get_source()->RemoveLocation();
+          } else {
+            request->get_source()->NextLocation();
+          }
+        }
+        // Check that there are still replicas to use
+        if (!request->get_source()->HaveLocations()) {
+          request->get_logger()->msg(Arc::ERROR, "No locations left for %s", request->get_source()->str());
+          request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                    DTRErrorStatus::ERROR_SOURCE,
+                                    "Could not resolve any source replicas for " + request->get_source()->str());
+        }
+        // reset retries
+        request->get_source()->SetTries(tries);
+      }
+
       request->set_status(DTRStatus::RESOLVED);
       request->connect_logger();
       DTR::push(request, SCHEDULER);
