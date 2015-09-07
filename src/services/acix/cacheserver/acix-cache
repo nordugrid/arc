@@ -133,7 +133,7 @@ log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles
     TACFILE=`mktemp` || exit 1
     echo $APPSTART > $TACFILE
 
-    $prog --pidfile $PIDFILE -y $TACFILE
+    $prog --pidfile $PIDFILE -y $TACFILE -l /dev/null
     RETVAL=$?
     rm -f $TACFILE
     if [ $RETVAL -eq 0 ]; then
