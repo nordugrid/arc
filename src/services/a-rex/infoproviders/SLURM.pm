@@ -89,7 +89,7 @@ sub slurm_read_partitions($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM partitions, store dictionary in scont_part
     my %scont_part;
-    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l\"|");
+    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L\"|");
     while(<SCPIPE>){
 	my %part;
 	my $string = $_;
@@ -100,9 +100,11 @@ sub slurm_read_partitions($){
 	my $totalcpus = get_variable("TotalCPUs",$string);
 	$part{TotalNodes} = get_variable("TotalNodes",$string);
 	$part{MaxTime} = get_variable("MaxTime",$string);
+	$part{DefTime} = get_variable("DefTime",$string);
 
 	#Translation of data
 	$part{MaxTime} = slurm_to_arc_time($part{MaxTime});
+	$part{DefTime} = slurm_to_arc_time($part{DefTime});
 	# Format of "%C" is: Number of CPUs by state in the format "allocated/idle/other/total"
 	# We only care about total:
 	######
@@ -416,13 +418,14 @@ sub queue_info ($$) {
     $lrms_queue{maxuserrun} = $scont_config{"MaxJobCount"};
 
     my $maxtime = $scont_part{$queue}{"MaxTime"};
+    my $deftime = $scont_part{$queue}{"DefTime"};
     
     $lrms_queue{maxcputime} = $maxtime;
     $lrms_queue{mincputime} = 0;
-    $lrms_queue{defaultcput} = $maxtime;
+    $lrms_queue{defaultcput} = $deftime;
     $lrms_queue{maxwalltime} = $maxtime;
     $lrms_queue{minwalltime} = 0;
-    $lrms_queue{defaultwallt} = $maxtime;
+    $lrms_queue{defaultwallt} = $deftime;
 
     ($lrms_queue{queued}, $lrms_queue{running}) = slurm_get_jobs($queue);
 
