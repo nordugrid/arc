@@ -192,7 +192,7 @@ public:
     std::cout << Arc::IString("Job submitted with jobid: %s", j.JobID) << std::endl;
     submittedJobs.push_back(j);
   }
-  
+
   void write() const {
     if (!jobidfile.empty() && !Arc::Job::WriteJobIDsToFile(submittedJobs, jobidfile)) {
       logger.msg(Arc::WARNING, "Cannot write job IDs to file (%s)", jobidfile);
@@ -247,7 +247,7 @@ private:
 
 static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
-  
+
   HandleSubmittedJobs hsj(jobidfile, usercfg);
   Arc::Submitter s(usercfg);
   s.addConsumer(hsj);
@@ -267,7 +267,7 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
           it = services.erase(it);
           continue;
         }
-        
+
         it->InterfaceName = requestedSubmissionInterface;
         ++it;
       }
@@ -306,7 +306,7 @@ static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
     }
     // TODO: What to do when failing to load other plugins.
   }
-    
+
   hsj.printsummary(jobdescriptionlist, s.GetDescriptionsNotSubmitted());
 
   return retval;
@@ -363,10 +363,10 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
       for (ets.reset(); !ets.endOfList(); ets.next()) {
         if(!requestedSubmissionInterface.empty() && ets->ComputingEndpoint->InterfaceName != requestedSubmissionInterface) continue;
         if (!jobdescdump.Prepare(*ets)) {
-          logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
+          logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString);
           continue;
         }
-  
+
         std::string jobdesclang = "nordugrid:jsdl";
         if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
           jobdesclang = "nordugrid:xrsl";
@@ -379,10 +379,10 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
         }
         std::string jobdesc;
         if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
-          logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString); 
+          logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString);
           continue;
         }
-  
+
         std::cout << Arc::IString("Job description to be sent to %s:", ets->AdminDomain->Name) << std::endl;
         std::cout << jobdesc << std::endl;
         descriptionDumped = true;

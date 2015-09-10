@@ -24,7 +24,7 @@ namespace Arc {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
       return subarg ? new SubmitterPluginARC1(*subarg, arg) : NULL;
     }
-    
+
     bool isEndpointNotSupported(const std::string& endpoint) const;
 
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);

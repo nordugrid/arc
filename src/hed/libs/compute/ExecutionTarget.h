@@ -34,7 +34,7 @@ namespace Arc {
    * The listed structures are all used for holding resource information when
    * doing resource discovery and those structures are read when doing match
    * making.
-   * 
+   *
    * \ingroup compute
    */
 
@@ -48,7 +48,7 @@ namespace Arc {
    * GLUE2 description:
    * A description of installed application software or software environment
    * characteristics available within one or more Execution Environments.
-   * 
+   *
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
@@ -135,7 +135,7 @@ namespace Arc {
 
     bool ConnectivityIn;
     bool ConnectivityOut;
-    
+
     friend std::ostream& operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
   };
 
@@ -309,7 +309,7 @@ namespace Arc {
     int PreLRMSWaitingJobs;
     // This is singular in the GLUE2 doc: JobDescription
     std::list<std::string> JobDescriptions;
-    
+
     friend std::ostream& operator<<(std::ostream&, const ComputingEndpointAttributes&);
   };
 
@@ -430,7 +430,7 @@ namespace Arc {
    * members contained in this class, with a few exceptions, are directly
    * linked to attributes defined in the GLUE Specification v. 2.0
    * (GFD-R-P.147).
-   * 
+   *
    * \ingroup compute
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h

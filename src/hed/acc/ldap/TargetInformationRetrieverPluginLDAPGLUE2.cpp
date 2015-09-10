@@ -100,7 +100,7 @@ namespace Arc {
       service.set("ServiceID", cs->ID);
       service.set("ServiceQualityLevel", cs->QualityLevel);
       service.set("ServiceCapability", cs->Capability);
-      
+
       service.set("ComputingServiceTotalJobs", cs->TotalJobs);
       service.set("ComputingServiceRunningJobs", cs->RunningJobs);
       service.set("ComputingServiceWaitingJobs", cs->WaitingJobs);
@@ -119,10 +119,10 @@ namespace Arc {
         endpoint.set("URL", ComputingEndpoint->URLString);
         endpoint.set("Capability", ComputingEndpoint->Capability);
         endpoint.set("Technology", ComputingEndpoint->Technology);
-        
+
         endpoint.set("InterfaceName", ComputingEndpoint->InterfaceName);
         ComputingEndpoint->InterfaceName = lower(ComputingEndpoint->InterfaceName);
-        
+
         endpoint.set("InterfaceVersion", ComputingEndpoint->InterfaceVersion);
         endpoint.set("InterfaceExtension", ComputingEndpoint->InterfaceExtension);
         endpoint.set("SupportedProfile", ComputingEndpoint->SupportedProfile);
@@ -196,8 +196,8 @@ namespace Arc {
             tokenize(*it, fswdPair, ":");
             long duration = LONG_MAX;
             int freeSlots = 0;
-            if ((fswdPair.size() > 2) || 
-                (fswdPair.size() >= 1 && !stringto(fswdPair.front(), freeSlots)) || 
+            if ((fswdPair.size() > 2) ||
+                (fswdPair.size() >= 1 && !stringto(fswdPair.front(), freeSlots)) ||
                 (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
               logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute is wrongly formatted. Ignoring it.");
               logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);

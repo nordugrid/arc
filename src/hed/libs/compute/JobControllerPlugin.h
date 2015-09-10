@@ -50,7 +50,7 @@ namespace Arc {
     virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const = 0;
 
     virtual std::string GetGroupID() const { return ""; }
-    
+
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
   protected:
@@ -62,7 +62,7 @@ namespace Arc {
   /** Class responsible for loading JobControllerPlugin plugins
    * The JobControllerPlugin objects returned by a JobControllerPluginLoader
    * must not be used after the JobControllerPluginLoader goes out of scope.
-   * 
+   *
    * \ingroup accplugins
    * \headerfile JobControllerPlugin.h arc/compute/JobControllerPlugin.h
    */
@@ -92,7 +92,7 @@ namespace Arc {
 
   private:
     void initialiseInterfacePluginMap(const UserConfig& uc);
-  
+
     std::multimap<std::string, JobControllerPlugin*> jobcontrollers;
     static std::map<std::string, std::string> interfacePluginMap;
   };

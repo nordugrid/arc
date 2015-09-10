@@ -117,7 +117,7 @@ namespace Arc {
     if (!interfacePluginMap.empty()) {
       return;
     }
-    
+
     std::list<ModuleDesc> modules;
     PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
     factory.scan(FinderLoader::GetLibrariesList(), modules);
@@ -133,11 +133,11 @@ namespace Arc {
       // Map supported interfaces to available plugins.
       for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end(); ++itT) {
         SubmitterPlugin* p = load(*itT, uc);
-  
+
         if (!p) {
           continue;
         }
-  
+
         for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
           if (!itT->empty()) { // Do not allow empty interface.
             // If two plugins supports two identical interfaces, then only the last will appear in the map.
@@ -179,14 +179,14 @@ namespace Arc {
     if (interfacePluginMap.empty()) {
       initialiseInterfacePluginMap(uc);
     }
-    
+
     std::map<std::string, std::string>::const_iterator itPN = interfacePluginMap.find(name);
     if (itPN != interfacePluginMap.end()) {
       std::map<std::string, SubmitterPlugin*>::iterator itS = submitters.find(itPN->second);
       if (itS != submitters.end()) {
         return itS->second;
       }
-      
+
       return load(itPN->second, uc);
     }
 

@@ -31,10 +31,10 @@ namespace Arc {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
-  
+
   void JobControllerPluginEMIES::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     if (jobs.empty()) return;
-    
+
     std::map<std::string, std::list<Job*> > groupedJobs;
     if (!isGrouped) {
       // Group jobs per host.
@@ -52,13 +52,13 @@ namespace Arc {
     else {
       groupedJobs.insert(make_pair(jobs.front()->JobManagementURL.str(), jobs));
     }
-    
+
     for (std::map<std::string, std::list<Job*> >::iterator it = groupedJobs.begin();
          it != groupedJobs.end(); ++it) {
       std::list<EMIESResponse*> responses;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(it->first));
       ac->info(it->second, responses);
-      
+
       for (std::list<Job*>::iterator itJ = it->second.begin();
            itJ != it->second.end(); ++itJ) {
         std::list<EMIESResponse*>::iterator itR = responses.begin();
@@ -82,12 +82,12 @@ namespace Arc {
           IDsNotProcessed.push_back((**itJ).JobID);
         }
       }
-      
+
       for (std::list<EMIESResponse*>::iterator itR = responses.begin();
            itR != responses.end(); ++itR) {
         delete *itR;
       }
-      
+
       ((EMIESClients&)clients).release(ac.Release());
     }
   }
@@ -108,11 +108,11 @@ namespace Arc {
         ((EMIESClients&)clients).release(ac.Release());
         continue;
       }
-      
+
       IDsProcessed.push_back(job.JobID);
       ((EMIESClients&)clients).release(ac.Release());
     }
-    
+
     return ok;
   }
 
@@ -132,7 +132,7 @@ namespace Arc {
         ((EMIESClients&)clients).release(ac.Release());
         continue;
       }
-      
+
       (*it)->State = JobStateEMIES((std::string)"emies:TERMINAL");
       IDsProcessed.push_back((*it)->JobID);
       ((EMIESClients&)clients).release(ac.Release());
@@ -152,7 +152,7 @@ namespace Arc {
         IDsNotProcessed.push_back((*it)->JobID);
         continue;
       }
-      // 2. Leave only unique IDs - not needed yet because current code uses 
+      // 2. Leave only unique IDs - not needed yet because current code uses
       //    different delegations for each job.
       // 3. Renew credentials for every ID
       Job& job = **it;
@@ -211,7 +211,7 @@ namespace Arc {
     if (resource == Job::JOBDESCRIPTION) {
       return false;
     }
-    
+
     // Obtain information about staging urls
     EMIESJob ejob;
     ejob = job;
@@ -275,7 +275,7 @@ namespace Arc {
       }
       ((EMIESClients&)clients).release(ac.Release());
     }
-    
+
     switch (resource) {
     case Job::STDIN:
       url.ChangePath(url.Path() + '/' + job.StdIn);

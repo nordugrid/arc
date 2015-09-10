@@ -53,7 +53,7 @@ namespace Arc {
     FTPControl ctrl;
     URL url((endpoint.find("://") == std::string::npos ? "gsiftp://" : "") + endpoint, false, 2811, "/jobs");
     URL infoURL("ldap://" + url.Host(), false, 2135, "/Mds-Vo-name=local,o=Grid");
-    
+
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       if (!ctrl.Connect(url, usercfg)) {
@@ -63,7 +63,7 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       if (!ctrl.SendCommand("CWD " + url.Path(), usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD command");
         ctrl.Disconnect(usercfg.Timeout());
@@ -72,9 +72,9 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       std::string response;
-  
+
       if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
         ctrl.Disconnect(usercfg.Timeout());
@@ -83,16 +83,16 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       std::string::size_type pos2 = response.rfind('"');
       std::string::size_type pos1 = response.rfind('/', pos2 - 1);
       std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
-  
+
       JobDescription preparedjobdesc(*it);
-  
+
       if (preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"].empty())
         preparedjobdesc.UnParse(preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"], "nordugrid:xrsl");
-  
+
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarccompute-" VERSION;
@@ -118,7 +118,7 @@ namespace Arc {
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
-  
+
       if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending job description");
         ctrl.Disconnect(usercfg.Timeout());
@@ -127,7 +127,7 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
@@ -135,11 +135,11 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       URL jobid(url);
       URL ContactString(url);
       jobid.ChangePath(jobid.Path() + '/' + jobnumber);
-  
+
       if (!PutFiles(preparedjobdesc, jobid)) {
         logger.msg(INFO, "Submit: Failed uploading local input files");
         notSubmitted.push_back(&*it);
@@ -183,9 +183,9 @@ namespace Arc {
 
     // gridftp and ldapng intterfaces are bound. So for submiting to
     // to gridftp presence of ldapng is needed.
-    // This will not help against misbehaving information system 
-    // because actual state of interface is not propagated to 
-    // OtherEndpoints. But it should prevent submission to sites 
+    // This will not help against misbehaving information system
+    // because actual state of interface is not propagated to
+    // OtherEndpoints. But it should prevent submission to sites
     // where ldapng is explicitly disabled.
     bool ldapng_interface_present = false;
     for (std::list< CountedPointer<ComputingEndpointAttributes> >::const_iterator it = et.OtherEndpoints.begin(); it != et.OtherEndpoints.end(); it++) {
@@ -204,7 +204,7 @@ namespace Arc {
 
     FTPControl ctrl;
     URL url(et.ComputingEndpoint->URLString);
-    
+
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       if (!ctrl.Connect(url, usercfg)) {
         logger.msg(INFO, "Submit: Failed to connect");
@@ -213,7 +213,7 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       if (!ctrl.SendCommand("CWD " + url.Path(), usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD command");
         ctrl.Disconnect(usercfg.Timeout());
@@ -222,9 +222,9 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       std::string response;
-  
+
       if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
         ctrl.Disconnect(usercfg.Timeout());
@@ -233,16 +233,16 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       std::string::size_type pos2 = response.rfind('"');
       std::string::size_type pos1 = response.rfind('/', pos2 - 1);
       std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
-  
+
       JobDescription preparedjobdesc(*it);
-  
+
       if (preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"].empty())
         preparedjobdesc.UnParse(preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"], "nordugrid:xrsl");
-  
+
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarccompute-" VERSION;
@@ -251,7 +251,7 @@ namespace Arc {
       gethostname(hostname, 1024);
       preparedjobdesc.OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
   #endif
-  
+
       if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description to target resources.");
         ctrl.Disconnect(usercfg.Timeout());
@@ -259,7 +259,7 @@ namespace Arc {
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
-  
+
       std::string jobdescstring;
       JobDescriptionResult ures = preparedjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER");
       if (!ures) {
@@ -268,7 +268,7 @@ namespace Arc {
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
-  
+
       if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed sending job description");
         ctrl.Disconnect(usercfg.Timeout());
@@ -277,7 +277,7 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
@@ -285,11 +285,11 @@ namespace Arc {
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-  
+
       URL jobid(url);
       URL ContactString(url);
       jobid.ChangePath(jobid.Path() + '/' + jobnumber);
-  
+
       if (!PutFiles(preparedjobdesc, jobid)) {
         logger.msg(INFO, "Submit: Failed uploading local input files");
         notSubmitted.push_back(&*it);
@@ -315,7 +315,7 @@ namespace Arc {
       }
 
       Job j;
-      
+
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobid.fullstr();
       j.ServiceInformationURL = infoendpoint;
@@ -331,7 +331,7 @@ namespace Arc {
       j.StageInDir = jobid;
       j.StageOutDir = jobid;
       j.SessionDir = jobid;
-      
+
       AddJobDetails(preparedjobdesc, j);
       jc.addEntity(j);
     }

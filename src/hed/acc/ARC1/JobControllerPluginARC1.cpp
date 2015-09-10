@@ -23,9 +23,9 @@
 namespace Arc {
 
   Logger JobControllerPluginARC1::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC1");
-  
+
   URL JobControllerPluginARC1::GetAddressOfResource(const Job& job) {
-    return job.ServiceInformationURL; 
+    return job.ServiceInformationURL;
   }
 
   bool JobControllerPluginARC1::isEndpointNotSupported(const std::string& endpoint) const {
@@ -65,7 +65,7 @@ namespace Arc {
       IDsProcessed.push_back(job.JobID);
       ((AREXClients&)clients).release(ac.Release());
     }
-    
+
     return ok;
   }
 
@@ -86,7 +86,7 @@ namespace Arc {
       IDsProcessed.push_back(job.JobID);
       ((AREXClients&)clients).release(ac.Release());
     }
-    
+
     return ok;
   }
 
@@ -108,9 +108,9 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID, job.RestartState.GetGeneralState(), job.RestartState());
-  
+
       AutoPointer<AREXClient> ac(((AREXClients&)clients).acquire(GetAddressOfResource(job), true));
       std::string idstr;
       AREXClient::createActivityIdentifier(URL(job.JobID), idstr);
@@ -125,7 +125,7 @@ namespace Arc {
       ((AREXClients&)clients).release(ac.Release());
       logger.msg(VERBOSE, "Job resuming successful");
     }
-    
+
     return ok;
   }
 

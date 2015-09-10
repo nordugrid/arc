@@ -620,21 +620,21 @@ namespace Arc {
         logger.msg(VERBOSE, "Unable to select runtime environment");
         return false;
       }
-  
+
       if (!Resources.CEType.empty() &&
           !Resources.CEType.selectSoftware(et->ComputingEndpoint->Implementation)) {
         // This error should never happen since Middleware is checked in the Broker.
         logger.msg(VERBOSE, "Unable to select middleware");
         return false;
       }
-  
+
       if (!Resources.OperatingSystem.empty() &&
           !Resources.OperatingSystem.selectSoftware(et->ExecutionEnvironment->OperatingSystem)) {
         // This error should never happen since OS is checked in the Broker.
         logger.msg(VERBOSE, "Unable to select operating system.");
         return false;
       }
-  
+
       // Set queue name to the selected ExecutionTarget
       Resources.QueueName = et->ComputingShare->Name;
     }
@@ -649,7 +649,7 @@ namespace Arc {
       logger.msg(ERROR, "No test-job with ID %d found.", testid);
       return false;
     }
-    
+
     std::string description;
     testJobFile.seekg(0, std::ios::end);
     description.reserve(testJobFile.tellg());

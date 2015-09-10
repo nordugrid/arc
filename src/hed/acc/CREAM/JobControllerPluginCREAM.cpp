@@ -75,7 +75,7 @@ namespace Arc {
       job.State = JobStateCREAM("CANCELLED");
       IDsProcessed.push_back(job.JobID);
     }
-    
+
     return ok;
   }
 
@@ -102,7 +102,7 @@ namespace Arc {
       }
       IDsProcessed.push_back(job.JobID);
     }
-    
+
     return ok;
   }
 
@@ -127,7 +127,7 @@ namespace Arc {
       return false;
       break;
     }
-    
+
     return true;
   }
 
@@ -139,7 +139,7 @@ namespace Arc {
       logger.msg(INFO, "Failed retrieving job description for job: %s", j.JobID);
       return false;
     }
-    
+
     return true;
   }
 

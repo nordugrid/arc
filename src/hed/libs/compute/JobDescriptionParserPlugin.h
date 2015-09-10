@@ -78,7 +78,7 @@ namespace Arc {
    * The JobDescriptionParserPlugin objects returned by a
    * JobDescriptionParserPluginLoader must not be used after the
    * JobDescriptionParserPluginLoader goes out of scope.
-   * 
+   *
    * \ingroup accplugins
    * \headerfile JobDescriptionParserPlugin.h arc/compute/JobDescriptionParserPlugin.h
    */

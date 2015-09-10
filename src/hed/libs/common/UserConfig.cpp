@@ -323,7 +323,7 @@ namespace Arc {
       joblisttype = "BDB";
       return true;
     }
-    
+
     joblisttype = type;
     return true;
   }
@@ -349,7 +349,7 @@ namespace Arc {
             ((initializeCredentials == initializeCredentialsType::RequireCredentials) ||
              (initializeCredentials == initializeCredentialsType::TryCredentials) ||
              (initializeCredentials == initializeCredentialsType::SkipCARequireCredentials) ||
-             (initializeCredentials == initializeCredentialsType::SkipCATryCredentials)); 
+             (initializeCredentials == initializeCredentialsType::SkipCATryCredentials));
     bool noca =
             ((initializeCredentials == initializeCredentialsType::SkipCARequireCredentials) ||
              (initializeCredentials == initializeCredentialsType::SkipCATryCredentials) ||
@@ -364,7 +364,7 @@ namespace Arc {
     // Look for credentials.
     std::string proxy_path = GetEnv("X509_USER_PROXY");
     if (!proxy_path.empty()) {
-      proxyPath = proxy_path;     
+      proxyPath = proxy_path;
       file_test_status fts;
       if (test && ((fts = private_file_test(proxyPath, user)) != file_test_success)) {
         proxy_file_error_report(fts,require,proxyPath,logger);
@@ -508,7 +508,7 @@ namespace Arc {
               key_file_error_report(fts2,false,keyPath,logger);
               fts1 = file_test_success; fts2 = file_test_success;
               // Not found
-              logger.msg(require?WARNING:VERBOSE, 
+              logger.msg(require?WARNING:VERBOSE,
                 "Proxy certificate path was not explicitly set or does not exist or has\n"
                 "improper permissions/ownership and not found at default location.\n"
                 "Key/certificate paths were not explicitly set or do not exist or have\n"
@@ -571,7 +571,7 @@ namespace Arc {
                         "%s/share/certificates, /etc/grid-security/certificates.\n"
                         "The certificate will not be verified.\n"
                         "If the CA certificates directory does exist, please manually specify the locations via env\n"
-                        "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n", 
+                        "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n",
                         ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
                       res = false;
                     }
@@ -773,7 +773,7 @@ namespace Arc {
                 common["defaultservices"].Destroy();
             }
           }
-          
+
           while (common["rejectdiscovery"]) {
             rejectDiscoveryURLs.push_back((std::string)common["rejectdiscovery"]);
             common["rejectdiscovery"].Destroy();
@@ -783,7 +783,7 @@ namespace Arc {
             rejectManagementURLs.push_back((std::string)common["rejectmanagement"]);
             common["rejectmanagement"].Destroy();
           }
-    
+
           HANDLESTRATT("overlayfile", OverlayFile)
           if(!overlayfile.empty())
             if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
@@ -823,7 +823,7 @@ namespace Arc {
                 service.RequestedSubmissionInterfaceName = SubmissionInterface();
               }
             }
-              
+
             allServices[alias] = service;
             if (section["default"] && section["default"] != "no") {
               defaultServices.push_back(service);
@@ -907,7 +907,7 @@ namespace Arc {
       file << "submissioninterface = " << submissioninterface << std::endl;
     if (!infointerface.empty())
       file << "infointerface = " << infointerface << std::endl;
-    
+
     for (std::map<std::string, ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
       if (it->second.type == ConfigEndpoint::REGISTRY) {
         file << "[registry/" << it->first << "]" << std::endl;
@@ -916,7 +916,7 @@ namespace Arc {
           file << "registryinterface = " << it->second.InterfaceName << std::endl;
         }
       } else {
-        file << "[computing/" << it->first << "]" << std::endl;                  
+        file << "[computing/" << it->first << "]" << std::endl;
         file << "url = " << it->second.URLString << std::endl;
         if (!it->second.InterfaceName.empty()) {
           file << "infointerface = " << it->second.InterfaceName << std::endl;
@@ -934,7 +934,7 @@ namespace Arc {
         }
       }
     }
-    
+
     logger.msg(INFO, "UserConfiguration saved to file (%s)", filename);
 
     return true;
@@ -1047,11 +1047,11 @@ TODO: Make FileUtils function to this
     }
     return services;
   }
-  
+
   std::list<ConfigEndpoint> UserConfig::GetDefaultServices(ConfigEndpoint::Type type) {
     return FilterServices(defaultServices, type);
   }
-  
+
   ConfigEndpoint UserConfig::GetService(const std::string& alias) {
     return allServices[alias];
   }
@@ -1064,7 +1064,7 @@ TODO: Make FileUtils function to this
     }
     return FilterServices(services, type);
   }
-  
+
 
   std::list<ConfigEndpoint> UserConfig::GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type) {
     return FilterServices(groupMap[group], type);
@@ -1105,7 +1105,7 @@ TODO: Make FileUtils function to this
     return service;
   }
 
-  
+
 
 static std::string cert_file_fix(const std::string& old_file,std::string& new_file) {
   struct stat st;

@@ -39,7 +39,7 @@ namespace Arc {
    * SubmitterPlugin objects. The class submits job(s) to the computing
    * resource it represents and uploads (needed by the job) local
    * input files.
-   * 
+   *
    * \headerfile SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */
   class SubmitterPlugin : public Plugin {
@@ -112,7 +112,7 @@ namespace Arc {
   /** Class responsible for loading SubmitterPlugin plugins
    * The SubmitterPlugin objects returned by a SubmitterPluginLoader
    * must not be used after the SubmitterPluginLoader is destroyed.
-   * 
+   *
    * \ingroup accplugins
    * \headerfile SubmitterPlugin.h arc/compute/SubmitterPlugin.h
    */

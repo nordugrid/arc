@@ -37,17 +37,17 @@ namespace Arc {
     std::list<std::string> idsProcessed, idsNotProcessed;
     return CleanJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
-  
+
   bool JobControllerPlugin::CancelJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<std::string> idsProcessed, idsNotProcessed;
     return CancelJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
-  
+
   bool JobControllerPlugin::RenewJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<std::string> idsProcessed, idsNotProcessed;
     return RenewJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
   }
-  
+
   bool JobControllerPlugin::ResumeJobs(const std::list<Job*>& jobs, bool isGrouped) const {
     std::list<std::string> idsProcessed, idsNotProcessed;
     return ResumeJobs(jobs, idsProcessed, idsNotProcessed, isGrouped);
@@ -77,11 +77,11 @@ namespace Arc {
       // Map supported interfaces to available plugins.
       for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end(); ++itT) {
         JobControllerPlugin* p = load(*itT, uc);
-  
+
         if (!p) {
           continue;
         }
-  
+
         for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
           if (!itT->empty()) { // Do not allow empty interface.
             // If two plugins supports two identical interfaces, then only the last will appear in the map.
@@ -120,14 +120,14 @@ namespace Arc {
     if (interfacePluginMap.empty()) {
       initialiseInterfacePluginMap(uc);
     }
-    
+
     std::map<std::string, std::string>::const_iterator itPN = interfacePluginMap.find(name);
     if (itPN != interfacePluginMap.end()) {
       std::map<std::string, JobControllerPlugin*>::iterator itJC = jobcontrollers.find(itPN->second);
       if (itJC != jobcontrollers.end()) {
         return itJC->second;
       }
-      
+
       return load(itPN->second, uc);
     }
 

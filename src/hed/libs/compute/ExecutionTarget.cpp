@@ -53,7 +53,7 @@ namespace Arc {
           continue;
         }
       }
-      
+
       // Create list of other endpoints.
       std::list< CountedPointer<ComputingEndpointAttributes> > OtherEndpoints;
       for (std::map<int, ComputingEndpointType>::const_iterator itOE = ComputingEndpoint.begin();
@@ -63,7 +63,7 @@ namespace Arc {
         }
         OtherEndpoints.push_back(itOE->second.Attributes);
       }
-      
+
       if (!itCE->second.ComputingShareIDs.empty()) {
         for (std::set<int>::const_iterator itCSIDs = itCE->second.ComputingShareIDs.begin();
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
@@ -118,12 +118,12 @@ namespace Arc {
 
   template<typename T>
   void ComputingServiceType::AddExecutionTarget(T&, const ExecutionTarget&) const {}
-  
+
   template<>
   void ComputingServiceType::AddExecutionTarget< std::list<ExecutionTarget> >(std::list<ExecutionTarget>& etList, const ExecutionTarget& et) const {
     etList.push_back(et);
   }
-  
+
   SubmissionStatus ExecutionTarget::Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
     return Submitter(ucfg).Submit(*this, jobdesc, job);
   }
@@ -194,24 +194,24 @@ namespace Arc {
     bool isAtStartOfLine;
     std::string indent;
     std::ostream* owner;
-      
+
   protected:
     virtual int overflow(int ch) {
       if (isAtStartOfLine && ch != '\n') dest->sputn(indent.data(), indent.size());
       isAtStartOfLine = (ch == '\n');
       return dest->sputc(ch);
     }
-  
+
   public:
     explicit Indenter(std::streambuf* dest, unsigned indentSize = 2)
       : dest(dest), isAtStartOfLine(true), indent(indentSize, ' '), owner(NULL) {}
-  
+
     explicit Indenter(std::ostringstream& dest, unsigned indentSize = 2)
       : dest(dest.rdbuf()), isAtStartOfLine(true), indent(indentSize, ' '), owner(&dest) { owner->rdbuf(this); }
-    
+
     explicit Indenter(std::ostream& dest, unsigned indentSize = 2)
       : dest(dest.rdbuf()), isAtStartOfLine(true), indent(indentSize, ' '), owner(&dest) { owner->rdbuf(this); }
-    
+
     virtual ~Indenter() { if (owner != NULL) owner->rdbuf(dest); }
   };
 
@@ -293,7 +293,7 @@ namespace Arc {
     // Period MaxTotalWallTime; // not in current Glue2 draft
     // std::string MappingQueue;
     // std::string ID;
-    
+
     if (!cs.Name.empty())                    out << IString("Name: %s", cs.Name) << std::endl;
     if (cs.MaxWallTime > -1)                 out << IString("Max wall-time: %s", cs.MaxWallTime.istr()) << std::endl;
     if (cs.MaxTotalWallTime > -1)            out << IString("Max total wall-time: %s", cs.MaxTotalWallTime.istr()) << std::endl;
@@ -340,7 +340,7 @@ namespace Arc {
     if (cs.UsedSlots > -1)                   out << IString("Used slots: %i", cs.UsedSlots) << std::endl;
     if (cs.RequestedSlots > -1)              out << IString("Requested slots: %i", cs.RequestedSlots) << std::endl;
     if (!cs.ReservationPolicy.empty())       out << IString("Reservation policy: %s", cs.ReservationPolicy) << std::endl;
-    
+
     return out;
   }
 
@@ -372,10 +372,10 @@ namespace Arc {
     if (cm.WorkingAreaLifeTime > -1)  out << IString("Working area life time: %s", cm.WorkingAreaLifeTime.istr()) << std::endl;
     if (cm.CacheTotal > -1)           out << IString("Cache area total size: %i GB", cm.CacheTotal) << std::endl;
     if (cm.CacheFree > -1)            out << IString("Cache area free size: %i GB", cm.CacheFree) << std::endl;
-    
+
     return out;
   }
-  
+
   std::ostream& operator<<(std::ostream& out, const ExecutionEnvironmentAttributes& ee) {
     if (!ee.Platform.empty())                     out << IString("Platform: %s", ee.Platform) << std::endl;
     if (ee.ConnectivityIn)                        out << IString("Execution environment supports inbound connections") << std::endl;
@@ -399,7 +399,7 @@ namespace Arc {
     std::ostringstream buffer;
 
     out << IString("Computing service:") << std::endl;
-    
+
     Indenter iOut(out);
     buffer << *cst;
     if (buffer.tellp() > 0) {
@@ -412,7 +412,7 @@ namespace Arc {
       out << buffer.str();
     }
     buffer.str("");
-    
+
     buffer << *cst.AdminDomain;
     if (buffer.tellp() > 0) {
       out << buffer.str();
@@ -435,7 +435,7 @@ namespace Arc {
         out << endpointBuffer.str();
       }
     }
-    
+
     if (!cst.ComputingManager.empty()) {
       out << std::endl;
       if (cst.ComputingManager.size() > 1) {
@@ -459,7 +459,7 @@ namespace Arc {
         out << managerBuffer.str();
       }
     }
-    
+
     if (!cst.ComputingShare.empty()) {
       out << std::endl;
       if (cst.ComputingShare.size() > 1) {
@@ -475,7 +475,7 @@ namespace Arc {
         out << queueBuffer.str();
       }
     }
-    
+
     return out;
   }
 
@@ -495,7 +495,7 @@ namespace Arc {
     if (!et.ComputingEndpoint->HealthState.empty()){
       out << IString(" Health state: %s", et.ComputingEndpoint->HealthState) << std::endl;
     }
-    
+
     out << std::endl << *et.Location;
     out << std::endl << *et.AdminDomain << std::endl;
     out << IString("Service information:") << std::endl << *et.ComputingService;
@@ -512,12 +512,12 @@ namespace Arc {
 
     out << IString("Batch system information:");
     out << *et.ComputingManager;
-    
+
     out << IString("Queue information:");
     out << *et.ComputingShare;
-    
+
     out << std::endl << *et.ExecutionEnvironment;
-    
+
     // Benchmarks
     if (!et.Benchmarks->empty()) {
       out << IString(" Benchmark information:") << std::endl;

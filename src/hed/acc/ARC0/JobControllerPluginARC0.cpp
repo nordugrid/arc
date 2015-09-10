@@ -68,7 +68,7 @@ namespace Arc {
 
     for (std::map<std::string, std::list<Job*> >::iterator hostit =
            jobsbyhost.begin(); hostit != jobsbyhost.end(); ++hostit) {
-             
+
       std::list<Job*> &jobsOnHost = hostit->second;
       while (!jobsOnHost.empty()) {
         logger.msg(DEBUG, "Jobs left to query: %d", jobsOnHost.size());
@@ -82,31 +82,31 @@ namespace Arc {
         }
         logger.msg(DEBUG, "Querying batch with %d jobs", batch.size());
         URL infourl = batch.front()->JobStatusURL;
-  
+
         // merge filters
         std::string filter = "(|";
         for (std::list<Job*>::iterator it = batch.begin(); it != batch.end(); ++it) {
           filter += (*it)->JobStatusURL.LDAPFilter();
         }
         filter += ")";
-  
+
         infourl.ChangeLDAPFilter(filter);
-  
+
         DataBuffer buffer;
         DataHandle handler(infourl, usercfg);
-  
+
         if (!handler) {
           logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");
           return;
         }
-  
+
         if (!handler->StartReading(buffer)) continue;
-  
+
         int handle;
         unsigned int length;
         unsigned long long int offset;
         std::string result;
-  
+
         while (buffer.for_write() || !buffer.eof_read())
           if (buffer.for_write(handle, length, offset, true)) {
             result.append(buffer[handle], length);
@@ -114,11 +114,11 @@ namespace Arc {
           }
 
         if (!handler->StopReading()) continue;
-  
+
         XMLNode xmlresult(result);
         XMLNodeList jobinfolist =
           xmlresult.Path("o/Mds-Vo-name/nordugrid-cluster-name/nordugrid-queue-name/nordugrid-info-group-name/nordugrid-job-globalid");
-  
+
         for (std::list<Job*>::iterator jit = batch.begin();
              jit != batch.end(); ++jit) {
           XMLNodeList::iterator xit = jobinfolist.begin();
@@ -127,7 +127,7 @@ namespace Arc {
               break;
             }
           }
-  
+
           if (xit == jobinfolist.end()) {
             logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID);
             if (Time() - (*jit)->LocalSubmissionTime < 90)
@@ -137,7 +137,7 @@ namespace Arc {
             IDsNotProcessed.push_back((*jit)->JobID);
             continue;
           }
-  
+
           if ((*xit)["nordugrid-job-status"])
             (*jit)->State = JobStateARC0((std::string)(*xit)["nordugrid-job-status"]);
           if ((*xit)["nordugrid-job-globalowner"])
@@ -220,7 +220,7 @@ namespace Arc {
           if ((*xit)["nordugrid-job-runtimeenvironment"])
             for (XMLNode n = (*xit)["nordugrid-job-runtimeenvironment"]; n; ++n)
               (*jit)->RequestedApplicationEnvironment.push_back((std::string)n);
-  
+
           jobinfolist.erase(xit);
           IDsProcessed.push_back((*jit)->JobID);
         }
@@ -232,9 +232,9 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      
+
       logger.msg(VERBOSE, "Cleaning job: %s", job.JobID);
-  
+
       FTPControl ctrl;
       if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for job cleaning");
@@ -242,33 +242,33 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
-  
+
       if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending RMD command for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Failed to disconnect after job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       IDsProcessed.push_back(job.JobID);
       logger.msg(VERBOSE, "Job cleaning successful");
     }
@@ -282,7 +282,7 @@ namespace Arc {
       Job& job = **it;
 
       logger.msg(VERBOSE, "Cancelling job: %s", job.JobID);
-  
+
       FTPControl ctrl;
       if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for job cancelling");
@@ -290,33 +290,33 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
-  
+
       if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending DELE command for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Failed to disconnect after job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       IDsProcessed.push_back(job.JobID);
       job.State = JobStateARC0("KILLED");
       logger.msg(VERBOSE, "Job cancelling successful");
@@ -329,9 +329,9 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-  
+
       logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID);
-  
+
       FTPControl ctrl;
       if (!ctrl.Connect(URL(job.JobID), usercfg)) {
         logger.msg(INFO, "Failed to connect for credential renewal");
@@ -339,32 +339,32 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       std::string path = URL(job.JobID).Path();
       std::string::size_type pos = path.rfind('/');
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
-  
+
       if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
       }
-  
+
       if (!ctrl.Disconnect(usercfg.Timeout())) {
         logger.msg(INFO, "Failed to disconnect after credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       IDsProcessed.push_back(job.JobID);
       logger.msg(VERBOSE, "Renewal of credentials was successful");
     }
@@ -376,14 +376,14 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-  
+
       if (!job.RestartState) {
         logger.msg(INFO, "Job %s does not report a resumable state", job.JobID);
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       // dump rsl into temporary file
       std::string urlstr = job.JobID;
       std::string::size_type pos = urlstr.rfind('/');
@@ -396,9 +396,9 @@ namespace Arc {
       std::string jobnr = urlstr.substr(pos + 1);
       urlstr = urlstr.substr(0, pos) + "/new/action";
       logger.msg(VERBOSE, "HER: %s", urlstr);
-  
+
       std::string rsl("&(action=restart)(jobid=" + jobnr + ")");
-  
+
       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arcresume.XXXXXX");
       if (!TmpFileCreate(filename, rsl)) {
         logger.msg(INFO, "Could not create temporary file: %s", filename);
@@ -406,7 +406,7 @@ namespace Arc {
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
-  
+
       // Send temporary file to cluster
       DataMover mover;
       FileCache cache;
@@ -432,11 +432,11 @@ namespace Arc {
       else {
         logger.msg(INFO, "Current transfer complete");
       }
-  
+
       IDsProcessed.push_back(job.JobID);
       logger.msg(VERBOSE, "Job resuming successful");
     }
-  
+
     return ok;
   }
 
