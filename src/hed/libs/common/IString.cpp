@@ -65,7 +65,7 @@ namespace Arc {
     return *this;
   }
 
-  std::string IString::str(void) {
+  std::string IString::str(void) const {
     std::string s;
     p->msg(s);
     return s;
