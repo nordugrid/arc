@@ -2,12 +2,10 @@ debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/jura
 debian/tmp/usr/lib/arc/ssmsend
-debian/tmp/usr/lib/arc/downloader
 debian/tmp/usr/lib/arc/gm-jobs
 debian/tmp/usr/lib/arc/gm-kick
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
-debian/tmp/usr/lib/arc/uploader
 debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/arc-vomsac-check
 debian/tmp/usr/lib/arc/arc-config-check
