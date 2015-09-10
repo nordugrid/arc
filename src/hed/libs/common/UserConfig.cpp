@@ -651,7 +651,7 @@ namespace Arc {
     if (!conffile.empty()) {
       IniConfig ini(conffile);
       if (ini) {
-        logger.msg(INFO, "Loading configuration (%s)", conffile);
+        logger.msg(DEBUG, "Loading configuration (%s)", conffile);
 
         // Legacy alias support
         if (ini["alias"]) {
