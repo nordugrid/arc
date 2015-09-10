@@ -1236,7 +1236,7 @@
 #groupcfg="users"
 
 ## the name of the virtual directory served by the gridftp server, REQUIRED
-## the exported storage area is accessable as gsiftp://my_server/topdir.
+## the exported storage area is accessible as gsiftp://my_server/topdir.
 ## "topdir" is just an example, call the virtual path anything you like,
 ## even "/" is a valid choice.
 #path="/topdir"
