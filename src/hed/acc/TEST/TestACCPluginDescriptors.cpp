@@ -15,8 +15,8 @@ Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
   { "TEST", "HED:JobControllerPlugin", "", 0, &Arc::JobControllerPluginTestACC::GetInstance },
   { "TEST", "HED:JobDescriptionParserPlugin", "", 0, &Arc::JobDescriptionParserPluginTestACC::GetInstance },
   { "TEST", "HED:SubmitterPlugin", "", 0, &Arc::SubmitterPluginTestACC::GetInstance },
-  { "TEST", Arc::TargetInformationRetrieverPluginTEST::kind.c_str(), "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },
-  { "TEST", Arc::ServiceEndpointRetrieverPluginTEST::kind.c_str(), "ServiceEndpointRetriever test plugin", 0, &Arc::ServiceEndpointRetrieverPluginTEST::Instance },
-  { "TEST", Arc::JobListRetrieverPluginTEST::kind.c_str(), "JobListRetriever test plugin", 0, &Arc::JobListRetrieverPluginTEST::Instance },
+  { "TEST", "HED:TargetInformationRetrieverPlugin", "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },
+  { "TEST", "HED:ServiceEndpointRetrieverPlugin", "ServiceEndpointRetriever test plugin", 0, &Arc::ServiceEndpointRetrieverPluginTEST::Instance },
+  { "TEST", "HED:JobListRetrieverPlugin", "JobListRetriever test plugin", 0, &Arc::JobListRetrieverPluginTEST::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
