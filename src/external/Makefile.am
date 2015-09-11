@@ -1,2 +1,6 @@
-SUBDIRS = cJSON libs3
-DIST_SUBDIRS = cJSON libs3
+if S3_DMC_ENABLED
+ S3_SD=libs3
+endif
+
+SUBDIRS = cJSON  $(S3_SD) 
+DIST_SUBDIRS = cJSON  $(S3_SD) 
