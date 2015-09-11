@@ -78,7 +78,10 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
             /* Watchdog need to be initialized before fork to make sure it is shared */
             WatchdogListener wdl;
             while(true) { // stay in loop waiting for watchdog alarm
-                if(watchdog) pid = ::fork();
+                if(watchdog) {
+                    logger.msg(WARNING, "Watchdog (re)starting application");
+                    pid = ::fork();
+                }
                 switch(pid) {
                     case -1: // parent fork error
                         logger.msg(ERROR, "Watchdog fork failed: %s", StrError(errno));
@@ -88,6 +91,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                         init_child(log_file);
                         break;
                     default: // watchdog
+                        logger.msg(WARNING, "Watchdog starting monitoring");
                         init_parent(pid,pid_file);
                         bool error;
                         int status = 0;
@@ -107,6 +111,13 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                         /* check if child already exited */
                         if(rpid == pid) {
                             /* child exited */
+                            if(WIFSIGNALED(status)) {
+                                logger.msg(WARNING, "Watchdog detected application exit due to signal %u", WTERMSIG(status));
+                            } else if(WIFEXITED(status)) {
+                                logger.msg(WARNING, "Watchdog detected application exited with code %u", WEXITSTATUS(status));
+                            } else {
+                                logger.msg(WARNING, "Watchdog detected application exit");
+                            }
                             if(WIFSIGNALED(status) && 
                                ((WTERMSIG(status) == SIGSEGV) ||
                                 (WTERMSIG(status) == SIGFPE) ||
@@ -114,9 +125,11 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                                 (WTERMSIG(status) == SIGILL))) {
                             } else {
                                 /* child either exited itself or was asked to */
+                                logger.msg(WARNING, "Watchdog exiting because application was purposely killed or exited itself");
                                 _exit(1);
                             }
                         } else {
+                            logger.msg(ERROR, "Watchdog detected application timeout - killing process");
                             /* watchdog timeouted - kill process */
                             // TODO: more sophisticated killing
                             //sighandler_t old_sigterm = ::signal(SIGTERM,SIG_IGN);

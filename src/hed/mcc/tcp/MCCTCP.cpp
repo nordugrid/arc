@@ -157,6 +157,9 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,
                 };
                 continue;
             };
+            // Set REUSEADDR so that after crash re-binding works despite TIME_WAIT sockets
+            int resuseaddr_arg = 1;
+            setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &resuseaddr_arg, sizeof(resuseaddr_arg));
 #ifdef IPV6_V6ONLY
             if(info_->ai_family == AF_INET6) {
               int v = 1;
