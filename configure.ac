@@ -166,6 +166,7 @@ enables_altpython=yes
 enables_pylint=yes
 enables_mock_dmc=no
 enables_gfal=no
+enables_s3=no
 enables_xrootd=yes
 enables_argus=no
 enables_xmlsec1=yes
@@ -228,6 +229,7 @@ enables_altpython=$enableval
 enables_pylint=$enableval
 enables_mock_dmc=$enableval
 enables_gfal=$enableval
+enables_s3=$enableval
 enables_xrootd=$enableval
 enables_xmlsec1=$enableval
 enables_argus=$enableval
@@ -1662,12 +1664,22 @@ fi
 AC_ARG_ENABLE(mock-dmc, AC_HELP_STRING([--enable-mock-dmc], [enable mock DMC, default is disable]),[enables_mock_dmc="$enableval"],[])
 
 # Check for GFAL2
-
 AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [enable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
 if test "x$enables_gfal" = "xyes"; then
   PKG_CHECK_MODULES(GFAL2, gfal_transfer, [], [enables_gfal="no"])
   AC_SUBST(GFAL2_CFLAGS)
   AC_SUBST(GFAL2_LIBS)
+fi
+
+# Check for S3
+AC_ARG_ENABLE(s3, AC_HELP_STRING([--enable-s3], [enable the S3 support, default is disable]),[enables_s3="$enableval"],[])
+if test "x$enables_s3" = "xyes"; then
+ PKG_CHECK_MODULES(CURL, [libcurl], [
+    CURL_LIBS=`curl-config --libs`
+    CURL_CFLAGS=`curl-config --cflags`
+    ])
+ AC_SUBST(CURL_CFLAGS)
+ AC_SUBST(CURL_LIBS)
 fi
 
 # Check for xrootd (c++)
@@ -1709,6 +1721,7 @@ AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([MOCK_DMC_ENABLED], test x$enables_mock_dmc = xyes)
 AM_CONDITIONAL([GFAL_ENABLED], test x$enables_gfal = xyes)
+AM_CONDITIONAL([S3_DMC_ENABLED], test x$enables_s3 = xyes)
 AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
@@ -2247,11 +2260,12 @@ AC_SUBST(SPECDATE)
 AH_BOTTOM([#ifdef WIN32
 #include <arc/win32.h>
 #endif])
-
+# src/external/libs3/Makefile
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/external/Makefile
                  src/external/cJSON/Makefile
+                 src/external/libs3/Makefile
                  src/hed/Makefile
                  src/hed/libs/compute/Makefile
                  src/hed/libs/compute/test/Makefile
@@ -2340,6 +2354,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/mock/Makefile
                  src/hed/dmc/acix/Makefile
                  src/hed/dmc/rucio/Makefile
+                 src/hed/dmc/s3/Makefile
                  src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
@@ -2585,6 +2600,7 @@ Available third-party features:
 
 GridFTP:            ${enables_gridftp}
 GFAL:               ${enables_gfal}
+S3:                 ${enables_s3}
 Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}
 LDAP:               ${enables_ldap}

@@ -456,7 +456,8 @@ namespace Arc {
       long long int bufsize;
       int bufnum;
       /* tune buffers */
-      bufsize = 65536; /* have reasonable buffer size */
+      // bufsize = 16384; // 65536; /* have reasonable buffer size */
+       bufsize =65536; /* have reasonable buffer size */
       bool seekable = destination.WriteOutOfOrder();
       source.ReadOutOfOrder(seekable);
       bufnum = 1;
