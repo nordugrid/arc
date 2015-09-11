@@ -276,10 +276,12 @@ namespace ArcDMCRucio {
     // SSL error happens if client certificate is specified, so only set CA dir
     MCCConfig cfg;
     cfg.AddCADir(usercfg.CACertificatesDirectory());
-    // Switch rucio protocol to http for lookup
+    // Switch rucio protocol to http(s) for lookup
     URL rucio_url(url);
-    rucio_url.ChangeProtocol("http");
-    rucio_url.ChangePort(80);
+    rucio_url.ChangeProtocol(url.Port() == 80 ? "http" : "https");
+    if (rucio_url.Port() == -1) {
+      rucio_url.ChangePort(url.Protocol() == "http" ? 80 : 443);
+    }
     ClientHTTP client(cfg, rucio_url, usercfg.Timeout());
 
     std::multimap<std::string, std::string> attrmap;
