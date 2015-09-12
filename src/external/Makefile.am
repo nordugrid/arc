@@ -3,4 +3,4 @@ if S3_DMC_ENABLED
 endif
 
 SUBDIRS = cJSON  $(S3_SD) 
-DIST_SUBDIRS = cJSON  $(S3_SD) 
+DIST_SUBDIRS = cJSON  libs3
