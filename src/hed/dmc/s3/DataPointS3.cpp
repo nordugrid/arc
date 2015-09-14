@@ -571,13 +571,20 @@ void DataPointS3::write_file() {
 
 DataStatus DataPointS3::StartWriting(DataBuffer &buf, DataCallback *space_cb) {
   if (reading)
+
     return DataStatus::IsReadingError;
   if (writing)
     return DataStatus::IsWritingError;
   writing = true;
+
+  /* Check if size for source is defined */
+  if (!CheckSize()) {
+    return DataStatus(DataStatus::WriteStartError,
+                      "Size of the source file missing. S3 needs to know it.");
+  }
+
   /* try to open */
   buffer = &buf;
-
   buffer->set(NULL, 16384, 3);
   buffer->speed.reset();
   buffer->speed.hold(false);
