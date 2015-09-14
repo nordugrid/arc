@@ -80,7 +80,7 @@ if [ ! -z "$joboption_priority" ]; then
   #first we must scale priority.  PBS: -1024 -> 1023 ARC: 0-100
   priority=$((joboption_priority * (1024+1023) / 100))
   priority=$((priority-1024))
-  echo "#$ -p ${priority}" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -p ${priority}" >> $LRMS_JOB_SCRIPT
 fi
 
 
