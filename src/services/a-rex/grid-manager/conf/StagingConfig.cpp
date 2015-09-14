@@ -156,7 +156,10 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
     }
     else if (command == "localtransfer") {
       std::string sec = config_next_arg(rest);
-      if (sec == "yes") local_transfer = true;
+      if (sec == "yes") {
+        local_transfer = false;
+        logger.msg(Arc::WARNING, "Localtransfer deprecated. Localtransfer has been turned off.");
+      }
     }
     else if (command == "httpgetpartial") {
       std::string partial = config_next_arg(rest);

@@ -265,7 +265,9 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(!cancel) {  // in case of cancel all preparations are already done
       const char *local_transfer_s = NULL;
       if(staging_config.get_local_transfer()) {
-        local_transfer_s="joboption_localtransfer=yes";
+        //localtransfer is deprecated
+        logger.msg(Arc::WARNING,"Localtransfer is deprecated, but turned on in arc.conf. Job will be submitted with localtransfer=no.");
+        local_transfer_s="joboption_localtransfer=no";
       }
       if(!job_desc_handler.write_grami(*i,local_transfer_s)) {
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
@@ -423,6 +425,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
 
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up) {
 
+/* This should no longer be needed since local transfer was deprecated.
   if (staging_config.get_local_transfer()) {
     // just check user-uploaded files for PREPARING jobs
     if (up) {
@@ -440,6 +443,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     // error
     return false;
   }
+*/
 
   // first check if job is already in the system
   if (!dtr_generator->hasJob(*i)) {

@@ -177,11 +177,10 @@ set_req_mem () {
         echo "---------------------------------------------------------------------" 1>&2
     fi
 
-    if [ "$joboption_localtransfer" = 'yes' ] && [ "$joboption_memory" -lt 1000 ]; then
+    if [ "$joboption_localtransfer" = 'yes' ]; then
         echo "---------------------------------------------------------------------" 1>&2
-        echo "WARNING: localtransfers are enabled and job has less than 1GB of  " 1>&2
-        echo "         ram. up- and downloaders take up a lot of ram, this can give" 1>&2
-        echo "         you problems.                                               " 1>&2
+        echo "WARNING: localtransfers are enabled, but option is deprecated.       " 1>&2
+        echo "         Job will proceed with localtransfer disabled.               " 1>&2
         echo "---------------------------------------------------------------------" 1>&2
     fi
 
@@ -403,59 +402,14 @@ setup_local_transfer () {
 #######################################################################
 
 upload_output_files () {
-   if [ "$joboption_localtransfer" = 'yes' ] ; then
-     echo "UPLOADER=\${UPLOADER:-$ARC_LOCATION/@pkglibexecsubdir@/uploader}" >> $LRMS_JOB_SCRIPT
-     cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-     if [ "$RESULT" = '0' ] ; then
-       $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-       if [ $? -ne '0' ] ; then
-         echo 'ERROR: Uploader failed.' 1>&2
-         if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
-       fi
-     fi
-     rm -f "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-EOSCR
-   fi
+## function is deprecated
 }
 
 #######################################################################
 # downloading input files (this might fail for fork)
 #######################################################################
 download_input_files () {
-  if [ "$joboption_localtransfer" = 'yes' ] ; then
-    RUNTIME_ARC_LOCATION="$ARC_LOCATION"
-    RUNTIME_GLOBUS_LOCATION="$GLOBUS_LOCATION"
-    echo "ARC_LOCATION=\${ARC_LOCATION:-$RUNTIME_ARC_LOCATION}" >> $LRMS_JOB_SCRIPT
-    echo "GLOBUS_LOCATION=\${GLOBUS_LOCATION:-$RUNTIME_GLOBUS_LOCATION}" >> $LRMS_JOB_SCRIPT
-    echo "DOWNLOADER=\${DOWNLOADER:-$ARC_LOCATION/@pkglibexecsubdir@/downloader}" >> $LRMS_JOB_SCRIPT
-    cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-    if [ -z "$ARC_LOCATION" ] ; then
-      echo 'Variable ARC_LOCATION is not set' 1>&2
-      exit 1
-    fi
-    if [ -z "$GLOBUS_LOCATION" ] ; then
-      echo 'Variable GLOBUS_LOCATION is not set' 1>&2
-      exit 1
-    fi
-    export GLOBUS_LOCATION
-    export ARC_LOCATION
-    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-      export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib"
-    else
-      export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
-    fi
-    export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
-    export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-    export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-    export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-    unset X509_RUN_AS_SERVER
-    $DOWNLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-    if [ $? -ne '0' ] ; then
-      echo 'ERROR: Downloader failed.' 1>&2
-      exit 1
-    fi
-EOSCR
-  fi
+## function is deprecated
 }
 
 ##############################################################

@@ -126,13 +126,6 @@ if [ -z "${joboption_arg_0}" ] ; then
   exit 1
 fi
 
-#######################################################################
-# copy information useful for transfering files to/from node directly
-#######################################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-   setup_local_transfer
-fi
-
 setup_runtime_env
 
 ##############################################################

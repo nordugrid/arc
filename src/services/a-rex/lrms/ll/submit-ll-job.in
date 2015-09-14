@@ -163,7 +163,7 @@ if [ -z "${joboption_arg_0}" ] ; then
   exit 1
 fi
 
-if [ ! "$joboption_localtransfer" = 'yes' ] ; then
+if [ "$joboption_localtransfer" = 'no' ] ; then
   program_start=`echo ${joboption_arg_0} | cut -c 1 2>&1`
   if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
     if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
@@ -232,13 +232,6 @@ echo "# @ queue" >> $LRMS_JOB_SCRIPT
 echo " " >> $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
-
-#######################################################################
-# copy information useful for transfering files to/from node directly
-#######################################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-   setup_local_transfer
-fi
 
 setup_runtime_env
 

@@ -17,7 +17,7 @@ basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
-
+joboption_localtransfer='no'
 ##############################################################
 # Set LSF specific environment. # relies on $joboption_queue #
 ##############################################################
@@ -37,8 +37,6 @@ read_arc_conf
 #RUNTIME_FRONTEND_SEES_NODE='yes'
 #RUNTIME_NODE_SEES_FRONTEND='yes'
 
-#TODO should this be specified here?
-joboption_localtransfer='no'
 
 ##############################################################
 # Zero stage of runtime environments
@@ -161,7 +159,7 @@ fi
 ##############################################################
 if [ ! -z "$joboption_priority" ]; then
   #first we must parse the max priority
-  maxprio=`bparams -a| grep MAX_USER_PRIORITY | cut -f 2 -d '=' | cut -f 2 -d ' '`
+  maxprio=`${LSF_BPARAMS} -a| grep MAX_USER_PRIORITY | cut -f 2 -d '=' | cut -f 2 -d ' '`
   #scale priority LSF: 1 -> MAX_USER_PRIORITY ARC: 0-100
   if [ ! -z "$maxprio" ]; then
     if [ "$maxprio" -gt "0" ]; then
@@ -199,7 +197,7 @@ if [ -z "${joboption_arg_0}" ] ; then
   echo "Submission: Job description error.">>"$failures_file"
   exit 1
 fi
-if [ ! "$joboption_localtransfer" = 'yes' ] ; then
+if [ "$joboption_localtransfer" = 'no' ] ; then
   program_start=`echo ${joboption_arg_0} | head -c 1 2>&1`
   if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
     if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
@@ -214,12 +212,6 @@ if [ ! "$joboption_localtransfer" = 'yes' ] ; then
       exit 1
     fi
   fi
-fi
-#######################################################################
-# copy information useful for transfering files to/from node directly
-#######################################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-  setup_local_transfer
 fi
 
 ######################################################################
@@ -321,24 +313,6 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 #  Runtime (post)configuration at computing node
 ##############################################################
 configure_runtime
-
-#####################################################
-#  Upload output files
-####################################################
-if [ "$joboption_localtransfer" = 'yes' ] ; then
-echo "UPLOADER=\${UPLOADER:-$basedir/uploader}" >> $LRMS_JOB_SCRIPT
-cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-if [ "$RESULT" = '0' ] ; then
-  $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-  if [ $? -ne '0' ] ; then
-    echo 'ERROR: Uploader failed.' 1>&2
-    if [ "$RESULT" = '0' ] ; then RESULT=1 ; fi
-  fi
-fi
-rm -f "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-EOSCR
-fi
-
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
