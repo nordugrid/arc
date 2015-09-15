@@ -126,6 +126,10 @@ namespace DataStaging {
       args.push_back("--topt");
       args.push_back("maxinacttime="+Arc::tostring(transfer_params.max_inactivity_time));
 
+      if (dtr->get_source()->CheckSize()) {
+        args.push_back("--size");
+        args.push_back(Arc::tostring(dtr->get_source()->GetSize()));
+      }
       if (dtr->get_source()->CheckCheckSum()) {
         std::string csum(dtr->get_source()->GetCheckSum());
         std::string::size_type pos(csum.find(':'));

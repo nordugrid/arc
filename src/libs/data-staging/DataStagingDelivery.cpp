@@ -93,6 +93,7 @@ int main(int argc,char* argv[]) {
   // --sopt: any URL option, credential - path to file storing credentials
   // --dopt: any URL option, credential - path to file storing credentials
   // --topt: minspeed, minspeedtime, minavgspeed, maxinacttime, avgtime
+  // --size: total size of data to be transferred
   // --cstype: checksum type to calculate
   // --csvalue: checksum value of source file to validate against
   // surl, durl, cstype and csvalue may be given only once
@@ -104,6 +105,7 @@ int main(int argc,char* argv[]) {
   std::list<std::string> source_opts;
   std::list<std::string> dest_opts;
   std::list<std::string> transfer_opts;
+  std::string size;
   std::string checksum_type;
   std::string checksum_value;
   std::string source_cred_path;
@@ -116,6 +118,7 @@ int main(int argc,char* argv[]) {
   opt.AddOption(0,"sopt","","source options",source_opts);
   opt.AddOption(0,"dopt","","destination options",dest_opts);
   opt.AddOption(0,"topt","","transfer options",transfer_opts);
+  opt.AddOption(0,"size","","total size",size);
   opt.AddOption(0,"cstype","","checksum type",checksum_type);
   opt.AddOption(0,"csvalue","","checksum value",checksum_value);
   if(opt.Parse(argc,argv).size() != 0) {
@@ -288,6 +291,15 @@ int main(int argc,char* argv[]) {
     dest->AddCheckSumObject(&crc_dest);
   }
   buffer.set(&crc);
+
+  if (!size.empty()) {
+    unsigned long long int total_size;
+    if (stringto(size, total_size)) {
+      dest->SetSize(total_size);
+    } else {
+      logger.msg(WARNING, "Cannot use supplied --size option");
+    }
+  }
 
   // Initiating transfer
   DataStatus source_st = source->StartReading(buffer);
