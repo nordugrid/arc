@@ -79,9 +79,9 @@ namespace ArcDMCGFAL {
     : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
-        gfal_set_verbose (GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_TRACE);
+        gfal2_log_set_level (G_LOG_LEVEL_DEBUG);
       if (loglevel == VERBOSE)
-        gfal_set_verbose (GFAL_VERBOSE_VERBOSE);
+        gfal2_log_set_level (G_LOG_LEVEL_INFO);
       if (url.Protocol() == "lfc")
         lfc_host = url.Host();
   }

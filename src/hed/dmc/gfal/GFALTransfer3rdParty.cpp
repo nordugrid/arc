@@ -51,20 +51,11 @@ namespace ArcDMCGFAL {
       return DataStatus(DataStatus::TransferError, error_no, "Failed to get initiate new GFAL2 context");
     }
 
-    gfalt_set_monitor_callback(params, &gfal_3rd_party_callback, &err);
+    gfalt_add_monitor_callback(params, &gfal_3rd_party_callback, (gpointer)(&callback), NULL, &err);
     if (err != NULL) {
       logger.msg(VERBOSE, "Failed to set GFAL2 monitor callback: %s", err->message);
       g_error_free(err);
       return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 monitor callback");
-    }
-
-    // Set our callback as the user data object so it can be called during
-    // GFAL2 callback
-    gfalt_set_user_data(params, (gpointer)(&callback), &err);
-    if (err != NULL) {
-      logger.msg(VERBOSE, "Failed to set GFAL2 user data object: %s", err->message);
-      g_error_free(err);
-      return DataStatus(DataStatus::TransferError, error_no, "Failed to set GFAL2 user data object");
     }
 
     // Set replace according to overwrite option

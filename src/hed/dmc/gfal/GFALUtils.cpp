@@ -1,4 +1,4 @@
-#include <posix/gfal_posix_api.h>
+#include <gfal_api.h>
 
 #include "GFALUtils.h"
 

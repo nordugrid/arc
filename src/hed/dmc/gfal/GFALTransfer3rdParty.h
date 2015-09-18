@@ -1,7 +1,7 @@
 #ifndef TRANSFER3RDPARTY_H_
 #define TRANSFER3RDPARTY_H_
 
-#include <transfer/gfal_transfer.h>
+#include <gfal_api.h>
 
 #include <arc/data/DataPoint.h>
 
