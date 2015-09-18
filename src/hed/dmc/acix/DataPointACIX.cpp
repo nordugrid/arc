@@ -102,6 +102,11 @@ namespace ArcDMCACIX {
     if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to ACIX is not supported");
     if (urls.empty()) return DataStatus::Success;
 
+    // Resolving each original source can take a long time and exceed the DTR
+    // processor timeout (see bug 3511). As a workaround limit the time spent
+    // in this method to 30 mins. TODO: resolve original sources in bulk
+    Time start_time;
+
     // Construct acix query URL, giving all urls as option. Assumes only one
     // URL is specified in each datapoint.
     std::list<std::string> urllist;
@@ -124,15 +129,20 @@ namespace ArcDMCACIX {
         DataHandle origdp(dp->original_location, dp->usercfg);
         // If index resolve the location and add replicas to this datapoint
         if (origdp->IsIndex()) {
-          DataStatus res = origdp->Resolve(true);
-          if (!res) {
-            // Just log a warning and continue. One of the main use cases of ACIX
-            // is as a fallback when the original source is not available
-            logger.msg(WARNING, "Could not resolve original source of %s: %s", lookupurl.str(), std::string(res));
+          // Check we are within the time limit;
+          if (Time() > Time(start_time + 1800)) {
+            logger.msg(WARNING, "Could not resolve original source of %s: out of time", lookupurl.str());
           } else {
-            // Add replicas found from resolving original replica
-            for (; origdp->LocationValid(); origdp->NextLocation()) {
-              dp->AddLocation(origdp->CurrentLocation(), origdp->CurrentLocation().ConnectionURL());
+            DataStatus res = origdp->Resolve(true);
+            if (!res) {
+              // Just log a warning and continue. One of the main use cases of ACIX
+              // is as a fallback when the original source is not available
+              logger.msg(WARNING, "Could not resolve original source of %s: %s", lookupurl.str(), std::string(res));
+            } else {
+              // Add replicas found from resolving original replica
+              for (; origdp->LocationValid(); origdp->NextLocation()) {
+                dp->AddLocation(origdp->CurrentLocation(), origdp->CurrentLocation().ConnectionURL());
+              }
             }
           }
         } else {
