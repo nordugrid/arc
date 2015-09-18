@@ -17,7 +17,6 @@ basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
-joboption_localtransfer='no'
 ##############################################################
 # Set LSF specific environment. # relies on $joboption_queue #
 ##############################################################
@@ -197,22 +196,22 @@ if [ -z "${joboption_arg_0}" ] ; then
   echo "Submission: Job description error.">>"$failures_file"
   exit 1
 fi
-if [ "$joboption_localtransfer" = 'no' ] ; then
-  program_start=`echo ${joboption_arg_0} | head -c 1 2>&1`
-  if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
-    if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
-      echo 'Executable does not exist, or permission denied.' 1>&2
-      echo "   Executable $joboption_directory/${joboption_arg_0}" 1>&2
-      echo "   whoami: "`whoami` 1>&2
-      echo "   ls -l $joboption_directory/${joboption_arg_0}: "`ls -l $joboption_directory/${joboption_arg_0}`
-      exit 1
-    fi
-    if [ ! -x $joboption_directory/${joboption_arg_0} ] ; then 
-      echo 'Executable is not executable' 1>&2
-      exit 1
-    fi
+
+program_start=`echo ${joboption_arg_0} | head -c 1 2>&1`
+if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
+  if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
+    echo 'Executable does not exist, or permission denied.' 1>&2
+    echo "   Executable $joboption_directory/${joboption_arg_0}" 1>&2
+    echo "   whoami: "`whoami` 1>&2
+    echo "   ls -l $joboption_directory/${joboption_arg_0}: "`ls -l $joboption_directory/${joboption_arg_0}`
+    exit 1
+  fi
+  if [ ! -x $joboption_directory/${joboption_arg_0} ] ; then 
+    echo 'Executable is not executable' 1>&2
+    exit 1
   fi
 fi
+
 
 ######################################################################
 # Adjust working directory for tweaky nodes

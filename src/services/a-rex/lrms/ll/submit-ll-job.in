@@ -22,7 +22,6 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-ll-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
-joboption_localtransfer='no'
 
 ##############################################################
 # Parse grami file, read arc config
@@ -163,22 +162,21 @@ if [ -z "${joboption_arg_0}" ] ; then
   exit 1
 fi
 
-if [ "$joboption_localtransfer" = 'no' ] ; then
-  program_start=`echo ${joboption_arg_0} | cut -c 1 2>&1`
-  if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
-    if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
-      echo 'Executable does not exist, or permission denied.' 1>&2
-      echo "   Executable $joboption_directory/${joboption_arg_0}" 1>&2
-      echo "   whoami: "`whoami` 1>&2
-      echo "   ls -l $joboption_directory/${joboption_arg_0}: "`ls -l $joboption_directory/${joboption_arg_0}`
-      exit 1
-    fi
-    if [ ! -x $joboption_directory/${joboption_arg_0} ] ; then 
-      echo 'Executable is not executable' 1>&2
-      exit 1
-    fi
+program_start=`echo ${joboption_arg_0} | cut -c 1 2>&1`
+if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
+  if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
+    echo 'Executable does not exist, or permission denied.' 1>&2
+    echo "   Executable $joboption_directory/${joboption_arg_0}" 1>&2
+    echo "   whoami: "`whoami` 1>&2
+    echo "   ls -l $joboption_directory/${joboption_arg_0}: "`ls -l $joboption_directory/${joboption_arg_0}`
+    exit 1
+  fi
+  if [ ! -x $joboption_directory/${joboption_arg_0} ] ; then 
+    echo 'Executable is not executable' 1>&2
+    exit 1
   fi
 fi
+
 
 ##################################################################
 #Read queue from config or figure out which queue to use

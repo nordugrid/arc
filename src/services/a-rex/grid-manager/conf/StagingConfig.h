@@ -35,7 +35,6 @@ public:
   int get_max_retries() const { return max_retries; };
   bool get_passive() const { return passive; };
   bool get_secure() const { return secure; };
-  bool get_local_transfer() const { return local_transfer; };
   bool get_httpgetpartial() const { return httpgetpartial; };
   std::string get_preferred_pattern() const { return preferred_pattern; };
   std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
@@ -75,8 +74,6 @@ private:
   bool passive;
   /// Whether or not to use secure transfer (off by default)
   bool secure;
-  /// Whether or not to use local transfer on worker node (off by default)
-  bool local_transfer;
   /// Whether to use partial HTTP GET transfers (on by default)
   bool httpgetpartial;
   /// Pattern for choosing preferred replicas

@@ -176,14 +176,6 @@ set_req_mem () {
         fi
         echo "---------------------------------------------------------------------" 1>&2
     fi
-
-    if [ "$joboption_localtransfer" = 'yes' ]; then
-        echo "---------------------------------------------------------------------" 1>&2
-        echo "WARNING: localtransfers are enabled, but option is deprecated.       " 1>&2
-        echo "         Job will proceed with localtransfer disabled.               " 1>&2
-        echo "---------------------------------------------------------------------" 1>&2
-    fi
-
 }
 
 set_count () {
@@ -357,43 +349,6 @@ RTE_stage1 () {
    fi
 
    echo "" >> $LRMS_JOB_SCRIPT
-}
-
-
-#######################################################################
-# copy information useful for transfering files to/from node directly
-#######################################################################
-
-setup_local_transfer () {
-  RUNTIME_CONTROL_DIR=`mktemp ${joboption_directory}/control.XXXXXX`
-  if [ -z "$RUNTIME_CONTROL_DIR" ] ; then
-    echo 'Failed to choose name for temporary control directory' 1>&2
-    rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-    exit 1
-  fi
-  rm -f "$RUNTIME_CONTROL_DIR"
-  mkdir "$RUNTIME_CONTROL_DIR"
-  if [ $? -ne '0' ] ; then
-    echo 'Failed to create temporary control directory' 1>&2
-    rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-    exit 1
-  fi
-  chmod go-rwx,u+rwx "${RUNTIME_CONTROL_DIR}"
-  echo '' >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  chmod go-rw,u+r,a-x "${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.proxy" >"${RUNTIME_CONTROL_DIR}/job.local.proxy"
-  cat "${joboption_controldir}/job.${joboption_gridid}.input" >"${RUNTIME_CONTROL_DIR}/job.local.input"
-  cat "${joboption_controldir}/job.${joboption_gridid}.output">"${RUNTIME_CONTROL_DIR}/job.local.output"
-  cat "${joboption_controldir}/job.${joboption_gridid}.local">"${RUNTIME_CONTROL_DIR}/job.local.local"
-  RUNTIME_CONTROL_DIR_REL=`basename "$RUNTIME_CONTROL_DIR"`
-  echo "$RUNTIME_CONTROL_DIR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${RUNTIME_CONTROL_DIR}/job.local.output"
-  echo "$RUNTIME_CONTROL_DIR_REL" >>"${joboption_controldir}/job.${joboption_gridid}.output"
-  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}##"`
-  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}##"`
-  echo "$RUNTIME_STDOUT_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "$RUNTIME_STDERR_REL *.*" >>"${RUNTIME_CONTROL_DIR}/job.local.input"
-  echo "RUNTIME_CONTROL_DIR=$RUNTIME_CONTROL_DIR" >> $LRMS_JOB_SCRIPT
 }
 
 

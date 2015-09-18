@@ -1638,17 +1638,6 @@ default is no
 passivetransfer="no"
 
 .TP
-.B localtransfer
-localtransfer yes|no - If yes, then the data download from to Grid to the
-session directory (stagein) will be part of the batch job (prior to the
-execution of the binary). This option is deprecated. Turning on this feature 
-will only result in a warning. Default is no. 
-
-.IR Example:
-.br
-localtransfer="no"
-
-.TP
 B httpgetpartial
 httpgetpartial yes|no - If yes, HTTP GET transfers may transfer data in
 chunks/parts. If no - data is always transfered in one piece. Default is yes.

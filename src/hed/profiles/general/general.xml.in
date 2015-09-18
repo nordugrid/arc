@@ -196,7 +196,6 @@ attributes depending on how the mapping should be done.
       <arex:dataTransfer>
         <arex:secureTransfer inisections="arex" initag="securetransfer" inidefaultvalue="false"/>
         <arex:passiveTransfer inisections="arex" initag="passivetransfer" inidefaultvalue="false"/>
-        <arex:localTransfer inisections="arex" initag="localtransfer" inidefaultvalue="false"/>
         <arex:enableDTR inisections="arex" initag="enable_dtr" inidefaultvalue="false"/>
         <arex:preferredPattern inisections="arex" initag="preferredpattern"/>
         <arex:timeouts>

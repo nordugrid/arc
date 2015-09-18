@@ -21,7 +21,6 @@ StagingConfig::StagingConfig(const GMConfig& config):
   max_retries(10),
   passive(false),
   secure(false),
-  local_transfer(false),
   httpgetpartial(true),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
@@ -154,13 +153,6 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       std::string sec = config_next_arg(rest);
       if (sec == "yes") secure = true;
     }
-    else if (command == "localtransfer") {
-      std::string sec = config_next_arg(rest);
-      if (sec == "yes") {
-        local_transfer = false;
-        logger.msg(Arc::WARNING, "Localtransfer deprecated. Localtransfer has been turned off.");
-      }
-    }
     else if (command == "httpgetpartial") {
       std::string partial = config_next_arg(rest);
       if (partial == "no") httpgetpartial = false;
@@ -282,7 +274,6 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     }
     if (!elementtobool(tmp_node, "passiveTransfer", passive, &logger)) return false;
     if (!elementtobool(tmp_node, "secureTransfer", secure, &logger)) return false;
-    if (!elementtobool(tmp_node, "localTransfer", local_transfer, &logger)) return false;
     if (!elementtobool(tmp_node, "httpGetPartial", httpgetpartial, &logger)) return false;
     if (!elementtoint(tmp_node, "maxRetries", max_retries, &logger)) return false;
     if (tmp_node["preferredPattern"]) preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
