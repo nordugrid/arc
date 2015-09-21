@@ -106,7 +106,7 @@
 %global with_acix 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 16 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
 %global with_gfal 1
 %else
 %global with_gfal 0
