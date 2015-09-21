@@ -112,6 +112,12 @@
 %global with_gfal 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
+%global with_s3 1
+%else
+%global with_s3 0
+%endif
+
 %if %{?fedora}%{!?fedora:0} >= 8 || %{?rhel}%{!?rhel:0} >= 4
 %global with_canl %{!?_without_canl:1}%{?_without_canl:0}
 %else
@@ -251,6 +257,10 @@ BuildRequires:	xrootd-devel
 %endif
 %if %{with_gfal}
 BuildRequires:	gfal2-devel
+%endif
+%if %{with_s3}
+BuildRequires:  libcurl
+BuildRequires:  libcurl-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0} == 1110
 BuildRequires: db43-devel
@@ -711,6 +721,20 @@ for several extra transfer protocols (rfio, dcap, gsidcap). Specific
 protocol support is provided by separate gfal2-plugin packages.
 %endif
 
+%if %{with_s3}
+%package plugins-s3
+Summary:    ARC S3 plugins
+Group:      System Environment/Libraries
+Requires:   %{name} = %{version}-%{release}
+
+%description plugins-s3
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC plugins for S3. These allow access to data through the S3 protocol.
+%endif
+
 %if %{with_acix}
 %package acix-core
 Summary:	ARC cache index - core
@@ -968,6 +992,9 @@ cd -
 %endif
 %if %{with_gfal}
      --enable-gfal \
+%endif
+%if %{with_s3}
+     --enable-s3 \
 %endif
 %if %{?rhel}%{!?rhel:0} == 5
      --with-altpython=python26 \
@@ -1576,6 +1603,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libdmcgfal.so
 %{_libdir}/%{pkgdir}/libdmcgfal.apd
+%endif
+
+%if %{with_s3}
+%files plugins-s3
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libdmcs3.so
+%{_libdir}/%{pkgdir}/libdmcs3.apd
 %endif
 
 %if %{with_python}
