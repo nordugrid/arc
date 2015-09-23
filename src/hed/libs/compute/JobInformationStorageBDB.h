@@ -53,6 +53,8 @@ namespace Arc {
       Db *endpointSecondaryKeyDB;
       Db *nameSecondaryKeyDB;
       Db *serviceInfoSecondaryKeyDB;
+    private:
+      std::string tmpdir;
     };
     
     class BDBException {

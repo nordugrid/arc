@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
@@ -167,10 +168,14 @@ namespace Arc {
     const DBTYPE type = (flags == DB_CREATE ? DB_BTREE : DB_UNKNOWN);
     std::string basepath = "";
     
+    if (!TmpDirCreate(tmpdir)) {
+      throw BDBException(IString("Unable to create temporary directory").str(), 1);
+    }
+
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
     dbEnv->set_errcall(&handleError);
 
-    if ((ret = dbEnv->open(Glib::get_tmp_dir().c_str(), DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
+    if ((ret = dbEnv->open(tmpdir.c_str(), DB_CREATE | DB_INIT_CDB | DB_INIT_MPOOL, 0)) != 0) {
       tearDown();
       throw BDBException(IString("Unable to create data base environment (%s)", name).str(), ret);
     }
@@ -251,7 +256,8 @@ namespace Arc {
     delete dbEnv; dbEnv = NULL;
 
     dbEnv = new DbEnv(DB_CXX_NO_EXCEPTIONS);
-    dbEnv->remove(Glib::get_tmp_dir().c_str(), 0);
+    dbEnv->remove(tmpdir.c_str(), 0);
+    DirDelete(tmpdir, true);
     delete dbEnv; dbEnv = NULL;
   }
 
