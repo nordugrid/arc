@@ -51,7 +51,7 @@ namespace ArcDMCGFAL {
     virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, DataPoint::Callback3rdParty callback = NULL);
 
   private:
-    DataStatus do_stat(const URL& stat_url, FileInfo& file);
+    DataStatus do_stat(const URL& stat_url, FileInfo& file, DataPointInfoType verb);
     static void read_file_start(void *object);
     void read_file();
     static void write_file_start(void *object);

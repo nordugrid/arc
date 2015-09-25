@@ -411,7 +411,7 @@ namespace ArcDMCGFAL {
     return DataStatus::Success;
   }  
   
-  DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file) {
+  DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file, DataPointInfoType verb) {
     struct stat st;
     int res;
     {
@@ -456,6 +456,23 @@ namespace ArcDMCGFAL {
     if (st.st_mode & S_IXOTH) perms += 'x'; else perms += '-';
     file.SetMetaData("accessperm", perms);
 
+    if (verb & INFO_TYPE_STRUCT) {
+      char replicas[65536];
+      ssize_t r;
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        r = gfal_getxattr(GFALUtils::GFALURL(stat_url).c_str(), "user.replicas", replicas, sizeof(replicas));
+      }
+      if (r < 0) {
+        logger.msg(VERBOSE, "gfal_listxattr failed, no replica information can be obtained: %s", StrError(gfal_posix_code_error()));
+      } else {
+        std::vector<std::string> reps;
+        tokenize(replicas, reps, "\n");
+        for (std::vector<std::string>::const_iterator u = reps.begin(); u != reps.end(); ++u) {
+          file.AddURL(URL(*u));
+        }
+      }
+    }
     return DataStatus::Success;    
   }
 
@@ -464,7 +481,7 @@ namespace ArcDMCGFAL {
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     
     FileInfo file;
-    DataStatus status_from_stat = do_stat(url, file);
+    DataStatus status_from_stat = do_stat(url, file, (DataPointInfoType)(INFO_TYPE_ACCESS | INFO_TYPE_CONTENT));
     
     if (!status_from_stat) {
       return DataStatus(DataStatus::CheckError, status_from_stat.GetErrno());
@@ -476,7 +493,7 @@ namespace ArcDMCGFAL {
   }
   
   DataStatus DataPointGFAL::Stat(FileInfo& file, DataPointInfoType verb) {
-    return do_stat(url, file);
+    return do_stat(url, file, verb);
   }
 
   DataStatus DataPointGFAL::List(std::list<FileInfo>& files, DataPointInfoType verb) {
@@ -501,7 +518,7 @@ namespace ArcDMCGFAL {
       if (verb & (INFO_TYPE_TIMES | INFO_TYPE_ACCESS | INFO_TYPE_TYPE)) {
         URL child_url = URL(url.plainstr() + '/' + d->d_name);
         logger.msg(DEBUG, "List will stat the URL %s", child_url.plainstr());
-        do_stat(child_url, *f);
+        do_stat(child_url, *f, verb);
       }
     }
     
@@ -519,7 +536,7 @@ namespace ArcDMCGFAL {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
     FileInfo file;
-    DataStatus status_from_stat = do_stat(url, file);
+    DataStatus status_from_stat = do_stat(url, file, (DataPointInfoType)(INFO_TYPE_TYPE));
     if (!status_from_stat)
       return DataStatus(DataStatus::DeleteError, status_from_stat.GetErrno());
 
