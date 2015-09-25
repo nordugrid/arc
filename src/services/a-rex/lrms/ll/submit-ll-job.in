@@ -290,11 +290,6 @@ echo "fi"  >> $LRMS_JOB_SCRIPT
 ##############################################################
 configure_runtime
 
-#####################################################
-#  Upload output files
-####################################################
-upload_output_files
-
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
