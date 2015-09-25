@@ -272,10 +272,6 @@ echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
 
-#####################################################
-#  Download input files
-####################################################
-download_input_files
 
 ##############################################################
 #  Skip execution if something already failed

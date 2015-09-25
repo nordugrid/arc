@@ -259,11 +259,6 @@ echo "" >> $LRMS_JOB_SCRIPT
 
 
 #####################################################
-#  Download input files
-####################################################
-download_input_files
-
-#####################################################
 #  Go to working dir and start job
 ####################################################
 echo "# Changing to session directory" >> $LRMS_JOB_SCRIPT

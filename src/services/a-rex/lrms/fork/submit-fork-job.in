@@ -116,11 +116,6 @@ echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
 
-#####################################################
-#  Download input files
-#####################################################
-download_input_files
-
 echo "" >> $LRMS_JOB_SCRIPT
 
 echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
