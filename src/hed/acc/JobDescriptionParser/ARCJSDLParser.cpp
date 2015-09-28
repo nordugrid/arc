@@ -225,7 +225,7 @@ namespace Arc {
     if (bool(xmlBenchmark["BenchmarkType"]) &&
         bool(xmlBenchmark["BenchmarkValue"]) &&
         stringto(xmlBenchmark["BenchmarkValue"], value))
-      benchmark = std::make_pair<std::string, int>((std::string)xmlBenchmark["BenchmarkType"], value);
+      benchmark = std::make_pair((std::string)xmlBenchmark["BenchmarkType"], value);
   }
 
   void ARCJSDLParser::outputBenchmark(const std::pair<std::string, double>& benchmark, XMLNode& arcJSDL) const {

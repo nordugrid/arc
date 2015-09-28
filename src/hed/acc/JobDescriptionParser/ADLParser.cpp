@@ -564,7 +564,7 @@ namespace Arc {
             jobdescs.clear();
             return false;
           }
-          pe.Options.insert(std::make_pair<std::string, std::string>(xOption["adl:Name"], xOption["adl:Value"]));
+          pe.Options.insert(std::make_pair(xOption["adl:Name"], xOption["adl:Value"]));
         }
       }
       /// \mapattr Resources.Coprocessor -> Coprocessor
