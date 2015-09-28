@@ -601,7 +601,7 @@ namespace Arc {
      * @see Broker() const
      * @see DEFAULT_BROKER
      **/
-    bool Broker(const std::string& name, const std::string& argument) { broker = std::make_pair(name, argument); return true;}
+    bool Broker(const std::string& name, const std::string& argument) { broker = std::pair<std::string, std::string>(name, argument); return true;}
     /// Get the broker and corresponding arguments.
     /**
      * The returned pair contains the broker name as the first component

@@ -331,10 +331,10 @@ namespace Arc {
   bool UserConfig::Broker(const std::string& nameandarguments) {
     const std::size_t pos = nameandarguments.find(":");
     if (pos != std::string::npos) // Arguments given in 'nameandarguments'
-      broker = std::make_pair(nameandarguments.substr(0, pos),
-                              nameandarguments.substr(pos+1));
+      broker = std::pair<std::string, std::string>(nameandarguments.substr(0, pos),
+                                                   nameandarguments.substr(pos+1));
     else
-      broker = std::make_pair(nameandarguments, "");
+      broker = std::pair<std::string, std::string>(nameandarguments, "");
 
     return true;
   }
@@ -693,8 +693,8 @@ namespace Arc {
             }
           }
           if (common["brokername"]) {
-            broker = std::make_pair(common["brokername"],
-                                    common["brokerarguments"] ? common["brokerarguments"] : "");
+            broker = std::pair<std::string, std::string>(common["brokername"],
+                                                         common["brokerarguments"] ? common["brokerarguments"] : "");
             common["brokername"].Destroy();
             if (common["brokername"]) {
               logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "brokername", conffile);
