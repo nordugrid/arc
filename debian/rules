@@ -6,6 +6,11 @@
 COMMA = ,
 LDFLAGS := $(filter-out -Wl$(COMMA)-Bsymbolic-functions,$(LDFLAGS))
 
+ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
+# Workaround for too new libsigc++/glibmm
+CXXFLAGS += -std=c++11
+endif
+
 CANL_SUPPORT = yes
 
 ifeq ($(CANL_SUPPORT),yes)
