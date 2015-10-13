@@ -125,7 +125,7 @@ do_start() {
     TACFILE=`mktemp` || exit 1
     echo $APPSTART > $TACFILE
 
-    $prog --pidfile $PIDFILE -y $TACFILE -l /dev/null
+    $prog --pidfile $PIDFILE -y $TACFILE -l $LOGFILE
     RETVAL=$?
     rm -f $TACFILE
     
