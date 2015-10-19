@@ -115,8 +115,11 @@ for control_dir in "$@" ; do
              cp $diagfile ${joboption_directory}.diag
         fi
         $debug "checking $diagfile"
-        exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
-        
+
+        # Hard code exit code to 0 until diag file mess is sorted out
+        #exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
+        exitcode=0        
+
         $debug "exitcode = [$exitcode] extracted from $diagfile"
         comment=""
         if [ -z "$joboption_arg_code" ] ; then joboption_arg_code='0' ; fi
