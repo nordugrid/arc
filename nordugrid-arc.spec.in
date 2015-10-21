@@ -1632,7 +1632,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{?rhel}%{!?rhel:0} == 5
 %files python26
 %defattr(-,root,root,-)
-%{python26_sitearch}/_arc.@PYTHON_SOABI@*so
+%{python26_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python26_sitearch}/arc
 %endif
 
