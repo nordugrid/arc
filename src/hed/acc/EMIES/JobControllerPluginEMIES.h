@@ -11,7 +11,7 @@ namespace Arc {
 
   class JobControllerPluginEMIES : public JobControllerPlugin {
   public:
-    JobControllerPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(this->usercfg) {
+    JobControllerPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) {
       supportedInterfaces.push_back("org.ogf.glue.emies.activitymanagement");
     }
     ~JobControllerPluginEMIES() {}

@@ -93,7 +93,7 @@ namespace Arc {
         infourl.ChangeLDAPFilter(filter);
 
         DataBuffer buffer;
-        DataHandle handler(infourl, usercfg);
+        DataHandle handler(infourl, *usercfg);
 
         if (!handler) {
           logger.msg(INFO, "Can't create information handle - is the ARC LDAP DMC plugin available?");
@@ -236,7 +236,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Cleaning job: %s", job.JobID);
 
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
+      if (!ctrl.Connect(URL(job.JobID), *usercfg)) {
         logger.msg(INFO, "Failed to connect for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -248,21 +248,21 @@ namespace Arc {
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
 
-      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
 
-      if (!ctrl.SendCommand("RMD " + jobidnum, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("RMD " + jobidnum, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending RMD command for job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg.Timeout())) {
+      if (!ctrl.Disconnect(usercfg->Timeout())) {
         logger.msg(INFO, "Failed to disconnect after job cleaning");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -284,7 +284,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Cancelling job: %s", job.JobID);
 
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
+      if (!ctrl.Connect(URL(job.JobID), *usercfg)) {
         logger.msg(INFO, "Failed to connect for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -296,21 +296,21 @@ namespace Arc {
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
 
-      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
 
-      if (!ctrl.SendCommand("DELE " + jobidnum, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("DELE " + jobidnum, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending DELE command for job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg.Timeout())) {
+      if (!ctrl.Disconnect(usercfg->Timeout())) {
         logger.msg(INFO, "Failed to disconnect after job cancelling");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -333,7 +333,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID);
 
       FTPControl ctrl;
-      if (!ctrl.Connect(URL(job.JobID), usercfg)) {
+      if (!ctrl.Connect(URL(job.JobID), *usercfg)) {
         logger.msg(INFO, "Failed to connect for credential renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -345,20 +345,20 @@ namespace Arc {
       std::string jobpath = path.substr(0, pos);
       std::string jobidnum = path.substr(pos + 1);
 
-      if (!ctrl.SendCommand("CWD " + jobpath, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + jobpath, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
         continue;
       }
 
-      if (!ctrl.SendCommand("CWD " + jobidnum, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + jobidnum, usercfg->Timeout())) {
         logger.msg(INFO, "Failed sending CWD command for credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
       }
 
-      if (!ctrl.Disconnect(usercfg.Timeout())) {
+      if (!ctrl.Disconnect(usercfg->Timeout())) {
         logger.msg(INFO, "Failed to disconnect after credentials renewal");
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
@@ -413,12 +413,12 @@ namespace Arc {
       URL source_url(filename);
       URL dest_url(urlstr);
       dest_url.AddOption("checksum=no");
-      DataHandle source(source_url, usercfg);
-      DataHandle destination(dest_url, usercfg);
+      DataHandle source(source_url, *usercfg);
+      DataHandle destination(dest_url, *usercfg);
       source->SetTries(1);
       destination->SetTries(1);
       DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                      0, 0, 0, usercfg.Timeout());
+                                      0, 0, 0, usercfg->Timeout());
       // Cleaning up tmp file
       source->Remove();
 
@@ -488,7 +488,7 @@ namespace Arc {
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
 
-    if (!Job::CopyJobFile(usercfg, source_url, dest_url)) {
+    if (!Job::CopyJobFile(*usercfg, source_url, dest_url)) {
       return false;
     }
 

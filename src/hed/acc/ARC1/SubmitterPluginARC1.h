@@ -17,7 +17,7 @@ namespace Arc {
 
   class SubmitterPluginARC1 : public SubmitterPlugin {
   public:
-    SubmitterPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg), clients(this->usercfg) { supportedInterfaces.push_back("org.ogf.bes"); }
+    SubmitterPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg), clients(usercfg) { supportedInterfaces.push_back("org.ogf.bes"); }
     ~SubmitterPluginARC1() { /*deleteAllClients();*/ }
 
     static Plugin* Instance(PluginArgument *arg) {

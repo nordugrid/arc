@@ -25,7 +25,7 @@ namespace Arc {
 
   SubmissionStatus SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 8443);
     URL infourl("ldap://" + url.Host(), false, 2170, "/o=grid");
@@ -35,8 +35,8 @@ namespace Arc {
       std::string delegationid = UUID();
       URL delegationurl(url);
       delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
-      CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
-      if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
+      CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg->Timeout());
+      if (!gLiteClientDelegation.createDelegation(delegationid, usercfg->ProxyPath())) {
         logger.msg(INFO, "Failed creating signed delegation certificate");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -45,7 +45,7 @@ namespace Arc {
       }
       URL submissionurl(url);
       submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
-      CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
+      CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg->Timeout());
       gLiteClientSubmission.setDelegationId(delegationid);
 
       JobDescription preparedjobdesc(*it);
@@ -110,7 +110,7 @@ namespace Arc {
 
   SubmissionStatus SubmitterPluginCREAM::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
     URL url(et.ComputingEndpoint->URLString);
 
     SubmissionStatus retval;
@@ -118,8 +118,8 @@ namespace Arc {
       std::string delegationid = UUID();
       URL delegationurl(url);
       delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
-      CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
-      if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
+      CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg->Timeout());
+      if (!gLiteClientDelegation.createDelegation(delegationid, usercfg->ProxyPath())) {
         logger.msg(INFO, "Failed creating singed delegation certificate");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -128,7 +128,7 @@ namespace Arc {
       }
       URL submissionurl(url);
       submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
-      CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
+      CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg->Timeout());
       gLiteClientSubmission.setDelegationId(delegationid);
 
       JobDescription preparedjobdesc(*it);

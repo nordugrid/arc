@@ -28,10 +28,10 @@ namespace Arc {
 
   void JobControllerPluginCREAM::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      CREAMClient gLiteClient(job.JobStatusURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      CREAMClient gLiteClient(job.JobStatusURL.str() + "/CREAM2", cfg, usercfg->Timeout());
       if (!gLiteClient.stat(job.IDFromEndpoint, job)) {
         logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
         IDsNotProcessed.push_back((*it)->JobID);
@@ -43,11 +43,11 @@ namespace Arc {
 
   bool JobControllerPluginCREAM::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg->Timeout());
       if (!gLiteClient.purge(job.IDFromEndpoint)) {
         logger.msg(INFO, "Failed cleaning job: %s", job.JobID);
         ok = false;
@@ -61,11 +61,11 @@ namespace Arc {
 
   bool JobControllerPluginCREAM::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg->Timeout());
       if (!gLiteClient.cancel(job.IDFromEndpoint)) {
         logger.msg(INFO, "Failed canceling job: %s", job.JobID);
         ok = false;
@@ -89,11 +89,11 @@ namespace Arc {
 
   bool JobControllerPluginCREAM::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
-      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+      CREAMClient gLiteClient(job.JobManagementURL.str() + "/CREAM2", cfg, usercfg->Timeout());
       if (!gLiteClient.cancel(job.IDFromEndpoint)) {
         logger.msg(INFO, "Failed resuming job: %s", job.JobID);
         ok = false;
@@ -133,8 +133,8 @@ namespace Arc {
 
   bool JobControllerPluginCREAM::GetJobDescription(const Job& j, std::string& desc) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    CREAMClient gLiteClient(j.JobManagementURL.str() + "/CREAM2", cfg, usercfg.Timeout());
+    usercfg->ApplyToConfig(cfg);
+    CREAMClient gLiteClient(j.JobManagementURL.str() + "/CREAM2", cfg, usercfg->Timeout());
     if (!gLiteClient.getJobDesc(j.IDFromEndpoint, desc)) {
       logger.msg(INFO, "Failed retrieving job description for job: %s", j.JobID);
       return false;

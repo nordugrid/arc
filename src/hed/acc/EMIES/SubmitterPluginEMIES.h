@@ -18,7 +18,7 @@ namespace Arc {
 
   class SubmitterPluginEMIES : public SubmitterPlugin {
   public:
-    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(this->usercfg) {
+    SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(usercfg) {
       supportedInterfaces.push_back("org.ogf.glue.emies.activitycreation");
     }
     ~SubmitterPluginEMIES() { /*deleteAllClients();*/ }

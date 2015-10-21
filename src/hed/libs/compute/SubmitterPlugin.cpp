@@ -58,17 +58,17 @@ namespace Arc {
           dst.ChangePath(dst.Path() + '/' + it->Name);
           dst.AddOption("blocksize=1048576",false);
           dst.AddOption("checksum=no",false);
-          DataHandle source(src, usercfg);
+          DataHandle source(src, *usercfg);
           if ((!dest_handle) || (!*dest_handle) || (!(*dest_handle)->SetURL(dst))) {
             if(dest_handle) delete dest_handle;
-            ((SubmitterPlugin*)this)->dest_handle = new DataHandle(dst, usercfg);
+            ((SubmitterPlugin*)this)->dest_handle = new DataHandle(dst, *usercfg);
           };
           DataHandle& destination = *dest_handle;
           source->SetTries((src.Protocol() == "file")?1:3);
           destination->SetTries((dst.Protocol() == "file")?1:3);
           DataStatus res =
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
-                           usercfg.Timeout());
+                           usercfg->Timeout());
           if (!res.Passed()) {
             logger.msg(ERROR, "Failed uploading file %s to %s: %s", source->GetURL().fullstr(), destination->GetURL().fullstr(), std::string(res));
             return false;

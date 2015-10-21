@@ -56,7 +56,7 @@ namespace Arc {
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      if (!ctrl.Connect(url, usercfg)) {
+      if (!ctrl.Connect(url, *usercfg)) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -64,9 +64,9 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.SendCommand("CWD " + url.Path(), usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + url.Path(), usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD command");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
@@ -75,9 +75,9 @@ namespace Arc {
 
       std::string response;
 
-      if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD new", response, usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
@@ -104,7 +104,7 @@ namespace Arc {
 
       if (!preparedjobdesc.Prepare()) {
         logger.msg(INFO, "Failed to prepare job description.");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
@@ -119,16 +119,16 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
+      if (!ctrl.SendData(jobdescstring, "job", usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending job description");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg.Timeout())) {
+      if (!ctrl.Disconnect(usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -206,7 +206,7 @@ namespace Arc {
     URL url(et.ComputingEndpoint->URLString);
 
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      if (!ctrl.Connect(url, usercfg)) {
+      if (!ctrl.Connect(url, *usercfg)) {
         logger.msg(INFO, "Submit: Failed to connect");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -214,9 +214,9 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.SendCommand("CWD " + url.Path(), usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD " + url.Path(), usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD command");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
@@ -225,9 +225,9 @@ namespace Arc {
 
       std::string response;
 
-      if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
+      if (!ctrl.SendCommand("CWD new", response, usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending CWD new command");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
@@ -254,7 +254,7 @@ namespace Arc {
 
       if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description to target resources.");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
@@ -269,16 +269,16 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
+      if (!ctrl.SendData(jobdescstring, "job", usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed sending job description");
-        ctrl.Disconnect(usercfg.Timeout());
+        ctrl.Disconnect(usercfg->Timeout());
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg.Timeout())) {
+      if (!ctrl.Disconnect(usercfg->Timeout())) {
         logger.msg(INFO, "Submit: Failed to disconnect after submission");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;

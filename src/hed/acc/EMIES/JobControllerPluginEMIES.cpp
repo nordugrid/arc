@@ -94,7 +94,7 @@ namespace Arc {
 
   bool JobControllerPluginEMIES::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -118,7 +118,7 @@ namespace Arc {
 
   bool JobControllerPluginEMIES::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -142,7 +142,7 @@ namespace Arc {
 
   bool JobControllerPluginEMIES::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -178,7 +178,7 @@ namespace Arc {
 
   bool JobControllerPluginEMIES::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 	    MCCConfig cfg;
-	    usercfg.ApplyToConfig(cfg);
+	    usercfg->ApplyToConfig(cfg);
 
 	    bool ok = true;
 	    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -234,7 +234,7 @@ namespace Arc {
         (resource != Job::SESSIONDIR  || !session)) {
       // If there is no needed URL provided try to fetch it from server
       MCCConfig cfg;
-      usercfg.ApplyToConfig(cfg);
+      usercfg->ApplyToConfig(cfg);
       Job tjob;
       AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
       if (!ac->info(ejob, tjob)) {

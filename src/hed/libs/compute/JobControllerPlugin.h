@@ -30,7 +30,7 @@ namespace Arc {
     : public Plugin {
   protected:
     JobControllerPlugin(const UserConfig& usercfg, PluginArgument* parg)
-      : Plugin(parg), usercfg(usercfg) {}
+      : Plugin(parg), usercfg(&usercfg) {}
   public:
     virtual ~JobControllerPlugin() {}
 
@@ -53,8 +53,18 @@ namespace Arc {
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
+    /**
+     * \since Added in 5.1.0
+     **/
+    void SetUserConfig(const UserConfig& uc) { usercfg = &uc; }
+
   protected:
-    const UserConfig& usercfg;
+    /**
+     * UserConfig object not owned by this class, and relies on its existence
+     * throughout lifetime of objects from this class. Must not be deleted by
+     * this class. Pointers to this object must not be exposed publicly.
+     **/
+    const UserConfig* usercfg;
     std::list<std::string> supportedInterfaces;
     static Logger logger;
   };

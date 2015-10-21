@@ -45,7 +45,7 @@ namespace Arc {
   class SubmitterPlugin : public Plugin {
   protected:
     SubmitterPlugin(const UserConfig& usercfg, PluginArgument* parg)
-      : Plugin(parg), usercfg(usercfg), dest_handle(NULL) {}
+      : Plugin(parg), usercfg(&usercfg), dest_handle(NULL) {}
   public:
     virtual ~SubmitterPlugin() { delete dest_handle; }
 
@@ -98,11 +98,21 @@ namespace Arc {
 
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
+    /**
+     * \since Added in 5.1.0
+     **/
+    void SetUserConfig(const UserConfig& uc) { usercfg = &uc; }
+
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
     void AddJobDetails(const JobDescription& jobdesc, Job& job) const;
 
-    const UserConfig& usercfg;
+    /**
+     * UserConfig object not owned by this class, and relies on its existence
+     * throughout lifetime of objects from this class. Must not be deleted by
+     * this class. Pointers to this object must not be exposed publicly.
+     **/
+    const UserConfig* usercfg;
     std::list<std::string> supportedInterfaces;
     DataHandle* dest_handle;
 
