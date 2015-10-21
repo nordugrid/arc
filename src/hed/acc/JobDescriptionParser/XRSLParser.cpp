@@ -223,7 +223,7 @@ namespace Arc {
     j.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
 
     j.OtherAttributes.erase(itAtt);
-    
+
     return true;
   }
 
@@ -231,14 +231,14 @@ namespace Arc {
   bool XRSLParser::ParseCountPerNodeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
     std::map<std::string, std::string>::iterator   itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;countpernode");
-    
+
     if (itAtt == j.OtherAttributes.end()) return true;
-    
+
     if (j.Resources.SlotRequirement.NumberOfSlots == -1) {
       logger.msg(ERROR, "When specifying the countpernode XRSL attribute, the count attribute must also be specified.");
       return false;
     }
-    
+
     if (!stringto(itAtt->second, j.Resources.SlotRequirement.SlotsPerHost)) {
       logger.msg(ERROR, "The countpernode XRSL attribute must be an integer.");
       return false;
@@ -253,9 +253,9 @@ namespace Arc {
       return false;
     }
 
-    jobdescs.clear();
-
     logger.msg(VERBOSE, "Parsing string using XRSLParser");
+
+    std::list<JobDescription> parsed_descriptions;
 
     RSLParser parser(source);
     const RSL *r = parser.Parse();
@@ -267,35 +267,34 @@ namespace Arc {
     std::list<const RSL*> l = SplitRSL(r);
 
     for (std::list<const RSL*>::iterator it = l.begin(); it != l.end(); it++) {
-      jobdescs.push_back(JobDescription());
+      parsed_descriptions.push_back(JobDescription());
 
-      if (!Parse(*it, jobdescs.back(), dialect)) {
+      if (!Parse(*it, parsed_descriptions.back(), dialect)) {
         logger.msg(ERROR, "XRSL parsing error");
-        jobdescs.clear();
         return false;
       }
 
       // Parse remaining attributes if any.
-      if (!ParseExecutablesAttribute(jobdescs.back())) {
+      if (!ParseExecutablesAttribute(parsed_descriptions.back())) {
         return false;
       }
-      if (!ParseFTPThreadsAttribute(jobdescs.back())) {
+      if (!ParseFTPThreadsAttribute(parsed_descriptions.back())) {
         return false;
       }
-      if (!ParseCacheAttribute(jobdescs.back())) {
+      if (!ParseCacheAttribute(parsed_descriptions.back())) {
         return false;
       }
-      if (!ParseCountPerNodeAttribute(jobdescs.back())) {
+      if (!ParseCountPerNodeAttribute(parsed_descriptions.back())) {
         return false;
       }
-      if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(jobdescs.back())) { // join is a client side attribute
+      if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(parsed_descriptions.back())) { // join is a client side attribute
         return false;
       }
-      if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(jobdescs.back())) { // gridtime is a client side attribute
+      if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(parsed_descriptions.back())) { // gridtime is a client side attribute
         return false;
       }
-      for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
-           itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
+      for (std::list<JobDescription>::iterator itJob = parsed_descriptions.back().GetAlternatives().begin();
+           itJob != parsed_descriptions.back().GetAlternatives().end(); itJob++) {
         if (!ParseExecutablesAttribute(*itJob)) {
           return false;
         }
@@ -318,56 +317,53 @@ namespace Arc {
 
       std::stringstream ss;
       ss << **it;
-      jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
-      SourceLanguage(jobdescs.back()) = (!language.empty() ? language : supportedLanguages.front());
-      for (std::list<JobDescription>::iterator itAltJob = jobdescs.back().GetAlternatives().begin();
-         itAltJob != jobdescs.back().GetAlternatives().end(); ++itAltJob) {
+      parsed_descriptions.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
+      SourceLanguage(parsed_descriptions.back()) = (!language.empty() ? language : supportedLanguages.front());
+      for (std::list<JobDescription>::iterator itAltJob = parsed_descriptions.back().GetAlternatives().begin();
+         itAltJob != parsed_descriptions.back().GetAlternatives().end(); ++itAltJob) {
         itAltJob->OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
-        SourceLanguage(*itAltJob) = jobdescs.back().GetSourceLanguage();
+        SourceLanguage(*itAltJob) = parsed_descriptions.back().GetSourceLanguage();
       }
     }
 
-    if(jobdescs.empty()) {
+    if(parsed_descriptions.empty()) {
       // Probably never happens so check is just in case of future changes
       logger.msg(WARNING, "No RSL content in job desription found");
       return false;
     }
 
     if(dialect == "GRIDMANAGER") {
-      if (jobdescs.size() > 1) {
-        jobdescs.clear();
+      if (parsed_descriptions.size() > 1) {
         return false;
       }
 
       std::string action = "request";
-      if (jobdescs.front().OtherAttributes.find("nordugrid:xrsl;action") != jobdescs.front().OtherAttributes.end()) {
-        action = jobdescs.front().OtherAttributes["nordugrid:xrsl;action"];
+      if (parsed_descriptions.front().OtherAttributes.find("nordugrid:xrsl;action") != parsed_descriptions.front().OtherAttributes.end()) {
+        action = parsed_descriptions.front().OtherAttributes["nordugrid:xrsl;action"];
       }
       // action = request means real job description.
       // Any other action may (and currently should) have almost
       // empty job description.
       if (action == "request") {
-        if(jobdescs.front().Application.Executable.Path.empty()) {
-          jobdescs.clear();
+        if(parsed_descriptions.front().Application.Executable.Path.empty()) {
           return false;
         }
       }
     }
     else {
       // action is not expected in client side job request
-      for (std::list<JobDescription>::iterator it = jobdescs.begin(); it != jobdescs.end(); it++) {
+      for (std::list<JobDescription>::iterator it = parsed_descriptions.begin(); it != parsed_descriptions.end(); it++) {
         if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
-          jobdescs.clear();
           return false;
         }
         if (it->Application.Executable.Path.empty()) {
-          jobdescs.clear();
           return false;
         }
       }
     }
 
-    logger.msg(INFO, "String successfully parsed as %s.", jobdescs.front().GetSourceLanguage());
+    logger.msg(INFO, "String successfully parsed as %s.", parsed_descriptions.front().GetSourceLanguage());
+    jobdescs.insert(jobdescs.end(), parsed_descriptions.begin(), parsed_descriptions.end());
     return true;
   }
 
@@ -636,7 +632,7 @@ namespace Arc {
             logger.msg(VERBOSE, "At least two values are needed for the 'inputfiles' attribute.");
             return false;
           }
-          
+
           if (it->front().empty()) {
             logger.msg(VERBOSE, "filename cannot be empty.");
             return false;
@@ -656,7 +652,7 @@ namespace Arc {
               is_size_and_checksum = true;
               file.FileSize = fileSize;
               if(sep != std::string::npos) {
-                file.Checksum = itValues->substr(sep+1);                  
+                file.Checksum = itValues->substr(sep+1);
               }
             }
           }
@@ -1101,7 +1097,7 @@ namespace Arc {
           logger.msg(ERROR, "The value of the acl XRSL attribute isn't valid XML.");
           return false;
         }
-        
+
         node.New(j.Application.AccessControl);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
@@ -1281,7 +1277,7 @@ namespace Arc {
         std::string countpernode;
         if (!SingleValue(c, countpernode))
           return false;
-        
+
         j.OtherAttributes["nordugrid:xrsl;countpernode"] = countpernode;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); ++it) {
@@ -1710,7 +1706,7 @@ namespace Arc {
     }
 
     /// TODO: dialect/units
-    /// \mapattr lifetime <- SessionLifeTime 
+    /// \mapattr lifetime <- SessionLifeTime
     if (j.Resources.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
       if(dialect == "GRIDMANAGER") {
@@ -1871,7 +1867,7 @@ namespace Arc {
       r.Add(new RSLCondition("dryrun", RSLEqual, l));
     }
 
-    /// TODO \mapnote 
+    /// TODO \mapnote
     for (std::map<std::string, std::string>::const_iterator it = j.OtherAttributes.begin();
          it != j.OtherAttributes.end(); it++) {
       std::list<std::string> keys;

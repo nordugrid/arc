@@ -577,16 +577,12 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Parsing string using JDLParser");
 
-    jobdescs.clear();
-    jobdescs.push_back(JobDescription());
-
-    JobDescription& jobdesc = jobdescs.back();
+    JobDescription parsed_jobdescription;
 
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos || first >= last) {
       logger.msg(VERBOSE, "[JDLParser] There is at least one necessary square bracket missing or their order is incorrect. ('[' or ']')");
-      jobdescs.clear();
       return false;
     }
     std::string input_text = source.substr(first + 1, last - first - 1);
@@ -619,12 +615,10 @@ namespace Arc {
 
     if (!splitJDL(wcpy, lines)) {
       logger.msg(VERBOSE, "[JDLParser] Syntax error found during the split function.");
-      jobdescs.clear();
       return false;
     }
     if (lines.size() <= 0) {
       logger.msg(VERBOSE, "[JDLParser] Lines count is zero or other funny error has occurred.");
-      jobdescs.clear();
       return false;
     }
 
@@ -633,21 +627,20 @@ namespace Arc {
       const size_t equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
         logger.msg(VERBOSE, "[JDLParser] JDL syntax error. There is at least one equals sign missing where it would be expected.");
-        jobdescs.clear();
         return false;
       }
-      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), jobdesc)) {
-        jobdescs.clear();
+      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), parsed_jobdescription)) {
         return false;
       }
     }
 
-    if (!ParseInputSandboxAttribute(jobdesc)) {
+    if (!ParseInputSandboxAttribute(parsed_jobdescription)) {
       return false;
     }
 
-    SourceLanguage(jobdesc) = (!language.empty() ? language : supportedLanguages.front());
-    logger.msg(INFO, "String successfully parsed as %s", jobdesc.GetSourceLanguage());
+    SourceLanguage(parsed_jobdescription) = (!language.empty() ? language : supportedLanguages.front());
+    logger.msg(INFO, "String successfully parsed as %s", parsed_jobdescription.GetSourceLanguage());
+    jobdescs.push_back(parsed_jobdescription);
     return true;
   }
 

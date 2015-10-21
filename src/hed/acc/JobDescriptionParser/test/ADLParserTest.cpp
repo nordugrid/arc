@@ -249,6 +249,8 @@ void ADLParserTest::ExecutableTest() {
   CPPUNIT_ASSERT_EQUAL(104, OUTJOBS.front().Application.Executable.SuccessExitCode.second);
   }
 
+  OUTJOBS.clear();
+
   // Check if first member of SuccessExitCode is set to false.
   {
   const std::string adl = "<?xml version=\"1.0\"?>"

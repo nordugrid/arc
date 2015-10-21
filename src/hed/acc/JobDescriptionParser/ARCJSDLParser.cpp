@@ -100,7 +100,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     XMLNodeList xmlMin, xmlMax;
 
     if(types["LowerBoundedRange"].size()) xmlMin.push_back(types["LowerBoundedRange"].front());
@@ -127,7 +127,7 @@ namespace Arc {
       if (bool(types["Exact"].front().Attribute("epsilon"))) {
         logger.msg(VERBOSE, "The 'epsilon' attribute to the 'Exact' element is not supported.");
         return false;
-      } 
+      }
       xmlMax.push_back(types["Exact"].front());
     }
 
@@ -136,7 +136,7 @@ namespace Arc {
 
     return parseMinMax(xmlMin, xmlMax, range);
   }
-  
+
   static std::string namesToString(XMLNodeList xlist) {
     std::string str;
     for(XMLNodeList::iterator xel = xlist.begin(); xel != xlist.end(); ++xel) {
@@ -187,10 +187,10 @@ namespace Arc {
       logger.msg(VERBOSE, "Parsing error: Value of lower range (%s) is greater than value of upper range (%s)", namesToString(xmlMin), namesToString(xmlMax));
       return false;
     }
-    
+
     if (min.first) range.min = static_cast<T>(min.second);
     if (max.first) range.max = static_cast<T>(max.second);
-    
+
     return true;
   }
 
@@ -242,10 +242,7 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Parsing string using ARCJSDLParser");
 
-    jobdescs.clear();
-
-    jobdescs.push_back(JobDescription());
-    JobDescription& job = jobdescs.back();
+    JobDescription parsed_jobdescription;
 
     XMLNode node(source);
     if (!node) {
@@ -254,7 +251,6 @@ namespace Arc {
 
     if (node.Size() == 0) {
       logger.msg(VERBOSE, "[ARCJSDLParser] Wrong XML structure! ");
-      jobdescs.clear();
       return false;
     }
 
@@ -264,7 +260,6 @@ namespace Arc {
     // Check if it is JSDL
     if((!jobdescription) || (!MatchXMLNamespace(jobdescription,JSDL_NAMESPACE))) {
       logger.msg(VERBOSE, "[ARCJSDLParser] Not a JSDL - missing JobDescription element");
-      jobdescs.clear();
       return false;
     }
 
@@ -273,23 +268,23 @@ namespace Arc {
 
     // std::string JobName;
     if (bool(jobidentification["JobName"]))
-      job.Identification.JobName = (std::string)jobidentification["JobName"];
+      parsed_jobdescription.Identification.JobName = (std::string)jobidentification["JobName"];
 
     // std::string Description;
     if (bool(jobidentification["Description"]))
-      job.Identification.Description = (std::string)jobidentification["Description"];
+      parsed_jobdescription.Identification.Description = (std::string)jobidentification["Description"];
 
     // JSDL compliance
     if (bool(jobidentification["JobProject"]))
-      job.OtherAttributes["nordugrid:jsdl;Identification/JobProject"] = (std::string)jobidentification["JobProject"];
+      parsed_jobdescription.OtherAttributes["nordugrid:jsdl;Identification/JobProject"] = (std::string)jobidentification["JobProject"];
 
     // std::list<std::string> Annotation;
     for (int i = 0; (bool)(jobidentification["UserTag"][i]); i++)
-      job.Identification.Annotation.push_back((std::string)jobidentification["UserTag"][i]);
+      parsed_jobdescription.Identification.Annotation.push_back((std::string)jobidentification["UserTag"][i]);
 
     // std::list<std::string> ActivityOldID;
     for (int i = 0; (bool)(jobidentification["ActivityOldId"][i]); i++)
-      job.Identification.ActivityOldID.push_back((std::string)jobidentification["ActivityOldId"][i]);
+      parsed_jobdescription.Identification.ActivityOldID.push_back((std::string)jobidentification["ActivityOldId"][i]);
     // end of JobIdentification
 
 
@@ -304,39 +299,39 @@ namespace Arc {
 
     // ExecutableType Executable;
     if (bool(xmlApplication["Executable"]["Path"])) {
-      job.Application.Executable.Path = (std::string)xmlApplication["Executable"]["Path"];
+      parsed_jobdescription.Application.Executable.Path = (std::string)xmlApplication["Executable"]["Path"];
       for (int i = 0; (bool)(xmlApplication["Executable"]["Argument"][i]); i++)
-        job.Application.Executable.Argument.push_back((std::string)xmlApplication["Executable"]["Argument"]);
+        parsed_jobdescription.Application.Executable.Argument.push_back((std::string)xmlApplication["Executable"]["Argument"]);
     }
     else if (bool(xmlXApplication["Executable"])) {
-      job.Application.Executable.Path = (std::string)xmlXApplication["Executable"];
+      parsed_jobdescription.Application.Executable.Path = (std::string)xmlXApplication["Executable"];
       for (int i = 0; (bool)(xmlXApplication["Argument"][i]); i++)
-        job.Application.Executable.Argument.push_back((std::string)xmlXApplication["Argument"][i]);
+        parsed_jobdescription.Application.Executable.Argument.push_back((std::string)xmlXApplication["Argument"][i]);
     }
 
     // std::string Input;
     if (bool(xmlApplication["Input"]))
-      job.Application.Input = (std::string)xmlApplication["Input"];
+      parsed_jobdescription.Application.Input = (std::string)xmlApplication["Input"];
     else if (bool(xmlXApplication["Input"]))
-      job.Application.Input = (std::string)xmlXApplication["Input"];
+      parsed_jobdescription.Application.Input = (std::string)xmlXApplication["Input"];
 
     // std::string Output;
     if (bool(xmlApplication["Output"]))
-      job.Application.Output = (std::string)xmlApplication["Output"];
+      parsed_jobdescription.Application.Output = (std::string)xmlApplication["Output"];
     else if (bool(xmlXApplication["Output"]))
-      job.Application.Output = (std::string)xmlXApplication["Output"];
+      parsed_jobdescription.Application.Output = (std::string)xmlXApplication["Output"];
 
     // std::string Error;
     if (bool(xmlApplication["Error"]))
-      job.Application.Error = (std::string)xmlApplication["Error"];
+      parsed_jobdescription.Application.Error = (std::string)xmlApplication["Error"];
     else if (bool(xmlXApplication["Error"]))
-      job.Application.Error = (std::string)xmlXApplication["Error"];
+      parsed_jobdescription.Application.Error = (std::string)xmlXApplication["Error"];
 
     // std::list< std::pair<std::string, std::string> > Environment;
     if (bool(xmlApplication["Environment"]["Name"])) {
       for (int i = 0; (bool)(xmlApplication["Environment"][i]); i++) {
         if (!((std::string)xmlApplication["Environment"][i]["Name"]).empty() && bool(xmlApplication["Environment"][i]["Value"]))
-          job.Application.Environment.push_back(std::pair<std::string, std::string>((std::string)xmlApplication["Environment"][i]["Name"],
+          parsed_jobdescription.Application.Environment.push_back(std::pair<std::string, std::string>((std::string)xmlApplication["Environment"][i]["Name"],
                                                                                     (std::string)xmlApplication["Environment"][i]["Value"]));
       }
     }
@@ -346,82 +341,80 @@ namespace Arc {
         XMLNode name = env.Attribute("name");
         if (!name || ((std::string)name).empty()) {
           logger.msg(VERBOSE, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
-          jobdescs.clear();
           return false;
         }
-        job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
+        parsed_jobdescription.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
       }
     }
 
     // std::list<ExecutableType> PreExecutable;
     if (bool(xmlApplication["Prologue"]["Path"])) {
-      if (job.Application.PreExecutable.empty()) {
-        job.Application.PreExecutable.push_back(ExecutableType());
+      if (parsed_jobdescription.Application.PreExecutable.empty()) {
+        parsed_jobdescription.Application.PreExecutable.push_back(ExecutableType());
       }
-      job.Application.PreExecutable.front().Path = (std::string)xmlApplication["Prologue"]["Path"];
+      parsed_jobdescription.Application.PreExecutable.front().Path = (std::string)xmlApplication["Prologue"]["Path"];
     }
     if (bool(xmlApplication["Prologue"]["Argument"])) {
-      if (job.Application.PreExecutable.empty()) {
-        job.Application.PreExecutable.push_back(ExecutableType());
+      if (parsed_jobdescription.Application.PreExecutable.empty()) {
+        parsed_jobdescription.Application.PreExecutable.push_back(ExecutableType());
       }
       for (int i = 0; (bool)(xmlApplication["Prologue"]["Argument"][i]); i++) {
-        job.Application.PreExecutable.front().Argument.push_back((std::string)xmlApplication["Prologue"]["Argument"][i]);
+        parsed_jobdescription.Application.PreExecutable.front().Argument.push_back((std::string)xmlApplication["Prologue"]["Argument"][i]);
       }
     }
 
     // std::list<ExecutableType> PostExecutable;
     if (bool(xmlApplication["Epilogue"]["Path"])) {
-      if (job.Application.PostExecutable.empty()) {
-        job.Application.PostExecutable.push_back(ExecutableType());
+      if (parsed_jobdescription.Application.PostExecutable.empty()) {
+        parsed_jobdescription.Application.PostExecutable.push_back(ExecutableType());
       }
-      job.Application.PostExecutable.front().Path = (std::string)xmlApplication["Epilogue"]["Path"];
+      parsed_jobdescription.Application.PostExecutable.front().Path = (std::string)xmlApplication["Epilogue"]["Path"];
     }
     if (bool(xmlApplication["Epilogue"]["Argument"])) {
-      if (job.Application.PostExecutable.empty()) {
-        job.Application.PostExecutable.push_back(ExecutableType());
+      if (parsed_jobdescription.Application.PostExecutable.empty()) {
+        parsed_jobdescription.Application.PostExecutable.push_back(ExecutableType());
       }
       for (int i = 0; (bool)(xmlApplication["Epilogue"]["Argument"][i]); i++) {
-        job.Application.PostExecutable.front().Argument.push_back((std::string)xmlApplication["Epilogue"]["Argument"][i]);
+        parsed_jobdescription.Application.PostExecutable.front().Argument.push_back((std::string)xmlApplication["Epilogue"]["Argument"][i]);
       }
     }
 
     // std::string LogDir;
     if (bool(xmlApplication["LogDir"]))
-      job.Application.LogDir = (std::string)xmlApplication["LogDir"];
+      parsed_jobdescription.Application.LogDir = (std::string)xmlApplication["LogDir"];
 
     // std::list<URL> RemoteLogging;
     for (int i = 0; (bool)(xmlApplication["RemoteLogging"][i]); i++) {
       URL url((std::string)xmlApplication["RemoteLogging"][i]);
       if (!url) {
         logger.msg(VERBOSE, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
-        jobdescs.clear();
         return false;
       }
-      job.Application.RemoteLogging.push_back(RemoteLoggingType());
-      job.Application.RemoteLogging.back().ServiceType = "SGAS";
-      job.Application.RemoteLogging.back().Location = url;
+      parsed_jobdescription.Application.RemoteLogging.push_back(RemoteLoggingType());
+      parsed_jobdescription.Application.RemoteLogging.back().ServiceType = "SGAS";
+      parsed_jobdescription.Application.RemoteLogging.back().Location = url;
     }
 
     // int Rerun;
     if (bool(xmlApplication["Rerun"]))
-      job.Application.Rerun = stringtoi((std::string)xmlApplication["Rerun"]);
+      parsed_jobdescription.Application.Rerun = stringtoi((std::string)xmlApplication["Rerun"]);
 
     // int Priority
     if (bool(xmlApplication["Priority"])) {
-      job.Application.Priority = stringtoi((std::string)xmlApplication["Priority"]);
-      if (job.Application.Priority > 100) {
+      parsed_jobdescription.Application.Priority = stringtoi((std::string)xmlApplication["Priority"]);
+      if (parsed_jobdescription.Application.Priority > 100) {
         logger.msg(VERBOSE, "[ARCJSDLParser] priority is too large - using max value 100");
-        job.Application.Priority = 100;
+        parsed_jobdescription.Application.Priority = 100;
       }
     }
 
     // Time ExpirationTime;
     if (bool(xmlApplication["ExpiryTime"]))
-      job.Application.ExpirationTime = Time((std::string)xmlApplication["ExpiryTime"]);
+      parsed_jobdescription.Application.ExpirationTime = Time((std::string)xmlApplication["ExpiryTime"]);
 
     // Time ProcessingStartTime;
     if (bool(xmlApplication["ProcessingStartTime"]))
-      job.Application.ProcessingStartTime = Time((std::string)xmlApplication["ProcessingStartTime"]);
+      parsed_jobdescription.Application.ProcessingStartTime = Time((std::string)xmlApplication["ProcessingStartTime"]);
 
     // XMLNode Notification;
     for (XMLNode n = xmlApplication["Notification"]; (bool)n; ++n) {
@@ -432,19 +425,19 @@ namespace Arc {
       for (int j = 0; bool(n["State"][j]); j++) {
         notification.States.push_back((std::string)n["State"][j]);
       }
-      job.Application.Notification.push_back(notification);
+      parsed_jobdescription.Application.Notification.push_back(notification);
     }
 
     // std::list<URL> CredentialService;
     for (int i = 0; (bool)(xmlApplication["CredentialService"][i]); i++)
-      job.Application.CredentialService.push_back(URL((std::string)xmlApplication["CredentialService"][i]));
+      parsed_jobdescription.Application.CredentialService.push_back(URL((std::string)xmlApplication["CredentialService"][i]));
 
     // XMLNode AccessControl;
     if (bool(xmlApplication["AccessControl"]))
-      xmlApplication["AccessControl"].Child().New(job.Application.AccessControl);
+      xmlApplication["AccessControl"].Child().New(parsed_jobdescription.Application.AccessControl);
 
     if (bool(xmlApplication["DryRun"]) && lower((std::string)xmlApplication["DryRun"]) == "yes") {
-      job.Application.DryRun = true;
+      parsed_jobdescription.Application.DryRun = true;
     }
 
     // End of Application
@@ -454,24 +447,24 @@ namespace Arc {
 
     // SoftwareRequirement OperatingSystem;
     if (bool(resource["OperatingSystem"])) {
-      if (!parseSoftware(resource["OperatingSystem"], job.Resources.OperatingSystem))
+      if (!parseSoftware(resource["OperatingSystem"], parsed_jobdescription.Resources.OperatingSystem))
         return false;
       if (!resource["OperatingSystem"]["Software"] &&
           resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] &&
           resource["OperatingSystem"]["OperatingSystemVersion"])
-        job.Resources.OperatingSystem = Software((std::string)resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"],
+        parsed_jobdescription.Resources.OperatingSystem = Software((std::string)resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"],
                                                  (std::string)resource["OperatingSystem"]["OperatingSystemVersion"]);
     }
 
     // std::string Platform;
     if (bool(resource["Platform"]))
-      job.Resources.Platform = (std::string)resource["Platform"];
+      parsed_jobdescription.Resources.Platform = (std::string)resource["Platform"];
     else if (bool(resource["CPUArchitecture"]["CPUArchitectureName"]))
-      job.Resources.Platform = (std::string)resource["CPUArchitecture"]["CPUArchitectureName"];
+      parsed_jobdescription.Resources.Platform = (std::string)resource["CPUArchitecture"]["CPUArchitectureName"];
 
     // std::string NetworkInfo;
     if (bool(resource["NetworkInfo"]))
-      job.Resources.NetworkInfo = (std::string)resource["NetworkInfo"];
+      parsed_jobdescription.Resources.NetworkInfo = (std::string)resource["NetworkInfo"];
     else if (bool(resource["IndividualNetworkBandwidth"])) {
       Range<long long> bits_per_sec;
       if (!parseRange<long long>(resource["IndividualNetworkBandwidth"], bits_per_sec)) {
@@ -479,54 +472,54 @@ namespace Arc {
       }
       const long long network = 1024 * 1024;
       if (bits_per_sec < 100 * network)
-        job.Resources.NetworkInfo = "100megabitethernet";
+        parsed_jobdescription.Resources.NetworkInfo = "100megabitethernet";
       else if (bits_per_sec < 1024 * network)
-        job.Resources.NetworkInfo = "gigabitethernet";
+        parsed_jobdescription.Resources.NetworkInfo = "gigabitethernet";
       else if (bits_per_sec < 10 * 1024 * network)
-        job.Resources.NetworkInfo = "myrinet";
+        parsed_jobdescription.Resources.NetworkInfo = "myrinet";
       else
-        job.Resources.NetworkInfo = "infiniband";
+        parsed_jobdescription.Resources.NetworkInfo = "infiniband";
     }
 
     // Range<int> IndividualPhysicalMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualPhysicalMemory"])) {
-      if (!parseRange<int>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory)) {
+      if (!parseRange<int>(resource["IndividualPhysicalMemory"], parsed_jobdescription.Resources.IndividualPhysicalMemory)) {
         return false;
       }
     }
     else if (bool(xmlXApplication["MemoryLimit"])) {
-      long long jsdlMemoryLimit = -1; 
+      long long jsdlMemoryLimit = -1;
       if (stringto<long long>((std::string)xmlXApplication["MemoryLimit"], jsdlMemoryLimit)) {
-        job.Resources.IndividualPhysicalMemory.max = (int)(jsdlMemoryLimit/(1024*1024));
+        parsed_jobdescription.Resources.IndividualPhysicalMemory.max = (int)(jsdlMemoryLimit/(1024*1024));
       }
       else {
-        job.Resources.IndividualPhysicalMemory = Range<int>(-1);
+        parsed_jobdescription.Resources.IndividualPhysicalMemory = Range<int>(-1);
       }
-      
+
     }
 
     // Range<int> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
-      if (!parseRange<int>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory)) {
+      if (!parseRange<int>(resource["IndividualVirtualMemory"], parsed_jobdescription.Resources.IndividualVirtualMemory)) {
         return false;
       }
     }
     else if (bool(xmlXApplication["VirtualMemoryLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["VirtualMemoryLimit"], job.Resources.IndividualVirtualMemory.max))
-        job.Resources.IndividualVirtualMemory = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["VirtualMemoryLimit"], parsed_jobdescription.Resources.IndividualVirtualMemory.max))
+        parsed_jobdescription.Resources.IndividualVirtualMemory = Range<int>(-1);
     }
 
     // Range<int> IndividualCPUTime;
     if (bool(resource["IndividualCPUTime"]["Value"])) {
-      if (!parseRange<int>(resource["IndividualCPUTime"]["Value"], job.Resources.IndividualCPUTime.range)) {
+      if (!parseRange<int>(resource["IndividualCPUTime"]["Value"], parsed_jobdescription.Resources.IndividualCPUTime.range)) {
         return false;
       }
-      parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.benchmark);
+      parseBenchmark(resource["IndividualCPUTime"], parsed_jobdescription.Resources.IndividualCPUTime.benchmark);
     }
     else if (bool(resource["IndividualCPUTime"])) { // JSDL compliance...
-      if (!parseRange<int>(resource["IndividualCPUTime"], job.Resources.IndividualCPUTime.range)) {
+      if (!parseRange<int>(resource["IndividualCPUTime"], parsed_jobdescription.Resources.IndividualCPUTime.range)) {
         return false;
       }
     }
@@ -534,40 +527,40 @@ namespace Arc {
     // Range<int> TotalCPUTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalCPUTime"]["Value"])) {
-      if (!parseRange<int>(resource["TotalCPUTime"]["Value"], job.Resources.TotalCPUTime.range)) {
+      if (!parseRange<int>(resource["TotalCPUTime"]["Value"], parsed_jobdescription.Resources.TotalCPUTime.range)) {
         return false;
       }
-      parseBenchmark(resource["TotalCPUTime"], job.Resources.TotalCPUTime.benchmark);
+      parseBenchmark(resource["TotalCPUTime"], parsed_jobdescription.Resources.TotalCPUTime.benchmark);
     }
     else if (bool(resource["TotalCPUTime"])) { // JSDL compliance...
-      if (!parseRange<int>(resource["TotalCPUTime"], job.Resources.TotalCPUTime.range)) {
+      if (!parseRange<int>(resource["TotalCPUTime"], parsed_jobdescription.Resources.TotalCPUTime.range)) {
         return false;
       }
     }
     else if (bool(xmlXApplication["CPUTimeLimit"])) { // POSIX compliance...
-      if (!stringto<int>((std::string)xmlXApplication["CPUTimeLimit"], job.Resources.TotalCPUTime.range.max))
-        job.Resources.TotalCPUTime.range = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["CPUTimeLimit"], parsed_jobdescription.Resources.TotalCPUTime.range.max))
+        parsed_jobdescription.Resources.TotalCPUTime.range = Range<int>(-1);
     }
 
     // Range<int> IndividualWallTime;
     if (bool(resource["IndividualWallTime"]["Value"])) {
-      if (!parseRange<int>(resource["IndividualWallTime"]["Value"], job.Resources.IndividualWallTime.range)) {
+      if (!parseRange<int>(resource["IndividualWallTime"]["Value"], parsed_jobdescription.Resources.IndividualWallTime.range)) {
         return false;
       }
-      parseBenchmark(resource["IndividualCPUTime"], job.Resources.IndividualWallTime.benchmark);
+      parseBenchmark(resource["IndividualCPUTime"], parsed_jobdescription.Resources.IndividualWallTime.benchmark);
     }
 
     // Range<int> TotalWallTime;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["TotalWallTime"]["Value"])) {
-      if (!parseRange<int>(resource["TotalWallTime"]["Value"], job.Resources.TotalWallTime.range)) {
+      if (!parseRange<int>(resource["TotalWallTime"]["Value"], parsed_jobdescription.Resources.TotalWallTime.range)) {
         return false;
       }
-      parseBenchmark(resource["TotalWallTime"], job.Resources.TotalWallTime.benchmark);
+      parseBenchmark(resource["TotalWallTime"], parsed_jobdescription.Resources.TotalWallTime.benchmark);
     }
     else if (bool(xmlXApplication["WallTimeLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["WallTimeLimit"], job.Resources.TotalWallTime.range.max))
-        job.Resources.TotalWallTime.range = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["WallTimeLimit"], parsed_jobdescription.Resources.TotalWallTime.range.max))
+        parsed_jobdescription.Resources.TotalWallTime.range = Range<int>(-1);
     }
 
     // Range<int> DiskSpace;
@@ -578,8 +571,8 @@ namespace Arc {
         return false;
       }
       if (diskspace > -1) {
-        job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
-        job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
       }
     }
     else if (bool(resource["FileSystem"]["DiskSpace"])) {
@@ -588,10 +581,10 @@ namespace Arc {
         return false;
       }
       if (diskspace.max > -1) {
-        job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
       }
       if (diskspace.min > -1) {
-        job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
       }
     }
 
@@ -599,10 +592,10 @@ namespace Arc {
     if (bool(resource["DiskSpaceRequirement"]["CacheDiskSpace"])) {
       long long int cachediskspace = -1;
       if (!stringto<long long int>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], cachediskspace)) {
-         job.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
+         parsed_jobdescription.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
       }
       else if (cachediskspace > -1) {
-        job.Resources.DiskSpaceRequirement.CacheDiskSpace = cachediskspace/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.CacheDiskSpace = cachediskspace/(1024*1024);
       }
     }
 
@@ -610,67 +603,66 @@ namespace Arc {
     if (bool(resource["DiskSpaceRequirement"]["SessionDiskSpace"])) {
       long long int sessiondiskspace = -1;
       if (!stringto<long long int>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], sessiondiskspace)) {
-        job.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
+        parsed_jobdescription.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
       }
      else if (sessiondiskspace > -1) {
-        job.Resources.DiskSpaceRequirement.SessionDiskSpace = sessiondiskspace/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.SessionDiskSpace = sessiondiskspace/(1024*1024);
       }
     }
 
     // Period SessionLifeTime;
     if (bool(resource["SessionLifeTime"]))
-      job.Resources.SessionLifeTime = Period((std::string)resource["SessionLifeTime"]);
+      parsed_jobdescription.Resources.SessionLifeTime = Period((std::string)resource["SessionLifeTime"]);
 
     // SoftwareRequirement CEType;
     if (bool(resource["CEType"])) {
-      if (!parseSoftware(resource["CEType"], job.Resources.CEType)) {
-        jobdescs.clear();
+      if (!parseSoftware(resource["CEType"], parsed_jobdescription.Resources.CEType)) {
         return false;
       }
     }
 
     // NodeAccessType NodeAccess;
     if (lower((std::string)resource["NodeAccess"]) == "inbound")
-      job.Resources.NodeAccess = NAT_INBOUND;
+      parsed_jobdescription.Resources.NodeAccess = NAT_INBOUND;
     else if (lower((std::string)resource["NodeAccess"]) == "outbound")
-      job.Resources.NodeAccess = NAT_OUTBOUND;
+      parsed_jobdescription.Resources.NodeAccess = NAT_OUTBOUND;
     else if (lower((std::string)resource["NodeAccess"]) == "inoutbound")
-      job.Resources.NodeAccess = NAT_INOUTBOUND;
+      parsed_jobdescription.Resources.NodeAccess = NAT_INOUTBOUND;
 
     // SlotRequirementType ExclusiveExecution
     if (bool(resource["ExclusiveExecution"])) {
        if (lower((std::string)resource["ExclusiveExecution"]) == "true")
-         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
+         parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
        else if (lower((std::string)resource["ExclusiveExecution"]) == "false")
-         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
+         parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
        else
-         job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
+         parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
     }
 
     // ResourceSlotType Slots;
     if (bool(resource["SlotRequirement"]["NumberOfSlots"])) {
-      if (!stringto<int>(resource["SlotRequirement"]["NumberOfSlots"], job.Resources.SlotRequirement.NumberOfSlots)) {
-        job.Resources.SlotRequirement.NumberOfSlots = -1;
+      if (!stringto<int>(resource["SlotRequirement"]["NumberOfSlots"], parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots)) {
+        parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots = -1;
       }
     }
     else if (bool(xmlXApplication["ProcessCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfSlots)) {
-        job.Resources.SlotRequirement.NumberOfSlots = -1;
+      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots)) {
+        parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots = -1;
       }
     }
     if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"])) {
-      if (!stringto<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.ParallelEnvironment.ThreadsPerProcess)) {
-        job.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
+      if (!stringto<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], parsed_jobdescription.Resources.ParallelEnvironment.ThreadsPerProcess)) {
+        parsed_jobdescription.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
       }
     }
     else if (bool(xmlXApplication["ThreadCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.ParallelEnvironment.ThreadsPerProcess)) {
-        job.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
+      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], parsed_jobdescription.Resources.ParallelEnvironment.ThreadsPerProcess)) {
+        parsed_jobdescription.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
       }
     }
     if (bool(resource["SlotRequirement"]["ProcessPerHost"])) {
-      if (!stringto<int>(resource["SlotRequirement"]["ProcessPerHost"], job.Resources.SlotRequirement.SlotsPerHost)) {
-        job.Resources.SlotRequirement.SlotsPerHost = -1;
+      if (!stringto<int>(resource["SlotRequirement"]["ProcessPerHost"], parsed_jobdescription.Resources.SlotRequirement.SlotsPerHost)) {
+        parsed_jobdescription.Resources.SlotRequirement.SlotsPerHost = -1;
       }
     }
     else if (bool(resource["TotalCPUCount"])) {
@@ -682,12 +674,12 @@ namespace Arc {
         logger.msg(VERBOSE, "Lower bounded range is not supported for the 'TotalCPUCount' element.");
         return false;
       }
-      job.Resources.SlotRequirement.SlotsPerHost = cpuCount.max;
+      parsed_jobdescription.Resources.SlotRequirement.SlotsPerHost = cpuCount.max;
     }
 
     // std::string SPMDVariation;
     //if (bool(resource["SlotRequirement"]["SPMDVariation"]))
-    //  job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
+    //  parsed_jobdescription.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
 
 
     // std::string QueueName;
@@ -698,22 +690,20 @@ namespace Arc {
       std::string useQueue = (std::string)xmlQueue.Attribute("require");
       if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
         logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" nordugrid-JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
-        jobdescs.clear();
         return false;
       }
 
       if (useQueue == "ne" || useQueue == "!=") {
-        job.OtherAttributes["nordugrid:broker;reject_queue"] = (std::string)xmlQueue;
+        parsed_jobdescription.OtherAttributes["nordugrid:broker;reject_queue"] = (std::string)xmlQueue;
       }
       else {
-        job.Resources.QueueName = (std::string)xmlQueue;
+        parsed_jobdescription.Resources.QueueName = (std::string)xmlQueue;
       }
     }
 
     // SoftwareRequirement RunTimeEnvironment;
     if (bool(resource["RunTimeEnvironment"])) {
-      if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment)) {
-        jobdescs.clear();
+      if (!parseSoftware(resource["RunTimeEnvironment"], parsed_jobdescription.Resources.RunTimeEnvironment)) {
         return false;
       }
     }
@@ -736,14 +726,12 @@ namespace Arc {
         if (bool(source_uri)) {
           URL source_url((std::string)source_uri);
           if (!source_url) {
-            jobdescs.clear();
             return false;
           }
           // add any URL options
           XMLNode option = source["URIOption"];
           for (; (bool)option; ++option) {
             if (!source_url.AddOption((std::string)option, true)) {
-              jobdescs.clear();
               return false;
             }
           }
@@ -753,19 +741,16 @@ namespace Arc {
             XMLNode location_uri = location["URI"];
             if (!location_uri) {
               logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
-              jobdescs.clear();
               return false;
             }
             URLLocation location_url((std::string)location_uri);
             if (!location_url || location_url.Protocol() == "file") {
               logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
-              jobdescs.clear();
               return false;
             }
             XMLNode loc_option = location["URIOption"];
             for (; (bool)loc_option; ++loc_option) {
               if (!location_url.AddOption((std::string)loc_option, true)) {
-                jobdescs.clear();
                 return false;
               }
             }
@@ -787,7 +772,7 @@ namespace Arc {
         if (ds["DownloadToCache"] && !file.Sources.empty()) {
           file.Sources.back().AddOption("cache", (std::string)ds["DownloadToCache"]);
         }
-        job.DataStaging.InputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.InputFiles.push_back(file);
       }
 
       if ((bool)filenameNode && bool(target) && bool(target_uri)) {
@@ -795,14 +780,12 @@ namespace Arc {
         file.Name = (std::string)filenameNode;
         URL target_url((std::string)target_uri);
         if (!target_url) {
-          jobdescs.clear();
           return false;
         }
         // add any URL options
         XMLNode option = target["URIOption"];
         for (; (bool)option; ++option) {
           if (!target_url.AddOption((std::string)option, true)) {
-            jobdescs.clear();
             return false;
           }
         }
@@ -812,26 +795,23 @@ namespace Arc {
           XMLNode location_uri = location["URI"];
           if (!location_uri) {
             logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
-            jobdescs.clear();
             return false;
           }
           URLLocation location_url((std::string)location_uri);
           if (!location_url || location_url.Protocol() == "file") {
             logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
-            jobdescs.clear();
             return false;
           }
           XMLNode loc_option = location["URIOption"];
           for (; (bool)loc_option; ++loc_option) {
             if (!location_url.AddOption((std::string)loc_option, true)) {
-              jobdescs.clear();
               return false;
             }
           }
           target_url.AddLocation(location_url);
         }
         file.Targets.push_back(target_url);
-        job.DataStaging.OutputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.OutputFiles.push_back(file);
       }
 
       bool deleteOnTermination = (ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false");
@@ -840,13 +820,15 @@ namespace Arc {
         // probably safer to assume user wants that file.
         OutputFileType file;
         file.Name = (std::string)filenameNode;
-        job.DataStaging.OutputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.OutputFiles.push_back(file);
       }
     }
     // end of Datastaging
 
-    SourceLanguage(job) = (!language.empty() ? language : supportedLanguages.front());
-    logger.msg(INFO, "String successfully parsed as %s.", job.GetSourceLanguage());
+    SourceLanguage(parsed_jobdescription) = (!language.empty() ? language : supportedLanguages.front());
+    logger.msg(INFO, "String successfully parsed as %s.", parsed_jobdescription.GetSourceLanguage());
+
+    jobdescs.push_back(parsed_jobdescription);
     return true;
   }
 

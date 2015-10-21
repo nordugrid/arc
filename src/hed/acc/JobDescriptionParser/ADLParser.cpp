@@ -139,10 +139,7 @@ namespace Arc {
     }
     logger.msg(VERBOSE, "Parsing string using ADLParser");
 
-    jobdescs.clear();
-
-    jobdescs.push_back(JobDescription());
-    JobDescription& job = jobdescs.back();
+    JobDescription parsed_jobdescription;
 
     XMLNode node(source);
     if (!node) {
@@ -151,7 +148,6 @@ namespace Arc {
 
     if (node.Size() == 0) {
       logger.msg(VERBOSE, "[ADLParser] Wrong XML structure! ");
-      jobdescs.clear();
       return false;
     }
 
@@ -346,7 +342,6 @@ namespace Arc {
     // ActivityDescription
     if(!MatchXMLName(node,"adl:ActivityDescription")) {
       logger.msg(VERBOSE, "[ADLParser] Root element is not ActivityDescription ");
-      jobdescs.clear();
       return false;
     }
 
@@ -357,48 +352,47 @@ namespace Arc {
 
     if((bool)identification) {
       /// \mapattr ActivityIdentification.Name -> JobName
-      job.Identification.JobName = (std::string)identification["adl:Name"];
+      parsed_jobdescription.Identification.JobName = (std::string)identification["adl:Name"];
       /// \mapattr ActivityIdentification.Description -> Description
-      job.Identification.Description = (std::string)identification["adl:Description"];
+      parsed_jobdescription.Identification.Description = (std::string)identification["adl:Description"];
       /// \mapattr ActivityIdentification.Type -> JobIdentificationType::Type
-      job.Identification.Type = (std::string)identification["adl:Type"];
+      parsed_jobdescription.Identification.Type = (std::string)identification["adl:Type"];
       /// \mapattr ActivityIdentification.Annotation -> Annotation
       for(XMLNode annotation = identification["adl:Annotation"];
                                       (bool)annotation;++annotation) {
-        job.Identification.Annotation.push_back((std::string)annotation);
+        parsed_jobdescription.Identification.Annotation.push_back((std::string)annotation);
       }
       // ARC extension: ActivityOldID
       // TODO: Add note about this being a ARC extension.
       /// \mapattr ActivityIdentification.ActivityOldID -> ActivityOldID
       for(XMLNode activityoldid = identification["nordugrid-adl:ActivityOldID"];
                                       (bool)activityoldid;++activityoldid) {
-        job.Identification.ActivityOldID.push_back((std::string)activityoldid);
+        parsed_jobdescription.Identification.ActivityOldID.push_back((std::string)activityoldid);
       }
     }
     if((bool)application) {
       /// \mapattr Application.Executable.Path -> ExecutableType::Path
       /// \mapattr Application.Executable.Argument -> ExecutableType::Argument
       XMLNode executable = application["adl:Executable"];
-      if(executable && !ParseExecutable(executable, job.Application.Executable, dialect, logger)) {
-        jobdescs.clear();
+      if(executable && !ParseExecutable(executable, parsed_jobdescription.Application.Executable, dialect, logger)) {
         return false;
       }
       // ARC extension: Rerun
       // TODO: Add note about this being a ARC extension.
       /// \mapattr Application.Rerun -> Rerun
       if((bool)application["nordugrid-adl:Rerun"])
-      job.Application.Rerun = stringtoi((std::string)application["nordugrid-adl:Rerun"]);
+      parsed_jobdescription.Application.Rerun = stringtoi((std::string)application["nordugrid-adl:Rerun"]);
 
       /// \mapattr Application.Input -> Input
-      job.Application.Input = (std::string)application["adl:Input"];
+      parsed_jobdescription.Application.Input = (std::string)application["adl:Input"];
       /// \mapattr Application.Output -> Output
-      job.Application.Output = (std::string)application["adl:Output"];
+      parsed_jobdescription.Application.Output = (std::string)application["adl:Output"];
       /// \mapattr Application.Error -> Error
-      job.Application.Error = (std::string)application["adl:Error"];
+      parsed_jobdescription.Application.Error = (std::string)application["adl:Error"];
       /// \mapattr Application.Environment -> Environment
       for(XMLNode environment = application["adl:Environment"];
                          (bool)environment;++environment) {
-        job.Application.Environment.push_back(
+        parsed_jobdescription.Application.Environment.push_back(
                 std::pair<std::string,std::string>(
                         (std::string)environment["adl:Name"],
                         (std::string)environment["adl:Value"]));
@@ -408,36 +402,32 @@ namespace Arc {
           (bool)preexecutable;++preexecutable) {
         ExecutableType exec;
         if(!ParseExecutable(preexecutable, exec, dialect, logger)) {
-          jobdescs.clear();
           return false;
         }
-        job.Application.PreExecutable.push_back(exec);
+        parsed_jobdescription.Application.PreExecutable.push_back(exec);
       }
       /// \mapattr Application.PostExecutable -> PostExecutable
       for(XMLNode postexecutable = application["adl:PostExecutable"];
           (bool)postexecutable;++postexecutable) {
         ExecutableType exec;
         if(!ParseExecutable(postexecutable, exec, dialect, logger)) {
-          jobdescs.clear();
           return false;
         }
-        job.Application.PostExecutable.push_back(exec);
+        parsed_jobdescription.Application.PostExecutable.push_back(exec);
       }
       /// \mapattr Application.LoggingDirectory -> LogDir
-      job.Application.LogDir = (std::string)application["LoggingDirectory"];
+      parsed_jobdescription.Application.LogDir = (std::string)application["LoggingDirectory"];
       for(XMLNode logging = application["adl:RemoteLogging"];
                                 (bool)logging;++logging) {
         URL surl((std::string)logging["adl:URL"]);
         if(!surl) {
           logger.msg(ERROR, "[ADLParser] Unsupported URL %s for RemoteLogging.",(std::string)logging["adl:URL"]);
-          jobdescs.clear();
           return false;
         }
-        job.Application.RemoteLogging.push_back(RemoteLoggingType());
-        job.Application.RemoteLogging.back().ServiceType = (std::string)logging["adl:ServiceType"];
-        job.Application.RemoteLogging.back().Location    = (std::string)logging["adl:URL"];
-        if (!ParseOptional(logging, job.Application.RemoteLogging.back().optional, logger)) {
-          jobdescs.clear();
+        parsed_jobdescription.Application.RemoteLogging.push_back(RemoteLoggingType());
+        parsed_jobdescription.Application.RemoteLogging.back().ServiceType = (std::string)logging["adl:ServiceType"];
+        parsed_jobdescription.Application.RemoteLogging.back().Location    = (std::string)logging["adl:URL"];
+        if (!ParseOptional(logging, parsed_jobdescription.Application.RemoteLogging.back().optional, logger)) {
           return false;
         }
       }
@@ -446,14 +436,12 @@ namespace Arc {
       if((bool)expire) {
         bool b;
         if(!ParseOptional(expire,b,logger)) {
-          jobdescs.clear();
           return false;
         }
-        job.Application.ExpirationTime = (std::string)expire;
-        if(job.Application.ExpirationTime.GetTime() == (time_t)(-1)) {
+        parsed_jobdescription.Application.ExpirationTime = (std::string)expire;
+        if(parsed_jobdescription.Application.ExpirationTime.GetTime() == (time_t)(-1)) {
           logger.msg(b?WARNING:ERROR, "[ADLParser] Wrong time %s in ExpirationTime.",(std::string)expire);
           if(!b) {
-            jobdescs.clear();
             return false;
           }
         }
@@ -461,11 +449,10 @@ namespace Arc {
       /// \mapattr Application.WipeTime -> SessionLifeTime
       XMLNode wipe =  application["adl:WipeTime"];
       if((bool)wipe) {
-        job.Resources.SessionLifeTime = (std::string)wipe;
+        parsed_jobdescription.Resources.SessionLifeTime = (std::string)wipe;
         // TODO: check validity. Do it after type is clarified.
         bool b;
         if(!ParseOptional(wipe,b,logger)) {
-          jobdescs.clear();
           return false;
         }
       }
@@ -478,13 +465,11 @@ namespace Arc {
                                (bool)notify;++notify) {
         bool b;
         if(!ParseOptional(expire,b,logger)) {
-          jobdescs.clear();
           return false;
         }
         if((std::string)notify["adl:Protocol"] != "email") {
           if(!b) {
             logger.msg(ERROR, "[ADLParser] Only email Prorocol for Notification is supported yet.");
-            jobdescs.clear();
             return false;
           }
           logger.msg(WARNING, "[ADLParser] Only email Prorocol for Notification is supported yet.");
@@ -495,7 +480,6 @@ namespace Arc {
           std::string s = ADLStateToInternal((std::string)onstate,b,logger);
           if(s.empty()) {
             if(!b) {
-              jobdescs.clear();
               return false;
             }
           }
@@ -503,7 +487,7 @@ namespace Arc {
         }
         for(XMLNode rcpt = notify["adl:Recipient"];(bool)rcpt;++rcpt) {
           n.Email = (std::string)rcpt;
-          job.Application.Notification.push_back(n);
+          parsed_jobdescription.Application.Notification.push_back(n);
         }
       }
     }
@@ -513,13 +497,13 @@ namespace Arc {
       if((bool)os) {
         // TODO: convert from EMI ES types. So far they look similar.
         Software os_((std::string)os["adl:Family"],(std::string)os["adl:Name"],(std::string)os["adl:Version"]);
-        job.Resources.OperatingSystem.add(os_, Software::EQUAL);
+        parsed_jobdescription.Resources.OperatingSystem.add(os_, Software::EQUAL);
       }
       /// \mapattr Resources.Platform -> Platform
       XMLNode platform = resources["adl:Platform"];
       if((bool)platform) {
         // TODO: convert from EMI ES types. So far they look similar.
-        job.Resources.Platform = (std::string)platform;
+        parsed_jobdescription.Resources.Platform = (std::string)platform;
       }
       /// \mapattr Resources.RuntimeEnvironment -> RunTimeEnvironment
       for(XMLNode rte = resources["adl:RuntimeEnvironment"];(bool)rte;++rte) {
@@ -529,13 +513,12 @@ namespace Arc {
         }
         bool b;
         if(!ParseOptional(rte,b,logger)) {
-          jobdescs.clear();
           return false;
         }
-        job.Resources.RunTimeEnvironment.add(rte_, Software::EQUAL);
+        parsed_jobdescription.Resources.RunTimeEnvironment.add(rte_, Software::EQUAL);
       }
       if((bool)resources["adl:ParallelEnvironment"]) {
-        ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;
+        ParallelEnvironmentType& pe = parsed_jobdescription.Resources.ParallelEnvironment;
         XMLNode xpe = resources["adl:ParallelEnvironment"];
         /// \mapattr Resources.ParallelEnvironment.Type ->  ParallelEnvironmentType::Type
         if ((bool)xpe["adl:Type"]) {
@@ -548,20 +531,17 @@ namespace Arc {
         /// \mapattr Resources.ParallelEnvironment.ProcessesPerSlot ->  ParallelEnvironmentType::ProcessesPerSlot
         if (((bool)xpe["adl:ProcessesPerSlot"]) && !stringto(xpe["adl:ProcessesPerSlot"], pe.ProcessesPerSlot)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in ProcessesPerSlot.");
-          jobdescs.clear();
           return false;
         }
         /// \mapattr Resources.ParallelEnvironment.ThreadsPerProcess ->  ParallelEnvironmentType::ThreadsPerProcess
         if (((bool)xpe["adl:ThreadsPerProcess"]) && !stringto(xpe["adl:ThreadsPerProcess"], pe.ThreadsPerProcess)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in ThreadsPerProcess.");
-          jobdescs.clear();
           return false;
         }
         /// \mapattr Resources.ParallelEnvironment.Option ->  ParallelEnvironmentType::Options
         for (XMLNode xOption = xpe["adl:Option"]; xOption; ++xOption) {
           if ((!(bool)xOption["adl:Name"]) || ((std::string)xOption["adl:Name"]).empty()) {
             logger.msg(ERROR, "[ADLParser] Missing Name element or value in ParallelEnvironment/Option element.");
-            jobdescs.clear();
             return false;
           }
           pe.Options.insert(std::make_pair(xOption["adl:Name"], xOption["adl:Value"]));
@@ -570,9 +550,8 @@ namespace Arc {
       /// \mapattr Resources.Coprocessor -> Coprocessor
       XMLNode coprocessor = resources["adl:Coprocessor"];
       if((bool)coprocessor && !((std::string)coprocessor).empty()) {
-        job.Resources.Coprocessor = coprocessor;
-        if (!ParseOptional(coprocessor, job.Resources.Coprocessor.optIn, logger)) {
-          jobdescs.clear();
+        parsed_jobdescription.Resources.Coprocessor = coprocessor;
+        if (!ParseOptional(coprocessor, parsed_jobdescription.Resources.Coprocessor.optIn, logger)) {
           return false;
         }
       }
@@ -580,7 +559,6 @@ namespace Arc {
       XMLNode netinfo = resources["adl:NetworkInfo"];
       if(((bool)netinfo)) {
         logger.msg(ERROR, "[ADLParser] NetworkInfo is not supported yet.");
-        jobdescs.clear();
         return false;
       }
       /// \mapattr Resources.NodeAccess -> NodeAccess
@@ -588,23 +566,21 @@ namespace Arc {
       if(nodeaccess) {
         std::string na = nodeaccess;
         if(na == "inbound") {
-          job.Resources.NodeAccess = NAT_INBOUND;
+          parsed_jobdescription.Resources.NodeAccess = NAT_INBOUND;
         } else if(na == "outbound") {
-          job.Resources.NodeAccess = NAT_OUTBOUND;
+          parsed_jobdescription.Resources.NodeAccess = NAT_OUTBOUND;
         } else if(na == "inoutbound") {
-          job.Resources.NodeAccess = NAT_INOUTBOUND;
+          parsed_jobdescription.Resources.NodeAccess = NAT_INOUTBOUND;
         } else {
           logger.msg(ERROR, "[ADLParser] NodeAccess value %s is not supported yet.",na);
-          jobdescs.clear();
           return false;
         }
       }
       XMLNode slot = resources["adl:SlotRequirement"];
       if((bool)slot) {
         /// \mapattr Resources.SlotRequirement.NumberOfSlots -> NumberOfSlots
-        if(!stringto(slot["adl:NumberOfSlots"],job.Resources.SlotRequirement.NumberOfSlots)) {
+        if(!stringto(slot["adl:NumberOfSlots"],parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
-          jobdescs.clear();
           return false;
         }
         if((bool)slot["adl:SlotsPerHost"]) {
@@ -614,25 +590,24 @@ namespace Arc {
               logger.msg(ERROR, "[ADLParser] The NumberOfSlots element should be specified, when the value of useNumberOfSlots attribute of SlotsPerHost element is \"true\".");
               return false;
             }
-            job.Resources.SlotRequirement.SlotsPerHost = job.Resources.SlotRequirement.NumberOfSlots;
+            parsed_jobdescription.Resources.SlotRequirement.SlotsPerHost = parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots;
           }
           /// \mapattr Resources.SlotRequirement.SlotsPerHost -> SlotsPerHost
-          else if(!stringto(slot["adl:SlotsPerHost"],job.Resources.SlotRequirement.SlotsPerHost)) {
+          else if(!stringto(slot["adl:SlotsPerHost"],parsed_jobdescription.Resources.SlotRequirement.SlotsPerHost)) {
             logger.msg(ERROR, "[ADLParser] Missing or wrong value in SlotsPerHost.");
-            jobdescs.clear();
             return false;
           }
           /// \mapattr Resources.SlotRequirement.ExclusiveExecution -> ExclusiveExecution
           if((bool)slot["adl:ExclusiveExecution"]) {
             const std::string ee = slot["adl:ExclusiveExecution"];
             if ((ee == "true") || (ee == "1")) {
-              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
+              parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
             }
             else if ((ee == "false") || (ee == "0")) {
-              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
+              parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
             }
             else {
-              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
+              parsed_jobdescription.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
             }
           }
         }
@@ -640,24 +615,22 @@ namespace Arc {
       /// \mapattr Resources.QueueName -> QueueName
       XMLNode queue = resources["adl:QueueName"];
       if((bool)queue) {
-        job.Resources.QueueName = (std::string)queue;
+        parsed_jobdescription.Resources.QueueName = (std::string)queue;
       }
       /// \mapattr Resources.IndividualPhysicalMemory -> IndividualPhysicalMemory
       XMLNode memory;
       memory = resources["adl:IndividualPhysicalMemory"];
       if((bool)memory) {
-        if(!stringto((std::string)memory,job.Resources.IndividualPhysicalMemory.max)) {
+        if(!stringto((std::string)memory,parsed_jobdescription.Resources.IndividualPhysicalMemory.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualPhysicalMemory.");
-          jobdescs.clear();
           return false;
         }
       }
       /// \mapattr Resources.IndividualVirtualMemory -> IndividualVirtualMemory
       memory = resources["adl:IndividualVirtualMemory"];
       if((bool)memory) {
-        if(!stringto((std::string)memory,job.Resources.IndividualVirtualMemory.max)) {
+        if(!stringto((std::string)memory,parsed_jobdescription.Resources.IndividualVirtualMemory.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualVirtualMemory.");
-          jobdescs.clear();
           return false;
         }
       }
@@ -667,41 +640,36 @@ namespace Arc {
         unsigned long long int v = 0;
         if((!stringto((std::string)memory,v)) || (v == 0)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in DiskSpaceRequirement.");
-          jobdescs.clear();
           return false;
         }
-        job.Resources.DiskSpaceRequirement.DiskSpace.min = (v - 1) / 1024*1024 + 1;
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = (v - 1) / 1024*1024 + 1;
       }
       /// \mapattr Resources.RemoteSessionAccess -> SessionDirectoryAccess
       if((bool)resources["adl:RemoteSessionAccess"]) {
         bool v = false;
         if(!ParseFlag(resources["adl:RemoteSessionAccess"],v,logger)) {
-          jobdescs.clear();
           return false;
         }
-        job.Resources.SessionDirectoryAccess = v?SDAM_RW:SDAM_NONE;
+        parsed_jobdescription.Resources.SessionDirectoryAccess = v?SDAM_RW:SDAM_NONE;
       }
       if((bool)resources["adl:Benchmark"]) {
         logger.msg(ERROR, "[ADLParser] Benchmark is not supported yet.");
-        jobdescs.clear();
         return false;
       }
       XMLNode time;
       time = resources["adl:IndividualCPUTime"];
       if((bool)time) {
         /// \mapattr Resources.IndividualCPUTime -> IndividualCPUTime
-        if(!stringto((std::string)time,job.Resources.IndividualCPUTime.range.max)) {
+        if(!stringto((std::string)time,parsed_jobdescription.Resources.IndividualCPUTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualCPUTime.");
-          jobdescs.clear();
           return false;
         }
       }
       time = resources["adl:TotalCPUTime"];
       if((bool)time) {
         /// \mapattr Resources.TotalCPUTime -> TotalCPUTime
-        if(!stringto((std::string)time,job.Resources.TotalCPUTime.range.max)) {
+        if(!stringto((std::string)time,parsed_jobdescription.Resources.TotalCPUTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in TotalCPUTime.");
-          jobdescs.clear();
           return false;
         }
       }
@@ -709,31 +677,28 @@ namespace Arc {
       if((bool)time) {
         /// \mapattr Resources.WallTime -> IndividualWallTime
         /// TODO: Change to IndividualWallTime
-        if(!stringto((std::string)time,job.Resources.TotalWallTime.range.max)) {
+        if(!stringto((std::string)time,parsed_jobdescription.Resources.TotalWallTime.range.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in WallTime.");
-          jobdescs.clear();
           return false;
         }
-        job.Resources.IndividualWallTime = job.Resources.TotalWallTime;
+        parsed_jobdescription.Resources.IndividualWallTime = parsed_jobdescription.Resources.TotalWallTime;
       }
     }
     if((bool)staging) {
       bool clientpush = false;
       if(!ParseFlag(staging["adl:ClientDataPush"],clientpush,logger)) {
-        jobdescs.clear();
         return false;
       }
       if (clientpush) {
-        job.OtherAttributes["emi-adl:ClientDataPush"] = "true";
+        parsed_jobdescription.OtherAttributes["emi-adl:ClientDataPush"] = "true";
         InputFileType file; // Also using unnamed file for that
-        job.DataStaging.InputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.InputFiles.push_back(file);
       }
       for(XMLNode input = staging["adl:InputFile"];(bool)input;++input) {
         InputFileType file;
         file.Name = (std::string)input["adl:Name"];
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in InputFile.");
-          jobdescs.clear();
           return false;
         }
         std::string ex = input["adl:IsExecutable"];
@@ -745,7 +710,6 @@ namespace Arc {
             SourceType surl((std::string)source["adl:URI"]);
             if(!surl) {
               logger.msg(ERROR, "[ADLParser] Wrong URI specified in Source - %s.",(std::string)source["adl:URI"]);
-              jobdescs.clear();
               return false;
             }
             if((bool)source["adl:DelegationID"]) {
@@ -761,21 +725,19 @@ namespace Arc {
           }
         }
         // TODO: FileSize and Checksum. Probably not useful for HTTP-like interfaces anyway.
-        job.DataStaging.InputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.InputFiles.push_back(file);
       }
       for(XMLNode output = staging["adl:OutputFile"];(bool)output;++output) {
         OutputFileType file;
         file.Name = (std::string)output["adl:Name"];
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in OutputFile.");
-          jobdescs.clear();
           return false;
         }
         for(XMLNode target = output["adl:Target"];(bool)target;++target) {
           TargetType turl((std::string)target["adl:URI"]);
           if(!turl) {
             logger.msg(ERROR, "[ADLParser] Wrong URI specified in Target - %s.",(std::string)target["adl:URI"]);
-            jobdescs.clear();
             return false;
           }
           if((bool)target["adl:DelegationID"]) {
@@ -789,7 +751,6 @@ namespace Arc {
                 URLLocation location_url(option["adl:Value"]);
                 if(!location_url || location_url.Protocol() == "file") {
                   logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
-                  jobdescs.clear();
                   return false;
                 }
                 turl.AddLocation(location_url);
@@ -801,13 +762,11 @@ namespace Arc {
           }
           bool mandatory = false;
           if(!ParseFlag(target["adl:Mandatory"],mandatory,logger)) {
-            jobdescs.clear();
             return false;
           }
           if((!ParseFlag(target["adl:UseIfFailure"],turl.UseIfFailure,logger)) ||
              (!ParseFlag(target["adl:UseIfCancel"],turl.UseIfCancel,logger)) ||
              (!ParseFlag(target["adl:UseIfSuccess"],turl.UseIfSuccess,logger))) {
-            jobdescs.clear();
             return false;
           }
           if((bool)target["adl:CreationFlag"]) {
@@ -817,19 +776,20 @@ namespace Arc {
             else if(v == "dontOverwrite") { turl.CreationFlag = TargetType::CFE_DONTOVERWRITE; }
             else {
               logger.msg(ERROR, "[ADLParser] CreationFlag value %s is not supported.",v);
-              jobdescs.clear();
               return false;
             };
           }
           turl.AddOption("mandatory",mandatory?"true":"false",true);
           file.Targets.push_back(turl);
         }
-        job.DataStaging.OutputFiles.push_back(file);
+        parsed_jobdescription.DataStaging.OutputFiles.push_back(file);
       }
       if((bool)staging["nordugrid-adl:DelegationID"]) {
-        job.DataStaging.DelegationID = (std::string)staging["nordugrid-adl:DelegationID"];
+        parsed_jobdescription.DataStaging.DelegationID = (std::string)staging["nordugrid-adl:DelegationID"];
       }
     }
+
+    jobdescs.push_back(parsed_jobdescription);
     return true;
   }
 
@@ -940,7 +900,7 @@ namespace Arc {
       wipe = (std::string)job.Resources.SessionLifeTime;
       //if() wipe.NewAttribute("optional") = "true";
     }
-    
+
     for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
          it != job.Application.Notification.end(); it++) {
       XMLNode notification = application.NewChild("Notification");
@@ -959,7 +919,7 @@ namespace Arc {
     // job.Application.AccessControl
     // job.Application.CredentialService
     // job.Application.DryRun
-  
+
     // Resources
     /// \mapattr Resources.OperatingSystem <- OperatingSystem
     for(std::list<Software>::const_iterator o = job.Resources.OperatingSystem.getSoftwareList().begin();
@@ -1024,7 +984,7 @@ namespace Arc {
       coprocessor = (std::string)job.Resources.Coprocessor;
       if(job.Resources.Coprocessor.optIn) coprocessor.NewAttribute("optional") = "true";
     }
-    //TODO: check values. So far they look close. 
+    //TODO: check values. So far they look close.
     /// \mapattr Resources.NetworkInfo <- NetworkInfo
     if(!job.Resources.NetworkInfo.empty()) {
       resources.NewChild("NetworkInfo") = job.Resources.NetworkInfo;

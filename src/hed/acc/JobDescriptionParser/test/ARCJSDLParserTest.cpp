@@ -301,6 +301,7 @@ void ARCJSDLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -322,6 +323,7 @@ void ARCJSDLParserTest::TestQueue() {
 "</JobDescription>"
 "</JobDefinition>";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -333,6 +335,7 @@ void ARCJSDLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -361,6 +364,7 @@ void ARCJSDLParserTest::TestDryRun() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -379,6 +383,7 @@ void ARCJSDLParserTest::TestDryRun() {
 "</JobDescription>"
 "</JobDefinition>";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -386,6 +391,7 @@ void ARCJSDLParserTest::TestDryRun() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -657,42 +663,51 @@ void ARCJSDLParserTest::TestRangeValueType() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3600, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
 
+  OUTJOBS.clear();
   element = "<LowerBoundedRange>134.5</LowerBoundedRange>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 134, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
 
+  OUTJOBS.clear();
   element = "<UpperBoundedRange>234.5</UpperBoundedRange>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, -1, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
 
+  OUTJOBS.clear();
   element = "<UpperBoundedRange>234.5</UpperBoundedRange><LowerBoundedRange>123.4</LowerBoundedRange>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
 
+  OUTJOBS.clear();
   element = "<Range><UpperBound>234.5</UpperBound><LowerBound>123.4</LowerBound></Range>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 234, OUTJOBS.front().Resources.IndividualCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 123, OUTJOBS.front().Resources.IndividualCPUTime.range.min);
 
+  OUTJOBS.clear();
   element = "<Range><UpperBound>123.4</UpperBound><LowerBound>234.5</LowerBound></Range>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 
+  OUTJOBS.clear();
   element = "<Range><UpperBound>234.5</UpperBound></Range><Range><LowerBound>123.4</LowerBound></Range>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 
+  OUTJOBS.clear();
   element = "<Exact>234.5</Exact><Exact>123.4</Exact>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 
+  OUTJOBS.clear();
   element = "<Exact epsilon=\"1.2\">234.5</Exact>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 
+  OUTJOBS.clear();
   element = "<LowerBoundedRange exclusiveBound=\"1.2\">234.5</LowerBoundedRange>";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(beforeElement + element + afterElement, OUTJOBS));
 }

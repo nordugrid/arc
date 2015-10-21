@@ -227,6 +227,7 @@ void JDLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jdl, "egee:jdl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(jdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 

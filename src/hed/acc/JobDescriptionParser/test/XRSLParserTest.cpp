@@ -313,6 +313,7 @@ void XRSLParserTest::TestURIOptionsInput() {
   xrsl = "&(executable=/bin/true)"
          "(inputfiles=(\"in1\" \"lfc://example.com/in1\" \"location=gsiftp://example.com/in1\" \"threads=5\"))";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
@@ -376,6 +377,7 @@ void XRSLParserTest::TestExecutables() {
   CPPUNIT_ASSERT(OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().IsExecutable);
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -421,6 +423,7 @@ void XRSLParserTest::TestCache() {
   CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().Sources.front().Option("cache"));
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -448,6 +451,7 @@ void XRSLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL((std::string)"q2", OUTJOBS.front().GetAlternatives().front().Resources.QueueName);
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -458,6 +462,7 @@ void XRSLParserTest::TestQueue() {
   xrsl = "&(executable=\"executable\")"
           "(|(queue!=q1)(queue!=q2))";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -472,6 +477,7 @@ void XRSLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL((std::string)"q2", itAttribute->second);
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -512,6 +518,7 @@ void XRSLParserTest::TestFTPThreads() {
   CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().DataStaging.OutputFiles.back().Targets.front().Option("threads"));
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -573,9 +580,11 @@ void XRSLParserTest::TestNotify() {
   // Test all flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\")";
 
+  tempJobDescs.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -607,9 +616,11 @@ void XRSLParserTest::TestNotify() {
   // Test multiple entries and overlapping states.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\" \"bqf someone@example.com anotherone@example.com\")";
 
+  tempJobDescs.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -657,18 +668,21 @@ void XRSLParserTest::TestNotify() {
   // Test invalid email address.
   xrsl = "&(executable = \"executable\")(notify = \"someoneAexample.com\")";
 
+  tempJobDescs.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT(tempJobDescs.empty());
 
   // Test invalid email address with state flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfecd someoneAexample.com\")";
 
+  tempJobDescs.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT(tempJobDescs.empty());
 
   // Test unknown state flags.
   xrsl = "&(executable = \"executable\")(notify = \"xyz someone@example.com\")";
 
+  tempJobDescs.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT(tempJobDescs.empty());
 }
@@ -686,6 +700,7 @@ void XRSLParserTest::TestDryRun() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().GetAlternatives().front().Application.DryRun);
 
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Application.DryRun);
@@ -694,6 +709,7 @@ void XRSLParserTest::TestDryRun() {
 
   xrsl = "&(|(executable = \"executable\")(executable = \"executable\"))(dryrun = \"no\")";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.DryRun);
@@ -702,6 +718,7 @@ void XRSLParserTest::TestDryRun() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().GetAlternatives().front().Application.DryRun);
 
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.DryRun);
@@ -731,6 +748,7 @@ void XRSLParserTest::TestJoin() {
 
   xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(stderr = \"error-file\")(join = \"no\")";
 
+  OUTJOBS.clear();
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file", OUTJOBS.front().Application.Output);
@@ -757,7 +775,7 @@ void XRSLParserTest::TestGridTime() {
 
 
   xrsl = "&(executable=/bin/echo)(gridtime=600s)(count=1)";
-  
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -775,7 +793,7 @@ void XRSLParserTest::TestGridTime() {
 
 
   xrsl = "&(executable=/bin/echo)(gridtime=600s)(count=5)";
-  
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
@@ -822,7 +840,7 @@ void XRSLParserTest::TestAccessControl() {
   CPPUNIT_ASSERT_EQUAL((std::string)"gacl", OUTJOBS.front().Application.AccessControl.Name());
   CPPUNIT_ASSERT_EQUAL(1, OUTJOBS.front().Application.AccessControl.Size());
   CPPUNIT_ASSERT_EQUAL((std::string)"entry", OUTJOBS.front().Application.AccessControl.Child().Name());
-  
+
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
   OUTJOBS.clear();
@@ -848,7 +866,7 @@ void XRSLParserTest::TestParallelAttributes() {
   CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
   CPPUNIT_ASSERT_EQUAL(4, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
   CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_TRUE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
-  
+
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
   OUTJOBS.clear();
@@ -872,7 +890,7 @@ void XRSLParserTest::TestParallelAttributes() {
   CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
   CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
   CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_FALSE, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
-  
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
   OUTJOBS.clear();
 
@@ -894,7 +912,7 @@ void XRSLParserTest::TestParallelAttributes() {
   CPPUNIT_ASSERT_EQUAL(8, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
   CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.SlotRequirement.SlotsPerHost);
   CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_DEFAULT, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
-  
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
   OUTJOBS.clear();
 
@@ -906,7 +924,7 @@ void XRSLParserTest::TestParallelAttributes() {
   CPPUNIT_ASSERT_EQUAL(Arc::SlotRequirementType::EE_DEFAULT, OUTJOBS.front().Resources.SlotRequirement.ExclusiveExecution);
   OUTJOBS.clear();
 
-  
+
   // Test order of attributes
   xrsl = "&(executable = \"/bin/echo\")"
           "(countpernode = 4)"
@@ -925,7 +943,7 @@ void XRSLParserTest::TestParallelAttributes() {
           "(count = \"eight\")";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
   OUTJOBS.clear();
-  
+
   xrsl = "&(executable = \"/bin/echo\")"
           "(countpernode = \"four\")";
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
@@ -936,7 +954,7 @@ void XRSLParserTest::TestParallelAttributes() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
   OUTJOBS.clear();
 
-  
+
   INJOB.Application.Executable.Path = "/bin/echo";
   INJOB.Resources.SlotRequirement.SlotsPerHost = 6;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
