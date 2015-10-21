@@ -28,6 +28,19 @@ namespace Arc {
   class SubmitterPlugin;
   class UserConfig;
 
+  /*
+   * == Design considerations ==
+   * In order to resemble the GLUE2 structure, the vital GLUE2 classes seen from
+   * ARC perspective have a analogue below. However when doing match making, it
+   * is desirable to have a complete and flat layout of a single submission
+   * target configuration. E.g. two ComputingShares in a ComputingService gives
+   * two configurations. Add different submission endpoints and the number of
+   * configurations goes up... In order not to duplicate resource info instances
+   * CountedPointer class is used indirectly in the GLUE2 master class
+   * ComputingServiceType through the GLUE2Entity class, and directly in the
+   * flat ExecutionTarget class (submission target configuration).
+   */
+
   /**
    * \defgroup resourceinfo Structures holding resource information
    * \ingroup compute
