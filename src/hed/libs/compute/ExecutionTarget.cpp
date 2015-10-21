@@ -69,9 +69,17 @@ namespace Arc {
              itCSIDs != itCE->second.ComputingShareIDs.end(); ++itCSIDs) {
           std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.find(*itCSIDs);
           if (itCS != ComputingShare.end()) {
+            // Create list of mapping policies
+            std::list< CountedPointer<MappingPolicyAttributes> > MappingPolicies;
+            for (std::map<int, MappingPolicyType>::const_iterator itMP = itCS->second.MappingPolicy.begin();
+                 itMP != itCS->second.MappingPolicy.end(); ++itMP) {
+              MappingPolicies.push_back(itMP->second.Attributes);
+            }
+
             AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
                                                                Attributes, itCE->second.Attributes,
                                                                OtherEndpoints, itCS->second.Attributes,
+                                                               MappingPolicies,
                                                                computingManager, executionEnvironment,
                                                                benchmarks, applicationEnvironments));
           }
@@ -80,9 +88,16 @@ namespace Arc {
       else if (!ComputingShare.empty()) {
         for (std::map<int, ComputingShareType>::const_iterator itCS = ComputingShare.begin();
              itCS != ComputingShare.end(); ++itCS) {
+          // Create list of mapping policies
+          std::list< CountedPointer<MappingPolicyAttributes> > MappingPolicies;
+          for (std::map<int, MappingPolicyType>::const_iterator itMP = itCS->second.MappingPolicy.begin();
+               itMP != itCS->second.MappingPolicy.end(); ++itMP) {
+            MappingPolicies.push_back(itMP->second.Attributes);
+          }
           AddExecutionTarget<T>(container, ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
                                                              Attributes, itCE->second.Attributes,
                                                              OtherEndpoints, itCS->second.Attributes,
+                                                             MappingPolicies,
                                                              computingManager, executionEnvironment,
                                                              benchmarks, applicationEnvironments));
         }
@@ -96,11 +111,13 @@ namespace Arc {
           if(*itCap == "executionmanagement.jobcreation") {
             // Creating generic target
             CountedPointer<ComputingShareAttributes> computingShare(new ComputingShareAttributes);
+            std::list< CountedPointer<MappingPolicyAttributes> > MappingPolicies;
             AddExecutionTarget<T>(container,
                                   ExecutionTarget(Location.Attributes, AdminDomain.Attributes,
                                                   Attributes, itCE->second.Attributes,
                                                   OtherEndpoints,
                                                   computingShare,
+                                                  MappingPolicies,
                                                   computingManager,
                                                   executionEnvironment,
                                                   benchmarks,
@@ -283,7 +300,19 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = ce.JobDescriptions.begin();
            it != ce.JobDescriptions.end(); ++it) out << "  " << *it << std::endl;
     }
-        
+
+    return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const MappingPolicyAttributes& mp) {
+    // ID not printed.
+
+    std::string scheme = mp.Scheme.empty() ? "basic" : mp.Scheme;
+    out << IString("Scheme: %s", scheme) << std::endl;
+    for (std::list<std::string>::const_iterator itR = mp.Rule.begin();
+         itR != mp.Rule.end(); ++itR) {
+      out << IString("Rule: %s", *itR) << std::endl;
+    }
     return out;
   }
 
@@ -463,15 +492,28 @@ namespace Arc {
     if (!cst.ComputingShare.empty()) {
       out << std::endl;
       if (cst.ComputingShare.size() > 1) {
-        out << IString("%d Queues", cst.ComputingShare.size()) << std::endl;
+        out << IString("%d Shares", cst.ComputingShare.size()) << std::endl;
       }
-      for (std::map<int, ComputingShareType>::const_iterator it = cst.ComputingShare.begin();
-           it != cst.ComputingShare.end(); ++it) {
-        if (it != cst.ComputingShare.begin()) out << std::endl;
-        out << IString("Queue Information:") << std::endl;
+      for (std::map<int, ComputingShareType>::const_iterator itCH = cst.ComputingShare.begin();
+           itCH != cst.ComputingShare.end(); ++itCH) {
+        if (itCH != cst.ComputingShare.begin()) out << std::endl;
+        out << IString("Share Information:") << std::endl;
         std::ostringstream queueBuffer;
         Indenter iQueue(queueBuffer);
-        queueBuffer << (*it->second);
+        queueBuffer << (*itCH->second);
+
+        if (itCH->second.MappingPolicy.size() > 1) {
+          queueBuffer << IString("%d mapping policies", itCH->second.MappingPolicy.size());
+        }
+        for (std::map<int, MappingPolicyType>::const_iterator itMP = itCH->second.MappingPolicy.begin();
+             itMP != itCH->second.MappingPolicy.end(); ++itMP) {
+          queueBuffer << IString("Mapping policy:") << std::endl;
+          std::ostringstream mpBuffer;
+          Indenter indMP(mpBuffer);
+          mpBuffer << (*itMP->second);
+          queueBuffer << mpBuffer.str();
+        }
+
         out << queueBuffer.str();
       }
     }

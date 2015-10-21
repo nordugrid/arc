@@ -141,7 +141,24 @@ namespace Arc {
 
         cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(endpointID++, ComputingEndpoint));
       }
-      
+
+      // GFD.147 GLUE2 5.12.2 MappingPolicy
+      std::map<std::string, MappingPolicyType> MappingPolicies; // Share.ID, MappingPolicy
+      std::list<Extractor> policies = Extractor::All(service, "MappingPolicy");
+      for (std::list<Extractor>::iterator itp = policies.begin(); itp != policies.end(); ++itp) {
+        Extractor& policy = *itp;
+        policy.prefix = "Policy";
+
+        MappingPolicyType MappingPolicy;
+        policy.set("ID", MappingPolicy->ID);
+        policy.set("Scheme", MappingPolicy->Scheme);
+        policy.set("Rule", MappingPolicy->Rule);
+
+        policy.prefix = "MappingPolicy";
+        MappingPolicies[policy.get("ShareForeignKey")] = MappingPolicy;
+      }
+
+
       // GFD.147 GLUE2 6.3 Computing Share
       std::list<Extractor> shares = Extractor::All(service, "ComputingShare");
       int shareID = 0;
@@ -209,6 +226,17 @@ namespace Arc {
         share.set("UsedSlots", ComputingShare->UsedSlots);
         share.set("RequestedSlots", ComputingShare->RequestedSlots);
         share.set("ReservationPolicy", ComputingShare->ReservationPolicy);
+
+        share.prefix = "Share";
+        ComputingShare->ID = share.get("ID");
+
+        int policyID = 0;
+        for (std::map<std::string, MappingPolicyType>::const_iterator itMP = MappingPolicies.begin();
+             itMP != MappingPolicies.end(); ++itMP) {
+          if (itMP->first == ComputingShare->ID) {
+            ComputingShare.MappingPolicy[policyID++] = itMP->second;
+          }
+        }
 
         cs.ComputingShare.insert(std::pair<int, ComputingShareType>(shareID++, ComputingShare));
       }

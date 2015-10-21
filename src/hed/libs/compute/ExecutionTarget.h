@@ -153,6 +153,35 @@ namespace Arc {
   };
 
   /**
+   * The MappingPolicyAttribtues class maps the vital attributes of the GLUE2
+   * MappingPolicy class. MappingPolicy can e.g. reflect VO mapping to LRMS
+   * queues (ComputingShare). The ComputingShareType class contains a list of
+   * references to MappingPolicyAttributes objects.
+   *
+   * \since Added in 5.1.0
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   */
+  class MappingPolicyAttributes {
+  public:
+    MappingPolicyAttributes() {}
+
+    /// A global unique ID
+    std::string ID;
+
+    /// Scheme adopted to define the policy rules
+    std::string Scheme;
+
+    /**
+     * List of policy rules. E.g. exact match of DN or VO:
+     * 'dn:/C=XX/O=YYYY/OU=Personal Certificate/L=ZZZZ/CN=NAME SURNAME' or 'vo:/vo_a'
+     **/
+    std::list<std::string> Rule;
+
+    friend std::ostream& operator<<(std::ostream&, const MappingPolicyAttributes&);
+  };
+
+  /**
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
@@ -372,6 +401,15 @@ namespace Arc {
   class ExecutionEnvironmentType : public GLUE2Entity<ExecutionEnvironmentAttributes> {};
 
   /**
+   * Wrapper class for the MappingPolicyAttribtues class.
+   *
+   * \since Added in 5.1.0
+   * \ingroup resourceinfo
+   * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
+   **/
+   class MappingPolicyType : public GLUE2Entity<MappingPolicyAttributes> {};
+
+  /**
    * \ingroup resourceinfo
    * \headerfile ExecutionTarget.h arc/compute/ExecutionTarget.h
    */
@@ -397,6 +435,11 @@ namespace Arc {
   public:
     // TODO: Currently using int, use std::string instead for holding ID.
     std::set<int> ComputingEndpointIDs;
+
+    /**
+     * \since Added in 5.1.0
+     **/
+    std::map<int, MappingPolicyType> MappingPolicy;
   };
 
   /**
@@ -475,22 +518,28 @@ namespace Arc {
     ExecutionTarget(const ExecutionTarget& t) :
       Location(t.Location), AdminDomain(t.AdminDomain), ComputingService(t.ComputingService),
       ComputingEndpoint(t.ComputingEndpoint), OtherEndpoints(t.OtherEndpoints),
-      ComputingShare(t.ComputingShare), ComputingManager(t.ComputingManager),
-      ExecutionEnvironment(t.ExecutionEnvironment),
+      ComputingShare(t.ComputingShare), MappingPolicies(t.MappingPolicies),
+      ComputingManager(t.ComputingManager), ExecutionEnvironment(t.ExecutionEnvironment),
       Benchmarks(t.Benchmarks), ApplicationEnvironments(t.ApplicationEnvironments) {}
 
+    /**
+     * \since Changed in 5.1.0. List of MappingPolicyAttributes objects must
+     *  also be passed.
+     **/
     ExecutionTarget(const CountedPointer<LocationAttributes>& l,
-                      const CountedPointer<AdminDomainAttributes>& a,
-                      const CountedPointer<ComputingServiceAttributes>& cse,
-                      const CountedPointer<ComputingEndpointAttributes>& ce,
-                      const std::list< CountedPointer<ComputingEndpointAttributes> >& oe,
-                      const CountedPointer<ComputingShareAttributes>& csh,
-                      const CountedPointer<ComputingManagerAttributes>& cm,
-                      const CountedPointer<ExecutionEnvironmentAttributes>& ee,
-                      const CountedPointer< std::map<std::string, double> >& b,
-                      const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
+                    const CountedPointer<AdminDomainAttributes>& a,
+                    const CountedPointer<ComputingServiceAttributes>& cse,
+                    const CountedPointer<ComputingEndpointAttributes>& ce,
+                    const std::list< CountedPointer<ComputingEndpointAttributes> >& oe,
+                    const CountedPointer<ComputingShareAttributes>& csh,
+                    const std::list< CountedPointer<MappingPolicyAttributes> >& mp,
+                    const CountedPointer<ComputingManagerAttributes>& cm,
+                    const CountedPointer<ExecutionEnvironmentAttributes>& ee,
+                    const CountedPointer< std::map<std::string, double> >& b,
+                    const CountedPointer< std::list<ApplicationEnvironment> >& ae) :
       Location(l), AdminDomain(a), ComputingService(cse),
-      ComputingEndpoint(ce), OtherEndpoints(oe), ComputingShare(csh),
+      ComputingEndpoint(ce), OtherEndpoints(oe),
+      ComputingShare(csh), MappingPolicies(mp),
       ComputingManager(cm), ExecutionEnvironment(ee),
       Benchmarks(b), ApplicationEnvironments(ae) {}
 
@@ -508,6 +557,7 @@ namespace Arc {
       ComputingEndpoint((*(ExecutionTarget*)addrptr).ComputingEndpoint),
       OtherEndpoints((*(ExecutionTarget*)addrptr).OtherEndpoints),
       ComputingShare((*(ExecutionTarget*)addrptr).ComputingShare),
+      MappingPolicies((*(ExecutionTarget*)addrptr).MappingPolicies),
       ComputingManager((*(ExecutionTarget*)addrptr).ComputingManager),
       ExecutionEnvironment((*(ExecutionTarget*)addrptr).ExecutionEnvironment),
       Benchmarks((*(ExecutionTarget*)addrptr).Benchmarks),
@@ -516,7 +566,8 @@ namespace Arc {
 
     ExecutionTarget& operator=(const ExecutionTarget& et) {
       Location = et.Location; AdminDomain = et.AdminDomain; ComputingService = et.ComputingService;
-      ComputingEndpoint = et.ComputingEndpoint; ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare;
+      ComputingEndpoint = et.ComputingEndpoint; ComputingEndpoint = et.ComputingEndpoint;
+      ComputingShare = et.ComputingShare; MappingPolicies = et.MappingPolicies;
       ComputingManager = et.ComputingManager; Benchmarks = et.Benchmarks;
       ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
       return *this;
@@ -557,6 +608,7 @@ namespace Arc {
     CountedPointer<ComputingEndpointAttributes> ComputingEndpoint;
     std::list< CountedPointer<ComputingEndpointAttributes> > OtherEndpoints;
     CountedPointer<ComputingShareAttributes> ComputingShare;
+    std::list< CountedPointer<MappingPolicyAttributes> > MappingPolicies;
     CountedPointer<ComputingManagerAttributes> ComputingManager;
     CountedPointer<ExecutionEnvironmentAttributes> ExecutionEnvironment;
     CountedPointer< std::map<std::string, double> > Benchmarks;

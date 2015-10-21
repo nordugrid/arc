@@ -212,6 +212,7 @@
 %ignore Arc::GLUE2Entity<Arc::LocationAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::AdminDomainAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::ExecutionEnvironmentAttributes>::operator->() const;
+%ignore Arc::GLUE2Entity<Arc::MappingPolicyAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::ComputingManagerAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::ComputingShareAttributes>::operator->() const;
 %ignore Arc::GLUE2Entity<Arc::ComputingEndpointAttributes>::operator->() const;
@@ -241,6 +242,10 @@
 }
 %ignore ::operator<<(std::ostream&, const ExecutionEnvironmentAttributes&);
 %extend Arc::ExecutionEnvironmentAttributes {
+  std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
+%ignore ::operator<<(std::ostream&, const MappingPolicyAttributes&);
+%extend Arc::MappingPolicyAttributes {
   std::string __str__() { std::ostringstream oss; oss << *self; return oss.str(); }
 }
 %ignore ::operator<<(std::ostream&, const ComputingManagerAttributes&);
@@ -287,6 +292,11 @@
 %extend Arc::ExecutionEnvironmentAttributes {
   std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
 }
+%ignore Arc::GLUE2Entity<Arc::MappingPolicyAttributes>::operator*() const;
+%ignore ::operator<<(std::ostream&, const MappingPolicyAttributes&);
+%extend Arc::MappingPolicyAttributes {
+  std::string toString() { std::ostringstream oss; oss << *self; return oss.str(); }
+}
 %ignore Arc::GLUE2Entity<Arc::ComputingManagerAttributes>::operator*() const;
 %ignore ::operator<<(std::ostream&, const ComputingManagerAttributes&);
 %extend Arc::ComputingManagerAttributes {
@@ -326,6 +336,7 @@
 %template(ComputingShareMap) std::map<int, Arc::ComputingShareType>;
 %template(ComputingManagerMap) std::map<int, Arc::ComputingManagerType>;
 %template(ExecutionEnvironmentMap) std::map<int, Arc::ExecutionEnvironmentType>;
+%template(MappingPolicyMap) std::map<int, Arc::MappingPolicyType>;
 %template(StringDoubleMap) std::map<std::string, double>;
 %template(SharedBenchmarkMap) Arc::CountedPointer< std::map<std::string, double> >;
 %template(SharedApplicationEnvironmentList) Arc::CountedPointer< std::list<Arc::ApplicationEnvironment> >;
@@ -335,6 +346,8 @@
 %template(CPAdminDomainAttributes) Arc::CountedPointer<Arc::AdminDomainAttributes>;
 %template(GLUE2EntityExecutionEnvironmentAttributes) Arc::GLUE2Entity<Arc::ExecutionEnvironmentAttributes>;
 %template(CPExecutionEnvironmentAttributes) Arc::CountedPointer<Arc::ExecutionEnvironmentAttributes>;
+%template(GLUE2EntityMappingPolicyAttributes) Arc::GLUE2Entity<Arc::MappingPolicyAttributes>;
+%template(CPMappingPolicyAttributes) Arc::CountedPointer<Arc::MappingPolicyAttributes>;
 %template(GLUE2EntityComputingManagerAttributes) Arc::GLUE2Entity<Arc::ComputingManagerAttributes>;
 %template(CPComputingManagerAttributes) Arc::CountedPointer<Arc::ComputingManagerAttributes>;
 %template(GLUE2EntityComputingShareAttributes) Arc::GLUE2Entity<Arc::ComputingShareAttributes>;
