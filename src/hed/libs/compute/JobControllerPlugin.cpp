@@ -125,6 +125,7 @@ namespace Arc {
     if (itPN != interfacePluginMap.end()) {
       std::map<std::string, JobControllerPlugin*>::iterator itJC = jobcontrollers.find(itPN->second);
       if (itJC != jobcontrollers.end()) {
+        itJC->second->SetUserConfig(uc);
         return itJC->second;
       }
 

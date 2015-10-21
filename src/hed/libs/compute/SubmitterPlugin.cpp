@@ -184,6 +184,7 @@ namespace Arc {
     if (itPN != interfacePluginMap.end()) {
       std::map<std::string, SubmitterPlugin*>::iterator itS = submitters.find(itPN->second);
       if (itS != submitters.end()) {
+        itS->second->SetUserConfig(uc);
         return itS->second;
       }
 
