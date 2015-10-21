@@ -23,27 +23,25 @@ namespace Arc {
     : public JobDescriptionParserPlugin {
   public:
     XRSLParser(PluginArgument* parg);
-    virtual ~XRSLParser();
+    virtual ~XRSLParser() {};
     virtual JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    virtual JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    virtual JobDescriptionParserPluginResult Assemble(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 
   private:
-    bool Parse(const RSL *r, JobDescription& job, const std::string& dialect) const;
-    static bool SingleValue(const RSLCondition *c,
-                            std::string& value);
-    static bool ListValue(const RSLCondition *c,
-                          std::list<std::string>& value);
-    static bool SeqListValue(const RSLCondition *c,
-                             std::list<std::list<std::string> >& value,
+    void Parse(const RSL *r, JobDescription& job, const std::string& dialect, JobDescriptionParserPluginResult& result) const;
+    static void SingleValue(const RSLCondition *c, std::string& value, JobDescriptionParserPluginResult& result);
+    static void ListValue(const RSLCondition *c, std::list<std::string>& value, JobDescriptionParserPluginResult& result);
+    static void SeqListValue(const RSLCondition *c,
+                             std::list<std::list<std::string> >& value, JobDescriptionParserPluginResult& result,
                              int seqlength = -1);
-    static bool ParseExecutablesAttribute(JobDescription& j);
-    static bool ParseFTPThreadsAttribute(JobDescription& j);
-    static bool ParseCacheAttribute(JobDescription& j);
-    static bool ParseJoinAttribute(JobDescription& j);
-    static bool ParseGridTimeAttribute(JobDescription& j);
-    static bool ParseCountPerNodeAttribute(JobDescription& j);
+    static void ParseExecutablesAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
+    static void ParseFTPThreadsAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
+    static void ParseCacheAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
+    static void ParseJoinAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
+    static void ParseGridTimeAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
+    static void ParseCountPerNodeAttribute(JobDescription& j, JobDescriptionParserPluginResult& result);
   };
 
 } // namespace Arc

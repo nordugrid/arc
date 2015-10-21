@@ -2,7 +2,8 @@ TESTS = ADLParserTest ARCJSDLParserTest JDLParserTest XRSLParserTest
 check_PROGRAMS = $(TESTS)
 
 ADLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
-	ADLParserTest.cpp ../ADLParser.cpp ../ADLParser.h
+	ADLParserTest.cpp ../ADLParser.cpp ../ADLParser.h \
+	../XMLNodeRecover.cpp ../XMLNodeRecover.h
 ADLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ADLParserTest_LDADD = \
@@ -12,7 +13,8 @@ ADLParserTest_LDADD = \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 ARCJSDLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
-	ARCJSDLParserTest.cpp ../ARCJSDLParser.cpp ../ARCJSDLParser.h
+	ARCJSDLParserTest.cpp ../ARCJSDLParser.cpp ../ARCJSDLParser.h \
+	../XMLNodeRecover.cpp ../XMLNodeRecover.h
 ARCJSDLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 ARCJSDLParserTest_LDADD = \

@@ -6,6 +6,7 @@ libaccJobDescriptionParser_la_SOURCES = \
 	JDLParser.cpp JDLParser.h \
 	XRSLParser.cpp XRSLParser.h \
 	RSLParser.cpp RSLParser.h \
+	XMLNodeRecover.cpp XMLNodeRecover.h \
 	DescriptorsJobDescriptionParser.cpp
 libaccJobDescriptionParser_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)

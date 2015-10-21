@@ -30,8 +30,6 @@ namespace Arc {
     supportedLanguages.push_back("nordugrid:xrsl");
   }
 
-  XRSLParser::~XRSLParser() {}
-
   Plugin* XRSLParser::Instance(PluginArgument *arg) {
     return new XRSLParser(arg);
   }
@@ -69,10 +67,10 @@ namespace Arc {
   }
 
   /// \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseExecutablesAttribute(JobDescription& j) {
+  void XRSLParser::ParseExecutablesAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) {
     std::map<std::string, std::string>::iterator itExecsAtt = j.OtherAttributes.find("nordugrid:xrsl;executables");
     if (itExecsAtt == j.OtherAttributes.end()) {
-      return true;
+      return;
     }
 
     RSLParser rp("&(executables = " + itExecsAtt->second + ")");
@@ -83,13 +81,13 @@ namespace Arc {
 
     if (rexecs == NULL ||
         (bexecs = dynamic_cast<const RSLBoolean*>(rexecs)) == NULL ||
-        (cexecs = dynamic_cast<const RSLCondition*>(*bexecs->begin())) == NULL ||
-        !ListValue(cexecs, execs)) {
+        (cexecs = dynamic_cast<const RSLCondition*>(*bexecs->begin())) == NULL) {
       // Should not happen.
       logger.msg(DEBUG, "Error parsing the internally set executables attribute.");
-      return false;
+      return;
     }
 
+    ListValue(cexecs, execs, result);
     for (std::list<std::string>::const_iterator itExecs = execs.begin();
          itExecs != execs.end(); itExecs++) {
       bool fileExists = false;
@@ -101,29 +99,26 @@ namespace Arc {
       }
 
       if (!fileExists) {
-        logger.msg(INFO, "File \"%s\" in the executables attribute is not present in the inputfiles attribute", *itExecs);
-        return false;
+        result.AddError(IString("File '%s' in the 'executables' attribute is not present in the 'inputfiles' attribute", *itExecs));
       }
     }
 
     // executables attribute only stored for later parsing, removing it now.
     j.OtherAttributes.erase(itExecsAtt);
-
-    return true;
   }
 
   /// TODO \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseFTPThreadsAttribute(JobDescription& j) {
+  void XRSLParser::ParseFTPThreadsAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;ftpthreads");
     if (itAtt == j.OtherAttributes.end()) {
-      return true;
+      return;
     }
 
     int threads;
     if (!stringto(itAtt->second, threads) || threads < 1 || 10 < threads) {
-      logger.msg(INFO, "The value of the ftpthreads attribute must be a number from 1 to 10.");
-      return false;
+      result.AddError(IString("The value of the ftpthreads attribute must be a number from 1 to 10"));
+      return;
     }
 
     for (std::list<InputFileType>::iterator itF = j.DataStaging.InputFiles.begin();
@@ -144,15 +139,15 @@ namespace Arc {
 
     j.OtherAttributes.erase(itAtt);
 
-    return true;
+    return;
   }
 
   /// TODO \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseCacheAttribute(JobDescription& j) {
+  void XRSLParser::ParseCacheAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;cache");
     if (itAtt == j.OtherAttributes.end()) {
-      return true;
+      return;
     }
 
     for (std::list<InputFileType>::iterator itF = j.DataStaging.InputFiles.begin();
@@ -167,52 +162,47 @@ namespace Arc {
 
     j.OtherAttributes.erase(itAtt);
 
-    return true;
+    return;
   }
 
   /// TODO \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseJoinAttribute(JobDescription& j) {
+  void XRSLParser::ParseJoinAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) {
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;join");
     if (itAtt == j.OtherAttributes.end() || (itAtt->second != "yes" && itAtt->second != "true")) {
-      return true;
+      return;
     }
 
     if (j.Application.Output.empty()) {
-      logger.msg(ERROR, "Xrsl attribute join is set but attribute stdout is not set");
-      return false;
+      result.AddError(IString("'stdout' attribute must specified when 'join' attribute is specified"));
     }
-
-    if (!j.Application.Error.empty()) {
+    else if (!j.Application.Error.empty()) {
       if (j.Application.Error != j.Application.Output) {
-        logger.msg(ERROR, "Xrsl attribute join is set but attribute stderr is also set");
-        return false;
+        result.AddError(IString("Attribute 'join' cannot be specified when both 'stdout' and 'stderr' attributes is specified"));
       }
     }
 
     j.Application.Error = j.Application.Output;
 
     j.OtherAttributes.erase(itAtt);
-
-    return true;
   }
 
   /// TODO \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseGridTimeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
+  void XRSLParser::ParseGridTimeAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) { // Must be called after the 'count' attribute has been parsed.
     std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;gridtime");
 
     if (itAtt == j.OtherAttributes.end()) {
-      return true;
+      return;
     }
 
     if (j.Resources.TotalCPUTime.range.max != -1) {
-      logger.msg(ERROR, "The XRSL attributes gridtime and cputime cannot be specified together.");
-      return false;
+      result.AddError(IString("Attributes 'gridtime' and 'cputime' cannot be specified together"));
+      return;
     }
     if (j.Resources.IndividualWallTime.range.max != -1) {
-      logger.msg(ERROR, "The XRSL attributes gridtime and walltime cannot be specified together.");
-      return false;
+      result.AddError(IString("Attributes 'gridtime' and 'walltime' cannot be specified together"));
+      return;
     }
 
     j.Resources.TotalCPUTime.range = Period(itAtt->second, PeriodMinutes).GetPeriod();
@@ -223,95 +213,60 @@ namespace Arc {
     j.Resources.IndividualWallTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
 
     j.OtherAttributes.erase(itAtt);
-
-    return true;
   }
 
   /// TODO \mapattr executables -> InputFileType::IsExecutable
-  bool XRSLParser::ParseCountPerNodeAttribute(JobDescription& j) { // Must be called after the 'count' attribute has been parsed.
-    std::map<std::string, std::string>::iterator   itAtt;
+  void XRSLParser::ParseCountPerNodeAttribute(JobDescription& j, JobDescriptionParserPluginResult& result) { // Must be called after the 'count' attribute has been parsed.
+    std::map<std::string, std::string>::iterator itAtt;
     itAtt = j.OtherAttributes.find("nordugrid:xrsl;countpernode");
 
-    if (itAtt == j.OtherAttributes.end()) return true;
+    if (itAtt == j.OtherAttributes.end()) return;
 
     if (j.Resources.SlotRequirement.NumberOfSlots == -1) {
-      logger.msg(ERROR, "When specifying the countpernode XRSL attribute, the count attribute must also be specified.");
-      return false;
+      result.AddError(IString("When specifying 'countpernode' attribute, 'count' attribute must also be specified"));
     }
-
-    if (!stringto(itAtt->second, j.Resources.SlotRequirement.SlotsPerHost)) {
-      logger.msg(ERROR, "The countpernode XRSL attribute must be an integer.");
-      return false;
+    else if (!stringto(itAtt->second, j.Resources.SlotRequirement.SlotsPerHost)) {
+      result.AddError(IString("Value of 'countpernode' attribute must be an integer"));
     }
-
-    return true;
   }
-
 
   JobDescriptionParserPluginResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
-      return false;
+      return JobDescriptionParserPluginResult::WrongLanguage;
     }
-
-    logger.msg(VERBOSE, "Parsing string using XRSLParser");
 
     std::list<JobDescription> parsed_descriptions;
 
     RSLParser parser(source);
     const RSL *r = parser.Parse();
     if (!r) {
-      logger.msg(VERBOSE, "RSL parsing error");
-      return false;
+      return parser.GetParsingResult(); // TODO: Check result. No RSL returned - is result Failure??
     }
 
     std::list<const RSL*> l = SplitRSL(r);
-
+    JobDescriptionParserPluginResult result;
     for (std::list<const RSL*>::iterator it = l.begin(); it != l.end(); it++) {
       parsed_descriptions.push_back(JobDescription());
 
-      if (!Parse(*it, parsed_descriptions.back(), dialect)) {
-        logger.msg(ERROR, "XRSL parsing error");
-        return false;
-      }
-
+      Parse(*it, parsed_descriptions.back(), dialect, result);
       // Parse remaining attributes if any.
-      if (!ParseExecutablesAttribute(parsed_descriptions.back())) {
-        return false;
-      }
-      if (!ParseFTPThreadsAttribute(parsed_descriptions.back())) {
-        return false;
-      }
-      if (!ParseCacheAttribute(parsed_descriptions.back())) {
-        return false;
-      }
-      if (!ParseCountPerNodeAttribute(parsed_descriptions.back())) {
-        return false;
-      }
-      if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(parsed_descriptions.back())) { // join is a client side attribute
-        return false;
-      }
-      if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(parsed_descriptions.back())) { // gridtime is a client side attribute
-        return false;
+      ParseExecutablesAttribute(parsed_descriptions.back(), result);
+      ParseFTPThreadsAttribute(parsed_descriptions.back(), result);
+      ParseCacheAttribute(parsed_descriptions.back(), result);
+      ParseCountPerNodeAttribute(parsed_descriptions.back(), result);
+      if (dialect != "GRIDMANAGER") {
+        ParseJoinAttribute(parsed_descriptions.back(), result); // join is a client side attribute
+        ParseGridTimeAttribute(parsed_descriptions.back(), result); // gridtime is a client side attribute
       }
       for (std::list<JobDescription>::iterator itJob = parsed_descriptions.back().GetAlternatives().begin();
            itJob != parsed_descriptions.back().GetAlternatives().end(); itJob++) {
-        if (!ParseExecutablesAttribute(*itJob)) {
-          return false;
-        }
-        if (!ParseFTPThreadsAttribute(*itJob)) {
-          return false;
-        }
-        if (!ParseCacheAttribute(*itJob)) {
-          return false;
-        }
-        if (!ParseCountPerNodeAttribute(*itJob)) {
-          return false;
-        }
-        if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(*itJob)) { // join is a client side attribute
-          return false;
-        }
-        if (dialect != "GRIDMANAGER" && !ParseGridTimeAttribute(*itJob)) { // gridtime is a client side attribute
-          return false;
+        ParseExecutablesAttribute(*itJob, result);
+        ParseFTPThreadsAttribute(*itJob, result);
+        ParseCacheAttribute(*itJob, result);
+        ParseCountPerNodeAttribute(*itJob, result);
+        if (dialect != "GRIDMANAGER") {
+          ParseJoinAttribute(*itJob, result); // join is a client side attribute
+          ParseGridTimeAttribute(*itJob, result); // gridtime is a client side attribute
         }
       }
 
@@ -326,15 +281,16 @@ namespace Arc {
       }
     }
 
-    if(parsed_descriptions.empty()) {
+    if (parsed_descriptions.empty()) {
       // Probably never happens so check is just in case of future changes
-      logger.msg(WARNING, "No RSL content in job desription found");
-      return false;
+      result.SetFailure();
+      result.AddError(IString("No RSL content in job description found"));
+      return result;
     }
 
     if(dialect == "GRIDMANAGER") {
       if (parsed_descriptions.size() > 1) {
-        return false;
+        result.AddError(IString("Multi-request job description not allowed in GRIDMANAGER dialect"));
       }
 
       std::string action = "request";
@@ -344,98 +300,97 @@ namespace Arc {
       // action = request means real job description.
       // Any other action may (and currently should) have almost
       // empty job description.
-      if (action == "request") {
-        if(parsed_descriptions.front().Application.Executable.Path.empty()) {
-          return false;
-        }
+      if (action == "request" && parsed_descriptions.front().Application.Executable.Path.empty()) {
+        result.AddError(IString("No execuable path specified in GRIDMANAGER dialect"));
       }
     }
     else {
       // action is not expected in client side job request
       for (std::list<JobDescription>::iterator it = parsed_descriptions.begin(); it != parsed_descriptions.end(); it++) {
         if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
-          return false;
+          result.AddError(IString("'action' attribute not allowed in user-side job description"));
         }
         if (it->Application.Executable.Path.empty()) {
-          return false;
+          result.AddError(IString("Executable path not specified ('executable' attribute)"));
         }
       }
     }
 
-    logger.msg(INFO, "String successfully parsed as %s.", parsed_descriptions.front().GetSourceLanguage());
-    jobdescs.insert(jobdescs.end(), parsed_descriptions.begin(), parsed_descriptions.end());
-    return true;
+    if (result.HasErrors()) {
+      result.SetFailure();
+    }
+    if (result) {
+      logger.msg(INFO, "String successfully parsed as %s.", parsed_descriptions.front().GetSourceLanguage());
+      jobdescs.insert(jobdescs.end(), parsed_descriptions.begin(), parsed_descriptions.end());
+    }
+    return result;
   }
 
-  bool XRSLParser::SingleValue(const RSLCondition *c,
-                               std::string& value) {
+  void XRSLParser::SingleValue(const RSLCondition *c,
+                               std::string& value, JobDescriptionParserPluginResult& result) {
     if (!value.empty()) {
-      logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return false;
+      result.AddError(IString("Attribute '%s' multiply defined", c->Attr()), c->AttrLocation());
+      return;
     }
     if (c->size() != 1) {
-      logger.msg(ERROR, "XRSL attribute %s is not a single value", c->Attr());
-      return false;
+      result.AddError(IString("Value of attribute '%s' expected to be single value", c->Attr()), c->AttrLocation());
+      return;
     }
     const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*c->begin());
     if (!n) {
-      logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-      return false;
+      result.AddError(IString("Value of attribute '%s' expected to be a string", c->Attr()), c->AttrLocation());
+      return;
     }
     value = n->Value();
-    return true;
   }
 
-  bool XRSLParser::ListValue(const RSLCondition *c,
-                             std::list<std::string>& value) {
+  void XRSLParser::ListValue(const RSLCondition *c,
+                             std::list<std::string>& value, JobDescriptionParserPluginResult& result) {
     if (!value.empty()) {
-      logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return false;
+      result.AddError(IString("Attribute '%s' multiply defined", c->Attr()), c->AttrLocation());
+      return;
     }
     for (std::list<RSLValue*>::const_iterator it = c->begin();
          it != c->end(); it++) {
       const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*it);
       if (!n) {
-        logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-        return false;
+        result.AddError(IString("Value of attribute '%s' is not a string", c->Attr()), (**it).Location());
+        continue;
       }
       value.push_back(n->Value());
     }
-    return true;
   }
 
-  bool XRSLParser::SeqListValue(const RSLCondition *c,
-                                std::list<std::list<std::string> >& value,
+  void XRSLParser::SeqListValue(const RSLCondition *c,
+                                std::list<std::list<std::string> >& value, JobDescriptionParserPluginResult& result,
                                 int seqlength) {
     if (!value.empty()) {
-      logger.msg(ERROR, "XRSL attribute %s multiply defined", c->Attr());
-      return false;
+      result.AddError(IString("Attribute '%s' multiply defined", c->Attr()), c->AttrLocation());
+      return;
     }
     for (std::list<RSLValue*>::const_iterator it = c->begin();
          it != c->end(); it++) {
       const RSLSequence *s = dynamic_cast<const RSLSequence*>(*it);
       if (!s) {
-        logger.msg(ERROR, "XRSL attribute %s is not sequence", c->Attr());
-        return false;
+        result.AddError(IString("Value of attribute '%s' is not sequence", c->Attr()), (**it).Location());
+        continue;
       }
       if (seqlength != -1 && int(s->size()) != seqlength) {
-        logger.msg(ERROR, "XRSL attribute %s has wrong sequence length",
-                   c->Attr());
-        return false;
+        result.AddError(IString("Value of attribute '%s' has wrong sequence length: Expected %d, found %d", c->Attr(), seqlength, int(s->size())), s->Location());
+        continue;
       }
       std::list<std::string> l;
       for (std::list<RSLValue*>::const_iterator it = s->begin();
            it != s->end(); it++) {
         const RSLLiteral *n = dynamic_cast<const RSLLiteral*>(*it);
         if (!n) {
-          logger.msg(ERROR, "XRSL attribute %s is not a string", c->Attr());
-          return false;
+          result.AddError(IString("Value of attribute '%s' is not a string", c->Attr()), (**it).Location());
+          continue;
         }
         l.push_back(n->Value());
       }
       value.push_back(l);
     }
-    return true;
   }
 
   static char StateToShortcut(const std::string& state) {
@@ -524,118 +479,107 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::Parse(const RSL *r, JobDescription& j, const std::string& dialect) const {
+  void XRSLParser::Parse(const RSL *r, JobDescription& j, const std::string& dialect, JobDescriptionParserPluginResult& result) const {
     const RSLBoolean *b;
     const RSLCondition *c;
     if ((b = dynamic_cast<const RSLBoolean*>(r))) {
       if (b->Op() == RSLAnd) {
         for (std::list<RSL*>::const_iterator it = b->begin();
-             it != b->end(); it++)
-          if (!Parse(*it, j, dialect)) {
-            return false;
+             it != b->end(); it++) {
+          Parse(*it, j, dialect, result);
           }
       }
       else if (b->Op() == RSLOr) {
         if (b->size() == 0) {
-          return true;
+          return; // ???
         }
 
         JobDescription jcopy(j, false);
 
-        if (!Parse(*b->begin(), j, dialect)) {
-          return false;
-        }
+        Parse(*b->begin(), j, dialect, result);
 
         std::list<RSL*>::const_iterator it = b->begin();
         for (it++; it != b->end(); it++) {
           JobDescription aj(jcopy);
-          if (!Parse(*it, aj, dialect)) {
-            return false;
-          }
+          Parse(*it, aj, dialect, result);
           j.AddAlternative(aj);
         }
 
-        return true;
+        return;
      }
       else {
         logger.msg(ERROR, "Unexpected RSL type");
-        return false;
+        return; // ???
       }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
       /// \mapattr executable -> ExecutableType::Path
       if (c->Attr() == "executable") {
-        bool r = SingleValue(c, j.Application.Executable.Path);
+        SingleValue(c, j.Application.Executable.Path, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.Executable.Path);
+          SingleValue(c, it->Application.Executable.Path, result);
         }
-
-        return r;
+        return;
       }
 
       /// \mapattr arguments -> ExecutableType::Argument
       if (c->Attr() == "arguments") {
-        bool r = ListValue(c, j.Application.Executable.Argument);
+        ListValue(c, j.Application.Executable.Argument, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= ListValue(c, it->Application.Executable.Argument);
+          ListValue(c, it->Application.Executable.Argument, result);
         }
-
-        return r;
+        return;
       }
 
       /// \mapattr stdin -> Input
       if (c->Attr() == "stdin") {
-        bool r = SingleValue(c, j.Application.Input);
+        SingleValue(c, j.Application.Input, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.Input);
+          SingleValue(c, it->Application.Input, result);
         }
-
-        return r;
+        return;
       }
 
       /// \mapattr stdout -> Output
       if (c->Attr() == "stdout") {
-        bool r = SingleValue(c, j.Application.Output);
+        SingleValue(c, j.Application.Output, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.Output);
+          SingleValue(c, it->Application.Output, result);
         }
-
-        return r;
+        return;
       }
 
       /// \mapattr stderr -> Error
       if (c->Attr() == "stderr") {
-        bool r = SingleValue(c, j.Application.Error);
+        SingleValue(c, j.Application.Error, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.Error);
+          SingleValue(c, it->Application.Error, result);
         }
-
-        return r;
+        return;
       }
 
       /// TODO \mapattr inputfiles -> DataStagingType::InputFiles
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
-        if (!SeqListValue(c, ll))
-          return false;
+        SeqListValue(c, ll, result);
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); ++it) {
           /* Each of the elements of the inputfiles attribute should have at
            * least two values.
            */
           if (it->size() < 2) {
-            logger.msg(VERBOSE, "At least two values are needed for the 'inputfiles' attribute.");
-            return false;
+            result.AddError(IString("At least two values are needed for the 'inputfiles' attribute"));
+            continue;
           }
 
           if (it->front().empty()) {
-            logger.msg(VERBOSE, "filename cannot be empty.");
-            return false;
+            result.AddError(IString("First value of 'inputfiles' attribute (filename) cannot be empty"));
+            continue;
           }
 
           InputFileType file;
@@ -659,7 +603,8 @@ namespace Arc {
           if (!itValues->empty() && !is_size_and_checksum) {
             URL turl(*itValues);
             if (!turl) {
-              return false;
+              result.AddError(IString("Invalid URL '%s' for input file '%s'", *itValues, file.Name));
+              continue;
             }
             URLLocation location;
             for (++itValues; itValues != it->end(); ++itValues) {
@@ -667,8 +612,8 @@ namespace Arc {
               // an option applies to the URL preceding it (main or location)
               std::string::size_type pos = itValues->find('=');
               if (pos == std::string::npos) {
-                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", *itValues, file.Name);
-                return false;
+                result.AddError(IString("Invalid URL option syntax in option '%s' for input file '%s'", *itValues, file.Name));
+                continue;
               }
               std::string attr_name(itValues->substr(0, pos));
               std::string attr_value(itValues->substr(pos+1));
@@ -677,8 +622,8 @@ namespace Arc {
                   turl.AddLocation(location);
                 location = URLLocation(attr_value);
                 if (!location) {
-                  logger.msg(ERROR, "Invalid URL: %s in input file %s", attr_value, file.Name);
-                  return false;
+                  result.AddError(IString("Invalid URL: '%s' in input file '%s'", attr_value, file.Name));
+                  continue;
                 }
               } else if (location) {
                 location.AddOption(attr_name, attr_value, true);
@@ -701,14 +646,11 @@ namespace Arc {
             itAlt->DataStaging.InputFiles.push_back(file);
           }
         }
-        return true;
+        return;
       }
 
       // Mapping documented above
       if (c->Attr() == "executables") {
-        std::list<std::string> execs;
-        if (!ListValue(c, execs))
-          return false;
         /* Store value in the OtherAttributes member and set it later when all
          * the attributes it depends on has been parsed.
          */
@@ -720,14 +662,13 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;executables"] = os.str();
         }
 
-        return true;
+        return;
       }
 
       // Mapping documented above
       if (c->Attr() == "cache") {
         std::string cache;
-        if (!SingleValue(c, cache))
-          return false;
+        SingleValue(c, cache, result);
         /* Store value in the OtherAttributes member and set it later when all
          * the attributes it depends on has been parsed.
          */
@@ -737,55 +678,57 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;cache"] = cache;
         }
 
-        return true;
+        return;
       }
 
       /// TODO \mapattr outputfiles -> DataStagingType::OutputFiles
       if (c->Attr() == "outputfiles") {
         std::list<std::list<std::string> > ll;
-        if (!SeqListValue(c, ll))
-          return false;
+        SeqListValue(c, ll, result);
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
-          std::list<std::string>::iterator it2 = it->begin();
+          /* Each of the elements of the outputfiles attribute should have at
+           * least two values.
+           */
+          if (it->size() < 2) {
+            result.AddError(IString("At least two values are needed for the 'outputfiles' attribute"));
+            continue;
+          }
 
-          // Check whether the first string exists in the list
-          if (it2 == it->end()) {
-            return false;
+          if (it->front().empty()) {
+            result.AddError(IString("First value of 'outputfiles' attribute (filename) cannot be empty"));
+            continue;
           }
 
           OutputFileType file;
-          file.Name = *it2++;
+          file.Name = it->front();
 
-          // Check whether the second string exists in the list
-          if (it2 == it->end()) {
-            return false;
-          }
-
-          URL turl(*it2);
+          std::list<std::string>::iterator itValues = ++(it->begin());
+          URL turl(*itValues);
           // The second string in the list (it2) might be a URL or empty
-          if (!it2->empty() && turl.Protocol() != "file") {
+          if (!itValues->empty() && turl.Protocol() != "file") {
             if (!turl) {
-              return false;
+              result.AddError(IString("Invalid URL '%s' for output file '%s'", *itValues, file.Name));
+              continue;
             }
             URLLocation location;
-            for (it2++; it2 != it->end(); ++it2) {
+            for (++itValues; itValues != it->end(); ++itValues) {
               // add any options and locations
               // an option applies to the URL preceding it (main or location)
-              std::string::size_type pos = it2->find('=');
+              std::string::size_type pos = itValues->find('=');
               if (pos == std::string::npos) {
-                logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", *it2, file.Name);
-                return false;
+                result.AddError(IString("Invalid URL option syntax in option '%s' for output file '%s'", *itValues, file.Name));
+                continue;
               }
-              std::string attr_name(it2->substr(0, pos));
-              std::string attr_value(it2->substr(pos+1));
+              std::string attr_name(itValues->substr(0, pos));
+              std::string attr_value(itValues->substr(pos+1));
               if (attr_name == "location") {
                 if (location)
                   turl.AddLocation(location);
                 location = URLLocation(attr_value);
                 if (!location) {
-                  logger.msg(ERROR, "Invalid URL: %s in output file %s", attr_value, file.Name);
-                  return false;
+                  result.AddError(IString("Invalid URL: '%s' in output file '%s'", attr_value, file.Name));
+                  return; // ???
                 }
               } else if (location) {
                 location.AddOption(attr_name, attr_value, true);
@@ -804,22 +747,25 @@ namespace Arc {
             it->DataStaging.OutputFiles.push_back(file);
           }
         }
-        return true;
+        return;
       }
 
       /// \mapattr queue -> QueueName
       /// TODO \mapattr queue -> JobDescription::OtherAttributes["nordugrid:broker;reject_queue"]
       if (c->Attr() == "queue") {
         std::string queueName;
-        if (!SingleValue(c, queueName))
-          return false;
+        SingleValue(c, queueName, result);
         if (dialect == "GRIDMANAGER" && c->Op() != RSLEqual) {
-          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"=\" is allowed.");
-          return false;
+          std::ostringstream sOp;
+          sOp << c->Op();
+          result.AddError(IString("Invalid comparison operator '%s' used at 'queue' attribute in 'GRIDMANAGER' dialect, only \"=\" is allowed", sOp.str()));
+          return;
         }
         if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
-          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
-          return false;
+          std::ostringstream sOp;
+          sOp << c->Op();
+          result.AddError(IString("Invalid comparison operator '%s' used at 'queue' attribute, only \"!=\" or \"=\" are allowed.", sOp.str()));
+          return;
         }
 
         if (c->Op() == RSLNotEqual) {
@@ -837,27 +783,25 @@ namespace Arc {
           }
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr starttime -> ProcessingStartTime
       if (c->Attr() == "starttime") {
         std::string time;
-        if (!SingleValue(c, time))
-          return false;
+        SingleValue(c, time, result);
         j.Application.ProcessingStartTime = time;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Application.ProcessingStartTime = time;
         }
-        return true;
+        return;
       }
 
       /// \mapattr lifetime -> SessionLifeTime
       if (c->Attr() == "lifetime") {
         std::string time;
-        if (!SingleValue(c, time))
-          return false;
+        SingleValue(c, time, result);
         if(dialect == "GRIDMANAGER") {
           // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.SessionLifeTime = Period(time, PeriodSeconds);
@@ -868,14 +812,13 @@ namespace Arc {
             it->Resources.SessionLifeTime = Period(time, PeriodMinutes);
           }
         }
-        return true;
+        return;
       }
 
       /// \mapattr cputime -> TotalCPUTime "With user-side RSL minutes is expected, while for GM-side RSL seconds."
       if (c->Attr() == "cputime") {
         std::string time;
-        if (!SingleValue(c, time))
-          return false;
+        SingleValue(c, time, result);
         if(dialect == "GRIDMANAGER") {
           // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
@@ -886,7 +829,7 @@ namespace Arc {
             it->Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
           }
         }
-        return true;
+        return;
       }
 
       /// TotalWallTime is a reference to IndividualWallTime
@@ -894,8 +837,7 @@ namespace Arc {
       /// TODO cputime dialect/units
       if (c->Attr() == "walltime") {
         std::string time;
-        if (!SingleValue(c, time))
-          return false;
+        SingleValue(c, time, result);
         if(dialect == "GRIDMANAGER") {
           // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
@@ -906,15 +848,13 @@ namespace Arc {
             it->Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
           }
         }
-        return true;
+        return;
       }
 
       // Documented above.
       if (c->Attr() == "gridtime") {
         std::string time;
-        if (!SingleValue(c, time))
-          return false;
-
+        SingleValue(c, time, result);
         /* Store value in the OtherAttributes member and set it later when all
          * the attributes it depends on has been parsed.
          */
@@ -924,37 +864,35 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;gridtime"] = time;
         }
 
-        return true;
+        return;
       }
 
       // TODO \mapattr benchmarks -> ResourcesType::TotalWallTime
       if (c->Attr() == "benchmarks") {
         std::list<std::list<std::string> > bm;
-        if (!SeqListValue(c, bm, 3))
-          return false;
+        SeqListValue(c, bm, result, 3);
         double bValue;
         // Only the first parsable benchmark is currently supported.
         for (std::list< std::list<std::string> >::const_iterator it = bm.begin();
              it != bm.end(); it++) {
           std::list<std::string>::const_iterator itB = it->begin();
           if (!stringto(*++itB, bValue))
-            continue;
+            continue; // ???
           if(dialect == "GRIDMANAGER") {
             j.Resources.TotalCPUTime.range = Period(*++itB, PeriodSeconds).GetPeriod();
           } else {
             j.Resources.TotalCPUTime.range = Period(*++itB, PeriodMinutes).GetPeriod();
           }
           j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>(it->front(), bValue);
-          return true;
+          return; // ???
         }
-        return false;
+        return;
       }
 
       /// \mapattr memory -> IndividualPhysicalMemory
       if (c->Attr() == "memory") {
         std::string mem;
-        if (!SingleValue(c, mem))
-          return false;
+        SingleValue(c, mem, result);
 
         j.Resources.IndividualPhysicalMemory = stringto<int>(mem);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -962,29 +900,27 @@ namespace Arc {
           it->Resources.IndividualPhysicalMemory = j.Resources.IndividualPhysicalMemory;
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr disk -> DiskSpace
       if (c->Attr() == "disk") {
         std::string disk;
-        if (!SingleValue(c, disk))
-          return false;
+        SingleValue(c, disk, result);
         j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int>(disk);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Resources.DiskSpaceRequirement.DiskSpace = j.Resources.DiskSpaceRequirement.DiskSpace;
         }
 
-        return true;
+        return;
       }
 
       // TODO: Maybe add support for RTE options.
       /// \mapattr runtimeenvironment -> RunTimeEnvironment
       if (c->Attr() == "runtimeenvironment") {
         std::string runtime;
-        if (!SingleValue(c, runtime))
-          return false;
+        SingleValue(c, runtime, result);
 
         j.Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -992,49 +928,47 @@ namespace Arc {
           it->Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
         }
 
-        return true;
+        return;
        }
 
       /// \mapattr middleware -> CEType
       // This attribute should be passed to the broker and should not be stored.
       if (c->Attr() == "middleware") {
         std::string cetype;
-        if (!SingleValue(c, cetype))
-          return false;
+        SingleValue(c, cetype, result);
+
         j.Resources.CEType.add(Software(cetype), convertOperator(c->Op()));
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Resources.CEType.add(Software(cetype), convertOperator(c->Op()));
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr opsys -> OperatingSystem
       if (c->Attr() == "opsys") {
         std::string opsys;
-        if (!SingleValue(c, opsys))
-          return false;
+        SingleValue(c, opsys, result);
+
         j.Resources.OperatingSystem.add(Software(opsys), convertOperator(c->Op()));
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Resources.OperatingSystem.add(Software(opsys), convertOperator(c->Op()));
         }
 
-        return true;
+        return;
       }
 
       // Documented above.
       if (c->Attr() == "join") {
         if (dialect == "GRIDMANAGER") {
           // Ignore the join attribute for GM (it is a client side attribute).
-          return true;
+          return; // ???
         }
 
         std::string join;
-        if (!SingleValue(c, join)) {
-          return false;
-        }
+        SingleValue(c, join, result);
         /* Store value in the OtherAttributes member and set it later when all
          * the attributes it depends on has been parsed.
          */
@@ -1044,36 +978,35 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;join"] = join;
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr gmlog -> LogDir
       if (c->Attr() == "gmlog") {
-        bool r = SingleValue(c, j.Application.LogDir);
+        SingleValue(c, j.Application.LogDir, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.LogDir);
+          SingleValue(c, it->Application.LogDir, result);
         }
 
-        return r;
+        return;
       }
 
       /// \mapattr jobname -> JobName
       if (c->Attr() == "jobname") {
-        bool r = SingleValue(c, j.Identification.JobName);
+        SingleValue(c, j.Identification.JobName, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Identification.JobName);
+          SingleValue(c, it->Identification.JobName, result);
         }
 
-        return r;
+        return;
       }
 
       // Documented above.
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
-        if (!SingleValue(c, sthreads))
-          return false;
+        SingleValue(c, sthreads, result);
         /* Store value in the OtherAttributes member and set it later when all
          * the attributes it depends on has been parsed.
          */
@@ -1083,19 +1016,18 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;ftpthreads"] = sthreads;
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr acl -> AccessControl
       if (c->Attr() == "acl") {
         std::string acl;
-        if (!SingleValue(c, acl))
-          return false;
+        SingleValue(c, acl, result);
 
         XMLNode node(acl);
         if (!node) {
           logger.msg(ERROR, "The value of the acl XRSL attribute isn't valid XML.");
-          return false;
+          return; // ???
         }
 
         node.New(j.Application.AccessControl);
@@ -1103,20 +1035,19 @@ namespace Arc {
              it != j.GetAlternatives().end(); it++) {
           node.New(it->Application.AccessControl);
         }
-        return true;
+        return;
       }
 
       // TODO Document non existent mapping.
       if (c->Attr() == "cluster") {
-        logger.msg(ERROR, "The cluster XRSL attribute is currently unsupported.");
-        return false;
+        logger.msg(ERROR, "The cluster XRSL attribute is currently unsupported."); // ???
+        return;
       }
 
       /// TODO: \mapattr notify -> ApplicationType::Notification
       if (c->Attr() == "notify") {
         std::list<std::string> l;
-        if (!ListValue(c, l))
-          return false;
+        ListValue(c, l, result);
         for (std::list<std::string>::const_iterator notf = l.begin();
              notf != l.end(); ++notf) {
           std::list<std::string> ll;
@@ -1125,20 +1056,18 @@ namespace Arc {
           std::string states = "be"; // Default value.
           if (it->find('@') == std::string::npos) { // The first string is state flags.
             if (ll.size() == 1) { // Only state flags in value.
-              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it must contain an email address.", *notf);
-              return false;
+              result.AddError(IString("Syntax error in 'notify' attribute value ('%s'), it must contain an email address", *notf));
+              continue;
             }
             states = *it;
             it++;
           }
           for (; it != ll.end(); it++) {
             if (it->find('@') == std::string::npos) {
-              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it must only contain email addresses after state flag(s).", *notf);
-              return false;
+              result.AddError(IString("Syntax error in 'notify' attribute value ('%s'), it must only contain email addresses after state flag(s)", *notf));
             }
-            if(!AddNotification(j.Application.Notification,states,*it)) {
-              logger.msg(ERROR, "Syntax error in notify attribute value ('%s'), it contains unknown state flags.", *notf);
-              return false;
+            else if (!AddNotification(j.Application.Notification, states,*it)) {
+              result.AddError(IString("Syntax error in 'notify' attribute value ('%s'), it contains unknown state flags", *notf));
             }
           }
         }
@@ -1148,7 +1077,7 @@ namespace Arc {
           it->Application.Notification = j.Application.Notification;
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr replicacollection -> OtherAttributes
@@ -1156,35 +1085,34 @@ namespace Arc {
       // Is this attribute supported?
       if (c->Attr() == "replicacollection") {
         std::string collection;
-        if (!SingleValue(c, collection))
-          return false;
-        if (!URL(collection))
-          return false;
+        SingleValue(c, collection, result);
+        if (!URL(collection)) // ???
+          return;
         j.OtherAttributes["nordugrid:xrsl;replicacollection"] = collection;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;replicacollection"] = collection;
         }
+
+        return;
       }
 
       /// \mapattr rerun -> Rerun
       if (c->Attr() == "rerun") {
         std::string rerun;
-        if (!SingleValue(c, rerun))
-          return false;
+        SingleValue(c, rerun, result);
         j.Application.Rerun = stringtoi(rerun);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Application.Rerun = j.Application.Rerun;
         }
-        return true;
+        return;
       }
 
       /// \mapattr priority -> Priority
       if (c->Attr() == "priority") {
         std::string priority;
-        if (!SingleValue(c, priority))
-          return false;
+        SingleValue(c, priority, result);
         j.Application.Priority = stringtoi(priority);
         if (j.Application.Priority > 100) {
           logger.msg(VERBOSE, "priority is too large - using max value 100");
@@ -1194,26 +1122,25 @@ namespace Arc {
              it != j.GetAlternatives().end(); it++) {
           it->Application.Priority = j.Application.Priority;
         }
-        return true;
+        return;
       }
 
       /// \mapattr architecture -> Platform
       if (c->Attr() == "architecture") {
-        bool r = SingleValue(c, j.Resources.Platform);
+        SingleValue(c, j.Resources.Platform, result);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Resources.Platform);
+          SingleValue(c, it->Resources.Platform, result);
         }
-        return r;
+        return;
       }
 
       /// \mapattr nodeaccess -> NodeAccess
       if (c->Attr() == "nodeaccess") {
         std::list<std::string> l;
-        if (!ListValue(c, l))
-          return false;
+        ListValue(c, l, result);
         for (std::list<std::string>::iterator it = l.begin();
-             it != l.end(); it++)
+             it != l.end(); it++) {
           if (*it == "inbound") {
             j.Resources.NodeAccess = ((j.Resources.NodeAccess == NAT_OUTBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND) ? NAT_INOUTBOUND : NAT_INBOUND);
           }
@@ -1221,18 +1148,17 @@ namespace Arc {
             j.Resources.NodeAccess = ((j.Resources.NodeAccess == NAT_INBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND) ? NAT_INOUTBOUND : NAT_OUTBOUND);
           }
           else {
-            logger.msg(VERBOSE, "Invalid nodeaccess value: %s", *it);
-            return false;
+            logger.msg(VERBOSE, "Invalid nodeaccess value: %s", *it); // ???
+            return;
           }
-        return true;
+        }
+        return;
       }
 
       /// \mapattr dryrun -> DryRun
       if (c->Attr() == "dryrun") {
         std::string dryrun;
-        if (!SingleValue(c, dryrun)) {
-          return false;
-        }
+        SingleValue(c, dryrun, result);
 
         j.Application.DryRun = (lower(dryrun) == "yes");
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1240,43 +1166,45 @@ namespace Arc {
           it->Application.DryRun = j.Application.DryRun;
         }
 
-        return true;
+        return;
       }
 
       // Underscore, in 'rsl_substitution', is removed by normalization.
       if (c->Attr() == "rslsubstitution") {
         // Handled internally by the RSL parser
-        return true;
+        return;
       }
 
       /// \mapattr environment -> Environment
       if (c->Attr() == "environment") {
         std::list<std::list<std::string> > ll;
-        if (!SeqListValue(c, ll, 2))
-          return false;
+        SeqListValue(c, ll, result, 2);
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           j.Application.Environment.push_back(std::make_pair(it->front(), it->back()));
         }
-        return true;
+        return;
       }
 
       /// \mapattr count -> NumberOfSlots
       if (c->Attr() == "count") {
         std::string count;
-        if (!SingleValue(c, count) || !stringto(count, j.Resources.SlotRequirement.NumberOfSlots)) return false;
+        SingleValue(c, count, result);
+        if (!stringto(count, j.Resources.SlotRequirement.NumberOfSlots)) {
+          result.AddError(IString("Value of 'count' attribute must be an integer"));
+          return;
+        }
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); ++it) {
           it->Resources.SlotRequirement.NumberOfSlots = j.Resources.SlotRequirement.NumberOfSlots;
         }
-        return true;
+        return;
       }
 
       /// \mapattr countpernode -> SlotsPerHost
       if (c->Attr() == "countpernode") {
         std::string countpernode;
-        if (!SingleValue(c, countpernode))
-          return false;
+        SingleValue(c, countpernode, result);
 
         j.OtherAttributes["nordugrid:xrsl;countpernode"] = countpernode;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1284,30 +1212,32 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;countpernode"] = countpernode;
         }
 
-        return true;
+        return;
       }
 
       /// \mapattr exclusiveexecution -> ExclusiveExecution
       if (c->Attr() == "exclusiveexecution") {
         std::string ee;
-        if (!SingleValue(c, ee)) return false;
+        SingleValue(c, ee, result);
         ee = lower(ee);
-        if (ee != "yes" && ee != "true" && ee != "no" && ee != "false") return false;
+        if (ee != "yes" && ee != "true" && ee != "no" && ee != "false") {
+          result.AddError(IString("Value of 'exclusiveexecution' attribute must either be 'yes' or 'no'"));
+          return;
+        }
         j.Resources.SlotRequirement.ExclusiveExecution = (ee == "yes" || ee == "true") ? SlotRequirementType::EE_TRUE : SlotRequirementType::EE_FALSE;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); ++it) {
           it->Resources.SlotRequirement.ExclusiveExecution = j.Resources.SlotRequirement.ExclusiveExecution;
         }
-        return true;
+        return;
       }
 
       /// TODO: \mapattr jobreport -> RemoteLogging
       if (c->Attr() == "jobreport") {
         std::string jobreport;
-        if (!SingleValue(c, jobreport))
-          return false;
+        SingleValue(c, jobreport, result);
         if (!URL(jobreport))
-          return false;
+          return; // ???
         j.Application.RemoteLogging.push_back(RemoteLoggingType());
         j.Application.RemoteLogging.back().Location = URL(jobreport);
         j.Application.RemoteLogging.back().ServiceType = "SGAS";
@@ -1315,32 +1245,30 @@ namespace Arc {
              it != j.GetAlternatives().end(); it++) {
           it->Application.RemoteLogging.push_back(j.Application.RemoteLogging.back());
         }
-        return true;
+        return;
       }
 
       /// \mapattr credentialserver -> CredentialService
       if (c->Attr() == "credentialserver") {
         std::string credentialserver;
-        if (!SingleValue(c, credentialserver))
-          return false;
+        SingleValue(c, credentialserver, result);
         if (!URL(credentialserver))
-          return false;
+          return; // ???
         j.Application.CredentialService.push_back(credentialserver);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Application.CredentialService.push_back(j.Application.CredentialService.back());
         }
-        return true;
+        return;
       }
 
       // GM-side attributes.
       if (c->Attr() == "action") {
         std::string action;
-        if (!SingleValue(c, action))
-          return false;
+        SingleValue(c, action, result);
         if (action != "request" && action != "cancel" && action != "clean" && action != "renew" && action != "restart") {
           logger.msg(VERBOSE, "Invalid action value %s", action);
-          return false;
+          return; // ???
         }
         j.OtherAttributes["nordugrid:xrsl;action"] = action;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1348,67 +1276,62 @@ namespace Arc {
           it->OtherAttributes["nordugrid:xrsl;action"] = action;
         }
 
-        return true;
+        return;
       }
 
       if (c->Attr() == "hostname") {
         std::string hostname;
-        if (!SingleValue(c, hostname))
-          return false;
+        SingleValue(c, hostname, result);
         j.OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
         }
-        return true;
+        return;
       }
 
       if (c->Attr() == "jobid") {
         std::string jobid;
-        if (!SingleValue(c, jobid))
-          return false;
+        SingleValue(c, jobid, result);
         j.OtherAttributes["nordugrid:xrsl;jobid"] = jobid;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;jobid"] = jobid;
         }
-        return true;
+        return;
       }
 
       if (c->Attr() == "clientxrsl") {
         std::string clientxrsl;
-        if (!SingleValue(c, clientxrsl))
-          return false;
+        SingleValue(c, clientxrsl, result);
         j.OtherAttributes["nordugrid:xrsl;clientxrsl"] = clientxrsl;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;clientxrsl"] = clientxrsl;
         }
-        return true;
+        return;
       }
 
       if (c->Attr() == "clientsoftware") {
         std::string clientsoftware;
-        if (!SingleValue(c, clientsoftware))
-          return false;
+        SingleValue(c, clientsoftware, result);
         j.OtherAttributes["nordugrid:xrsl;clientsoftware"] = clientsoftware;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;clientsoftware"] = clientsoftware;
         }
-        return true;
+        return;
       }
 
       if (c->Attr() == "savestate") {
         std::string savestate;
-        if (!SingleValue(c, savestate))
-          return false;
+        SingleValue(c, savestate, result);
         j.OtherAttributes["nordugrid:xrsl;savestate"] = savestate;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;savestate"] = savestate;
         }
-        return true;
+        return;
       }
 
       // Unsupported Globus RSL attributes.
@@ -1435,22 +1358,22 @@ namespace Arc {
           c->Attr() == "remoteiourl" ||
           c->Attr() == "scratchdir") {
         logger.msg(WARNING, "The specified Globus attribute (%s) is not supported. %s ignored.", c->Attr(), c->Attr());
-        return true;
+        return;
       }
 
       logger.msg(VERBOSE, "Unknown XRSL attribute: %s - Ignoring it.", c->Attr());
-      return true;
+      return;
     }
     else {
       logger.msg(ERROR, "Unexpected RSL type");
-      return false;
+      return; // ???
     }
 
     // This part will run only when the parsing is at the end of the xrsl file
-    return true;
+    return;
   }
 
-  JobDescriptionParserPluginResult XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult XRSLParser::Assemble(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       logger.msg(DEBUG, "Wrong language requested: %s",language);
       return false;
@@ -1466,7 +1389,7 @@ namespace Arc {
 
     /// \mapattr executable <- ExecutableType::Path
     if (!j.Application.Executable.Path.empty()) {
-      RSLList *l = new RSLList;
+      RSLList *l = new RSLList();
       l->Add(new RSLLiteral(j.Application.Executable.Path));
       r.Add(new RSLCondition("executable", RSLEqual, l));
     }

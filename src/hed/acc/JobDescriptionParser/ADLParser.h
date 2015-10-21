@@ -25,7 +25,7 @@ namespace Arc {
     ADLParser(PluginArgument* parg);
     ~ADLParser();
     JobDescriptionParserPluginResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const;
-    JobDescriptionParserPluginResult UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
+    JobDescriptionParserPluginResult Assemble(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 

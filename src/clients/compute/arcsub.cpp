@@ -140,7 +140,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << buffer << std::endl;
       delete[] buffer;
-      logger.msg(Arc::ERROR, "Parsing error:\n%s", parseres.str());
+      std::cerr << parseres.str() << std::endl;
       return 1;
     }
     delete[] buffer;

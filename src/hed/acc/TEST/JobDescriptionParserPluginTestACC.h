@@ -19,7 +19,7 @@ public:
   static Plugin* GetInstance(PluginArgument *arg);
 
   virtual JobDescriptionParserPluginResult Parse(const std::string& /*source*/, std::list<JobDescription>& jobdescs, const std::string& /*language = ""*/, const std::string& /*dialect = ""*/) const { jobdescs = JobDescriptionParserPluginTestACCControl::parsedJobDescriptions; return JobDescriptionParserPluginTestACCControl::parseStatus; }
-  virtual JobDescriptionParserPluginResult UnParse(const JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const { output = JobDescriptionParserPluginTestACCControl::unparsedString; return JobDescriptionParserPluginTestACCControl::unparseStatus; }
+  virtual JobDescriptionParserPluginResult Assemble(const JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const { output = JobDescriptionParserPluginTestACCControl::unparsedString; return JobDescriptionParserPluginTestACCControl::unparseStatus; }
 };
 
 }

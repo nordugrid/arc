@@ -61,7 +61,7 @@ namespace Arc {
     }
 
     jdps.push_back(jdp);
-    logger.msg(INFO, "Loaded JobDescriptionParserPlugin %s", name);
+    logger.msg(DEBUG, "Loaded JobDescriptionParserPlugin %s", name);
     return jdp;
   }
 

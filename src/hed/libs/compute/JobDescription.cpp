@@ -446,7 +446,8 @@ namespace Arc {
       jdpl = new JobDescriptionParserPluginLoader();
     }
 
-    std::string parse_error;
+    std::list< std::pair<std::string, JobDescriptionParserPluginResult> > results;
+
     bool has_parsers = false;
     bool has_languages = false;
     for (JobDescriptionParserPluginLoader::iterator it = jdpl->GetIterator(); it; ++it) {
@@ -456,26 +457,49 @@ namespace Arc {
       has_parsers = true;
       if (language.empty() || it->IsLanguageSupported(language)) {
         has_languages = true;
-        if (it->Parse(source, jobdescs, language, dialect)) {
+        JobDescriptionParserPluginResult result = it->Parse(source, jobdescs, language, dialect);
+        if (result) {
           jdpl_lock.unlock();
           return true;
         }
-        if (!it->GetError().empty()) {
-          parse_error += it->GetError();
-          parse_error += "\n";
-        }
+
+        results.push_back(std::make_pair(!it->GetSupportedLanguages().empty() ? it->GetSupportedLanguages().front() : "", result));
       }
     }
     jdpl_lock.unlock();
+
+    std::string parse_error;
     if(!has_parsers) {
-      parse_error = "No job description parsers are available.\n";
+      parse_error = IString("No job description parsers available").str();
     } else if(!has_languages) {
-      parse_error = "No job description parsers suitable for handling '"+language+"' language are available.\n";
-    } else if(parse_error.empty()) {
-      parse_error = "No job description parser was able to interpret job description\n";
+      parse_error = IString("No job description parsers suitable for handling '%s' language are available", language).str();
+    } else {
+      for (std::list< std::pair<std::string, JobDescriptionParserPluginResult> >::iterator itRes = results.begin();
+           itRes != results.end(); ++itRes) {
+        if (itRes->second == JobDescriptionParserPluginResult::Failure) {
+          if (!parse_error.empty()) {
+            parse_error += "\n";
+          }
+          parse_error += IString("%s parsing error", itRes->first).str();
+          if (itRes->second.HasErrors()) {
+            parse_error += ":";
+          }
+          for (std::list<JobDescriptionParsingError>::const_iterator itErr = itRes->second.GetErrors().begin();
+               itErr != itRes->second.GetErrors().end(); ++itErr) {
+            parse_error += "\n";
+            if (itErr->line_pos.first > 0 && itErr->line_pos.second > 0) {
+              parse_error += inttostr(itErr->line_pos.first) + ":" + inttostr(itErr->line_pos.second) + ": ";
+            }
+            parse_error += itErr->message;
+          }
+        }
+      }
+    }
+    if(parse_error.empty()) {
+      parse_error = IString("No job description parser was able to interpret job description").str();
     }
 
-    return JobDescriptionResult(false,parse_error);
+    return JobDescriptionResult(false, parse_error);
   }
 
   JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {

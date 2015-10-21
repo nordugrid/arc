@@ -571,26 +571,25 @@ namespace Arc {
   }
 
   JobDescriptionParserPluginResult JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+    JobDescriptionParserPluginResult result(JobDescriptionParserPluginResult::WrongLanguage);
     if (language != "" && !IsLanguageSupported(language)) {
-      return false;
+      return result;
     }
-
-    logger.msg(VERBOSE, "Parsing string using JDLParser");
 
     JobDescription parsed_jobdescription;
 
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos || first >= last) {
-      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary square bracket missing or their order is incorrect. ('[' or ']')");
-      return false;
+      return result;
     }
     std::string input_text = source.substr(first + 1, last - first - 1);
 
     //Remove multiline comments
     unsigned long comment_start = 0;
-    while ((comment_start = input_text.find("/*", comment_start)) != std::string::npos)
+    while ((comment_start = input_text.find("/*", comment_start)) != std::string::npos) {
       input_text.erase(input_text.begin() + comment_start, input_text.begin() + input_text.find("*/", comment_start) + 2);
+    }
 
     std::string wcpy = "";
     std::list<std::string> lines;
@@ -644,7 +643,7 @@ namespace Arc {
     return true;
   }
 
-  JobDescriptionParserPluginResult JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult JDLParser::Assemble(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }

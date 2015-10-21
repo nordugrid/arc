@@ -11,9 +11,9 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/XMLNode.h>
 #include <arc/compute/JobDescription.h>
 
+#include "XMLNodeRecover.h"
 #include "ADLParser.h"
 
 namespace Arc {
@@ -134,21 +134,32 @@ namespace Arc {
   }
 
   JobDescriptionParserPluginResult ADLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+    JobDescriptionParserPluginResult result(JobDescriptionParserPluginResult::WrongLanguage);
     if (language != "" && !IsLanguageSupported(language)) {
-      return false;
-    }
-    logger.msg(VERBOSE, "Parsing string using ADLParser");
-
-    JobDescription parsed_jobdescription;
-
-    XMLNode node(source);
-    if (!node) {
-        logger.msg(VERBOSE, "[ADLParser] Parsing error: %s\n", (xmlGetLastError())->message);
+      return result;
     }
 
-    if (node.Size() == 0) {
-      logger.msg(VERBOSE, "[ADLParser] Wrong XML structure! ");
-      return false;
+    XMLNodeRecover node(source);
+    if (node.HasErrors()) {
+      if (node.Name() != "ActivityDescription") {
+        return result;
+      }
+      else {
+        result.SetFailure();
+        for (std::list<xmlErrorPtr>::const_iterator itErr = node.GetErrors().begin();
+             itErr != node.GetErrors().end(); ++itErr) {
+          JobDescriptionParsingError err;
+          err.message = (**itErr).message;
+          if (err.message[err.message.length()-1] == '\n') {
+            err.message = err.message.substr(0, err.message.length()-1);
+          }
+          if ((**itErr).line > 0 && (**itErr).int2 > 0) {
+            err.line_pos = std::pair<int, int>((**itErr).line, (**itErr).int2);
+          }
+          result.AddError(err);
+        }
+        return result;
+      }
     }
 
     /*
@@ -344,6 +355,8 @@ namespace Arc {
       logger.msg(VERBOSE, "[ADLParser] Root element is not ActivityDescription ");
       return false;
     }
+
+    JobDescription parsed_jobdescription;
 
     XMLNode identification = node["adl:ActivityIdentification"];
     XMLNode application = node["adl:Application"];
@@ -805,7 +818,7 @@ namespace Arc {
     }
   }
 
-  JobDescriptionParserPluginResult ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserPluginResult ADLParser::Assemble(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }
