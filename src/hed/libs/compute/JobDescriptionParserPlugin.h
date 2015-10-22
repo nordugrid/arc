@@ -9,6 +9,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
