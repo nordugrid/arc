@@ -263,6 +263,10 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       i->local=job_desc;
     }
     if(!cancel) {  // in case of cancel all preparations are already done
+      if(!job_desc_handler.write_grami(*i)) {
+        logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
+        return false;
+      }
       if(!job_desc_handler.set_execs(*i)) {
         logger.msg(Arc::ERROR,"%s: Failed setting executable permissions",i->job_id);
         return false;
