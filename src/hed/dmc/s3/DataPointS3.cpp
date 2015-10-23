@@ -30,8 +30,6 @@
 //#include <arc/CheckSum.h>
 #include <arc/Utils.h>
 
-#include <arc/external/libs3/libs3.h>
-
 #include "DataPointS3.h"
 
 namespace ArcDMCS3 {

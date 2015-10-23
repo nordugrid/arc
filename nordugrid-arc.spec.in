@@ -259,8 +259,8 @@ BuildRequires:	xrootd-devel
 BuildRequires:	gfal2-devel
 %endif
 %if %{with_s3}
-BuildRequires:  libcurl
-BuildRequires:  libcurl-devel
+BuildRequires:  libs3
+BuildRequires:  libs3-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0} == 1110
 BuildRequires: db43-devel

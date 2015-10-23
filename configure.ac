@@ -1674,13 +1674,29 @@ fi
 # Check for S3
 AC_ARG_ENABLE(s3, AC_HELP_STRING([--enable-s3], [enable the S3 support, default is disable]),[enables_s3="$enableval"],[])
 if test "x$enables_s3" = "xyes"; then
- PKG_CHECK_MODULES(CURL, [libcurl], [
-    CURL_LIBS=`curl-config --libs`
-    CURL_CFLAGS=`curl-config --cflags`
-    ])
- AC_SUBST(CURL_CFLAGS)
- AC_SUBST(CURL_LIBS)
+  AC_ARG_WITH(s3, [  --with-s3=(PATH)        libs3 location])
+  if test ! "x$with_s3" = "x" ; then
+    S3_LOCATION="$with_s3"
+    S3_CPPFLAGS="-I$S3_LOCATION/include"
+    if test -d $S3_LOCATION/lib64; then
+      S3_LDFLAGS="-L$S3_LOCATION/lib64"
+    else
+      S3_LDFLAGS="-L$S3_LOCATION/lib"
+    fi
+  fi
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$CPPFLAGS $S3_CPPFLAGS"
+  AC_CHECK_HEADER(libs3.h, [], [enables_s3="no"])
+  CPPFLAGS=$SAVE_CPPFLAGS
+  SAVE_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS $S3_LDFLAGS"
+  AC_CHECK_LIB([s3], [S3_initialize],
+               [S3_LIBS="$S3_LDFLAGS -ls3"], [enables_s3="no"])
+  LDFLAGS=$SAVE_LDFLAGS
+  AC_SUBST(S3_CPPFLAGS)
+  AC_SUBST(S3_LIBS)
 fi
+
 
 # Check for xrootd (c++)
 
@@ -1690,7 +1706,7 @@ AC_LANG_CPLUSPLUS
 AC_ARG_ENABLE(xrootd, AC_HELP_STRING([--disable-xrootd], [disable the xrootd support, default is enable]),[enables_xrootd="$enableval"],[])
 if test "x$enables_xrootd" = "xyes"; then
   XROOTD_CPPFLAGS="-I/usr/include/xrootd"
-  AC_ARG_WITH(xrootd, [  --with-xrootd=(PATH) Xrootd location])
+  AC_ARG_WITH(xrootd, [  --with-xrootd=(PATH)    Xrootd location])
   if test ! "x$with_xrootd" = "x" ; then
     XROOTD_LOCATION="$with_xrootd"
     XROOTD_CPPFLAGS="-I$XROOTD_LOCATION/include/xrootd"
@@ -2260,12 +2276,10 @@ AC_SUBST(SPECDATE)
 AH_BOTTOM([#ifdef WIN32
 #include <arc/win32.h>
 #endif])
-# src/external/libs3/Makefile
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/external/Makefile
                  src/external/cJSON/Makefile
-                 src/external/libs3/Makefile
                  src/hed/Makefile
                  src/hed/libs/compute/Makefile
                  src/hed/libs/compute/test/Makefile

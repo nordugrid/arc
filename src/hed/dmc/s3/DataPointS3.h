@@ -4,10 +4,10 @@
 #define __ARC_DATAPOINTS3_H__
 
 #include <list>
+#include <libs3.h>
 
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
-#include <arc/external/libs3/libs3.h>
 
 namespace ArcDMCS3 {
 
