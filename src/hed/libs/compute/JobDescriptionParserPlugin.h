@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <algorithm>
 
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
@@ -32,7 +33,7 @@ namespace Arc {
   class JobDescriptionParsingError {
   public:
     JobDescriptionParsingError() {}
-    JobDescriptionParsingError(const std::string& message, const std::pair<int, int>& line_pos = std::pair<int, int>(0, 0), const std::string& failing_code = "")
+    JobDescriptionParsingError(const std::string& message, const std::pair<int, int>& line_pos = std::make_pair(0, 0), const std::string& failing_code = "")
       : message(message), failing_code(failing_code), line_pos(line_pos) {}
     ~JobDescriptionParsingError() {}
     std::string message;
@@ -70,7 +71,7 @@ namespace Arc {
      * \since Added in 5.1.0
      **/
     void AddError(const IString& msg,
-                  const std::pair<int, int>& location = std::pair<int, int>(0, 0),
+                  const std::pair<int, int>& location = std::make_pair(0, 0),
                   const std::string& failing_code = "") {
       errors_.push_back(JobDescriptionParsingError(msg.str(), location, failing_code));
     }
