@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 #include <arc/compute/JobDescriptionParserPlugin.h>
 
@@ -18,7 +19,7 @@ namespace Arc {
   class SourceLocation {
   public:
     SourceLocation(const T& v)
-      : v(v), location(std::pair<int, int>(-1, -1)) {};
+      : v(v), location(std::make_pair(-1, -1)) {};
     SourceLocation(const std::pair<int, int>& location, const T& v)
       : v(v), location(location) {};
     ~SourceLocation() {};
@@ -48,7 +49,7 @@ namespace Arc {
 
   class RSLValue {
   public:
-    RSLValue(const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : location(location) {};
+    RSLValue(const std::pair<int, int>& location = std::make_pair(-1, -1)) : location(location) {};
     virtual ~RSLValue() {}
     const std::pair<int, int>& Location() const { return location; }
     RSLValue* Evaluate(std::map<std::string, std::string>& vars, JobDescriptionParserPluginResult& parsing_result) const;
@@ -61,7 +62,7 @@ namespace Arc {
     : public RSLValue {
   public:
     RSLLiteral(const SourceLocation<std::string>& str) : RSLValue(str.location), str(str.v) {};
-    RSLLiteral(const std::string& str, const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : RSLValue(location), str(str) {};
+    RSLLiteral(const std::string& str, const std::pair<int, int>& location = std::make_pair(-1, -1)) : RSLValue(location), str(str) {};
     RSLLiteral(const RSLLiteral& v) : RSLValue(v.location), str(v.str) {};
     ~RSLLiteral() {};
     void Print(std::ostream& os = std::cout) const;
@@ -74,7 +75,7 @@ namespace Arc {
     : public RSLValue {
   public:
     RSLVariable(const SourceLocation<std::string>& var) : RSLValue(var.location), var(var.v) {};
-    RSLVariable(const std::string& var, const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : RSLValue(location), var(var) {};
+    RSLVariable(const std::string& var, const std::pair<int, int>& location = std::make_pair(-1, -1)) : RSLValue(location), var(var) {};
     ~RSLVariable() {};
     void Print(std::ostream& os = std::cout) const;
     const std::string& Var() const { return var; };
@@ -85,7 +86,7 @@ namespace Arc {
   class RSLConcat
     : public RSLValue {
   public:
-    RSLConcat(RSLValue *left, RSLValue *right, const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : RSLValue(location), left(left), right(right) {};
+    RSLConcat(RSLValue *left, RSLValue *right, const std::pair<int, int>& location = std::make_pair(-1, -1)) : RSLValue(location), left(left), right(right) {};
     ~RSLConcat();
     void Print(std::ostream& os = std::cout) const;
     const RSLValue* Left() const {
@@ -102,7 +103,7 @@ namespace Arc {
   class RSLList
     : public RSLValue {
   public:
-    RSLList(const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : RSLValue(location) {};
+    RSLList(const std::pair<int, int>& location = std::make_pair(-1, -1)) : RSLValue(location) {};
     ~RSLList();
     void Add(RSLValue *value);
     void Print(std::ostream& os = std::cout) const;
@@ -128,7 +129,7 @@ namespace Arc {
   class RSLSequence
     : public RSLValue {
   public:
-    RSLSequence(RSLList *seq, const std::pair<int, int>& location = std::pair<int, int>(-1, -1)) : RSLValue(location), seq(seq) {};
+    RSLSequence(RSLList *seq, const std::pair<int, int>& location = std::make_pair(-1, -1)) : RSLValue(location), seq(seq) {};
     ~RSLSequence() { delete seq; };
     void Print(std::ostream& os = std::cout) const;
     std::list<RSLValue*>::iterator begin() {
