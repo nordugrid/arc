@@ -6,10 +6,15 @@
 #set -x 
 id=`id -u`
 
-debug=:
+#debug=:
+debug () {
+    echo -n `date` 1>&2
+    echo -n ' ' 1>&2
+    echo $@ 1>&2
+}
 
-$debug "run at `date`"
-$debug "options = $@"
+debug "starting"
+debug "options = $@"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -56,13 +61,11 @@ save_commentfile () {
   uid=$1
   commentfile=$2
   errorsfile=$3
-  action="
-    { echo '---------- Output of the job wrapper script -----------'
-      cat '$commentfile' 2> /dev/null
-      echo '------------------------- End of output -------------------------'
-    } >> '$errorsfile'
-  "
-  do_as_uid "$uid" "$action"
+  echo '---------- Output of the job wrapper script -----------' >> $errorsfile
+  cat $commentfile 2> /dev/null >> $errorsfile
+  echo '------------------------- End of output -------------------------' >> '$errorsfile'
+ 
+  #do_as_uid "$uid" "$action"
 }
 
 for control_dir in "$@" ; do
@@ -72,14 +75,20 @@ for control_dir in "$@" ; do
         continue
     fi
 
+    # Bash specific, but this script will be rewritten in python soon...
+    declare -A finished_jobs
     finished=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -e "select name from workunit where assimilate_state=2")
     
+    for job in `echo $finished`; do
+        finished_jobs[$job]=1
+    done
+
     # iterate over all jobs known in the control directory
     find "${control_dir}/processing" -name 'job.*.status' \
     | xargs egrep -l "INLRMS|CANCELING" \
     | sed -e 's/.*job\.//' -e 's/\.status$//' \
     | while read job; do
-        $debug "scanning job = $job"
+        debug "scanning job = $job"
         unset joboption_jobid
         unset joboption_directory
 
@@ -99,28 +108,23 @@ for control_dir in "$@" ; do
         # process IDs could not be learned, proceeding to next
         [ -z "$joboption_jobid" ] && continue
     
-        $debug "local jobid = $joboption_jobid"
+        debug "local jobid = $joboption_jobid"
 
         # checking if process is still running
-        if [ $(echo $finished|grep -c "$joboption_jobid") = '0' ];then
-            $debug "$joboption_jobid is still running, Continueing to next"
+        if [[ ! ${finished_jobs[$joboption_jobid]} ]]; then
+            debug "$joboption_jobid is still running, Continueing to next"
             continue
         else
-            $debug "$joboption_jobid is finished"
+            debug "$joboption_jobid is finished"
         fi
         uid=$(printuid "${control_dir}/job.${job}.local")
-        $debug "local user id = $uid"
-        diagfile=${joboption_directory}/${joboption_jobid}.diag
-        if [ -f $diagfile ]; then
-             cp $diagfile ${joboption_directory}.diag
-        fi
-        $debug "checking $diagfile"
-
-        # Hard code exit code to 0 until diag file mess is sorted out
-        #exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
-        exitcode=0        
-
-        $debug "exitcode = [$exitcode] extracted from $diagfile"
+        debug "local user id = $uid"
+        diagfile=${joboption_directory}.diag
+        debug "checking $diagfile"
+        exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
+        debug "exitcode = [$exitcode] extracted from $diagfile"
+        exitcode=0
+        
         comment=""
         if [ -z "$joboption_arg_code" ] ; then joboption_arg_code='0' ; fi
         if [ -z "$exitcode" ]; then
@@ -130,14 +134,14 @@ for control_dir in "$@" ; do
         elif [ "$exitcode" -ne "$joboption_arg_code" ]; then
             comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code" 1>&2
         fi
-        $debug "got exitcode=$exitcode"
+        debug "got exitcode=$exitcode"
         save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
         echo "$exitcode $comment" > "${control_dir}/job.${job}.lrms_done"
     done
 
 done
 
-$debug "done, going to sleep"
+debug "done, going to sleep"
 
-sleep 10
+sleep 120
 exit 0
