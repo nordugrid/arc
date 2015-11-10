@@ -238,7 +238,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_client_method());
    } else {
+#ifdef HAVE_SSLV3_METHOD
      sslctx_=SSL_CTX_new(SSLv3_client_method());
+#endif
    };
    if(sslctx_==NULL){
       logger.msg(ERROR, "Can not create the SSL Context object");
@@ -325,7 +327,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    if(cfg.IfTLSHandshake()) {
      sslctx_=SSL_CTX_new(SSLv23_server_method());
    } else {
+#ifdef HAVE_SSLV3_METHOD
      sslctx_=SSL_CTX_new(SSLv3_server_method());
+#endif
    };
    if(sslctx_==NULL){
       logger.msg(ERROR, "Can not create the SSL Context object");

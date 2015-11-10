@@ -959,6 +959,15 @@ else
 fi
 fi
 
+# Check for SSLv3_method
+SAVE_CFLAGS=$CFLAGS
+SAVE_LIBS=$LIBS
+CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
+LIBS="$LIBS $OPENSSL_LIBS"
+AC_CHECK_FUNCS(SSLv3_method)
+CFLAGS=$SAVE_CFLAGS
+LIBS=$SAVE_LIBS
+
 #check mozilla nss
 enables_nss=yes
 NSS_INSTALLED=no
