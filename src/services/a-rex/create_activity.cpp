@@ -220,6 +220,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
       rstatus.NewChild("estypes:Timestamp")=Arc::Time().str(Arc::ISOTime);
       //rstatus.NewChild("estypes:Description")=;
       logger_.msg(Arc::VERBOSE, "EMIES:CreateActivity finished successfully");
+      logger_.msg(Arc::INFO, "New job accepted with id %s", job.ID());
       if(Arc::VERBOSE >= logger_.getThreshold()) {
         std::string s;
         out.GetXML(s);

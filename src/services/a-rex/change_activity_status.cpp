@@ -321,6 +321,7 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
         // And same time till result of cancel script is processed.
         // Currently it is not possible to estimate how long canceling
         // would happen.
+        logger_.msg(Arc::INFO, "job %s cancelled successfully", jobid);
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod()*2);
       };
     };
@@ -379,6 +380,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
         // TODO: check for real reason
         ESOperationNotAllowedFault(item.NewChild("dummy"),job.Failure());
       } else {
+        logger_.msg(Arc::INFO, "job %s cleaned successfully", jobid);
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod());
       };
     };
@@ -433,6 +435,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
         // TODO: check for real reason
         ESOperationNotAllowedFault(item.NewChild("dummy"),job.Failure());
       } else {
+        logger_.msg(Arc::INFO, "job %s restarted successfully", jobid);
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod());
       };
     };

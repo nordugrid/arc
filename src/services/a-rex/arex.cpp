@@ -526,6 +526,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
   std::string id = GetPath(inmsg,endpoint);
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
+  logger_.msg(Arc::INFO, "Connection from %s: %s", inmsg.Attributes()->get("TCP:REMOTEHOST"), inmsg.Attributes()->get("TLS:IDENTITYDN"));
   if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
   logger_.msg(Arc::VERBOSE, "process: method: %s", method);
   logger_.msg(Arc::VERBOSE, "process: endpoint: %s", endpoint);
@@ -568,7 +569,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "input does not define operation");
       return make_soap_fault(outmsg);
     };
-    logger_.msg(Arc::VERBOSE, "process: operation: %s",op.Name());
+    logger_.msg(Arc::INFO, "process: operation: %s",op.Name());
     // Adding A-REX attributes
     sattr = new ARexSecAttr(op);
   } else if(method == "GET") {
@@ -796,6 +797,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
     logger_.msg(Arc::VERBOSE, "process: GET");
+    logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
     CountedResourceLock cl_lock(datalimit_);
     // TODO: in case of error generate some content
     Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
