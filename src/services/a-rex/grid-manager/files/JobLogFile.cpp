@@ -21,6 +21,7 @@ namespace ARex {
 
 const char * const sfx_desc        = ".description";
 const char * const sfx_diag        = ".diag";
+const char * const sfx_statistics  = ".statistics";
 
 static void extract_integer(std::string& s,std::string::size_type n = 0) {
   for(;n<s.length();n++) {
@@ -248,6 +249,21 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
     }
   }
   if(!status.empty()) job_data += "status=" + status + '\n';
+
+  // Read and store statistics information
+  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_statistics;
+  std::list<std::string> statistics_data;
+  if (Arc::FileRead(fname_src, statistics_data)) {
+    for (std::list<std::string>::iterator line = statistics_data.begin();
+         line != statistics_data.end(); ++line) {
+      // statistics file has : as first delimiter, replace with =
+      // todo: change DTRGenerator to use = as first delim for next major release
+      std::string::size_type p = line->find(':');
+      if (p != std::string::npos)
+        line->replace(p, 1, "=");
+      job_data += *line+"\n";
+    }
+  }
 
   // Store in file
   std::string out_file(config.ControlDir()+"/logs/"+job.get_id()+".XXXXXX");
