@@ -20,7 +20,10 @@ namespace Arc
   {
     std::string filename;
     bool allow_remove;
+    std::vector<std::string> inputfiles;
+    std::vector<std::string> outputfiles;
     std::string getArchivingPath(bool car=false);
+    void parseInputOutputFiles(Arc::XMLNode &node, std::vector<std::string> &list, std::string type="input");
   public:
     /** Constructor. Loads and parses A-REX job log. */
     JobLogFile(const std::string& _filename):allow_remove(true) { parse(_filename); } 

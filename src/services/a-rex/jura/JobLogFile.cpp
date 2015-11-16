@@ -141,6 +141,12 @@ namespace Arc
             std::string key=line.substr(0, e),
               value=line.substr(e+1, std::string::npos);
             (*this)[key]=value;
+            if ( key == "inputfile") {
+                inputfiles.push_back(value);
+            }
+            if ( key == "outputfile") {
+                outputfiles.push_back(value);
+            }
           }
       }
     logfile.close();
@@ -218,6 +224,7 @@ namespace Arc
     ns_ur["ds"]="http://www.w3.org/2000/09/xmldsig#";
     ns_ur["arc"]="http://www.nordugrid.org/ws/schemas/ur-arc";
     ns_ur["vo"]="http://www.sgas.se/namespaces/2009/05/ur/vo";
+    ns_ur["tr"]="http://www.sgas.se/namespaces/2010/10/filetransfer";
 
     //Get node names
     std::list<std::string> nodenames;
@@ -615,6 +622,15 @@ namespace Arc
         ur.NewChild("Processors")=(*this)["processors"];
       }
 
+    //Transfer statistics
+    if (find("inputfile")!=end())
+      {
+        parseInputOutputFiles(ur, inputfiles);
+      }
+    if (find("outputfile")!=end())
+      {
+        parseInputOutputFiles(ur, outputfiles, "output");
+      }
 
     //Extra:
     //RuntimeEnvironment
@@ -1327,6 +1343,49 @@ namespace Arc
       return (*this)["jobreport_option_archiving"]+"/usagerecordCAR."+base_fn;
     }
     return (*this)["jobreport_option_archiving"]+"/usagerecord."+base_fn;
+  }
+  
+  void JobLogFile::parseInputOutputFiles(Arc::XMLNode &node, std::vector<std::string> &filelist, std::string type) {
+    if ( !node["tr:FileTransfers"] ) {
+        node.NewChild("tr:FileTransfers");
+    }
+    for (int i=0; i<(int)filelist.size(); i++) {
+        std::string nodeName = "FileDownload";
+        if ( type == "output") {
+            nodeName = "FileUpload";
+        }
+        Arc::XMLNode dl = node["tr:FileTransfers"].NewChild("tr:" + nodeName);
+        std::string option=filelist[i];
+        size_type pcolon=option.find(',');
+        while (pcolon!=std::string::npos)
+          {
+            std::string pair=option.substr(0, pcolon);
+            size_type peqv=pair.find('=');
+            std::string key=pair.substr(0, peqv);
+            std::string value=pair.substr(peqv+1, std::string::npos);
+            if ( key == "url" ) key = "Url";
+            if ( key == "size" ) key = "Size";
+            if ( key == "starttime" ) key = "StartTime";
+            if ( key == "endtime" ) key = "EndTime";
+            if ( type == "input" ) {
+                if ( key == "bypasscache" ) key = "BypassCache";
+                if ( key == "fromcache" ) key = "RetrievedFromCache";
+            }
+
+            dl.NewChild("tr:"+key)=value;
+
+            //next:
+            if ( pcolon != option.length() ) {
+              option=option.substr(pcolon+1, std::string::npos);
+            } else {
+                option="";
+            }
+            pcolon=option.find(',');
+            if ( option.length() > 0 && pcolon==std::string::npos) {
+              pcolon=option.length();
+            }
+          }
+    }
   }
   
 } // namespace
