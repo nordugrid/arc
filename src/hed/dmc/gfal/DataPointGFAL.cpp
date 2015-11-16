@@ -185,8 +185,11 @@ namespace ArcDMCGFAL {
       }
 
       // Read into the buffer
-      bytes_read = gfal_read(fd, (*(buffer))[handle], length);
-            
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        bytes_read = gfal_read(fd, (*(buffer))[handle], length);
+      }
+
       // If there was an error
       if (bytes_read < 0) {
         logger.msg(VERBOSE, "gfal_read failed: %s", StrError(errno));
@@ -211,7 +214,12 @@ namespace ArcDMCGFAL {
     buffer->eof_read(true);
     // Close the file
     if (fd != -1) {
-      if (gfal_close(fd) < 0) {
+      int r;
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        r = gfal_close(fd);
+      }
+      if (r < 0) {
         logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
@@ -232,7 +240,12 @@ namespace ArcDMCGFAL {
 
     // Close the file if not already done
     if (fd != -1) {
-      if (gfal_close(fd) < 0) {
+      int r;
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        r = gfal_close(fd);
+      }
+      if (r < 0) {
         logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
@@ -344,7 +357,10 @@ namespace ArcDMCGFAL {
       // destination, then we have to seek there
       if (position != offset) {
         logger.msg(DEBUG, "DataPointGFAL::write_file got position %d and offset %d, has to seek", position, offset);
-        gfal_lseek(fd, position, SEEK_SET);
+        {
+          GFALEnvLocker gfal_lock(usercfg, lfc_host);
+          gfal_lseek(fd, position, SEEK_SET);
+        }
         offset = position;
       }
       
@@ -352,7 +368,10 @@ namespace ArcDMCGFAL {
       // but we may not be able to write it in one shot
       chunk_offset = 0;
       while (chunk_offset < length) {
-        bytes_written = gfal_write(fd, (*(buffer))[handle] + chunk_offset, length - chunk_offset);
+        {
+          GFALEnvLocker gfal_lock(usercfg, lfc_host);
+          bytes_written = gfal_write(fd, (*(buffer))[handle] + chunk_offset, length - chunk_offset);
+        }
         if (bytes_written < 0) break; // there was an error
         // calculate how far we got into to the chunk
         chunk_offset += bytes_written;
@@ -375,7 +394,12 @@ namespace ArcDMCGFAL {
     buffer->eof_write(true);
     // Close the file
     if (fd != -1) {
-      if (gfal_close(fd) < 0) {
+      int r;
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        r = gfal_close(fd);
+      }
+      if (r < 0) {
         logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
@@ -397,7 +421,12 @@ namespace ArcDMCGFAL {
 
     // Close the file if not done already
     if (fd != -1) {
-      if (gfal_close(fd) < 0) {
+      int r;
+      {
+        GFALEnvLocker gfal_lock(usercfg, lfc_host);
+        r = gfal_close(fd);
+      }
+      if (r < 0) {
         logger.msg(WARNING, "gfal_close failed: %s", StrError(gfal_posix_code_error()));
       }
       fd = -1;
