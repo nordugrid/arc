@@ -1363,13 +1363,15 @@ namespace Arc
             size_type peqv=pair.find('=');
             std::string key=pair.substr(0, peqv);
             std::string value=pair.substr(peqv+1, std::string::npos);
-            if ( key == "url" ) key = "Url";
+            if ( key == "url" ) key = "URL";
             if ( key == "size" ) key = "Size";
             if ( key == "starttime" ) key = "StartTime";
             if ( key == "endtime" ) key = "EndTime";
             if ( type == "input" ) {
                 if ( key == "bypasscache" ) key = "BypassCache";
                 if ( key == "fromcache" ) key = "RetrievedFromCache";
+                if ( value == "yes" )  value = "true";
+                if ( value == "no" )  value = "false";
             }
 
             dl.NewChild("tr:"+key)=value;
