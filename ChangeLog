@@ -1,3 +1,6 @@
+2015-11-17  Gabor Szigeti <szigeti@niif.hu>
+  * Add file trasnfer statistics information to SGAS accounting record. (fixes bug #3519)
+
 2015-09-10 Anders Waananen <waananen@nbi.dk>
   * Remove uploader and downloader binaries
 
