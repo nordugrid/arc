@@ -88,7 +88,7 @@ for control_dir in "$@" ; do
     | xargs egrep -l "INLRMS|CANCELING" \
     | sed -e 's/.*job\.//' -e 's/\.status$//' \
     | while read job; do
-        debug "scanning job = $job"
+        #debug "scanning job = $job"
         unset joboption_jobid
         unset joboption_directory
 
@@ -108,11 +108,11 @@ for control_dir in "$@" ; do
         # process IDs could not be learned, proceeding to next
         [ -z "$joboption_jobid" ] && continue
     
-        debug "local jobid = $joboption_jobid"
+        #debug "local jobid = $joboption_jobid"
 
         # checking if process is still running
         if [[ ! ${finished_jobs[$joboption_jobid]} ]]; then
-            debug "$joboption_jobid is still running, Continueing to next"
+            #debug "$joboption_jobid is still running, Continueing to next"
             continue
         else
             debug "$joboption_jobid is finished"
