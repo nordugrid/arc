@@ -52,6 +52,8 @@ Extension:                                    [MISSING]
                                                                                               UserFQAN
                                                                                               ScalingFactor
                                                                                               ScalingFactorUnit
+FileTransfer:                                 inputfile
+FileTransfer:                                 outputfile
 
 Unmatched Logger ARC-UR properties
 
