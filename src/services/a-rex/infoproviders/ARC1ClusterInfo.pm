@@ -3196,7 +3196,7 @@ sub collect($) {
         if (my $cconfs = $config->{contacts}) {
             my $i = 0;
             $csv->{Contacts} = sub {
-                return undef unless $i < length @$cconfs;
+                return undef unless $i < scalar(@$cconfs);
                 my $cconfig = $cconfs->[$i];
                 #my $detail = $cconfig->{Detail};
                 my $cont = {};
@@ -3251,7 +3251,7 @@ sub collect($) {
 #         if (my $cconfs = $config->{contacts}) {
 #             my $i = 0;
 #             $dom->{Contacts} = sub {
-#                 return undef unless $i < length @$cconfs;
+#                 return undef unless $i < scalar(@$cconfs);
 #                 my $cconfig = $cconfs->[$i++];
 #                 #my $detail = $cconfig->{Detail};
 #                 my $cont = {};
