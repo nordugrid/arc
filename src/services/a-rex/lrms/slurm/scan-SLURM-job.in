@@ -223,7 +223,7 @@ function handle_diag_file {
     job_read_diag
 
     if [ "$use_sacct" ]; then 
-      jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTime,Start,End,ExitCode,State -P | tail -n 1)
+      jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,ExitCode,State -P | tail -n 1)
 
       cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
 
