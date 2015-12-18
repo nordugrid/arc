@@ -380,14 +380,14 @@ namespace ArcDMCRucio {
       rse = rse->next;
     }
     cJSON *fsize = cJSON_GetObjectItem(root, "bytes");
-    if (!fsize) {
+    if (!fsize || fsize->type == cJSON_NULL) {
       logger.msg(WARNING, "No filesize information returned in Rucio response for %s", filename);
     } else {
       SetSize((unsigned long long int)fsize->valuedouble);
       logger.msg(DEBUG, "%s: size %llu", filename, GetSize());
     }
     cJSON *csum = cJSON_GetObjectItem(root, "adler32");
-    if (!fsize) {
+    if (!csum || csum->type == cJSON_NULL) {
       logger.msg(WARNING, "No checksum information returned in Rucio response for %s", filename);
     } else {
       SetCheckSum(std::string("adler32:") + std::string(csum->valuestring));
