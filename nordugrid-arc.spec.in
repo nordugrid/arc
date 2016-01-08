@@ -1684,6 +1684,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
 - Unofficial build
+* Fri Jan 08 2016 Anders Waananen <waananen@nbi.dk> - 5.0.5-1
+- 5.0.5 Final Release
+
+* Thu Nov 19 2015 Anders Waananen <waananen@nbi.dk> - 5.0.4-1
+- 5.0.4 Final Release
 
 * Sun Sep 27 2015 Anders Waananen <waananen@nbi.dk> - 5.0.3-1
 - 5.0.3 Final Release
