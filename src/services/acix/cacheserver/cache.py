@@ -11,8 +11,8 @@ from twisted.application import service
 from acix.core import bloomfilter
 
 
-CAPACITY_CHUNK = 10000 # 10k entries is the least we bother with
-WATERMARK_LOW  = 10000 # 10k entries -> 35k memory, no reason to go lower
+CAPACITY_CHUNK = 10000  # 10k entries is the least we bother with
+WATERMARK_LOW = 10000  # 10k entries -> 35k memory, no reason to go lower
 
 
 class _Counter:
@@ -22,7 +22,6 @@ class _Counter:
 
     def up(self):
         self.n += 1
-
 
 
 class Cache(service.Service):
@@ -38,8 +37,7 @@ class Cache(service.Service):
 
         self.cache = None
         self.generation_time = None
-        self.hashes =  []
-
+        self.hashes = []
 
     def startService(self):
         log.msg("-" * 60)
@@ -51,10 +49,8 @@ class Cache(service.Service):
 
         self.cache_task.start(self.refresh_interval)
 
-
     def stopService(self):
         self.cache_task.stop()
-
 
     def renewCache(self):
         n_bits = bloomfilter.calculateSize(capacity=self.capacity)
@@ -63,6 +59,7 @@ class Cache(service.Service):
         filter = bloomfilter.BloomFilter(n_bits)
 
         file_counter = _Counter()
+
         def addEntry(key):
             file_counter.up()
             filter.add(key)
@@ -72,7 +69,6 @@ class Cache(service.Service):
         d.addCallback(self._scanDone, filter, t0, file_counter)
         return d
 
-
     def _scanDone(self, _, filter, t0, file_counter):
         td = time.time() - t0
 
@@ -80,13 +76,12 @@ class Cache(service.Service):
         self.generation_time = time.time()
         self.hashes = filter.get_hashes()
 
-        log.msg("Cache updated. Time taken: %f seconds. Entries: %i" % (round(td,2), file_counter.n))
+        log.msg("Cache updated. Time taken: %f seconds. Entries: %i" % (round(td, 2), file_counter.n))
         if file_counter.n == 0:
             log.msg("No file entries registered. Possible misconfiguration.")
             return
 
         self.checkCapacity(file_counter.n)
-
 
     def checkCapacity(self, n_files):
 
@@ -102,8 +97,6 @@ class Cache(service.Service):
             self.capacity = max(self.capacity - CAPACITY_CHUNK, WATERMARK_LOW)
             log.msg("Filter capacity redused to %i (will take effect on next cache run)" % self.capacity)
 
-
     def getCache(self):
 
         return self.generation_time, self.hashes, self.cache, self.cache_url
-
