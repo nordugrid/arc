@@ -224,7 +224,13 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
-  DelegationStores* deleg = config_.GmConfig().Delegations();
+  DelegationStores delegs = config_.GmConfig().Delegations();
+  if(!delegs) {
+    failure_="Failed to find delegation store";
+    failure_type_=ARexJobInternalError;
+    return;
+  }
+  DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
@@ -373,22 +379,31 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
-  std::string cred = credentials;
-  if(cred.empty()) {
-    // If job comes through EMI-ES it has delegations assigned only per file through source and target.
-    // But ARC has extension to pass global delegation for whole DataStaging.
-    if(!desc.DataStaging.DelegationID.empty()) {
-      std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
-                                FindCred(desc.DataStaging.DelegationID,config_.GridName());
-      if(!path.empty()) {
-        Arc::FileRead(path, cred);
-      }
-    }
-  }
-  if(cred.empty()) {
-    // If job comes through EMI-ES it has delegations assigned per file.
-    // But special dynamic output files @list have no targets and no delegations.
-    bool need_delegation = false;
+  // There may be 3 sources of delegated credentials:
+  // 1. If job comes through EMI-ES it has delegations assigned only per file 
+  //    through source and target. But ARC has extension to pass global
+  //    delegation for whole DataStaging
+  // 2. In ARC BES extension credentils delegated as part of job creation request.
+  //    Those are provided in credentials variable
+  // 3. If neither works and special dynamic output files @list which 
+  //    have no targets and no delegations are present then any of 
+  //    per file delegations is used
+
+  bool need_delegation = false;
+  std::list<std::string> deleg_ids;
+  if(!desc.DataStaging.DelegationID.empty()) {
+    job_.delegationid = desc.DataStaging.DelegationID; // remember that special delegation
+    deleg_ids.push_back(desc.DataStaging.DelegationID); // and store in list of all delegations
+
+  } else if(!credentials.empty()) {
+    // Have per job credentials - store in delegation storage and refer by id later
+    std::string deleg_id;
+    if(deleg.AddCred(deleg_id, config_.GridName(), credentials)) {
+      job_.delegationid = desc.DataStaging.DelegationID; // remember that special delegation
+      deleg_ids.push_back(desc.DataStaging.DelegationID); // and store in list of all delegations
+    };
+  } else {
+    // Check if generic delegation is needed at all
     for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();
                                                  f != desc.DataStaging.OutputFiles.end();++f) {
       if(f->Name[0] == '@') {
@@ -399,50 +414,34 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
         break;
       };
     };
-    // hack - find any delegation available
-    if(need_delegation && deleg) {
-      for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();
-                                                   f != desc.DataStaging.OutputFiles.end();++f) {
-        for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
-          if(!(t->DelegationID.empty())) {
-            std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
-                                      FindCred(t->DelegationID,config_.GridName());
-            if(!path.empty()) {
-              Arc::FileRead(path, cred);
-              if(!cred.empty()) {
-                need_delegation = false; 
-                break;
-              };
-            };
-          };
-        };
-      };
+  };
+
+  // Collect other delegations
+  // Delegation ids can be found in local description and in parsed job description
+  for(std::list<Arc::InputFileType>::iterator f = desc.DataStaging.InputFiles.begin();f != desc.DataStaging.InputFiles.end();++f) {
+    for(std::list<Arc::SourceType>::iterator s = f->Sources.begin();s != f->Sources.end();++s) {
+      if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
     };
-    if(need_delegation && deleg) {
-      for(std::list<Arc::InputFileType>::iterator f = desc.DataStaging.InputFiles.begin();
-                                                  f != desc.DataStaging.InputFiles.end();++f) {
-        for(std::list<Arc::SourceType>::iterator t = f->Sources.begin();t != f->Sources.end();++t) {
-          if(!(t->DelegationID.empty())) {
-            std::string path = (*deleg)[config_.GmConfig().DelegationDir()].
-                                      FindCred(t->DelegationID,config_.GridName());
-            if(!path.empty()) {
-              Arc::FileRead(path, cred);
-              if(!cred.empty()) {
-                need_delegation = false;
-                break;
-              };
-            };
-          };
-        };
-      };
+  };
+  for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
+    for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
+      if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
     };
-    if(need_delegation) {
+  };
+
+  if(need_delegation && job_.delegationid.empty()) {
+    // Still need generic per job delegation 
+    if(deleg_ids.size() > 0) {
+      job_.delegationid = *deleg_ids.begin();
+    } else {
+      // Missing required delegation
       failure_="Dynamic output files and no delegation assigned to job are incompatible.";
       failure_type_=ARexJobDescriptionUnsupportedError;
       delete_job_id();
       return;
-    }
+    };
   };
+
   // Start local file
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;
@@ -456,16 +455,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.globalid = idgenerator.GetGlobalID();
   job_.headnode = idgenerator.GetManager();
   job_.interface = idgenerator.GetInterface();
-  // Try to create proxy/certificate
-  if(!cred.empty()) {
-    if(!update_credentials(cred)) {
-      failure_="Failed to store credentials";
-      failure_type_=ARexJobInternalError;
-      delete_job_id();
-      return;
-    };
-  } else {
-    // If no proxy was delegated simply use user certificate
+  // Try to create user credentials (former "proxy")
+  {
     std::string certificates;
     for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
       if(*a) {
@@ -474,10 +465,25 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
           certificates = sattr->get("CERTIFICATE");
           if(!certificates.empty()) {
             certificates += sattr->get("CERTIFICATECHAIN");
-            if(!update_credentials(certificates)) {
-              failure_="Failed to store credentials";
-              failure_type_=ARexJobInternalError;
+            std::string fname = job_proxy_filename(job, config.GmConfig());
+            ::unlink(fname.c_str());
+            int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+            if(h == -1) {
               delete_job_id();
+              failure_="Failed to create job proxy file";
+              failure_type_=ARexJobInternalError;
+              return;
+            };
+            fix_file_owner(fname,config_.User());
+            const char* s = credentials.c_str();
+            int ll = credentials.length();
+            int l = 0;
+            for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
+            ::close(h);
+            if(l==-1) {
+              delete_job_id();
+              failure_="Failed to write job proxy file";
+              failure_type_=ARexJobInternalError;
               return;
             };
             break;
@@ -493,18 +499,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_="Failed to create job description";
     failure_type_=ARexJobInternalError;
     return;
-  };
-  std::list<std::string> deleg_ids;
-  // Delegation id can be found in local description and in parsed job description
-  for(std::list<Arc::InputFileType>::iterator f = desc.DataStaging.InputFiles.begin();f != desc.DataStaging.InputFiles.end();++f) {
-    for(std::list<Arc::SourceType>::iterator s = f->Sources.begin();s != f->Sources.end();++s) {
-      if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
-    };
-  };
-  for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
-    for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
-      if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
-    };
   };
   // Write grami file
   if(!job_desc_handler.write_grami(desc,job,NULL)) {
@@ -593,8 +587,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
-  // Put lock on delegated credentials
-  if(deleg) (*deleg)[config_.GmConfig().DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
+  // Put lock on all delegated credentials of this job
+  deleg.LockCred(id_,deleg_ids,config_.GridName());
 
   SignalFIFO(config_.GmConfig().ControlDir());
   return;
@@ -679,18 +673,24 @@ Arc::Time ARexJob::Modified(void) {
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
-  GMJob job(id_,Arc::User(config_.User().get_uid()),config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+  GMJob job(id_,Arc::User(config_.User().get_uid()),
+            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,config_.GmConfig(),job_)) return false;
   return true;
 }
 
 bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
-  std::string fname=config_.GmConfig().ControlDir()+"/job."+id_+".proxy";
-  ::unlink(fname.c_str());
-  int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+  if(job_.delegationid.empty()) return false;
+  DelegationStores delegs = config_.GmConfig().Delegations();
+  if(!delegs) return false;
+  DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
+  std::string fname = deleg.FindCred(job_.delegationid, config_.GridName());
+  //::unlink(fname.c_str());
+  //int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+  int h=::open(fname.c_str(), O_WRONLY | O_TRUNC, 0600);
   if(h == -1) return false;
-  fix_file_owner(fname,config_.User());
+  //fix_file_owner(fname,config_.User());
   const char* s = credentials.c_str();
   int ll = credentials.length();
   int l = 0;
