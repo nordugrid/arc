@@ -375,8 +375,8 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   // start/restart
   if (command.empty()) return true;  // has anything to run ?
   logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
-  std::string helper_id = "helper";
-  bool started = RunParallel::run(config, Arc::User(), helper_id.c_str(), command, &proc);
+  bool started = RunParallel::run(config, Arc::User(), "helper", config.HelperLog().c_str(),
+                                  command, &proc, NULL);
   if (started) return true;
   if (proc && (*proc)) return true;
   if (proc) { delete proc; proc = NULL; };

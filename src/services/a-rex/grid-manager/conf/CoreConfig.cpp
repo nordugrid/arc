@@ -125,6 +125,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
 
   // List of helper commands that will be substituted after all configuration is read
   std::list<std::string> helpers;
+  bool helper_log_is_set = false;
   ConfigSections cf(cfile);
   cf.AddSection("common");
   cf.AddSection("grid-manager");
@@ -405,9 +406,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       helpers.push_back(rest);
     }
+    else if (command == "helperlog") {
+      config.helper_log = config_next_arg(rest);
+      // empty is allowed
+      helper_log_is_set = true;
+    }
   }
   // End of parsing conf commands
 
+  if(!helper_log_is_set) {
+    // Assgn default backward compatible value
+    config.helper_log = config.control_dir + "/job.helper.error";
+  }
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
   config.Substitute(config.control_dir);
@@ -444,6 +454,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   // So we do not need any special treatment for infosys.
   // std::string infosys_user("");
 
+  bool helper_log_is_set = false;
   Arc::XMLNode tmp_node = cfg["endpoint"];
   if (tmp_node) config.headnode = (std::string)tmp_node;
   /*
@@ -695,6 +706,15 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   }
 
   /*
+  helperLog
+  */
+  tmp_node = cfg["helperLog"];
+  if(tmp_node) {
+    config.helper_log = (std::string)tmp_node;
+    helper_log_is_set = true;
+  };
+
+  /*
   helperUtility
     username
     command
@@ -720,6 +740,10 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   }
   // End of parsing XML node
 
+  if(!helper_log_is_set) {
+    // Set default
+    config.helper_log = config.control_dir + "/job.helper.error";
+  }
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
   config.Substitute(config.control_dir);

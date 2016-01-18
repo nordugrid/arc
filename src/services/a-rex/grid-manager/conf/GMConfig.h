@@ -119,6 +119,8 @@ public:
   const std::string& RTEDir() const { return rte_dir; }
   /// Directory storing delegations
   std::string DelegationDir() const;
+  /// Helper(s) log file path
+  const std::string& HelperLog() const { return helper_log; }
 
   /// email address of person responsible for this ARC installation
   const std::string& SupportMailAddress() const { return support_email_address; }
@@ -250,6 +252,8 @@ private:
   std::string rte_dir;
   /// email address for support
   std::string support_email_address;
+  /// helper(s) log path
+  std::string helper_log;
 
   /// Scratch directory
   std::string scratch_dir;

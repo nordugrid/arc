@@ -52,33 +52,39 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job,const std::string&
   RunPlugin* cred = config.CredPlugin();
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
-  return run(config,job.get_user(),job.get_id().c_str(),args,ere,su,
-                                    true,cred,&job_subst,&subs);
+  std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
+  std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
+  return run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
+             args, ere, proxy.c_str(), su, cred, &job_subst, &subs);
 }
 
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
-bool RunParallel::run(const GMConfig& config,const Arc::User& user,const char* jobid,const std::string& args,Arc::Run** ere,bool su,bool job_proxy,RunPlugin* cred,RunPlugin::substitute_t subst,void* subst_arg) {
+bool RunParallel::run(const GMConfig& config, const Arc::User& user,
+                      const char* procid, const char* errlog,
+                      const std::string& args, Arc::Run** ere,
+                      const char* jobproxy, bool su,
+                      RunPlugin* cred, RunPlugin::substitute_t subst, void* subst_arg) {
   *ere=NULL;
   Arc::Run* re = new Arc::Run(args);
   if((!re) || (!(*re))) {
     if(re) delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",procid?procid:"");
     return false;
   };
   if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
-  RunParallel* rp = new RunParallel(config,user,jobid,su,job_proxy,cred,subst,subst_arg);
+  RunParallel* rp = new RunParallel(config,user,procid,errlog,jobproxy,su,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
     delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",procid?procid:"");
     return false;
   };
   re->AssignInitializer(&initializer,rp);
   if(!re->Start()) {
     delete rp;
     delete re;
-    logger.msg(Arc::ERROR,"%s: Failure starting child process",jobid?jobid:"");
+    logger.msg(Arc::ERROR,"%s: Failure starting child process",procid?procid:"");
     return false;
   };
   delete rp;
@@ -99,7 +105,7 @@ void RunParallel::initializer(void* arg) {
   // change user
   if(it->su_) {
     if(!(it->user_.SwitchUser())) {
-      logger.msg(Arc::ERROR,"%s: Failed switching user",it->jobid_); sleep(10); exit(1);
+      logger.msg(Arc::ERROR,"%s: Failed switching user",it->procid_); sleep(10); exit(1);
     };
   } else {
     // just set good umask
@@ -108,10 +114,10 @@ void RunParallel::initializer(void* arg) {
   if(it->cred_) {
     // run external plugin to acquire non-unix local credentials
     if(!it->cred_->run(it->subst_,it->subst_arg_)) {
-      logger.msg(Arc::ERROR,"%s: Failed to run plugin",it->jobid_); sleep(10); _exit(1);
+      logger.msg(Arc::ERROR,"%s: Failed to run plugin",it->procid_); sleep(10); _exit(1);
     };
     if(it->cred_->result() != 0) {
-      logger.msg(Arc::ERROR,"%s: Plugin failed",it->jobid_); sleep(10); _exit(1);
+      logger.msg(Arc::ERROR,"%s: Plugin failed",it->procid_); sleep(10); _exit(1);
     };
   };
   // close all handles inherited from parent
@@ -124,39 +130,36 @@ void RunParallel::initializer(void* arg) {
   h=::open("/dev/null",O_WRONLY);
   if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
   std::string errlog;
-  if(!(it->jobid_.empty())) { 
-    errlog = it->config_.ControlDir() + "/job." + it->jobid_ + ".errors";
-    h=::open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+  if(!(it->errlog_.empty())) { 
+    h=::open(it->errlog_.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   }
   else { h=::open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
-  if(it->job_proxy_) {
+  if(!it->jobproxy_.empty()) {
     Arc::UnsetEnv("X509_USER_KEY");
     Arc::UnsetEnv("X509_USER_CERT");
     Arc::UnsetEnv("X509_USER_PROXY");
     Arc::UnsetEnv("X509_RUN_AS_SERVER");
     Arc::UnsetEnv("X509_CERT_DIR");
-    if(!(it->jobid_.empty())) {
-      std::string proxy = it->config_.ControlDir() + "/job." + it->jobid_ + ".proxy";
-      Arc::SetEnv("X509_USER_PROXY",proxy);
-      // for Globus 2.2 set fake cert and key, or else it takes 
-      // those from host in case of root user.
-      // 2.4 needs names and 2.2 will work too.
-      // 3.x requires fake ones again.
+    Arc::UnsetEnv("X509_VOMS_DIR");
+    Arc::SetEnv("X509_USER_PROXY",it->jobproxy_);
+    // for Globus 2.2 set fake cert and key, or else it takes 
+    // those from host in case of root user.
+    // 2.4 needs names and 2.2 will work too.
+    // 3.x requires fake ones again.
 #if GLOBUS_IO_VERSION>=5
-      Arc::SetEnv("X509_USER_KEY",(std::string("fake")));
-      Arc::SetEnv("X509_USER_CERT",(std::string("fake")));
+    Arc::SetEnv("X509_USER_KEY",(std::string("fake")));
+    Arc::SetEnv("X509_USER_CERT",(std::string("fake")));
 #else
-      Arc::SetEnv("X509_USER_KEY",proxy);
-      Arc::SetEnv("X509_USER_CERT",proxy);
+    Arc::SetEnv("X509_USER_KEY",it->jobproxy_);
+    Arc::SetEnv("X509_USER_CERT",it->jobproxy_);
 #endif
-      std::string cert_dir = it->config_.CertDir();
-      if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
-      std::string voms_dir = it->config_.VomsDir();
-      if(!voms_dir.empty()) Arc::SetEnv("X509_VOMS_DIR",voms_dir);
-    };
+    std::string cert_dir = it->config_.CertDir();
+    if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
+    std::string voms_dir = it->config_.VomsDir();
+    if(!voms_dir.empty()) Arc::SetEnv("X509_VOMS_DIR",voms_dir);
   };
 #endif
 }
