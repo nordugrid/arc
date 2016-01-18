@@ -65,7 +65,7 @@ class JobLocalDescription {
  JobLocalDescription(void):jobid(""),globalid(""),headnode(""),lrms(""),queue(""),localid(""),
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
-                           clientname(""),clientsoftware(""),delegationid(""),
+                           clientname(""),clientsoftware(""),
                            reruns(0),priority(50),downloads(-1),uploads(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
@@ -101,7 +101,6 @@ class JobLocalDescription {
   Arc::Time exectime;        /* time to start execution */
   std::string clientname;    /* IP+port of user interface + info given by ui */
   std::string clientsoftware; /* Client's version */
-  std::string delegationid;  /* id of deleation assigned to this job (not per file) */
   int    reruns;             /* number of allowed reruns left */
   int    priority;           /* priority the job has */
   int    downloads;          /* number of downloadable files requested */
@@ -110,7 +109,7 @@ class JobLocalDescription {
   std::list<std::string> projectnames;  /* project names, i.e. "ACIDs" */
   std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
   Arc::Time cleanuptime;     /* time to remove job completely */
-  Arc::Time expiretime;      /* when main delegation expires */
+  Arc::Time expiretime;      /* when delegation expires */
   std::string stdlog;        /* dirname to which log messages will be
                                 put after job finishes */
   std::string sessiondir;    /* job's session directory */

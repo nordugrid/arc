@@ -492,7 +492,6 @@ bool JobLocalDescription::write(const std::string& fname) const {
   write_pair(f,"delegexpiretime",expiretime);
   write_pair(f,"clientname",clientname);
   write_pair(f,"clientsoftware",clientsoftware);
-  write_pair(f,"delegationid",delegationid);
   write_pair(f,"sessiondir",sessiondir);
   write_pair(f,"diskspace",Arc::tostring(diskspace));
   write_pair(f,"failedstate",failedstate);
@@ -614,7 +613,6 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "delegexpiretime") { expiretime = buf+p; }
     else if(name == "clientname") { clientname = buf+p; }
     else if(name == "clientsoftware") { clientsoftware = buf+p; }
-    else if(name == "delegationid") { delegationid = buf+p; }
     else if(name == "sessiondir") { sessiondir = buf+p; }
     else if(name == "failedstate") { failedstate = buf+p; }
     else if(name == "failedcause") { failedcause = buf+p; }
