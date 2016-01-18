@@ -8,7 +8,7 @@ libarcglobusutils_la_SOURCES = \
 libarcglobusutils_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) \
 	$(GLOBUS_COMMON_CFLAGS) \
-	$(OPENSSL_FLAGS) \
+	$(OPENSSL_CFLAGS) \
 	$(AM_CXXFLAGS) \
 	$(LIBXML2_CFLAGS)
 
