@@ -441,6 +441,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   if(mcontext) {
     try {
       config = dynamic_cast<ARexConfigContext*>(mcontext);
+      logger_.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
     } catch(std::exception& e) { };
   };
   if(config) return config;
@@ -731,13 +732,21 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegation_stores_.Process(config->GmConfig().DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
+        if(!delegation_stores_.Process(config->GmConfig().DelegationDir(),
+                                *inpayload,*outpayload,config->GridName(),credentials)) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
-        if((!credentials.empty()) && (MatchXMLNamespace(op,DELEG_ARC_NAMESPACE))) {
-          // Only ARC delegation is done per job
-          UpdateCredentials(*config,op,outpayload->Child(),credentials);
+        if(!credentials.empty()) {
+          // Credentials obtained as outcome of operation
+          if(MatchXMLNamespace(op,DELEG_ARC_NAMESPACE)) {
+            // ARC delegation is done per job but stored under
+            // own id. So storing must be done outside processing code.
+            UpdateCredentials(*config,op,outpayload->Child(),credentials);
+          } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
+            // ES has delegations assigned their own ids and are
+            // already updated in delegation_stores_.Process()
+          };
         };
       } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
         CountedResourceLock cl_lock(infolimit_);

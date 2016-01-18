@@ -98,6 +98,8 @@ class ARexService: public Arc::Service {
   AREXOP(ChangeActivityStatus);
   Arc::MCC_Status MigrateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   AREXOP(CacheCheck);
+
+  /** Update credentials for specified job through A-REX own interface */
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
 
   // EMI ES operations
