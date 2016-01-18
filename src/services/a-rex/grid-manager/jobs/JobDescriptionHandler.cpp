@@ -41,7 +41,7 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   if(!job_local_write_file(job,config,job_desc)) return false;
   // Convert delegation ids to credential paths.
   // Add default credentials for file which have no own assigned.
-  std::string default_cred = config.ControlDir() + "/job." + job.get_id() + ".proxy";
+  std::string default_cred = job_proxy_filename(job.get_id(), config);
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                    f != job_desc.inputdata.end(); ++f) {
     if(f->has_lfn()) {
