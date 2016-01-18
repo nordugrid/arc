@@ -257,6 +257,21 @@ namespace ARex {
     // TODO: Remove records over threshold
   }
 
+  bool DelegationStore::AddCred(std::string& id, const std::string& client, const std::string& credentials) {
+    std::string path = fstore_->Add(id,client,std::list<std::string>());
+    if(path.empty()) {
+      failure_ = "Local error - failed to create slot for delegation. "+fstore_->Error();
+      return false;
+    }
+    make_dir_for_file(path);
+    if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
+      fstore_->Remove(id,client);
+      failure_ = "Local error - failed to create storage for delegation";
+      return false;
+    };
+    return true;
+  }
+
   std::string DelegationStore::FindCred(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
     return fstore_->Find(id,client,meta);

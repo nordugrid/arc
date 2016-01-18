@@ -34,29 +34,69 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   Arc::Logger logger_;
  public:
   DelegationStore(const std::string& base, bool allow_recover = true);
+
   ~DelegationStore(void);
+
   operator bool(void) { return ((bool)fstore_ && (bool)*fstore_); };
+
   bool operator!(void) { return !((bool)fstore_ && (bool)*fstore_); };
+
+  /** Returns description of last error */
   std::string Error(void) { return fstore_?fstore_->Error():std::string(""); };
 
+  /** Sets expiration time for unlocked credentials */
   void Expiration(unsigned int v = 0) { expiration_ = v; };
+
+  /** Sets max number of credentials to store */
   void MaxRecords(unsigned int v = 0) { maxrecords_ = v; };
+
   void CheckTimeout(unsigned int v = 0) { mtimeout_ = v; };
 
+  /** Create a slot for credential storing and return associated delegation consumer.
+     The consumer object must be release with ReleaseConsumer/RemoveConsumer */
   virtual Arc::DelegationConsumerSOAP* AddConsumer(std::string& id,const std::string& client);
+
+  /** Find existing delegation slot and create delegation consumer for it.
+     The consumer object must be release with ReleaseConsumer/RemoveConsumer */
   virtual Arc::DelegationConsumerSOAP* FindConsumer(const std::string& id,const std::string& client);
+
+  /** Store credentials into slot associated with specified consumer object */
   virtual bool TouchConsumer(Arc::DelegationConsumerSOAP* c,const std::string& credentials);
+
+  /** Read credentials stored in slot associated with specified consumer object */
   virtual bool QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials);
+
+  /** Release consumer object but keep credentials store slot */
   virtual void ReleaseConsumer(Arc::DelegationConsumerSOAP* c);
+
+  /** Release consumer object and delete associated credentials store slot */
   virtual void RemoveConsumer(Arc::DelegationConsumerSOAP* c);
+
   virtual void CheckConsumers(void);
+
   void PeriodicCheckConsumers(void);
+
+  /** Store new credentials associated with client and assign id to it */
+  bool AddCred(std::string& id, const std::string& client, const std::string& credentials);
+ 
+  /** Returns path to file containing credential with specied id and client */
   std::string FindCred(const std::string& id,const std::string& client);
+
+  /** Returns credentials ids associated with specific client */
   std::list<std::string> ListCredIDs(const std::string& client);
+
+  /** Returns all credentials ids (1st) along with their client ids (2nd) */
   std::list<std::pair<std::string,std::string> > ListCredIDs(void);
 
+  /** Locks credentials also associating it with specific lock identifier */
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);
+
+  /** Release lock set by previous call to LockCred by associated lock id.
+     Optionally it can update credentials usage timestamp and
+     force removal credentials from storage if it is not locked anymore. */
   bool ReleaseCred(const std::string& lock_id, bool touch = false, bool remove = false);
+
+  /** Returns credentials locked by specific lock id and associated with specified client */
   std::list<std::string> ListLockedCredIDs(const std::string& lock_id, const std::string& client);
 };
 
