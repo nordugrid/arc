@@ -1377,6 +1377,7 @@ err:
        || !(ac->acinfo->alg) || !(ac->acinfo->validity)
        || !(ac->acinfo->validity->notBefore) || !(ac->acinfo->validity->notAfter) 
        || !(ac->acinfo->attrib) || !(ac->sig_alg) || !(ac->signature)) {
+      CredentialLogger.msg(ERROR,"VOMS: missing AC parts");
       status |= VOMSACInfo::ACParsingFailed;
       return false;
     }
@@ -1608,7 +1609,7 @@ err:
 
     if(!checkACInfo(holder, issuer, ac, attr_output, ac_holder_name, ac_issuer_name, from, till, status)) {
       // Not printing anything because checkACInfo prints a lot of information itself
-      //CredentialLogger.msg(ERROR,"VOMS: problems while parsing information in AC");
+      CredentialLogger.msg(ERROR,"VOMS: problems while parsing information in AC");
       res = false;
     }
 
