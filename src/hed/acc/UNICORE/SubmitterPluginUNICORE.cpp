@@ -29,11 +29,11 @@ namespace Arc {
   
   SubmissionStatus SubmitterPluginUNICORE::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      UNICOREClient uc(URL(et.ComputingEndpoint->URLString), cfg, usercfg.Timeout());
+      UNICOREClient uc(URL(et.ComputingEndpoint->URLString), cfg, usercfg->Timeout());
   
       XMLNode id;
       if (!uc.submit(*it, id)){

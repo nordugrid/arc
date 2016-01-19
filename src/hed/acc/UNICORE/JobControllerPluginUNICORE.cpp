@@ -26,12 +26,12 @@ namespace Arc {
 
   void JobControllerPluginUNICORE::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
+    usercfg->ApplyToConfig(cfg);
 
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
       URL url((*it)->JobStatusURL);
       XMLNode id((*it)->IDFromEndpoint);
-      ClientSOAP client(cfg, url, usercfg.Timeout());
+      ClientSOAP client(cfg, url, usercfg->Timeout());
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;
       ns["bes-factory"] = "http://schemas.ggf.org/bes/2006/08/bes-factory";
@@ -78,7 +78,7 @@ namespace Arc {
 
   bool JobControllerPluginUNICORE::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>&, std::list<std::string>& IDsNotProcessed, bool) const {
     //     MCCConfig cfg;
-    //     usercfg.ApplyToConfig(cfg);
+    //     usercfg->ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);
@@ -107,7 +107,7 @@ namespace Arc {
 
   bool JobControllerPluginUNICORE::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     //     MCCConfig cfg;
-    //     usercfg.ApplyToConfig(cfg);
+    //     usercfg->ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
     //     URL url(job.JobID);
     //     url.ChangePath(*pi);
