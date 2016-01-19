@@ -313,8 +313,8 @@ namespace Arc {
           parsing_result.AddError(JobDescriptionParsingError(IString("End of comment not found").str(), GetLinePosition(pos+2), failing_code));
           return NULL;
         }
-        pos = pos2+2;
         comments_positions[pos] = pos2+2;
+        pos = pos2+2;
       }
       parsed = ParseRSL();
       if (parsed) {
