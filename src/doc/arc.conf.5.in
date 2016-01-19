@@ -1559,13 +1559,13 @@ definedshare="myvo:production 80"
 definedshare="myvo:student 20"
 
 .TP
-.B dtrlog
-dtrlog - A file in which data staging state information (for monitoring and
-recovery purposes) is periodically dumped. Default is controldir/dtrstate.log
+.B dtrstatefile
+dtrstatefile - A file in which data staging state information (for monitoring
+and recovery purposes) is periodically dumped. Default is controldir/dtr.state
 
 .IR Example:
 .br
-dtrlog="/tmp/dtrstate.log"
+dtrstatefile="/tmp/dtr.state"
 
 .TP
 .B deliveryservice

@@ -218,7 +218,7 @@ attributes depending on how the mapping should be done.
           <arex:localDelivery inisections="arex/data-staging" initag="localdelivery" inidefaultvalue="false"/>
           <arex:remoteSizeLimit inisections="arex/data-staging" initag="remotesizelimit" inidefaultvalue="0"/>
           <arex:useHostCert inisections="arex/data-staging" initag="usehostcert" inidefaultvalue="false"/>
-          <arex:dtrLog inisections="arex/data-staging" initag="dtrlog"/>
+          <arex:dtrStateFile inisections="arex/data-staging" initag="dtrstatefile"/>
         </arex:DTR>
         <arex:maxRetries inisections="arex" initag="maxtransfertries" inidefaultvalue="10"/>
         <arex:mapURL initype="multisection" inisections="arex/urlmap">

@@ -1003,9 +1003,10 @@
 #definedshare="myvo:production 80"
 #definedshare="myvo:student 20"
 
-## dtrlog - A file in which data staging state information (for monitoring and
-## recovery purposes) is periodically dumped. Default is controldir/dtrstate.log
-#dtrlog="/tmp/dtrstate.log"
+## dtrstatefile - A file in which data staging state information (for
+## monitoring and recovery purposes) is periodically dumped. Default is
+## controldir/dtr.state
+#dtrstatefile="/tmp/dtr.state"
 
 ## The following 4 options are used to configure multi-host data staging.
 ##

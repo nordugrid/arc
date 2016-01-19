@@ -128,7 +128,7 @@ DTRGenerator::DTRGenerator(const GMConfig& config,
 
   // If not configured, set the DTR dump file to the first control dir registered
   std::string dtr_log(staging_conf.dtr_log);
-  if (dtr_log.empty()) dtr_log = config.ControlDir()+"/dtrstate.log";
+  if (dtr_log.empty()) dtr_log = config.ControlDir()+"/dtr.state";
   scheduler->SetDumpLocation(dtr_log);
 
   // Read DTR state from previous dump to find any transfers stopped half-way

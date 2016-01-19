@@ -298,7 +298,7 @@
             transfers always use local delivery
           * useHostCert: whether to use host certificate for communication with
             remote delivery services
-          * dtrLog: path to location where DTR state is periodically dumped
+          * dtrStateFile: path to location where DTR state is periodically dumped
           </xsd:documentation>
        </xsd:annotation>
        <xsd:sequence>
@@ -324,7 +324,7 @@
                        minOccurs="0"/>
           <xsd:element name="useHostCert" type="xsd:boolean"
                        minOccurs="0"/>
-          <xsd:element name="dtrLog"
+          <xsd:element name="dtrStateFile"
                        type="xsd:string" minOccurs="0"/>
        </xsd:sequence>
     </xsd:complexType>
