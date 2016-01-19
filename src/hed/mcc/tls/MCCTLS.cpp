@@ -130,15 +130,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
    char buf[100];
    std::string subject;
    processing_failed_ = false;
-/*
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
-*/
-
-  Credential fakecred(std::string("/tmp/fakecert"), "", "", "", "");
-  STACK_OF(X509)* peerchain = fakecred.GetCertChain();
-
-
-
    voms_attributes_.clear();
    if(peerchain != NULL) {
       for(int idx = 0;;++idx) {
@@ -173,9 +165,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          };
       };
    };
-   /*
    X509* peercert = payload.GetPeerCert();
-   */
    X509* peercert = fakecred.GetCert();
    if (peercert != NULL) {
       if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
