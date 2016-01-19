@@ -9,7 +9,7 @@
 #include "JobControllerPluginARC0.h"
 #include "SubmitterPluginARC0.h"
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "ARC0", "HED:SubmitterPlugin", "ARCs classic Grid Manager", 0, &Arc::SubmitterPluginARC0::Instance },
   { "ARC0", "HED:JobControllerPlugin", "ARCs classic Grid Manager", 0, &Arc::JobControllerPluginARC0::Instance },
   { NULL, NULL, NULL, 0, NULL }

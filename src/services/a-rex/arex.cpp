@@ -1060,7 +1060,7 @@ ARexService::~ARexService(void) {
 
 } // namespace ARex
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "a-rex", "HED:SERVICE", NULL, 0, &ARex::get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

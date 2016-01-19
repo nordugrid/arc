@@ -33,7 +33,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     return new ArcMCCHTTP::MCC_HTTP_Client((Arc::Config*)(*mccarg),mccarg);
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "http.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "http.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
     { NULL, NULL, NULL, 0, NULL }

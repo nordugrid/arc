@@ -85,7 +85,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     return plugin;
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "tcp.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "tcp.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
     { NULL, NULL, NULL, 0, NULL }

@@ -9,7 +9,7 @@
 
 #include "ServiceEndpointRetrieverPluginEMIR.h"
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "EMIR", "HED:ServiceEndpointRetrieverPlugin", "EMIR registry", 0, &Arc::ServiceEndpointRetrieverPluginEMIR::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

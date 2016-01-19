@@ -10,7 +10,7 @@
 // persistent in compatible way.
 
 // Adding plugin descriptor to avoid warning messages from loader
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, NULL, 0, NULL }
 };
 

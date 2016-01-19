@@ -721,7 +721,7 @@ namespace DataStaging {
 
 } // namespace DataStaging
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "datadeliveryservice", "HED:SERVICE", NULL, 0, &DataStaging::get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

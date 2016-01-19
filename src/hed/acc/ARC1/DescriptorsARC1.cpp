@@ -11,7 +11,7 @@
 #include "TargetInformationRetrieverPluginBES.h"
 #include "TargetInformationRetrieverPluginWSRFGLUE2.h"
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "WSRFGLUE2", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginARC1::Instance },
   { "ARC1", "HED:SubmitterPlugin", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::SubmitterPluginARC1::Instance },
   { "ARC1", "HED:JobControllerPlugin", "A-REX (ARC REsource coupled EXecution service)", 0, &Arc::JobControllerPluginARC1::Instance },

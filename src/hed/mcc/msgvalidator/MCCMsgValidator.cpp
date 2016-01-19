@@ -50,7 +50,7 @@ static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     return new ArcMCCMsgValidator::MCC_MsgValidator_Service((Arc::Config*)(*mccarg),mccarg);
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "msg.validator.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "msg.validator.client", "HED:MCC", NULL, 0, &get_mcc_service },
     { NULL, NULL, NULL, 0, NULL }

@@ -130,7 +130,15 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
    char buf[100];
    std::string subject;
    processing_failed_ = false;
+/*
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
+*/
+
+  Credential fakecred(std::string("/tmp/fakecert"), "", "", "", "");
+  STACK_OF(X509)* peerchain = fakecred.GetCertChain();
+
+
+
    voms_attributes_.clear();
    if(peerchain != NULL) {
       for(int idx = 0;;++idx) {
@@ -165,7 +173,10 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          };
       };
    };
+   /*
    X509* peercert = payload.GetPeerCert();
+   */
+   X509* peercert = fakecred.GetCert();
    if (peercert != NULL) {
       if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
         // Check for CA certificate used for connection - overprotection
@@ -591,7 +602,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     return new ArcMCCTLS::MCC_TLS_Client(*(Arc::Config*)(*mccarg),mccarg);
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "tls.service", "HED:MCC", NULL, 0, &get_mcc_service },
     { "tls.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
     { "delegation.collector", "HED:SHC", NULL, 0, &ArcMCCTLSSec::DelegationCollector::get_sechandler},

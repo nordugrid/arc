@@ -166,7 +166,7 @@ namespace ArcDMCLDAP {
 
 } // namespace ArcDMCLDAP
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "ldap", "HED:DMC", "Lightweight Directory Access Protocol", 0, &ArcDMCLDAP::DataPointLDAP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

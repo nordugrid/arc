@@ -52,7 +52,7 @@ Plugin* DataPointMyProtocol::Instance(PluginArgument *arg) {
 } // namespace Arc
 
 // Add this plugin to the plugin descriptor table
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "my", "HED:DMC", "My protocol", 0, &Arc::DataPointMyProtocol::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

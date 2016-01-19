@@ -112,7 +112,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return service;
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "pythonservice", "HED:SERVICE", NULL, 0, &get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

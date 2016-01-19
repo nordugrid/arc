@@ -26,7 +26,7 @@ Arc::Plugin *get_instance(Arc::PluginArgument* arg)
 
 } // namespace Test
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     {
         "testplugin",         /* name */
         "TEST",               /* kind */

@@ -902,7 +902,7 @@ namespace ArcDMCSRM {
 
 } // namespace ArcDMCSRM
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "srm", "HED:DMC", "Storage Resource Manager", 0, &ArcDMCSRM::DataPointSRM::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

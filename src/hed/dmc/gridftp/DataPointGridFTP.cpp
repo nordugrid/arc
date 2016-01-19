@@ -1356,7 +1356,7 @@ namespace ArcDMCGridFTP {
 
 } // namespace ArcDMCGridFTP
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "gsiftp", "HED:DMC", "FTP or FTP with GSI security", 0, &ArcDMCGridFTP::DataPointGridFTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

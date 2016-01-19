@@ -610,7 +610,7 @@ bool DataPointS3::WriteOutOfOrder() { return false; }
 
 } // namespace Arc
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "s3", "HED:DMC", "Amazon S3 Store", 0, &ArcDMCS3::DataPointS3::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

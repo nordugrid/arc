@@ -344,7 +344,7 @@ namespace ArcDMCACIX {
 
 } // namespace ArcDMCACIX
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "acix", "HED:DMC", "ARC Cache Index", 0, &ArcDMCACIX::DataPointACIX::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

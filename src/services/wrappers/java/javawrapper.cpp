@@ -14,7 +14,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return new Arc::Service_JavaWrapper((Arc::Config*)(*srvarg),arg);
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "arcservice_javawrapper", "HED:SERVICE", NULL, 0, &get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

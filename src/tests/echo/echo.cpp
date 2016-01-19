@@ -18,7 +18,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     return new Echo::Service_Echo((Arc::Config*)(*mccarg),arg);
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "echo", "HED:SERVICE", NULL, 0, &get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

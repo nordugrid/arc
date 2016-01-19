@@ -15,7 +15,7 @@
 #include "ServiceEndpointRetrieverPluginEGIIS.h"
 #include "ServiceEndpointRetrieverPluginBDII.h"
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "LDAPNG", "HED:JobListRetrieverPlugin", "Classic NorduGrid LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
   { "LDAPGLUE2", "HED:JobListRetrieverPlugin", "GLUE2 LDAP Job List", 0, &Arc::JobListRetrieverPluginLDAPGLUE2::Instance },
   { "LDAPGLUE1", "HED:TargetInformationRetrieverPlugin", "GLUE1.x LDAP Local Information", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE1::Instance },

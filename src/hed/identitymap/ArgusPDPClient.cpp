@@ -91,7 +91,7 @@ static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     return plugin;
 }
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
     { "arguspdpclient.map", "HED:SHC", NULL, 0, &get_sechandler},
     { NULL, NULL, NULL, 0, NULL }
 }; 

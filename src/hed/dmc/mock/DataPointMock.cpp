@@ -78,7 +78,7 @@ namespace ArcDMCMock {
 
 } // namespace ArcDMCMock
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "mock", "HED:DMC", "Dummy protocol", 0, &ArcDMCMock::DataPointMock::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

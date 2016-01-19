@@ -501,7 +501,7 @@ namespace ArcDMCXrootd {
 } // namespace ArcDMCXrootd
 
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "root", "HED:DMC", "XRootd", 0, &ArcDMCXrootd::DataPointXrootd::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

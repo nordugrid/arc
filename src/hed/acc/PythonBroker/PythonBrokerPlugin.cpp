@@ -418,7 +418,7 @@ namespace Arc {
 
 } // namespace Arc
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "PythonBroker", "HED:BrokerPlugin", istring("Do sorting using user created python broker"), 0, &Arc::PythonBrokerPlugin::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

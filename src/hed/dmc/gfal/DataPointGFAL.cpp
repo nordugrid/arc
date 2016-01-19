@@ -639,7 +639,7 @@ namespace ArcDMCGFAL {
 
 } // namespace ArcDMCGFAL
 
-Arc::PluginDescriptor ARC_PLUGINS_TABLE_NAME[] = {
+extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
   { "gfal2", "HED:DMC", "Grid File Access Library 2", 0, &ArcDMCGFAL::DataPointGFAL::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
