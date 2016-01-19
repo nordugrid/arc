@@ -445,6 +445,25 @@ namespace Arc {
     loadCertificateString(certstr,x509,certchain);
   }
 
+  static bool matchCertificate(X509* tmp, X509* x509) {
+    if((X509_cmp(tmp, x509) == 0) && // only hash is checked by X509_cmp
+       (X509_issuer_and_serial_cmp(tmp, x509) == 0) &&
+       (X509_subject_name_cmp(tmp, x509) == 0)) return true;
+    return false;
+  }
+
+  static bool matchCertificate(X509* tmp, STACK_OF(X509) *certchain) {
+    int nn = 0;
+    for(; nn < sk_X509_num(certchain) ; nn++) {
+      X509* ccert = sk_X509_value(certchain, nn);
+      if((X509_cmp(tmp, ccert) == 0) && // only hash is checked by X509_cmp
+         (X509_issuer_and_serial_cmp(tmp, ccert) == 0) &&
+         (X509_subject_name_cmp(tmp, ccert) == 0)) break;
+    }
+    if(nn < sk_X509_num(certchain)) return true;
+    return false;
+  }
+
   void Credential::loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509) **certchain) {
     AutoBIO certbio(BIO_new_mem_buf((void*)(cert.c_str()), cert.length()));
     if(!certbio){
@@ -485,6 +504,9 @@ namespace Arc {
           if(!(PEM_read_bio_X509(certbio, &tmp, NULL, NULL))){
             ERR_clear_error(); break;
           }
+          // Gross hack - fight users which concatenate their certificates in loop
+          // Filter out certificates which are already present.
+          if(matchCertificate(tmp, *certchain) || matchCertificate(tmp, x509)) continue; // duplicate - skip
           if(!sk_X509_insert(*certchain, tmp, n)) {
             //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
@@ -510,6 +532,9 @@ namespace Arc {
           if(!(tmp = d2i_X509_bio(certbio, NULL))){
             ERR_clear_error(); break;
           }
+          // Gross hack - fight users which concatenate their certificates in loop
+          // Filter out certificates which are already present.
+          if(matchCertificate(tmp, *certchain) || matchCertificate(tmp, x509)) continue; // duplicate - skip
           if(!sk_X509_insert(*certchain, tmp, n)) {
             //std::string str(X509_NAME_oneline(X509_get_subject_name(tmp),0,0));
             X509_free(tmp);
