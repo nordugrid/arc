@@ -50,7 +50,7 @@ my %config_flags = (
     'issuer_processing'     => 0, # strict = 1, relaxed = 0
     'mapuser_processing'    => 0, # overwrite = 1, keep = 0
     'cache_enabled'         => 1,
-    'log_to_file'           => 0,
+    'log_to_file'           => 1,
     'voms_use_soap'         => 1, # voms_method: soap = 1, get = 0
     'allow_empty_unixid'    => 0
 );

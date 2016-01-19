@@ -2281,7 +2281,8 @@
 #vomapfile="/etc/grid-security/grid-vo-mapfile"
 
 ## log_to_file - control whether logging output of nordugridmap
-## will be saved to file. Default is 'no' (STDERR is used).
+## will be saved to file. If the value is 'no' nordugridmap will write all
+## information to STDERR. Default is 'yes'.
 #log_to_file="yes"
 
 ## logfile - specify the nordugridmap log file location when in use.

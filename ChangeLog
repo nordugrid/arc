@@ -1,6 +1,7 @@
 2016-01-19 Andrii Salnikov <manf@grid.org.ua>
   * Nordugridmap code changes to keep log records format the same across all ARC components
-  * Review of log messages text
+  * Review of log messages text in nordugridmap
+  * Logging to file now enabled by default in nordugridmap
 
 2015-11-17  Gabor Szigeti <szigeti@niif.hu>
   * Add file trasnfer statistics information to SGAS accounting record. (fixes bug #3519)
