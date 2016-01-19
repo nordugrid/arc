@@ -8,14 +8,16 @@ binmode STDIN;
 binmode STDOUT;
 
 use Getopt::Long;
-use Net::LDAP;
-use URI;
-use XML::DOM;
-use LWP::UserAgent;
-use LWP::Protocol::https;
+use POSIX qw(strftime);
+use Time::localtime;
 use File::Temp qw(tempfile);
 use File::Path;
 use Storable;
+use URI;
+use XML::DOM;
+use Net::LDAP;
+use LWP::UserAgent;
+use LWP::Protocol::https;
 use SOAP::Lite;
 use SOAP::Transport::HTTP;
 use Crypt::OpenSSL::X509;
@@ -25,7 +27,7 @@ use warnings;
 use strict;
 
 use constant {
-    # debug level constatns
+    # debug level constants
     FATAL   => 0,
     ERROR   => 1,
     WARNING => 2,
@@ -33,7 +35,7 @@ use constant {
     VERBOSE => 4,
     DEBUG   => 5,
     # nordugridmap internals
-    VERSION     => "2.1",
+    VERSION     => "2.2",
     USERAGENT   => "nordugridmap"
 };
 
@@ -145,7 +147,7 @@ close CONFIGFILE;
 # check [vo] blocks exists
 my @blocknames_tmp = (keys %parsedconfig);
 unless ( grep /^vo_/, @blocknames_tmp) {
-    &Logger("No [vo] blocks are found in the $fileopt configuration file",FATAL);
+    &Logger("There are no [vo] blocks are found in the $fileopt configuration file", FATAL);
 }
 
 # general configurable options (order: [nordugridmap] -> [common] -> $ENV -> defaults);
@@ -199,8 +201,7 @@ my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
 # redirect log to file
 if ( $config_flags{'log_to_file'} ) {
     open ( STDERR, ">> $logfile" ) or &Logger("Cannot open logfile '$logfile' for writting. Exiting.", FATAL);
-    my $time_string = localtime;
-    print STDERR "\n------- nordugridmap started at $time_string -------\n";
+    &Logger("Starting grid-mapfiles processing cycle", INFO);
 }
 
 # if cache enabled ensure cache directory exists and writable
@@ -290,7 +291,7 @@ sub get_vo_name {
     if ( $parsedconfig{$block}{'vo'} ) {
         return $parsedconfig{$block}{'vo'};
     } else {
-        &Logger("Cannot get the VO name: parameter 'vo' is required but not set. Please check [vo] block configuratinon ($fileopt line $parsedconfig{$block}{'configline'})", FATAL);
+        &Logger("Parameter 'vo' is required but not set inside the [vo] block. Please check your configuratinon ($fileopt line $parsedconfig{$block}{'configline'})", FATAL, "ConfigParser");
     }
 }
 
@@ -304,7 +305,7 @@ sub set_configuration_flag {
             $config_flags{$flag_name} = 0;
         } else {
             my $text_def = $config_flags{$flag_name} ? $value_yes : $value_no;
-            &Logger("Unrecognized value for option '$option_name' in [nordugridmap] configuration. Valid valueas are: '$value_yes' or '$value_no'. Using default '$text_def'", WARNING);
+            &Logger("Unrecognized value for option '$option_name' in [nordugridmap] configuration. Valid valueas are: '$value_yes' or '$value_no'. Using default '$text_def'", WARNING, "ConfigParser");
         }
     }
 }
@@ -317,7 +318,7 @@ sub set_numeric_value {
         if ( $parsedconfig{'nordugridmap'}{$option_name} =~ /^\d+$/ ) {
             $$ref_var = $parsedconfig{'nordugridmap'}{$option_name};
         } else {
-            &Logger("Unrecognized value for option '$option_name' in [nordugridmap] configuration. Valid valueas are: $value_valid. Using default value: $$ref_var.", WARNING);
+            &Logger("Unrecognized value for option '$option_name' in [nordugridmap] configuration. Valid valueas are: $value_valid. Using default value: $$ref_var.", WARNING, "ConfigParser");
         }
     } 
 }
@@ -329,7 +330,7 @@ sub get_source_flag {
         return 1 if ( $ref_options_hash->{$option_name} eq $value_yes );
         return 0 if ( $ref_options_hash->{$option_name} eq $value_no );
         my $text_def = $config_flags{$flag_name} ? $value_yes : $value_no;
-        &Logger("Unrecognized value for source-specific option '$option_name'. Valid valueas are: '$value_yes' or '$value_no'. Using globaly configured value '$text_def'", WARNING);
+        &Logger("Unrecognized value for source-specific option '$option_name'. Valid valueas are: '$value_yes' or '$value_no'. Using globaly configured value '$text_def'", WARNING, "ConfigParser");
     }
     return $config_flags{$flag_name};
 }
@@ -340,11 +341,11 @@ sub parse_edg_mkgridmap_conf {
     my %confighash = ();
 
     unless (open (EDGMKGRIDMAPCONF, "<$file")) {
-        &Logger("Can't open $file edg-mkgridmap configuration file", ERROR);
+        &Logger("Can't open $file edg-mkgridmap configuration file", ERROR, "ConfigParser.edg-mkgridmap");
         return (1, \%confighash);
     }
 
-    &Logger("Parsing edg-mkgridmap configuration file: $file", INFO);
+    &Logger("Parsing edg-mkgridmap configuration file: $file", INFO, "ConfigParser.edg-mkgridmap");
     my $exit_code = 2;
     while (my $line =<EDGMKGRIDMAPCONF>) {
         next if $line =~/^#/;
@@ -355,7 +356,7 @@ sub parse_edg_mkgridmap_conf {
         my $conf_value = 0;
 
         unless ( defined $arg1 ) {
-            &Logger("  edg-mkgridmap parser: Argument is required in line '$line', ignoring.", WARNING);
+            &Logger("Argument is required in line '$line', ignoring.", WARNING, "ConfigParser.edg-mkgridmap");
             next;
         }
 
@@ -365,7 +366,7 @@ sub parse_edg_mkgridmap_conf {
             $conf_value = $arg1;
             if ( defined $arg2 ) {
                 if ( $arg2 eq 'AUTO' ) { 
-                    &Logger("  edg-mkgridmap parser: Ignoring unsupported AUTO mapping for source $conf_value", VERBOSE);
+                    &Logger("Ignoring unsupported AUTO mapping for source $conf_value", VERBOSE, "ConfigParser.edg-mkgridmap");
                 } else {
                     $conf_value .= " < mapped_unixid=$arg2";
                 }
@@ -373,11 +374,11 @@ sub parse_edg_mkgridmap_conf {
             $exit_code = 0;
         } elsif ( $keyword eq 'default_lcluser' ) {
             # convert to mapped_unixid
-            &Logger("  edg-mkgridmap parser: adding mapped_unixid=$arg1", DEBUG);
+            &Logger("Adding mapped_unixid=$arg1", DEBUG, "ConfigParser.edg-mkgridmap");
             $confighash{'mapped_unixid'} = $arg1;
         } elsif ( $keyword eq 'auth' ) {
             # checking subjects over LDAP auth server is unsupported by nordugridmap
-            &Logger("  edg-mkgridmap parser: Ignoring unsupported 'auth' keyword", VERBOSE);
+            &Logger("Ignoring unsupported 'auth' keyword", VERBOSE, "ConfigParser.edg-mkgridmap");
         } elsif ( $keyword =~ m/^(allow|deny)$/ ) {
             # confert to filter
             $conf_key = 'filter';
@@ -389,11 +390,11 @@ sub parse_edg_mkgridmap_conf {
             $conf_value = "file://" . $arg1;
             $exit_code = 0;
         } else {
-            &Logger("  edg-mkgridmap parser: Ignoring unrecognized keyword for directive '$line'", WARNING);
+            &Logger("Ignoring unrecognized keyword for directive '$line'", WARNING, "ConfigParser.edg-mkgridmap");
         }
 
         if ( $conf_key ) {
-            &Logger("  edg-mkgridmap parser: adding $conf_key record $conf_value", DEBUG);
+            &Logger("Adding $conf_key record $conf_value", DEBUG, "ConfigParser.edg-mkgridmap");
             if ( defined $confighash{$conf_key} ) {
                 $confighash{$conf_key} .= '[separator]' . $conf_value;
             } else {
@@ -416,7 +417,7 @@ sub parse_edg_mkgridmap_conf {
 sub process_vo_mapfile {
     my ( $gvmf, $ref_mapfile_data, $ref_sources_data ) = @_;
 
-    &Logger("Assembling vo-mapfile mapping list", INFO);
+    &Logger("Assembling vo-mapfile mapping list", INFO, "AssembleVOMapfile");
     $ref_mapfile_data->{$gvmf} = {};
 
     foreach my $block (sort(keys %parsedconfig)) {
@@ -442,7 +443,7 @@ sub process_mapfiles {
         next if $gmf eq '/dev/null';
         next if defined $ref_mapfile_data->{$gmf};
 
-        &Logger("Assembling gridmap file: $gmf", INFO);
+        &Logger("Assembling gridmap file: $gmf", INFO, "AssembleGridMapfile");
         $ref_mapfile_data->{$gmf} = {};
 
         my @vo_blocks_list = &get_file_vo_sources($gmf);
@@ -451,7 +452,7 @@ sub process_mapfiles {
                 unless ( defined $ref_mapfile_data->{$gmf}->{$dn} ) {
                     $ref_mapfile_data->{$gmf}->{$dn} = $ref_sources_data->{$source}->{$dn}->{'mapuser'};
                 } else {
-                    &Logger("Entry '$dn' already exists in $gmf gridmapfile. Skiped.", DEBUG);
+                    &Logger("Entry '$dn' already exists in $gmf gridmapfile. Skiped.", DEBUG, "AssembleGridMapfile");
                 }
             }
         }
@@ -468,7 +469,7 @@ sub process_vo_blocks {
     # loop until all [vo] blocks are processed
     while ( $blocks_unfinished ) {
         if ( $blocks_processed == 0 ) {
-            &Logger("Loop detected in the [vo] blocks dependencied. Please review you configuration.", FATAL);
+            &Logger("Loop detected in the [vo] blocks dependencied. Please review you configuration.", FATAL, "AssembleBlockData");
         }
 
         # initial values
@@ -520,12 +521,7 @@ sub process_vo_blocks {
                     }
 
                     # print block parameters summary on debug
-                    my $rules_str = join("\n                           ",@Rules);
-                    &Logger("Assembling gridmap list for [vo] block:
-        VO BLOCK NAME    : $vo_name
-        ACL              : $rules_str
-        MAPPED UNIXID    : $mapped_user
-        REQUIRE_ISSUERDN : $require_issuerdn", DEBUG);
+                    &Logger("Assembling DNs list for the [vo] block $vo_name (mapped_unixid=$mapped_user, require_issuerdn=$require_issuerdn)", DEBUG, "AssembleBlockData");
 
                     # process all sources
                     $ref_sources_data->{$vo_ref} = {};
@@ -542,7 +538,7 @@ sub process_vo_blocks {
                                     } else {
                                         # on 'strict' issuer processing issuer dn is mandatory
                                         if ( $config_flags{'issuer_processing'} ) {
-                                            &Logger("User '$dn' denied due to strict issuer processing - there is no issuer dn", DEBUG);
+                                            &Logger("DN '$dn' filtered due to strict issuer processing.", DEBUG, "AssembleBlockData");
                                             next;
                                         }
                                     }
@@ -551,10 +547,10 @@ sub process_vo_blocks {
                                 if ( $config_flags{'mapuser_processing'} || ! defined $source_dn_hash{'mapuser'} ) {
                                     if ( $mapped_user eq "" ) {
                                         unless ( $config_flags{'allow_empty_unixid'} ) {
-                                            &Logger("There is no mapping for DN '$dn' in [vo] block $vo_name. Skiping record.", WARNING);
+                                            &Logger("There is no mapping for DN '$dn' in [vo] block $vo_name. Skiping record.", WARNING, "AssembleBlockData");
                                             next;
                                         } else {
-                                            &Logger("Using empty mapping for DN '$dn' in [vo] block $vo_name.", VERBOSE);
+                                            &Logger("Using empty mapping for DN '$dn' in [vo] block $vo_name.", VERBOSE, "AssembleBlockData");
                                         }
                                     }
                                 }
@@ -565,13 +561,13 @@ sub process_vo_blocks {
                                 if ( $config_flags{'mapuser_processing'} || ! defined $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'} ) {
                                         $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'} = $mapped_user;
                                 }
-                                &Logger("Adding entry '$dn -> $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'}' to [vo] block '$vo_name' gridmap.", DEBUG);
+                                &Logger("Adding mapping entry '$dn -> $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'}' for the '$vo_name' [vo] block.", DEBUG, "AssembleBlockData");
                                 # maintain information about where record is come from
                                 unless ( defined $ref_sources_data->{$vo_ref}->{$dn}->{'source'} ) {
                                     $ref_sources_data->{$vo_ref}->{$dn}->{'source'} = $source;
                                 }
                             } else {
-                                &Logger("Entry '$dn' already exists in [vo] block '$vo_name' gridmap. Skiped.", DEBUG);
+                                &Logger("Mapping for '$dn' entry already exists for the '$vo_name' [vo] block. Skiped.", DEBUG, "AssembleBlockData");
                             }
                         }
                     }
@@ -591,12 +587,12 @@ sub write_mapfiles_data {
     foreach my $mapfile ( keys %$ref_mapfile_data ) {
         unless ( $dryrun ) {
             my ($gmf, $tmp_mapfile) = tempfile($mapfile . "XXXXX", UNLINK => 1) or 
-                &Logger("Cannot open temporary file to write $mapfile data", FATAL);
+                &Logger("Cannot open temporary file to write $mapfile data", FATAL, "WriteMapfile");
 
-            &Logger("Writing mapfile data for $mapfile", INFO);
+            &Logger("Writting mapfile data to $mapfile", INFO, "WriteMapfile");
 
             while ( my ($dn, $map) = each(%{$ref_mapfile_data->{$mapfile}}) ) {
-                print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (not enough disk space?) to $tmp_mapfile", FATAL);
+                print $gmf "\"$dn\" $map\n" or &Logger("Failed to write gridmap data (not enough disk space?) to temporary file $tmp_mapfile", FATAL, "WriteMapfile");
             }
 
             close($gmf);
@@ -610,7 +606,7 @@ sub write_mapfiles_data {
             while ( my ($dn, $map) = each(%{$ref_mapfile_data->{$mapfile}}) ) {
                 $gmf_string .= "    \"$dn\" $map\n";
             }
-            &Logger("Printing mapfile content for $mapfile:\n$gmf_string", INFO);
+            &Logger("Printing mapfile content for $mapfile:\n$gmf_string", INFO, "WriteMapfile");
         }
     }
 }
@@ -646,13 +642,13 @@ sub get_source_params {
     $source_str =~ s/^\s+//;
     $source_str =~ s/\s+$//;
     $$ref_source = $source_str;
-    &Logger("  source URL: $source_str", DEBUG);
+    &Logger("Source URL is: $source_str", DEBUG, "ParseSourceURL");
     # create source parameters hash
     my %source_params = ();
     if ( defined $params_str ) {
         foreach my $param_record ( split ' ', $params_str ) {
             next unless ( $param_record =~/^(\w+)=(.+)$/ );
-            &Logger("  source optional parameter '$1'=$2", DEBUG);
+            &Logger("Processing source optional parameter '$1'=$2", DEBUG, "ParseSourceURL");
             $source_params{$1}=$2;
         }
     }
@@ -667,21 +663,21 @@ sub get_block_sources {
     # array with block dependencied
     my @vo_sources_list = ();
 
-    &Logger("Getting sources for VO block: $block_id", DEBUG);
+    &Logger("Getting sources for VO block: $block_id", DEBUG, "GetInfoSources");
     my @urls = split /\[separator\]/, $ref_confighash->{$block_id}{'source'};
     foreach my $source (@urls) {
-        &Logger("Found mapping source record: $source", DEBUG);
+        &Logger("Found mapping source record: $source", DEBUG, "GetInfoSources");
         # get optional per-source parameters
         my $ref_source_params = &get_source_params(\$source);
         my $source_id = $source;
-        # check sourcs is already in sources list
+        # check sources is already in sources list
         if ( defined $ref_sources_list->{$source} ) {
             # if source parameters differ - use block_id prefix
             if ( &Storable::freeze($ref_source_params) ne &Storable::freeze($ref_sources_list->{$source}) ) {
-                &Logger("  duplicate source URL with different parameters: adding block ID prefix", DEBUG);
+                &Logger("Adding block ID prefix for duplicate source URL with different parameters set", DEBUG, "GetInfoSources");
                 $source_id = "$block_id|$source";
             } else {
-	            &Logger("  source URL is already defined", DEBUG);
+	            &Logger("Source URL is already defined", DEBUG, "GetInfoSources");
             }
         }
         # get source protocol
@@ -699,7 +695,7 @@ sub get_block_sources {
                     # create URL with specified FQAN
                     my $fqan_source_id = $voms_baseid . "?" . $fqan;
                     my ( $dummy_id, $fqan_source_url ) = $fqan_source_id =~ m/(\w+\|)?([^|]+)/;
-                    &Logger("Generating FQAN-map source URL: $fqan_source_url (mapped to $map_id)", VERBOSE);
+                    &Logger("Generating FQAN-map source URL: $fqan_source_url (mapped to $map_id)", VERBOSE, "GetInfoSources");
                     # put mapped_unixid parameter
                     my %fqan_source_params = %$ref_source_params;
                     $fqan_source_params{'mapped_unixid'} = $map_id;
@@ -728,7 +724,7 @@ sub get_block_sources {
                     $ref_sources_list->{$source_id} = $ref_source_params;
                     push @vo_sources_list, $source_id;
                 } else {
-                    &Logger("File source '$uri' does not exists. Ignoring.", WARNING);
+                    &Logger("File source '$uri' does not exists. Ignoring.", WARNING, "GetInfoSources");
                 }
             } 
         } elsif ( $protocol =~ /^vo$/i ) {
@@ -743,7 +739,7 @@ sub get_block_sources {
                 # parse egd-mkgridmap configuration file
                 my ( $exit_code, $ref_parsed_confighash ) = &parse_edg_mkgridmap_conf($uri);
                 if ( $exit_code ) {
-                    &Logger("Filed to parse edg-mkgridmap config file $uri", ERROR);
+                    &Logger("Filed to parse edg-mkgridmap config file $uri", ERROR, "GetInfoSources");
                 } else {
                     # create [vo] block (with parameters specified in egd-mkgridmap.conf)
                     $ref_generated_blocks->{$emkgm_id} = $ref_parsed_confighash;
@@ -753,7 +749,7 @@ sub get_block_sources {
                 }
             }
         } else {
-            &Logger("Unsupported protocol found: $source", WARNING);
+            &Logger("Unsupported protocol found: $source", WARNING, "GetInfoSources");
         }
     }
     return \@vo_sources_list;
@@ -788,7 +784,7 @@ sub fetch_sources {
         } elsif ( $protocol =~ /^file$/i ) {
             ($exit_code, $ref_subjects) = &read_gridmap($uri, $ref_source_params);
         } else {
-            &Logger("Unsupported protocol to fetch: $protocol", FATAL);
+            &Logger("Unsupported protocol to fetch: $protocol", FATAL, "FetchSourcesData");
         }
         # check fetch result and try to save/load cache
         unless ( $exit_code ) {
@@ -796,11 +792,11 @@ sub fetch_sources {
                 &write_cached_subjects($source_id, $ref_subjects) unless $opt_test;
             }
         } else {
-            &Logger("Fail to retreive data from URL: $source", WARNING);
+            &Logger("Fail to retreive data from URL: $source", WARNING, "FetchSourcesData");
             if ( $use_cache ) {
                 my ($err_code, $cache_ref_subjects) = &read_cached_subjects($source_id);
                 unless ($err_code) {
-                    &Logger("Using locally cached data for URL: $source", INFO);
+                    &Logger("Using locally cached data for URL: $source", INFO, "FetchSourcesData");
                     $ref_subjects = $cache_ref_subjects;
                 }
             }
@@ -832,7 +828,7 @@ sub setup_https {
 sub get_http_url {
     my $uri = shift;
     my $scheme = $uri->scheme;
-    &Logger("Unsupported URL ($uri) passed to method", FATAL) unless ( $scheme =~ /^https?$/ );
+    &Logger("Unsupported URL ($uri) passed to method", FATAL, "FetchSourcesData.HTTP") unless ( $scheme =~ /^https?$/ );
 
     # handle SSL environment
     &setup_https() if ($uri->scheme eq 'https');
@@ -846,7 +842,7 @@ sub get_http_url {
                     'Pragma'        => 'no-cache');
 
     unless ($res->is_success) {
-        &Logger("HTTP request failed for URL $uri:\n\t". $res->message, ERROR);
+        &Logger("HTTP request failed for URL $uri:\n\t". $res->message, ERROR, "FetchSourcesData.HTTP");
         return 0;
     }
 
@@ -859,11 +855,11 @@ sub http_subjects {
     my %Subjects = ();
    
     # get subjects from URL specified
-    &Logger("Getting subjects from source: $url", DEBUG);
+    &Logger("Getting subjects from source: $url", DEBUG, "FetchSourcesData.HTTP");
     my $uri = URI->new($url);
     my $content = get_http_url($uri);
     unless ($content) {
-       &Logger("Failed to get information from source: $url", ERROR);
+       &Logger("Failed to get information from source: $url", ERROR, "FetchSourcesData.HTTP");
        return (1, \%Subjects);
     }
 
@@ -886,7 +882,7 @@ sub http_subjects {
         $count++;
     }
 
-    &Logger("No information retreived from URL: $url", WARNING) unless $count;
+    &Logger("No information retreived from URL: $url", WARNING, "FetchSourcesData.HTTP") unless $count;
     return (0, \%Subjects);
 }
 
@@ -895,14 +891,14 @@ sub ldap_subjects {
     my ($hostport, $ref_source_params) = @_;
     my %Subjects = ();
 
-    &Logger("Getting subjects from source: ldap://$hostport", DEBUG);
+    &Logger("Getting subjects from source: ldap://$hostport", DEBUG, "FetchSourcesData.LDAP");
 
     my ($host, $port) = split /:/, $hostport;
     if (! defined $port) { $port=389 }
     if ($port eq "") { $port=389 }
     my $ldap = Net::LDAP ->new($host, port => $port, timeout => $fetch_url_timeout );
     if ( $@ ) {
-        &Logger("VO Group ldap://$host is unreachable:\n $@", ERROR);
+        &Logger("VO Group ldap://$host is unreachable:\n $@", ERROR, "FetchSourcesData.LDAP");
         return (1, \%Subjects);
     }
 
@@ -910,25 +906,25 @@ sub ldap_subjects {
     my $mesg = $ldap->search(base => $base,
                           timelimit => 120,
                           filter => "member=*");
-    &Logger($mesg->error . " with $base", WARNING) if $mesg->code;
+    &Logger($mesg->error . " with $base", WARNING, "FetchSourcesData.LDAP") if $mesg->code;
 
     foreach my $groupServer ($mesg->all_entries) {
         my $dn = $groupServer->dn();
         my @allMembers = $groupServer->get_value('member');
-        &Logger("Entries from the GroupDN: $dn", DEBUG);
+        &Logger("Entries from the GroupDN: $dn", DEBUG, "FetchSourcesData.LDAP");
         
         foreach my $member (@allMembers){
             my $mesg2 = $ldap->search(base => $member,
                                       timelimit => 120,
                                       filter => "cn=*");
             if ( $mesg2->code ) {
-                &Logger($mesg2->error . " with $base", ERROR);
+                &Logger($mesg2->error . " with $base", ERROR, "FetchSourcesData.LDAP");
                 return (1, \%Subjects);
             }
             my $entry = $mesg2->entry(0);
 
             if (!$entry){
-                &Logger("\"$member\" not found", WARNING);
+                &Logger("\"$member\" not found", WARNING, "FetchSourcesData.LDAP");
                 next;
             }
 
@@ -944,7 +940,7 @@ sub ldap_subjects {
                 }
             }
             if ($subj eq ""){
-                &Logger("\"subject=\" not found in description of $cn", WARNING);
+                &Logger("\"subject=\" not found in description of $cn", WARNING, "FetchSourcesData.LDAP");
                 next;
             }
 
@@ -975,7 +971,7 @@ sub voms_subjects_soap {
     my ($url, $ref_source_params) = @_;
     my %Subjects = ();
 
-    &Logger("Getting subjects from source: $url", DEBUG);
+    &Logger("Getting subjects from source: $url", DEBUG, "FetchSourcesData.VOMS");
 
     # get SOAP endpoint URL and container
     my ( $endpoint, $container ) = split(/\?/, $url, 2);
@@ -992,7 +988,7 @@ sub voms_subjects_soap {
                                         timeout => $fetch_url_timeout );
     };
     unless ( $soap_client ) {
-        &Logger("Failed to connect to SOAP endpoint: $url", ERROR);
+        &Logger("Failed to connect to SOAP endpoint: $url", ERROR, "FetchSourcesData.VOMS");
         return (1, \%Subjects);
     }
 
@@ -1007,27 +1003,27 @@ sub voms_subjects_soap {
     };
 
     unless ( $soap_client->transport->is_success ) {
-        &Logger("SOAP transport failed for URL: $url. Error: ".$soap_client->transport->status, ERROR);
+        &Logger("SOAP transport failed for URL: $url. Error: ".$soap_client->transport->status, ERROR, "FetchSourcesData.VOMS");
         return (1, \%Subjects);
     }
 
     unless ($soap_req) {
-        &Logger("SOAP responce parsing failed for URL: $url", ERROR);
+        &Logger("SOAP responce parsing failed for URL: $url", ERROR, "FetchSourcesData.VOMS");
         return (3, \%Subjects);
     }
 
     if ( $soap_req->fault ) {
-        &Logger("SOAP request failed for URL: $url. Returned error: ".$soap_req->faultstring, ERROR);
+        &Logger("SOAP request failed for URL: $url. Returned error: ".$soap_req->faultstring, ERROR, "FetchSourcesData.VOMS");
         return (4, \%Subjects);
     }
 
     if ( ref($soap_req->result) ne 'ARRAY' ) {
-        &Logger("SOAP returned non-array result for URL: $url", VERBOSE);
+        &Logger("SOAP returned non-array result for URL: $url", VERBOSE, "FetchSourcesData.VOMS");
         return (0, \%Subjects);
     }
 
     if ( ! @{$soap_req->result} ) {
-        &Logger("SOAP returned empty result for URL: $url", VERBOSE);
+        &Logger("SOAP returned empty result for URL: $url", VERBOSE, "FetchSourcesData.VOMS");
         return (0, \%Subjects);
     }
 
@@ -1045,7 +1041,7 @@ sub voms_subjects_get {
     my ($url, $ref_source_params) = @_;
     my %Subjects = ();
 
-    &Logger("Getting subjects from source: $url", DEBUG);
+    &Logger("Getting subjects from source: $url", DEBUG, "FetchSourcesData.VOMS");
 
     # create proper HTTP(S) URL
     my $uri = URI->new($url);
@@ -1072,7 +1068,7 @@ sub voms_subjects_get {
     eval { $doc = $parser->parse($content) };
 
     unless ($doc) {
-        &Logger("Parsing VOMS ($url) XML response FAILED", ERROR);
+        &Logger("Parsing VOMS ($url) XML response FAILED", ERROR, "FetchSourcesData.VOMS");
         return ( 3, \%Subjects);
     }
 
@@ -1089,12 +1085,12 @@ sub voms_subjects_get {
                     # mapped_unixid can be passed via optional parameters
                     $Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
                 } else {
-                    &Logger("Found subject that cannot be parsed from VOMS XML ($url)", ERROR);
+                    &Logger("Found subject that cannot be parsed from VOMS XML ($url)", ERROR, "FetchSourcesData.VOMS");
                 }
             }
         }
     } else {
-        &Logger("VOMS search($uri): No such object", ERROR);
+        &Logger("VOMS search($uri): No such object", ERROR, "FetchSourcesData.VOMS");
         return ( 4, \%Subjects);
     }
 
@@ -1108,19 +1104,19 @@ sub read_gridmap {
     my ($gridmap_file, $ref_source_params) = @_;
     my %Subjects = ();
 
-    &Logger("Getting subjects from source: file://$gridmap_file", DEBUG);
+    &Logger("Getting subjects from source: file://$gridmap_file", DEBUG, "FetchSourcesData.LocalFile");
 
     if (! -e $gridmap_file) {
-        &Logger("File $gridmap_file not found", ERROR);
+        &Logger("File $gridmap_file not found", ERROR, "FetchSourcesData.LocalFile");
         return (1, \%Subjects);
     }
     if (! -T $gridmap_file) {
-        &Logger("File $gridmap_file not in text format", ERROR);
+        &Logger("File $gridmap_file not in text format", ERROR, "FetchSourcesData.LocalFile");
         return (2, \%Subjects);
     }
 
     unless (open(IN, "< $gridmap_file")) {
-        &Logger("Unable to open $gridmap_file", ERROR);
+        &Logger("Unable to open $gridmap_file", ERROR, "FetchSourcesData.LocalFile");
         return (3, \%Subjects);
     }
     binmode IN;
@@ -1157,7 +1153,7 @@ sub read_gridmap {
             $Subjects{$subject} = { 'subject' => $subject };
             $Subjects{$subject}{'mapuser'} = $def_mapuser if ( $def_mapuser );
         } else { 
-            &Logger("Skipping missformed record '$f' in file $gridmap_file", WARNING);
+            &Logger("Skipping missformed record '$f' in file $gridmap_file", WARNING, "FetchSourcesData.LocalFile");
         }
     }
     close(IN);
@@ -1182,9 +1178,9 @@ sub rule_match {
         $acl =~ s/\*/.\*/g;
         if ($subjReg =~ /$acl/) {
             if ($action eq "deny") {
-                &Logger("User '$subj' denied by rule 'deny $acl'", DEBUG);
+                &Logger("User '$subj' denied by rule 'deny $acl'", DEBUG, "FilterDN");
             } else {
-                &Logger("User '$subj' allowed by rule 'allow $acl'", DEBUG) if ( $acl ne ".*" );
+                &Logger("User '$subj' allowed by rule 'allow $acl'", DEBUG, "FilterDN") if ( $acl ne ".*" );
                 return 1;
             }
             last;
@@ -1198,7 +1194,7 @@ sub create_ca_list {
     my $ref_ca_list = shift;
 
     # get list of CA public key files
-    opendir(CADIR, $capath) or &Logger("Cannot open CA directory $capath", FATAL);
+    opendir(CADIR, $capath) or &Logger("Cannot open CA directory $capath", FATAL, "IssuerCAProcessing");
     my $ca_list_string = "";
     while (my $file = readdir(CADIR)) {
         next if ($file !~ m/^[0-9a-f]+\.0/);
@@ -1208,9 +1204,9 @@ sub create_ca_list {
         $ca_dn =~ s/(^|,\s)/\//g;
         # add subject to CA list
         $ref_ca_list->{$ca_dn} = $ca_dn;
-        $ca_list_string .= "    $ca_dn\n"
+        $ca_list_string .= " $ca_dn";
     }
-    &Logger("SUPPORTED Certificate Authorities:\n$ca_list_string", DEBUG);
+    &Logger("SUPPORTED Certificate Authorities: $ca_list_string", DEBUG, "IssuerCAProcessing");
     closedir(CADIR);
 }
 
@@ -1220,7 +1216,7 @@ sub issuer_match {
     $issuer=~s/\s+$//;
 
     unless ( $ref_ca_list->{$issuer} ) {
-        &Logger("User '$dn' is denied (certificates issued by $issuer are NOT Authenticated)", DEBUG);
+        &Logger("User '$dn' is denied (certificates issued by $issuer are NOT Authenticated)", DEBUG, "IssuerCAProcessing");
         return 0;
     }
 
@@ -1259,8 +1255,8 @@ sub write_cached_subjects {
 
     my $cache_file = &get_subject_cache_location($url);
 
-    &Logger("Writing cached subjects for $url to $cache_file", DEBUG);
-    store($ref_subjects, $cache_file) or &Logger("Failed to write to the cache file $cache_file", WARNING);
+    &Logger("Writting cached subjects for $url to $cache_file", DEBUG, "SourceCaching");
+    store($ref_subjects, $cache_file) or &Logger("Failed to write to the cache file $cache_file", WARNING, "SourceCaching");
 }
 
 # read cached values for source URL
@@ -1270,25 +1266,25 @@ sub read_cached_subjects {
     my $cache_file = &get_subject_cache_location($url);
 
     unless ( -e $cache_file ) {
-        &Logger("Cache file does not exists for URL: $url", VERBOSE);
+        &Logger("Cache file does not exists for URL: $url", VERBOSE, "SourceCaching");
         return 1;
     }
 
     my $mtime = (stat($cache_file))[9];
     if ($mtime + $cache_maxlife < time()) {
-        &Logger("Rejecting to use cache, max lifetime exceeded", VERBOSE);
+        &Logger("Rejecting to use cache, max lifetime exceeded", VERBOSE, "SourceCaching");
         eval { unlink($cache_file); };
         return 2;
     }
 
-    &Logger("Getting subjects for $url from cache", DEBUG);
+    &Logger("Getting subjects for $url from cache", DEBUG, "SourceCaching");
     my $ref_subjects;
     eval { $ref_subjects = retrieve($cache_file); };
     if ( defined $ref_subjects ) {
         return 0, $ref_subjects;
     }
 
-    &Logger("Failed to get data from cache file for URL: $url", WARNING);
+    &Logger("Failed to get data from cache file for URL: $url", WARNING, "SourceCaching");
     eval { unlink($cache_file); };
     return 3;
 }
@@ -1323,10 +1319,12 @@ sub debug_stringv {
 
 # show message depending on threshold
 sub Logger {
-    my ( $text, $threshold ) = @_;
+    my ( $text, $threshold, $subsystem ) = @_;
     $threshold = &debug_numericv($threshold);
     if ( $threshold <= $debug_level ) {
-        printf STDERR "%-7s: %s\n", &debug_stringv($threshold), $text;
+        my $timestring = strftime("%Y-%m-%d %H:%M:%S", @{ &localtime() } );
+        $subsystem = ( defined $subsystem ) ? ".$subsystem" : "";
+        printf STDERR "[%s] [Nordugridmap%s] [%s] [$$] %s\n", $timestring, $subsystem, &debug_stringv($threshold), $text;
     }
     # exit nordugridmap on FATAL errors
     exit (1) unless ( $threshold );
