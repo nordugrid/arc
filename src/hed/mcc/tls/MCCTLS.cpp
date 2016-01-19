@@ -166,7 +166,6 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       };
    };
    X509* peercert = payload.GetPeerCert();
-   X509* peercert = fakecred.GetCert();
    if (peercert != NULL) {
       if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
         // Check for CA certificate used for connection - overprotection
