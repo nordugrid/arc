@@ -463,71 +463,51 @@ namespace Arc {
         }
         cert_path.clear();
       }
-    } else {
+    } else if (test) {
       // Guessing starts here
       // First option is also main default
-      std::string base_path = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S;
-      cert_path = base_path+"usercert.pem";
-      key_path = base_path+"userkey.pem";
-      file_test_status fts1 = file_test_success;
-      file_test_status fts2 = file_test_success;
-      certificatePath = cert_path;
-      keyPath = key_path;
-      if( test && !(
-          ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
-          ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
-        certificate_file_error_report(fts1,false,certificatePath,logger);
-        key_file_error_report(fts2,false,keyPath,logger);
-        fts1 = file_test_success; fts2 = file_test_success;
-        base_path = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S;
-        certificatePath = base_path+"usercert.pem";
-        keyPath = base_path+"userkey.pem";
-        if( test && !(
-            ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
-            ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
-          certificate_file_error_report(fts1,false,certificatePath,logger);
-          key_file_error_report(fts2,false,keyPath,logger);
-          fts1 = file_test_success; fts2 = file_test_success;
-          base_path = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"arc"+G_DIR_SEPARATOR_S;
-          certificatePath = base_path+"usercert.pem";
-          keyPath = base_path+"userkey.pem";
-          if( test && !(
-              ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
-              ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
-            certificate_file_error_report(fts1,false,certificatePath,logger);
-            key_file_error_report(fts2,false,keyPath,logger);
-            fts1 = file_test_success; fts2 = file_test_success;
-            // TODO: is it really safe to take credentials from ./ ? NOOOO
-            base_path = Glib::get_current_dir() + G_DIR_SEPARATOR_S;
-            certificatePath = base_path+"usercert.pem";
-            keyPath = base_path+"userkey.pem";
-            if( test && !(
-                ((fts1 = user_file_test(certificatePath, user)) == file_test_success) &&
-                ((fts2 = private_file_test(keyPath, user)) == file_test_success) ) ) {
-              certificate_file_error_report(fts1,false,certificatePath,logger);
-              key_file_error_report(fts2,false,keyPath,logger);
-              fts1 = file_test_success; fts2 = file_test_success;
-              // Not found
-              logger.msg(require?WARNING:VERBOSE,
-                "Proxy certificate path was not explicitly set or does not exist or has\n"
-                "improper permissions/ownership and not found at default location.\n"
-                "Key/certificate paths were not explicitly set or do not exist or have\n"
-                "improper permissions/ownership and usercert.pem/userkey.pem not found\n"
-                "at default locations:\n"
-                "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
-                "If the proxy or certificate/key does exist, please manually specify the locations via env\n"
-                "X509_USER_CERT/X509_USER_KEY or X509_USER_PROXY, or the certificatepath/keypath or proxypath\n"
-                "item in client.conf\n"
-                "If the certificate/key does exist, and proxy is needed to be generated, please\n"
-                "use arcproxy utility to create a proxy certificate.", ArcLocation::Get()
-              );
-              if(require) {
-                res = false;
-              }
-              certificatePath.clear(); keyPath.clear();
-            }
-          }
+      std::list<std::string> search_paths;
+      search_paths.push_back(home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S);
+      search_paths.push_back(home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S);
+      search_paths.push_back(ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"arc"+G_DIR_SEPARATOR_S);
+      // TODO: is it really safe to take credentials from ./ ? NOOOO
+      search_paths.push_back(Glib::get_current_dir() + G_DIR_SEPARATOR_S);
+
+      std::string tried_paths = "";
+      std::list<std::string>::const_iterator it = search_paths.begin();
+      for (; it != search_paths.end(); ++it) {
+        cert_path = (*it) + "usercert.pem";
+        key_path  = (*it) + "userkey.pem";
+        file_test_status fts1 = user_file_test(cert_path, user);
+        file_test_status fts2 = private_file_test(key_path, user);
+        if (fts1 == file_test_success && fts2 == file_test_success) {
+          certificatePath = cert_path;
+          keyPath = key_path;
+          break;
         }
+        else if (fts1 != file_test_success && (fts1 != file_test_missing || fts2 == file_test_success)) {
+          certificate_file_error_report(fts1,false,cert_path,logger);
+          break;
+        }
+        else if (fts2 != file_test_success && (fts2 != file_test_missing || fts1 == file_test_success)) {
+          key_file_error_report(fts2,false,key_path,logger);
+          break;
+        }
+
+        if (tried_paths != "") {
+          tried_paths += ", ";
+        }
+        tried_paths += "'" + (*it) + "'";
+      }
+      if (it == search_paths.end() && !has_proxy) {
+        logger.msg(VERBOSE, "Certificate and key ('%s' and '%s') not found in any of the paths: %s", "usercert.pem", "userkey.pem", tried_paths);
+        logger.msg(require?WARNING:VERBOSE,
+          "If the proxy or certificate/key does exist, you can manually specify the locations via environment variables "
+          "'%s'/'%s' or '%s', or the '%s'/'%s' or '%s' attributes in the client configuration file (e.g. '%s')",
+          "X509_USER_CERT", "X509_USER_KEY", "X509_USER_PROXY", "certificatepath", "proxypath", "keypath", "~/.arc/client.conf");
+      }
+      if((certificatePath.empty() || keyPath.empty()) && require) {
+        res = false;
       }
     }
 
