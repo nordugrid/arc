@@ -151,7 +151,8 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
        it != opt.jobdescriptionstrings.end(); it++) {
 
     std::list<Arc::JobDescription> jobdescs;
-    if (Arc::JobDescription::Parse(*it, jobdescs)) {
+    Arc::JobDescriptionResult parseres = Arc::JobDescription::Parse(*it, jobdescs);
+    if (parseres) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
            itJ != jobdescs.end(); itJ++) {
         itJ->Application.DryRun = opt.dryrun;
@@ -166,6 +167,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << *it << std::endl;
+      std::cerr << parseres.str() << std::endl;
       return 1;
     }
   }
