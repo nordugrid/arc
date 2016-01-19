@@ -460,7 +460,7 @@ namespace Arc {
         JobDescriptionParserPluginResult result = it->Parse(source, jobdescs, language, dialect);
         if (result) {
           jdpl_lock.unlock();
-          return true;
+          return JobDescriptionResult(true);
         }
 
         results.push_back(std::make_pair(!it->GetSupportedLanguages().empty() ? it->GetSupportedLanguages().front() : "", result));
