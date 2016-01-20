@@ -16,11 +16,8 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
 int AuthUser::match_all(const char* /* line */) {
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
   return AAA_POSITIVE_MATCH;
 }
@@ -35,9 +32,6 @@ int AuthUser::match_group(const char* line) {
       if(s == i->name) {
         default_voms_=i->voms;
         default_vo_=i->vo;
-        default_role_=i->role;
-        default_capability_=i->capability;
-        default_vgroup_=i->vgroup;
         default_group_=i->name.c_str();
         return AAA_POSITIVE_MATCH;
       };
@@ -54,11 +48,8 @@ int AuthUser::match_vo(const char* line) {
     line+=n;
     for(std::list<std::string>::iterator i = vos.begin();i!=vos.end();++i) {
       if(s == *i) {
-        default_voms_=NULL;
+        default_voms_=voms_t();
         default_vo_=i->c_str();
-        default_role_=NULL;
-        default_capability_=NULL;
-        default_vgroup_=NULL;
         default_group_=NULL;
         return AAA_POSITIVE_MATCH;
       };
@@ -89,11 +80,8 @@ AuthUser::AuthUser(const char* s,const char* f):subject(""),filename("") {
   proxy_file_was_created=false;
   voms_extracted=false;
   has_delegation=false; // ????
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
   if(process_voms() == AAA_FAILURE) valid=false;
 }
@@ -105,11 +93,8 @@ AuthUser::AuthUser(const AuthUser& a) {
   has_delegation=a.has_delegation;
   proxy_file_was_created=false;
   voms_extracted=false;
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
   if(process_voms() == AAA_FAILURE) valid=false;
 }
@@ -122,11 +107,8 @@ AuthUser& AuthUser::operator=(const AuthUser& a) {
   voms_data.clear();
   voms_extracted=false;
   proxy_file_was_created=false;
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
   if(process_voms() == AAA_FAILURE) valid=false;
   return *this;
@@ -229,38 +211,41 @@ void AuthUser::set(const char* s,const char* hostname) {
   //if(process_voms() == AAA_FAILURE) valid=false;
 }
 
-struct voms AuthUser::arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes) {
+struct voms_t AuthUser::arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes) {
 
-  struct voms voms_item;
+  struct voms_t voms_item;
   voms_item.voname = vo;
   voms_item.fqans = attributes;
-  // For matching against pure VO
-  voms_item.attrs.push_back(voms_attrs());
+  // Collect groups, roles and capabilties.
+  // Note that according to current way VOMS is used roles and groups are unrelated.
   for(std::vector<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
-    struct voms_attrs attrs;
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
-    for (std::list<std::string>::iterator i = elements.begin(); i != elements.end(); ++i) {
+    // /vo/mygroup/mysubgroup/Role=myrole
+    std::list<std::string>::iterator i = elements.begin();
+    // Check and skip VO
+    if (i == elements.end()) continue;
+    if (*i != voms_item.voname) continue; // ignore attribute with wrong VO
+    ++i;
+    std::string group;
+    for (; i != elements.end(); ++i) {
       std::vector<std::string> keyvalue;
       Arc::tokenize(*i, keyvalue, "=");
-      // /mygroup/mysubgroup/Role=myrole
       if (keyvalue.size() == 1) { // part of Group
-        attrs.group += "/"+(*i);
+        if (!group.empty()) group += "/";
+        group += "/"+(*i);
       } else if (keyvalue.size() == 2) {
-        if(i == elements.begin()) break; // not FQAN you are looking for
-        if (keyvalue[0] == "voname") { // new VO
+        if (keyvalue[0] == "voname") { // VO association with hostname starts
         } else if (keyvalue[0] == "hostname") {
           voms_item.server = keyvalue[1];
         } else if (keyvalue[0] == "Role") {
-          attrs.role = keyvalue[1];
-        } else if (keyvalue[0] == "Group") {
-          attrs.group = keyvalue[1];
+          voms_item.roles.push_back(keyvalue[1]);
         } else if (keyvalue[0] == "Capability") {
-          attrs.cap = keyvalue[1];
+          voms_item.caps.push_back(keyvalue[1]);
         }
       }
     }
-    if(!attrs.group.empty()) voms_item.attrs.push_back(attrs);
+    if(!group.empty()) voms_item.groups.push_back(group);
   }
   return voms_item;
 }
@@ -306,7 +291,7 @@ int AuthUser::evaluate(const char* line) {
   return AAA_FAILURE; 
 }
 
-const std::vector<struct voms>& AuthUser::voms(void) {
+const std::vector<struct voms_t>& AuthUser::voms(void) {
   if(!voms_extracted) {
     const char* line = "* * * *";
     match_voms(line);

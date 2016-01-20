@@ -70,11 +70,8 @@ int AuthUser::match_ldap(const char* line) {
         return AAA_FAILURE;
       };
       if(r.decision==AAA_POSITIVE_MATCH) {  // just a placeholder
-        default_voms_=NULL;
+        default_voms_=voms_t();
         default_vo_=NULL;
-        default_role_=NULL;
-        default_capability_=NULL;
-        default_vgroup_=NULL;
       }; 
       return r.decision;
     } catch (std::exception& e) {

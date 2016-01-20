@@ -18,7 +18,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
 
-static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool auto_cert = false);
+static int process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool auto_cert = false);
 
 int AuthUser::process_voms(void) {
   if(!voms_extracted) {
@@ -30,6 +30,15 @@ int AuthUser::process_voms(void) {
     };
   };
   return AAA_POSITIVE_MATCH;
+}
+
+static bool match_value(const std::string& value, const std::vector<std::string>& seq) {
+  for(std::vector<std::string>::const_iterator v = seq.begin(); v != seq.end(); ++v) {
+    if(*v == value) {
+      return true;
+    }
+  };
+  return false;
 }
 
 int AuthUser::match_voms(const char* line) {
@@ -73,24 +82,28 @@ int AuthUser::match_voms(const char* line) {
   if(process_voms() != AAA_POSITIVE_MATCH) return AAA_FAILURE;
   if(voms_data.empty()) return AAA_NO_MATCH;
   // analyse permissions
-  for(std::vector<struct voms>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
+  for(std::vector<struct voms_t>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
     logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
-      for(std::vector<struct voms_attrs>::iterator d=v->attrs.begin();d!=v->attrs.end();++d) {
-        logger.msg(Arc::VERBOSE, "Match group: %s", d->group);
-        logger.msg(Arc::VERBOSE, "Match role: %s", d->role);
-        logger.msg(Arc::VERBOSE, "Match capabilities: %s", d->cap);
-        if(((group == "*") || (group == d->group)) &&
-           ((role == "*") || (role == d->role)) &&
-           ((capabilities == "*") || (capabilities == d->cap))) {
-          logger.msg(Arc::VERBOSE, "Match: %s %s %s %s",v->voname,d->group,d->role,d->cap);
-          default_voms_=v->server.c_str();
-          default_vo_=v->voname.c_str();
-          default_role_=d->role.c_str();
-          default_capability_=d->cap.c_str();
-          default_vgroup_=d->group.c_str();
-          return AAA_POSITIVE_MATCH;
+      if(((group == "*") || match_value(group, v->groups)) &&
+         ((role == "*") || match_value(role, v->roles)) &&
+         ((capabilities == "*") || match_value(capabilities, v->caps))) {
+        logger.msg(Arc::VERBOSE, "Matched: %s %s %s %s",v->voname,group,role,capabilities);
+        default_voms_ = *v;
+        default_vo_ = v->voname.c_str();
+        if(group != "*") {
+          default_voms_.groups.resize(0);
+          default_voms_.groups.push_back(group);
         };
+        if(role != "*") {
+          default_voms_.roles.resize(0);
+          default_voms_.roles.push_back(role);
+        };
+        if(capabilities != "*") {
+          default_voms_.caps.resize(0);
+          default_voms_.caps.push_back(capabilities);
+        };
+        return AAA_POSITIVE_MATCH;
       };
     };
   };
@@ -99,7 +112,7 @@ int AuthUser::match_voms(const char* line) {
 }
 
 
-static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
+static int process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool /* auto_cert */) {
   std::string voms_dir = "/etc/grid-security/vomsdir";
   std::string cert_dir = "/etc/grid-security/certificates";
   {

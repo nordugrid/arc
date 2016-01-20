@@ -15,19 +15,14 @@
 
 class AuthVO;
 
-/** VOMS attributes */
-struct voms_attrs {
-  std::string group; /*!< user's group */
-  std::string role;  /*!< user's role */
-  std::string cap;   /*!< user's capability */
-};
-
 /** VOMS data */
-struct voms {
+struct voms_t {
   std::string server;      /*!< The VOMS server DN, as from its certificate */
   std::string voname;      /*!< The name of the VO to which the VOMS belongs */
-  std::vector<voms_attrs> attrs;   /*!< User's characteristics */
-  std::vector<std::string> fqans; /*!< Attributes as originally provided by parsing code */
+  std::vector<std::string> groups; /*!< User's groups */
+  std::vector<std::string> roles;  /*!< User's roles */
+  std::vector<std::string> caps;   /*!< User's capabilities (deprecated) */
+  std::vector<std::string> fqans; /*!< Attributes as originally provided by parsing code (almost FQANs) */
 };
 
 class AuthUser {
@@ -39,20 +34,15 @@ class AuthUser {
   } source_t;
   class group_t {
    public:
-    const char* voms;             //
     std::string name;             //
     const char* vo;               //
-    const char* role;             //
-    const char* capability;       //
-    const char* vgroup;           //
-    group_t(const char* name_,const char* vo_,const char* role_,const char* cap_,const char* vgrp_,const char* voms_):voms(voms_?voms_:""),name(name_?name_:""),vo(vo_?vo_:""),role(role_?role_:""),capability(cap_?cap_:""),vgroup(vgrp_?vgrp_:"") { };
+    struct voms_t voms;           //
+    group_t(const char* name_, const char* vo_, const struct voms_t& voms_):
+        name(name_?name_:""),vo(vo_?vo_:""),voms(voms_) { };
   };
-  const char* default_voms_;
-  const char* default_vo_;
-  const char* default_role_;
-  const char* default_capability_;
-  const char* default_vgroup_;
+  struct voms_t default_voms_; // VOMS attributes which matched authorization rule
   const char* default_group_;
+  const char* default_vo_;
   std::string subject;   // DN of certificate
   std::string from;      // Remote hostname
   std::string filename;  // Delegated proxy stored in this file
@@ -69,7 +59,7 @@ class AuthUser {
   int match_lcas(const char *);
   int match_plugin(const char* line);
   int process_voms(void);
-  std::vector<struct voms> voms_data; // VOMS information extracted from proxy
+  std::vector<struct voms_t> voms_data; // VOMS information extracted from proxy
   bool voms_extracted;
   std::list<group_t> groups; // Groups which user matched (internal names)
   std::list<std::string> vos; // VOs to which user belongs (external names)
@@ -98,7 +88,7 @@ class AuthUser {
   const char* hostname(void) const { return from.c_str(); };
   // Remember this user belongs to group 'grp'
   void add_group(const char* grp) {
-    groups.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
+    groups.push_back(group_t(grp,default_vo_,default_voms_));
   };
   void add_group(const std::string& grp) { add_group(grp.c_str()); };
   // Mark this user as belonging to no groups
@@ -125,17 +115,13 @@ class AuthUser {
     return false;
   };
   bool check_vo(const std::string& vo) const { return check_vo(vo.c_str());};
-  const char* default_voms(void) const { return default_voms_; };
-  const char* default_vo(void) const { return default_vo_; };
-  const char* default_role(void) const { return default_role_; };
-  const char* default_capability(void) const { return default_capability_; };
-  const char* default_vgroup(void) const { return default_vgroup_; };
+  const struct voms_t& default_voms(void) const { return default_voms_; };
   const char* default_group(void) const { return default_group_; };
   const char* default_subject(void) const { return subject.c_str(); };
-  const std::vector<struct voms>& voms(void);
+  const std::vector<struct voms_t>& voms(void);
   const std::list<std::string>& VOs(void) const;
   // convert ARC list into voms structure
-  static struct voms arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
+  static struct voms_t arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
   /*
    * Get a certain property of the AuthUser, for example DN
    * or VOMS VO. For possible values of property see the source
