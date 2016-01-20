@@ -92,11 +92,11 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
     // Collect all security attributes
     {
       std::string user_identity = user_a.DN();
-      const std::vector<struct voms>& user_voms = user_a.voms();
+      const std::vector<struct voms_t>& user_voms = user_a.voms();
       Arc::XMLNode entry = request.NewChild("entry");
       if(!user_identity.empty()) entry.NewChild("person").NewChild("dn") = user_identity;
       Arc::XMLNode voms;
-      for(std::vector<struct voms>::const_iterator v = user_voms.begin();
+      for(std::vector<struct voms_t>::const_iterator v = user_voms.begin();
                                      v != user_voms.end();++v) {
         for(std::vector<std::string>::const_iterator a = v->fqans.begin();
                                    a != v->fqans.end();++a) {
