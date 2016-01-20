@@ -140,8 +140,8 @@ sub fatal {
 sub _log {
     my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
-    $name = $name ? "$name: " : "";
-    print STDERR ($ts_enabled ? "[".timestamp()."] " : "")."$name$severity: $msg\n";
+    $name = $name ? "$name" : "";
+    print STDERR ($ts_enabled ? "[".timestamp()."] " : "")."[$name] [$severity] [$$] $msg\n";
 }
 
 sub timestamp {
