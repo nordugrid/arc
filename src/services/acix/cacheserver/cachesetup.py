@@ -33,7 +33,7 @@ def getCacheConf():
             cache_url = url + '/cache'
         if line.startswith('cacheaccess'):
             cacheaccess = True
-        if line.startswith('cache_dump') and line.find('yes') != -1:
+        if line.startswith('cachedump') and line.find('yes') != -1:
             cache_dump = True
     if not cacheaccess:
         cache_url = ''

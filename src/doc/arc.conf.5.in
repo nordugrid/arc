@@ -3700,6 +3700,16 @@ Log file location for the cache server. Default is
 .br
 logfile="/tmp/acix-cache.log"
 
+.TP
+.B cachedump
+Whether to make a dump of the cache contents in a file at
+$TMP/ARC-ACIX/timestamp each time the cache server runs. Default is no.
+
+.IR Example:
+.br
+cachedump="yes"
+
+
 .SH The [acix/indexserver] block 
 
 The index server component of ACIX collects cache content filters

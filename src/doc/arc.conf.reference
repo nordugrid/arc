@@ -2358,6 +2358,9 @@
 ## /var/log/arc/acix-cache.log
 #logfile="/tmp/acix-cache.log"
 
+## Whether to make a dump of the cache contents in a file at
+## $TMP/ARC-ACIX/timestamp each time the cache server runs. Default is no.
+#cachedump="yes"
 
 ####################################################################
 ##
