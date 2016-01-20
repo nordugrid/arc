@@ -416,7 +416,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
 
   if(!helper_log_is_set) {
     // Assgn default backward compatible value
-    config.helper_log = config.control_dir + "/job.helper.error";
+    config.helper_log = config.control_dir + "/job.helper.errors";
   }
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
@@ -742,7 +742,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
 
   if(!helper_log_is_set) {
     // Set default
-    config.helper_log = config.control_dir + "/job.helper.error";
+    config.helper_log = config.control_dir + "/job.helper.errors";
   }
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
