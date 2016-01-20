@@ -225,7 +225,22 @@ struct voms_t AuthUser::arc_to_voms(const std::string& vo,const std::vector<std:
     std::list<std::string>::iterator i = elements.begin();
     // Check and skip VO
     if (i == elements.end()) continue;
-    if (*i != voms_item.voname) continue; // ignore attribute with wrong VO
+    if (*i != voms_item.voname) {
+      // Check if that is VO to hostname association
+      if(*i == (std::string("voname=")+voms_item.voname)) {
+        ++i;
+        if (*i != voms_item.voname) {
+          std::vector<std::string> keyvalue;
+          Arc::tokenize(*i, keyvalue, "=");
+          if (keyvalue.size() == 2) {
+            if (keyvalue[0] == "hostname") {
+              voms_item.server = keyvalue[1];
+            };
+          };
+        };
+      };
+      continue; // ignore attribute with wrong VO
+    };
     ++i;
     std::string group;
     for (; i != elements.end(); ++i) {
@@ -233,12 +248,9 @@ struct voms_t AuthUser::arc_to_voms(const std::string& vo,const std::vector<std:
       Arc::tokenize(*i, keyvalue, "=");
       if (keyvalue.size() == 1) { // part of Group
         if (!group.empty()) group += "/";
-        group += "/"+(*i);
+        group += *i;
       } else if (keyvalue.size() == 2) {
-        if (keyvalue[0] == "voname") { // VO association with hostname starts
-        } else if (keyvalue[0] == "hostname") {
-          voms_item.server = keyvalue[1];
-        } else if (keyvalue[0] == "Role") {
+        if (keyvalue[0] == "Role") {
           voms_item.roles.push_back(keyvalue[1]);
         } else if (keyvalue[0] == "Capability") {
           voms_item.caps.push_back(keyvalue[1]);
