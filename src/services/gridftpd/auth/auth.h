@@ -15,14 +15,19 @@
 
 class AuthVO;
 
+/** VOMS FQAN split into elements */
+struct voms_fqan_t {
+  std::string group;      // including root group which is always same as VO
+  std::string role;       // role associated to group - for each role there is one voms_fqan_t
+  std::string capability; // deprecated but must keep itt
+  void str(std::string& str) const; // convert to string (minimal variation)
+};
+
 /** VOMS data */
 struct voms_t {
-  std::string server;      /*!< The VOMS server DN, as from its certificate */
+  std::string server;      /*!< The VOMS server hostname */
   std::string voname;      /*!< The name of the VO to which the VOMS belongs */
-  std::vector<std::string> groups; /*!< User's groups */
-  std::vector<std::string> roles;  /*!< User's roles */
-  std::vector<std::string> caps;   /*!< User's capabilities (deprecated) */
-  std::vector<std::string> fqans; /*!< Attributes as originally provided by parsing code (almost FQANs) */
+  std::vector<voms_fqan_t> fqans; /*!< Processed FQANs of user */
 };
 
 class AuthUser {
@@ -43,7 +48,7 @@ class AuthUser {
   struct voms_t default_voms_; // VOMS attributes which matched authorization rule
   const char* default_group_;
   const char* default_vo_;
-  std::string subject;   // DN of certificate
+  std::string subject;   // SN of certificate
   std::string from;      // Remote hostname
   std::string filename;  // Delegated proxy stored in this file
   bool proxy_file_was_created; // If proxy file was created by this object

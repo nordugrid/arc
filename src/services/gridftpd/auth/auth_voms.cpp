@@ -32,15 +32,6 @@ int AuthUser::process_voms(void) {
   return AAA_POSITIVE_MATCH;
 }
 
-static bool match_value(const std::string& value, const std::vector<std::string>& seq) {
-  for(std::vector<std::string>::const_iterator v = seq.begin(); v != seq.end(); ++v) {
-    if(*v == value) {
-      return true;
-    }
-  };
-  return false;
-}
-
 int AuthUser::match_voms(const char* line) {
   // parse line
   std::string vo("");
@@ -85,24 +76,21 @@ int AuthUser::match_voms(const char* line) {
   for(std::vector<struct voms_t>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
     logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
-      if(((group == "*") || match_value(group, v->groups)) &&
-         ((role == "*") || match_value(role, v->roles)) &&
-         ((capabilities == "*") || match_value(capabilities, v->caps))) {
-        logger.msg(Arc::VERBOSE, "Matched: %s %s %s %s",v->voname,group,role,capabilities);
-        default_voms_ = *v;
-        default_vo_ = v->voname.c_str();
-        if(group != "*") {
-          default_voms_.groups.resize(0);
-          default_voms_.groups.push_back(group);
+      bool matched = false;
+      for(std::vector<struct voms_fqan_t>::iterator f = v->fqans.begin(); f != v->fqans.end(); ++f) {
+        if(((group == "*") || (group == f->group)) &&
+           ((role == "*") || (role == f->role)) &&
+           ((capabilities == "*") || (capabilities == f->capability))) {
+          if(!matched) {
+            default_voms_ = voms_t();
+            default_voms_.voname = v->voname;
+            default_voms_.server = v->server;
+            matched = true;
+          };
+          default_voms_.fqans.push_back(*f);
         };
-        if(role != "*") {
-          default_voms_.roles.resize(0);
-          default_voms_.roles.push_back(role);
-        };
-        if(capabilities != "*") {
-          default_voms_.caps.resize(0);
-          default_voms_.caps.push_back(capabilities);
-        };
+      };
+      if(matched) {
         return AAA_POSITIVE_MATCH;
       };
     };

@@ -15,6 +15,12 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
+void voms_fqan_t::str(std::string& str) const {
+  str = group;
+  if(!role.empty()) str += "/Role="+role;
+  if(!capability.empty()) str += "/Capability="+capability;
+}
+
 int AuthUser::match_all(const char* /* line */) {
   default_voms_=voms_t();
   default_vo_=NULL;
@@ -215,18 +221,16 @@ struct voms_t AuthUser::arc_to_voms(const std::string& vo,const std::vector<std:
 
   struct voms_t voms_item;
   voms_item.voname = vo;
-  voms_item.fqans = attributes;
-  // Collect groups, roles and capabilties.
-  // Note that according to current way VOMS is used roles and groups are unrelated.
+  // Collect fqans with parsed groups, roles and capabilties.
   for(std::vector<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
-    // /vo/mygroup/mysubgroup/Role=myrole
+    // /rootgroup(=VO)/mygroup/mysubgroup/Role=myrole
     std::list<std::string>::iterator i = elements.begin();
-    // Check and skip VO
-    if (i == elements.end()) continue;
+    // Check root group agains VO and skip wrong ones
+    if (i == elements.end()) continue; // too short
     if (*i != voms_item.voname) {
-      // Check if that is VO to hostname association
+      // Check if that is VO to hostname association (special ARC FQAN)
       if(*i == (std::string("voname=")+voms_item.voname)) {
         ++i;
         if (*i != voms_item.voname) {
@@ -239,25 +243,25 @@ struct voms_t AuthUser::arc_to_voms(const std::string& vo,const std::vector<std:
           };
         };
       };
-      continue; // ignore attribute with wrong VO
+      continue; // ignore attribute with wrong root group
     };
+    voms_fqan_t fqan;
+    fqan.group = "/"+(*i);
     ++i;
-    std::string group;
     for (; i != elements.end(); ++i) {
       std::vector<std::string> keyvalue;
       Arc::tokenize(*i, keyvalue, "=");
-      if (keyvalue.size() == 1) { // part of Group
-        if (!group.empty()) group += "/";
-        group += *i;
+      if (keyvalue.size() == 1) { // part of group
+        fqan.group += "/"+(*i);
       } else if (keyvalue.size() == 2) {
         if (keyvalue[0] == "Role") {
-          voms_item.roles.push_back(keyvalue[1]);
+          fqan.role = keyvalue[1];
         } else if (keyvalue[0] == "Capability") {
-          voms_item.caps.push_back(keyvalue[1]);
+          fqan.capability = keyvalue[1];
         }
       }
     }
-    if(!group.empty()) voms_item.groups.push_back(group);
+    voms_item.fqans.push_back(fqan);
   }
   return voms_item;
 }

@@ -98,10 +98,11 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
       Arc::XMLNode voms;
       for(std::vector<struct voms_t>::const_iterator v = user_voms.begin();
                                      v != user_voms.end();++v) {
-        for(std::vector<std::string>::const_iterator a = v->fqans.begin();
+        for(std::vector<voms_fqan_t>::const_iterator a = v->fqans.begin();
                                    a != v->fqans.end();++a) {
           if(!voms) voms = entry.NewChild("voms");
-          voms.NewChild("fqan") = *a;
+          std::string val; a->str(val);
+          voms.NewChild("fqan") = val;
         };
         voms = Arc::XMLNode(); // ??
       };
