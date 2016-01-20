@@ -16,10 +16,12 @@ DEFAULT_CACHE_REFRESH_INTERVAL = 600  # seconds between updating cache
 
 ARC_CONF = '/etc/arc.conf'
 
-def getCacheAccessURL():
+def getCacheConf():
+    '''Return a tuple of (cache_url, cache_dump)'''
 
     # Use cache access URL if mount point and at least one cacheaccess is defined
     cache_url = ''
+    cache_dump = False
     config = ARC_CONF
     if 'ARC_CONFIG' in os.environ:
         config = os.environ['ARC_CONFIG']
@@ -31,16 +33,20 @@ def getCacheAccessURL():
             cache_url = url + '/cache'
         if line.startswith('cacheaccess'):
             cacheaccess = True
+        if line.startswith('cache_dump') and line.find('yes') != -1:
+            cache_dump = True
     if not cacheaccess:
         cache_url = ''
-    return cache_url
+    return (cache_url, cache_dump)
 
 
 def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
                            capacity=DEFAULT_CAPACITY, refresh_interval=DEFAULT_CACHE_REFRESH_INTERVAL):
 
-    scanner = pscan.CacheScanner(cache_dir)
-    cs = cache.Cache(scanner, capacity, refresh_interval, getCacheAccessURL())
+    (cache_url, cache_dump) = getCacheConf()
+
+    scanner = pscan.CacheScanner(cache_dir, cache_dump)
+    cs = cache.Cache(scanner, capacity, refresh_interval, cache_url)
 
     cr = cacheresource.CacheResource(cs)
 
