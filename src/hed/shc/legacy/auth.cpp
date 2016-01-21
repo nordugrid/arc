@@ -15,11 +15,8 @@ namespace ArcSHCLegacy {
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
 int AuthUser::match_all(const char* /* line */) {
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
   return AAA_POSITIVE_MATCH;
 }
@@ -33,11 +30,8 @@ int AuthUser::match_group(const char* line) {
     if(s.empty()) continue;
     for(std::list<group_t>::iterator i = groups_.begin();i!=groups_.end();++i) {
       if(s == i->name) {
-        default_voms_=i->voms;
+        default_voms_=voms_t();
         default_vo_=i->vo;
-        default_role_=i->role;
-        default_capability_=i->capability;
-        default_vgroup_=i->vgroup;
         default_group_=i->name.c_str();
         return AAA_POSITIVE_MATCH;
       };
@@ -55,11 +49,8 @@ int AuthUser::match_vo(const char* line) {
     if(s.empty()) continue;
     for(std::list<std::string>::iterator i = vos_.begin();i!=vos_.end();++i) {
       if(s == *i) {
-        default_voms_=NULL;
+        default_voms_=voms_t();
         default_vo_=i->c_str();
-        default_role_=NULL;
-        default_capability_=NULL;
-        default_vgroup_=NULL;
         default_group_=NULL;
         return AAA_POSITIVE_MATCH;
       };
@@ -90,11 +81,8 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   has_delegation=a.has_delegation;
   proxy_file_was_created=false;
 //  process_voms();
-  default_voms_=NULL;
+  default_voms_=voms_t();
   default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
   default_group_=NULL;
 
   groups_ = a.groups_;
@@ -102,8 +90,7 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 }
 
 AuthUser::AuthUser(Arc::Message& message):
-    default_voms_(NULL), default_vo_(NULL), default_role_(NULL),
-    default_capability_(NULL), default_vgroup_(NULL), default_group_(NULL),
+    default_voms_(), default_vo_(NULL), default_group_(NULL),
     proxy_file_was_created(false), has_delegation(false), message_(message) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
   // Fetch VOMS attributes
@@ -123,46 +110,79 @@ AuthUser::AuthUser(Arc::Message& message):
 
 }
 
-std::vector<struct voms> AuthUser::arc_to_voms(const std::list<std::string>& attributes) {
+// The attributes passed to this method are of "extended fqan" kind with every field 
+// made of key=value pair. Also each attribute has /VO=voname prepended.
+// Special ARC attribute /voname=voname/hostname=hostname is used for assigning 
+// server host name to VO.
+std::vector<struct voms_t> AuthUser::arc_to_voms(const std::list<std::string>& attributes) {
 
-  std::vector<struct voms> voms_list;
-  struct voms voms_item;
+  std::vector<struct voms_t> voms_list;
+  struct voms_t voms_item;
+
+logger.msg(Arc::VERBOSE,"arc_to_voms - %u attributes",attributes.size());
   for(std::list<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
-    struct voms_attrs attrs;
-    std::string vo;
+logger.msg(Arc::VERBOSE,"arc_to_voms: attribute: %s",*v);
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
-    for (std::list<std::string>::iterator i = elements.begin(); i != elements.end(); ++i) {
+    // Handle first element which contains VO name
+    std::list<std::string>::iterator i = elements.begin();
+    if(i == elements.end()) continue; // empty attribute?
+    // Handle first element which contains VO name
+    std::vector<std::string> keyvalue;
+    Arc::tokenize(*i, keyvalue, "=");
+    if (keyvalue.size() != 2) continue; // improper record
+    if (keyvalue[0] == "voname") { // VO to hostname association
+      if(voms_item.voname != keyvalue[1]) {
+        if(!voms_item.voname.empty()) {
+          voms_list.push_back(voms_item);
+        };
+        voms_item = voms_t();
+        voms_item.voname = keyvalue[1];
+      };
+      ++i;
+      if(i != elements.end()) {
+        Arc::tokenize(*i, keyvalue, "=");
+        if (keyvalue.size() == 2) {
+          if (keyvalue[0] == "hostname") {
+            voms_item.server = keyvalue[1];
+          };
+        };
+      };
+      continue;
+    } else if(keyvalue[0] == "VO") {
+      if(voms_item.voname != keyvalue[1]) {
+        if(!voms_item.voname.empty()) {
+          voms_list.push_back(voms_item);
+        };
+        voms_item = voms_t();
+        voms_item.voname = keyvalue[1];
+      };
+    } else {
+      // Skip unknown record
+      continue;
+    }
+    ++i;
+    voms_fqan_t fqan;
+    for (; i != elements.end(); ++i) {
       std::vector<std::string> keyvalue;
       Arc::tokenize(*i, keyvalue, "=");
+      // /Group=mygroup/Role=myrole
+      // Ignoring unrecognized records
       if (keyvalue.size() == 2) {
-        if (keyvalue[0] == "voname") { // new VO
-          if (v != attributes.begin() && keyvalue[1] != voms_item.voname) {
-            voms_list.push_back(voms_item);
-            voms_item.attrs.clear();
-          }
-          voms_item.voname = keyvalue[1];
-        }
-        else if (keyvalue[0] == "hostname")
-          voms_item.server = keyvalue[1];
-        else {
-          // /VO=myvo/Group=mygroup/Role=myrole
-          if (keyvalue[0] == "VO")
-            vo = keyvalue[1];
-          else if (keyvalue[0] == "Role")
-            attrs.role = keyvalue[1];
-          else if (keyvalue[0] == "Group")
-            attrs.group += std::string("/")+keyvalue[1];
-          else if (keyvalue[0] == "Capability")
-            attrs.cap = keyvalue[1];
-        }
-      }
-    }
-    if (!vo.empty() || !attrs.cap.empty() || !attrs.group.empty() || !attrs.role.empty()) {
-      voms_item.attrs.push_back(attrs);
+        if (keyvalue[0] == "Group") {
+          fqan.group += "/"+keyvalue[1];
+        } else if (keyvalue[0] == "Role") {
+          fqan.role = keyvalue[1];
+        } else if (keyvalue[0] == "Capability") {
+          fqan.capability = keyvalue[1];
+        };
+      };
     };
-  }
-  voms_list.push_back(voms_item);
+    voms_item.fqans.push_back(fqan);
+  };
+  if(!voms_item.voname.empty()) {
+    voms_list.push_back(voms_item);
+  };
   return voms_list;
 }
 
@@ -269,7 +289,7 @@ bool AuthUser::store_credentials(void) {
 }
 
 void AuthUser::add_group(const std::string& grp) {
-  groups_.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
+  groups_.push_back(group_t(grp,default_vo_,default_voms_));
   logger.msg(Arc::VERBOSE,"Assigned to authorization group %s",grp);
 };
 

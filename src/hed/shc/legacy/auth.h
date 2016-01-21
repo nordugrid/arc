@@ -17,18 +17,19 @@ namespace ArcSHCLegacy {
 
 class AuthVO;
 
-/** VOMS attributes */
-struct voms_attrs {
-  std::string group; /*!< user's group */
-  std::string role;  /*!< user's role */
-  std::string cap;   /*!< user's capability */
+/** VOMS FQAN split into elements */
+struct voms_fqan_t {
+  std::string group;      // including root group which is always same as VO
+  std::string role;       // role associated to group - for each role there is one voms_fqan_t
+  std::string capability; // deprecated but must keep itt
+  void str(std::string& str) const; // convert to string (minimal variation)
 };
 
 /** VOMS data */
-struct voms {
-  std::string server;      /*!< The VOMS server DN, as from its certificate */
+struct voms_t {
+  std::string server;      /*!< The VOMS server hostname */
   std::string voname;      /*!< The name of the VO to which the VOMS belongs */
-  std::vector<voms_attrs> attrs;   /*!< User's characteristics */
+  std::vector<voms_fqan_t> fqans; /*!< Processed FQANs of user */
 };
 
 class AuthUser {
@@ -40,25 +41,19 @@ class AuthUser {
   } source_t;
   class group_t {
    public:
-    const char* voms;             //
     std::string name;             //
     const char* vo;               //
-    const char* role;             //
-    const char* capability;       //
-    const char* vgroup;           //
-    group_t(const std::string& name_,const char* vo_,const char* role_,const char* cap_,const char* vgrp_,const char* voms_):voms(voms_?voms_:""),name(name_),vo(vo_?vo_:""),role(role_?role_:""),capability(cap_?cap_:""),vgroup(vgrp_?vgrp_:"") { };
+    struct voms_t voms;           //
+    group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_):name(name_),vo(vo_?vo_:""),voms(voms_) { };
   };
 
-  const char* default_voms_;
   const char* default_vo_;
-  const char* default_role_;
-  const char* default_capability_;
-  const char* default_vgroup_;
+  struct voms_t default_voms_;
   const char* default_group_;
 
   // Attributes of user
   std::string subject_;   // DN of certificate
-  std::vector<struct voms> voms_data_; // VOMS information extracted from message
+  std::vector<struct voms_t> voms_data_; // VOMS information extracted from message
 
   // Old attributes - remove or convert
   std::string from;      // Remote hostname
@@ -136,17 +131,10 @@ class AuthUser {
     return false;
   };
   void get_vos(std::list<std::string>& vos) const;
-  //const char* default_voms(void) const { return default_voms_; };
-  //const char* default_vo(void) const { return default_vo_; };
-  //const char* default_role(void) const { return default_role_; };
-  //const char* default_capability(void) const { return default_capability_; };
-  //const char* default_vgroup(void) const { return default_vgroup_; };
-  //const char* default_group(void) const { return default_group_; };
-  //const char* default_subject(void) const { return subject.c_str(); };
-  const std::vector<struct voms>& voms(void);
+  const std::vector<struct voms_t>& voms(void);
   const std::list<std::string>& VOs(void);
   // convert ARC list into voms structure
-  static std::vector<struct voms> arc_to_voms(const std::list<std::string>& attributes);
+  static std::vector<struct voms_t> arc_to_voms(const std::list<std::string>& attributes);
   /*
    * Get a certain property of the AuthUser, for example DN
    * or VOMS VO. For possible values of property see the source
@@ -161,25 +149,6 @@ class AuthUser {
   bool store_credentials(void);
 };
 
-/*
-class AuthEvaluator {
- private:
-  std::list<std::string> l;
-  std::string name;
- public:
-  AuthEvaluator(void);
-  AuthEvaluator(const char* name);
-  ~AuthEvaluator(void);
-  void add(const char*);
-  int evaluate(AuthUser &) const;
-  bool operator==(const char* s) { return (strcmp(name.c_str(),s)==0); };
-  bool operator==(const std::string& s) { return (name == s); };
-  const char* get_name() { return name.c_str(); };
-};
-
-void AuthUserSubst(std::string& str,AuthUser& it);
-*/
-
 class AuthVO {
  friend class AuthUser;
  private:
@@ -191,20 +160,6 @@ class AuthVO {
   ~AuthVO(void) { };
 };
 
-/*
-class LegacySecHandler : public ArcSec::SecHandler {
- private:
-  std::string conf_file_;
-
- public:
-  LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx);
-  virtual ~LegacySecHandler(void);
-  static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
-  virtual SecHandlerStatus Handle(Arc::Message* msg) const;
-  operator bool(void) { return !conf_file_.empty(); };
-  bool operator!(void) { return conf_file_.empty(); };
-};
-*/
 
 } // namespace ArcSHCLegacy
 

@@ -15,7 +15,18 @@ namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
 
+static bool match_value(const std::string& value, const std::vector<std::string>& seq) {
+  for(std::vector<std::string>::const_iterator v = seq.begin(); v != seq.end(); ++v) {
+    if(*v == value) {
+      return true;
+    }
+  };
+  return false;
+}
+
 int AuthUser::match_voms(const char* line) {
+  // No need to process anything if no VOMS extensions are present
+  if(voms_data_.empty()) return AAA_NO_MATCH;
   // parse line
   std::string vo("");
   std::string group("");
@@ -48,26 +59,27 @@ int AuthUser::match_voms(const char* line) {
   logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
   logger.msg(Arc::VERBOSE, "Rule: role: %s", role);
   logger.msg(Arc::VERBOSE, "Rule: capabilities: %s", capabilities);
-  if(voms_data_.empty()) return AAA_NO_MATCH;
   // analyse permissions
-  for(std::vector<struct voms>::iterator v = voms_data_.begin();v!=voms_data_.end();++v) {
+  for(std::vector<struct voms_t>::iterator v = voms_data_.begin();v!=voms_data_.end();++v) {
     logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
-      for(std::vector<struct voms_attrs>::iterator d=v->attrs.begin();d!=v->attrs.end();++d) {
-        logger.msg(Arc::VERBOSE, "Match group: %s", d->group);
-        logger.msg(Arc::VERBOSE, "Match role: %s", d->role);
-        logger.msg(Arc::VERBOSE, "Match capabilities: %s", d->cap);
-        if(((group == "*") || (group == d->group)) &&
-           ((role == "*") || (role == d->role)) &&
-           ((capabilities == "*") || (capabilities == d->cap))) {
-          logger.msg(Arc::VERBOSE, "Match: %s %s %s %s",v->voname,d->group,d->role,d->cap);
-          default_voms_=v->server.c_str();
-          default_vo_=v->voname.c_str();
-          default_role_=d->role.c_str();
-          default_capability_=d->cap.c_str();
-          default_vgroup_=d->group.c_str();
-          return AAA_POSITIVE_MATCH;
+      bool matched = false;
+      for(std::vector<struct voms_fqan_t>::iterator f = v->fqans.begin(); f != v->fqans.end(); ++f) {
+        if(((group == "*") || (group == f->group)) &&
+           ((role == "*") || (role == f->role)) &&
+           ((capabilities == "*") || (capabilities == f->capability))) {
+          logger.msg(Arc::VERBOSE, "Matched: %s %s %s %s",v->voname,f->group,f->role,f->capability);
+          if(!matched) {
+            default_voms_ = voms_t();
+            default_voms_.voname = v->voname;
+            default_voms_.server = v->server;
+            matched = true;
+          };
+          default_voms_.fqans.push_back(*f);
         };
+      };
+      if(matched) {
+        return AAA_POSITIVE_MATCH;
       };
     };
   };
