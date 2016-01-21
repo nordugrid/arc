@@ -499,6 +499,14 @@ bool JobLocalDescription::write(const std::string& fname) const {
   write_pair(f,"failedcause",failedcause);
   write_pair(f,"credentialserver",credentialserver);
   write_pair(f,"freestagein",freestagein);
+  for(std::list<std::string>::const_iterator lv=localvo.begin();
+      lv != localvo.end(); ++lv) {
+    write_pair(f,"localvo",(*lv));
+  };
+  for(std::list<std::string>::const_iterator vf=voms.begin();
+      vf != voms.end(); ++vf) {
+    write_pair(f,"voms",(*vf));
+  };
   for(std::list<std::string>::const_iterator act_id=activityid.begin();
       act_id != activityid.end(); ++act_id) {
     write_pair(f,"activityid",(*act_id));
@@ -620,6 +628,14 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "failedcause") { failedcause = buf+p; }
     else if(name == "credentialserver") { credentialserver = buf+p; }
     else if(name == "freestagein") { freestagein = read_boolean(buf+p); }
+    else if(name == "localvo") {
+      std::string temp_s(buf+p);
+      localvo.push_back(temp_s);
+    }
+    else if(name == "voms") {
+      std::string temp_s(buf+p);
+      voms.push_back(temp_s);
+    }
     else if(name == "diskspace") {
       std::string temp_s(buf+p);
       unsigned long long int n;

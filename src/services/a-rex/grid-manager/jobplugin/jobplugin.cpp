@@ -118,7 +118,9 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     cont_plugins(new ContinuationPlugins),
     cred_plugin(new RunPlugin),
     user_a(user_s.user),
-    job_map(user_s.user) {
+    job_map(user_s.user),
+    matched_vo(NULL),
+    matched_voms(NULL) {
 
   // Because this plugin can load own plugins it's symbols need to 
   // become available in order to avoid duplicate resolution.
@@ -131,7 +133,9 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   std::string configfile = user_s.get_config_file();
   readonly=false;
   chosenFilePlugin=NULL;
-  srand(time(NULL)); 
+  matched_vo=user_a.default_group_vo();
+  matched_voms=user_a.default_group_voms();
+  srand(time(NULL) + rand()); 
   for(;;) {
     std::string rest;
     std::string command=config_read_line(cfile,rest);
@@ -822,6 +826,19 @@ int JobPlugin::close(bool eof) {
   };
   job_desc.headnode=endpoint;
   job_desc.interface="org.nordugrid.gridftpjob";
+  if(matched_vo != NULL) {
+    job_desc.localvo.push_back(matched_vo);
+  };
+  if(matched_voms != NULL) {
+    for(std::vector<voms_fqan_t>::const_iterator f = matched_voms->fqans.begin();
+                           f != matched_voms->fqans.end(); ++f) {
+      std::string fqan;
+      f->str(fqan);
+      job_desc.voms.push_back(fqan);
+    };
+  };
+
+
   /* ***********************************************
    * Try to create proxy                           *
    *********************************************** */

@@ -136,6 +136,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
 
 int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
   bool right_group = true;
+  user.user.select_group(NULL);
   for(;;) {
     std::string rest;
     std::string command=gridftpd::config_read_line(cfile,rest);
@@ -224,15 +225,19 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       if(!user.mapped()) user.mapvo(rest.c_str());
     }
     else if(command == "groupcfg") {  /* next commands only for these groups */
+      user.user.select_group(NULL);
       if(rest.find_first_not_of(" \t") == std::string::npos) {
-        right_group=true; continue;
+        right_group=true;
+        continue;
       };
       right_group=false;
       for(;;) {
         std::string group_name=gridftpd::config_next_arg(rest);
         if(group_name.length() == 0) break;
-        right_group=user.user.check_group(group_name);
-        if(right_group) break;
+        right_group=user.user.select_group(group_name);
+        if(right_group) {
+          break;
+        };
       };
     }
     else if(command == "pluginpath") {
@@ -309,6 +314,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
   } config_state_t;
   config_state_t st = conf_state_single;
   bool right_group = true;
+  user.user.select_group(NULL);
   std::string group_name; // =config_next_arg(rest);
   int group_decision = AAA_NO_MATCH;
   std::string plugin_config;
@@ -393,6 +399,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
       plugin_path="";
       group_name="";
       right_group = true;
+      user.user.select_group(NULL);
       group_decision = AAA_NO_MATCH;
       // 0 - common, 1 - group, 2 - gridftpd, 3 - vo
       if(cf.SectionNum() == 1) {
@@ -467,6 +474,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
         if(command == "name") {
           group_name=rest;
         } else if(command == "groupcfg") {
+          user.user.select_group(NULL);
           if(rest.find_first_not_of(" \t") == std::string::npos) {
             right_group=true;
           } else {
@@ -474,8 +482,10 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
             for(;;) {
               std::string group_name=gridftpd::config_next_arg(rest);
               if(group_name.length() == 0) break;
-              right_group=user.user.check_group(group_name);
-              if(right_group) break;
+              right_group=user.user.select_group(group_name);
+              if(right_group) {
+                break;
+              };
             };
           };
         } else {
@@ -492,6 +502,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
       }; break;
       case conf_state_plugin: {
         if(command == "groupcfg") {
+          user.user.select_group(NULL);
           if(rest.find_first_not_of(" \t") == std::string::npos) {
             right_group=true;
           } else {
@@ -499,8 +510,10 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
             for(;;) {
               std::string group_name=gridftpd::config_next_arg(rest);
               if(group_name.length() == 0) break;
-              right_group=user.user.check_group(group_name);
-              if(right_group) break;
+              right_group=user.user.select_group(group_name);
+              if(right_group) {
+                break;
+              };
             };
           };
         } else if(command == "plugin") {

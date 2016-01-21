@@ -40,14 +40,17 @@ class AuthUser {
   class group_t {
    public:
     std::string name;             //
-    const char* vo;               //
-    struct voms_t voms;           //
+    const char* vo;               // VO name matched when authorizing this group
+    struct voms_t voms;           // VOMS attributes matched when authorizing this group
     group_t(const char* name_, const char* vo_, const struct voms_t& voms_):
         name(name_?name_:""),vo(vo_?vo_:""),voms(voms_) { };
   };
-  struct voms_t default_voms_; // VOMS attributes which matched authorization rule
-  const char* default_group_;
+  // VOMS attributes which matched last athorization rule. Also affected by matching group.
+  struct voms_t default_voms_; 
+  // Last matched VO name from those defined in [vo].
   const char* default_vo_;
+  // Last matched group including groupcfg processing.
+  const char* default_group_;
   std::string subject;   // SN of certificate
   std::string from;      // Remote hostname
   std::string filename;  // Delegated proxy stored in this file
@@ -69,6 +72,14 @@ class AuthUser {
   std::list<group_t> groups; // Groups which user matched (internal names)
   std::list<std::string> vos; // VOs to which user belongs (external names)
   bool valid;
+  const group_t* find_group(const char* grp) const {
+    if(grp == NULL) return NULL;
+    for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+      if(i->name == grp) return &(*i);
+    };
+    return NULL;
+  };
+  const group_t* find_group(const std::string& grp) const { return find_group(grp.c_str());};
  public:
   AuthUser(const AuthUser&);
   // Constructor
@@ -79,9 +90,6 @@ class AuthUser {
   AuthUser& operator=(const AuthUser&);
   bool operator!(void) { return !valid; };
   operator bool(void) { return valid; };
-  // Reassign user with supplied credentials
-  //void operator=(gss_cred_id_t cred);
-  //void operator=(gss_ctx_id_t ctx);
   void set(const char* subject,const char* hostname = NULL);
   void set(const char* subject,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname = NULL);
   void set(const char* s,STACK_OF(X509)* cred,const char* hostname = NULL);
@@ -100,12 +108,25 @@ class AuthUser {
   void clear_groups(void) { groups.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
   bool check_group(const char* grp) const {
+    if(grp == NULL) return false;
     for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
-      if(strcmp(i->name.c_str(),grp) == 0) return true;
+      if(i->name == grp) return true;
     };
     return false;
   };
   bool check_group(const std::string& grp) const { return check_group(grp.c_str());};
+  bool select_group(const char* grp) {
+    default_group_ = NULL;
+    if(grp == NULL) return false;
+    for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+      if(i->name == grp) {
+        default_group_ = i->name.c_str();
+        return true;
+      };
+    };
+    return false;
+  }
+  bool select_group(const std::string& grp) { return select_group(grp.c_str());};
   void add_vo(const char* vo) { vos.push_back(std::string(vo)); };
   void add_vo(const std::string& vo) { vos.push_back(vo); };
   bool add_vo(const char* vo,const char* filename);
@@ -121,22 +142,23 @@ class AuthUser {
   };
   bool check_vo(const std::string& vo) const { return check_vo(vo.c_str());};
   const struct voms_t& default_voms(void) const { return default_voms_; };
+  const char* default_vo(void) const { return default_vo_; };
   const char* default_group(void) const { return default_group_; };
-  const char* default_subject(void) const { return subject.c_str(); };
-  const std::vector<struct voms_t>& voms(void);
-  const std::list<std::string>& VOs(void) const;
-  // convert ARC list into voms structure
-  static struct voms_t arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
-  /*
-   * Get a certain property of the AuthUser, for example DN
-   * or VOMS VO. For possible values of property see the source
-   * code in auth.cc
-   *
-   * Not used in gridftpd
-   */
-  const std::string get_property(const std::string /* property */) const {
-    return std::string("");
+  const struct voms_t* default_group_voms(void) const {
+    const group_t* group = find_group(default_group_);
+    return (group == NULL)?NULL:&(group->voms);
   };
+  const char* default_group_vo(void) const {
+    const group_t* group = find_group(default_group_);
+    return (group == NULL)?NULL:group->vo;
+  };
+  const char* default_subject(void) const { return subject.c_str(); };
+  // Returns all VOMS attributes associated with user
+  const std::vector<struct voms_t>& voms(void);
+  // Returns all internal (locally configured) VOs associated with user
+  const std::list<std::string>& VOs(void) const;
+  // convert ARC VOMS attribute list into voms structure
+  static struct voms_t arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
 
   static std::string err_to_string(int err);
 };
