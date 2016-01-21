@@ -489,7 +489,7 @@
 ## voms vo group role capabilities - Match VOMS attribute in user's credential.
 ##  Use '*' to match any value. More information about VOMS can be found at
 ##  http://grid-auth.infn.it
-#voms="nordugrid Guests * *"
+#voms="nordugrid /nordugrid/Guests * *"
 
 ## group group_name [group_name ...] - Match user already belonging to one
 ##  of specified groups. Groups refered here must be defined earlier in

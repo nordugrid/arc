@@ -676,7 +676,7 @@ http://grid-auth.infn.it
 
 .IR Example:
 .br
-voms="nordugrid Guests * *"
+voms="nordugrid /nordugrid/Guests * *"
 
 .TP
 .B group
