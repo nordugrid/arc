@@ -534,6 +534,8 @@ sub addprefix {
    return @prefixedset;	
 }
 
+# TODO: add VOs information
+
 
 ############################################################################
 # Combine info from all sources to prepare the final representation
@@ -559,6 +561,52 @@ sub collect($) {
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
+    # GLUE2 shares differ from the configuration one.
+    # the one to one mapping from a share to a queue is too strong.
+    # the following datastructure reshuffles queues into proper
+    # GLUE2 shares based on authorizedvo
+    # This may require rethinking of parsing the configuration...
+    my $GLUE2shares = {};
+    
+    # If VOs are defined, generate one additional share per VO.
+    # Since there is one VO per MappingPolicy this is
+    # equivalent to collect MappingPolicy info?
+    # can it be done later in the code?
+    
+    #TODO: refactorize this to apply to cluster and queue VOs
+    # with a single subroutine
+    ## for each share(queue)
+    for my $currentshare (@allshares) { 
+       # if there is any VO
+       if (defined $config->{shares}{$currentshare}{authorizedvo}) {
+            my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
+            for my $queueauthvo (@{$queueauthvos}) {
+                # generate an additional share with such authorizedVO
+                my $share_vo = $currentshare.'_'.$queueauthvo;
+                $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+                # add the queue from configuration as MappingQueue
+                $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+                # remove VOs from that share, substitute with default VO
+                $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo; 
+            }
+        }
+       # create as many shares as the authorizedvo in the [cluster] block
+       if (defined $config->{service}{AuthorizedVO}) { 
+            my ($clusterauthvos) = $config->{service}{AuthorizedVO};
+            for my $clusterauthvo (@{$clusterauthvos}) {
+                # generate an additional share with such authorizedVO
+                my $share_vo = $currentshare.'_'.$clusterauthvo;
+                $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+                # add the queue from configuration as MappingQueue
+                $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+                # remove VOs from that share, substitute with default VO
+                $GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+            }    
+       }
+    }
+ 
+    ##replace @allshares with the newly created shares
+    #@allshares = keys %{$GLUE2shares};
 
     my $homogeneous = 1;
     $homogeneous = 0 if @allxenvs > 1;
@@ -944,7 +992,7 @@ sub collect($) {
     my $HEDControlepIDp = "urn:ogf:Endpoint:$hostname:hedcontrol"; # HED-CONTROL Endpoint ID
 
     # Generate ComputingShare IDs
-    for my $share (keys %{$config->{shares}}) {
+    for my $share (keys %{$GLUE2shares}) {
         $cshaIDs{$share} = "$cshaIDp:$share";
     }
 
@@ -997,10 +1045,10 @@ sub collect($) {
 		}
 	}
 	# add the per-queue authorizedvo if any
-	my $shares = $config->{shares};
+	my $shares = $GLUE2shares;
 	for my $share ( keys %$shares ) {
-		if ($config->{shares}{$share}{authorizedvo}) {
-			my @tempvos = @{$config->{shares}{$share}{authorizedvo}} if ($config->{shares}{$share}{authorizedvo});
+		if ($GLUE2shares->{$share}{authorizedvo}) {
+			my (@tempvos) = $GLUE2shares->{$share}{authorizedvo} if ($GLUE2shares->{$share}{authorizedvo});
 			foreach my $vo (@tempvos) {
 				$unionauthorizedvos->{$vo}='';
 			}
@@ -1059,20 +1107,17 @@ sub collect($) {
     
     my $mappingpolicies = {};
     
-    # Basic mapping policy: it's the union of the service AuthorizedVO and
-    # per-queue authorizedvo.     
+    # Basic mapping policy: it can only contain one vo.     
     
     my $getBasicMappingPolicy = sub {
 		 my ($shareID, $sharename) = @_;
-		 return unless ($config->{shares}{$sharename}{authorizedvo} || @clusterauthorizedvos);
-		 my @shareauthorizedvos;
-		 @shareauthorizedvos = addprefix('vo:', union(@clusterauthorizedvos, @{$config->{shares}{$sharename}{authorizedvo}}) );
+		 return unless ($GLUE2shares->{$sharename}{authorizedvo});
          my $mpol = {};
          $mpol->{CreationTime} = $creation_time;
          $mpol->{Validity} = $validity_ttl;
-         $mpol->{ID} = "$mpolIDp:basic";
+         $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{authorizedvo}";
          $mpol->{Scheme} = "basic";
-	     $mpol->{Rule} = [ @shareauthorizedvos ];
+	     $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{authorizedvo}" ];
          # $mpol->{UserDomainID} = $apconf->{UserDomainID};
          $mpol->{ShareID} = $shareID;
          return $mpol;
@@ -1121,7 +1166,7 @@ sub collect($) {
 
         $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
 
-        my $nshares = keys %{$config->{shares}};
+        my $nshares = keys %{$GLUE2shares};
 
         $csv->{Complexity} = "endpoint=$csvendpointsnum,share=$nshares,resource=".(scalar @allxenvs);
 
@@ -2662,27 +2707,27 @@ sub collect($) {
 
         # ComputingShares: multiple shares can share the same LRMS queue
 
-        my @shares = keys %{$config->{shares}};
+        my @shares = keys %{$GLUE2shares};
 
         my $getComputingShares = sub {
 
-        return undef unless my ($share, $dummy) = each %{$config->{shares}};
+        return undef unless my ($share, $dummy) = each %{$GLUE2shares};
 
         my $qinfo = $lrms_info->{queues}{$share};
 
         # Prepare flattened config hash for this share.
-        my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
+        my $sconfig = { %{$config->{service}}, %{$GLUE2shares->{$share}} };
 
         # List of all shares submitting to the current queue, including the current share.
         my $qname = $sconfig->{MappingQueue} || $share;
 
         if ($qname) {
             my $siblings = $sconfig->{siblingshares} = [];
-            # Do NOT use 'keys %{$config->{shares}}' here because it would
+            # Do NOT use 'keys %{$GLUE2shares}' here because it would
             # reset the iterator of 'each' and cause this function to
             # always return the same result
             for my $sn (@shares) {
-            my $s = $config->{shares}{$sn};
+            my $s = $GLUE2shares->{$sn};
             my $qn = $s->{MappingQueue} || $sn;
             push @$siblings, $sn if $qn eq $qname;
             }
@@ -3127,8 +3172,8 @@ sub collect($) {
 
                 # Associations
 
-                for my $share (keys %{$config->{shares}}) {
-                    my $sconfig = $config->{shares}{$share};
+                for my $share (keys %{$GLUE2shares}) {
+                    my $sconfig = $GLUE2shares->{$share};
                     next unless $sconfig->{ExecutionEnvironmentName};
                     next unless grep { $xenv eq $_ } @{$sconfig->{ExecutionEnvironmentName}};
                     push @{$execenv->{ComputingShareID}}, $cshaIDs{$share};
