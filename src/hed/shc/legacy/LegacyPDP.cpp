@@ -204,6 +204,13 @@ ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
   const std::list<std::string>& groups(lattr->GetGroups());
   const std::list<std::string>& vos(lattr->GetVOs());
   bool decision = false;
+
+
+
+
+
+
+
   if(match_lists(groups_,groups,logger) ||
      match_lists(vos_,vos,logger)) decision = true;
   msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision));

@@ -6,6 +6,12 @@
 
 namespace ArcSHCLegacy {
 
+/**
+ * Container for athorization evaluation result.
+ * It stores authorized VOs, groups and VOMS+VO
+ * attributes associated with groups.
+ * TODO: Merge with AuthUser.
+ */
 class LegacySecAttr: public Arc::SecAttr {
  public:
   LegacySecAttr(Arc::Logger& logger);
@@ -18,15 +24,21 @@ class LegacySecAttr: public Arc::SecAttr {
   virtual std::list<std::string> getAll(const std::string& id) const;
 
   // Specific interface
-  void AddGroup(const std::string& group) { groups_.push_back(group); };
+  void AddGroup(const std::string& group,
+                const std::list<std::string>& vo,
+                const std::list<std::string>& voms);
   const std::list<std::string> GetGroups(void) const { return groups_; };
-  void AddVO(const std::string& vo) { vos_.push_back(vo); };
-  const std::list<std::string> GetVOs(void) const { return vos_; };
+  const std::list<std::string>& GetGroupVO(const std::string& group) const;
+  const std::list<std::string>& GetGroupVOMS(const std::string& group) const;
+  void AddVO(const std::string& vo) { VOs_.push_back(vo); };
+  const std::list<std::string> GetVOs(void) const { return VOs_; };
 
  protected:
   Arc::Logger& logger_;
   std::list<std::string> groups_;
-  std::list<std::string> vos_;
+  std::list<std::string> VOs_;
+  std::list< std::list<std::string> > groupsVO_; // synchronized with groups_
+  std::list< std::list<std::string> > groupsVOMS_; // synchronized with groups_
   virtual bool equal(const SecAttr &b) const;
 };
 

@@ -8,6 +8,10 @@
 namespace ArcSHCLegacy {
 
 
+static std::string empty_string;
+static std::list<std::string> empty_list;
+
+
 LegacySecAttr::LegacySecAttr(Arc::Logger& logger):logger_(logger) {
 }
 
@@ -20,7 +24,7 @@ std::string LegacySecAttr::get(const std::string& id) const {
     return "";
   };
   if(id == "VO") {
-    if(vos_.size() > 0) return *vos_.begin();
+    if(VOs_.size() > 0) return *VOs_.begin();
     return "";
   };
   return "";
@@ -28,7 +32,7 @@ std::string LegacySecAttr::get(const std::string& id) const {
 
 std::list<std::string> LegacySecAttr::getAll(const std::string& id) const {
   if(id == "GROUP") return groups_;
-  if(id == "VO") return vos_;
+  if(id == "VO") return VOs_;
   return std::list<std::string>();
 }
 
@@ -52,5 +56,32 @@ LegacySecAttr::operator bool(void) const {
   return true;
 }
 
+const std::list<std::string>& LegacySecAttr::GetGroupVO(const std::string& group) const {
+  std::list< std::list<std::string> >::const_iterator vo = groupsVO_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(vo == groupsVO_.end()) break;
+    if(*grp == group) return *vo;
+    ++vo;
+  };
+  return empty_list;
+}
+
+const std::list<std::string>& LegacySecAttr::GetGroupVOMS(const std::string& group) const {
+  std::list< std::list<std::string> >::const_iterator voms = groupsVOMS_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(voms == groupsVOMS_.end()) break;
+    if(*grp == group) return *voms;
+    ++voms;
+  };
+  return empty_list;
+}
+
+void LegacySecAttr::AddGroup(const std::string& group, const std::list<std::string>& vo, const std::list<std::string>& voms) {
+  groups_.push_back(group);
+  groupsVO_.push_back(vo);
+  groupsVOMS_.push_back(voms);
+}
+
 
 } // namespace ArcSHCLegacy
+

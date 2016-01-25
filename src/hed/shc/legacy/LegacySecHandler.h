@@ -10,6 +10,11 @@
 
 namespace ArcSHCLegacy {
 
+/**
+ Processes configuration and evaluates groups to which requestor belongs.
+ Obtained result is stored in message context as LegacySecAttr security 
+ attribute under ARCLEGACY tag.
+*/
 class LegacySecHandler : public ArcSec::SecHandler {
  private:
   std::list<std::string> conf_files_;

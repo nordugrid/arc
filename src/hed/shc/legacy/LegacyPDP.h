@@ -7,6 +7,12 @@
 #include <arc/message/Message.h>
 #include <arc/security/PDP.h>
 
+/**
+ * Match authorization information collected by ArcLegacyHandler and 
+ * stored in ARCLEGACY sec. attribute and provide decision based on configuration.
+ * Decision is stored in message context sec. attribute under ARCLEGACYPDP tag.
+ * For storing decision LegacyPDPAttr class is used.
+ */
 namespace ArcSHCLegacy {
 
 class LegacyPDP : public ArcSec::PDP {
