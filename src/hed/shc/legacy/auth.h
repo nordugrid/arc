@@ -47,8 +47,8 @@ class AuthUser {
     group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_):name(name_),vo(vo_?vo_:""),voms(voms_) { };
   };
 
-  const char* default_vo_;
   struct voms_t default_voms_;
+  const char* default_vo_;
   const char* default_group_;
 
   // Attributes of user
