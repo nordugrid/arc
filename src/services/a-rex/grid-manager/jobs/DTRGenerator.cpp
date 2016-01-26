@@ -582,7 +582,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
   uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
   // Default credentials to be used by transfering files if not specified per file
-  std::string default_cred = job_proxy_filename(job.get_id(), config);
+  std::string default_cred = job_proxy_filename(jobid, config);
   
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
@@ -879,8 +879,8 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       usercfg.ProxyPath(i->cred);
       if (Arc::FileRead(i->cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
     } else {
-      usercfg.ProxyPath(job_proxy_filename(jobid, config));
-      if (Arc::FileRead(job_proxy_filename(jobid, config), proxy_cred)) usercfg.CredentialString(proxy_cred);
+      usercfg.ProxyPath(default_cred);
+      if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
     }
     // logger for these DTRs. LogDestinations should be deleted when DTR is received back
     DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
