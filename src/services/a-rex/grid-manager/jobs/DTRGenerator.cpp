@@ -581,6 +581,8 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
 
   uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
+  // Default credentials to be used by transfering files if not specified per file
+  std::string default_cred = job_proxy_filename(job.get_id(), config);
   
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
@@ -657,9 +659,15 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     // resolve directories
     for (it = files.begin(); it != files.end() ;) {
       if (it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
+        // Following is always empty currently. But it will start working as soon as 
+        // there is a way to pass credentials for dynamic files. But so far default_cred
+        // is always picked up.
+        std::string cred(it->cred);
+        if(cred.empty()) cred = default_cred;
+        std::list<FileData> files_;
         std::string outputfilelist = job.SessionDir() + std::string("/") + it->pfn.substr(2);
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
-        if (!job_Xput_read_file(outputfilelist, files, job_uid, job_gid)) {
+        if (!job_Xput_read_file(outputfilelist, files_, job_uid, job_gid)) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
           // Only write this failure if no previous failure
@@ -672,6 +680,11 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
           CleanCacheJobLinks(config, job);
           if (kicker_func) (*kicker_func)(kicker_arg);
           return false;
+        }
+        // Attach dynamic files and assign credentials to them unless already available
+        for(std::list<FileData>::iterator it_ = files_.begin(); it_ != files_.end(); ++it_) {
+          if(it_->cred.empty()) it_->cred = cred;
+          files.push_back(*it_);
         }
         it->pfn.erase(1, 1);
         ++it;
