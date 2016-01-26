@@ -38,10 +38,18 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   job_desc.lifetime=Arc::tostring(config.KeepFinished());
   if(parse_job_req(job.get_id(),job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>config.Reruns()) job_desc.reruns=config.Reruns();
+  // Pick up per job delegation
+  if(!desc.DataStaging.DelegationID.empty()) {
+    job_desc.delegation_id = desc.DataStaging.DelegationID;
+  };
   if(!job_local_write_file(job,config,job_desc)) return false;
+
+
   // Convert delegation ids to credential paths.
   // Add default credentials for file which have no own assigned.
   std::string default_cred = job_proxy_filename(job.get_id(), config);
+  // TODO: use default delegation id instead
+
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                    f != job_desc.inputdata.end(); ++f) {
     if(f->has_lfn()) {
