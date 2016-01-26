@@ -42,8 +42,8 @@ class AuthUser {
   class group_t {
    public:
     std::string name;             //
-    const char* vo;               //
-    struct voms_t voms;           //
+    const char* vo;               // local VO which caused authorization of this group
+    struct voms_t voms;           // VOMS attributes which caused authorization of this group
     group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_):name(name_),vo(vo_?vo_:""),voms(voms_) { };
   };
 
@@ -72,6 +72,15 @@ class AuthUser {
   int match_vo(const char* line);
   int match_lcas(const char *);
   int match_plugin(const char* line);
+
+  const group_t* find_group(const char* grp) const {
+    if(grp == NULL) return NULL;
+    for(std::list<group_t>::const_iterator i=groups_.begin();i!=groups_.end();++i) {
+      if(i->name == grp) return &(*i);
+    };
+    return NULL;
+  };
+  const group_t* find_group(const std::string& grp) const { return find_group(grp.c_str());};
 
 //  bool voms_extracted;
 
@@ -130,21 +139,20 @@ class AuthUser {
     };
     return false;
   };
-  void get_vos(std::list<std::string>& vos) const;
   const std::vector<struct voms_t>& voms(void);
   const std::list<std::string>& VOs(void);
+  const struct voms_t* get_group_voms(const std::string& grp) const {
+    const group_t* group = find_group(grp);
+    return (group == NULL)?NULL:&(group->voms);
+  };
+  const char* get_group_vo(const std::string& grp) const {
+    const group_t* group = find_group(grp);
+    return (group == NULL)?NULL:group->vo;
+  };
+
+
   // convert ARC list into voms structure
   static std::vector<struct voms_t> arc_to_voms(const std::list<std::string>& attributes);
-  /*
-   * Get a certain property of the AuthUser, for example DN
-   * or VOMS VO. For possible values of property see the source
-   * code in auth.cc
-   *
-   * Not used in gridftpd
-   */
-  const std::string get_property(const std::string /* property */) const {
-    return std::string("");
-  };
   void subst(std::string& str);
   bool store_credentials(void);
 };

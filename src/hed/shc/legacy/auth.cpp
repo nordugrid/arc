@@ -14,6 +14,12 @@ namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
+void voms_fqan_t::str(std::string& str) const {
+  str = group;
+  if(!role.empty()) str += "/Role="+role;
+  if(!capability.empty()) str += "/Capability="+capability;
+}
+
 int AuthUser::match_all(const char* /* line */) {
   default_voms_=voms_t();
   default_vo_=NULL;

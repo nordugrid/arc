@@ -42,8 +42,8 @@ LegacySecHandler::~LegacySecHandler(void) {
 
 class LegacySHCP: public ConfigParser {
  public:
-  LegacySHCP(const std::string& filename, Arc::Logger& logger, AuthUser& auth, LegacySecAttr& sattr):
-    ConfigParser(filename,logger),auth_(auth),sattr_(sattr),group_match_(0),vo_match_(false) {
+  LegacySHCP(const std::string& filename, Arc::Logger& logger, AuthUser& auth/*, LegacySecAttr& sattr*/):
+    ConfigParser(filename,logger),auth_(auth)/*,sattr_(sattr)*/,group_match_(0),vo_match_(false) {
   };
 
   virtual ~LegacySHCP(void) {
@@ -63,13 +63,11 @@ class LegacySHCP: public ConfigParser {
       if(group_name_.empty()) group_name_ = name;
       if((group_match_ == AAA_POSITIVE_MATCH) && !group_name_.empty()) {
         auth_.add_group(group_name_);
-        sattr_.AddGroup(group_name_);
       };
     } else if(id == "vo") {
       if(vo_name_.empty()) vo_name_ = name;
       if(vo_match_ && !vo_name_.empty()) {
         auth_.add_vo(vo_name_);
-        sattr_.AddVO(vo_name_);
       };
     };
     return true;
@@ -99,7 +97,7 @@ class LegacySHCP: public ConfigParser {
 
  private:
   AuthUser& auth_;
-  LegacySecAttr& sattr_;
+  /* LegacySecAttr& sattr_; */
   int group_match_;
   std::string group_name_;
   bool vo_match_;
@@ -124,10 +122,38 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
   Arc::AutoPointer<LegacySecAttr> sattr(new LegacySecAttr(logger));
   for(std::list<std::string>::const_iterator conf_file = conf_files_.begin();
                              conf_file != conf_files_.end();++conf_file) {
-    LegacySHCP parser(*conf_file,logger,auth,*sattr);
+    LegacySHCP parser(*conf_file,logger,auth /*,*sattr*/);
     if(!parser) return false;
     if(!parser.Parse()) return false;
   };
+  // Pass all matched groups and VOs to LegacySecAttr
+  {
+    const std::list<std::string>& vos = auth.VOs();
+    for(std::list<std::string>::const_iterator vo = vos.begin();
+                                 vo != vos.end(); ++vo) sattr->AddVO(*vo);
+  };
+  {
+    std::list<std::string> groups;
+    auth.get_groups(groups);
+    for(std::list<std::string>::const_iterator grp = groups.begin(); grp != groups.end(); ++grp) {
+      const char* vo = auth.get_group_vo(*grp);
+      const voms_t* voms = auth.get_group_voms(*grp);
+      std::list<std::string> vos;
+      std::list<std::string> vomss;
+      if(vo != NULL) vos.push_back(vo);
+      if(voms != NULL) {
+        for(std::vector<voms_fqan_t>::const_iterator f = voms->fqans.begin();
+                                           f != voms->fqans.end(); ++f) {
+          std::string fqan;
+          f->str(fqan);
+          vomss.push_back(fqan);
+        };
+      };
+      sattr->AddGroup(*grp, vos, vomss);
+    };
+  };
+
+
   // Pass all matched groups and VOs to Message in SecAttr
   msg->AuthContext()->set("ARCLEGACY",sattr.Release());
   return true;
