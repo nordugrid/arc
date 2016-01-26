@@ -172,7 +172,7 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       }
       log_level = Arc::old_level_to_level(level);
     }
-    else if (command == "dtrstatefile") {
+    else if (command == "dtrlog") {
       dtr_log = config_next_arg(rest);
     }
     else if (command == "acix_endpoint")  {
@@ -203,7 +203,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     localDelivery
     useHostCert
     logLevel
-    dtrStateFile
+    dtrLog
   */
   Arc::XMLNode tmp_node = cfg["dataTransfer"]["DTR"];
   if (tmp_node) {
@@ -243,7 +243,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
         return false;
       }
     }
-    if (tmp_node["dtrStateFile"]) dtr_log = (std::string)tmp_node["dtrStateFile"];
+    if (tmp_node["dtrLog"]) dtr_log = (std::string)tmp_node["dtrLog"];
   }
   /*
   dataTransfer
