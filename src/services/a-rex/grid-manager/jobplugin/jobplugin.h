@@ -59,6 +59,7 @@ class JobPlugin: public FilePlugin {
   unsigned short int port; // port client used for data channel
   int host[4]; // client host
   std::string proxy_fname; /* name of proxy file passed by client */
+  bool proxy_is_deleg;
   std::string job_id;
   unsigned int job_rsl_max_size;
 //!!  char job_rsl[1024*1024+5];

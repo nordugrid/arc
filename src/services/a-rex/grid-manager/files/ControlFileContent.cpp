@@ -284,6 +284,10 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       outputdata.push_back(fdata);
     }
   }
+  // Pick up per job delegation
+  if(!arc_job_desc.DataStaging.DelegationID.empty()) {
+    delegationid = arc_job_desc.DataStaging.DelegationID;
+  };
 
   exec = arc_job_desc.Application.Executable;
   for(std::list<Arc::ExecutableType>::const_iterator e = arc_job_desc.Application.PreExecutable.begin();

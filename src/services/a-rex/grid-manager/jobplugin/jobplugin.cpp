@@ -130,6 +130,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;
   direct_fs=NULL;
   proxy_fname="";
+  proxy_is_deleg=false;
   std::string configfile = user_s.get_config_file();
   readonly=false;
   chosenFilePlugin=NULL;
@@ -292,11 +293,14 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
   }
-  if((!user_a.is_proxy()) ||
-     (user_a.proxy() == NULL) || (user_a.proxy()[0] == 0)) {
-    logger.msg(Arc::WARNING, "No delegated credentials were passed");
-  } else {
+  if(user_a.proxy() != NULL) {
     proxy_fname=user_a.proxy();
+    if((!proxy_fname.empty()) && user_a.is_proxy()) {
+      proxy_is_deleg = true;
+    }
+  }
+  if(!proxy_is_deleg) {
+    logger.msg(Arc::WARNING, "No delegated credentials were passed");
   };
   subject=user_a.DN();
   port=user_s.get_port();
@@ -315,7 +319,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
 
 JobPlugin::~JobPlugin(void) {
   delete_job_id();
-  if(proxy_fname.length() != 0) { remove(proxy_fname.c_str()); };
+  if(!proxy_fname.empty()) { remove(proxy_fname.c_str()); };
   if(cont_plugins) delete cont_plugins;
   if(cred_plugin) delete cred_plugin;
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
@@ -594,6 +598,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
 int JobPlugin::close(bool eof) {
   if(!initialized || chosenFilePlugin == NULL) return 1;
   if(!rsl_opened) {
+    // file transfer finished
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->close(eof);
@@ -602,6 +607,7 @@ int JobPlugin::close(bool eof) {
     };
     return chosenFilePlugin->close(eof);
   };
+  // Job description/action request transfer finished
   rsl_opened=false;
   if(job_id.length() == 0) {
     error_description="There is no job ID defined.";
@@ -616,6 +622,7 @@ int JobPlugin::close(bool eof) {
   /* analyze rsl (checking, substituting, etc)*/
   JobDescriptionHandler job_desc_handler(config);
   JobLocalDescription job_desc;
+  // Initial parsing of job/action request
   JobReqResult parse_result = job_desc_handler.parse_job_req(job_id,job_desc,true);
   if (parse_result != JobReqSuccess) {
     error_description="Failed to parse job/action description.";
@@ -625,33 +632,40 @@ int JobPlugin::close(bool eof) {
   };
   if(job_desc.action.length() == 0) job_desc.action="request";
   if(job_desc.action == "cancel") {
+    // Request to cancel existing job
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to cancel job.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
+    // fall back to RESTful interface
     return removefile(job_desc.jobid);
   };
   if(job_desc.action == "clean") {
+    // Request to remove existing job
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to clean job.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
+    // fall back to RESTful interface
     return removedir(job_desc.jobid);
   };
   if(job_desc.action == "renew") {
+    // Request to renew delegated credentials
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to renew credentials.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
+    // fall back to RESTful interface
     return checkdir(job_desc.jobid);
   };
   if(job_desc.action == "restart") {
+    // Request to restart failed job
     delete_job_id();
     if(job_desc.jobid.length() == 0) {
       error_description="Missing ID in request to restart job.";
@@ -696,6 +710,7 @@ int JobPlugin::close(bool eof) {
     logger.msg(Arc::ERROR, "action(%s) != request", job_desc.action);
     return 1;
   };
+  // Request for creating new job
   if(readonly) {
     delete_job_id();
     error_description="You are not allowed to submit new jobs to this service.";
@@ -743,9 +758,9 @@ int JobPlugin::close(bool eof) {
         ::close(h_old);
       };
       if(l == -1) {
-        logger.msg(Arc::ERROR, "Failed writing RSL");
+        logger.msg(Arc::ERROR, "Failed writing job description");
         remove(rsl_fname.c_str());
-        error_description="Failed to store job RSL description.";
+        error_description="Failed to store job description.";
         delete_job_id(); return 1;
       };
     };
@@ -804,6 +819,10 @@ int JobPlugin::close(bool eof) {
     delete_job_id(); 
     return 1;
   };
+  // Also pick up global delegation id if any
+  if(!job_desc.delegationid.empty()) {
+    deleg_ids.push_back(job_desc.delegationid);
+  };
   /* ****************************************
    * Start local file                       *
    **************************************** */
@@ -840,41 +859,43 @@ int JobPlugin::close(bool eof) {
 
 
   /* ***********************************************
-   * Try to create proxy                           *
+   * Try to create delegation and proxy file       *
    *********************************************** */
-  if(proxy_fname.length() != 0) {
-    std::string fname=config.ControlDir()+"/job."+job_id+".proxy";
-    int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
-    if(h == -1) {
-      error_description="Failed to store credentials.";
-      return 1;
+  if(!proxy_fname.empty()) {
+    std::string proxy_data;
+    (void)Arc::FileRead(proxy_fname, proxy_data);
+    if(!proxy_data.empty()) {
+      if(proxy_is_deleg && job_desc.delegationid.empty()) {
+        // If we have gridftp delegation and no other generic delegation provided - store it
+        ARex::DelegationStore deleg(config.DelegationDir(),false);
+        std::string deleg_id;
+        if(!deleg.AddCred(deleg_id, subject, proxy_data)) {
+          error_description="Failed to store delegation.";
+          logger.msg(Arc::ERROR, "%s", error_description);
+          delete_job_id(); 
+          return 1;
+        };
+        job_desc.delegationid = deleg_id;
+        deleg_ids.push_back(deleg_id); // one more delegation id
+      };
+      // And store public credentials into proxy file
+      try {
+        Arc::Credential ci(proxy_fname, proxy_fname, config.CertDir(), "");
+        job_desc.expiretime = ci.GetEndTime();
+        std::string user_cert;
+        ci.OutputCertificate(user_cert);
+        ci.OutputCertificateChain(user_cert);
+        if(!job_proxy_write_file(job,config,proxy_data)) {
+          error_description="Failed to store user credentials.";
+          logger.msg(Arc::ERROR, "%s", error_description);
+          delete_job_id(); 
+          return 1;
+        };
+      } catch (std::exception&) {
+        job_desc.expiretime = time(NULL);
+      };
     };
-    int hh=::open(proxy_fname.c_str(),O_RDONLY);
-    if(hh == -1) {
-      ::close(h);
-      ::remove(fname.c_str());
-      error_description="Failed to read credentials.";
-      return 1;
-    };
-    fix_file_owner(fname,job);
-    int l,ll;
-    const char* s;
-    char buf[256]; 
-    for(;;) {
-      ll=::read(hh,buf,sizeof(buf));
-      if((ll==0) || (ll==-1)) break;
-      for(l=0,s=buf;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
-      if(l==-1) break;
-    };
-    ::close(h);
-    ::close(hh);
-    try {
-      Arc::Credential ci(proxy_fname, proxy_fname, config.CertDir(), "");
-      job_desc.expiretime = ci.GetEndTime();
-    } catch (std::exception&) {
-      job_desc.expiretime = time(NULL);
-    };
-  };
+  }
   /* ******************************************
    * Write local file                         *
    ****************************************** */

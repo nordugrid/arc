@@ -398,8 +398,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     // Have per job credentials - store in delegation storage and refer by id later
     std::string deleg_id;
     if(deleg.AddCred(deleg_id, config_.GridName(), credentials)) {
-      job_.delegationid = desc.DataStaging.DelegationID; // remember that special delegation
-      deleg_ids.push_back(desc.DataStaging.DelegationID); // and store in list of all delegations
+      job_.delegationid = deleg_id; // remember that ad-hoc delegation
+      deleg_ids.push_back(deleg_id); // and store in list of all delegations
     } else {
       failure_="Failed to store per job delegation";
       failure_type_=ARexJobInternalError;
@@ -671,16 +671,16 @@ bool ARexJob::UpdateCredentials(const std::string& credentials) {
 
 bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
+  // Per job credentials update - renew generic credentials assigned to this job
   if(job_.delegationid.empty()) return false;
   DelegationStores* delegs = config_.GmConfig().Delegations();
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   std::string fname = deleg.FindCred(job_.delegationid, config_.GridName());
-  //::unlink(fname.c_str());
-  //int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
+  // File permissions are already tuned because there is old delegation stored here already
+  // TODO: Implement FileUtils method for re-writing existing file.
   int h=::open(fname.c_str(), O_WRONLY | O_TRUNC, 0600);
   if(h == -1) return false;
-  //fix_file_owner(fname,config_.User());
   const char* s = credentials.c_str();
   int ll = credentials.length();
   int l = 0;
