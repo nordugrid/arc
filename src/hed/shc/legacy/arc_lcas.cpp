@@ -13,8 +13,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
-//#include <arc/globusutils/GSSCredential.h>
-#include <arc/credential/Credential.h>
+#include "cert_util.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCAS");
 
@@ -62,7 +61,7 @@ typedef struct gss_cred_id_desc_struct {
 extern gss_OID_desc * gss_nt_x509;
 #define GLOBUS_GSS_C_NT_X509 gss_nt_x509
 
-};
+}; // extern "C"
 
 static std::string lcas_db_file_old;
 static std::string lcas_dir_old;
@@ -88,10 +87,13 @@ void recover_lcas_env(void) {
 }
 
 gss_cred_id_t read_globus_credentials(const std::string& filename) {
-  Arc::Credential cred(filename, "", "", "", "", true);
-  X509* cert = cred.GetCert();
-  STACK_OF(X509)* cchain = cred.GetCertChain();
-  EVP_PKEY* key = cred.GetPrivKey();
+  X509* cert = NULL;
+  STACK_OF(X509)* cchain = NULL;
+  EVP_PKEY* key = NULL;
+  
+  LoadCertificateFile(filename, cert, cchain);
+  LoadKeyFile(filename, key);
+
   globus_gsi_cred_handle_t chandle;
   globus_gsi_cred_handle_init(&chandle, NULL);
   if(cert) globus_gsi_cred_set_cert(chandle, cert);
