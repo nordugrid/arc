@@ -10,9 +10,7 @@
 #ifndef ARC_LISTFUNC_H
 #define ARC_LISTFUNC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace ArcCredential {
 
 #include <stdlib.h>
 
@@ -36,8 +34,7 @@ extern char **listadd(char **vect, char *data, int size);
   function f is used. On exit vect array is destroyed. */
 extern void   listfree(char **vect, freefn f);
 
-#ifdef __cplusplus
-}
-#endif
+
+} // namespace ArcCredential
 
 #endif

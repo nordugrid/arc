@@ -104,7 +104,7 @@ typedef struct SEC_PKCS12SafeInfoStr SEC_PKCS12SafeInfo;
 typedef struct SEC_PKCS12ExportContextStr SEC_PKCS12ExportContext;
 
 using namespace Arc;
-namespace AuthN {
+namespace ArcAuthNSS {
 
   //Logger& NSSUtilLogger = log();
   Arc::Logger NSSUtilLogger(Arc::Logger::rootLogger, "NSSUtil");

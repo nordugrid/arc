@@ -13,9 +13,9 @@
 #define X509_CERT_DIR  "X509_CERT_DIR"
 
 #ifndef WIN32
-#define FILE_SEPERATOR "/"
+#define FILE_SEPARATOR "/"
 #else
-#define FILE_SEPERATOR "\\"
+#define FILE_SEPARATOR "\\"
 #endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
@@ -419,32 +419,30 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
     /** Only need to check signing policy file for no-proxy certificate*/
     std::string cadir;
-    char* ca_policy_file_path = NULL;
     if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
+
       cadir = vctx->ca_dir;
       if(cadir.empty()) {
         logger.msg(Arc::INFO,"Directory of trusted CAs is not specified/found; Using current path as the CA direcroty");
         cadir = ".";
       }
 
-      unsigned int buffer_len;
-      unsigned long hash;
-      hash = X509_NAME_hash(X509_get_issuer_name(store_ctx->current_cert));
-
-      buffer_len = cadir.length() + strlen(FILE_SEPERATOR) + 8 /* hash */
-        + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* NULL */;
-      ca_policy_file_path = (char*) malloc(buffer_len);
+      unsigned long hash = X509_NAME_hash(X509_get_issuer_name(store_ctx->current_cert));
+      unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 /* hash */
+        + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* zero termination */;
+      char* ca_policy_file_path = (char*) malloc(buffer_len);
       if(ca_policy_file_path == NULL) {
         logger.msg(Arc::ERROR,"Can't allocate memory for CA policy path");
         store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION;
         return (0);
       }
-      snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir.c_str(), FILE_SEPERATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
+      snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir.c_str(), FILE_SEPARATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
       ca_policy_file_path[buffer_len-1]=0;
 
       //TODO check the certificate against policy
 
       free(ca_policy_file_path);
+
     }
     return (1); //Every thing that need to check for non-proxy has been passed
   }

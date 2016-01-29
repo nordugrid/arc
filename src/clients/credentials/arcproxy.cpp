@@ -166,16 +166,16 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
 } 
 
 static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
-  std::list<AuthN::certInfo> certInfolist;
-  AuthN::nssListUserCertificatesInfo(certInfolist);
+  std::list<ArcAuthNSS::certInfo> certInfolist;
+  ArcAuthNSS::nssListUserCertificatesInfo(certInfolist);
   if(certInfolist.size()) {
     std::cout<<Arc::IString("There are %d user certificates existing in the NSS database",
       certInfolist.size())<<std::endl;
   }
   int n = 1;
-  std::list<AuthN::certInfo>::iterator it;
+  std::list<ArcAuthNSS::certInfo>::iterator it;
   for(it = certInfolist.begin(); it != certInfolist.end(); it++) {
-    AuthN::certInfo cert_info = (*it);
+    ArcAuthNSS::certInfo cert_info = (*it);
     std::string sub_dn = cert_info.subject_dn;
     std::string cn_name;
     std::string::size_type pos1, pos2;
@@ -1070,7 +1070,7 @@ int main(int argc, char *argv[]) {
       configdir = nssdb_paths[0];
     }
 
-    res = AuthN::nssInit(configdir);
+    res = ArcAuthNSS::nssInit(configdir);
     std::cout<< Arc::IString("NSS database to be accessed: %s\n", configdir.c_str());
 
     //The nss db under firefox profile seems to not be protected by any passphrase by default
@@ -1081,7 +1081,7 @@ int main(int argc, char *argv[]) {
     std::string proxy_csrfile = "proxy.csr";
     std::string proxy_keyname = "proxykey";
     std::string proxy_privk_str;
-    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", *passsources[pass_nss], proxy_csrfile, proxy_privk_str, ascii);
+    res = ArcAuthNSS::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", *passsources[pass_nss], proxy_csrfile, proxy_privk_str, ascii);
     if(!res) return EXIT_FAILURE;
 
     // Create a temporary proxy and contact voms server
@@ -1096,7 +1096,7 @@ int main(int argc, char *argv[]) {
       
       // Create tmp proxy cert
       int duration = 12;
-      res = AuthN::nssCreateCert(proxy_csrfile, issuername, NULL, duration, "", tmp_proxy_path, ascii);
+      res = ArcAuthNSS::nssCreateCert(proxy_csrfile, issuername, NULL, duration, "", tmp_proxy_path, ascii);
       if(!res) {
         remove_proxy_file(tmp_proxy_path);
         return EXIT_FAILURE;
@@ -1113,7 +1113,7 @@ int main(int argc, char *argv[]) {
         remove_proxy_file(tmp_proxy_path);
         return EXIT_FAILURE;
       }
-      res = AuthN::nssExportCertificate(issuername, cert_file);
+      res = ArcAuthNSS::nssExportCertificate(issuername, cert_file);
       if(!res) {
         remove_cert_file(cert_file);
         remove_proxy_file(tmp_proxy_path);
@@ -1149,11 +1149,11 @@ int main(int argc, char *argv[]) {
 
     std::string vomsacseq_asn1;
     if(!vomsacseq.empty()) Arc::VOMSACSeqEncode(vomsacseq, vomsacseq_asn1);
-    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq_asn1, proxy_certfile, ascii);
+    res = ArcAuthNSS::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq_asn1, proxy_certfile, ascii);
     if(!res) return EXIT_FAILURE;
 
     const char* proxy_certname = "proxycert";
-    res = AuthN::nssImportCert(*passsources[pass_nss], proxy_certfile, proxy_certname, trusts, ascii);
+    res = ArcAuthNSS::nssImportCert(*passsources[pass_nss], proxy_certfile, proxy_certname, trusts, ascii);
     if(!res) return EXIT_FAILURE;
 
     //Compose the proxy certificate 
@@ -1167,7 +1167,7 @@ int main(int argc, char *argv[]) {
     if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
     usercfg.ProxyPath(proxy_path);
     std::string cert_file = "cert.pem";
-    res = AuthN::nssExportCertificate(issuername, cert_file);
+    res = ArcAuthNSS::nssExportCertificate(issuername, cert_file);
     if(!res) return EXIT_FAILURE;
 
     std::string proxy_cred_str;
