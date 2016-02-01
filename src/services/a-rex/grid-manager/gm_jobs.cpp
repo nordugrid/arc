@@ -331,23 +331,25 @@ int main(int argc, char* argv[]) {
 
   if(show_delegs || (show_deleg_ids.size() > 0)) {
     ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
-    std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
-    for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
-                                     cred != creds.end(); ++cred) {
-      if((filter_users.size() > 0) && (!match_list(cred->second,filter_users))) continue;
-      if(show_delegs) {
-        std::cout<<"Delegation: "<<cred->first<<std::endl;
-        std::cout<<"\tUser: "<<cred->second<<std::endl;
-      }
-      if(show_deleg_ids.size() > 0) {
-        // TODO: optimize to avoid full scanning.
-        if(match_list(cred->first,show_deleg_ids)) {
-          std::string tokenpath = dstore.FindCred(cred->first,cred->second);
-          if(!tokenpath.empty()) {
-            std::string token;
-            if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
-              std::cout<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
-              std::cout<<token<<std::endl;
+    if(dstore) {
+      std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
+      for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
+                                       cred != creds.end(); ++cred) {
+        if((filter_users.size() > 0) && (!match_list(cred->second,filter_users))) continue;
+        if(show_delegs) {
+          std::cout<<"Delegation: "<<cred->first<<std::endl;
+          std::cout<<"\tUser: "<<cred->second<<std::endl;
+        }
+        if(show_deleg_ids.size() > 0) {
+          // TODO: optimize to avoid full scanning.
+          if(match_list(cred->first,show_deleg_ids)) {
+            std::string tokenpath = dstore.FindCred(cred->first,cred->second);
+            if(!tokenpath.empty()) {
+              std::string token;
+              if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
+                std::cout<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
+                std::cout<<token<<std::endl;
+              }
             }
           }
         }

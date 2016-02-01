@@ -25,19 +25,22 @@ namespace ARex {
   #define FR_DB_NAME "list"
 
   void db_env_clean(const std::string& base) {
-    Glib::Dir dir(base);
-    std::string name;
-    while ((name = dir.read_name()) != "") {
-      std::string fullpath(base);
-      fullpath += G_DIR_SEPARATOR_S + name;
-      struct stat st;
-      if (::lstat(fullpath.c_str(), &st) == 0) {
-        if(!S_ISDIR(st.st_mode)) {
-          if(name != FR_DB_NAME) {
-            Arc::FileDelete(fullpath.c_str());
+    try {
+      Glib::Dir dir(base);
+      std::string name;
+      while ((name = dir.read_name()) != "") {
+        std::string fullpath(base);
+        fullpath += G_DIR_SEPARATOR_S + name;
+        struct stat st;
+        if (::lstat(fullpath.c_str(), &st) == 0) {
+          if(!S_ISDIR(st.st_mode)) {
+            if(name != FR_DB_NAME) {
+              Arc::FileDelete(fullpath.c_str());
+            };
           };
         };
       };
+    } catch(Glib::FileError& e) {
     };
   }
 
