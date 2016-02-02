@@ -478,7 +478,7 @@ int main(int argc, char *argv[]) {
     }
     bool res;
     std::string configdir = nssdb_path;
-    res = AuthN::nssInit(configdir);
+    res = ArcAuthNSS::nssInit(configdir);
     std::cout<< Arc::IString("NSS database to be accessed: %s\n", configdir.c_str());
 
     char* slotpw = NULL; //"secretpw";  //TODO: Input passphrase to nss db 
@@ -489,7 +489,7 @@ int main(int argc, char *argv[]) {
     std::string proxy_csrfile = "proxy.csr";
     std::string proxy_keyname = "proxykey";
     std::string proxy_privk_str;
-    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
+    res = ArcAuthNSS::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
     if(!res) return EXIT_FAILURE;
 
     std::string proxy_certfile = "myproxy.pem";
@@ -498,11 +498,11 @@ int main(int argc, char *argv[]) {
     //normally "Imported Certificate" by default, if name is not specified
     int duration = 12;
     std::string vomsacseq;
-    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq, proxy_certfile, ascii);
+    res = ArcAuthNSS::nssCreateCert(proxy_csrfile, issuername, "", duration, vomsacseq, proxy_certfile, ascii);
     if(!res) return EXIT_FAILURE;
 
     const char* proxy_certname = "proxycert";
-    res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
+    res = ArcAuthNSS::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
     if(!res) return EXIT_FAILURE;
 
     //Compose the proxy certificate 
@@ -516,7 +516,7 @@ int main(int argc, char *argv[]) {
     if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
     usercfg.ProxyPath(proxy_path);
     std::string cert_file = "cert.pem";
-    res = AuthN::nssExportCertificate(issuername, cert_file);
+    res = ArcAuthNSS::nssExportCertificate(issuername, cert_file);
     if(!res) return EXIT_FAILURE;
 
     std::string proxy_cred_str;
