@@ -13,6 +13,8 @@
 #include "../conf/UrlMapConfig.h"
 #include "../files/ControlFileHandling.h"
 #include "../conf/StagingConfig.h"
+#include "../../delegation/DelegationStore.h"
+#include "../../delegation/DelegationStores.h"
 
 #include "GMJob.h"
 
@@ -581,9 +583,25 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
 
   uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
+
   // Default credentials to be used by transfering files if not specified per file
-  std::string default_cred = job_proxy_filename(jobid, config);
-  
+  std::string default_cred = job_proxy_filename(jobid, config); // TODO: drop job.proxy as source of delegation
+  {
+    JobLocalDescription job_desc;
+    if(job_local_read_file(jobid, config, job_desc)) {
+      if(!job_desc.delegationid.empty()) {
+        ARex::DelegationStores* delegs = config.Delegations();
+        if(delegs) {
+          DelegationStore& deleg = delegs->operator[](config.DelegationDir());
+          std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
+          if(!fname.empty()) {
+            default_cred = fname;
+          };
+        };
+      };
+    };
+  };
+
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
