@@ -676,18 +676,9 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   DelegationStores* delegs = config_.GmConfig().Delegations();
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
-  std::string fname = deleg.FindCred(job_.delegationid, config_.GridName());
-  // File permissions are already tuned because there is old delegation stored here already
-  // TODO: Implement FileUtils method for re-writing existing file.
-  int h=::open(fname.c_str(), O_WRONLY | O_TRUNC, 0600);
-  if(h == -1) return false;
-  const char* s = credentials.c_str();
-  int ll = credentials.length();
-  int l = 0;
-  for(;(ll>0) && (l!=-1);s+=l,ll-=l) l=::write(h,s,ll);
-  ::close(h);
-  if(l==-1) return false;
-  job_.expiretime = Arc::Credential(fname,"","","").GetEndTime();
+  if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
+  job_.expiretime = Arc::Credential(credentials,"","","","",false).GetEndTime();
+  // TODO: should job.#.proxy be updated too?
   return true;
 }
 
