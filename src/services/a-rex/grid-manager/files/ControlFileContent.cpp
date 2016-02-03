@@ -61,14 +61,19 @@ static inline bool read_str(int f,char* buf,int size) {
 
 std::ostream &operator<< (std::ostream &o,const FileData &fd) {
   std::string escaped_pfn(Arc::escape_chars(fd.pfn, " \\\r\n", '\\', false));
-  o.write(escaped_pfn.c_str(), escaped_pfn.size());
-  o.put(' ');
-  std::string escaped_lfn(Arc::escape_chars(fd.lfn, " \\\r\n", '\\', false));
-  o.write(escaped_lfn.c_str(), escaped_lfn.size());
-  if(fd.lfn.empty() || fd.cred.empty()) return o;
-  o.put(' ');
-  std::string escaped_cred(Arc::escape_chars(fd.cred, " \\\r\n", '\\', false));
-  o.write(escaped_cred.c_str(), escaped_cred.size());
+  if(!escaped_pfn.empty()) {
+    o.write(escaped_pfn.c_str(), escaped_pfn.size());
+    std::string escaped_lfn(Arc::escape_chars(fd.lfn, " \\\r\n", '\\', false));
+    if(!escaped_lfn.empty()) {
+      o.put(' ');
+      o.write(escaped_lfn.c_str(), escaped_lfn.size());
+      std::string escaped_cred(Arc::escape_chars(fd.cred, " \\\r\n", '\\', false));
+      if(!escaped_cred.empty()) {
+        o.put(' ');
+        o.write(escaped_cred.c_str(), escaped_cred.size());
+      };
+    };
+  };
   return o;
 }
 
@@ -279,6 +284,10 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       outputdata.push_back(fdata);
     }
   }
+  // Pick up per job delegation
+  if(!arc_job_desc.DataStaging.DelegationID.empty()) {
+    delegationid = arc_job_desc.DataStaging.DelegationID;
+  };
 
   exec = arc_job_desc.Application.Executable;
   for(std::list<Arc::ExecutableType>::const_iterator e = arc_job_desc.Application.PreExecutable.begin();

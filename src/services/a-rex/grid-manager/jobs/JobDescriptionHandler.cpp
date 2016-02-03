@@ -39,9 +39,21 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   if(parse_job_req(job.get_id(),job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>config.Reruns()) job_desc.reruns=config.Reruns();
   if(!job_local_write_file(job,config,job_desc)) return false;
+
   // Convert delegation ids to credential paths.
   // Add default credentials for file which have no own assigned.
-  std::string default_cred = job_proxy_filename(job.get_id(), config);
+  ARex::DelegationStores* delegs = config.Delegations();
+  std::string default_cred = job_proxy_filename(job.get_id(), config); // TODO: drop job.proxy as source of delegation
+  if(!job_desc.delegationid.empty()) {
+    if(delegs) {
+      DelegationStore& deleg = delegs->operator[](config.DelegationDir());
+      std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
+      if(!fname.empty()) {
+        default_cred = fname;
+      };
+    };
+  };
+
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                    f != job_desc.inputdata.end(); ++f) {
     if(f->has_lfn()) {
@@ -49,7 +61,6 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
         f->cred = default_cred;
       } else {
         std::string path;
-        ARex::DelegationStores* delegs = config.Delegations();
         if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN);
         f->cred = path;
       };

@@ -120,6 +120,7 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   if (Arc::FileRead(fname_src, proxy_data)) {
     std::string user_cert;
     bool in_private=false;
+    // TODO: remove private key filtering in a future because job.proxy file will soon contain only public part
     for (std::list<std::string>::iterator line = proxy_data.begin();
          line != proxy_data.end(); ++line) {
       if (in_private) { // Skip private key

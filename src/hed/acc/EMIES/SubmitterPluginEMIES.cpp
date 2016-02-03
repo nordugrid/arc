@@ -56,7 +56,7 @@ namespace Arc {
     URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443);
 
     SubmissionStatus retval;
-    bool need_delegation = false;
+    bool need_delegation = true; //false;
     std::string delegation_id;
     std::list<bool> have_uploads;
     XMLNodeList products;
@@ -103,6 +103,7 @@ namespace Arc {
       }
 
       if (need_delegation && delegation_id.empty()) {
+std::cerr<<"------- requesting delegation -------"<<std::endl;
         // Assume that delegation interface is on same machine as submission interface.
         if (!getDelegationID(url, delegation_id)) {
           notSubmitted.push_back(&*itJ);
@@ -398,7 +399,7 @@ namespace Arc {
     }
 
     bool have_uploads = false;
-    bool need_delegation = false;
+    bool need_delegation = true; //false;
     for(std::list<InputFileType>::const_iterator itIF =
           preparedjobdesc.DataStaging.InputFiles.begin();
           itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
@@ -454,6 +455,7 @@ namespace Arc {
 
     std::string delegation_id;
     if(need_delegation) {
+std::cerr<<"------- requesting delegation -------"<<std::endl;
       if(!getDelegationID(durl, delegation_id)) return false;
     }
 

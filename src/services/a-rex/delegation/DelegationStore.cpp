@@ -272,6 +272,20 @@ namespace ARex {
     return true;
   }
 
+  bool DelegationStore::PutCred(const std::string& id, const std::string& client, const std::string& credentials) {
+    std::list<std::string> meta;
+    std::string path = fstore_->Find(id,client,meta);
+    if(path.empty()) {
+      failure_ = "Local error - failed to find specified credentials. "+fstore_->Error();
+      return false;
+    }
+    if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
+      failure_ = "Local error - failed to store delegation";
+      return false;
+    };
+    return true;
+  }
+
   std::string DelegationStore::FindCred(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
     return fstore_->Find(id,client,meta);
