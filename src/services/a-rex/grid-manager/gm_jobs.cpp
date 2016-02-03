@@ -171,6 +171,11 @@ int main(int argc, char* argv[]) {
                     istring("print delegation token of specified ID(s)"),
                     istring("id"), show_deleg_ids);
 
+  std::list<std::string> show_deleg_jobs;
+  options.AddOption('D', "showdelegjob",
+                    istring("print main delegation token of specified Job ID(s)"),
+                    istring("job id"), show_deleg_jobs);
+
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -329,7 +334,7 @@ int main(int argc, char* argv[]) {
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<std::endl;
   }
 
-  if(show_delegs || (show_deleg_ids.size() > 0)) {
+  if(show_delegs || (show_deleg_ids.size() > 0) || (show_deleg_jobs.size() > 0)) {
     ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
     std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
     for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
@@ -347,6 +352,27 @@ int main(int argc, char* argv[]) {
             std::string token;
             if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
               std::cout<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
+              std::cout<<token<<std::endl;
+            }
+          }
+        }
+      }
+    }
+  }
+  if(show_deleg_jobs.size() > 0) {
+    ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
+    for(std::list<std::string>::iterator jobid = show_deleg_jobs.begin();
+                         jobid != show_deleg_jobs.end(); ++jobid) {
+      // Read job's local file to extract delegation id
+      JobLocalDescription job_desc;
+      if(job_local_read_file(*jobid,config,job_desc)) {
+        if(!job_desc.delegationid.empty())  {
+          std::string tokenpath = dstore.FindCred(job_desc.delegationid,job_desc.DN);
+          if(!tokenpath.empty()) {
+            std::string token;
+            if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
+              std::cout<<"Job: "<<*jobid<<std::endl;
+              std::cout<<"Delegation: "<<job_desc.delegationid<<", "<<job_desc.DN<<std::endl;
               std::cout<<token<<std::endl;
             }
           }
