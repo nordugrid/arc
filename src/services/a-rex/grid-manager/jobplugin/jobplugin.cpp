@@ -885,7 +885,7 @@ int JobPlugin::close(bool eof) {
         std::string user_cert;
         ci.OutputCertificate(user_cert);
         ci.OutputCertificateChain(user_cert);
-        if(!job_proxy_write_file(job,config,proxy_data)) {
+        if(!job_proxy_write_file(job,config,user_cert)) {
           error_description="Failed to store user credentials.";
           logger.msg(Arc::ERROR, "%s", error_description);
           delete_job_id(); 
@@ -1210,7 +1210,7 @@ int JobPlugin::checkdir(std::string &dirname) {
     };
     return 0;
   };
-  if((dirname == id) && (proxy_fname.length())) {  /* cd to session directory - renew proxy request */
+  if((dirname == id) && (!proxy_fname.empty()) && proxy_is_deleg) {  /* cd to session directory - renew proxy request */
     JobLocalDescription job_desc;
     if(!job_local_read_file(id,config,job_desc)) {
       error_description="Job is probably corrupted: can't read internal information.";
@@ -1221,21 +1221,34 @@ int JobPlugin::checkdir(std::string &dirname) {
     std::string old_proxy_fname=config.ControlDir()+"/job."+id+".proxy";
     Arc::Time new_proxy_expires;
     Arc::Time old_proxy_expires;
+    std::string proxy_data;
+    std::string user_cert;
     try {
-      Arc::Credential new_ci(proxy_fname, proxy_fname, config.CertDir(), "");
+      (void)Arc::FileRead(proxy_fname, proxy_data);
+      if(proxy_data.empty()) {
+        error_description="Failed to obtain delegation content.";
+        logger.msg(Arc::ERROR, "%s", error_description);
+        return 1;
+      };
+      Arc::Credential new_ci(proxy_data, proxy_data, config.CertDir(), "", "", false);
       new_proxy_expires = new_ci.GetEndTime();
+      new_ci.OutputCertificate(user_cert);
+      new_ci.OutputCertificateChain(user_cert);
     } catch (std::exception&) { };
     try {
-      Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, config.CertDir(), "");
+      Arc::Credential old_ci(old_proxy_fname, "", config.CertDir(), "");
       old_proxy_expires = old_ci.GetEndTime();
     } catch (std::exception&) { };
     if(new_proxy_expires > old_proxy_expires) {
       /* try to renew proxy */
       logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
-      if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
-        fix_file_owner(old_proxy_fname,user);
+      ARex::DelegationStore deleg(config.DelegationDir(),false);
+      if((!job_desc.delegationid.empty()) && deleg.PutCred(job_desc.delegationid, subject, proxy_data)) {
+        // Also store public content into job.#.proxy
+        // Ignore error because main store is already updated
+        GMJob job(id, user, "", JOB_STATE_ACCEPTED);
+        (void)job_proxy_write_file(job, config, user_cert);
         logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
-        GMJob job(id,user,"",JOB_STATE_ACCEPTED);
         job_desc.expiretime=new_proxy_expires;
         if(!job_local_write_file(job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
