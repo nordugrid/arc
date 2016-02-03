@@ -108,7 +108,8 @@ namespace Arc {
         // Check if it is computing endpoint at all
         for (std::set<std::string>::const_iterator itCap = itCE->second.Attributes->Capability.begin();
                     itCap != itCE->second.Attributes->Capability.end(); ++itCap) {
-          if(*itCap == "executionmanagement.jobcreation") {
+          if((*itCap == "executionmanagement.jobcreation") ||
+             (*itCap == "executionmanagement.jobexecution")) {
             // Creating generic target
             CountedPointer<ComputingShareAttributes> computingShare(new ComputingShareAttributes);
             std::list< CountedPointer<MappingPolicyAttributes> > MappingPolicies;
