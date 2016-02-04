@@ -176,6 +176,11 @@ int main(int argc, char* argv[]) {
                     istring("print main delegation token of specified Job ID(s)"),
                     istring("job id"), show_deleg_jobs);
 
+  std::string output_file;
+  options.AddOption('o', "output",
+                    istring("output requested elements (jobs list, delegation ids and tokens) to file"),
+                    istring("file name"), output_file);
+
 
   std::list<std::string> params = options.Parse(argc, argv);
 
@@ -193,6 +198,17 @@ int main(int argc, char* argv[]) {
   
   if (!control_dir.empty()) config.SetControlDir(control_dir);
   config.Print();
+
+  std::ostream* outs = &std::cout;
+  std::ofstream outf;
+  if(!output_file.empty()) {
+    outf.open(output_file.c_str());
+    if(!outf.is_open()) {
+      std::cerr<<"Failed to open output file '"<<output_file<<"'"<<std::endl;
+      return -1;
+    };
+    outs = &outf;
+  }
 
   if((!notshow_jobs) || (!notshow_states) || (show_share) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
@@ -267,22 +283,21 @@ int main(int argc, char* argv[]) {
       if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
       if(!notshow_jobs) {
         if (!long_list) {
-          std::cout<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
+          *outs<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
           continue;
         }
-        std::cout<<std::endl;
-        std::cout<<"\tState: "<<states_all[new_state].name;
-        if (pending)
-          std::cout<<" (PENDING)";
-        std::cout<<std::endl;
-        std::cout<<"\tModified: "<<job_time.str()<<std::endl;
-        std::cout<<"\tUser: "<<job_desc.DN<<std::endl;
+        *outs<<std::endl;
+        *outs<<"\tState: "<<states_all[new_state].name;
+        if (pending) *outs<<" (PENDING)";
+        *outs<<std::endl;
+        *outs<<"\tModified: "<<job_time.str()<<std::endl;
+        *outs<<"\tUser: "<<job_desc.DN<<std::endl;
         if (!job_desc.localid.empty())
-          std::cout<<"\tLRMS id: "<<job_desc.localid<<std::endl;
+          *outs<<"\tLRMS id: "<<job_desc.localid<<std::endl;
         if (!job_desc.jobname.empty())
-          std::cout<<"\tName: "<<job_desc.jobname<<std::endl;
+          *outs<<"\tName: "<<job_desc.jobname<<std::endl;
         if (!job_desc.clientname.empty())
-          std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
+          *outs<<"\tFrom: "<<job_desc.clientname<<std::endl;
         // TODO: print whole local
       }
     }
@@ -292,30 +307,30 @@ int main(int argc, char* argv[]) {
   }
   
   if(show_share) {
-    std::cout<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
+    *outs<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
-      std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      *outs<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     for (std::map<std::string, int>::iterator i = share_preparing_pending.begin(); i != share_preparing_pending.end(); i++) {
       if (share_preparing[i->first] == 0)
-        std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+        *outs<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     std::cout<<"\n Finishing/Pending files\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
-      std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      *outs<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     for (std::map<std::string, int>::iterator i = share_finishing_pending.begin(); i != share_finishing_pending.end(); i++) {
       if (share_finishing[i->first] == 0)
-        std::cout<<"         0/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+        *outs<<"         0/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
-    std::cout<<std::endl;
+    *outs<<std::endl;
   }
   
   if(!notshow_states) {
-    std::cout<<"Jobs total: "<<jobs_total<<std::endl;
+    *outs<<"Jobs total: "<<jobs_total<<std::endl;
 
     for (int i=0; i<JOB_STATE_UNDEFINED; i++) {
-      std::cout<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
+      *outs<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
     }
 
     unsigned int accepted = counters[JOB_STATE_ACCEPTED] +
@@ -323,18 +338,18 @@ int main(int argc, char* argv[]) {
                             counters[JOB_STATE_SUBMITTING] +
                             counters[JOB_STATE_INLRMS] +
                             counters[JOB_STATE_FINISHING];
-    std::cout<<" Accepted: "<<accepted<<"/"<<config.MaxJobs()<<std::endl;
+    *outs<<" Accepted: "<<accepted<<"/"<<config.MaxJobs()<<std::endl;
     unsigned int running = counters[JOB_STATE_SUBMITTING] +
                            counters[JOB_STATE_INLRMS];
-    std::cout<<" Running: "<<running<<"/"<<config.MaxRunning()<<std::endl;
+    *outs<<" Running: "<<running<<"/"<<config.MaxRunning()<<std::endl;
 
-    std::cout<<" Total: "<<jobs_total<<"/"<<config.MaxTotal()<<std::endl;
-    std::cout<<" Processing: "<<
+    *outs<<" Total: "<<jobs_total<<"/"<<config.MaxTotal()<<std::endl;
+    *outs<<" Processing: "<<
     counters[JOB_STATE_PREPARING]-counters_pending[JOB_STATE_PREPARING]<<"+"<<
     counters[JOB_STATE_FINISHING]-counters_pending[JOB_STATE_FINISHING]<<std::endl;
   }
 
-  if(show_delegs || (show_deleg_ids.size() > 0) || (show_deleg_jobs.size() > 0)) {
+  if(show_delegs || (show_deleg_ids.size() > 0)) {
     ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
     if(dstore) {
       std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
@@ -342,8 +357,8 @@ int main(int argc, char* argv[]) {
                                        cred != creds.end(); ++cred) {
         if((filter_users.size() > 0) && (!match_list(cred->second,filter_users))) continue;
         if(show_delegs) {
-          std::cout<<"Delegation: "<<cred->first<<std::endl;
-          std::cout<<"\tUser: "<<cred->second<<std::endl;
+          *outs<<"Delegation: "<<cred->first<<std::endl;
+          *outs<<"\tUser: "<<cred->second<<std::endl;
         }
         if(show_deleg_ids.size() > 0) {
           // TODO: optimize to avoid full scanning.
@@ -352,8 +367,8 @@ int main(int argc, char* argv[]) {
             if(!tokenpath.empty()) {
               std::string token;
               if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
-                std::cout<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
-                std::cout<<token<<std::endl;
+                *outs<<"Delegation: "<<cred->first<<", "<<cred->second<<std::endl;
+                *outs<<token<<std::endl;
               }
             }
           }
@@ -368,22 +383,27 @@ int main(int argc, char* argv[]) {
       // Read job's local file to extract delegation id
       JobLocalDescription job_desc;
       if(job_local_read_file(*jobid,config,job_desc)) {
+        std::string token;
         if(!job_desc.delegationid.empty())  {
           std::string tokenpath = dstore.FindCred(job_desc.delegationid,job_desc.DN);
           if(!tokenpath.empty()) {
-            std::string token;
-            if(Arc::FileRead(tokenpath,token) && (!token.empty())) {
-              std::cout<<"Job: "<<*jobid<<std::endl;
-              std::cout<<"Delegation: "<<job_desc.delegationid<<", "<<job_desc.DN<<std::endl;
-              std::cout<<token<<std::endl;
-            }
+            (void)Arc::FileRead(tokenpath,token);
           }
+        }
+        if(token.empty()) {
+          // fall back to public only part
+          (void)job_proxy_read_file(*jobid,config,token);
+        }
+        if(!token.empty()) {
+          *outs<<"Job: "<<*jobid<<std::endl;
+          *outs<<"Delegation: "<<job_desc.delegationid<<", "<<job_desc.DN<<std::endl;
+          *outs<<token<<std::endl;
         }
       }
     }
   }
   if(show_service) {
-    std::cout<<" Service state: "<<(service_alive?"alive":"not detected")<<std::endl;
+    *outs<<" Service state: "<<(service_alive?"alive":"not detected")<<std::endl;
   }
   
   if(cancel_jobs_list.size() > 0) {

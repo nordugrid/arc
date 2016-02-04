@@ -670,6 +670,11 @@ bool job_proxy_write_file(const GMJob &job,const GMConfig &config,const std::str
   return Arc::FileCreate(fname, cred, 0, 0, S_IRUSR | S_IWUSR) & fix_file_owner(fname,job);
 }
 
+bool job_proxy_read_file(const JobId &id,const GMConfig &config,std::string &cred) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_proxy;
+  return Arc::FileRead(fname, cred, 0, 0);
+}
+
 bool job_clean_finished(const JobId &id,const GMConfig &config) {
   std::string fname;
   fname = config.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
