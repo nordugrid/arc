@@ -393,6 +393,7 @@ int main(int argc, char* argv[]) {
         if(token.empty()) {
           // fall back to public only part
           (void)job_proxy_read_file(*jobid,config,token);
+          job_desc.delegationid = "public";
         }
         if(!token.empty()) {
           *outs<<"Job: "<<*jobid<<std::endl;
