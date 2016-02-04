@@ -456,7 +456,7 @@ sub confcheck($) {
 		"deliveryservice", "unixmap", "unixgroup", "unixvo", "dir",
 		"remotegmdirs", "allowreg", "cluster_owner", "authorizedvo",
 		"clustersupport", "opsys", "benchmark", "nodeaccess",
-		"localse", "cacheserver");
+		"localse", "cacheserver", "cacheaccess");
 	# valid parameter names and blocks
 	my ($validparams, $validblocks) = validconfparams();
 	my $blockname = undef;
