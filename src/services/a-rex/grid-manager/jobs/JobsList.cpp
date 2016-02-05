@@ -12,6 +12,7 @@
 #include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
+#include "../log/JobPerfLog.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
@@ -111,16 +112,40 @@ bool JobsList::ActJobs(void) {
 
   bool res = true;
   bool once_more = false;
+  JobPerfLog* perflog = config.GetJobPerfLog();
 
   // first pass
   for(iterator i=jobs.begin();i!=jobs.end();) {
     if(i->job_state == JOB_STATE_UNDEFINED) { once_more=true; }
+
+    if(perflog) perflog->LogStart();
+    job_state_t start_state = i->job_state;
+
     res &= ActJob(i);
+
+    job_state_t end_state = i->job_state;
+    if(perflog && perflog->GetEnabled()) {
+      std::string name(GMJob::get_state_name(start_state));
+      name += "-";
+      name += GMJob::get_state_name(end_state);
+      perflog->LogEnd(name, i->job_id);
+    };
   }
 
   // second pass - process new jobs again
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
+    if(perflog) perflog->LogStart();
+    job_state_t start_state = i->job_state;
+
     res &= ActJob(i);
+
+    job_state_t end_state = i->job_state;
+    if(perflog && perflog->GetEnabled()) {
+      std::string name(GMJob::get_state_name(start_state));
+      name += "-";
+      name += GMJob::get_state_name(end_state);
+      perflog->LogEnd(name, i->job_id);
+    };
   }
 
   // debug info on jobs per DN
