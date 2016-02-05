@@ -119,7 +119,7 @@ namespace Arc {
      * \since Added in 4.1.0.
      **/
     std::multimap<std::string, std::string> headers;
-    std::string location; /// Value of location attribute in HTTP response
+    URL location; /// Value of location attribute in HTTP response
   };
 
 

@@ -521,7 +521,7 @@ namespace Arc {
     for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");i.hasMore();++i) {
       info->cookies.push_back(*i);
     }
-    info->location = repmsg.Attributes()->get("HTTP:location");
+    info->location = URL(repmsg.Attributes()->get("HTTP:location"), true);
     // Put all headers in generic map
     for(AttributeIterator i = repmsg.Attributes()->getAll();i.hasMore();++i) {
       info->headers.insert(std::pair<std::string, std::string>(i.key(), *i));
