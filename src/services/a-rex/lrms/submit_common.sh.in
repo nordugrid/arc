@@ -325,14 +325,14 @@ RTE_stage1 () {
       while [ ! -z "${arg_is_set}" ] ; do
          eval "arg_value=\${joboption_runtime_${i}_${arg_num}}"
          # Use -- to avoid echo eating arguments it understands
-         arg_value=`echo -- "$arg_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+         arg_value=`printf "%s" "$arg_value" | sed 's/"/\\\\\\\"/g'`
          args_value="$args_value \"${arg_value}\""
          arg_num=$(( $arg_num + 1 ))
          eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
       done
       #echo "    . \${RUNTIME_CONFIG_DIR}/${var_value} $args_value " >> $LRMS_JOB_SCRIPT
       echo "    cmdl=\${RUNTIME_CONFIG_DIR}/${var_value} " >> $LRMS_JOB_SCRIPT
-      echo "    sourcewithargs \$cmdl $args_value " >> $LRMS_JOB_SCRIPT
+      printf "    sourcewithargs \$cmdl $args_value \n" >> $LRMS_JOB_SCRIPT
 
       echo "    if [ \$? -ne '0' ] ; then " >> $LRMS_JOB_SCRIPT
       echo "      echo \"Runtime ${var_value} script failed \" 1>&2 " >> $LRMS_JOB_SCRIPT
@@ -391,13 +391,13 @@ configure_runtime () {
     while [ ! -z "${arg_is_set}" ] ; do
       eval "arg_value=\${joboption_runtime_${i}_${arg_num}}"
       # Use -- to avoid echo eating arguments it understands
-      arg_value=`echo -- "$arg_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+      arg_value=`printf -- "$arg_value" | sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\\\\\"/g'`
       args_value="$args_value \"${arg_value}\""
       arg_num=$(( $arg_num + 1 ))
       eval "arg_is_set=\${joboption_runtime_${i}_${arg_num}+yes}"
     done
     echo "    cmdl=\${RUNTIME_CONFIG_DIR}/${var_value}" >> $LRMS_JOB_SCRIPT
-    echo "    sourcewithargs \$cmdl $args_value " >> $LRMS_JOB_SCRIPT
+    printf "    sourcewithargs \$cmdl $args_value \n" >> $LRMS_JOB_SCRIPT
     echo "  fi" >> $LRMS_JOB_SCRIPT
     i=$(( $i + 1 ))
     eval "var_is_set=\${joboption_runtime_$i+yes}"
