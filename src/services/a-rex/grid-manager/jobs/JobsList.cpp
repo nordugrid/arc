@@ -108,44 +108,21 @@ void JobsList::PrepareToDestroy(void) {
   }
 }
 
+
 bool JobsList::ActJobs(void) {
 
   bool res = true;
   bool once_more = false;
-  JobPerfLog* perflog = config.GetJobPerfLog();
 
   // first pass
   for(iterator i=jobs.begin();i!=jobs.end();) {
     if(i->job_state == JOB_STATE_UNDEFINED) { once_more=true; }
-
-    if(perflog) perflog->LogStart();
-    job_state_t start_state = i->job_state;
-
     res &= ActJob(i);
-
-    job_state_t end_state = i->job_state;
-    if(perflog && perflog->GetEnabled()) {
-      std::string name(GMJob::get_state_name(start_state));
-      name += "-";
-      name += GMJob::get_state_name(end_state);
-      perflog->LogEnd(name, i->job_id);
-    };
   }
 
   // second pass - process new jobs again
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
-    if(perflog) perflog->LogStart();
-    job_state_t start_state = i->job_state;
-
     res &= ActJob(i);
-
-    job_state_t end_state = i->job_state;
-    if(perflog && perflog->GetEnabled()) {
-      std::string name(GMJob::get_state_name(start_state));
-      name += "-";
-      name += GMJob::get_state_name(end_state);
-      perflog->LogEnd(name, i->job_id);
-    };
   }
 
   // debug info on jobs per DN
@@ -992,6 +969,10 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart(i->job_id);
+  job_state_t perflog_start_state = i->job_state;
+
   bool once_more     = true;
   bool delete_job    = false;
   bool job_error     = false;
@@ -1184,6 +1165,15 @@ bool JobsList::ActJob(JobsList::iterator &i) {
       once_more=true; // to process some things in local
     }
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    job_state_t perflog_end_state = i->job_state;
+    std::string name(GMJob::get_state_name(perflog_start_state));
+    name += "-";
+    name += GMJob::get_state_name(perflog_end_state);
+    perflog->LogEnd(name);
+  };
+
   // FINISHED+DELETED jobs are not kept in list - only in files
   // if job managed to get here with state UNDEFINED -
   // means we are overloaded with jobs - do not keep them in list
@@ -1269,6 +1259,9 @@ bool JobsList::RestartJobs(void) {
 }
 
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   try {
     Glib::Dir dir(cdir);
     for(;;) {
@@ -1295,10 +1288,17 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
     logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.control_dir, e.what());
     return false;
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-JOBS");
+  };
   return true;
 }
 
 bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   try {
     Glib::Dir dir(cdir);
     for(;;) {
@@ -1332,11 +1332,18 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
     logger.msg(Arc::ERROR,"Failed reading control directory: %s",config.control_dir);
     return false;
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-MARKS");
+  };
   return true;
 }
 
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   std::string cdir=config.control_dir;
   std::list<JobFDesc> ids;
   // For picking up jobs after service restart
@@ -1359,10 +1366,17 @@ bool JobsList::ScanNewJobs(void) {
     // adding job with file's uid/gid
     AddJobNoCheck(id->id,i,id->uid,id->gid);
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-JOBS-NEW");
+  };
   return true;
 }
 
 bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   // We are going to scan a dir with a lot of files here. So we scan it in
   // parts and limit scanning time. A finished job is added to the job list
   // and acted on straight away. If it remains finished or is deleted then it
@@ -1416,10 +1430,17 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
     }
     return false;
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-JOBS-OLD");
+  };
   return true;
 }
 
 bool JobsList::ScanNewMarks(void) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   std::string cdir=config.control_dir;
   std::string ndir=cdir+"/"+subdir_new;
   std::list<JobFDesc> ids;
@@ -1448,11 +1469,18 @@ bool JobsList::ScanNewMarks(void) {
       i->job_state = st;
     }
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-MARKS-NEW");
+  };
   return true;
 }
 
 // For simply collecting all jobs. 
 bool JobsList::ScanAllJobs(void) {
+  JobPerfLog* perflog = config.GetJobPerfLog();
+  if(perflog) perflog->LogStart("*");
+
   std::list<std::string> subdirs;
   subdirs.push_back("/restarting"); // For picking up jobs after service restart
   subdirs.push_back("/accepting");  // For new jobs
@@ -1471,6 +1499,10 @@ bool JobsList::ScanAllJobs(void) {
       AddJobNoCheck(id->id,i,id->uid,id->gid);
     }
   }
+
+  if(perflog && perflog->GetEnabled()) {
+    perflog->LogEnd("SCAN-JOBS-ALL");
+  };
   return true;
 }
 

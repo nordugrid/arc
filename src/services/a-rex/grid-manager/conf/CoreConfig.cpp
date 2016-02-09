@@ -14,6 +14,7 @@
 #include "../run/RunPlugin.h"
 #include "../misc/escaped.h"
 #include "../log/JobLog.h"
+#include "../log/JobPerfLog.h"
 #include "../jobs/JobsList.h"
 
 #include "ConfigUtils.h"
@@ -175,6 +176,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (!config.job_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too
       config.job_log->SetOutput(fname.c_str());
+    }
+    else if (command == "jobperflog") { // where to write job information
+      if (!config.job_perf_log) continue;
+      std::string fname = config_next_arg(rest);  // empty is allowed too
+      config.job_perf_log->SetOutput(fname.c_str());
+      config.job_perf_log->SetEnabled(!fname.empty());
     }
     else if (command == "jobreport") { // service to report information to
       if (!config.job_log) continue;

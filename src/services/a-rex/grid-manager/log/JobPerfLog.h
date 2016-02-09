@@ -19,16 +19,17 @@ class JobPerfLog {
   void Log(const std::string& name, const std::string& id, const timespec& start, const timespec& end);
 
   /** Prepare to log one record by remembering start time of action being measured. */
-  void LogStart();
+  void LogStart(const std::string& id);
 
   /** Log performance record started by previous LogStart(). */
-  void LogEnd(const std::string& name, const std::string& id);
+  void LogEnd(const std::string& name);
 
  private:
    std::string log_path;
    bool log_enabled;
    bool start_recorded;
    timespec start_time;
+   std::string start_id;
 
 };
 
