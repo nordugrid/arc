@@ -6,13 +6,13 @@
 #include <fcntl.h>
 
 #include <arc/ArcLocation.h>
-#include <arc/JobPerfLog.h>
 #include <arc/credential/VOMSUtil.h>
 
 #include "../files/ControlFileHandling.h"
 #include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
+#include "../log/JobPerfLog.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
@@ -969,8 +969,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart(i->job_id);
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), i->job_id);
   job_state_t perflog_start_state = i->job_state;
 
   bool once_more     = true;
@@ -1166,12 +1165,12 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     }
   }
 
-  if(perflog && perflog->GetEnabled()) {
+  if(perfrecord.Started()) {
     job_state_t perflog_end_state = i->job_state;
     std::string name(GMJob::get_state_name(perflog_start_state));
     name += "-";
     name += GMJob::get_state_name(perflog_end_state);
-    perflog->LogEnd(name);
+    perfrecord.End(name);
   };
 
   // FINISHED+DELETED jobs are not kept in list - only in files
@@ -1259,8 +1258,7 @@ bool JobsList::RestartJobs(void) {
 }
 
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   try {
     Glib::Dir dir(cdir);
@@ -1289,15 +1287,12 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
     return false;
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-JOBS");
-  };
+  perfrecord.End("SCAN-JOBS");
   return true;
 }
 
 bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   try {
     Glib::Dir dir(cdir);
@@ -1333,16 +1328,13 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
     return false;
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-MARKS");
-  };
+  perfrecord.End("SCAN-MARKS");
   return true;
 }
 
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   std::string cdir=config.control_dir;
   std::list<JobFDesc> ids;
@@ -1367,15 +1359,12 @@ bool JobsList::ScanNewJobs(void) {
     AddJobNoCheck(id->id,i,id->uid,id->gid);
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-JOBS-NEW");
-  };
+  perfrecord.End("SCAN-JOBS-NEW");
   return true;
 }
 
 bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   // We are going to scan a dir with a lot of files here. So we scan it in
   // parts and limit scanning time. A finished job is added to the job list
@@ -1431,15 +1420,12 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
     return false;
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-JOBS-OLD");
-  };
+  perfrecord.End("SCAN-JOBS-OLD");
   return true;
 }
 
 bool JobsList::ScanNewMarks(void) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   std::string cdir=config.control_dir;
   std::string ndir=cdir+"/"+subdir_new;
@@ -1470,16 +1456,13 @@ bool JobsList::ScanNewMarks(void) {
     }
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-MARKS-NEW");
-  };
+  perfrecord.End("SCAN-MARKS-NEW");
   return true;
 }
 
 // For simply collecting all jobs. 
 bool JobsList::ScanAllJobs(void) {
-  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
-  if(perflog) perflog->LogStart("*");
+  JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   std::list<std::string> subdirs;
   subdirs.push_back("/restarting"); // For picking up jobs after service restart
@@ -1500,9 +1483,7 @@ bool JobsList::ScanAllJobs(void) {
     }
   }
 
-  if(perflog && perflog->GetEnabled()) {
-    perflog->LogEnd("SCAN-JOBS-ALL");
-  };
+  perfrecord.End("SCAN-JOBS-ALL");
   return true;
 }
 
