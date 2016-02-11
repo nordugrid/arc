@@ -1,7 +1,10 @@
+#ifndef __ARC_JOB_PERF_LOGGER__
+#define __ARC_JOB_PERF_LOGGER__
+
 #include <time.h>
 #include <string>
 
-namespace ARex {
+namespace Arc {
 
 class JobPerfLog {
  public:
@@ -33,5 +36,6 @@ class JobPerfLog {
 
 };
 
-} // namespace ARex
+} // namespace Arc
 
+#endif // __ARC_JOB_PERFLOGGER__

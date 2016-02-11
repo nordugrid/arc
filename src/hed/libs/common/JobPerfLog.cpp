@@ -9,10 +9,10 @@
 
 #include "JobPerfLog.h"
 
-namespace ARex {
+namespace Arc {
 
 
-JobPerfLog::JobPerfLog() {
+JobPerfLog::JobPerfLog(): log_enabled(false), start_recorded(false) {
 }
 
 JobPerfLog::~JobPerfLog() {
@@ -58,5 +58,5 @@ void JobPerfLog::Log(const std::string& name, const std::string& id, const times
   };
 }
 
-} // namespace ARex
+} // namespace Arc
 

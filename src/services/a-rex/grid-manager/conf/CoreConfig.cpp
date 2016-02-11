@@ -7,6 +7,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
+#include <arc/JobPerfLog.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
@@ -14,7 +15,6 @@
 #include "../run/RunPlugin.h"
 #include "../misc/escaped.h"
 #include "../log/JobLog.h"
-#include "../log/JobPerfLog.h"
 #include "../jobs/JobsList.h"
 
 #include "ConfigUtils.h"

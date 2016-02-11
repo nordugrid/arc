@@ -6,13 +6,13 @@
 #include <fcntl.h>
 
 #include <arc/ArcLocation.h>
+#include <arc/JobPerfLog.h>
 #include <arc/credential/VOMSUtil.h>
 
 #include "../files/ControlFileHandling.h"
 #include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
-#include "../log/JobPerfLog.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
@@ -969,7 +969,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart(i->job_id);
   job_state_t perflog_start_state = i->job_state;
 
@@ -1259,7 +1259,7 @@ bool JobsList::RestartJobs(void) {
 }
 
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   try {
@@ -1296,7 +1296,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
 }
 
 bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   try {
@@ -1341,7 +1341,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   std::string cdir=config.control_dir;
@@ -1374,7 +1374,7 @@ bool JobsList::ScanNewJobs(void) {
 }
 
 bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   // We are going to scan a dir with a lot of files here. So we scan it in
@@ -1438,7 +1438,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
 }
 
 bool JobsList::ScanNewMarks(void) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   std::string cdir=config.control_dir;
@@ -1478,7 +1478,7 @@ bool JobsList::ScanNewMarks(void) {
 
 // For simply collecting all jobs. 
 bool JobsList::ScanAllJobs(void) {
-  JobPerfLog* perflog = config.GetJobPerfLog();
+  Arc::JobPerfLog* perflog = config.GetJobPerfLog();
   if(perflog) perflog->LogStart("*");
 
   std::list<std::string> subdirs;

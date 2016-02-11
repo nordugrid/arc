@@ -234,7 +234,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
       dirs.session_dir = session_dirs.front();
       gm_dirs_info.push_back(dirs);
       if (!session_dirs_non_draining.empty()) {
-    	gm_dirs_non_draining.push_back(dirs);
+        gm_dirs_non_draining.push_back(dirs);
       }
     }
     if (gm_dirs_info.empty()) {
