@@ -12,7 +12,7 @@
 namespace Arc {
 
 
-JobPerfLog::JobPerfLog(): log_enabled(false), start_recorded(false) {
+JobPerfLog::JobPerfLog(): log_enabled(false) {
 }
 
 JobPerfLog::~JobPerfLog() {
@@ -25,24 +25,33 @@ void JobPerfLog::SetOutput(const std::string& filename) {
 void JobPerfLog::SetEnabled(bool enabled) {
   if(enabled != log_enabled) {
     log_enabled = enabled;
-    start_recorded = false;
   };
 }
 
-void JobPerfLog::LogStart(const std::string& id) {
+JobPerfRecord::JobPerfRecord(JobPerfLog& log):perf_log(log) {
   start_recorded = false;
-  if(!log_enabled) return;
+}
+
+JobPerfRecord::JobPerfRecord(JobPerfLog& log, const std::string& id):perf_log(log) {
+  Start(id);
+}
+
+void JobPerfRecord::Start(const std::string& id) {
+  start_recorded = false;
+  if(&perf_log == NULL) return;
+  if(!perf_log.GetEnabled()) return;
   if((clock_gettime(CLOCK_MONOTONIC, &start_time) == 0) || (clock_gettime(CLOCK_REALTIME, &start_time) == 0)) {
     start_recorded = true;
+    start_id = id;
   };
   start_id = id;
 }
 
-void JobPerfLog::LogEnd(const std::string& name) {
+void JobPerfRecord::End(const std::string& name) {
   if(start_recorded) {
     timespec end_time;
     if((clock_gettime(CLOCK_MONOTONIC, &end_time) == 0) || (clock_gettime(CLOCK_REALTIME, &end_time) == 0)) {
-      Log(name, start_id, start_time, end_time);
+      perf_log.Log(name, start_id, start_time, end_time);
     };
     start_recorded = false;
   };

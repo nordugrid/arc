@@ -21,15 +21,31 @@ class JobPerfLog {
   /** Log one performance record. */
   void Log(const std::string& name, const std::string& id, const timespec& start, const timespec& end);
 
-  /** Prepare to log one record by remembering start time of action being measured. */
-  void LogStart(const std::string& id);
-
-  /** Log performance record started by previous LogStart(). */
-  void LogEnd(const std::string& name);
 
  private:
    std::string log_path;
    bool log_enabled;
+
+};
+
+class JobPerfRecord {
+ public:
+  /** Creates object */
+  JobPerfRecord(JobPerfLog& log);
+
+  /** Creates object and calls Start() */
+  JobPerfRecord(JobPerfLog& log, const std::string& id);
+
+  /** Prepare to log one record by remembering start time of action being measured. */
+  void Start(const std::string& id);
+
+  /** Log performance record started by previous LogStart(). */
+  void End(const std::string& name);
+
+  bool Started() { return start_recorded; };
+
+ private:
+   JobPerfLog& perf_log;
    bool start_recorded;
    timespec start_time;
    std::string start_id;
@@ -38,4 +54,4 @@ class JobPerfLog {
 
 } // namespace Arc
 
-#endif // __ARC_JOB_PERFLOGGER__
+#endif // __ARC_JOB_PERF_LOGGER__
