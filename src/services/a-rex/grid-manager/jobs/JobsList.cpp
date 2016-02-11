@@ -427,7 +427,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     return true;
   }
   // if job has already failed then do not set failed state again if DTR failed
-  bool already_failed = !i->GetFailure(config).empty();
+  bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
   if (dtr_generator->queryJobFinished(*i)) {
 
@@ -435,7 +435,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     bool result = true;
 
     // check for failure
-    if (!i->GetFailure(config).empty()) {
+    if (i->CheckFailure(config)) {
       if (!already_failed) JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
       result = false;
     }
@@ -760,7 +760,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
           }
         } 
         else {
-          if(i->GetFailure(config).empty()) {
+          if(!i->CheckFailure(config)) {
             i->AddFailure("Data download failed");
           }
           job_error=true;
@@ -858,7 +858,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         } else {
           state_changed=true; // to send mail
           once_more=true;
-          if(i->GetFailure(config).empty()) {
+          if(!i->CheckFailure(config)) {
             i->AddFailure("Data upload failed");
           }
           job_error=true;

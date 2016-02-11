@@ -161,7 +161,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * Query status of DTRs in job. If all DTRs are finished, returns true,
    * otherwise returns false. If true is returned, the JobDescription should
    * be checked for whether the staging was successful or not by checking
-   * GetFailure().
+   * CheckFailure() or GetFailure().
    * @param job Description of job to query. Can be modified to add a failure
    * reason.
    * @return True if all DTRs in the job are finished, false otherwise.

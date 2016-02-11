@@ -94,7 +94,12 @@ class GMJob {
   const JobId& get_id() const { return job_id; };
   std::string SessionDir(void) const { return session_dir; };
   void AddFailure(const std::string &reason) { failure_reason+=reason; failure_reason+="\n"; };
+  /// Retrieve current failure reason (both in memory and stored in control dir).
+  /// For non-failed jobs returned string is empty.
   std::string GetFailure(const GMConfig& config) const;
+  /// Check if job is marked as failed (slightly faster than GetFailure).
+  /// For failed job returns true, non-failed - false.
+  bool CheckFailure(const GMConfig& config) const;
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
   bool operator==(const GMJob& job) const { return (job_id == job.job_id); };
