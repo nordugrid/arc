@@ -252,18 +252,12 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     // no child was running yet, or recovering from fault 
     // write grami file for submit-X-job
     // TODO: read existing grami file to check if job is already submitted
-    JobLocalDescription* job_desc;
-    if(i->local) { job_desc=i->local; }
-    else {
-      job_desc=new JobLocalDescription;
-      if(!job_local_read_file(i->job_id,config,*job_desc)) {
-        logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
-        if(!cancel) i->AddFailure("Internal error: can't read local file");
-        delete job_desc;
-        return false;
-      }
-      i->local=job_desc;
-    }
+    if(!(i->GetLocalDescription(config))) {
+      logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
+      if(!cancel) i->AddFailure("Internal error: can't read local file");
+      return false;
+    };
+    JobLocalDescription* job_desc = i->local;
     if(!cancel) {  // in case of cancel all preparations are already done
       if(!job_desc_handler.write_grami(*i)) {
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
@@ -1251,9 +1245,9 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
 bool JobsList::RestartJobs(void) {
   std::string cdir=config.control_dir;
   // Jobs from old version
-  bool res1 = RestartJobs(cdir,cdir+"/restarting");
+  bool res1 = RestartJobs(cdir,cdir+"/"+subdir_rew);
   // Jobs after service restart
-  bool res2 = RestartJobs(cdir+"/processing",cdir+"/restarting");
+  bool res2 = RestartJobs(cdir+"/"+subdir_cur,cdir+"/"+subdir_rew);
   return res1 && res2;
 }
 
@@ -1335,30 +1329,32 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
-
-  std::string cdir=config.control_dir;
-  std::list<JobFDesc> ids;
-  // For picking up jobs after service restart
-  std::string odir=cdir+"/restarting";
-  if(!ScanJobs(odir,ids)) return false;
-  // sorting by date
-  ids.sort();
-  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-    iterator i;
-    AddJobNoCheck(id->id,i,id->uid,id->gid);
-  }
-  ids.clear();
-  // For new jobs
-  std::string ndir=cdir+"/accepting";
-  if(!ScanJobs(ndir,ids)) return false;
-  // sorting by date
-  ids.sort();
-  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-    iterator i;
-    // adding job with file's uid/gid
-    AddJobNoCheck(id->id,i,id->uid,id->gid);
-  }
-
+  // New jobs will be accepted only if number of jobs being processed
+  // does not exceed allowed. So avoid scanning if no jobs will be allowed.
+  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+    std::string cdir=config.control_dir;
+    std::list<JobFDesc> ids;
+    // For picking up jobs after service restart
+    std::string odir=cdir+"/"+subdir_rew;
+    if(!ScanJobs(odir,ids)) return false;
+    // sorting by date
+    ids.sort();
+    for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+      iterator i;
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+    };
+    ids.clear();
+    // For new jobs
+    std::string ndir=cdir+"/"+subdir_new;
+    if(!ScanJobs(ndir,ids)) return false;
+    // sorting by date
+    ids.sort();
+    for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+      iterator i;
+      // adding job with file's uid/gid
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+    };
+  };
   perfrecord.End("SCAN-JOBS-NEW");
   return true;
 }
@@ -1374,7 +1370,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
   // are normally processed in ScanNewMarks but can also happen here.
   time_t start = time(NULL);
   if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
-  std::string cdir=config.control_dir+"/finished";
+  std::string cdir=config.control_dir+"/"+subdir_old;
   try {
     if(!old_dir) {
       old_dir = new Glib::Dir(cdir);
@@ -1465,10 +1461,10 @@ bool JobsList::ScanAllJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   std::list<std::string> subdirs;
-  subdirs.push_back("/restarting"); // For picking up jobs after service restart
-  subdirs.push_back("/accepting");  // For new jobs
-  subdirs.push_back("/processing"); // For active jobs
-  subdirs.push_back("/finished");   // For done jobs
+  subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
+  subdirs.push_back(std::string("/")+subdir_new); // For new jobs
+  subdirs.push_back(std::string("/")+subdir_cur); // For active jobs
+  subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.control_dir;
@@ -1490,10 +1486,10 @@ bool JobsList::ScanAllJobs(void) {
 bool JobsList::AddJob(const JobId& id) {
   if(FindJob(id) != jobs.end()) return true;
   std::list<std::string> subdirs;
-  subdirs.push_back("/restarting"); // For picking up jobs after service restart
-  subdirs.push_back("/accepting");  // For new jobs
-  subdirs.push_back("/processing"); // For active jobs
-  subdirs.push_back("/finished");   // For done jobs
+  subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
+  subdirs.push_back(std::string("/")+subdir_new); // For new jobs
+  subdirs.push_back(std::string("/")+subdir_cur); // For active jobs
+  subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.control_dir;

@@ -34,12 +34,12 @@ class RunParallel {
   static void* kicker_arg_;
   operator bool(void) { return true; };
   bool operator!(void) { return false; };
- public:
   static bool run(const GMConfig& config, const Arc::User& user,
                   const char* procid, const char* errlog,
                   const std::string& args, Arc::Run**,
                   const char* job_proxy, bool su = true,
                   RunPlugin* cred = NULL, RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL);
+ public:
   static bool run(const GMConfig& config, const GMJob& job,
                   const std::string& args, Arc::Run**,
                   bool su = true);
