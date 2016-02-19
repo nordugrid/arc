@@ -24,9 +24,6 @@ typedef struct {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-void (*RunParallel::kicker_func_)(void*) = NULL;
-void* RunParallel::kicker_arg_ = NULL;
-
 static void job_subst(std::string& str,void* arg) {
   job_subst_t* subs = (job_subst_t*)arg;
   for(std::string::size_type p = 0;;) {
@@ -48,14 +45,47 @@ static void job_subst(std::string& str,void* arg) {
   subs->config->Substitute(str, subs->job->get_user());
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job,const std::string& args,Arc::Run** ere,bool su) {
+class JobRefInList {
+ private:
+  JobId id;
+  JobsList& list;
+ public:
+  JobRefInList(const GMJob& job, JobsList& list): id(job.get_id()), list(list) {};
+  static void kicker(void* arg);
+};
+
+void JobRefInList::kicker(void* arg) {
+  JobRefInList* ref = reinterpret_cast<JobRefInList*>(arg);
+  if(ref) {
+    ref->list.RequestAttention(ref->id);
+    delete ref;
+  };
+}
+
+bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
+                      const std::string& args,Arc::Run** ere,bool su) {
   RunPlugin* cred = config.CredPlugin();
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
-  return run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
+  JobRefInList* ref = new JobRefInList(job, list);
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
+             args, ere, proxy.c_str(), su, cred, &job_subst, &subs, &JobRefInList::kicker, ref);
+  if(!result) delete ref;
+  return result;
+}
+
+bool RunParallel::run(const GMConfig& config,const GMJob& job,
+                      const std::string& args,Arc::Run** ere,bool su) {
+  RunPlugin* cred = config.CredPlugin();
+  job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
+  if((!cred) || (!(*cred))) { cred=NULL; };
+  std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
+  std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
              args, ere, proxy.c_str(), su, cred, &job_subst, &subs);
+  return result;
 }
 
 /* fork & execute child process with stderr redirected 
@@ -64,7 +94,9 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
                       const char* procid, const char* errlog,
                       const std::string& args, Arc::Run** ere,
                       const char* jobproxy, bool su,
-                      RunPlugin* cred, RunPlugin::substitute_t subst, void* subst_arg) {
+                      RunPlugin* cred,
+                      RunPlugin::substitute_t subst, void* subst_arg,
+                      void (*kicker_func)(void*), void* kicker_arg) {
   *ere=NULL;
   Arc::Run* re = new Arc::Run(args);
   if((!re) || (!(*re))) {
@@ -72,7 +104,7 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",procid?procid:"");
     return false;
   };
-  if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
+  if(kicker_func) re->AssignKicker(kicker_func,kicker_arg);
   RunParallel* rp = new RunParallel(config,user,procid,errlog,jobproxy,su,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;

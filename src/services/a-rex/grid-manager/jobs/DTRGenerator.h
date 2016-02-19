@@ -11,6 +11,7 @@ namespace ARex {
 class GMConfig;
 class FileData;
 class GMJob;
+class JobsList;
 
 /**
  * DTRInfo passes state information from data staging to A-REX
@@ -74,8 +75,11 @@ class DTRGenerator: public DataStaging::DTRCallback {
   //static DTRGeneratorCallback receive_dtr;
   
   /** Function and arguments for callback when all DTRs for a job have finished */
+  /*
   void (*kicker_func)(void*);
   void* kicker_arg;
+  */
+  JobsList& jobs;
 
   /** Private constructors */
   DTRGenerator(const DTRGenerator& generator);
@@ -122,9 +126,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * @param kicker_func Function to call on completion of all DTRs for a job
    * @param kicker_arg Argument to kicker function
    */
-  DTRGenerator(const GMConfig& config,
-               void (*kicker_func)(void*) = NULL,
-               void* kicker_arg = NULL);
+  DTRGenerator(const GMConfig& config, JobsList& jobs
+               /* void (*kicker_func)(void*) = NULL,
+               void* kicker_arg = NULL*/);
   /**
    * Stop Generator
    */
@@ -161,7 +165,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * Query status of DTRs in job. If all DTRs are finished, returns true,
    * otherwise returns false. If true is returned, the JobDescription should
    * be checked for whether the staging was successful or not by checking
-   * GetFailure().
+   * CheckFailure() or GetFailure().
    * @param job Description of job to query. Can be modified to add a failure
    * reason.
    * @return True if all DTRs in the job are finished, false otherwise.
@@ -183,6 +187,11 @@ class DTRGenerator: public DataStaging::DTRCallback {
    */
   void removeJob(const GMJob& job);
 
+  enum checkUploadedFilesResult {
+    uploadedFilesSuccess = 0,
+    uploadedFilesError = 1,
+    uploadedFilesMissing = 2
+  };
   /**
    * Utility method to check that all files the user was supposed to
    * upload with the job are ready.
@@ -191,7 +200,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * @return 0 if file exists, 1 if it is not a proper file or other error,
    * 2 if the file not there yet
    */
-  int checkUploadedFiles(GMJob& job);
+  checkUploadedFilesResult checkUploadedFiles(GMJob& job);
 };
 
 } // namespace ARex

@@ -210,7 +210,6 @@ bool GridManager::thread() {
     wakeup_->exited = true;
     return false;
   };
-  RunParallel::kicker(&kick_func,wakeup_);
   /*
   if(clean_first_level) {
     bool clean_finished = false;
@@ -273,7 +272,7 @@ bool GridManager::thread() {
 
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   logger.msg(Arc::INFO, "Starting data staging threads");
-  DTRGenerator* dtr_generator = new DTRGenerator(config_, &kick_func, wakeup_);
+  DTRGenerator* dtr_generator = new DTRGenerator(config_, jobs /*&kick_func, wakeup_*/);
   if (!(*dtr_generator)) {
     delete dtr_generator;
     logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
@@ -311,6 +310,8 @@ bool GridManager::thread() {
       scan_old = jobs.ScanOldJobs(config_.WakeupPeriod()/2,config_.MaxJobs());
     };
     /* process known jobs */
+    jobs.ActJobsPolling();
+    jobs.ActJobsAttention();
     jobs.ActJobs();
     // Clean old delegations
     ARex::DelegationStores* delegs = config_.Delegations();

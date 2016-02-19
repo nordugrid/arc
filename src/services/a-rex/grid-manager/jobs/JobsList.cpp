@@ -109,6 +109,58 @@ void JobsList::PrepareToDestroy(void) {
 }
 
 
+bool JobsList::RequestAttention(const JobId& id) {
+  logger.msg(Arc::VERBOSE, "--> job for attention: %s", id);
+  Glib::Mutex::Lock lock_(jobs_attention_lock);
+  jobs_attention.push_back(id);
+}
+
+
+bool JobsList::RequestPolling(const JobId& id) {
+  logger.msg(Arc::VERBOSE, "--> job for polling: %s", id);
+  Glib::Mutex::Lock lock_(jobs_polling_lock);
+  jobs_polling.push_back(id);
+}
+
+
+bool JobsList::ActJobsAttention(void) {
+  std::list<std::string> clist;
+  {
+    Glib::Mutex::Lock lock_(jobs_attention_lock);
+    clist.swap(jobs_attention);
+  };
+  while(!clist.empty()) {
+    JobId id = *(clist.begin());
+    clist.pop_front();
+    logger.msg(Arc::VERBOSE, "<-- job in attention: %s", id);
+    iterator i = FindJob(id);
+    if(i != jobs.end()) {
+      ActJob(i);
+    }
+  }
+  return true;
+}
+
+
+bool JobsList::ActJobsPolling(void) {
+  std::list<std::string> clist;
+  {
+    Glib::Mutex::Lock lock_(jobs_polling_lock);
+    clist.swap(jobs_polling);
+  };
+  while(!clist.empty()) {
+    JobId id = *(clist.begin());
+    clist.pop_front();
+    logger.msg(Arc::VERBOSE, "<-- job in polling: %s", id);
+    iterator i = FindJob(id);
+    if(i != jobs.end()) {
+      ActJob(i);
+    }
+  }
+  return true;
+}
+
+
 bool JobsList::ActJobs(void) {
 
   bool res = true;
@@ -117,11 +169,17 @@ bool JobsList::ActJobs(void) {
   // first pass
   for(iterator i=jobs.begin();i!=jobs.end();) {
     if(i->job_state == JOB_STATE_UNDEFINED) { once_more=true; }
+    if(i->job_state == JOB_STATE_SUBMITTING) { ++i; continue; } // temporary workaround
+    if(i->job_state == JOB_STATE_PREPARING) { ++i; continue; } // temporary workaround
+    if(i->job_state == JOB_STATE_FINISHING) { ++i; continue; } // temporary workaround
     res &= ActJob(i);
   }
 
   // second pass - process new jobs again
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
+    if(i->job_state == JOB_STATE_SUBMITTING) { ++i; continue; } // temporary workaround
+    if(i->job_state == JOB_STATE_PREPARING) { ++i; continue; } // temporary workaround
+    if(i->job_state == JOB_STATE_FINISHING) { ++i; continue; } // temporary workaround
     res &= ActJob(i);
   }
 
@@ -252,18 +310,12 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     // no child was running yet, or recovering from fault 
     // write grami file for submit-X-job
     // TODO: read existing grami file to check if job is already submitted
-    JobLocalDescription* job_desc;
-    if(i->local) { job_desc=i->local; }
-    else {
-      job_desc=new JobLocalDescription;
-      if(!job_local_read_file(i->job_id,config,*job_desc)) {
-        logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
-        if(!cancel) i->AddFailure("Internal error: can't read local file");
-        delete job_desc;
-        return false;
-      }
-      i->local=job_desc;
-    }
+    if(!(i->GetLocalDescription(config))) {
+      logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
+      if(!cancel) i->AddFailure("Internal error: can't read local file");
+      return false;
+    };
+    JobLocalDescription* job_desc = i->local;
     if(!cancel) {  // in case of cancel all preparations are already done
       if(!job_desc_handler.write_grami(*i)) {
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
@@ -295,7 +347,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.conffile + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,cmd,&(i->child))) {
+    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
       if(!cancel) {
         i->AddFailure("Failed initiating job submission to LRMS");
         logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
@@ -427,39 +479,44 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     return true;
   }
   // if job has already failed then do not set failed state again if DTR failed
-  bool already_failed = !i->GetFailure(config).empty();
+  bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
   if (dtr_generator->queryJobFinished(*i)) {
+    // DTR part already finished. Do other checks if needed.
 
     bool done = true;
     bool result = true;
 
     // check for failure
-    if (!i->GetFailure(config).empty()) {
+    if (i->CheckFailure(config)) {
       if (!already_failed) JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
       result = false;
     }
-    else if (!up) { // check for user-uploadable files if downloading
-      int res = dtr_generator->checkUploadedFiles(*i);
-      if (res == 2) { // still going
-        done = false;
+    else {
+      if (!up) { // check for user-uploadable files if downloading
+        DTRGenerator::checkUploadedFilesResult res = dtr_generator->checkUploadedFiles(*i);
+        if (res == DTRGenerator::uploadedFilesMissing) { // still going
+          RequestPolling(i->job_id);
+          done = false;
+        }
+        else if (res == DTRGenerator::uploadedFilesSuccess) { // finished successfully
+          state_changed=true;
+        }
+        else { // error
+          result = false;
+        }
       }
-      else if (res == 0) { // finished successfully
-        state_changed=true;
+      else { // if uploading we are done
+        state_changed = true;
       }
-      else { // error
-        result = false;
-      }
-    }
-    else { // if uploading we are done
-      state_changed = true;
     }
     if (done) dtr_generator->removeJob(*i);
     return result;
   }
   else {
-    // not finished yet
+    // not finished yet - should not happen
     logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
+    RequestPolling(i->job_id);
     return true;
   }
 }
@@ -716,43 +773,56 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
         // finished and whether all user uploadable files have been uploaded.
         logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
         if(i->job_pending || state_loading(i,state_changed,false)) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 1",i->job_id);
           if(i->job_pending || state_changed) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 2",i->job_id);
             if(!GetLocalDescription(i)) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 3",i->job_id);
               logger.msg(Arc::ERROR,"%s: Failed obtaining local job information.",i->job_id);
               i->AddFailure("Internal error");
               job_error=true;
               return;
             }
+logger.msg(Arc::VERBOSE,"%s: PREPARING 4",i->job_id);
             // For jobs with free stage in check if user reported complete stage in.
             bool stagein_complete = true;
             if(i->local->freestagein) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 5",i->job_id);
               stagein_complete = false;
               std::list<std::string> ifiles;
               if(job_input_status_read_file(i->job_id,config,ifiles)) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 6",i->job_id);
                 for(std::list<std::string>::iterator ifile = ifiles.begin();
                                    ifile != ifiles.end(); ++ifile) {
                   if(*ifile == "/") {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 7",i->job_id);
                     stagein_complete = true;
                     break;
                   }
                 }
               }
             }
+logger.msg(Arc::VERBOSE,"%s: PREPARING 8",i->job_id);
             // Here we have branch. Either job is ordinary one and goes to SUBMIT
             // or it has no executable and hence goes to FINISHING
             if(!stagein_complete) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 9",i->job_id);
               state_changed=false;
               JobPending(i);
             } else if(i->local->exec.size() > 0) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 10",i->job_id);
               if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 11",i->job_id);
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
                 i->retries = staging_config.get_max_retries();
               } else {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 12",i->job_id);
                 state_changed=false;
                 JobPending(i);
               }
             } else {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 13",i->job_id);
               i->job_state = JOB_STATE_FINISHING;
               state_changed=true; once_more=true;
               i->retries = staging_config.get_max_retries();
@@ -760,11 +830,13 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
           }
         } 
         else {
-          if(i->GetFailure(config).empty()) {
+logger.msg(Arc::VERBOSE,"%s: PREPARING 14",i->job_id);
+          if(!i->CheckFailure(config)) {
             i->AddFailure("Data download failed");
           }
           job_error=true;
         }
+logger.msg(Arc::VERBOSE,"%s: PREPARING 15",i->job_id);
 }
 
 void JobsList::ActJobSubmitting(JobsList::iterator &i,
@@ -858,7 +930,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
         } else {
           state_changed=true; // to send mail
           once_more=true;
-          if(i->GetFailure(config).empty()) {
+          if(!i->CheckFailure(config)) {
             i->AddFailure("Data upload failed");
           }
           job_error=true;
@@ -1251,9 +1323,9 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
 bool JobsList::RestartJobs(void) {
   std::string cdir=config.control_dir;
   // Jobs from old version
-  bool res1 = RestartJobs(cdir,cdir+"/restarting");
+  bool res1 = RestartJobs(cdir,cdir+"/"+subdir_rew);
   // Jobs after service restart
-  bool res2 = RestartJobs(cdir+"/processing",cdir+"/restarting");
+  bool res2 = RestartJobs(cdir+"/"+subdir_cur,cdir+"/"+subdir_rew);
   return res1 && res2;
 }
 
@@ -1335,30 +1407,32 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 // find new jobs - sort by date to implement FIFO
 bool JobsList::ScanNewJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
-
-  std::string cdir=config.control_dir;
-  std::list<JobFDesc> ids;
-  // For picking up jobs after service restart
-  std::string odir=cdir+"/restarting";
-  if(!ScanJobs(odir,ids)) return false;
-  // sorting by date
-  ids.sort();
-  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-    iterator i;
-    AddJobNoCheck(id->id,i,id->uid,id->gid);
-  }
-  ids.clear();
-  // For new jobs
-  std::string ndir=cdir+"/accepting";
-  if(!ScanJobs(ndir,ids)) return false;
-  // sorting by date
-  ids.sort();
-  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-    iterator i;
-    // adding job with file's uid/gid
-    AddJobNoCheck(id->id,i,id->uid,id->gid);
-  }
-
+  // New jobs will be accepted only if number of jobs being processed
+  // does not exceed allowed. So avoid scanning if no jobs will be allowed.
+  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+    std::string cdir=config.control_dir;
+    std::list<JobFDesc> ids;
+    // For picking up jobs after service restart
+    std::string odir=cdir+"/"+subdir_rew;
+    if(!ScanJobs(odir,ids)) return false;
+    // sorting by date
+    ids.sort();
+    for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+      iterator i;
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+    };
+    ids.clear();
+    // For new jobs
+    std::string ndir=cdir+"/"+subdir_new;
+    if(!ScanJobs(ndir,ids)) return false;
+    // sorting by date
+    ids.sort();
+    for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+      iterator i;
+      // adding job with file's uid/gid
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+    };
+  };
   perfrecord.End("SCAN-JOBS-NEW");
   return true;
 }
@@ -1374,7 +1448,7 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
   // are normally processed in ScanNewMarks but can also happen here.
   time_t start = time(NULL);
   if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
-  std::string cdir=config.control_dir+"/finished";
+  std::string cdir=config.control_dir+"/"+subdir_old;
   try {
     if(!old_dir) {
       old_dir = new Glib::Dir(cdir);
@@ -1465,10 +1539,10 @@ bool JobsList::ScanAllJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   std::list<std::string> subdirs;
-  subdirs.push_back("/restarting"); // For picking up jobs after service restart
-  subdirs.push_back("/accepting");  // For new jobs
-  subdirs.push_back("/processing"); // For active jobs
-  subdirs.push_back("/finished");   // For done jobs
+  subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
+  subdirs.push_back(std::string("/")+subdir_new); // For new jobs
+  subdirs.push_back(std::string("/")+subdir_cur); // For active jobs
+  subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.control_dir;
@@ -1490,10 +1564,10 @@ bool JobsList::ScanAllJobs(void) {
 bool JobsList::AddJob(const JobId& id) {
   if(FindJob(id) != jobs.end()) return true;
   std::list<std::string> subdirs;
-  subdirs.push_back("/restarting"); // For picking up jobs after service restart
-  subdirs.push_back("/accepting");  // For new jobs
-  subdirs.push_back("/processing"); // For active jobs
-  subdirs.push_back("/finished");   // For done jobs
+  subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
+  subdirs.push_back(std::string("/")+subdir_new); // For new jobs
+  subdirs.push_back(std::string("/")+subdir_cur); // For active jobs
+  subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.control_dir;

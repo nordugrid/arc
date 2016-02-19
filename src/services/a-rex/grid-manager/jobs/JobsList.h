@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <list>
+#include <glib.h>
 
 #include "../conf/StagingConfig.h"
 
@@ -45,6 +46,12 @@ class JobsList {
  private:
   // List of jobs currently tracked in memory
   std::list<GMJob> jobs;
+  // List of jobs which need attention
+  std::list<JobId> jobs_attention;
+  Glib::Mutex jobs_attention_lock;
+  // List of jobs which need polling
+  std::list<JobId> jobs_polling;
+  Glib::Mutex jobs_polling_lock;
   // GM configuration
   const GMConfig& config;
   // Staging configuration
@@ -153,6 +160,10 @@ class JobsList {
   void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
   // Call ActJob for all current jobs
   bool ActJobs(void);
+  // Call ActJob for all jobs for which RequestAttention was called
+  bool ActJobsAttention(void);
+  // Call ActJob for all jobs for which RequestPolling was called
+  bool ActJobsPolling(void);
   // Look for new or restarted jobs. Jobs are added to list with state UNDEFINED
   bool ScanNewJobs(void);
   // Collect all jobs in all states
@@ -171,6 +182,11 @@ class JobsList {
   bool RestartJobs(void);
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
+  // Inform this instance that job with specified id needs attention
+  bool RequestAttention(const JobId& id);
+  // Similar to RequestAttention but jobs does not need immediate attention.
+  // These jobs will be processed when polling period elapses.
+  bool RequestPolling(const JobId& id);
 };
 
 } // namespace ARex

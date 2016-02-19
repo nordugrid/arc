@@ -9,6 +9,8 @@
 namespace ARex {
 
 /// Run child process in parallel with stderr redirected to job.jobid.errors
+/// This class to be used only for running external executables associated with
+/// particular job.
 class RunParallel {
  private:
   RunParallel(const GMConfig& config, const Arc::User& user,
@@ -17,7 +19,8 @@ class RunParallel {
               RunPlugin* cred, RunPlugin::substitute_t subst, void* subst_arg)
     :config_(config), user_(user), procid_(procid?procid:""), errlog_(errlog?errlog:""),
      su_(su), jobproxy_(jobproxy?jobproxy:""),
-     cred_(cred), subst_(subst), subst_arg_(subst_arg) { };
+     cred_(cred),
+     subst_(subst), subst_arg_(subst_arg) { };
   ~RunParallel(void) { };
   const GMConfig& config_;
   const Arc::User& user_;
@@ -29,24 +32,22 @@ class RunParallel {
   RunPlugin::substitute_t subst_;
   void* subst_arg_;
   static void initializer(void* arg);
-  // TODO: no static variables
-  static void (*kicker_func_)(void*);
-  static void* kicker_arg_;
   operator bool(void) { return true; };
   bool operator!(void) { return false; };
- public:
   static bool run(const GMConfig& config, const Arc::User& user,
                   const char* procid, const char* errlog,
                   const std::string& args, Arc::Run**,
                   const char* job_proxy, bool su = true,
-                  RunPlugin* cred = NULL, RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL);
+                  RunPlugin* cred = NULL,
+                  RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL,
+                  void (*kicker_func)(void*) = NULL, void* kicker_arg = NULL);
+ public:
+  static bool run(const GMConfig& config, const GMJob& job, JobsList& list,
+                  const std::string& args, Arc::Run**,
+                  bool su = true);
   static bool run(const GMConfig& config, const GMJob& job,
                   const std::string& args, Arc::Run**,
                   bool su = true);
-  static void kicker(void (*kicker_func)(void*),void* kicker_arg) {
-    kicker_arg_=kicker_arg;
-    kicker_func_=kicker_func;
-  };
 };
 
 } // namespace ARex
