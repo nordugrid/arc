@@ -278,17 +278,17 @@ namespace Arc {
         item->NewChild("esadl:DelegationID") = delegation_id;
       };
       if(!op["ActivityDescription"]["DataStaging"]["DelegationID"]) {
-        //XMLNodeList outputs = op.Path("ActivityDescription/DataStaging/OutputFile");
-        //for(XMLNodeList::iterator item = outputs.begin();item!=outputs.end();++item) {
-          //if(!((*item)["Target"])) {
-            //if(((std::string)(*item)["Name"])[0] == '@') {
+        XMLNodeList outputs = op.Path("ActivityDescription/DataStaging/OutputFile");
+        for(XMLNodeList::iterator item = outputs.begin();item!=outputs.end();++item) {
+          if(!((*item)["Target"])) {
+            if(((std::string)(*item)["Name"])[0] == '@') {
               // Hack for ARC implementation - names starting from @ represent
               // lists of files and also may need delegated credentials.
               op["ActivityDescription"]["DataStaging"].NewChild("nordugrid-adl:DelegationID") = delegation_id;
-              //break;
-            //};
-          //};
-        //};
+              break;
+            };
+          };
+        };
       };
     };
     {
