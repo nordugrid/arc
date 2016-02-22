@@ -6,7 +6,7 @@
 #include <list>
 #include <vector>
 
-namespace AuthN {
+namespace ArcAuthNSS {
 
   typedef unsigned int uint32;
   typedef int int32;

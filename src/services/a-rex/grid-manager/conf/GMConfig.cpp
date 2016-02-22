@@ -67,6 +67,7 @@ GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
 void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
+  job_perf_log = NULL;
   cont_plugins = NULL;
   cred_plugin = NULL;
   delegations = NULL;
@@ -364,6 +365,31 @@ GMConfig::ExternalHelper::~ExternalHelper() {
   }
 }
 
+static void ExternalHelperInitializer(void* arg) {
+  const char* logpath = reinterpret_cast<const char*>(arg);
+  struct rlimit lim;
+  int max_files;
+  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
+  else { max_files=4096; };
+  // just set good umask
+  umask(0077);
+  // close all handles inherited from parent
+  if(max_files == RLIM_INFINITY) max_files=4096;
+  for(int i=0;i<max_files;i++) { close(i); };
+  // set up stdin,stdout and stderr
+  int h;
+  h = ::open("/dev/null",O_RDONLY);
+  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); _exit(1); }; close(h); };
+  h = ::open("/dev/null",O_WRONLY);
+  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); _exit(1); }; close(h); };
+  if(logpath && logpath[0]) {
+    h = ::open(logpath,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+    if(h==-1) { h = ::open("/dev/null",O_WRONLY); };
+  }
+  else { h = ::open("/dev/null",O_WRONLY); };
+  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+}
+
 bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   if (proc != NULL) {
     if (proc->Running()) {
@@ -375,11 +401,14 @@ bool GMConfig::ExternalHelper::run(const GMConfig& config) {
   // start/restart
   if (command.empty()) return true;  // has anything to run ?
   logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
-  bool started = RunParallel::run(config, Arc::User(), "helper", config.HelperLog().c_str(),
-                                  command, &proc, NULL);
-  if (started) return true;
-  if (proc && (*proc)) return true;
-  if (proc) { delete proc; proc = NULL; };
+
+  proc = new Arc::Run(command);
+  proc->KeepStdin(true);
+  proc->KeepStdout(true);
+  proc->KeepStderr(true);
+  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(config.HelperLog().c_str()));
+  if (proc->Start()) return true;
+  delete proc;
   logger.msg(Arc::ERROR, "Helper process start failed: %s", command);
   // start failed, doing nothing - maybe in the future
   return false;

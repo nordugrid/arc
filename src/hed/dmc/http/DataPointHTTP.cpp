@@ -384,7 +384,7 @@ using namespace Arc;
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
-          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
         return DataStatus(DataStatus::StatError, http2errno(info.code), info.reason);
@@ -407,7 +407,7 @@ using namespace Arc;
         file.SetModified(info.lastModified);
       }
       // Not sure
-      if(!info.location.empty()) file.AddURL(info.location);
+      if(info.location) file.AddURL(info.location.str());
       return DataStatus::Success;
     }
     return DataStatus(DataStatus::StatError,"Too many redirects");
@@ -513,7 +513,7 @@ using namespace Arc;
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
-          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
         //  Possibly following errors can be returned by server
@@ -591,7 +591,7 @@ using namespace Arc;
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
-          logger.msg(VERBOSE,"Redirecting to %s",info.location);
+          logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
         //  Possibly following errors can be returned by server
@@ -986,7 +986,7 @@ using namespace Arc;
         // Recreate connection now to new URL
         point.release_client(client_url,client); client = NULL; // return client to poll
         client_url = transfer_info.location;
-        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {
           path = client_url.FullPathURIEncoded();
@@ -1123,7 +1123,7 @@ using namespace Arc;
         // Recreate connection now to new URL
         point.release_client(client_url,client); client = NULL;
         client_url = transfer_info.location;
-        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {
           path = client_url.FullPathURIEncoded();
@@ -1303,7 +1303,7 @@ using namespace Arc;
         // Recreate connection now to new URL
         point.release_client(client_url,client); client = NULL;
         client_url = transfer_info.location;
-        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location);
+        logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {
           // TODO: Only one redirection is currently supported. Here we should

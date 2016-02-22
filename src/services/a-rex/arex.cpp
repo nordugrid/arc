@@ -17,6 +17,7 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/SecAttr.h>
 #include <arc/ws-addressing/WSA.h>
+#include <arc/JobPerfLog.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
@@ -901,6 +902,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               gm_(NULL) {
   valid = false;
   config_.SetJobLog(new JobLog());
+  config_.SetJobPerfLog(new Arc::JobPerfLog());
   config_.SetContPlugins(new ContinuationPlugins());
   config_.SetCredPlugin(new RunPlugin());
   // logger_.addDestination(logcerr);

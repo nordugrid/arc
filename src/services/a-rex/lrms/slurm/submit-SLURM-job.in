@@ -320,7 +320,7 @@ if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
   while read name rest; do
 
     # make it safe for shell by replacing single quotes with '\''
-    name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
+    name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`
 
     # protect from deleting output files including those in the dynamic list
     if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
@@ -334,7 +334,7 @@ if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
   done
 EOSCR
     else
-      echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
+      printf "%s\n" "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
     fi
   done
 fi

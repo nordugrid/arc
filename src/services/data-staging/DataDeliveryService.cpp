@@ -523,6 +523,7 @@ namespace DataStaging {
          <ReturnCode>ERROR</ReturnCode>
          <ErrorDescription>...</ErrorDescription>
          <AllowedDir>/var/arc/cache</AllowedDir>
+         <LoadAvg>6.5</LoadAvg>
          ...
        </Result>
        ...
@@ -536,6 +537,15 @@ namespace DataStaging {
 
     for (std::list<std::string>::iterator dir = allowed_dirs.begin(); dir != allowed_dirs.end(); ++dir) {
       resultelement.NewChild("AllowedDir") = *dir;
+    }
+
+    // Send the 5 min load average
+    double avg[3];
+    if (getloadavg(avg, 3) != 3) {
+      logger.msg(Arc::WARNING, "Failed to get load average: %s", Arc::StrError());
+      resultelement.NewChild("LoadAvg") = "-1";
+    } else {
+      resultelement.NewChild("LoadAvg") = Arc::tostring(avg[1]);
     }
 
     return Arc::MCC_Status(Arc::STATUS_OK);

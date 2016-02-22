@@ -133,6 +133,11 @@ std::string GMJob::GetFailure(const GMConfig& config) const {
   return reason;
 }
 
+bool GMJob::CheckFailure(const GMConfig& config) const {
+  if(!failure_reason.empty()) return true;
+  return job_failed_mark_check(job_id,config);
+}
+
 void GMJob::PrepareToDestroy(void) {
   // We could send signals to downloaders and uploaders.
   // But currently those do not implement safe shutdown.

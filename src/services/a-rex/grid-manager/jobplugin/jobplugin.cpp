@@ -233,7 +233,9 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
       dirs.control_dir = config.ControlDir();
       dirs.session_dir = session_dirs.front();
       gm_dirs_info.push_back(dirs);
-      gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
+      if (!session_dirs_non_draining.empty()) {
+        gm_dirs_non_draining.push_back(dirs);
+      }
     }
     if (gm_dirs_info.empty()) {
       logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");

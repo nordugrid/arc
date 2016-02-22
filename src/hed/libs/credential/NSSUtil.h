@@ -7,7 +7,7 @@
 #include <arc/credential/PasswordSource.h>
 
 /// Code for handling Network Security Services (NSS) credentials.
-namespace AuthN {
+namespace ArcAuthNSS {
   
   /// NSS certificate information.
   struct certInfo {

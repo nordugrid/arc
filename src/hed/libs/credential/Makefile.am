@@ -21,7 +21,7 @@ libarccredential_ladir = $(pkgincludedir)/credential
 libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h PasswordSource.h \
                                VOMSAttribute.h $(VOMS_HEADER) $(NSS_HEADER)
 libarccredential_la_SOURCES  = Proxycertinfo.cpp CertUtil.cpp PasswordSource.cpp \
-                               Credential.cpp listfunc.c listfunc.h \
+                               Credential.cpp listfunc.cpp listfunc.h \
                                VOMSAttribute.cpp $(VOMS_SOURCE) $(NSS_SOURCE)
 libarccredential_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(NSS_CFLAGS) $(AM_CXXFLAGS)

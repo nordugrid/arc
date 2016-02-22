@@ -1878,6 +1878,9 @@ AC_CHECK_FUNC([dlopen], [DLOPEN_LIBS=], [
 AC_SUBST(DLOPEN_LIBS)
 fi
 
+# Check for clock_gettime
+AC_SEARCH_LIBS([clock_gettime], [rt])
+
 # check for fsusage
 if test "$enables_hed" = "yes"; then
 gl_FSUSAGE

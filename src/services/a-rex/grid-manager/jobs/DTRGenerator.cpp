@@ -689,7 +689,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
           // Only write this failure if no previous failure
-          if (job.GetFailure(config).empty()) {
+          if (!job.CheckFailure(config)) {
             finished_jobs[jobid] = std::string("Error reading user generated output file list");
           } else {
             finished_jobs[jobid] = "";
@@ -717,7 +717,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
             logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
             lock.lock();
             // Only write this failure if no previous failure
-            if (job.GetFailure(config).empty()) {
+            if (!job.CheckFailure(config)) {
               finished_jobs[jobid] = std::string("Failed to list output directory");
             } else {
               finished_jobs[jobid] = "";

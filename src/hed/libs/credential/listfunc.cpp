@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+namespace ArcCredential {
+
+
 char **listjoin(char **base, char **addon, int size) {
   char **store = addon, 
     **storebase = base,
@@ -72,3 +75,7 @@ void listfree(char **vect, void (*f)(void *)) {
     free(vect);
   }
 }
+
+
+} // namespace ArcCredential
+

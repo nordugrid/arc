@@ -8,6 +8,8 @@
 #include <string.h>
 #include "../listfunc.h"
 
+using namespace ArcCredential;
+
 class listfuncTest
   : public CppUnit::TestFixture {
 
