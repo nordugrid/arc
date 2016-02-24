@@ -218,7 +218,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   }
   logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id);
   bool state_changed = false;
-  if(!state_submitting(i,state_changed,true)) {
+  if(!state_canceling(i,state_changed)) {
     logger.msg(Arc::WARNING,"%s: Cancellation failed (probably job finished) - cleaning anyway",i->job_id);
     UnlockDelegation(i);
     job_clean_final(*i,config);
@@ -305,7 +305,8 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
   return true;
 }
 
-bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,bool cancel) {
+bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed) {
+  bool const cancel = false;
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault 
     // write grami file for submit-X-job
@@ -465,6 +466,96 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       delete i->child; i->child=NULL;
       job_diagnostics_mark_move(*i,config);
     }
+  }
+  // move to next state
+  state_changed=true;
+  return true;
+}
+
+bool JobsList::state_canceling(const JobsList::iterator &i,bool &state_changed) {
+  if(i->child == NULL) {
+    // no child was running yet, or recovering from fault 
+    // write grami file for cancel-X-job
+    if(!(i->GetLocalDescription(config))) {
+      logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
+      return false;
+    };
+    JobLocalDescription* job_desc = i->local;
+    // cancel job to LRMS using cancel-X-job
+    std::string cmd;
+    cmd=Arc::ArcLocation::GetDataDir()+"/cancel-"+job_desc->lrms+"-job";
+    if(!job_lrms_mark_check(i->job_id,config)) {
+      logger.msg(Arc::INFO,"%s: state CANCELING: starting child: %s",i->job_id,cmd);
+    } else {
+      logger.msg(Arc::INFO,"%s: Job has completed already. No action taken to cancel",i->job_id);
+      state_changed=true;
+      return true;
+    }
+    std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
+    cmd += " --config " + config.conffile + " " + grami;
+    job_errors_mark_put(*i,config);
+    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
+      logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
+      return false;
+    }
+    return true;
+  }
+  // child was run - check if exited
+  bool simulate_success = false;
+  if(i->child->Running()) {
+    // child is running - come later
+    // Due to unknown reason sometimes child exit event is lost.
+    // As workaround check if child is running for too long.
+    // In case of cancel just assume child exited.
+    if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
+      // Check if diagnostics collection is done
+      if(job_lrms_mark_check(i->job_id,config)) {
+        simulate_success = true;
+        logger.msg(Arc::ERROR,"%s: Job cancellation takes too long, but diagnostic collection seems to be done. Pretending cancellation succeeded.",i->job_id);
+      }
+    }
+    if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
+      // In any case it is way too long. Job must fail. Otherwise it will hang forever.
+      delete i->child; i->child=NULL;
+      logger.msg(Arc::ERROR,"%s: Job cancellation takes too long. Failing.",i->job_id);
+      delete i->child; i->child=NULL;
+      return false;
+    }
+    if(!simulate_success) return true;
+  }
+  if(!simulate_success) {
+    // real processing
+    if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+       ((Arc::Time() - i->child->ExitTime()) < (config.wakeup_period*2))) {
+      // not ideal solution
+      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+    }
+    // Another workaround in Run class may also detect lost child.
+    // It then sets exit code to -1. This value is also set in
+    // case child was killed. So it is worth to check grami anyway.
+    if((i->child->Result() != 0) && (i->child->Result() != -1)) {
+      logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
+      delete i->child; i->child=NULL;
+      return false;
+    }
+  } else {
+    // Just pretend everything is alright
+  }
+  // job diagnostics collection done in background (scan-*-job script)
+  if(!job_lrms_mark_check(i->job_id,config)) {
+    // job diag not yet collected - come later
+    if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+       ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
+      // it takes too long
+      logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancellation",i->job_id);
+      delete i->child; i->child=NULL;
+      return false;
+    }
+    return true;
+  } else {
+    logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
+    delete i->child; i->child=NULL;
+    job_diagnostics_mark_move(*i,config);
   }
   // move to next state
   state_changed=true;
@@ -660,384 +751,439 @@ void JobsList::UnlockDelegation(JobsList::iterator &i) {
   if(delegs) (*delegs)[config.DelegationDir()].ReleaseCred(i->job_id,true,false);
 }
 
-void JobsList::ActJobUndefined(JobsList::iterator &i,
-                               bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& state_changed) {
-        // new job - read its status from status file, but first check if it is
-        // under the limit of maximum jobs allowed in the system
-        if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
-          job_state_t new_state=job_state_read_file(i->job_id,config);
-          if(new_state == JOB_STATE_UNDEFINED) { // something failed
-            logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
-            job_error=true; i->AddFailure("Failed reading status of the job");
-            return;
-          }
+JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
+  ActJobResult job_result = JobDropped;
+  // new job - read its status from status file, but first check if it is
+  // under the limit of maximum jobs allowed in the system
+  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+    job_state_t new_state=job_state_read_file(i->job_id,config);
+    if(new_state == JOB_STATE_UNDEFINED) { // something failed
+      logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
+      i->AddFailure("Failed reading status of the job");
+      return JobFailed;
+    }
           // By keeping once_more==false job does not cycle here but
           // goes out and registers its state in counters. This allows
           // to maintain limits properly after restart. Except FINISHED
           // jobs because they are not kept in memory and should be 
           // processed immediately.
-          i->job_state = new_state; // this can be any state, after A-REX restart
-          if(new_state == JOB_STATE_ACCEPTED) {
-            state_changed = true; // to trigger email notification, etc.
-            // first phase of job - just  accepted - parse request
-            logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
-            if(!job_desc_handler.process_job_req(*i,*i->local)) {
-              logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
-              job_error=true;
-              i->AddFailure("Could not process job description");
-              return; // go to next job
-            }
-            job_state_write_file(*i,config,i->job_state);
-            // prepare information for logger
-            // This call is not needed here because at higher level make_file()
-            // is called for every state change
-            //config.job_log->make_file(*i,config);
-          } else if(new_state == JOB_STATE_FINISHED) {
-            once_more=true;
-            job_state_write_file(*i,config,i->job_state);
-          } else if(new_state == JOB_STATE_DELETED) {
-            once_more=true;
-            job_state_write_file(*i,config,i->job_state);
-          } else {
-            logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
-                GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
-            // Make it clean state after restart
-            job_state_write_file(*i,config,i->job_state);
-            i->retries = staging_config.get_max_retries();
-            i->Start();
+    i->job_state = new_state; // this can be any state, after A-REX restart
+    if(new_state == JOB_STATE_ACCEPTED) {
+//!!            state_changed = true; // to trigger email notification, etc.
+      // first phase of job - just  accepted - parse request
+      logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
+      if(!job_desc_handler.process_job_req(*i,*i->local)) {
+        logger.msg(Arc::ERROR,"%s: Processing job description failed",i->job_id);
+        i->AddFailure("Could not process job description");
+        return JobFailed; // go to next job
+      }
+      job_state_write_file(*i,config,i->job_state);
+      // prepare information for logger
+      // This call is not needed here because at higher level make_file()
+      // is called for every state change
+      //config.job_log->make_file(*i,config);
+      job_result = JobNeedsAttention; // process ASAP
+    } else if(new_state == JOB_STATE_FINISHED) {
+      job_state_write_file(*i,config,i->job_state);
+      job_result = JobNeedsReprocess; // process immediately
+    } else if(new_state == JOB_STATE_DELETED) {
+      job_state_write_file(*i,config,i->job_state);
+      job_result = JobNeedsReprocess; // process immediately 
+    } else {
+      // Generic case
+      logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
+          GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
+      // Make it clean state after restart
+      job_state_write_file(*i,config,i->job_state);
+      i->retries = staging_config.get_max_retries();
+      i->Start();
 
-            // add to DN map
-            // here we don't enforce the per-DN limit since the jobs are
-            // already in the system
-            if (i->local->DN.empty()) {
-              logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
-            }
-            jobs_dn[i->local->DN]++;
-          }
-        } // Not doing JobPending here because that job kind of does not exist.
-        return;
+      // add to DN map
+      // here we don't enforce the per-DN limit since the jobs are
+      // already in the system
+      if (i->local->DN.empty()) {
+        logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
+      }
+      jobs_dn[i->local->DN]++;
+      job_result = JobNeedsAttention; // process ASAP
+    }
+  } // Not doing JobPending here because that job kind of does not exist.
+  return job_result;
 }
 
-void JobsList::ActJobAccepted(JobsList::iterator &i,
-                              bool& once_more,bool& /*delete_job*/,
-                              bool& job_error,bool& state_changed) {
-        // accepted state - job was just accepted by A-REX and we already
-        // know that it is accepted - now we are analyzing/parsing request,
-        // or it can also happen we are waiting for user specified time
-        logger.msg(Arc::VERBOSE,"%s: State: ACCEPTED",i->job_id);
-        if(!GetLocalDescription(i)) {
-          job_error=true;
-          i->AddFailure("Internal error");
-          return; // go to next job
+JobsList::ActJobResult JobsList::ActJobAccepted(iterator i) {
+  // accepted state - job was just accepted by A-REX and we already
+  // know that it is accepted - now we are analyzing/parsing request,
+  // or it can also happen we are waiting for user specified time
+  logger.msg(Arc::VERBOSE,"%s: State: ACCEPTED",i->job_id);
+  if(!GetLocalDescription(i)) {
+    i->AddFailure("Internal error");
+    return JobFailed; // go to next job
+  }
+  if(i->local->dryrun) {
+    logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
+    i->AddFailure("User requested dryrun. Job skipped.");
+    return JobFailed; // go to next job
+  }
+  // check per-DN limit on processing jobs
+  // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
+  if (config.max_jobs_per_dn > 0 && jobs_dn[i->local->DN] >= config.max_jobs_per_dn) {
+    JobPending(i);
+    return JobNeedsPolling;
+  }
+  // check for user specified time
+  if(i->retries == 0 && i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
+    logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
+        i->local->processtime.str(Arc::UserTime));
+    return JobNeedsPolling;
+  }
+  // job can progress to PREPARING - add to per-DN job list
+  jobs_dn[i->local->DN]++;
+  logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
+  i->job_state = JOB_STATE_PREPARING;
+  // if first pass then reset retries
+  if (i->retries == 0) i->retries = staging_config.get_max_retries();
+  i->Start();
+
+  // gather some frontend specific information for user, do it only once
+  // Runs user-supplied executable placed at "frontend-info-collector"
+  if(i->retries == staging_config.get_max_retries()) {
+    std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
+    char const * const args[2] = { cmd.c_str(), NULL };
+    job_controldiag_mark_put(*i,config,args);
+  }
+  return JobNeedsReprocess;
+}
+
+JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
+  // preparing state - job is in data staging system, so check if it has
+  // finished and whether all user uploadable files have been uploaded.
+  logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
+  bool state_changed = false;
+  if(i->job_pending || state_loading(i,state_changed,false)) {
+    ActJobResult job_result = JobSuccess; // while pre-staging
+    if(i->job_pending || state_changed) {
+      job_result = JobNeedsPolling; // while waiting for user files or limit
+      if(!GetLocalDescription(i)) {
+        logger.msg(Arc::ERROR,"%s: Failed obtaining local job information.",i->job_id);
+        i->AddFailure("Internal error");
+        return JobFailed;
+      }
+      // For jobs with free stage in check if user reported complete stage in.
+      bool stagein_complete = true;
+      if(i->local->freestagein) {
+        stagein_complete = false;
+        std::list<std::string> ifiles;
+        if(job_input_status_read_file(i->job_id,config,ifiles)) {
+          for(std::list<std::string>::iterator ifile = ifiles.begin();
+                             ifile != ifiles.end(); ++ifile) {
+            if(*ifile == "/") {
+              stagein_complete = true;
+              break;
+            }
+          }
         }
-        if(i->local->dryrun) {
-          logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
-          i->AddFailure("User requested dryrun. Job skipped.");
-          job_error=true; 
-          return; // go to next job
-        }
-        // check per-DN limit on processing jobs
-        if (config.max_jobs_per_dn > 0 && jobs_dn[i->local->DN] >= config.max_jobs_per_dn) {
+      }
+      // Here we have branch. Either job is ordinary one and goes to SUBMIT
+      // or it has no executable and hence goes to FINISHING
+      if(!stagein_complete) {
+        JobPending(i);
+      } else if(i->local->exec.size() > 0) {
+        if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
+          i->job_state = JOB_STATE_SUBMITTING;
+          i->retries = staging_config.get_max_retries();
+          job_result = JobNeedsReprocess; // act on new state
+        } else {
           JobPending(i);
-          return;
         }
-        // check for user specified time
-        if(i->retries == 0 && i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
-          logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
-              i->local->processtime.str(Arc::UserTime));
-          return;
-        }
-        // job can progress to PREPARING - add to per-DN job list
-        jobs_dn[i->local->DN]++;
-        logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
-        state_changed=true; once_more=true;
-        i->job_state = JOB_STATE_PREPARING;
-        // if first pass then reset retries
-        if (i->retries == 0) i->retries = staging_config.get_max_retries();
-        i->Start();
-
-        // gather some frontend specific information for user, do it only once
-        // Runs user-supplied executable placed at "frontend-info-collector"
-        if(state_changed && i->retries == staging_config.get_max_retries()) {
-          std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
-          char const * const args[2] = { cmd.c_str(), NULL };
-          job_controldiag_mark_put(*i,config,args);
-        }
+      } else {
+        // No execution requested
+        i->job_state = JOB_STATE_FINISHING;
+        i->retries = staging_config.get_max_retries();
+        job_result = JobNeedsReprocess; // act on new state
+      }
+    }
+    return job_result;
+  } 
+  else {
+    if(!i->CheckFailure(config)) {
+      i->AddFailure("Data download failed");
+    }
+    return JobFailed;
+  }
 }
 
-void JobsList::ActJobPreparing(JobsList::iterator &i,
-                               bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& state_changed) {
-        // preparing state - job is in data staging system, so check if it has
-        // finished and whether all user uploadable files have been uploaded.
-        logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
-        if(i->job_pending || state_loading(i,state_changed,false)) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 1",i->job_id);
-          if(i->job_pending || state_changed) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 2",i->job_id);
-            if(!GetLocalDescription(i)) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 3",i->job_id);
-              logger.msg(Arc::ERROR,"%s: Failed obtaining local job information.",i->job_id);
-              i->AddFailure("Internal error");
-              job_error=true;
-              return;
-            }
-logger.msg(Arc::VERBOSE,"%s: PREPARING 4",i->job_id);
-            // For jobs with free stage in check if user reported complete stage in.
-            bool stagein_complete = true;
-            if(i->local->freestagein) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 5",i->job_id);
-              stagein_complete = false;
-              std::list<std::string> ifiles;
-              if(job_input_status_read_file(i->job_id,config,ifiles)) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 6",i->job_id);
-                for(std::list<std::string>::iterator ifile = ifiles.begin();
-                                   ifile != ifiles.end(); ++ifile) {
-                  if(*ifile == "/") {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 7",i->job_id);
-                    stagein_complete = true;
-                    break;
-                  }
-                }
-              }
-            }
-logger.msg(Arc::VERBOSE,"%s: PREPARING 8",i->job_id);
-            // Here we have branch. Either job is ordinary one and goes to SUBMIT
-            // or it has no executable and hence goes to FINISHING
-            if(!stagein_complete) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 9",i->job_id);
-              state_changed=false;
-              JobPending(i);
-            } else if(i->local->exec.size() > 0) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 10",i->job_id);
-              if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 11",i->job_id);
-                i->job_state = JOB_STATE_SUBMITTING;
-                state_changed=true; once_more=true;
-                i->retries = staging_config.get_max_retries();
-              } else {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 12",i->job_id);
-                state_changed=false;
-                JobPending(i);
-              }
-            } else {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 13",i->job_id);
-              i->job_state = JOB_STATE_FINISHING;
-              state_changed=true; once_more=true;
-              i->retries = staging_config.get_max_retries();
-            }
-          }
-        } 
-        else {
-logger.msg(Arc::VERBOSE,"%s: PREPARING 14",i->job_id);
-          if(!i->CheckFailure(config)) {
-            i->AddFailure("Data download failed");
-          }
-          job_error=true;
-        }
-logger.msg(Arc::VERBOSE,"%s: PREPARING 15",i->job_id);
+JobsList::ActJobResult JobsList::ActJobSubmitting(iterator i) {
+  // everything is ready for submission to batch system or currently submitting
+  logger.msg(Arc::VERBOSE,"%s: State: SUBMIT",i->job_id);
+  bool state_changed = false;
+  if(state_submitting(i,state_changed)) {
+    if(state_changed) {
+      i->job_state = JOB_STATE_INLRMS;
+      return JobNeedsReprocess;
+    } else {
+      //return JobSuccess; // state_submitting will report job for attention
+      return JobNeedsPolling; // hack for hanging child !!
+    }
+  } else {
+    return JobFailed;
+  }
 }
 
-void JobsList::ActJobSubmitting(JobsList::iterator &i,
-                                bool& once_more,bool& /*delete_job*/,
-                                bool& job_error,bool& state_changed) {
-        // everything is ready for submission to batch system or currently submitting
-        logger.msg(Arc::VERBOSE,"%s: State: SUBMIT",i->job_id);
-        if(state_submitting(i,state_changed)) {
-          if(state_changed) {
-            i->job_state = JOB_STATE_INLRMS;
-            once_more=true;
-          }
+JobsList::ActJobResult JobsList::ActJobCanceling(JobsList::iterator i) {
+  // This state is like submitting, only -cancel instead of -submit
+  logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
+  bool state_changed = false;
+  if(state_canceling(i,state_changed)) {
+    if(state_changed) {
+      i->job_state = JOB_STATE_FINISHING;
+      return JobNeedsReprocess;
+    } else {
+      //return JobSuccess; // state_canceling will report job for attention
+      return JobNeedsPolling; // hack for hanging child !!
+    }
+  } else {
+    return JobFailed;
+  }
+}
+
+JobsList::ActJobResult JobsList::ActJobInlrms(JobsList::iterator i) {
+  // Job is currently running in LRMS, check if it has finished
+  logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
+  if(!GetLocalDescription(i)) {
+    i->AddFailure("Failed reading local job information");
+    return JobFailed; // go to next job
+  }
+  // only check lrms job status on first pass
+  if(i->retries == 0 || i->retries == staging_config.get_max_retries()) {
+    if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
+      if(!i->job_pending) {
+        logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
+        job_diagnostics_mark_move(*i,config);
+        LRMSResult ec = job_lrms_mark_read(i->job_id,config);
+        if(ec.code() != i->local->exec.successcode) {
+          logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
+          i->AddFailure("LRMS error: ("+
+                Arc::tostring(ec.code())+") "+ec.description());
+          JobFailStateRemember(i,JOB_STATE_INLRMS);
+          // This does not require any special postprocessing and
+          // can go to next state directly
+          return JobFailed;
+        }
+      }
+      i->job_state = JOB_STATE_FINISHING;
+      // if first pass then reset retries
+      if (i->retries == 0) i->retries = staging_config.get_max_retries();
+      return JobNeedsReprocess;
+    } else {
+      return JobNeedsPolling;
+    }
+  } else {
+    i->job_state = JOB_STATE_FINISHING;
+    return JobNeedsReprocess;
+  }
+}
+
+JobsList::ActJobResult JobsList::ActJobFinishing(iterator i) {
+  // Batch job has finished and now ready to upload output files, or
+  // upload is already on-going
+  logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
+  bool state_changed = false;
+  if(state_loading(i,state_changed,true)) {
+    if(state_changed) {
+      i->job_state = JOB_STATE_FINISHED;
+      if(GetLocalDescription(i)) {
+        if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
+      }
+      return JobNeedsReprocess;
+    } else {
+      return JobSuccess; // still in data staging
+    }
+  } else {
+//!!          state_changed=true; // to send mail
+    if(!i->CheckFailure(config)) {
+      i->AddFailure("Data upload failed");
+    }
+    return JobFailed;
+  }
+}
+
+JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
+  // Job has completely finished, check for user requests to restart or
+  // clean up job, and if it is time to move to DELETED
+  if(job_clean_mark_check(i->job_id,config)) {
+    // request to clean job
+    logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
+    UnlockDelegation(i);
+    // delete everything
+    job_clean_final(*i,config);
+    return JobDropped;
+  }
+  if(job_restart_mark_check(i->job_id,config)) {
+    job_restart_mark_remove(i->job_id,config);
+    // request to rerun job - check if we can
+    // Get information about failed state and forget it
+    job_state_t state_ = JobFailStateGet(i);
+    if(state_ == JOB_STATE_PREPARING) {
+      if(RecreateTransferLists(i)) {
+        job_failed_mark_remove(i->job_id,config);
+        i->job_state = JOB_STATE_ACCEPTED;
+        JobPending(i); // make it go to end of state immediately
+        return JobNeedsAttention; // make it start ASAP
+      }
+    } else if((state_ == JOB_STATE_SUBMITTING) ||
+              (state_ == JOB_STATE_INLRMS)) {
+      if(RecreateTransferLists(i)) {
+        job_failed_mark_remove(i->job_id,config);
+        if(i->local->downloads > 0) {
+          // missing input files has to be re-downloaded
+          i->job_state = JOB_STATE_ACCEPTED;
         } else {
-          job_error=true;
+          i->job_state = JOB_STATE_PREPARING;
         }
+        JobPending(i); // make it go to end of state immediately
+        // TODO: check for order of processing
+        return JobNeedsAttention;
+      }
+    } else if(state_ == JOB_STATE_FINISHING) {
+      if(RecreateTransferLists(i)) {
+        job_failed_mark_remove(i->job_id,config);
+        i->job_state = JOB_STATE_INLRMS;
+        JobPending(i); // make it go to end of state immediately
+        return JobNeedsAttention;
+      }
+    } else if(state_ == JOB_STATE_UNDEFINED) {
+      logger.msg(Arc::ERROR,"%s: Can't rerun on request",i->job_id);
+    } else {
+      logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state",i->job_id);
+    }
+  }
+  // process cleanup time
+  time_t t = -1;
+  if(!job_local_read_cleanuptime(i->job_id,config,t)) {
+    // must be first time - create cleanuptime
+    t=PrepareCleanupTime(i,i->keep_finished);
+  }
+  // check if it is time to move job to DELETED
+  if(((int)(time(NULL)-t)) >= 0) {
+    logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
+    UnlockDelegation(i);
+    if(i->keep_deleted) {
+      // here we have to get the cache per-job dirs to be deleted
+      std::list<std::string> cache_per_job_dirs;
+      CacheConfig cache_config(config.cache_params);
+      cache_config.substitute(config, i->user);
+      std::vector<std::string> conf_caches = cache_config.getCacheDirs();
+      // add each dir to our list
+      for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
+        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+      }
+      // add remote caches
+      std::vector<std::string> remote_caches = cache_config.getRemoteCacheDirs();
+      for (std::vector<std::string>::iterator it = remote_caches.begin(); it != remote_caches.end(); it++) {
+        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+      }
+      // add draining caches
+      std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
+      for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
+        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+      }
+      job_clean_deleted(*i,config,cache_per_job_dirs);
+      i->job_state = JOB_STATE_DELETED;
+      return JobNeedsPolling;
+    } else {
+      // delete everything
+      job_clean_final(*i,config);
+      return JobDropped;
+    }
+  } else {
+    return JobNeedsPolling;
+  }
 }
 
-void JobsList::ActJobCanceling(JobsList::iterator &i,
-                               bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& state_changed) {
-        // This state is like submitting, only -cancel instead of -submit
-        logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
-        if(state_submitting(i,state_changed,true)) {
-          if(state_changed) {
-            i->job_state = JOB_STATE_FINISHING;
-            once_more=true;
-          }
-        }
-        else {
-          job_error=true;
-        }
+JobsList::ActJobResult JobsList::ActJobDeleted(iterator i) {
+  // Job only has a few control files left, check if is it time to
+  // remove all traces
+  time_t t = -1;
+  if(!job_local_read_cleanuptime(i->job_id,config,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
+    logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
+    // delete everything
+    job_clean_final(*i,config);
+    return JobDropped;
+  }
+  return JobNeedsPolling;
 }
 
-void JobsList::ActJobInlrms(JobsList::iterator &i,
-                            bool& once_more,bool& /*delete_job*/,
-                            bool& job_error,bool& state_changed) {
-        // Job is currently running in LRMS, check if it has finished
-        logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
-        if(!GetLocalDescription(i)) {
-          i->AddFailure("Failed reading local job information");
-          job_error=true;
-          return; // go to next job
-        }
-        // only check lrms job status on first pass
-        if(i->retries == 0 || i->retries == staging_config.get_max_retries()) {
-          if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
-            if(!i->job_pending) {
-              logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
-              job_diagnostics_mark_move(*i,config);
-              LRMSResult ec = job_lrms_mark_read(i->job_id,config);
-              if(ec.code() != i->local->exec.successcode) {
-                logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
-                i->AddFailure("LRMS error: ("+
-                      Arc::tostring(ec.code())+") "+ec.description());
-                job_error=true;
-                JobFailStateRemember(i,JOB_STATE_INLRMS);
-                // This does not require any special postprocessing and
-                // can go to next state directly
-                state_changed=true; once_more=true;
-                return;
-              }
-            }
-            state_changed=true; once_more=true;
-            i->job_state = JOB_STATE_FINISHING;
-            // if first pass then reset retries
-            if (i->retries == 0) i->retries = staging_config.get_max_retries();
-          }
-        } else {
-          state_changed=true; once_more=true;
-          i->job_state = JOB_STATE_FINISHING;
-        }
+bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
+  // some states can not be canceled (or there is no sense to do that)
+  if((i->job_state != JOB_STATE_CANCELING) &&
+     (i->job_state != JOB_STATE_FINISHED) &&
+     (i->job_state != JOB_STATE_DELETED) &&
+     (i->job_state != JOB_STATE_SUBMITTING)) {
+    if(job_cancel_mark_check(i->job_id,config)) {
+      logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
+      if (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING) {
+        dtr_generator->cancelJob(*i);
+      }
+      // kill running child
+      if(i->child) { 
+        i->child->Kill(0);
+        delete i->child; i->child=NULL;
+      }
+      // put some explanation
+      i->AddFailure("User requested to cancel the job");
+      JobFailStateRemember(i,i->job_state,false);
+      // behave like if job failed
+      if(!FailedJob(i,true)) {
+        // DO NOT KNOW WHAT TO DO HERE !!!!!!!!!!
+      }
+      // special processing for INLRMS case
+      if(i->job_state == JOB_STATE_INLRMS) {
+        i->job_state = JOB_STATE_CANCELING;
+      }
+      // if FINISHING we wait to get back all DTRs
+      else if (i->job_state != JOB_STATE_PREPARING) {
+        i->job_state = JOB_STATE_FINISHING;
+      }
+      job_cancel_mark_remove(i->job_id,config);
+      return true;
+    }
+  }
+  return false;
 }
 
-void JobsList::ActJobFinishing(JobsList::iterator &i,
-                               bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& state_changed) {
-        // Batch job has finished and now ready to upload output files, or
-        // upload is already on-going
-        logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
-        if(state_loading(i,state_changed,true)) {
-          if(state_changed) {
-            i->job_state = JOB_STATE_FINISHED;
-            if(GetLocalDescription(i)) {
-              if (--(jobs_dn[i->local->DN]) <= 0) jobs_dn.erase(i->local->DN);
-            }
-            once_more=true;
-          }
-          else {
-            return; // still in data staging
-          }
-        } else {
-          state_changed=true; // to send mail
-          once_more=true;
-          if(!i->CheckFailure(config)) {
-            i->AddFailure("Data upload failed");
-          }
-          job_error=true;
-        }
-}
-
-void JobsList::ActJobFinished(JobsList::iterator &i,
-                              bool& /*once_more*/,bool& /*delete_job*/,
-                              bool& /*job_error*/,bool& state_changed) {
-        // Job has completely finished, check for user requests to restart or
-        // clean up job, and if it is time to move to DELETED
-        if(job_clean_mark_check(i->job_id,config)) {
-          // request to clean job
-          logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
-          UnlockDelegation(i);
-          // delete everything
-          job_clean_final(*i,config);
-          return;
-        }
-        if(job_restart_mark_check(i->job_id,config)) {
-           job_restart_mark_remove(i->job_id,config);
-          // request to rerun job - check if we can
-          // Get information about failed state and forget it
-          job_state_t state_ = JobFailStateGet(i);
-          if(state_ == JOB_STATE_PREPARING) {
-            if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,config);
-              i->job_state = JOB_STATE_ACCEPTED;
-              JobPending(i); // make it go to end of state immediately
-              return;
-            }
-          } else if((state_ == JOB_STATE_SUBMITTING) ||
-                    (state_ == JOB_STATE_INLRMS)) {
-            if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,config);
-              if(i->local->downloads > 0) {
-                // missing input files has to be re-downloaded
-                i->job_state = JOB_STATE_ACCEPTED;
-              } else {
-                i->job_state = JOB_STATE_PREPARING;
-              }
-              JobPending(i); // make it go to end of state immediately
-              return;
-            }
-          } else if(state_ == JOB_STATE_FINISHING) {
-            if(RecreateTransferLists(i)) {
-              job_failed_mark_remove(i->job_id,config);
-              i->job_state = JOB_STATE_INLRMS;
-              JobPending(i); // make it go to end of state immediately
-              return;
-            }
-          } else if(state_ == JOB_STATE_UNDEFINED) {
-            logger.msg(Arc::ERROR,"%s: Can't rerun on request",i->job_id);
-          } else {
-            logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state",i->job_id);
-          }
-        }
-        time_t t = -1;
-        if(!job_local_read_cleanuptime(i->job_id,config,t)) {
-          // must be first time - create cleanuptime
-          t=PrepareCleanupTime(i,i->keep_finished);
-        }
-        // check if it is time to move job to DELETED
-        if(((int)(time(NULL)-t)) >= 0) {
-          logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
-          UnlockDelegation(i);
-          if(i->keep_deleted) {
-            // here we have to get the cache per-job dirs to be deleted
-            std::list<std::string> cache_per_job_dirs;
-            CacheConfig cache_config(config.cache_params);
-            cache_config.substitute(config, i->user);
-            std::vector<std::string> conf_caches = cache_config.getCacheDirs();
-            // add each dir to our list
-            for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
-              cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
-            }
-            // add remote caches
-            std::vector<std::string> remote_caches = cache_config.getRemoteCacheDirs();
-            for (std::vector<std::string>::iterator it = remote_caches.begin(); it != remote_caches.end(); it++) {
-              cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
-            }
-            // add draining caches
-            std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
-            for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
-              cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
-            }
-            job_clean_deleted(*i,config,cache_per_job_dirs);
-            i->job_state = JOB_STATE_DELETED;
-            state_changed=true;
-          } else {
-            // delete everything
-            job_clean_final(*i,config);
-          }
-        }
-}
-
-void JobsList::ActJobDeleted(JobsList::iterator &i,
-                             bool& /*once_more*/,bool& /*delete_job*/,
-                             bool& /*job_error*/,bool& /*state_changed*/) {
-        // Job only has a few control files left, check if is it time to
-        // remove all traces
-        time_t t = -1;
-        if(!job_local_read_cleanuptime(i->job_id,config,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
-          logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
-          // delete everything
-          job_clean_final(*i,config);
-        }
+bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
+  bool plugins_result = true;
+  if(config.cont_plugins) {
+    std::list<ContinuationPlugins::result_t> results;
+    config.cont_plugins->run(*i,config,results);
+    std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
+    while(result != results.end()) {
+      // analyze results
+      if(result->action == ContinuationPlugins::act_fail) {
+        logger.msg(Arc::ERROR,"%s: Plugin at state %s : %s",
+            i->job_id.c_str(),states_all[i->get_state()].name,
+            result->response);
+        i->AddFailure(std::string("Plugin at state ")+
+        states_all[i->get_state()].name+" failed: "+(result->response));
+        plugins_result = false;;
+      } else if(result->action == ContinuationPlugins::act_log) {
+        // Scream but go ahead
+        logger.msg(Arc::WARNING,"%s: Plugin at state %s : %s",
+            i->job_id.c_str(),states_all[i->get_state()].name,
+            result->response);
+      } else if(result->action == ContinuationPlugins::act_pass) {
+        // Just continue quietly
+      } else {
+        logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
+        i->AddFailure(std::string("Failed running plugin at state ")+
+            states_all[i->get_state()].name);
+        plugins_result = false;;
+      }
+      ++result;
+    }
+  }
+  return plugins_result;
 }
 
 bool JobsList::ActJob(JobsList::iterator &i) {
@@ -1056,71 +1202,59 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     delete_job    = false;
     job_error     = false;
     state_changed = false;
-    // some states can not be canceled (or there is no sense to do that)
-    if((i->job_state != JOB_STATE_CANCELING) &&
-       (i->job_state != JOB_STATE_FINISHED) &&
-       (i->job_state != JOB_STATE_DELETED) &&
-       (i->job_state != JOB_STATE_SUBMITTING)) {
-      if(job_cancel_mark_check(i->job_id,config)) {
-        logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
-        if (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING) {
-          dtr_generator->cancelJob(*i);
-        }
-        // kill running child
-        if(i->child) { 
-          i->child->Kill(0);
-          delete i->child; i->child=NULL;
-        }
-        // put some explanation
-        i->AddFailure("User requested to cancel the job");
-        JobFailStateRemember(i,i->job_state,false);
-        // behave like if job failed
-        if(!FailedJob(i,true)) {
-          // DO NOT KNOW WHAT TO DO HERE !!!!!!!!!!
-        }
-        // special processing for INLRMS case
-        if(i->job_state == JOB_STATE_INLRMS) {
-          i->job_state = JOB_STATE_CANCELING;
-        }
-        // if FINISHING we wait to get back all DTRs
-        else if (i->job_state != JOB_STATE_PREPARING) {
-          i->job_state = JOB_STATE_FINISHING;
-        }
-        job_cancel_mark_remove(i->job_id,config);
-        state_changed=true;
-        once_more=true;
+
+    if(CheckJobCancelRequest(i)) {
+      state_changed=true;
+      once_more=true;
+    } else {
+      job_state_t previous_state = i->job_state;
+      ActJobResult job_result = JobFailed;
+      switch(i->job_state) {
+        case JOB_STATE_UNDEFINED: {
+         job_result = ActJobUndefined(i);
+        } break;
+        case JOB_STATE_ACCEPTED: {
+         job_result = ActJobAccepted(i);
+        } break;
+        case JOB_STATE_PREPARING: {
+         job_result = ActJobPreparing(i);
+        } break;
+        case JOB_STATE_SUBMITTING: {
+         job_result = ActJobSubmitting(i);
+        } break;
+        case JOB_STATE_CANCELING: {
+         job_result = ActJobCanceling(i);
+        } break;
+        case JOB_STATE_INLRMS: {
+         job_result = ActJobInlrms(i);
+        } break;
+        case JOB_STATE_FINISHING: {
+         job_result = ActJobFinishing(i);
+        } break;
+        case JOB_STATE_FINISHED: {
+         job_result = ActJobFinished(i);
+        } break;
+        case JOB_STATE_DELETED: {
+         job_result = ActJobDeleted(i);
+        } break;
+        default: { // should destroy job with unknown state ?!
+        } break;
       }
-    }
-    if(!state_changed) switch(i->job_state) {
-      case JOB_STATE_UNDEFINED: {
-       ActJobUndefined(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_ACCEPTED: {
-       ActJobAccepted(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_PREPARING: {
-       ActJobPreparing(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_SUBMITTING: {
-       ActJobSubmitting(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_CANCELING: {
-       ActJobCanceling(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_INLRMS: {
-       ActJobInlrms(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_FINISHING: {
-       ActJobFinishing(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_FINISHED: {
-       ActJobFinished(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      case JOB_STATE_DELETED: {
-       ActJobDeleted(i,once_more,delete_job,job_error,state_changed);
-      } break;
-      default: { // should destroy job with unknown state ?!
-      } break;
+      state_changed = (i->job_state != previous_state);
+      switch(job_result) {
+        case JobFailed: {
+          job_error = true;
+        } break;
+        case JobNeedsReprocess: {
+          once_more = true;
+        } break;
+        case JobNeedsAttention: {
+          RequestAttention(i->job_id);
+        } break;
+        case JobNeedsPolling: {
+          RequestPolling(i->job_id);
+        } break;
+      }
     }
     do {
       // Process errors which happened during processing this job
@@ -1177,34 +1311,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
           // Hence here we have duplicate call for ACCEPTED state.
           // TODO: maybe introducing job state prefix VALIDATING:
           // could be used to resolve this situation.
-          if(config.cont_plugins) {
-            std::list<ContinuationPlugins::result_t> results;
-            config.cont_plugins->run(*i,config,results);
-            std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
-            while(result != results.end()) {
-              // analyze results
-              if(result->action == ContinuationPlugins::act_fail) {
-                logger.msg(Arc::ERROR,"%s: Plugin at state %s : %s",
-                    i->job_id.c_str(),states_all[i->get_state()].name,
-                    result->response);
-                i->AddFailure(std::string("Plugin at state ")+
-                states_all[i->get_state()].name+" failed: "+(result->response));
-                job_error=true;
-              } else if(result->action == ContinuationPlugins::act_log) {
-                // Scream but go ahead
-                logger.msg(Arc::WARNING,"%s: Plugin at state %s : %s",
-                    i->job_id.c_str(),states_all[i->get_state()].name,
-                    result->response);
-              } else if(result->action == ContinuationPlugins::act_pass) {
-                // Just continue quietly
-              } else {
-                logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
-                i->AddFailure(std::string("Failed running plugin at state ")+
-                    states_all[i->get_state()].name);
-                job_error=true;
-              }
-              ++result;
-            }
+          if(!CheckJobContinuePlugins(i)) {
+            // No need for AddFailure. It is filled inside CheckJobContinuePlugins.
+            job_error=true;
           }
           // Processing to be done on state changes 
           config.job_log->make_file(*i,config);

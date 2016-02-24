@@ -84,7 +84,8 @@ class JobsList {
   // false if external process is still running.
   bool DestroyJob(iterator &i,bool finished=true,bool active=true);
   // Perform actions necessary in case job goes to/is in SUBMITTING/CANCELING state
-  bool state_submitting(const iterator &i,bool &state_changed,bool cancel=false);
+  bool state_submitting(const iterator &i,bool &state_changed);
+  bool state_canceling(const iterator &i,bool &state_changed);
   // Same for PREPARING/FINISHING
   bool state_loading(const iterator &i,bool &state_changed,bool up);
   // Returns true if job is waiting on some condition or limit before
@@ -117,21 +118,45 @@ class JobsList {
   // is advanced or erased inside this function.
   bool ActJob(iterator &i);
 
+  enum ActJobResult {
+    JobSuccess,
+    JobFailed,
+    JobDropped,
+    JobNeedsReprocess,
+    JobNeedsAttention,
+    JobNeedsPolling
+  };
   // ActJob() calls one of these methods depending on the state of the job.
-  // Parameters:
-  //   once_more - if true then ActJob should process this job again
-  //   delete_job - if true then ActJob should delete the job
-  //   job_error - if true then an error happened in this processing state
-  //   state_changed - if true then the job state was changed
-  void ActJobUndefined(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobAccepted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobPreparing(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobSubmitting(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobCanceling(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobInlrms(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobFinishing(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobFinished(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobDeleted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  // Each ActJob*() returns processing result:
+  //   JobSuccess - job was procesed and was passed to another module which
+  //      will take care of calling RequestAteention/RequestPolling.
+  //      No additional processing is needed right now
+  //   JobFailed  - job processing failed. Job must be moved to FAILED.
+  //   JobDropped - job does not need any further processing and should
+  //      be removed from memory
+  //   JobNeedsReprocess - job processing must continue in another state
+  //      immediately
+  //   JobNeedsAttention - job processing must continue in another state as
+  //      soon as possible.
+  //   JobNeedsPolling - job need to to be periodically polled for state
+  //      change conditions.
+  ActJobResult ActJobUndefined(iterator i);
+  ActJobResult ActJobAccepted(iterator i);
+  ActJobResult ActJobPreparing(iterator i);
+  ActJobResult ActJobSubmitting(iterator i);
+  ActJobResult ActJobCanceling(iterator i);
+  ActJobResult ActJobInlrms(iterator i);
+  ActJobResult ActJobFinishing(iterator i);
+  ActJobResult ActJobFinished(iterator i);
+  ActJobResult ActJobDeleted(iterator i);
+
+  // Checks and processes user's request to cancel job.
+  // Returns true if job was modified (canceled or failed)
+  bool CheckJobCancelRequest(JobsList::iterator i);
+
+  // Checks job state against continuation plugins.
+  // Returns false if job is not allowed to continue.
+  bool CheckJobContinuePlugins(JobsList::iterator i);
 
  public:
   // Constructor.
