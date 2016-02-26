@@ -157,6 +157,17 @@ typedef struct {
   char** argv;
 } args_st;
 
+void touch_heartbeat(const std::string& dir, const std::string& file) {
+  std::string gm_heartbeat(dir + "/" + file);
+  int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+  if (r < 0) {
+    logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
+  } else {
+    ::close(r); r = -1;
+  };
+}
+
+
 void GridManager::grid_manager(void* arg) {
   GridManager* gm = (GridManager*)arg;
   if(!arg) {
@@ -178,7 +189,6 @@ bool GridManager::thread() {
 
   // Preparing various structures, dirs, etc.
   wakeup_interface_ = new CommFIFO;
-  time_t hard_job_time; 
   CommFIFO::add_result r = wakeup_interface_->add(config_.ControlDir());
   if(r != CommFIFO::add_success) {
     if(r == CommFIFO::add_busy) {
@@ -202,6 +212,7 @@ bool GridManager::thread() {
   wakeup_interface_->timeout(config_.WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
+  // TODO: use timed wait instead of dedicated thread
   wakeup_ = new sleep_st(config_.ControlDir());
   wakeup_->sleep_cond=sleep_cond_;
   wakeup_->timeout=wakeup_interface_;
@@ -270,7 +281,6 @@ bool GridManager::thread() {
   logger.msg(Arc::INFO,"Picking up left jobs");
   jobs.RestartJobs();
 
-  hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   logger.msg(Arc::INFO, "Starting data staging threads");
   DTRGenerator* dtr_generator = new DTRGenerator(config_, jobs /*&kick_func, wakeup_*/);
   if (!(*dtr_generator)) {
@@ -283,45 +293,56 @@ bool GridManager::thread() {
   bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
+  jobs.SetAttentionCondition(sleep_cond_);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
+  time_t hard_job_time = time(NULL) + HARD_JOB_PERIOD;
+  time_t poll_job_time = time(NULL) + config_.WakeupPeriod();
   for(;;) {
     if(tostop_) break;
+    // TODO: check conditions for following calls
     config_.RunHelpers();
     config_.GetJobLog()->RunReporter(config_);
-    bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
-    // touch heartbeat file
-    std::string gm_heartbeat(std::string(config_.ControlDir() + "/" + heartbeat_file));
-    int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
-    if (r < 0) {
-      logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
-    } else {
-      close(r); r = -1;
-    };
-    // touch temporary configuration so /tmp cleaner does not erase it
-    if(config_.ConfigIsTemp()) ::utimes(config_.ConfigFile().c_str(), NULL);
-    wd.Kick();
-    /* check for new marks and activate related jobs */
-    jobs.ScanNewMarks();
-    /* look for new jobs */
-    jobs.ScanNewJobs();
-    /* slowly scan through old jobs for deleting them in time */
-    if(hard_job || scan_old) {
-      scan_old = jobs.ScanOldJobs(config_.WakeupPeriod()/2,config_.MaxJobs());
-    };
-    /* process known jobs */
-    jobs.ActJobsPolling();
+    // Process jobs which need attention ASAP
     jobs.ActJobsAttention();
-    jobs.ActJobs();
-    // Clean old delegations
-    ARex::DelegationStores* delegs = config_.Delegations();
-    if(delegs) {
-      ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
-      deleg.Expiration(24*60*60);
-      deleg.CheckTimeout(60);
-      deleg.PeriodicCheckConsumers();
+    if(((unsigned int)(time(NULL) - poll_job_time)) >= 0) {
+      // Polling time
+
+      // touch heartbeat file
+      touch_heartbeat(config_.ControlDir(), heartbeat_file);
+      // touch temporary configuration so /tmp cleaner does not erase it
+      if(config_.ConfigIsTemp()) ::utimes(config_.ConfigFile().c_str(), NULL);
+      // Tell watchdog we are alive
+      wd.Kick();
+      /* check for new marks and activate related jobs - TODO: remove */
+      jobs.ScanNewMarks();
+      /* look for new jobs - TODO: remove */
+      jobs.ScanNewJobs();
+      /* process jobs which do not get attention calls int their current state */
+      jobs.ActJobsPolling();
+      //jobs.ActJobs();
+      // Clean old delegations
+      ARex::DelegationStores* delegs = config_.Delegations();
+      if(delegs) {
+        ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
+        deleg.Expiration(24*60*60);
+        deleg.CheckTimeout(60);
+        deleg.PeriodicCheckConsumers();
+      };
+
+      poll_job_time += config_.WakeupPeriod();
     };
-    if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
+
+    if((((unsigned int)(time(NULL) - hard_job_time)) >= 0) || scan_old) {
+      // Hard job time
+
+      /* slowly scan through old jobs for deleting them in time */
+      // TODO: remove
+      scan_old = jobs.ScanOldJobs(config_.WakeupPeriod()/2,config_.MaxJobs());
+
+      hard_job_time = time(NULL) + HARD_JOB_PERIOD;
+    };
+
     sleep_cond_->wait();
     logger.msg(Arc::DEBUG,"Waking up");
   };

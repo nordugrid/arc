@@ -30,7 +30,7 @@ namespace ARex {
 // default maximal allowed amount of reruns
 #define DEFAULT_JOB_RERUNS (5)
 // default wake up period for main job loop
-#define DEFAULT_WAKE_UP (120)
+#define DEFAULT_WAKE_UP (600)
 
 
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");

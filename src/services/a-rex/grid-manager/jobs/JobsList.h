@@ -49,6 +49,7 @@ class JobsList {
   // List of jobs which need attention
   std::list<JobId> jobs_attention;
   Glib::Mutex jobs_attention_lock;
+  Arc::SimpleCondition* jobs_attention_cond;
   // List of jobs which need polling
   std::list<JobId> jobs_polling;
   Glib::Mutex jobs_polling_lock;
@@ -151,8 +152,9 @@ class JobsList {
   ActJobResult ActJobDeleted(iterator i);
 
   // Checks and processes user's request to cancel job.
-  // Returns true if job was modified (canceled or failed)
-  bool CheckJobCancelRequest(JobsList::iterator i);
+  // Returns JobSuccess if job was not modified (canceled or
+  // failed) and any other enum if canceling took place.
+  ActJobResult CheckJobCancelRequest(JobsList::iterator i);
 
   // Checks job state against continuation plugins.
   // Returns false if job is not allowed to continue.
@@ -209,6 +211,8 @@ class JobsList {
   void PrepareToDestroy(void);
   // Inform this instance that job with specified id needs attention
   bool RequestAttention(const JobId& id);
+  // Specifies condition object (NULL to reset) to indicate new job needs attention
+  void SetAttentionCondition(Arc::SimpleCondition* cond);
   // Similar to RequestAttention but jobs does not need immediate attention.
   // These jobs will be processed when polling period elapses.
   bool RequestPolling(const JobId& id);

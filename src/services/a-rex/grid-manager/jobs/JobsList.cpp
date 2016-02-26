@@ -36,7 +36,8 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::JobsList(const GMConfig& gmconfig) :
-    config(gmconfig), staging_config(gmconfig), old_dir(NULL), dtr_generator(NULL), job_desc_handler(config), jobs_pending(0) {
+    config(gmconfig), staging_config(gmconfig), old_dir(NULL), dtr_generator(NULL),
+    job_desc_handler(config), jobs_pending(0), jobs_attention_cond(NULL) {
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
@@ -113,8 +114,14 @@ bool JobsList::RequestAttention(const JobId& id) {
   logger.msg(Arc::VERBOSE, "--> job for attention: %s", id);
   Glib::Mutex::Lock lock_(jobs_attention_lock);
   jobs_attention.push_back(id);
+  if(jobs_attention_cond) jobs_attention_cond->signal();
 }
 
+
+void JobsList::SetAttentionCondition(Arc::SimpleCondition* cond) {
+  Glib::Mutex::Lock lock_(jobs_attention_lock);
+  jobs_attention_cond = cond;
+}
 
 bool JobsList::RequestPolling(const JobId& id) {
   logger.msg(Arc::VERBOSE, "--> job for polling: %s", id);
@@ -157,13 +164,28 @@ bool JobsList::ActJobsPolling(void) {
       ActJob(i);
     }
   }
+  // debug info on jobs per DN
+  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
+  for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
+    logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
   return true;
 }
 
 
 bool JobsList::ActJobs(void) {
 
+//  JOB_STATE_ACCEPTED
+//  JOB_STATE_PREPARING  A+P
+//  JOB_STATE_SUBMITTING A
+//  JOB_STATE_INLRMS
+//  JOB_STATE_FINISHING  A
+//  JOB_STATE_FINISHED
+//  JOB_STATE_DELETED
+//  JOB_STATE_CANCELING
+//  JOB_STATE_UNDEFINED
+
   bool res = true;
+  /*
   bool once_more = false;
 
   // first pass
@@ -187,6 +209,7 @@ bool JobsList::ActJobs(void) {
   logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
   for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
     logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
+  */
 
   return res;
 }
@@ -1114,7 +1137,8 @@ JobsList::ActJobResult JobsList::ActJobDeleted(iterator i) {
   return JobNeedsPolling;
 }
 
-bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
+JobsList::ActJobResult JobsList::CheckJobCancelRequest(JobsList::iterator i) {
+  ActJobResult result = JobSuccess;
   // some states can not be canceled (or there is no sense to do that)
   if((i->job_state != JOB_STATE_CANCELING) &&
      (i->job_state != JOB_STATE_FINISHED) &&
@@ -1146,10 +1170,10 @@ bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
         i->job_state = JOB_STATE_FINISHING;
       }
       job_cancel_mark_remove(i->job_id,config);
-      return true;
+      result = JobNeedsReprocess;
     }
   }
-  return false;
+  return result;
 }
 
 bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
@@ -1203,12 +1227,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     job_error     = false;
     state_changed = false;
 
-    if(CheckJobCancelRequest(i)) {
-      state_changed=true;
-      once_more=true;
-    } else {
-      job_state_t previous_state = i->job_state;
-      ActJobResult job_result = JobFailed;
+    job_state_t previous_state = i->job_state;
+    ActJobResult job_result = CheckJobCancelRequest(i);
+    if(job_result == JobSuccess) {
       switch(i->job_state) {
         case JOB_STATE_UNDEFINED: {
          job_result = ActJobUndefined(i);
@@ -1239,22 +1260,22 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         } break;
         default: { // should destroy job with unknown state ?!
         } break;
-      }
-      state_changed = (i->job_state != previous_state);
-      switch(job_result) {
-        case JobFailed: {
-          job_error = true;
-        } break;
-        case JobNeedsReprocess: {
-          once_more = true;
-        } break;
-        case JobNeedsAttention: {
-          RequestAttention(i->job_id);
-        } break;
-        case JobNeedsPolling: {
-          RequestPolling(i->job_id);
-        } break;
-      }
+      };
+    };
+    state_changed = (i->job_state != previous_state);
+    switch(job_result) {
+      case JobFailed: {
+        job_error = true;
+      } break;
+      case JobNeedsReprocess: {
+        once_more = true;
+      } break;
+      case JobNeedsAttention: {
+        RequestAttention(i->job_id);
+      } break;
+      case JobNeedsPolling: {
+        RequestPolling(i->job_id);
+      } break;
     }
     do {
       // Process errors which happened during processing this job
