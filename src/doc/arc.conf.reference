@@ -959,6 +959,35 @@
 ## Default is 'no'.
 #watchdog="no"
 
+## groupcfg group_name [group_name ...] - specifies authorization groups
+##  for grid-manager to accept. The main location of this parameter is
+##  inside [gridftpd/jobs] block. The 'groupcfg' located here is only
+##  effective if computing service is configured without GridFTP interface
+##  and hence [gridftpd/jobs] block is missing.
+#groupcfg="users"
+
+## unixmap [unixname][:unixgroup] rule - more sophisticated mapping to
+##  local account
+## unixgroup group rule - more sophisticated mapping to local account
+##  for specific authorization groups.
+## unixvo vo rule - more sophisticated mapping to local account for
+##  users belonging to specified VO.
+##  The main location for these parameters is [gridftpd] section. If 
+##  located here they are only active if computing service is configured
+##  without GridFTP interface and hence [gridftpd/jobs] block is missing.
+##  For more detailed information see section [gridftpd] and read "ARC 
+##  Computing Element. System Administrator guide" manual.
+#unixmap="nobody:nogroup all"
+#unixgroup="users simplepool /etc/grid-security/pool/users"
+#unixvo="ATLAS unixuser atlas:atlas"
+
+## allowunknown yes|no - check user subject against grid-mapfile.
+##  The main location for this parameter is [gridftpd] section. If 
+##  located here it is only active if computing service is configured
+##  without GridFTP interface and hence [gridftpd/jobs] block is missing.
+##  For more detailed information see section [gridftpd].
+#allowunknown="no"
+
 
 ####################################################################
 
