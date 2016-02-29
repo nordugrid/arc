@@ -127,6 +127,10 @@ namespace ArcDMCACIX {
       if (dp->original_location) {
 
         DataHandle origdp(dp->original_location, dp->usercfg);
+        if (!origdp) {
+          logger.msg(ERROR, "Cannot handle URL %s", dp->original_location.str());
+          return DataStatus(DataStatus::ReadResolveError, EINVAL, "Invalid URL");
+        }
         // If index resolve the location and add replicas to this datapoint
         if (origdp->IsIndex()) {
           // Check we are within the time limit;
