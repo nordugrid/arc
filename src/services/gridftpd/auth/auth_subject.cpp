@@ -7,7 +7,7 @@
 #include "../misc/escaped.h"
 #include "auth.h"
 
-int AuthUser::match_subject(const char* line) {
+AuthResult AuthUser::match_subject(const char* line) {
   for(;;) {
     std::string s("");
     int n = gridftpd::input_escaped_string(line,s,' ','"');

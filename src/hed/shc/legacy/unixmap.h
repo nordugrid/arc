@@ -11,7 +11,7 @@ class UnixMap {
     std::string group;
     unix_user_t(void) { };
   };
-  typedef bool (UnixMap:: * map_func_t)(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  typedef AuthResult (UnixMap:: * map_func_t)(const AuthUser& user,unix_user_t& unix_user,const char* line);
   typedef struct {
     const char* cmd;
     map_func_t map;
@@ -25,11 +25,11 @@ class UnixMap {
   std::string map_id_;
   // Mapping was done
   bool mapped_;
-  bool map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line);
-  bool map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line);
-  bool map_unixuser(const AuthUser& user,unix_user_t& unix_user,const char* line);
-  bool map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char* line);
-  bool map_mapplugin(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  AuthResult map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  AuthResult map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  AuthResult map_unixuser(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  AuthResult map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char* line);
+  AuthResult map_mapplugin(const AuthUser& user,unix_user_t& unix_user,const char* line);
  public:
   // Constructor - links to grid user 
   UnixMap(AuthUser& user,const std::string& id = "");
@@ -42,9 +42,9 @@ class UnixMap {
   const std::string& unix_group(void) const { return unix_user_.group; };
   AuthUser& user(void) { return user_; };
   // Map
-  bool mapname(const char* line);
-  bool mapgroup(const char* line);
-  bool mapvo(const char* line);
+  AuthResult mapname(const char* line);
+  AuthResult mapgroup(const char* line);
+  AuthResult mapvo(const char* line);
 };
 
 } // namespace ArcSHCLegacy

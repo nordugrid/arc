@@ -23,7 +23,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLDAP");
 class result_t {
  public:
   std::string subject;
-  int decision;
+  AuthResult decision;
   result_t(const char* s):subject(s),decision(AAA_NO_MATCH) {};
 };
 
@@ -41,7 +41,7 @@ static void result_callback(const std::string & attr,const std::string & value,v
   };
 }
 
-int AuthUser::match_ldap(const char* line) {
+AuthResult AuthUser::match_ldap(const char* line) {
 #ifdef HAVE_LDAP
   for(;;) {
     std::string u("");

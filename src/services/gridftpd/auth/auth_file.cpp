@@ -13,7 +13,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
 
-int AuthUser::match_file(const char* line) {
+AuthResult AuthUser::match_file(const char* line) {
   for(;;) {
     std::string s("");
     int n = gridftpd::input_escaped_string(line,s,' ','"');
@@ -27,7 +27,7 @@ int AuthUser::match_file(const char* line) {
     for(;f.good();) {
       std::string buf;
       getline(f,buf);
-      int res = evaluate(buf.c_str());
+      AuthResult res = evaluate(buf.c_str());
       if(res != AAA_NO_MATCH) {
         f.close();
         return res;

@@ -18,7 +18,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
 
-bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char* line) {
+AuthResult UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char* line) {
   // TODO: escape
   // TODO: hardcoded 300s timeout for lcmaps
   std::string lcmaps_plugin = "300 \""+
@@ -27,6 +27,6 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
   lcmaps_plugin+=std::string("\"")+user_.DN()+"\" ";
   lcmaps_plugin+=std::string("\"")+user_.proxy()+"\" ";
   lcmaps_plugin+=line;
-  bool res = map_mapplugin(user,unix_user,lcmaps_plugin.c_str());
+  AuthResult res = map_mapplugin(user,unix_user,lcmaps_plugin.c_str());
   return res;
 }

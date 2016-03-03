@@ -18,12 +18,12 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
 
-static int process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool auto_cert = false);
+static AuthResult process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool auto_cert = false);
 
-int AuthUser::process_voms(void) {
+AuthResult AuthUser::process_voms(void) {
   if(!voms_extracted) {
     if(filename.length() > 0) {
-      int err = process_vomsproxy(filename.c_str(),voms_data);
+      AuthResult err = process_vomsproxy(filename.c_str(),voms_data);
       voms_extracted=true;
       logger.msg(Arc::DEBUG, "VOMS proxy processing returns: %i - %s", err, err_to_string(err));
       if(err != AAA_POSITIVE_MATCH) return err;
@@ -32,7 +32,7 @@ int AuthUser::process_voms(void) {
   return AAA_POSITIVE_MATCH;
 }
 
-int AuthUser::match_voms(const char* line) {
+AuthResult AuthUser::match_voms(const char* line) {
   // parse line
   std::string vo("");
   std::string group("");
@@ -100,7 +100,7 @@ int AuthUser::match_voms(const char* line) {
 }
 
 
-static int process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool /* auto_cert */) {
+static AuthResult process_vomsproxy(const char* filename,std::vector<struct voms_t> &data,bool /* auto_cert */) {
   std::string voms_dir = "/etc/grid-security/vomsdir";
   std::string cert_dir = "/etc/grid-security/certificates";
   {

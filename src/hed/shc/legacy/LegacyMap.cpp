@@ -95,15 +95,24 @@ class LegacyMapCP: public ConfigParser {
     if(cmd == "unixmap") {
       //# unixmap [unixname][:unixgroup] rule
       //unixmap="nobody:nogroup all"
-      map_.mapname(line.c_str());
+      if(map_.mapname(line.c_str()) == AAA_FAILURE) {
+        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixmap %s", line);
+        return false;
+      };
     } else if(cmd == "unixgroup") {
       //# unixgroup group rule
       //unixgroup="users simplepool /etc/grid-security/pool/users"
-      map_.mapgroup(line.c_str());
+      if(map_.mapgroup(line.c_str()) == AAA_FAILURE) {
+        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixgroup %s", line);
+        return false;
+      };
     } else if(cmd == "unixvo") {
       //# unixvo vo rule
       //unixvo="ATLAS unixuser atlas:atlas"
-      map_.mapvo(line.c_str());
+      if(map_.mapvo(line.c_str()) == AAA_FAILURE) {
+        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixvo %s", line);
+        return false;
+      };
     };
     return true;
   };

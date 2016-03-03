@@ -8,10 +8,12 @@
 #include <gssapi.h>
 #include <openssl/x509.h>
 
-#define AAA_POSITIVE_MATCH 1
-#define AAA_NEGATIVE_MATCH -1
-#define AAA_NO_MATCH 0
-#define AAA_FAILURE 2
+enum AuthResult {
+  AAA_POSITIVE_MATCH = 1,
+  AAA_NEGATIVE_MATCH = -1,
+  AAA_NO_MATCH = 0,
+  AAA_FAILURE = 2
+};
 
 class AuthVO;
 
@@ -32,7 +34,7 @@ struct voms_t {
 
 class AuthUser {
  private:
-  typedef int (AuthUser:: * match_func_t)(const char* line);
+  typedef AuthResult (AuthUser:: * match_func_t)(const char* line);
   typedef struct {
     const char* cmd;
     match_func_t func;
@@ -57,16 +59,16 @@ class AuthUser {
   bool proxy_file_was_created; // If proxy file was created by this object
   bool has_delegation;   // If proxy contains delegation 
   static source_t sources[]; // Supported evaluation sources
-  int match_all(const char* line);
-  int match_group(const char* line);
-  int match_subject(const char* line);
-  int match_file(const char* line);
-  int match_ldap(const char* line);
-  int match_voms(const char* line);
-  int match_vo(const char* line);
-  int match_lcas(const char *);
-  int match_plugin(const char* line);
-  int process_voms(void);
+  AuthResult match_all(const char* line);
+  AuthResult match_group(const char* line);
+  AuthResult match_subject(const char* line);
+  AuthResult match_file(const char* line);
+  AuthResult match_ldap(const char* line);
+  AuthResult match_voms(const char* line);
+  AuthResult match_vo(const char* line);
+  AuthResult match_lcas(const char *);
+  AuthResult match_plugin(const char* line);
+  AuthResult process_voms(void);
   std::vector<struct voms_t> voms_data; // VOMS information extracted from proxy
   bool voms_extracted;
   std::list<group_t> groups; // Groups which user matched (internal names)
@@ -94,7 +96,7 @@ class AuthUser {
   void set(const char* subject,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname = NULL);
   void set(const char* s,STACK_OF(X509)* cred,const char* hostname = NULL);
   // Evaluate authentication rules
-  int evaluate(const char* line);
+  AuthResult evaluate(const char* line);
   const char* DN(void) const { return subject.c_str(); };
   const char* proxy(void) const { return filename.c_str(); };
   bool is_proxy(void) const { return has_delegation; };
@@ -172,7 +174,7 @@ class AuthEvaluator {
   AuthEvaluator(const char* name);
   ~AuthEvaluator(void);
   void add(const char*);
-  int evaluate(AuthUser &) const;
+  AuthResult evaluate(AuthUser &) const;
   bool operator==(const char* s) { return (strcmp(name.c_str(),s)==0); };
   bool operator==(const std::string& s) const { return (name == s); };
   const char* get_name() const { return name.c_str(); };

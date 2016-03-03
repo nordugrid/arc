@@ -216,13 +216,28 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       };
     }
     else if(command == "unixmap") {  /* map to local unix user */
-      if(!user.mapped()) user.mapname(rest.c_str());
+      if(!user.mapped()) {
+        if(user.mapname(rest.c_str()) == AAA_FAILURE) {
+          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+          return 1;
+        };
+      };
     }
     else if(command == "unixgroup") {  /* map to local unix user */
-      if(!user.mapped()) user.mapgroup(rest.c_str());
+      if(!user.mapped()) {
+        if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
+          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+          return 1;
+        };
+      };
     }
     else if(command == "unixvo") {  /* map to local unix user */
-      if(!user.mapped()) user.mapvo(rest.c_str());
+      if(!user.mapped()) {
+        if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
+          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+          return 1;
+        };
+      };
     }
     else if(command == "groupcfg") {  /* next commands only for these groups */
       user.user.select_group(NULL);
@@ -450,7 +465,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           } else {
             user.user.clear_groups();
             nodes.clear();
-            logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
+            logger.msg(Arc::ERROR, "improper attribute for allowunknown command: %s", value);
             return 1;
           };
         } else if(command == "pluginpath") {
@@ -462,11 +477,29 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
         } else if(command == "port") {
           port=gridftpd::config_next_arg(rest);
         } else if(command == "unixmap") {  /* map to local unix user */
-          if(!user.mapped()) user.mapname(rest.c_str());
+          if(!user.mapped()) {
+            if(user.mapname(rest.c_str()) == AAA_FAILURE) {
+              user.user.clear_groups(); nodes.clear();
+              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+              return 1;
+            };
+          };
         } else if(command == "unixgroup") {  /* map to local unix user */
-          if(!user.mapped()) user.mapgroup(rest.c_str());
+          if(!user.mapped()) {
+            if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
+              user.user.clear_groups(); nodes.clear();
+              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+              return 1;
+            };
+          };
         } else if(command == "unixvo") {  /* map to local unix user */
-          if(!user.mapped()) user.mapvo(rest.c_str());
+          if(!user.mapped()) {
+            if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
+              user.user.clear_groups(); nodes.clear();
+              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+              return 1;
+            };
+          };
         };
       }; break;
       case conf_state_group: {
