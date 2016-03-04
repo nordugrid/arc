@@ -85,9 +85,11 @@ AuthResult UnixMap::mapgroup(const char* line) {
         // Processing failure cause immediate error
         return AAA_FAILURE;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
-  return AAA_NO_MATCH;
+  return AAA_FAILURE;
 }
 
 AuthResult UnixMap::mapvo(const char* line) {
@@ -132,9 +134,11 @@ AuthResult UnixMap::mapvo(const char* line) {
         // Processing failure cause immediate error
         return AAA_FAILURE;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
-  return AAA_NO_MATCH;
+  return AAA_FAILURE;
 }
 
 AuthResult UnixMap::mapname(const char* line) {
@@ -178,6 +182,8 @@ AuthResult UnixMap::mapname(const char* line) {
         // Processing failure cause immediate error
         return AAA_FAILURE;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
   if(unix_user_.name.length() != 0) {
@@ -187,8 +193,11 @@ AuthResult UnixMap::mapname(const char* line) {
       mapped_=true;
       return AAA_POSITIVE_MATCH;
     };
+    return decision; // propagate failure information
   };
-  return AAA_NO_MATCH;
+  // If user name is not defined then it was supposed to be 
+  // mapping rule. And if not then we failed.
+  return AAA_FAILURE;
 }
 
 // -----------------------------------------------------------

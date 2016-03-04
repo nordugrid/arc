@@ -52,7 +52,7 @@ AuthResult AuthUser::match_plugin(const char* line) {
   };
   if(!stdout_str.empty()) logger.msg(Arc::INFO,"Plugin %s printed: %s",args.front(),stdout_str);
   if(!stderr_str.empty()) logger.msg(Arc::ERROR,"Plugin %s error: %s",args.front(),stderr_str);
-  return AAA_NO_MATCH;
+  return AAA_NO_MATCH; // ??
 }
 
 } // namespace ArcSHCLegacy
