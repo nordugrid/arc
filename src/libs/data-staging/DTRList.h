@@ -114,6 +114,9 @@ namespace DataStaging {
       /// Get the list of all job IDs
       std::list<std::string> all_jobs();
 
+      /// Return the size of the DTR list
+      unsigned int size();
+
       /// Dump state of all current DTRs to a destination, eg file, database, url...
       /**
        * Currently only file is supported.

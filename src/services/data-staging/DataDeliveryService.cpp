@@ -347,6 +347,7 @@ namespace DataStaging {
          <ErrorLocation>1</ErrorLocation>
          <Log>...</Log>
          <BytesTransferred>1234</BytesTransferred>
+         <TransferTime>123456789</TransferTime>
          <Checksum>adler32:a123a45</Checksum>
        </Result>
        ...
@@ -404,6 +405,7 @@ namespace DataStaging {
         resultelement.NewChild("ErrorDescription") = dtr->get_error_status().GetDesc();
         resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
         resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr->get_error_status().GetErrorLocation());
+        resultelement.NewChild("TransferTime") = Arc::tostring(dtr->get_transfer_time());
         archived_dtrs_lock.lock();
         archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFER_ERROR", dtr->get_error_status().GetDesc());
         archived_dtrs_lock.unlock();
@@ -411,6 +413,7 @@ namespace DataStaging {
       else if (dtr->get_status() == DTRStatus::TRANSFERRED) {
         logger.msg(Arc::INFO, "DTR %s finished successfully", dtrid);
         resultelement.NewChild("ResultCode") = "TRANSFERRED";
+        resultelement.NewChild("TransferTime") = Arc::tostring(dtr->get_transfer_time());
         // pass calculated checksum back to Scheduler (eg to insert in catalog)
         if (dtr->get_destination()->CheckCheckSum()) resultelement.NewChild("CheckSum") = dtr->get_destination()->GetCheckSum();
         archived_dtrs_lock.lock();

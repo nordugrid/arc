@@ -69,6 +69,7 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
 
   ConfigSections cf(cfile);
   cf.AddSection("data-staging");
+  cf.AddSection("common");
   for(;;) {
     std::string rest;
     std::string command;
@@ -183,6 +184,13 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       }
       endpoint.replace(0, endpoint.find("://"), "acix");
       acix_endpoint = endpoint;
+    }
+    else if (command == "perflogdir") {
+      perf_log.SetOutput(config_next_arg(rest) + "/dataperf.log");
+    }
+    else if (command == "enable_perflog_reporting") {
+      std::string enableperflog = config_next_arg(rest);
+      if (enableperflog == "yes") perf_log.SetEnabled(true);
     }
   }
   return true;

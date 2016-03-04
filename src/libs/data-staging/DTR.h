@@ -43,6 +43,7 @@ namespace DataStaging {
 #include <arc/CheckSum.h>
 #include <arc/data/URLMap.h>
 #include <arc/DateTime.h>
+#include <arc/JobPerfLog.h>
 #include <arc/Logger.h>
 #include <arc/User.h>
 #include <arc/UserConfig.h>
@@ -285,6 +286,8 @@ namespace DataStaging {
 
     /// Number of bytes transferred so far
     unsigned long long int bytes_transferred; // TODO and/or offset?
+    /// Time taken in ns to complete transfer (0 if incomplete)
+    unsigned long long int transfer_time;
 
     /** Timing variables **/
     /// When should we finish the current action
@@ -329,6 +332,12 @@ namespace DataStaging {
      * disconnected in threads which have their own root logger
      * to avoid duplicate messages */
     std::list<Arc::LogDestination*> log_destinations;
+
+    /// Performance metric logger
+    Arc::JobPerfLog perf_log;
+
+    /// Performance record used for recording transfer time
+    Arc::JobPerfRecord perf_record;
 
     /// List of callback methods called when DTR moves between processes
     std::map<StagingProcesses,std::list<DTRCallback*> > proc_callback;
@@ -504,6 +513,11 @@ namespace DataStaging {
     /// Get current number of bytes transferred
     unsigned long long int get_bytes_transferred() const { return bytes_transferred; };
 
+    /// Set transfer time (should be set by whatever is controlling the transfer)
+    void set_transfer_time(unsigned long long int t);
+    /// Get transfer time
+    unsigned long long int get_transfer_time() const { return transfer_time; };
+
     /// Set the DTR to be cancelled
     void set_cancel_request();
     /// Returns true if cancellation has been requested
@@ -613,6 +627,12 @@ namespace DataStaging {
     bool came_from_generator() const;
     /// Returns true if this DTR is in a final state (finished, failed or cancelled)
     bool is_in_final_state() const;
+
+    /// Get the performance log
+    Arc::JobPerfLog& get_job_perf_log() { return perf_log; };
+    /// Get the performance log record
+    Arc::JobPerfRecord& get_job_perf_record() { return perf_record; };
+
   };
   
   /// Helper method to create smart pointer, only for swig bindings

@@ -25,10 +25,10 @@ namespace DataStaging {
     return tmp;
   }
 
-  bool DataDeliveryComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg) {
     if (!dtr->get_delivery_endpoint() || dtr->get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
-      return DataDeliveryLocalComm::CheckComm(dtr, allowed_dirs);
-    return DataDeliveryRemoteComm::CheckComm(dtr, allowed_dirs);
+      return DataDeliveryLocalComm::CheckComm(dtr, allowed_dirs, load_avg);
+    return DataDeliveryRemoteComm::CheckComm(dtr, allowed_dirs, load_avg);
   }
 
   DataDeliveryCommHandler::DataDeliveryCommHandler(void) {
