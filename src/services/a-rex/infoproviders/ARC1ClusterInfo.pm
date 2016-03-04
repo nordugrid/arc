@@ -577,7 +577,7 @@ sub collect($) {
     # with a single subroutine
     ## for each share(queue)
     for my $currentshare (@allshares) { 
-       # if there is any VO
+       # if there is any VO generate new names
        if (defined $config->{shares}{$currentshare}{authorizedvo}) {
             my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
             for my $queueauthvo (@{$queueauthvos}) {
@@ -589,21 +589,28 @@ sub collect($) {
                 # remove VOs from that share, substitute with default VO
                 $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo; 
             }
-        }
+        } else {
        # create as many shares as the authorizedvo in the [cluster] block
-       if (defined $config->{service}{AuthorizedVO}) { 
-            my ($clusterauthvos) = $config->{service}{AuthorizedVO};
-            for my $clusterauthvo (@{$clusterauthvos}) {
-                # generate an additional share with such authorizedVO
-                my $share_vo = $currentshare.'_'.$clusterauthvo;
-                $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
-                # add the queue from configuration as MappingQueue
-                $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
-                # remove VOs from that share, substitute with default VO
-                $GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
-            }    
-       }
-    }
+       # iff authorizedvo not defined in queue block
+			if (defined $config->{service}{AuthorizedVO}) { 
+				my ($clusterauthvos) = $config->{service}{AuthorizedVO};
+				for my $clusterauthvo (@{$clusterauthvos}) {
+					# generate an additional share with such authorizedVO
+					my $share_vo = $currentshare.'_'.$clusterauthvo;
+					$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+					# add the queue from configuration as MappingQueue
+					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+					# remove VOs from that share, substitute with default VO
+					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+				}    
+			} else {	
+				# if no authorizedvo revert to pre ARC 6 rendering, plain queue with no VO
+				# TODO: add a default VO? e.g. NONE ?
+				my $share_vo = $currentshare;
+				$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+			}
+		}
+	}
  
     ##replace @allshares with the newly created shares
     #@allshares = keys %{$GLUE2shares};
