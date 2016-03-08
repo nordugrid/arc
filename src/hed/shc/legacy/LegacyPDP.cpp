@@ -19,10 +19,13 @@ Arc::Plugin* LegacyPDP::get_pdp(Arc::PluginArgument *arg) {
     return new LegacyPDP((Arc::Config*)(*pdparg),arg);
 }
 
-static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, Arc::Logger& logger) {
+static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, std::string& matched, Arc::Logger& logger) {
   for(std::list<std::string>::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
     for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
-      if((*l1) == (*l2)) return true;
+      if((*l1) == (*l2)) {
+        matched = *l1;
+        return true;
+      };
     };
   };
   return false;
@@ -135,6 +138,8 @@ LegacyPDP::~LegacyPDP() {
 class LegacyPDPAttr: public Arc::SecAttr {
  public:
   LegacyPDPAttr(bool decision):decision_(decision) { };
+  LegacyPDPAttr(bool decision, const std::list<std::string>& mvoms, const std::list<std::string>& mvo):
+        decision_(decision), voms(mvoms), vo(mvo) { };
   virtual ~LegacyPDPAttr(void);
 
   // Common interface
@@ -149,6 +154,8 @@ class LegacyPDPAttr: public Arc::SecAttr {
  protected:
   bool decision_;
   virtual bool equal(const SecAttr &b) const;
+  std::list<std::string> voms;
+  std::list<std::string> vo;
 };
 
 LegacyPDPAttr::~LegacyPDPAttr(void) {
@@ -163,10 +170,17 @@ bool LegacyPDPAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
 }
 
 std::string LegacyPDPAttr::get(const std::string& id) const {
+  if(id == "VOMS") {
+    if(!voms.empty()) return *voms.begin();
+  } else if(id == "VO") {
+    if(!vo.empty()) return *vo.begin();
+  }
   return "";
 }
 
 std::list<std::string> LegacyPDPAttr::getAll(const std::string& id) const {
+  if(id == "VOMS") return voms;
+  if(id == "VO") return vo;
   return std::list<std::string>();
 }
 
@@ -204,16 +218,21 @@ ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
   const std::list<std::string>& groups(lattr->GetGroups());
   const std::list<std::string>& vos(lattr->GetVOs());
   bool decision = false;
-
-
-
-
-
-
-
-  if(match_lists(groups_,groups,logger) ||
-     match_lists(vos_,vos,logger)) decision = true;
-  msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision));
+  std::string match;
+  if(match_lists(groups_,groups,match,logger)) {
+    decision = true;
+    const std::list<std::string>& matched_voms = lattr->GetGroupVOMS(match);
+    const std::list<std::string>& matched_vo = lattr->GetGroupVO(match);
+    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision, matched_voms, matched_vo));
+  } else if(match_lists(vos_,vos,match,logger)) {
+    decision = true;
+    const std::list<std::string> matched_voms;
+    std::list<std::string> matched_vo;
+    matched_vo.push_back(match);
+    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision, matched_voms, matched_vo));
+  } else {
+    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision));
+  };
   return decision;
 }
 
