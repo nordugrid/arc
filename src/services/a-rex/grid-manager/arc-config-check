@@ -308,6 +308,26 @@ sub confchecktripel($$$) {
 		}
 	}
 
+	# check the session directory
+	elsif ($block eq "grid-manager" and $name eq "sessiondir") {
+		my @dirs=split(/\s+/,$value);
+		my $dpath = $dirs[0];
+		if (! -d $dpath)  {
+			e("sessiondir: not existing at '$dpath'\n");
+		} else {
+			v("$name exists.");
+		}
+		if (scalar @dirs > 1) {
+			# If multivalued second should be the drain instruction
+       			my $drain = $dirs[1];
+                	if ($drain ne "drain")  {
+                        	e("Sessiondir unknown instruction: '$drain'\n");
+                	} else {
+                        	w("Sessiondir $dpath is set to drain. Jobs will not be accepted if this is the only sessiondir.\n");
+                	}
+                }
+	}
+
 	# check the controldir
 	elsif ($block eq "grid-manager" and $name eq "controldir") {
 		if (! -d $value)  {
