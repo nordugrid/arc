@@ -140,7 +140,7 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
       const voms_t* voms = auth.get_group_voms(*grp);
       std::list<std::string> vos;
       std::list<std::string> vomss;
-      if(vo != NULL) vos.push_back(vo);
+      if((vo != NULL) && (*vo != '\0')) vos.push_back(vo);
       if(voms != NULL) {
         for(std::vector<voms_fqan_t>::const_iterator f = voms->fqans.begin();
                                            f != voms->fqans.end(); ++f) {

@@ -118,8 +118,8 @@ class JobLocalDescription {
   std::string failedcause;   /* reason for job failure, client or internal error */
   std::string credentialserver; /* URL of server used to renew credentials - MyProxy */
   bool freestagein;          /* if true, client is allowed to stage in any files */
-  std::list<std::string> localvo; /* VO names to whicher belongs according to local configuration*/
-  std::list<std::string> voms;    /* VOMS FQANs which we matched during authoriation process */
+  std::list<std::string> localvo; /* VO names to which user belongs according to local configuration*/
+  std::list<std::string> voms;    /* VOMS FQANs which we matched during authorization process */
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */
   std::list<FileData> outputdata; /* output files */
