@@ -568,15 +568,22 @@ sub collect($) {
     # This may require rethinking of parsing the configuration...
     my $GLUE2shares = {};
     
-    # If VOs are defined, generate one additional share per VO.
-    # Since there is one VO per MappingPolicy this is
-    # equivalent to collect MappingPolicy info?
-    # can it be done later in the code?
-    
-    #TODO: refactorize this to apply to cluster and queue VOs
-    # with a single subroutine
+    # If authorizedvo is present in arc.conf defined, 
+    # generate one additional share for each VO.
+    #
+    # TODO: refactorize this to apply to cluster and queue VOs
+    # with a single subroutine, might be handy for glue1 rendering
+    #
     ## for each share(queue)
     for my $currentshare (@allshares) { 
+       # always add a share with no mapping policy
+	   my $share_vo = $currentshare;
+	   $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+	   # remove VOs so to have no policy
+	   delete $GLUE2shares->{$share_vo}{authorizedvo} unless $GLUE2shares->{$share_vo}{authorizedvo};
+	   undef $share_vo;
+	   # Create as many shares as the number of authorizedvo entries
+	   # in the [queue/queuename] block
        # if there is any VO generate new names
        if (defined $config->{shares}{$currentshare}{authorizedvo}) {
             my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
@@ -603,11 +610,6 @@ sub collect($) {
 					# remove VOs from that share, substitute with default VO
 					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
 				}    
-			} else {	
-				# if no authorizedvo revert to pre ARC 6 rendering, plain queue with no VO
-				# TODO: add a default VO? e.g. NONE ?
-				my $share_vo = $currentshare;
-				$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
 			}
 		}
 	}
