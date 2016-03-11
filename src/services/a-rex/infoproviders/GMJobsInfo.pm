@@ -31,6 +31,8 @@ our $j = { 'jobID' => {
             lifetime           => '*', # seconds
             jobreport          => '*',
             interface          => '*', # added for GLUE2, the interface the job was submitted. If missing, gridftp
+            voms               => [ '*' ], #ref array, contains all the voms attributes in the user certificate that A-REX authorization accepted
+            vomsvo			   => '*', # string, the first VO in the voms array without the slashes
             # from .description
             description        => '', # rsl or xml
             # from .grami -- not kept when the job is deleted
@@ -159,11 +161,28 @@ sub get_gmjobs {
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
             if ($line=~m/^(\w+)=(.+)$/) {
+				# TODO: multiple activityid support.
+				# is this still used? if not, remove the code.
+				# looking at trunk it doesn't seem to exist anymore.
                 if ($1 eq "activityid") {
                     push @{$job->{activityid}}, $2;
-                }
-                else {
-                    $job->{$1}=$2;
+                } else {
+					# a job can belong to a user that has multiple voms roles
+                    # for completeness all added to the datastructure 
+                    # in an array
+					if ($1 eq "voms") {
+                       push @{$job->{voms}}, $2;
+                       # vomsvo to hold the selected vo, I assume is the first in the list.
+                       # will be used to calculate vo statistics
+                       # must match authorizedvo (i.e. slashes are removed)
+                       unless (defined $job->{vomsvo}) {
+                           my $vostring = $2;
+                           if ($vostring =~ /^\/+(\w+)/) { $vostring = $1;  };
+                           $job->{vomsvo} = $vostring;
+                       }
+                    } else {
+                       $job->{$1}=$2;
+				    }
                 }
             }
         }
@@ -188,7 +207,7 @@ sub get_gmjobs {
             $log->warning("Job $ID: 'interface' missing from .local file, reverting to org.nordugrid.gridftpjob");
             $job->{interface} = 'org.nordugrid.gridftpjob';
         }
-
+        
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");
