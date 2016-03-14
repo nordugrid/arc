@@ -283,11 +283,11 @@ int main(int argc, char* argv[]) {
       if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
       if(!notshow_jobs) {
         if (!long_list) {
-          *outs<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
+          *outs<<" : "<<GMJob::get_state_name(new_state)<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
           continue;
         }
         *outs<<std::endl;
-        *outs<<"\tState: "<<states_all[new_state].name;
+        *outs<<"\tState: "<<GMJob::get_state_name(new_state);
         if (pending) *outs<<" (PENDING)";
         *outs<<std::endl;
         *outs<<"\tModified: "<<job_time.str()<<std::endl;
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     *outs<<"Jobs total: "<<jobs_total<<std::endl;
 
     for (int i=0; i<JOB_STATE_UNDEFINED; i++) {
-      *outs<<" "<<states_all[i].name<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
+      *outs<<" "<<GMJob::get_state_name(static_cast<job_state_t>(i))<<": "<<counters[i]<<" ("<<counters_pending[i]<<")"<<std::endl;
     }
 
     unsigned int accepted = counters[JOB_STATE_ACCEPTED] +

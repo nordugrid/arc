@@ -362,6 +362,11 @@ bool job_errors_mark_put(const GMJob &job,const GMConfig &config) {
   return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
 }
 
+bool job_errors_mark_add(const GMJob &job,const GMConfig &config,const std::string &msg) {
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_errors;
+  return job_mark_add(fname,msg) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+}
+
 std::string job_errors_filename(const JobId &id, const GMConfig &config) {
   return config.ControlDir() + "/job." + id + sfx_errors;
 }
@@ -444,18 +449,13 @@ static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
   } else {
     pending=false;
   };
-  for(int i = 0;states_all[i].name != NULL;i++) {
-    if(states_all[i].name == data) {
-      return states_all[i].id;
-    };
-  };
-  return JOB_STATE_UNDEFINED; /* broken file */
+  return GMJob::get_state(data.c_str());
 }
 
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending) {
   std::string data;
   if (pending) data += "PENDING:";
-  data += states_all[state].name;
+  data += GMJob::get_state_name(state);
   return Arc::FileCreate(fname, data);
 }
 
