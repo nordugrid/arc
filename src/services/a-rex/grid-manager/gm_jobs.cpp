@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     }
   }
   if(show_service) {
-    if(PingFIFO(config.ControlDir())) service_alive = true;
+    if(CommFIFO::Ping(config.ControlDir())) service_alive = true;
   }
   
   if(show_share) {

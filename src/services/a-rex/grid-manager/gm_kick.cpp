@@ -24,6 +24,11 @@ int main(int argc,char* argv[]) {
                     istring("use specified configuration file"),
                     istring("file"), conf_file);
 
+  std::list<std::string> job_ids;
+  options.AddOption('j', "jobid",
+                    istring("inform about changes in particular job (can be used multiple times)"),
+                    istring("id"), job_ids);
+
   std::list<std::string> params = options.Parse(argc, argv);
 
   std::string control_dir;
@@ -49,7 +54,22 @@ int main(int argc,char* argv[]) {
     control_dir = control_dir.substr(0, control_dir.rfind('/'));
   }
 
-  ARex::SignalFIFO(control_dir);
+  bool success = true;
+  if(job_ids.empty()) {
+    // general kick
+    success = ARex::CommFIFO::Signal(control_dir);
+  } else {
+    for(std::list<std::string>::iterator id = job_ids.begin();
+                        id != job_ids.end(); ++id) {
+      if(!ARex::CommFIFO::Signal(control_dir,*id)) {
+        success = false;
+      };
+    };
+  };
+  if(success) {
+    std::cerr<<"Failed reporting changes to A-REX"<<std::endl;
+    return -1;
+  };
   return 0;
 }
 

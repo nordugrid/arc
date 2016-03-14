@@ -129,7 +129,7 @@ class sleep_st {
   };
   ~sleep_st(void) {
     to_exit = true;
-    SignalFIFO(control_dir);
+    CommFIFO::Signal(control_dir);
     while(!exited) sleep(1);
   };
 };

@@ -580,7 +580,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // Put lock on all delegated credentials of this job
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
-  SignalFIFO(config_.GmConfig().ControlDir());
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return;
 }
 

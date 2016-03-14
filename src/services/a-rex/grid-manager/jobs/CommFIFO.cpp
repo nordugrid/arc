@@ -46,19 +46,24 @@ CommFIFO::CommFIFO(void) {
 CommFIFO::~CommFIFO(void) {
 }
 
-void CommFIFO::wait(int timeout) {
+bool CommFIFO::wait(int timeout, std::string& event) {
   time_t start_time = time(NULL);
   time_t end_time = start_time + timeout;
   for(;;) {
+    // Check if there is something in buffers
+
+
+
+    // If nothing found - wait for incoming information
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
     int maxfd=-1;
-    if(kick_out < 0) make_pipe();
+    if(kick_out < 0) make_pipe(); // try to recover if had error previously
     if(kick_out >= 0) { maxfd=kick_out; FD_SET(kick_out,&fin); };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
-      if(i->fd>maxfd) maxfd=i->fd;
+      if(i->fd > maxfd) maxfd=i->fd;
       FD_SET(i->fd,&fin);
     };
     lock.unlock();
@@ -66,7 +71,7 @@ void CommFIFO::wait(int timeout) {
     maxfd++;
     if(timeout >= 0) {
       struct timeval t;
-      if(((int)(end_time-start_time)) < 0) return;
+      if(((int)(end_time-start_time)) < 0) return false; // timeout
       t.tv_sec=end_time-start_time;
       t.tv_usec=0;
       if(maxfd > 0) {
@@ -83,7 +88,7 @@ void CommFIFO::wait(int timeout) {
         err = 0;
       };
     };
-    if(err == 0) return;
+    if(err == 0) return false; // timeout
     if(err == -1) {
       if(errno == EBADF) {
         // One of fifos must be broken. Let read() find that out.
@@ -93,13 +98,14 @@ void CommFIFO::wait(int timeout) {
       };
       // No idea how this could happen and how to deal with it.
       // Lets try to escape and start from beginning
-      return;
+      return false;
     };
     if(kick_out >= 0) {
       if((err < 0) || FD_ISSET(kick_out,&fin)) {
-        char buf[256];
-        if(read(kick_out,buf,256) != -1) {
+        char buf[16];
+        if(read(kick_out,buf,sizeof(buf)) != -1) {
           close(kick_in); close(kick_out);
+          // Recover after error
           make_pipe();
         };
         continue;
@@ -116,15 +122,21 @@ void CommFIFO::wait(int timeout) {
           if((errno == EBADF) || (errno == EINVAL) || (errno == EIO)) {
             close(i->fd); close(i->fd_keep);
             i->fd = -1; i->fd_keep = -1;
+            // try to recover
+            add(i->path);
           };
         } else if(l > 0) {
-          // 0 means kick, 1 - ping, rest undefined yet
-          if(memchr(buf,0,sizeof(buf))) return;
+          // it must be zero-terminated string representing job id
+
+
+
+          if(memchr(buf,0,sizeof(buf))) return true;
         };
       };
     };
     lock.unlock();
   };
+  return false;
 }
 
 CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
@@ -144,12 +156,12 @@ CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
   if(fd == -1) return add_error;
   int fd_keep = open(path.c_str(),O_WRONLY | O_NONBLOCK);
   if(fd_keep == -1) { close(fd); return add_error; };
-  elem_t el; el.fd=fd; el.fd_keep=fd_keep;
+  elem_t el; el.fd=fd; el.fd_keep=fd_keep; el.path=dir_path;
   lock.lock();
   fds.push_back(el);
   lock.unlock();
   if(kick_in >= 0) {
-    char c = 0;
+    char c = '\0';
     write(kick_in,&c,1);
   };
   return add_success;
@@ -162,17 +174,26 @@ static int OpenFIFO(const std::string& path) {
   return fd;
 }
 
-bool SignalFIFO(const std::string& dir_path) {
+bool CommFIFO::Signal(const std::string& dir_path, const std::string& id) {
   std::string path = dir_path + fifo_file;
   int fd = OpenFIFO(path);
   if(fd == -1) return false;
-  char c = 0;
-  if(write(fd,&c,1) != 1) { close(fd); return false; };
+  for(std::string::size_type pos = 0; pos <= id.length(); ++pos) {
+    ssize_t l = write(fd, id.c_str()+pos, id.length()+1-pos);
+    if(l == -1) {
+      if((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+        sleep(1); // todo: select/poll
+        continue; // retry
+      };
+      close(fd); return false;
+    };
+    pos += l;
+  };
   close(fd);
   return true;
 }
 
-bool PingFIFO(const std::string& dir_path) {
+bool CommFIFO::Ping(const std::string& dir_path) {
   std::string path = dir_path + fifo_file;
   int fd = OpenFIFO(path);
   // If nothing is listening open() will fail
