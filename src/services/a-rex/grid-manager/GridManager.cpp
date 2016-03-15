@@ -118,6 +118,7 @@ static void cache_func(void* arg) {
   }
 }
 
+/*!!
 class sleep_st {
  public:
   Arc::SimpleCondition* sleep_cond;
@@ -151,6 +152,7 @@ static void kick_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
   s->sleep_cond->signal();
 }
+*/
 
 typedef struct {
   int argc;
@@ -213,6 +215,7 @@ bool GridManager::thread() {
 
   /* start timer thread - wake up every 2 minutes */
   // TODO: use timed wait instead of dedicated thread
+  /*!!
   wakeup_ = new sleep_st(config_.ControlDir());
   wakeup_->sleep_cond=sleep_cond_;
   wakeup_->timeout=wakeup_interface_;
@@ -221,6 +224,7 @@ bool GridManager::thread() {
     wakeup_->exited = true;
     return false;
   };
+  */
   /*
   if(clean_first_level) {
     bool clean_finished = false;
@@ -293,7 +297,7 @@ bool GridManager::thread() {
   bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
-  jobs.SetAttentionCondition(sleep_cond_);
+//!!  jobs.SetAttentionCondition(sleep_cond_);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   time_t hard_job_time = time(NULL) + HARD_JOB_PERIOD;
@@ -343,7 +347,7 @@ bool GridManager::thread() {
       hard_job_time = time(NULL) + HARD_JOB_PERIOD;
     };
 
-    sleep_cond_->wait();
+    jobs.WaitAttention();
     logger.msg(Arc::DEBUG,"Waking up");
   };
   // Waiting for children to finish
@@ -355,9 +359,9 @@ bool GridManager::thread() {
 }
 
 GridManager::GridManager(GMConfig& config):tostop_(false), config_(config) {
-  sleep_cond_ = new Arc::SimpleCondition;
+//!!  sleep_cond_ = new Arc::SimpleCondition;
   wakeup_interface_ = NULL;
-  wakeup_ = NULL;
+//!!  wakeup_ = NULL;
   dtr_generator_ = NULL;
   if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
@@ -373,15 +377,15 @@ GridManager::~GridManager(void) {
   }
   // Wait for main thread
   while(true) {
-    sleep_cond_->signal();
+//!!    sleep_cond_->signal();
     if(active_.wait(1000)) break;
   }
   // wakeup_ is used by users through RunParallel and by 
   // dtr_generator. Hence it must be deleted almost last.
-  if(wakeup_) delete wakeup_;
+//!!  if(wakeup_) delete wakeup_;
   // wakeup_interface_ and sleep_cond_ are used by wakeup_
   if(wakeup_interface_) delete wakeup_interface_;
-  delete sleep_cond_;
+//!!  delete sleep_cond_;
 }
 
 } // namespace ARex

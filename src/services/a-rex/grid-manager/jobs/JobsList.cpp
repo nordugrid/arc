@@ -37,7 +37,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::JobsList(const GMConfig& gmconfig) :
     config(gmconfig), staging_config(gmconfig), old_dir(NULL), dtr_generator(NULL),
-    job_desc_handler(config), jobs_pending(0), jobs_attention_cond(NULL) {
+    job_desc_handler(config), jobs_pending(0) {
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
@@ -114,13 +114,15 @@ bool JobsList::RequestAttention(const JobId& id) {
   logger.msg(Arc::VERBOSE, "--> job for attention: %s", id);
   Glib::Mutex::Lock lock_(jobs_attention_lock);
   jobs_attention.push_back(id);
-  if(jobs_attention_cond) jobs_attention_cond->signal();
+  jobs_attention_cond.signal();
 }
 
+void JobsList::RequestAttention(void) {
+  jobs_attention_cond.signal();
+}
 
-void JobsList::SetAttentionCondition(Arc::SimpleCondition* cond) {
-  Glib::Mutex::Lock lock_(jobs_attention_lock);
-  jobs_attention_cond = cond;
+void JobsList::WaitAttention(void) {
+  jobs_attention_cond.wait();
 }
 
 bool JobsList::RequestPolling(const JobId& id) {

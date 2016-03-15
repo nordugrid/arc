@@ -8,6 +8,13 @@
 namespace ARex {
 
 class CommFIFO {
+ public:
+  typedef enum {
+    add_success,
+    add_busy,
+    add_error
+  } add_result;
+
  private:
   class elem_t {
    public:
@@ -15,6 +22,7 @@ class CommFIFO {
     int fd;
     int fd_keep;
     std::string path;
+    std::list<std::string> ids;
     std::string buffer;
   };
   // Open external pipes
@@ -28,16 +36,12 @@ class CommFIFO {
   int timeout_;
   // Create internal pipe
   bool make_pipe(void);
+  // Open external pipe
+  add_result take_pipe(const std::string& dir_path, elem_t& el); 
 
  public:
   CommFIFO(void);
   ~CommFIFO(void);
-
-  typedef enum {
-    add_success,
-    add_busy,
-    add_error
-  } add_result;
 
   /// Add new external signal source
   add_result add(const std::string& dir_path);

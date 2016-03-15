@@ -49,7 +49,7 @@ class JobsList {
   // List of jobs which need attention
   std::list<JobId> jobs_attention;
   Glib::Mutex jobs_attention_lock;
-  Arc::SimpleCondition* jobs_attention_cond;
+  Arc::SimpleCondition jobs_attention_cond;
   // List of jobs which need polling
   std::list<JobId> jobs_polling;
   Glib::Mutex jobs_polling_lock;
@@ -211,8 +211,10 @@ class JobsList {
   void PrepareToDestroy(void);
   // Inform this instance that job with specified id needs attention
   bool RequestAttention(const JobId& id);
-  // Specifies condition object (NULL to reset) to indicate new job needs attention
-  void SetAttentionCondition(Arc::SimpleCondition* cond);
+  // Inform this instance that generic unscheduled attention is needed
+  void RequestAttention();
+  // Wait for attention request or polling time
+  void WaitAttention();
   // Similar to RequestAttention but jobs does not need immediate attention.
   // These jobs will be processed when polling period elapses.
   bool RequestPolling(const JobId& id);

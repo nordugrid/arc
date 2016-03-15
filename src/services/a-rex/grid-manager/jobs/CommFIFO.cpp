@@ -14,6 +14,8 @@
 
 namespace ARex {
 
+static const unsigned int MAX_ID_SIZE = 64;
+
 #ifndef WIN32
 
 static const std::string fifo_file("/gm.fifo");
@@ -49,11 +51,21 @@ CommFIFO::~CommFIFO(void) {
 bool CommFIFO::wait(int timeout, std::string& event) {
   time_t start_time = time(NULL);
   time_t end_time = start_time + timeout;
+  bool have_generic_event = false;
+  event.clear();
   for(;;) {
     // Check if there is something in buffers
-
-
-
+    lock.lock();
+    for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
+      if(!(i->ids.empty())) {
+        event = *(i->ids.begin());
+        i->ids.pop_front();
+        lock.unlock();
+        return true;
+      };
+    };
+    lock.unlock();
+    if(have_generic_event) return true;
     // If nothing found - wait for incoming information
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
@@ -62,7 +74,12 @@ bool CommFIFO::wait(int timeout, std::string& event) {
     if(kick_out >= 0) { maxfd=kick_out; FD_SET(kick_out,&fin); };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
-      if(i->fd < 0) continue;
+      if(i->fd < 0) {
+        // try to recover lost pipe
+        std::string pipe_dir = i->path;
+        take_pipe(pipe_dir, *i);
+        if(i->fd < 0) continue;
+      };
       if(i->fd > maxfd) maxfd=i->fd;
       FD_SET(i->fd,&fin);
     };
@@ -115,31 +132,42 @@ bool CommFIFO::wait(int timeout, std::string& event) {
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
       if((err < 0) || FD_ISSET(i->fd,&fin)) {
-        lock.unlock();
-        char buf[256];
-        ssize_t l = read(i->fd,buf,sizeof(buf));
-        if(l < 0) {
-          if((errno == EBADF) || (errno == EINVAL) || (errno == EIO)) {
-            close(i->fd); close(i->fd_keep);
-            i->fd = -1; i->fd_keep = -1;
-            // try to recover
-            add(i->path);
+        for(;;) {
+          char buf[16];
+          ssize_t l = read(i->fd,buf,sizeof(buf));
+          if(l == 0) {
+            break; // eol
+          } else if(l < 0) {
+            if((errno == EBADF) || (errno == EINVAL) || (errno == EIO)) {
+              close(i->fd); close(i->fd_keep);
+              i->fd = -1; i->fd_keep = -1;
+            };
+            break;
+          } else if(l > 0) {
+            // it must be zero-terminated string representing job id
+            for(ssize_t n = 0; n<l; ++n) {
+              if(buf[n] == '\0') {
+                if(i->buffer.empty()) {
+                  have_generic_event = true;
+                } else {
+                  i->ids.push_back(i->buffer);
+                  i->buffer.clear();
+                };
+              } else {
+                // Some sanity check
+                if(i->buffer.length() < MAX_ID_SIZE) i->buffer.append(1,buf[n]);
+              };
+            };
           };
-        } else if(l > 0) {
-          // it must be zero-terminated string representing job id
-
-
-
-          if(memchr(buf,0,sizeof(buf))) return true;
-        };
+        }; // for(;;)
       };
-    };
+    }; // for(fds)
     lock.unlock();
   };
   return false;
 }
 
-CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
+CommFIFO::add_result CommFIFO::take_pipe(const std::string& dir_path, elem_t& el) {
   std::string path = dir_path + fifo_file;
   if(mkfifo(path.c_str(),S_IRUSR | S_IWUSR) != 0) {
     if(errno != EEXIST) {
@@ -156,15 +184,23 @@ CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
   if(fd == -1) return add_error;
   int fd_keep = open(path.c_str(),O_WRONLY | O_NONBLOCK);
   if(fd_keep == -1) { close(fd); return add_error; };
-  elem_t el; el.fd=fd; el.fd_keep=fd_keep; el.path=dir_path;
-  lock.lock();
-  fds.push_back(el);
-  lock.unlock();
-  if(kick_in >= 0) {
-    char c = '\0';
-    write(kick_in,&c,1);
-  };
+  el.fd=fd; el.fd_keep=fd_keep; el.path=dir_path;
   return add_success;
+}
+
+CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
+  elem_t el;
+  CommFIFO::add_result result = take_pipe(dir_path, el);
+  if(result == add_success) {
+    lock.lock();
+    fds.push_back(el);
+    lock.unlock();
+    if(kick_in >= 0) {
+      char c = '\0';
+      write(kick_in,&c,1);
+    };
+  };
+  return result;
 }
 
 static int OpenFIFO(const std::string& path) {
