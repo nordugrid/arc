@@ -165,6 +165,11 @@ void ContinuationPlugins::run(const GMJob &job,const GMConfig& config,std::list<
       } else if(cmd[p+1]=='S') {
         cmd.replace(p,2,job.get_state_name());
         p+=strlen(job.get_state_name());
+      } else if(cmd[p+1]=='R') {
+        // Get correct session root (without job subdir) for this job
+        std::string sessionroot(job.SessionDir().substr(0, job.SessionDir().rfind('/')));
+        cmd.replace(p,2,sessionroot);
+        p+=sessionroot.length();
       } else {
         p+=2;
       };
