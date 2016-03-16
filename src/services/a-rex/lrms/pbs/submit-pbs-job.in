@@ -181,12 +181,19 @@ fi
 
 set_req_mem
 
-#pmem and pvmem are per process, so no need to modify based on count.
-#valid for both PBS and Torque
-#requested memory is used to simulate exclusive execution
+#pmem and pvmem are per process, and enforced by PBS via setting up memory ulimit.
+#But in case of using threads - single process is used and limited to per-process memory.
+#To support correct operation of threaded apps in PBS - submit-pbs-job set the general job memory (vmem)
+
+#Moreover according to the PBS manuals, setting vmem is supported on the sufficiently 
+#bigger ammount of operating systems then pvmem.
 
 memreq="${joboption_memory}"
+if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
+     memreq=$(( $joboption_count * $memreq ))
+fi
 
+#requested memory is used to simulate exclusive execution
 if [ "$joboption_exclusivenode" = "true" ]; then
  # using nodememory as maximum mem
   if [ -n "${CONFIG_nodememory}" ] ; then
@@ -199,10 +206,8 @@ if [ "$joboption_exclusivenode" = "true" ]; then
   fi 
 fi
 
-
 if [ ! -z "$joboption_memory" ] ; then
-  echo "#PBS -l pvmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
-  echo "#PBS -l pmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l vmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
 fi
 
 gate_host=`uname -n`
