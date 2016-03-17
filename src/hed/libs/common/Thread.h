@@ -99,6 +99,23 @@ namespace Arc {
     virtual void Dup(void);
   };
 
+  class ThreadArgument;
+
+  /// Base class for simple object associated thread.
+  class Thread {
+   friend ThreadArgument;
+   public:
+    /// Start thread 
+    /** This method provides functionality similar to CreateThreadFunction
+       but runs thread() method instead of specified function. */
+    bool start(SimpleCounter* count = NULL);
+
+   protected:
+    /// Implement this method and put thread functionality into it
+    virtual void thread(void) = 0;
+
+  };
+
   /// Simple triggered condition.
   /** Provides condition and semaphor objects in one element.
       \headerfile Thread.h arc/Thread.h  */

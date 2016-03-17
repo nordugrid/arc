@@ -78,6 +78,7 @@ namespace Arc {
     typedef void (*func_t)(void*);
     void *arg;
     func_t func;
+    Thread* thr;
     SimpleCounter* count;
 #ifdef USE_THREAD_DATA
     ThreadData* data;
@@ -93,24 +94,50 @@ namespace Arc {
       resource = NULL;
     }
 #endif
+
+    ThreadArgument(
+      func_t f,
+      void *a,
+      SimpleCounter *c,
 #ifdef USE_THREAD_DATA
-    ThreadArgument(func_t f, void *a, SimpleCounter *c, ThreadData *d)
+      ThreadData *d
+#endif
+    )
       : arg(a),
         func(f),
-        count(c),
-        data(d)
-#else
-    ThreadArgument(func_t f, void *a, SimpleCounter *c)
-      : arg(a),
-        func(f),
+        thr(NULL),
         count(c)
+#ifdef USE_THREAD_DATA
+        ,data(d)
 #endif
 #ifdef USE_THREAD_POOL
         ,resource(NULL)
 #endif
     {}
+
+    ThreadArgument(
+      Thread* t,
+      SimpleCounter *c,
+#ifdef USE_THREAD_DATA
+      ThreadData *d
+#endif
+    )
+      : arg(NULL),
+        func(NULL),
+        thr(t),
+        count(c)
+#ifdef USE_THREAD_DATA
+        ,data(d)
+#endif
+#ifdef USE_THREAD_POOL
+        ,resource(NULL)
+#endif
+    {}
+
     ~ThreadArgument(void) { }
+
     void thread(void);
+
   };
 
 
@@ -175,6 +202,7 @@ namespace Arc {
     // TODO: can't use logger here because it will try to initilize pool
     //threadLogger.msg(DEBUG, "Maximum number of threads is %i",max_count);
   }
+
   int ThreadPool::CheckQueue(void) {
     Glib::Mutex::Lock lock(queue_lock, Glib::TRY_LOCK);
     if(!lock.locked()) return -1;
@@ -242,9 +270,14 @@ namespace Arc {
 #endif
     func_t f_temp = func;
     void *a_temp = arg;
+    Thread* t_temp = thr;
     SimpleCounter *c_temp = count;
     delete this;
-    (*f_temp)(a_temp);
+    if(f_temp) {
+      (*f_temp)(a_temp);
+    } else if(t_temp) {
+      t_temp->thread();
+    }
     if(c_temp) c_temp->dec();
 #ifdef USE_THREAD_DATA
     ThreadData::Remove();
@@ -309,6 +342,43 @@ namespace Arc {
 #endif
     return true;
   }
+
+  bool Thread::start(SimpleCounter* count) {
+#ifdef USE_THREAD_POOL
+
+    if(!pool) return false;
+#ifdef USE_THREAD_DATA
+    ThreadArgument *argument = new ThreadArgument(this, count, ThreadData::Get());
+#else
+    ThreadArgument *argument = new ThreadArgument(this, count);
+#endif
+    if(count) count->inc();
+    pool->PushQueue(argument);
+
+#else
+
+#ifdef USE_THREAD_DATA
+    ThreadArgument *argument = new ThreadArgument(this, count, ThreadData::Get());
+#else
+    ThreadArgument *argument = new ThreadArgument(this, count);
+#endif
+    if(count) count->inc();
+    try {
+      UserSwitch usw(0,0);
+      Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
+                           thread_stacksize, false, false,
+                           Glib::THREAD_PRIORITY_NORMAL);
+    } catch (std::exception& e) {
+      threadLogger.msg(ERROR, e.what());
+      if(count) count->dec();
+      delete argument;
+      return false;
+    };
+
+#endif
+    return true;
+  }
+
 
 /*
   bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr) {
