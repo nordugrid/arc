@@ -61,6 +61,9 @@ class CommFIFO {
   /// Wait for any event with default timeout and collect event id
   bool wait(std::string& event) { return wait(timeout_, event); };
 
+  /// Kick waiting wait() causing it to exit as if timeout accured
+  void kick();
+
   /// Set default timeout (negative for infinite)
   void timeout(int t) { timeout_=t; };
 

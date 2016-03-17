@@ -52,6 +52,7 @@ bool CommFIFO::wait(int timeout, std::string& event) {
   time_t start_time = time(NULL);
   time_t end_time = start_time + timeout;
   bool have_generic_event = false;
+  bool kicked = false;
   event.clear();
   for(;;) {
     // Check if there is something in buffers
@@ -66,6 +67,7 @@ bool CommFIFO::wait(int timeout, std::string& event) {
     };
     lock.unlock();
     if(have_generic_event) return true;
+    if(kicked) return false;
     // If nothing found - wait for incoming information
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
@@ -117,17 +119,6 @@ bool CommFIFO::wait(int timeout, std::string& event) {
       // Lets try to escape and start from beginning
       return false;
     };
-    if(kick_out >= 0) {
-      if((err < 0) || FD_ISSET(kick_out,&fin)) {
-        char buf[16];
-        if(read(kick_out,buf,sizeof(buf)) != -1) {
-          close(kick_in); close(kick_out);
-          // Recover after error
-          make_pipe();
-        };
-        continue;
-      };
-    };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
@@ -163,6 +154,29 @@ bool CommFIFO::wait(int timeout, std::string& event) {
       };
     }; // for(fds)
     lock.unlock();
+
+    if(kick_out >= 0) {
+      if((err < 0) || FD_ISSET(kick_out,&fin)) {
+        for(;;) { // read as much as arrived
+          char buf[16];
+          ssize_t l = read(kick_out,buf,sizeof(buf));
+          if(l == -1) {
+            if((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+              break; // nothing to read more
+            };
+            close(kick_in); close(kick_out);
+            // Recover after error
+            make_pipe();
+          } else if(l == 0) {
+            break; // nothing to read more
+          } else if(l > 0) {
+            kicked = true;
+            break;
+          };
+        };
+      };
+    };
+
   };
   return false;
 }
@@ -186,6 +200,13 @@ CommFIFO::add_result CommFIFO::take_pipe(const std::string& dir_path, elem_t& el
   if(fd_keep == -1) { close(fd); return add_error; };
   el.fd=fd; el.fd_keep=fd_keep; el.path=dir_path;
   return add_success;
+}
+
+void CommFIFO::kick(void) {
+  if(kick_in >= 0) {
+    char c = '\0';
+    write(kick_in,&c,1);
+  };
 }
 
 CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {

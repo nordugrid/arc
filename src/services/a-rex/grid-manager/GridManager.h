@@ -6,18 +6,13 @@
 namespace ARex {
 
 class DTRGenerator;
-class CommFIFO;
 class GMConfig;
-//!!class sleep_st;
 
 class GridManager {
  private:
   Arc::SimpleCounter active_;
   bool tostop_;
-//!!  Arc::SimpleCondition* sleep_cond_;
-  CommFIFO* wakeup_interface_;
   GMConfig& config_;
-//!!  sleep_st* wakeup_;
   DTRGenerator* dtr_generator_;
   GridManager();
   GridManager(const GridManager&);

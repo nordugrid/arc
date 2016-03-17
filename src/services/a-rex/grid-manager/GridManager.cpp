@@ -134,30 +134,70 @@ class sleep_st {
     while(!exited) sleep(1);
   };
 };
+*/
 
-static void wakeup_func(void* arg) {
-  sleep_st* s = (sleep_st*)arg;
-  for(;;) {
-    if(s->to_exit) break;
-    s->timeout->wait();
-    if(s->to_exit) break;
-    s->sleep_cond->signal();
-    if(s->to_exit) break;
-  };
-  s->exited = true;
-  return;
+class WakeupInterface: protected Arc::Thread, public CommFIFO {
+ public:
+  WakeupInterface(JobsList& jobs);
+  ~WakeupInterface();
+  bool start();
+ protected:
+  void thread();
+  JobsList& jobs_;
+  bool to_exit; // tells thread to exit
+  bool exited;  // set by thread while exiting
+};
+
+WakeupInterface::WakeupInterface(JobsList& jobs): jobs_(jobs), to_exit(false), exited(true) {
 }
 
+WakeupInterface::~WakeupInterface() {
+  to_exit = true;
+  kick();
+  while(!exited) {
+    sleep(1);
+    kick();
+  }
+}
+
+bool WakeupInterface::start() {
+  // No need to do locking becuase this method is
+  // always called from single thread
+  if(!exited) return false;
+  exited = !start();
+  return !exited;
+}
+
+void WakeupInterface::thread() {
+  for(;;) {
+    if(to_exit) break; // request to stop
+    std::string event;
+    bool has_event = CommFIFO::wait(event);
+    if(to_exit) break; // request to stop
+    if(has_event) {
+      // Event arrived
+      if(!event.empty()) {
+        // job id provided
+        jobs_.RequestAttention(event);
+      } else {
+        // generic kick
+      };
+    };
+  };
+  exited = true;
+}
+
+/*
 static void kick_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
   s->sleep_cond->signal();
 }
-*/
 
 typedef struct {
   int argc;
   char** argv;
 } args_st;
+*/
 
 void touch_heartbeat(const std::string& dir, const std::string& file) {
   std::string gm_heartbeat(dir + "/" + file);
@@ -190,18 +230,6 @@ bool GridManager::thread() {
   config_.Print();
 
   // Preparing various structures, dirs, etc.
-  wakeup_interface_ = new CommFIFO;
-  CommFIFO::add_result r = wakeup_interface_->add(config_.ControlDir());
-  if(r != CommFIFO::add_success) {
-    if(r == CommFIFO::add_busy) {
-      logger.msg(Arc::FATAL,"Error adding communication interface in %s. "
-          "Maybe another instance of A-REX is already running.",config_.ControlDir());
-    } else {
-      logger.msg(Arc::FATAL,"Error adding communication interface in %s. "
-          "Maybe permissions are not suitable.",config_.ControlDir());
-    };
-    return false;
-  };
   ARex::DelegationStores* delegs = config_.Delegations();
   if(delegs) {
     ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
@@ -211,7 +239,6 @@ bool GridManager::thread() {
       return false;
     };
   };
-  wakeup_interface_->timeout(config_.WakeupPeriod());
 
   /* start timer thread - wake up every 2 minutes */
   // TODO: use timed wait instead of dedicated thread
@@ -280,8 +307,30 @@ bool GridManager::thread() {
       logger.msg(Arc::INFO,"Failed to start new thread: cache won't be cleaned");
     }
   }
+
   // Start new job list
   JobsList jobs(config_);
+
+  // Setup listening for job attention requests
+  WakeupInterface wakeup_interface_(jobs);
+  CommFIFO::add_result r = wakeup_interface_.add(config_.ControlDir());
+  if(r != CommFIFO::add_success) {
+    if(r == CommFIFO::add_busy) {
+      logger.msg(Arc::FATAL,"Error adding communication interface in %s. "
+          "Maybe another instance of A-REX is already running.",config_.ControlDir());
+    } else {
+      logger.msg(Arc::FATAL,"Error adding communication interface in %s. "
+          "Maybe permissions are not suitable.",config_.ControlDir());
+    };
+    return false;
+  };
+  wakeup_interface_.timeout(config_.WakeupPeriod());
+  if(!wakeup_interface_.start()) {
+    logger.msg(Arc::ERROR,"Failed to start new thread for monitoring job requests");
+    return false;
+  };  
+
+  // Start jobs processing
   logger.msg(Arc::INFO,"Picking up left jobs");
   jobs.RestartJobs();
 
@@ -297,7 +346,6 @@ bool GridManager::thread() {
   bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
-//!!  jobs.SetAttentionCondition(sleep_cond_);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   time_t hard_job_time = time(NULL) + HARD_JOB_PERIOD;
@@ -359,9 +407,6 @@ bool GridManager::thread() {
 }
 
 GridManager::GridManager(GMConfig& config):tostop_(false), config_(config) {
-//!!  sleep_cond_ = new Arc::SimpleCondition;
-  wakeup_interface_ = NULL;
-//!!  wakeup_ = NULL;
   dtr_generator_ = NULL;
   if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
@@ -377,15 +422,11 @@ GridManager::~GridManager(void) {
   }
   // Wait for main thread
   while(true) {
-//!!    sleep_cond_->signal();
     if(active_.wait(1000)) break;
   }
   // wakeup_ is used by users through RunParallel and by 
   // dtr_generator. Hence it must be deleted almost last.
-//!!  if(wakeup_) delete wakeup_;
   // wakeup_interface_ and sleep_cond_ are used by wakeup_
-  if(wakeup_interface_) delete wakeup_interface_;
-//!!  delete sleep_cond_;
 }
 
 } // namespace ARex
