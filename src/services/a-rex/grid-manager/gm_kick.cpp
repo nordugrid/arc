@@ -66,7 +66,7 @@ int main(int argc,char* argv[]) {
       };
     };
   };
-  if(success) {
+  if(!success) {
     std::cerr<<"Failed reporting changes to A-REX"<<std::endl;
     return -1;
   };
