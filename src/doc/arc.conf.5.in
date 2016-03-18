@@ -406,6 +406,26 @@ voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/emi-arc.eu" "/O=Grid/O=NorduGrid
 voms_trust_chain = "^/O=Grid/O=NorduGrid"
 .fi
 
+.TP
+.B enable_perflog_reporting
+enable_perflog_reporting yes/no - Switch on or off performance reporting.
+Default is no.
+
+.IR Example:
+.br
+enable_perflog_reporting="yes"
+
+.TP
+.B perflogdir
+perflogdir logdir - Directory where performance logs should be stored. Default
+is /var/log/arc/perflogs
+
+.IR Example:
+.br
+perflogdir="/var/log/arc/perflogs"
+
+
+
 .SH [vo] block 
 
 [vo] block is used to define VOs and generate mapfiles from user 
