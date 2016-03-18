@@ -63,7 +63,7 @@ class ScanProtocol(protocol.ProcessProtocol):
         self.url_receiver.dataReceived(data)
 
     def errReceived(self, data):
-        log.msg("Error data received from scanning program. Oh noes")
+        log.msg("Error data received from scanning program. Oh noes: %s" % data)
 
     def processEnded(self, reason):
         if reason.value.exitCode == 0:
