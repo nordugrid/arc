@@ -70,6 +70,10 @@ GMJob::GMJob(void) {
 }
 
 GMJob::GMJob(const GMJob &job) {
+  operator=(job);
+}
+
+GMJob& GMJob::operator=(const GMJob &job) {
   job_state=job.job_state;
   job_pending=job.job_pending;
   job_id=job.job_id;
@@ -78,10 +82,11 @@ GMJob::GMJob(const GMJob &job) {
   keep_finished=job.keep_finished;
   keep_deleted=job.keep_deleted;
   child=NULL;
-  local=job.local;
+  local=NULL;
   user=job.user;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
+  return *this;
 }
 
 GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state_t state) {

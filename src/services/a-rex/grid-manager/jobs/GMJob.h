@@ -80,6 +80,7 @@ class GMJob {
   GMJob(const JobId &job_id,const Arc::User& user,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
   GMJob(void);
   GMJob(const GMJob &job);
+  GMJob& operator=(const GMJob &job);
   ~GMJob(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
