@@ -278,6 +278,7 @@ prepare() {
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
+    PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
@@ -608,6 +609,10 @@ prepare() {
     WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
     if [ ! -d `dirname $WSLOGFILE` ]; then
         mkdir -p `dirname $WSLOGFILE`
+    fi
+    PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
+    if [ ! -d $PERFLOGDIR ]; then
+        mkdir -p $PERFLOGDIR
     fi
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
