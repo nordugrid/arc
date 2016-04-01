@@ -122,7 +122,10 @@ namespace ARex {
     };
 
     std::string dbpath = FR_DB_NAME;
-    if(!verify()) return false;
+    if(create) {
+      // If creation is allowed that means we are master and can try verifying
+      if(!verify()) return false;
+    };
     // db_link
     //    |---db_lock
     //    \---db_locked
