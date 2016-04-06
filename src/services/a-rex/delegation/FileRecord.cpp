@@ -559,5 +559,37 @@ namespace ARex {
     return *this;
   }
 
+  void FileRecord::Iterator::suspend(void) {
+    Glib::Mutex::Lock lock(frec_.lock_);
+    if(cur_) {
+      cur_->close(); cur_=NULL;
+    }
+  }
+
+  bool FileRecord::Iterator::resume(void) {
+    Glib::Mutex::Lock lock(frec_.lock_);
+    if(!cur_) {
+      if(id_.empty()) return false;
+      if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
+        if(cur_) {
+          cur_->close(); cur_=NULL;
+        };
+        return false;
+      };
+      Dbt key;
+      Dbt data;
+      make_key(id_,owner_,key);
+      void* pkey = key.get_data();
+      if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_SET))) {
+        ::free(pkey);
+        cur_->close(); cur_=NULL;
+        return false;
+      };
+      parse_record(uid_,id_,owner_,meta_,key,data);
+      ::free(pkey);
+    };
+    return true;
+  }
+
 } // namespace ARex
 

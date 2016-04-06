@@ -239,22 +239,38 @@ namespace ARex {
   void DelegationStore::PeriodicCheckConsumers(void) {
     // Go through stored credentials
     // Remove outdated records (those with locks won't be removed)
-    time_t start = ::time(NULL);
     if(expiration_) {
+      time_t start = ::time(NULL);
       Glib::Mutex::Lock check_lock(lock_);
-      if(mrec_ == NULL) mrec_ = new FileRecord::Iterator(*fstore_);
+      if(mrec_ != NULL) {
+        if(!mrec_->resume()) {
+          logger_.msg(Arc::WARNING,"DelegationStore: PeriodicCheckConsumers failed to resume iterator");
+          delete mrec_;
+          mrec_ = NULL;
+        };
+      };
+      if(mrec_ == NULL) {
+        mrec_ = new FileRecord::Iterator(*fstore_);
+      };
       for(;(bool)(*mrec_);++(*mrec_)) {
-        if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) return;
+        if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) {
+          mrec_->suspend();
+          return;
+        }
         struct stat st;
         if(::stat(mrec_->path().c_str(),&st) == 0) {
           if(((unsigned int)(::time(NULL) - st.st_mtime)) > expiration_) {
-            fstore_->Remove(mrec_->id(),mrec_->owner());
+            if(fstore_->Remove(mrec_->id(),mrec_->owner())) {
+            } else {
+              logger_.msg(Arc::WARNING,"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s", mrec_->uid(), fstore_->Error());
+            };
           };    
         };
       };
       delete mrec_; mrec_ = NULL;
     };
     // TODO: Remove records over threshold
+    return;
   }
 
   bool DelegationStore::AddCred(std::string& id, const std::string& client, const std::string& credentials) {
