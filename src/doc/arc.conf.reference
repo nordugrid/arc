@@ -275,8 +275,8 @@
 #enable_perflog_reporting="yes"
 
 ## perflogdir logdir - Directory where performance logs should be stored.
-## Default is /var/log/arc/perflogs
-#perflogdir="/var/log/arc/perflogs"
+## Default is /var/log/arc/perfdata
+#perflogdir="/var/log/arc/perfdata"
 
 ### [vo] block #####################################################
 ##
