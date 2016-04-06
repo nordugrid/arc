@@ -87,7 +87,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** Process a received DTR */
   bool processReceivedDTR(DataStaging::DTR_ptr dtr);
   /** Process a received job */
-  bool processReceivedJob(const GMJob& job);
+  bool processReceivedJob(GMJob& job);
   /** Process a cancelled job */
   bool processCancelledJob(const std::string& jobid);
 

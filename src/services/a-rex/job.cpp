@@ -497,7 +497,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     };
   };
   // Write local file
-  job.set_local(&job_); // need this for write_grami
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();
     failure_="Failed to create job description";

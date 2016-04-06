@@ -59,8 +59,8 @@ bool JobLog::start_info(GMJob &job,const GMConfig &config) {
     std::ofstream o;
     if(!open_stream(o)) return false;
     o<<"Started - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
-    if(job.GetLocalDescription(config)) {
-      JobLocalDescription *job_desc = job.get_local();
+    JobLocalDescription *job_desc = job.GetLocalDescription(config);
+    if(job_desc) {
       std::string tmps;
       tmps=job_desc->jobname;
       tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
@@ -81,8 +81,8 @@ bool JobLog::finish_info(GMJob &job,const GMConfig &config) {
     if(!open_stream(o)) return false;
     o<<"Finished - job id: "<<job.get_id()<<", unix user: "<<job.get_user().get_uid()<<":"<<job.get_user().get_gid()<<", ";
     std::string tmps;
-    if(job.GetLocalDescription(config)) {
-      JobLocalDescription *job_desc = job.get_local();
+    JobLocalDescription *job_desc = job.GetLocalDescription(config);
+    if(job_desc) {
       tmps=job_desc->jobname;
       tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<"name: \""<<tmps<<"\", ";
@@ -170,7 +170,7 @@ bool JobLog::make_file(GMJob &job, const GMConfig& config) {
   JobLocalDescription* local;
   if(!job.GetLocalDescription(config)) {
     result=false;
-  } else if((local=job.get_local()) == NULL) { 
+  } else if((local=job.GetLocalDescription(config)) == NULL) { 
     result=false;
   } else {
     if(!(local->jobreport.empty())) {

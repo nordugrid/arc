@@ -83,6 +83,7 @@ GMJob& GMJob::operator=(const GMJob &job) {
   keep_deleted=job.keep_deleted;
   child=NULL;
   local=NULL;
+  if(job.local) local=new JobLocalDescription(*job.local);
   user=job.user;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
@@ -110,18 +111,23 @@ GMJob::~GMJob(void){
     delete child;
     child=NULL;
   }
+  delete local;
 }
 
-bool GMJob::GetLocalDescription(const GMConfig& config) {
-  if(local) return true;
+JobLocalDescription* GMJob::GetLocalDescription(const GMConfig& config) {
+  if(local) return local;
   JobLocalDescription* job_desc;
   job_desc=new JobLocalDescription;
   if(!job_local_read_file(job_id,config,*job_desc)) {
     delete job_desc;
-    return false;
+    return NULL;
   };
   local=job_desc;
-  return true;
+  return local;
+}
+
+JobLocalDescription* GMJob::GetLocalDescription(void) const {
+  return local;
 }
 
 std::string GMJob::GetFailure(const GMConfig& config) const {

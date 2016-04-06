@@ -317,7 +317,7 @@ bool GridManager::thread() {
     if(delegs) {
       ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
       deleg.Expiration(24*60*60);
-      deleg.CheckTimeout(60);
+      deleg.CheckTimeout(60); // During this time delegation database will be locked. So it must not be too long.
       deleg.PeriodicCheckConsumers();
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;

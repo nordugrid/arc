@@ -33,8 +33,10 @@ void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
 
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
-bool compare_job_description(GMJob first, GMJob second) {
-  return first.get_local()->priority > second.get_local()->priority;
+bool compare_job_description(GMJob const& first, GMJob const& second) {
+  int priority_first = first.GetLocalDescription() ? first.GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
+  int priority_second = first.GetLocalDescription() ? second.GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
+  return priority_first > priority_second;
 }
 
 void DTRGenerator::main_thread(void* arg) {
@@ -588,7 +590,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 }
 
 
-bool DTRGenerator::processReceivedJob(const GMJob& job) {
+bool DTRGenerator::processReceivedJob(GMJob& job) {
 
   JobId jobid(job.get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
@@ -929,8 +931,8 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     // set sub-share for download or upload
     dtr->set_sub_share((job.get_state() == JOB_STATE_PREPARING) ? "download" : "upload");
     // set priority as given in job description
-    if (job.get_local())
-      dtr->set_priority(job.get_local()->priority);
+    if (job.GetLocalDescription(config))
+      dtr->set_priority(job.GetLocalDescription(config)->priority);
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
     // set real location if ACIX is used
@@ -996,8 +998,10 @@ int DTRGenerator::checkUploadedFiles(GMJob& job) {
   uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
 
   std::string session_dir;
-  if (job.get_local() && !job.get_local()->sessiondir.empty()) session_dir = job.get_local()->sessiondir;
-  else session_dir = config.SessionRoot(jobid) + '/' + jobid;
+  if (job.GetLocalDescription(config) && !job.GetLocalDescription(config)->sessiondir.empty())
+    session_dir = job.GetLocalDescription(config)->sessiondir;
+  else
+    session_dir = config.SessionRoot(jobid) + '/' + jobid;
   // get input files list
   std::list<std::string> uploaded_files;
   std::list<std::string>* uploaded_files_ = NULL;

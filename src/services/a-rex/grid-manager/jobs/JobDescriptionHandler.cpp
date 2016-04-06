@@ -144,7 +144,7 @@ bool JobDescriptionHandler::write_grami_executable(std::ofstream& f, const std::
   return true;
 }
 
-bool JobDescriptionHandler::write_grami(const GMJob &job,const char *opt_add) const {
+bool JobDescriptionHandler::write_grami(GMJob &job,const char *opt_add) const {
   const std::string fname = config.ControlDir() + "/job." + job.get_id() + ".description";
 
   Arc::JobDescription arc_job_desc;
@@ -153,11 +153,11 @@ bool JobDescriptionHandler::write_grami(const GMJob &job,const char *opt_add) co
   return write_grami(arc_job_desc, job, opt_add);
 }
 
-bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc, const GMJob& job, const char* opt_add) const {
-  if(job.get_local() == NULL) return false;
+bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc, GMJob& job, const char* opt_add) const {
+  JobLocalDescription& job_local_desc = *(job.GetLocalDescription(config));
+  if(&job_local_desc == NULL) return false;
   const std::string session_dir = job.SessionDir();
   const std::string control_dir = config.ControlDir();
-  JobLocalDescription& job_local_desc = *(job.get_local());
   const std::string fgrami = control_dir + "/job." + job.get_id() + ".grami";
   std::ofstream f(fgrami.c_str(),std::ios::out | std::ios::trunc);
   if(!f.is_open()) return false;

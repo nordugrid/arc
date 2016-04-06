@@ -16,23 +16,17 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check if have to send mail and initiate sending */
-bool send_mail(const GMJob &job,const GMConfig& config) {
+bool send_mail(GMJob &job,const GMConfig& config) {
   char flag = GMJob::get_state_mail_flag(job.get_state());
   if(flag == ' ') return true;
   std::string notify = "";
   std::string jobname = "";
-  JobLocalDescription *job_desc = job.get_local();
-  if(job_desc == NULL) {
-    job_desc = new JobLocalDescription;
-    if(!job_local_read_file(job.get_id(),config,*job_desc)) {
-      logger.msg(Arc::ERROR,"Failed reading local information");
-      delete job_desc; job_desc=NULL;
-    };
-  };
+  JobLocalDescription *job_desc = job.GetLocalDescription(config);
   if(job_desc != NULL) {
     jobname=job_desc->jobname;
     notify=job_desc->notify;
-    if(job.get_local() == NULL) { delete job_desc; };
+  } else {
+    logger.msg(Arc::ERROR,"Failed reading local information");
   };
 //  job_local_read_notify(job.get_id(),user,notify);
   if(notify.length() == 0) return true; /* save some time */

@@ -66,7 +66,7 @@ class JobLocalDescription {
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),delegationid(""),
-                           reruns(0),priority(50),downloads(-1),uploads(-1),
+                           reruns(0),priority(prioritydefault),downloads(-1),uploads(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),failedcause(""),
@@ -82,6 +82,8 @@ class JobLocalDescription {
   bool write(const std::string& fname) const;
   static bool read_var(const std::string &fname,const std::string &vnam,std::string &value);
   
+  // All non-static members are safe to copy
+
   std::string jobid;         /* job's unique identifier */
   /* attributes stored in job.ID.local */
   std::string globalid;      /* job id as seen from outside */
@@ -141,6 +143,9 @@ class JobLocalDescription {
   bool forcemigration;      /* Ignore if killing of old job fails */
 
   std::string transfershare; /* share assigned to job for transfer fair share */
+
+  // Default values which are not zero
+  static int const         prioritydefault;      /* default priority for the job if not specified */
   static const char* const transfersharedefault; /* default value for transfer share */
   
 };

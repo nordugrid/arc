@@ -261,8 +261,10 @@ bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
 
 bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
   std::string fname1;
-  if (job.get_local() && !job.get_local()->sessiondir.empty()) fname1 = job.get_local()->sessiondir + sfx_diag;
-  else fname1 = job.SessionDir() + sfx_diag;
+  if (job.GetLocalDescription() && !job.GetLocalDescription()->sessiondir.empty())
+    fname1 = job.GetLocalDescription()->sessiondir + sfx_diag;
+  else
+    fname1 = job.SessionDir() + sfx_diag;
   std::string fname2 = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
 
   std::string data;
@@ -686,8 +688,10 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::st
   std::string id = job.get_id();
   job_clean_finished(id,config);
   std::string session;
-  if(job.get_local() && !job.get_local()->sessiondir.empty()) session = job.get_local()->sessiondir;
-  else session = job.SessionDir();
+  if(job.GetLocalDescription() && !job.GetLocalDescription()->sessiondir.empty())
+    session = job.GetLocalDescription()->sessiondir;
+  else
+    session = job.SessionDir();
   std::string fname;
   fname = config.ControlDir()+"/job."+id+sfx_proxy; remove(fname.c_str());
   fname = config.ControlDir()+"/"+subdir_new+"/job."+id+sfx_restart; remove(fname.c_str());
