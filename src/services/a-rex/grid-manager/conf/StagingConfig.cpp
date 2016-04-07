@@ -27,7 +27,7 @@ StagingConfig::StagingConfig(const GMConfig& config):
   log_level(Arc::Logger::getRootLogger().getThreshold()),
   valid(true)
 {
-  perf_log.SetOutput("/var/log/arc/perfdata/dataperf.log");
+  perf_log.SetOutput("/var/log/arc/perfdata/data.perflog");
 
   // For ini-style, use [data-staging] section, for xml use <dataTransfer> node
 
