@@ -82,7 +82,6 @@ void DTRGenerator::thread() {
       event_lock.lock();
       // delete DTR LogDestinations
       (*it_dtrs)->get_logger()->deleteDestinations();
-
       it_dtrs = dtrs_received.erase(it_dtrs);
     }
 
@@ -522,7 +521,9 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   // finished, which results in job being submitted to DTR again
   active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
 
-  bool finished_with_error = (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty());
+  bool finished_with_error = ((finished_jobs.find(jobid) != finished_jobs.end() &&
+                               !finished_jobs[jobid].empty()) ||
+                              dtr->get_status() == DataStaging::DTRStatus::CANCELLED);
   lock.unlock();
 
   if (dtr->get_source()->Local()) {
