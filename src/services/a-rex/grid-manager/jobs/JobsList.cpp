@@ -38,6 +38,8 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobsList::JobsList(const GMConfig& gmconfig) :
     config(gmconfig), staging_config(gmconfig), old_dir(NULL), dtr_generator(NULL),
     job_desc_handler(config), jobs_pending(0) {
+  job_slow_polling_last = time(NULL);
+  job_slow_polling_dir = NULL;
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
@@ -122,50 +124,95 @@ void JobsList::RequestAttention(void) {
 }
 
 void JobsList::WaitAttention(void) {
-  jobs_attention_cond.wait();
+  // Check if condition signaled
+  while(!jobs_attention_cond.wait(0)) {
+    // Use spare time to process slow polling queue
+    if(job_slow_polling_dir) {
+      // continue already started scaning
+      std::string file = job_slow_polling_dir->read_name();
+      if(file.empty()) {
+        delete job_slow_polling_dir; job_slow_polling_dir = NULL;
+      }
+      // extract job id and cause its processing
+      // todo: implement fetching few jobs before passing them to attention
+      // job id must contain at least one character
+      int l=file.length();
+      if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
+        JobId id(file.substr(4, l-7-4));
+        RequestAttention(id);
+      };
+    } else {
+      // Check if it is time for next scanning
+      if((time(NULL) - job_slow_polling_last) >= job_slow_polling_period) {
+        job_slow_polling_dir = new Glib::Dir(config.control_dir+"/"+subdir_old);
+        if(job_slow_polling_dir) job_slow_polling_last = time(NULL);
+      };
+    };
+    if(!job_slow_polling_dir) {
+      // If there is no scanning going on then simply wait and exit
+      jobs_attention_cond.wait();
+      return;
+    };
+  }; // while !jobs_attention_cond
 }
 
 bool JobsList::RequestPolling(const JobId& id) {
-  logger.msg(Arc::VERBOSE, "--> job for polling: %s", id);
   Glib::Mutex::Lock lock_(jobs_polling_lock);
+  logger.msg(Arc::VERBOSE, "--> job for polling(%u): %s", jobs_polling.size(), id);
   jobs_polling.push_back(id);
-}
-
-
-bool JobsList::ActJobsAttention(void) {
-  std::list<std::string> clist;
-  {
-    Glib::Mutex::Lock lock_(jobs_attention_lock);
-    clist.swap(jobs_attention);
-  };
-  while(!clist.empty()) {
-    JobId id = *(clist.begin());
-    clist.pop_front();
-    logger.msg(Arc::VERBOSE, "<-- job in attention: %s", id);
-    iterator i = FindJob(id);
-    if(i != jobs.end()) {
-      ActJob(i);
-    }
-  }
   return true;
 }
 
+bool JobsList::RequestSlowPolling(const JobId& id) {
+  logger.msg(Arc::VERBOSE, "--> job for slow polling: %s", id);
+  return true;
+}
 
-bool JobsList::ActJobsPolling(void) {
-  std::list<std::string> clist;
-  {
-    Glib::Mutex::Lock lock_(jobs_polling_lock);
-    clist.swap(jobs_polling);
-  };
-  while(!clist.empty()) {
-    JobId id = *(clist.begin());
-    clist.pop_front();
-    logger.msg(Arc::VERBOSE, "<-- job in polling: %s", id);
+bool JobsList::RequestReprocessing(const JobId& id) {
+  Glib::Mutex::Lock lock_(jobs_processing_lock);
+  jobs_processing.push_front(id);
+}
+
+bool JobsList::ActJobsProcessing(void) {
+  Glib::Mutex::Lock lock_(jobs_processing_lock);
+  while(!jobs_processing.empty()) {
+    JobId id = *(jobs_processing.begin());
+    logger.msg(Arc::VERBOSE, "<-- job in processing: %s", id);
+    jobs_processing.pop_front();
+    lock_.unlock();
     iterator i = FindJob(id);
+    if(i == jobs.end()) {
+      // Must be new job arriving or finished job which got user request or whatever
+      if(ScanNewJob(id)) {
+        i = FindJob(id);
+      };
+    };
     if(i != jobs.end()) {
       ActJob(i);
-    }
+    } else {
+      logger.msg(Arc::VERBOSE, "--- job in processing not processed: %s", id);
+    };
+    lock_.lock();
   }
+}
+
+bool JobsList::ActJobsAttention(void) {
+  {
+    Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
+    Glib::Mutex::Lock lock_attention_(jobs_attention_lock);
+    jobs_processing.splice(jobs_processing.end(), jobs_attention);
+  };
+  ActJobsProcessing();
+  return true;
+}
+
+bool JobsList::ActJobsPolling(void) {
+  {
+    Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
+    Glib::Mutex::Lock lock_polling_(jobs_polling_lock);
+    jobs_processing.splice(jobs_processing.end(), jobs_polling);
+  };
+  ActJobsProcessing();
   // debug info on jobs per DN
   logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
   for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
@@ -1461,6 +1508,20 @@ bool JobsList::RestartJobs(void) {
   return res1 && res2;
 }
 
+bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
+  if(FindJob(id.id) == jobs.end()) {
+    std::string fname=cdir+'/'+"job."+id.id+".status";
+    uid_t uid;
+    gid_t gid;
+    time_t t;
+    if(check_file_owner(fname,uid,gid,t)) {
+      id.uid=uid; id.gid=gid; id.t=t;
+      return true;
+    };
+  };
+  return false;
+}
+
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
@@ -1534,6 +1595,19 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 
   perfrecord.End("SCAN-MARKS");
   return true;
+}
+
+bool JobsList::ScanNewJob(const JobId& id) {
+  // New jobs will be accepted only if number of jobs being processed
+  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+    JobFDesc fid(id);
+    std::string cdir=config.control_dir;
+    std::string ndir=cdir+"/"+subdir_new;
+    if(!ScanJob(ndir,fid)) return false;
+    iterator i;
+    return AddJobNoCheck(fid.id,i,fid.uid,fid.gid);
+  }
+  return false;
 }
 
 // find new jobs - sort by date to implement FIFO

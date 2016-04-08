@@ -44,15 +44,22 @@ class JobsList {
  public:
   typedef std::list<GMJob>::iterator iterator;
  private:
-  // List of jobs currently tracked in memory
-  std::list<GMJob> jobs;
-  // List of jobs which need attention
-  std::list<JobId> jobs_attention;
+  std::list<GMJob> jobs;              // List of jobs currently tracked in memory
+
+  std::list<JobId> jobs_processing;   // List of jobs currently being processed
+  Glib::Mutex jobs_processing_lock;
+
+  std::list<JobId> jobs_attention;    // List of jobs which need attention
   Glib::Mutex jobs_attention_lock;
   Arc::SimpleCondition jobs_attention_cond;
-  // List of jobs which need polling
-  std::list<JobId> jobs_polling;
+
+  std::list<JobId> jobs_polling;      // List of jobs which need polling soon
   Glib::Mutex jobs_polling_lock;
+
+  time_t job_slow_polling_last;
+  static time_t job_slow_polling_period = 24UL*60UL*60UL; // todo: variable
+  Glib::Dir* job_slow_polling_dir;
+
   // GM configuration
   const GMConfig& config;
   // Staging configuration
@@ -101,6 +108,8 @@ class JobsList {
   bool RecreateTransferLists(const JobsList::iterator &i);
   // Read into ids all jobs in the given dir
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
+  // Check and read into id nformation about job in the given dir (id has job if filled on entry)
+  bool ScanJob(const std::string& cdir,JobFDesc& id);
   // Read into ids all jobs in the given dir with marks given by suffices
   // (corresponding to file suffixes)
   bool ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids);
@@ -120,27 +129,37 @@ class JobsList {
   bool ActJob(iterator &i);
 
   enum ActJobResult {
-    JobSuccess,
+    JobSiccess,
     JobFailed,
     JobDropped,
-    JobNeedsReprocess,
-    JobNeedsAttention,
-    JobNeedsPolling
+    //JobNeedsReprocess,
+    //JobNeedsAttention,
+    //JobNeedsPolling,
+    //JobNeedsSlowPolling
   };
   // ActJob() calls one of these methods depending on the state of the job.
   // Each ActJob*() returns processing result:
-  //   JobSuccess - job was procesed and was passed to another module which
-  //      will take care of calling RequestAteention/RequestPolling.
-  //      No additional processing is needed right now
+  //   JobSuccess - job was passed to other module (usually DTR) and does
+  //      not require any additional processing. The module must later
+  //      pass job to one of RequestAttention/RequestPolling/RequestSlowPolling
+  //      queues. If the module fails to do that job may be lost.
+  //      It is also possible to return JobSuccess if ActJob*() methods
+  //      already passed job to one of the queues.
   //   JobFailed  - job processing failed. Job must be moved to FAILED.
+  //      This result to be removed in a future.
   //   JobDropped - job does not need any further processing and should
-  //      be removed from memory
+  //      be removed from memory. This result to be removed in a future
+  //      when automatic job unloading from RAM is implemented.
   //   JobNeedsReprocess - job processing must continue in another state
-  //      immediately
+  //      immediately.
   //   JobNeedsAttention - job processing must continue in another state as
-  //      soon as possible.
-  //   JobNeedsPolling - job need to to be periodically polled for state
-  //      change conditions.
+  //      soon as possible. Such Job will be passed to RequestAttention.
+  //   JobNeedsPolling - job need to be polled later for state change
+  //      conditions. Such Job will be passed to RequestPolling.
+  //   JobNeedsSlowPolling - job need to be checked but not soon. 
+  //      Such job is passed to RequestSlowPolling and is offloaded from RAM
+  //      into slow file system or database based queue. Jobs from that queue
+  //      are loaded into system very rarely. Typically once per 24h.
   ActJobResult ActJobUndefined(iterator i);
   ActJobResult ActJobAccepted(iterator i);
   ActJobResult ActJobPreparing(iterator i);
@@ -159,6 +178,29 @@ class JobsList {
   // Checks job state against continuation plugins.
   // Returns false if job is not allowed to continue.
   bool CheckJobContinuePlugins(JobsList::iterator i);
+
+  // Call ActJob for all jobs processing queue
+  bool ActJobsProcessing(void);
+
+  // Inform this instance that job with specified id needs immediate re-processing
+  bool RequestReprocess(const JobId& id);
+
+  // Similar to RequestAttention but jobs does not need immediate attention.
+  // These jobs will be processed when polling period elapses.
+  // This method/queue to be removed when even driven processing implementation
+  // becomes stable.
+  bool RequestPolling(const JobId& id);
+
+  // Even slower polling. Typically once per 24 hours.
+  // This queue is meant for FINISHED and DELETED jobs.
+  // Jobs which are put into this queue are also removed from RAM and
+  // queue content is backed by file/database.
+  // There is no corresponding ActJobs*() method. Instead jobs put into
+  // slow queue are handled in WaitAttention() while there is nothing
+  // assigned for immediate processing.
+  // Note: In current implementation this method does nothing because
+  // <control_dir>/finished/ is used as slow queue.
+  bool RequestSlowPolling(const JobId& id);
 
  public:
   // Constructor.
@@ -185,14 +227,20 @@ class JobsList {
 
   // Set DTR Generator for data staging
   void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
+
   // Call ActJob for all current jobs
   bool ActJobs(void);
+
   // Call ActJob for all jobs for which RequestAttention was called
   bool ActJobsAttention(void);
+
   // Call ActJob for all jobs for which RequestPolling was called
   bool ActJobsPolling(void);
+
   // Look for new or restarted jobs. Jobs are added to list with state UNDEFINED
   bool ScanNewJobs(void);
+  // Look for new job with specified id. Job is added to list with state UNDEFINED
+  bool ScanNewJob(const JobId& id);
   // Collect all jobs in all states
   bool ScanAllJobs(void);
   // Pick jobs which have been marked for restarting, cancelling or cleaning
@@ -209,15 +257,16 @@ class JobsList {
   bool RestartJobs(void);
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
+
   // Inform this instance that job with specified id needs attention
   bool RequestAttention(const JobId& id);
+
   // Inform this instance that generic unscheduled attention is needed
   void RequestAttention();
+
   // Wait for attention request or polling time
   void WaitAttention();
-  // Similar to RequestAttention but jobs does not need immediate attention.
-  // These jobs will be processed when polling period elapses.
-  bool RequestPolling(const JobId& id);
+
 };
 
 } // namespace ARex

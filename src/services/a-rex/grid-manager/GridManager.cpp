@@ -153,18 +153,18 @@ WakeupInterface::WakeupInterface(JobsList& jobs): jobs_(jobs), to_exit(false), e
 
 WakeupInterface::~WakeupInterface() {
   to_exit = true;
-  kick();
+  CommFIFO::kick();
   while(!exited) {
     sleep(1);
-    kick();
+    CommFIFO::kick();
   }
 }
 
 bool WakeupInterface::start() {
-  // No need to do locking becuase this method is
+  // No need to do locking because this method is
   // always called from single thread
   if(!exited) return false;
-  exited = !start();
+  exited = !Arc::Thread::start();
   return !exited;
 }
 
@@ -181,7 +181,11 @@ void WakeupInterface::thread() {
         jobs_.RequestAttention(event);
       } else {
         // generic kick
+        jobs_.RequestAttention();
       };
+    } else {
+      // timeout - use as timer
+      jobs_.RequestAttention();
     };
   };
   exited = true;
@@ -370,7 +374,7 @@ bool GridManager::thread() {
       jobs.ScanNewMarks();
       /* look for new jobs - TODO: remove */
       jobs.ScanNewJobs();
-      /* process jobs which do not get attention calls int their current state */
+      /* process jobs which do not get attention calls in their current state */
       jobs.ActJobsPolling();
       //jobs.ActJobs();
       // Clean old delegations
