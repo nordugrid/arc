@@ -57,7 +57,7 @@ class JobsList {
   Glib::Mutex jobs_polling_lock;
 
   time_t job_slow_polling_last;
-  static time_t job_slow_polling_period = 24UL*60UL*60UL; // todo: variable
+  static time_t const job_slow_polling_period = 24UL*60UL*60UL; // todo: variable
   Glib::Dir* job_slow_polling_dir;
 
   // GM configuration
@@ -129,13 +129,9 @@ class JobsList {
   bool ActJob(iterator &i);
 
   enum ActJobResult {
-    JobSiccess,
+    JobSuccess,
     JobFailed,
     JobDropped,
-    //JobNeedsReprocess,
-    //JobNeedsAttention,
-    //JobNeedsPolling,
-    //JobNeedsSlowPolling
   };
   // ActJob() calls one of these methods depending on the state of the job.
   // Each ActJob*() returns processing result:
@@ -150,16 +146,6 @@ class JobsList {
   //   JobDropped - job does not need any further processing and should
   //      be removed from memory. This result to be removed in a future
   //      when automatic job unloading from RAM is implemented.
-  //   JobNeedsReprocess - job processing must continue in another state
-  //      immediately.
-  //   JobNeedsAttention - job processing must continue in another state as
-  //      soon as possible. Such Job will be passed to RequestAttention.
-  //   JobNeedsPolling - job need to be polled later for state change
-  //      conditions. Such Job will be passed to RequestPolling.
-  //   JobNeedsSlowPolling - job need to be checked but not soon. 
-  //      Such job is passed to RequestSlowPolling and is offloaded from RAM
-  //      into slow file system or database based queue. Jobs from that queue
-  //      are loaded into system very rarely. Typically once per 24h.
   ActJobResult ActJobUndefined(iterator i);
   ActJobResult ActJobAccepted(iterator i);
   ActJobResult ActJobPreparing(iterator i);
@@ -170,10 +156,13 @@ class JobsList {
   ActJobResult ActJobFinished(iterator i);
   ActJobResult ActJobDeleted(iterator i);
 
+  // Special processing method for job processing failure
+  ActJobResult ActJobFailed(iterator i);
+
   // Checks and processes user's request to cancel job.
-  // Returns JobSuccess if job was not modified (canceled or
-  // failed) and any other enum if canceling took place.
-  ActJobResult CheckJobCancelRequest(JobsList::iterator i);
+  // Returns false if job was not modified (canceled or
+  // failed) and true if canceling/modification took place.
+  bool CheckJobCancelRequest(JobsList::iterator i);
 
   // Checks job state against continuation plugins.
   // Returns false if job is not allowed to continue.
