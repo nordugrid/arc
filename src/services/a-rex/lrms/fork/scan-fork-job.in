@@ -119,6 +119,8 @@ for control_dir in "$@" ; do
         $debug "got exitcode=$exitcode"
         save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
         echo "$exitcode $fork_comment" > "${control_dir}/job.${job}.lrms_done"
+        "@pkglibdir@/gm-kick" -j "${job}" "${control_dir}/job.${job}.local"
+
     done
 
 done
