@@ -39,3 +39,30 @@
   rotate 14
   create
 }
+
+/var/log/arc/perfdata/arex_date.perflog {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
+
+/var/log/arc/perfdata/data.perflog {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
+
+/var/log/arc/perfdata/system.perflog {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
