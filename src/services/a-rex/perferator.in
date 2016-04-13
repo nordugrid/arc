@@ -1,0 +1,81 @@
+#!/bin/bash
+# script to write static system data and upload to perflog.nordugrid.org
+# together with performance data taken by data, arex, infosys and backends
+# runs once a day, run by a-rex when configured through the helper option
+# in the grid-manager block in arc.conf.
+# e.g.:
+# [grid-manager]
+# helper=". /usr/share/arc/perferator"
+# Path to arc.conf can be given with --config option, default is /etc/arc.conf
+
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
+write_static_system_data () {
+  outfile="$1"
+  echo "=== ARC version: ===" >> $outfile
+  arched --version >> $outfile
+  echo "" >> $outfile
+  echo "=== fs types: ===" >> $outfile
+  controldir_fstype=`df --output=fstype $CONFIG_controldir | grep -v Type`
+  echo "controldir fstype: $controldir_fstype" >> $outfile
+  sessiondir_fstype=`df --output=fstype $CONFIG_sessiondir | grep -v Type`
+  echo "sessiondir fstype: $sessiondir_fstype" >> $outfile
+  echo "" >> $outfile
+  echo "=== CPU info: ===" >> $outfile
+  echo "no. of CPUs: `getconf _NPROCESSORS_ONLN`" >> $outfile
+  cat /proc/cpuinfo >> $outfile
+  echo "" >> $outfile
+  echo "=== Mem info: ===" >> $outfile
+  cat /proc/meminfo >> $outfile
+  echo "" >> $outfile
+  echo "=== OS info: ===" >> $outfile
+  uname -a >> $outfile
+  cat /etc/*-release >> $outfile
+  cat /proc/version >> $outfile
+}
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkgdatadir="$basedir"
+
+. "$pkgdatadir/config_parser_compat.sh" || exit $?
+
+ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
+config_parse_file $ARC_CONFIG 1>&2 || exit $?
+
+config_import_section "common"
+config_import_section "grid-manager"
+
+
+HOSTNAME=$CONFIG_hostname
+PERFDIR=${CONFIG_perflogdir:-/var/log/arc/perfdata}
+
+# merge infosys files
+MERGEDATE=`date +%Y%m%d`
+
+write_static_system_data $PERFDIR/sysinfo.perflog-$MERGEDATE
+
+if command_exists nytprofmerge ; then
+  nytprofmerge -o $PERFDIR/infosys.perflog-$MERGEDATE $PERFDIR/infosys_*.raw && gzip $PERFDIR/infosys.perflog-$MERGEDATE && rm $PERFDIR/infosys_*.raw
+else
+  echo could not find nytprofmerge, skipping merging infosys files
+fi
+
+sleep 86400
+exit
+curl -k -X MKCOL https://user:passwd@perflog.nordugrid.org:443/webdav/$HOSTNAME &> /dev/null
+# upload all files older than 1 day, delete if successful
+for f in `find $PERFDIR -mtime +1`; do
+  if curl -f -k -T $f https://user:passwd@perflog.nordugrid.org:443/webdav/$HOSTNAME/ &> /dev/null; then
+    rm $f
+  else
+    echo could not upload $f, exit code $?
+  fi
+done
+sleep 86400
