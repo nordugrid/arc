@@ -187,7 +187,7 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       acix_endpoint = endpoint;
     }
     else if (command == "perflogdir") {
-      perf_log.SetOutput(config_next_arg(rest) + "/dataperf.log");
+      perf_log.SetOutput(config_next_arg(rest) + "/data.perflog");
     }
     else if (command == "enable_perflog_reporting") {
       std::string enableperflog = config_next_arg(rest);
