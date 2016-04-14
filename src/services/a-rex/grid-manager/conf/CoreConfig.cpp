@@ -132,7 +132,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   cf.AddSection("grid-manager");
   cf.AddSection("infosys");
   cf.AddSection("queue");
-  if (config.job_perf_log) config.job_perf_log->SetEnabled(false);
+  if (config.job_perf_log) {
+    config.job_perf_log->SetEnabled(false);
+    config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
+  }
   // process configuration information here
   for(;;) {
     std::string rest;
@@ -187,7 +190,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "perflogdir") { // 
       if (!config.job_perf_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too
-      if(!fname.empty()) fname += "/arex_date.perflog";
+      if(!fname.empty()) fname += "/arex.perflog";
       config.job_perf_log->SetOutput(fname.c_str());
     }
     else if (command == "jobreport") { // service to report information to
