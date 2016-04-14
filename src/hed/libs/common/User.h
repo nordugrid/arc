@@ -4,6 +4,7 @@
 #define __ARC_USER_H__
 
 #include <string>
+#include <arc/Thread.h>
 
 struct passwd;
 
@@ -93,8 +94,10 @@ namespace Arc {
      \headerfile User.h arc/User.h  */
   class UserSwitch {
   private:
-    int old_uid;
-    int old_gid;
+    static SimpleCondition suid_lock;
+    static int suid_count;
+    static int suid_uid_orig;
+    static int suid_gid_orig;
     bool valid;
   public:
     /// Switch uid and gid.

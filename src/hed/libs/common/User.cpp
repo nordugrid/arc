@@ -17,14 +17,16 @@
 #include <glibmm/miscutils.h>
 #endif
 
-#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include "User.h"
 
 namespace Arc {
 
-static Glib::Mutex suid_lock;
+SimpleCondition UserSwitch::suid_lock;
+int UserSwitch::suid_count = 0;
+int UserSwitch::suid_uid_orig = -1;
+int UserSwitch::suid_gid_orig = -1;
 
 #ifndef WIN32
   static uid_t get_user_id(void) {
@@ -265,38 +267,68 @@ static Glib::Mutex suid_lock;
 #endif
 
 #ifndef WIN32
-  UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
-    suid_lock.lock();
-    old_gid = getegid();
-    old_uid = geteuid();
-    if((uid == 0) && (gid == 0)) {
-      valid=true;
-      return;
+  UserSwitch::UserSwitch(int uid,int gid):valid(false) {
+    suid_lock.lock(); // locking while analyzing situation
+    while(suid_count > 0) {
+      // Already locked
+      // Check if request is compatible with current situation
+      bool need_switch = false;
+      if(uid) {
+        if(uid != geteuid()) need_switch = true;
+      } else {
+        if(suid_uid_orig != geteuid()) need_switch = true;
+      };
+      if(gid) {
+        if(gid != getegid()) need_switch = true;
+      } else {
+        if(suid_gid_orig != getegid()) need_switch = true;
+      };
+      if(!need_switch) {
+        // can join existing switch
+        ++suid_count;
+        valid = true;
+        suid_lock.unlock();
+        return;
+      };
+      // must wait till released
+      suid_lock.wait_nonblock();
+      // and then re-check
     };
-    if(gid) {
-      if(old_gid != gid) {
-        if(setegid(gid) == -1) {
-          suid_lock.unlock();
-          return;
-        };
+    // First request - apply
+    // Make sure current state is properly set
+    if(suid_uid_orig == -1) {
+      suid_uid_orig = geteuid();
+      suid_gid_orig = getegid();
+    };
+    // Try to apply new state
+    if(gid && (suid_gid_orig != gid)) {
+      if(setegid(gid) == -1) {
+        suid_lock.unlock();
+        return;
       };
     };
-    if(uid) {
-      if(old_uid != uid) {
-        if(seteuid(uid) == -1) {
-          if(old_gid != gid) setegid(old_gid);
-          suid_lock.unlock();
-          return;
-        };
+    if(uid && (suid_uid_orig != uid)) {
+      if(seteuid(uid) == -1) {
+        if(suid_gid_orig != gid) setegid(suid_gid_orig);
+        suid_lock.unlock();
+        return;
       };
     };
-    valid=true;
-  }
+    // switch done - record that
+    ++suid_count;
+    valid = true;
+    suid_lock.unlock();
+  } 
 
   UserSwitch::~UserSwitch(void) {
     if(valid) {
-      if(old_uid != geteuid()) seteuid(old_uid);
-      if(old_gid != getegid()) setegid(old_gid);
+      suid_lock.lock();
+      --suid_count;
+      if(suid_count <= 0) {
+        if(suid_uid_orig != geteuid()) seteuid(suid_uid_orig);
+        if(suid_gid_orig != getegid()) setegid(suid_gid_orig);
+        suid_lock.signal_nonblock();
+      };
       suid_lock.unlock();
     };
   }
