@@ -40,7 +40,7 @@
   create
 }
 
-/var/log/arc/perfdata/arex_date.perflog {
+/var/log/arc/perfdata/arex.perflog {
   missingok
   compress
   delaycompress
