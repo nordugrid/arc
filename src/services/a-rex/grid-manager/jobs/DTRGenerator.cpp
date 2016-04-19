@@ -365,7 +365,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   GMJob job(jobid, dtr->get_local_user(), session_dir);
   std::string dtr_transfer_statistics;
   
-  if (dtr->error() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
+  if (dtr->error() && dtr->is_mandatory() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // for uploads, report error but let other transfers continue
     // for downloads, cancel all other transfers
     logger.msg(Arc::ERROR, "%s: DTR %s to copy file %s failed",
@@ -384,6 +384,10 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   else if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // remove from job.id.input/output files on success
     // find out if download or upload by checking which is remote file
+    if (dtr->error() && !dtr->is_mandatory()) {
+      dtr->get_logger()->msg(Arc::INFO, "%s: DTR %s to copy to %s failed but is not mandatory",
+                             jobid, dtr->get_id(), dtr->get_destination_str());
+    }
     std::list<FileData> files;
 
     if (dtr->get_source()->Local()) {
