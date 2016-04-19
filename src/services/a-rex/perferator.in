@@ -14,6 +14,9 @@ command_exists () {
 
 write_static_system_data () {
   outfile="$1"
+  echo "=== Timestamp: ===" >> $outfile
+  date >> $outfile
+  echo "" >> $outfile
   echo "=== ARC version: ===" >> $outfile
   arched --version >> $outfile
   echo "" >> $outfile
@@ -34,6 +37,7 @@ write_static_system_data () {
   uname -a >> $outfile
   cat /etc/*-release >> $outfile
   cat /proc/version >> $outfile
+  echo "" >> $outfile
 }
 
 # ARC1 passes first the config file.
@@ -61,10 +65,10 @@ MERGEDATE=`date +%Y%m%d`
 
 write_static_system_data $PERFDIR/sysinfo.perflog-$MERGEDATE
 
-if command_exists nytprofmerge ; then
+if command_exists nytprofmerge && [ ! -f "$PERFDIR/infosys.perflog-$MERGEDATE.gz" ] && [ ! -f "$PERFDIR/infosys.perflog-$MERGEDATE.gz" ] ; then
   nytprofmerge -o $PERFDIR/infosys.perflog-$MERGEDATE $PERFDIR/infosys_*.raw && gzip $PERFDIR/infosys.perflog-$MERGEDATE && rm $PERFDIR/infosys_*.raw
 else
-  echo could not find nytprofmerge, skipping merging infosys files
+  echo could not find nytprofmerge or merge already done today, skipping merging infosys files
 fi
 
 sleep 86400
