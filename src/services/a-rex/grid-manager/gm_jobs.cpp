@@ -261,11 +261,11 @@ int main(int argc, char* argv[]) {
       jobs_total++;
       counters[new_state]++;
       if (pending) counters_pending[new_state]++;
-      if (!i->GetLocalDescription(config)) {
+      JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
+      if (&job_desc == NULL) {
         std::cout<<"Job: "<<i->get_id()<<" : ERROR : No local information."<<std::endl;
         continue;
       }
-      JobLocalDescription& job_desc = *(i->get_local());
       if(match_list(job_desc.DN,cancel_users)) {
         cancel_jobs_list.push_back(&(*i));
       }

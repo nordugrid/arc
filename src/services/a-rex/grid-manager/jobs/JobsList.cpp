@@ -279,7 +279,6 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
       logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
       UnlockDelegation(i);
       job_clean_final(*i,config);
-      if(i->local) delete i->local;
       i=jobs.erase(i);
       return true;
     }
@@ -292,7 +291,6 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
     logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
     UnlockDelegation(i);
     job_clean_final(*i,config);
-    if(i->local) delete i->local;
     i=jobs.erase(i);
     return true;
   }
@@ -302,7 +300,6 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
     logger.msg(Arc::WARNING,"%s: Cancellation failed (probably job finished) - cleaning anyway",i->job_id);
     UnlockDelegation(i);
     job_clean_final(*i,config);
-    if(i->local) delete i->local;
     i=jobs.erase(i);
     return true;
   }
@@ -310,7 +307,6 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   logger.msg(Arc::INFO,"%s: Cancellation probably succeeded - cleaning",i->job_id);
   UnlockDelegation(i);
   job_clean_final(*i,config);
-  if(i->local) delete i->local;
   i=jobs.erase(i);
   return true;
 }
@@ -790,15 +786,9 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
 }
 
 bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t state,bool internal) {
-  if(!(i->local)) {
-    JobLocalDescription *job_desc = new JobLocalDescription;
-    if(!job_local_read_file(i->job_id,config,*job_desc)) {
-      logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
-      delete job_desc; return false;
-    }
-    else {
-      i->local=job_desc;
-    }
+  if(!(i->GetLocalDescription(config))) {
+    logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
+    return false;
   }
   if(state == JOB_STATE_UNDEFINED) {
     i->local->failedstate="";
@@ -1430,7 +1420,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     } else {
       jobs_pending--;
     }
-    if(i->local) { delete i->local; }
     i=jobs.erase(i);
   }
   else {

@@ -50,9 +50,9 @@ public:
   /// Parse job description into job_desc and write .local, .input and .output files
   bool process_job_req(const GMJob &job,JobLocalDescription &job_desc) const;
   /// Write .grami file after parsing job description file
-  bool write_grami(const GMJob &job,const char *opt_add = NULL) const;
+  bool write_grami(GMJob &job,const char *opt_add = NULL) const;
   /// Write .grami from information in arc_job_desc and job
-  bool write_grami(const Arc::JobDescription& arc_job_desc, const GMJob& job, const char* opt_add) const;
+  bool write_grami(const Arc::JobDescription& arc_job_desc, GMJob& job, const char* opt_add) const;
   /// Get the local LRMS job id corresponding to A-REX job_id
   std::string get_local_id(const JobId &job_id) const;
   /// Set executable bits on appropriate files for the given job

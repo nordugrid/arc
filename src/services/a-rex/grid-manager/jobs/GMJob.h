@@ -86,6 +86,7 @@ class GMJob {
   GMJob(const JobId &job_id,const Arc::User& user,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
   GMJob(void);
   GMJob(const GMJob &job);
+  GMJob& operator=(const GMJob &job);
   ~GMJob(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
@@ -100,8 +101,6 @@ class GMJob {
   /// Check if job is marked as failed (slightly faster than GetFailure).
   /// For failed job returns true, non-failed - false.
   bool CheckFailure(const GMConfig& config) const;
-  JobLocalDescription* get_local(void) const { return local; };
-  void set_local(JobLocalDescription* desc) { local=desc; };
   bool operator==(const GMJob& job) const { return (job_id == job.job_id); };
   bool operator==(const JobId &id) const { return (job_id == id); };
   bool operator!=(const JobId &id) const { return (job_id != id); };
@@ -109,7 +108,9 @@ class GMJob {
   const Arc::User& get_user() const { return user;}
   void set_share(std::string share);
   // Force 'local' to be created and read from file if not already available
-  bool GetLocalDescription(const GMConfig& config);
+  JobLocalDescription* GetLocalDescription(const GMConfig& config);
+  // Use only preloaded local
+  JobLocalDescription* GetLocalDescription() const;
   void Start() { start_time = time(NULL); };
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);

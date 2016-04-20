@@ -72,6 +72,10 @@ GMJob::GMJob(void) {
 }
 
 GMJob::GMJob(const GMJob &job) {
+  operator=(job);
+}
+
+GMJob& GMJob::operator=(const GMJob &job) {
   job_state=job.job_state;
   job_pending=job.job_pending;
   job_id=job.job_id;
@@ -80,12 +84,14 @@ GMJob::GMJob(const GMJob &job) {
   keep_finished=job.keep_finished;
   keep_deleted=job.keep_deleted;
   child=NULL;
-  local=job.local;
+  local=NULL;
+  if(job.local) local=new JobLocalDescription(*job.local);
   user=job.user;
   retries=job.retries;
   next_retry=job.next_retry;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
+  return *this;
 }
 
 GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state_t state) {
@@ -111,18 +117,23 @@ GMJob::~GMJob(void){
     delete child;
     child=NULL;
   }
+  delete local;
 }
 
-bool GMJob::GetLocalDescription(const GMConfig& config) {
-  if(local) return true;
+JobLocalDescription* GMJob::GetLocalDescription(const GMConfig& config) {
+  if(local) return local;
   JobLocalDescription* job_desc;
   job_desc=new JobLocalDescription;
   if(!job_local_read_file(job_id,config,*job_desc)) {
     delete job_desc;
-    return false;
+    return NULL;
   };
   local=job_desc;
-  return true;
+  return local;
+}
+
+JobLocalDescription* GMJob::GetLocalDescription(void) const {
+  return local;
 }
 
 std::string GMJob::GetFailure(const GMConfig& config) const {

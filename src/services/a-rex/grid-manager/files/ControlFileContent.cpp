@@ -366,6 +366,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 }
 
 const char* const JobLocalDescription::transfersharedefault = "_default";
+int const JobLocalDescription::prioritydefault = 50;
 
 bool LRMSResult::set(const char* s) {
   // 1. Empty string = exit code 0
