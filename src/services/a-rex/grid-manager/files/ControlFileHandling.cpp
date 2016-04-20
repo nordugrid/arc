@@ -132,6 +132,7 @@ bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t) 
 
 bool job_lrms_mark_check(const JobId &id,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/job." + id + ".lrms_done";
+logger.msg(Arc::ERROR,"Checking lrms mark at %s",fname);
   return job_mark_check(fname);
 }
 
