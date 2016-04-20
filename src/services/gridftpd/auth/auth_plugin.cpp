@@ -74,6 +74,6 @@ int AuthUser::match_plugin(const char* line) {
   };
   logger.msg(Arc::INFO,"Plugin %s printed: %u",run.cmd(),run.stdout_channel());
   logger.msg(Arc::ERROR,"Plugin %s error: %u",run.cmd(),run.stderr_channel());
-  return AAA_NO_MATCH; // It is safer to return no-match
+  return AAA_NO_MATCH; // It is safer to return no-match (??)
 }
 

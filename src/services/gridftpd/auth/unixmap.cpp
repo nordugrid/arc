@@ -67,9 +67,11 @@ bool UnixMap::mapgroup(const char* line) {
         mapped_=true;
         return true;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
-  return false;
+  return AAA_FAILURE;
 }
 
 bool UnixMap::mapvo(const char* line) {
@@ -98,9 +100,11 @@ bool UnixMap::mapvo(const char* line) {
         mapped_=true;
         return true;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
-  return false;
+  return AAA_FAILURE;
 }
 
 bool UnixMap::mapname(const char* line) {
@@ -128,6 +132,8 @@ bool UnixMap::mapname(const char* line) {
         mapped_=true;
         return true;
       };
+      // Paranoid about negative match
+      return AAA_NO_MATCH;
     };
   };
   if(unix_user_.name.length() != 0) {
@@ -137,8 +143,11 @@ bool UnixMap::mapname(const char* line) {
       mapped_=true;
       return true;
     };
+    return decision; // propagate failure information
   };
-  return false;
+  // If user name is not defined then it was supposed to be 
+  // mapping rule. And if not then we failed.
+  return AAA_FAILURE;
 }
 
 bool UnixMap::unmap(void) const {
