@@ -546,6 +546,8 @@ bool JobLocalDescription::read(const std::string& fname) {
   char buf[4096];
   std::string name;
   activityid.clear();
+  localvo.clear();
+  voms.clear();
   for(;;) {
     if(!read_str(f,buf,sizeof(buf))) break;;
     name.erase();

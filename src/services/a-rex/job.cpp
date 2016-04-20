@@ -482,7 +482,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       };
     };
   };
-  // Collect authorized VOMS/VO
+  // Collect authorized VOMS/VO - so far only source is ARCLEGACYPDP
   {
     for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
       if(*a) {
@@ -491,7 +491,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
           std::list<std::string> voms = sattr->getAll("VOMS");
           job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
           std::list<std::string> vo = sattr->getAll("VO");
-          job_.voms.insert(job_.localvo.end(),vo.begin(),vo.end());
+          job_.localvo.insert(job_.localvo.end(),vo.begin(),vo.end());
         };
       };
     };
