@@ -57,6 +57,16 @@ void DTRGenerator::thread() {
     event_lock.lock();
     std::list<std::string>::iterator it_cancel = jobs_cancelled.begin();
     while (it_cancel != jobs_cancelled.end()) {
+      // check if it is still in received queue
+      std::list<GMJob>::iterator it_jobs = jobs_received.begin();
+      for(; it_jobs != jobs_received.end(); ++it_jobs) {
+        if(*it_jobs == *it_cancel) break;
+      };
+      if(it_jobs != jobs_received.end()) {
+        jobs_received.erase(it_jobs);
+        continue;
+      };
+      // job must be in scheduler already
       event_lock.unlock();
       processCancelledJob(*it_cancel);
       event_lock.lock();
