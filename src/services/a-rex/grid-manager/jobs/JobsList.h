@@ -64,10 +64,6 @@ class JobsList {
   const GMConfig& config;
   // Staging configuration
   StagingConfig staging_config;
-  // Dir containing finished/deleted jobs which is scanned in ScanOldJobs.
-  // Since this can happen over multiple calls a pointer is kept as a member
-  // variable so scanning picks up where it finished last time.
-  Glib::Dir* old_dir;
   // Generator for handling data staging
   DTRGenerator* dtr_generator;
   // Job description handler
@@ -81,11 +77,14 @@ class JobsList {
 
   // Add job into list without checking if it is already there.
   // 'i' will be set to iterator pointing at new job
-  bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid);
+  bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid,job_state_t state = JOB_STATE_UNDEFINED);
+
   // Add job into list without checking if it is already there
-  bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid);
+  bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state = JOB_STATE_UNDEFINED);
+
   // Perform all actions necessary in case of job failure
   bool FailedJob(const iterator &i,bool cancel);
+
   // Remove Job from list. All corresponding files are deleted and pointer is
   // advanced. If finished is false - job is not destroyed if it is FINISHED
   // If active is false - job is not destroyed if it is not UNDEFINED. Returns
@@ -190,6 +189,12 @@ class JobsList {
   // Note: In current implementation this method does nothing because
   // <control_dir>/finished/ is used as slow queue.
   bool RequestSlowPolling(const JobId& id);
+  
+  // Incrementally scan through old jobs in order to check for 
+  // removal time
+  // Returns true if scanning is going on, false if scanning cycle is over.
+  bool ScanOldJobs(void);
+
 
  public:
   // Constructor.
@@ -228,22 +233,26 @@ class JobsList {
 
   // Look for new or restarted jobs. Jobs are added to list with state UNDEFINED
   bool ScanNewJobs(void);
+
   // Look for new job with specified id. Job is added to list with state UNDEFINED
   bool ScanNewJob(const JobId& id);
+
+  // Look for old job with specified id. Job is added to list with its current state
+  bool ScanOldJob(const JobId& id);
+
   // Collect all jobs in all states
   bool ScanAllJobs(void);
   // Pick jobs which have been marked for restarting, cancelling or cleaning
   bool ScanNewMarks(void);
-  // Look for finished or deleted jobs and process them. Jobs which are
-  // restarted will be added back into the main processing loop. This method
-  // can be limited in the time it can run for and number of jobs it can scan.
-  // It returns false if failed or scanning finished.
-  bool ScanOldJobs(int max_scan_time,int max_scan_jobs);
+
   // Add job with specified id. 
   // Returns true if job was found and added.
+  // TODO: Only used in gm-jobs - remove.
   bool AddJob(const JobId& id);
+
   // Rearrange status files on service restart
   bool RestartJobs(void);
+
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
 
@@ -254,6 +263,7 @@ class JobsList {
   void RequestAttention();
 
   // Wait for attention request or polling time
+  // While waiting may also perform slow scanning of old jobs
   void WaitAttention();
 
 };

@@ -347,12 +347,10 @@ bool GridManager::thread() {
   }
   dtr_generator_ = dtr_generator;
   jobs.SetDataGenerator(dtr_generator);
-  bool scan_old = false;
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
-  time_t hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   time_t poll_job_time = time(NULL) + config_.WakeupPeriod();
   for(;;) {
     if(tostop_) break;
@@ -387,16 +385,6 @@ bool GridManager::thread() {
       };
 
       poll_job_time += config_.WakeupPeriod();
-    };
-
-    if((((unsigned int)(time(NULL) - hard_job_time)) >= 0) || scan_old) {
-      // Hard job time
-
-      /* slowly scan through old jobs for deleting them in time */
-      // TODO: remove
-      scan_old = jobs.ScanOldJobs(config_.WakeupPeriod()/2,config_.MaxJobs());
-
-      hard_job_time = time(NULL) + HARD_JOB_PERIOD;
     };
 
     jobs.WaitAttention();
