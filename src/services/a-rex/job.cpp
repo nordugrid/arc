@@ -482,6 +482,20 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       };
     };
   };
+  // Collect authorized VOMS/VO
+  {
+    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+      if(*a) {
+        Arc::SecAttr* sattr = (*a)->get("ARCLEGACYPDP");
+        if(sattr) {
+          std::list<std::string> voms = sattr->getAll("VOMS");
+          job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
+          std::list<std::string> vo = sattr->getAll("VO");
+          job_.voms.insert(job_.localvo.end(),vo.begin(),vo.end());
+        };
+      };
+    };
+  };
   // Write local file
   job.set_local(&job_); // need this for write_grami
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
