@@ -45,6 +45,7 @@ class RunParallel {
   static bool run(const GMConfig& config, const GMJob& job, JobsList& list,
                   const std::string& args, Arc::Run**,
                   bool su = true);
+ public:
   static bool run(const GMConfig& config, const GMJob& job,
                   const std::string& args, Arc::Run**,
                   bool su = true);
