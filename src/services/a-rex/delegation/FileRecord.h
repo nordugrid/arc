@@ -44,8 +44,11 @@ class FileRecord {
     ~Iterator(void);
     Iterator& operator++(void);
     Iterator& operator--(void);
+    void suspend(void);
+    bool resume(void);
     operator bool(void) { return (cur_!=NULL); };
     bool operator!(void) { return (cur_==NULL); };
+    const std::string& uid(void) const { return uid_; };
     const std::string& id(void) const { return id_; };
     const std::string& owner(void) const { return owner_; };
     const std::list<std::string>& meta(void) const { return meta_; };
