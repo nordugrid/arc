@@ -86,9 +86,12 @@ void DTRGenerator::thread() {
     jobs_received.sort(compare_job_description);
     while (it_jobs != jobs_received.end() && Arc::Time() < limit) {
       event_lock.unlock();
+      bool jobAccepted = processReceivedJob(*it_jobs);
       processReceivedJob(*it_jobs);
       event_lock.lock();
+      JobId jobid(it_jobs->get_id());
       it_jobs = jobs_received.erase(it_jobs);
+      if(!jobAccepted) jobs.RequestAttention(jobid);
     }
     event_lock.unlock();
     Glib::usleep(50000);
@@ -625,7 +628,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     finished_jobs[jobid] = std::string("Failed to read list of output files");
     lock.unlock();
     if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
-    jobs.RequestAttention(jobid);
+    //jobs.RequestAttention(jobid);
     /*
     if (kicker_func) (*kicker_func)(kicker_arg);
     */
@@ -638,7 +641,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to read list of input files");
       lock.unlock();
-      jobs.RequestAttention(jobid);
+      //jobs.RequestAttention(jobid);
       /*if (kicker_func) (*kicker_func)(kicker_arg);*/
       return false;
     }
@@ -650,7 +653,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
           lock.lock();
           finished_jobs[jobid] = std::string("Duplicate file in list of input files: " + i->pfn);
           lock.unlock();
-          jobs.RequestAttention(jobid);
+          //jobs.RequestAttention(jobid);
           /*if (kicker_func) (*kicker_func)(kicker_arg);*/
           return false;
         }
@@ -676,7 +679,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
       lock.unlock();
-      jobs.RequestAttention(jobid);
+      //jobs.RequestAttention(jobid);
       /*if (kicker_func) (*kicker_func)(kicker_arg);*/
       return false;
     }
@@ -707,7 +710,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
           }
           lock.unlock();
           CleanCacheJobLinks(config, job);
-          jobs.RequestAttention(jobid);
+          //jobs.RequestAttention(jobid);
           /*if (kicker_func) (*kicker_func)(kicker_arg);*/
           return false;
         }
@@ -736,7 +739,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
             }
             lock.unlock();
             CleanCacheJobLinks(config, job);
-            jobs.RequestAttention(jobid);
+            //jobs.RequestAttention(jobid);
             /*if (kicker_func) (*kicker_func)(kicker_arg);*/
             return false;
           }
@@ -773,7 +776,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
             finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
             lock.unlock();
             CleanCacheJobLinks(config, job);
-            jobs.RequestAttention(jobid);
+            //jobs.RequestAttention(jobid);
             /*if (kicker_func) (*kicker_func)(kicker_arg);*/
             return false;
           }
@@ -787,7 +790,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
               finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
               lock.unlock();
               CleanCacheJobLinks(config, job);
-              jobs.RequestAttention(jobid);
+              //jobs.RequestAttention(jobid);
               /*if (kicker_func) (*kicker_func)(kicker_arg);*/
               return false;
             }
@@ -807,7 +810,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
       lock.unlock();
       CleanCacheJobLinks(config, job);
-      jobs.RequestAttention(jobid);
+      //jobs.RequestAttention(jobid);
       /*if (kicker_func) (*kicker_func)(kicker_arg);*/
       return false;
     }
@@ -818,7 +821,7 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     lock.lock();
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
     lock.unlock();
-    jobs.RequestAttention(jobid);
+    //jobs.RequestAttention(jobid);
     /*if (kicker_func) (*kicker_func)(kicker_arg);*/
     return false;
   }
@@ -839,9 +842,9 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
-    jobs.RequestAttention(jobid);
+    //jobs.RequestAttention(jobid);
     /*if (kicker_func) (*kicker_func)(kicker_arg);*/
-    return true;
+    return false;
   }
 
   // flag to say whether at least one file needs to be staged
@@ -980,7 +983,8 @@ bool DTRGenerator::processReceivedJob(const GMJob& job) {
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
-    jobs.RequestAttention(jobid);
+    //jobs.RequestAttention(jobid);
+    return false;
   }
   return true;
 }
