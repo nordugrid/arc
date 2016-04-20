@@ -1483,6 +1483,56 @@ Default is 'no'.
 .br
 watchdog="no"
 
+.TP
+.B groupcfg
+groupcfg group_name [group_name ...] - specifies authorization groups
+for grid-manager to accept. The main location of this parameter is
+inside [gridftpd/jobs] block. The 'groupcfg' located here is only
+effective if computing service is configured without GridFTP interface
+and hence [gridftpd/jobs] block is missing.
+
+.IR Example:
+.br
+groupcfg="users"
+
+.TP
+.B unixmap unixgroup unixvo
+unixmap [unixname][:unixgroup] rule - more sophisticated mapping to
+local account
+.br
+unixgroup group rule - more sophisticated mapping to local account
+for specific authorization groups.
+.br
+unixvo vo rule - more sophisticated mapping to local account for
+users belonging to specified VO.
+.br
+The main location for these parameters is [gridftpd] section. If
+located here they are only active if computing service is configured
+without GridFTP interface and hence [gridftpd/jobs] block is missing.
+For more detailed information see section [gridftpd] and read "ARC
+Computing Element. System Administrator guide" manual.
+
+.IR Example:
+.br
+unixmap="nobody:nogroup all"
+.br
+unixgroup="users simplepool /etc/grid-security/pool/users"
+.br
+unixvo="ATLAS unixuser atlas:atlas"
+
+.TP
+.B allowunknown
+allowunknown yes|no - check user subject against grid-mapfile.
+The main location for this parameter is [gridftpd] section. If
+located here it is only active if computing service is configured
+without GridFTP interface and hence [gridftpd/jobs] block is missing.
+For more detailed information see section [gridftpd].
+
+.IR Example:
+.br
+allowunknown="no"
+
+
 .SH [data-staging] block 
 
 [data-staging] block configures DTR data staging parameters.

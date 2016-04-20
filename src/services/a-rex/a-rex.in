@@ -112,6 +112,27 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
+testconfigblock() {
+    fname=$1
+    if [ ! -r "$fname" ]; then
+        return
+    fi
+    bname="[$2]"
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' | {
+        while true; do
+            read line
+            if [ ! $? = 0 ] ; then
+                return
+            fi
+            if [ "$line" = "$bname" ] ; then
+                echo 'true'
+                return
+            fi
+        done
+        echo 'false'
+    }
+}
+
 readconfigvar() {
     fname=$1
     if [ ! -r "$fname" ]; then
@@ -254,6 +275,7 @@ prepare() {
     #  Debug level
     #  User name
 
+    GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
@@ -274,7 +296,15 @@ prepare() {
     MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
     MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" gridftpd allowunknown`
+    if [ "$GRIDFTPD_PRESENT" == 'true' ] ; then
+        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" gridftpd allowunknown`
+        USERMAP_BLOCK='gridftpd'
+        USERAUTH_BLOCK='gridftpd/jobs'
+    else
+        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager allowunknown`
+        USERMAP_BLOCK='grid-manager'
+        USERAUTH_BLOCK='grid-manager'
+    fi
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
@@ -482,7 +512,26 @@ prepare() {
   <AcceptNotApplicable>$arguspdp_acceptnotapplicable</AcceptNotApplicable>
 </SecHandler>"
     fi
-    
+
+    legacy_shc="
+<!-- Do authorization in same way as jobs plugin of gridftpd does -->
+<!-- Beware of hardcoded block name -->
+<SecHandler name=\"arc.authz\" event=\"incoming\">
+  <PDP name=\"arclegacy.pdp\">
+    <ConfigBlock>
+      <ConfigFile>$ARC_CONFIG</ConfigFile>
+      <BlockName>$USERAUTH_BLOCK</BlockName>
+    </ConfigBlock>
+  </PDP>
+</SecHandler>
+<!-- Perform client mapping according to rules of gridftpd -->
+<SecHandler name=\"arclegacy.map\" event=\"incoming\">
+  <ConfigBlock>
+    <ConfigFile>$ARC_CONFIG</ConfigFile>
+    <BlockName>$USERMAP_BLOCK</BlockName>
+  </ConfigBlock>
+</SecHandler>"
+
     # cache service
     cache_service_plexer=""
     cache_service=""
@@ -498,23 +547,7 @@ prepare() {
         cache_service_plexer="<next id=\"cacheservice\">^/cacheservice</next>"
         cache_service="\
     <Service name=\"cacheservice\" id=\"cacheservice\">\
-      <!-- Do authorization in same way as jobs plugin of gridftpd does -->
-      <!-- Beware of hardcoded block name -->
-      <SecHandler name=\"arc.authz\" event=\"incoming\">
-        <PDP name=\"arclegacy.pdp\">
-          <ConfigBlock>
-            <ConfigFile>$ARC_CONFIG</ConfigFile>
-            <BlockName>gridftpd/jobs</BlockName>
-          </ConfigBlock>
-        </PDP>
-      </SecHandler>
-      <!-- Perform client mapping according to rules of gridftpd -->
-      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
-          <ConfigBlock>
-            <ConfigFile>$ARC_CONFIG</ConfigFile>
-            <BlockName>gridftpd</BlockName>
-          </ConfigBlock>
-      </SecHandler> 
+      $legacy_shc
       <cacheservice:cache>\
         <cacheservice:config>$ARC_CONFIG</cacheservice:config>\
         <cacheservice:witharex>true</cacheservice:witharex>\
@@ -700,23 +733,7 @@ prepare() {
       $cache_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
-      <!-- Do authorization in same way as jobs plugin of gridftpd does -->
-      <!-- Beware of hardcoded block name -->
-      <SecHandler name=\"arc.authz\" event=\"incoming\">
-        <PDP name=\"arclegacy.pdp\">
-          <ConfigBlock>
-            <ConfigFile>$ARC_CONFIG</ConfigFile>
-            <BlockName>gridftpd/jobs</BlockName>
-          </ConfigBlock>
-        </PDP>
-      </SecHandler>
-      <!-- Perform client mapping according to rules of gridftpd -->
-      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
-          <ConfigBlock>
-            <ConfigFile>$ARC_CONFIG</ConfigFile>
-            <BlockName>gridftpd</BlockName>
-          </ConfigBlock>
-      </SecHandler>
+      $legacy_shc
       $argus_shc
       $arex_endpoint
       $enable_emies_interface
