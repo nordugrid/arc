@@ -17,7 +17,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 /* check if have to send mail and initiate sending */
 bool send_mail(GMJob &job,const GMConfig& config) {
-  char flag = states_all[job.get_state()].mail_flag;
+  char flag = GMJob::get_state_mail_flag(job.get_state());
   if(flag == ' ') return true;
   std::string notify = "";
   std::string jobname = "";
@@ -42,7 +42,7 @@ bool send_mail(GMJob &job,const GMConfig& config) {
   };
   failure_reason = '"' + failure_reason + '"';
   std::string cmd(Arc::ArcLocation::GetToolsDir()+"/smtp-send.sh");
-  cmd += " " + std::string(states_all[job.get_state()].name);
+  cmd += " " + std::string(job.get_state_name());
   cmd += " " + job.get_id();
   cmd += " " + config.ControlDir();
   cmd += " " + config.SupportMailAddress();

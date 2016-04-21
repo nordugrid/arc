@@ -121,6 +121,7 @@ long int job_mark_size(const std::string &fname);
 // Create file to store stderr of external utilities used to stage-in/out
 // data, submit/cancel job in LRMS.
 bool job_errors_mark_put(const GMJob &job,const GMConfig &config);
+bool job_errors_mark_add(const GMJob &job,const GMConfig &config,const std::string &msg);
 std::string job_errors_filename(const JobId &id, const GMConfig &config);
 
 // Get modification time of file used to store state of the job.

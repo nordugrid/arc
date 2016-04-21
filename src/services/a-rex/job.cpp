@@ -646,8 +646,7 @@ std::string ARexJob::State(void) {
 std::string ARexJob::State(bool& job_pending) {
   if(id_.empty()) return "";
   job_state_t state = job_state_read_file(id_,config_.GmConfig(),job_pending);
-  if(state > JOB_STATE_UNDEFINED) state=JOB_STATE_UNDEFINED;
-  return states_all[state].name;
+  return GMJob::get_state_name(state);
 }
 
 bool ARexJob::Failed(void) {

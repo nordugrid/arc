@@ -26,15 +26,6 @@ enum job_state_t {
   JOB_STATE_UNDEFINED  = 8
 };
 
-struct job_state_rec_t {
-  job_state_t id;
-  const char* name;
-  char mail_flag;
-};
-
-/// Maps job state to state name and flag for email at that state
-extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
-
 /// Number of job states
 #define JOB_STATE_NUM (JOB_STATE_UNDEFINED+1)
 
@@ -65,14 +56,17 @@ class GMJob {
   JobLocalDescription* local;
   // Job's owner
   Arc::User user;
-  // Reties left (should be reset for each state change)
-  int retries;
-  // Time to perform the next retry
-  time_t next_retry;
   // Used to determine data transfer share (eg DN, VOMS VO)
   std::string transfer_share;
   // Start time of job i.e. when it first moves to PREPARING
   time_t start_time;
+
+  struct job_state_rec_t {
+    const char* name;
+    char mail_flag;
+  };
+  /// Maps job state to state name and flag for email at that state
+  static job_state_rec_t const states_all[JOB_STATE_NUM];
  public:
   // external utility being run to perform tasks like stage-in/out,
   //   submit/cancel. (todo - move to private)
@@ -90,7 +84,9 @@ class GMJob {
   ~GMJob(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
+  char get_state_mail_flag() const;
   static const char* get_state_name(job_state_t st);
+  static char get_state_mail_flag(job_state_t st);
   static job_state_t get_state(const char* state);
   const JobId& get_id() const { return job_id; };
   std::string SessionDir(void) const { return session_dir; };

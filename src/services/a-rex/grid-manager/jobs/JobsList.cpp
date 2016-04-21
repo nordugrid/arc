@@ -43,7 +43,7 @@ JobsList::JobsList(const GMConfig& gmconfig) :
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
 }
- 
+
 JobsList::iterator JobsList::FindJob(const JobId &id){
   iterator i;
   for(i=jobs.begin();i!=jobs.end();++i) {
@@ -57,6 +57,23 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
   return AddJobNoCheck(id,i,uid,gid,state);
 }
 
+void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason) {
+  if(i->job_state != new_state) {
+    std::string msg = Arc::Time().str(Arc::UTCTime);
+    msg += " Job state change ";
+    msg += i->get_state_name();
+    msg += " -> ";
+    msg += GMJob::get_state_name(new_state);
+    if(reason) {
+      msg += "   Reason: ";
+      msg += reason;
+    };
+    msg += "\n";
+    i->job_state = new_state;
+    job_errors_mark_add(*i,config,msg);
+  };
+}
+
 bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid,job_state_t state){
   i=jobs.insert(jobs.end(),GMJob(id, Arc::User(uid)));
   i->keep_finished=config.keep_finished;
@@ -65,7 +82,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
   if (!GetLocalDescription(i)) {
     // safest thing to do is add failure and move to FINISHED
     i->AddFailure("Internal error");
-    i->job_state = JOB_STATE_FINISHED;
+    SetJobState(i, JOB_STATE_FINISHED, "Internal failure");
     FailedJob(i, false);
     if(!job_state_write_file(*i,config,i->job_state)) {
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
@@ -275,6 +292,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   logger.msg(Arc::INFO,"%s: Destroying",i->job_id);
   job_state_t new_state=i->job_state;
   if(new_state == JOB_STATE_UNDEFINED) {
+    // Try to obtain real job state
     if((new_state=job_state_read_file(i->job_id,config))==JOB_STATE_UNDEFINED) {
       logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
       UnlockDelegation(i);
@@ -282,11 +300,11 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
       i=jobs.erase(i);
       return true;
     }
+    i->job_state = new_state;
   }
-  i->job_state = new_state;
   if((new_state == JOB_STATE_FINISHED) && (!finished)) { ++i; return true; }
   if(!active) { ++i; return true; }
-  if((new_state != JOB_STATE_INLRMS) || 
+  if((new_state != JOB_STATE_INLRMS) ||
      (job_lrms_mark_check(i->job_id,config))) {
     logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
     UnlockDelegation(i);
@@ -384,7 +402,7 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
 bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed) {
   bool const cancel = false;
   if(i->child == NULL) {
-    // no child was running yet, or recovering from fault 
+    // no child was running yet, or recovering from fault
     // write grami file for submit-X-job
     // TODO: read existing grami file to check if job is already submitted
     if(!(i->GetLocalDescription(config))) {
@@ -550,7 +568,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed)
 
 bool JobsList::state_canceling(const JobsList::iterator &i,bool &state_changed) {
   if(i->child == NULL) {
-    // no child was running yet, or recovering from fault 
+    // no child was running yet, or recovering from fault
     // write grami file for cancel-X-job
     if(!(i->GetLocalDescription(config))) {
       logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
@@ -690,28 +708,25 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
 
 bool JobsList::JobPending(JobsList::iterator &i) {
   if(i->job_pending) return true;
-  i->job_pending=true; 
+  i->job_pending=true;
   return job_state_write_file(*i,config,i->job_state,true);
 }
 
 job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
-  if(!GetLocalDescription(i)) {
-    return JOB_STATE_UNDEFINED;
-  }
+  if(!GetLocalDescription(i)) return JOB_STATE_UNDEFINED;
   if(i->local->failedstate.empty()) { return JOB_STATE_UNDEFINED; }
-  for(int n = 0;states_all[n].name != NULL;n++) {
-    if(i->local->failedstate == states_all[n].name) {
-      if(i->local->reruns <= 0) {
-        logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore",i->job_id);
-        job_local_write_file(*i,config,*(i->local));
-        return JOB_STATE_UNDEFINED;
-      }
-      i->local->failedstate="";
-      i->local->failedcause="";
-      i->local->reruns--;
+  job_state_t state = GMJob::get_state(i->local->failedstate.c_str());
+  if(state != JOB_STATE_UNDEFINED) {
+    if(i->local->reruns <= 0) {
+      logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore",i->job_id);
       job_local_write_file(*i,config,*(i->local));
-      return states_all[n].id;
+      return JOB_STATE_UNDEFINED;
     }
+    i->local->failedstate="";
+    i->local->failedcause="";
+    i->local->reruns--;
+    job_local_write_file(*i,config,*(i->local));
+    return state;
   }
   logger.msg(Arc::ERROR,"%s: Job failed in unknown state. Won't rerun.",i->job_id);
   i->local->failedstate="";
@@ -796,7 +811,7 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
     return job_local_write_file(*i,config,*(i->local));
   }
   if(i->local->failedstate.empty()) {
-    i->local->failedstate=states_all[state].name;
+    i->local->failedstate=GMJob::get_state_name(state);
     i->local->failedcause=internal?"internal":"client";
     return job_local_write_file(*i,config,*(i->local));
   }
@@ -835,9 +850,9 @@ JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
           // By keeping once_more==false job does not cycle here but
           // goes out and registers its state in counters. This allows
           // to maintain limits properly after restart. Except FINISHED
-          // jobs because they are not kept in memory and should be 
+          // jobs because they are not kept in memory and should be
           // processed immediately.
-    i->job_state = new_state; // this can be any state, after A-REX restart
+    SetJobState(i, new_state, "(Re)Accepting new job"); // this can be any state, after A-REX restart
     job_result = JobSuccess;
     if(new_state == JOB_STATE_ACCEPTED) {
 //!!            state_changed = true; // to trigger email notification, etc.
@@ -866,7 +881,6 @@ JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
           GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
       // Make it clean state after restart
       job_state_write_file(*i,config,i->job_state);
-      i->retries = staging_config.get_max_retries();
       i->Start();
       RequestAttention(i->job_id); // process ASAP
     }
@@ -896,25 +910,21 @@ JobsList::ActJobResult JobsList::ActJobAccepted(iterator i) {
     return JobSuccess;
   }
   // check for user specified time
-  if(i->retries == 0 && i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
+  if(i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
         i->local->processtime.str(Arc::UserTime));
     RequestPolling(i->job_id);
     return JobSuccess;
   }
   logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
-  i->job_state = JOB_STATE_PREPARING;
-  // if first pass then reset retries
-  if (i->retries == 0) i->retries = staging_config.get_max_retries();
+  SetJobState(i, JOB_STATE_PREPARING, "Starting job processing");
   i->Start();
 
   // gather some frontend specific information for user, do it only once
   // Runs user-supplied executable placed at "frontend-info-collector"
-  if(i->retries == staging_config.get_max_retries()) {
-    std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
-    char const * const args[2] = { cmd.c_str(), NULL };
-    job_controldiag_mark_put(*i,config,args);
-  }
+  std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
+  char const * const args[2] = { cmd.c_str(), NULL };
+  job_controldiag_mark_put(*i,config,args);
   RequestReprocess(i->job_id);
   return JobSuccess;
 }
@@ -958,8 +968,7 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
         // Job has executable
         if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
           // And limit of running jobs is not reached
-          i->job_state = JOB_STATE_SUBMITTING;
-          i->retries = staging_config.get_max_retries();
+          SetJobState(i, JOB_STATE_SUBMITTING, "Pre-staging finished, passing job to LRMS");
           RequestReprocess(i->job_id); // act on new state immediately
         } else {
           // Wait for running jobs to fall below limit keeping job in PENDING
@@ -968,13 +977,12 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
         }
       } else {
         // No execution requested
-        i->job_state = JOB_STATE_FINISHING;
-        i->retries = staging_config.get_max_retries();
+        SetJobState(i, JOB_STATE_FINISHING, "Job does NOT define executable. Going directly to post-staging.");
         RequestReprocess(i->job_id); // act on new state immediately
       }
     }
     return JobSuccess;
-  } 
+  }
   else {
     if(!i->CheckFailure(config)) i->AddFailure("Data download failed");
     return JobFailed;
@@ -987,7 +995,7 @@ JobsList::ActJobResult JobsList::ActJobSubmitting(iterator i) {
   bool state_changed = false;
   if(state_submitting(i,state_changed)) {
     if(state_changed) {
-      i->job_state = JOB_STATE_INLRMS;
+      SetJobState(i, JOB_STATE_INLRMS, "Job is passed to LRMS");
       RequestReprocess(i->job_id);
       return JobSuccess;
     } else {
@@ -1006,7 +1014,7 @@ JobsList::ActJobResult JobsList::ActJobCanceling(JobsList::iterator i) {
   bool state_changed = false;
   if(state_canceling(i,state_changed)) {
     if(state_changed) {
-      i->job_state = JOB_STATE_FINISHING;
+      SetJobState(i, JOB_STATE_FINISHING, "Job cancelation succeeded");
       RequestReprocess(i->job_id);
       return JobSuccess;
     } else {
@@ -1026,39 +1034,30 @@ JobsList::ActJobResult JobsList::ActJobInlrms(JobsList::iterator i) {
     i->AddFailure("Failed reading local job information");
     return JobFailed; // go to next job
   }
-  // only check lrms job status on first pass - TODO: analyze this condition
-  if(i->retries == 0 || i->retries == staging_config.get_max_retries()) {
 logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for pending(%u) and mark",i->job_id, (unsigned int)(i->job_pending));
-    if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
+  if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
 logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for not pending",i->job_id);
-      if(!i->job_pending) {
-        logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
-        job_diagnostics_mark_move(*i,config);
-        LRMSResult ec = job_lrms_mark_read(i->job_id,config);
-        if(ec.code() != i->local->exec.successcode) {
-          logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
-          i->AddFailure("LRMS error: ("+
-                Arc::tostring(ec.code())+") "+ec.description());
-          JobFailStateRemember(i,JOB_STATE_INLRMS);
-          // This does not require any special postprocessing and
-          // can go to next state directly
-          return JobFailed;
-        }
+    if(!i->job_pending) {
+      logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
+      job_diagnostics_mark_move(*i,config);
+      LRMSResult ec = job_lrms_mark_read(i->job_id,config);
+      if(ec.code() != i->local->exec.successcode) {
+        logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
+        i->AddFailure("LRMS error: ("+
+              Arc::tostring(ec.code())+") "+ec.description());
+        JobFailStateRemember(i,JOB_STATE_INLRMS);
+        // This does not require any special postprocessing and
+        // can go to next state directly
+        return JobFailed;
       }
-      i->job_state = JOB_STATE_FINISHING;
-      // if first pass then reset retries
-      if (i->retries == 0) i->retries = staging_config.get_max_retries();
-      RequestReprocess(i->job_id);
-      return JobSuccess;
-    } else {
-logger.msg(Arc::ERROR,"%s: State: INLRMS - no mark found",i->job_id);
-      // Do polling while waiting for execution to finish - TODO: replace with report from job scanner
-      RequestPolling(i->job_id);
-      return JobSuccess;
     }
-  } else {
-    i->job_state = JOB_STATE_FINISHING;
+    SetJobState(i, JOB_STATE_FINISHING, "Job finished executing in LRMS");
     RequestReprocess(i->job_id);
+    return JobSuccess;
+  } else {
+logger.msg(Arc::ERROR,"%s: State: INLRMS - no mark found",i->job_id);
+    // Do polling while waiting for execution to finish - TODO: replace with report from job scanner
+    RequestPolling(i->job_id);
     return JobSuccess;
   }
 }
@@ -1070,7 +1069,7 @@ JobsList::ActJobResult JobsList::ActJobFinishing(iterator i) {
   bool state_changed = false;
   if(state_loading(i,state_changed,true)) {
     if(state_changed) {
-      i->job_state = JOB_STATE_FINISHED;
+      SetJobState(i, JOB_STATE_FINISHED, "Stage-out finished.");
       RequestReprocess(i->job_id);
     } else {
       // still in data staging
@@ -1102,7 +1101,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
     if(state_ == JOB_STATE_PREPARING) {
       if(RecreateTransferLists(i)) {
         job_failed_mark_remove(i->job_id,config);
-        i->job_state = JOB_STATE_ACCEPTED;
+        SetJobState(i, JOB_STATE_ACCEPTED, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
         RequestAttention(i->job_id); // make it start ASAP
         return JobSuccess;
@@ -1113,9 +1112,9 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         job_failed_mark_remove(i->job_id,config);
         if(i->local->downloads > 0) {
           // missing input files has to be re-downloaded
-          i->job_state = JOB_STATE_ACCEPTED;
+          SetJobState(i, JOB_STATE_ACCEPTED, "Request to restart failed job (some input files are missing)");
         } else {
-          i->job_state = JOB_STATE_PREPARING;
+          SetJobState(i, JOB_STATE_PREPARING, "Request to restart failed job (no input files are missing)");
         }
         JobPending(i); // make it go to end of state immediately
         // TODO: check for order of processing
@@ -1125,7 +1124,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
     } else if(state_ == JOB_STATE_FINISHING) {
       if(RecreateTransferLists(i)) {
         job_failed_mark_remove(i->job_id,config);
-        i->job_state = JOB_STATE_INLRMS;
+        SetJobState(i, JOB_STATE_INLRMS, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
         RequestAttention(i->job_id); // make it start ASAP
         return JobSuccess;
@@ -1168,7 +1167,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
       }
       job_clean_deleted(*i,config,cache_per_job_dirs);
-      i->job_state = JOB_STATE_DELETED;
+      SetJobState(i, JOB_STATE_DELETED, "Job stayed unattended too long");
       RequestSlowPolling(i->job_id);
       // DELETED jobs not kept in memory. So it is not important if return is Success or Dropped
       return JobDropped;
@@ -1210,7 +1209,7 @@ bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
         dtr_generator->cancelJob(*i);
       }
       // kill running child
-      if(i->child) { 
+      if(i->child) {
         i->child->Kill(0);
         delete i->child; i->child=NULL;
       }
@@ -1223,11 +1222,11 @@ bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
       }
       // special processing for INLRMS case
       if(i->job_state == JOB_STATE_INLRMS) {
-        i->job_state = JOB_STATE_CANCELING;
+        SetJobState(i, JOB_STATE_CANCELING, "Request to cancel job");
       }
       // if FINISHING we wait to get back all DTRs
       else if (i->job_state != JOB_STATE_PREPARING) {
-        i->job_state = JOB_STATE_FINISHING;
+        SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
       }
       job_cancel_mark_remove(i->job_id,config);
       RequestReprocess(i->job_id);
@@ -1247,22 +1246,22 @@ bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
       // analyze results
       if(result->action == ContinuationPlugins::act_fail) {
         logger.msg(Arc::ERROR,"%s: Plugin at state %s : %s",
-            i->job_id.c_str(),states_all[i->get_state()].name,
+            i->job_id.c_str(),i->get_state_name(),
             result->response);
         i->AddFailure(std::string("Plugin at state ")+
-        states_all[i->get_state()].name+" failed: "+(result->response));
+        i->get_state_name()+" failed: "+(result->response));
         plugins_result = false;;
       } else if(result->action == ContinuationPlugins::act_log) {
         // Scream but go ahead
         logger.msg(Arc::WARNING,"%s: Plugin at state %s : %s",
-            i->job_id.c_str(),states_all[i->get_state()].name,
+            i->job_id.c_str(),i->get_state_name(),
             result->response);
       } else if(result->action == ContinuationPlugins::act_pass) {
         // Just continue quietly
       } else {
         logger.msg(Arc::ERROR,"%s: Plugin execution failed",i->job_id);
         i->AddFailure(std::string("Failed running plugin at state ")+
-            states_all[i->get_state()].name);
+            i->get_state_name());
         plugins_result = false;;
       }
       ++result;
@@ -1352,7 +1351,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         // No need for AddFailure. It is filled inside CheckJobContinuePlugins.
         job_result = ActJobFailed(i); // immedaitely process failure
       };
-      // Processing to be done on relatively successful state changes 
+      // Processing to be done on relatively successful state changes
       config.job_log->make_file(*i,config);
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
@@ -1361,7 +1360,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
       } else if(i->job_state == JOB_STATE_PREPARING) {
         config.job_log->start_info(*i,config);
       };
-    }
+//            SetJobState(i, JOB_STATE_FINISHED, "Job processing error");
+//            SetJobState(i, JOB_STATE_FINISHING, "Job processing error");
+    };
     // send mail after error and change are processed
     // do not send if something really wrong happened to avoid email DoS
     if(job_result != JobFailed) send_mail(*i,config);
@@ -1387,10 +1388,10 @@ bool JobsList::ActJob(JobsList::iterator &i) {
     };
   };
 
-  if(job_result == JobFailed) { 
+  if(job_result == JobFailed) {
     // If it is still job failed then just forse everything down
     logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
-    i->job_state = JOB_STATE_FINISHED; // move to finished in order to remove from list
+    SetJobState(i, JOB_STATE_FINISHED, "Job processing failed"); // move to finished in order to remove from list
     i->job_pending=false;
     job_state_write_file(*i,config,i->job_state);
     i->AddFailure("Serious troubles (problems during processing problems)");
@@ -1455,11 +1456,11 @@ JobsList::ActJobResult JobsList::ActJobFailed(iterator i) {
       return JobDropped;
     } else if(i->job_state == JOB_STATE_FINISHING) {
       // No matter if FINISHING fails - it still goes to FINISHED
-      i->job_state = JOB_STATE_FINISHED;
+      SetJobState(i, JOB_STATE_FINISHED, "Job failure detected");
       RequestReprocess(i->job_id);
     } else {
       // Other states are moved to FINISHING and start post-staging
-      i->job_state = JOB_STATE_FINISHING;
+      SetJobState(i, JOB_STATE_FINISHING, "Job failure detected");
       RequestReprocess(i->job_id);
     };
     // Reset pending (it is useless for any post-failure state anyway)
@@ -1694,9 +1695,8 @@ bool JobsList::ScanNewMarks(void) {
     // Check if such job finished and add it to list.
     if(st == JOB_STATE_FINISHED) {
       iterator i;
-      AddJobNoCheck(id->id,i,id->uid,id->gid);
       // That will activate its processing at least for one step.
-      i->job_state = st;
+      AddJobNoCheck(id->id,i,id->uid,id->gid, st);
     }
   }
 
@@ -1704,7 +1704,7 @@ bool JobsList::ScanNewMarks(void) {
   return true;
 }
 
-// For simply collecting all jobs. 
+// For simply collecting all jobs.
 bool JobsList::ScanAllJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 

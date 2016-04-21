@@ -11,46 +11,46 @@
 
 namespace ARex {
 
-const char* state_names[JOB_STATE_NUM] = {
- "ACCEPTED",
- "PREPARING",
- "SUBMIT",
- "INLRMS",
- "FINISHING",
- "FINISHED",
- "DELETED",
- "CANCELING",
- "UNDEFINED"
-};
-
-job_state_rec_t states_all[JOB_STATE_UNDEFINED+1] = {
- { JOB_STATE_ACCEPTED,   state_names[JOB_STATE_ACCEPTED],   ' ' },
- { JOB_STATE_PREPARING,  state_names[JOB_STATE_PREPARING],  'b' },
- { JOB_STATE_SUBMITTING, state_names[JOB_STATE_SUBMITTING], ' ' },
- { JOB_STATE_INLRMS,     state_names[JOB_STATE_INLRMS],     'q' },
- { JOB_STATE_FINISHING,  state_names[JOB_STATE_FINISHING],  'f' },
- { JOB_STATE_FINISHED,   state_names[JOB_STATE_FINISHED],   'e' },
- { JOB_STATE_DELETED,    state_names[JOB_STATE_DELETED],    'd' },
- { JOB_STATE_CANCELING,  state_names[JOB_STATE_CANCELING],  'c' },
- { JOB_STATE_UNDEFINED,  NULL,                              ' '}
+GMJob::job_state_rec_t const GMJob::states_all[JOB_STATE_NUM] = {
+  { "ACCEPTED",   ' ' }, // JOB_STATE_ACCEPTED
+  { "PREPARING",  'b' }, // JOB_STATE_PREPARING
+  { "SUBMIT",     ' ' }, // JOB_STATE_SUBMITING
+  { "INLRMS",     'q' }, // JOB_STATE_INLRMS,
+  { "FINISHING",  'f' }, // JOB_STATE_FINISHING
+  { "FINISHED",   'e' }, // JOB_STATE_FINISHED
+  { "DELETED",    'd' }, // JOB_STATE_DELETED
+  { "CANCELING",  'c' }, // JOB_STATE_CANCELING
+  { "UNDEFINED",  ' ' }  // JOB_STATE_UNDEFINED
 };
 
 
 const char* GMJob::get_state_name() const {
   if((job_state<0) || (job_state>=JOB_STATE_NUM))
-                       return state_names[JOB_STATE_UNDEFINED];
-  return state_names[job_state];
+                       return states_all[JOB_STATE_UNDEFINED].name;
+  return states_all[job_state].name;
+}
+
+char GMJob::get_state_mail_flag() const {
+  if((job_state<0) || (job_state>=JOB_STATE_NUM))
+                       return states_all[JOB_STATE_UNDEFINED].mail_flag;
+  return states_all[job_state].mail_flag;
 }
 
 const char* GMJob::get_state_name(job_state_t st) {
   if((st<0) || (st>=JOB_STATE_NUM))
-                       return state_names[JOB_STATE_UNDEFINED];
-  return state_names[st];
+                       return states_all[JOB_STATE_UNDEFINED].name;
+  return states_all[st].name;
+}
+
+char GMJob::get_state_mail_flag(job_state_t st) {
+  if((st<0) || (st>=JOB_STATE_NUM))
+                       return states_all[JOB_STATE_UNDEFINED].mail_flag;
+  return states_all[st].mail_flag;
 }
 
 job_state_t GMJob::get_state(const char* state) {
   for(int i = 0;i<JOB_STATE_NUM;i++) {
-    if(!strcmp(state_names[i],state)) return (job_state_t)i;
+    if(!strcmp(states_all[i].name,state)) return (job_state_t)i;
   };
   return JOB_STATE_UNDEFINED;
 }
@@ -66,8 +66,6 @@ GMJob::GMJob(void) {
   keep_deleted=-1;
   child=NULL;
   local=NULL;
-  retries=0;
-  next_retry=time(NULL);
   start_time=time(NULL);
 }
 
@@ -87,8 +85,6 @@ GMJob& GMJob::operator=(const GMJob &job) {
   local=NULL;
   if(job.local) local=new JobLocalDescription(*job.local);
   user=job.user;
-  retries=job.retries;
-  next_retry=job.next_retry;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
   return *this;
@@ -104,8 +100,6 @@ GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state
   child=NULL;
   local=NULL;
   user=u;
-  retries=0;
-  next_retry=time(NULL);
   transfer_share=JobLocalDescription::transfersharedefault;
   start_time=time(NULL);
 }
