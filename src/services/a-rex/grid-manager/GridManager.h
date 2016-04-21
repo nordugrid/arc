@@ -5,6 +5,7 @@
 
 namespace ARex {
 
+class JobsList;
 class DTRGenerator;
 class GMConfig;
 
@@ -13,7 +14,7 @@ class GridManager {
   Arc::SimpleCounter active_;
   bool tostop_;
   GMConfig& config_;
-  DTRGenerator* dtr_generator_;
+  JobsList* jobs_;
   GridManager();
   GridManager(const GridManager&);
   static void grid_manager(void* arg);
@@ -22,6 +23,7 @@ class GridManager {
   GridManager(GMConfig& config);
   ~GridManager(void);
   operator bool(void) { return (active_.get()>0); };
+  void RequestJobAttention(const std::string& job_id);
 };
 
 } // namespace ARex

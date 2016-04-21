@@ -9,11 +9,11 @@
 
 #include "GMJob.h"
 #include "JobDescriptionHandler.h"
+#include "DTRGenerator.h"
 
 namespace ARex {
 
 class JobFDesc;
-class DTRGenerator;
 class GMConfig;
 
 /// ZeroUInt is a wrapper around unsigned int. It provides a consistent default
@@ -44,6 +44,8 @@ class JobsList {
  public:
   typedef std::list<GMJob>::iterator iterator;
  private:
+  bool valid;
+
   std::list<GMJob> jobs;              // List of jobs currently tracked in memory
 
   std::list<JobId> jobs_processing;   // List of jobs currently being processed
@@ -56,6 +58,10 @@ class JobsList {
   std::list<JobId> jobs_polling;      // List of jobs which need polling soon
   Glib::Mutex jobs_polling_lock;
 
+  std::list<JobId> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
+  Glib::Mutex jobs_wait_for_running_lock;
+
+
   time_t job_slow_polling_last;
   static time_t const job_slow_polling_period = 24UL*60UL*60UL; // todo: variable
   Glib::Dir* job_slow_polling_dir;
@@ -65,7 +71,7 @@ class JobsList {
   // Staging configuration
   StagingConfig staging_config;
   // Generator for handling data staging
-  DTRGenerator* dtr_generator;
+  DTRGenerator dtr_generator;
   // Job description handler
   JobDescriptionHandler job_desc_handler;
   // number of jobs for every state
@@ -201,6 +207,9 @@ class JobsList {
  public:
   // Constructor.
   JobsList(const GMConfig& gmconfig);
+  ~JobsList(void);
+  operator bool(void) { return valid; };
+  bool operator!(void) { return !valid; };
   // std::list methods for using JobsList like a regular list
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };
@@ -222,7 +231,10 @@ class JobsList {
   int FinishingJobs() const;
 
   // Set DTR Generator for data staging
-  void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
+  //void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
+
+  // Detach DTR generator (tipically before destroying it)
+  //void ReleaseDataGenerator(void) { dtr_generator = NULL; };
 
   // Call ActJob for all current jobs
   bool ActJobs(void);

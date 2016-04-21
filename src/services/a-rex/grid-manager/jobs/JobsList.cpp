@@ -36,12 +36,22 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::JobsList(const GMConfig& gmconfig) :
-    config(gmconfig), staging_config(gmconfig), dtr_generator(NULL),
+    valid(false),
+    config(gmconfig), staging_config(gmconfig),
+    dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0) {
   job_slow_polling_last = time(NULL);
   job_slow_polling_dir = NULL;
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
+  if(!dtr_generator) {
+    logger.msg(Arc::ERROR, "Failed to start data staging threads");
+    return;
+  };
+  valid = true;
+}
+
+JobsList::~JobsList(void) {
 }
 
 JobsList::iterator JobsList::FindJob(const JobId &id){
@@ -659,14 +669,14 @@ bool JobsList::state_canceling(const JobsList::iterator &i,bool &state_changed) 
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up) {
 
   // first check if job is already in the system
-  if (!dtr_generator->hasJob(*i)) {
-    dtr_generator->receiveJob(*i);
+  if (!dtr_generator.hasJob(*i)) {
+    dtr_generator.receiveJob(*i);
     return true;
   }
   // if job has already failed then do not set failed state again if DTR failed
   bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
-  if (dtr_generator->queryJobFinished(*i)) {
+  if (dtr_generator.queryJobFinished(*i)) {
     // DTR part already finished. Do other checks if needed.
 
     bool done = true;
@@ -679,7 +689,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     }
     else {
       if (!up) { // check for user-uploadable files if downloading
-        DTRGenerator::checkUploadedFilesResult res = dtr_generator->checkUploadedFiles(*i);
+        DTRGenerator::checkUploadedFilesResult res = dtr_generator.checkUploadedFiles(*i);
         if (res == DTRGenerator::uploadedFilesMissing) { // still going
           RequestPolling(i->job_id);
           done = false;
@@ -695,7 +705,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
         state_changed = true;
       }
     }
-    if (done) dtr_generator->removeJob(*i);
+    if (done) dtr_generator.removeJob(*i);
     return result;
   }
   else {
@@ -963,7 +973,8 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
       if(!stagein_complete) {
         // Wait for user to report complete staging keeping job in PENDING
         JobPending(i);
-        RequestPolling(i->job_id);
+        // The complete stagein will be reported and will cause RequestAttention()
+        // RequestPolling(i->job_id);
       } else if(i->local->exec.size() > 0) {
         // Job has executable
         if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
@@ -973,7 +984,7 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
         } else {
           // Wait for running jobs to fall below limit keeping job in PENDING
           JobPending(i);
-          RequestPolling(i->job_id);
+          RequestPolling(i->job_id); // RequestWaitForRunning(i->job_id);
         }
       } else {
         // No execution requested
@@ -1206,7 +1217,7 @@ bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
     if(job_cancel_mark_check(i->job_id,config)) {
       logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
       if (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING) {
-        dtr_generator->cancelJob(*i);
+        dtr_generator.cancelJob(*i);
       }
       // kill running child
       if(i->child) {

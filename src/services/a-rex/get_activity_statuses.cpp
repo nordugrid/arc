@@ -588,8 +588,10 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
       } else if(msg == "client-datapush-done") {
         if(!job.ReportFilesComplete()) {
           ESInternalBaseFault(ritem.NewChild("dummy"),job.Failure());
+          // TODO: Destroy job (at least try to)
         } else {
           ritem.NewChild("esmanag:Acknowledgement");
+          gm_->RequestJobAttention(job.ID()); // Tell GM to resume this job
         };
       } else {
         // Wrong request

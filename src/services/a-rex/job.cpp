@@ -761,6 +761,7 @@ bool ARexJob::delete_job_id(void) {
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
   ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
+  // TODO: Remove ASAP
   jobs.ScanAllJobs();
   return jobs.size();
 }
@@ -769,6 +770,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
   ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
+  // TODO: Remove ASAP
   jobs.ScanAllJobs();
   JobsList::iterator i = jobs.begin();
   for(;i!=jobs.end();++i) {
@@ -941,14 +943,14 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
 }
 
 bool ARexJob::ReportFileComplete(const std::string& filename) {
-  if(id_.empty()) return "";
+  if(id_.empty()) return false;
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
   return job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname);
 }
 
 bool ARexJob::ReportFilesComplete(void) {
-  if(id_.empty()) return "";
+  if(id_.empty()) return false;
   return job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/");
 }
 

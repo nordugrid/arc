@@ -126,9 +126,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * @param kicker_func Function to call on completion of all DTRs for a job
    * @param kicker_arg Argument to kicker function
    */
-  DTRGenerator(const GMConfig& config, JobsList& jobs
-               /* void (*kicker_func)(void*) = NULL,
-               void* kicker_arg = NULL*/);
+  DTRGenerator(const GMConfig& config, JobsList& jobs);
   /**
    * Stop Generator
    */

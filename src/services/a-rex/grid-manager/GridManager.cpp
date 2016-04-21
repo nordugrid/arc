@@ -15,7 +15,6 @@
 #include "log/JobLog.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"
-#include "jobs/DTRGenerator.h"
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
 
@@ -191,18 +190,6 @@ void WakeupInterface::thread() {
   exited = true;
 }
 
-/*
-static void kick_func(void* arg) {
-  sleep_st* s = (sleep_st*)arg;
-  s->sleep_cond->signal();
-}
-
-typedef struct {
-  int argc;
-  char** argv;
-} args_st;
-*/
-
 void touch_heartbeat(const std::string& dir, const std::string& file) {
   std::string gm_heartbeat(dir + "/" + file);
   int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
@@ -246,64 +233,6 @@ bool GridManager::thread() {
 
   /* start timer thread - wake up every 2 minutes */
   // TODO: use timed wait instead of dedicated thread
-  /*!!
-  wakeup_ = new sleep_st(config_.ControlDir());
-  wakeup_->sleep_cond=sleep_cond_;
-  wakeup_->timeout=wakeup_interface_;
-  if(!Arc::CreateThreadFunction(wakeup_func,wakeup_)) {
-    logger.msg(Arc::ERROR,"Failed to start new thread");
-    wakeup_->exited = true;
-    return false;
-  };
-  */
-  /*
-  if(clean_first_level) {
-    bool clean_finished = false;
-    bool clean_active = false;
-    bool clean_junk = false;
-    if(clean_first_level >= 1) {
-      clean_finished=true;
-      if(clean_first_level >= 2) {
-        clean_active=true;
-        if(clean_first_level >= 3) {
-          clean_junk=true;
-        };
-      };
-    };
-    for(;;) { 
-      bool cleaned_all=true;
-      for(JobUsers::iterator user = users_->begin();user != users_->end();++user) {
-        size_t njobs = user->get_jobs()->size();
-        user->get_jobs()->ScanNewJobs();
-        if(user->get_jobs()->size() == njobs) break;
-        cleaned_all=false;
-        if(!(user->get_jobs()->DestroyJobs(clean_finished,clean_active)))  {
-          logger.msg(Arc::WARNING,"Not all jobs are cleaned yet");
-          sleep(10); 
-          logger.msg(Arc::WARNING,"Trying again");
-        };
-        kill(getpid(),SIGCHLD);  // make sure no child is missed
-      };
-      if(cleaned_all) {
-        if(clean_junk && clean_active && clean_finished) {  
-          // at the moment cleaning junk means cleaning all the files in 
-          // session and control directories
-          for(JobUsers::iterator user=users_->begin();user!=users_->end();++user) {
-            std::list<FileData> flist;
-            for(std::vector<std::string>::const_iterator i = user->SessionRoots().begin(); i != user->SessionRoots().end(); i++) {
-              logger.msg(Arc::INFO,"Cleaning all files in directory %s", *i);
-              delete_all_files(*i,flist,true);
-            }
-            logger.msg(Arc::INFO,"Cleaning all files in directory %s", user->ControlDir());
-            delete_all_files(user->ControlDir(),flist,true);
-          };
-        };
-        break;
-      };
-    };
-    logger.msg(Arc::INFO,"Jobs cleaned");
-  };
-  */
   // check if cache cleaning is enabled, if so activate cleaning thread
   cache_st cache_h(&config_);
   if (!config_.CacheParams().getCacheDirs().empty() && config_.CacheParams().cleanCache()) {
@@ -314,6 +243,10 @@ bool GridManager::thread() {
 
   // Start new job list
   JobsList jobs(config_);
+  if(jobs) {
+    logger.msg(Arc::ERROR, "Failed to activate Jobs Processing object, exiting Grid Manager thread");
+    return false;
+  }
 
   // Setup listening for job attention requests
   WakeupInterface wakeup_interface_(jobs);
@@ -335,18 +268,11 @@ bool GridManager::thread() {
   };  
 
   // Start jobs processing
+  jobs_ = &jobs;
   logger.msg(Arc::INFO,"Picking up left jobs");
   jobs.RestartJobs();
 
   logger.msg(Arc::INFO, "Starting data staging threads");
-  DTRGenerator* dtr_generator = new DTRGenerator(config_, jobs /*&kick_func, wakeup_*/);
-  if (!(*dtr_generator)) {
-    delete dtr_generator;
-    logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
-    return false;
-  }
-  dtr_generator_ = dtr_generator;
-  jobs.SetDataGenerator(dtr_generator);
   std::string heartbeat_file("gm-heartbeat");
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
   /* main loop - forever */
@@ -395,11 +321,18 @@ bool GridManager::thread() {
   config_.PrepareToDestroy();
   jobs.PrepareToDestroy();
   logger.msg(Arc::INFO,"Exiting jobs processing thread");
+  jobs_ = NULL;
   return true;
 }
 
+void GridManager::RequestJobAttention(const std::string& job_id) {
+  if(jobs_) { // TODO: a bit of race condition here against destructor
+    jobs_->RequestAttention(job_id);
+  };
+}
+
 GridManager::GridManager(GMConfig& config):tostop_(false), config_(config) {
-  dtr_generator_ = NULL;
+  jobs_ = NULL;
   if(!Arc::CreateThreadFunction(&grid_manager,(void*)this,&active_)) { };
 }
 
@@ -407,18 +340,10 @@ GridManager::~GridManager(void) {
   logger.msg(Arc::INFO, "Shutting down job processing");
   // Tell main thread to stop
   tostop_ = true;
-  // Stop data staging
-  if (dtr_generator_) {
-    logger.msg(Arc::INFO, "Shutting down data staging threads");
-    delete dtr_generator_;
-  }
   // Wait for main thread
   while(true) {
     if(active_.wait(1000)) break;
   }
-  // wakeup_ is used by users through RunParallel and by 
-  // dtr_generator. Hence it must be deleted almost last.
-  // wakeup_interface_ and sleep_cond_ are used by wakeup_
 }
 
 } // namespace ARex
