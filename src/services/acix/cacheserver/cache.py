@@ -86,7 +86,7 @@ class Cache(service.Service):
     def checkCapacity(self, n_files):
 
         if n_files > self.capacity:
-            log.msg("Filter capacity execeed. Capacity: %i. Files: %i" % (self.capacity, n_files))
+            log.msg("Filter capacity exceeded. Capacity: %i. Files: %i" % (self.capacity, n_files))
             self.capacity = (round(n_files/float(CAPACITY_CHUNK))+1) * CAPACITY_CHUNK
             log.msg("Filter capacity expanded to %i (will take effect on next cache run)" % self.capacity)
             return
@@ -95,7 +95,7 @@ class Cache(service.Service):
             # filter under 1/3 full
             log.msg("Filter capacity underutilized. Capacity: %i. Files: %i" % (self.capacity, n_files))
             self.capacity = max(self.capacity - CAPACITY_CHUNK, WATERMARK_LOW)
-            log.msg("Filter capacity redused to %i (will take effect on next cache run)" % self.capacity)
+            log.msg("Filter capacity reduced to %i (will take effect on next cache run)" % self.capacity)
 
     def getCache(self):
 
