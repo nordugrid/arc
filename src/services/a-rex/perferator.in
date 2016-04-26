@@ -61,6 +61,9 @@ config_import_section "grid-manager"
 HOSTNAME=$CONFIG_hostname
 PERFDIR=${CONFIG_perflogdir:-/var/log/arc/perfdata}
 
+# sleep a bit, waiting for performance data to accumulate
+sleep 86400
+
 # merge infosys files
 MERGEDATE=`date +%Y%m%d`
 
@@ -72,5 +75,4 @@ else
   echo could not find nytprofmerge or merge already done today, skipping merging infosys files
 fi
 
-sleep 86400
 
