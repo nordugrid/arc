@@ -460,9 +460,23 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.globalid = idgenerator.GetGlobalID();
   job_.headnode = idgenerator.GetManager();
   job_.interface = idgenerator.GetInterface();
+  std::string certificates;
+#if 1
+  // For compatibility reasons during transitional period store full proxy if possible
+  if(credentials.empty() && !job_.delegationid.empty()) {
+    (void)deleg.GetCred(job_.delegationid, config_.GridName(), certificates);
+  }
+  if(!certificates.empty()) {
+    if(!job_proxy_write_file(job,config_.GmConfig(),certificates)) {
+      delete_job_id();
+      failure_="Failed to write job proxy file";
+      failure_type_=ARexJobInternalError;
+      return;
+    };
+  } else
+#endif
   // Create user credentials (former "proxy")
   {
-    std::string certificates;
     for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
       if(*a) {
         Arc::SecAttr* sattr = (*a)->get("TLS");
