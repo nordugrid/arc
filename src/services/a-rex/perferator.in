@@ -7,6 +7,7 @@
 # [grid-manager]
 # helper=". /usr/share/arc/perferator"
 # Path to arc.conf can be given with --config option, default is /etc/arc.conf
+# TODO: Upload performance data to perflog.nordugrid.org
 
 command_exists () {
   type "$1" &> /dev/null ;
@@ -72,14 +73,4 @@ else
 fi
 
 sleep 86400
-exit
-curl -k -X MKCOL https://user:passwd@perflog.nordugrid.org:443/webdav/$HOSTNAME &> /dev/null
-# upload all files older than 1 day, delete if successful
-for f in `find $PERFDIR -mtime +1`; do
-  if curl -f -k -T $f https://user:passwd@perflog.nordugrid.org:443/webdav/$HOSTNAME/ &> /dev/null; then
-    rm $f
-  else
-    echo could not upload $f, exit code $?
-  fi
-done
-sleep 86400
+
