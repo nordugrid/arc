@@ -880,6 +880,7 @@ int JobPlugin::close(bool eof) {
         job_desc.delegationid = deleg_id;
         deleg_ids.push_back(deleg_id); // one more delegation id
       };
+#if 0
       // And store public credentials into proxy file
       try {
         Arc::Credential ci(proxy_fname, proxy_fname, config.CertDir(), "");
@@ -896,6 +897,16 @@ int JobPlugin::close(bool eof) {
       } catch (std::exception&) {
         job_desc.expiretime = time(NULL);
       };
+#else
+      // For backward compatibility during conversion time
+      // store full proxy into proxy file
+      if(!job_proxy_write_file(job,config,proxy_data)) {
+        error_description="Failed to store user credentials.";
+        logger.msg(Arc::ERROR, "%s", error_description);
+        delete_job_id(); 
+        return 1;
+      };
+#endif
     };
   }
   /* ******************************************
@@ -1249,7 +1260,12 @@ int JobPlugin::checkdir(std::string &dirname) {
         // Also store public content into job.#.proxy
         // Ignore error because main store is already updated
         GMJob job(id, user, "", JOB_STATE_ACCEPTED);
+#if 0
         (void)job_proxy_write_file(job, config, user_cert);
+#else
+        // For backward compatibility during transitional period store whole proxy
+        (void)job_proxy_write_file(job, config, proxy_data);
+#endif
         logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
         job_desc.expiretime=new_proxy_expires;
         if(!job_local_write_file(job,config,job_desc)) {
