@@ -970,6 +970,20 @@ sub printLRMSConfigScript {
     _print_shell_end();
 }
 
+## Cherry picks arc.conf values
+## this does not work properly now since arc.conf is parsed
+## into the strange GLUE2-like intermediate representation
+## described at the top of this file.
+## input: configfile,configblock, configoption
+sub getValueOf ($$$){
+   my ($configfile,$block,$option) = @_;
+   my $config = ConfigCentral::parseConfig($configfile);	
+   if ($block eq 'common') {
+	   return $config->{$option};
+   } else {
+      return $config->{$block}{$option};
+   }
+}
 
 1;
 
