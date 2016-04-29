@@ -32,8 +32,8 @@ class FileRecordSQLite: public FileRecord {
     virtual Iterator& operator--(void);
     virtual void suspend(void);
     virtual bool resume(void);
-    virtual operator bool(void);
-    virtual bool operator!(void);
+    virtual operator bool(void) { return false; };
+    virtual bool operator!(void) { return true; };
   };
   friend class FileRecordSQLite::Iterator;
   FileRecordSQLite(const std::string& base, bool create = true);
