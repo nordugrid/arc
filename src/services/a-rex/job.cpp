@@ -703,7 +703,19 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
-  job_.expiretime = Arc::Credential(credentials,"","","","",false).GetEndTime();
+  Arc::Credential cred(credentials,"","","","",false);
+  job_.expiretime = cred.GetEndTime();
+  GMJob job(id_,Arc::User(config_.User().get_uid()),
+            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+#if 0
+  std::string cred_public;
+  cred.OutputCertificate(cred_public);
+  cred.OutputCertificateChain(cred_public);
+  (void)job_proxy_write_file(job,config_.GmConfig(),cred_public);
+#else
+   // For compatibility reasons during transitional period store full proxy if possible
+  (void)job_proxy_write_file(job,config_.GmConfig(),credentials);
+#endif
   // TODO: should job.#.proxy be updated too?
   return true;
 }

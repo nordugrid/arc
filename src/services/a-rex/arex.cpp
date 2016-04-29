@@ -747,6 +747,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
             // ES has delegations assigned their own ids and are
             // already updated in delegation_stores_.Process()
+#if 1
+            // But for compatibility during intermediate period store delegations in
+            // per-job proxy file too.
+            // Obtain all jobs associated with that delegation id
+#endif
           };
         };
       } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
