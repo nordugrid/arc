@@ -8,14 +8,15 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 #include <stdint.h>
+#include <cstring>
 
 #include <glibmm.h>
 
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 
 #include "uid.h"
 
@@ -68,7 +69,7 @@ namespace ARex {
   }
 
   bool FileRecordSQLite::open(bool create) {
-    std::string dbpath = FR_DB_NAME;
+    std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
     if(db_ != NULL) return true;
 
     if(!dberr("Error opening database", sqlite3_open(dbpath.c_str(), &db_))) {
@@ -105,32 +106,36 @@ namespace ARex {
     };
   }
 
+  static const std::string sql_special_chars("'#\r\n\b\0",6);
+  static const char sql_escape_char('%');
+  static const Arc::escape_type sql_escape_type(Arc::escape_hex);
+
+  inline static std::string sql_escape(const std::string& str) {
+    return Arc::escape_chars(str, sql_special_chars, sql_escape_char, false, sql_escape_type);
+  }
+
+  inline static std::string sql_unescape(const std::string& str) {
+    return Arc::unescape_chars(str, sql_escape_char,sql_escape_type);
+  }
+
   void store_strings(const std::list<std::string>& strs, std::string& buf) {
-    for(std::list<std::string>::const_iterator str = strs.begin(); str != strs.end(); ++str) {
-      uint32_t l = str->length();
-      buf.append(1, (unsigned char)l); l >>= 8;
-      buf.append(1, (unsigned char)l); l >>= 8;
-      buf.append(1, (unsigned char)l); l >>= 8;
-      buf.append(1, (unsigned char)l); l >>= 8;
-      buf.append(*str);
+    if(!strs.empty()) {
+      for(std::list<std::string>::const_iterator str = strs.begin(); ; ++str) {
+        buf += sql_escape(*str);
+        if (str == strs.end()) break;
+        buf += '#';
+      };
     };
   }
 
   static void parse_strings(std::list<std::string>& strs, const char* buf) {
-    /*
-    uint32_t l = 0;
-    const unsigned char* p = (unsigned char*)buf;
-    if(size < 4) { p += size; size = 0; return (void*)p; };
-    l |= ((uint32_t)(*p)) << 0; ++p; --size;
-    l |= ((uint32_t)(*p)) << 8; ++p; --size;
-    l |= ((uint32_t)(*p)) << 16; ++p; --size;
-    l |= ((uint32_t)(*p)) << 24; ++p; --size;
-    if(l > size) l = size;
-    // TODO: sanity check
-    str.assign((const char*)p,l);
-    p += l; size -= l;
-    return (void*)p;
-    */
+    if(!buf || (*buf == '\0')) return;
+    const char* sep = std::strchr(buf, '#');
+    while(sep) {
+      strs.push_back(sql_unescape(std::string(buf,sep-buf)));
+      buf = sep+1;
+      sep = std::strchr(buf, '#');
+    };
   }
 
   bool FileRecordSQLite::Recover(void) {
@@ -140,23 +145,6 @@ namespace ARex {
     error_num_ = -1;
     error_str_ = "Recovery not implemented yet.";
     return false;
-  }
-
-  std::string FileRecordSQLite::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
-    if(!valid_) return "";
-    Glib::Mutex::Lock lock(lock_);
-    // todo: retries for unique uid?
-    std::string uid = rand_uid64().substr(4);
-    std::string metas;
-    store_strings(meta, metas);
-    if(id.empty()) id = uid;
-    // todo: protection encoding
-    std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) "
-                         "VALUES ("+id+","+owner+","+uid+", "+metas+")";
-    if(!dberr("Failed to add record to database", sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
-      return "";
-    };
-    return uid_to_path(uid);
   }
 
   struct FindCallbackUidMetaArg {
@@ -202,34 +190,57 @@ namespace ARex {
     ((FindCallbackCountArg*)arg)->count += 1;
   }
 
-  struct FindCallbackRowidLockidArg {
-    struct record {
-      sqlite3_int64 rowid;
-      std::string uid;
-      record(): rowid(-1) {};
-    };
-    std::list<record> records;
-    FindCallbackRowidLockidArg() {};
+  struct FindCallbackIdOwnerArg {
+    std::list< std::pair<std::string,std::string> >& records;
+    FindCallbackIdOwnerArg(std::list< std::pair<std::string,std::string> >& recs): records(recs) {};
   };
 
-  static int FindCallbackRowidLockid(void* arg, int colnum, char** texts, char** names) {
+  static int FindCallbackIdOwner(void* arg, int colnum, char** texts, char** names) {
+    std::pair<std::string,std::string> rec;
     for(int n = 0; n < colnum; ++n) {
       if(names[n] && texts[n]) {
-        if(strcmp(names[n], "rowid") == 0) {
-        } else if(strcmp(names[n], "uid") == 0) {
+        if(strcmp(names[n], "id") == 0) {
+          rec.first = sql_unescape(texts[n]);
+        } else if(strcmp(names[n], "owner") == 0) {
+          rec.second = sql_unescape(texts[n]);
         };
       };
     };
+    if(!rec.first.empty()) ((FindCallbackIdOwnerArg*)arg)->records.push_back(rec);
+  }
+
+
+  std::string FileRecordSQLite::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+    if(!valid_) return "";
+    Glib::Mutex::Lock lock(lock_);
+    // todo: retries for unique uid?
+    std::string uid = rand_uid64().substr(4);
+    std::string metas;
+    store_strings(meta, metas);
+    if(id.empty()) id = uid;
+    std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
+                             sql_escape(id)+"', '"+sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
+    if(!dberr("Failed to add record to database", sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+      return "";
+    };
+    if(sqlite3_changes(db_) != 1) {
+      error_str_ = "Failed to add record to database";
+      return "";
+    };
+    return uid_to_path(uid);
   }
 
   std::string FileRecordSQLite::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
     if(!valid_) return "";
     Glib::Mutex::Lock lock(lock_);
-    // todo: protection encoding
-    std::string sqlcmd = "SELECT uid, meta FROM rec WHERE ((id = "+id+") AND (owner = "+owner+"))";
+    std::string sqlcmd = "SELECT uid, meta FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
     std::string uid;
     FindCallbackUidMetaArg arg(uid, meta);
     if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUidMeta, &arg, NULL))) {
+      return "";
+    };
+    if(uid.empty()) {
+      error_str_ = "Failed to retrieve record from database";
       return "";
     };
     return uid_to_path(uid);
@@ -240,13 +251,11 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     std::string metas;
     store_strings(meta, metas);
-    FindCallbackCountArg arg;
-    // todo: protection encoding
-    std::string sqlcmd = "UPDATE rec SET meta = "+metas+" WHERE ((id = "+id+") AND (owner = "+owner+"))";
-    if(!dberr("Failed to update record in database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
+    std::string sqlcmd = "UPDATE rec SET meta = '"+metas+"' WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
+    if(!dberr("Failed to update record in database",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
       return false;
     };
-    if(arg.count == 0) {
+    if(sqlite3_changes(db_) < 1) {
       error_str_ = "Failed to find record in database";
       return false;
     };
@@ -258,8 +267,7 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     std::string uid;
     {
-      // todo: protection encoding
-      std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = "+id+") AND (owner = "+owner+"))";
+      std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
       FindCallbackUidArg arg(uid);
       if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
         return false; // No such record?
@@ -270,7 +278,7 @@ namespace ARex {
       return false; // No such record
     };
     {
-      std::string sqlcmd = "SELECT FROM lock WHERE (uid = "+uid+")";
+      std::string sqlcmd = "SELECT FROM lock WHERE (uid = '"+uid+"')";
       FindCallbackCountArg arg;
       if(!dberr("Failed to find locks in database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
         return false;
@@ -282,12 +290,11 @@ namespace ARex {
     };
     ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     {
-      std::string sqlcmd = "DELETE FROM rec WHERE (uid = "+uid+")";
-      FindCallbackCountArg arg;
-      if(!dberr("Failed to delete record in database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
+      std::string sqlcmd = "DELETE FROM rec WHERE (uid = '"+uid+"')";
+      if(!dberr("Failed to delete record in database",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
         return false;
       };
-      if(arg.count == 0) {
+      if(sqlite3_changes(db_) < 1) {
         error_str_ = "Failed to delete record in database";
         return false; // no such record
       };
@@ -301,8 +308,7 @@ namespace ARex {
     for(std::list<std::string>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
       std::string uid;
       {
-        // todo: protection encoding
-        std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = "+(*id)+") AND (owner = "+owner+"))";
+        std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(*id)+"') AND (owner = '"+sql_escape(owner)+"'))";
         FindCallbackUidArg arg(uid);
         if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
           return false; // No such record?
@@ -312,7 +318,7 @@ namespace ARex {
         // No such record
         continue;
       };
-      std::string sqlcmd = "INSERT INTO lock(lockid, uid) VALUES ("+lock_id+","+uid+")";
+      std::string sqlcmd = "INSERT INTO lock(lockid, uid) VALUES ('"+sql_escape(lock_id)+"','"+uid+"')";
       if(!dberr("addlock:put",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
         return false;
       };
@@ -328,41 +334,24 @@ namespace ARex {
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-    std::list<std::string> uids;
-    // todo: protection encoding
-    std::string sqlcmd = "SELECT rowid, uid FROM lock WHERE (lockid = "+lock_id+")";
-
-
-/*
-    Dbc* cur = NULL;
-    if(!dberr("removelock:cursor",db_lock_->cursor(NULL,&cur,DB_WRITECURSOR))) return false;
-    Dbt key;
-    Dbt data;
-    make_string(lock_id,key);
-    void* pkey = key.get_data();
-    if(!dberr("removelock:get1",cur->get(&key,&data,DB_SET))) { // TODO: handle errors
-      ::free(pkey);
-      cur->close(); return false;
-    };
-    for(;;) {
-      std::string id;
-      std::string owner;
-      uint32_t size = data.get_size();
-      void* buf = data.get_data();
-      buf = parse_string(id,buf,size); //  lock_id - skip
-      buf = parse_string(id,buf,size);
-      buf = parse_string(owner,buf,size);
-      ids.push_back(std::pair<std::string,std::string>(id,owner));
-      if(!dberr("removelock:del",cur->del(0))) {
-        ::free(pkey);
-        cur->close(); return false;
+    // map lock to id,owner 
+    {
+      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      FindCallbackIdOwnerArg arg(ids);
+      if(!dberr("removelock:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
+        //return false;
       };
-      if(!dberr("removelock:get2",cur->get(&key,&data,DB_NEXT_DUP))) break;
     };
-    db_lock_->sync(0);
-    ::free(pkey);
-    cur->close();
-*/
+    {
+      std::string sqlcmd = "DELETE FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      if(!dberr("removelock:del",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+        return false;
+      };
+      if(sqlite3_changes(db_) < 1) {
+        error_str_ = "";
+        return false;
+      };
+    };
     return true;
   }
 
