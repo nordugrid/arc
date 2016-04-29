@@ -10,42 +10,35 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include <glibmm.h>
 
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
 
-#include <sqlite3.h>
-
 #include "uid.h"
 
-#include "FileRecord.h"
+#include "FileRecordSQLite.h"
 
 namespace ARex {
 
   #define FR_DB_NAME "list"
-  static sqlite3* db_ = NULL;
 
-  bool FileRecord::dberr(const char* s, int err) {
+  bool FileRecordSQLite::dberr(const char* s, int err) {
     if(err == SQLITE_OK) return true;
     error_num_ = err;
     error_str_ = std::string(s)+": "+sqlite3_errstr(err);
     return false;
   }
 
-  FileRecord::FileRecord(const std::string& base, bool create):
-      basepath_(base),
-      db_rec_(NULL),
-      db_lock_(NULL),
-      db_locked_(NULL),
-      db_link_(NULL),
-      error_num_(0),
-      valid_(false) {
+  FileRecordSQLite::FileRecordSQLite(const std::string& base, bool create):
+      FileRecord(base, create),
+      db_(NULL) {
     valid_ = open(create);
   }
 
-  bool FileRecord::verify(void) {
+  bool FileRecordSQLite::verify(void) {
     // Performing various kinds of verifications
 /*
     std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
@@ -70,11 +63,11 @@ namespace ARex {
     return true;
   }
 
-  FileRecord::~FileRecord(void) {
+  FileRecordSQLite::~FileRecordSQLite(void) {
     close();
   }
 
-  bool FileRecord::open(bool create) {
+  bool FileRecordSQLite::open(bool create) {
     std::string dbpath = FR_DB_NAME;
     if(db_ != NULL) return true;
 
@@ -82,7 +75,7 @@ namespace ARex {
       db_ = NULL;
       return false;
     };
-    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta)", NULL, NULL, NULL))) {
+    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta, UNIQUE(id, owner), UNIQUE(uid))", NULL, NULL, NULL))) {
       (void)sqlite3_close(db_); // todo: handle error
       db_ = NULL;
       return false;
@@ -92,9 +85,19 @@ namespace ARex {
       db_ = NULL;
       return false;
     };
+    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS ON lock (lockid)", NULL, NULL, NULL))) {
+      (void)sqlite3_close(db_); // todo: handle error
+      db_ = NULL;
+      return false;
+    };
+    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS ON lock (uid)", NULL, NULL, NULL))) {
+      (void)sqlite3_close(db_); // todo: handle error
+      db_ = NULL;
+      return false;
+    };
   }
 
-  void FileRecord::close(void) {
+  void FileRecordSQLite::close(void) {
     valid_ = false;
     if(db_) {
       (void)sqlite3_close(db_); // todo: handle error
@@ -130,17 +133,7 @@ namespace ARex {
     */
   }
 
-  std::string FileRecord::uid_to_path(const std::string& uid) {
-    std::string path = basepath_;
-    std::string::size_type p = 0;
-    for(;uid.length() > (p+4);) {
-      path = path + G_DIR_SEPARATOR_S + uid.substr(p,3);
-      p += 3;
-    };
-    return path + G_DIR_SEPARATOR_S + uid.substr(p);
-  }
-
-  bool FileRecord::Recover(void) {
+  bool FileRecordSQLite::Recover(void) {
     Glib::Mutex::Lock lock(lock_);
     // Real recovery not implemented yet.
     close();
@@ -149,7 +142,7 @@ namespace ARex {
     return false;
   }
 
-  std::string FileRecord::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+  std::string FileRecordSQLite::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return "";
     Glib::Mutex::Lock lock(lock_);
     // todo: retries for unique uid?
@@ -209,7 +202,27 @@ namespace ARex {
     ((FindCallbackCountArg*)arg)->count += 1;
   }
 
-  std::string FileRecord::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
+  struct FindCallbackRowidLockidArg {
+    struct record {
+      sqlite3_int64 rowid;
+      std::string uid;
+      record(): rowid(-1) {};
+    };
+    std::list<record> records;
+    FindCallbackRowidLockidArg() {};
+  };
+
+  static int FindCallbackRowidLockid(void* arg, int colnum, char** texts, char** names) {
+    for(int n = 0; n < colnum; ++n) {
+      if(names[n] && texts[n]) {
+        if(strcmp(names[n], "rowid") == 0) {
+        } else if(strcmp(names[n], "uid") == 0) {
+        };
+      };
+    };
+  }
+
+  std::string FileRecordSQLite::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
     if(!valid_) return "";
     Glib::Mutex::Lock lock(lock_);
     // todo: protection encoding
@@ -222,7 +235,7 @@ namespace ARex {
     return uid_to_path(uid);
   }
 
-  bool FileRecord::Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+  bool FileRecordSQLite::Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     std::string metas;
@@ -240,7 +253,7 @@ namespace ARex {
     return true;
   }
 
-  bool FileRecord::Remove(const std::string& id, const std::string& owner) {
+  bool FileRecordSQLite::Remove(const std::string& id, const std::string& owner) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     std::string uid;
@@ -282,7 +295,7 @@ namespace ARex {
     return true;
   }
 
-  bool FileRecord::AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner) {
+  bool FileRecordSQLite::AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     for(std::list<std::string>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
@@ -307,14 +320,19 @@ namespace ARex {
     return true;
   }
 
-  bool FileRecord::RemoveLock(const std::string& lock_id) {
+  bool FileRecordSQLite::RemoveLock(const std::string& lock_id) {
     std::list<std::pair<std::string,std::string> > ids;
     return RemoveLock(lock_id,ids);
   }
 
-  bool FileRecord::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
+  bool FileRecordSQLite::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
+    std::list<std::string> uids;
+    // todo: protection encoding
+    std::string sqlcmd = "SELECT rowid, uid FROM lock WHERE (lockid = "+lock_id+")";
+
+
 /*
     Dbc* cur = NULL;
     if(!dberr("removelock:cursor",db_lock_->cursor(NULL,&cur,DB_WRITECURSOR))) return false;
@@ -349,7 +367,7 @@ namespace ARex {
   }
 
 
-  bool FileRecord::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
+  bool FileRecordSQLite::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
 /*
@@ -380,7 +398,7 @@ namespace ARex {
     return true;
   }
 
-  bool FileRecord::ListLocks(std::list<std::string>& locks) {
+  bool FileRecordSQLite::ListLocks(std::list<std::string>& locks) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
 /*
@@ -400,14 +418,14 @@ namespace ARex {
     return true;
   }
 
-  bool FileRecord::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
+  bool FileRecordSQLite::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
     // Not implemented yet
     return false;
   }
 
-  FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {
-    Glib::Mutex::Lock lock(frec_.lock_);
+  FileRecordSQLite::Iterator::Iterator(FileRecordSQLite& frec):FileRecord::Iterator(frec) {
 /*
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
       if(cur_) {
         cur_->close(); cur_=NULL;
@@ -424,19 +442,19 @@ namespace ARex {
 */
   }
 
-  FileRecord::Iterator::~Iterator(void) {
-    Glib::Mutex::Lock lock(frec_.lock_);
+  FileRecordSQLite::Iterator::~Iterator(void) {
 /*
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(cur_) {
       cur_->close(); cur_=NULL;
     };
 */
   }
 
-  FileRecord::Iterator& FileRecord::Iterator::operator++(void) {
+  FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator++(void) {
+/*
     if(!cur_) return *this;
     Glib::Mutex::Lock lock(frec_.lock_);
-/*
     Dbt key;
     Dbt data;
     if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT))) {
@@ -448,10 +466,10 @@ namespace ARex {
     return *this;
   }
 
-  FileRecord::Iterator& FileRecord::Iterator::operator--(void) {
+  FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator--(void) {
+/*
     if(!cur_) return *this;
     Glib::Mutex::Lock lock(frec_.lock_);
-/*
     Dbt key;
     Dbt data;
     if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_PREV))) {
@@ -463,18 +481,18 @@ namespace ARex {
     return *this;
   }
 
-  void FileRecord::Iterator::suspend(void) {
-    Glib::Mutex::Lock lock(frec_.lock_);
+  void FileRecordSQLite::Iterator::suspend(void) {
 /*
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(cur_) {
       cur_->close(); cur_=NULL;
     }
 */
   }
 
-  bool FileRecord::Iterator::resume(void) {
-    Glib::Mutex::Lock lock(frec_.lock_);
+  bool FileRecordSQLite::Iterator::resume(void) {
 /*
+    Glib::Mutex::Lock lock(frec_.lock_);
     if(!cur_) {
       if(id_.empty()) return false;
       if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {

@@ -12,6 +12,8 @@
 
 #include <arc/FileUtils.h>
 
+#include "FileRecordBDB.h"
+
 #include "DelegationStore.h"
 
 namespace ARex {
@@ -29,7 +31,7 @@ namespace ARex {
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
-    fstore_ = new FileRecord(base, allow_recover);
+    fstore_ = new FileRecordBDB(base, allow_recover);
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
       if(allow_recover) {
@@ -55,7 +57,7 @@ namespace ARex {
               };
             };
           };
-          fstore_ = new FileRecord(base);
+          fstore_ = new FileRecordBDB(base);
           if(!*fstore_) {
             // Failure
             failure_ = "Failed to re-create storage. " + fstore_->Error();
@@ -250,7 +252,7 @@ namespace ARex {
         };
       };
       if(mrec_ == NULL) {
-        mrec_ = new FileRecord::Iterator(*fstore_);
+        mrec_ = fstore_->NewIterator();
       };
       for(;(bool)(*mrec_);++(*mrec_)) {
         if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) {
@@ -324,10 +326,11 @@ namespace ARex {
 
   std::list<std::string> DelegationStore::ListCredIDs(const std::string& client) {
     std::list<std::string> res;
-    FileRecord::Iterator rec(*fstore_);
+    FileRecord::Iterator& rec = *(fstore_->NewIterator());
     for(;(bool)rec;++rec) {
       if(rec.owner() == client) res.push_back(rec.id());
     };
+    delete &rec;
     return res;
   }
 
@@ -344,10 +347,11 @@ namespace ARex {
 
   std::list<std::pair<std::string,std::string> > DelegationStore::ListCredIDs(void) {
     std::list<std::pair<std::string,std::string> > res;
-    FileRecord::Iterator rec(*fstore_);
+    FileRecord::Iterator& rec = *(fstore_->NewIterator());
     for(;(bool)rec;++rec) {
       res.push_back(std::pair<std::string,std::string>(rec.id(),rec.owner()));
     };
+    delete &rec;
     return res;
   }
 
