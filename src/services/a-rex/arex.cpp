@@ -750,7 +750,22 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #if 1
             // But for compatibility during intermediate period store delegations in
             // per-job proxy file too.
-            // Obtain all jobs associated with that delegation id
+            // Obtaining all jobs associated with that delegation id would cause 
+            // scanning all job.#.local files for associates delegationid.
+            // To avoid this costly procedure job.#.proxy will be updated 
+            // when job state changes (including restart).
+            /*
+            if(op.Name() == "PutDelegation") {
+              // PutDelegation
+              //   DelegationID
+              //   Credential
+              std::string id = op["DelegationId"];
+              if(!id.empty()) {
+                delegation_stores_[config->GmConfig().DelegationDir()].
+
+              };
+            };
+            */
 #endif
           };
         };
