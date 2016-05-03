@@ -52,8 +52,6 @@ BEGIN {
 	
     my $log = LogUtils->getLogger(__PACKAGE__);	
 	
-	my $print_help;
-	
 	
 	# Parse configfile location from a copy of @ARGV 
 	# so we don't remove options from it
@@ -64,30 +62,31 @@ BEGIN {
 	             "config:s" => \$configfile);
 
     unless ( $configfile ) {
-        $log->error("a command line argument is missing, see --help ");
-    }
+        $log->warning("Performance code setup: No 'config' option, skipping performance configuration. See --help ");
+    } else {
 	
-	my $perflogdir;
-    my $perflogfilepath;
-    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
-    
-    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
-		# The profiling tool might be missing in some distributions.
-		# Default is to assume is not present.
-		$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-		$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc'; 
-		my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
-	    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
-	    my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
-	    $perflogfilepath = $perflogdir.'/'.$perflogfilename;
-	    if ( -e $perflogdir ) {
-			  $ENV{NYTPROF} = "start=no:file=".$perflogfilepath;
-			  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
- 		      if ($NYTPROF_PRESENT) {
-				  DB::enable_profile($perflogfilepath);
-				  $log->info("Performance reporting enabled. The database file will be stored in $perflogfilepath");
-			  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
-	    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflogfilepath. Check arc.conf perflogdir option, directories and permissions"); }
+		my $perflogdir;
+	    my $perflogfilepath;
+	    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
+	    
+	    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
+			# The profiling tool might be missing in some distributions.
+			# Default is to assume is not present.
+			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
+			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc'; 
+			my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+		    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+		    my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
+		    $perflogfilepath = $perflogdir.'/'.$perflogfilename;
+		    if ( -e $perflogdir ) {
+				  $ENV{NYTPROF} = "start=no:file=".$perflogfilepath;
+				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+	 		      if ($NYTPROF_PRESENT) {
+					  DB::enable_profile($perflogfilepath);
+					  $log->info("Performance reporting enabled. The database file will be stored in $perflogfilepath");
+				  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
+		    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflogfilepath. Check arc.conf perflogdir option, directories and permissions"); }
+	    }
     }
     undef $log;
     no ConfigCentral;
