@@ -26,14 +26,15 @@ class FileRecordSQLite: public FileRecord {
    private:
     Iterator(const Iterator&); // disabled constructor
     Iterator(FileRecordSQLite& frec);
+    sqlite3_int64 rowid_;
    public:
     ~Iterator(void);
     virtual Iterator& operator++(void);
     virtual Iterator& operator--(void);
     virtual void suspend(void);
     virtual bool resume(void);
-    virtual operator bool(void) { return false; };
-    virtual bool operator!(void) { return true; };
+    virtual operator bool(void) { return (rowid_ != -1); };
+    virtual bool operator!(void) { return (rowid_ == -1); };
   };
   friend class FileRecordSQLite::Iterator;
   FileRecordSQLite(const std::string& base, bool create = true);

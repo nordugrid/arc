@@ -12,7 +12,13 @@
 
 #include <arc/FileUtils.h>
 
+#define DELEGATION_USES_SQLITE 1
+
+#ifdef DELEGATION_USES_SQLITE
+#include "FileRecordSQLite.h"
+#else
 #include "FileRecordBDB.h"
+#endif
 
 #include "DelegationStore.h"
 
@@ -31,7 +37,11 @@ namespace ARex {
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
+#ifdef DELEGATION_USES_SQLITE
+    fstore_ = new FileRecordSQLite(base, allow_recover);
+#else
     fstore_ = new FileRecordBDB(base, allow_recover);
+#endif
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
       if(allow_recover) {
@@ -57,7 +67,11 @@ namespace ARex {
               };
             };
           };
+#ifdef DELEGATION_USES_SQLITE
+          fstore_ = new FileRecordSQLite(base);
+#else
           fstore_ = new FileRecordBDB(base);
+#endif
           if(!*fstore_) {
             // Failure
             failure_ = "Failed to re-create storage. " + fstore_->Error();

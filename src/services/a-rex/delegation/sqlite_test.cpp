@@ -20,7 +20,7 @@
 int main(int argc, char* argv[]) {
   char* errstr = NULL;
   sqlite3* db_ = NULL;
-  if(sqlite3_open("testdb", &db_) != SQLITE_OK) {
+  if(sqlite3_open_v2("testdb", &db_, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
     std::cerr<<"open"<<std::endl;
     return -1;
   };

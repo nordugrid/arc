@@ -25,7 +25,7 @@ namespace ARex {
 
   #define FR_DB_NAME "list"
 
-  void db_env_clean(const std::string& base) {
+  static void db_env_clean(const std::string& base) {
     try {
       Glib::Dir dir(base);
       std::string name;

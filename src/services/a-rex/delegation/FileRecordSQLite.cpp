@@ -72,30 +72,37 @@ namespace ARex {
     std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
     if(db_ != NULL) return true;
 
-    if(!dberr("Error opening database", sqlite3_open(dbpath.c_str(), &db_))) {
+    int flags = SQLITE_OPEN_READWRITE; // it will open read-only if access is protected
+    if(create) {
+      flags |= SQLITE_OPEN_CREATE;
+    };
+    if(!dberr("Error opening database", sqlite3_open_v2(dbpath.c_str(), &db_, flags, NULL))) {
       db_ = NULL;
       return false;
     };
-    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta, UNIQUE(id, owner), UNIQUE(uid))", NULL, NULL, NULL))) {
-      (void)sqlite3_close(db_); // todo: handle error
-      db_ = NULL;
-      return false;
+    if(create) {
+      if(!dberr("Error creating table rec", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta, UNIQUE(id, owner), UNIQUE(uid))", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
+      if(!dberr("Error creating table lock", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS lock(lockid, uid)", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
+      if(!dberr("Error creating index lockid", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS lockid ON lock (lockid)", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
+      if(!dberr("Error creating index uid", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS uid ON lock (uid)", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
     };
-    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS lock(lockid, uid)", NULL, NULL, NULL))) {
-      (void)sqlite3_close(db_); // todo: handle error
-      db_ = NULL;
-      return false;
-    };
-    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS ON lock (lockid)", NULL, NULL, NULL))) {
-      (void)sqlite3_close(db_); // todo: handle error
-      db_ = NULL;
-      return false;
-    };
-    if(!dberr("Error creating table", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS ON lock (uid)", NULL, NULL, NULL))) {
-      (void)sqlite3_close(db_); // todo: handle error
-      db_ = NULL;
-      return false;
-    };
+    return true;
   }
 
   void FileRecordSQLite::close(void) {
@@ -145,6 +152,34 @@ namespace ARex {
     error_num_ = -1;
     error_str_ = "Recovery not implemented yet.";
     return false;
+  }
+
+  struct FindCallbackRecArg {
+    sqlite3_int64 rowid;
+    std::string id;
+    std::string owner;
+    std::string uid;
+    std::list<std::string> meta;
+    FindCallbackRecArg(): rowid(-1) {};
+  };
+
+  static int FindCallbackRec(void* arg, int colnum, char** texts, char** names) {
+    for(int n = 0; n < colnum; ++n) {
+      if(names[n] && texts[n]) {
+        if((strcmp(names[n], "rowid") == 0) || (strcmp(names[n], "_rowid_") == 0)) {
+          (void)Arc::stringto(texts[n], ((FindCallbackRecArg*)arg)->rowid);
+        } else if(strcmp(names[n], "uid") == 0) {
+          ((FindCallbackRecArg*)arg)->uid = texts[n];
+        } else if(strcmp(names[n], "id") == 0) {
+          ((FindCallbackRecArg*)arg)->id = sql_unescape(texts[n]);
+        } else if(strcmp(names[n], "owner") == 0) {
+          ((FindCallbackRecArg*)arg)->owner = sql_unescape(texts[n]);
+        } else if(strcmp(names[n], "meta") == 0) {
+          parse_strings(((FindCallbackRecArg*)arg)->meta, texts[n]);
+        };
+      };
+    };
+    return 0;
   }
 
   struct FindCallbackUidMetaArg {
@@ -207,6 +242,22 @@ namespace ARex {
       };
     };
     if(!rec.first.empty()) ((FindCallbackIdOwnerArg*)arg)->records.push_back(rec);
+  }
+
+  struct FindCallbackLockArg {
+    std::list< std::string >& records;
+    FindCallbackLockArg(std::list< std::string >& recs): records(recs) {};
+  };
+
+  static int FindCallbackLock(void* arg, int colnum, char** texts, char** names) {
+    for(int n = 0; n < colnum; ++n) {
+      if(names[n] && texts[n]) {
+        if(strcmp(names[n], "lockid") == 0) {
+          std::string rec = sql_unescape(texts[n]);
+          if(!rec.empty()) ((FindCallbackLockArg*)arg)->records.push_back(rec);
+        };
+      };
+    };
   }
 
 
@@ -359,51 +410,28 @@ namespace ARex {
   bool FileRecordSQLite::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-/*
-    Dbc* cur = NULL;
-    if(!dberr("listlocked:cursor",db_lock_->cursor(NULL,&cur,0))) return false;
-    Dbt key;
-    Dbt data;
-    make_string(lock_id,key);
-    void* pkey = key.get_data();
-    if(!dberr("listlocked:get1",cur->get(&key,&data,DB_SET))) { // TODO: handle errors
-      ::free(pkey);
-      cur->close(); return false;
+    // map lock to id,owner 
+    {
+      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      FindCallbackIdOwnerArg arg(ids);
+      if(!dberr("listlocked:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
+        return false;
+      };
     };
-    for(;;) {
-      std::string id;
-      std::string owner;
-      uint32_t size = data.get_size();
-      void* buf = data.get_data();
-      buf = parse_string(id,buf,size); //  lock_id - skip
-      buf = parse_string(id,buf,size);
-      buf = parse_string(owner,buf,size);
-      ids.push_back(std::pair<std::string,std::string>(id,owner));
-      if(cur->get(&key,&data,DB_NEXT_DUP) != 0) break;
-    };
-    ::free(pkey);
-    cur->close();
-*/
+    //if(ids.empty()) return false;
     return true;
   }
 
   bool FileRecordSQLite::ListLocks(std::list<std::string>& locks) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-/*
-    Dbc* cur = NULL;
-    if(db_lock_->cursor(NULL,&cur,0)) return false;
-    for(;;) {
-      Dbt key;
-      Dbt data;
-      if(cur->get(&key,&data,DB_NEXT_NODUP) != 0) break; // TODO: handle errors
-      std::string str;
-      uint32_t size = key.get_size();
-      parse_string(str,key.get_data(),size);
-      locks.push_back(str);
+    {
+      std::string sqlcmd = "SELECT lockid FROM lock";
+      FindCallbackLockArg arg(locks);
+      if(!dberr("listlocks:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
+        return false;
+      };
     };
-    cur->close();
-*/
     return true;
   }
 
@@ -413,96 +441,80 @@ namespace ARex {
   }
 
   FileRecordSQLite::Iterator::Iterator(FileRecordSQLite& frec):FileRecord::Iterator(frec) {
-/*
-    Glib::Mutex::Lock lock(frec_.lock_);
-    if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
-      if(cur_) {
-        cur_->close(); cur_=NULL;
+    rowid_ = -1;
+    Glib::Mutex::Lock lock(frec.lock_);
+    {
+      std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec ORDER BY _rowid_ LIMIT 1";
+      FindCallbackRecArg arg;
+      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+        return;
       };
-      return;
+      if(arg.uid.empty()) {
+        return;
+      };
+      uid_ = arg.uid;
+      id_ = arg.id;
+      owner_ = arg.owner;
+      meta_ = arg.meta;
+      rowid_ = arg.rowid;
     };
-    Dbt key;
-    Dbt data;
-    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_FIRST))) {
-      cur_->close(); cur_=NULL;
-      return;
-    };
-    parse_record(uid_,id_,owner_,meta_,key,data);
-*/
   }
 
   FileRecordSQLite::Iterator::~Iterator(void) {
-/*
-    Glib::Mutex::Lock lock(frec_.lock_);
-    if(cur_) {
-      cur_->close(); cur_=NULL;
-    };
-*/
   }
 
   FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator++(void) {
-/*
-    if(!cur_) return *this;
-    Glib::Mutex::Lock lock(frec_.lock_);
-    Dbt key;
-    Dbt data;
-    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT))) {
-      cur_->close(); cur_=NULL;
-      return *this;
+    if(rowid_ == -1) return *this;
+    FileRecordSQLite& frec((FileRecordSQLite&)frec_);
+    Glib::Mutex::Lock lock(frec.lock_);
+    {
+      std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ > " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ ASC LIMIT 1";
+      FindCallbackRecArg arg;
+      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+        rowid_ = -1;
+        return *this;
+      };
+      if(arg.uid.empty()) {
+        rowid_ = -1;
+        return *this;
+      };
+      uid_ = arg.uid;
+      id_ = arg.id;
+      owner_ = arg.owner;
+      meta_ = arg.meta;
+      rowid_ = arg.rowid;
     };
-    parse_record(uid_,id_,owner_,meta_,key,data);
-*/
     return *this;
   }
 
   FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator--(void) {
-/*
-    if(!cur_) return *this;
-    Glib::Mutex::Lock lock(frec_.lock_);
-    Dbt key;
-    Dbt data;
-    if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_PREV))) {
-      cur_->close(); cur_=NULL;
-      return *this;
+    if(rowid_ == -1) return *this;
+    FileRecordSQLite& frec((FileRecordSQLite&)frec_);
+    Glib::Mutex::Lock lock(frec.lock_);
+    {
+      std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ < " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ DESC LIMIT 1";
+      FindCallbackRecArg arg;
+      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+        rowid_ = -1;
+        return *this;
+      };
+      if(arg.uid.empty()) {
+        rowid_ = -1;
+        return *this;
+      };
+      uid_ = arg.uid;
+      id_ = arg.id;
+      owner_ = arg.owner;
+      meta_ = arg.meta;
+      rowid_ = arg.rowid;
     };
-    parse_record(uid_,id_,owner_,meta_,key,data);
-*/
     return *this;
   }
 
   void FileRecordSQLite::Iterator::suspend(void) {
-/*
-    Glib::Mutex::Lock lock(frec_.lock_);
-    if(cur_) {
-      cur_->close(); cur_=NULL;
-    }
-*/
   }
 
   bool FileRecordSQLite::Iterator::resume(void) {
-/*
-    Glib::Mutex::Lock lock(frec_.lock_);
-    if(!cur_) {
-      if(id_.empty()) return false;
-      if(!frec_.dberr("Iterator:cursor",frec_.db_rec_->cursor(NULL,&cur_,0))) {
-        if(cur_) {
-          cur_->close(); cur_=NULL;
-        };
-        return false;
-      };
-      Dbt key;
-      Dbt data;
-      make_key(id_,owner_,key);
-      void* pkey = key.get_data();
-      if(!frec_.dberr("Iterator:first",cur_->get(&key,&data,DB_SET))) {
-        ::free(pkey);
-        cur_->close(); cur_=NULL;
-        return false;
-      };
-      parse_record(uid_,id_,owner_,meta_,key,data);
-      ::free(pkey);
-    };
-*/
     return true;
   }
 
