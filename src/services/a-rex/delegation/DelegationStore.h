@@ -88,11 +88,15 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Retrieves credentials with specified id and associated with client */
   bool GetCred(const std::string& id, const std::string& client, std::string& credentials);
 
+  /** Retrieves locks associate with specified id and client */
+  bool GetLocks(const std::string& id, const std::string& client, std::list<std::string>& lock_ids);
+
   /** Returns credentials ids associated with specific client */
   std::list<std::string> ListCredIDs(const std::string& client);
 
   /** Returns all credentials ids (1st) along with their client ids (2nd) */
   std::list<std::pair<std::string,std::string> > ListCredIDs(void);
+
 
   /** Locks credentials also associating it with specific lock identifier */
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);
@@ -102,8 +106,11 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
      force removal credentials from storage if it is not locked anymore. */
   bool ReleaseCred(const std::string& lock_id, bool touch = false, bool remove = false);
 
-  /** Returns credentials locked by specific lock id and associated with specified client */
+  /** Returns credential ids locked by specific lock id and associated with specified client */
   std::list<std::string> ListLockedCredIDs(const std::string& lock_id, const std::string& client);
+
+  /** Returns credential ids locked by specific lock id */
+  std::list<std::pair<std::string,std::string> > ListLockedCredIDs(const std::string& lock_id);
 };
 
 } // namespace ARex

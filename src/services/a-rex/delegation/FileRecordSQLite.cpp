@@ -436,8 +436,28 @@ namespace ARex {
   }
 
   bool FileRecordSQLite::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
-    // Not implemented yet
-    return false;
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    std::string uid;
+    {
+      std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
+      FindCallbackUidArg arg(uid);
+      if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
+        return false; // No such record?
+      };
+    };
+    if(uid.empty()) {
+      error_str_ = "Record not found";
+      return false; // No such record
+    };
+    {
+      std::string sqlcmd = "SELECT lockid FROM lock WHERE (uid = '"+uid+"')";
+      FindCallbackLockArg arg(locks);
+      if(!dberr("listlocks:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
+        return false;
+      };
+    };
+    return true;
   }
 
   FileRecordSQLite::Iterator::Iterator(FileRecordSQLite& frec):FileRecord::Iterator(frec) {

@@ -338,6 +338,10 @@ namespace ARex {
     return true;
   }
 
+  bool DelegationStore::GetLocks(const std::string& id, const std::string& client, std::list<std::string>& lock_ids) {
+    return fstore_->ListLocks(id, client, lock_ids);
+  }
+
   std::list<std::string> DelegationStore::ListCredIDs(const std::string& client) {
     std::list<std::string> res;
     FileRecord::Iterator& rec = *(fstore_->NewIterator());
@@ -346,6 +350,12 @@ namespace ARex {
     };
     delete &rec;
     return res;
+  }
+
+  std::list<std::pair<std::string,std::string> > DelegationStore::ListLockedCredIDs(const std::string& lock_id) {
+    std::list<std::pair<std::string,std::string> > ids;
+    (void)fstore_->ListLocked(lock_id, ids);
+    return ids;
   }
 
   std::list<std::string> DelegationStore::ListLockedCredIDs(const std::string& lock_id, const std::string& client) {
