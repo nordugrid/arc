@@ -359,6 +359,12 @@ int main(int argc, char* argv[]) {
         if(show_delegs) {
           *outs<<"Delegation: "<<cred->first<<std::endl;
           *outs<<"\tUser: "<<cred->second<<std::endl;
+          std::list<std::string> lock_ids;
+          if(dstore.GetLocks(cred->first, cred->second, lock_ids)) {
+            for(std::list<std::string>::iterator lock = lock_ids.begin(); lock != lock_ids.end(); ++lock) {
+              *outs<<"\tJob: "<<*lock<<std::endl;
+            }
+          }
         }
         if(show_deleg_ids.size() > 0) {
           // TODO: optimize to avoid full scanning.
