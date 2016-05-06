@@ -993,7 +993,7 @@ SQLITE_INSTALLED=no
 dnl Check if sqlite is explicitly enabled, default is disable.
 AC_ARG_ENABLE(sqlite, AC_HELP_STRING([--disable-sqlite], [disable use of the SQLite]),[enables_sqlite="$enableval"],[])
 if test "$enables_sqlite" = "yes"; then
-  PKG_CHECK_MODULES(SQLite, [sqlite3 >= 3], [SQLITE_INSTALLED=yes] , [
+  PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3], [SQLITE_INSTALLED=yes] , [
     AC_MSG_WARN([Cannot locate SQLite])
     SQLITE_INSTALLED=no
     enables_sqlite=no
