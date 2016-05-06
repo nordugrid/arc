@@ -33,7 +33,12 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   FileRecord::Iterator* mrec_;
   Arc::Logger logger_;
  public:
-  DelegationStore(const std::string& base, bool allow_recover = true);
+  enum DbType {
+    DbBerkeley,
+    DbSQLite
+  };
+
+  DelegationStore(const std::string& base, DbType db, bool allow_recover = true);
 
   ~DelegationStore(void);
 

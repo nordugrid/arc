@@ -915,6 +915,7 @@ void ARexService::gm_threads_starter() {
 
 ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Service(cfg,parg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
+              delegation_stores_(),
               infodoc_(true),
               inforeg_(NULL),
               infoprovider_wakeup_period_(0),
@@ -1001,6 +1002,20 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     logger_.msg(Arc::ERROR, "Failed to create control directory %s", config_.ControlDir());
     return;
   }
+
+  // Pass information about delegation db type
+  {
+  DelegationStore::DbType deleg_db_type = DelegationStore::DbBerkeley;
+    switch(config_.DelegationDBType()) {
+     case GMConfig::deleg_db_bdb:
+      deleg_db_type = DelegationStore::DbBerkeley;
+      break;
+     case GMConfig::deleg_db_sqlite:
+      deleg_db_type = DelegationStore::DbSQLite;
+      break;
+    };
+    delegation_stores_.SetDbType(deleg_db_type);
+  };
 
   // Set default queue if none given
   if(config_.DefaultQueue().empty() && (config_.Queues().size() == 1)) {

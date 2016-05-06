@@ -14,11 +14,10 @@
 
 #define DELEGATION_USES_SQLITE 1
 
-#ifdef DELEGATION_USES_SQLITE
+#ifdef HAVE_SQLITE
 #include "FileRecordSQLite.h"
-#else
-#include "FileRecordBDB.h"
 #endif
+#include "FileRecordBDB.h"
 
 #include "DelegationStore.h"
 
@@ -31,17 +30,26 @@ namespace ARex {
     Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
-  DelegationStore::DelegationStore(const std::string& base, bool allow_recover):
+  DelegationStore::DelegationStore(const std::string& base, DbType db, bool allow_recover):
            logger_(Arc::Logger::rootLogger, "Delegation Storage") {
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
-#ifdef DELEGATION_USES_SQLITE
-    fstore_ = new FileRecordSQLite(base, allow_recover);
-#else
-    fstore_ = new FileRecordBDB(base, allow_recover);
+    switch(db) {
+      case DbBerkeley:
+        fstore_ = new FileRecordBDB(base, allow_recover);
+        break;
+#ifdef HAVE_SQLITE
+      case DbSQLite:
+        fstore_ = new FileRecordSQLite(base, allow_recover);
+        break;
 #endif
+      default:
+        failure_ = "Unsupported database type requested for delegation storage.";
+        logger_.msg(Arc::ERROR,"%s",failure_);
+        return;
+    };
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
       if(allow_recover) {
@@ -67,11 +75,19 @@ namespace ARex {
               };
             };
           };
-#ifdef DELEGATION_USES_SQLITE
-          fstore_ = new FileRecordSQLite(base);
-#else
-          fstore_ = new FileRecordBDB(base);
+          switch(db) {
+            case DbBerkeley:
+              fstore_ = new FileRecordBDB(base);
+              break;
+#ifdef HAVE_SQLITE
+            case DbSQLite:
+              fstore_ = new FileRecordSQLite(base);
+              break;
 #endif
+            default:
+              // Must not happen - already sorted out above.
+              return;
+          };
           if(!*fstore_) {
             // Failure
             failure_ = "Failed to re-create storage. " + fstore_->Error();

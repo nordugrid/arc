@@ -199,6 +199,16 @@ int main(int argc, char* argv[]) {
   if (!control_dir.empty()) config.SetControlDir(control_dir);
   config.Print();
 
+  DelegationStore::DbType deleg_db_type = DelegationStore::DbBerkeley;
+  switch(config.DelegationDBType()) {
+   case GMConfig::deleg_db_bdb:
+    deleg_db_type = DelegationStore::DbBerkeley;
+    break;
+   case GMConfig::deleg_db_sqlite:
+    deleg_db_type = DelegationStore::DbSQLite;
+    break;
+  };
+
   std::ostream* outs = &std::cout;
   std::ofstream outf;
   if(!output_file.empty()) {
@@ -350,7 +360,7 @@ int main(int argc, char* argv[]) {
   }
 
   if(show_delegs || (show_deleg_ids.size() > 0)) {
-    ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
+    ARex::DelegationStore dstore(config.DelegationDir(), deleg_db_type, false);
     if(dstore) {
       std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
       for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
@@ -383,7 +393,7 @@ int main(int argc, char* argv[]) {
     }
   }
   if(show_deleg_jobs.size() > 0) {
-    ARex::DelegationStore dstore(config.ControlDir()+"/delegations", false);
+    ARex::DelegationStore dstore(config.DelegationDir(), deleg_db_type, false);
     for(std::list<std::string>::iterator jobid = show_deleg_jobs.begin();
                          jobid != show_deleg_jobs.end(); ++jobid) {
       // Read job's local file to extract delegation id

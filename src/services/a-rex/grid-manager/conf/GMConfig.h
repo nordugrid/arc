@@ -55,6 +55,11 @@ public:
    fixdir_never
   };
 
+  enum deleg_db_t {
+    deleg_db_bdb,
+    deleg_db_sqlite
+  };
+
   /// Use given (or guessed if not given) configuration file.
   /**
    * Guessing uses $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf or the default
@@ -120,6 +125,8 @@ public:
   const std::string& RTEDir() const { return rte_dir; }
   /// Directory storing delegations
   std::string DelegationDir() const;
+  /// Database type to use for delegation storage
+  deleg_db_t DelegationDBType() const;
   /// Helper(s) log file path
   const std::string& HelperLog() const { return helper_log; }
 
@@ -317,6 +324,8 @@ private:
   std::string gridftp_endpoint;
   /// WS-interface endpoint
   std::string arex_endpoint;
+  /// Delegation db type
+  deleg_db_t deleg_db;
 
   /// Logger object
   static Arc::Logger logger;

@@ -41,7 +41,6 @@
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"
 #include "../../../gridftpd/fileplugin/fileplugin.h"
-#include "../../delegation/DelegationStore.h"
 
 #include "jobplugin.h"
 
@@ -295,6 +294,15 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
   }
+  deleg_db_type = DelegationStore::DbBerkeley;
+  switch(config.DelegationDBType()) {
+   case GMConfig::deleg_db_bdb:
+    deleg_db_type = DelegationStore::DbBerkeley;
+    break;
+   case GMConfig::deleg_db_sqlite:
+    deleg_db_type = DelegationStore::DbSQLite;
+    break;
+  };
   if(user_a.proxy() != NULL) {
     proxy_fname=user_a.proxy();
     if((!proxy_fname.empty()) && user_a.is_proxy()) {
@@ -869,7 +877,7 @@ int JobPlugin::close(bool eof) {
     if(!proxy_data.empty()) {
       if(proxy_is_deleg && job_desc.delegationid.empty()) {
         // If we have gridftp delegation and no other generic delegation provided - store it
-        ARex::DelegationStore deleg(config.DelegationDir(),false);
+        ARex::DelegationStore deleg(config.DelegationDir(), deleg_db_type, false);
         std::string deleg_id;
         if(!deleg.AddCred(deleg_id, subject, proxy_data)) {
           error_description="Failed to store delegation.";
@@ -992,7 +1000,7 @@ int JobPlugin::close(bool eof) {
 
   // Put lock on delegated credentials
   if(!deleg_ids.empty()) {
-    if(!ARex::DelegationStore(config.DelegationDir(),false).LockCred(job_id,deleg_ids,subject)) {
+    if(!ARex::DelegationStore(config.DelegationDir(),deleg_db_type,false).LockCred(job_id,deleg_ids,subject)) {
       logger.msg(Arc::ERROR, "Failed to lock delegated credentials");
       delete_job_id();
       error_description="Failed to lock delegated credentials.";
@@ -1255,7 +1263,7 @@ int JobPlugin::checkdir(std::string &dirname) {
     if(new_proxy_expires > old_proxy_expires) {
       /* try to renew proxy */
       logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
-      ARex::DelegationStore deleg(config.DelegationDir(),false);
+      ARex::DelegationStore deleg(config.DelegationDir(),deleg_db_type,false);
       if((!job_desc.delegationid.empty()) && deleg.PutCred(job_desc.delegationid, subject, proxy_data)) {
         // Also store public content into job.#.proxy
         // Ignore error because main store is already updated
