@@ -103,21 +103,18 @@ namespace ARex {
       delete db_env_; db_env_ = NULL;
       return false;
     }
+
+    // If process is master (create = true) we should check by caling
+    // failchk() and discard environment in case something is wrong.
+    // But sicne we are allowed to discard environment we can do
+    // that just in case.
+    if(create) {
+      db_env_clean(basepath_);
+    };
     if(!dberr("Error opening database environment",
           db_env_->open(basepath_.c_str(),eflags,mode))) {
       delete db_env_; db_env_ = NULL;
-      db_env_clean(basepath_);
-      db_env_ = new DbEnv(DB_CXX_NO_EXCEPTIONS);
-      if(!dberr("Error setting database environment flags",
-            db_env_->set_flags(DB_CDB_ALLDB,1))) {
-        delete db_env_; db_env_ = NULL;
-        return false;
-      }
-      if(!dberr("Error opening database environment",
-            db_env_->open(basepath_.c_str(),eflags,mode))) {
-        delete db_env_; db_env_ = NULL;
-        return false;
-      };
+      return false;
     };
 
     std::string dbpath = FR_DB_NAME;
@@ -494,8 +491,31 @@ namespace ARex {
   }
 
   bool FileRecordBDB::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
-    // Not implemented yet
-    return false;
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    Dbc* cur = NULL;
+    if(db_lock_->cursor(NULL,&cur,0)) return false;
+    for(;;) {
+      Dbt key;
+      Dbt data;
+      if(cur->get(&key,&data,DB_NEXT_NODUP) != 0) break; // TODO: handle errors
+      std::string str;
+      uint32_t size = key.get_size();
+      parse_string(str,key.get_data(),size);
+      {
+        std::string id_tmp;
+        std::string owner_tmp;
+        uint32_t size = data.get_size();
+        void* buf = data.get_data();
+        buf = parse_string(id_tmp,buf,size); //  lock_id - skip
+        buf = parse_string(id_tmp,buf,size);
+        buf = parse_string(owner_tmp,buf,size);
+        if((id_tmp != id) || (owner_tmp != owner)) continue;
+      };
+      locks.push_back(str);
+    };
+    cur->close();
+    return true;
   }
 
   FileRecordBDB::Iterator::Iterator(FileRecordBDB& frec):FileRecord::Iterator(frec),cur_(NULL) {
