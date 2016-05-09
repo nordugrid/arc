@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2016-01-12 10:25+0200\n"
+"POT-Creation-Date: 2016-05-09 18:30+0300\n"
 "PO-Revision-Date: 2010-07-05 12:25+0100\n"
 "Last-Translator: Gábor Rőczei <roczei@niif.hu>\n"
 "Language-Team: Hungarian\n"
@@ -196,7 +196,7 @@ msgid "Jobs missing information will not be cleaned!"
 msgstr ""
 
 #: src/clients/compute/arcclean.cpp:162 src/clients/compute/arcresub.cpp:155
-#: src/clients/compute/arcsub.cpp:206 src/clients/compute/arctest.cpp:302
+#: src/clients/compute/arcsub.cpp:208 src/clients/compute/arctest.cpp:302
 #, fuzzy, c-format
 msgid "Warning: Failed to write job information to file (%s)"
 msgstr "Nem sikerült elérnem a voms szervert %s, ezen fájl alapján: %s"
@@ -347,7 +347,7 @@ msgstr ""
 msgid "No jobs to resubmit with the specified status"
 msgstr "Nincs megadva feladat leírás bemeneti adatként"
 
-#: src/clients/compute/arcresub.cpp:151 src/clients/compute/arcsub.cpp:192
+#: src/clients/compute/arcresub.cpp:151 src/clients/compute/arcsub.cpp:194
 #, c-format
 msgid "Job submitted with jobid: %s"
 msgstr "Feladat elküldve ezzel az azonítóval: %s"
@@ -442,53 +442,53 @@ msgstr "Nincs megadva feladat leírás bemeneti adatként"
 msgid "Can not open job description file: %s"
 msgstr "Nem tudom megnyitni a feladat leíró fájlt: %s"
 
-#: src/clients/compute/arcsub.cpp:140 src/clients/compute/arcsub.cpp:167
+#: src/clients/compute/arcsub.cpp:140 src/clients/compute/arcsub.cpp:168
 msgid "Invalid JobDescription:"
 msgstr "Érvénytelen feladat leírás:"
 
-#: src/clients/compute/arcsub.cpp:198
+#: src/clients/compute/arcsub.cpp:200
 #, fuzzy, c-format
 msgid "Cannot write job IDs to file (%s)"
 msgstr "Nem tudom megnyitni a feladat leíró fájlt: %s"
 
-#: src/clients/compute/arcsub.cpp:203 src/clients/compute/arcsync.cpp:66
+#: src/clients/compute/arcsub.cpp:205 src/clients/compute/arcsync.cpp:66
 #, c-format
 msgid "Warning: Unable to open job list file (%s), unknown format"
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:208 src/clients/compute/arctest.cpp:304
+#: src/clients/compute/arcsub.cpp:210 src/clients/compute/arctest.cpp:304
 msgid "To recover missing jobs, run arcsync"
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:215
+#: src/clients/compute/arcsub.cpp:217
 msgid "Job submission summary:"
 msgstr "Job küldési összefoglaló"
 
-#: src/clients/compute/arcsub.cpp:217
+#: src/clients/compute/arcsub.cpp:219
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d %d feladatból elküldve"
 
-#: src/clients/compute/arcsub.cpp:219
+#: src/clients/compute/arcsub.cpp:221
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "%d nem lett elküldve"
 
-#: src/clients/compute/arcsub.cpp:226
+#: src/clients/compute/arcsub.cpp:228
 msgid "Job nr."
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:266
+#: src/clients/compute/arcsub.cpp:268
 #, c-format
 msgid "Removing endpoint %s: It has an unrequested interface (%s)."
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:280
+#: src/clients/compute/arcsub.cpp:282
 #, fuzzy, c-format
 msgid "ERROR: Unable to load broker %s"
 msgstr "Nem sikerült betölteni a %s bróker modult"
 
-#: src/clients/compute/arcsub.cpp:284
+#: src/clients/compute/arcsub.cpp:286
 #, fuzzy
 msgid ""
 "ERROR: Job submission aborted because no resource returned any information"
@@ -496,11 +496,11 @@ msgstr ""
 "Feladat küldés sikertelen, mert egyetlen klaszter sem adott vissza "
 "információt magáról"
 
-#: src/clients/compute/arcsub.cpp:288
+#: src/clients/compute/arcsub.cpp:290
 msgid "ERROR: One or multiple job descriptions was not submitted."
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:302
+#: src/clients/compute/arcsub.cpp:304
 #, c-format
 msgid ""
 "A computing resource using the GridFTP interface was requested, but\n"
@@ -509,40 +509,40 @@ msgid ""
 "%sDepending on your type of installation the package name might differ."
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:336 src/clients/compute/arctest.cpp:236
+#: src/clients/compute/arcsub.cpp:338 src/clients/compute/arctest.cpp:236
 msgid ""
 "Unable to adapt job description to any resource, no resource information "
 "could be obtained."
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:337 src/clients/compute/arctest.cpp:237
+#: src/clients/compute/arcsub.cpp:339 src/clients/compute/arctest.cpp:237
 msgid "Original job description is listed below:"
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:349
+#: src/clients/compute/arcsub.cpp:351
 #, c-format
 msgid "Dumping job description aborted: Unable to load broker %s"
 msgstr ""
 
-#: src/clients/compute/arcsub.cpp:366 src/clients/compute/arctest.cpp:317
+#: src/clients/compute/arcsub.cpp:368 src/clients/compute/arctest.cpp:317
 #, fuzzy, c-format
 msgid ""
 "Unable to prepare job description according to needs of the target resource "
 "(%s)."
 msgstr "Nem tudom kiíratni a feladat leírást: Nem található várakozó sor."
 
-#: src/clients/compute/arcsub.cpp:382 src/clients/compute/arctest.cpp:330
+#: src/clients/compute/arcsub.cpp:384 src/clients/compute/arctest.cpp:330
 #, fuzzy, c-format
 msgid ""
 "An error occurred during the generation of job description to be sent to %s"
 msgstr "Egy hiba lépett fel a feladat leírás elkészítése közben."
 
-#: src/clients/compute/arcsub.cpp:386 src/clients/compute/arctest.cpp:334
+#: src/clients/compute/arcsub.cpp:388 src/clients/compute/arctest.cpp:334
 #, c-format
 msgid "Job description to be sent to %s:"
 msgstr "Feladat leírás elküldve ide: %s"
 
-#: src/clients/compute/arcsub.cpp:404
+#: src/clients/compute/arcsub.cpp:406
 #, fuzzy
 msgid ""
 "Unable to prepare job description according to needs of the target resource."
@@ -2163,14 +2163,14 @@ msgstr "Nem sikerült elküldeni a kérést"
 
 #: src/clients/credentials/arcproxyalt.cpp:1238
 #: src/hed/libs/credential/ARCProxyUtil.cpp:443
-#: src/hed/libs/credential/Credential.cpp:914
+#: src/hed/libs/credential/Credential.cpp:939
 #, c-format
 msgid "Error: can't open policy file: %s"
 msgstr ""
 
 #: src/clients/credentials/arcproxyalt.cpp:1248
 #: src/hed/libs/credential/ARCProxyUtil.cpp:453
-#: src/hed/libs/credential/Credential.cpp:927
+#: src/hed/libs/credential/Credential.cpp:952
 #, c-format
 msgid "Error: policy location: %s is not a regular file"
 msgstr ""
@@ -2349,8 +2349,8 @@ msgstr ""
 msgid "%s. Cannot copy fileset"
 msgstr ""
 
-#: src/clients/data/arccp.cpp:471 src/hed/libs/compute/ExecutionTarget.cpp:253
-#: src/hed/libs/compute/ExecutionTarget.cpp:326
+#: src/clients/data/arccp.cpp:471 src/hed/libs/compute/ExecutionTarget.cpp:254
+#: src/hed/libs/compute/ExecutionTarget.cpp:327
 #, c-format
 msgid "Name: %s"
 msgstr "Név: %s"
@@ -2632,8 +2632,8 @@ msgstr ""
 #: src/hed/dmc/arc/DataPointARC.cpp:574 src/hed/dmc/arc/DataPointARC.cpp:624
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:99
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:173
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:238
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:324
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:239
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:325
 #, c-format
 msgid ""
 "Request:\n"
@@ -2657,8 +2657,8 @@ msgstr ""
 #: src/hed/dmc/arc/DataPointARC.cpp:643
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:118
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:192
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:265
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:344
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:266
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:345
 #, c-format
 msgid ""
 "Response:\n"
@@ -3204,13 +3204,13 @@ msgstr ""
 #: src/hed/acc/ARC1/AREXClient.cpp:113 src/hed/acc/EMIES/EMIESClient.cpp:130
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:191
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:222
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:490
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:504
 #: src/services/a-rex/test.cpp:86
 msgid "Initiating delegation procedure"
 msgstr ""
 
 #: src/hed/acc/ARC1/AREXClient.cpp:115
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:492
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:506
 msgid "Failed to initiate delegation credentials"
 msgstr ""
 
@@ -3953,7 +3953,7 @@ msgstr ""
 #: src/hed/identitymap/ArgusPDPClient.cpp:444
 #: src/hed/identitymap/ArgusPEPClient.cpp:98
 #: src/hed/identitymap/ArgusPEPClient.cpp:345
-#: src/hed/libs/credential/Credential.cpp:1106
+#: src/hed/libs/credential/Credential.cpp:1131
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:80
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:100
@@ -3963,35 +3963,40 @@ msgstr ""
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:136
 #: src/hed/mcc/tls/PayloadTLSMCC.cpp:124 src/hed/shc/arcpdp/ArcPDP.cpp:235
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:293
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:245
-#: src/services/a-rex/delegation/DelegationStore.cpp:36
-#: src/services/a-rex/delegation/DelegationStore.cpp:40
-#: src/services/a-rex/delegation/DelegationStore.cpp:62
-#: src/services/a-rex/delegation/DelegationStore.cpp:68
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:246
+#: src/services/a-rex/delegation/DelegationStore.cpp:50
+#: src/services/a-rex/delegation/DelegationStore.cpp:55
+#: src/services/a-rex/delegation/DelegationStore.cpp:60
+#: src/services/a-rex/delegation/DelegationStore.cpp:94
+#: src/services/a-rex/delegation/DelegationStore.cpp:100
 #: src/services/a-rex/grid-manager/inputcheck.cpp:33
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:538
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:604
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:627
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:636
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:645
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:654
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:662
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:668
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:673
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:678
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:683
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:691
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:698
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:709
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:716
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:755
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:765
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:773
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:799
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1145
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1150
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1179
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:325
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:556
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:624
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:649
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:660
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:671
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:682
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:690
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:696
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:701
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:706
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:711
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:719
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:727
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:738
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:745
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:784
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:794
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:802
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:828
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:884
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:901
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:913
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1204
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1209
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1238
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1251
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:336
 #, c-format
 msgid "%s"
 msgstr ""
@@ -5217,7 +5222,7 @@ msgid "Unexpected arguments supplied"
 msgstr ""
 
 #: src/hed/dmc/acix/DataPointACIX.cpp:93
-#: src/hed/dmc/acix/DataPointACIX.cpp:338
+#: src/hed/dmc/acix/DataPointACIX.cpp:342
 #: src/hed/dmc/rucio/DataPointRucio.cpp:189
 #: src/hed/dmc/rucio/DataPointRucio.cpp:399
 #, c-format
@@ -5229,53 +5234,58 @@ msgstr ""
 msgid "Found none or multiple URLs (%s) in ACIX URL: %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:134
+#: src/hed/dmc/acix/DataPointACIX.cpp:131
+#, c-format
+msgid "Cannot handle URL %s"
+msgstr ""
+
+#: src/hed/dmc/acix/DataPointACIX.cpp:138
 #, c-format
 msgid "Could not resolve original source of %s: out of time"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:140
+#: src/hed/dmc/acix/DataPointACIX.cpp:144
 #, c-format
 msgid "Could not resolve original source of %s: %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:156
+#: src/hed/dmc/acix/DataPointACIX.cpp:160
 #, c-format
 msgid "Querying ACIX server at %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:157
+#: src/hed/dmc/acix/DataPointACIX.cpp:161
 #, c-format
 msgid "Calling acix with query %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:163
+#: src/hed/dmc/acix/DataPointACIX.cpp:167
 #, fuzzy, c-format
 msgid "Failed to query ACIX: %s"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:167
-#: src/hed/dmc/acix/DataPointACIX.cpp:304
+#: src/hed/dmc/acix/DataPointACIX.cpp:171
+#: src/hed/dmc/acix/DataPointACIX.cpp:308
 #, fuzzy, c-format
 msgid "Failed to parse ACIX response: %s"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:294
+#: src/hed/dmc/acix/DataPointACIX.cpp:298
 #, c-format
 msgid "ACIX returned %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:315
+#: src/hed/dmc/acix/DataPointACIX.cpp:319
 #, c-format
 msgid "No locations for %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:321
+#: src/hed/dmc/acix/DataPointACIX.cpp:325
 #, c-format
 msgid "%s: ACIX Location: %s"
 msgstr ""
 
-#: src/hed/dmc/acix/DataPointACIX.cpp:323
+#: src/hed/dmc/acix/DataPointACIX.cpp:327
 #, c-format
 msgid "%s: Location %s not accessible remotely, skipping"
 msgstr ""
@@ -6994,7 +7004,7 @@ msgid ""
 msgstr ""
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:946
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:618
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:639
 #: src/services/a-rex/jura/ApelDestination.cpp:215
 #: src/services/a-rex/jura/LutsDestination.cpp:192
 #: src/services/gridftpd/misc/ldapquery.cpp:183
@@ -7304,7 +7314,7 @@ msgstr ""
 #: src/hed/identitymap/ArgusPDPClient.cpp:439
 #: src/hed/identitymap/ArgusPEPClient.cpp:341
 #: src/hed/identitymap/IdentityMap.cpp:219
-#: src/hed/shc/legacy/LegacyMap.cpp:206
+#: src/hed/shc/legacy/LegacyMap.cpp:215
 #, c-format
 msgid "Grid identity is mapped to local identity '%s'"
 msgstr ""
@@ -7857,13 +7867,13 @@ msgid "URL protocol is not urllist: %s"
 msgstr ""
 
 #: src/hed/libs/common/UserConfig.cpp:30
-#: src/hed/libs/common/UserConfig.cpp:691
-#: src/hed/libs/common/UserConfig.cpp:700
-#: src/hed/libs/common/UserConfig.cpp:706
-#: src/hed/libs/common/UserConfig.cpp:728
-#: src/hed/libs/common/UserConfig.cpp:738
+#: src/hed/libs/common/UserConfig.cpp:671
+#: src/hed/libs/common/UserConfig.cpp:680
+#: src/hed/libs/common/UserConfig.cpp:686
+#: src/hed/libs/common/UserConfig.cpp:708
+#: src/hed/libs/common/UserConfig.cpp:718
+#: src/hed/libs/common/UserConfig.cpp:730
 #: src/hed/libs/common/UserConfig.cpp:750
-#: src/hed/libs/common/UserConfig.cpp:770
 #, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
 msgstr ""
@@ -7974,40 +7984,34 @@ msgid ""
 "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, XML."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:512
+#: src/hed/libs/common/UserConfig.cpp:503
 #, c-format
-msgid ""
-"Proxy certificate path was not explicitly set or does not exist or has\n"
-"improper permissions/ownership and not found at default location.\n"
-"Key/certificate paths were not explicitly set or do not exist or have\n"
-"improper permissions/ownership and usercert.pem/userkey.pem not found\n"
-"at default locations:\n"
-"~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
-"If the proxy or certificate/key does exist, please manually specify the "
-"locations via env\n"
-"X509_USER_CERT/X509_USER_KEY or X509_USER_PROXY, or the certificatepath/"
-"keypath or proxypath\n"
-"item in client.conf\n"
-"If the certificate/key does exist, and proxy is needed to be generated, "
-"please\n"
-"use arcproxy utility to create a proxy certificate."
+msgid "Certificate and key ('%s' and '%s') not found in any of the paths: %s"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:540
+#: src/hed/libs/common/UserConfig.cpp:505
+#, c-format
+msgid ""
+"If the proxy or certificate/key does exist, you can manually specify the "
+"locations via environment variables '%s'/'%s' or '%s', or the '%s'/'%s' or "
+"'%s' attributes in the client configuration file (e.g. '%s')"
+msgstr ""
+
+#: src/hed/libs/common/UserConfig.cpp:520
 #, c-format
 msgid ""
 "Can not access CA certificates directory: %s. The certificates will not be "
 "verified."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:548
+#: src/hed/libs/common/UserConfig.cpp:528
 #, c-format
 msgid ""
 "Can not access CA certificate directory: %s. The certificates will not be "
 "verified."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:568
+#: src/hed/libs/common/UserConfig.cpp:548
 #, c-format
 msgid ""
 "Can not find CA certificates directory in default locations:\n"
@@ -8020,145 +8024,145 @@ msgid ""
 "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:589
+#: src/hed/libs/common/UserConfig.cpp:569
 #, c-format
 msgid "Using proxy file: %s"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:592
+#: src/hed/libs/common/UserConfig.cpp:572
 #, c-format
 msgid "Using certificate file: %s"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:593
+#: src/hed/libs/common/UserConfig.cpp:573
 #, c-format
 msgid "Using key file: %s"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:597
+#: src/hed/libs/common/UserConfig.cpp:577
 #, c-format
 msgid "Using CA certificate directory: %s"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:610
-#: src/hed/libs/common/UserConfig.cpp:616
+#: src/hed/libs/common/UserConfig.cpp:590
+#: src/hed/libs/common/UserConfig.cpp:596
 #, c-format
 msgid "Can not access VOMSES file/directory: %s."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:622
+#: src/hed/libs/common/UserConfig.cpp:602
 #, c-format
 msgid "Can not access VOMS file/directory: %s."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:641
+#: src/hed/libs/common/UserConfig.cpp:621
 msgid ""
 "Can not find voms service configuration file (vomses) in default locations: "
 "~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/"
 "grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:654
+#: src/hed/libs/common/UserConfig.cpp:634
 #, c-format
 msgid "Loading configuration (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:688
+#: src/hed/libs/common/UserConfig.cpp:668
 #, c-format
 msgid ""
 "The value of the timeout attribute in the configuration file (%s) was only "
 "partially parsed"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:713
+#: src/hed/libs/common/UserConfig.cpp:693
 msgid ""
 "The brokerarguments attribute can only be used in conjunction with the "
 "brokername attribute"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:725
+#: src/hed/libs/common/UserConfig.cpp:705
 #, c-format
 msgid ""
 "The value of the keysize attribute in the configuration file (%s) was only "
 "partially parsed"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:745
+#: src/hed/libs/common/UserConfig.cpp:725
 #, c-format
 msgid ""
 "Could not convert the slcs attribute value (%s) to an URL instance in "
 "configuration file (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:791
+#: src/hed/libs/common/UserConfig.cpp:771
 #, c-format
 msgid "Specified overlay file (%s) does not exist."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:795
+#: src/hed/libs/common/UserConfig.cpp:775
 #, c-format
 msgid ""
 "Unknown attribute %s in common section of configuration file (%s), ignoring "
 "it"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:836
+#: src/hed/libs/common/UserConfig.cpp:816
 #, c-format
 msgid "Unknown section %s, ignoring it"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:840
+#: src/hed/libs/common/UserConfig.cpp:820
 #, c-format
 msgid "Configuration (%s) loaded"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:843
+#: src/hed/libs/common/UserConfig.cpp:823
 #, c-format
 msgid "Could not load configuration (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:938
+#: src/hed/libs/common/UserConfig.cpp:918
 #, c-format
 msgid "UserConfiguration saved to file (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:951
+#: src/hed/libs/common/UserConfig.cpp:931
 #, c-format
 msgid "Unable to create %s directory."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:960
+#: src/hed/libs/common/UserConfig.cpp:940
 #, c-format
 msgid "Configuration example file created (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:962
+#: src/hed/libs/common/UserConfig.cpp:942
 #, c-format
 msgid "Unable to copy example configuration from existing configuration (%s)"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:966
+#: src/hed/libs/common/UserConfig.cpp:946
 #, c-format
 msgid "Cannot copy example configuration (%s), it is not a regular file"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:971
+#: src/hed/libs/common/UserConfig.cpp:951
 #, c-format
 msgid "Example configuration (%s) not created."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:976
+#: src/hed/libs/common/UserConfig.cpp:956
 #, c-format
 msgid "The default configuration file (%s) is not a regular file."
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:994
+#: src/hed/libs/common/UserConfig.cpp:974
 #, c-format
 msgid "%s directory created"
 msgstr ""
 
-#: src/hed/libs/common/UserConfig.cpp:996
-#: src/hed/libs/common/UserConfig.cpp:1035 src/hed/libs/data/DataMover.cpp:682
+#: src/hed/libs/common/UserConfig.cpp:976
+#: src/hed/libs/common/UserConfig.cpp:1015 src/hed/libs/data/DataMover.cpp:682
 #, c-format
 msgid "Failed to create directory %s"
 msgstr ""
@@ -8884,600 +8888,600 @@ msgid ""
 "the requested '%s'."
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:236
+#: src/hed/libs/compute/ExecutionTarget.cpp:237
 #, fuzzy, c-format
 msgid "Address: %s"
 msgstr "Válasz: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:237
+#: src/hed/libs/compute/ExecutionTarget.cpp:238
 #, fuzzy, c-format
 msgid "Place: %s"
 msgstr "Név: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:238
+#: src/hed/libs/compute/ExecutionTarget.cpp:239
 #, fuzzy, c-format
 msgid "Country: %s"
 msgstr "Forrás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:239
+#: src/hed/libs/compute/ExecutionTarget.cpp:240
 #, c-format
 msgid "Postal code: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:240
+#: src/hed/libs/compute/ExecutionTarget.cpp:241
 #, c-format
 msgid "Latitude: %f"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:241
+#: src/hed/libs/compute/ExecutionTarget.cpp:242
 #, c-format
 msgid "Longitude: %f"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:247
+#: src/hed/libs/compute/ExecutionTarget.cpp:248
 #, c-format
 msgid "Owner: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:254
+#: src/hed/libs/compute/ExecutionTarget.cpp:255
 #, c-format
 msgid "ID: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:255
+#: src/hed/libs/compute/ExecutionTarget.cpp:256
 #, fuzzy, c-format
 msgid "Type: %s"
 msgstr "Proxy típusa: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:260
+#: src/hed/libs/compute/ExecutionTarget.cpp:261
 #, fuzzy, c-format
 msgid "URL: %s"
 msgstr "Érvénytelen URL: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:261
+#: src/hed/libs/compute/ExecutionTarget.cpp:262
 #, fuzzy, c-format
 msgid "Interface: %s"
 msgstr "Forrás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:263
+#: src/hed/libs/compute/ExecutionTarget.cpp:264
 #, fuzzy
 msgid "Interface versions:"
 msgstr "Felhasználó oldali hiba"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:268
+#: src/hed/libs/compute/ExecutionTarget.cpp:269
 msgid "Interface extensions:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:273
+#: src/hed/libs/compute/ExecutionTarget.cpp:274
 msgid "Capabilities:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:277
+#: src/hed/libs/compute/ExecutionTarget.cpp:278
 #, c-format
 msgid "Technology: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:279
+#: src/hed/libs/compute/ExecutionTarget.cpp:280
 msgid "Supported Profiles:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:283
+#: src/hed/libs/compute/ExecutionTarget.cpp:284
 #, fuzzy, c-format
 msgid "Implementor: %s"
 msgstr "modul neve: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:284
+#: src/hed/libs/compute/ExecutionTarget.cpp:285
 #, fuzzy, c-format
 msgid "Implementation name: %s"
 msgstr "modul neve: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:285
+#: src/hed/libs/compute/ExecutionTarget.cpp:286
 #, c-format
 msgid "Quality level: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:286
+#: src/hed/libs/compute/ExecutionTarget.cpp:287
 #, c-format
 msgid "Health state: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:287
+#: src/hed/libs/compute/ExecutionTarget.cpp:288
 #, fuzzy, c-format
 msgid "Health state info: %s"
 msgstr "Célállomás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:288
+#: src/hed/libs/compute/ExecutionTarget.cpp:289
 #, c-format
 msgid "Serving state: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:289
+#: src/hed/libs/compute/ExecutionTarget.cpp:290
 #, c-format
 msgid "Issuer CA: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:291
+#: src/hed/libs/compute/ExecutionTarget.cpp:292
 msgid "Trusted CAs:"
-msgstr ""
-
-#: src/hed/libs/compute/ExecutionTarget.cpp:295
-#, c-format
-msgid "Downtime starts: %s"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:296
 #, c-format
-msgid "Downtime ends: %s"
+msgid "Downtime starts: %s"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:297
+#, c-format
+msgid "Downtime ends: %s"
+msgstr ""
+
+#: src/hed/libs/compute/ExecutionTarget.cpp:298
 #, fuzzy, c-format
 msgid "Staging: %s"
 msgstr "Célállomás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:299
+#: src/hed/libs/compute/ExecutionTarget.cpp:300
 #, fuzzy
 msgid "Job descriptions:"
 msgstr "Feladat leírás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:311
+#: src/hed/libs/compute/ExecutionTarget.cpp:312
 #, fuzzy, c-format
 msgid "Scheme: %s"
 msgstr "Forrás: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:314
+#: src/hed/libs/compute/ExecutionTarget.cpp:315
 #, fuzzy, c-format
 msgid "Rule: %s"
 msgstr "Kérés: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:327
+#: src/hed/libs/compute/ExecutionTarget.cpp:328
 #, c-format
 msgid "Max wall-time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:328
+#: src/hed/libs/compute/ExecutionTarget.cpp:329
 #, c-format
 msgid "Max total wall-time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:329
+#: src/hed/libs/compute/ExecutionTarget.cpp:330
 #, c-format
 msgid "Min wall-time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:330
+#: src/hed/libs/compute/ExecutionTarget.cpp:331
 #, c-format
 msgid "Default wall-time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:331
+#: src/hed/libs/compute/ExecutionTarget.cpp:332
 #, c-format
 msgid "Max CPU time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:332
+#: src/hed/libs/compute/ExecutionTarget.cpp:333
 #, c-format
 msgid "Min CPU time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:333
+#: src/hed/libs/compute/ExecutionTarget.cpp:334
 #, c-format
 msgid "Default CPU time: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:334
+#: src/hed/libs/compute/ExecutionTarget.cpp:335
 #, c-format
 msgid "Max total jobs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:335
+#: src/hed/libs/compute/ExecutionTarget.cpp:336
 #, c-format
 msgid "Max running jobs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:336
+#: src/hed/libs/compute/ExecutionTarget.cpp:337
 #, c-format
 msgid "Max waiting jobs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:337
+#: src/hed/libs/compute/ExecutionTarget.cpp:338
 #, c-format
 msgid "Max pre-LRMS waiting jobs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:338
+#: src/hed/libs/compute/ExecutionTarget.cpp:339
 #, c-format
 msgid "Max user running jobs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:339
+#: src/hed/libs/compute/ExecutionTarget.cpp:340
 #, c-format
 msgid "Max slots per job: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:340
+#: src/hed/libs/compute/ExecutionTarget.cpp:341
 #, c-format
 msgid "Max stage in streams: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:341
+#: src/hed/libs/compute/ExecutionTarget.cpp:342
 #, c-format
 msgid "Max stage out streams: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:342
+#: src/hed/libs/compute/ExecutionTarget.cpp:343
 #, c-format
 msgid "Scheduling policy: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:343
+#: src/hed/libs/compute/ExecutionTarget.cpp:344
 #, c-format
 msgid "Max memory: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:344
+#: src/hed/libs/compute/ExecutionTarget.cpp:345
 #, c-format
 msgid "Max virtual memory: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:345
+#: src/hed/libs/compute/ExecutionTarget.cpp:346
 #, c-format
 msgid "Max disk space: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:346
+#: src/hed/libs/compute/ExecutionTarget.cpp:347
 #, c-format
 msgid "Default Storage Service: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:347
+#: src/hed/libs/compute/ExecutionTarget.cpp:348
 msgid "Supports preemption"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:348
-msgid "Doesn't support preemption"
-msgstr ""
-
 #: src/hed/libs/compute/ExecutionTarget.cpp:349
-#, c-format
-msgid "Total jobs: %i"
+msgid "Doesn't support preemption"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:350
 #, c-format
-msgid "Running jobs: %i"
+msgid "Total jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:351
 #, c-format
-msgid "Local running jobs: %i"
+msgid "Running jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:352
 #, c-format
-msgid "Waiting jobs: %i"
+msgid "Local running jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:353
 #, c-format
-msgid "Local waiting jobs: %i"
+msgid "Waiting jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:354
 #, c-format
-msgid "Suspended jobs: %i"
+msgid "Local waiting jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:355
 #, c-format
-msgid "Local suspended jobs: %i"
+msgid "Suspended jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:356
 #, c-format
-msgid "Staging jobs: %i"
+msgid "Local suspended jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:357
 #, c-format
-msgid "Pre-LRMS waiting jobs: %i"
+msgid "Staging jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:358
 #, c-format
-msgid "Estimated average waiting time: %s"
+msgid "Pre-LRMS waiting jobs: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:359
 #, c-format
-msgid "Estimated worst waiting time: %s"
+msgid "Estimated average waiting time: %s"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:360
 #, c-format
+msgid "Estimated worst waiting time: %s"
+msgstr ""
+
+#: src/hed/libs/compute/ExecutionTarget.cpp:361
+#, c-format
 msgid "Free slots: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:362
+#: src/hed/libs/compute/ExecutionTarget.cpp:363
 msgid "Free slots grouped according to time limits (limit: free slots):"
-msgstr ""
-
-#: src/hed/libs/compute/ExecutionTarget.cpp:365
-#, c-format
-msgid "  %s: %i"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:366
 #, c-format
+msgid "  %s: %i"
+msgstr ""
+
+#: src/hed/libs/compute/ExecutionTarget.cpp:367
+#, c-format
 msgid "  unspecified: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:369
+#: src/hed/libs/compute/ExecutionTarget.cpp:370
 #, c-format
 msgid "Used slots: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:370
+#: src/hed/libs/compute/ExecutionTarget.cpp:371
 #, fuzzy, c-format
 msgid "Requested slots: %i"
 msgstr "Kérés: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:371
+#: src/hed/libs/compute/ExecutionTarget.cpp:372
 #, c-format
 msgid "Reservation policy: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:378
+#: src/hed/libs/compute/ExecutionTarget.cpp:379
 #, fuzzy, c-format
 msgid "Resource manager: %s"
 msgstr "modul neve: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:379
+#: src/hed/libs/compute/ExecutionTarget.cpp:380
 #, c-format
 msgid " (%s)"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:382
+#: src/hed/libs/compute/ExecutionTarget.cpp:383
 #, c-format
 msgid "Total physical CPUs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:383
+#: src/hed/libs/compute/ExecutionTarget.cpp:384
 #, c-format
 msgid "Total logical CPUs: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:384
+#: src/hed/libs/compute/ExecutionTarget.cpp:385
 #, c-format
 msgid "Total slots: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:385
+#: src/hed/libs/compute/ExecutionTarget.cpp:386
 msgid "Supports advance reservations"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:386
+#: src/hed/libs/compute/ExecutionTarget.cpp:387
 msgid "Doesn't support advance reservations"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:387
+#: src/hed/libs/compute/ExecutionTarget.cpp:388
 msgid "Supports bulk submission"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:388
+#: src/hed/libs/compute/ExecutionTarget.cpp:389
 msgid "Doesn't support bulk Submission"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:389
+#: src/hed/libs/compute/ExecutionTarget.cpp:390
 msgid "Homogeneous resource"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:390
+#: src/hed/libs/compute/ExecutionTarget.cpp:391
 msgid "Non-homogeneous resource"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:392
+#: src/hed/libs/compute/ExecutionTarget.cpp:393
 #, fuzzy
 msgid "Network information:"
 msgstr "verzió információ kiírása"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:397
+#: src/hed/libs/compute/ExecutionTarget.cpp:398
 msgid "Working area is shared among jobs"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:398
-msgid "Working area is not shared among jobs"
-msgstr ""
-
 #: src/hed/libs/compute/ExecutionTarget.cpp:399
-#, c-format
-msgid "Working area total size: %i GB"
+msgid "Working area is not shared among jobs"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:400
 #, c-format
-msgid "Working area free size: %i GB"
+msgid "Working area total size: %i GB"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:401
 #, c-format
-msgid "Working area life time: %s"
+msgid "Working area free size: %i GB"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:402
 #, c-format
-msgid "Cache area total size: %i GB"
+msgid "Working area life time: %s"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:403
 #, c-format
+msgid "Cache area total size: %i GB"
+msgstr ""
+
+#: src/hed/libs/compute/ExecutionTarget.cpp:404
+#, c-format
 msgid "Cache area free size: %i GB"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:409
+#: src/hed/libs/compute/ExecutionTarget.cpp:410
 #, fuzzy, c-format
 msgid "Platform: %s"
 msgstr "Név: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:410
+#: src/hed/libs/compute/ExecutionTarget.cpp:411
 msgid "Execution environment supports inbound connections"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:411
+#: src/hed/libs/compute/ExecutionTarget.cpp:412
 msgid "Execution environment does not support inbound connections"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:412
+#: src/hed/libs/compute/ExecutionTarget.cpp:413
 msgid "Execution environment supports outbound connections"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:413
+#: src/hed/libs/compute/ExecutionTarget.cpp:414
 msgid "Execution environment does not support outbound connections"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:414
+#: src/hed/libs/compute/ExecutionTarget.cpp:415
 msgid "Execution environment is a virtual machine"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:415
-msgid "Execution environment is a physical machine"
-msgstr ""
-
 #: src/hed/libs/compute/ExecutionTarget.cpp:416
-#, c-format
-msgid "CPU vendor: %s"
+msgid "Execution environment is a physical machine"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:417
 #, c-format
-msgid "CPU model: %s"
+msgid "CPU vendor: %s"
 msgstr ""
 
 #: src/hed/libs/compute/ExecutionTarget.cpp:418
+#, c-format
+msgid "CPU model: %s"
+msgstr ""
+
+#: src/hed/libs/compute/ExecutionTarget.cpp:419
 #, fuzzy, c-format
 msgid "CPU version: %s"
 msgstr "%s verzió %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:419
+#: src/hed/libs/compute/ExecutionTarget.cpp:420
 #, c-format
 msgid "CPU clock speed: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:420
+#: src/hed/libs/compute/ExecutionTarget.cpp:421
 #, c-format
 msgid "Main memory size: %i"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:421
+#: src/hed/libs/compute/ExecutionTarget.cpp:422
 #, c-format
 msgid "OS family: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:422
+#: src/hed/libs/compute/ExecutionTarget.cpp:423
 #, fuzzy, c-format
 msgid "OS name: %s"
 msgstr "Név: %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:423
+#: src/hed/libs/compute/ExecutionTarget.cpp:424
 #, fuzzy, c-format
 msgid "OS version: %s"
 msgstr "%s verzió %s"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:430
+#: src/hed/libs/compute/ExecutionTarget.cpp:431
 msgid "Computing service:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:454
+#: src/hed/libs/compute/ExecutionTarget.cpp:455
 #, c-format
 msgid "%d Endpoints"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:459
+#: src/hed/libs/compute/ExecutionTarget.cpp:460
 #, fuzzy
 msgid "Endpoint Information:"
 msgstr "verzió információ kiírása"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:471
+#: src/hed/libs/compute/ExecutionTarget.cpp:472
 #, c-format
 msgid "%d Batch Systems"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:476
+#: src/hed/libs/compute/ExecutionTarget.cpp:477
 msgid "Batch System Information:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:482
+#: src/hed/libs/compute/ExecutionTarget.cpp:483
 msgid "Installed application environments:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:495
+#: src/hed/libs/compute/ExecutionTarget.cpp:496
 #, c-format
 msgid "%d Shares"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:500
+#: src/hed/libs/compute/ExecutionTarget.cpp:501
 #, fuzzy
 msgid "Share Information:"
 msgstr "verzió információ kiírása"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:506
+#: src/hed/libs/compute/ExecutionTarget.cpp:507
 #, c-format
 msgid "%d mapping policies"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:510
+#: src/hed/libs/compute/ExecutionTarget.cpp:511
 msgid "Mapping policy:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:526
+#: src/hed/libs/compute/ExecutionTarget.cpp:527
 #, c-format
 msgid "Execution Target on Computing Service: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:528
+#: src/hed/libs/compute/ExecutionTarget.cpp:529
 #, c-format
 msgid " Computing endpoint URL: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:530
+#: src/hed/libs/compute/ExecutionTarget.cpp:531
 #, c-format
 msgid " Computing endpoint interface name: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:532
+#: src/hed/libs/compute/ExecutionTarget.cpp:533
 #: src/hed/libs/compute/Job.cpp:580
 #, c-format
 msgid " Queue: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:535
+#: src/hed/libs/compute/ExecutionTarget.cpp:536
 #, c-format
 msgid " Mapping queue: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:538
+#: src/hed/libs/compute/ExecutionTarget.cpp:539
 #, c-format
 msgid " Health state: %s"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:543
+#: src/hed/libs/compute/ExecutionTarget.cpp:544
 msgid "Service information:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:548
+#: src/hed/libs/compute/ExecutionTarget.cpp:549
 msgid " Installed application environments:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:555
+#: src/hed/libs/compute/ExecutionTarget.cpp:556
 #, fuzzy
 msgid "Batch system information:"
 msgstr "verzió információ kiírása"
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:558
+#: src/hed/libs/compute/ExecutionTarget.cpp:559
 msgid "Queue information:"
 msgstr ""
 
-#: src/hed/libs/compute/ExecutionTarget.cpp:565
+#: src/hed/libs/compute/ExecutionTarget.cpp:566
 #, fuzzy
 msgid " Benchmark information:"
 msgstr "verzió információ kiírása"
@@ -10617,61 +10621,61 @@ msgid ""
 "CA direcroty"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:438
+#: src/hed/libs/credential/CertUtil.cpp:435
 msgid "Can't allocate memory for CA policy path"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:483
+#: src/hed/libs/credential/CertUtil.cpp:481
 #, c-format
 msgid "Certificate has unknown extension with numeric ID %u and SN %s"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:499
+#: src/hed/libs/credential/CertUtil.cpp:497
 msgid ""
 "Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal "
 "format"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:506
-#: src/hed/libs/credential/CertUtil.cpp:556
+#: src/hed/libs/credential/CertUtil.cpp:504
+#: src/hed/libs/credential/CertUtil.cpp:554
 #, c-format
 msgid "proxy_depth: %i, path_length: %i"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:549
-#: src/hed/libs/credential/Credential.cpp:1791
+#: src/hed/libs/credential/CertUtil.cpp:547
+#: src/hed/libs/credential/Credential.cpp:1816
 msgid "Can not convert DER encoded PROXYCERTINFO extension to internal format"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:627
+#: src/hed/libs/credential/CertUtil.cpp:625
 msgid "Trying to check X509 cert with check_cert_type"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:666
-#: src/hed/libs/credential/CertUtil.cpp:698
-#: src/hed/libs/credential/CertUtil.cpp:728
+#: src/hed/libs/credential/CertUtil.cpp:664
+#: src/hed/libs/credential/CertUtil.cpp:696
+#: src/hed/libs/credential/CertUtil.cpp:726
 msgid "Can't convert DER encoded PROXYCERTINFO extension to internal form"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:670
-#: src/hed/libs/credential/CertUtil.cpp:703
-#: src/hed/libs/credential/CertUtil.cpp:732
+#: src/hed/libs/credential/CertUtil.cpp:668
+#: src/hed/libs/credential/CertUtil.cpp:701
+#: src/hed/libs/credential/CertUtil.cpp:730
 msgid "Can't get policy from PROXYCERTINFO extension"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:674
-#: src/hed/libs/credential/CertUtil.cpp:707
-#: src/hed/libs/credential/CertUtil.cpp:736
+#: src/hed/libs/credential/CertUtil.cpp:672
+#: src/hed/libs/credential/CertUtil.cpp:705
+#: src/hed/libs/credential/CertUtil.cpp:734
 msgid "Can't get policy language from PROXYCERTINFO extension"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:685
-#: src/hed/libs/credential/CertUtil.cpp:718
-#: src/hed/libs/credential/CertUtil.cpp:746
+#: src/hed/libs/credential/CertUtil.cpp:683
+#: src/hed/libs/credential/CertUtil.cpp:716
+#: src/hed/libs/credential/CertUtil.cpp:744
 msgid "Found more than one PCI extension"
 msgstr ""
 
-#: src/hed/libs/credential/CertUtil.cpp:768
+#: src/hed/libs/credential/CertUtil.cpp:766
 msgid "The subject does not match the issuer name + proxy CN entry"
 msgstr ""
 
@@ -10707,589 +10711,589 @@ msgstr ""
 msgid "Can not read certificate file: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:451
+#: src/hed/libs/credential/Credential.cpp:470
 msgid "Can not read certificate string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:474
+#: src/hed/libs/credential/Credential.cpp:493
 msgid "Certificate format is PEM"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:498
+#: src/hed/libs/credential/Credential.cpp:520
 msgid "Certificate format is DER"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:554
+#: src/hed/libs/credential/Credential.cpp:579
 msgid "Certificate format is PKCS"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:585
+#: src/hed/libs/credential/Credential.cpp:610
 msgid "Certificate format is unknown"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:593
+#: src/hed/libs/credential/Credential.cpp:618
 #, c-format
 msgid "Can not find key file: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:598
+#: src/hed/libs/credential/Credential.cpp:623
 #, c-format
 msgid "Can not open key file %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:617
+#: src/hed/libs/credential/Credential.cpp:642
 msgid "Can not read key string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:713
+#: src/hed/libs/credential/Credential.cpp:738
 #: src/hed/libs/credential/VOMSUtil.cpp:235
 msgid "Failed to lock arccredential library in memory"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:736
+#: src/hed/libs/credential/Credential.cpp:761
 msgid "Certificate verification succeeded"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:740
+#: src/hed/libs/credential/Credential.cpp:765
 msgid "Certificate verification failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:807
+#: src/hed/libs/credential/Credential.cpp:832
 msgid ""
 "Globus legacy proxies can not carry policy data or path length constraints"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:854
+#: src/hed/libs/credential/Credential.cpp:879
 msgid "If you specify a policy you also need to specify a policy language"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1059
+#: src/hed/libs/credential/Credential.cpp:1084
 msgid "Certificate/Proxy path is empty"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1119
-#: src/hed/libs/credential/Credential.cpp:3000
+#: src/hed/libs/credential/Credential.cpp:1144
+#: src/hed/libs/credential/Credential.cpp:3025
 msgid "Failed to duplicate extension"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1123
+#: src/hed/libs/credential/Credential.cpp:1148
 msgid "Failed to add extension into member variable: extensions_"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1179
-#: src/hed/libs/credential/Credential.cpp:1184
+#: src/hed/libs/credential/Credential.cpp:1204
+#: src/hed/libs/credential/Credential.cpp:1209
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1196
+#: src/hed/libs/credential/Credential.cpp:1221
 msgid "Can not create extension for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1231
-#: src/hed/libs/credential/Credential.cpp:1407
+#: src/hed/libs/credential/Credential.cpp:1256
+#: src/hed/libs/credential/Credential.cpp:1432
 msgid "RSA_generate_key failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1244
-#: src/hed/libs/credential/Credential.cpp:1421
+#: src/hed/libs/credential/Credential.cpp:1269
+#: src/hed/libs/credential/Credential.cpp:1446
 msgid "BN_set_word failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1252
-#: src/hed/libs/credential/Credential.cpp:1430
+#: src/hed/libs/credential/Credential.cpp:1277
+#: src/hed/libs/credential/Credential.cpp:1455
 msgid "RSA_generate_key_ex failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1260
-#: src/hed/libs/credential/Credential.cpp:1438
+#: src/hed/libs/credential/Credential.cpp:1285
+#: src/hed/libs/credential/Credential.cpp:1463
 msgid "BN_new || RSA_new failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1270
+#: src/hed/libs/credential/Credential.cpp:1295
 msgid "Created RSA key, proceeding with request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1275
+#: src/hed/libs/credential/Credential.cpp:1300
 msgid "pkey and rsa_key exist!"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1278
+#: src/hed/libs/credential/Credential.cpp:1303
 msgid "Generate new X509 request!"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1284
+#: src/hed/libs/credential/Credential.cpp:1309
 msgid "Setting subject name!"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1292
-#: src/hed/libs/credential/Credential.cpp:1540
+#: src/hed/libs/credential/Credential.cpp:1317
+#: src/hed/libs/credential/Credential.cpp:1565
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1322
-#: src/hed/libs/credential/Credential.cpp:1363
-#: src/hed/libs/credential/Credential.cpp:1572
-#: src/hed/libs/credential/Credential.cpp:1592
+#: src/hed/libs/credential/Credential.cpp:1347
+#: src/hed/libs/credential/Credential.cpp:1388
+#: src/hed/libs/credential/Credential.cpp:1597
+#: src/hed/libs/credential/Credential.cpp:1617
 msgid "Can not create BIO for request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1340
+#: src/hed/libs/credential/Credential.cpp:1365
 msgid "Failed to write request into string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1367
-#: src/hed/libs/credential/Credential.cpp:1372
-#: src/hed/libs/credential/Credential.cpp:1596
+#: src/hed/libs/credential/Credential.cpp:1392
+#: src/hed/libs/credential/Credential.cpp:1397
+#: src/hed/libs/credential/Credential.cpp:1621
 msgid "Can not set writable file for request BIO"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1378
-#: src/hed/libs/credential/Credential.cpp:1601
+#: src/hed/libs/credential/Credential.cpp:1403
+#: src/hed/libs/credential/Credential.cpp:1626
 msgid "Wrote request into a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1380
-#: src/hed/libs/credential/Credential.cpp:1604
+#: src/hed/libs/credential/Credential.cpp:1405
+#: src/hed/libs/credential/Credential.cpp:1629
 msgid "Failed to write request into a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1400
+#: src/hed/libs/credential/Credential.cpp:1425
 msgid "The credential's private key has already been initialized"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1460
+#: src/hed/libs/credential/Credential.cpp:1485
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1470
+#: src/hed/libs/credential/Credential.cpp:1495
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1496
+#: src/hed/libs/credential/Credential.cpp:1521
 #, c-format
 msgid "Can not get X509V3_EXT_METHOD for %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1504
-#: src/hed/libs/credential/Credential.cpp:1515
-#: src/hed/libs/credential/Credential.cpp:2086
-#: src/hed/libs/credential/Credential.cpp:2094
+#: src/hed/libs/credential/Credential.cpp:1529
+#: src/hed/libs/credential/Credential.cpp:1540
+#: src/hed/libs/credential/Credential.cpp:2111
+#: src/hed/libs/credential/Credential.cpp:2119
 msgid ""
 "Can not convert PROXYCERTINFO struct from internal to DER encoded format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1547
+#: src/hed/libs/credential/Credential.cpp:1572
 msgid "Can't convert X509 request from internal to DER encoded format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1557
+#: src/hed/libs/credential/Credential.cpp:1582
 msgid "Can not generate X509 request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1559
+#: src/hed/libs/credential/Credential.cpp:1584
 msgid "Can not set private key"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1657
+#: src/hed/libs/credential/Credential.cpp:1682
 msgid "Failed to get private key"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1676
+#: src/hed/libs/credential/Credential.cpp:1701
 msgid "Failed to get public key from RSA object"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1684
+#: src/hed/libs/credential/Credential.cpp:1709
 msgid "Failed to get public key from X509 object"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1691
+#: src/hed/libs/credential/Credential.cpp:1716
 msgid "Failed to get public key"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1730
+#: src/hed/libs/credential/Credential.cpp:1755
 #, c-format
 msgid "Certiticate chain number %d"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1758
+#: src/hed/libs/credential/Credential.cpp:1783
 msgid "NULL BIO passed to InquireRequest"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1761
+#: src/hed/libs/credential/Credential.cpp:1786
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1765
+#: src/hed/libs/credential/Credential.cpp:1790
 msgid "d2i_X509_REQ_bio failed"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1800
+#: src/hed/libs/credential/Credential.cpp:1825
 msgid "Can not get policy from PROXYCERTINFO extension"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1804
+#: src/hed/libs/credential/Credential.cpp:1829
 msgid "Can not get policy language from PROXYCERTINFO extension"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1827
+#: src/hed/libs/credential/Credential.cpp:1852
 #, c-format
 msgid "Cert Type: %d"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1840
-#: src/hed/libs/credential/Credential.cpp:1859
+#: src/hed/libs/credential/Credential.cpp:1865
+#: src/hed/libs/credential/Credential.cpp:1884
 msgid "Can not create BIO for parsing request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1845
+#: src/hed/libs/credential/Credential.cpp:1870
 msgid "Read request from a string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1848
+#: src/hed/libs/credential/Credential.cpp:1873
 msgid "Failed to read request from a string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1863
+#: src/hed/libs/credential/Credential.cpp:1888
 msgid "Can not set readable file for request BIO"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1868
+#: src/hed/libs/credential/Credential.cpp:1893
 msgid "Read request from a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1871
+#: src/hed/libs/credential/Credential.cpp:1896
 msgid "Failed to read request from a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:1911
+#: src/hed/libs/credential/Credential.cpp:1936
 msgid "Can not convert private key to DER format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2035
+#: src/hed/libs/credential/Credential.cpp:2060
 msgid "Credential is not initialized"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2040
+#: src/hed/libs/credential/Credential.cpp:2065
 msgid "Failed to initialize X509 structure"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2063
+#: src/hed/libs/credential/Credential.cpp:2088
 #, c-format
 msgid "Can't get X509V3_EXT_METHOD for %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2106
-#: src/hed/libs/credential/Credential.cpp:2156
+#: src/hed/libs/credential/Credential.cpp:2131
+#: src/hed/libs/credential/Credential.cpp:2181
 msgid "Can not add X509 extension to proxy cert"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2121
+#: src/hed/libs/credential/Credential.cpp:2146
 msgid "Can not get extension from issuer certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2126
+#: src/hed/libs/credential/Credential.cpp:2151
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2136
-#: src/hed/libs/credential/Credential.cpp:2144
+#: src/hed/libs/credential/Credential.cpp:2161
+#: src/hed/libs/credential/Credential.cpp:2169
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2164
+#: src/hed/libs/credential/Credential.cpp:2189
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2170
+#: src/hed/libs/credential/Credential.cpp:2195
 msgid "Can not copy extended KeyUsage extension"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2176
+#: src/hed/libs/credential/Credential.cpp:2201
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2183
+#: src/hed/libs/credential/Credential.cpp:2208
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2188
+#: src/hed/libs/credential/Credential.cpp:2213
 msgid "Can not create name entry CN for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2193
+#: src/hed/libs/credential/Credential.cpp:2218
 msgid "Can not set CN in proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2201
+#: src/hed/libs/credential/Credential.cpp:2226
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2206
+#: src/hed/libs/credential/Credential.cpp:2231
 msgid "Can not set version number for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2211
+#: src/hed/libs/credential/Credential.cpp:2236
 msgid "Can not set serial number for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2216
+#: src/hed/libs/credential/Credential.cpp:2241
 msgid "Can not set the lifetime for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2220
+#: src/hed/libs/credential/Credential.cpp:2245
 msgid "Can not set pubkey for proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2240
-#: src/hed/libs/credential/Credential.cpp:2881
+#: src/hed/libs/credential/Credential.cpp:2265
+#: src/hed/libs/credential/Credential.cpp:2906
 msgid "The credential to be signed is NULL"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2244
-#: src/hed/libs/credential/Credential.cpp:2885
+#: src/hed/libs/credential/Credential.cpp:2269
+#: src/hed/libs/credential/Credential.cpp:2910
 msgid "The credential to be signed contains no request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2248
-#: src/hed/libs/credential/Credential.cpp:2889
+#: src/hed/libs/credential/Credential.cpp:2273
+#: src/hed/libs/credential/Credential.cpp:2914
 msgid "The BIO for output is NULL"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2263
-#: src/hed/libs/credential/Credential.cpp:2896
+#: src/hed/libs/credential/Credential.cpp:2288
+#: src/hed/libs/credential/Credential.cpp:2921
 msgid "Error when extracting public key from request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2268
-#: src/hed/libs/credential/Credential.cpp:2900
+#: src/hed/libs/credential/Credential.cpp:2293
+#: src/hed/libs/credential/Credential.cpp:2925
 msgid "Failed to verify the request"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2272
+#: src/hed/libs/credential/Credential.cpp:2297
 msgid "Failed to add issuer's extension into proxy"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2302
+#: src/hed/libs/credential/Credential.cpp:2327
 msgid "Failed to find extension"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2306
+#: src/hed/libs/credential/Credential.cpp:2331
 msgid "Failed to add extension into proxy"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2316
+#: src/hed/libs/credential/Credential.cpp:2341
 msgid "Can not get the issuer's private key"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2324
-#: src/hed/libs/credential/Credential.cpp:2935
+#: src/hed/libs/credential/Credential.cpp:2349
+#: src/hed/libs/credential/Credential.cpp:2960
 msgid "There is no digest in issuer's private key object"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2329
-#: src/hed/libs/credential/Credential.cpp:2939
+#: src/hed/libs/credential/Credential.cpp:2354
+#: src/hed/libs/credential/Credential.cpp:2964
 #, c-format
 msgid "%s is an unsupported digest type"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2342
+#: src/hed/libs/credential/Credential.cpp:2367
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed,it should be SHA1 or SHA2 to sign "
 "certificate requests"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2348
+#: src/hed/libs/credential/Credential.cpp:2373
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed,it should be SHA1/SHA2 to sign "
 "certificate requests"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2355
+#: src/hed/libs/credential/Credential.cpp:2380
 msgid "Failed to sign the proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2357
+#: src/hed/libs/credential/Credential.cpp:2382
 msgid "Succeeded to sign the proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2362
+#: src/hed/libs/credential/Credential.cpp:2387
 msgid "Failed to verify the signed certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2364
+#: src/hed/libs/credential/Credential.cpp:2389
 msgid "Succeeded to verify the signed certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2369
-#: src/hed/libs/credential/Credential.cpp:2378
+#: src/hed/libs/credential/Credential.cpp:2394
+#: src/hed/libs/credential/Credential.cpp:2403
 msgid "Output the proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2372
+#: src/hed/libs/credential/Credential.cpp:2397
 msgid "Can not convert signed proxy cert into PEM format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2381
+#: src/hed/libs/credential/Credential.cpp:2406
 msgid "Can not convert signed proxy cert into DER format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2397
-#: src/hed/libs/credential/Credential.cpp:2420
+#: src/hed/libs/credential/Credential.cpp:2422
+#: src/hed/libs/credential/Credential.cpp:2445
 msgid "Can not create BIO for signed proxy certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2424
+#: src/hed/libs/credential/Credential.cpp:2449
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2429
+#: src/hed/libs/credential/Credential.cpp:2454
 msgid "Wrote signed proxy certificate into a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2432
+#: src/hed/libs/credential/Credential.cpp:2457
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2464
-#: src/hed/libs/credential/Credential.cpp:2500
+#: src/hed/libs/credential/Credential.cpp:2489
+#: src/hed/libs/credential/Credential.cpp:2525
 #, c-format
 msgid "ERROR:%s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2508
+#: src/hed/libs/credential/Credential.cpp:2533
 #, c-format
 msgid "SSL error: %s, libs: %s, func: %s, reason: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2553
+#: src/hed/libs/credential/Credential.cpp:2578
 #, c-format
 msgid "unable to load number from: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2558
+#: src/hed/libs/credential/Credential.cpp:2583
 msgid "error converting number from bin to BIGNUM"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2585
+#: src/hed/libs/credential/Credential.cpp:2610
 msgid "file name too long"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2608
+#: src/hed/libs/credential/Credential.cpp:2633
 msgid "error converting serial to ASN.1 format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2641
+#: src/hed/libs/credential/Credential.cpp:2666
 #, c-format
 msgid "load serial from %s failure"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2646
+#: src/hed/libs/credential/Credential.cpp:2671
 msgid "add_word failure"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2651
+#: src/hed/libs/credential/Credential.cpp:2676
 #, c-format
 msgid "save serial to %s failure"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2671
+#: src/hed/libs/credential/Credential.cpp:2696
 msgid "Error initialising X509 store"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2678
+#: src/hed/libs/credential/Credential.cpp:2703
 msgid "Out of memory when generate random serial"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2690
+#: src/hed/libs/credential/Credential.cpp:2715
 msgid "CA certificate and CA private key do not match"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2714
+#: src/hed/libs/credential/Credential.cpp:2739
 #, c-format
 msgid "Failed to load extension section: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2750
+#: src/hed/libs/credential/Credential.cpp:2775
 msgid "malloc error"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2754
+#: src/hed/libs/credential/Credential.cpp:2779
 msgid "Subject does not start with '/'"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2770
-#: src/hed/libs/credential/Credential.cpp:2791
+#: src/hed/libs/credential/Credential.cpp:2795
+#: src/hed/libs/credential/Credential.cpp:2816
 msgid "escape character at end of string"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2782
+#: src/hed/libs/credential/Credential.cpp:2807
 #, c-format
 msgid ""
 "end of string encountered while processing type of subject name element #%d"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2819
+#: src/hed/libs/credential/Credential.cpp:2844
 #, c-format
 msgid "Subject Attribute %s has no known NID, skipped"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2823
+#: src/hed/libs/credential/Credential.cpp:2848
 #, c-format
 msgid "No value provided for Subject Attribute %s skipped"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2866
+#: src/hed/libs/credential/Credential.cpp:2891
 msgid "Failed to set the pubkey for X509 object by using pubkey from X509_REQ"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2876
+#: src/hed/libs/credential/Credential.cpp:2901
 msgid "The private key for signing is not initialized"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2959
+#: src/hed/libs/credential/Credential.cpp:2984
 #, c-format
 msgid "Error when loading the extension config file: %s"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:2963
+#: src/hed/libs/credential/Credential.cpp:2988
 #, c-format
 msgid "Error when loading the extension config file: %s on line: %d"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3004
+#: src/hed/libs/credential/Credential.cpp:3029
 msgid "Failed to add extension into EEC certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3019
+#: src/hed/libs/credential/Credential.cpp:3044
 msgid "Can not sign a EEC"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3023
+#: src/hed/libs/credential/Credential.cpp:3048
 msgid "Output EEC certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3026
+#: src/hed/libs/credential/Credential.cpp:3051
 msgid "Can not convert signed EEC cert into DER format"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3040
-#: src/hed/libs/credential/Credential.cpp:3059
+#: src/hed/libs/credential/Credential.cpp:3065
+#: src/hed/libs/credential/Credential.cpp:3084
 msgid "Can not create BIO for signed EEC certificate"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3063
+#: src/hed/libs/credential/Credential.cpp:3088
 msgid "Can not set writable file for signed EEC certificate BIO"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3068
+#: src/hed/libs/credential/Credential.cpp:3093
 msgid "Wrote signed EEC certificate into a file"
 msgstr ""
 
-#: src/hed/libs/credential/Credential.cpp:3071
+#: src/hed/libs/credential/Credential.cpp:3096
 msgid "Failed to write signed EEC certificate into a file"
 msgstr ""
 
@@ -11941,33 +11945,37 @@ msgstr ""
 msgid "VOMS: authorityKey is wrong"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1396
+#: src/hed/libs/credential/VOMSUtil.cpp:1380
+msgid "VOMS: missing AC parts"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:1397
 msgid "VOMS: unsupported time format format in AC - expecting GENERALIZED TIME"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1402
+#: src/hed/libs/credential/VOMSUtil.cpp:1403
 msgid "VOMS: AC is not yet valid"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1409
+#: src/hed/libs/credential/VOMSUtil.cpp:1410
 msgid "VOMS: AC has expired"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1424
+#: src/hed/libs/credential/VOMSUtil.cpp:1425
 msgid "VOMS: AC is not complete - missing Serial or Issuer information"
-msgstr ""
-
-#: src/hed/libs/credential/VOMSUtil.cpp:1429
-#, c-format
-msgid "VOMS: the holder serial number is:  %lx"
 msgstr ""
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1430
 #, c-format
+msgid "VOMS: the holder serial number is:  %lx"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:1431
+#, c-format
 msgid "VOMS: the serial number in AC is:  %lx"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1433
+#: src/hed/libs/credential/VOMSUtil.cpp:1434
 #, c-format
 msgid ""
 "VOMS: the holder serial number %lx is not the same as the serial number in "
@@ -11975,70 +11983,74 @@ msgid ""
 "a proxy certificate with a different serial number as the original EEC cert"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1442
+#: src/hed/libs/credential/VOMSUtil.cpp:1443
 msgid "VOMS: the holder information in AC is wrong"
-msgstr ""
-
-#: src/hed/libs/credential/VOMSUtil.cpp:1453
-#, c-format
-msgid "VOMS: DN of holder in AC: %s"
 msgstr ""
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1454
 #, c-format
-msgid "VOMS: DN of holder: %s"
+msgid "VOMS: DN of holder in AC: %s"
 msgstr ""
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1455
 #, c-format
+msgid "VOMS: DN of holder: %s"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:1456
+#, c-format
 msgid "VOMS: DN of issuer: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1462
+#: src/hed/libs/credential/VOMSUtil.cpp:1463
 msgid ""
 "VOMS: the holder name in AC is not related to the distinguished name in "
 "holder certificate"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1472
-#: src/hed/libs/credential/VOMSUtil.cpp:1479
+#: src/hed/libs/credential/VOMSUtil.cpp:1473
+#: src/hed/libs/credential/VOMSUtil.cpp:1480
 msgid "VOMS: the holder issuerUID is not the same as that in AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1492
+#: src/hed/libs/credential/VOMSUtil.cpp:1493
 msgid "VOMS: the holder issuer name is not the same as that in AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1502
+#: src/hed/libs/credential/VOMSUtil.cpp:1503
 msgid "VOMS: the issuer information in AC is wrong"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1510
+#: src/hed/libs/credential/VOMSUtil.cpp:1511
 #, c-format
 msgid "VOMS: the issuer name %s is not the same as that in AC - %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1518
+#: src/hed/libs/credential/VOMSUtil.cpp:1519
 msgid ""
 "VOMS: the serial number of AC INFO is too long - expecting no more than 20 "
 "octets"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1548
-#: src/hed/libs/credential/VOMSUtil.cpp:1556
-#: src/hed/libs/credential/VOMSUtil.cpp:1564
-#: src/hed/libs/credential/VOMSUtil.cpp:1572
-#: src/hed/libs/credential/VOMSUtil.cpp:1595
+#: src/hed/libs/credential/VOMSUtil.cpp:1549
+#: src/hed/libs/credential/VOMSUtil.cpp:1557
+#: src/hed/libs/credential/VOMSUtil.cpp:1565
+#: src/hed/libs/credential/VOMSUtil.cpp:1573
+#: src/hed/libs/credential/VOMSUtil.cpp:1596
 msgid "VOMS: unable to extract VO name from AC"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1586
+#: src/hed/libs/credential/VOMSUtil.cpp:1587
 #, c-format
 msgid "VOMS: unable to determine hostname of AC from VO name: %s"
 msgstr ""
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1605
+#: src/hed/libs/credential/VOMSUtil.cpp:1606
 msgid "VOMS: can not verify the signature of the AC"
+msgstr ""
+
+#: src/hed/libs/credential/VOMSUtil.cpp:1612
+msgid "VOMS: problems while parsing information in AC"
 msgstr ""
 
 #: src/hed/libs/credential/test/VOMSUtilTest.cpp:128
@@ -12483,7 +12495,7 @@ msgid "Cannot compare empty checksum"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:1089
-#: src/libs/data-staging/DataStagingDelivery.cpp:444
+#: src/libs/data-staging/DataStagingDelivery.cpp:456
 msgid "Checksum type of source and calculated checksum differ, cannot compare"
 msgstr ""
 
@@ -12493,13 +12505,13 @@ msgid "Checksum mismatch between calcuated checksum %s and source checksum %s"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:1104
-#: src/libs/data-staging/DataStagingDelivery.cpp:460
+#: src/libs/data-staging/DataStagingDelivery.cpp:472
 #, c-format
 msgid "Calculated transfer checksum %s matches source checksum"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:1110
-#: src/libs/data-staging/DataStagingDelivery.cpp:463
+#: src/libs/data-staging/DataStagingDelivery.cpp:475
 msgid "Checksum not computed"
 msgstr ""
 
@@ -12508,17 +12520,17 @@ msgstr ""
 msgid "Failed to postregister destination %s"
 msgstr ""
 
-#: src/hed/libs/data/DataPoint.cpp:81
+#: src/hed/libs/data/DataPoint.cpp:82
 #, c-format
 msgid "Invalid URL option: %s"
 msgstr ""
 
-#: src/hed/libs/data/DataPoint.cpp:245
+#: src/hed/libs/data/DataPoint.cpp:246
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr ""
 
-#: src/hed/libs/data/DataPoint.cpp:260
+#: src/hed/libs/data/DataPoint.cpp:261
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install "
@@ -14625,16 +14637,16 @@ msgid "Delegation handler with delegatee role starts to process"
 msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:152
-#: src/services/a-rex/arex.cpp:551
+#: src/services/a-rex/arex.cpp:553
 #: src/services/cache_service/CacheService.cpp:510
-#: src/services/data-staging/DataDeliveryService.cpp:614
+#: src/services/data-staging/DataDeliveryService.cpp:627
 msgid "process: POST"
 msgstr ""
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:159
-#: src/services/a-rex/arex.cpp:558
+#: src/services/a-rex/arex.cpp:560
 #: src/services/cache_service/CacheService.cpp:519
-#: src/services/data-staging/DataDeliveryService.cpp:623
+#: src/services/data-staging/DataDeliveryService.cpp:636
 #: src/services/wrappers/java/javawrapper.cpp:140
 #: src/services/wrappers/python/pythonwrapper.cpp:413
 msgid "input is not SOAP"
@@ -14745,148 +14757,173 @@ msgstr ""
 msgid "Configuration file is broken - block name is too short: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyMap.cpp:31 src/hed/shc/legacy/LegacyPDP.cpp:93
+#: src/hed/shc/legacy/LegacyMap.cpp:31 src/hed/shc/legacy/LegacyPDP.cpp:96
 msgid "Configuration file not specified in ConfigBlock"
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyMap.cpp:40 src/hed/shc/legacy/LegacyPDP.cpp:102
+#: src/hed/shc/legacy/LegacyMap.cpp:40 src/hed/shc/legacy/LegacyPDP.cpp:105
 msgid "BlockName is empty"
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyMap.cpp:164
+#: src/hed/shc/legacy/LegacyMap.cpp:99
+#, c-format
+msgid "Failed processing user mapping command: unixmap %s"
+msgstr ""
+
+#: src/hed/shc/legacy/LegacyMap.cpp:106
+#, c-format
+msgid "Failed processing user mapping command: unixgroup %s"
+msgstr ""
+
+#: src/hed/shc/legacy/LegacyMap.cpp:113
+#, c-format
+msgid "Failed processing user mapping command: unixvo %s"
+msgstr ""
+
+#: src/hed/shc/legacy/LegacyMap.cpp:173
 msgid "LegacyMap: no configurations blocks defined"
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyMap.cpp:186 src/hed/shc/legacy/LegacyPDP.cpp:196
+#: src/hed/shc/legacy/LegacyMap.cpp:195 src/hed/shc/legacy/LegacyPDP.cpp:210
 msgid ""
 "LegacyPDP: there is no ARCLEGACY Sec Attribute defined. Probably ARC Legacy "
 "Sec Handler is not configured or failed."
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyMap.cpp:191 src/hed/shc/legacy/LegacyPDP.cpp:201
+#: src/hed/shc/legacy/LegacyMap.cpp:200 src/hed/shc/legacy/LegacyPDP.cpp:215
 msgid "LegacyPDP: ARC Legacy Sec Attribute not recognized."
 msgstr ""
 
-#: src/hed/shc/legacy/LegacyPDP.cpp:112
+#: src/hed/shc/legacy/LegacyPDP.cpp:115
 #, fuzzy, c-format
 msgid "Failed to parse configuration file %s"
 msgstr "voms szerver fájljának az elérési útvonala"
 
-#: src/hed/shc/legacy/LegacyPDP.cpp:118
+#: src/hed/shc/legacy/LegacyPDP.cpp:121
 #, c-format
 msgid "Block %s not found in configuration file %s"
 msgstr ""
 
 #: src/hed/shc/legacy/LegacySecHandler.cpp:36
-#: src/hed/shc/legacy/LegacySecHandler.cpp:112
+#: src/hed/shc/legacy/LegacySecHandler.cpp:110
 msgid "LegacySecHandler: configuration file not specified"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:138 src/hed/shc/legacy/arc_lcmaps.cpp:154
+#: src/hed/shc/legacy/arc_lcas.cpp:140 src/hed/shc/legacy/arc_lcmaps.cpp:157
 #, c-format
 msgid ""
 "Failed to convert GSI credential to GSS credential (major: %d, minor: %d)"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:164 src/hed/shc/legacy/arc_lcmaps.cpp:180
+#: src/hed/shc/legacy/arc_lcas.cpp:166 src/hed/shc/legacy/arc_lcmaps.cpp:183
 msgid "Missing subject name"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:169 src/hed/shc/legacy/arc_lcmaps.cpp:185
+#: src/hed/shc/legacy/arc_lcas.cpp:171 src/hed/shc/legacy/arc_lcmaps.cpp:188
 #, fuzzy
 msgid "Missing path of credentials file"
 msgstr "kérési fájl elérési útvonala"
 
-#: src/hed/shc/legacy/arc_lcas.cpp:174
+#: src/hed/shc/legacy/arc_lcas.cpp:176
 msgid "Missing name of LCAS library"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:191
+#: src/hed/shc/legacy/arc_lcas.cpp:193
 #, c-format
 msgid "Can't load LCAS library %s: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:201
+#: src/hed/shc/legacy/arc_lcas.cpp:203
 #, c-format
 msgid "Can't find LCAS functions in a library %s"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:211
+#: src/hed/shc/legacy/arc_lcas.cpp:213
 msgid "Failed to initialize LCAS"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcas.cpp:226
+#: src/hed/shc/legacy/arc_lcas.cpp:228
 msgid "Failed to terminate LCAS"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:190
+#: src/hed/shc/legacy/arc_lcmaps.cpp:193
 msgid "Missing name of LCMAPS library"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:204
+#: src/hed/shc/legacy/arc_lcmaps.cpp:207
 msgid "Can't read policy names"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:215
+#: src/hed/shc/legacy/arc_lcmaps.cpp:218
 #, c-format
 msgid "Can't load LCMAPS library %s: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:227
+#: src/hed/shc/legacy/arc_lcmaps.cpp:230
 #, c-format
 msgid "Can't find LCMAPS functions in a library %s"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:239
+#: src/hed/shc/legacy/arc_lcmaps.cpp:242
 msgid "LCMAPS has lcmaps_run"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:240
+#: src/hed/shc/legacy/arc_lcmaps.cpp:243
 msgid "LCMAPS has getCredentialData"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:244
+#: src/hed/shc/legacy/arc_lcmaps.cpp:247
 msgid "Failed to initialize LCMAPS"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:287
+#: src/hed/shc/legacy/arc_lcmaps.cpp:290
 #, c-format
 msgid "LCMAPS returned invalid GID: %u"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:290
-msgid "LCMAPS did not return any GID"
-msgstr ""
-
 #: src/hed/shc/legacy/arc_lcmaps.cpp:293
-#, c-format
-msgid "LCMAPS returned UID which has no username: %u"
+msgid "LCMAPS did not return any GID"
 msgstr ""
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:296
 #, c-format
-msgid "LCMAPS returned invalid UID: %u"
+msgid "LCMAPS returned UID which has no username: %u"
 msgstr ""
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:299
+#, c-format
+msgid "LCMAPS returned invalid UID: %u"
+msgstr ""
+
+#: src/hed/shc/legacy/arc_lcmaps.cpp:302
 msgid "LCMAPS did not return any UID"
 msgstr ""
 
-#: src/hed/shc/legacy/arc_lcmaps.cpp:309
+#: src/hed/shc/legacy/arc_lcmaps.cpp:312
 msgid "Failed to terminate LCMAPS"
 msgstr ""
 
-#: src/hed/shc/legacy/auth.cpp:264
+#: src/hed/shc/legacy/auth.cpp:128
+#, c-format
+msgid "arc_to_voms - %u attributes"
+msgstr ""
+
+#: src/hed/shc/legacy/auth.cpp:130
+#, c-format
+msgid "arc_to_voms: attribute: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/auth.cpp:295
 #, c-format
 msgid "Credentials stored in temporary file %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth.cpp:273
+#: src/hed/shc/legacy/auth.cpp:304
 #, c-format
 msgid "Assigned to authorization group %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth.cpp:278
+#: src/hed/shc/legacy/auth.cpp:309
 #, c-format
 msgid "Assigned to VO %s"
 msgstr ""
@@ -14897,113 +14934,95 @@ msgstr ""
 msgid "Failed to read file %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_ldap.cpp:91
-msgid "LDAP authorization is not implemented yet"
-msgstr ""
+#: src/hed/shc/legacy/auth_ldap.cpp:22
+#, fuzzy
+msgid "LDAP authorization is not supported anymore"
+msgstr "A fileset regisztcáció nem támogatott még"
 
-#: src/hed/shc/legacy/auth_plugin.cpp:44 src/hed/shc/legacy/unixmap.cpp:183
+#: src/hed/shc/legacy/auth_plugin.cpp:44 src/hed/shc/legacy/unixmap.cpp:260
 #: src/services/gridftpd/auth/auth_plugin.cpp:70
-#: src/services/gridftpd/auth/unixmap.cpp:184
+#: src/services/gridftpd/auth/unixmap.cpp:251
 #, c-format
 msgid "Plugin %s returned: %u"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_plugin.cpp:48 src/hed/shc/legacy/unixmap.cpp:187
+#: src/hed/shc/legacy/auth_plugin.cpp:48 src/hed/shc/legacy/unixmap.cpp:264
 #, c-format
 msgid "Plugin %s timeout after %u seconds"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_plugin.cpp:51 src/hed/shc/legacy/unixmap.cpp:190
+#: src/hed/shc/legacy/auth_plugin.cpp:51 src/hed/shc/legacy/unixmap.cpp:267
 #, c-format
 msgid "Plugin %s failed to start"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_plugin.cpp:53 src/hed/shc/legacy/unixmap.cpp:192
+#: src/hed/shc/legacy/auth_plugin.cpp:53 src/hed/shc/legacy/unixmap.cpp:269
 #, c-format
 msgid "Plugin %s printed: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_plugin.cpp:54 src/hed/shc/legacy/unixmap.cpp:193
+#: src/hed/shc/legacy/auth_plugin.cpp:54 src/hed/shc/legacy/unixmap.cpp:270
 #, c-format
 msgid "Plugin %s error: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:28
+#: src/hed/shc/legacy/auth_voms.cpp:39
 #: src/services/gridftpd/auth/auth_voms.cpp:45
 msgid "Missing VO in configuration"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:33
+#: src/hed/shc/legacy/auth_voms.cpp:44
 #: src/services/gridftpd/auth/auth_voms.cpp:51
 msgid "Missing group in configuration"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:38
+#: src/hed/shc/legacy/auth_voms.cpp:49
 #: src/services/gridftpd/auth/auth_voms.cpp:57
 msgid "Missing role in configuration"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:43
+#: src/hed/shc/legacy/auth_voms.cpp:54
 #: src/services/gridftpd/auth/auth_voms.cpp:63
 msgid "Missing capabilities in configuration"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:47
+#: src/hed/shc/legacy/auth_voms.cpp:58
 #: src/services/gridftpd/auth/auth_voms.cpp:67
 #, fuzzy, c-format
 msgid "Rule: vo: %s"
 msgstr "Kérés: %s"
 
-#: src/hed/shc/legacy/auth_voms.cpp:48
+#: src/hed/shc/legacy/auth_voms.cpp:59
 #: src/services/gridftpd/auth/auth_voms.cpp:68
 #, c-format
 msgid "Rule: group: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:49
+#: src/hed/shc/legacy/auth_voms.cpp:60
 #: src/services/gridftpd/auth/auth_voms.cpp:69
 #, fuzzy, c-format
 msgid "Rule: role: %s"
 msgstr "modul neve: %s"
 
-#: src/hed/shc/legacy/auth_voms.cpp:50
+#: src/hed/shc/legacy/auth_voms.cpp:61
 #: src/services/gridftpd/auth/auth_voms.cpp:70
 #, c-format
 msgid "Rule: capabilities: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:54
+#: src/hed/shc/legacy/auth_voms.cpp:64
 #: src/services/gridftpd/auth/auth_voms.cpp:77
 #, c-format
 msgid "Match vo: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:57
-#: src/services/gridftpd/auth/auth_voms.cpp:80
+#: src/hed/shc/legacy/auth_voms.cpp:71
 #, c-format
-msgid "Match group: %s"
+msgid "Matched: %s %s %s %s"
 msgstr ""
 
-#: src/hed/shc/legacy/auth_voms.cpp:58
-#: src/services/gridftpd/auth/auth_voms.cpp:81
-#, c-format
-msgid "Match role: %s"
-msgstr ""
-
-#: src/hed/shc/legacy/auth_voms.cpp:59
-#: src/services/gridftpd/auth/auth_voms.cpp:82
-#, c-format
-msgid "Match capabilities: %s"
-msgstr ""
-
-#: src/hed/shc/legacy/auth_voms.cpp:63
-#: src/services/gridftpd/auth/auth_voms.cpp:86
-#, c-format
-msgid "Match: %s %s %s %s"
-msgstr ""
-
-#: src/hed/shc/legacy/auth_voms.cpp:74
-#: src/services/gridftpd/auth/auth_voms.cpp:97
+#: src/hed/shc/legacy/auth_voms.cpp:86
+#: src/services/gridftpd/auth/auth_voms.cpp:98
 msgid "Matched nothing"
 msgstr ""
 
@@ -15014,22 +15033,101 @@ msgstr ""
 msgid "SimpleMap: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/unixmap.cpp:180
-#: src/services/gridftpd/auth/unixmap.cpp:181
+#: src/hed/shc/legacy/unixmap.cpp:49 src/hed/shc/legacy/unixmap.cpp:54
+#: src/hed/shc/legacy/unixmap.cpp:98 src/hed/shc/legacy/unixmap.cpp:103
+#: src/hed/shc/legacy/unixmap.cpp:147 src/hed/shc/legacy/unixmap.cpp:152
+#: src/services/gridftpd/auth/unixmap.cpp:47
+#: src/services/gridftpd/auth/unixmap.cpp:52
+#: src/services/gridftpd/auth/unixmap.cpp:96
+#: src/services/gridftpd/auth/unixmap.cpp:101
+#: src/services/gridftpd/auth/unixmap.cpp:145
+#: src/services/gridftpd/auth/unixmap.cpp:150
+msgid "User name mapping command is empty"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:61 src/services/gridftpd/auth/unixmap.cpp:59
+#, c-format
+msgid "User name mapping has empty group: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:72 src/hed/shc/legacy/unixmap.cpp:121
+#: src/hed/shc/legacy/unixmap.cpp:169
+#: src/services/gridftpd/auth/unixmap.cpp:70
+#: src/services/gridftpd/auth/unixmap.cpp:119
+#: src/services/gridftpd/auth/unixmap.cpp:167
+#, c-format
+msgid "User name mapping has empty command: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:110
+#: src/services/gridftpd/auth/unixmap.cpp:108
+#, c-format
+msgid "User name mapping has empty VO: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:159
+#: src/services/gridftpd/auth/unixmap.cpp:157
+#, c-format
+msgid "User name mapping has empty name: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:208 src/hed/shc/legacy/unixmap.cpp:213
+#: src/hed/shc/legacy/unixmap.cpp:229 src/hed/shc/legacy/unixmap.cpp:235
+#: src/services/gridftpd/auth/unixmap.cpp:212
+#: src/services/gridftpd/auth/unixmap.cpp:217
+#: src/services/gridftpd/auth/unixmap.cpp:233
+msgid "Plugin (user mapping) command is empty"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:219
+#: src/services/gridftpd/auth/unixmap.cpp:223
+#, c-format
+msgid "Plugin (user mapping) timeout is not a number: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:223
+#: src/services/gridftpd/auth/unixmap.cpp:227
+#, c-format
+msgid "Plugin (user mapping) timeout is wrong number: %s"
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:257
+#: src/services/gridftpd/auth/unixmap.cpp:248
 #, c-format
 msgid "Plugin %s returned too much: %s"
 msgstr ""
 
-#: src/hed/shc/legacy/unixmap.cpp:202
-#: src/services/gridftpd/auth/unixmap.cpp:199
+#: src/hed/shc/legacy/unixmap.cpp:278
+msgid "User subject match is missing user subject."
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:282
+#: src/services/gridftpd/auth/unixmap.cpp:266
 #, c-format
 msgid "Mapfile at %s can't be opened."
 msgstr ""
 
-#: src/hed/shc/legacy/unixmap.cpp:227
-#: src/services/gridftpd/auth/unixmap.cpp:225
+#: src/hed/shc/legacy/unixmap.cpp:305
+#: src/services/gridftpd/auth/unixmap.cpp:290
+msgid "User pool call is missing user subject."
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:310
+#: src/services/gridftpd/auth/unixmap.cpp:295
 #, c-format
 msgid "User pool at %s can't be opened."
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:315
+#: src/services/gridftpd/auth/unixmap.cpp:300
+#, c-format
+msgid "User pool at %s failed to perform user mapping."
+msgstr ""
+
+#: src/hed/shc/legacy/unixmap.cpp:332
+#: src/services/gridftpd/auth/unixmap.cpp:317
+#, c-format
+msgid "User name direct mapping is missing user name: %s."
 msgstr ""
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:48
@@ -15352,36 +15450,36 @@ msgstr ""
 msgid "No target available inside the rule"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:83 src/libs/data-staging/DTR.cpp:87
+#: src/libs/data-staging/DTR.cpp:86 src/libs/data-staging/DTR.cpp:90
 #, c-format
 msgid "Could not handle endpoint %s"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:97
+#: src/libs/data-staging/DTR.cpp:100
 msgid "Source is the same as destination"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:167
+#: src/libs/data-staging/DTR.cpp:174
 #, fuzzy, c-format
 msgid "Invalid ID: %s"
 msgstr "Érvénytelen URL: %s"
 
-#: src/libs/data-staging/DTR.cpp:204
+#: src/libs/data-staging/DTR.cpp:211
 #, c-format
 msgid "%s->%s"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:308
+#: src/libs/data-staging/DTR.cpp:319
 #, c-format
 msgid "No callback for %s defined"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:323
+#: src/libs/data-staging/DTR.cpp:334
 #, c-format
 msgid "NULL callback for %s"
 msgstr ""
 
-#: src/libs/data-staging/DTR.cpp:326
+#: src/libs/data-staging/DTR.cpp:337
 #, c-format
 msgid "Request to push to unknown owner - %u"
 msgstr ""
@@ -15416,18 +15514,18 @@ msgid "Cleaning up after failure: deleting %s"
 msgstr ""
 
 #: src/libs/data-staging/DataDelivery.cpp:188
-#: src/libs/data-staging/DataDelivery.cpp:255
-#: src/libs/data-staging/DataDelivery.cpp:294
-#: src/libs/data-staging/DataDelivery.cpp:313
+#: src/libs/data-staging/DataDelivery.cpp:263
+#: src/libs/data-staging/DataDelivery.cpp:303
+#: src/libs/data-staging/DataDelivery.cpp:323
 msgid "Failed to delete delivery object or deletion timed out"
 msgstr ""
 
-#: src/libs/data-staging/DataDelivery.cpp:251
+#: src/libs/data-staging/DataDelivery.cpp:254
 #, c-format
 msgid "Transfer finished: %llu bytes transferred %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDelivery.cpp:319
+#: src/libs/data-staging/DataDelivery.cpp:329
 msgid "Data delivery loop exited"
 msgstr ""
 
@@ -15452,7 +15550,7 @@ msgid "Transfer killed after %i seconds without communication"
 msgstr ""
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:67
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:313
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:314
 #, c-format
 msgid "Connecting to Delivery service at %s"
 msgstr ""
@@ -15463,13 +15561,13 @@ msgid "Failed to set up credential delegation with %s"
 msgstr ""
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:105
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:330
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:331
 #, c-format
 msgid "Could not connect to service %s: %s"
 msgstr ""
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:113
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:338
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:339
 #, fuzzy, c-format
 msgid "No SOAP response from Delivery service %s"
 msgstr "Nincs válasz a voms szervertől"
@@ -15510,7 +15608,7 @@ msgid "Failed to cancel transfer request: %s"
 msgstr "Nem sikerült elküldeni a kérést"
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:208
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:288
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:289
 #, c-format
 msgid "Bad format in XML response: %s"
 msgstr ""
@@ -15520,115 +15618,115 @@ msgstr ""
 msgid "Failed to cancel: %s"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:258
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:259
 #, fuzzy
 msgid "No SOAP response from delivery service"
 msgstr "Nincs válasz a voms szervertől"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:279
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:280
 #, fuzzy, c-format
 msgid "Failed to query state: %s"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:353
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:354
 #, c-format
 msgid "SOAP fault from delivery service at %s: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:361
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:362
 #, c-format
 msgid "Bad format in XML response from delivery service at %s: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:369
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:370
 #, c-format
 msgid "Error pinging delivery service at %s: %s: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:377
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:378
 #, c-format
 msgid "Dir %s allowed at service %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:458
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:472
 #, c-format
 msgid ""
 "DataDelivery log tail:\n"
 "%s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:471
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:485
 #, fuzzy
 msgid "Failed locating credentials"
 msgstr "Nem sikerült listázni a meta adatokat"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:476
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:490
 #, fuzzy
 msgid "Failed to initiate client connection"
 msgstr "Nem sikerült betölteni a konfigurációt"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:482
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:496
 msgid "Client connection has no entry point"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:125
+#: src/libs/data-staging/DataStagingDelivery.cpp:134
 msgid "Unexpected arguments"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:128
+#: src/libs/data-staging/DataStagingDelivery.cpp:137
 msgid "Source URL missing"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:131
+#: src/libs/data-staging/DataStagingDelivery.cpp:140
 #, fuzzy
 msgid "Destination URL missing"
 msgstr "Célállomás: %s"
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:135
+#: src/libs/data-staging/DataStagingDelivery.cpp:144
 #, fuzzy, c-format
 msgid "Source URL not valid: %s"
 msgstr "A lekérdezés nem XML helyes"
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:139
+#: src/libs/data-staging/DataStagingDelivery.cpp:148
 #, fuzzy, c-format
 msgid "Destination URL not valid: %s"
 msgstr "Célállomás: %s"
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:196
+#: src/libs/data-staging/DataStagingDelivery.cpp:205
 #, c-format
 msgid "Unknown transfer option: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:221
+#: src/libs/data-staging/DataStagingDelivery.cpp:230
 #, c-format
 msgid "Source URL not supported: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:226
-#: src/libs/data-staging/DataStagingDelivery.cpp:245
+#: src/libs/data-staging/DataStagingDelivery.cpp:235
+#: src/libs/data-staging/DataStagingDelivery.cpp:254
 msgid "No credentials supplied"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:240
+#: src/libs/data-staging/DataStagingDelivery.cpp:249
 #, fuzzy, c-format
 msgid "Destination URL not supported: %s"
 msgstr "A fileset regisztcáció nem támogatott még"
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:289
+#: src/libs/data-staging/DataStagingDelivery.cpp:298
 #, c-format
 msgid "Will calculate %s checksum"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:300
+#: src/libs/data-staging/DataStagingDelivery.cpp:309
 msgid "Cannot use supplied --size option"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:446
+#: src/libs/data-staging/DataStagingDelivery.cpp:458
 #, c-format
 msgid "Checksum mismatch between calculated checksum %s and source checksum %s"
 msgstr ""
 
-#: src/libs/data-staging/DataStagingDelivery.cpp:456
+#: src/libs/data-staging/DataStagingDelivery.cpp:468
 #, fuzzy, c-format
 msgid "Failed cleaning up destination %s"
 msgstr "Nem sikerült feloldani a célállomást"
@@ -15861,369 +15959,369 @@ msgstr ""
 msgid "Adding to bulk request"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:170
+#: src/libs/data-staging/Scheduler.cpp:174
 #, c-format
 msgid "Using next %s replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:177
+#: src/libs/data-staging/Scheduler.cpp:181
 #, c-format
 msgid "No more %s replicas"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:179
+#: src/libs/data-staging/Scheduler.cpp:183
 msgid "Will clean up pre-registered destination"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:183
+#: src/libs/data-staging/Scheduler.cpp:187
 msgid "Will release cache locks"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:186
+#: src/libs/data-staging/Scheduler.cpp:190
 msgid "Moving to end of data staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:195
+#: src/libs/data-staging/Scheduler.cpp:199
 #, c-format
 msgid "Source is mapped to %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:199
+#: src/libs/data-staging/Scheduler.cpp:203
 msgid "Cannot link to source which can be modified, will copy instead"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:209
+#: src/libs/data-staging/Scheduler.cpp:213
 msgid "Cannot link to a remote destination. Will not use mapped URL"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:212
+#: src/libs/data-staging/Scheduler.cpp:216
 msgid "Linking mapped file"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:219
+#: src/libs/data-staging/Scheduler.cpp:223
 #, c-format
 msgid "Failed to create link: %s. Will not use mapped URL"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:231
+#: src/libs/data-staging/Scheduler.cpp:235
 msgid "Linking mapped file - can't link on Windows"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:247
+#: src/libs/data-staging/Scheduler.cpp:251
 #, c-format
 msgid ""
 "Scheduler received new DTR %s with source: %s, destination: %s, assigned to "
 "transfer share %s with priority %d"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:254
+#: src/libs/data-staging/Scheduler.cpp:258
 msgid ""
 "File is not cacheable, was requested not to be cached or no cache available, "
 "skipping cache check"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:260
+#: src/libs/data-staging/Scheduler.cpp:264
 msgid "File is cacheable, will check cache"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:263
-#: src/libs/data-staging/Scheduler.cpp:289
+#: src/libs/data-staging/Scheduler.cpp:267
+#: src/libs/data-staging/Scheduler.cpp:293
 #, c-format
 msgid "File is currently being cached, will wait %is"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:282
+#: src/libs/data-staging/Scheduler.cpp:286
 msgid "Timed out while waiting for cache lock"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:293
+#: src/libs/data-staging/Scheduler.cpp:297
 msgid "Checking cache again"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:309
+#: src/libs/data-staging/Scheduler.cpp:313
 #, fuzzy
 msgid "Destination file is in cache"
 msgstr "Célállomás: %s"
 
-#: src/libs/data-staging/Scheduler.cpp:313
+#: src/libs/data-staging/Scheduler.cpp:317
 msgid "Source and/or destination is index service, will resolve replicas"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:316
+#: src/libs/data-staging/Scheduler.cpp:320
 msgid ""
 "Neither source nor destination are index services, will skip resolving "
 "replicas"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:326
+#: src/libs/data-staging/Scheduler.cpp:330
 msgid "Problem with index service, will release cache lock"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:330
+#: src/libs/data-staging/Scheduler.cpp:334
 msgid "Problem with index service, will proceed to end of data staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:340
+#: src/libs/data-staging/Scheduler.cpp:344
 msgid "Checking source file is present"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:348
+#: src/libs/data-staging/Scheduler.cpp:352
 msgid "Error with source file, moving to next replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:365
+#: src/libs/data-staging/Scheduler.cpp:374
 #, c-format
 msgid "Replica %s has long latency, trying next replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:367
+#: src/libs/data-staging/Scheduler.cpp:376
 #, c-format
 msgid "No more replicas, will use %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:370
+#: src/libs/data-staging/Scheduler.cpp:379
 #, c-format
 msgid "Checking replica %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:380
+#: src/libs/data-staging/Scheduler.cpp:389
 msgid "Overwrite requested - will pre-clean destination"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:383
+#: src/libs/data-staging/Scheduler.cpp:392
 msgid "No overwrite requested or allowed, skipping pre-cleaning"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:391
+#: src/libs/data-staging/Scheduler.cpp:400
 msgid "Pre-clean failed, will still try to copy"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:398
+#: src/libs/data-staging/Scheduler.cpp:407
 #, fuzzy
 msgid "Source or destination requires staging"
 msgstr "A feladat megszakítása sikertelen"
 
-#: src/libs/data-staging/Scheduler.cpp:402
+#: src/libs/data-staging/Scheduler.cpp:411
 msgid "No need to stage source or destination, skipping staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:432
+#: src/libs/data-staging/Scheduler.cpp:441
 msgid "Staging request timed out, will release request"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:436
+#: src/libs/data-staging/Scheduler.cpp:445
 msgid "Querying status of staging request"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:445
+#: src/libs/data-staging/Scheduler.cpp:454
 #, fuzzy
 msgid "Releasing requests"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/libs/data-staging/Scheduler.cpp:462
+#: src/libs/data-staging/Scheduler.cpp:471
 msgid "DTR is ready for transfer, moving to delivery queue"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:477
+#: src/libs/data-staging/Scheduler.cpp:486
 #, c-format
 msgid "Transfer failed: %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:487
+#: src/libs/data-staging/Scheduler.cpp:496
 msgid "Releasing request(s) made during staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:490
+#: src/libs/data-staging/Scheduler.cpp:499
 msgid "Neither source nor destination were staged, skipping releasing requests"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:502
+#: src/libs/data-staging/Scheduler.cpp:511
 msgid "Trying next replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:506
+#: src/libs/data-staging/Scheduler.cpp:515
 #, c-format
 msgid "Will %s in destination index service"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:510
+#: src/libs/data-staging/Scheduler.cpp:519
 msgid "Destination is not index service, skipping replica registration"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:523
+#: src/libs/data-staging/Scheduler.cpp:532
 msgid "Error registering replica, moving to end of data staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:531
+#: src/libs/data-staging/Scheduler.cpp:540
 msgid "Will process cache"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:535
+#: src/libs/data-staging/Scheduler.cpp:544
 msgid "File is not cacheable, skipping cache processing"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:549
+#: src/libs/data-staging/Scheduler.cpp:558
 msgid "Cancellation complete"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:563
+#: src/libs/data-staging/Scheduler.cpp:572
 msgid "Will wait 10s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:569
+#: src/libs/data-staging/Scheduler.cpp:578
 msgid "Error in cache processing, will retry without caching"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:578
+#: src/libs/data-staging/Scheduler.cpp:587
 msgid "Will retry without caching"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:596
+#: src/libs/data-staging/Scheduler.cpp:605
 msgid "Proxy has expired"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:607
+#: src/libs/data-staging/Scheduler.cpp:616
 #, c-format
 msgid "%i retries left, will wait until %s before next attempt"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:623
+#: src/libs/data-staging/Scheduler.cpp:632
 msgid "Out of retries"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:625
+#: src/libs/data-staging/Scheduler.cpp:634
 msgid "Permanent failure"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:631
+#: src/libs/data-staging/Scheduler.cpp:640
 msgid "Finished successfully"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:641
+#: src/libs/data-staging/Scheduler.cpp:650
 msgid "Returning to generator"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:808
+#: src/libs/data-staging/Scheduler.cpp:817
 msgid "Using non-RFC proxy so only local delivery can be used"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:814
+#: src/libs/data-staging/Scheduler.cpp:823
 msgid "Using non-RFC proxy so forcing local delivery"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:823
+#: src/libs/data-staging/Scheduler.cpp:832
 #, c-format
 msgid "File is smaller than %llu bytes, will use local delivery"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:873
+#: src/libs/data-staging/Scheduler.cpp:886
 #, c-format
 msgid "Delivery service at %s can copy to %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:881
+#: src/libs/data-staging/Scheduler.cpp:894
 #, c-format
 msgid "Delivery service at %s can copy from %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:894
+#: src/libs/data-staging/Scheduler.cpp:907
 msgid "Could not find any useable delivery service, forcing local transfer"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:910
+#: src/libs/data-staging/Scheduler.cpp:923
 #, c-format
 msgid "Not using delivery service at %s because it is full"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:937
+#: src/libs/data-staging/Scheduler.cpp:950
 #, c-format
 msgid "Not using delivery service %s due to previous failure"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:947
+#: src/libs/data-staging/Scheduler.cpp:960
 msgid "No remote delivery services are useable, forcing local delivery"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1148
+#: src/libs/data-staging/Scheduler.cpp:1161
 msgid "Cancelling active transfer"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1160
+#: src/libs/data-staging/Scheduler.cpp:1173
 msgid "Processing thread timed out. Restarting DTR"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1228
+#: src/libs/data-staging/Scheduler.cpp:1241
 #, fuzzy
 msgid "Will use bulk request"
 msgstr "Nem sikerült elküldeni a kérést"
 
-#: src/libs/data-staging/Scheduler.cpp:1250
+#: src/libs/data-staging/Scheduler.cpp:1263
 msgid "No delivery endpoints available, will try later"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1269
+#: src/libs/data-staging/Scheduler.cpp:1282
 msgid "Scheduler received NULL DTR"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1279
+#: src/libs/data-staging/Scheduler.cpp:1292
 msgid "Scheduler received invalid DTR"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1365
+#: src/libs/data-staging/Scheduler.cpp:1381
 msgid "Scheduler starting up"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1366
+#: src/libs/data-staging/Scheduler.cpp:1382
 msgid "Scheduler configuration:"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1367
+#: src/libs/data-staging/Scheduler.cpp:1383
 #, c-format
 msgid "  Pre-processor slots: %u"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1368
+#: src/libs/data-staging/Scheduler.cpp:1384
 #, c-format
 msgid "  Delivery slots: %u"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1369
+#: src/libs/data-staging/Scheduler.cpp:1385
 #, c-format
 msgid "  Post-processor slots: %u"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1370
+#: src/libs/data-staging/Scheduler.cpp:1386
 #, c-format
 msgid "  Emergency slots: %u"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1371
+#: src/libs/data-staging/Scheduler.cpp:1387
 #, c-format
 msgid "  Prepared slots: %u"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1372
+#: src/libs/data-staging/Scheduler.cpp:1388
 #, c-format
 msgid ""
 "  Shares configuration:\n"
 "%s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1375
+#: src/libs/data-staging/Scheduler.cpp:1391
 msgid "  Delivery service: LOCAL"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1376
+#: src/libs/data-staging/Scheduler.cpp:1392
 #, c-format
 msgid "  Delivery service: %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1381
+#: src/libs/data-staging/Scheduler.cpp:1397
 msgid "Failed to create DTR dump thread"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1398
-#: src/services/data-staging/DataDeliveryService.cpp:507
+#: src/libs/data-staging/Scheduler.cpp:1414
+#: src/services/data-staging/DataDeliveryService.cpp:510
 #, c-format
 msgid "DTR %s cancelled"
 msgstr ""
@@ -16260,177 +16358,182 @@ msgstr "Nem tudom másolni a %s fájlt: Nem érvényes tanúsítvány"
 msgid "Problem creating dtr (source %s, destination %s)"
 msgstr "Nem sikerült feloldani a célállomást"
 
-#: src/services/a-rex/arex.cpp:454
+#: src/services/a-rex/arex.cpp:445
+#, c-format
+msgid "Using cached local account '%s'"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:456
 msgid "Will not map to 'root' account by default"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:467
+#: src/services/a-rex/arex.cpp:469
 msgid "No local account name specified"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:470
+#: src/services/a-rex/arex.cpp:472
 #, c-format
 msgid "Using local account '%s'"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:491
+#: src/services/a-rex/arex.cpp:493
 msgid "Failed to acquire grid-manager's configuration"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:516
+#: src/services/a-rex/arex.cpp:518
 #: src/services/cache_service/CacheService.cpp:553
-#: src/services/data-staging/DataDeliveryService.cpp:671
+#: src/services/data-staging/DataDeliveryService.cpp:684
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:529
+#: src/services/a-rex/arex.cpp:531
 #, fuzzy, c-format
 msgid "Connection from %s: %s"
 msgstr "Funkció: %s"
 
-#: src/services/a-rex/arex.cpp:531
+#: src/services/a-rex/arex.cpp:533
 #, c-format
 msgid "process: method: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:532
+#: src/services/a-rex/arex.cpp:534
 #, c-format
 msgid "process: endpoint: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:543
+#: src/services/a-rex/arex.cpp:545
 #, c-format
 msgid "process: id: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:544
+#: src/services/a-rex/arex.cpp:546
 #, c-format
 msgid "process: subpath: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:564
+#: src/services/a-rex/arex.cpp:566
 #: src/services/cache_service/CacheService.cpp:527
-#: src/services/data-staging/DataDeliveryService.cpp:631
+#: src/services/data-staging/DataDeliveryService.cpp:644
 #: src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:569
+#: src/services/a-rex/arex.cpp:571
 #: src/services/cache_service/CacheService.cpp:532
-#: src/services/data-staging/DataDeliveryService.cpp:636
+#: src/services/data-staging/DataDeliveryService.cpp:649
 #: src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:572
+#: src/services/a-rex/arex.cpp:574
 #: src/services/cache_service/CacheService.cpp:535
-#: src/services/data-staging/DataDeliveryService.cpp:639
+#: src/services/data-staging/DataDeliveryService.cpp:652
 #: src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:588 src/services/a-rex/arex.cpp:773
-#: src/services/a-rex/arex.cpp:792 src/services/a-rex/arex.cpp:806
-#: src/services/a-rex/arex.cpp:816 src/services/a-rex/arex.cpp:831
+#: src/services/a-rex/arex.cpp:590 src/services/a-rex/arex.cpp:803
+#: src/services/a-rex/arex.cpp:822 src/services/a-rex/arex.cpp:836
+#: src/services/a-rex/arex.cpp:846 src/services/a-rex/arex.cpp:861
 #: src/services/cache_service/CacheService.cpp:569
-#: src/services/data-staging/DataDeliveryService.cpp:687
+#: src/services/data-staging/DataDeliveryService.cpp:700
 msgid "Security Handlers processing failed"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:595
+#: src/services/a-rex/arex.cpp:597
 msgid "Can't obtain configuration"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:611
+#: src/services/a-rex/arex.cpp:613
 msgid "process: factory endpoint"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:767 src/services/a-rex/arex.cpp:784
+#: src/services/a-rex/arex.cpp:797 src/services/a-rex/arex.cpp:814
 #: src/services/cache_service/CacheService.cpp:564
-#: src/services/data-staging/DataDeliveryService.cpp:682
+#: src/services/data-staging/DataDeliveryService.cpp:695
 #: src/tests/echo/echo.cpp:166
 #, c-format
 msgid "process: response=%s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:769
+#: src/services/a-rex/arex.cpp:799
 msgid "process: response is not SOAP"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:799
+#: src/services/a-rex/arex.cpp:829
 msgid "process: GET"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:800
+#: src/services/a-rex/arex.cpp:830
 #, c-format
 msgid "GET: id %s path %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:823
+#: src/services/a-rex/arex.cpp:853
 msgid "process: PUT"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:838
+#: src/services/a-rex/arex.cpp:868
 #, c-format
 msgid "process: method %s is not supported"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:841
+#: src/services/a-rex/arex.cpp:871
 msgid "process: method is not defined"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:877
+#: src/services/a-rex/arex.cpp:907
 msgid "Failed to run Grid Manager thread"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:938
-#, c-format
-msgid "Storing configuration in temporary file %s"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:943
-msgid "Failed to process service configuration"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:951
-#, c-format
-msgid "Failed to process configuration in %s"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:957
-msgid "No control directory set in configuration"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:961
-msgid "No session directory set in configuration"
-msgstr ""
-
-#: src/services/a-rex/arex.cpp:965
-msgid "No LRMS set in configuration"
 msgstr ""
 
 #: src/services/a-rex/arex.cpp:970
 #, c-format
+msgid "Storing configuration in temporary file %s"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:975
+msgid "Failed to process service configuration"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:983
+#, c-format
+msgid "Failed to process configuration in %s"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:989
+msgid "No control directory set in configuration"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:993
+msgid "No session directory set in configuration"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:997
+msgid "No LRMS set in configuration"
+msgstr ""
+
+#: src/services/a-rex/arex.cpp:1002
+#, c-format
 msgid "Failed to create control directory %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:985
+#: src/services/a-rex/arex.cpp:1031
 #, c-format
 msgid "Provided LRMSName is not a valid URL: %s"
 msgstr ""
 
-#: src/services/a-rex/arex.cpp:987
+#: src/services/a-rex/arex.cpp:1033
 msgid ""
 "No LRMSName is provided. This is needed if you wish to completely comply "
 "with the BES specifications."
 msgstr ""
 
 #: src/services/a-rex/cachecheck.cpp:34
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:434
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:693
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:473
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:737
 #, c-format
 msgid "Error with cache configuration: %s"
 msgstr ""
@@ -16638,8 +16741,19 @@ msgid ""
 "%s"
 msgstr ""
 
-#: src/services/a-rex/delegation/DelegationStore.cpp:41
+#: src/services/a-rex/delegation/DelegationStore.cpp:61
 msgid "Wiping and re-creating whole storage"
+msgstr ""
+
+#: src/services/a-rex/delegation/DelegationStore.cpp:279
+msgid "DelegationStore: PeriodicCheckConsumers failed to resume iterator"
+msgstr ""
+
+#: src/services/a-rex/delegation/DelegationStore.cpp:297
+#, c-format
+msgid ""
+"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - "
+"%s"
 msgstr ""
 
 #: src/services/a-rex/get.cpp:112
@@ -17171,356 +17285,360 @@ msgstr ""
 msgid "wrong number in %s: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:35
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:36
 #, c-format
 msgid "Missing cancel-%s-job - job cancellation may not work"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:39
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:40
 #, c-format
 msgid "Missing submit-%s-job - job submission to LRMS may not work"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:43
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:44
 #, c-format
 msgid "Missing scan-%s-job - may miss when job finished executing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:56
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:57
 #, c-format
 msgid "Wrong option in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:70
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:71
 #, fuzzy, c-format
 msgid "Can't read configuration file at %s"
 msgstr "Nem tudom olvasni a célállomásokat a fájlból: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:79
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:80
 #, fuzzy, c-format
 msgid "Can't interpret configuration file %s as XML"
 msgstr "voms szerver fájljának az elérési útvonala"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:117
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:118
 #, fuzzy, c-format
 msgid "Can't recognize type of configuration file at %s"
 msgstr "Nem tudom olvasni a célállomásokat a fájlból: %s"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:120
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:121
 msgid "Could not determine configuration type or configuration is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:158
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:164
 msgid "No queue name given in queue block name"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:215
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:498
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:233
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:538
 #, c-format
 msgid "Wrong number in jobreport_period: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:219
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:502
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:237
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:542
 #, c-format
 msgid "Wrong number in jobreport_period: %d, minimal value: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:238
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:256
 msgid "Missing file name in jobreport_logfile"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:255
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:262
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:269
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:276
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:273
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:280
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:287
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:294
 #, c-format
 msgid "Wrong number in maxjobs: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:283
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:301
 #, c-format
 msgid "Wrong number in wakeupperiod: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:292
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:310
 #, fuzzy
 msgid "mail parameter is empty"
 msgstr "Túl sok paraméter"
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:298
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:302
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:316
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:320
 msgid "Wrong number in defaultttl command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:308
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:326
 msgid "Wrong number in maxrerun command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:314
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:332
 msgid "defaultlrms is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:327
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:345
 msgid "State name for plugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:331
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:349
 msgid "Options for plugin are missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:334
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:601
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:352
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:641
 #, c-format
 msgid "Failed to register plugin for state %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:342
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:360
 msgid "Wrong number for timeout in plugin command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:358
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:376
 msgid "Wrong option in fixdirectories"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:373
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:388
+msgid "Wrong option in delegationdb"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:403
 msgid "Session root directory is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:376
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:406
 msgid "Junk in sessiondir command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:388
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:418
 msgid "Missing directory in control command"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:393
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:423
 msgid ""
 "'control' configuration option is no longer supported, please use "
 "'controldir' instead"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:398
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:428
 msgid "User for helper program is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:401
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:716
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:431
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:769
 msgid "Only user '.' for helper program is supported"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:404
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:434
 msgid "Helper program is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:539
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:579
 msgid "serviceMail is empty"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:553
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:593
 msgid "Type in LRMS is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:566
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:606
 msgid "LRMS is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:579
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:619
 msgid "State name for authPlugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:584
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:624
 msgid "Command for authPlugin is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:598
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:638
 #, c-format
 msgid "Registering plugin for state %s; options: %s; command: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:614
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:654
 msgid "Command for localCred is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:620
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:660
 msgid "Timeout for localCred is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:625
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:665
 msgid "Timeout for localCred is incorrect number"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:653
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:693
 msgid "Control element must be present"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:658
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:698
 msgid "controlDir is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:665
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:705
 msgid "sessionRootDir is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:707
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:760
 msgid "Command in helperUtility is missing"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:712
+#: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:765
 msgid "Username in helperUtility is empty"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:101
-#, c-format
-msgid "\tSession root dir : %s"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:102
-#, c-format
-msgid "\tControl dir      : %s"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:103
-#, c-format
-msgid "\tdefault LRMS     : %s"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/GMConfig.cpp:104
 #, c-format
-msgid "\tdefault queue    : %s"
+msgid "\tSession root dir : %s"
 msgstr ""
 
 #: src/services/a-rex/grid-manager/conf/GMConfig.cpp:105
 #, c-format
+msgid "\tControl dir      : %s"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:106
+#, c-format
+msgid "\tdefault LRMS     : %s"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:107
+#, c-format
+msgid "\tdefault queue    : %s"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:108
+#, c-format
 msgid "\tdefault ttl      : %u"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:110
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:113
 msgid "No valid caches found in configuration, caching is disabled"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:115
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:118
 #, c-format
 msgid "\tCache            : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:117
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:120
 #, c-format
 msgid "\tCache link dir   : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:121
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:124
 #, c-format
 msgid "\tRemote cache     : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:123
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:126
 #, c-format
 msgid "\tRemote cache link: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:125
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:128
 msgid "\tCache cleaning enabled"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:126
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:129
 msgid "\tCache cleaning disabled"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:289
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:296
 msgid ""
 "Globus location variable substitution is not supported anymore. Please "
 "specify path directly."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:377
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:409
 #, c-format
 msgid "Starting helper process: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:383
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:418
 #, c-format
 msgid "Helper process start failed: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:390
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:425
 #, c-format
 msgid "Stopping helper process %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:35
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:36
 msgid "Can't read configuration file"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:44
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:45
 #: src/services/a-rex/grid-manager/conf/UrlMapConfig.cpp:31
 msgid "Can't interpret configuration file as XML"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:48
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:55
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:49
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:56
 msgid "Configuration error"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:61
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:62
 #: src/services/a-rex/grid-manager/conf/UrlMapConfig.cpp:99
 msgid "Can't recognize type of configuration file"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:80
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:82
 msgid "Bad number in maxdelivery"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:86
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:88
 msgid "Bad number in maxemergency"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:92
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:94
 msgid "Bad number in maxprocessor"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:98
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:100
 msgid "Bad number in maxprepared"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:104
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:106
 msgid "Bad number in maxtransfertries"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:113
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:115
 msgid "Bad number in speedcontrol"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:124
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:126
 #, c-format
 msgid "Bad number in definedshare %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:133
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:135
 #, c-format
 msgid "Bad URL in deliveryservice: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:144
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:146
 msgid "Bad number in remotesizelimit"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:170
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:172
 msgid "Bad value for debug"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:181
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:283
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:183
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:292
 msgid "Bad URL in acix_endpoint"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:228
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:237
 #, c-format
 msgid "Bad URL in deliveryService: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:242
+#: src/services/a-rex/grid-manager/conf/StagingConfig.cpp:251
 msgid "Bad value for logLevel"
 msgstr ""
 
@@ -17544,7 +17662,7 @@ msgstr ""
 msgid "Not enough parameters in linkurl"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/files/ControlFileContent.cpp:85
+#: src/services/a-rex/grid-manager/files/ControlFileContent.cpp:90
 #, c-format
 msgid "Wrong directory in %s"
 msgstr ""
@@ -17644,6 +17762,24 @@ msgstr ""
 msgid "print delegation token of specified ID(s)"
 msgstr ""
 
+#: src/services/a-rex/grid-manager/gm_jobs.cpp:176
+msgid "print main delegation token of specified Job ID(s)"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/gm_jobs.cpp:177
+msgid "job id"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/gm_jobs.cpp:181
+msgid ""
+"output requested elements (jobs list, delegation ids and tokens) to file"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/gm_jobs.cpp:182
+#, fuzzy
+msgid "file name"
+msgstr "fájlnév"
+
 #: src/services/a-rex/grid-manager/gm_kick.cpp:18
 msgid ""
 "gm-kick wakes up the A-REX corresponding to the given control file. If no "
@@ -17679,218 +17815,211 @@ msgstr ""
 msgid "Wrong number of arguments given"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:106
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:920
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:105
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:979
 msgid "Failed to run plugin"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:110
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:926
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:109
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:985
 #, c-format
 msgid "Plugin failed: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:155
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:159
 msgid "empty argument to remotegmdirs"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:162
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:166
 msgid "bad arguments to remotegmdirs"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:174
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:178
 msgid "Wrong number in maxjobdesc"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:182
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:186
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:186
 #, c-format
 msgid "Unsupported configuration command: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:196
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:200
 #, c-format
 msgid "Mapped user:group (%s:%s) not found"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:199
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:203
 msgid "Failed processing grid-manager configuration"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:202
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:206
 msgid ""
 "Cannot use multiple session directories and remotegmdirs at the same time"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:225
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:229
 msgid "This user is denied to submit new jobs."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:234
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:240
 msgid "No control or remote control directories defined in configuration"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:285
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:291
 #, c-format
 msgid "Job submission user: %s (%i:%i)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:289
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:295
 msgid "Job plugin was not initialised"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:293
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:313
 msgid "No delegated credentials were passed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:368
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:386
 #, c-format
 msgid "Cancelling job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:419
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:437
 #, c-format
 msgid "Cleaning job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:458
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:476
 msgid "Request to open file with storing in progress"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:491
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:509
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:373
 #, c-format
 msgid "Retrieving file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:542
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:560
 #, c-format
 msgid "Accepting submission of new job or modification request: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:563
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:581
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:413
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:450
 #, c-format
 msgid "Storing file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:585
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:603
 #, c-format
 msgid "Unknown open mode %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:692
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:720
 #, c-format
 msgid "action(%s) != request"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:742
-msgid "Failed writing RSL"
-msgstr ""
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:771
+#, fuzzy
+msgid "Failed writing job description"
+msgstr "Nem tudom megnyitni a feladat leíró fájlt: %s"
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:865
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:924
 msgid "Failed writing local description"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:875
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:934
 msgid "Failed writing ACL"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:891
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:898
-#: src/services/a-rex/job.cpp:540
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:950
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:957
+#: src/services/a-rex/job.cpp:551
 #, c-format
 msgid "Failed to run external plugin: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:902
-#: src/services/a-rex/job.cpp:544
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:961
+#: src/services/a-rex/job.cpp:555
 #, c-format
 msgid "Plugin response: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:904
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:963
 msgid "Failed to run external plugin"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:936
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:995
 #, c-format
 msgid "Failed to create session directory %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:945
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1004
 msgid "Failed to lock delegated credentials"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:956
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1015
 msgid "Failed writing status"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1196
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1265
 #, c-format
 msgid "Renewing proxy for job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1199
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1277
 #, c-format
 msgid "New proxy expires at %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1203
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1280
 msgid "Failed to write 'local' information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1217
-msgid "Job could have died due to expired proxy: restarting"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1219
-msgid "Failed to report renewed proxy to job"
-msgstr ""
-
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1223
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1286
 msgid "Failed to renew proxy"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1226
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1289
 msgid "New proxy expiry time is not later than old proxy, not renewing proxy"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1269
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1332
 #, c-format
 msgid "Checking file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1317
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1380
 msgid "ID contains forbidden characters"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1364
-#: src/services/a-rex/job.cpp:745
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1427
+#: src/services/a-rex/job.cpp:764
 #, c-format
 msgid "Failed to create file in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1389
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1452
 msgid "Out of tries while allocating new job ID"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1470
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1533
 #, c-format
 msgid "Failed to read job's local description for job %s from %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1552
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1615
 msgid "No non-draining control or session directories available"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1568
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1631
 #, c-format
 msgid "Using control directory %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1569
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1632
 #, c-format
 msgid "Using session directory %s"
 msgstr ""
@@ -17910,671 +18039,676 @@ msgstr ""
 msgid "Failed to load policy evaluator for policy of job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobplugin/jobplugin_acl.cpp:125
+#: src/services/a-rex/grid-manager/jobplugin/jobplugin_acl.cpp:126
 #, c-format
 msgid "Unknown ACL policy %s for job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:108
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:121
 msgid "Exiting Generator thread"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:189
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:203
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:216
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:205
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:219
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:232
 msgid "DTRGenerator is not running!"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:192
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:208
 #, c-format
 msgid "Received DTR %s during Generator shutdown - may not be processed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:292
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:302
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:308
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:318
 #, c-format
 msgid "%s: Trying to remove job from data staging which is still active"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:311
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:327
 #, c-format
 msgid "%s: Trying remove job from data staging which does not exist"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:322
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:338
 #, fuzzy, c-format
 msgid "%s: Invalid DTR"
 msgstr "Érvénytelen URL: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:332
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:348
 #, c-format
 msgid "%s: Received DTR %s to copy file %s in state %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:344
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:918
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:242
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:258
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:566
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:360
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:971
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:277
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:289
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:592
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:355
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:371
 #, c-format
 msgid "%s: DTR %s to copy file %s failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:361
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:377
 #, c-format
 msgid "%s: Cancelling other DTRs"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:378
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:598
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:388
+#, c-format
+msgid "%s: DTR %s to copy to %s failed but is not mandatory"
+msgstr ""
+
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:398
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:638
 #, c-format
 msgid "%s: Failed to read list of output files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:392
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:527
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:412
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:549
 #, c-format
 msgid "%s: Failed to read dynamic output files in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:394
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:414
 #, c-format
 msgid "%s: Going through files in list %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:398
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:418
 #, c-format
 msgid "%s: Removing %s from dynamic output file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:402
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:422
 #, c-format
 msgid "%s: Failed to write back dynamic output files in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:418
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:438
 #, c-format
 msgid "%s: Failed to write list of output files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:422
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:442
 #, c-format
 msgid "%s: Failed to write list of output status files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:434
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:609
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:454
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:649
 #, c-format
 msgid "%s: Failed to read list of input files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:453
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:473
 #, fuzzy, c-format
 msgid "%s: Failed to write list of input files"
 msgstr "Nem sikerült listázni a fájlokat"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:465
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:485
 #, c-format
 msgid "%s: Received DTR with two remote endpoints!"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:476
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:496
 #: src/services/cache_service/CacheServiceGenerator.cpp:108
 #, fuzzy, c-format
 msgid "No active job id %s"
 msgstr "Feladat migrálásra került ezzel az azonosítóval: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:515
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:537
 #, c-format
 msgid "%s: Failed to read list of output files, can't clean up session dir"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:539
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:550
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:645
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:759
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:561
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:572
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:685
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:810
 #, c-format
 msgid "%s: Failed to clean up session dir"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:548
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:570
 #, c-format
 msgid "%s: Failed to read list of input files, can't clean up session dir"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:560
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:582
 #, c-format
 msgid "%s: All %s %s successfully"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:564
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:586
 #, c-format
 msgid "%s: Some %s failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:579
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:601
 #, c-format
 msgid "%s: Received data staging request to %s files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:620
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:660
 #, c-format
 msgid "%s: Duplicate file in list of input files: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:661
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:707
 #, c-format
 msgid "%s: Reading output files from user generated list in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:663
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:709
 #, c-format
 msgid "%s: Error reading user generated output file list in %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:686
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:737
 #, c-format
 msgid "%s: Failed to list output directory %s: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:705
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:756
 #, c-format
 msgid "%s: Adding new output file %s: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:727
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:778
 #, c-format
 msgid "%s: Two identical output destinations: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:740
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:791
 #, c-format
 msgid "%s: Cannot upload two different files %s and %s to same LFN: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:770
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:821
 #, c-format
 msgid "%s: Received job in a bad state: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:843
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:894
 #, c-format
 msgid ""
 "%s: Destination file %s was possibly left unfinished from previous A-REX "
 "run, will overwrite"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:924
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:977
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:941
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:994
 #, c-format
 msgid "%s: Cancelling active DTRs"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:962
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1017
 #, fuzzy, c-format
 msgid "%s: Can't read list of input files"
 msgstr "Nem tudom olvasni a célállomásokat a fájlból: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:977
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1032
 #, c-format
 msgid "%s: Checking user uploadable file: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:982
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1037
 #, fuzzy, c-format
 msgid "%s: User has uploaded file %s"
 msgstr "Fájl feltöltve %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:989
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1044
 #, fuzzy, c-format
 msgid "%s: Failed writing changed input file."
 msgstr "Nem sikerült listázni a meta adatokat"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:993
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1048
 #, c-format
 msgid "%s: Critical error for uploadable file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1010
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1065
 #, c-format
 msgid "%s: Uploadable files timed out"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1066
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1092
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1121
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1147
 #, c-format
 msgid "%s: Can't convert checksum %s to int for %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1073
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1087
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1128
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1142
 #, c-format
 msgid "%s: Can't convert filesize %s to int for %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1082
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1137
 #, c-format
 msgid "%s: Invalid size/checksum information (%s) for %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1104
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1159
 #, c-format
 msgid "%s: Invalid file: %s is too big."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1120
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1175
 #, c-format
 msgid "%s: Failed to switch user ID to %d/%d to read file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1126
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1181
 #, c-format
 msgid "%s: Failed to open file %s for reading"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1134
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1189
 #, c-format
 msgid "%s: Error accessing file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1146
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1201
 #, c-format
 msgid "%s: Error reading file %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1161
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1216
 #, c-format
 msgid "%s: File %s has wrong checksum: %llu. Expected %lli"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1167
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1222
 #, c-format
 msgid "%s: Checksum %llu verified for %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1179
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1234
 msgid ""
 "Found unfinished DTR transfers. It is possible the previous A-REX process "
 "did not shut down normally"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1186
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1241
 #, c-format
 msgid "Found DTR %s for file %s left in transferring state from previous run"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:178
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:189
 #, c-format
 msgid "Bad name for stdout: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:186
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:197
 #, c-format
 msgid "Bad name for stderr: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:243
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:254
 #, c-format
 msgid "Bad name for runtime environment: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:288
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:299
 msgid "Job description file could not be read."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:339
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:350
 msgid "Bad name for executable: "
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:353
+#: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:364
 #, c-format
 msgid "Bad name for executable: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:66
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:103
 #, c-format
 msgid ""
 "%s: Failed reading .local and changing state, job and A-REX may be left in "
 "an inconsistent state"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:127
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:165
 #, c-format
 msgid "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:129
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:167
 #, c-format
 msgid "%s: %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:135
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:173
 #, c-format
 msgid "%s: Destroying"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:139
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:178
 #, c-format
 msgid "%s: Can't read state - no comments, just cleaning"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:152
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:190
 #, c-format
 msgid "%s: Cleaning control and session directories"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:159
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:196
 #, c-format
 msgid "%s: This job may be still running - canceling"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:162
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:199
 #, c-format
 msgid "%s: Cancellation failed (probably job finished) - cleaning anyway"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:170
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:206
 #, c-format
 msgid "%s: Cancellation probably succeeded - cleaning"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:234
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:269
 #, c-format
 msgid "%s: Failed writing list of output files: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:267
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:296
 #, c-format
 msgid "%s: Failed creating grami file"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:271
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:300
 #, c-format
 msgid "%s: Failed setting executable permissions"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:283
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:312
 #, c-format
 msgid "%s: state SUBMIT: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:286
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:315
 #, c-format
 msgid "%s: state CANCELING: starting child: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:288
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:317
 #, c-format
 msgid "%s: Job has completed already. No action taken to cancel"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:299
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:328
 #, c-format
 msgid "%s: Failed running submission process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:301
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:330
 #, c-format
 msgid "%s: Failed running cancellation process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:321
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:350
 #, c-format
 msgid ""
 "%s: Job submission to LRMS takes too long, but ID is already obtained. "
 "Pretending submission is done."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:327
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:356
 #, c-format
 msgid ""
 "%s: Job cancellation takes too long, but diagnostic collection seems to be "
 "done. Pretending cancellation succeeded."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:335
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:364
 #, c-format
 msgid "%s: Job submission to LRMS takes too long. Failing."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:341
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:370
 #, c-format
 msgid "%s: Job cancellation takes too long. Failing."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:351
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:380
 #, c-format
 msgid "%s: state SUBMIT: child exited with code %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:356
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:385
 #, c-format
 msgid "%s: state CANCELING: child exited with code %i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:364
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:393
 #, c-format
 msgid "%s: Job submission to LRMS failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:367
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:396
 #, c-format
 msgid "%s: Failed to cancel running job"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:381
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:410
 #, c-format
 msgid "%s: Failed obtaining lrms id"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:394
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:423
 #, c-format
 msgid "%s: Failed writing local information: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:404
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:433
 #, c-format
 msgid "%s: state CANCELING: timeout waiting for cancellation"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:410
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:439
 #, c-format
 msgid "%s: state CANCELING: job diagnostics collected"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:460
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:489
 #, c-format
 msgid "%s: State: %s: still in data staging"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:479
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:508
 #, c-format
 msgid "%s: Job is not allowed to be rerun anymore"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:490
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:518
 #, c-format
 msgid "%s: Job failed in unknown state. Won't rerun."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:511
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:539
 #, fuzzy, c-format
 msgid "%s: Reprocessing job description failed"
 msgstr "Nem tudom megnyitni a feladat leíró fájlt: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:518
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:546
 #, c-format
 msgid "%s: Failed to read reprocessed list of output files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:522
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:550
 #, c-format
 msgid "%s: Failed to read reprocessed list of input files"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:612
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:634
 #, c-format
 msgid "%s: Reading status of new job failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:625
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:647
 #, c-format
 msgid "%s: State: ACCEPTED: parsing job description"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:627
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:649
 #, c-format
 msgid "%s: Processing job description failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:644
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:666
 #, c-format
 msgid "%s: %s: New job belongs to %i/%i"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:655
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:676
 #, c-format
 msgid "Failed to get DN information from .local file for job %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:669
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:690
 #, c-format
 msgid "%s: State: ACCEPTED"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:676
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:697
 #, c-format
 msgid "%s: State: ACCEPTED: dryrun"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:688
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:709
 #, c-format
 msgid "%s: State: ACCEPTED: has process time %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:694
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:715
 #, c-format
 msgid "%s: State: ACCEPTED: moving to PREPARING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:715
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:732
 #, c-format
 msgid "%s: State: PREPARING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:719
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:736
 #, c-format
 msgid "%s: Failed obtaining local job information."
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:772
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:787
 #, c-format
 msgid "%s: State: SUBMIT"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:787
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:802
 #, c-format
 msgid "%s: State: CANCELING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:803
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:818
 #, c-format
 msgid "%s: State: INLRMS"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:813
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:826
 #, c-format
 msgid "%s: Job finished"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:817
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:830
 #, c-format
 msgid "%s: State: INLRMS: exit message is %i %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:844
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:851
 #, c-format
 msgid "%s: State: FINISHING"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:873
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:880
 #, c-format
 msgid "%s: Job is requested to clean - deleting"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:912
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:919
 #, c-format
 msgid "%s: Can't rerun on request"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:914
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:921
 #, c-format
 msgid "%s: Can't rerun on request - not a suitable state"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:924
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:931
 #, c-format
 msgid "%s: Job is too old - deleting"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:963
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:970
 #, c-format
 msgid "%s: Job is ancient - delete rest of information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:988
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:998
 #, c-format
 msgid "%s: Canceling job because of user request"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1054
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1064
 #, c-format
 msgid "%s: Job failure detected"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1083
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1093
 #, c-format
 msgid "%s: State: %s from %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1110
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1118
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1120
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1128
 #, c-format
 msgid "%s: Plugin at state %s : %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1124
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1134
 #, c-format
 msgid "%s: Plugin execution failed"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1149
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1159
 #, c-format
 msgid "%s: Delete request due to internal problems"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1222
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1241
 #, fuzzy, c-format
 msgid "Failed to move file %s to %s"
 msgstr "Nem sikerült listázni a meta adatokat"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1230
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1307
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1386
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1249
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1332
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1421
 #, c-format
 msgid "Failed reading control directory: %s"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1270
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1291
 #, c-format
 msgid "Failed reading control directory: %s: %s"
 msgstr ""
@@ -18587,52 +18721,52 @@ msgstr ""
 msgid ": Failure starting reporter child process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/mail/send_mail.cpp:28
+#: src/services/a-rex/grid-manager/mail/send_mail.cpp:29
 msgid "Failed reading local information"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/mail/send_mail.cpp:85
+#: src/services/a-rex/grid-manager/mail/send_mail.cpp:79
 #, c-format
 msgid "Running mailer command (%s)"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/mail/send_mail.cpp:87
+#: src/services/a-rex/grid-manager/mail/send_mail.cpp:81
 msgid "Failed running mailer"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:66
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:72
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:24
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:53
 #, c-format
 msgid "%s: Failure creating slot for child process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:74
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:80
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:30
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:59
 #, c-format
 msgid "%s: Failure creating data storage for child process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:81
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:87
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:39
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:68
 #, c-format
 msgid "%s: Failure starting child process"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:102
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:108
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:91
 #, c-format
 msgid "%s: Failed switching user"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:111
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:117
 #, c-format
 msgid "%s: Failed to run plugin"
 msgstr ""
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:114
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:120
 #, c-format
 msgid "%s: Plugin failed"
 msgstr ""
@@ -18771,12 +18905,12 @@ msgstr ""
 msgid "%s: Unknown user policy '%s'"
 msgstr ""
 
-#: src/services/a-rex/job.cpp:753
+#: src/services/a-rex/job.cpp:772
 #, c-format
 msgid "Out of tries while allocating new job ID in %s"
 msgstr ""
 
-#: src/services/a-rex/job.cpp:970
+#: src/services/a-rex/job.cpp:989
 msgid "No non-draining session dirs available"
 msgstr ""
 
@@ -19419,7 +19553,7 @@ msgid "No local user mapping found"
 msgstr ""
 
 #: src/services/cache_service/CacheService.cpp:511
-#: src/services/data-staging/DataDeliveryService.cpp:615
+#: src/services/data-staging/DataDeliveryService.cpp:628
 #, fuzzy, c-format
 msgid "Identity is %s"
 msgstr "Azonosító: %s"
@@ -19522,62 +19656,67 @@ msgstr "Érvénytelen URL: %s"
 msgid "Failed to remove temporary proxy %s: %s"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:391
+#: src/services/data-staging/DataDeliveryService.cpp:392
 #, c-format
 msgid "No such DTR %s"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:402
+#: src/services/data-staging/DataDeliveryService.cpp:403
 #, c-format
 msgid "DTR %s failed: %s"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:412
+#: src/services/data-staging/DataDeliveryService.cpp:414
 #, c-format
 msgid "DTR %s finished successfully"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:421
+#: src/services/data-staging/DataDeliveryService.cpp:424
 #, c-format
 msgid "DTR %s still in progress (%lluB transferred)"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:482
+#: src/services/data-staging/DataDeliveryService.cpp:485
 #, c-format
 msgid "No active DTR %s"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:492
+#: src/services/data-staging/DataDeliveryService.cpp:495
 #, c-format
 msgid "DTR %s was already cancelled"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:501
+#: src/services/data-staging/DataDeliveryService.cpp:504
 #, fuzzy, c-format
 msgid "DTR %s could not be cancelled"
 msgstr "A feladatot nem sikerült megölni vagy letörölni"
 
-#: src/services/data-staging/DataDeliveryService.cpp:559
+#: src/services/data-staging/DataDeliveryService.cpp:548
+#, fuzzy, c-format
+msgid "Failed to get load average: %s"
+msgstr "privát kulcs elérési útvonala"
+
+#: src/services/data-staging/DataDeliveryService.cpp:572
 msgid "Invalid configuration - no allowed IP address specified"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:563
+#: src/services/data-staging/DataDeliveryService.cpp:576
 msgid "Invalid configuration - no allowed dirs specified"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:574
+#: src/services/data-staging/DataDeliveryService.cpp:587
 msgid "Failed to start archival thread"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:599
+#: src/services/data-staging/DataDeliveryService.cpp:612
 msgid "Shutting down data delivery service"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:608
+#: src/services/data-staging/DataDeliveryService.cpp:621
 msgid "Unauthorized"
 msgstr ""
 
-#: src/services/data-staging/DataDeliveryService.cpp:694
+#: src/services/data-staging/DataDeliveryService.cpp:707
 msgid "Only POST is supported in DataDeliveryService"
 msgstr ""
 
@@ -19659,12 +19798,12 @@ msgstr ""
 msgid "Waiting ends."
 msgstr ""
 
-#: src/services/gridftpd/auth/auth.cpp:305
+#: src/services/gridftpd/auth/auth.cpp:311
 #, c-format
 msgid "Unknown authorization command %s"
 msgstr ""
 
-#: src/services/gridftpd/auth/auth.cpp:323
+#: src/services/gridftpd/auth/auth.cpp:329
 #, c-format
 msgid ""
 "The [vo] section labeled '%s' has no file associated and can't be used for "
@@ -19691,25 +19830,25 @@ msgstr ""
 msgid "Failed to get results from LDAP server %s"
 msgstr ""
 
-#: src/services/gridftpd/auth/auth_ldap.cpp:86
+#: src/services/gridftpd/auth/auth_ldap.cpp:83
 #, fuzzy
 msgid "LDAP authorization is not supported"
 msgstr "A fileset regisztcáció nem támogatott még"
 
 #: src/services/gridftpd/auth/auth_plugin.cpp:73
-#: src/services/gridftpd/auth/unixmap.cpp:187
+#: src/services/gridftpd/auth/unixmap.cpp:254
 #, c-format
 msgid "Plugin %s failed to run"
 msgstr ""
 
 #: src/services/gridftpd/auth/auth_plugin.cpp:75
-#: src/services/gridftpd/auth/unixmap.cpp:189
+#: src/services/gridftpd/auth/unixmap.cpp:256
 #, c-format
 msgid "Plugin %s printed: %u"
 msgstr ""
 
 #: src/services/gridftpd/auth/auth_plugin.cpp:76
-#: src/services/gridftpd/auth/unixmap.cpp:190
+#: src/services/gridftpd/auth/unixmap.cpp:257
 #, c-format
 msgid "Plugin %s error: %u"
 msgstr ""
@@ -19719,7 +19858,7 @@ msgstr ""
 msgid "VOMS proxy processing returns: %i - %s"
 msgstr ""
 
-#: src/services/gridftpd/auth/auth_voms.cpp:119
+#: src/services/gridftpd/auth/auth_voms.cpp:120
 #, c-format
 msgid "VOMS trust chains: %s"
 msgstr ""
@@ -20410,7 +20549,7 @@ msgid "Copying with dlclose"
 msgstr ""
 
 #: src/services/gridftpd/fileroot_config.cpp:31
-#: src/services/gridftpd/fileroot_config.cpp:529
+#: src/services/gridftpd/fileroot_config.cpp:575
 msgid "configuration file not found"
 msgstr ""
 
@@ -20436,95 +20575,109 @@ msgstr ""
 msgid "Can't resolve host %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:150
-#: src/services/gridftpd/fileroot_config.cpp:416
+#: src/services/gridftpd/fileroot_config.cpp:151
+#: src/services/gridftpd/fileroot_config.cpp:438
 #, c-format
 msgid "couldn't open file %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:165
-#: src/services/gridftpd/fileroot_config.cpp:181
-#: src/services/gridftpd/fileroot_config.cpp:430
-#: src/services/gridftpd/fileroot_config.cpp:446
+#: src/services/gridftpd/fileroot_config.cpp:166
+#: src/services/gridftpd/fileroot_config.cpp:182
+#: src/services/gridftpd/fileroot_config.cpp:452
 #, c-format
 msgid "improper attribute for encryption command: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:175
-#: src/services/gridftpd/fileroot_config.cpp:440
-#: src/services/gridftpd/fileroot_config.cpp:557
+#: src/services/gridftpd/fileroot_config.cpp:176
+#: src/services/gridftpd/fileroot_config.cpp:462
+#: src/services/gridftpd/fileroot_config.cpp:603
 msgid "unknown (non-gridmap) user is not allowed"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:204
-#: src/services/gridftpd/fileroot_config.cpp:487
+#: src/services/gridftpd/fileroot_config.cpp:205
+#: src/services/gridftpd/fileroot_config.cpp:530
 #, c-format
 msgid "Failed processing authorization group %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:213
+#: src/services/gridftpd/fileroot_config.cpp:214
 msgid "couldn't process VO configuration"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:258
+#: src/services/gridftpd/fileroot_config.cpp:221
+#: src/services/gridftpd/fileroot_config.cpp:229
+#: src/services/gridftpd/fileroot_config.cpp:237
+#: src/services/gridftpd/fileroot_config.cpp:483
+#: src/services/gridftpd/fileroot_config.cpp:491
+#: src/services/gridftpd/fileroot_config.cpp:499
+#, fuzzy, c-format
+msgid "failed while processing configuration command: %s %s"
+msgstr "voms szerver fájljának az elérési útvonala"
+
+#: src/services/gridftpd/fileroot_config.cpp:278
 #, c-format
 msgid "can't parse configuration line: %s %s %s %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:263
+#: src/services/gridftpd/fileroot_config.cpp:283
 #, c-format
 msgid "bad directory in plugin command: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:275
-#: src/services/gridftpd/fileroot_config.cpp:367
+#: src/services/gridftpd/fileroot_config.cpp:295
+#: src/services/gridftpd/fileroot_config.cpp:388
 #, c-format
 msgid "Already have directory: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:283
-#: src/services/gridftpd/fileroot_config.cpp:370
+#: src/services/gridftpd/fileroot_config.cpp:303
+#: src/services/gridftpd/fileroot_config.cpp:391
 #, c-format
 msgid "Registering directory: %s with plugin: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:288
-#: src/services/gridftpd/fileroot_config.cpp:383
+#: src/services/gridftpd/fileroot_config.cpp:308
+#: src/services/gridftpd/fileroot_config.cpp:404
 #, c-format
 msgid "file node creation failed: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:298
+#: src/services/gridftpd/fileroot_config.cpp:318
 #, c-format
 msgid "unsupported configuration command: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:321
+#: src/services/gridftpd/fileroot_config.cpp:342
 msgid "Could not determine hostname from gethostname()"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:337
+#: src/services/gridftpd/fileroot_config.cpp:358
 msgid "unnamed group"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:346
+#: src/services/gridftpd/fileroot_config.cpp:367
 msgid "undefined plugin"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:350
+#: src/services/gridftpd/fileroot_config.cpp:371
 msgid "undefined virtual plugin path"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:355
+#: src/services/gridftpd/fileroot_config.cpp:376
 #, c-format
 msgid "bad directory for plugin: %s"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:540
+#: src/services/gridftpd/fileroot_config.cpp:468
+#, c-format
+msgid "improper attribute for allowunknown command: %s"
+msgstr ""
+
+#: src/services/gridftpd/fileroot_config.cpp:586
 msgid "failed to process client identification"
 msgstr ""
 
-#: src/services/gridftpd/fileroot_config.cpp:576
+#: src/services/gridftpd/fileroot_config.cpp:622
 #, c-format
 msgid "Registering dummy directory: %s"
 msgstr ""

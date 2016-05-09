@@ -104,7 +104,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     };
   };
   if (id == "cache") {
-    return cache_get(outmsg, subpath, range_start, range_end, config);
+    return cache_get(outmsg, subpath, range_start, range_end, config, false);
   }
   ARexJob job(id,config,logger_);
   if(!job) {
@@ -159,7 +159,7 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
     };
   };
   if (id == "cache") {
-    return cache_get(outmsg, subpath, 0, (off_t)(-1), config);
+    return cache_get(outmsg, subpath, 0, (off_t)(-1), config, true);
   }
   ARexJob job(id,config,logger_);
   if(!job) {
@@ -429,7 +429,7 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
   return false;
 }
 
-Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config) {
+Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, bool no_content) {
 
   // subpath contains the URL, which can be encoded. Constructing a URL
   // object with encoded=true only decodes the path so have to decode first
@@ -482,8 +482,15 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
   }
 
   // Read the file and fill the payload
-  Arc::MessagePayload* h = newFileRead(cache_file.c_str(), range_start, range_end);
-  outmsg.Payload(h);
+  if (!no_content) {
+    Arc::MessagePayload* h = newFileRead(cache_file.c_str(), range_start, range_end);
+    outmsg.Payload(h);
+  } else {
+    struct stat st;
+    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+    if(buf && Arc::FileStat(cache_file, &st, false)) buf->Truncate(st.st_size);
+    outmsg.Payload(buf);
+  }
   outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
