@@ -35,14 +35,12 @@ namespace ARex {
   }
 
   int sqlite3_exec_nobusy(sqlite3* db, const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg) {
-    int cnt = 0;
     int err;
     while((err = sqlite3_exec(db, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
       // Access to database is designed in such way that it should not block for long time.
       // So it should be safe to simply wait for lock to be released without any timeout.
       struct timespec delay = { 0, 10000000 }; // 0.01s - should be enough for most cases
       (void)::nanosleep(&delay, NULL);
-      ++cnt;
     };
     return err;
   }
@@ -71,7 +69,16 @@ namespace ARex {
     if(create) {
       flags |= SQLITE_OPEN_CREATE;
     };
-    if(!dberr("Error opening database", sqlite3_open_v2(dbpath.c_str(), &db_, flags, NULL))) {
+    int err;
+    while((err = sqlite3_open_v2(dbpath.c_str(), &db_, flags, NULL)) == SQLITE_BUSY) {
+      // In case something prevents databasre from open right now - retry
+      if(db_) (void)sqlite3_close(db_);
+      db_ = NULL;
+      struct timespec delay = { 0, 10000000 }; // 0.01s - should be enough for most cases
+      (void)::nanosleep(&delay, NULL);
+    };
+    if(!dberr("Error opening database", err)) {
+      if(db_) (void)sqlite3_close(db_);
       db_ = NULL;
       return false;
     };
