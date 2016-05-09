@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
+#include <time.h>
 #include <cstring>
 
 #include <glibmm.h>
@@ -33,6 +34,20 @@ namespace ARex {
     return false;
   }
 
+  int sqlite3_exec_nobusy(sqlite3* db, const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg) {
+    int cnt = 0;
+    int err;
+    while((err = sqlite3_exec(db, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
+      // Access to database is designed in such way that it should not block for long time.
+      // So it should be safe to simply wait for lock to be released without any timeout.
+      struct timespec delay = { 0, 10000000 }; // 0.01s - should be enough for most cases
+      (void)::nanosleep(&delay, NULL);
+      ++cnt;
+    };
+    return err;
+  }
+
+
   FileRecordSQLite::FileRecordSQLite(const std::string& base, bool create):
       FileRecord(base, create),
       db_(NULL) {
@@ -40,27 +55,7 @@ namespace ARex {
   }
 
   bool FileRecordSQLite::verify(void) {
-    // Performing various kinds of verifications
-/*
-    std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
-    {
-      Db db_test(NULL,DB_CXX_NO_EXCEPTIONS);
-      if(!dberr("Error verifying databases",
-                db_test.verify(dbpath.c_str(),NULL,NULL,DB_NOORDERCHK))) {
-        if(error_num_ != ENOENT) return false;
-      };
-    };
-    {
-      Db db_test(NULL,DB_CXX_NO_EXCEPTIONS);
-      if(!dberr("Error verifying database 'meta'",
-                db_test.verify(dbpath.c_str(),"meta",NULL,DB_ORDERCHKONLY))) {
-        if(error_num_ != ENOENT) return false;
-      };
-    };
-    // Skip 'link' - it is not of btree kind
-    // Skip 'lock' - for unknown reason it returns DB_NOTFOUND
-    // Skip 'locked' - for unknown reason it returns DB_NOTFOUND
-*/
+    // Not implemented and probably not needed
     return true;
   }
 
@@ -70,7 +65,7 @@ namespace ARex {
 
   bool FileRecordSQLite::open(bool create) {
     std::string dbpath = basepath_ + G_DIR_SEPARATOR_S + FR_DB_NAME;
-    if(db_ != NULL) return true;
+    if(db_ != NULL) return true; // already open
 
     int flags = SQLITE_OPEN_READWRITE; // it will open read-only if access is protected
     if(create) {
@@ -81,22 +76,22 @@ namespace ARex {
       return false;
     };
     if(create) {
-      if(!dberr("Error creating table rec", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta, UNIQUE(id, owner), UNIQUE(uid))", NULL, NULL, NULL))) {
+      if(!dberr("Error creating table rec", sqlite3_exec_nobusy(db_, "CREATE TABLE IF NOT EXISTS rec(id, owner, uid, meta, UNIQUE(id, owner), UNIQUE(uid))", NULL, NULL, NULL))) {
         (void)sqlite3_close(db_); // todo: handle error
         db_ = NULL;
         return false;
       };
-      if(!dberr("Error creating table lock", sqlite3_exec(db_, "CREATE TABLE IF NOT EXISTS lock(lockid, uid)", NULL, NULL, NULL))) {
+      if(!dberr("Error creating table lock", sqlite3_exec_nobusy(db_, "CREATE TABLE IF NOT EXISTS lock(lockid, uid)", NULL, NULL, NULL))) {
         (void)sqlite3_close(db_); // todo: handle error
         db_ = NULL;
         return false;
       };
-      if(!dberr("Error creating index lockid", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS lockid ON lock (lockid)", NULL, NULL, NULL))) {
+      if(!dberr("Error creating index lockid", sqlite3_exec_nobusy(db_, "CREATE INDEX IF NOT EXISTS lockid ON lock (lockid)", NULL, NULL, NULL))) {
         (void)sqlite3_close(db_); // todo: handle error
         db_ = NULL;
         return false;
       };
-      if(!dberr("Error creating index uid", sqlite3_exec(db_, "CREATE INDEX IF NOT EXISTS uid ON lock (uid)", NULL, NULL, NULL))) {
+      if(!dberr("Error creating index uid", sqlite3_exec_nobusy(db_, "CREATE INDEX IF NOT EXISTS uid ON lock (uid)", NULL, NULL, NULL))) {
         (void)sqlite3_close(db_); // todo: handle error
         db_ = NULL;
         return false;
@@ -271,7 +266,7 @@ namespace ARex {
     if(id.empty()) id = uid;
     std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
                              sql_escape(id)+"', '"+sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
-    if(!dberr("Failed to add record to database", sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+    if(!dberr("Failed to add record to database", sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
       return "";
     };
     if(sqlite3_changes(db_) != 1) {
@@ -287,7 +282,7 @@ namespace ARex {
     std::string sqlcmd = "SELECT uid, meta FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
     std::string uid;
     FindCallbackUidMetaArg arg(uid, meta);
-    if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUidMeta, &arg, NULL))) {
+    if(!dberr("Failed to retrieve record from database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackUidMeta, &arg, NULL))) {
       return "";
     };
     if(uid.empty()) {
@@ -303,7 +298,7 @@ namespace ARex {
     std::string metas;
     store_strings(meta, metas);
     std::string sqlcmd = "UPDATE rec SET meta = '"+metas+"' WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
-    if(!dberr("Failed to update record in database",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+    if(!dberr("Failed to update record in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
       return false;
     };
     if(sqlite3_changes(db_) < 1) {
@@ -320,7 +315,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
       FindCallbackUidArg arg(uid);
-      if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
+      if(!dberr("Failed to retrieve record from database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
         return false; // No such record?
       };
     };
@@ -331,7 +326,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT FROM lock WHERE (uid = '"+uid+"')";
       FindCallbackCountArg arg;
-      if(!dberr("Failed to find locks in database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
+      if(!dberr("Failed to find locks in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
         return false;
       };
       if(arg.count > 0) {
@@ -342,7 +337,7 @@ namespace ARex {
     ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     {
       std::string sqlcmd = "DELETE FROM rec WHERE (uid = '"+uid+"')";
-      if(!dberr("Failed to delete record in database",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+      if(!dberr("Failed to delete record in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
         return false;
       };
       if(sqlite3_changes(db_) < 1) {
@@ -361,7 +356,7 @@ namespace ARex {
       {
         std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(*id)+"') AND (owner = '"+sql_escape(owner)+"'))";
         FindCallbackUidArg arg(uid);
-        if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
+        if(!dberr("Failed to retrieve record from database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
           return false; // No such record?
         };
       };
@@ -370,7 +365,7 @@ namespace ARex {
         continue;
       };
       std::string sqlcmd = "INSERT INTO lock(lockid, uid) VALUES ('"+sql_escape(lock_id)+"','"+uid+"')";
-      if(!dberr("addlock:put",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+      if(!dberr("addlock:put",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
         return false;
       };
     };
@@ -389,13 +384,13 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
       FindCallbackIdOwnerArg arg(ids);
-      if(!dberr("removelock:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
+      if(!dberr("removelock:get",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
         //return false;
       };
     };
     {
       std::string sqlcmd = "DELETE FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
-      if(!dberr("removelock:del",sqlite3_exec(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+      if(!dberr("removelock:del",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
         return false;
       };
       if(sqlite3_changes(db_) < 1) {
@@ -414,7 +409,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
       FindCallbackIdOwnerArg arg(ids);
-      if(!dberr("listlocked:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
+      if(!dberr("listlocked:get",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
         return false;
       };
     };
@@ -428,7 +423,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT lockid FROM lock";
       FindCallbackLockArg arg(locks);
-      if(!dberr("listlocks:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
+      if(!dberr("listlocks:get",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
         return false;
       };
     };
@@ -442,7 +437,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
       FindCallbackUidArg arg(uid);
-      if(!dberr("Failed to retrieve record from database",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
+      if(!dberr("Failed to retrieve record from database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackUid, &arg, NULL))) {
         return false; // No such record?
       };
     };
@@ -453,7 +448,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT lockid FROM lock WHERE (uid = '"+uid+"')";
       FindCallbackLockArg arg(locks);
-      if(!dberr("listlocks:get",sqlite3_exec(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
+      if(!dberr("listlocks:get",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackLock, &arg, NULL))) {
         return false;
       };
     };
@@ -466,7 +461,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec ORDER BY _rowid_ LIMIT 1";
       FindCallbackRecArg arg;
-      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+      if(!frec.dberr("listlocks:get",sqlite3_exec_nobusy(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
         return;
       };
       if(arg.uid.empty()) {
@@ -490,7 +485,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ > " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ ASC LIMIT 1";
       FindCallbackRecArg arg;
-      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+      if(!frec.dberr("listlocks:get",sqlite3_exec_nobusy(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
         rowid_ = -1;
         return *this;
       };
@@ -514,7 +509,7 @@ namespace ARex {
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ < " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ DESC LIMIT 1";
       FindCallbackRecArg arg;
-      if(!frec.dberr("listlocks:get",sqlite3_exec(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
+      if(!frec.dberr("listlocks:get",sqlite3_exec_nobusy(frec.db_, sqlcmd.c_str(), &FindCallbackRec, &arg, NULL))) {
         rowid_ = -1;
         return *this;
       };

@@ -52,8 +52,8 @@ namespace ARex {
     };
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
+      logger_.msg(Arc::WARNING,"%s",failure_);
       if(allow_recover) {
-        logger_.msg(Arc::WARNING,"%s",failure_);
         // Database creation failed. Try recovery.
         if(!fstore_->Recover()) {
           failure_ = "Failed to recover storage. " + fstore_->Error();
