@@ -1,6 +1,6 @@
 if SQLITE_ENABLED
 FRSQLITE_SOURCES = FileRecordSQLite.cpp FileRecordSQLite.h
-bin_PROGRAMS = sqlite-test
+noinst_PROGRAMS = sqlite-test
 else
 FRSQLITE_SOURCES =
 endif
