@@ -85,6 +85,8 @@ void GMConfig::SetDefaults() {
   max_jobs = -1;
   max_jobs_per_dn = -1;
 
+  deleg_db = deleg_db_bdb;
+
   enable_arc_interface = true;
   enable_emies_interface = false;
 
@@ -264,6 +266,10 @@ std::string GMConfig::DelegationDir() const {
     }
   }
   return deleg_dir;
+}
+
+GMConfig::deleg_db_t GMConfig::DelegationDBType() const {
+  return deleg_db;
 }
 
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {

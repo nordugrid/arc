@@ -8,6 +8,7 @@
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../conf/GMConfig.h"
+#include "../../delegation/DelegationStore.h"
 
 using namespace ARex;
 
@@ -52,6 +53,7 @@ class JobPlugin: public FilePlugin {
   RunPlugin* cred_plugin;
   Arc::User user;
   GMConfig config;
+  DelegationStore::DbType deleg_db_type;
   AuthUser& user_a;
   UnixMap job_map;
   std::list<std::string> avail_queues;

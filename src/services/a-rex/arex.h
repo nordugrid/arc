@@ -10,7 +10,6 @@
 
 #include "FileChunks.h"
 #include "grid-manager/GridManager.h"
-//#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
 #include "grid-manager/conf/GMConfig.h"
 
@@ -19,7 +18,6 @@ namespace ARex {
 class ARexGMConfig;
 class ARexConfigContext;
 class CountedResourceLock;
-class DelegationStores;
 
 class CountedResource {
  friend class CountedResourceLock;

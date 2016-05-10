@@ -12,6 +12,13 @@
 
 #include <arc/FileUtils.h>
 
+#define DELEGATION_USES_SQLITE 1
+
+#ifdef HAVE_SQLITE
+#include "FileRecordSQLite.h"
+#endif
+#include "FileRecordBDB.h"
+
 #include "DelegationStore.h"
 
 namespace ARex {
@@ -23,17 +30,30 @@ namespace ARex {
     Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
-  DelegationStore::DelegationStore(const std::string& base, bool allow_recover):
+  DelegationStore::DelegationStore(const std::string& base, DbType db, bool allow_recover):
            logger_(Arc::Logger::rootLogger, "Delegation Storage") {
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
     mrec_ = NULL;
-    fstore_ = new FileRecord(base, allow_recover);
+    switch(db) {
+      case DbBerkeley:
+        fstore_ = new FileRecordBDB(base, allow_recover);
+        break;
+#ifdef HAVE_SQLITE
+      case DbSQLite:
+        fstore_ = new FileRecordSQLite(base, allow_recover);
+        break;
+#endif
+      default:
+        failure_ = "Unsupported database type requested for delegation storage.";
+        logger_.msg(Arc::ERROR,"%s",failure_);
+        return;
+    };
     if(!*fstore_) {
       failure_ = "Failed to initialize storage. " + fstore_->Error();
+      logger_.msg(Arc::WARNING,"%s",failure_);
       if(allow_recover) {
-        logger_.msg(Arc::WARNING,"%s",failure_);
         // Database creation failed. Try recovery.
         if(!fstore_->Recover()) {
           failure_ = "Failed to recover storage. " + fstore_->Error();
@@ -55,7 +75,19 @@ namespace ARex {
               };
             };
           };
-          fstore_ = new FileRecord(base);
+          switch(db) {
+            case DbBerkeley:
+              fstore_ = new FileRecordBDB(base);
+              break;
+#ifdef HAVE_SQLITE
+            case DbSQLite:
+              fstore_ = new FileRecordSQLite(base);
+              break;
+#endif
+            default:
+              // Must not happen - already sorted out above.
+              return;
+          };
           if(!*fstore_) {
             // Failure
             failure_ = "Failed to re-create storage. " + fstore_->Error();
@@ -250,7 +282,7 @@ namespace ARex {
         };
       };
       if(mrec_ == NULL) {
-        mrec_ = new FileRecord::Iterator(*fstore_);
+        mrec_ = fstore_->NewIterator();
       };
       for(;(bool)(*mrec_);++(*mrec_)) {
         if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) {
@@ -307,13 +339,39 @@ namespace ARex {
     return fstore_->Find(id,client,meta);
   }
 
+  bool DelegationStore::GetCred(const std::string& id, const std::string& client, std::string& credentials) {
+    std::list<std::string> meta;
+    std::string path = fstore_->Find(id,client,meta);
+    if(path.empty()) {
+      failure_ = "Local error - failed to find specified credentials. "+fstore_->Error();
+      return false;
+    }
+    std::string content;
+    if(!Arc::FileRead(path,credentials)) {
+      failure_ = "Local error - failed to read credentials";
+      return false;
+    };
+    return true;
+  }
+
+  bool DelegationStore::GetLocks(const std::string& id, const std::string& client, std::list<std::string>& lock_ids) {
+    return fstore_->ListLocks(id, client, lock_ids);
+  }
+
   std::list<std::string> DelegationStore::ListCredIDs(const std::string& client) {
     std::list<std::string> res;
-    FileRecord::Iterator rec(*fstore_);
+    FileRecord::Iterator& rec = *(fstore_->NewIterator());
     for(;(bool)rec;++rec) {
       if(rec.owner() == client) res.push_back(rec.id());
     };
+    delete &rec;
     return res;
+  }
+
+  std::list<std::pair<std::string,std::string> > DelegationStore::ListLockedCredIDs(const std::string& lock_id) {
+    std::list<std::pair<std::string,std::string> > ids;
+    (void)fstore_->ListLocked(lock_id, ids);
+    return ids;
   }
 
   std::list<std::string> DelegationStore::ListLockedCredIDs(const std::string& lock_id, const std::string& client) {
@@ -329,10 +387,11 @@ namespace ARex {
 
   std::list<std::pair<std::string,std::string> > DelegationStore::ListCredIDs(void) {
     std::list<std::pair<std::string,std::string> > res;
-    FileRecord::Iterator rec(*fstore_);
+    FileRecord::Iterator& rec = *(fstore_->NewIterator());
     for(;(bool)rec;++rec) {
       res.push_back(std::pair<std::string,std::string>(rec.id(),rec.owner()));
     };
+    delete &rec;
     return res;
   }
 

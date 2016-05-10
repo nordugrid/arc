@@ -987,6 +987,25 @@ AC_SUBST(NSS_CFLAGS)
 AC_SUBST(NSS_LIBS)
 AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 
+#check SQLite
+enables_sqlite=no
+SQLITE_INSTALLED=no
+dnl Check if sqlite is explicitly enabled, default is disable.
+AC_ARG_ENABLE(sqlite, AC_HELP_STRING([--disable-sqlite], [disable use of the SQLite]),[enables_sqlite="$enableval"],[])
+if test "$enables_sqlite" = "yes"; then
+  PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3], [SQLITE_INSTALLED=yes] , [
+    AC_MSG_WARN([Cannot locate SQLite])
+    SQLITE_INSTALLED=no
+    enables_sqlite=no
+  ])
+  if test "x$SQLITE_INSTALLED" = "xyes" ; then
+    AC_DEFINE(HAVE_SQLITE,,[define if SQLite is enabled and available])
+  fi
+fi
+AC_SUBST(SQLITE_CFLAGS)
+AC_SUBST(SQLITE_LIBS)
+AM_CONDITIONAL([SQLITE_ENABLED], test x$SQLITE_INSTALLED = xyes)
+
 #check emi common authentiation library
 enables_canlxx=no
 AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
@@ -2636,6 +2655,7 @@ ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
 CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
+SQLite:             ${enables_sqlite}
 
 Enabled features:
 
