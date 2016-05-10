@@ -30,7 +30,11 @@ namespace ARex {
   bool FileRecordSQLite::dberr(const char* s, int err) {
     if(err == SQLITE_OK) return true;
     error_num_ = err;
+#ifdef HAVE_SQLITE3_ERRSTR
     error_str_ = std::string(s)+": "+sqlite3_errstr(err);
+#else
+    error_str_ = std::string(s)+": error code "+Arc::tostring(err);
+#endif
     return false;
   }
 

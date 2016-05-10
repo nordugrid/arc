@@ -1000,6 +1000,14 @@ if test "$enables_sqlite" = "yes"; then
   ])
   if test "x$SQLITE_INSTALLED" = "xyes" ; then
     AC_DEFINE(HAVE_SQLITE,,[define if SQLite is enabled and available])
+    # Check for finction available since 3.8
+    SAVE_CFLAGS=$CFLAGS
+    SAVE_LIBS=$LIBS
+    CFLAGS="$CFLAGS $SQLITE_CFLAGS"
+    LIBS="$LIBS $SQLITE_LIBS"
+    AC_CHECK_FUNCS(sqlite3_errstr)
+    CFLAGS=$SAVE_CFLAGS
+    LIBS=$SAVE_LIBS
   fi
 fi
 AC_SUBST(SQLITE_CFLAGS)
