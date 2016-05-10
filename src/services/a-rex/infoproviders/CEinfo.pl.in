@@ -53,13 +53,12 @@ BEGIN {
     my $log = LogUtils->getLogger(__PACKAGE__);	
 	
 	
-	# Parse configfile location from a copy of @ARGV 
-	# so we don't remove options from it
+	# Make a copy of @ARGV and restore it after extracting options from it.
+	# Using GetOptionsFromArray is not available on older platforms
 	
 	my @options = @ARGV;
-	
-	GetOptionsFromArray(\@options, 
-	             "config:s" => \$configfile);
+	GetOptions("config:s" => \$configfile);
+	@ARGV = @options;
 
     unless ( $configfile ) {
         $log->warning("Performance code setup: No 'config' option, skipping performance configuration. See --help ");
