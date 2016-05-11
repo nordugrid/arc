@@ -1000,8 +1000,9 @@ int JobPlugin::close(bool eof) {
 
   // Put lock on delegated credentials
   if(!deleg_ids.empty()) {
-    if(!ARex::DelegationStore(config.DelegationDir(),deleg_db_type,false).LockCred(job_id,deleg_ids,subject)) {
-      logger.msg(Arc::ERROR, "Failed to lock delegated credentials");
+    ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
+    if(!store.LockCred(job_id,deleg_ids,subject)) {
+      logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
       delete_job_id();
       error_description="Failed to lock delegated credentials.";
       return 1;
