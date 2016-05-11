@@ -397,7 +397,11 @@ namespace ARex {
 
 
   bool DelegationStore::LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client) {
-    return fstore_->AddLock(lock_id,ids,client);
+    if(!fstore_->AddLock(lock_id,ids,client)) {
+      failure_ = "Local error - failed set lock for delegation. "+fstore_->Error();
+      return false;
+    };
+    return true;
   }
 
   bool DelegationStore::ReleaseCred(const std::string& lock_id, bool touch, bool remove) {

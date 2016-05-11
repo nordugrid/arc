@@ -220,6 +220,7 @@ namespace ARex {
         };
       };
     };
+    return 0;
   }
 
   struct FindCallbackCountArg {
@@ -229,6 +230,7 @@ namespace ARex {
 
   static int FindCallbackCount(void* arg, int colnum, char** texts, char** names) {
     ((FindCallbackCountArg*)arg)->count += 1;
+    return 0;
   }
 
   struct FindCallbackIdOwnerArg {
@@ -248,6 +250,7 @@ namespace ARex {
       };
     };
     if(!rec.first.empty()) ((FindCallbackIdOwnerArg*)arg)->records.push_back(rec);
+    return 0;
   }
 
   struct FindCallbackLockArg {
@@ -264,6 +267,7 @@ namespace ARex {
         };
       };
     };
+    return 0;
   }
 
 
@@ -335,7 +339,7 @@ namespace ARex {
       return false; // No such record
     };
     {
-      std::string sqlcmd = "SELECT FROM lock WHERE (uid = '"+uid+"')";
+      std::string sqlcmd = "SELECT uid FROM lock WHERE (uid = '"+uid+"')";
       FindCallbackCountArg arg;
       if(!dberr("Failed to find locks in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), &FindCallbackCount, &arg, NULL))) {
         return false;
