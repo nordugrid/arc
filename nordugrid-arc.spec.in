@@ -140,7 +140,7 @@
 %endif
 
 # SQLite
-%if %{?fedora}%{!?fedora:0} >= 9 || %{?rhel}%{!?rhel:0} >= 6
+%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
 %global with_sqlite 1
 %else
 %global with_sqlite 0
