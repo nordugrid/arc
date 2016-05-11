@@ -46,7 +46,7 @@ our $NYTPROF_PRESENT = 0;
 BEGIN {
 	use ConfigCentral;
     use LogUtils; 
-    use Getopt::Long qw(GetOptionsFromArray);
+    use Getopt::Long;
     
 	LogUtils::level('WARNING');
 	
