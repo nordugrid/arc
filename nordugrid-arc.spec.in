@@ -139,6 +139,13 @@
 %global with_cautils 1
 %endif
 
+# SQLite
+%if %{?fedora}%{!?fedora:0} >= 9 || %{?rhel}%{!?rhel:0} >= 6
+%global with_sqlite 1
+%else
+%global with_sqlite 0
+%endif
+
 %global pkgdir arc
 
 #
@@ -325,7 +332,9 @@ BuildRequires:	libtool-ltdl-devel
 %else
 BuildRequires:	libtool
 %endif
-BuildRequires:  sqlite-devel
+%if %{with_sqlite}
+BuildRequires:  sqlite-devel >= 3.6
+%endif
 
 %description
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1014,7 +1023,9 @@ export CXXFLAGS="%{optflags} -std=c++11"
 %if ! %{with_xrootd}
      --disable-xrootd \
 %endif
+%if %{with_sqlite}
      --enable-sqlite \
+%endif
      --disable-doc \
      --with-docdir=%{_pkgdocdir} \
      --with-jnidir=%{_jnidir}
