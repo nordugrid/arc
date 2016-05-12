@@ -568,16 +568,23 @@ sub collect($) {
     # This may require rethinking of parsing the configuration...
     my $GLUE2shares = {};
     
-    # If VOs are defined, generate one additional share per VO.
-    # Since there is one VO per MappingPolicy this is
-    # equivalent to collect MappingPolicy info?
-    # can it be done later in the code?
-    
-    #TODO: refactorize this to apply to cluster and queue VOs
-    # with a single subroutine
+    # If authorizedvo is present in arc.conf defined, 
+    # generate one additional share for each VO.
+    #
+    # TODO: refactorize this to apply to cluster and queue VOs
+    # with a single subroutine, might be handy for glue1 rendering
+    #
     ## for each share(queue)
     for my $currentshare (@allshares) { 
-       # if there is any VO
+       # always add a share with no mapping policy
+	   my $share_vo = $currentshare;
+	   $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+	   # remove VOs so to have no policy
+	   delete $GLUE2shares->{$share_vo}{authorizedvo} unless $GLUE2shares->{$share_vo}{authorizedvo};
+	   undef $share_vo;
+	   # Create as many shares as the number of authorizedvo entries
+	   # in the [queue/queuename] block
+       # if there is any VO generate new names
        if (defined $config->{shares}{$currentshare}{authorizedvo}) {
             my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
             for my $queueauthvo (@{$queueauthvos}) {
@@ -589,21 +596,23 @@ sub collect($) {
                 # remove VOs from that share, substitute with default VO
                 $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo; 
             }
-        }
+        } else {
        # create as many shares as the authorizedvo in the [cluster] block
-       if (defined $config->{service}{AuthorizedVO}) { 
-            my ($clusterauthvos) = $config->{service}{AuthorizedVO};
-            for my $clusterauthvo (@{$clusterauthvos}) {
-                # generate an additional share with such authorizedVO
-                my $share_vo = $currentshare.'_'.$clusterauthvo;
-                $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
-                # add the queue from configuration as MappingQueue
-                $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
-                # remove VOs from that share, substitute with default VO
-                $GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
-            }    
-       }
-    }
+       # iff authorizedvo not defined in queue block
+			if (defined $config->{service}{AuthorizedVO}) { 
+				my ($clusterauthvos) = $config->{service}{AuthorizedVO};
+				for my $clusterauthvo (@{$clusterauthvos}) {
+					# generate an additional share with such authorizedVO
+					my $share_vo = $currentshare.'_'.$clusterauthvo;
+					$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+					# add the queue from configuration as MappingQueue
+					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+					# remove VOs from that share, substitute with default VO
+					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+				}    
+			}
+		}
+	}
  
     ##replace @allshares with the newly created shares
     #@allshares = keys %{$GLUE2shares};

@@ -10,10 +10,12 @@
 
 namespace ArcSHCLegacy {
 
-#define AAA_POSITIVE_MATCH 1
-#define AAA_NEGATIVE_MATCH -1
-#define AAA_NO_MATCH 0
-#define AAA_FAILURE 2
+enum AuthResult {
+  AAA_POSITIVE_MATCH = 1,
+  AAA_NEGATIVE_MATCH = -1,
+  AAA_NO_MATCH = 0,
+  AAA_FAILURE = 2
+};
 
 class AuthVO;
 
@@ -34,7 +36,7 @@ struct voms_t {
 
 class AuthUser {
  private:
-  typedef int (AuthUser:: * match_func_t)(const char* line);
+  typedef AuthResult (AuthUser:: * match_func_t)(const char* line);
   typedef struct {
     const char* cmd;
     match_func_t func;
@@ -63,15 +65,15 @@ class AuthUser {
 
   // Matching methods
   static source_t sources[]; // Supported evaluation sources
-  int match_all(const char* line);
-  int match_group(const char* line);
-  int match_subject(const char* line);
-  int match_file(const char* line);
-  int match_ldap(const char* line);
-  int match_voms(const char* line);
-  int match_vo(const char* line);
-  int match_lcas(const char *);
-  int match_plugin(const char* line);
+  AuthResult match_all(const char* line);
+  AuthResult match_group(const char* line);
+  AuthResult match_subject(const char* line);
+  AuthResult match_file(const char* line);
+  AuthResult match_ldap(const char* line);
+  AuthResult match_voms(const char* line);
+  AuthResult match_vo(const char* line);
+  AuthResult match_lcas(const char *);
+  AuthResult match_plugin(const char* line);
 
   const group_t* find_group(const char* grp) const {
     if(grp == NULL) return NULL;
@@ -109,7 +111,7 @@ class AuthUser {
 //  void set(const char* subject,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname = NULL);
   //void set(const char* s,STACK_OF(X509)* cred,const char* hostname = NULL);
   // Evaluate authentication rules
-  int evaluate(const char* line);
+  AuthResult evaluate(const char* line);
   const char* DN(void) const { return subject_.c_str(); };
   const char* proxy(void) const {
     (const_cast<AuthUser*>(this))->store_credentials();

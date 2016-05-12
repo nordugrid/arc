@@ -24,7 +24,7 @@ static bool match_value(const std::string& value, const std::vector<std::string>
   return false;
 }
 
-int AuthUser::match_voms(const char* line) {
+AuthResult AuthUser::match_voms(const char* line) {
   // No need to process anything if no VOMS extensions are present
   if(voms_data_.empty()) return AAA_NO_MATCH;
   // parse line

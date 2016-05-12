@@ -20,14 +20,14 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-int AuthUser::match_all(const char* /* line */) {
+AuthResult AuthUser::match_all(const char* /* line */) {
   default_voms_=voms_t();
   default_vo_=NULL;
   default_group_=NULL;
   return AAA_POSITIVE_MATCH;
 }
 
-int AuthUser::match_group(const char* line) {
+AuthResult AuthUser::match_group(const char* line) {
   std::string::size_type n = 0;
   for(;;) {
     if(n == std::string::npos) break;
@@ -46,7 +46,7 @@ int AuthUser::match_group(const char* line) {
   return AAA_NO_MATCH;
 }
 
-int AuthUser::match_vo(const char* line) {
+AuthResult AuthUser::match_vo(const char* line) {
   std::string::size_type n = 0;
   for(;;) {
     if(n == std::string::npos) break;
@@ -196,7 +196,7 @@ AuthUser::~AuthUser(void) {
   if(filename.length()) Arc::FileDelete(filename);
 }
 
-int AuthUser::evaluate(const char* line) {
+AuthResult AuthUser::evaluate(const char* line) {
   bool invert = false;
   bool no_match = false;
   const char* command = "subject";
@@ -218,13 +218,18 @@ int AuthUser::evaluate(const char* line) {
   for(source_t* s = sources;s->cmd;s++) {
     if((strncmp(s->cmd,command,command_len) == 0) && 
        (strlen(s->cmd) == command_len)) {
-      int res=(this->*(s->func))(line);
+      AuthResult res=(this->*(s->func))(line);
       if(res == AAA_FAILURE) return res;
       if(no_match) {
         if(res==AAA_NO_MATCH) { res=AAA_POSITIVE_MATCH; }
         else { res=AAA_NO_MATCH; };
       };
-      if(invert) res=-res;
+      if(invert) {
+        switch(res) {
+          case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
+          case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+        };
+      };
       return res;
     };
   };

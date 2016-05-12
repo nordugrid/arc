@@ -15,7 +15,7 @@ namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
-int AuthUser::match_file(const char* line) {
+AuthResult AuthUser::match_file(const char* line) {
   std::list<std::string> tokens;
   Arc::tokenize(line, tokens, " ", "\"", "\"");
   for(std::list<std::string>::iterator s = tokens.begin();s!=tokens.end();++s) {
@@ -27,7 +27,7 @@ int AuthUser::match_file(const char* line) {
     for(;f.good();) {
       std::string buf;
       getline(f,buf);
-      int res = evaluate(buf.c_str());
+      AuthResult res = evaluate(buf.c_str());
       if(res != AAA_NO_MATCH) {
         f.close();
         return res;

@@ -13,7 +13,7 @@ namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
-int AuthUser::match_plugin(const char* line) {
+AuthResult AuthUser::match_plugin(const char* line) {
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;

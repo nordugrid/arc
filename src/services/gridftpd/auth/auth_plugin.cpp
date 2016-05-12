@@ -47,7 +47,7 @@ static void subst_arg(std::string& str,void* arg) {
 void func(void) {
 }
 
-int AuthUser::match_plugin(const char* line) {
+AuthResult AuthUser::match_plugin(const char* line) {
   // return AAA_NO_MATCH;
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;

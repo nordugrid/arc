@@ -10,7 +10,7 @@
 
 namespace ArcSHCLegacy {
 
-int AuthUser::match_subject(const char* line) {
+AuthResult AuthUser::match_subject(const char* line) {
   // A bit of hacking here to properly split DNs with spaces
   std::string line_(line);
   std::string subj;

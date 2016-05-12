@@ -12,6 +12,19 @@ use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
 
+# The profiling tool might be missing in some distributions.
+# Default is to assume is not present.
+my $NYTPROF_PRESENT = 0;
+$ENV{NYTPROF} = "start=no:file=/tmp/arcnytproftmp";
+$NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+if ($NYTPROF_PRESENT) {
+    # temporary workaround to reduce useless files written by
+    # the profiler. Might be removed in the future
+    DB::disable_profile();
+    unlink '/tmp/arcnytproftmp';
+};
+
+
 ## enable this below to dump datastructures
 ## Note: Concise is not an ARC dependency!
 ## must be installed separately.
@@ -97,6 +110,24 @@ sub main {
     # Dump config (uncomment if needed)
     #print Dumper($config);
 
+
+    if ($NYTPROF_PRESENT) {
+	    # Enable performance collection if specified in config
+	    if (defined $config->{enable_perflog_reporting} && $config->{enable_perflog_reporting}) {
+		   my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+	       my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,
+	                           $mon,$year,$wday,$yday,$isdst);
+		   my $perflogdir ||= ($config->{perflogdir}) ? $config->{perflogdir} : '/var/log/arc';
+	       my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
+	       my $perflogfilepath = $perflogdir.'/'.$perflogfilename;
+	       if ( -e $perflogdir ) {
+					  DB::enable_profile($perflogfilepath);
+	                  $log->info("Performance reporting enabled. The database file will be stored in $perflogfilepath");
+	       } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflogfilepath. Check arc.conf perflogdir option, directories and permissions"); }
+	
+	    }
+    } else {$log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
+     
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
@@ -206,7 +237,9 @@ sub main {
     InfosysHelper::heartbeatRemove($config);
     
     $log->info("############## A-REX infoprovider finished ##############");
-    
+
+    # close performance file if enabled
+    DB::disable_profile() if ($NYTPROF_PRESENT && (defined $config->{common}{enable_perflog_reporting}));
 }
 
 

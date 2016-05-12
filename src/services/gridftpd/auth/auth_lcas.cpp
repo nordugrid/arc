@@ -17,7 +17,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLCAS");
 
-int AuthUser::match_lcas(const char* line) {
+AuthResult AuthUser::match_lcas(const char* line) {
   // TODO: escape
   // TODO: hardcoded 300s timeout
   std::string lcas_plugin = "300 \""+
@@ -26,6 +26,6 @@ int AuthUser::match_lcas(const char* line) {
   lcas_plugin+=std::string("\"")+DN()+"\" ";
   lcas_plugin+=std::string("\"")+proxy()+"\" ";
   lcas_plugin+=line;
-  int res = match_plugin(lcas_plugin.c_str());
+  AuthResult res = match_plugin(lcas_plugin.c_str());
   return res;
 }

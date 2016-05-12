@@ -357,22 +357,22 @@ bool userspec_t::refresh(void) {
   return true;
 }
 
-bool userspec_t::mapname(const char* line) {
-  if(!map.mapname(line)) return false;
-  refresh();
-  return true;
+AuthResult userspec_t::mapname(const char* line) {
+  AuthResult res = map.mapname(line);
+  if(res == AAA_POSITIVE_MATCH) refresh();
+  return res;
 }
 
-bool userspec_t::mapgroup(const char* line) {
-  if(!map.mapgroup(line)) return false;
-  refresh();
-  return true;
+AuthResult userspec_t::mapgroup(const char* line) {
+  AuthResult res = map.mapgroup(line);
+  if(res == AAA_POSITIVE_MATCH) refresh();
+  return res;
 }
 
-bool userspec_t::mapvo(const char* line) {
-  if(!map.mapvo(line)) return false;
-  refresh();
-  return true;
+AuthResult userspec_t::mapvo(const char* line) {
+  AuthResult res = map.mapvo(line);
+  if(res == AAA_POSITIVE_MATCH) refresh();
+  return res;
 }
 
 const char* userspec_t::get_uname(void) {

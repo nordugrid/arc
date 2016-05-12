@@ -222,10 +222,11 @@ namespace DataStaging {
     Glib::Mutex::Lock lock(lock_);
     if (!client) return;
 
-    // check time since last query - for long transfers we do not need to query
-    // at a high frequency. After 5s query every 5s.
+    // check time since last query - check every second for the first 20s and
+    // after every 5s
     // TODO be more intelligent, using transfer rate and file size
-    if (Arc::Time() - start_ > 5 && Arc::Time() - Arc::Time(status_.timestamp) < 5) return;
+    if (Arc::Time() - start_ < 20 && Arc::Time() - Arc::Time(status_.timestamp) < 1) return;
+    if (Arc::Time() - start_ > 20 && Arc::Time() - Arc::Time(status_.timestamp) < 5) return;
 
     Arc::NS ns;
     Arc::PayloadSOAP request(ns);
