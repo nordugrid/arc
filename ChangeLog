@@ -1,3 +1,11 @@
+2016-03-30 David Cameron <d.g.cameron@fys.uio.no>
+  * Changed behaviour of gridftp jobplugin so it does not restart failed jobs
+    automatically when proxy is renewed.
+
+2016-03-18 David Cameron <d.g.cameron@fys.uio.no>
+  * Add new options for performance reporting: enable_perflog_reporting and
+    perflogdir
+
 2016-01-19 Andrii Salnikov <manf@grid.org.ua>
   * Nordugridmap code changes to keep log records format the same across all ARC components
   * Review of log messages text in nordugridmap

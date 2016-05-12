@@ -1258,20 +1258,6 @@ int JobPlugin::checkdir(std::string &dirname) {
         error_description="Applying external credentials locally failed.";
         ApplyLocalCred(user,config,&id,"renew");
         error_description="";
-        /* Cause restart of job if it potentially failed
-           because of expired proxy */
-        if((old_proxy_expires < Arc::Time()) && (
-            (job_desc.failedstate ==
-                  GMJob::get_state_name(JOB_STATE_PREPARING)) ||
-            (job_desc.failedstate ==
-                  GMJob::get_state_name(JOB_STATE_FINISHING))
-           )
-          ) {
-          logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
-          if(!job_restart_mark_put(GMJob(id,user),config)) {
-            logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
-          };
-        };
       } else {
         logger.msg(Arc::ERROR, "Failed to renew proxy");
       };
