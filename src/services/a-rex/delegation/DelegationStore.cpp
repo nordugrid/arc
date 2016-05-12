@@ -294,7 +294,9 @@ namespace ARex {
           if(((unsigned int)(::time(NULL) - st.st_mtime)) > expiration_) {
             if(fstore_->Remove(mrec_->id(),mrec_->owner())) {
             } else {
-              logger_.msg(Arc::WARNING,"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s", mrec_->uid(), fstore_->Error());
+              // It is ok to fail here because Remove checks for delegation locks.
+              // So reporting only for debuging purposes.
+              logger_.msg(Arc::DEBUG,"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s", mrec_->uid(), fstore_->Error());
             };
           };    
         };
