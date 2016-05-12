@@ -129,6 +129,8 @@ class JobsList {
   bool GetLocalDescription(const JobsList::iterator &i);
   // Modify job state, log that change and optionally log modification reson
   void SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason = NULL);
+  // Update content of job proxy file with one stored in delegations store
+  void UpdateJobCredentials(JobsList::iterator &i);
 
   // Main job processing method. Analyze current state of job, perform
   // necessary actions and advance state or remove job if needed. Iterator 'i'

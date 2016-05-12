@@ -10,7 +10,6 @@
 
 #include "FileChunks.h"
 #include "grid-manager/GridManager.h"
-//#include "delegation/DelegationStore.h"
 #include "delegation/DelegationStores.h"
 #include "grid-manager/conf/GMConfig.h"
 
@@ -19,7 +18,6 @@ namespace ARex {
 class ARexGMConfig;
 class ARexConfigContext;
 class CountedResourceLock;
-class DelegationStores;
 
 class CountedResource {
  friend class CountedResourceLock;
@@ -57,7 +55,7 @@ class ARexService: public Arc::Service {
  private:
   static void gm_threads_starter(void* arg);
   void gm_threads_starter();
-  Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config);
+  Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, bool no_content);
  protected:
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;

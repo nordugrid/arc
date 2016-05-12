@@ -132,7 +132,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   cf.AddSection("grid-manager");
   cf.AddSection("infosys");
   cf.AddSection("queue");
-  if (config.job_perf_log) config.job_perf_log->SetEnabled(false);
+  if (config.job_perf_log) {
+    config.job_perf_log->SetEnabled(false);
+    config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
+  }
   // process configuration information here
   for(;;) {
     std::string rest;
@@ -187,7 +190,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "perflogdir") { // 
       if (!config.job_perf_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too
-      if(!fname.empty()) fname += "/arex_date.perflog";
+      if(!fname.empty()) fname += "/arex.perflog";
       config.job_perf_log->SetOutput(fname.c_str());
     }
     else if (command == "jobreport") { // service to report information to
@@ -371,6 +374,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       else {
         logger.msg(Arc::ERROR, "Wrong option in fixdirectories"); return false;
+      }
+    }
+    else if (command == "delegationdb") {
+      std::string s = config_next_arg(rest);
+      if (s == "bdb") {
+        config.deleg_db = GMConfig::deleg_db_bdb;
+      }
+      else if (s == "sqlite") {
+        config.deleg_db = GMConfig::deleg_db_sqlite;
+      }
+      else {
+        logger.msg(Arc::ERROR, "Wrong option in delegationdb"); return false;
       }
     }
     else if (command == "allowsubmit") { // Note: not available in xml
@@ -704,6 +719,10 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   int n;
   if (!elementtoenum(tmp_node, "fixDirectories", n=(int)fixdir, fixdir_opts, &logger)) return false;
   config.fixdir = (GMConfig::fixdir_t)n;
+  GMConfig::deleg_db_t deleg_db = GMConfig::deleg_db_bdb;
+  const char* deleg_db_opts[] = { "bdb", "sqlite", NULL };
+  if (!elementtoenum(tmp_node, "delegationDB", n=(int)deleg_db, deleg_db_opts, &logger)) return false;
+  config.deleg_db = (GMConfig::deleg_db_t)n;
   if (!elementtoint(tmp_node, "maxReruns", config.reruns, &logger)) return false;
   if (!elementtobool(tmp_node, "noRootPower", config.strict_session, &logger)) return false;
   if (!elementtoint(tmp_node, "defaultTTL", config.keep_finished, &logger)) return false;

@@ -67,6 +67,21 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
   return AddJobNoCheck(id,i,uid,gid,state);
 }
 
+void JobsList::UpdateJobCredentials(JobsList::iterator &i) {
+  if(GetLocalDescription(i)) {
+    std::string delegation_id = i->local->delegationid;
+    if(!delegation_id.empty()) {
+      ARex::DelegationStores* delegs = config.delegations;
+      if(delegs) {
+        std::string cred;
+        if((*delegs)[config.DelegationDir()].GetCred(delegation_id,i->local->DN,cred)) {
+          (void)job_proxy_write_file(*i,config,cred);
+        };
+      };
+    };
+  };
+}
+
 void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason) {
   if(i->job_state != new_state) {
     std::string msg = Arc::Time().str(Arc::UTCTime);
@@ -81,6 +96,10 @@ void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const c
     msg += "\n";
     i->job_state = new_state;
     job_errors_mark_add(*i,config,msg);
+    // During intermediate period job.proxy file must contain full delegated proxy.
+    // To ensure its content is up to date even if proxy was updated in store here
+    // we update content of that file on every job state change.
+    UpdateJobCredentials(i);
   };
 }
 

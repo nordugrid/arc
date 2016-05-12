@@ -1,3 +1,7 @@
+2016-04-19 David Cameron <d.g.cameron@fys.uio.no>
+  * Added new URL option "failureallowed" - if set then a failed transfer does
+    not fail the job 
+  
 2016-03-30 David Cameron <d.g.cameron@fys.uio.no>
   * Changed behaviour of gridftp jobplugin so it does not restart failed jobs
     automatically when proxy is renewed.

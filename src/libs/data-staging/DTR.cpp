@@ -67,6 +67,7 @@ namespace DataStaging {
        bulk_start(false),
        bulk_end(false),
        source_supports_bulk(false),
+       mandatory(true),
        delivery_endpoint(LOCAL_DELIVERY),
        use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
@@ -121,6 +122,9 @@ namespace DataStaging {
 #else
     cache_state = (source_endpoint->Cache() && destination_endpoint->Local()) ? CACHEABLE : NON_CACHEABLE;
 #endif
+    if (source_url.Option("failureallowed") == "yes" || destination_url.Option("failureallowed") == "yes") {
+      mandatory = false;
+    }
     
     /* Think how to populate transfer parameters */
     mark_modification();

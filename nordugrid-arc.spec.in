@@ -139,6 +139,13 @@
 %global with_cautils 1
 %endif
 
+# SQLite
+%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
+%global with_sqlite 1
+%else
+%global with_sqlite 0
+%endif
+
 %global pkgdir arc
 
 #
@@ -324,6 +331,9 @@ BuildRequires:	python-xml
 BuildRequires:	libtool-ltdl-devel
 %else
 BuildRequires:	libtool
+%endif
+%if %{with_sqlite}
+BuildRequires:  sqlite-devel >= 3.6
 %endif
 
 %description
@@ -1013,6 +1023,9 @@ export CXXFLAGS="%{optflags} -std=c++11"
 %if ! %{with_xrootd}
      --disable-xrootd \
 %endif
+%if %{with_sqlite}
+     --enable-sqlite \
+%endif
      --disable-doc \
      --with-docdir=%{_pkgdocdir} \
      --with-jnidir=%{_jnidir}
@@ -1481,6 +1494,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/configure-*-env.sh
 %{_datadir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/scan_common.sh
+%{_datadir}/%{pkgdir}/perferator
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*

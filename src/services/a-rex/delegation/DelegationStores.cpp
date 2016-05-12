@@ -10,7 +10,7 @@
 
 namespace ARex {
 
-  DelegationStores::DelegationStores(void) {
+  DelegationStores::DelegationStores(DelegationStore::DbType db_type):db_type_(db_type) {
   }  
 
   DelegationStores::~DelegationStores(void) {
@@ -25,7 +25,7 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     std::map<std::string,DelegationStore*>::iterator i = stores_.find(path);
     if(i != stores_.end()) return *(i->second);
-    DelegationStore* store = new DelegationStore(path);
+    DelegationStore* store = new DelegationStore(path,db_type_);
     stores_.insert(std::pair<std::string,DelegationStore*>(path,store));
     return *store;
   }

@@ -309,6 +309,9 @@ namespace DataStaging {
     /// Whether bulk operations are supported for the source
     bool source_supports_bulk;
 
+    /// Flag to say whether success of the DTR is mandatory
+    bool mandatory;
+
     /// Endpoint of delivery service this DTR is scheduled for.
     /** By default it is LOCAL_DELIVERY so local Delivery is used. */
     Arc::URL delivery_endpoint;
@@ -592,6 +595,9 @@ namespace DataStaging {
     bool get_bulk_end() const { return bulk_end; };
     /// Whether bulk operation is possible according to current state and src/dest
     bool bulk_possible();
+
+    /// Whether DTR success is mandatory
+    bool is_mandatory() const { return mandatory; };
 
     /// Get Logger object, so that processes can log to this DTR's log
     const DTRLogger& get_logger() const { return logger; };
