@@ -55,6 +55,7 @@ namespace DataStaging {
       unsigned long long int size;       ///< File size as obtained by protocol
       unsigned int speed;                ///< Current transfer speed in bytes/sec during last ~minute
       char checksum[128];                ///< Calculated checksum
+      unsigned long long int transfer_time; ///< Time in ns to complete transfer (0 if not completed)
     };
     #pragma pack()
 
@@ -107,9 +108,10 @@ namespace DataStaging {
      * \param dtr DTR from which credentials are used
      * \param allowed_dirs filled with list of dirs that this comm is allowed
      * to read/write
+     * \param load_avg filled with the load average reported by the service
      * \return true if selected delivery method is available
      */
-    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
+    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg);
 
     /// Get explanation of error
     std::string GetError() const { return status_.error_desc; };

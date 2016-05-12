@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <arc/JobPerfLog.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
@@ -93,6 +94,8 @@ private:
   Arc::LogLevel log_level;
   /// where to log DTR state information
   std::string dtr_log;
+  /// Log for performance metrics
+  Arc::JobPerfLog perf_log;
 
   /// ACIX endpoint from which to find locations of cached files
   std::string acix_endpoint;

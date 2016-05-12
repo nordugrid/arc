@@ -183,6 +183,9 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
   // Limit on remote delivery size
   scheduler->SetRemoteSizeLimit(staging_conf.remote_size_limit);
 
+  // Set performance metrics logging
+  scheduler->SetJobPerfLog(staging_conf.perf_log);
+
   // End of configuration - start Scheduler thread
   scheduler->start();
 
@@ -937,6 +940,8 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
       dtr->get_source()->AddLocation(Arc::URL(original_source), Arc::URL(original_source).ConnectionURL());
       dtr->set_use_acix(true);
     }
+    dtr->get_job_perf_log().SetOutput(staging_conf.perf_log.GetOutput());
+    dtr->get_job_perf_log().SetEnabled(staging_conf.perf_log.GetEnabled());
 
     DataStaging::DTRCacheParameters cache_parameters;
     CacheConfig cache_params(config.CacheParams());

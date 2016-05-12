@@ -270,6 +270,13 @@
 #voms_trust_chain = "/O=Grid/O=NorduGrid/CN=host/emi-arc.eu" "/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority"
 #voms_trust_chain = "^/O=Grid/O=NorduGrid"
 
+## enable_perflog_reporting yes/no - Switch on or off performance reporting.
+## Default is no
+#enable_perflog_reporting="yes"
+
+## perflogdir logdir - Directory where performance logs should be stored.
+## Default is /var/log/arc/perfdata
+#perflogdir="/var/log/arc/perfdata"
 
 ### [vo] block #####################################################
 ##

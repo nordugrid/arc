@@ -61,6 +61,7 @@ namespace DataStaging {
        force_registration(false),
        status(DTRStatus::NEW,"Created by the generator"),
        bytes_transferred(0),
+       transfer_time(0),
        created(time(NULL)),
        cancel_request(false),
        bulk_start(false),
@@ -69,7 +70,8 @@ namespace DataStaging {
        delivery_endpoint(LOCAL_DELIVERY),
        use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
-       logger(log)
+       logger(log),
+       perf_record(perf_log)
   {
     if (!logger) {
       // use root logger if none is supplied
@@ -158,6 +160,7 @@ namespace DataStaging {
     cache_file.clear();
     mapped_source.clear();
     bytes_transferred = 0;
+    transfer_time = 0;
     reset_error_status();
   }
 
@@ -242,6 +245,10 @@ namespace DataStaging {
 
   void DTR::set_bytes_transferred(unsigned long long int bytes) {
     bytes_transferred = bytes;
+  }
+
+  void DTR::set_transfer_time(unsigned long long int t) {
+    transfer_time = t;
   }
 
   void DTR::set_cache_file(const std::string& filename)

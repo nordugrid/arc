@@ -86,6 +86,10 @@ namespace DataStaging {
     dumplocation = location;
   }
 
+  void Scheduler::SetJobPerfLog(const Arc::JobPerfLog& perf_log) {
+    job_perf_log = perf_log;
+  }
+
 
   bool Scheduler::start(void) {
     state_lock.lock();
@@ -348,6 +352,11 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "Error with source file, moving to next replica");
       next_replica(request);
       return;
+    }
+    if (request->get_source()->CheckSize()) {
+      // Log performance metric with size of DTR
+      timespec dummy;
+      job_perf_log.Log("DTRSize", request->get_short_id()+"\t"+Arc::tostring(request->get_source()->GetSize()), dummy, dummy);
     }
     // Check if the replica is mapped
     if (url_map) {
@@ -840,12 +849,16 @@ namespace DataStaging {
            service != configured_delivery_services.end(); ++service) {
         request->set_delivery_endpoint(*service);
         std::vector<std::string> allowed_dirs;
-        if (!DataDeliveryComm::CheckComm(request, allowed_dirs)) {
+        std::string load_avg;
+        if (!DataDeliveryComm::CheckComm(request, allowed_dirs, load_avg)) {
           log_to_root_logger(Arc::WARNING, "Error with delivery service at " +
                              request->get_delivery_endpoint().str() + " - This service will not be used");
         }
         else {
           usable_delivery_services[*service] = allowed_dirs;
+          // This is not a timing measurement so use dummy timestamps
+          timespec dummy;
+          job_perf_log.Log("DTR_load_" + service->Host(), load_avg, dummy, dummy);
         }
       }
       request->set_delivery_endpoint(delivery_endpoint);
@@ -1328,6 +1341,9 @@ namespace DataStaging {
     while (sched->scheduler_state == RUNNING && !sched->dumplocation.empty()) {
       // every second, dump state
       sched->DtrList.dumpState(sched->dumplocation);
+      // Performance metric - total number of DTRs in the system
+      timespec dummy;
+      sched->job_perf_log.Log("DTR_total", Arc::tostring(sched->DtrList.size()), dummy, dummy);
       if (sched->dump_signal.wait(1000)) break; // notified by signal()
     }
   }

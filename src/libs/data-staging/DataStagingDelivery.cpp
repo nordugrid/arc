@@ -33,10 +33,17 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          const std::string& err_desc,
                          unsigned long long int transferred,
                          unsigned long long int size,
+                         Arc::Time transfer_start_time,
                          const std::string& checksum = "") {
   static DataStaging::DataDeliveryComm::Status status;
   static unsigned int status_pos = 0;
   static bool status_changed = true;
+
+  unsigned long long int transfer_time = 0;
+  if (transfer_start_time != Arc::Time(0)) {
+    Arc::Period p = Arc::Time() - transfer_start_time;
+    transfer_time = p.GetPeriod() * 1000000000 + p.GetPeriodNanoseconds();
+  }
 
   // Filling
   status.commstatus = DataStaging::DataDeliveryComm::CommNoError;
@@ -48,6 +55,7 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
   status.streams = 0;
   status.transferred = transferred;
   status.size = size;
+  status.transfer_time = transfer_time;
   status.offset = 0;
   status.speed = 0;
   strncpy(status.checksum, checksum.c_str(), sizeof(status.checksum));
@@ -81,6 +89,7 @@ static unsigned long long int GetFileSize(const DataPoint& source, const DataPoi
 
 int main(int argc,char* argv[]) {
 
+  Arc::Time start_time;
   // log to stderr
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE); //TODO: configurable
   Arc::LogStream logcerr(std::cerr);
@@ -267,7 +276,7 @@ int main(int argc,char* argv[]) {
   ReportStatus(DataStaging::DTRStatus::NULL_STATE,
                DataStaging::DTRErrorStatus::NONE_ERROR,
                DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
-               "",0,0,"");
+               "",0,0,0,"");
 
   // if checksum type is supplied, use that type, otherwise use default for the
   // destination (if checksum is supported by the destination protocol)
@@ -312,7 +321,7 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::ERROR_SOURCE,
                  std::string("Failed reading from source: ")+source->CurrentLocation().str()+
                   " : "+std::string(source_st),
-                 0,0);
+                 0,0,0);
     _exit(-1);
     //return -1;
   };
@@ -326,7 +335,7 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::ERROR_DESTINATION,
                  std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
                   " : "+std::string(dest_st),
-                 0,0);
+                 0,0,0);
     _exit(-1);
     //return -1;
   };
@@ -342,7 +351,7 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
                  "",
                  buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest));
+                 GetFileSize(*source,*dest),0);
     buffer.wait_any();
   };
   if (delivery_shutdown) {
@@ -351,7 +360,7 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::ERROR_TRANSFER,
                  "DataStagingProcess process killed",
                  buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest));
+                 GetFileSize(*source,*dest),0);
     dest->StopWriting();
     _exit(-1);
   }
@@ -360,7 +369,7 @@ int main(int argc,char* argv[]) {
                DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
                "",
                buffer.speed.transferred_size(),
-               GetFileSize(*source,*dest));
+               GetFileSize(*source,*dest),0);
 
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
@@ -383,7 +392,8 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::ERROR_SOURCE,
                  err,
                  buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest));
+                 GetFileSize(*source,*dest),
+                 start_time);
     reported = true;
   };
   if(dest_failed || !dest_st) {
@@ -400,7 +410,8 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::ERROR_DESTINATION,
                  err,
                  buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest));
+                 GetFileSize(*source,*dest),
+                 start_time);
     reported = true;
   };
 
@@ -412,7 +423,8 @@ int main(int argc,char* argv[]) {
                    DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
                    "Transfer timed out",
                    buffer.speed.transferred_size(),
-                   GetFileSize(*source,*dest));
+                   GetFileSize(*source,*dest),
+                   start_time);
       reported = true;
     };
   };
@@ -448,7 +460,7 @@ int main(int argc,char* argv[]) {
                      DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
                      DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
                      "Checksum mismatch",
-                     0,0);
+                     0,0,start_time);
         reported = true;
         eof_reached = false; // TODO general error flag is better than this
         // Delete destination
@@ -469,6 +481,7 @@ int main(int argc,char* argv[]) {
                  "",
                  buffer.speed.transferred_size(),
                  GetFileSize(*source,*dest),
+                 start_time,
                  calc_csum);
   };
   _exit(eof_reached?0:1);

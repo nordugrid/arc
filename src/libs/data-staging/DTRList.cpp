@@ -188,6 +188,13 @@ namespace DataStaging {
     return empty;
   }
 
+  unsigned int DTRList::size() {
+    Lock.lock();
+    unsigned int size = DTRs.size();
+    Lock.unlock();
+    return size;
+  }
+
   std::list<std::string> DTRList::all_jobs() {
     std::list<std::string> alljobs;
     std::list<DTR_ptr>::iterator it;

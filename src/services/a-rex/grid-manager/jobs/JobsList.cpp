@@ -114,11 +114,14 @@ int JobsList::AcceptedJobs() const {
          jobs_pending;
 }
 
-int JobsList::RunningJobs() const {
-  return jobs_num[JOB_STATE_SUBMITTING] +
-         jobs_num[JOB_STATE_INLRMS];
+bool JobsList::RunningJobsLimitReached() const {
+  if(config.max_jobs_running==-1) return false;
+  int num = jobs_num[JOB_STATE_SUBMITTING] +
+            jobs_num[JOB_STATE_INLRMS];
+  return num >= config.max_jobs_running;
 }
 
+/*
 int JobsList::ProcessingJobs() const {
   return jobs_num[JOB_STATE_PREPARING] +
          jobs_num[JOB_STATE_FINISHING];
@@ -131,6 +134,7 @@ int JobsList::PreparingJobs() const {
 int JobsList::FinishingJobs() const {
   return jobs_num[JOB_STATE_FINISHING];
 }
+*/
 
 
 void JobsList::PrepareToDestroy(void) {
@@ -188,6 +192,13 @@ void JobsList::WaitAttention(void) {
       return;
     };
   }; // while !jobs_attention_cond
+}
+
+bool JobsList::RequestWaitForRunning(const JobId& id) {
+  Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
+  logger.msg(Arc::VERBOSE, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), id);
+  jobs_wait_for_running.push_back(id);
+  return true;
 }
 
 bool JobsList::RequestPolling(const JobId& id) {
@@ -298,6 +309,7 @@ bool JobsList::ActJobs(void) {
   return res;
 }
 
+/*
 bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   logger.msg(Arc::INFO,"%s: Destroying",i->job_id);
   job_state_t new_state=i->job_state;
@@ -338,6 +350,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   i=jobs.erase(i);
   return true;
 }
+*/
 
 bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   bool r = true;
@@ -977,14 +990,14 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
         // RequestPolling(i->job_id);
       } else if(i->local->exec.size() > 0) {
         // Job has executable
-        if((config.max_jobs_running==-1) || (RunningJobs()<config.max_jobs_running)) {
+        if(!RunningJobsLimitReached()) {
           // And limit of running jobs is not reached
           SetJobState(i, JOB_STATE_SUBMITTING, "Pre-staging finished, passing job to LRMS");
           RequestReprocess(i->job_id); // act on new state immediately
         } else {
           // Wait for running jobs to fall below limit keeping job in PENDING
           JobPending(i);
-          RequestPolling(i->job_id); // RequestWaitForRunning(i->job_id);
+          RequestWaitForRunning(i->job_id);
         }
       } else {
         // No execution requested
@@ -1282,6 +1295,43 @@ bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
 }
 
 
+JobsList::iterator JobsList::NextJob(JobsList::iterator i, job_state_t old_state, bool old_pending) {
+  bool at_limit = RunningJobsLimitReached();
+  // update counters
+  if(!old_pending) {
+    jobs_num[old_state]--;
+  } else {
+    jobs_pending--;
+  }
+  if(!i->job_pending) {
+    jobs_num[i->job_state]++;
+  } else {
+    jobs_pending++;
+  }
+  ++i;
+  if(at_limit && !RunningJobsLimitReached()) {
+    // Report about changei in conditions
+    RequestAttention();
+  };
+  return i;
+}
+
+JobsList::iterator JobsList::DropJob(JobsList::iterator i, job_state_t old_state, bool old_pending) {
+  bool at_limit = RunningJobsLimitReached();
+  // update counters
+  if(!old_pending) {
+    jobs_num[old_state]--;
+  } else {
+    jobs_pending--;
+  }
+  i=jobs.erase(i);
+  if(at_limit && !RunningJobsLimitReached()) {
+    // Report about changei in conditions
+    RequestAttention();
+  };
+  return i;
+}
+
 #define IS_ACTIVE_STATE(state) ((state >= JOB_STATE_PREPARING) && (state <= JOB_STATE_FINISHING))
 
 bool JobsList::ActJob(JobsList::iterator &i) {
@@ -1426,27 +1476,10 @@ bool JobsList::ActJob(JobsList::iterator &i) {
      (i->job_state == JOB_STATE_UNDEFINED)) {
     // Such jobs are not kept in memory
     // this is the ONLY place where jobs are removed from memory
-    // update counters
-    if(!old_pending) {
-      jobs_num[old_state]--;
-    } else {
-      jobs_pending--;
-    }
-    i=jobs.erase(i);
+    i = DropJob(i, old_state, old_pending);
   }
   else {
-    // update counters
-    if(!old_pending) {
-      jobs_num[old_state]--;
-    } else {
-      jobs_pending--;
-    }
-    if(!i->job_pending) {
-      jobs_num[i->job_state]++;
-    } else {
-      jobs_pending++;
-    }
-    ++i;
+    i = NextJob(i, old_state, old_pending);
   }
 
   return true;

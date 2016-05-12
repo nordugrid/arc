@@ -1,6 +1,7 @@
 #ifndef SCHEDULER_H_
 #define SCHEDULER_H_
 
+#include <arc/JobPerfLog.h>
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -79,6 +80,9 @@ class Scheduler: public DTRCallback {
 
     /// Where to dump DTR state. Currently only a path to a file is supported.
     std::string dumplocation;
+
+    /// Performance metrics logger
+    Arc::JobPerfLog job_perf_log;
 
     /// Endpoints of delivery services from configuration
     std::vector<Arc::URL> configured_delivery_services;
@@ -266,6 +270,9 @@ class Scheduler: public DTRCallback {
 
     /// Set location for periodic dump of DTR state (only file paths currently supported)
     void SetDumpLocation(const std::string& location);
+
+    /// Set JobPerfLog object for performance metrics logging
+    void SetJobPerfLog(const Arc::JobPerfLog& perf_log);
 
     /// Start scheduling activity.
     /**

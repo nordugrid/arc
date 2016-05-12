@@ -245,8 +245,15 @@ namespace DataStaging {
     }
   }
 
-  bool DataDeliveryLocalComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryLocalComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg) {
     allowed_dirs.push_back("/");
+    double avg[3];
+    if (getloadavg(avg, 3) != 3) {
+      load_avg = "-1";
+    } else {
+      load_avg = Arc::tostring(avg[1]);
+    }
+
     return true;
   }
 

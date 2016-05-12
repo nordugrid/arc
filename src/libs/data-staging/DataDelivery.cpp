@@ -187,12 +187,14 @@ namespace DataStaging {
           if (!delete_delivery_pair(dp)) {
             tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
+          tmp->get_job_perf_record().End("SchedulerTransferTime");
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
           continue;
         }
         // check for new transfer
         if (!dp->comm) {
+          dp->dtr->get_job_perf_record().Start(dp->dtr->get_short_id());
           // Connecting to a remote delivery service can hang in rare cases,
           // so launch a separate thread with a timeout
           bool res = Arc::CreateThreadFunction(&start_delivery, dp, &dp->thread_count);
@@ -211,6 +213,7 @@ namespace DataStaging {
             tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                       DTRErrorStatus::NO_ERROR_LOCATION,
                                       "Failed to start thread to start delivery or thread timed out");
+            tmp->get_job_perf_record().End("SchedulerTransferTime");
             tmp->set_status(DTRStatus::TRANSFERRED);
             DTR::push(tmp, SCHEDULER);
 
@@ -250,10 +253,16 @@ namespace DataStaging {
           }
           dp->dtr->get_logger()->msg(Arc::INFO, "Transfer finished: %llu bytes transferred %s", status.transferred,
                                      (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
+          timespec dummy;
+          dp->dtr->get_job_perf_log().Log("DeliveryTransferTime",
+                   dp->dtr->get_short_id()+"\t"+Arc::tostring(status.transfer_time), dummy, dummy);
+          dp->dtr->set_transfer_time(status.transfer_time);
+
           DTR_ptr tmp = dp->dtr;
           if (!delete_delivery_pair(dp)) {
             tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
+          tmp->get_job_perf_record().End("SchedulerTransferTime");
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
           continue;
@@ -293,6 +302,7 @@ namespace DataStaging {
           if (!delete_delivery_pair(dp)) {
             tmp->get_logger()->msg(Arc::ERROR, "Failed to delete delivery object or deletion timed out");
           }
+          tmp->get_job_perf_record().End("SchedulerTransferTime");
           tmp->set_status(DTRStatus::TRANSFERRED);
           DTR::push(tmp, SCHEDULER);
           continue;

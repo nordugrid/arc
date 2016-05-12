@@ -275,6 +275,13 @@ private:
 %include "../src/hed/libs/common/CheckSum.h"
 
 
+// Wrap contents of $(top_srcdir)/src/hed/libs/common/JobPerfLog.h
+%{
+#include <arc/JobPerfLog.h>
+%}
+%include "../src/hed/libs/common/JobPerfLog.h"
+
+
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Thread.h
 %{
 #include <arc/Thread.h>

@@ -25,7 +25,7 @@ namespace DataStaging {
     virtual void PullStatus();
 
     /// Pings service to find allowed dirs
-    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
+    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg);
 
     /// Returns true if service is still processing request
     virtual operator bool() const { return valid; };

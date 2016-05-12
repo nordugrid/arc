@@ -298,7 +298,7 @@ namespace DataStaging {
     delete response;
   }
 
-  bool DataDeliveryRemoteComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryRemoteComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg) {
     // call Ping
     Arc::MCCConfig cfg;
     if (dtr->host_cert_for_remote_delivery()) {
@@ -378,6 +378,12 @@ namespace DataStaging {
                              (std::string)dir, dtr->get_delivery_endpoint().str());
     }
 
+    if (resultnode["LoadAvg"]) {
+      load_avg = (std::string)(resultnode["LoadAvg"]);
+    } else {
+      load_avg = "-1";
+    }
+
     delete response;
     return true;
   }
@@ -396,6 +402,7 @@ namespace DataStaging {
       status_.streams = 0;
       status_.transferred = 0;
       status_.size = 0;
+      status_.transfer_time = 0;
       status_.offset = 0;
       status_.speed = 0;
       strncpy(status_.checksum, empty.c_str(), sizeof(status_.checksum));
@@ -443,6 +450,12 @@ namespace DataStaging {
       unsigned long long int bytes;
       Arc::stringto(std::string(datanode), bytes);
       status_.transferred = bytes;
+    }
+    datanode = node["TransferTime"];
+    if (datanode) {
+      unsigned long long int t;
+      Arc::stringto(std::string(datanode), t);
+      status_.transfer_time = t;
     }
     // TODO size, offset, speed (currently not used)
     datanode = node["CheckSum"];

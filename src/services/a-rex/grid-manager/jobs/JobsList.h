@@ -95,7 +95,7 @@ class JobsList {
   // advanced. If finished is false - job is not destroyed if it is FINISHED
   // If active is false - job is not destroyed if it is not UNDEFINED. Returns
   // false if external process is still running.
-  bool DestroyJob(iterator &i,bool finished=true,bool active=true);
+  //bool DestroyJob(iterator &i,bool finished=true,bool active=true);
   // Perform actions necessary in case job goes to/is in SUBMITTING/CANCELING state
   bool state_submitting(const iterator &i,bool &state_changed);
   bool state_canceling(const iterator &i,bool &state_changed);
@@ -134,6 +134,12 @@ class JobsList {
   // necessary actions and advance state or remove job if needed. Iterator 'i'
   // is advanced or erased inside this function.
   bool ActJob(iterator &i);
+
+  // Helper method for ActJob. Finishes processing of job and advances iterator to next one.
+  iterator NextJob(iterator i, job_state_t old_state, bool old_pending);
+
+  // Helper method for ActJob. Finishes processing of job, removes it from list and advances iterator to next one.
+  iterator DropJob(iterator i, job_state_t old_state, bool old_pending);
 
   enum ActJobResult {
     JobSuccess,
@@ -175,7 +181,7 @@ class JobsList {
   // Returns false if job is not allowed to continue.
   bool CheckJobContinuePlugins(JobsList::iterator i);
 
-  // Call ActJob for all jobs processing queue
+  // Call ActJob for all jobs in processing queue
   bool ActJobsProcessing(void);
 
   // Inform this instance that job with specified id needs immediate re-processing
@@ -186,6 +192,11 @@ class JobsList {
   // This method/queue to be removed when even driven processing implementation
   // becomes stable.
   bool RequestPolling(const JobId& id);
+
+  // Register job as waiting for limit for running jobs to be cleared.
+  // This method does not have corresponding ActJobs*. Instead these jobs
+  // are handled by ActJobsAttention if corresponding condition is met.
+  bool RequestWaitForRunning(const JobId& id);
 
   // Even slower polling. Typically once per 24 hours.
   // This queue is meant for FINISHED and DELETED jobs.
@@ -222,24 +233,24 @@ class JobsList {
   // No of jobs in all active states from ACCEPTED and FINISHING
   int AcceptedJobs() const;
   // No of jobs in batch system or in process of submission to batch system
-  int RunningJobs() const;
+  bool RunningJobsLimitReached() const;
   // No of jobs in data staging
-  int ProcessingJobs() const;
+  //int ProcessingJobs() const;
   // No of jobs staging in data before job execution
-  int PreparingJobs() const;
+  //int PreparingJobs() const;
   // No of jobs staging out data after job execution
-  int FinishingJobs() const;
+  //int FinishingJobs() const;
 
-  // Set DTR Generator for data staging
-  //void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
+  // Inform this instance that job with specified id needs attention
+  bool RequestAttention(const JobId& id);
 
-  // Detach DTR generator (tipically before destroying it)
-  //void ReleaseDataGenerator(void) { dtr_generator = NULL; };
+  // Inform this instance that generic unscheduled attention is needed
+  void RequestAttention();
 
   // Call ActJob for all current jobs
   bool ActJobs(void);
 
-  // Call ActJob for all jobs for which RequestAttention was called
+  // Call ActJob for all jobs for which RequestAttention and RequestWaitFor* - if condition allows - was called
   bool ActJobsAttention(void);
 
   // Call ActJob for all jobs for which RequestPolling was called
@@ -269,12 +280,6 @@ class JobsList {
 
   // Send signals to external processes to shut down nicely (not implemented)
   void PrepareToDestroy(void);
-
-  // Inform this instance that job with specified id needs attention
-  bool RequestAttention(const JobId& id);
-
-  // Inform this instance that generic unscheduled attention is needed
-  void RequestAttention();
 
   // Wait for attention request or polling time
   // While waiting may also perform slow scanning of old jobs

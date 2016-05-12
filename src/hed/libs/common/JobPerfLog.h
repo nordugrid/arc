@@ -16,7 +16,9 @@ class JobPerfLog {
 
   void SetEnabled(bool enabled);
 
-  bool GetEnabled(void) { return log_enabled; };
+  const std::string& GetOutput() const { return log_path; };
+
+  bool GetEnabled() const { return log_enabled; };
 
   /** Log one performance record. */
   void Log(const std::string& name, const std::string& id, const timespec& start, const timespec& end);

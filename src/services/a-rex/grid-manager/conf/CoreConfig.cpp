@@ -132,6 +132,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
   cf.AddSection("grid-manager");
   cf.AddSection("infosys");
   cf.AddSection("queue");
+  if (config.job_perf_log) config.job_perf_log->SetEnabled(false);
   // process configuration information here
   for(;;) {
     std::string rest;
@@ -143,7 +144,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
       continue;
     }
-    if (cf.SectionNum() == 0) { // infosys user may be in common too
+    if (cf.SectionNum() == 0) { // common - infosys user may be in common too
       if (command == "user") {
         config.SetShareID(Arc::User(rest));
       } else if(command == "x509_cert_dir") {
@@ -177,11 +178,17 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       std::string fname = config_next_arg(rest);  // empty is allowed too
       config.job_log->SetOutput(fname.c_str());
     }
-    else if (command == "jobperflog") { // where to write job information
+    else if (command == "enable_perflog_reporting") { //
+      if (!config.job_perf_log) continue;
+      bool enable = false;
+      if (!CheckYesNoCommand(enable, command, rest)) return false;
+      config.job_perf_log->SetEnabled(enable);
+    }
+    else if (command == "perflogdir") { // 
       if (!config.job_perf_log) continue;
       std::string fname = config_next_arg(rest);  // empty is allowed too
+      if(!fname.empty()) fname += "/arex_date.perflog";
       config.job_perf_log->SetOutput(fname.c_str());
-      config.job_perf_log->SetEnabled(!fname.empty());
     }
     else if (command == "jobreport") { // service to report information to
       if (!config.job_log) continue;
