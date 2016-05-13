@@ -32,6 +32,7 @@ namespace ARex {
 
   DelegationStore::DelegationStore(const std::string& base, DbType db, bool allow_recover):
            logger_(Arc::Logger::rootLogger, "Delegation Storage") {
+    fstore_ = NULL;
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
