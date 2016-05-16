@@ -1019,7 +1019,7 @@ int JobPlugin::close(bool eof) {
     return 1;
   };
 
-  SignalFIFO(config.ControlDir());
+  CommFIFO::Signal(config.ControlDir(), job_id);
   job_id.resize(0);
   chosenFilePlugin = NULL;
   return 0;
