@@ -217,6 +217,27 @@ class JobsList {
   bool ScanOldJobs(void);
 
 
+  /// Class to run external processes (helper)
+  class ExternalHelper {
+   private:
+    /// Command being run
+    std::string command;
+    /// Object representing running process
+    Arc::Run *proc;
+   public:
+    ExternalHelper(const std::string &cmd);
+    ~ExternalHelper();
+    /// Start process if it is not running yet
+    bool run(JobsList& list);
+    /// Stop process if it is running
+    void stop();
+  };
+
+  friend class ExternalHelper;
+
+  /// List of associated external processes
+  std::list<ExternalHelper> helpers;
+
  public:
   // Constructor.
   JobsList(const GMConfig& gmconfig);
@@ -286,6 +307,9 @@ class JobsList {
   // Wait for attention request or polling time
   // While waiting may also perform slow scanning of old jobs
   void WaitAttention();
+
+  /// Start/restart all helper processes
+  bool RunHelpers();
 
 };
 

@@ -40,14 +40,22 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0) {
+
   job_slow_polling_last = time(NULL);
   job_slow_polling_dir = NULL;
+
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs.clear();
+
+  for (std::list<std::string>::const_iterator helper = config.Helpers().begin(); helper != config.Helpers().end(); ++helper) {
+    helpers.push_back(*helper);
+  }
+
   if(!dtr_generator) {
     logger.msg(Arc::ERROR, "Failed to start data staging threads");
     return;
   };
+
   valid = true;
 }
 
@@ -157,6 +165,9 @@ int JobsList::FinishingJobs() const {
 
 
 void JobsList::PrepareToDestroy(void) {
+  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
+    i->stop();
+  }
   for(iterator i=jobs.begin();i!=jobs.end();++i) {
     i->PrepareToDestroy();
   }
@@ -1817,5 +1828,89 @@ bool JobsList::AddJob(const JobId& id) {
   }
   return false;
 }
+
+
+JobsList::ExternalHelper::ExternalHelper(const std::string &cmd) {
+  command = cmd;
+  proc = NULL;
+}
+
+JobsList::ExternalHelper::~ExternalHelper() {
+  if(proc != NULL) {
+    delete proc;
+    proc=NULL;
+  }
+}
+
+static void ExternalHelperInitializer(void* arg) {
+  const char* logpath = reinterpret_cast<const char*>(arg);
+  struct rlimit lim;
+  int max_files;
+  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
+  else { max_files=4096; };
+  // just set good umask
+  umask(0077);
+  // close all handles inherited from parent
+  if(max_files == RLIM_INFINITY) max_files=4096;
+  for(int i=0;i<max_files;i++) { close(i); };
+  // set up stdin,stdout and stderr
+  int h;
+  h = ::open("/dev/null",O_RDONLY);
+  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); _exit(1); }; close(h); };
+  h = ::open("/dev/null",O_WRONLY);
+  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); _exit(1); }; close(h); };
+  if(logpath && logpath[0]) {
+    h = ::open(logpath,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+    if(h==-1) { h = ::open("/dev/null",O_WRONLY); };
+  }
+  else { h = ::open("/dev/null",O_WRONLY); };
+  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+}
+
+static void ExternalHelperKicker(void* arg) {
+  JobsList* jobs = reinterpret_cast<JobsList*>(arg);
+  if(jobs) jobs->RequestAttention();
+}
+
+bool JobsList::ExternalHelper::run(JobsList& jobs) {
+  if (proc != NULL) {
+    if (proc->Running()) {
+      return true; // it is already/still running
+    }
+    delete proc;
+    proc = NULL;
+  }
+  // start/restart
+  if (command.empty()) return true;  // has anything to run ?
+  logger.msg(Arc::VERBOSE, "Starting helper process: %s", command);
+
+  proc = new Arc::Run(command);
+  proc->KeepStdin(true);
+  proc->KeepStdout(true);
+  proc->KeepStderr(true);
+  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()));
+  proc->AssignKicker(&ExternalHelperKicker, &jobs);
+  if (proc->Start()) return true;
+  delete proc;
+  logger.msg(Arc::ERROR, "Helper process start failed: %s", command);
+  // start failed, doing nothing - maybe in the future
+  return false;
+}
+
+void JobsList::ExternalHelper::stop() {
+  if (proc && proc->Running()) {
+    logger.msg(Arc::VERBOSE, "Stopping helper process %s", command);
+    proc->Kill(1);
+  }
+}
+
+bool JobsList::RunHelpers() {
+  bool started = true;
+  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
+    started &= i->run(*this);
+  }
+  return started;
+}
+
 
 } // namespace ARex

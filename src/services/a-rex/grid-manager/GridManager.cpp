@@ -243,7 +243,7 @@ bool GridManager::thread() {
 
   // Start new job list
   JobsList jobs(config_);
-  if(jobs) {
+  if(!jobs) {
     logger.msg(Arc::ERROR, "Failed to activate Jobs Processing object, exiting Grid Manager thread");
     return false;
   }
@@ -281,7 +281,7 @@ bool GridManager::thread() {
   for(;;) {
     if(tostop_) break;
     // TODO: check conditions for following calls
-    config_.RunHelpers();
+    jobs.RunHelpers();
     config_.GetJobLog()->RunReporter(config_);
     // Process jobs which need attention ASAP
     jobs.ActJobsAttention();
@@ -318,7 +318,6 @@ bool GridManager::thread() {
   };
   // Waiting for children to finish
   logger.msg(Arc::INFO,"Stopping jobs processing thread");
-  config_.PrepareToDestroy();
   jobs.PrepareToDestroy();
   logger.msg(Arc::INFO,"Exiting jobs processing thread");
   jobs_ = NULL;

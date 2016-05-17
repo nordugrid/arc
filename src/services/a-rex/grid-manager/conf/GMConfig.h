@@ -96,15 +96,9 @@ public:
   /// session root if it does not already exist.
   bool CreateSessionDirectory(const std::string& dir, const Arc::User& user) const;
 
-  /// Start/restart all helper processes
-  bool RunHelpers();
-
   /// Substitute characters in param specified by % with real values. An
   /// optional User can be specified for the user-related substitutions.
   bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const;
-
-  /// Send signals to helpers to shut them down cleanly
-  void PrepareToDestroy();
 
   /// Set control directory
   void SetControlDir(const std::string &dir);
@@ -209,6 +203,8 @@ public:
   /// Maxmimum time for A-REX to wait between job processing loops
   unsigned int WakeupPeriod() const { return wakeup_period; }
 
+  const std::list<std::string> & Helpers() const { return helpers; }
+
   /// Max jobs being processed (from PREPARING to FINISHING)
   int MaxJobs() const { return max_jobs; };
   /// Max jobs in the LRMS
@@ -225,21 +221,6 @@ public:
 
 private:
 
-  /// Class to run external processes (helper)
-  class ExternalHelper {
-   private:
-    /// Command being run
-    std::string command;
-    /// Object representing running process
-    Arc::Run *proc;
-   public:
-    ExternalHelper(const std::string &cmd);
-    ~ExternalHelper();
-    /// Start process if it is not running yet
-    bool run(const GMConfig& config);
-    /// Stop process if it is running
-    void stop();
-  };
   /// Configuration file
   std::string conffile;
   /// Whether configuration file is temporary
@@ -305,7 +286,7 @@ private:
   /// Groups allowed to submit while job submission is disabled
   std::string allow_submit;
   /// List of associated external processes
-  std::list<ExternalHelper> helpers;
+  std::list<std::string> helpers;
 
   /// Maximum number of jobs running (between PREPARING and FINISHING)
   int max_jobs_running;

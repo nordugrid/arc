@@ -57,6 +57,7 @@ class JobRefInList {
 void JobRefInList::kicker(void* arg) {
   JobRefInList* ref = reinterpret_cast<JobRefInList*>(arg);
   if(ref) {
+    logger.msg(Arc::DEBUG,"%s: Job's helper exited",ref->id);
     ref->list.RequestAttention(ref->id);
     delete ref;
   };
