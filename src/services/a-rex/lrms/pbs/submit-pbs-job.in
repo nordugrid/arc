@@ -21,7 +21,12 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
+. ${pkgdatadir}/configure-pbs-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 ##############################################################
 # Parse grami file, read arc config
@@ -426,9 +431,26 @@ echo "-------------------------------------------------------------------" 1>&2
 echo "" 1>&2
 PBS_RESULT=1
 PBS_TRIES=0
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
 while [ "$PBS_TRIES" -lt '10' ] ; do
+  if [ ! -z "$perflogdir" ]; then
+    start_ts=`date +%s.%N`
+  fi
+
   ${PBS_QSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   PBS_RESULT="$?"
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobSiubmission: $t" >> $perflogfile
+  fi
+
   if [ "$PBS_RESULT" -eq '0' ] ; then break ; fi 
   if [ "$PBS_RESULT" -eq '198' ] ; then 
     echo "Waiting for queue to decrease" 1>&2

@@ -1,7 +1,7 @@
 
 if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
 
-. "$pkgdatadir/config_parser.sh" || exit $?
+. "$pkgdatadir/config_parser_compat.sh" || exit $?
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 config_parse_file $ARC_CONFIG || exit $?
@@ -10,6 +10,15 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 
+# performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
+unset perflogdir
+unset perflogfile
+enable_perflog=${CONFIG_enable_perflog_reporting:-no}
+if [ "$CONFIG_enable_perflog_reporting" == "yes" ]; then
+   perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
+   d=`date +%F`
+   perflogfile="${perflogdir}/backends${d}.perflog"
+fi
 
 # Initializes environment variables: CONDOR_BIN_PATH
 # Valued defines in arc.conf take priority over pre-existing environment

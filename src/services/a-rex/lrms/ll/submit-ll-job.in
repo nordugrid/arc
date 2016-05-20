@@ -22,6 +22,9 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-ll-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 ##############################################################
 # Parse grami file, read arc config
@@ -296,15 +299,33 @@ move_files_to_frontend
 #######################################
 echo "ll job script built" 1>&2
 
+#job creation finished
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
 # Execute sub command
 cd "$joboption_directory"
 echo "LL script follows:" 1>&2
 cat "$LRMS_JOB_SCRIPT" 1>&2
 echo "" 1>&2
 
-${LL_SUB} $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
-if [ $? -eq '0' ] ; then
+${LL_SUB} $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+LLSUB_RESULT="$?"
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobSubmission: $t" >> $perflogfile
+fi
+
+if [ $LLSUB_RESULT -eq '0' ] ; then
    echo "LRMS_JOB_OUT is $LRMS_JOB_OUT"
    job_id=`cat $LRMS_JOB_OUT | awk '{split($0,field,"\"");print field[2]}'`.0
    if [ "${job_id}" = "" ] ; then

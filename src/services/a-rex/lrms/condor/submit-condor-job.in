@@ -20,7 +20,12 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
+. ${pkgdatadir}/configure-condor-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 ##############################################################
 # Parse grami file, read arc config
@@ -415,6 +420,13 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 move_files_to_frontend
 
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
 #######################################
 #  Submit the job
 #######################################
@@ -429,8 +441,19 @@ echo "" 1>&2
 CONDOR_RESULT=1
 CONDOR_TRIES=0
 while [ "$CONDOR_TRIES" -lt '10' ] ; do
+  if [ ! -z "$perflogdir" ]; then
+    start_ts=`date +%s.%N`
+  fi
+
   ${CONDOR_SUBMIT} $LRMS_JOB_DESCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   CONDOR_RESULT="$?"
+  
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobSubmission: $t" >> $perflogfile
+  fi
+
   if [ "$CONDOR_RESULT" -eq '0' ] ; then break ; fi
   CONDOR_TRIES=$(( $CONDOR_TRIES + 1 ))
   sleep 2

@@ -18,6 +18,16 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 
+# performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
+unset perflogdir
+unset perflogfile
+enable_perflog=${CONFIG_enable_perflog_reporting:-no}
+if [ "$CONFIG_enable_perflog_reporting" == "yes" ]; then
+   perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
+   d=`date +%F`
+   perflogfile="${perflogdir}/backends${d}.perflog"
+fi
+
 # Also read queue section
 if [ ! -z "$joboption_queue" ]; then
   config_import_section "queue/$joboption_queue"

@@ -28,6 +28,10 @@ pkgdatadir="$basedir"
 # Parse grami file, read arc config
 ##############################################################
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
 init $1
 
 read_arc_conf
@@ -327,10 +331,26 @@ echo "----------------- BEGIN job script -----" 1>&2
 cat $LRMS_JOB_SCRIPT 1>&2
 echo "----------------- END job script -----" 1>&2
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 ${LSF_BSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+LSF_RESULT="$?"
 
-if [ $? -eq '0' ] ; then
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobSubmission: $t" >> $perflogfile
+fi
+
+if [ $LSF_RESULT -eq '0' ] ; then
    job_id=`cat $LRMS_JOB_OUT | awk '{split($0,field," ");print field[2]}' | sed 's/[<>]//g'`
 
    if [ "${job_id}" = "" ] ; then

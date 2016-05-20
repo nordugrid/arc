@@ -47,6 +47,11 @@ trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
 sleep ${CONFIG_slurm_wakeupperiod:-30}
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
 ### use sacct?
 unset use_sacct
 
@@ -55,7 +60,6 @@ if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
     use_sacct="true"
   fi
 fi
-
 
 ### If GM sees the session dirs... copied from scan-pbs-jobs
 RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
@@ -80,6 +84,11 @@ for ctr_dir in "$@"; do
 	exit 1
     fi
 done
+
+if [ ! -z "$perflogdir" ]; then
+   #start time stamp
+   start_ts=`date +%s.%N`
+fi
 
 # List of SLURM jobids for grid-jobs with state INLRMS
 declare -a localids
@@ -114,11 +123,23 @@ if [ ${#localids[@]} -eq 0 ]; then
     exit 0
 fi
 
+
 # Distribute localids into block so that we don't exceed max command line length
 for jids in `echo "${localids[@]}" | xargs -n 4000 | tr ' ' ,`; do
   lidblocks[${#lidblocks[@]}]=$jids
 done
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+#   t=`perl -e "printf '%.2f',$stop_ts-$start_ts;"`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, ControldirTraversal: $t" >> $perflogfile
+fi
+
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 # Get JobStates from SLURM
 jobstate_squeue=$(echo "${lidblocks[@]}" | xargs -n 1 $squeue -a -h -o "%i:%T" -t all -j )\
@@ -130,6 +151,12 @@ for record in $jobstate_squeue; do
     jobstates[$localid]=$state;
 done
 unset jobstate_squeue
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, squeue -a -h -o %i:%T -t all -j: $t" >> $perflogfile
+fi
 
 handle_commentfile () {
     localid=$1
@@ -270,6 +297,14 @@ function handle_diag_file {
     job_write_diag
 }
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
+run=0
+done=0
+zombie=0
+failed=0
 # Look at the list of jobstates and determine which jobs that have
 # finished. Write job.XXXX.lrms_done according to this
 for localid in ${localids[@]}; do
@@ -280,7 +315,7 @@ for localid in ${localids[@]}; do
     case "${jobstates[$localid]}" in
  	"")
             # Job is missing (no state) from slurm but INLRMS.
-
+            zombie=$(($zombie + 1))
             exitcode=''
             # get session directory of this job
             sessiondir=`grep -h '^sessiondir=' $jobfile | sed 's/^sessiondir=\(.*\)/\1/'`
@@ -330,8 +365,10 @@ for localid in ${localids[@]}; do
  	    ;;
   	PENDING|RUNNING|SUSPENDE|COMPLETING)
   	#Job is running, nothing to do.
+            run=$(($run + 1))
   	    ;;
   	CANCELLED)
+            failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
@@ -339,27 +376,37 @@ for localid in ${localids[@]}; do
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    ;;
   	COMPLETED)
+            done=$(($done + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "0" ""
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	FAILED)
+            failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job failed"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	TIMEOUT)
+            failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job timeout"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
   	NODE_FAIL)
+            failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode_cancelled $localid "-1" "Node fail"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
   	    ;;
     esac
 done
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, JobHandling, R= $run, D= $done, Z= $zombie, F= $failed:  $t" >> $perflogfile
+fi
 
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then

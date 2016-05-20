@@ -31,6 +31,11 @@ if [ -z "$1" ] ; then
     exit 1 ;
 fi
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
 # first control_dir is used for storing own files
 
 echo `date`" : control_dir=$1" 1>&2
@@ -52,7 +57,17 @@ if [ -z ${LSF_BIN_PATH} ]; then
     exit 1
 fi
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
 lsf_stat=`${LSF_BIN_PATH}/bjobs -a -u all 2>/dev/null` # | grep RUN | grep '^ [:digit:]'
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-lsf-job, bjobs -a -u all: $t" >> $perflogfile
+fi
 
 if [ -z "${lsf_stat}" ] ; then
     echo "bjobs returned empty result" 1>&2
@@ -64,11 +79,21 @@ eval "set -- $control_dirs"
 
 # Go through directories
 for ctr_dir in $control_dir ; do
+    if [ ! -z "$perflogdir" ]; then
+      start_ts=`date +%s.%N`
+    fi
+
 
   # Obtain ids stored in job.*.local
     ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
          | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
          | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
+
+    if [ ! -z "$perflogdir" ]; then
+      stop_ts=`date +%s.%N`
+      t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+      echo "[`date +%Y-%m-%d\ %T`] scan-lsf-job, ControlDirTraversal: $t" >> $perflogfile
+    fi
 
     if [ -z "$ids" ] ; then continue ; fi
 
@@ -80,7 +105,11 @@ for ctr_dir in $control_dir ; do
 	    bids="$bids $id"
 	fi
     done
-
+    if [ ! -z "$perflogdir" ]; then
+      start_ts=`date +%s.%N`
+    fi
+    done_count=0
+    total_count=0
     # go through missing ids
     for id in $bids ; do
 
@@ -89,7 +118,7 @@ for ctr_dir in $control_dir ; do
                  | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
                  | xargs -0 grep -F -l "localid=$id" 2>/dev/null`
 	if [ -z "$jobfile" ] ; then continue ; fi
-
+        total_count=$(( total_count + 1 ))
 	# extract grid id
 	gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
 	donefile="${ctr_dir}/job.${gridid}.lrms_done"
@@ -114,6 +143,7 @@ for ctr_dir in $control_dir ; do
 	# get job specific output and remove header
 	bjobs_output="`${LSF_BIN_PATH}/bjobs -W -w $id 2>/dev/null | sed -e'1,1d'`"
 	job_status="`echo $bjobs_output | awk '{print $3}'`"
+
 	# DONE if exit_code is 0, EXIT if non zero
 	if [ "${job_status}" = "DONE" ] || [ "${job_status}" = "EXIT" ]; then
 
@@ -139,6 +169,7 @@ for ctr_dir in $control_dir ; do
             #[ -n "$cputime" ] && KernelTime=0
 
             job_write_diag
+            done_count=$(( done_count + 1 ))
 	fi
 
 	if [ -n "$sessiondir" ] ; then
@@ -176,9 +207,13 @@ for ctr_dir in $control_dir ; do
 	else
 	    echo "$counter" > "$countfile"
 	fi
-
-
     done
+
+    if [ ! -z "$perflogdir" ]; then
+       stop_ts=`date +%s.%N`
+       t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+       echo "[`date +%Y-%m-%d\ %T`] scan-lsf-job, JobProcessing, T=$total_count D=$done_count: $t" >> $perflogfile
+    fi
 
     # go through existing ids
     for id in $pids ; do

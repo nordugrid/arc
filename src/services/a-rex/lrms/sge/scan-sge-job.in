@@ -36,6 +36,11 @@ if [ -z "$1" ] ; then exit 1 ; fi
 
 TMPDIR=${TMPDIR:-@tmp_dir@}
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
 # first control_dir is used for storing own files
 
 control_dir=$1
@@ -353,6 +358,9 @@ handle_missing_accounting () {
 
 # GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 # Get all jobs
 pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | sed -n 's/^ *\([0-9][0-9]*\) .*/\1/p'`
@@ -362,11 +370,26 @@ if [ $? != 0 ]; then
   exit 1
 fi
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, qstat -u '*': $t" >> $perflogfile
+fi
+
 # Go through directories
 for ctr_dir in $control_dirs ; do
   # Obtain ids of pending/running jobs stored in job.*.local
+  if [ ! -z "$perflogdir" ]; then
+     start_ts=`date +%s.%N`
+  fi
   rjobs=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
          | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/'`
+  if [ ! -z "$perflogdir" ]; then
+     stop_ts=`date +%s.%N`
+     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+     echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, control dir traversal: $t" >> $perflogfile
+  fi
+
   if [ -z "$rjobs" ] ; then continue ; fi
   ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
   if [ -z "$ids" ] ; then continue ; fi

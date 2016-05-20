@@ -25,6 +25,11 @@ GMKICK=${libexecdir}/gm-kick
 
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
 # Where to store temporary files
 TMPDIR=${TMPDIR:-@tmp_dir@}
 
@@ -349,12 +354,21 @@ pids=`cat "$pidslist" | grep '^[0-9][0-9]*\.' | exclude_completed | sed 's/^\([0
 rm -f "$pidslist"
 # Go through directories
 for ctr_dir in "$@" ; do
+  if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+  fi
+
   # Obtain ids stored in job.*.local
   ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
        | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
        | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
   if [ -z "$ids" ] ; then continue ; fi
-  # compare them to running jobs and find missing
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] scan-pbs-job, ControlDirTraversal: $t" >> $perflogfile
+  fi
+ # compare them to running jobs and find missing
   bids=
   for id in $ids ; do
     found=`echo "$pids" | grep "^$id$"`
@@ -362,6 +376,10 @@ for ctr_dir in "$@" ; do
       bids="$bids $id"
     fi
   done
+  if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+  fi
+
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to curent local id
@@ -419,6 +437,12 @@ for ctr_dir in "$@" ; do
       echo "$counter" > "$countfile"
     fi
   done
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] scan-pbs-job, JobProcessing: $t" >> $perflogfile
+  fi
+
   # go through existing ids
   for id in $pids ; do
     # find grid job corresponding to curent local id
