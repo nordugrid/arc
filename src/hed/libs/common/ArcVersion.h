@@ -111,6 +111,8 @@ namespace Arc {
    * \include basic_job_submission.py
    * \section java Java
    * \include BasicJobSubmission.java
+   * \section txt xRSL job description
+   * \include helloworld.xrsl
    *
    * \page jobfiltering %Job Filtering
    * \tableofcontents

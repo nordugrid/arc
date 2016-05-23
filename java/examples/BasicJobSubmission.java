@@ -34,7 +34,12 @@ public class BasicJobSubmission
           logger.msg(nordugrid.arc.LogLevel.ERROR, "Invalid job description");
           System.exit(1);
         }
-      
+
+        /*
+         * Use 'JobDescription.ParseFromFile("helloworld.xrsl", jobdescs)'
+         * to parse job description from file.
+         */
+
         // Use top-level NorduGrid information index to find resources
         Endpoint index = new Endpoint("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
                                       Endpoint.CapabilityEnum.REGISTRY,

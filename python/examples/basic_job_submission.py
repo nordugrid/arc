@@ -21,6 +21,9 @@ if not arc.JobDescription_Parse(jobdescstring, jobdescs):
     logger.msg(arc.ERROR, "Invalid job description")
     sys.exit(1)
 
+# Use 'arc.JobDescription_ParseFromFile("helloworld.xrsl", jobdescs)'
+# to parse job description from file.
+
 # Use top-level NorduGrid information index to find resources
 index = arc.Endpoint("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
                      arc.Endpoint.REGISTRY,
