@@ -107,15 +107,15 @@
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
-%global with_gfal 1
-%else
-%global with_gfal 0
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
 %global with_s3 1
 %else
 %global with_s3 0
+%endif
+
+%if %{?fedora}%{!?fedora:0} >= 16 || %{?rhel}%{!?rhel:0} >= 5
+%global with_gfal 1
+%else
+%global with_gfal 0
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 8 || %{?rhel}%{!?rhel:0} >= 4
@@ -266,8 +266,7 @@ BuildRequires:	xrootd-devel
 BuildRequires:	gfal2-devel
 %endif
 %if %{with_s3}
-BuildRequires:  libs3
-BuildRequires:  libs3-devel
+BuildRequires:	libs3-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0} == 1110
 BuildRequires: db43-devel
