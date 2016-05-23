@@ -250,7 +250,7 @@ BuildRequires:	gfal2-devel
 BuildRequires:	libs3-devel
 %endif
 %if %{?suse_version}%{!?suse_version:0} == 1110
-BuildRequires: db43-devel
+BuildRequires:	db43-devel
 %else
 %if %{?fedora}%{!?fedora:0} >= 15 || %{?rhel}%{!?rhel:0} >= 7
 BuildRequires:	libdb-cxx-devel
@@ -313,7 +313,7 @@ BuildRequires:	libtool-ltdl-devel
 BuildRequires:	libtool
 %endif
 %if %{with_sqlite}
-BuildRequires:  sqlite-devel >= 3.6
+BuildRequires:	sqlite-devel >= 3.6
 %endif
 
 %description
@@ -666,9 +666,9 @@ protocol support is provided by separate gfal2-plugin packages.
 
 %if %{with_s3}
 %package plugins-s3
-Summary:    ARC S3 plugins
-Group:      System Environment/Libraries
-Requires:   %{name} = %{version}-%{release}
+Summary:	ARC S3 plugins
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
 
 %description plugins-s3
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -984,7 +984,6 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
-
 
 %find_lang %{name}
 
