@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Mattias Ellert <mattias.ellert@fysast.uu.se>
 Uploaders: Anders Waananen <waananen@nbi.dk>
 Build-Depends: debhelper (>= 5), libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, default-jdk | openjdk-6-jdk | java-gcj-compat-dev, junit, openssl, swig, libnss3-dev, libcanl-c++1-dev, pylint, libxml-simple-perl, libdbi-perl, libsqlite3-dev
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
@@ -222,8 +222,8 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC base plugins
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Management Components (DMCs).
@@ -236,8 +236,8 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC Globus plugins
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  ARC Globus plugins. This includes the Globus dependent Data
  Management Components (DMCs). These plugins are needed for most
@@ -290,8 +290,8 @@ Section: libdevel
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
 Description: ARC development files
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  Header files and libraries needed to develop applications using ARC.
 
@@ -305,8 +305,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libarccommon3 (=
 XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  Python bindings for ARC.
 
@@ -319,8 +319,8 @@ Section: java
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), default-jre | java6-runtime | java5-runtime
 Description: ARC Java wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  Java bindings for ARC.
 
@@ -330,8 +330,8 @@ Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, libsoap-lite-p
 Recommends: cron
 Description: NorduGrid authorization tools
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  This package contains the ARC authorization machinery.
  A prominent tool distributed in this package is the nordugridmap
@@ -342,8 +342,8 @@ Architecture: all
 Depends: fetch-crl, ${misc:Depends}
 Description: NorduGrid authentication tools
  NorduGrid is a collaboration aiming at development, maintenance and
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
  .
  The nordugrid-arc-ca-utils packages has been obsoleted.
  The functionality of the grid-update-crls tool is provided by the
