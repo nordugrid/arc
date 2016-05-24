@@ -31,7 +31,8 @@
 
 GridFTP_Commands *client;
 static int max_connections = 0;
-static volatile int curr_connections = 0;
+static volatile int started_connections = 0;
+static volatile int finished_connections = 0;
 unsigned long long int max_data_buffer_size = 0;
 unsigned long long int default_data_buffer_size = 0;
 unsigned int firewall_interface[4] = { 0, 0, 0, 0 };
@@ -95,8 +96,7 @@ void sig_chld(int /* signum */) {
   for(;;) {
     int id=waitpid(-1,&status,WNOHANG);
     if((id == 0) || (id == -1)) break;
-    curr_connections--;
-    if(curr_connections < -10) curr_connections=-10;
+    ++finished_connections;
   };
   errno = old_errno;
 }
@@ -376,6 +376,7 @@ int main(int argc,char** argv) {
         handles.erase(handle);
       };
     };
+    int curr_connections = started_connections - finished_connections;
     logger.msg(Arc::INFO, "Have connections: %i, max: %i", curr_connections, max_connections);
     if((curr_connections < max_connections) || (max_connections == 0)) {
       logger.msg(Arc::INFO, "New connection");
@@ -394,7 +395,7 @@ int main(int argc,char** argv) {
         }; break;
         default: {
           /* parent */
-          curr_connections++;
+          ++started_connections;
         }; break;
       };
     } else {
