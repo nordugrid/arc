@@ -277,7 +277,7 @@ bool GridManager::thread() {
   Arc::WatchdogChannel wd(config_.WakeupPeriod()*3+300);
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
-  time_t poll_job_time = time(NULL) + config_.WakeupPeriod();
+  time_t poll_job_time = time(NULL); // run once immediately + config_.WakeupPeriod();
   for(;;) {
     if(tostop_) break;
     // TODO: check conditions for following calls
@@ -285,8 +285,9 @@ bool GridManager::thread() {
     config_.GetJobLog()->RunReporter(config_);
     // Process jobs which need attention ASAP
     jobs.ActJobsAttention();
-    if(((unsigned int)(time(NULL) - poll_job_time)) >= 0) {
+    if(((int)(time(NULL) - poll_job_time)) >= 0) {
       // Polling time
+      poll_job_time = time(NULL) + config_.WakeupPeriod();
 
       // touch heartbeat file
       touch_heartbeat(config_.ControlDir(), heartbeat_file);
@@ -310,7 +311,6 @@ bool GridManager::thread() {
         deleg.PeriodicCheckConsumers();
       };
 
-      poll_job_time += config_.WakeupPeriod();
     };
 
     jobs.WaitAttention();
