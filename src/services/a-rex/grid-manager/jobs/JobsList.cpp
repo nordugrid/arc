@@ -176,13 +176,14 @@ void JobsList::PrepareToDestroy(void) {
 
 bool JobsList::RequestAttention(const JobId& id) {
   Glib::Mutex::Lock lock_(jobs_attention_lock);
-  logger.msg(Arc::VERBOSE, "--> job for attention(%u): %s", jobs_attention.size(), id);
+  logger.msg(Arc::ERROR, "--> job for attention(%u): %s", jobs_attention.size(), id);
+  jobs_attention.remove(id);
   jobs_attention.push_back(id);
   jobs_attention_cond.signal();
 }
 
 void JobsList::RequestAttention(void) {
-  logger.msg(Arc::VERBOSE, "--> all for attention");
+  logger.msg(Arc::ERROR, "--> all for attention");
   jobs_attention_cond.signal();
 }
 
@@ -199,6 +200,7 @@ bool JobsList::ScanOldJobs(void) {
     int l=file.length();
     if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
       JobId id(file.substr(4, l-7-4));
+logger.msg(Arc::ERROR, "++++ ScanOldJobs: new job: %s", id);
       RequestAttention(id);
     };
   } else {
@@ -219,33 +221,49 @@ void JobsList::WaitAttention(void) {
     if(!ScanOldJobs()) {
       // If there is no scanning going on then simply wait and exit
       jobs_attention_cond.wait();
+logger.msg(Arc::ERROR, "++++ WaitAttention exit 1");
+for(std::list<std::string>::const_iterator j = jobs_polling.begin();j != jobs_polling.end();++j)
+  logger.msg(Arc::ERROR, "++++ polling: %s",*j);
+for(std::list<std::string>::const_iterator j = jobs_attention.begin();j != jobs_attention.end();++j)
+  logger.msg(Arc::ERROR, "++++ attention: %s",*j);
+for(std::list<std::string>::const_iterator j = jobs_processing.begin();j != jobs_processing.end();++j)
+  logger.msg(Arc::ERROR, "++++ processing: %s",*j);
       return;
     };
   }; // while !jobs_attention_cond
+logger.msg(Arc::ERROR, "++++ WaitAttention exit 2");
+for(std::list<std::string>::const_iterator j = jobs_polling.begin();j != jobs_polling.end();++j)
+  logger.msg(Arc::ERROR, "++++ polling: %s",*j);
+for(std::list<std::string>::const_iterator j = jobs_attention.begin();j != jobs_attention.end();++j)
+  logger.msg(Arc::ERROR, "++++ attention: %s",*j);
+for(std::list<std::string>::const_iterator j = jobs_processing.begin();j != jobs_processing.end();++j)
+  logger.msg(Arc::ERROR, "++++ processing: %s",*j);
 }
 
 bool JobsList::RequestWaitForRunning(const JobId& id) {
   Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
-  logger.msg(Arc::VERBOSE, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), id);
+  logger.msg(Arc::ERROR, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), id);
+  jobs_wait_for_running.remove(id);
   jobs_wait_for_running.push_back(id);
   return true;
 }
 
 bool JobsList::RequestPolling(const JobId& id) {
   Glib::Mutex::Lock lock_(jobs_polling_lock);
-  logger.msg(Arc::VERBOSE, "--> job for polling(%u): %s", jobs_polling.size(), id);
+  logger.msg(Arc::ERROR, "--> job for polling(%u): %s", jobs_polling.size(), id);
+  jobs_polling.remove(id);
   jobs_polling.push_back(id);
   return true;
 }
 
 bool JobsList::RequestSlowPolling(const JobId& id) {
-  logger.msg(Arc::VERBOSE, "--> job for slow polling: %s", id);
+  logger.msg(Arc::ERROR, "--> job for slow polling: %s", id);
   return true;
 }
 
 bool JobsList::RequestReprocess(const JobId& id) {
   Glib::Mutex::Lock lock_(jobs_processing_lock);
-  logger.msg(Arc::VERBOSE, "--> job for reprocess(%u): %s", jobs_processing.size(), id);
+  logger.msg(Arc::ERROR, "--> job for reprocess(%u): %s", jobs_processing.size(), id);
   jobs_processing.push_front(id);
 }
 
@@ -253,7 +271,7 @@ bool JobsList::ActJobsProcessing(void) {
   Glib::Mutex::Lock lock_(jobs_processing_lock);
   while(!jobs_processing.empty()) {
     JobId id = *(jobs_processing.begin());
-    logger.msg(Arc::VERBOSE, "<-- job in processing(%u): %s", jobs_processing.size(), id);
+    logger.msg(Arc::ERROR, "<-- job in processing(%u): %s", jobs_processing.size(), id);
     jobs_processing.pop_front();
     lock_.release();
     iterator i = FindJob(id);
@@ -266,17 +284,20 @@ bool JobsList::ActJobsProcessing(void) {
     if(i != jobs.end()) {
       ActJob(i);
     } else {
-      logger.msg(Arc::VERBOSE, "--- job in processing not processed: %s", id);
+      logger.msg(Arc::ERROR, "--- job in processing not processed: %s", id);
     };
     lock_.acquire();
-  }
+logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
+  };
 }
 
 bool JobsList::ActJobsAttention(void) {
   {
     Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
     Glib::Mutex::Lock lock_attention_(jobs_attention_lock);
+    logger.msg(Arc::ERROR, "<-- jobs in attention(%u)", jobs_attention.size());
     jobs_processing.splice(jobs_processing.end(), jobs_attention);
+    logger.msg(Arc::ERROR, "<-- jobs from attention(%u)", jobs_attention.size());
   };
   ActJobsProcessing();
   return true;
@@ -286,7 +307,9 @@ bool JobsList::ActJobsPolling(void) {
   {
     Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
     Glib::Mutex::Lock lock_polling_(jobs_polling_lock);
+    logger.msg(Arc::ERROR, "<-- jobs in polling(%u)", jobs_polling.size());
     jobs_processing.splice(jobs_processing.end(), jobs_polling);
+    logger.msg(Arc::ERROR, "<-- jobs from polling(%u)", jobs_polling.size());
   };
   ActJobsProcessing();
   // debug info on jobs per DN
@@ -921,6 +944,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
       // This call is not needed here because at higher level make_file()
       // is called for every state change
       //config.job_log->make_file(*i,config);
+logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       RequestAttention(i->job_id); // process ASAP
     } else if(new_state == JOB_STATE_FINISHED) {
       //!!job_state_write_file(*i,config,i->job_state);
@@ -935,6 +959,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
       // Make it clean state after restart
       job_state_write_file(*i,config,i->job_state);
       i->Start();
+logger.msg(Arc::ERROR, "++++ ActJobUndefined: old job: %s", i->job_id);
       RequestAttention(i->job_id); // process ASAP
     }
   } // Not doing JobPending here because that job kind of does not exist.
@@ -1157,6 +1182,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         job_failed_mark_remove(i->job_id,config);
         SetJobState(i, JOB_STATE_ACCEPTED, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
+logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job: %s", i->job_id);
         RequestAttention(i->job_id); // make it start ASAP
         return JobSuccess;
       }
@@ -1172,6 +1198,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         }
         JobPending(i); // make it go to end of state immediately
         // TODO: check for order of processing
+logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job2: %s", i->job_id);
         RequestAttention(i->job_id); // make it start ASAP
         return JobSuccess;
       }
@@ -1180,6 +1207,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         job_failed_mark_remove(i->job_id,config);
         SetJobState(i, JOB_STATE_INLRMS, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
+logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
         RequestAttention(i->job_id); // make it start ASAP
         return JobSuccess;
       }
@@ -1340,7 +1368,8 @@ JobsList::iterator JobsList::NextJob(JobsList::iterator i, job_state_t old_state
   }
   ++i;
   if(at_limit && !RunningJobsLimitReached()) {
-    // Report about changei in conditions
+    // Report about change in conditions
+logger.msg(Arc::ERROR, "++++ NextJob: changed: %s", i->job_id);
     RequestAttention();
   };
   return i;
@@ -1356,7 +1385,8 @@ JobsList::iterator JobsList::DropJob(JobsList::iterator i, job_state_t old_state
   }
   i=jobs.erase(i);
   if(at_limit && !RunningJobsLimitReached()) {
-    // Report about changei in conditions
+    // Report about change in conditions
+logger.msg(Arc::ERROR, "++++ DropJob: changed: %s", i->job_id);
     RequestAttention();
   };
   return i;

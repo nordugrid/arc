@@ -177,6 +177,7 @@ void WakeupInterface::thread() {
       // Event arrived
       if(!event.empty()) {
         // job id provided
+logger.msg(Arc::WARNING, "==== External request for attention %s", event);
         jobs_.RequestAttention(event);
       } else {
         // generic kick

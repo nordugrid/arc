@@ -102,7 +102,10 @@ void DTRGenerator::thread() {
       event_lock.lock();
       JobId jobid(it_jobs->get_id());
       it_jobs = jobs_received.erase(it_jobs);
-      if(!jobAccepted) jobs.RequestAttention(jobid);
+      if(!jobAccepted) {
+logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
+jobs.RequestAttention(jobid);
+}
     }
     event_lock.unlock();
     Glib::usleep(50000);
@@ -589,6 +592,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
                           dtr->get_source()->Local() ? "uploads":"downloads");
   lock.unlock();
 
+logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
   jobs.RequestAttention(jobid);
 
   return true;
