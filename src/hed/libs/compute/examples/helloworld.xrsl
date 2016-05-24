@@ -1,0 +1,8 @@
+&
+(executable = "/bin/echo")
+(arguments = "Hello World")
+(stdout = "std.out")
+(join = "yes")(* Join stdout and stderr into stdout*)
+(cputime = 1)
+(jobname = "Hello World")
+(gmlog = "joblog")(* Grid manager log files should be included when retrieving job results (arcget) *)

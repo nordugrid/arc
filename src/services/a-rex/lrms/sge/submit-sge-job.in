@@ -20,7 +20,14 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
+. ${pkgdatadir}/configure-sge-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
+
+#Log performance
+if [ ! -z "$perflogdir" ]; then
+   #start time stamp
+   start_ts=`date +%s.%N`
+fi
 
 
 ##############################################################
@@ -310,6 +317,18 @@ configure_runtime
 ##############################################################
 move_files_to_frontend
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
+
+if [ ! -z "$perflogdir" ]; then
+   #start time stamp
+   start_ts=`date +%s.%N`
+fi
+
 #######################################
 #  Submit the job
 #######################################
@@ -347,5 +366,11 @@ move_files_to_frontend
   rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
   echo "----- exiting submit_sge_job -----";
 ) 1>&2
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobSubmission: $t" >> $perflogfile
+fi
 
 exit $exitcode

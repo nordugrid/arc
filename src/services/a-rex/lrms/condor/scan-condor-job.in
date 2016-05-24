@@ -16,6 +16,11 @@ pkgdatadir="$basedir"
 . "${pkgdatadir}/configure-condor-env.sh" || exit $?
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
 #############################################################################
 ########################## LRMS specific functions ##########################
 #############################################################################
@@ -526,13 +531,26 @@ scan_main() {
                           print "$gridid $lrmsid $uid\n";
                       }
         '
+        if [ ! -z "$perflogdir" ]; then
+           start_ts=`date +%s.%N`
+        fi
 
         lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
+
+        if [ ! -z "$perflogdir" ]; then
+           stop_ts=`date +%s.%N`
+           t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+           echo "[`date +%Y-%m-%d\ %T`] scan-condor-job, condor_q: $t" >> $perflogfile
+        fi
 
         if [ -n "$LIST_IMPLEMENTED" ]; then
             filter_jobs() { /usr/bin/perl -we "$filterscript" $lrmsids; }
         else
             filter_jobs() { cat; } # no filtering
+        fi
+
+        if [ ! -z "$perflogdir" ]; then
+           start_ts=`date +%s.%N`
         fi
 
         /usr/bin/perl -we "$listscript" | filter_jobs | while read gridid lrmsid uid; do
@@ -549,6 +567,12 @@ scan_main() {
             # are not influencing other jobs
             ( process_job; ) >> "$errorsfile" 2>&1
         done
+        if [ ! -z "$perflogdir" ]; then
+           stop_ts=`date +%s.%N`
+           t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+           echo "[`date +%Y-%m-%d\ %T`] scan-condor-job, ControlDirTraversalAndProcessing: $t" >> $perflogfile
+        fi
+
     done
 }
 

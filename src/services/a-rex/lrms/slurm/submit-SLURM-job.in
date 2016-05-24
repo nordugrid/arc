@@ -20,7 +20,12 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
+. ${pkgdatadir}/configure-SLURM-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
 
 ##############################################################
 # Parse grami file, read arc config
@@ -365,6 +370,14 @@ echo "-------------------------------------------------------------------" 1>&2
 echo "" 1>&2
 SLURM_RESULT=1
 SLURM_TRIES=0
+
+#job creation finished
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobScriptCreation: $t" >> $perflogfile
+fi
+
 while [ "$SLURM_TRIES" -lt '10' ] ; do
 
     # Unset all environment variables before calling sbatch. Otherwise
@@ -373,9 +386,17 @@ while [ "$SLURM_TRIES" -lt '10' ] ; do
     # Only unset lines with assignments.
     # Risks unsetting variables in sub assignments, but this is likely harmless.
     # TODO: Maybe we only should unset $ARC_*, $CONFIG_*, $GLOBUS_* etc?
+  if [ ! -z "$perflogdir" ]; then
+     start_ts=`date +%s.%N`
+  fi
   (for i in $(env|grep '^[A-Za-z][A-Za-z0-9]*='|grep -v "LRMS_JOB_SCRIPT"|cut -d= -f1);do unset $i;done; \
        ${sbatch} $LRMS_JOB_SCRIPT) 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   SLURM_RESULT="$?"
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobSubmission: $t" >> $perflogfile
+  fi
   if [ "$SLURM_RESULT" -eq '0' ] ; then break ; fi 
   if [ "$SLURM_RESULT" -eq '198' ] ; then 
     echo "Waiting for queue to decrease" 1>&2

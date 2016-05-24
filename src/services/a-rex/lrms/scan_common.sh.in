@@ -8,6 +8,37 @@ progname=$(basename "$0")
 #
 log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
 
+perflog_common () {
+   perflog_dname=$1
+   d=`date +%F`
+   perflog_fname=${perflog_dname}/system${d}.perflog
+   jobstatus_dir=$2
+   #gather performance information
+   loadavg=`cat /proc/loadavg`
+   memtotal=$(a=`grep MemTotal /proc/meminfo`; echo ${a#MemTotal:})
+   memfree=$(a=`grep MemFree /proc/meminfo`; echo ${a#MemFree:})
+   if [ -d "$jobstatus_dir" ]; then
+      jsd_size=`ls -l $jobstatus_dir| wc -l`
+      jsdP_size=`ls -l $jobstatus_dir/processing | wc -l`
+   fi
+   #log the loadavg, stripping the last elemenmt, and the rest of the gathered info
+   echo "[`date +%Y-%m-%d\ %T`] LoadAVG: ${loadavg% *}" >> $perflog_fname;
+   echo "[`date +%Y-%m-%d\ %T`] MemStat: $memtotal $memfree" >> $perflog_fname;
+   echo "[`date +%Y-%m-%d\ %T`] Control dir: $jsd_size $jsdP_size" >> $perflog_fname;
+   # gather gridftp info
+   gftp_pid=`cat /var/run/gridftpd.pid`
+   gsiftp=`top -b -n 1 -p ${gftp_pid} | tail -n2 | head -n1 | sed -e 's/[[:space:]]*$//'`
+   echo -e "[`date +%Y-%m-%d\ %T`] Gridftpd: $gsiftp" >> $perflog_fname;
+   # gather slapd info
+   slapd_pid=`cat /var/run/arc/bdii/db/slapd.pid`
+   slapd=`top -b -n 1 -p ${slapd_pid} | tail -n2 | head -n1 | sed -e 's/[[:space:]]*$//'`
+   echo -e "[`date +%Y-%m-%d\ %T`] Slapd: ${slapd}" >> $perflog_fname;
+ 
+   unset perflog_dname
+   unset perflog_fname
+   unset jobstatus_dir
+}
+
 # This function takes a time interval formatted as 789:12:34:56 (with days) or
 # 12:34:56 (without days) and transforms it to seconds. It returns the result in
 # the return_interval_seconds variable.

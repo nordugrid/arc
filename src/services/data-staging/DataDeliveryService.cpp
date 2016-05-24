@@ -119,7 +119,7 @@ namespace DataStaging {
         LogToRootLogger(Arc::WARNING, "Failed to remove temporary proxy "+proxy_file+": "+Arc::StrError(errno));
       }
     }
-    --current_processes;
+    if (current_processes > 0) --current_processes;
   }
 
   /*

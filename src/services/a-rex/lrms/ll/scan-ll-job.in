@@ -52,6 +52,15 @@ test -d "$control_dir" || exit 1
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
 
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
 my_id=`id -u`
 
 # mergedlist: array where each element is made of
@@ -95,6 +104,17 @@ do
 
 done <<< "$findoutput"
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-ll-job, ControldirTraversal: $t" >> $perflogfile
+fi
+
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
 # Query the LoadLeveler for jobs 
 # and save the not completed into $outLocalIdsString
 # Call the funcion only if there is some into the string
@@ -102,7 +122,16 @@ if [[ $inLocalIdsString =~ /^[0-9]|[a-z]|[A-Z]*$/ ]]; then
   get_bunch_jobs_status "$inLocalIdsString"
 fi 
 
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-ll-job, llq -r %st %id: $t" >> $perflogfile
+fi
 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+numelem=0
 # Start the loop based on element of the mergelist
 for element in ${mergedlist[@]}
 do
@@ -116,7 +145,7 @@ do
   then 
       continue
   fi
-
+  numelem=$((numelem+1))
   donefile="${control_dir}/job.${jobid}.lrms_done"
   statusfile="${control_dir}/processing/job.${jobid}.status"
   jobfile="${control_dir}/job.${jobid}.local"
@@ -196,6 +225,12 @@ do
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
   ${GMKICK} "$jobfile"
 done
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-ll-job, JobHandling, Handled= $numelem: $t" >> $perflogfile
+fi
 
 sleep 60
 exit 0

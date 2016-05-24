@@ -332,11 +332,18 @@ int UserSwitch::suid_gid_orig = -1;
       suid_lock.unlock();
     };
   }
+
+  void UserSwitch::resetPostFork(void) {
+    valid = false;
+  }
 #else
   UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
   }
 
   UserSwitch::~UserSwitch(void) {
+  }
+
+  void UserSwitch::resetPostFork(void) {
   }
 #endif
 

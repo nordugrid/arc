@@ -10,15 +10,15 @@
  * @{
  */
 /** ARC API version */
-#define ARC_VERSION "5.0.5"
+#define ARC_VERSION "5.1.0"
 /** ARC API version number */
-#define ARC_VERSION_NUM 0x050005
+#define ARC_VERSION_NUM 0x050100
 /** ARC API major version number */
 #define ARC_VERSION_MAJOR 5
 /** ARC API minor version number */
-#define ARC_VERSION_MINOR 0
+#define ARC_VERSION_MINOR 1
 /** ARC API patch number */
-#define ARC_VERSION_PATCH 5
+#define ARC_VERSION_PATCH 0
 
 /// Arc namespace contains all core ARC classes.
 namespace Arc {
@@ -111,6 +111,8 @@ namespace Arc {
    * \include basic_job_submission.py
    * \section java Java
    * \include BasicJobSubmission.java
+   * \section txt xRSL job description
+   * \include helloworld.xrsl
    *
    * \page jobfiltering %Job Filtering
    * \tableofcontents

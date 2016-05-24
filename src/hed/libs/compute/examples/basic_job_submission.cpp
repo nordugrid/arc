@@ -29,6 +29,11 @@ int main() {
     return 1;
   }
 
+  /*
+   * Use 'Arc::JobDescription::ParseFromFile("helloworld.xrsl", jobdescs)'
+   * to parse job description from file.
+   */
+
   // Use top-level NorduGrid information index to find resources
   Arc::Endpoint index("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
                       Arc::Endpoint::REGISTRY,

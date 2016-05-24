@@ -106,6 +106,9 @@ namespace Arc {
     ~UserSwitch(void);
     /// Returns true if switching user succeeded.
     operator bool(void) { return valid; };
+    /// This method to be called after fork in child 
+    /// process to avoid deadlock on global condition.
+    void resetPostFork(void);
   }; // class UserSwitch
 
 
