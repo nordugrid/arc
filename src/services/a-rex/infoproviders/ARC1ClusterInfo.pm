@@ -700,11 +700,16 @@ sub collect($) {
         my $job = $gmjobs_info->{$jobid};
         my $gridowner = $gmjobs_info->{$jobid}{subject};
         my $share = $job->{share};
+        # take only the first VO for now.
+        my $vomsvo = $job->{vomsvo} if defined $job->{vomsvo};
+        my $sharevomsvo = $share.'_'.$vomsvo if defined $vomsvo;
 
         my $gmstatus = $job->{status} || '';
 
         $gmtotalcount{totaljobs}++;
         $gmsharecount{$share}{totaljobs}++;
+        # add info for VO dedicated shares
+        $gmsharecount{$sharevomsvo}{totaljobs}++ if defined $vomsvo;
 
         # count GM states by category
 
@@ -733,25 +738,35 @@ sub collect($) {
 
         $gmtotalcount{$category}++;
         $gmsharecount{$share}{$category}++;
+        $gmsharecount{$sharevomsvo}{$category}++ if defined $vomsvo;
 
         if ($age < 6) {
             $gmtotalcount{notdeleted}++;
             $gmsharecount{$share}{notdeleted}++;
+            $gmsharecount{$sharevomsvo}{notdeleted}++ if defined $vomsvo;
+
         }
         if ($age < 5) {
             $gmtotalcount{notfinished}++;
             $gmsharecount{$share}{notfinished}++;
+            $gmsharecount{$sharevomsvo}{notfinished}++ if defined $vomsvo;
         }
         if ($age < 3) {
             $gmtotalcount{notsubmitted}++;
             $gmsharecount{$share}{notsubmitted}++;
+            $gmsharecount{$sharevomsvo}{notsubmitted}++ if defined $vomsvo;
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
+            if (defined $vomsvo) {
+				$requestedslots{$sharevomsvo} += $job->{count} || 1;
+				$share_prepping{$sharevomsvo}++;
+			}
             # TODO: is this used anywhere?
             $user_prepping{$gridowner}++ if $gridowner;
         }
         if ($age < 2) {
             $pending{$share}++;
+            $pending{$sharevomsvo}++ if defined $vomsvo;
             $pendingtotal++;
         }
 
@@ -764,22 +779,40 @@ sub collect($) {
 
             if (defined $lrmsjob) {
                 if ($lrmsjob->{status} ne 'EXECUTED') {
-                    $inlrmsslots{$share}{running} ||= 0;
+                    $inlrmsslots{$share}{running} ||= 0; 
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
+                    if (defined $vomsvo) {
+						$inlrmsslots{$sharevomsvo}{running} ||= 0; 
+						$inlrmsslots{$sharevomsvo}{suspended} ||= 0;
+						$inlrmsslots{$sharevomsvo}{queued} ||= 0;
+					}
                     if ($lrmsjob->{status} eq 'R') {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
+                        if (defined $vomsvo) {
+							$inlrmsjobs{$sharevomsvo}{running}++;
+							$inlrmsslots{$sharevomsvo}{running} += $slots;
+						}
                     } elsif ($lrmsjob->{status} eq 'S') {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
+                        if (defined $vomsvo) {
+							$inlrmsjobs{$sharevomsvo}{suspended}++;
+                            $inlrmsslots{$sharevomsvo}{suspended} += $slots;
+						}
                     } else {  # Consider other states 'queued'
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
+                        if (defined $vomsvo) {
+						    $inlrmsjobs{$sharevomsvo}{queued}++;
+							$inlrmsslots{$sharevomsvo}{queued} += $slots;
+							$requestedslots{$sharevomsvo} += $slots;
+						}
                     }
                 }
             } else {
