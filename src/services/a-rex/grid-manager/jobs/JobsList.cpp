@@ -125,6 +125,7 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
+    RequestReprocess(i->job_id); // To make job being thrown from list
     return false;
   }
   i->session_dir = i->local->sessiondir;
@@ -221,23 +222,9 @@ void JobsList::WaitAttention(void) {
     if(!ScanOldJobs()) {
       // If there is no scanning going on then simply wait and exit
       jobs_attention_cond.wait();
-logger.msg(Arc::ERROR, "++++ WaitAttention exit 1");
-for(std::list<std::string>::const_iterator j = jobs_polling.begin();j != jobs_polling.end();++j)
-  logger.msg(Arc::ERROR, "++++ polling: %s",*j);
-for(std::list<std::string>::const_iterator j = jobs_attention.begin();j != jobs_attention.end();++j)
-  logger.msg(Arc::ERROR, "++++ attention: %s",*j);
-for(std::list<std::string>::const_iterator j = jobs_processing.begin();j != jobs_processing.end();++j)
-  logger.msg(Arc::ERROR, "++++ processing: %s",*j);
       return;
     };
   }; // while !jobs_attention_cond
-logger.msg(Arc::ERROR, "++++ WaitAttention exit 2");
-for(std::list<std::string>::const_iterator j = jobs_polling.begin();j != jobs_polling.end();++j)
-  logger.msg(Arc::ERROR, "++++ polling: %s",*j);
-for(std::list<std::string>::const_iterator j = jobs_attention.begin();j != jobs_attention.end();++j)
-  logger.msg(Arc::ERROR, "++++ attention: %s",*j);
-for(std::list<std::string>::const_iterator j = jobs_processing.begin();j != jobs_processing.end();++j)
-  logger.msg(Arc::ERROR, "++++ processing: %s",*j);
 }
 
 bool JobsList::RequestWaitForRunning(const JobId& id) {
@@ -288,6 +275,15 @@ bool JobsList::ActJobsProcessing(void) {
     };
     lock_.acquire();
 logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
+  };
+  // Check limit on number of running jobs and activate some of them if possible
+  if(!RunningJobsLimitReached()) {
+    Glib::Mutex::Lock lock_wait_for_running_(jobs_wait_for_running_lock);
+    if(jobs_wait_for_running.size() > 0) {
+      // Processing one by one because some jobs may go to running and some may fail
+      RequestAttention(*jobs_wait_for_running.begin());
+      jobs_wait_for_running.pop_front();
+    };
   };
 }
 
