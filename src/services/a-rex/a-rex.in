@@ -767,6 +767,12 @@ prepare() {
     if [ ! -z "$USERNAME" ] ; then
         [ -f $AREX_CONFIG ] && chown $USERNAME $AREX_CONFIG
     fi
+
+    # prepare to collect crash information
+    COREDIR=`dirname ${LOGFILE}`/arccore
+    mkdir -p ${COREDIR}
+    cd ${COREDIR}
+    ulimit -c unlimited
 }
 
 validate() {
