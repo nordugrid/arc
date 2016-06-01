@@ -670,7 +670,7 @@ sub check_completeness() {
 	}
 	if ($hn_conf) {
 		if ($hn_conf ne "$hn") {
-			e("The entry of the full hostname (".$hn_conf
+			w("The entry of the full hostname (".$hn_conf
 			                      . ") is better\n"
 		            ."   equal to `hostname -f` ($hn).\n"
 		            ."   Also test reverse lookup of the hostname.\n");
