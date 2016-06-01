@@ -108,7 +108,7 @@ namespace Arc {
       // TODO: Check if error is real or "not exist".
       if (remove_lfn) {
         logger.msg(INFO,
-                   "No locations found for - probably no more physical instances");
+                   "No locations found - probably no more physical instances");
       };
     };
     std::list<URL> removed_urls;
