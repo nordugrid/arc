@@ -2411,3 +2411,40 @@
 #cacheserver="https://another.host:5443/data/cache"
 
 ####################################################################
+##
+### The [gangliarc] block ##########################################
+##
+## Gangliarc provides monitoring of ARC-specific metrics through ganglia.
+## It can be run with zero configuration or customised with options in the
+## [gangliarc] block.
+#[gangliarc]
+
+## frequency - The period between each information gathering cycle, in seconds.
+## Default is 20.
+#frequency="30"
+
+## gmetric_exec - Path to gmetric executable. Default is /usr/bin/gmetric.
+#gmetric_exec="/usr/local/bin/gmetric"
+
+## logfile - log file of the daemon. Default is /var/log/arc/gangliarc.log.
+#logfile="/tmp/gangliarc.log"
+
+## pidfile - pid file of the daemon. Default is /var/run/gangliarc.pid.
+#pidfile="/tmp/gangliarc.pid"
+
+## python_bin_path - path to python executable. Default is /usr/bin/python.
+#python_bin_path="/usr/local/bin/python"
+
+## metrics - the metrics to be monitored. Default is "all".
+## metrics takes a comma-separated list of one or more of the following metrics:
+## - staging -- number of tasks in different data staging states
+## - cache -- free cache space
+## - session -- free session directory space
+## - heartbeat -- last modification time of A-REX heartbeat 
+## - processingjobs -- the number of jobs currently being processed by ARC (jobs
+##                     between PREPARING and FINISHING states)
+## - failedjobs -- the number of failed jobs per last 100 finished
+## - jobstates -- number of jobs in different A-REX internal stages
+## - all -- all of the above metrics
+#metrics="all"
+
