@@ -73,6 +73,10 @@ SDK: $(SDKDEPENDENCIES)
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
 	$(PYTHON) $(srcdir)/add-java-getter-setter-method-notice.py SDK/html
 
-EXTRA_DIST = Doxyfile.SDK Doxyfile.SDK.layout.xml images/arcsdk.png
+EXTRA_DIST = Doxyfile.SDK Doxyfile.SDK.layout.xml images/arcsdk.png \
+	     add-bindings-deviations-to-dox.py \
+	     add-java-getter-setter-method-notice.py \
+	     adapt-and-filter-mapping-attributes.sed \
+	     create-mapping-documentation.py
 
 CLEANFILES = SDK
