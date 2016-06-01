@@ -638,7 +638,7 @@ namespace Arc {
     }
 
     SourceLanguage(parsed_jobdescription) = (!language.empty() ? language : supportedLanguages.front());
-    logger.msg(INFO, "String successfully parsed as %s", parsed_jobdescription.GetSourceLanguage());
+    logger.msg(VERBOSE, "String successfully parsed as %s", parsed_jobdescription.GetSourceLanguage());
     jobdescs.push_back(parsed_jobdescription);
     return true;
   }
