@@ -253,14 +253,32 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
   }
 
   // get delegated proxy info to check permission on cached files
-  // TODO: use credentials of caller of this service. For now use the
-  // proxy of the specified job in the control dir
+  // TODO: use credentials of caller of this service. For now ask the
+  // delegation store for the proxy of the job.
 
-  std::string proxy_path = config.ControlDir() + "/job." + jobid + ".proxy";
-  if (!Arc::FileStat(proxy_path, &fileStat, true)) {
-    logger.msg(Arc::ERROR, "Failed to access proxy of given job id at %s", proxy_path);
+  ARex::DelegationStore::DbType deleg_db_type = ARex::DelegationStore::DbBerkeley;
+  switch (config.DelegationDBType()) {
+   case ARex::GMConfig::deleg_db_bdb:
+    deleg_db_type = ARex::DelegationStore::DbBerkeley;
+    break;
+   case ARex::GMConfig::deleg_db_sqlite:
+    deleg_db_type = ARex::DelegationStore::DbSQLite;
+    break;
+  }
+
+  ARex::DelegationStore dstore(config.DelegationDir(), deleg_db_type, false);
+  std::string proxy_path;
+  // Read job's local file to extract delegation id
+  ARex::JobLocalDescription job_desc;
+  if (job_local_read_file(jobid, config, job_desc) && !job_desc.delegationid.empty()) {
+     std::string proxy_path = dstore.FindCred(job_desc.delegationid, job_desc.DN);
+  }
+
+  if (proxy_path.empty() || !Arc::FileStat(proxy_path, &fileStat, true)) {
+    logger.msg(Arc::ERROR, "Failed to access proxy of given job id %s at %s", jobid, proxy_path);
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", "Failed to access proxy");
   }
+
   Arc::UserConfig usercfg;
   usercfg.UtilsDirPath(config.ControlDir());
   usercfg.ProxyPath(proxy_path);
