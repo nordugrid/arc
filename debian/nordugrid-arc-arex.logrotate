@@ -43,7 +43,6 @@
 /var/log/arc/perfdata/arex.perflog {
   missingok
   compress
-  delaycompress
   daily
   rotate 14
   create
@@ -52,7 +51,6 @@
 /var/log/arc/perfdata/data.perflog {
   missingok
   compress
-  delaycompress
   daily
   rotate 14
   create
@@ -61,7 +59,30 @@
 /var/log/arc/perfdata/system.perflog {
   missingok
   compress
-  delaycompress
+  daily
+  rotate 14
+  create
+}
+
+/var/log/arc/perfdata/backends.perflog {
+  missingok
+  compress
+  daily
+  rotate 14
+  create
+}
+
+/var/log/arc/perfdata/system.perflog {
+  missingok
+  compress
+  daily
+  rotate 14
+  create
+}
+
+/var/log/arc/perfdata/submission.perflog {
+  missingok
+  compress
   daily
   rotate 14
   create
