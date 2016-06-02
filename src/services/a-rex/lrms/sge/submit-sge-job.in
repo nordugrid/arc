@@ -24,6 +24,8 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/submit_common.sh || exit $?
 
 #Log performance
+perflogfilesub="${perflogdir}/submission.perflog"
+
 if [ ! -z "$perflogdir" ]; then
    #start time stamp
    start_ts=`date +%s.%N`
@@ -320,7 +322,7 @@ move_files_to_frontend
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 
@@ -370,7 +372,7 @@ fi
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobSubmission: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobSubmission: $t" >> $perflogfilesub
 fi
 
 exit $exitcode

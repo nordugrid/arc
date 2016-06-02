@@ -23,6 +23,9 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-SLURM-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
+perflogfilesub="${perflogdir}/submission.perflog"
+
+
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
@@ -375,7 +378,7 @@ SLURM_TRIES=0
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 while [ "$SLURM_TRIES" -lt '10' ] ; do
@@ -395,7 +398,7 @@ while [ "$SLURM_TRIES" -lt '10' ] ; do
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-    echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobSubmission: $t" >> $perflogfile
+    echo "[`date +%Y-%m-%d\ %T`] submit-slurm-job, JobSubmission: $t" >> $perflogfilesub
   fi
   if [ "$SLURM_RESULT" -eq '0' ] ; then break ; fi 
   if [ "$SLURM_RESULT" -eq '198' ] ; then 

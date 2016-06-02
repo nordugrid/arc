@@ -23,6 +23,8 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-condor-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
+perflogfilesub="${perflogdir}/submission.perflog"
+
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
@@ -424,7 +426,7 @@ move_files_to_frontend
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 #######################################
@@ -451,7 +453,7 @@ while [ "$CONDOR_TRIES" -lt '10' ] ; do
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-    echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobSubmission: $t" >> $perflogfile
+    echo "[`date +%Y-%m-%d\ %T`] submit-condor-job, JobSubmission: $t" >> $perflogfilesub
   fi
 
   if [ "$CONDOR_RESULT" -eq '0' ] ; then break ; fi
