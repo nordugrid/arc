@@ -67,7 +67,7 @@ sleep 86400
 # merge infosys files
 MERGEDATE=`date +%Y%m%d`
 
-write_static_system_data $PERFDIR/sysinfo.perflog-$MERGEDATE
+write_static_system_data $PERFDIR/sysinfo.perflog
 
 if command_exists nytprofmerge && [ ! -f "$PERFDIR/infosys.perflog-$MERGEDATE.gz" ] && [ ! -f "$PERFDIR/infosys.perflog-$MERGEDATE.gz" ] ; then
   nytprofmerge -o $PERFDIR/infosys.perflog-$MERGEDATE $PERFDIR/infosys_*.raw && gzip $PERFDIR/infosys.perflog-$MERGEDATE && rm $PERFDIR/infosys_*.raw
