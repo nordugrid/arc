@@ -68,6 +68,7 @@ SDKDEPENDENCIES = Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml \
 	$(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS))
 
 SDK: $(SDKDEPENDENCIES)
+	doxygen -v | awk -F . '{ exit !($$1 >= 2 || $$1 == 1 && $$2 >= 8) }' || (echo "doxygen version 1.8.0 or greater required (version $$(doxygen -v) found)" && exit 1)
 	doxygen Doxyfile.SDK.build
 # Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
