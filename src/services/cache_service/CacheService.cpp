@@ -271,7 +271,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
   // Read job's local file to extract delegation id
   ARex::JobLocalDescription job_desc;
   if (job_local_read_file(jobid, config, job_desc) && !job_desc.delegationid.empty()) {
-     std::string proxy_path = dstore.FindCred(job_desc.delegationid, job_desc.DN);
+     proxy_path = dstore.FindCred(job_desc.delegationid, job_desc.DN);
   }
 
   if (proxy_path.empty() || !Arc::FileStat(proxy_path, &fileStat, true)) {
