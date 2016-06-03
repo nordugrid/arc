@@ -115,6 +115,10 @@ bool JobLog::RunReporter(const GMConfig &config) {
   };
   if(time(NULL) < (last_run+period)) return true; // default: once per hour
   last_run=time(NULL);
+  if (logger_name.empty()) {
+    logger.msg(Arc::ERROR,": Logger name is not specified");
+    return false;
+  }
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger_name;
   cmd += " -L";  // for long format of logging
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
