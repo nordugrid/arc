@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <arc/XMLNode.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -69,6 +70,29 @@ namespace Arc {
     }
     /// Save config to file
     void save(const char *filename);
+
+    /// Helper method for processing element value. 
+    /** Extracts sub-element ename from pnode and tries to convert it
+        into boolean. In case of success returns true and fills result
+        into val reference. */
+    static bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val);
+
+    /// Helper method for processing element value. 
+    /** Extracts sub-element ename from pnode and tries to convert it
+        into enumeration defined by opts. In case of success returns true
+        and fills result into val reference. */
+    static bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[]);
+
+    /// Helper method for processing element value. 
+    /** Extracts sub-element ename from pnode and tries to convert it
+        into integer number. In case of success returns true and fills result
+        into val reference. */
+    template<typename T> static bool elementtoint(Arc::XMLNode pnode,const char* ename,T& val) {
+      std::string v = ename?pnode[ename]:pnode;
+      if(v.empty()) return true; // default
+      return Arc::stringto(v,val);
+    }
+
   };
 
   /// Configuration for client interface.

@@ -15,7 +15,8 @@ pgmpkglibdir = $(pkglibdir)
 pgmpkglib_PROGRAMS = arc-file-access
 
 libarccommon_ladir = $(pkgincludedir)
-libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h ArcRegex.h \
+libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h \
+	ArcRegex.h ArcConfigIni.h ArcConfigFile.h \
 	Base64.h CheckSum.h DBInterface.h DateTime.h \
 	FileLock.h FileUtils.h FileAccess.h GUID.h IString.h \
 	Logger.h OptionParser.h StringConv.h Thread.h URL.h \
@@ -29,7 +30,8 @@ else
 PLATFORM_SPECIFIC = Run_unix.cpp
 endif
 
-libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp ArcRegex.cpp \
+libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
+	ArcRegex.cpp ArcConfigIni.cpp ArcConfigFile.cpp \
 	Base64.cpp CheckSum.cpp DateTime.cpp \
 	FileLock.cpp FileUtils.cpp FileAccess.cpp GUID.cpp IString.cpp \
 	Logger.cpp OptionParser.cpp StringConv.cpp Thread.cpp URL.cpp \
