@@ -14,7 +14,6 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 
-#include "ConfigUtils.h"
 #include "CoreConfig.h"
 #include "../run/RunParallel.h"
 

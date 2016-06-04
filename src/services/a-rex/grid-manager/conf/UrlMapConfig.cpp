@@ -7,8 +7,9 @@
 
 #include <arc/Logger.h>
 
-#include "ConfigSections.h"
-#include "ConfigUtils.h"
+#include <arc/ArcConfig.h>
+#include <arc/ArcConfigFile.h>
+#include <arc/ArcConfigIni.h>
 
 #include "UrlMapConfig.h"
 
@@ -17,15 +18,15 @@ namespace ARex {
 static Arc::Logger& glogger = Arc::Logger::getRootLogger();
 
 UrlMapConfig::UrlMapConfig(const GMConfig& config) {
-  std::ifstream cfile;
-  ConfigSections* cf = NULL;
+  Arc::ConfigFile cfile;
+  Arc::ConfigIni* cf = NULL;
   //if(nordugrid_config_loc().empty()) read_env_vars(true);
-  if(!config_open(cfile,config.ConfigFile())) {
+  if(!cfile.open(config.ConfigFile())) {
     glogger.msg(Arc::ERROR,"Can't open configuration file");
     return;
   };
-  switch(config_detect(cfile)) {
-    case config_file_XML: {
+  switch(cfile.detect()) {
+    case Arc::ConfigFile::file_XML: {
       Arc::XMLNode cfg;
       if(!cfg.ReadFromStream(cfile)) {
         glogger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
@@ -42,7 +43,10 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
           Arc::XMLNode mapnode = datanode["mapURL"];
           for(;mapnode;++mapnode) {
             bool is_link = false;
-            if(!elementtobool(mapnode,"link",is_link,&glogger)) continue;
+            if(!Arc::Config::elementtobool(mapnode,"link",is_link)) {
+              glogger.msg(Arc::ERROR,"Value for 'link' element in mapURL is incorrect");
+              continue;
+            };
             std::string initial = mapnode["from"];
             std::string replacement = mapnode["to"];
             if(initial.empty()) {
@@ -64,8 +68,8 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
         };
       };
     }; break;
-    case config_file_INI: {
-      cf=new ConfigSections(cfile);
+    case Arc::ConfigFile::file_INI: {
+      cf=new Arc::ConfigIni(cfile);
       cf->AddSection("common");
       cf->AddSection("data-staging");
       for(;;) {
@@ -74,8 +78,8 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
         cf->ReadNext(command,rest);
         if(command.length() == 0) break;
         else if(command == "copyurl") {
-          std::string initial = config_next_arg(rest);
-          std::string replacement = config_next_arg(rest);
+          std::string initial = Arc::ConfigIni::NextArg(rest);
+          std::string replacement = Arc::ConfigIni::NextArg(rest);
           if((initial.length() == 0) || (replacement.length() == 0)) {
             glogger.msg(Arc::ERROR,"Not enough parameters in copyurl");
             continue;
@@ -83,13 +87,13 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
           add(initial,replacement);
         }
         else if(command == "linkurl") {
-          std::string initial = config_next_arg(rest);
-          std::string replacement = config_next_arg(rest);
+          std::string initial = Arc::ConfigIni::NextArg(rest);
+          std::string replacement = Arc::ConfigIni::NextArg(rest);
           if((initial.length() == 0) || (replacement.length() == 0)) {
             glogger.msg(Arc::ERROR,"Not enough parameters in linkurl");
             continue;
           };
-          std::string access = config_next_arg(rest);
+          std::string access = Arc::ConfigIni::NextArg(rest);
           if(access.length() == 0) access = replacement;
           add(initial,replacement,access);
         };
@@ -99,7 +103,7 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
       glogger.msg(Arc::ERROR,"Can't recognize type of configuration file");
     }; break;
   };
-  config_close(cfile);
+  cfile.close();
   if(cf) delete cf;
 }
 

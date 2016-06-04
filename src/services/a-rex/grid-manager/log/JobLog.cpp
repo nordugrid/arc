@@ -18,7 +18,6 @@
 #include "../files/ControlFileContent.h"
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
-#include "../misc/escaped.h"
 #include "JobLog.h"
 
 namespace ARex {

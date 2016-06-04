@@ -7,6 +7,7 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfigFile.h>
 
 #include "GMConfig.h"
 
@@ -109,7 +110,7 @@ private:
   /// Read in params from XML config
   bool readStagingConf(const Arc::XMLNode& cfg);
   /// Read in params from ini config
-  bool readStagingConf(std::ifstream& cfile);
+  bool readStagingConf(Arc::ConfigFile& cfile);
   /// Convert parameter to integer with mimimum value of -1
   bool paramToInt(const std::string& param, int& value);
 

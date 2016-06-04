@@ -11,14 +11,12 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfigIni.h>
 #include "../jobs/ContinuationPlugins.h"
 #include "../run/RunPlugin.h"
-#include "../misc/escaped.h"
 #include "../log/JobLog.h"
 #include "../jobs/JobsList.h"
 
-#include "ConfigUtils.h"
-#include "ConfigSections.h"
 #include "CacheConfig.h"
 #include "GMConfig.h"
 
@@ -46,7 +44,7 @@ void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
 }
 
 bool CoreConfig::CheckYesNoCommand(bool& config_param, const std::string& name, std::string& rest) {
-  std::string s = config_next_arg(rest);
+  std::string s = Arc::ConfigIni::NextArg(rest);
   if (s == "yes") {
     config_param = true;
   }
@@ -66,21 +64,21 @@ bool CoreConfig::ParseConf(GMConfig& config) {
     return ParseConfXML(config, config.xml_cfg);
   }
   if (!config.conffile.empty()) {
-    std::ifstream cfile;
-    if (!config_open(cfile, config.conffile)) {
+    Arc::ConfigFile cfile;
+    if (!cfile.open(config.conffile)) {
       logger.msg(Arc::ERROR, "Can't read configuration file at %s", config.conffile);
       return false;
     }
     // detect type of file
-    config_file_type type = config_detect(cfile);
-    if (type == config_file_XML) {
+    Arc::ConfigFile::file_type type = cfile.detect();
+    if (type == Arc::ConfigFile::file_XML) {
       Arc::XMLNode xml_cfg;
       if (!xml_cfg.ReadFromStream(cfile)) {
-        config_close(cfile);
+        cfile.close();
         logger.msg(Arc::ERROR, "Can't interpret configuration file %s as XML", config.conffile);
         return false;
       }
-      config_close(cfile);
+      cfile.close();
       // Pick out the A-REX service node
       Arc::XMLNode arex;
       Arc::Config cfg(xml_cfg);
@@ -110,9 +108,9 @@ bool CoreConfig::ParseConf(GMConfig& config) {
       // malformed xml
       return false;
     }
-    if (type == config_file_INI) {
+    if (type == Arc::ConfigFile::file_INI) {
       bool result = ParseConfINI(config, cfile);
-      config_close(cfile);
+      cfile.close();
       return result;
     }
     logger.msg(Arc::ERROR, "Can't recognize type of configuration file at %s", config.conffile);
@@ -122,12 +120,13 @@ bool CoreConfig::ParseConf(GMConfig& config) {
   return false;
 }
 
-bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
+bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 
   // List of helper commands that will be substituted after all configuration is read
   std::list<std::string> helpers;
+  std::string jobreport_publisher;
   bool helper_log_is_set = false;
-  ConfigSections cf(cfile);
+  Arc::ConfigIni cf(cfile);
   cf.AddSection("common");
   cf.AddSection("grid-manager");
   cf.AddSection("infosys");
@@ -171,14 +170,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       break;
     }
     if(command == "arex_mount_point") {
-       config.arex_endpoint = config_next_arg(rest);
+       config.arex_endpoint = Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "runtimedir") {
       config.rte_dir = rest;
     }
     else if (command == "joblog") { // where to write job information
       if (!config.job_log) continue;
-      std::string fname = config_next_arg(rest);  // empty is allowed too
+      std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
       config.job_log->SetOutput(fname.c_str());
     }
     else if (command == "enable_perflog_reporting") { //
@@ -189,14 +188,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     }
     else if (command == "perflogdir") { // 
       if (!config.job_perf_log) continue;
-      std::string fname = config_next_arg(rest);  // empty is allowed too
+      std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
       if(!fname.empty()) fname += "/arex.perflog";
       config.job_perf_log->SetOutput(fname.c_str());
     }
     else if (command == "jobreport") { // service to report information to
       if (!config.job_log) continue;
       for(;;) {
-        std::string url = config_next_arg(rest);
+        std::string url = Arc::ConfigIni::NextArg(rest);
         if (url.empty()) break;
         unsigned int i;
         if (Arc::stringto(url, i)) {
@@ -209,22 +208,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     else if (command == "jobreport_vo_filters") { // which VO will be send to the server
       if (!config.job_log) continue;
       for(;;) {
-        std::string voFilters = config_next_arg(rest);
+        std::string voFilters = Arc::ConfigIni::NextArg(rest);
         if (voFilters.empty()) break;
         config.job_log->SetVoFilters(voFilters.c_str());
       }
     }
     else if (command == "jobreport_publisher") { // Name of the publisher: e.g. jura
       if (!config.job_log) continue;
-      std::string publisher = config_next_arg(rest);
-      if (publisher.empty()) {
-        publisher = "jura";
-      }
-      config.job_log->SetLogger(publisher.c_str());
+      jobreport_publisher = Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "jobreport_period") { // Period of running in seconds: e.g. 3600
       if (!config.job_log) continue;
-      std::string period_s = config_next_arg(rest);
+      std::string period_s = Arc::ConfigIni::NextArg(rest);
       if (period_s.empty()) {
         period_s = REPORTER_PERIOD;
       }
@@ -239,56 +234,56 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     }
     else if (command == "jobreport_credentials") {
       if (!config.job_log) continue;
-      std::string jobreport_key = config_next_arg(rest);
-      std::string jobreport_cert = config_next_arg(rest);
-      std::string jobreport_cadir = config_next_arg(rest);
+      std::string jobreport_key = Arc::ConfigIni::NextArg(rest);
+      std::string jobreport_cert = Arc::ConfigIni::NextArg(rest);
+      std::string jobreport_cadir = Arc::ConfigIni::NextArg(rest);
       config.job_log->SetCredentials(jobreport_key, jobreport_cert, jobreport_cadir);
     }
     else if (command == "jobreport_options") { // e.g. for SGAS, interpreted by usage reporter
       if (!config.job_log) continue;
-      std::string accounting_options = config_next_arg(rest);
+      std::string accounting_options = Arc::ConfigIni::NextArg(rest);
       config.job_log->SetOptions(accounting_options);
     }
     else if (command == "jobreport_logfile") {
       if (!config.job_log) continue;
-      std::string logfile = config_next_arg(rest);
+      std::string logfile = Arc::ConfigIni::NextArg(rest);
       if (logfile.empty()) {
         logger.msg(Arc::ERROR, "Missing file name in jobreport_logfile"); return false;
       }
       config.job_log->SetLogFile(logfile.c_str());
     }
     else if (command == "scratchdir") {
-      std::string scratch = config_next_arg(rest);
+      std::string scratch = Arc::ConfigIni::NextArg(rest);
       // don't set if already set by shared_scratch
       if (config.scratch_dir.empty()) config.scratch_dir = scratch;
     }
     else if (command == "shared_scratch") {
-      std::string scratch = config_next_arg(rest);
+      std::string scratch = Arc::ConfigIni::NextArg(rest);
       config.scratch_dir = scratch;
     }
     else if (command == "maxjobs") { // maximum number of the jobs to support
-      std::string max_jobs_s = config_next_arg(rest);
+      std::string max_jobs_s = Arc::ConfigIni::NextArg(rest);
       if (max_jobs_s.empty()) continue;
       if (!Arc::stringto(max_jobs_s, config.max_jobs)) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
       }
       if (config.max_jobs < 0) config.max_jobs = -1;
 
-      max_jobs_s = config_next_arg(rest);
+      max_jobs_s = Arc::ConfigIni::NextArg(rest);
       if (max_jobs_s.empty()) continue;
       if (!Arc::stringto(max_jobs_s, config.max_jobs_running)) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
       }
       if (config.max_jobs_running < 0) config.max_jobs_running = -1;
 
-      max_jobs_s = config_next_arg(rest);
+      max_jobs_s = Arc::ConfigIni::NextArg(rest);
       if (max_jobs_s.empty()) continue;
       if (!Arc::stringto(max_jobs_s, config.max_jobs_per_dn)) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
       }
       if (config.max_jobs_per_dn < 0) config.max_jobs_per_dn = -1;
 
-      max_jobs_s = config_next_arg(rest);
+      max_jobs_s = Arc::ConfigIni::NextArg(rest);
       if (max_jobs_s.empty()) continue;
       if (!Arc::stringto(max_jobs_s, config.max_jobs_total)) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
@@ -296,7 +291,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (config.max_jobs_total < 0) config.max_jobs_total = -1;
     }
     else if (command == "wakeupperiod") {
-      std::string wakeup_s = config_next_arg(rest);
+      std::string wakeup_s = Arc::ConfigIni::NextArg(rest);
       if (!Arc::stringto(wakeup_s, config.wakeup_period)) {
         logger.msg(Arc::ERROR,"Wrong number in wakeupperiod: %s",wakeup_s); return false;
       }
@@ -305,34 +300,34 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (!CheckYesNoCommand(config.strict_session, command, rest)) return false;
     }
     else if (command == "mail") { // internal address from which to send mail
-      config.support_email_address = config_next_arg(rest);
+      config.support_email_address = Arc::ConfigIni::NextArg(rest);
       if (config.support_email_address.empty()) {
         logger.msg(Arc::ERROR, "mail parameter is empty"); return false;
       }
     }
     else if (command == "defaultttl") { // time to keep job after finished
-      std::string default_ttl_s = config_next_arg(rest);
+      std::string default_ttl_s = Arc::ConfigIni::NextArg(rest);
       if (!Arc::stringto(default_ttl_s, config.keep_finished)) {
         logger.msg(Arc::ERROR, "Wrong number in defaultttl command"); return false;
       }
-      default_ttl_s = config_next_arg(rest);
+      default_ttl_s = Arc::ConfigIni::NextArg(rest);
       if (!default_ttl_s.empty() && !Arc::stringto(default_ttl_s, config.keep_deleted)) {
         logger.msg(Arc::ERROR, "Wrong number in defaultttl command"); return false;
       }
     }
     else if (command == "maxrerun") { // number of retries allowed
-      std::string default_reruns_s = config_next_arg(rest);
+      std::string default_reruns_s = Arc::ConfigIni::NextArg(rest);
       if (!Arc::stringto(default_reruns_s, config.reruns)) {
         logger.msg(Arc::ERROR, "Wrong number in maxrerun command"); return false;
       }
     }
     else if (command == "lrms") { // default lrms type and queue (optional)
-      std::string default_lrms = config_next_arg(rest);
+      std::string default_lrms = Arc::ConfigIni::NextArg(rest);
       if (default_lrms.empty()) {
         logger.msg(Arc::ERROR, "defaultlrms is empty"); return false;
       }
       config.default_lrms = default_lrms;
-      std::string default_queue = config_next_arg(rest);
+      std::string default_queue = Arc::ConfigIni::NextArg(rest);
       if (!default_queue.empty()) {
         config.default_queue = default_queue;
       }
@@ -340,11 +335,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     }
     else if (command == "authplugin") { // set plugin to be called on state changes
       if (!config.cont_plugins) continue;
-      std::string state_name = config_next_arg(rest);
+      std::string state_name = Arc::ConfigIni::NextArg(rest);
       if (state_name.empty()) {
         logger.msg(Arc::ERROR, "State name for plugin is missing"); return false;
       }
-      std::string options_s = config_next_arg(rest);
+      std::string options_s = Arc::ConfigIni::NextArg(rest);
       if (options_s.empty()) {
         logger.msg(Arc::ERROR, "Options for plugin are missing"); return false;
       }
@@ -354,7 +349,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
     }
     else if (command == "localcred") {
       if (!config.cred_plugin) continue;
-      std::string timeout_s = config_next_arg(rest);
+      std::string timeout_s = Arc::ConfigIni::NextArg(rest);
       int timeout;
       if (!Arc::stringto(timeout_s, timeout)){
         logger.msg(Arc::ERROR, "Wrong number for timeout in plugin command"); return false;
@@ -362,7 +357,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       config.cred_plugin->timeout(timeout);
     }
     else if (command == "fixdirectories") {
-      std::string s = config_next_arg(rest);
+      std::string s = Arc::ConfigIni::NextArg(rest);
       if (s == "yes") {
         config.fixdir = GMConfig::fixdir_always;
       }
@@ -377,7 +372,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
     }
     else if (command == "delegationdb") {
-      std::string s = config_next_arg(rest);
+      std::string s = Arc::ConfigIni::NextArg(rest);
       if (s == "bdb") {
         config.deleg_db = GMConfig::deleg_db_bdb;
       }
@@ -389,7 +384,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       }
     }
     else if (command == "allowsubmit") { // Note: not available in xml
-      config.allow_submit += " " + config_next_arg(rest);
+      config.allow_submit += " " + Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "enable_arc_interface") {
       if (!CheckYesNoCommand(config.enable_arc_interface, command, rest)) return false;
@@ -398,7 +393,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (!CheckYesNoCommand(config.enable_emies_interface, command, rest)) return false;
     }
     else if (command == "sessiondir") {  // set session root directory
-      std::string session_root = config_next_arg(rest);
+      std::string session_root = Arc::ConfigIni::NextArg(rest);
       if (session_root.empty()) {
         logger.msg(Arc::ERROR, "Session root directory is missing"); return false;
       }
@@ -413,7 +408,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       if (rest != "drain") config.session_roots_non_draining.push_back(session_root);
     }
     else if (command == "controldir") {
-      std::string control_dir = config_next_arg(rest);
+      std::string control_dir = Arc::ConfigIni::NextArg(rest);
       if (control_dir.empty()) {
         logger.msg(Arc::ERROR, "Missing directory in control command"); return false;
       }
@@ -423,7 +418,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       logger.msg(Arc::WARNING, "'control' configuration option is no longer supported, please use 'controldir' instead");
     }
     else if (command == "helper") {
-      std::string helper_user = config_next_arg(rest);
+      std::string helper_user = Arc::ConfigIni::NextArg(rest);
       if (helper_user.empty()) {
         logger.msg(Arc::ERROR, "User for helper program is missing"); return false;
       }
@@ -436,13 +431,19 @@ bool CoreConfig::ParseConfINI(GMConfig& config, std::ifstream& cfile) {
       helpers.push_back(rest);
     }
     else if (command == "helperlog") {
-      config.helper_log = config_next_arg(rest);
+      config.helper_log = Arc::ConfigIni::NextArg(rest);
       // empty is allowed
       helper_log_is_set = true;
     }
   }
   // End of parsing conf commands
 
+  if (jobreport_publisher.empty()) {
+    jobreport_publisher = "jura";
+  }
+  if(config.job_log) {
+    config.job_log->SetLogger(jobreport_publisher.c_str());
+  }
   if(!helper_log_is_set) {
     // Assgn default backward compatible value
     config.helper_log = config.control_dir + "/job.helper.errors";
@@ -562,11 +563,26 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   */
   tmp_node = cfg["loadLimits"];
   if (tmp_node) {
-    if (!elementtoint(tmp_node, "maxJobsTracked", config.max_jobs, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxJobsRun", config.max_jobs_running, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxJobsTotal", config.max_jobs_total, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxJobsPerDN", config.max_jobs_per_dn, &logger)) return false;
-    if (!elementtoint(tmp_node, "wakeupPeriod", config.wakeup_period, &logger)) return false;
+    if (!Arc::Config::elementtoint(tmp_node, "maxJobsTracked", config.max_jobs)) {
+      logger.msg(Arc::ERROR, "Value for maxJobsTracked is incorrect number");
+      return false;
+    };
+    if (!Arc::Config::elementtoint(tmp_node, "maxJobsRun", config.max_jobs_running)) {
+      logger.msg(Arc::ERROR, "Value for maxJobsRun is incorrect number");
+      return false;
+    };
+    if (!Arc::Config::elementtoint(tmp_node, "maxJobsTotal", config.max_jobs_total)) {
+      logger.msg(Arc::ERROR, "Value for maxJobsTotal is incorrect number");
+      return false;
+    };
+    if (!Arc::Config::elementtoint(tmp_node, "maxJobsPerDN", config.max_jobs_per_dn)) {
+      logger.msg(Arc::ERROR, "Value for maxJobsPerDN is incorrect number");
+      return false;
+    };
+    if (!Arc::Config::elementtoint(tmp_node, "wakeupPeriod", config.wakeup_period)) {
+      logger.msg(Arc::ERROR, "Value for wakeupPeriod is incorrect number");
+      return false;
+    };
   }
 
   /*
@@ -661,7 +677,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       return false;
     }
     int to;
-    if (!elementtoint(onode, NULL, to, &logger)) {
+    if (!Arc::Config::elementtoint(onode, NULL, to)) {
       logger.msg(Arc::ERROR, "Timeout for localCred is incorrect number");
       return false;
     }
@@ -711,22 +727,43 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     }
     config.session_roots.push_back(session_root);
     bool session_drain = false;
-    if(!elementtobool(session_node.Attribute("drain"), NULL, session_drain, &logger)) return false;
+    if(!Arc::Config::elementtobool(session_node.Attribute("drain"), NULL, session_drain)) {
+      logger.msg(Arc::ERROR, "Attribute drain for sessionRootDir is incorrect boolean");
+      return false;
+    };
     if(!session_drain) config.session_roots_non_draining.push_back(session_root);
   }
   GMConfig::fixdir_t fixdir = GMConfig::fixdir_always;
   const char* fixdir_opts[] = { "yes", "missing", "no", NULL };
   int n;
-  if (!elementtoenum(tmp_node, "fixDirectories", n=(int)fixdir, fixdir_opts, &logger)) return false;
+  if (!Arc::Config::elementtoenum(tmp_node, "fixDirectories", n=(int)fixdir, fixdir_opts)) {
+    logger.msg(Arc::ERROR, "The fixDirectories element is incorrect value");
+    return false;
+  };
   config.fixdir = (GMConfig::fixdir_t)n;
   GMConfig::deleg_db_t deleg_db = GMConfig::deleg_db_bdb;
   const char* deleg_db_opts[] = { "bdb", "sqlite", NULL };
-  if (!elementtoenum(tmp_node, "delegationDB", n=(int)deleg_db, deleg_db_opts, &logger)) return false;
+  if (!Arc::Config::elementtoenum(tmp_node, "delegationDB", n=(int)deleg_db, deleg_db_opts)) {
+    logger.msg(Arc::ERROR, "The delegationDB element is incorrect value");
+    return false;
+  };
   config.deleg_db = (GMConfig::deleg_db_t)n;
-  if (!elementtoint(tmp_node, "maxReruns", config.reruns, &logger)) return false;
-  if (!elementtobool(tmp_node, "noRootPower", config.strict_session, &logger)) return false;
-  if (!elementtoint(tmp_node, "defaultTTL", config.keep_finished, &logger)) return false;
-  if (!elementtoint(tmp_node, "defaultTTR", config.keep_deleted, &logger)) return false;
+  if (!Arc::Config::elementtoint(tmp_node, "maxReruns", config.reruns)) {
+    logger.msg(Arc::ERROR, "The maxReruns element is incorrect number");
+    return false;
+  };
+  if (!Arc::Config::elementtobool(tmp_node, "noRootPower", config.strict_session)) {
+    logger.msg(Arc::ERROR, "The noRootPower element is incorrect number");
+    return false;
+  };
+  if (!Arc::Config::elementtoint(tmp_node, "defaultTTL", config.keep_finished)) {
+    logger.msg(Arc::ERROR, "The defaultTTL element is incorrect number");
+    return false;
+  };
+  if (!Arc::Config::elementtoint(tmp_node, "defaultTTR", config.keep_deleted)) {
+    logger.msg(Arc::ERROR, "The defaultTTR element is incorrect number");
+    return false;
+  };
 
   // Get cache parameters
   try {
