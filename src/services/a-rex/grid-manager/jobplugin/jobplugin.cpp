@@ -27,14 +27,12 @@
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
-#include "../conf/ConfigUtils.h"
 #include "../jobs/GMJob.h"
 #include "../jobs/CommFIFO.h"
 #include "../jobs/ContinuationPlugins.h"
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
 #include "../jobs/JobDescriptionHandler.h"
-#include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/RunParallel.h"
 #include "../../../gridftpd/userspec.h"
@@ -137,14 +135,13 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   matched_voms=user_a.default_group_voms();
   srand(time(NULL) + rand()); 
   for(;;) {
-    std::string rest;
-    std::string command=config_read_line(cfile,rest);
+    std::string rest = Arc::ConfigFile::read_line(cfile);
+    std::string command = Arc::ConfigIni::NextArg(rest);
     if(command.length() == 0) { break; } /* end of file - should not be here */
     else if(command == "configfile") {
-      input_escaped_string(rest.c_str(),configfile); 
+      configfile = Arc::ConfigIni::NextArg(rest);
     } else if(command == "allownew") {
-      std::string value("");
-      input_escaped_string(rest.c_str(),value);
+      std::string value = Arc::ConfigIni::NextArg(rest);
       if(strcasecmp(value.c_str(),"no") == 0) { readonly=true; }
       else if(strcasecmp(value.c_str(),"yes") == 0) { readonly=false; };
     } else if(command == "unixmap") {  /* map to local unix user */
@@ -154,21 +151,21 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     } else if(command == "unixvo") {  /* map to local unix user */
       if(!job_map) job_map.mapvo(rest.c_str());
     } else if(command == "remotegmdirs") {
-      std::string remotedir = config_next_arg(rest);
+      std::string remotedir = Arc::ConfigIni::NextArg(rest);
       if(remotedir.length() == 0) {
         logger.msg(Arc::ERROR, "empty argument to remotegmdirs");
         initialized=false;
       };
       struct gm_dirs_ dirs;
       dirs.control_dir = remotedir;
-      remotedir = config_next_arg(rest);
+      remotedir = Arc::ConfigIni::NextArg(rest);
       if(remotedir.length() == 0) {
         logger.msg(Arc::ERROR, "bad arguments to remotegmdirs");
         initialized=false;
       };
       dirs.session_dir = remotedir;
       gm_dirs_info.push_back(dirs);
-      std::string drain = config_next_arg(rest);
+      std::string drain = Arc::ConfigIni::NextArg(rest);
       if (drain.empty() || drain != "drain")
         gm_dirs_non_draining.push_back(dirs); 
     } else if(command == "maxjobdesc") {
@@ -179,7 +176,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
         initialized=false;
       };
     } else if(command == "endpoint") {
-      endpoint = config_next_arg(rest);
+      endpoint = Arc::ConfigIni::NextArg(rest);
     } else if(command == "end") {
       break; /* end of section */
     } else {
@@ -223,7 +220,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     }
 
     for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
-      std::string group = config_next_arg(allowsubmit);
+      std::string group = Arc::ConfigIni::NextArg(allowsubmit);
       if(user_a.check_group(group)) { readonly=false; break; };
     };
     if(readonly) logger.msg(Arc::WARNING, "This user is denied to submit new jobs.");

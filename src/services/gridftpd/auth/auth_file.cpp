@@ -7,8 +7,8 @@
 #include <iostream>
 
 #include <arc/Logger.h>
+#include <arc/ArcConfigIni.h>
 
-#include "../misc/escaped.h"
 #include "auth.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
@@ -16,7 +16,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
 AuthResult AuthUser::match_file(const char* line) {
   for(;;) {
     std::string s("");
-    int n = gridftpd::input_escaped_string(line,s,' ','"');
+    int n = Arc::ConfigIni::NextArg(line,s,' ','"');
     if(n == 0) break;
     line+=n;
     std::ifstream f(s.c_str());

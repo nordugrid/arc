@@ -7,11 +7,11 @@
 
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/ArcConfigIni.h>
 
 #ifdef HAVE_LDAP
 #include "../misc/ldapquery.h"
 #endif
-#include "../misc/escaped.h"
 #include "auth.h"
 
 #define LDAP_CONNECT_TIMEOUT 10
@@ -45,7 +45,7 @@ AuthResult AuthUser::match_ldap(const char* line) {
 #ifdef HAVE_LDAP
   for(;;) {
     std::string u("");
-    int n = gridftpd::input_escaped_string(line,u,' ','"');
+    int n = Arc::ConfigIni::NextArg(line,u,' ','"');
     if(n == 0) break;
     line+=n;
 	try {

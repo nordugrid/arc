@@ -19,7 +19,6 @@
 #include <arc/Utils.h>
 
 #include "fileplugin.h"
-#include "../conf/conf.h"
 #include "../userspec.h"
 #include "../names.h"
 #include "../misc.h"
@@ -49,8 +48,8 @@ static bool parse_owner_rights(std::string &rest,int &uid,int &gid,int &orbits,i
   struct passwd *pw;
   struct group *gr;
   char buf[BUFSIZ];
-  std::string owner = gridftpd::config_next_arg(rest);
-  std::string acc_rights = gridftpd::config_next_arg(rest);
+  std::string owner = Arc::ConfigIni::NextArg(rest);
+  std::string acc_rights = Arc::ConfigIni::NextArg(rest);
   if(acc_rights.length() == 0) {
     logger.msg(Arc::WARNING, "Can't parse access rights in configuration line");
     return false;
@@ -98,8 +97,8 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
   gid=user.get_gid();
   /* read configuration */
   for(;;) {
-    std::string rest;
-    std::string command=gridftpd::config_read_line(cfile,rest);
+    std::string rest=Arc::ConfigFile::read_line(cfile);
+    std::string command=Arc::ConfigIni::NextArg(rest);
     if(command.length() == 0) break; /* end of file - should not be here */
     if(command == "dir") {
       DirectAccess::diraccess_t laccess; 
@@ -111,7 +110,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
       laccess.access=DirectAccess::local_unix_access;
       bool parsed_line = false;
       rest=subst_user_spec(rest,&user);
-      std::string dir = gridftpd::config_next_arg(rest);
+      std::string dir = Arc::ConfigIni::NextArg(rest);
       if(dir.length() == 0) {
         logger.msg(Arc::WARNING, "Can't parse configuration line");
         continue;
@@ -121,7 +120,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
         continue;
       };
       for(;;) {
-        std::string subcommand = gridftpd::config_next_arg(rest);
+        std::string subcommand = Arc::ConfigIni::NextArg(rest);
         if(subcommand.length() == 0) { parsed_line=true; break; };
         if(subcommand == "read") { laccess.read=true; }
         else if(subcommand == "delete") { laccess.del=true; }
@@ -170,14 +169,14 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
     }
     else if(command == "mount") {
       rest=subst_user_spec(rest,&user);
-      mount=gridftpd::config_next_arg(rest);
+      mount=Arc::ConfigIni::NextArg(rest);
       if((mount.length() == 0) || (!Arc::CanonicalDir(mount,false))) {
         logger.msg(Arc::WARNING, "Bad mount directory specified");
       };
       logger.msg(Arc::INFO, "Mount point %s", mount);
     }
     else if(command == "endpoint") {
-      endpoint=gridftpd::config_next_arg(rest);
+      endpoint=Arc::ConfigIni::NextArg(rest);
     }
     else if(command == "end") {
       break; /* end of section */

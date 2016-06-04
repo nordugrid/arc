@@ -7,9 +7,9 @@
 #endif
 
 #include <arc/Run.h>
+#include <arc/ArcConfigIni.h>
 
 #include "../conf/environment.h"
-#include "../conf/conf.h"
 #include "run_plugin.h"
 
 namespace gridftpd {
@@ -39,7 +39,7 @@ namespace gridftpd {
         };
         args=args_; for(int i_ = i;i_<n;i_++) args_[i_]=NULL;
       };
-      arg_s=config_next_arg(args_s);
+      arg_s=Arc::ConfigIni::NextArg(args_s);
       if(arg_s.length() == 0) break;
       args[i]=strdup(arg_s.c_str());
       if(args[i] == NULL) {

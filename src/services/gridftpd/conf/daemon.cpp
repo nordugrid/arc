@@ -13,8 +13,8 @@
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
+#include <arc/ArcConfigIni.h>
 
-#include "conf.h"
 #include "environment.h"
 
 #include "daemon.h"
@@ -122,7 +122,7 @@ namespace gridftpd {
     };
     if(cmd == "daemon") {
       if(daemon_) {
-        std::string arg = config_next_arg(rest);
+        std::string arg = Arc::ConfigIni::NextArg(rest);
         if(arg=="") {
           logger.msg(Arc::ERROR, "Missing option for command daemon");
           return -1;
@@ -132,7 +132,7 @@ namespace gridftpd {
         else { logger.msg(Arc::ERROR, "Wrong option in daemon"); return -1; };
       };
     } else if(cmd == "logfile") {
-      if(logfile_.length() == 0) logfile_=config_next_arg(rest);
+      if(logfile_.length() == 0) logfile_=Arc::ConfigIni::NextArg(rest);
     } else if(cmd == "logsize") {
       if(logsize_ == 0) {
         char* p;
@@ -159,7 +159,7 @@ namespace gridftpd {
         };
       };
     } else if(cmd == "logreopen") {
-      std::string arg = config_next_arg(rest);
+      std::string arg = Arc::ConfigIni::NextArg(rest);
       if(arg=="") {
         logger.msg(Arc::ERROR, "Missing option for command logreopen");
         return -1;
@@ -169,7 +169,7 @@ namespace gridftpd {
       else { logger.msg(Arc::ERROR, "Wrong option in logreopen"); return -1; };
     } else if(cmd == "user") {
       if(uid_ == (uid_t)(-1)) {
-        std::string username = config_next_arg(rest);
+        std::string username = Arc::ConfigIni::NextArg(rest);
         std::string groupname("");
         std::string::size_type n = username.find(':');
         if(n != std::string::npos) { groupname=username.c_str()+n+1; username.resize(n); };
@@ -199,7 +199,7 @@ namespace gridftpd {
         };
       };
     } else if(cmd == "pidfile") {
-      if(pidfile_.length() == 0) pidfile_=config_next_arg(rest);
+      if(pidfile_.length() == 0) pidfile_=Arc::ConfigIni::NextArg(rest);
     } else if(cmd == "debug") {
       if(debug_ == -1) {
         char* p;

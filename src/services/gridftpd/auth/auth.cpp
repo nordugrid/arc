@@ -7,9 +7,9 @@
 
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
+#include <arc/ArcConfigIni.h>
 
 #include "../misc/proxy.h"
-#include "../misc/escaped.h"
 
 #include "auth.h"
 
@@ -31,7 +31,7 @@ AuthResult AuthUser::match_all(const char* /* line */) {
 AuthResult AuthUser::match_group(const char* line) {
   for(;;) {
     std::string s("");
-    int n = gridftpd::input_escaped_string(line,s,' ','"');
+    int n = Arc::ConfigIni::NextArg(line,s);
     if(n == 0) break;
     line+=n;
     for(std::list<group_t>::iterator i = groups.begin();i!=groups.end();++i) {
@@ -49,7 +49,7 @@ AuthResult AuthUser::match_group(const char* line) {
 AuthResult AuthUser::match_vo(const char* line) {
   for(;;) {
     std::string s("");
-    int n = gridftpd::input_escaped_string(line,s,' ','"');
+    int n = Arc::ConfigIni::NextArg(line,s);
     if(n == 0) break;
     line+=n;
     for(std::list<std::string>::iterator i = vos.begin();i!=vos.end();++i) {
@@ -80,7 +80,7 @@ AuthUser::source_t AuthUser::sources[] = {
 
 AuthUser::AuthUser(const char* s,const char* f):subject(""),filename("") {
   valid = true;
-  if(s) { subject=s; gridftpd::make_unescaped_string(subject); }
+  if(s) { Arc::ConfigIni::NextArg(s,subject,'\0','\0'); };
   struct stat fileStat;
   if(f && stat(f, &fileStat) == 0) filename=f;
   proxy_file_was_created=false;
@@ -126,7 +126,6 @@ void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char*
   voms_data.clear();
   voms_extracted=false;
   proxy_file_was_created=false; filename=""; has_delegation=false;
-  subject=s; gridftpd::make_unescaped_string(subject);
   filename="";
   subject="";
   char* p = gridftpd::write_proxy(cred);
@@ -148,7 +147,7 @@ void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char*
         if(globus_gsi_cred_read_proxy(h,(char*)(filename.c_str())) == GLOBUS_SUCCESS) {
           char* sname = NULL;
           if(globus_gsi_cred_get_subject_name(h,&sname) == GLOBUS_SUCCESS) {
-            subject=sname; gridftpd::make_unescaped_string(subject); free(sname);
+            Arc::ConfigIni::NextArg(sname,subject,'\0','\0'); free(sname);
           };
         };
         globus_gsi_cred_handle_destroy(h);
