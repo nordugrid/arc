@@ -15,8 +15,8 @@
 
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
+#include <arc/ArcConfigIni.h>
 
-#include "../misc/escaped.h"
 #include "ControlFileContent.h"
 
 namespace ARex {
@@ -36,30 +36,34 @@ static inline void write_str(int f,const std::string& str) {
   write_str(f,str.c_str(),str.length());
 }
 
-static inline bool read_str(int f,char* buf,int size) {
+static inline bool read_str(int f,std::string& key,std::string& value) {
+  int const max_size = 4096; // limited for sanity
   char c;
-  int pos = 0;
+  bool key_done = false;
   for(;;) {
     ssize_t l = read(f,&c,1);
     if((l == -1) && (errno == EINTR)) continue;
     if(l < 0) return false;
     if(l == 0) {
-      if(!pos) return false;
       break;
     };
     if(c == '\n') break;
-    if(pos < (size-1)) {
-      buf[pos] = c;
-      ++pos;
-      buf[pos] = 0;
+    if(!key_done) {
+      if(c == '=') {
+        key_done = true;
+      } else {
+        if(key.length() < max_size) key += c;
+      };
     } else {
-      ++pos;
+      if(value.length() < max_size) value += c;
     };
   };
+  if(key.empty() && value.empty()) return false;
   return true;
 }
 
 std::ostream &operator<< (std::ostream &o,const FileData &fd) {
+  // TODO: switch to HEX encoding and drop dependency on ConfigIni in major release
   std::string escaped_pfn(Arc::escape_chars(fd.pfn, " \\\r\n", '\\', false));
   if(!escaped_pfn.empty()) {
     o.write(escaped_pfn.c_str(), escaped_pfn.size());
@@ -82,9 +86,9 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   std::getline(i,buf);
   Arc::trim(buf," \t\r\n");
   fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
-  int n=input_escaped_string(buf.c_str(),fd.pfn);
-  n+=input_escaped_string(buf.c_str()+n,fd.lfn);
-  n+=input_escaped_string(buf.c_str()+n,fd.cred);
+  fd.pfn = Arc::ConfigIni::NextArg(buf,' ','\0');
+  fd.lfn = Arc::ConfigIni::NextArg(buf,' ','\0');
+  fd.cred = Arc::ConfigIni::NextArg(buf,' ','\0');
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn,true,true)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
@@ -447,10 +451,10 @@ static void write_pair(int f,const std::string &name,const std::list<Exec>& valu
   }
 }
 
-static inline bool read_boolean(const char* buf) {
-  if(strncasecmp("yes",buf,3) == 0) return true;
-  if(strncasecmp("true",buf,4) == 0) return true;
-  if(strncmp("1",buf,1) == 0) return true;
+static inline bool read_boolean(const std::string& buf) {
+  if(strncasecmp("yes",buf.c_str(),3) == 0) return true;
+  if(strncasecmp("true",buf.c_str(),4) == 0) return true;
+  if(strncmp("1",buf.c_str(),1) == 0) return true;
   return false;
 }
 
@@ -544,126 +548,120 @@ bool JobLocalDescription::read(const std::string& fname) {
     close(f); return false;
   };
   // using iostream for handling file content
-  char buf[4096];
-  std::string name;
   activityid.clear();
   localvo.clear();
   voms.clear();
   for(;;) {
-    if(!read_str(f,buf,sizeof(buf))) break;;
-    name.erase();
-    int p=input_escaped_string(buf,name,'=');
+    std::string name;
+    std::string buf;
+    if(!read_str(f,name,buf)) break;
     if(name.length() == 0) continue;
-    if(buf[p] == 0) continue;
-    if(name == "lrms") { lrms = buf+p; }
-    else if(name == "headnode") { headnode = buf+p; }
-    else if(name == "interface") { interface = buf+p; }
-    else if(name == "queue") { queue = buf+p; }
-    else if(name == "localid") { localid = buf+p; }
-    else if(name == "subject") { DN = buf+p; }
-    else if(name == "starttime") { starttime = buf+p; }
-//    else if(name == "UI") { UI = buf+p; }
-    else if(name == "lifetime") { lifetime = buf+p; }
-    else if(name == "notify") { notify = buf+p; }
-    else if(name == "processtime") { processtime = buf+p; }
-    else if(name == "exectime") { exectime = buf+p; }
-    else if(name == "jobreport") { jobreport.push_back(std::string(buf+p)); }
-    else if(name == "globalid") { globalid = buf+p; }
-    else if(name == "jobname") { jobname = buf+p; }
-    else if(name == "projectname") { projectnames.push_back(std::string(buf+p)); }
-    else if(name == "gmlog") { stdlog = buf+p; }
+    if(buf.empty()) continue;
+    if(name == "lrms") { lrms = buf; }
+    else if(name == "headnode") { headnode = buf; }
+    else if(name == "interface") { interface = buf; }
+    else if(name == "queue") { queue = buf; }
+    else if(name == "localid") { localid = buf; }
+    else if(name == "subject") { DN = buf; }
+    else if(name == "starttime") { starttime = buf; }
+//    else if(name == "UI") { UI = buf; }
+    else if(name == "lifetime") { lifetime = buf; }
+    else if(name == "notify") { notify = buf; }
+    else if(name == "processtime") { processtime = buf; }
+    else if(name == "exectime") { exectime = buf; }
+    else if(name == "jobreport") { jobreport.push_back(std::string(buf)); }
+    else if(name == "globalid") { globalid = buf; }
+    else if(name == "jobname") { jobname = buf; }
+    else if(name == "projectname") { projectnames.push_back(std::string(buf)); }
+    else if(name == "gmlog") { stdlog = buf; }
     else if(name == "rerun") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       reruns = n;
     }
     else if(name == "downloads") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       downloads = n;
     }
     else if(name == "uploads") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       uploads = n;
     }
     else if(name == "args") {
       exec.clear(); exec.successcode = 0;
-      for(int n=p;buf[n] != 0;) {
+      while(!buf.empty()) {
         std::string arg;
-        n+=input_escaped_string(buf+n,arg);
+        arg = Arc::ConfigIni::NextArg(buf,' ','\0');
         exec.push_back(arg);
       };
     }
     else if(name == "argscode") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       exec.successcode = n;
     }
     else if(name == "pre") {
       Exec pe;
-      for(int n=p;buf[n] != 0;) {
+      while(!buf.empty()) {
         std::string arg;
-        n+=input_escaped_string(buf+n,arg);
+        arg = Arc::ConfigIni::NextArg(buf);
         pe.push_back(arg);
       };
       preexecs.push_back(pe);
     }
     else if(name == "precode") {
       if(preexecs.empty()) { close(f); return false; };
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       preexecs.back().successcode = n;
     }
     else if(name == "post") {
       Exec pe;
-      for(int n=p;buf[n] != 0;) {
+      while(!buf.empty()) {
         std::string arg;
-        n+=input_escaped_string(buf+n,arg);
+        arg = Arc::ConfigIni::NextArg(buf);
         pe.push_back(arg);
       };
       postexecs.push_back(pe);
     }
     else if(name == "postcode") {
       if(postexecs.empty()) { close(f); return false; };
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       postexecs.back().successcode = n;
     }
-    else if(name == "cleanuptime") { cleanuptime = buf+p; }
-    else if(name == "delegexpiretime") { expiretime = buf+p; }
-    else if(name == "clientname") { clientname = buf+p; }
-    else if(name == "clientsoftware") { clientsoftware = buf+p; }
-    else if(name == "delegationid") { delegationid = buf+p; }
-    else if(name == "sessiondir") { sessiondir = buf+p; }
-    else if(name == "failedstate") { failedstate = buf+p; }
-    else if(name == "failedcause") { failedcause = buf+p; }
-    else if(name == "credentialserver") { credentialserver = buf+p; }
-    else if(name == "freestagein") { freestagein = read_boolean(buf+p); }
+    else if(name == "cleanuptime") { cleanuptime = buf; }
+    else if(name == "delegexpiretime") { expiretime = buf; }
+    else if(name == "clientname") { clientname = buf; }
+    else if(name == "clientsoftware") { clientsoftware = buf; }
+    else if(name == "delegationid") { delegationid = buf; }
+    else if(name == "sessiondir") { sessiondir = buf; }
+    else if(name == "failedstate") { failedstate = buf; }
+    else if(name == "failedcause") { failedcause = buf; }
+    else if(name == "credentialserver") { credentialserver = buf; }
+    else if(name == "freestagein") { freestagein = read_boolean(buf); }
     else if(name == "localvo") {
-      std::string temp_s(buf+p);
-      localvo.push_back(temp_s);
+      localvo.push_back(buf);
     }
     else if(name == "voms") {
-      std::string temp_s(buf+p);
-      voms.push_back(temp_s);
+      voms.push_back(buf);
     }
     else if(name == "diskspace") {
-      std::string temp_s(buf+p);
       unsigned long long int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       diskspace = n;
     }
     else if(name == "activityid") {
-      std::string temp_s(buf+p);
-      activityid.push_back(temp_s);
+      activityid.push_back(buf);
     }
-    else if(name == "migrateactivityid") { migrateactivityid = buf+p; }
-    else if(name == "forcemigration") { forcemigration = read_boolean(buf+p); }
-    else if(name == "transfershare") { transfershare = buf+p; }
+    else if(name == "migrateactivityid") { migrateactivityid = buf; }
+    else if(name == "forcemigration") { forcemigration = read_boolean(buf); }
+    else if(name == "transfershare") { transfershare = buf; }
     else if(name == "priority") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      int n;
+      if(!Arc::stringto(buf,n)) { close(f); return false; };
       priority = n;
     }
   }
@@ -684,16 +682,14 @@ bool JobLocalDescription::read_var(const std::string &fname,const std::string &v
     close(f); return false;
   };
   // using iostream for handling file content
-  char buf[1024];
-  std::string name;
   bool found = false;
   for(;;) {
-    if(!read_str(f,buf,sizeof(buf))) break;
-    name.erase();
-    int p=input_escaped_string(buf,name,'=');
+    std::string buf;
+    std::string name;
+    if(!read_str(f,name,buf)) break;
     if(name.length() == 0) continue;
-    if(buf[p] == 0) continue;
-    if(name == vnam) { value = buf+p; found=true; break; };
+    if(buf.empty()) continue;
+    if(name == vnam) { value = buf; found=true; break; };
   };
   close(f);
   return found;
