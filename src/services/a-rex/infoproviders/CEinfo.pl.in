@@ -52,10 +52,11 @@ BEGIN {
     LogUtils::indentoutput(1);
 	
     my $log = LogUtils->getLogger(__PACKAGE__);	
-	
+	my $nojobs;
+	my $splitjobs;
+	my $print_help;
 	
 	# Make a copy of @ARGV and restore it after extracting options from it.
-	# Using GetOptionsFromArray is not available on older platforms
 	
 	my @options = @ARGV;
 	GetOptions("config:s" => \$configfile,
