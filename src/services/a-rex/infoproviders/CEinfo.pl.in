@@ -49,6 +49,7 @@ BEGIN {
     use Getopt::Long;
     
 	LogUtils::level('WARNING');
+    LogUtils::indentoutput(1);
 	
     my $log = LogUtils->getLogger(__PACKAGE__);	
 	
@@ -57,7 +58,11 @@ BEGIN {
 	# Using GetOptionsFromArray is not available on older platforms
 	
 	my @options = @ARGV;
-	GetOptions("config:s" => \$configfile);
+	GetOptions("config:s" => \$configfile,
+               "nojobs|n" => \$nojobs,
+               "splitjobs|s" => \$splitjobs,
+               "help|h"   => \$print_help );
+
 	@ARGV = @options;
 
     unless ( $configfile ) {
@@ -78,7 +83,7 @@ BEGIN {
 		    my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
 		    $perflogfilepath = $perflogdir.'/'.$perflogfilename;
 		    if ( -e $perflogdir ) {
-				  $ENV{NYTPROF} = "start=no:file=".$perflogfilepath;
+				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflogfilepath;
 				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
 	 		      if ($NYTPROF_PRESENT) {
 					  DB::enable_profile($perflogfilepath);
@@ -124,7 +129,8 @@ sub timed {
 sub main {
 
     LogUtils::level('INFO');
-    
+    LogUtils::indentoutput(1);
+   
     # Parse command line options
     my $splitjobs;
     my $print_help;
@@ -157,6 +163,7 @@ sub main {
 
     my $providerlog = $config->{ProviderLog} || "/var/log/arc/infoprovider.log";
     $log->info("Redirecting further messages to $providerlog");
+    LogUtils::indentoutput(0);
 
     # Attempt to recursively create directory
     my @paths;
