@@ -15,7 +15,7 @@ else
 AREX_SCRIPT =
 endif
 initd_SCRIPTS = $(AREX_SCRIPT)
-bin_SCRIPTS = a-rex-backtrace-collect
+sbin_SCRIPTS = a-rex-backtrace-collect
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 

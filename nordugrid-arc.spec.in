@@ -1428,6 +1428,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
 %{_datadir}/%{pkgdir}/ssm/brokers.py*
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
+%{_sbindir}/a-rex-backtrace-collect
 
 %if %{with_acix}
 %files acix-core
