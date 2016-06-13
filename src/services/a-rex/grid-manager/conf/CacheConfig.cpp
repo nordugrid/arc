@@ -224,8 +224,8 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
       std::string cred_type(Arc::ConfigIni::NextArg(rest));
       if (cred_type.empty()) throw CacheConfigException("Missing credential type in cacheaccess");
 
-      std::string cred_value(rest);
-      if (cred_value.empty()) throw CacheConfigException("Missing credential value in cacheaccess");
+      Arc::RegularExpression cred_value(rest);
+      if (!cred_value.isOk()) throw CacheConfigException("Missing credential value in cacheaccess");
 
       struct CacheAccess ca;
       ca.regexp = regexp;

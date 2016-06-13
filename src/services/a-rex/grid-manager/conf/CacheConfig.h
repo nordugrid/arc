@@ -33,7 +33,7 @@ class CacheConfig {
   struct CacheAccess {
     Arc::RegularExpression regexp;
     std::string cred_type;
-    std::string cred_value;
+    Arc::RegularExpression cred_value;
   };
  private:
    /**

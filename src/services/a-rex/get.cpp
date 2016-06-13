@@ -369,23 +369,23 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
        access != config.GmConfig().CacheParams().getCacheAccess().end(); ++access) {
     if (access->regexp.match(url)) {
       if (Arc::lower(access->cred_type) == "dn") {
-        if (access->cred_value == dn) {
+        if (access->cred_value.match(dn)) {
           logger.msg(Arc::VERBOSE, "Cache access allowed to %s by DN %s", url, dn);
           return true;
         }
-        logger.msg(Arc::DEBUG, "DN %s doesn't match %s", dn, access->cred_value);
+        logger.msg(Arc::DEBUG, "DN %s doesn't match %s", dn, access->cred_value.getPattern());
       } else if (Arc::lower(access->cred_type) == "voms:vo") {
-        if (access->cred_value == vo) {
+        if (access->cred_value.match(vo)) {
           logger.msg(Arc::VERBOSE, "Cache access allowed to %s by VO %s", url, vo);
           return true;
         }
-        logger.msg(Arc::DEBUG, "VO %s doesn't match %s", vo, access->cred_value);
+        logger.msg(Arc::DEBUG, "VO %s doesn't match %s", vo, access->cred_value.getPattern());
       } else if (Arc::lower(access->cred_type) == "voms:role") {
         // Get the configured allowed role
         std::vector<std::string> role_parts;
-        Arc::tokenize(access->cred_value, role_parts, ":");
+        Arc::tokenize(access->cred_value.getPattern(), role_parts, ":");
         if (role_parts.size() != 2) {
-          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value);
+          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value.getPattern());
           continue;
         }
         std::string cred_vo = role_parts[0];
@@ -402,9 +402,9 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
       } else if (Arc::lower(access->cred_type) == "voms:group") {
         // Get the configured allowed group
         std::vector<std::string> group_parts;
-        Arc::tokenize(access->cred_value, group_parts, ":");
+        Arc::tokenize(access->cred_value.getPattern(), group_parts, ":");
         if (group_parts.size() != 2) {
-          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value);
+          logger.msg(Arc::WARNING, "Bad credential value %s in cache access rules", access->cred_value.getPattern());
           continue;
         }
         std::string cred_vo = group_parts[0];
