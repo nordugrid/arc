@@ -137,7 +137,7 @@ void URLTest::TestHttpUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php"), httpurl->Path());
 
   CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\""), httpurl->FullPath());
-  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=%2fpath%2fto%2ffile&sort=yes&symbols=%28%29%20%2a%21%25%22"), httpurl->FullPathURIEncoded());
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=%2Fpath%2Fto%2Ffile&sort=yes&symbols=%28%29%20%2A%21%25%22"), httpurl->FullPathURIEncoded());
 
   std::map<std::string, std::string> httpmap = httpurl->HTTPOptions();
   CPPUNIT_ASSERT_EQUAL((int)httpmap.size(), 4);

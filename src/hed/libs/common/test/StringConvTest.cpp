@@ -69,17 +69,17 @@ void StringConvTest::TestURIEncode() {
   // simple URL
   in = "http://localhost/data/file1";
   out = Arc::uri_encode(in, false);
-  CPPUNIT_ASSERT_EQUAL(std::string("http%3a//localhost/data/file1"), out);
+  CPPUNIT_ASSERT_EQUAL(std::string("http%3A//localhost/data/file1"), out);
   CPPUNIT_ASSERT_EQUAL(in, Arc::uri_unencode(out));
 
   // complex case
   in = "http://localhost:80/data/file with spaces&name=value&symbols=()!%*$";
   out = Arc::uri_encode(in, false);
-  CPPUNIT_ASSERT_EQUAL(std::string("http%3a//localhost%3a80/data/file%20with%20spaces%26name%3dvalue%26symbols%3d%28%29%21%25%2a%24"), out);
+  CPPUNIT_ASSERT_EQUAL(std::string("http%3A//localhost%3A80/data/file%20with%20spaces%26name%3Dvalue%26symbols%3D%28%29%21%25%2A%24"), out);
   CPPUNIT_ASSERT_EQUAL(in, Arc::uri_unencode(out));
 
   out = Arc::uri_encode(in, true);
-  CPPUNIT_ASSERT_EQUAL(std::string("http%3a%2f%2flocalhost%3a80%2fdata%2ffile%20with%20spaces%26name%3dvalue%26symbols%3d%28%29%21%25%2a%24"), out);
+  CPPUNIT_ASSERT_EQUAL(std::string("http%3A%2F%2Flocalhost%3A80%2Fdata%2Ffile%20with%20spaces%26name%3Dvalue%26symbols%3D%28%29%21%25%2A%24"), out);
   CPPUNIT_ASSERT_EQUAL(in, Arc::uri_unencode(out));
 
 }
