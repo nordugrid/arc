@@ -1,4 +1,4 @@
-check_PROGRAMS = basic_job_submission job_selector
+check_PROGRAMS = basic_job_submission job_selector helloworld.xrsl
 
 basic_job_submission_SOURCES = basic_job_submission.cpp
 basic_job_submission_CXXFLAGS = -I$(top_srcdir)/include \
