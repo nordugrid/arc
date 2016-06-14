@@ -1,4 +1,4 @@
-check_PROGRAMS = basic_job_submission job_selector helloworld.xrsl
+check_PROGRAMS = basic_job_submission job_selector
 
 basic_job_submission_SOURCES = basic_job_submission.cpp
 basic_job_submission_CXXFLAGS = -I$(top_srcdir)/include \
@@ -15,4 +15,4 @@ job_selector_LDADD = \
 	../libarccompute.la $(GLIBMM_LIBS)
 
 exampledir = $(pkgdatadir)/examples/sdk
-example_DATA = basic_job_submission.cpp job_selector.cpp
+example_DATA = basic_job_submission.cpp job_selector.cpp helloworld.xrsl
