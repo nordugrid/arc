@@ -3187,9 +3187,9 @@ sub collect($) {
                 if ($callcount == 1) {
                     $log->warning("MainMemorySize not set for ExecutionEnvironment $xenv") unless $xeinfo->{pmem};
                     $log->warning("OSFamily not set for ExecutionEnvironment $xenv") unless $sysname;
-                    $log->warning("ConnectivityIn not se for ExecutionEnvironment $xenv")
+                    $log->warning("ConnectivityIn not set for ExecutionEnvironment $xenv")
                         unless defined $xeconfig->{ConnectivityIn};
-                    $log->warning("ConnectivityOut not se for ExecutionEnvironment $xenv")
+                    $log->warning("ConnectivityOut not set for ExecutionEnvironment $xenv")
                         unless defined $xeconfig->{ConnectivityOut};
 
                     my @missing;
