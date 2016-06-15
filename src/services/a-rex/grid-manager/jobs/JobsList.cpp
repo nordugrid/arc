@@ -968,6 +968,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,
         time_t t = -1;
         if(!job_local_read_cleanuptime(i->job_id,config,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
           logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
+          UnlockDelegation(i); // not needed here but in case someting went wrong previously
           // delete everything
           job_clean_final(*i,config);
         }

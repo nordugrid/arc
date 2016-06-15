@@ -434,11 +434,8 @@ int JobPlugin::removedir(std::string &dname) {
     config.SetSessionRoot(sessiondir);
     job_state_t status=job_state_read_file(id,config);
     logger.msg(Arc::INFO, "Cleaning job %s", id);
-    if((status == JOB_STATE_FINISHED) ||
-       (status == JOB_STATE_DELETED)) { /* remove files */
-      if(job_clean_final(GMJob(id,user,sessiondir+"/"+id),config)) return 0;
-    }
-    else { /* put marks */
+    /* put marks because cleaning job may also involve removing locks */
+    {
       GMJob job(id,user);
       bool res = job_cancel_mark_put(job,config);
       res &= job_clean_mark_put(job,config);
@@ -997,17 +994,6 @@ int JobPlugin::close(bool eof) {
     return 1;
   }
 
-  // Put lock on delegated credentials
-  if(!deleg_ids.empty()) {
-    ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
-    if(!store.LockCred(job_id,deleg_ids,subject)) {
-      logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
-      delete_job_id();
-      error_description="Failed to lock delegated credentials.";
-      return 1;
-    };
-  }
-
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
@@ -1017,6 +1003,19 @@ int JobPlugin::close(bool eof) {
     error_description="Failed registering job in grid-manager.";
     return 1;
   };
+
+  // Put lock on delegated credentials
+  // Can do that after creating status file because delegations are 
+  // fresh and hence won't be deleted while locking.
+  if(!deleg_ids.empty()) {
+    ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
+    if(!store.LockCred(job_id,deleg_ids,subject)) {
+      logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
+      delete_job_id();
+      error_description="Failed to lock delegated credentials.";
+      return 1;
+    };
+  }
 
   SignalFIFO(config.ControlDir());
   job_id.resize(0);

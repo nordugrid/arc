@@ -93,8 +93,11 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Retrieves credentials with specified id and associated with client */
   bool GetCred(const std::string& id, const std::string& client, std::string& credentials);
 
-  /** Retrieves locks associate with specified id and client */
+  /** Retrieves locks associated with specified id and client */
   bool GetLocks(const std::string& id, const std::string& client, std::list<std::string>& lock_ids);
+
+  /** Retrieves all locks known */
+  bool GetLocks(std::list<std::string>& lock_ids);
 
   /** Returns credentials ids associated with specific client */
   std::list<std::string> ListCredIDs(const std::string& client);

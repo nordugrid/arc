@@ -349,6 +349,7 @@ static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname) {
 time_t job_mark_time(const std::string &fname) {
   struct stat st;
   if(lstat(fname.c_str(),&st) != 0) return 0;
+  if(st.st_mtime == 0) st.st_mtime = 1; // doomsday protection
   return st.st_mtime;
 }
 
