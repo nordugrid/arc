@@ -5,6 +5,7 @@ JURA_CLIENT =
 endif
 
 SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema
+DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check
