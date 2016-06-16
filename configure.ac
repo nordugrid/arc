@@ -885,6 +885,12 @@ if test "$glibmm_unsetenv" = yes; then
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for unsetenv. Usage of libc unsetenv may be unsafe in multi-threaded applications.])
 fi
+AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::listenv();],[glibmm_listenv=yes],[glibmm_listenv=no])
+if test "$glibmm_listenv" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_LISTENV,,[define if glibmm have listenv operations])
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no support for listenv. Usage of libc environ is unsafe in multi-threaded applications.])
+fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
 fi

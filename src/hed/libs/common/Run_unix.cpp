@@ -327,6 +327,7 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(Glib::shell_parse_argv(cmdline)),
+      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -355,6 +356,7 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(argv),
+      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -396,7 +398,10 @@ namespace Arc {
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
       {
       EnvLockWrapper wrapper; // Protection against gettext using getenv
-      spawn_async_with_pipes(working_directory, argv_,
+      std::list<std::string> envp_tmp = GetEnv();
+      // by inserting in front added variables replace inherited 
+      envp_tmp.insert(envp_tmp.begin(), envp_.begin(), envp_.end());
+      spawn_async_with_pipes(working_directory, argv_, envp_tmp,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
                              &pid,

@@ -44,6 +44,7 @@
 // Windows uses different way to store environment. TODO: investigate
 #ifndef WIN32
 #define TRICKED_ENVIRONMENT
+extern char** environ;
 #endif
 
 namespace Arc {
@@ -283,6 +284,21 @@ namespace Arc {
     char* val = getenv(var.c_str());
     found = (val != NULL);
     return val ? val : "";
+#endif
+  }
+
+  std::list<std::string> GetEnv(void) {
+    SharedMutexShared env_lock(env_read_lock());
+#ifdef HAVE_GLIBMM_LISTENV
+    return Glib::listenv();
+#else
+#ifdef WIN32
+#error Glib with support for listenv is needed
+#endif
+    std::list<std::string> envp;
+    for(char** enventry = environ; *enventry; ++enventry) {
+      envp.push_back(*enventry);
+    };
 #endif
   }
 

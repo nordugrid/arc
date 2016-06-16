@@ -54,6 +54,7 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(Glib::shell_parse_argv(cmdline)),
+      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -82,6 +83,7 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(argv),
+      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -126,11 +128,10 @@ namespace Arc {
 
       // TODO: stdin, stdout, stderr redirections (Apache/BSD license)
 
-      char **args = const_cast<char**>(argv_.data());
+      std::list<std::string>::const_iterator argp = argv_.begin();
       std::string cmd = "";
-      for (int i = 0; args[i] != NULL; i++) {
-        std::string a(args[i]);
-        cmd += (a + " ");
+      for (; argp != argv_.end(); ++argp) {
+        cmd += ((*argp) + " ");
       }
       int result = CreateProcess(NULL,
                                  (LPSTR)cmd.c_str(),

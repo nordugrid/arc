@@ -19,6 +19,9 @@ namespace Arc {
   /// Portable function for getting environment variables. Protected by shared lock.
   std::string GetEnv(const std::string& var, bool &found);
 
+  /// Portable function for getting all environment variables. Protected by shared lock.
+  std::list<std::string> GetEnv();
+
   /// Portable function for setting environment variables. Protected by exclusive lock.
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite = true);
 
