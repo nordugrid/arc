@@ -372,11 +372,6 @@ GMConfig::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  // just set good umask
-  umask(0077);
-  // close all handles inherited from parent
-  if(max_files == RLIM_INFINITY) max_files=4096;
-  for(int i=0;i<max_files;i++) { close(i); };
   // set up stdin,stdout and stderr
   int h;
   h = ::open("/dev/null",O_RDONLY);

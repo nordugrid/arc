@@ -11,19 +11,17 @@ namespace ARex {
 /// Run child process in parallel with stderr redirected to job.jobid.errors
 class RunParallel {
  private:
-  RunParallel(const GMConfig& config, const Arc::User& user,
+  RunParallel(const GMConfig& config,
               const char* procid, const char* errlog,
-              const char* jobproxy, bool su,
+              const char* jobproxy,
               RunPlugin* cred, RunPlugin::substitute_t subst, void* subst_arg)
-    :config_(config), user_(user), procid_(procid?procid:""), errlog_(errlog?errlog:""),
-     su_(su), jobproxy_(jobproxy?jobproxy:""),
+    :config_(config), procid_(procid?procid:""), errlog_(errlog?errlog:""),
+     jobproxy_(jobproxy?jobproxy:""),
      cred_(cred), subst_(subst), subst_arg_(subst_arg) { };
   ~RunParallel(void) { };
   const GMConfig& config_;
-  const Arc::User& user_;
   std::string procid_;
   std::string errlog_;
-  bool su_;
   std::string jobproxy_;
   RunPlugin* cred_;
   RunPlugin::substitute_t subst_;

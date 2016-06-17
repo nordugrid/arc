@@ -73,7 +73,7 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     return false;
   };
   if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
-  RunParallel* rp = new RunParallel(config,user,procid,errlog,jobproxy,su,cred,subst,subst_arg);
+  RunParallel* rp = new RunParallel(config,procid,errlog,jobproxy,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
     delete re;
@@ -81,6 +81,11 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     return false;
   };
   re->AssignInitializer(&initializer,rp);
+  if(su) {
+    // change user
+    re->AssignUserId(user.get_uid());
+    re->AssignGroupId(user.get_gid());
+  };
   if(!re->Start()) {
     delete rp;
     delete re;
@@ -98,15 +103,6 @@ void RunParallel::initializer(void* arg) {
 #else
   // child
   RunParallel* it = (RunParallel*)arg;
-  // change user
-  if(it->su_) {
-    if(!(it->user_.SwitchUser())) {
-      logger.msg(Arc::ERROR,"%s: Failed switching user",it->procid_); sleep(10); exit(1);
-    };
-  } else {
-    // just set good umask
-    umask(0077);
-  }
   if(it->cred_) {
     // run external plugin to acquire non-unix local credentials
     if(!it->cred_->run(it->subst_,it->subst_arg_)) {

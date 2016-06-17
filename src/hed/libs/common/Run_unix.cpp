@@ -9,6 +9,7 @@
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -152,8 +153,17 @@ namespace Arc {
     if(usw_) usw_->resetPostFork(); // Reset uid blocker. No need to destroy object.
     void *arg = arg_;
     void (*func)(void*) = func_;
-    if(group_id_ > 0) setgid(group_id_);
-    if(user_id_ > 0) setuid(user_id_);
+    if(group_id_ > 0) ::setgid(group_id_);
+    if(user_id_ != 0) {
+      if(::setuid(user_id_) != 0) {
+        // Can't switch user id
+        _exit(-1);
+      };
+      // in case previous user was not allowed to switch group id
+      if(group_id_ > 0) ::setgid(group_id_);
+    };
+    // set proper umask
+    ::umask(0077);
     delete this;
     // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.

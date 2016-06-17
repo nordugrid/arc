@@ -207,8 +207,6 @@ JobLog::~JobLog(void) {
 void JobLog::initializer(void* arg) {
   GMConfig& config = *(GMConfig*)arg;
   JobLog* joblog = config.GetJobLog();
-  // set good umask
-  ::umask(0077);
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY);
