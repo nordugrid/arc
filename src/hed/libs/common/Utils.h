@@ -7,6 +7,7 @@
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 #include <string>
+#include <list>
 
 namespace Arc {
 
