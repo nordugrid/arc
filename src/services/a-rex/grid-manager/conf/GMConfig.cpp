@@ -372,10 +372,6 @@ GMConfig::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  struct rlimit lim;
-  int max_files;
-  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
-  else { max_files=4096; };
   // just set good umask
   umask(0077);
   // close all handles inherited from parent

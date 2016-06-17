@@ -209,12 +209,6 @@ void JobLog::initializer(void* arg) {
   JobLog* joblog = config.GetJobLog();
   // set good umask
   ::umask(0077);
-  // close all handles inherited from parent
-  struct rlimit lim;
-  rlim_t max_files = RLIM_INFINITY;
-  if(::getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
-  if(max_files == RLIM_INFINITY) max_files=4096; // sane number
-  for(int i=0;i<max_files;i++) { ::close(i); };
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY);

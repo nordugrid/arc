@@ -80,12 +80,9 @@ void RunRedirected::initializer(void* arg) {
 #ifdef WIN32
 #error This functionality is not available in Windows environment
 #else
+  // There must be only async-safe calls here!
   // child
   RunRedirected* it = (RunRedirected*)arg;
-  struct rlimit lim;
-  int max_files;
-  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
-  else { max_files=4096; };
   // change user
   if(!(it->user_.SwitchUser())) {
     logger.msg(Arc::ERROR,"%s: Failed switching user",it->cmdname_); sleep(10); exit(1);
@@ -94,9 +91,6 @@ void RunRedirected::initializer(void* arg) {
   if(it->stdin_ != -1)  dup2(it->stdin_,0);
   if(it->stdout_ != -1) dup2(it->stdout_,1);
   if(it->stderr_ != -1) dup2(it->stderr_,2);
-  // close all handles inherited from parent
-  if(max_files == RLIM_INFINITY) max_files=4096;
-  for(int i=3;i<max_files;i++) { close(i); };
 #endif
 }
 

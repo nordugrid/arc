@@ -98,10 +98,6 @@ void RunParallel::initializer(void* arg) {
 #else
   // child
   RunParallel* it = (RunParallel*)arg;
-  struct rlimit lim;
-  int max_files;
-  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
-  else { max_files=4096; };
   // change user
   if(it->su_) {
     if(!(it->user_.SwitchUser())) {
@@ -120,9 +116,6 @@ void RunParallel::initializer(void* arg) {
       logger.msg(Arc::ERROR,"%s: Plugin failed",it->procid_); sleep(10); _exit(1);
     };
   };
-  // close all handles inherited from parent
-  if(max_files == RLIM_INFINITY) max_files=4096;
-  for(int i=0;i<max_files;i++) { close(i); };
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY); 
