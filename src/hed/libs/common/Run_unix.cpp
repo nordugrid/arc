@@ -337,7 +337,6 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(Glib::shell_parse_argv(cmdline)),
-      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -366,7 +365,6 @@ namespace Arc {
       stdin_keep_(false),
       pid_(NULL),
       argv_(argv),
-      envp_(),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
@@ -393,6 +391,40 @@ namespace Arc {
     };
   }
 
+  static void remove_env(std::list<std::string>& envp, const std::string& key) {
+    std::list<std::string>::iterator e = envp.begin();
+    while(e != envp.end()) {
+      if((strncmp(e->c_str(),key.c_str(),key.length()) == 0) &&
+         ((e->length() == key.length()) || (e->at(key.length()) == '='))) {
+        e = envp.erase(e);
+        continue;
+      };
+      ++e;
+    };
+  }
+
+  static void remove_env(std::list<std::string>& envp, const std::list<std::string>& keys) {
+    for(std::list<std::string>::const_iterator key = keys.begin();
+                   key != keys.end(); ++key) {
+      remove_env(envp, *key);
+    };
+  }
+
+  static void add_env(std::list<std::string>& envp, const std::string& rec) {
+    std::string key(rec);
+    std::string::size_type pos = key.find('=');
+    if(pos != std::string::npos) key.resize(pos);
+    remove_env(envp,key);
+    envp.push_back(rec);
+  }
+
+  static void add_env(std::list<std::string>& envp, const std::list<std::string>& recs) {
+    for(std::list<std::string>::const_iterator rec = recs.begin();
+                   rec != recs.end(); ++rec) {
+      add_env(envp, *rec);
+    };
+  }
+
   bool Run::Start(void) {
     if (started_) return false;
     if (argv_.size() < 1) return false;
@@ -409,8 +441,8 @@ namespace Arc {
       {
       EnvLockWrapper wrapper; // Protection against gettext using getenv
       std::list<std::string> envp_tmp = GetEnv();
-      // by inserting in front added variables replace inherited 
-      envp_tmp.insert(envp_tmp.begin(), envp_.begin(), envp_.end());
+      remove_env(envp_tmp, envx_);
+      add_env(envp_tmp, envp_);
       spawn_async_with_pipes(working_directory, argv_, envp_tmp,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),

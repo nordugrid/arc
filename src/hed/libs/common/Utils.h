@@ -50,6 +50,7 @@ namespace Arc {
       multi-threaded environment.
       \param all must be same as in corresponding EnvLockWrap. */
   void EnvLockUnwrap(bool all = false);
+  void EnvLockUnwrapPrepare(void);
   /// Use after fork() to reset all internal variables and release all locks.
   /** For use with external libraries using unprotected setenv/getenv in a
       multi-threaded environment. */
