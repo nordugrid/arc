@@ -74,10 +74,10 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
             logger.msg(ERROR, "Daemonization fork failed: %s", StrError(errno));
             exit(1);
         case 0: { // child
-            /* And another process is left for watchdoging */
-            /* Watchdog need to be initialized before fork to make sure it is shared */
-            WatchdogListener wdl;
             while(true) { // stay in loop waiting for watchdog alarm
+                /* And another process is left for watchdoging */
+                /* Watchdog need to be initialized before fork to make sure it is shared */
+                WatchdogListener wdl;
                 if(watchdog) {
                     logger.msg(WARNING, "Watchdog (re)starting application");
                     pid = ::fork();
@@ -149,7 +149,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                 }
                 if(pid == 0) break; // leave watchdog loop because it is child now
             }
-            }; break;
+        }; break;
         default: // original parent
             if(!watchdog) init_parent(pid,pid_file);
             /* succesful exit from parent */
