@@ -15,4 +15,5 @@ job_selector_LDADD = \
 	../libarccompute.la $(GLIBMM_LIBS)
 
 exampledir = $(pkgdatadir)/examples/sdk
-example_DATA = basic_job_submission.cpp job_selector.cpp helloworld.xrsl
+example_DATA = basic_job_submission.cpp job_selector.cpp
+EXTRA_DIST = helloworld.xrsl
