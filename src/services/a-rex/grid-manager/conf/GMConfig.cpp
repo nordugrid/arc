@@ -66,6 +66,7 @@ GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
 void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
+  jobs_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
   cred_plugin = NULL;

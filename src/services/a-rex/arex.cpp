@@ -24,6 +24,7 @@
 #include <arc/Utils.h>
 #include "job.h"
 #include "grid-manager/log/JobLog.h"
+#include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/jobs/ContinuationPlugins.h"
 #include "arex.h"
@@ -923,6 +924,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               gm_(NULL) {
   valid = false;
   config_.SetJobLog(new JobLog());
+  config_.SetJobsMetrics(new JobsMetrics());
   config_.SetJobPerfLog(new Arc::JobPerfLog());
   config_.SetContPlugins(new ContinuationPlugins());
   config_.SetCredPlugin(new RunPlugin());
@@ -1088,9 +1090,10 @@ ARexService::~ARexService(void) {
   if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
-  if(config_.CredPlugin()) delete config_.CredPlugin();
-  if(config_.ContPlugins()) delete config_.ContPlugins();
-  if(config_.GetJobLog()) delete config_.GetJobLog();
+  delete config_.CredPlugin();
+  delete config_.ContPlugins();
+  delete config_.GetJobLog();
+  delete config_.GetJobsMetrics();
   if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
   thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }

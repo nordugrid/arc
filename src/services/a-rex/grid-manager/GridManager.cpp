@@ -13,6 +13,7 @@
 #include "jobs/JobsList.h"
 #include "jobs/CommFIFO.h"
 #include "log/JobLog.h"
+#include "log/JobsMetrics.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"
 #include "jobs/DTRGenerator.h"
@@ -291,6 +292,7 @@ bool GridManager::thread() {
     if(tostop_) break;
     config_.RunHelpers();
     config_.GetJobLog()->RunReporter(config_);
+    config_.GetJobsMetrics()->Sync();
     bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
     // touch heartbeat file
     std::string gm_heartbeat(std::string(config_.ControlDir() + "/" + heartbeat_file));

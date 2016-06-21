@@ -13,6 +13,7 @@
 #include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
+#include "../log/JobsMetrics.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
@@ -71,6 +72,7 @@ void JobsList::UpdateJobCredentials(JobsList::iterator &i) {
 
 void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason) {
   if(i->job_state != new_state) {
+    config.GetJobsMetrics()->ReportJobStateChange(new_state, i->job_state);
     std::string msg = Arc::Time().str(Arc::UTCTime);
     msg += " Job state change "; 
     msg += i->get_state_name();

@@ -15,6 +15,7 @@
 #include "../jobs/ContinuationPlugins.h"
 #include "../run/RunPlugin.h"
 #include "../log/JobLog.h"
+#include "../log/JobsMetrics.h"
 #include "../jobs/JobsList.h"
 
 #include "CacheConfig.h"
@@ -179,6 +180,22 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if (!config.job_log) continue;
       std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
       config.job_log->SetOutput(fname.c_str());
+    }
+    else if (command == "enable_ganglia") {
+      if (!config.jobs_metrics) continue;
+      bool enable = false;
+      if (!CheckYesNoCommand(enable, command, rest)) return false;
+      config.jobs_metrics->SetEnabled(enable);
+    }
+    else if (command == "ganglialocation") {
+      if (!config.jobs_metrics) continue;
+      std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+      config.jobs_metrics->SetPath(fname.c_str());
+    }
+    else if (command == "gangliaconfig") {
+      if (!config.jobs_metrics) continue;
+      std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+      config.jobs_metrics->SetPath(fname.c_str());
     }
     else if (command == "enable_perflog_reporting") { //
       if (!config.job_perf_log) continue;

@@ -15,6 +15,7 @@ namespace ARex {
 
 // Forward declarations for classes for which this is just a container
 class JobLog;
+class JobsMetrics;
 class ContinuationPlugins;
 class RunPlugin;
 class DelegationStores;
@@ -137,6 +138,8 @@ public:
   void SetJobLog(JobLog* log) { job_log = log; }
   /// Set JobPerfLog object
   void SetJobPerfLog(Arc::JobPerfLog* log) { job_perf_log = log; }
+  /// Set JobsMetrics object
+  void SetJobsMetrics(JobsMetrics* metrics) { jobs_metrics = metrics; }
   /// Set ContinuationPlugins (plugins run at state transitions)
   void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
   /// Set RunPlugin (plugin used to acquire local credentials)
@@ -145,6 +148,8 @@ public:
   void SetDelegations(ARex::DelegationStores* stores) { delegations = stores; }
   /// JobLog object
   JobLog* GetJobLog() const { return job_log; }
+  /// JobsMetrics object
+  JobsMetrics* GetJobsMetrics() const { return jobs_metrics; }
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
@@ -248,6 +253,8 @@ private:
   Arc::XMLNode xml_cfg;
   /// For logging job information to external logging service
   JobLog* job_log;
+  /// For reporting jobs metric to ganglia
+  JobsMetrics* jobs_metrics;
   /// For logging performace/profiling information
   Arc::JobPerfLog* job_perf_log;
   /// Plugins run at certain state changes
