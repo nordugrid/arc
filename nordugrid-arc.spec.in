@@ -974,6 +974,11 @@ install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
+# The py-compile script in the source tarball is old (RHEL 6)
+# It does the wrong thing for python 3 - remove and let rpmbuild do it right
+find $RPM_BUILD_ROOT -type f -name \*.pyc -exec rm -fv '{}' ';'
+find $RPM_BUILD_ROOT -type f -name \*.pyo -exec rm -fv '{}' ';'
+
 # libarcglobusutils is not part of the ARC api.
 find $RPM_BUILD_ROOT -name libarcglobusutils.so -exec rm -fv '{}' ';'
 
