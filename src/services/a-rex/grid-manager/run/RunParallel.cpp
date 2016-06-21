@@ -73,7 +73,7 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     return false;
   };
   if(kicker_func_) re->AssignKicker(kicker_func_,kicker_arg_);
-  RunParallel* rp = new RunParallel(config,procid,errlog,jobproxy,cred,subst,subst_arg);
+  RunParallel* rp = new RunParallel(procid,errlog,cred,subst,subst_arg);
   if((!rp) || (!(*rp))) {
     if(rp) delete rp;
     delete re;
@@ -85,6 +85,37 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     // change user
     re->AssignUserId(user.get_uid());
     re->AssignGroupId(user.get_gid());
+  };
+  // setting environment  - TODO - better environment 
+  if(jobproxy && jobproxy[0]) {
+    re->RemoveEnvironment("X509_RUN_AS_SERVER");
+    Arc::UnsetEnv("X509_CERT_DIR");
+    Arc::UnsetEnv("X509_VOMS_DIR");
+
+    re->AddEnvironment("X509_USER_PROXY",jobproxy);
+    // for Globus 2.2 set fake cert and key, or else it takes 
+    // those from host in case of root user.
+    // 2.4 needs names and 2.2 will work too.
+    // 3.x requires fake ones again.
+#if GLOBUS_IO_VERSION>=5
+    re->AddEnvironment("X509_USER_KEY",(std::string("fake")));
+    re->AddEnvironment("X509_USER_CERT",(std::string("fake")));
+#else
+    re->AddEnvironment("X509_USER_KEY",jobproxy);
+    re->AddEnvironment("X509_USER_CERT",jobproxy);
+#endif
+    std::string cert_dir = config.CertDir();
+    if(!cert_dir.empty()) {
+      re->AddEnvironment("X509_CERT_DIR",cert_dir);
+    } else {
+      re->RemoveEnvironment("X509_CERT_DIR");
+    };
+    std::string voms_dir = config.VomsDir();
+    if(!voms_dir.empty()) {
+      re->AddEnvironment("X509_VOMS_DIR",voms_dir);
+    } else {
+      re->RemoveEnvironment("X509_VOMS_DIR");
+    };
   };
   if(!re->Start()) {
     delete rp;
@@ -125,31 +156,6 @@ void RunParallel::initializer(void* arg) {
   }
   else { h=::open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
-  // setting environment  - TODO - better environment 
-  if(!it->jobproxy_.empty()) {
-    Arc::UnsetEnv("X509_USER_KEY");
-    Arc::UnsetEnv("X509_USER_CERT");
-    Arc::UnsetEnv("X509_USER_PROXY");
-    Arc::UnsetEnv("X509_RUN_AS_SERVER");
-    Arc::UnsetEnv("X509_CERT_DIR");
-    Arc::UnsetEnv("X509_VOMS_DIR");
-    Arc::SetEnv("X509_USER_PROXY",it->jobproxy_);
-    // for Globus 2.2 set fake cert and key, or else it takes 
-    // those from host in case of root user.
-    // 2.4 needs names and 2.2 will work too.
-    // 3.x requires fake ones again.
-#if GLOBUS_IO_VERSION>=5
-    Arc::SetEnv("X509_USER_KEY",(std::string("fake")));
-    Arc::SetEnv("X509_USER_CERT",(std::string("fake")));
-#else
-    Arc::SetEnv("X509_USER_KEY",it->jobproxy_);
-    Arc::SetEnv("X509_USER_CERT",it->jobproxy_);
-#endif
-    std::string cert_dir = it->config_.CertDir();
-    if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
-    std::string voms_dir = it->config_.VomsDir();
-    if(!voms_dir.empty()) Arc::SetEnv("X509_VOMS_DIR",voms_dir);
-  };
 #endif
 }
 
