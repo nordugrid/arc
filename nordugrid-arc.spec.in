@@ -905,8 +905,8 @@ cd -
 %endif
 
 %build
-%if %{?fedora}%{!?fedora:0} >= 23
-# Workaround for too new libsigc++/glibmm in Fedora 23+
+%if %{?fedora}%{!?fedora:0} == 23
+# Workaround for too new libsigc++/glibmm + too old gcc combo in Fedora 23
 export CXXFLAGS="%{optflags} -std=c++11"
 %endif
 
