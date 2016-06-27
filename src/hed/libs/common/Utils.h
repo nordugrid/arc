@@ -52,7 +52,8 @@ namespace Arc {
   void EnvLockUnwrap(bool all = false);
   /// Use after fork() to reset all internal variables and release all locks.
   /** For use with external libraries using unprotected setenv/getenv in a
-      multi-threaded environment. */
+      multi-threaded environment.
+      This function is deprecated. */
   void EnvLockUnwrapComplete(void);
 
   /// Class to provide automatic locking/unlocking of environment on creation/destruction.

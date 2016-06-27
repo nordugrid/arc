@@ -188,10 +188,8 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     void forceReset(void) {
-      flag_ = 0;
-      waiting_ = 0;
-      lock_.trylock(); // make sure mutex is locked when unlock() is called
-      lock_.unlock();
+      // This function is deprecated and its body removed because
+      // there is no safe way to reset locks after call to fork().
     }
   };
 
@@ -226,8 +224,8 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     virtual void forceReset(void) {
-      lock_.trylock(); // make sure mutex is locked when unlock() is called
-      lock_.unlock();
+      // This function is deprecated and its body removed because
+      // there is no safe way to reset locks after call to fork().
     }
   };
 
@@ -280,9 +278,8 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     void forceReset(void) {
-      locked_ = false;
-      lock_.trylock(); // make sure mutex is locked when unlock() is called
-      lock_.unlock();
+      // This function is deprecated and its body removed because
+      // there is no safe way to reset locks after call to fork().
     }
   };
 
@@ -326,11 +323,8 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     void forceReset(void) {
-      exclusive_ = 0;
-      thread_ = NULL;
-      shared_.clear();
-      lock_.trylock(); // make sure mutex is locked when unlock() is called
-      lock_.unlock();
+      // This function is deprecated and its body removed because
+      // there is no safe way to reset locks after call to fork().
     };
   };
 
@@ -536,10 +530,8 @@ namespace Arc {
     /// This method is meant to be used only after fork.
     /** It resets state of all internal locks and variables. */
     void forceReset(void) {
-      counter_ = 0;
-      cancel_ = false;
-      lock_.trylock(); // make sure mutex is locked when unlock() is called
-      lock_.unlock();
+      // This function is deprecated and its body removed because
+      // there is no safe way to reset locks after call to fork().
     }
   };
 
@@ -556,7 +548,8 @@ namespace Arc {
       GlibThreadInitialize();
     }
     /// This method is meant to be used only after fork.
-    /** It resets state of all internal locks and variables. */
+    /** It resets state of all internal locks and variables.
+       This method is deprecated. */
     void forceReset(void);
     /// Wait for all known threads to exit.
     /** It can be used before exiting application to make

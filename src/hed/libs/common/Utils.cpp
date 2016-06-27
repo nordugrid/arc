@@ -365,7 +365,8 @@ namespace Arc {
   }
 
   void EnvLockUnwrapComplete(void) {
-    env_read_lock().forceReset();
+    // This function is deprecated and its body removed because
+    // there is no safe way to reset locks after call to fork().
   }
 
   static Glib::Mutex signal_lock;

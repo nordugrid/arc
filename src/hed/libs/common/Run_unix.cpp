@@ -149,8 +149,6 @@ namespace Arc {
   void RunInitializerArgument::Run(void) {
     // It would be nice to have function which removes all Glib::Mutex locks.
     // But so far we need to save ourselves only from Logger and SetEnv/GetEnv.
-    EnvLockUnwrapComplete(); // Clean lock left by getenv protection
-    if(usw_) usw_->resetPostFork(); // Reset uid blocker. No need to destroy object.
     void *arg = arg_;
     void (*func)(void*) = func_;
     if(group_id_ > 0) ::setgid(group_id_);
@@ -164,7 +162,6 @@ namespace Arc {
     };
     // set proper umask
     ::umask(0077);
-    delete this;
     // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.
     // Glib takes care of open handles.
