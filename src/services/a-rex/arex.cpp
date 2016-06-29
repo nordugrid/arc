@@ -927,7 +927,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   config_.SetJobsMetrics(new JobsMetrics());
   config_.SetJobPerfLog(new Arc::JobPerfLog());
   config_.SetContPlugins(new ContinuationPlugins());
-  config_.SetCredPlugin(new RunPlugin());
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -1090,7 +1089,6 @@ ARexService::~ARexService(void) {
   if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
-  delete config_.CredPlugin();
   delete config_.ContPlugins();
   delete config_.GetJobLog();
   delete config_.GetJobsMetrics();

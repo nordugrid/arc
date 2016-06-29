@@ -142,8 +142,6 @@ public:
   void SetJobsMetrics(JobsMetrics* metrics) { jobs_metrics = metrics; }
   /// Set ContinuationPlugins (plugins run at state transitions)
   void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
-  /// Set RunPlugin (plugin used to acquire local credentials)
-  void SetCredPlugin(RunPlugin* plugin) { cred_plugin = plugin; }
   /// Set DelegationStores object
   void SetDelegations(ARex::DelegationStores* stores) { delegations = stores; }
   /// JobLog object
@@ -154,8 +152,6 @@ public:
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
   ContinuationPlugins* ContPlugins() const { return cont_plugins; }
-  /// Plugin used to acquire local credentials
-  RunPlugin* CredPlugin() const { return cred_plugin; }
   /// DelegationsStores object
   ARex::DelegationStores* Delegations() const { return delegations; }
 
@@ -259,8 +255,6 @@ private:
   Arc::JobPerfLog* job_perf_log;
   /// Plugins run at certain state changes
   ContinuationPlugins* cont_plugins;
-  /// Plugin for acquiring local credentials
-  RunPlugin* cred_plugin;
   /// Delegated credentials stored by A-REX
   // TODO: this should go away after proper locking in DelegationStore is implemented
   ARex::DelegationStores* delegations;

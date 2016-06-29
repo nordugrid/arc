@@ -92,30 +92,8 @@ static void job_subst(std::string& str,void* arg) {
   if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
 }
 
-// run external plugin to acquire non-unix local credentials
-// U - user, C - config, J - job, O - reason
-#define ApplyLocalCred(U,C,J,O) {                            \
-  if(cred_plugin && (*cred_plugin)) {                        \
-    job_subst_t subst_arg;                                   \
-    subst_arg.user=&U;                                        \
-    subst_arg.config=&C;                                      \
-    subst_arg.job=J;                                         \
-    subst_arg.reason=O;                                      \
-    if(!cred_plugin->run(job_subst,&subst_arg)) {            \
-      logger.msg(Arc::ERROR, "Failed to run plugin");                \
-      return 1;                                              \
-    };                                                       \
-    if(cred_plugin->result() != 0) {                         \
-      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());  \
-      return 1;                                              \
-    };                                                       \
-  };                                                         \
-}
-
-
 JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     cont_plugins(new ContinuationPlugins),
-    cred_plugin(new RunPlugin),
     user_a(user_s.user),
     job_map(user_s.user),
     matched_vo(NULL),
@@ -186,7 +164,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     };
   };
   if(configfile.length()) config.SetConfigFile(configfile);
-  config.SetCredPlugin(cred_plugin);
   config.SetContPlugins(cont_plugins);
   std::string uname = user_s.get_uname();
   std::string ugroup = user_s.get_gname();
@@ -330,7 +307,6 @@ JobPlugin::~JobPlugin(void) {
   delete_job_id();
   if(!proxy_fname.empty()) { remove(proxy_fname.c_str()); };
   if(cont_plugins) delete cont_plugins;
-  if(cred_plugin) delete cred_plugin;
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
     if (file_plugins.at(i)) delete file_plugins.at(i);
   }
@@ -353,7 +329,6 @@ int JobPlugin::makedir(std::string &dname) {
     error_description="Can't create subdirectory in a special directory.";
     return 1;
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -396,7 +371,6 @@ int JobPlugin::removefile(std::string &name) {
     error_description="Special directory can't be mangled.";
     return 1; /* can delete status directory */
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -451,7 +425,6 @@ int JobPlugin::removedir(std::string &dname) {
     error_description="Special directory can't be mangled.";
     return 1;
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -510,7 +483,6 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       error_description="Special directory can't be mangled.";
       return 1;
     };
-    ApplyLocalCred(user,config,&fname,"read");
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode);
@@ -587,7 +559,6 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       chosenFilePlugin = NULL;
       return 1;
     };
-    ApplyLocalCred(user,config,&id,"write");
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode,size);
@@ -962,28 +933,6 @@ int JobPlugin::close(bool eof) {
       return 1;
     };
   };
-  /* ************************************************************
-   * From here code accesses filesystem on behalf of local user *
-   ************************************************************ */
-  if(cred_plugin && (*cred_plugin)) {
-    job_subst_t subst_arg;
-    subst_arg.user=&user;
-    subst_arg.job=&job_id;
-    subst_arg.reason="new";
-    // run external plugin to acquire non-unix local credentials
-    if(!cred_plugin->run(job_subst,&subst_arg)) {
-      logger.msg(Arc::ERROR, "Failed to run plugin");
-      delete_job_id();
-      error_description="Failed to obtain external credentials.";
-      return 1;
-    };
-    if(cred_plugin->result() != 0) {
-      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());
-      delete_job_id();
-      error_description="Failed to obtain external credentials.";
-      return 1;
-    };
-  };
   /* *******************************************
    * Create session directory                  *
    ******************************************* */
@@ -1182,7 +1131,6 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     };
   };
   /* allowed - pass to file system */
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
@@ -1278,9 +1226,6 @@ int JobPlugin::checkdir(std::string &dirname) {
         if(!job_local_write_file(job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
         };
-        error_description="Applying external credentials locally failed.";
-        ApplyLocalCred(user,config,&id,"renew");
-        error_description="";
       } else {
         logger.msg(Arc::ERROR, "Failed to renew proxy");
       };
@@ -1288,7 +1233,6 @@ int JobPlugin::checkdir(std::string &dirname) {
       logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
     };
   };
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
@@ -1343,7 +1287,6 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
     };
     return 0;
   };
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;

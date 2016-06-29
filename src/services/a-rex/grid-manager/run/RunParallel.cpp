@@ -49,7 +49,7 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 bool RunParallel::run(const GMConfig& config,const GMJob& job,const std::string& args,Arc::Run** ere,bool su) {
-  RunPlugin* cred = config.CredPlugin();
+  RunPlugin* cred = NULL;
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";

@@ -364,15 +364,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         logger.msg(Arc::ERROR, "Failed to register plugin for state %s", state_name); return false;
       }
     }
-    else if (command == "localcred") {
-      if (!config.cred_plugin) continue;
-      std::string timeout_s = Arc::ConfigIni::NextArg(rest);
-      int timeout;
-      if (!Arc::stringto(timeout_s, timeout)){
-        logger.msg(Arc::ERROR, "Wrong number for timeout in plugin command"); return false;
-      }
-      config.cred_plugin->timeout(timeout);
-    }
     else if (command == "fixdirectories") {
       std::string s = Arc::ConfigIni::NextArg(rest);
       if (s == "yes") {
@@ -674,32 +665,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR, "Failed to register plugin for state %s", state_name);
       return false;
     }
-  }
-
-  /*
-  localCred (timeout)
-    command
-  */
-  tmp_node = cfg["localCred"];
-  if (tmp_node && config.cred_plugin) {
-    std::string command = tmp_node["command"];
-    if (command.empty()) {
-      logger.msg(Arc::ERROR, "Command for localCred is missing");
-      return false;
-    }
-    Arc::XMLNode onode;
-    onode = tmp_node.Attribute("timeout");
-    if (!onode) {
-      logger.msg(Arc::ERROR, "Timeout for localCred is missing");
-      return false;
-    }
-    int to;
-    if (!Arc::Config::elementtoint(onode, NULL, to)) {
-      logger.msg(Arc::ERROR, "Timeout for localCred is incorrect number");
-      return false;
-    }
-    *(config.cred_plugin) = command;
-    config.cred_plugin->timeout(to);
   }
 
   /*

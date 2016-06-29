@@ -69,7 +69,6 @@ void GMConfig::SetDefaults() {
   jobs_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
-  cred_plugin = NULL;
   delegations = NULL;
 
   share_uid = 0;

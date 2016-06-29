@@ -832,17 +832,6 @@
 ## in the [queue/name] configuration block.
 #authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
 
-## localcred timeout plugin_path - Every time an external executable
-## is run this plugin will be called. Its purpose is to set non-unix
-## permissions/credentials on running tasks. Note: the process itself
-## can still be run under the root account. If plugin_path looks like
-## somename@somepath, then function 'somename' from the shared library
-## located at 'somepath' will be called (timeout is not effective in
-## that case).
-## A-REX must be run as root to use this option.
-## Comment it out unless you really know what you are doing.
-#localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
-
 ## norootpower yes|no - if set to yes, all job management proccesses
 ## will switch to mapped user's identity while accessing session
 ## directory. This is useful if session directory is on NFS
