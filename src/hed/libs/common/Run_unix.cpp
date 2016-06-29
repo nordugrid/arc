@@ -428,6 +428,7 @@ namespace Arc {
     RunPump& pump = RunPump::Instance();
     UserSwitch* usw = NULL;
     RunInitializerArgument *arg = NULL;
+    std::list<std::string>* envp_tmp = new std::list<std::string>;
     try {
       running_ = true;
       Glib::Pid pid = 0;
@@ -437,10 +438,10 @@ namespace Arc {
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
       {
       EnvLockWrapper wrapper; // Protection against gettext using getenv
-      std::list<std::string> envp_tmp = GetEnv();
-      remove_env(envp_tmp, envx_);
-      add_env(envp_tmp, envp_);
-      spawn_async_with_pipes(working_directory, argv_, envp_tmp,
+      *envp_tmp = GetEnv();
+      remove_env(*envp_tmp, envx_);
+      add_env(*envp_tmp, envp_);
+      spawn_async_with_pipes(working_directory, argv_, *envp_tmp,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
                              &pid,
@@ -461,18 +462,21 @@ namespace Arc {
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
+      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
+      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       return false;
     };
     pump.Add(this);
+    delete envp_tmp;
     if(usw) delete usw;
     if(arg) delete arg;
     return true;
