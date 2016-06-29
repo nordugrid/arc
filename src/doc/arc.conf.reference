@@ -996,6 +996,10 @@
 ##  For more detailed information see section [gridftpd].
 #allowunknown="no"
 
+## delegationdb db_name - specify which DB to use to store delegations.
+##  Currently supported db_names are bdb and sqlite. Default is bdb.
+#delegationdb="bdb"
+
 
 ####################################################################
 
