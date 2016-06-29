@@ -443,6 +443,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       // empty is allowed
       helper_log_is_set = true;
     }
+    else if (command == "forcedefaultvoms") {
+      config.forced_voms = Arc::ConfigIni::NextArg(rest);
+      if (config.forced_voms.empty()) {
+        logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
+      }
+    }
   }
   // End of parsing conf commands
 

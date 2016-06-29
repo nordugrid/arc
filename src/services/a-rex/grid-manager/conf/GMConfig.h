@@ -223,6 +223,8 @@ public:
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
   /// Returns true if any of the shared gids matches the given gid
   bool MatchShareGid(gid_t sgid) const;
+  /// Returns forced VOMS attributes for users which have none
+  const std::string & ForcedVOMS() const { return forced_voms; }
 
 private:
 
@@ -327,6 +329,8 @@ private:
   std::string arex_endpoint;
   /// Delegation db type
   deleg_db_t deleg_db;
+  /// Forced VOMS attribute for non-VOMS credentials
+  std::string forced_voms;
 
   /// Logger object
   static Arc::Logger logger;

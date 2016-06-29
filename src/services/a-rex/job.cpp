@@ -510,6 +510,25 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       };
     };
   };
+  // If no authorized VOMS was identified just report those from credentials (TLS source)
+  if(job_.voms.empty()) {
+    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+      if(*a) {
+        Arc::SecAttr* sattr = (*a)->get("TLS");
+        if(sattr) {
+          std::list<std::string> voms = sattr->getAll("VOMS");
+          job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
+        };
+      };
+    };
+  };
+  // If still no VOMS information is available take forced one from configuration
+  if(job_.voms.empty()) {
+    std::string forced_voms = config_.GmConfig().ForcedVOMS();
+    if(forced_voms.empty()) {
+      job_.voms.push_back(forced_voms);
+    };
+  };
   // Write local file
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();
