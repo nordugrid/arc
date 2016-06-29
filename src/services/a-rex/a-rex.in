@@ -614,6 +614,8 @@ prepare() {
     if [ ! -d $PERFLOGDIR ]; then
         mkdir -p $PERFLOGDIR
     fi
+    # Set permissions suitable for logs written under user accounts
+    chmod a+rwx $PERFLOGDIR
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
