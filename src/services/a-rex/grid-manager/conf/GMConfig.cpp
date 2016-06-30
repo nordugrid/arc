@@ -271,6 +271,11 @@ GMConfig::deleg_db_t GMConfig::DelegationDBType() const {
   return deleg_db;
 }
 
+const std::string & GMConfig::ForcedVOMS(const char * queue) const {
+  std::map<std::string,std::string>::const_iterator pos = forced_voms.find(queue);
+  return (pos == forced_voms.end()) ? empty_string : pos->second;
+}
+
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
   std::string::size_type curpos = 0;
   for (;;) {

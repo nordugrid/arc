@@ -128,10 +128,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   std::string jobreport_publisher;
   bool helper_log_is_set = false;
   Arc::ConfigIni cf(cfile);
-  cf.AddSection("common");
-  cf.AddSection("grid-manager");
-  cf.AddSection("infosys");
-  cf.AddSection("queue");
+  cf.AddSection("common"); // 0
+  cf.AddSection("grid-manager"); // 1
+  cf.AddSection("infosys"); // 2
+  cf.AddSection("queue"); // 3
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
@@ -164,6 +164,16 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           logger.msg(Arc::ERROR, "No queue name given in queue block name"); return false;
         }
         config.queues.push_back(name);
+      }
+      if (command == "forcedefaultvoms") {
+        std::string str = Arc::ConfigIni::NextArg(rest);
+        if (str.empty()) {
+          logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
+        }
+        if (!config.queues.empty()) {
+          std::string queue_name = *(--config.queues.end());
+          config.forced_voms[queue_name] = str;
+        }
       }
       continue;
     }
@@ -444,10 +454,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       helper_log_is_set = true;
     }
     else if (command == "forcedefaultvoms") {
-      config.forced_voms = Arc::ConfigIni::NextArg(rest);
-      if (config.forced_voms.empty()) {
+      std::string str = Arc::ConfigIni::NextArg(rest);
+      if (str.empty()) {
         logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
       }
+      config.forced_voms[""] = str;
     }
   }
   // End of parsing conf commands

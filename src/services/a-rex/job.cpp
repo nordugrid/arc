@@ -524,8 +524,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // If still no VOMS information is available take forced one from configuration
   if(job_.voms.empty()) {
-    std::string forced_voms = config_.GmConfig().ForcedVOMS();
-    if(forced_voms.empty()) {
+    std::string forced_voms = config_.GmConfig().ForcedVOMS(job_.queue.c_str());
+    if(forced_voms.empty()) forced_voms = config_.GmConfig().ForcedVOMS();
+    if(!forced_voms.empty()) {
       job_.voms.push_back(forced_voms);
     };
   };
