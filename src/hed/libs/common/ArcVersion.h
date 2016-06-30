@@ -10,15 +10,15 @@
  * @{
  */
 /** ARC API version */
-#define ARC_VERSION "5.1.1"
+#define ARC_VERSION "5.1.2"
 /** ARC API version number */
-#define ARC_VERSION_NUM 0x050101
+#define ARC_VERSION_NUM 0x050102
 /** ARC API major version number */
 #define ARC_VERSION_MAJOR 5
 /** ARC API minor version number */
 #define ARC_VERSION_MINOR 1
 /** ARC API patch number */
-#define ARC_VERSION_PATCH 1
+#define ARC_VERSION_PATCH 2
 
 /// Arc namespace contains all core ARC classes.
 namespace Arc {
