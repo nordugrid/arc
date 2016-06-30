@@ -1864,7 +1864,7 @@
 ## will cause errors.
 ## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy 
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all 
-## Shares(currently queues).
+## Shares except the one representing the bare queue.
 #authorizedvo="developer.nordugrid.org"
 #authorizedvo="community.nordugrid.org"
 
@@ -2219,10 +2219,12 @@
 ## Add only one VO for each authorizedvo entry. Multiple VOs in the same line
 ## will cause errors.
 ## These entries will be shown in the MappingPolicy objects, that is, 
-## they will apply for the Shares that corresponds to the queue.
+## they will apply for the Shares that corresponds to each VO.
+## A ComputingShare object will be created for the bare queue to 
+## gather overall queue statistics that are NOT VO-related.
 ## NOTE: if you have also configured authorizedvo in the [cluster] block,
-## the result authorized VOs per queue is the union set of what is 
-## contained in the [cluster] and in this [queue] block.
+## the values placed in the [queue/*] blocks will override the values in [cluster].
+## 
 #authorizedvo="LocalUsers"
 #authorizedvo="atlas"
 #authorizedvo="community.nordugrid.org"
