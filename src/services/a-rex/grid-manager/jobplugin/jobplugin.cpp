@@ -833,7 +833,25 @@ int JobPlugin::close(bool eof) {
       job_desc.voms.push_back(fqan);
     };
   };
-
+  // If no authorized VOMS was identified just report those from credentials
+  if(job_desc.voms.empty()) {
+    const std::vector<struct voms_t>& all_voms = user_a.voms();
+    for(std::vector<struct voms_t>::const_iterator v = all_voms.begin();
+                             v != all_voms.end(); ++v) {
+      for(std::vector<voms_fqan_t>::const_iterator f = v->fqans.begin();
+                             f != v->fqans.end(); ++f) {
+        std::string fqan;
+        f->str(fqan);
+        job_desc.voms.push_back(fqan);
+      };
+    };
+  };
+  // If still no VOMS information is available take forced one from configuration
+  if(job_desc.voms.empty()) {
+    std::string forced_voms = config.ForcedVOMS(job_desc.queue.c_str());
+    if(forced_voms.empty()) forced_voms = config.ForcedVOMS();
+    if(!forced_voms.empty()) job_desc.voms.push_back(forced_voms);
+  };
 
   /* ***********************************************
    * Try to create delegation and proxy file       *
