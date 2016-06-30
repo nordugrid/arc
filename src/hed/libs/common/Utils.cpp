@@ -289,16 +289,22 @@ namespace Arc {
 
   std::list<std::string> GetEnv(void) {
     SharedMutexShared env_lock(env_read_lock());
-#ifdef HAVE_GLIBMM_LISTENV
-    return Glib::listenv();
+#if defined(HAVE_GLIBMM_LISTENV) && defined(HAVE_GLIBMM_GETENV)
+    std::list<std::string> envp = Glib::listenv();
+    for(std::list<std::string>::iterator env = envp.begin(); 
+                         env != envp.end(); ++env) {
+      *env = *env + "=" + Glib::getenv(*env);
+    };
+    return envp;
 #else
 #ifdef WIN32
-#error Glib with support for listenv is needed
+#error Glib with support for listenv and getenv is needed
 #endif
     std::list<std::string> envp;
     for(char** enventry = environ; *enventry; ++enventry) {
       envp.push_back(*enventry);
     };
+    return envp;
 #endif
   }
 
