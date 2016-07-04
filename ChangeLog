@@ -1,3 +1,7 @@
+2016-07-04 David Cameron <d.g.cameron@fys.uio.no>
+  * Added new URL option "relativeURI" to force HTTP operations to use relative
+    paths
+
 2016-06-13 David Cameron <d.g.cameron@fys.uio.no>
   * Changed the third parameter of cacheaccess to allow regular expressions
 

@@ -49,6 +49,7 @@ namespace Arc {
     valid_url_options.insert("httpgetpartial");
     valid_url_options.insert("rucioaccount");
     valid_url_options.insert("failureallowed");
+    valid_url_options.insert("relativeuri");
   }
 
   DataPoint::~DataPoint() {}

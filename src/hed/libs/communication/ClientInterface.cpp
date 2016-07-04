@@ -361,7 +361,7 @@ namespace Arc {
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
-      relative_uri(false),
+      relative_uri(url.Option("relativeuri") == "yes"),
       sec(http_url_to_sec(url)) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
                      ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) ? "tls" :
