@@ -59,7 +59,7 @@ void URLTest::setUp() {
   gsiftpurl = new Arc::URL("gsiftp://hathi.hep.lu.se/public/test.txt");
   gsiftpurl2 = new Arc::URL("gsiftp://hathi.hep.lu.se:2811/public:/test.txt:checksumtype=adler32");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
-  httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\"");
+  httpurl = new Arc::URL("http://www.nordugrid.org/monitor:v1.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\"");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
@@ -134,10 +134,10 @@ void URLTest::TestHttpUrl() {
   CPPUNIT_ASSERT(httpurl->Passwd().empty());
   CPPUNIT_ASSERT_EQUAL(std::string("www.nordugrid.org"), httpurl->Host());
   CPPUNIT_ASSERT_EQUAL(80, httpurl->Port());
-  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php"), httpurl->Path());
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor:v1.php"), httpurl->Path());
 
-  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\""), httpurl->FullPath());
-  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=%2Fpath%2Fto%2Ffile&sort=yes&symbols=%28%29%20%2A%21%25%22"), httpurl->FullPathURIEncoded());
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor:v1.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\""), httpurl->FullPath());
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor%3Av1.php?debug=2&newpath=%2Fpath%2Fto%2Ffile&sort=yes&symbols=%28%29%20%2A%21%25%22"), httpurl->FullPathURIEncoded());
 
   std::map<std::string, std::string> httpmap = httpurl->HTTPOptions();
   CPPUNIT_ASSERT_EQUAL((int)httpmap.size(), 4);
