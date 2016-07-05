@@ -1537,6 +1537,26 @@ For more detailed information see section [gridftpd].
 .br
 allowunknown="no"
 
+.TP
+.B delegationdb
+delegationdb db_name - specify which DB to use to store delegations.
+Currently supported db_names are bdb and sqlite. Default is bdb.
+
+.IR Example:
+.br
+delegationdb="bdb"
+
+.TP
+.B forcedefaultvoms
+forcedefaultvoms VOMS_FQAN - specify VOMS FQAN which user will be
+assigned if his/her credentials contain no VOMS attributes.
+To assign different values to different queues put this command
+into [queue] block.
+
+.IR Example:
+.br
+forcedefaultvoms="/vo/group/subgroup"
+
 
 .SH [data-staging] block 
 

@@ -989,6 +989,11 @@
 ##  Currently supported db_names are bdb and sqlite. Default is bdb.
 #delegationdb="bdb"
 
+## forcedefaultvoms VOMS_FQAN - specify VOMS FQAN which user will be
+## assigned if his/her credentials contain no VOMS attributes.
+## To assign different values to different queues put this command
+## into [queue] block.
+#forcedefaultvoms="/vo/group/subgroup"
 
 ####################################################################
 
