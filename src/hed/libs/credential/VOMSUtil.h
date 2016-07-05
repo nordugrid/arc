@@ -300,6 +300,8 @@ namespace Arc {
 
   std::string VOMSFQANToFull(const std::string& vo, const std::string& fqan);
 
+  std::string VOMSFQANFromFull(const std::string& attribute);
+
   /**Encode the VOMS AC list into ASN1, so that the result can be used 
    * to insert into X509 as extension.
    * @param ac_seq  The input string includes a list of AC 

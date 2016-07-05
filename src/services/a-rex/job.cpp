@@ -24,6 +24,7 @@
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
 #include <arc/credential/Credential.h>
+#include <arc/credential/VOMSUtil.h>
 #include <arc/ws-addressing/WSA.h>
 
 #include "grid-manager/conf/GMConfig.h"
@@ -517,7 +518,14 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
         Arc::SecAttr* sattr = (*a)->get("TLS");
         if(sattr) {
           std::list<std::string> voms = sattr->getAll("VOMS");
-          job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
+          // These attributes are in different format and need to be converted
+          // into ordinary VOMS FQANs.
+          for(std::list<std::string>::iterator v = voms.begin();v!=voms.end();++v) {
+            std::string fqan = Arc::VOMSFQANFromFull(*v);
+            if(!fqan.empty()) {
+              job_.voms.insert(job_.voms.end(),fqan);
+            };
+          }; 
         };
       };
     };
