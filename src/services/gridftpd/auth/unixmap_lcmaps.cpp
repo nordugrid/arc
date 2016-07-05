@@ -11,7 +11,6 @@
 #include <arc/Thread.h>
 #include <arc/ArcLocation.h>
 
-#include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/run_plugin.h"
 #include "unixmap.h"

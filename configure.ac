@@ -202,7 +202,7 @@ enables_doc=yes
 enables_acix=yes
 
 # Handle group enable/disable switches
-AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults.]),
+AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults for most of components.]),
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
@@ -219,7 +219,6 @@ enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
-enables_unicore_client=$enableval
 enables_emies_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
@@ -249,7 +248,6 @@ enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
-enables_unicore_client=$enableval
 enables_emies_client=$enableval
 enables_doc=$enableval
 ],
@@ -887,6 +885,12 @@ if test "$glibmm_unsetenv" = yes; then
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for unsetenv. Usage of libc unsetenv may be unsafe in multi-threaded applications.])
 fi
+AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::listenv();],[glibmm_listenv=yes],[glibmm_listenv=no])
+if test "$glibmm_listenv" = yes; then
+  AC_DEFINE(HAVE_GLIBMM_LISTENV,,[define if glibmm have listenv operations])
+else
+  AC_MSG_NOTICE([WARNING: glibmm has no support for listenv. Usage of libc environ is unsafe in multi-threaded applications.])
+fi
 AC_LANG_RESTORE
 CPPFLAGS=$SAVE_CPPFLAGS
 fi
@@ -991,7 +995,7 @@ AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 enables_sqlite=no
 SQLITE_INSTALLED=no
 dnl Check if sqlite is explicitly enabled, default is disable.
-AC_ARG_ENABLE(sqlite, AC_HELP_STRING([--disable-sqlite], [disable use of the SQLite]),[enables_sqlite="$enableval"],[])
+AC_ARG_ENABLE(sqlite, AC_HELP_STRING([--enable-sqlite], [enable use of the SQLite (not affected by --enable-all)]),[enables_sqlite="$enableval"],[])
 if test "$enables_sqlite" = "yes"; then
   PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
     AC_MSG_WARN([Cannot locate SQLite newer than 3.6])
@@ -2237,7 +2241,7 @@ AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable buil
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
 AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
-AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins.]),
+AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins (not affected by --enable-all).]),
   [enables_unicore_client=$enableval],[])
 AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
 AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
@@ -2445,6 +2449,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex
+                 src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/perferator
                  src/services/a-rex/grid-manager/arc-vomsac-check.8
                  src/services/a-rex/grid-manager/arc-blahp-logger.8

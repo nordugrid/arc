@@ -361,6 +361,10 @@ namespace ARex {
     return fstore_->ListLocks(id, client, lock_ids);
   }
 
+  bool DelegationStore::GetLocks(std::list<std::string>& lock_ids) {
+    return fstore_->ListLocks(lock_ids);
+  }
+
   std::list<std::string> DelegationStore::ListCredIDs(const std::string& client) {
     std::list<std::string> res;
     FileRecord::Iterator& rec = *(fstore_->NewIterator());

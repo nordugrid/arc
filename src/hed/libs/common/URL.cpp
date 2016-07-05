@@ -351,7 +351,7 @@ namespace Arc {
       if (protocol == "root") port = XROOTD_DEFAULT_PORT;
     }
 
-    if (protocol != "ldap" && protocol != "arc") {
+    if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0) {
       pos2 = path.rfind('=');
       if (pos2 != std::string::npos) {
         pos3 = path.rfind(':', pos2);

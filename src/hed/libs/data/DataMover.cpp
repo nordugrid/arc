@@ -104,11 +104,13 @@ namespace Arc {
   DataStatus DataMover::Delete(DataPoint& url, bool errcont) {
     DataStatus res = DataStatus::Success;
     bool remove_lfn = !url.HaveLocations(); // pfn or plain url
-    if (!url.Resolve(true).Passed())
+    if (!url.Resolve(true).Passed()) {
       // TODO: Check if error is real or "not exist".
-      if (remove_lfn)
+      if (remove_lfn) {
         logger.msg(INFO,
                    "No locations found - probably no more physical instances");
+      };
+    };
     std::list<URL> removed_urls;
     if (url.HaveLocations())
       for (; url.LocationValid();) {
@@ -292,7 +294,7 @@ namespace Arc {
                      canonic_url, cache.File(canonic_url));
           // check the list of cached DNs
           if (cache.CheckDN(canonic_url, dn)) {
-            logger.msg(INFO, "Permission checking passed");
+            logger.msg(VERBOSE, "Permission checking passed");
             logger.msg(INFO, "Linking/copying cached file");
             bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                                 canonic_url,
@@ -522,7 +524,7 @@ namespace Arc {
 
       /* create buffer and tune speed control */
       buffer.set(&crc, bufsize, bufnum);
-      if (!buffer) logger.msg(INFO, "Buffer creation failed !");
+      if (!buffer) logger.msg(WARNING, "Buffer creation failed !");
       buffer.speed.set_min_speed(min_speed, min_speed_time);
       buffer.speed.set_min_average_speed(min_average_speed);
       buffer.speed.set_max_inactivity_time(max_inactivity_time);
@@ -936,9 +938,9 @@ namespace Arc {
           }
         }
       }
-      logger.msg(INFO, "buffer: read EOF : %s", buffer.eof_read()?"yes":"no");
-      logger.msg(INFO, "buffer: write EOF: %s", buffer.eof_write()?"yes":"no");
-      logger.msg(INFO, "buffer: error    : %s, read: %s, write: %s", buffer.error()?"yes":"no", buffer.error_read()?"yes":"no", buffer.error_write()?"yes":"no");
+      logger.msg(VERBOSE, "buffer: read EOF : %s", buffer.eof_read()?"yes":"no");
+      logger.msg(VERBOSE, "buffer: write EOF: %s", buffer.eof_write()?"yes":"no");
+      logger.msg(VERBOSE, "buffer: error    : %s, read: %s, write: %s", buffer.error()?"yes":"no", buffer.error_read()?"yes":"no", buffer.error_write()?"yes":"no");
       logger.msg(VERBOSE, "Closing read channel");
       read_failure = source_url.StopReading();
       source_url.FinishReading((!read_failure.Passed() || buffer.error()));

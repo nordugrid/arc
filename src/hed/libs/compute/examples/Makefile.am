@@ -16,3 +16,4 @@ job_selector_LDADD = \
 
 exampledir = $(pkgdatadir)/examples/sdk
 example_DATA = basic_job_submission.cpp job_selector.cpp
+EXTRA_DIST = helloworld.xrsl

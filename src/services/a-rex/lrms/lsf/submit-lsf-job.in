@@ -27,6 +27,7 @@ pkgdatadir="$basedir"
 ##############################################################
 # Parse grami file, read arc config
 ##############################################################
+perflogfilesub="${perflogdir}/submission.perflog"
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
@@ -334,7 +335,7 @@ echo "----------------- END job script -----" 1>&2
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 if [ ! -z "$perflogdir" ]; then
@@ -347,7 +348,7 @@ LSF_RESULT="$?"
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobSubmission: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-lsf-job, JobSubmission: $t" >> $perflogfilesub
 fi
 
 if [ $LSF_RESULT -eq '0' ] ; then

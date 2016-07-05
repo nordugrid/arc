@@ -8,8 +8,11 @@
 #include <arc/XMLNode.h>
 #include <string>
 
-// A-REX include for GM configuration
+// A-REX includes for GM configuration and delegation
 #include "../a-rex/grid-manager/conf/GMConfig.h"
+#include "../a-rex/grid-manager/files/ControlFileContent.h"
+#include "../a-rex/grid-manager/files/ControlFileHandling.h"
+#include "../a-rex/delegation/DelegationStore.h"
 
 #include "CacheServiceGenerator.h"
 

@@ -2,6 +2,7 @@
 #define __GM_CORE_CONFIG_H__
 
 #include <arc/Logger.h>
+#include <arc/ArcConfigFile.h>
 
 namespace Arc {
   class XMLNode;
@@ -18,7 +19,7 @@ public:
   static bool ParseConf(GMConfig& config);
 private:
   /// Parse ini-style config from stream cfile
-  static bool ParseConfINI(GMConfig& config, std::ifstream& cfile);
+  static bool ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile);
   /// Parse config from XML node
   static bool ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg);
   /// Function to check that LRMS scripts are available

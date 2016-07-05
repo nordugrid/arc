@@ -8,8 +8,6 @@
 #include <arc/StringConv.h>
 
 #include "GMConfig.h"
-#include "ConfigUtils.h"
-#include "ConfigSections.h"
 
 #include "CacheConfig.h"
 
@@ -24,40 +22,40 @@ CacheConfig::CacheConfig(const GMConfig& config):
     _cache_shared(false),
     _clean_timeout(0) {
   // Load conf file
-  std::ifstream cfile;
-  if(!config_open(cfile,config.ConfigFile())) throw CacheConfigException("Can't open configuration file");
+  Arc::ConfigFile cfile;
+  if(!cfile.open(config.ConfigFile())) throw CacheConfigException("Can't open configuration file");
   
   /* detect type of file */
-  switch(config_detect(cfile)) {
-    case config_file_XML: {
+  switch(cfile.detect()) {
+    case Arc::ConfigFile::file_XML: {
       Arc::XMLNode cfg;
       if(!cfg.ReadFromStream(cfile)) {
-        config_close(cfile);
+        cfile.close();
         throw CacheConfigException("Can't interpret configuration file as XML");
       };
-      config_close(cfile);
+      cfile.close();
       try {
         parseXMLConf(cfg);
       } catch (CacheConfigException& e) {
-        config_close(cfile);
+        cfile.close();
         throw;
       }
     }; break;
-    case config_file_INI: {
-      ConfigSections cf(cfile);
+    case Arc::ConfigFile::file_INI: {
+      Arc::ConfigIni cf(cfile);
       try {
         parseINIConf(cf);
       } catch (CacheConfigException& e) {
-        config_close(cfile);
+        cfile.close();
         throw;
       }
     }; break;
     default: {
-      config_close(cfile);
+      cfile.close();
       throw CacheConfigException("Can't recognize type of configuration file");
     }; break;
   };
-  config_close(cfile);
+  cfile.close();
 }
 
 CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
@@ -71,7 +69,7 @@ CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
   parseXMLConf(cfg);
 }
 
-void CacheConfig::parseINIConf(ConfigSections& cf) {
+void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
   
   cf.AddSection("common");
   cf.AddSection("grid-manager");
@@ -84,9 +82,9 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
     if(command.length() == 0) break; // EOF
     
     else if(command == "remotecachedir") {
-      std::string cache_dir = config_next_arg(rest);
+      std::string cache_dir = Arc::ConfigIni::NextArg(rest);
       if(cache_dir.length() == 0) continue; // cache is disabled
-      std::string cache_link_dir = config_next_arg(rest);
+      std::string cache_link_dir = Arc::ConfigIni::NextArg(rest);
        
       // take off leading slashes
       if (cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
@@ -107,9 +105,9 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
         _remote_cache_dirs.push_back(cache);
     }
     else if(command == "cachedir") {
-      std::string cache_dir = config_next_arg(rest);
+      std::string cache_dir = Arc::ConfigIni::NextArg(rest);
       if(cache_dir.length() == 0) continue; // cache is disabled
-      std::string cache_link_dir = config_next_arg(rest);
+      std::string cache_link_dir = Arc::ConfigIni::NextArg(rest);
 
       // validation of paths
       while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
@@ -138,11 +136,11 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
         _cache_dirs.push_back(cache);
     }
     else if(command == "cachesize") {
-      std::string max_s = config_next_arg(rest);
+      std::string max_s = Arc::ConfigIni::NextArg(rest);
       if(max_s.length() == 0)
         continue; 
 
-      std::string min_s = config_next_arg(rest);
+      std::string min_s = Arc::ConfigIni::NextArg(rest);
       if(min_s.length() == 0)
         throw CacheConfigException("Not enough parameters in cachesize parameter");
 
@@ -163,13 +161,13 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
       _cache_min = min_i;
     }
     else if(command == "cachelogfile") {
-      std::string logfile = config_next_arg(rest);
+      std::string logfile = Arc::ConfigIni::NextArg(rest);
       if (logfile.length() < 2 || logfile[0] != '/' || logfile[logfile.length()-1] == '/')
         throw CacheConfigException("Bad filename in cachelogfile parameter");
       _log_file = logfile;
     }
     else if(command == "cacheloglevel") {
-      std::string log_level = config_next_arg(rest);
+      std::string log_level = Arc::ConfigIni::NextArg(rest);
       if(log_level.length() == 0)
         throw CacheConfigException("No value specified in cacheloglevel");
       off_t level_i;
@@ -194,13 +192,13 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
       } 
     }
     else if(command == "cachelifetime") {
-      std::string lifetime = config_next_arg(rest);
+      std::string lifetime = Arc::ConfigIni::NextArg(rest);
       if(lifetime.length() != 0) {
         _lifetime = lifetime;
       }
     }
     else if(command == "cacheshared") {
-      std::string cache_shared = config_next_arg(rest);
+      std::string cache_shared = Arc::ConfigIni::NextArg(rest);
       if (cache_shared == "yes") {
         _cache_shared = true;
       }
@@ -212,7 +210,7 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
       _cache_space_tool = rest;
     }
     else if (command == "cachecleantimeout") {
-      std::string timeout = config_next_arg(rest);
+      std::string timeout = Arc::ConfigIni::NextArg(rest);
       if(timeout.length() == 0)
         continue;
 
@@ -220,14 +218,14 @@ void CacheConfig::parseINIConf(ConfigSections& cf) {
         throw CacheConfigException("bad number in cachecleantimeout parameter");
     }
     else if (command == "cacheaccess") {
-      Arc::RegularExpression regexp(config_next_arg(rest));
+      Arc::RegularExpression regexp(Arc::ConfigIni::NextArg(rest));
       if (!regexp.isOk()) throw CacheConfigException("Bad regexp " + regexp.getPattern() + " in cacheaccess");
 
-      std::string cred_type(config_next_arg(rest));
+      std::string cred_type(Arc::ConfigIni::NextArg(rest));
       if (cred_type.empty()) throw CacheConfigException("Missing credential type in cacheaccess");
 
-      std::string cred_value(rest);
-      if (cred_value.empty()) throw CacheConfigException("Missing credential value in cacheaccess");
+      Arc::RegularExpression cred_value(rest);
+      if (!cred_value.isOk()) throw CacheConfigException("Missing credential value in cacheaccess");
 
       struct CacheAccess ca;
       ca.regexp = regexp;

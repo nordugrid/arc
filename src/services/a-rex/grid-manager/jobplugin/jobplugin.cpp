@@ -26,15 +26,15 @@
 #include <arc/Utils.h>
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
+#include <arc/ArcConfigFile.h>
+#include <arc/ArcConfigIni.h>
 
-#include "../conf/ConfigUtils.h"
 #include "../jobs/GMJob.h"
 #include "../jobs/CommFIFO.h"
 #include "../jobs/ContinuationPlugins.h"
 #include "../files/ControlFileContent.h"
 #include "../files/ControlFileHandling.h"
 #include "../jobs/JobDescriptionHandler.h"
-#include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/RunParallel.h"
 #include "../../../gridftpd/userspec.h"
@@ -92,30 +92,8 @@ static void job_subst(std::string& str,void* arg) {
   if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
 }
 
-// run external plugin to acquire non-unix local credentials
-// U - user, C - config, J - job, O - reason
-#define ApplyLocalCred(U,C,J,O) {                            \
-  if(cred_plugin && (*cred_plugin)) {                        \
-    job_subst_t subst_arg;                                   \
-    subst_arg.user=&U;                                        \
-    subst_arg.config=&C;                                      \
-    subst_arg.job=J;                                         \
-    subst_arg.reason=O;                                      \
-    if(!cred_plugin->run(job_subst,&subst_arg)) {            \
-      logger.msg(Arc::ERROR, "Failed to run plugin");                \
-      return 1;                                              \
-    };                                                       \
-    if(cred_plugin->result() != 0) {                         \
-      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());  \
-      return 1;                                              \
-    };                                                       \
-  };                                                         \
-}
-
-
 JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     cont_plugins(new ContinuationPlugins),
-    cred_plugin(new RunPlugin),
     user_a(user_s.user),
     job_map(user_s.user),
     matched_vo(NULL),
@@ -137,14 +115,13 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   matched_voms=user_a.default_group_voms();
   srand(time(NULL) + rand()); 
   for(;;) {
-    std::string rest;
-    std::string command=config_read_line(cfile,rest);
+    std::string rest = Arc::ConfigFile::read_line(cfile);
+    std::string command = Arc::ConfigIni::NextArg(rest);
     if(command.length() == 0) { break; } /* end of file - should not be here */
     else if(command == "configfile") {
-      input_escaped_string(rest.c_str(),configfile); 
+      configfile = Arc::ConfigIni::NextArg(rest);
     } else if(command == "allownew") {
-      std::string value("");
-      input_escaped_string(rest.c_str(),value);
+      std::string value = Arc::ConfigIni::NextArg(rest);
       if(strcasecmp(value.c_str(),"no") == 0) { readonly=true; }
       else if(strcasecmp(value.c_str(),"yes") == 0) { readonly=false; };
     } else if(command == "unixmap") {  /* map to local unix user */
@@ -154,21 +131,21 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     } else if(command == "unixvo") {  /* map to local unix user */
       if(!job_map) job_map.mapvo(rest.c_str());
     } else if(command == "remotegmdirs") {
-      std::string remotedir = config_next_arg(rest);
+      std::string remotedir = Arc::ConfigIni::NextArg(rest);
       if(remotedir.length() == 0) {
         logger.msg(Arc::ERROR, "empty argument to remotegmdirs");
         initialized=false;
       };
       struct gm_dirs_ dirs;
       dirs.control_dir = remotedir;
-      remotedir = config_next_arg(rest);
+      remotedir = Arc::ConfigIni::NextArg(rest);
       if(remotedir.length() == 0) {
         logger.msg(Arc::ERROR, "bad arguments to remotegmdirs");
         initialized=false;
       };
       dirs.session_dir = remotedir;
       gm_dirs_info.push_back(dirs);
-      std::string drain = config_next_arg(rest);
+      std::string drain = Arc::ConfigIni::NextArg(rest);
       if (drain.empty() || drain != "drain")
         gm_dirs_non_draining.push_back(dirs); 
     } else if(command == "maxjobdesc") {
@@ -179,7 +156,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
         initialized=false;
       };
     } else if(command == "endpoint") {
-      endpoint = config_next_arg(rest);
+      endpoint = Arc::ConfigIni::NextArg(rest);
     } else if(command == "end") {
       break; /* end of section */
     } else {
@@ -187,7 +164,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     };
   };
   if(configfile.length()) config.SetConfigFile(configfile);
-  config.SetCredPlugin(cred_plugin);
   config.SetContPlugins(cont_plugins);
   std::string uname = user_s.get_uname();
   std::string ugroup = user_s.get_gname();
@@ -223,7 +199,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     }
 
     for(std::string allowsubmit = config.AllowSubmit(); !allowsubmit.empty();) {
-      std::string group = config_next_arg(allowsubmit);
+      std::string group = Arc::ConfigIni::NextArg(allowsubmit);
       if(user_a.check_group(group)) { readonly=false; break; };
     };
     if(readonly) logger.msg(Arc::WARNING, "This user is denied to submit new jobs.");
@@ -331,7 +307,6 @@ JobPlugin::~JobPlugin(void) {
   delete_job_id();
   if(!proxy_fname.empty()) { remove(proxy_fname.c_str()); };
   if(cont_plugins) delete cont_plugins;
-  if(cred_plugin) delete cred_plugin;
   for (unsigned int i = 0; i < file_plugins.size(); i++) {
     if (file_plugins.at(i)) delete file_plugins.at(i);
   }
@@ -354,7 +329,6 @@ int JobPlugin::makedir(std::string &dname) {
     error_description="Can't create subdirectory in a special directory.";
     return 1;
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -397,7 +371,6 @@ int JobPlugin::removefile(std::string &name) {
     error_description="Special directory can't be mangled.";
     return 1; /* can delete status directory */
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -435,11 +408,8 @@ int JobPlugin::removedir(std::string &dname) {
     config.SetSessionRoot(sessiondir);
     job_state_t status=job_state_read_file(id,config);
     logger.msg(Arc::INFO, "Cleaning job %s", id);
-    if((status == JOB_STATE_FINISHED) ||
-       (status == JOB_STATE_DELETED)) { /* remove files */
-      if(job_clean_final(GMJob(id,user,sessiondir+"/"+id),config)) return 0;
-    }
-    else { /* put marks */
+    /* put marks because cleaning job may also involve removing locks */
+    {
       GMJob job(id,user);
       bool res = job_cancel_mark_put(job,config);
       res &= job_clean_mark_put(job,config);
@@ -455,7 +425,6 @@ int JobPlugin::removedir(std::string &dname) {
     error_description="Special directory can't be mangled.";
     return 1;
   };
-  ApplyLocalCred(user,config,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
   int r;
   if((getuid()==0) && config.StrictSession()) {
@@ -514,7 +483,6 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       error_description="Special directory can't be mangled.";
       return 1;
     };
-    ApplyLocalCred(user,config,&fname,"read");
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode);
@@ -591,7 +559,6 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       chosenFilePlugin = NULL;
       return 1;
     };
-    ApplyLocalCred(user,config,&id,"write");
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
       int r=chosenFilePlugin->open(name,mode,size);
@@ -866,7 +833,25 @@ int JobPlugin::close(bool eof) {
       job_desc.voms.push_back(fqan);
     };
   };
-
+  // If no authorized VOMS was identified just report those from credentials
+  if(job_desc.voms.empty()) {
+    const std::vector<struct voms_t>& all_voms = user_a.voms();
+    for(std::vector<struct voms_t>::const_iterator v = all_voms.begin();
+                             v != all_voms.end(); ++v) {
+      for(std::vector<voms_fqan_t>::const_iterator f = v->fqans.begin();
+                             f != v->fqans.end(); ++f) {
+        std::string fqan;
+        f->str(fqan);
+        job_desc.voms.push_back(fqan);
+      };
+    };
+  };
+  // If still no VOMS information is available take forced one from configuration
+  if(job_desc.voms.empty()) {
+    std::string forced_voms = config.ForcedVOMS(job_desc.queue.c_str());
+    if(forced_voms.empty()) forced_voms = config.ForcedVOMS();
+    if(!forced_voms.empty()) job_desc.voms.push_back(forced_voms);
+  };
 
   /* ***********************************************
    * Try to create delegation and proxy file       *
@@ -966,28 +951,6 @@ int JobPlugin::close(bool eof) {
       return 1;
     };
   };
-  /* ************************************************************
-   * From here code accesses filesystem on behalf of local user *
-   ************************************************************ */
-  if(cred_plugin && (*cred_plugin)) {
-    job_subst_t subst_arg;
-    subst_arg.user=&user;
-    subst_arg.job=&job_id;
-    subst_arg.reason="new";
-    // run external plugin to acquire non-unix local credentials
-    if(!cred_plugin->run(job_subst,&subst_arg)) {
-      logger.msg(Arc::ERROR, "Failed to run plugin");
-      delete_job_id();
-      error_description="Failed to obtain external credentials.";
-      return 1;
-    };
-    if(cred_plugin->result() != 0) {
-      logger.msg(Arc::ERROR, "Plugin failed: %s", cred_plugin->result());
-      delete_job_id();
-      error_description="Failed to obtain external credentials.";
-      return 1;
-    };
-  };
   /* *******************************************
    * Create session directory                  *
    ******************************************* */
@@ -996,17 +959,6 @@ int JobPlugin::close(bool eof) {
     delete_job_id();
     error_description="Failed to create session directory.";
     return 1;
-  }
-
-  // Put lock on delegated credentials
-  if(!deleg_ids.empty()) {
-    ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
-    if(!store.LockCred(job_id,deleg_ids,subject)) {
-      logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
-      delete_job_id();
-      error_description="Failed to lock delegated credentials.";
-      return 1;
-    };
   }
 
   /* **********************************************************
@@ -1018,6 +970,19 @@ int JobPlugin::close(bool eof) {
     error_description="Failed registering job in grid-manager.";
     return 1;
   };
+
+  // Put lock on delegated credentials
+  // Can do that after creating status file because delegations are 
+  // fresh and hence won't be deleted while locking.
+  if(!deleg_ids.empty()) {
+    ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
+    if(!store.LockCred(job_id,deleg_ids,subject)) {
+      logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
+      delete_job_id();
+      error_description="Failed to lock delegated credentials.";
+      return 1;
+    };
+  }
 
   CommFIFO::Signal(config.ControlDir(), job_id);
   job_id.resize(0);
@@ -1184,7 +1149,6 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     };
   };
   /* allowed - pass to file system */
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
@@ -1280,9 +1244,6 @@ int JobPlugin::checkdir(std::string &dirname) {
         if(!job_local_write_file(job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
         };
-        error_description="Applying external credentials locally failed.";
-        ApplyLocalCred(user,config,&id,"renew");
-        error_description="";
       } else {
         logger.msg(Arc::ERROR, "Failed to renew proxy");
       };
@@ -1290,7 +1251,6 @@ int JobPlugin::checkdir(std::string &dirname) {
       logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
     };
   };
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;
@@ -1345,7 +1305,6 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
     };
     return 0;
   };
-  ApplyLocalCred(user,config,&id,"read");
   chosenFilePlugin = selectFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID;

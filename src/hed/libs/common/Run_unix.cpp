@@ -9,6 +9,7 @@
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -148,13 +149,19 @@ namespace Arc {
   void RunInitializerArgument::Run(void) {
     // It would be nice to have function which removes all Glib::Mutex locks.
     // But so far we need to save ourselves only from Logger and SetEnv/GetEnv.
-    EnvLockUnwrapComplete(); // Clean lock left by getenv protection
-    if(usw_) usw_->resetPostFork(); // Reset uid blocker. No need to destroy object.
     void *arg = arg_;
     void (*func)(void*) = func_;
-    if(group_id_ > 0) setgid(group_id_);
-    if(user_id_ > 0) setuid(user_id_);
-    delete this;
+    if(group_id_ > 0) ::setgid(group_id_);
+    if(user_id_ != 0) {
+      if(::setuid(user_id_) != 0) {
+        // Can't switch user id
+        _exit(-1);
+      };
+      // in case previous user was not allowed to switch group id
+      if(group_id_ > 0) ::setgid(group_id_);
+    };
+    // set proper umask
+    ::umask(0077);
     // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.
     // Glib takes care of open handles.
@@ -381,12 +388,47 @@ namespace Arc {
     };
   }
 
+  static void remove_env(std::list<std::string>& envp, const std::string& key) {
+    std::list<std::string>::iterator e = envp.begin();
+    while(e != envp.end()) {
+      if((strncmp(e->c_str(),key.c_str(),key.length()) == 0) &&
+         ((e->length() == key.length()) || (e->at(key.length()) == '='))) {
+        e = envp.erase(e);
+        continue;
+      };
+      ++e;
+    };
+  }
+
+  static void remove_env(std::list<std::string>& envp, const std::list<std::string>& keys) {
+    for(std::list<std::string>::const_iterator key = keys.begin();
+                   key != keys.end(); ++key) {
+      remove_env(envp, *key);
+    };
+  }
+
+  static void add_env(std::list<std::string>& envp, const std::string& rec) {
+    std::string key(rec);
+    std::string::size_type pos = key.find('=');
+    if(pos != std::string::npos) key.resize(pos);
+    remove_env(envp,key);
+    envp.push_back(rec);
+  }
+
+  static void add_env(std::list<std::string>& envp, const std::list<std::string>& recs) {
+    for(std::list<std::string>::const_iterator rec = recs.begin();
+                   rec != recs.end(); ++rec) {
+      add_env(envp, *rec);
+    };
+  }
+
   bool Run::Start(void) {
     if (started_) return false;
     if (argv_.size() < 1) return false;
     RunPump& pump = RunPump::Instance();
     UserSwitch* usw = NULL;
     RunInitializerArgument *arg = NULL;
+    std::list<std::string>* envp_tmp = new std::list<std::string>;
     try {
       running_ = true;
       Glib::Pid pid = 0;
@@ -396,7 +438,10 @@ namespace Arc {
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
       {
       EnvLockWrapper wrapper; // Protection against gettext using getenv
-      spawn_async_with_pipes(working_directory, argv_,
+      *envp_tmp = GetEnv();
+      remove_env(*envp_tmp, envx_);
+      add_env(*envp_tmp, envp_);
+      spawn_async_with_pipes(working_directory, argv_, *envp_tmp,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
                              &pid,
@@ -417,18 +462,21 @@ namespace Arc {
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
+      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
+      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       return false;
     };
     pump.Add(this);
+    delete envp_tmp;
     if(usw) delete usw;
     if(arg) delete arg;
     return true;

@@ -1,13 +1,24 @@
 #include <arc/StringConv.h>
 
-#include "ConfigUtils.h"
-#include "ConfigSections.h"
+#include <arc/ArcConfig.h>
+#include <arc/ArcConfigIni.h>
 
 #include "StagingConfig.h"
 
 namespace ARex {
 
 Arc::Logger StagingConfig::logger(Arc::Logger::getRootLogger(), "StagingConfig");
+
+static bool elementtoboollogged(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger& logger) {
+  if(Arc::Config::elementtobool(pnode, ename, val)) return true;
+  logger.msg(Arc::ERROR,"wrong boolean in %s",ename);
+  return false;
+}
+
+template<typename T> static bool elementtointlogged(Arc::XMLNode pnode,const char* ename,T& val,Arc::Logger& logger) {
+  if(Arc::Config::elementtoint(pnode, ename, val)) return true;
+  logger.msg(Arc::ERROR,"wrong number in %s",ename);
+}
 
 StagingConfig::StagingConfig(const GMConfig& config):
   max_delivery(10),
@@ -31,15 +42,15 @@ StagingConfig::StagingConfig(const GMConfig& config):
 
   // For ini-style, use [data-staging] section, for xml use <dataTransfer> node
 
-  std::ifstream cfile;
-  if (!config_open(cfile, config.ConfigFile())) {
+  Arc::ConfigFile cfile;
+  if (!cfile.open(config.ConfigFile())) {
     logger.msg(Arc::ERROR, "Can't read configuration file");
     valid = false;
     return;
   }
   // detect type of file
-  switch(config_detect(cfile)) {
-    case config_file_XML: {
+  switch(cfile.detect()) {
+    case Arc::ConfigFile::file_XML: {
       Arc::XMLNode cfg;
       if (!cfg.ReadFromStream(cfile)) {
         logger.msg(Arc::ERROR, "Can't interpret configuration file as XML");
@@ -51,7 +62,7 @@ StagingConfig::StagingConfig(const GMConfig& config):
       }
     } break;
 
-    case config_file_INI: {
+    case Arc::ConfigFile::file_INI: {
       if (!readStagingConf(cfile)) {
         logger.msg(Arc::ERROR, "Configuration error");
         valid = false;
@@ -63,12 +74,12 @@ StagingConfig::StagingConfig(const GMConfig& config):
       valid = false;
     } break;
   }
-  config_close(cfile);
+  cfile.close();
 }
 
-bool StagingConfig::readStagingConf(std::ifstream& cfile) {
+bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
 
-  ConfigSections cf(cfile);
+  Arc::ConfigIni cf(cfile);
   cf.AddSection("data-staging");
   cf.AddSection("common");
   for(;;) {
@@ -78,58 +89,58 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
     if (command.empty()) break; // eof
 
     if (command == "maxdelivery") {
-      if (!paramToInt(config_next_arg(rest), max_delivery)) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_delivery)) {
         logger.msg(Arc::ERROR, "Bad number in maxdelivery");
         return false;
       }
     }
     else if (command == "maxemergency") {
-      if (!paramToInt(config_next_arg(rest), max_emergency)) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_emergency)) {
         logger.msg(Arc::ERROR, "Bad number in maxemergency");
         return false;
       }
     }
     else if (command == "maxprocessor") {
-      if (!paramToInt(config_next_arg(rest), max_processor)) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_processor)) {
         logger.msg(Arc::ERROR, "Bad number in maxprocessor");
         return false;
       }
     }
     else if (command == "maxprepared") {
-      if (!paramToInt(config_next_arg(rest), max_prepared) || max_prepared <= 0) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_prepared) || max_prepared <= 0) {
         logger.msg(Arc::ERROR, "Bad number in maxprepared");
         return false;
       }
     }
     else if (command == "maxtransfertries") {
-      if (!paramToInt(config_next_arg(rest), max_retries)) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_retries)) {
         logger.msg(Arc::ERROR, "Bad number in maxtransfertries");
         return false;
       }
     }
     else if (command == "speedcontrol") {
-      if (!Arc::stringto(config_next_arg(rest), min_speed) ||
-          !Arc::stringto(config_next_arg(rest), min_speed_time) ||
-          !Arc::stringto(config_next_arg(rest), min_average_speed) ||
-          !Arc::stringto(config_next_arg(rest), max_inactivity_time)) {
+      if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed) ||
+          !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
+          !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_average_speed) ||
+          !Arc::stringto(Arc::ConfigIni::NextArg(rest), max_inactivity_time)) {
         logger.msg(Arc::ERROR, "Bad number in speedcontrol");
         return false;
       }
     }
     else if (command == "sharetype") {
-      share_type = config_next_arg(rest);
+      share_type = Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "definedshare") {
-      std::string share = config_next_arg(rest);
+      std::string share = Arc::ConfigIni::NextArg(rest);
       int priority = 0;
-      if (!paramToInt(config_next_arg(rest), priority) || priority <= 0) {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), priority) || priority <= 0) {
         logger.msg(Arc::ERROR, "Bad number in definedshare %s", share);
         return false;
       }
       defined_shares[share] = priority;
     }
     else if (command == "deliveryservice") {
-      std::string url = config_next_arg(rest);
+      std::string url = Arc::ConfigIni::NextArg(rest);
       Arc::URL u(url);
       if (!u) {
         logger.msg(Arc::ERROR, "Bad URL in deliveryservice: %s", url);
@@ -138,47 +149,47 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       delivery_services.push_back(u);
     }
     else if (command == "localdelivery") {
-      std::string use_local = config_next_arg(rest);
+      std::string use_local = Arc::ConfigIni::NextArg(rest);
       if (use_local == "yes") delivery_services.push_back(Arc::URL("file:/local"));
     }
     else if (command == "remotesizelimit") {
-      if (!Arc::stringto(config_next_arg(rest), remote_size_limit)) {
+      if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), remote_size_limit)) {
         logger.msg(Arc::ERROR, "Bad number in remotesizelimit");
         return false;
       }
     }
     else if (command == "passivetransfer") {
-      std::string pasv = config_next_arg(rest);
+      std::string pasv = Arc::ConfigIni::NextArg(rest);
       if (pasv == "yes") passive = true;
     }
     else if (command == "securetransfer") {
-      std::string sec = config_next_arg(rest);
+      std::string sec = Arc::ConfigIni::NextArg(rest);
       if (sec == "yes") secure = true;
     }
     else if (command == "httpgetpartial") {
-      std::string partial = config_next_arg(rest);
+      std::string partial = Arc::ConfigIni::NextArg(rest);
       if (partial == "no") httpgetpartial = false;
     }
     else if (command == "preferredpattern") {
-      preferred_pattern = config_next_arg(rest);
+      preferred_pattern = Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "usehostcert") {
-      std::string use_host_cert = config_next_arg(rest);
+      std::string use_host_cert = Arc::ConfigIni::NextArg(rest);
       if (use_host_cert == "yes") use_host_cert_for_remote_delivery = true;
     }
     else if (command == "debug") {
       unsigned int level;
-      if (!Arc::strtoint(config_next_arg(rest), level)) {
+      if (!Arc::strtoint(Arc::ConfigIni::NextArg(rest), level)) {
         logger.msg(Arc::ERROR, "Bad value for debug");
         return false;
       }
       log_level = Arc::old_level_to_level(level);
     }
     else if (command == "dtrlog") {
-      dtr_log = config_next_arg(rest);
+      dtr_log = Arc::ConfigIni::NextArg(rest);
     }
     else if (command == "acix_endpoint")  {
-      std::string endpoint(config_next_arg(rest));
+      std::string endpoint(Arc::ConfigIni::NextArg(rest));
       if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
         logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
         return false;
@@ -187,10 +198,10 @@ bool StagingConfig::readStagingConf(std::ifstream& cfile) {
       acix_endpoint = endpoint;
     }
     else if (command == "perflogdir") {
-      perf_log.SetOutput(config_next_arg(rest) + "/data.perflog");
+      perf_log.SetOutput(Arc::ConfigIni::NextArg(rest) + "/data.perflog");
     }
     else if (command == "enable_perflog_reporting") {
-      std::string enableperflog = config_next_arg(rest);
+      std::string enableperflog = Arc::ConfigIni::NextArg(rest);
       if (enableperflog == "yes") perf_log.SetEnabled(true);
     }
   }
@@ -216,16 +227,16 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
   */
   Arc::XMLNode tmp_node = cfg["dataTransfer"]["DTR"];
   if (tmp_node) {
-    if (!elementtoint(tmp_node, "maxDelivery", max_delivery, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxProcessor", max_processor, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxEmergency", max_emergency, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxPrepared", max_prepared, &logger)) return false;
+    if (!elementtointlogged(tmp_node, "maxDelivery", max_delivery, logger)) return false;
+    if (!elementtointlogged(tmp_node, "maxProcessor", max_processor, logger)) return false;
+    if (!elementtointlogged(tmp_node, "maxEmergency", max_emergency, logger)) return false;
+    if (!elementtointlogged(tmp_node, "maxPrepared", max_prepared, logger)) return false;
     if (tmp_node["shareType"]) share_type = (std::string)tmp_node["shareType"];
     Arc::XMLNode defined_share = tmp_node["definedShare"];
     for(;defined_share;++defined_share) {
       std::string share_name = defined_share["name"];
       int share_priority = -1;
-      if (elementtoint(defined_share, "priority", share_priority, &logger) &&
+      if (elementtointlogged(defined_share, "priority", share_priority, logger) &&
           (share_priority > 0) && !share_name.empty()) {
         defined_shares[share_name] = share_priority;
       }
@@ -240,12 +251,12 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
       delivery_services.push_back(u);
     }
     bool use_local_delivery = false;
-    if (!elementtobool(tmp_node,"localDelivery",use_local_delivery,&logger)) return false;
+    if (!elementtoboollogged(tmp_node,"localDelivery",use_local_delivery,logger)) return false;
     if (use_local_delivery) delivery_services.push_back(Arc::URL("file:/local"));
     if (tmp_node["remoteSizeLimit"]) {
       if (!Arc::stringto((std::string)tmp_node["remoteSizeLimit"], remote_size_limit)) return false;
     }
-    if (!elementtobool(tmp_node, "localDelivery", use_host_cert_for_remote_delivery, &logger)) return false;
+    if (!elementtoboollogged(tmp_node, "localDelivery", use_host_cert_for_remote_delivery, logger)) return false;
     if (tmp_node["logLevel"]) {
       if (!Arc::istring_to_level((std::string)tmp_node["logLevel"], log_level)) {
         logger.msg(Arc::ERROR, "Bad value for logLevel");
@@ -276,15 +287,15 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
   if (tmp_node) {
     Arc::XMLNode to_node = tmp_node["timeouts"];
     if (to_node) {
-      if (!elementtoint(tmp_node, "minSpeed", min_speed, &logger)) return false;
-      if (!elementtoint(tmp_node, "minAverageSpeed", min_average_speed, &logger)) return false;
-      if (!elementtoint(tmp_node, "minSpeedTime", min_speed_time, &logger)) return false;
-      if (!elementtoint(tmp_node, "maxInactivityTime", max_inactivity_time, &logger)) return false;
+      if (!elementtointlogged(tmp_node, "minSpeed", min_speed, logger)) return false;
+      if (!elementtointlogged(tmp_node, "minAverageSpeed", min_average_speed, logger)) return false;
+      if (!elementtointlogged(tmp_node, "minSpeedTime", min_speed_time, logger)) return false;
+      if (!elementtointlogged(tmp_node, "maxInactivityTime", max_inactivity_time, logger)) return false;
     }
-    if (!elementtobool(tmp_node, "passiveTransfer", passive, &logger)) return false;
-    if (!elementtobool(tmp_node, "secureTransfer", secure, &logger)) return false;
-    if (!elementtobool(tmp_node, "httpGetPartial", httpgetpartial, &logger)) return false;
-    if (!elementtoint(tmp_node, "maxRetries", max_retries, &logger)) return false;
+    if (!elementtoboollogged(tmp_node, "passiveTransfer", passive, logger)) return false;
+    if (!elementtoboollogged(tmp_node, "secureTransfer", secure, logger)) return false;
+    if (!elementtoboollogged(tmp_node, "httpGetPartial", httpgetpartial, logger)) return false;
+    if (!elementtointlogged(tmp_node, "maxRetries", max_retries, logger)) return false;
     if (tmp_node["preferredPattern"]) preferred_pattern = (std::string)(tmp_node["preferredPattern"]);
     if (tmp_node["acixEndpoint"]) {
       std::string endpoint((std::string)(tmp_node["acixEndPoint"]));

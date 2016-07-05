@@ -1286,6 +1286,7 @@ using namespace Arc;
         // at lower level.
       }
       StreamBuffer request(*point.buffer);
+      if (point.CheckSize()) request.Size(point.GetSize());
       MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs),
                                      &request, &transfer_info, &response);
       if (response) delete response; response = NULL;

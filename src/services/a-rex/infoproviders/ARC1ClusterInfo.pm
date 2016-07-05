@@ -577,13 +577,10 @@ sub collect($) {
     ## for each share(queue)
     for my $currentshare (@allshares) { 
        # always add a share with no mapping policy
-	   my $share_vo = $currentshare;
-	   $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
-	   # remove VOs so to have no policy
-	   delete $GLUE2shares->{$share_vo}{authorizedvo} unless $GLUE2shares->{$share_vo}{authorizedvo};
-	   undef $share_vo;
-	   # Create as many shares as the number of authorizedvo entries
-	   # in the [queue/queuename] block
+       my $share_name = $currentshare;
+       $GLUE2shares->{$share_name} = Storable::dclone($config->{shares}{$currentshare});
+       # Create as many shares as the number of authorizedvo entries
+       # in the [queue/queuename] block
        # if there is any VO generate new names
        if (defined $config->{shares}{$currentshare}{authorizedvo}) {
             my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
@@ -594,7 +591,9 @@ sub collect($) {
                 # add the queue from configuration as MappingQueue
                 $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
                 # remove VOs from that share, substitute with default VO
-                $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo; 
+                $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo;
+                # Add supported policies 
+                $GLUE2shares->{$share_vo}{MappingPolicies} = ['BasicMappingPolicy'];
             }
         } else {
        # create as many shares as the authorizedvo in the [cluster] block
@@ -609,10 +608,14 @@ sub collect($) {
 					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
 					# remove VOs from that share, substitute with default VO
 					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+					$GLUE2shares->{$share_vo}{MappingPolicies} = ['BasicMappingPolicy'];
 				}    
 			}
-		}
-	}
+	    }
+        # remove VO array from the datastructure of the share with the same name of the queue
+        delete $GLUE2shares->{$share_name}{authorizedvo};
+        undef $share_name;
+    }
  
     ##replace @allshares with the newly created shares
     #@allshares = keys %{$GLUE2shares};
@@ -700,11 +703,16 @@ sub collect($) {
         my $job = $gmjobs_info->{$jobid};
         my $gridowner = $gmjobs_info->{$jobid}{subject};
         my $share = $job->{share};
+        # take only the first VO for now.
+        my $vomsvo = $job->{vomsvo} if defined $job->{vomsvo};
+        my $sharevomsvo = $share.'_'.$vomsvo if defined $vomsvo;
 
         my $gmstatus = $job->{status} || '';
 
         $gmtotalcount{totaljobs}++;
         $gmsharecount{$share}{totaljobs}++;
+        # add info for VO dedicated shares
+        $gmsharecount{$sharevomsvo}{totaljobs}++ if defined $vomsvo;
 
         # count GM states by category
 
@@ -733,25 +741,35 @@ sub collect($) {
 
         $gmtotalcount{$category}++;
         $gmsharecount{$share}{$category}++;
+        $gmsharecount{$sharevomsvo}{$category}++ if defined $vomsvo;
 
         if ($age < 6) {
             $gmtotalcount{notdeleted}++;
             $gmsharecount{$share}{notdeleted}++;
+            $gmsharecount{$sharevomsvo}{notdeleted}++ if defined $vomsvo;
+
         }
         if ($age < 5) {
             $gmtotalcount{notfinished}++;
             $gmsharecount{$share}{notfinished}++;
+            $gmsharecount{$sharevomsvo}{notfinished}++ if defined $vomsvo;
         }
         if ($age < 3) {
             $gmtotalcount{notsubmitted}++;
             $gmsharecount{$share}{notsubmitted}++;
+            $gmsharecount{$sharevomsvo}{notsubmitted}++ if defined $vomsvo;
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
+            if (defined $vomsvo) {
+				$requestedslots{$sharevomsvo} += $job->{count} || 1;
+				$share_prepping{$sharevomsvo}++;
+			}
             # TODO: is this used anywhere?
             $user_prepping{$gridowner}++ if $gridowner;
         }
         if ($age < 2) {
             $pending{$share}++;
+            $pending{$sharevomsvo}++ if defined $vomsvo;
             $pendingtotal++;
         }
 
@@ -764,22 +782,40 @@ sub collect($) {
 
             if (defined $lrmsjob) {
                 if ($lrmsjob->{status} ne 'EXECUTED') {
-                    $inlrmsslots{$share}{running} ||= 0;
+                    $inlrmsslots{$share}{running} ||= 0; 
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
+                    if (defined $vomsvo) {
+						$inlrmsslots{$sharevomsvo}{running} ||= 0; 
+						$inlrmsslots{$sharevomsvo}{suspended} ||= 0;
+						$inlrmsslots{$sharevomsvo}{queued} ||= 0;
+					}
                     if ($lrmsjob->{status} eq 'R') {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
+                        if (defined $vomsvo) {
+							$inlrmsjobs{$sharevomsvo}{running}++;
+							$inlrmsslots{$sharevomsvo}{running} += $slots;
+						}
                     } elsif ($lrmsjob->{status} eq 'S') {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
+                        if (defined $vomsvo) {
+							$inlrmsjobs{$sharevomsvo}{suspended}++;
+                            $inlrmsslots{$sharevomsvo}{suspended} += $slots;
+						}
                     } else {  # Consider other states 'queued'
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
+                        if (defined $vomsvo) {
+						    $inlrmsjobs{$sharevomsvo}{queued}++;
+							$inlrmsslots{$sharevomsvo}{queued} += $slots;
+							$requestedslots{$sharevomsvo} += $slots;
+						}
                     }
                 }
             } else {
@@ -1054,7 +1090,7 @@ sub collect($) {
 		}
 	}
 	# add the per-queue authorizedvo if any
-	my $shares = $GLUE2shares;
+	my $shares = Storable::dclone($GLUE2shares);
 	for my $share ( keys %$shares ) {
 		if ($GLUE2shares->{$share}{authorizedvo}) {
 			my (@tempvos) = $GLUE2shares->{$share}{authorizedvo} if ($GLUE2shares->{$share}{authorizedvo});
@@ -1118,37 +1154,40 @@ sub collect($) {
     
     # Basic mapping policy: it can only contain one vo.     
     
-    my $getBasicMappingPolicy = sub {
-		 my ($shareID, $sharename) = @_;
-		 return unless ($GLUE2shares->{$sharename}{authorizedvo});
-         my $mpol = {};
-         $mpol->{CreationTime} = $creation_time;
-         $mpol->{Validity} = $validity_ttl;
-         $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{authorizedvo}";
-         $mpol->{Scheme} = "basic";
-	     $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{authorizedvo}" ];
-         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
-         $mpol->{ShareID} = $shareID;
-         return $mpol;
+    my $getBasicMappingPolicy = sub {	
+	    my ($shareID, $sharename) = @_;
+        my $mpol = {};
+        $mpol->{CreationTime} = $creation_time;
+        $mpol->{Validity} = $validity_ttl;
+        $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{authorizedvo}";
+        $mpol->{Scheme} = "basic";
+	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{authorizedvo}" ];
+        # $mpol->{UserDomainID} = $apconf->{UserDomainID};
+        $mpol->{ShareID} = $shareID;
+        return $mpol;
     };
     
-    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy;
+    $mappingpolicies->{'BasicMappingPolicy'} = $getBasicMappingPolicy;
     
-     ## more accesspolicies can go here.
+    ## more accesspolicies can go here.
     
     
     ## subroutines structure to return MappingPolicies
-    
+    # MappingPolicies are processed by using the share name and the
+    # GLUE2shares datastructure that contains the MappingPolicies applied to this
+    # share.
+        
     my $getMappingPolicies = sub {
-       return undef unless my ($mappingpolicy, $sub) = each %$mappingpolicies; 
-       my ($shareID, $sharename) = @_;
-       $log->debug("shareid: $shareID, sharename: $sharename");
-      return &{$sub}($shareID, $sharename);
-     };
+	   my ($shareID, $sharename) = @_;
+	   return undef unless my ($id, $policy) = each @{$GLUE2shares->{$sharename}{MappingPolicies}};
+       my $sub = $mappingpolicies->{$policy};
+       return &{$sub}($shareID, $sharename);
+    };
 
     # TODO: the above policies can be rewritten in an object oriented fashion
     # one single policy object that can be specialized
     # it's just about changing few strings
+    # Only makes sense once we have other policies than Basic.
 
     # function that generates ComputingService data
 
@@ -2911,7 +2950,7 @@ sub collect($) {
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
         } else {
-            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
+            $freeslots = $qinfo->{totalcpus} - $qinfo->{running} || 0;
         }
 
         # Local users have individual restrictions
@@ -2953,27 +2992,10 @@ sub collect($) {
         # TODO: detect reservationpolicy in the lrms
         $csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
 
-# Adrian's MappingPolicies. Might be handy in the future.
-# MappingPolicy: VOs mapped to this share.
-#         if (@{$config->{mappingpolicies}}) {
-#             my @mpconfs = @{$config->{mappingpolicies}};
-#             $csha->{MappingPolicies} = sub {
-#             return undef unless @mpconfs;
-#             my $mpconf = pop @mpconfs;
-#             my $mpol = {};
-#             $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
-#             $mpol->{Scheme} = "basic";
-#             $mpol->{Rule} = $mpconf->{Rule};
-#             $mpol->{UserDomainID} = $mpconf->{UserDomainID};
-#             $mpol->{ShareID} = $cshaIDs{$share};
-#             return $mpol;
-#             };
-#         }
-
         # Florido's Mapping Policies 
         
-        $csha->{MappingPolicies} = sub { &{$getMappingPolicies}($csha->{ID},$csha->{Name}); };
-
+        $csha->{MappingPolicies} = sub { &{$getMappingPolicies}($csha->{ID},$csha->{Name})};
+ 
         # Tag: skip it for now
 
         # Associations
@@ -3154,9 +3176,9 @@ sub collect($) {
                 if ($callcount == 1) {
                     $log->warning("MainMemorySize not set for ExecutionEnvironment $xenv") unless $xeinfo->{pmem};
                     $log->warning("OSFamily not set for ExecutionEnvironment $xenv") unless $sysname;
-                    $log->warning("ConnectivityIn not se for ExecutionEnvironment $xenv")
+                    $log->warning("ConnectivityIn not set for ExecutionEnvironment $xenv")
                         unless defined $xeconfig->{ConnectivityIn};
-                    $log->warning("ConnectivityOut not se for ExecutionEnvironment $xenv")
+                    $log->warning("ConnectivityOut not set for ExecutionEnvironment $xenv")
                         unless defined $xeconfig->{ConnectivityOut};
 
                     my @missing;

@@ -614,6 +614,8 @@ prepare() {
     if [ ! -d $PERFLOGDIR ]; then
         mkdir -p $PERFLOGDIR
     fi
+    # Set permissions suitable for logs written under user accounts
+    chmod a+rwx $PERFLOGDIR
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
@@ -767,6 +769,12 @@ prepare() {
     if [ ! -z "$USERNAME" ] ; then
         [ -f $AREX_CONFIG ] && chown $USERNAME $AREX_CONFIG
     fi
+
+    # prepare to collect crash information
+    COREDIR=`dirname ${LOGFILE}`/arccore
+    mkdir -p ${COREDIR}
+    cd ${COREDIR}
+    ulimit -c unlimited
 }
 
 validate() {

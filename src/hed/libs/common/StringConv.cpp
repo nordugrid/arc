@@ -15,14 +15,14 @@ namespace Arc {
 
   Logger stringLogger(Logger::getRootLogger(), "StringConv");
 
-  static std::string char_to_hex(char c) {
+  static std::string char_to_hex(char c, bool uppercase) {
     // ASCII only
     std::string s;
     unsigned int n;
     n = (unsigned int)((c>>4) & 0x0f);
-    s += (char)((n<10)?(n+'0'):(n-10+'a'));
+    s += (char)((n<10)?(n+'0'):(n-10+(uppercase?'A':'a')));
     n = (unsigned int)((c>>0) & 0x0f);
-    s += (char)((n<10)?(n+'0'):(n-10+'a'));
+    s += (char)((n<10)?(n+'0'):(n-10+(uppercase?'A':'a')));
     return s;
   }
 
@@ -229,7 +229,8 @@ namespace Arc {
     // characters not to escape (unreserved characters from RFC 3986)
     std::string unreserved_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~");
     if (!encode_slash) unreserved_chars += '/';
-    return escape_chars(str, unreserved_chars, '%', true, escape_hex);
+    // RFC 3986 says upper case hex chars should be used
+    return escape_chars(str, unreserved_chars, '%', true, escape_hex_upper);
   }
 
   std::string uri_unencode(const std::string& str) {
@@ -293,7 +294,11 @@ namespace Arc {
           p+=3;
         break;
         case escape_hex:
-          out.replace(p,1,char_to_hex(out[p]));
+          out.replace(p,1,char_to_hex(out[p], false));
+          p+=2;
+        break;
+        case escape_hex_upper:
+          out.replace(p,1,char_to_hex(out[p], true));
           p+=2;
         break;
         default:

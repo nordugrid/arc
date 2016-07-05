@@ -12,8 +12,8 @@
 #include <arc/Utils.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/ArcConfigIni.h>
 
-#include "../misc/escaped.h"
 #include "auth.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
@@ -40,30 +40,30 @@ AuthResult AuthUser::match_voms(const char* line) {
   std::string capabilities("");
   std::string auto_c("");
   int n;
-  n=gridftpd::input_escaped_string(line,vo,' ','"');
+  n=Arc::ConfigIni::NextArg(line,vo,' ','"');
   if(n == 0) {
     logger.msg(Arc::ERROR, "Missing VO in configuration");
     return AAA_FAILURE;
   };
   line+=n;
-  n=gridftpd::input_escaped_string(line,group,' ','"');
+  n=Arc::ConfigIni::NextArg(line,group,' ','"');
   if(n == 0) {
     logger.msg(Arc::ERROR, "Missing group in configuration");
     return AAA_FAILURE;
   };
   line+=n;
-  n=gridftpd::input_escaped_string(line,role,' ','"');
+  n=Arc::ConfigIni::NextArg(line,role,' ','"');
   if(n == 0) {
     logger.msg(Arc::ERROR, "Missing role in configuration");
     return AAA_FAILURE;
   };
   line+=n;
-  n=gridftpd::input_escaped_string(line,capabilities,' ','"');
+  n=Arc::ConfigIni::NextArg(line,capabilities,' ','"');
   if(n == 0) {
     logger.msg(Arc::ERROR, "Missing capabilities in configuration");
     return AAA_FAILURE;
   };
-  n=gridftpd::input_escaped_string(line,auto_c,' ','"');
+  n=Arc::ConfigIni::NextArg(line,auto_c,' ','"');
   logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
   logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
   logger.msg(Arc::VERBOSE, "Rule: role: %s", role);

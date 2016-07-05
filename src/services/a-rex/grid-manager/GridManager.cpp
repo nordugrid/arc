@@ -13,8 +13,10 @@
 #include "jobs/JobsList.h"
 #include "jobs/CommFIFO.h"
 #include "log/JobLog.h"
+#include "log/JobsMetrics.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"
+#include "files/ControlFileHandling.h"
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
 
@@ -284,6 +286,7 @@ bool GridManager::thread() {
     // TODO: check conditions for following calls
     jobs.RunHelpers();
     config_.GetJobLog()->RunReporter(config_);
+    config_.GetJobsMetrics()->Sync();
     // Process jobs which need attention ASAP
     jobs.ActJobsAttention();
     if(((int)(time(NULL) - poll_job_time)) >= 0) {
@@ -308,8 +311,22 @@ bool GridManager::thread() {
       if(delegs) {
         ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
         deleg.Expiration(24*60*60);
-        deleg.CheckTimeout(60);
+        deleg.CheckTimeout(60); // During this time delegation database will be locked. So it must not be too long.
         deleg.PeriodicCheckConsumers();
+        // once in a while check for delegations which are locked by non-exiting jobs
+        std::list<std::string> lock_ids;
+        if(deleg.GetLocks(lock_ids)) {
+          for(std::list<std::string>::iterator lock_id = lock_ids.begin(); lock_id != lock_ids.end(); ++lock_id) {
+            time_t t = job_state_time(*lock_id,config_);
+            // Returns zero if file is not present
+            if(t == 0) {
+              logger.msg(Arc::ERROR,"Orphan delegation lock detected (%s) - cleaning", *lock_id);
+              deleg.ReleaseCred(*lock_id); // not forcing credential removal - PeriodicCheckConsumers will do it with time control
+            };
+          };
+        } else {
+          logger.msg(Arc::ERROR,"Failed to obtain delegation locks for cleaning orphaned locks");
+        };
       };
 
     };

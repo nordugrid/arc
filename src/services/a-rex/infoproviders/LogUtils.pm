@@ -28,6 +28,7 @@ our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEB
 
 our $loglevel = 2; # default level is WARNING
 our $ts_enabled = 0; # by default do not print timestamps
+our $indented = ""; # do not indent by default
 
 our $default_logger = LogUtils->getLogger(basename($0));
 
@@ -82,6 +83,15 @@ sub level {
 sub timestamps {
     return $ts_enabled unless  @_;
     return $ts_enabled = shift() ? 1 : 0;
+}
+
+sub indentoutput { 
+   my ($indent) = @_;
+   if ($indent) { 
+     $indented = "\t";
+   } else {
+     $indented = "";
+   }
 }
 
 # constructor
@@ -141,7 +151,7 @@ sub _log {
     my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
     $name = $name ? "$name" : "";
-    print STDERR ($ts_enabled ? "[".timestamp()."] " : "")."[$name] [$severity] [$$] $msg\n";
+    print STDERR  $indented.($ts_enabled ? "[".timestamp()."] " : "")."[$name] [$severity] [$$] $msg\n";
 }
 
 sub timestamp {

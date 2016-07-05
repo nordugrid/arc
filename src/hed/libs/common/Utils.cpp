@@ -44,6 +44,7 @@
 // Windows uses different way to store environment. TODO: investigate
 #ifndef WIN32
 #define TRICKED_ENVIRONMENT
+extern char** environ;
 #endif
 
 namespace Arc {
@@ -286,6 +287,27 @@ namespace Arc {
 #endif
   }
 
+  std::list<std::string> GetEnv(void) {
+    SharedMutexShared env_lock(env_read_lock());
+#if defined(HAVE_GLIBMM_LISTENV) && defined(HAVE_GLIBMM_GETENV)
+    std::list<std::string> envp = Glib::listenv();
+    for(std::list<std::string>::iterator env = envp.begin(); 
+                         env != envp.end(); ++env) {
+      *env = *env + "=" + Glib::getenv(*env);
+    };
+    return envp;
+#else
+#ifdef WIN32
+#error Glib with support for listenv and getenv is needed
+#endif
+    std::list<std::string> envp;
+    for(char** enventry = environ; *enventry; ++enventry) {
+      envp.push_back(*enventry);
+    };
+    return envp;
+#endif
+  }
+
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite) {
     SharedMutexExclusive env_lock(env_read_lock());
 #ifndef TRICKED_ENVIRONMENT
@@ -349,7 +371,8 @@ namespace Arc {
   }
 
   void EnvLockUnwrapComplete(void) {
-    env_read_lock().forceReset();
+    // This function is deprecated and its body removed because
+    // there is no safe way to reset locks after call to fork().
   }
 
   static Glib::Mutex signal_lock;

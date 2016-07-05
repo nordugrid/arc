@@ -15,6 +15,7 @@ namespace ARex {
 
 // Forward declarations for classes for which this is just a container
 class JobLog;
+class JobsMetrics;
 class ContinuationPlugins;
 class RunPlugin;
 class DelegationStores;
@@ -131,20 +132,20 @@ public:
   void SetJobLog(JobLog* log) { job_log = log; }
   /// Set JobPerfLog object
   void SetJobPerfLog(Arc::JobPerfLog* log) { job_perf_log = log; }
+  /// Set JobsMetrics object
+  void SetJobsMetrics(JobsMetrics* metrics) { jobs_metrics = metrics; }
   /// Set ContinuationPlugins (plugins run at state transitions)
   void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
-  /// Set RunPlugin (plugin used to acquire local credentials)
-  void SetCredPlugin(RunPlugin* plugin) { cred_plugin = plugin; }
   /// Set DelegationStores object
   void SetDelegations(ARex::DelegationStores* stores) { delegations = stores; }
   /// JobLog object
   JobLog* GetJobLog() const { return job_log; }
+  /// JobsMetrics object
+  JobsMetrics* GetJobsMetrics() const { return jobs_metrics; }
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
   ContinuationPlugins* ContPlugins() const { return cont_plugins; }
-  /// Plugin used to acquire local credentials
-  RunPlugin* CredPlugin() const { return cred_plugin; }
   /// DelegationsStores object
   ARex::DelegationStores* Delegations() const { return delegations; }
 
@@ -218,6 +219,8 @@ public:
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
   /// Returns true if any of the shared gids matches the given gid
   bool MatchShareGid(gid_t sgid) const;
+  /// Returns forced VOMS attributes for users which have none
+  const std::string & ForcedVOMS(const char * queue = "") const;
 
 private:
 
@@ -229,12 +232,12 @@ private:
   Arc::XMLNode xml_cfg;
   /// For logging job information to external logging service
   JobLog* job_log;
+  /// For reporting jobs metric to ganglia
+  JobsMetrics* jobs_metrics;
   /// For logging performace/profiling information
   Arc::JobPerfLog* job_perf_log;
   /// Plugins run at certain state changes
   ContinuationPlugins* cont_plugins;
-  /// Plugin for acquiring local credentials
-  RunPlugin* cred_plugin;
   /// Delegated credentials stored by A-REX
   // TODO: this should go away after proper locking in DelegationStore is implemented
   ARex::DelegationStores* delegations;
@@ -307,6 +310,8 @@ private:
   std::string arex_endpoint;
   /// Delegation db type
   deleg_db_t deleg_db;
+  /// Forced VOMS attribute for non-VOMS credentials per queue
+  std::map<std::string,std::string> forced_voms;
 
   /// Logger object
   static Arc::Logger logger;

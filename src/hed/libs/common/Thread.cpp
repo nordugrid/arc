@@ -851,15 +851,8 @@ namespace Arc {
 
 
   void ThreadInitializer::forceReset(void) {
-#ifdef USE_THREAD_POOL
-#ifdef USE_THREAD_DATA
-    // TODO: This will reset all Logger per-thread settings. So we will
-    // need some workaround implemented later.
-    data_pool = NULL;
-#endif
-    pool = NULL;
-#endif
-    GlibThreadInitialize();
+    // This function is deprecated and its body removed because
+    // there is no safe way to reset locks after call to fork().
   }
 
   void ThreadInitializer::waitExit(void) {

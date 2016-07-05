@@ -957,18 +957,19 @@ cacheaccess rule - rules for allowing access to files in the cache remotely
 through the A-REX web interface. A rule has three parts:
  1. Regular expression defining a URL pattern
  2. Credential attribute to match against a client's credential
- 3. Credential value to match against a client's credential
+ 3. Regular expression defining a credential value to match against a client's
+    credential
 A client is allowed to access the cached file if a URL pattern matches the
-cached file URL and the client's credential has the attribute and value
-required for that pattern. Possible values for credential attribute are dn,
-voms:vo, voms:role and voms:group. Remote cache access requires that the
+cached file URL and the client's credential has the attribute and matches the
+value required for that pattern. Possible values for credential attribute are
+dn, voms:vo, voms:role and voms:group. Remote cache access requires that the
 A-REX web interface is enabled via arex_mount_point.
 
 .IR Examples:
 .br
 cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
 .br
-cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
+cacheaccess="gsiftp://host.org/private/data/ng/.* dn /O=Grid/O=NorduGrid/.*"
 
 .TP
 .B enable_cache_service
@@ -1255,22 +1256,6 @@ in the [queue/name] configuration block.
 .IR Example:
 .br
 authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
-
-.TP
-.B localcred
-localcred timeout plugin_path - Every time an external executable
-is run this plugin will be called. Its purpose is to set non-unix 
-permissions/credentials on running tasks. Note: the process itself 
-can still be run under the root account. If plugin_path looks like
-somename@somepath, then function 'somename' from the shared library
-located at 'somepath' will be called (timeout is not effective in
-that case).
-A-REX must be run as root to use this option.
-Comment it out unless you really know what you are doing.
-
-.IR Example:
-.br
-localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
 
 .TP
 .B norootpower
@@ -1708,7 +1693,7 @@ default is no
 passivetransfer="no"
 
 .TP
-B httpgetpartial
+.B httpgetpartial
 httpgetpartial yes|no - If yes, HTTP GET transfers may transfer data in
 chunks/parts. If no - data is always transfered in one piece. Default is yes.
 
@@ -3753,7 +3738,7 @@ wait for external sources retrieval. Default is 15.
 .br
 fetch_timeout="15"
 
-.SH The [acix/cacheserver] block 
+.SH [acix/cacheserver] block 
 
 The cache server component of ACIX runs alongside A-REX. It
 periodically scans the cache directories and composes a Bloom
@@ -3780,7 +3765,7 @@ $TMP/ARC-ACIX/timestamp each time the cache server runs. Default is no.
 cachedump="yes"
 
 
-.SH The [acix/indexserver] block 
+.SH [acix/indexserver] block 
 
 The index server component of ACIX collects cache content filters
 from a set of cache servers configured in this block. The index
@@ -3796,3 +3781,68 @@ ACIX cache servers from which to pull information
 cacheserver="https://some.host:5443/data/cache"
 .br
 cacheserver="https://another.host:5443/data/cache"
+
+
+.SH [gangliarc] block
+
+Gangliarc provides monitoring of ARC-specific metrics through ganglia.
+It can be run with zero configuration or customised with options in the
+[gangliarc] block.
+
+.TP
+.B frequency
+The period between each information gathering cycle, in seconds. Default is 20.
+
+.IR Example:
+.br
+frequency="30"
+
+.TP
+.B gmetric_exec
+Path to gmetric executable. Default is /usr/bin/gmetric.
+
+.IR Example:
+.br
+gmetric_exec="/usr/local/bin/gmetric"
+
+.TP
+.B logfile
+log file of the daemon. Default is /var/log/arc/gangliarc.log.
+
+.IR Example:
+.br
+logfile="/tmp/gangliarc.log"
+
+.TP
+.B pidfile
+pid file of the daemon. Default is /var/run/gangliarc.pid.
+
+.IR Example:
+.br
+pidfile="/tmp/gangliarc.pid"
+
+.TP
+.B python_bin_path
+path to python executable. Default is /usr/bin/python.
+
+.IR Example:
+.br
+python_bin_path="/usr/local/bin/python"
+
+.TP
+.B metrics
+the metrics to be monitored. Default is "all".
+metrics takes a comma-separated list of one or more of the following metrics:
+ - staging -- number of tasks in different data staging states
+ - cache -- free cache space
+ - session -- free session directory space
+ - heartbeat -- last modification time of A-REX heartbeat 
+ - processingjobs -- the number of jobs currently being processed by ARC (jobs
+                     between PREPARING and FINISHING states)
+ - failedjobs -- the number of failed jobs per last 100 finished
+ - jobstates -- number of jobs in different A-REX internal stages
+ - all -- all of the above metrics
+
+.IR Example:
+.br
+metrics="all"

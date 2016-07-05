@@ -1,3 +1,13 @@
+2016-07-04 David Cameron <d.g.cameron@fys.uio.no>
+  * Added support for using Rucio as a proxy to read/write to objectstores
+
+2016-07-04 David Cameron <d.g.cameron@fys.uio.no>
+  * Added new URL option "relativeURI" to force HTTP operations to use relative
+    paths
+
+2016-06-13 David Cameron <d.g.cameron@fys.uio.no>
+  * Changed the third parameter of cacheaccess to allow regular expressions
+
 2016-04-19 David Cameron <d.g.cameron@fys.uio.no>
   * Added new URL option "failureallowed" - if set then a failed transfer does
     not fail the job 

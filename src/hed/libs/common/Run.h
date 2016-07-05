@@ -45,7 +45,9 @@ namespace Arc {
     // PID of child
     Pid *pid_;
     // Arguments to execute
-    Glib::ArrayHandle<std::string> argv_;
+    std::list<std::string> argv_;
+    std::list<std::string> envp_;
+    std::list<std::string> envx_;
     void (*initializer_func_)(void*);
     void *initializer_arg_;
     void (*kicker_func_)(void*);
@@ -176,6 +178,18 @@ namespace Arc {
     /// Assign gid for the process to run under.
     void AssignGroupId(int gid) {
       group_id_ = gid;
+    }
+    /// Add environment variable to be passed to process being run
+    void AddEnvironment(const std::string& key, const std::string& value) {
+      AddEnvironment(key+"="+value);
+    }
+    /// Add environment variable to be passed to process being run
+    void AddEnvironment(const std::string& var) {
+      envp_.push_back(var);
+    }
+    /// Remove environment variable to be passed to process being run
+    void RemoveEnvironment(const std::string& key) {
+      envx_.push_back(key);
     }
     /// Kill running executable.
     /** First soft kill signal (SIGTERM) is sent to executable. If

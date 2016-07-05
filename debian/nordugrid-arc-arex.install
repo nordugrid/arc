@@ -77,3 +77,4 @@ debian/tmp/usr/share/arc/ssm/ssm2.py*
 debian/tmp/usr/share/arc/ssm/brokers.py*
 debian/tmp/usr/share/arc/ssm/sender.cfg
 
+debian/tmp/usr/sbin/a-rex-backtrace-collect

@@ -13,6 +13,7 @@
 #include "../run/RunParallel.h"
 #include "../mail/send_mail.h"
 #include "../log/JobLog.h"
+#include "../log/JobsMetrics.h"
 #include "../misc/proxy.h"
 #include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
@@ -92,6 +93,7 @@ void JobsList::UpdateJobCredentials(JobsList::iterator &i) {
 
 void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason) {
   if(i->job_state != new_state) {
+    config.GetJobsMetrics()->ReportJobStateChange(new_state, i->job_state);
     std::string msg = Arc::Time().str(Arc::UTCTime);
     msg += " Job state change ";
     msg += i->get_state_name();
@@ -1267,6 +1269,7 @@ JobsList::ActJobResult JobsList::ActJobDeleted(iterator i) {
   time_t t = -1;
   if(!job_local_read_cleanuptime(i->job_id,config,t) || ((time(NULL)-(t+i->keep_deleted)) >= 0)) {
     logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
+    UnlockDelegation(i); // not needed here but in case someting went wrong previously
     // delete everything
     job_clean_final(*i,config);
     return JobDropped;
@@ -1870,15 +1873,8 @@ JobsList::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  struct rlimit lim;
-  int max_files;
-  if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
-  else { max_files=4096; };
   // just set good umask
   umask(0077);
-  // close all handles inherited from parent
-  if(max_files == RLIM_INFINITY) max_files=4096;
-  for(int i=0;i<max_files;i++) { close(i); };
   // set up stdin,stdout and stderr
   int h;
   h = ::open("/dev/null",O_RDONLY);

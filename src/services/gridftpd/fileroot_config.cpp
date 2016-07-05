@@ -10,6 +10,7 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
+#include <arc/ArcConfigIni.h>
 
 #include "conf.h"
 #include "names.h"
@@ -24,14 +25,14 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"FileRoot");
 
 int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
   /* open and read configuration file */
-  std::ifstream cfile;
-  gridftpd::ConfigSections* cf = NULL;
+  Arc::ConfigFile cfile;
+  Arc::ConfigIni* cf = NULL;
   config_open_gridftp(cfile);
   if(!cfile.is_open()) {
     logger.msg(Arc::ERROR, "configuration file not found");
     return 1;
   };
-  cf=new gridftpd::ConfigSections(cfile);
+  cf=new Arc::ConfigIni(cfile);
   cf->AddSection("common");
   cf->AddSection("gridftpd");
   for(;;) {
@@ -43,12 +44,12 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
     int r;
     r=daemon.config(command,rest);
     if(r == 0) continue;
-    if(r == -1) { gridftpd::config_close(cfile); delete cf; return 1; };
+    if(r == -1) { cfile.close(); delete cf; return 1; };
     if(command == "port") {
       if(params) {
         if(sscanf(rest.c_str(),"%u",&(params->port)) != 1) {
           logger.msg(Arc::ERROR, "Wrong port number in configuration");
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
@@ -57,7 +58,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
       if(params) {
         if(sscanf(rest.c_str(),"%u",&(params->max_connections)) != 1) {
           logger.msg(Arc::ERROR, "Wrong maxconnections number in configuration");
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
@@ -66,7 +67,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
       if(params) {
         if(sscanf(rest.c_str(),"%u",&(params->default_buffer)) != 1) {
           logger.msg(Arc::ERROR, "Wrong defaultbuffer number in configuration");
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
@@ -75,14 +76,14 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
       if(params) {
         if(sscanf(rest.c_str(),"%u",&(params->max_buffer)) != 1) {
           logger.msg(Arc::ERROR, "Wrong maxbuffer number in configuration");
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
       };
     } else if(command == "firewall") {
       if(params) {
-        std::string value=gridftpd::config_next_arg(rest);
+        std::string value=Arc::ConfigIni::NextArg(rest);
         int    errcode;
         struct hostent* host;
         struct hostent  hostbuf;
@@ -107,7 +108,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
 #endif
 #endif
           logger.msg(Arc::ERROR, "Can't resolve host %s", value);
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
@@ -115,7 +116,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
             (host->h_length < sizeof(struct in_addr)) ||
             (host->h_addr_list[0] == NULL) ) {
           logger.msg(Arc::ERROR, "Can't resolve host %s", value);
-          gridftpd::config_close(cfile);
+          cfile.close();
           delete cf;
           return 1;
         };
@@ -127,7 +128,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
       };
     };
   };
-  gridftpd::config_close(cfile);
+  cfile.close();
   delete cf;
   return 0;
 }
@@ -138,13 +139,13 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
   bool right_group = true;
   user.user.select_group(NULL);
   for(;;) {
-    std::string rest;
-    std::string command=gridftpd::config_read_line(cfile,rest);
+    std::string rest=Arc::ConfigFile::read_line(cfile);
+    std::string command=Arc::ConfigIni::NextArg(rest);
     if(command.length() == 0) break; /* EOF */
     if(gridftpd::Daemon::skip_config(command) == 0) {
     }
     else if(command == "include") {  /* include content of another file */
-      std::string name=gridftpd::config_next_arg(rest);
+      std::string name=Arc::ConfigIni::NextArg(rest);
       std::ifstream cfile_;
       cfile_.open(name.c_str(),std::ifstream::in);
       if(!cfile_.is_open()) {
@@ -155,7 +156,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       cfile_.close();
     }
     else if(command == "encryption") {  /* is encryption allowed ? */
-      std::string value=gridftpd::config_next_arg(rest);
+      std::string value=Arc::ConfigIni::NextArg(rest);
       if(value == "yes") {
         heavy_encryption=true;
       } else if(value == "no") {
@@ -168,7 +169,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       };
     }
     else if(command == "allowunknown") { /* should user be present in grid-mapfile ? */
-      std::string value=gridftpd::config_next_arg(rest);
+      std::string value=Arc::ConfigIni::NextArg(rest);
       if(value == "yes") {
         user.gridmap=true;
       } else if(value == "no") {
@@ -186,16 +187,17 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
     else if(command == "group") { /* definition of group of users based on DN */
       if(!right_group) {
         for(;;) {
-          command=gridftpd::config_read_line(cfile,rest);
+          rest=Arc::ConfigFile::read_line(cfile);
+          command=Arc::ConfigIni::NextArg(rest);
           if(command.length() == 0) break; /* eof - bad */
           if(command == "end") break;
         };
         continue;
       };
-      std::string group_name=gridftpd::config_next_arg(rest);
+      std::string group_name=Arc::ConfigIni::NextArg(rest);
       int decision = AAA_NO_MATCH;
       for(;;) {
-        std::string rest=gridftpd::config_read_line(cfile);
+        std::string rest=Arc::ConfigFile::read_line(cfile);
         if(rest.length() == 0) break; /* eof - bad */
         if(rest == "end") break;
         if(decision == AAA_NO_MATCH) {
@@ -247,7 +249,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       };
       right_group=false;
       for(;;) {
-        std::string group_name=gridftpd::config_next_arg(rest);
+        std::string group_name=Arc::ConfigIni::NextArg(rest);
         if(group_name.length() == 0) break;
         right_group=user.user.select_group(group_name);
         if(right_group) {
@@ -257,7 +259,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
     }
     else if(command == "pluginpath") {
       if(!right_group) continue;
-      pluginpath=gridftpd::config_next_arg(rest);
+      pluginpath=Arc::ConfigIni::NextArg(rest);
       if(pluginpath.length() == 0) pluginpath="/";
     }
     else if(command == "port") {
@@ -266,14 +268,15 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
     else if(command == "plugin") {
       if(!right_group) {
         for(;;) {
-          command=gridftpd::config_read_line(cfile,rest);
+          rest=Arc::ConfigFile::read_line(cfile);
+          command=Arc::ConfigIni::NextArg(rest);
           if(command.length() == 0) break; /* eof - bad */
           if(command == "end") break;
         };
         continue;
       };
-      std::string dir = gridftpd::config_next_arg(rest);
-      std::string plugin = gridftpd::config_next_arg(rest);
+      std::string dir = Arc::ConfigIni::NextArg(rest);
+      std::string plugin = Arc::ConfigIni::NextArg(rest);
       if(plugin.length() == 0) {
         logger.msg(Arc::WARNING, "can't parse configuration line: %s %s %s %s", command, dir, plugin, rest);
         continue;
@@ -294,7 +297,8 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
       if(already_have_this_path) {
         logger.msg(Arc::WARNING, "Already have directory: %s", dir);
         for(;;) {
-          command=gridftpd::config_read_line(cfile,rest);
+          rest=Arc::ConfigFile::read_line(cfile);
+          command=Arc::ConfigIni::NextArg(rest);
           if(command.length() == 0) break; /* eof - bad */
           if(command == "end") break;
         };
@@ -307,7 +311,8 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
         else {
           logger.msg(Arc::ERROR, "file node creation failed: %s", dir);
           for(;;) {
-            command=gridftpd::config_read_line(cfile,rest);
+            rest=Arc::ConfigFile::read_line(cfile);
+            command=Arc::ConfigIni::NextArg(rest);
             if(command.length() == 0) break; /* eof - bad */
             if(command == "end") break;
           };
@@ -321,7 +326,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
   return 0;
 }
 
-int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
+int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
   typedef enum {
     conf_state_single,
     conf_state_group,
@@ -349,7 +354,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
     if(!right_group) {
       if(!cf.SectionNew()) continue;
     };
-    int r = config_vo(user.user,cf,command,rest,&logger);
+    int r = gridftpd::config_vo(user.user,cf,command,rest,&logger);
     if(r==0) continue;
     if(cf.SectionNew()) {
       if(right_group) switch(st) {
@@ -431,7 +436,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
       case conf_state_single: {
         if(gridftpd::Daemon::skip_config(command) == 0) {
         } else if(command == "include") {  /* include content of another file */
-          std::string name=gridftpd::config_next_arg(rest);
+          std::string name=Arc::ConfigIni::NextArg(rest);
           std::ifstream cfile_;
           cfile_.open(name.c_str(),std::ifstream::in);
           if(!cfile_.is_open()) {
@@ -441,7 +446,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           config(cfile_,pluginpath); // included are in old format
           cfile_.close();
         } else if(command == "encryption") {  /* is encryption allowed ? */
-          std::string value=gridftpd::config_next_arg(rest);
+          std::string value=Arc::ConfigIni::NextArg(rest);
           if(value == "yes") {
             heavy_encryption=true;
           } else if(value == "no") {
@@ -454,7 +459,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           };
         } else if(command == "allowunknown") {
           /* should user be present in grid-mapfile ? */
-          std::string value=gridftpd::config_next_arg(rest);
+          std::string value=Arc::ConfigIni::NextArg(rest);
           if(value == "yes") {
             user.gridmap=true;
           } else if(value == "no") {
@@ -470,12 +475,12 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           };
         } else if(command == "pluginpath") {
           if(!right_group) continue;
-          pluginpath=gridftpd::config_next_arg(rest);
+          pluginpath=Arc::ConfigIni::NextArg(rest);
           if(pluginpath.length() == 0) pluginpath="/";
         } else if(command == "hostname") { // should be in [common]
-          hostname=gridftpd::config_next_arg(rest);
+          hostname=Arc::ConfigIni::NextArg(rest);
         } else if(command == "port") {
-          port=gridftpd::config_next_arg(rest);
+          port=Arc::ConfigIni::NextArg(rest);
         } else if(command == "unixmap") {  /* map to local unix user */
           if(!user.mapped()) {
             if(user.mapname(rest.c_str()) == AAA_FAILURE) {
@@ -513,7 +518,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           } else {
             right_group=false;
             for(;;) {
-              std::string group_name=gridftpd::config_next_arg(rest);
+              std::string group_name=Arc::ConfigIni::NextArg(rest);
               if(group_name.length() == 0) break;
               right_group=user.user.select_group(group_name);
               if(right_group) {
@@ -541,7 +546,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           } else {
             right_group=false;
             for(;;) {
-              std::string group_name=gridftpd::config_next_arg(rest);
+              std::string group_name=Arc::ConfigIni::NextArg(rest);
               if(group_name.length() == 0) break;
               right_group=user.user.select_group(group_name);
               if(right_group) {
@@ -568,15 +573,15 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
 int FileRoot::config(globus_ftp_control_auth_info_t *auth,
                      globus_ftp_control_handle_t *handle) {
   /* open and read configuration file */
-  std::ifstream cfile;
-  gridftpd::ConfigSections* cf = NULL;
+  Arc::ConfigFile cfile;
+  Arc::ConfigIni* cf = NULL;
   std::string config_file = config_open_gridftp(cfile);
   if(!cfile.is_open()) {
     logger.msg(Arc::ERROR, "configuration file not found");
     delete cf;
     return 1;
   };
-  cf=new gridftpd::ConfigSections(cfile);
+  cf=new Arc::ConfigIni(cfile);
   cf->AddSection("common");
   cf->AddSection("group");
   cf->AddSection("gridftpd");
@@ -596,7 +601,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   if(!pluginpaths.empty()) pluginpath=pluginpaths.front();
   int r;
   r = config(*cf,pluginpath);
-  gridftpd::config_close(cfile);
+  cfile.close();
   delete cf;
   if(r != 0) return r;
   if(!user.gridmap) {

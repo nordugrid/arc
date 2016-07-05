@@ -112,7 +112,7 @@
 %global with_s3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 16 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
 %global with_gfal 1
 %else
 %global with_gfal 0
@@ -905,8 +905,8 @@ cd -
 %endif
 
 %build
-%if %{?fedora}%{!?fedora:0} >= 23
-# Workaround for too new libsigc++/glibmm in Fedora 23+
+%if %{?fedora}%{!?fedora:0} == 23
+# Workaround for too new libsigc++/glibmm + too old gcc combo in Fedora 23
 export CXXFLAGS="%{optflags} -std=c++11"
 %endif
 
@@ -973,6 +973,11 @@ install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
+
+# The py-compile script in the source tarball is old (RHEL 6)
+# It does the wrong thing for python 3 - remove and let rpmbuild do it right
+find $RPM_BUILD_ROOT -type f -name \*.pyc -exec rm -fv '{}' ';'
+find $RPM_BUILD_ROOT -type f -name \*.pyo -exec rm -fv '{}' ';'
 
 # libarcglobusutils is not part of the ARC api.
 find $RPM_BUILD_ROOT -name libarcglobusutils.so -exec rm -fv '{}' ';'
@@ -1428,6 +1433,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
 %{_datadir}/%{pkgdir}/ssm/brokers.py*
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
+%{_sbindir}/a-rex-backtrace-collect
 
 %if %{with_acix}
 %files acix-core

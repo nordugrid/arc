@@ -7,6 +7,7 @@
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 #include <string>
+#include <list>
 
 namespace Arc {
 
@@ -18,6 +19,9 @@ namespace Arc {
 
   /// Portable function for getting environment variables. Protected by shared lock.
   std::string GetEnv(const std::string& var, bool &found);
+
+  /// Portable function for getting all environment variables. Protected by shared lock.
+  std::list<std::string> GetEnv();
 
   /// Portable function for setting environment variables. Protected by exclusive lock.
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite = true);
@@ -48,7 +52,8 @@ namespace Arc {
   void EnvLockUnwrap(bool all = false);
   /// Use after fork() to reset all internal variables and release all locks.
   /** For use with external libraries using unprotected setenv/getenv in a
-      multi-threaded environment. */
+      multi-threaded environment.
+      This function is deprecated. */
   void EnvLockUnwrapComplete(void);
 
   /// Class to provide automatic locking/unlocking of environment on creation/destruction.

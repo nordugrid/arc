@@ -24,6 +24,8 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-pbs-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
+perflogfilesub="${perflogdir}/submission.perflog"
+
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
@@ -435,7 +437,7 @@ PBS_TRIES=0
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 while [ "$PBS_TRIES" -lt '10' ] ; do
@@ -448,7 +450,7 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-    echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobSiubmission: $t" >> $perflogfile
+    echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobSiubmission: $t" >> $perflogfilesub
   fi
 
   if [ "$PBS_RESULT" -eq '0' ] ; then break ; fi 

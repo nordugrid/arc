@@ -22,6 +22,8 @@ pkgdatadir="$basedir"
 . ${pkgdatadir}/configure-ll-env.sh || exit $?
 . ${pkgdatadir}/submit_common.sh || exit $?
 
+perflogfilesub="${perflogdir}/submission.perflog"
+
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
@@ -303,7 +305,7 @@ echo "ll job script built" 1>&2
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobScriptCreation: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobScriptCreation: $t" >> $perflogfilesub
 fi
 
 # Execute sub command
@@ -322,7 +324,7 @@ LLSUB_RESULT="$?"
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobSubmission: $t" >> $perflogfile
+   echo "[`date +%Y-%m-%d\ %T`] submit-ll-job, JobSubmission: $t" >> $perflogfilesub
 fi
 
 if [ $LLSUB_RESULT -eq '0' ] ; then

@@ -206,9 +206,10 @@ namespace Arc {
 
   /// Type of escaping or encoding to use.
   typedef enum {
-    escape_char,  ///< place the escape character before the character being escaped
-    escape_octal, ///< octal encoding of the character
-    escape_hex    ///< hex encoding of the character
+    escape_char,     ///< place the escape character before the character being escaped
+    escape_octal,    ///< octal encoding of the character
+    escape_hex,      ///< hex encoding of the character (lower case)
+    escape_hex_upper ///< hex encoding of the character (upper case)
   } escape_type;
 
   /// Escape or encode the given chars in str using the escape character esc.

@@ -7,9 +7,9 @@
 #include <dlfcn.h>
 #include <iostream>
 #include <fstream>
+#include <arc/ArcConfigIni.h>
 #include "userspec.h"
 #include "conf.h"
-#include "conf/conf_sections.h"
 #include "conf/daemon.h"
 
 typedef enum {
@@ -216,7 +216,7 @@ class FileRoot {
   int checkfile(const char* name,DirEntry &obj,DirEntry::object_info_level mode);
   int config(globus_ftp_control_auth_info_t* auth,globus_ftp_control_handle_t *handle);
   int config(std::ifstream &cfile,std::string &pluginpath);
-  int config(gridftpd::ConfigSections &cf,std::string &pluginpath);
+  int config(Arc::ConfigIni &cf,std::string &pluginpath);
   static int config(gridftpd::Daemon &daemon,ServerParams* params);
 };
 

@@ -11,7 +11,6 @@
 #include <arc/Logger.h>
 #include <arc/ArcLocation.h>
 
-#include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "auth.h"
 

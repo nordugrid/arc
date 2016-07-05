@@ -477,6 +477,8 @@ sub confcheck($) {
 		"remotegmdirs", "allowreg", "cluster_owner", "authorizedvo",
 		"clustersupport", "opsys", "benchmark", "nodeaccess",
 		"localse", "cacheserver", "cacheaccess");
+  # Blocks which are allowed to be empty
+  my @emptyblocks = ("gangliarc");
 	# valid parameter names and blocks
 	my ($validparams, $validblocks) = validconfparams();
 	my $blockname = undef;
@@ -495,7 +497,7 @@ sub confcheck($) {
 
 		# a new block?
 		if ($line =~ m/^\s*\[(.+)\]\s*$/) {
-			if (defined $blockname and $blockcontents == 0) {
+			if (defined $blockname and $blockcontents == 0 and !grep(/^$blockname$/, @emptyblocks)) {
 				e("$arcconf: Block \"$blockname\" is empty\n");
 			}
 
@@ -668,7 +670,7 @@ sub check_completeness() {
 	}
 	if ($hn_conf) {
 		if ($hn_conf ne "$hn") {
-			e("The entry of the full hostname (".$hn_conf
+			w("The entry of the full hostname (".$hn_conf
 			                      . ") is better\n"
 		            ."   equal to `hostname -f` ($hn).\n"
 		            ."   Also test reverse lookup of the hostname.\n");

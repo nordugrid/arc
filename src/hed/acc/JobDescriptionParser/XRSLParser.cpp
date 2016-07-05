@@ -320,7 +320,7 @@ namespace Arc {
       result.SetFailure();
     }
     if (result) {
-      logger.msg(INFO, "String successfully parsed as %s.", parsed_descriptions.front().GetSourceLanguage());
+      logger.msg(VERBOSE, "String successfully parsed as %s.", parsed_descriptions.front().GetSourceLanguage());
       jobdescs.insert(jobdescs.end(), parsed_descriptions.begin(), parsed_descriptions.end());
     }
     return result;

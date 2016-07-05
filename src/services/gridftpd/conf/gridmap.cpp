@@ -5,8 +5,8 @@
 #include <string>
 #include <fstream>
 #include <arc/StringConv.h>
+#include <arc/ArcConfigIni.h>
 #include "environment.h"
-#include "conf.h"
 #include "gridmap.h"
 
 
@@ -21,7 +21,7 @@ namespace gridftpd {
       Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
-        name=config_next_arg(rest);
+        name=Arc::ConfigIni::NextArg(rest);
       };
       if(name.length() == 0) continue;
       std::string::size_type pos;
@@ -47,7 +47,7 @@ namespace gridftpd {
       Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
-        name=config_next_arg(rest);
+        name=Arc::ConfigIni::NextArg(rest);
       };
       if(name.length() == 0) continue;
       for(std::list<std::string>::iterator u = ulist.begin();

@@ -53,6 +53,18 @@ PyMODVAL (*initfunction)(void)) {
     fprintf(stderr, "Failied adding Python module '%s' to package 'arc', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
   }
+
+  PyObject *sys_modules = PyImport_GetModuleDict();
+  if (!sys_modules) {
+    fprintf(stderr, "Failed to locate sys.modules.\n");
+    PyMOD_RETURN(NULL);
+  }
+  if (PyMapping_SetItemString(sys_modules, const_cast<char *>(modulename),
+      module) == -1) {
+    fprintf(stderr, "Failed to add %s to sys.modules.\n", modulename);
+    PyMOD_RETURN(NULL);  
+  }
+  
   Py_INCREF(module);
   PyMOD_RETURN(module);
 }

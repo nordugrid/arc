@@ -436,20 +436,12 @@ int main(int argc, char* argv[]) {
   if(clean_jobs_list.size() > 0) {
     for(std::list<GMJob*>::iterator job = clean_jobs_list.begin();
                             job != clean_jobs_list.end(); ++job) {
-      bool pending;
-      job_state_t new_state = job_state_read_file((*job)->get_id(), config, pending);
-      if((new_state == JOB_STATE_FINISHED) || (new_state == JOB_STATE_DELETED)) {
-        if(!job_clean_final(**job, config)) {
-          std::cout<<"Job: "<<(*job)->get_id()<<" : ERROR : Failed to clean"<<std::endl;
-        } else {
-          std::cout<<"Job: "<<(*job)->get_id()<<" : Cleaned"<<std::endl;
-        }
+      // Do not clean job directly because it may have delegations locked.
+      // Instead put clean mark and let A-REX do cleaning properly.
+      if(!job_clean_mark_put(**job, config)) {
+        std::cout<<"Job: "<<(*job)->get_id()<<" : ERROR : Failed to put clean mark"<<std::endl;
       } else {
-        if(!job_clean_mark_put(**job, config)) {
-          std::cout<<"Job: "<<(*job)->get_id()<<" : ERROR : Failed to put clean mark"<<std::endl;
-        } else {
-          std::cout<<"Job: "<<(*job)->get_id()<<" : Clean request put"<<std::endl;
-        }
+        std::cout<<"Job: "<<(*job)->get_id()<<" : Clean request put"<<std::endl;
       }
     }
   }

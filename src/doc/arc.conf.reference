@@ -648,14 +648,15 @@
 ## through the A-REX web interface. A rule has three parts:
 ## 1. Regular expression defining a URL pattern
 ## 2. Credential attribute to match against a client's credential
-## 3. Credential value to match against a client's credential
+## 3. Regular expression defining a credential value to match against a
+##    client's credential
 ## A client is allowed to access the cached file if a URL pattern matches the
-## cached file URL and the client's credential has the attribute and value
-## required for that pattern. Possible values for credential attribute are dn,
-## voms:vo, voms:role and voms:group. Remote cache access requires that the
-## A-REX web interface is enabled via arex_mount_point.
+## cached file URL and the client's credential has the attribute and matches
+## the value required for that pattern. Possible values for credential
+## attribute are dn, voms:vo, voms:role and voms:group. Remote cache access
+## requires that the A-REX web interface is enabled via arex_mount_point.
 #cacheaccess="gsiftp://host.org/private/data/.* voms:vo myvo:production"
-#cacheaccess="gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob"
+#cacheaccess="gsiftp://host.org/private/data/ng/.* dn /O=Grid/O=NorduGrid/.*"
 
 ## enable_cache_service yes|no - Turn on or off the cache service interface.
 ## If turned on the cache service must be installed and the A-REX WS interface
@@ -831,17 +832,6 @@
 ## in the [queue/name] configuration block.
 #authplugin="ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy"
 
-## localcred timeout plugin_path - Every time an external executable
-## is run this plugin will be called. Its purpose is to set non-unix
-## permissions/credentials on running tasks. Note: the process itself
-## can still be run under the root account. If plugin_path looks like
-## somename@somepath, then function 'somename' from the shared library
-## located at 'somepath' will be called (timeout is not effective in
-## that case).
-## A-REX must be run as root to use this option.
-## Comment it out unless you really know what you are doing.
-#localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
-
 ## norootpower yes|no - if set to yes, all job management proccesses
 ## will switch to mapped user's identity while accessing session
 ## directory. This is useful if session directory is on NFS
@@ -994,6 +984,10 @@
 ##  without GridFTP interface and hence [gridftpd/jobs] block is missing.
 ##  For more detailed information see section [gridftpd].
 #allowunknown="no"
+
+## delegationdb db_name - specify which DB to use to store delegations.
+##  Currently supported db_names are bdb and sqlite. Default is bdb.
+#delegationdb="bdb"
 
 
 ####################################################################
@@ -1870,7 +1864,7 @@
 ## will cause errors.
 ## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy 
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all 
-## Shares(currently queues).
+## Shares except the one representing the bare queue.
 #authorizedvo="developer.nordugrid.org"
 #authorizedvo="community.nordugrid.org"
 
@@ -2225,10 +2219,12 @@
 ## Add only one VO for each authorizedvo entry. Multiple VOs in the same line
 ## will cause errors.
 ## These entries will be shown in the MappingPolicy objects, that is, 
-## they will apply for the Shares that corresponds to the queue.
+## they will apply for the Shares that corresponds to each VO.
+## A ComputingShare object will be created for the bare queue to 
+## gather overall queue statistics that are NOT VO-related.
 ## NOTE: if you have also configured authorizedvo in the [cluster] block,
-## the result authorized VOs per queue is the union set of what is 
-## contained in the [cluster] and in this [queue] block.
+## the values placed in the [queue/*] blocks will override the values in [cluster].
+## 
 #authorizedvo="LocalUsers"
 #authorizedvo="atlas"
 #authorizedvo="community.nordugrid.org"
@@ -2411,3 +2407,40 @@
 #cacheserver="https://another.host:5443/data/cache"
 
 ####################################################################
+##
+### The [gangliarc] block ##########################################
+##
+## Gangliarc provides monitoring of ARC-specific metrics through ganglia.
+## It can be run with zero configuration or customised with options in the
+## [gangliarc] block.
+#[gangliarc]
+
+## frequency - The period between each information gathering cycle, in seconds.
+## Default is 20.
+#frequency="30"
+
+## gmetric_exec - Path to gmetric executable. Default is /usr/bin/gmetric.
+#gmetric_exec="/usr/local/bin/gmetric"
+
+## logfile - log file of the daemon. Default is /var/log/arc/gangliarc.log.
+#logfile="/tmp/gangliarc.log"
+
+## pidfile - pid file of the daemon. Default is /var/run/gangliarc.pid.
+#pidfile="/tmp/gangliarc.pid"
+
+## python_bin_path - path to python executable. Default is /usr/bin/python.
+#python_bin_path="/usr/local/bin/python"
+
+## metrics - the metrics to be monitored. Default is "all".
+## metrics takes a comma-separated list of one or more of the following metrics:
+## - staging -- number of tasks in different data staging states
+## - cache -- free cache space
+## - session -- free session directory space
+## - heartbeat -- last modification time of A-REX heartbeat 
+## - processingjobs -- the number of jobs currently being processed by ARC (jobs
+##                     between PREPARING and FINISHING states)
+## - failedjobs -- the number of failed jobs per last 100 finished
+## - jobstates -- number of jobs in different A-REX internal stages
+## - all -- all of the above metrics
+#metrics="all"
+

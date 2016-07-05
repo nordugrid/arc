@@ -4,31 +4,38 @@
 
 #include <arc/StringConv.h>
 
-#include "ConfigUtils.h"
-#include "../misc/escaped.h"
+#include "ArcConfigFile.h"
+//#include "../misc/escaped.h"
 
-namespace ARex {
+namespace Arc {
 
-bool config_open(std::ifstream &cfile,const std::string &name) {
-  cfile.open(name.c_str(),std::ifstream::in);
-  return cfile.is_open();
+bool ConfigFile::open(const std::string &name) {
+  close();
+  std::ifstream::open(name.c_str(),std::ifstream::in);
+  return std::ifstream::is_open();
 }
 
-bool config_close(std::ifstream &cfile) {
-  if(cfile.is_open()) cfile.close();
+bool ConfigFile::close(void) {
+  if(std::ifstream::is_open()) std::ifstream::close();
   return true;
 }
 
-std::string config_read_line(std::istream &cfile,std::string &rest,char separator) {
-  rest = config_read_line(cfile);
-  return config_next_arg(rest,separator);
+/*
+std::string ConfigFile::read_line(std::string &rest,char separator) {
+  rest = read_line();
+  return next_arg(rest,separator);
+}
+*/
+
+std::string ConfigFile::read_line() {
+  return read_line(*this);
 }
 
-std::string config_read_line(std::istream &cfile) {
+std::string ConfigFile::read_line(std::istream& stream) {
   std::string rest;
   for(;;) {
-    if(cfile.eof() || cfile.fail()) { rest=""; return rest; };
-    std::getline(cfile,rest);
+    if(stream.eof() || stream.fail()) { rest=""; return rest; };
+    std::getline(stream,rest);
     Arc::trim(rest," \t\r\n");
     if(rest.empty()) continue; /* empty string - skip */
     if(rest[0] == '#') continue; /* comment - skip */
@@ -37,36 +44,38 @@ std::string config_read_line(std::istream &cfile) {
   return rest;
 }
 
-std::string config_next_arg(std::string &rest,char separator) {
+/*
+std::string ConfigFile::next_arg(std::string &rest,char separator) {
   int n;
   std::string arg;
   n=input_escaped_string(rest.c_str(),arg,separator);
   rest=rest.substr(n);
   return arg;
 }    
+*/
 
-config_file_type config_detect(std::istream& in) {
+ConfigFile::file_type ConfigFile::detect() {
   char inchar;
-  if (!in.good()) return config_file_unknown;
-  while(in.good()) {
-    inchar = (char)(in.get());
+  if (!good()) return file_unknown;
+  while(good()) {
+    inchar = (char)(get());
     if(isspace(inchar)) continue;
     if(inchar == '<') {
       // XML starts from < even if it is comment
-      in.putback(inchar);
-      return config_file_XML;
+      putback(inchar);
+      return file_XML;
     };
     if((inchar == '#') || (inchar = '[')) {
       // INI file starts from comment or section
-      in.putback(inchar);
-      return config_file_INI;
+      putback(inchar);
+      return file_INI;
     };
   };
-  in.putback(inchar);
-  return config_file_unknown;
+  putback(inchar);
+  return file_unknown;
 }
 
-
+/*
 bool elementtobool(Arc::XMLNode pnode,const char* ename,bool& val,Arc::Logger* logger) {
   std::string v = ename?pnode[ename]:pnode;
   if(v.empty()) return true; // default
@@ -122,5 +131,7 @@ bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* con
   }; 
   return false;
 }
+*/
 
-} // namespace ARex
+} // namespace Arc
+

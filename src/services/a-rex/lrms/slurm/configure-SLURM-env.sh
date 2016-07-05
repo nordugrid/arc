@@ -28,8 +28,7 @@ unset perflogfile
 enable_perflog=${CONFIG_enable_perflog_reporting:-no}
 if [ "$CONFIG_enable_perflog_reporting" == "yes" ]; then
    perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
-   d=`date +%F`
-   perflogfile="${perflogdir}/backends${d}.perflog"
+   perflogfile="${perflogdir}/backends.perflog"
 fi
 
 

@@ -14,7 +14,6 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 
-#include "ConfigUtils.h"
 #include "CoreConfig.h"
 #include "../run/RunParallel.h"
 
@@ -67,9 +66,9 @@ GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
 void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
+  jobs_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
-  cred_plugin = NULL;
   delegations = NULL;
 
   share_uid = 0;
@@ -270,6 +269,11 @@ std::string GMConfig::DelegationDir() const {
 
 GMConfig::deleg_db_t GMConfig::DelegationDBType() const {
   return deleg_db;
+}
+
+const std::string & GMConfig::ForcedVOMS(const char * queue) const {
+  std::map<std::string,std::string>::const_iterator pos = forced_voms.find(queue);
+  return (pos == forced_voms.end()) ? empty_string : pos->second;
 }
 
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {

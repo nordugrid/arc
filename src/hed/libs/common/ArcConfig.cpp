@@ -68,6 +68,30 @@ namespace Arc {
     out.close();
   }
 
+  bool Config::elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* const opts[]) {
+    std::string v = ename?pnode[ename]:pnode;
+    if(v.empty()) return true; // default
+    for(int n = 0;opts[n];++n) {
+      if(v == opts[n]) { val = n; return true; };
+    }; 
+    return false;
+  }
+
+  bool Config::elementtobool(Arc::XMLNode pnode,const char* ename,bool& val) {
+    std::string v = ename?pnode[ename]:pnode;
+    if(v.empty()) return true; // default
+    if((v == "true") || (v == "1")) {
+      val=true;
+      return true;
+    };
+    if((v == "false") || (v == "0")) {
+      val=false;
+      return true;
+    };
+    return false;
+  }
+
+
   BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()) {}
 
   void BaseConfig::AddPluginsPath(const std::string& path) {

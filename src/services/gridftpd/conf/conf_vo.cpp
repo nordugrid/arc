@@ -2,14 +2,13 @@
 #include <config.h>
 #endif
 
-#include "conf.h"
 #include "environment.h"
 
 #include "conf_vo.h"
 
 namespace gridftpd {
 
-  int config_vo(AuthUser& user,ConfigSections& sect,std::string& cmd,std::string& rest,Arc::Logger* logger) {
+  int config_vo(AuthUser& user,Arc::ConfigIni& sect,std::string& cmd,std::string& rest,Arc::Logger* logger) {
     if(strcmp(sect.SectionMatch(),"vo") != 0) return 1;
     if(cmd.length() == 0) return 1;
     std::string voname = sect.SubSection();
@@ -35,7 +34,7 @@ namespace gridftpd {
     return 0;
   }
 
-  int config_vo(std::list<AuthVO>& vos,ConfigSections& sect,std::string& cmd,std::string& rest,Arc::Logger* logger) {
+  int config_vo(std::list<AuthVO>& vos,Arc::ConfigIni& sect,std::string& cmd,std::string& rest,Arc::Logger* logger) {
     if(strcmp(sect.SectionMatch(),"vo") != 0) return 1;
     if(cmd.length() == 0) return 1;
     std::string voname = sect.SubSection();
@@ -64,8 +63,8 @@ namespace gridftpd {
   // vo name filename etc.
   int config_vo(AuthUser& user,const std::string& cmd,std::string& rest,Arc::Logger* logger) {
     if(cmd != "vo") return 1;
-    std::string voname = config_next_arg(rest);
-    std::string vofile = config_next_arg(rest);
+    std::string voname = Arc::ConfigIni::NextArg(rest);
+    std::string vofile = Arc::ConfigIni::NextArg(rest);
     if(voname.empty()) {
       logger->msg(Arc::WARNING, "Configuration section [vo] is missing name. Check for presence of name= or vo= option.");
       return -1;
@@ -76,8 +75,8 @@ namespace gridftpd {
 
   int config_vo(std::list<AuthVO>& vos,const std::string& cmd,std::string& rest,Arc::Logger* logger) {
     if(cmd != "vo") return 1;
-    std::string voname = config_next_arg(rest);
-    std::string vofile = config_next_arg(rest);
+    std::string voname = Arc::ConfigIni::NextArg(rest);
+    std::string vofile = Arc::ConfigIni::NextArg(rest);
     if(voname.empty()) {
       logger->msg(Arc::WARNING, "Configuration section [vo] is missing name. Check for presence of name= or vo= option.");
       return -1;

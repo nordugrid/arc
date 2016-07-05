@@ -139,10 +139,41 @@ namespace ArcDMCRucio {
     DataStatus r = checkToken(token);
     if (!r) return r;
 
+    bool osresolve = (url.Path().find("/objectstores/") != std::string::npos);
+
+    // Check if Rucio path is ok: read/write to objectstores and read only from replicas
+    if (!osresolve && !(source && url.Path().find("/replicas/") != std::string::npos)) {
+      logger.msg(ERROR, "Bad path for %s: Rucio supports read/write at /objectstores and read-only at /replicas", url.str());
+      return DataStatus(source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError, EINVAL, "Bad path for Rucio");
+    }
+
+    // Call Rucio to get a signed URL for the location
+
     std::string content;
     r = queryRucio(content, token);
     if (!r) return r;
-    return parseLocations(content);
+    if (!osresolve) {
+      return parseLocations(content);
+    }
+
+    // content should be a signed URL
+    URL osurl(content, true);
+    if (!osurl) {
+      logger.msg(ERROR, "Can't handle URL %s", osurl.str());
+      return DataStatus(source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError, EINVAL, "Bad signed URL returned from Rucio");
+    }
+    // Add URL options to replicas
+    for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
+         opt != url.CommonLocOptions().end(); opt++)
+      osurl.AddOption(opt->first, opt->second, false);
+    for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
+         opt != url.Options().end(); opt++)
+      osurl.AddOption(opt->first, opt->second, false);
+    // OS doesn't accept absolute URIs
+    osurl.AddOption("relativeuri=yes");
+
+    AddLocation(osurl, osurl.Host());
+    return DataStatus::Success;
   }
 
   DataStatus DataPointRucio::Resolve(bool source, const std::list<DataPoint*>& urls) {
@@ -202,14 +233,17 @@ namespace ArcDMCRucio {
   }
 
   DataStatus DataPointRucio::PreRegister(bool replication, bool force) {
+    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PreRegisterError, ENOTSUP, "Writing to Rucio is not supported");
   }
 
   DataStatus DataPointRucio::PostRegister(bool replication) {
+    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PostRegisterError, ENOTSUP, "Writing to Rucio is not supported");
   }
 
   DataStatus DataPointRucio::PreUnregister(bool replication) {
+    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from Rucio is not supported");
   }
 
@@ -301,7 +335,12 @@ namespace ArcDMCRucio {
       return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
     }
     if (transfer_info.code != 200) {
-      return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting server: %s" + transfer_info.reason);
+      std::string errormsg(transfer_info.reason);
+      // Extract Rucio exception if any
+      if (transfer_info.headers.find("HTTP:exceptionmessage") != transfer_info.headers.end()) {
+        errormsg += ": " + transfer_info.headers.find("HTTP:exceptionmessage")->second;
+      }
+      return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting server: " + errormsg);
     }
     PayloadStreamInterface* instream = NULL;
     try {

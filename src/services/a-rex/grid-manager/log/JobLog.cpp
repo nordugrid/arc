@@ -18,7 +18,6 @@
 #include "../files/ControlFileContent.h"
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
-#include "../misc/escaped.h"
 #include "JobLog.h"
 
 namespace ARex {
@@ -115,6 +114,10 @@ bool JobLog::RunReporter(const GMConfig &config) {
   };
   if(time(NULL) < (last_run+period)) return true; // default: once per hour
   last_run=time(NULL);
+  if (logger_name.empty()) {
+    logger.msg(Arc::ERROR,": Logger name is not specified");
+    return false;
+  }
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger_name;
   cmd += " -L";  // for long format of logging
   if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
@@ -127,7 +130,12 @@ bool JobLog::RunReporter(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Failure creating slot for reporter child process");
     return false;
   };
-  proc->AssignInitializer(&initializer,(void*)&config);
+  std::string errlog = config.ControlDir() + "/job.logger.errors"; // backward compatibility
+  JobLog* joblog = config.GetJobLog();
+  if(joblog) {
+    if(!joblog->logfile.empty()) errlog = joblog->logfile;
+  };
+  proc->AssignInitializer(&initializer,(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", cmd);
   if(!proc->Start()) {
     delete proc;
@@ -202,27 +210,14 @@ JobLog::~JobLog(void) {
 }
 
 void JobLog::initializer(void* arg) {
-  GMConfig& config = *(GMConfig*)arg;
-  JobLog* joblog = config.GetJobLog();
-  // set good umask
-  ::umask(0077);
-  // close all handles inherited from parent
-  struct rlimit lim;
-  rlim_t max_files = RLIM_INFINITY;
-  if(::getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
-  if(max_files == RLIM_INFINITY) max_files=4096; // sane number
-  for(int i=0;i<max_files;i++) { ::close(i); };
+  char const * errlog = (char const *)arg;
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY);
   if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
   h=::open("/dev/null",O_WRONLY);
   if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
-  std::string errlog = config.ControlDir() + "/job.logger.errors"; // backward compatibility
-  if(joblog) {
-    if(!joblog->logfile.empty()) errlog = joblog->logfile;
-  };
-  h=::open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+  h=errlog ? ::open(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR) : -1;
   if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
 }

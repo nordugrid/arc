@@ -5,6 +5,7 @@ JURA_CLIENT =
 endif
 
 SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema
+DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check
@@ -15,6 +16,7 @@ else
 AREX_SCRIPT =
 endif
 initd_SCRIPTS = $(AREX_SCRIPT)
+sbin_SCRIPTS = a-rex-backtrace-collect
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 

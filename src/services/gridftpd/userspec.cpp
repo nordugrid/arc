@@ -11,8 +11,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <arc/ArcConfigIni.h>
+
 #include "userspec.h"
-#include "misc/escaped.h"
 #include "conf.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"userspec_t");
@@ -56,11 +57,11 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
     if((*p) == '#') continue;
     if((*p) == 0) continue;
     std::string val;
-    int n = gridftpd::input_escaped_string(p,val);
+    int n = Arc::ConfigIni::NextArg(p,val);
     if(strcmp(val.c_str(),dn) != 0) continue;
     p+=n;
     if(user) {
-      n=gridftpd::input_escaped_string(p,val);
+      n=Arc::ConfigIni::NextArg(p,val);
       *user=strdup(val.c_str());
     };
     f.close();
@@ -80,8 +81,8 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   if(cfg) config_file = cfg;
   if(auth == NULL) return false;
   if(auth->auth_gssapi_subject == NULL) return false;
-  std::string subject = auth->auth_gssapi_subject;
-  gridftpd::make_unescaped_string(subject);
+  std::string subject;
+  Arc::ConfigIni::NextArg(auth->auth_gssapi_subject,subject,'\0','\0');
   char* name=NULL;
   char* gname=NULL;
   if(!check_gridmap(subject.c_str(),&name)) {

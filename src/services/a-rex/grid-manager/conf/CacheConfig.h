@@ -4,10 +4,10 @@
 #include <arc/ArcRegex.h>
 #include <arc/User.h>
 #include <arc/XMLNode.h>
+#include <arc/ArcConfigIni.h>
 
 namespace ARex {
 
-class ConfigSections;
 class GMConfig;
 
 /**
@@ -33,7 +33,7 @@ class CacheConfig {
   struct CacheAccess {
     Arc::RegularExpression regexp;
     std::string cred_type;
-    std::string cred_value;
+    Arc::RegularExpression cred_value;
   };
  private:
    /**
@@ -81,7 +81,7 @@ class CacheConfig {
   /**
    * Parsers for the two different conf styles
    */
-  void parseINIConf(ConfigSections& cf);
+  void parseINIConf(Arc::ConfigIni& cf);
   void parseXMLConf(const Arc::XMLNode& cfg);
  public:
    /**
