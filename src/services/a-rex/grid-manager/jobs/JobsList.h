@@ -48,7 +48,7 @@ class JobsList {
 
   std::list<GMJob> jobs;              // List of jobs currently tracked in memory
 
-  std::list<JobId> jobs_processing;   // List of jobs currently being processed
+  std::list<JobId> jobs_processing;   // List of jobs currently scheduled for processing
   Glib::Mutex jobs_processing_lock;
 
   std::list<JobId> jobs_attention;    // List of jobs which need attention

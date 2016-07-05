@@ -11,6 +11,8 @@
 
 namespace ARex {
 
+static Arc::Logger& logger = Arc::Logger::getRootLogger();
+
 GMJob::job_state_rec_t const GMJob::states_all[JOB_STATE_NUM] = {
   { "ACCEPTED",   ' ' }, // JOB_STATE_ACCEPTED
   { "PREPARING",  'b' }, // JOB_STATE_PREPARING
@@ -67,12 +69,15 @@ GMJob::GMJob(void) {
   child=NULL;
   local=NULL;
   start_time=time(NULL);
+  ref_count = 0;
 }
 
+// Deprecated
 GMJob::GMJob(const GMJob &job) {
   operator=(job);
 }
 
+// Deprecated
 GMJob& GMJob::operator=(const GMJob &job) {
   job_state=job.job_state;
   job_pending=job.job_pending;
@@ -87,6 +92,7 @@ GMJob& GMJob::operator=(const GMJob &job) {
   user=job.user;
   transfer_share=job.transfer_share;
   start_time=job.start_time;
+  ref_count = 0;
   return *this;
 }
 
@@ -102,6 +108,7 @@ GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state
   user=u;
   transfer_share=JobLocalDescription::transfersharedefault;
   start_time=time(NULL);
+  ref_count = 0;
 }
 
 GMJob::~GMJob(void){
@@ -112,6 +119,28 @@ GMJob::~GMJob(void){
     child=NULL;
   }
   delete local;
+}
+
+void GMJob::AddReference(void) {
+  Glib::Mutex::Lock lock(ref_count_lock);
+  ++ref_count;
+}
+
+void GMJob::RemoveReference(void) {
+  Glib::Mutex::Lock lock(ref_count_lock);
+  if(--ref_count == 0) {
+    logger.msg(Arc::ERROR,"%s: Job monitoring is unintentionally lost",job_id);
+    delete this;
+  };
+}
+
+void GMJob::DestroyReference(void) {
+  Glib::Mutex::Lock lock(ref_count_lock);
+  if(--ref_count == 0) {
+    delete this;
+  } else {
+    logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with active references ",job_id);
+  };
 }
 
 JobLocalDescription* GMJob::GetLocalDescription(const GMConfig& config) {

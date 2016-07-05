@@ -33,9 +33,12 @@ enum job_state_t {
 /// numbers and letters.
 typedef std::string JobId;
 
+class GMJobRef;
+
 /// Represents a job in memory as it passes through the JobsList state machine.
 class GMJob {
  friend class JobsList;
+ friend class GMJobRef;
  private:
   // State of the job (state machine)
   job_state_t job_state;
@@ -67,6 +70,20 @@ class GMJob {
   };
   /// Maps job state to state name and flag for email at that state
   static job_state_rec_t const states_all[JOB_STATE_NUM];
+
+  Glib::Mutex ref_count_lock;
+  int ref_count;
+
+  /// Inform job it has new GMJobRef associated
+  void AddReference(void);
+
+  /// Inform job that GMJobRef was destroyed
+  void RemoveReference(void);
+
+  /// Inform job that GMJobRef intends to destroy job
+  void DestroyReference(void);
+
+
  public:
   // external utility being run to perform tasks like stage-in/out,
   //   submit/cancel. (todo - move to private)
@@ -110,6 +127,40 @@ class GMJob {
   void Start() { start_time = time(NULL); };
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);
+};
+
+class GMJobRef {
+private:
+  GMJob* job_;
+
+public:
+  GMJobRef(GMJob* job) {
+    job_ = job;
+    if(job_) job_->AddReference();
+  }
+
+  GMJobRef(GMJobRef const& other) {
+    job_ = other.job_;
+    if(job_) job_->AddReference();
+  }
+
+  ~GMJobRef() {
+    if (job_) job_->RemoveReference();
+  }
+
+  GMJob& operator*() const {
+    return *job_;
+  }
+
+  GMJob* operator->() const {
+    return job_;
+  }
+
+  void Destroy() {
+    if (job_) job_->DestroyReference();
+    job_ = NULL;
+  }
+
 };
 
 } // namespace ARex
