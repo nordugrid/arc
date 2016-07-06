@@ -1179,7 +1179,7 @@ sub collect($) {
         
     my $getMappingPolicies = sub {
 	   my ($shareID, $sharename) = @_;
-	   return undef unless my ($id, $policy) = each @{$GLUE2shares->{$sharename}{MappingPolicies}};
+	   return undef unless my ($id, $policy) = each %{$GLUE2shares->{$sharename}{MappingPolicies}};
        my $sub = $mappingpolicies->{$policy};
        return &{$sub}($shareID, $sharename);
     };
