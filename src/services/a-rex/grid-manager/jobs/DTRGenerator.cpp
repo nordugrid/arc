@@ -81,7 +81,7 @@ void DTRGenerator::thread() {
       processReceivedDTR(*it_dtrs);
       event_lock.lock();
       // delete DTR LogDestinations
-      (*it_dtrs)->get_logger()->deleteDestinations();
+      (*it_dtrs)->clean_log_destinations();
       it_dtrs = dtrs_received.erase(it_dtrs);
     }
 
@@ -114,7 +114,7 @@ void DTRGenerator::thread() {
   while (it_dtrs != dtrs_received.end()) {
     processReceivedDTR(*it_dtrs);
     // delete DTR LogDestinations
-    (*it_dtrs)->get_logger()->deleteDestinations();
+    (*it_dtrs)->clean_log_destinations();
     it_dtrs = dtrs_received.erase(it_dtrs);
   }
   run_condition.signal();

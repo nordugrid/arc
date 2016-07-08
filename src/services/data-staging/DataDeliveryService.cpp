@@ -64,7 +64,7 @@ namespace DataStaging {
           }
           archived_dtrs_lock.unlock();
           // clean up DTR memory - delete DTR LogDestinations
-          if (dtr->get_logger()) dtr->get_logger()->deleteDestinations();
+          dtr->clean_log_destinations();
           active_dtrs.erase(i++);
         }
         else ++i;
@@ -234,7 +234,7 @@ namespace DataStaging {
         }
         // Erase this DTR from active list
         logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, i->first->get_status().str());
-        if (i->first->get_logger()) i->first->get_logger()->deleteDestinations();
+        i->first->clean_log_destinations();
         active_dtrs.erase(i);
       }
       active_dtrs_lock.unlock();
@@ -428,7 +428,7 @@ namespace DataStaging {
         return Arc::MCC_Status(Arc::STATUS_OK);
       }
       // Terminal state -  clean up DTR LogDestinations
-      if (dtr->get_logger()) dtr->get_logger()->deleteDestinations();
+      dtr->clean_log_destinations();
       //delete dtr_it->second;
       active_dtrs.erase(dtr_it);
       active_dtrs_lock.unlock();
