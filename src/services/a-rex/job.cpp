@@ -808,21 +808,23 @@ bool ARexJob::delete_job_id(void) {
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
   ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
-  // TODO: Remove ASAP
-  jobs.ScanAllJobs();
-  return jobs.size();
+  return jobs.CountAllJobs();
 }
 
+// TODO: optimize
 std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
   ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
-  // TODO: Remove ASAP
-  jobs.ScanAllJobs();
-  JobsList::iterator i = jobs.begin();
-  for(;i!=jobs.end();++i) {
-    ARexJob job(i->get_id(),config,logger,true);
-    if(job) jlist.push_back(i->get_id());
+  jobs.GetAllJobIds(jlist);
+  std::list<std::string>::iterator i = jlist.begin();
+  while(i!=jlist.end()) {
+    ARexJob job(*i,config,logger,true);
+    if(job) {
+      ++i;
+    } else {
+      i = jlist.erase(i);
+    };
   };
   return jlist;
 }

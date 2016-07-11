@@ -98,7 +98,8 @@ class JobsList {
   bool valid;
 
   std::map<JobId,GMJobRef> jobs;         // List of jobs currently tracked in memory
-                                         // conveniently indexed by identifier
+                                         // conveniently indexed by identifier.
+                                         // TODO: It would be nice to remove it.
 
   std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
   Glib::Mutex jobs_processing_lock;
@@ -160,7 +161,7 @@ class JobsList {
   // into account what was already transferred
   bool RecreateTransferLists(GMJobRef i);
   // Read into ids all jobs in the given dir except those already handled
-  bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
+  bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const;
   // Check and read into id information about job in the given dir 
   // (id has job id filled on entry) unless job is already handled
   bool ScanJob(const std::string& cdir,JobFDesc& id);
@@ -175,7 +176,7 @@ class JobsList {
   // Calculate job expiration time from last state change and configured lifetime
   time_t PrepareCleanupTime(GMJobRef i, time_t& keep_finished);
   // Read in information from .local file
-  bool GetLocalDescription(GMJobRef i);
+  bool GetLocalDescription(GMJobRef i) const;
   // Modify job state, log that change and optionally log modification reson
   void SetJobState(GMJobRef i, job_state_t new_state, const char* reason = NULL);
   // Update content of job proxy file with one stored in delegations store
@@ -301,6 +302,7 @@ class JobsList {
 
   // Return iterator to object matching given id or jobs.end() if not found
   GMJobRef FindJob(const JobId &id);
+  bool HasJob(const JobId &id) const;
   // Information about jobs for external utilities
   // No of jobs in all active states from ACCEPTED and FINISHING
   int AcceptedJobs() const;
@@ -338,17 +340,21 @@ class JobsList {
   // Look for old job with specified id. Job is added to list with its current state
   bool ScanOldJob(const JobId& id);
 
-  // Collect all jobs in all states
-  // TODO: Only used in gm-jobs - remove.
-  bool ScanAllJobs(void);
-
   // Pick jobs which have been marked for restarting, cancelling or cleaning
   bool ScanNewMarks(void);
 
-  // Add job with specified id. 
-  // Returns true if job was found and added.
+  // Collect all jobs in all states
   // TODO: Only used in gm-jobs - remove.
-  bool AddJob(const JobId& id);
+  bool GetAllJobs(std::list<GMJobRef>& alljobs) const;
+
+  bool GetAllJobIds(std::list<JobId>& alljobs) const;
+
+  // Add job with specified id. 
+  // Returns valid reference if job was found and added.
+  // TODO: Only used in gm-jobs - remove.
+  GMJobRef GetJob(const JobId& id) const;
+
+  int CountAllJobs() const;
 
   // Rearrange status files on service restart
   bool RestartJobs(void);

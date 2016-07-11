@@ -244,6 +244,7 @@ int main(int argc, char* argv[]) {
   unsigned int jobs_total = 0;
   std::list<GMJob*> cancel_jobs_list;
   std::list<GMJob*> clean_jobs_list;
+  std::list<GMJobRef> alljobs;
 
   if((!notshow_jobs) || (!notshow_states) || (show_share) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
@@ -254,14 +255,17 @@ int main(int argc, char* argv[]) {
     }
     if(filter_jobs.size() > 0) {
       for(std::list<std::string>::iterator id = filter_jobs.begin(); id != filter_jobs.end(); ++id) {
-        jobs.AddJob(*id);
+        GMJobRef jref = jobs.GetJob(*id);
+        if(jref) alljobs.push_back(jref);
       }
     } else {
-      jobs.ScanAllJobs();
+      jobs.GetAllJobs(alljobs);
     }
-    for (JobsList::iterator i=jobs.begin(); i!=jobs.end(); ++i) {
+    for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) {
       // Collecting information
       bool pending;
+      GMJobRef i = *ji;
+      if(!i) continue;
       job_state_t new_state = job_state_read_file(i->get_id(), config, pending);
       if (new_state == JOB_STATE_UNDEFINED) {
         std::cout<<"Job: "<<i->get_id()<<" : ERROR : Unrecognizable state"<<std::endl;
