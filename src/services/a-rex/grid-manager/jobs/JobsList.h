@@ -37,28 +37,80 @@ public:
 };
 
 
+class GMJobRef {
+private:
+  GMJob* job_;
+
+public:
+  GMJobRef() {
+    job_ = NULL;
+  }
+
+  GMJobRef(GMJob* job) {
+    job_ = job;
+    if(job_) job_->AddReference();
+  }
+
+  GMJobRef(GMJobRef const& other) {
+    job_ = other.job_;
+    if(job_) job_->AddReference();
+  }
+
+  ~GMJobRef() {
+    if (job_) job_->RemoveReference();
+  }
+
+  GMJobRef& operator=(GMJobRef const& other) {
+    if (job_) job_->RemoveReference();
+    job_ = other.job_;
+    if(job_) job_->AddReference();
+  }
+
+  operator bool() const {
+    return job_ != NULL;
+  }
+
+  bool operator!() const {
+    return job_ == NULL;
+  }
+
+  GMJob& operator*() const {
+    return *job_;
+  }
+
+  GMJob* operator->() const {
+    return job_;
+  }
+
+  void Destroy() {
+    if (job_) job_->DestroyReference();
+    job_ = NULL;
+  }
+};
+
 /// List of jobs. This class contains the main job management logic which moves
 /// jobs through the state machine. New jobs found through Scan methods are
 /// held in memory until reaching FINISHED state.
 class JobsList {
  public:
-  typedef std::list<GMJob>::iterator iterator;
+//  typedef std::map<JobId,GMJob>::iterator iterator;
  private:
   bool valid;
 
-  std::list<GMJob> jobs;              // List of jobs currently tracked in memory
+  std::map<JobId,GMJobRef> jobs;         // List of jobs currently tracked in memory
+                                         // conveniently indexed by identifier
 
-  std::list<JobId> jobs_processing;   // List of jobs currently scheduled for processing
+  std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
   Glib::Mutex jobs_processing_lock;
 
-  std::list<JobId> jobs_attention;    // List of jobs which need attention
+  std::list<GMJobRef> jobs_attention;    // List of jobs which need attention
   Glib::Mutex jobs_attention_lock;
   Arc::SimpleCondition jobs_attention_cond;
 
-  std::list<JobId> jobs_polling;      // List of jobs which need polling soon
+  std::list<GMJobRef> jobs_polling;      // List of jobs which need polling soon
   Glib::Mutex jobs_polling_lock;
 
-  std::list<JobId> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
+  std::list<GMJobRef> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
   Glib::Mutex jobs_wait_for_running_lock;
 
 
@@ -82,14 +134,10 @@ class JobsList {
   int jobs_pending;
 
   // Add job into list without checking if it is already there.
-  // 'i' will be set to iterator pointing at new job
-  bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid,job_state_t state = JOB_STATE_UNDEFINED);
-
-  // Add job into list without checking if it is already there
   bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state = JOB_STATE_UNDEFINED);
 
   // Perform all actions necessary in case of job failure
-  bool FailedJob(const iterator &i,bool cancel);
+  bool FailedJob(GMJobRef i,bool cancel);
 
   // Remove Job from list. All corresponding files are deleted and pointer is
   // advanced. If finished is false - job is not destroyed if it is FINISHED
@@ -97,51 +145,52 @@ class JobsList {
   // false if external process is still running.
   //bool DestroyJob(iterator &i,bool finished=true,bool active=true);
   // Perform actions necessary in case job goes to/is in SUBMITTING/CANCELING state
-  bool state_submitting(const iterator &i,bool &state_changed);
-  bool state_canceling(const iterator &i,bool &state_changed);
+  bool state_submitting(GMJobRef i,bool &state_changed);
+  bool state_canceling(GMJobRef i,bool &state_changed);
   // Same for PREPARING/FINISHING
-  bool state_loading(const iterator &i,bool &state_changed,bool up);
+  bool state_loading(GMJobRef i,bool &state_changed,bool up);
   // Returns true if job is waiting on some condition or limit before
   // progressing to the next state
-  bool JobPending(JobsList::iterator &i);
+  bool JobPending(GMJobRef i);
   // Get the state in which the job failed from .local file
-  job_state_t JobFailStateGet(const iterator &i);
+  job_state_t JobFailStateGet(GMJobRef i);
   // Write the state in which the job failed to .local file
-  bool JobFailStateRemember(const iterator &i,job_state_t state,bool internal = true);
+  bool JobFailStateRemember(GMJobRef i,job_state_t state,bool internal = true);
   // In case of job restart, recreates lists of input and output files taking
   // into account what was already transferred
-  bool RecreateTransferLists(const JobsList::iterator &i);
-  // Read into ids all jobs in the given dir
+  bool RecreateTransferLists(GMJobRef i);
+  // Read into ids all jobs in the given dir except those already handled
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
-  // Check and read into id nformation about job in the given dir (id has job if filled on entry)
+  // Check and read into id information about job in the given dir 
+  // (id has job id filled on entry) unless job is already handled
   bool ScanJob(const std::string& cdir,JobFDesc& id);
   // Read into ids all jobs in the given dir with marks given by suffices
-  // (corresponding to file suffixes)
+  // (corresponding to file suffixes) except those of jobs already handled
   bool ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids);
   // Called after service restart to move jobs that were processing to a
   // restarting state
   bool RestartJobs(const std::string& cdir,const std::string& odir);
   // Release delegation after job finishes
-  void UnlockDelegation(JobsList::iterator &i);
+  void UnlockDelegation(GMJobRef i);
   // Calculate job expiration time from last state change and configured lifetime
-  time_t PrepareCleanupTime(JobsList::iterator &i, time_t& keep_finished);
+  time_t PrepareCleanupTime(GMJobRef i, time_t& keep_finished);
   // Read in information from .local file
-  bool GetLocalDescription(const JobsList::iterator &i);
+  bool GetLocalDescription(GMJobRef i);
   // Modify job state, log that change and optionally log modification reson
-  void SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason = NULL);
+  void SetJobState(GMJobRef i, job_state_t new_state, const char* reason = NULL);
   // Update content of job proxy file with one stored in delegations store
-  void UpdateJobCredentials(JobsList::iterator &i);
+  void UpdateJobCredentials(GMJobRef i);
 
   // Main job processing method. Analyze current state of job, perform
   // necessary actions and advance state or remove job if needed. Iterator 'i'
   // is advanced or erased inside this function.
-  bool ActJob(iterator &i);
+  bool ActJob(GMJobRef& i);
 
-  // Helper method for ActJob. Finishes processing of job and advances iterator to next one.
-  iterator NextJob(iterator i, job_state_t old_state, bool old_pending);
+  // Helper method for ActJob. Finishes processing of job.
+  bool NextJob(GMJobRef i, job_state_t old_state, bool old_pending);
 
-  // Helper method for ActJob. Finishes processing of job, removes it from list and advances iterator to next one.
-  iterator DropJob(iterator i, job_state_t old_state, bool old_pending);
+  // Helper method for ActJob. Finishes processing of job, removes it from list.
+  bool DropJob(GMJobRef& i, job_state_t old_state, bool old_pending);
 
   enum ActJobResult {
     JobSuccess,
@@ -161,44 +210,44 @@ class JobsList {
   //   JobDropped - job does not need any further processing and should
   //      be removed from memory. This result to be removed in a future
   //      when automatic job unloading from RAM is implemented.
-  ActJobResult ActJobUndefined(iterator i);
-  ActJobResult ActJobAccepted(iterator i);
-  ActJobResult ActJobPreparing(iterator i);
-  ActJobResult ActJobSubmitting(iterator i);
-  ActJobResult ActJobCanceling(iterator i);
-  ActJobResult ActJobInlrms(iterator i);
-  ActJobResult ActJobFinishing(iterator i);
-  ActJobResult ActJobFinished(iterator i);
-  ActJobResult ActJobDeleted(iterator i);
+  ActJobResult ActJobUndefined(GMJobRef i);
+  ActJobResult ActJobAccepted(GMJobRef i);
+  ActJobResult ActJobPreparing(GMJobRef i);
+  ActJobResult ActJobSubmitting(GMJobRef i);
+  ActJobResult ActJobCanceling(GMJobRef i);
+  ActJobResult ActJobInlrms(GMJobRef i);
+  ActJobResult ActJobFinishing(GMJobRef i);
+  ActJobResult ActJobFinished(GMJobRef i);
+  ActJobResult ActJobDeleted(GMJobRef i);
 
   // Special processing method for job processing failure
-  ActJobResult ActJobFailed(iterator i);
+  ActJobResult ActJobFailed(GMJobRef i);
 
   // Checks and processes user's request to cancel job.
   // Returns false if job was not modified (canceled or
   // failed) and true if canceling/modification took place.
-  bool CheckJobCancelRequest(JobsList::iterator i);
+  bool CheckJobCancelRequest(GMJobRef i);
 
   // Checks job state against continuation plugins.
   // Returns false if job is not allowed to continue.
-  bool CheckJobContinuePlugins(JobsList::iterator i);
+  bool CheckJobContinuePlugins(GMJobRef i);
 
   // Call ActJob for all jobs in processing queue
   bool ActJobsProcessing(void);
 
   // Inform this instance that job with specified id needs immediate re-processing
-  bool RequestReprocess(const JobId& id);
+  bool RequestReprocess(GMJobRef i);
 
   // Similar to RequestAttention but jobs does not need immediate attention.
   // These jobs will be processed when polling period elapses.
   // This method/queue to be removed when even driven processing implementation
   // becomes stable.
-  bool RequestPolling(const JobId& id);
+  bool RequestPolling(GMJobRef i);
 
   // Register job as waiting for limit for running jobs to be cleared.
   // This method does not have corresponding ActJobs*. Instead these jobs
   // are handled by ActJobsAttention if corresponding condition is met.
-  bool RequestWaitForRunning(const JobId& id);
+  bool RequestWaitForRunning(GMJobRef i);
 
   // Even slower polling. Typically once per 24 hours.
   // This queue is meant for FINISHED and DELETED jobs.
@@ -209,7 +258,7 @@ class JobsList {
   // assigned for immediate processing.
   // Note: In current implementation this method does nothing because
   // <control_dir>/finished/ is used as slow queue.
-  bool RequestSlowPolling(const JobId& id);
+  bool RequestSlowPolling(GMJobRef i);
   
   // Incrementally scan through old jobs in order to check for 
   // removal time
@@ -245,13 +294,13 @@ class JobsList {
   operator bool(void) { return valid; };
   bool operator!(void) { return !valid; };
   // std::list methods for using JobsList like a regular list
-  iterator begin(void) { return jobs.begin(); };
-  iterator end(void) { return jobs.end(); };
-  size_t size(void) const { return jobs.size(); };
-  iterator erase(iterator& i) { return jobs.erase(i); };
+  //iterator begin(void) { return jobs.begin(); };
+  //iterator end(void) { return jobs.end(); };
+  //size_t size(void) const { return jobs.size(); };
+  //iterator erase(iterator& i) { return jobs.erase(i); };
 
   // Return iterator to object matching given id or jobs.end() if not found
-  iterator FindJob(const JobId &id);
+  GMJobRef FindJob(const JobId &id);
   // Information about jobs for external utilities
   // No of jobs in all active states from ACCEPTED and FINISHING
   int AcceptedJobs() const;
@@ -266,6 +315,7 @@ class JobsList {
 
   // Inform this instance that job with specified id needs attention
   bool RequestAttention(const JobId& id);
+  bool RequestAttention(GMJobRef i);
 
   // Inform this instance that generic unscheduled attention is needed
   void RequestAttention();
@@ -289,7 +339,9 @@ class JobsList {
   bool ScanOldJob(const JobId& id);
 
   // Collect all jobs in all states
+  // TODO: Only used in gm-jobs - remove.
   bool ScanAllJobs(void);
+
   // Pick jobs which have been marked for restarting, cancelling or cleaning
   bool ScanNewMarks(void);
 

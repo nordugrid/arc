@@ -63,58 +63,56 @@ JobsList::JobsList(const GMConfig& gmconfig) :
 JobsList::~JobsList(void) {
 }
 
-JobsList::iterator JobsList::FindJob(const JobId &id){
-  iterator i;
-  for(i=jobs.begin();i!=jobs.end();++i) {
-    if((*i) == id) break;
-  }
-  return i;
+GMJobRef JobsList::FindJob(const JobId &id) {
+  std::map<JobId,GMJobRef>::iterator ji = jobs.find(id);
+  if(ji == jobs.end()) return GMJobRef();
+  return ji->second;
 }
 
-bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
-  iterator i;
-  return AddJobNoCheck(id,i,uid,gid,state);
-}
-
-void JobsList::UpdateJobCredentials(JobsList::iterator &i) {
-  if(GetLocalDescription(i)) {
-    std::string delegation_id = i->local->delegationid;
-    if(!delegation_id.empty()) {
-      ARex::DelegationStores* delegs = config.delegations;
-      if(delegs) {
-        std::string cred;
-        if((*delegs)[config.DelegationDir()].GetCred(delegation_id,i->local->DN,cred)) {
-          (void)job_proxy_write_file(*i,config,cred);
+void JobsList::UpdateJobCredentials(GMJobRef i) {
+  if(i) {
+    if(GetLocalDescription(i)) {
+      std::string delegation_id = i->local->delegationid;
+      if(!delegation_id.empty()) {
+        ARex::DelegationStores* delegs = config.delegations;
+        if(delegs) {
+          std::string cred;
+          if((*delegs)[config.DelegationDir()].GetCred(delegation_id,i->local->DN,cred)) {
+            (void)job_proxy_write_file(*i,config,cred);
+          };
         };
       };
     };
   };
 }
 
-void JobsList::SetJobState(JobsList::iterator &i, job_state_t new_state, const char* reason) {
-  if(i->job_state != new_state) {
-    config.GetJobsMetrics()->ReportJobStateChange(new_state, i->job_state);
-    std::string msg = Arc::Time().str(Arc::UTCTime);
-    msg += " Job state change ";
-    msg += i->get_state_name();
-    msg += " -> ";
-    msg += GMJob::get_state_name(new_state);
-    if(reason) {
-      msg += "   Reason: ";
-      msg += reason;
+void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason) {
+  if(i) {
+    if(i->job_state != new_state) {
+      config.GetJobsMetrics()->ReportJobStateChange(new_state, i->job_state);
+      std::string msg = Arc::Time().str(Arc::UTCTime);
+      msg += " Job state change ";
+      msg += i->get_state_name();
+      msg += " -> ";
+      msg += GMJob::get_state_name(new_state);
+      if(reason) {
+        msg += "   Reason: ";
+        msg += reason;
+      };
+      msg += "\n";
+      i->job_state = new_state;
+      job_errors_mark_add(*i,config,msg);
+      // During intermediate period job.proxy file must contain full delegated proxy.
+      // To ensure its content is up to date even if proxy was updated in store here
+      // we update content of that file on every job state change.
+      UpdateJobCredentials(i);
     };
-    msg += "\n";
-    i->job_state = new_state;
-    job_errors_mark_add(*i,config,msg);
-    // During intermediate period job.proxy file must contain full delegated proxy.
-    // To ensure its content is up to date even if proxy was updated in store here
-    // we update content of that file on every job state change.
-    UpdateJobCredentials(i);
   };
 }
 
-bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid_t gid,job_state_t state){
-  i=jobs.insert(jobs.end(),GMJob(id, Arc::User(uid)));
+bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
+  GMJobRef i(new GMJob(id,Arc::User(uid)));
+  jobs[id] = i;
   i->keep_finished=config.keep_finished;
   i->keep_deleted=config.keep_deleted;
   i->job_state = state;
@@ -127,11 +125,12 @@ bool JobsList::AddJobNoCheck(const JobId &id,JobsList::iterator &i,uid_t uid,gid
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
-    RequestReprocess(i->job_id); // To make job being thrown from list
+    RequestReprocess(i); // To make job being properly thrown from system
     return false;
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
+  RequestAttention(i);
   return true;
 }
 
@@ -171,18 +170,33 @@ void JobsList::PrepareToDestroy(void) {
   for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
     i->stop();
   }
-  for(iterator i=jobs.begin();i!=jobs.end();++i) {
-    i->PrepareToDestroy();
+  for(std::map<JobId,GMJobRef>::iterator i=jobs.begin();i!=jobs.end();++i) {
+    i->second->PrepareToDestroy();
   }
 }
 
-
 bool JobsList::RequestAttention(const JobId& id) {
-  Glib::Mutex::Lock lock_(jobs_attention_lock);
-  logger.msg(Arc::ERROR, "--> job for attention(%u): %s", jobs_attention.size(), id);
-  jobs_attention.remove(id);
-  jobs_attention.push_back(id);
-  jobs_attention_cond.signal();
+  GMJobRef i = FindJob(id);
+  if(!i) {
+    // Must be new job arriving or finished job which got user request or whatever
+    if(ScanNewJob(id) || ScanOldJob(id)) {
+      i = FindJob(id);
+    };
+  };
+  if(!i) return false;
+  return RequestAttention(i);
+}
+
+bool JobsList::RequestAttention(GMJobRef i) {
+  if(i) {
+    Glib::Mutex::Lock lock_(jobs_attention_lock);
+    logger.msg(Arc::ERROR, "--> job for attention(%u): %s", jobs_attention.size(), i->job_id);
+    jobs_attention.remove(i);
+    jobs_attention.push_back(i);
+    jobs_attention_cond.signal();
+    return true;
+  };
+  return false;
 }
 
 void JobsList::RequestAttention(void) {
@@ -203,7 +217,7 @@ bool JobsList::ScanOldJobs(void) {
     int l=file.length();
     if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
       JobId id(file.substr(4, l-7-4));
-logger.msg(Arc::ERROR, "++++ ScanOldJobs: new job: %s", id);
+      logger.msg(Arc::ERROR, "++++ ScanOldJobs: new job: %s", id);
       RequestAttention(id);
     };
   } else {
@@ -229,54 +243,56 @@ void JobsList::WaitAttention(void) {
   }; // while !jobs_attention_cond
 }
 
-bool JobsList::RequestWaitForRunning(const JobId& id) {
-  Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
-  logger.msg(Arc::ERROR, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), id);
-  jobs_wait_for_running.remove(id);
-  jobs_wait_for_running.push_back(id);
-  return true;
+bool JobsList::RequestWaitForRunning(GMJobRef i) {
+  if(i) {
+    Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
+    logger.msg(Arc::ERROR, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), i->job_id);
+    jobs_wait_for_running.remove(i);
+    jobs_wait_for_running.push_back(i);
+    return true;
+  };
+  return false;
 }
 
-bool JobsList::RequestPolling(const JobId& id) {
-  Glib::Mutex::Lock lock_(jobs_polling_lock);
-  logger.msg(Arc::ERROR, "--> job for polling(%u): %s", jobs_polling.size(), id);
-  jobs_polling.remove(id);
-  jobs_polling.push_back(id);
-  return true;
+bool JobsList::RequestPolling(GMJobRef i) {
+  if(i) {
+    Glib::Mutex::Lock lock_(jobs_polling_lock);
+    logger.msg(Arc::ERROR, "--> job for polling(%u): %s", jobs_polling.size(), i->job_id);
+    jobs_polling.remove(i);
+    jobs_polling.push_back(i);
+    return true;
+  };
+  return false;
 }
 
-bool JobsList::RequestSlowPolling(const JobId& id) {
-  logger.msg(Arc::ERROR, "--> job for slow polling: %s", id);
-  return true;
+bool JobsList::RequestSlowPolling(GMJobRef i) {
+  if(i) {
+    logger.msg(Arc::ERROR, "--> job for slow polling: %s", i->job_id);
+    return true;
+  };
+  return false;
 }
 
-bool JobsList::RequestReprocess(const JobId& id) {
-  Glib::Mutex::Lock lock_(jobs_processing_lock);
-  logger.msg(Arc::ERROR, "--> job for reprocess(%u): %s", jobs_processing.size(), id);
-  jobs_processing.push_front(id);
+bool JobsList::RequestReprocess(GMJobRef i) {
+  if(i) {
+    Glib::Mutex::Lock lock_(jobs_processing_lock);
+    logger.msg(Arc::ERROR, "--> job for reprocess(%u): %s", jobs_processing.size(), i->job_id);
+    jobs_processing.push_front(i);
+    return true;
+  };
+  return false;
 }
 
 bool JobsList::ActJobsProcessing(void) {
   Glib::Mutex::Lock lock_(jobs_processing_lock);
   while(!jobs_processing.empty()) {
-    JobId id = *(jobs_processing.begin());
-    logger.msg(Arc::ERROR, "<-- job in processing(%u): %s", jobs_processing.size(), id);
+    GMJobRef i = *(jobs_processing.begin());
+    logger.msg(Arc::ERROR, "<-- job in processing(%u): %s", jobs_processing.size(), i->job_id);
     jobs_processing.pop_front();
     lock_.release();
-    iterator i = FindJob(id);
-    if(i == jobs.end()) {
-      // Must be new job arriving or finished job which got user request or whatever
-      if(ScanNewJob(id) || ScanOldJob(id)) {
-        i = FindJob(id);
-      };
-    };
-    if(i != jobs.end()) {
-      ActJob(i);
-    } else {
-      logger.msg(Arc::ERROR, "--- job in processing not processed: %s", id);
-    };
+    ActJob(i);
     lock_.acquire();
-logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
+    logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
   };
   // Check limit on number of running jobs and activate some of them if possible
   if(!RunningJobsLimitReached()) {
@@ -318,6 +334,7 @@ bool JobsList::ActJobsPolling(void) {
 }
 
 
+/*
 bool JobsList::ActJobs(void) {
 
 //  JOB_STATE_ACCEPTED
@@ -331,7 +348,6 @@ bool JobsList::ActJobs(void) {
 //  JOB_STATE_UNDEFINED
 
   bool res = true;
-  /*
   bool once_more = false;
 
   // first pass
@@ -355,10 +371,10 @@ bool JobsList::ActJobs(void) {
   logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
   for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
     logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
-  */
 
   return res;
 }
+*/
 
 /*
 bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
@@ -403,7 +419,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
 }
 */
 
-bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
+bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   bool r = true;
   // add failure mark
   if(job_failed_mark_add(*i,config,i->failure_reason)) {
@@ -465,7 +481,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   return r;
 }
 
-bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
+bool JobsList::GetLocalDescription(GMJobRef i) {
   if(!i->GetLocalDescription(config)) {
     logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
     return false;
@@ -473,7 +489,7 @@ bool JobsList::GetLocalDescription(const JobsList::iterator &i) {
   return true;
 }
 
-bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed) {
+bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
   bool const cancel = false;
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
@@ -640,7 +656,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed)
   return true;
 }
 
-bool JobsList::state_canceling(const JobsList::iterator &i,bool &state_changed) {
+bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
     // write grami file for cancel-X-job
@@ -730,7 +746,7 @@ bool JobsList::state_canceling(const JobsList::iterator &i,bool &state_changed) 
   return true;
 }
 
-bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up) {
+bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
 
   // first check if job is already in the system
   if (!dtr_generator.hasJob(*i)) {
@@ -755,7 +771,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       if (!up) { // check for user-uploadable files if downloading
         DTRGenerator::checkUploadedFilesResult res = dtr_generator.checkUploadedFiles(*i);
         if (res == DTRGenerator::uploadedFilesMissing) { // still going
-          RequestPolling(i->job_id);
+          RequestPolling(i);
           done = false;
         }
         else if (res == DTRGenerator::uploadedFilesSuccess) { // finished successfully
@@ -775,18 +791,18 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   else {
     // not finished yet - should not happen
     logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
-    RequestPolling(i->job_id);
+    RequestPolling(i);
     return true;
   }
 }
 
-bool JobsList::JobPending(JobsList::iterator &i) {
+bool JobsList::JobPending(GMJobRef i) {
   if(i->job_pending) return true;
   i->job_pending=true;
   return job_state_write_file(*i,config,i->job_state,true);
 }
 
-job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
+job_state_t JobsList::JobFailStateGet(GMJobRef i) {
   if(!GetLocalDescription(i)) return JOB_STATE_UNDEFINED;
   if(i->local->failedstate.empty()) { return JOB_STATE_UNDEFINED; }
   job_state_t state = GMJob::get_state(i->local->failedstate.c_str());
@@ -809,7 +825,7 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
   return JOB_STATE_UNDEFINED;
 }
 
-bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
+bool JobsList::RecreateTransferLists(GMJobRef i) {
   // Recreate list of output and input files, excluding those already
   // transferred. For input files this is done by looking at the session dir,
   // for output files by excluding files in .output_status
@@ -874,7 +890,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   return true;
 }
 
-bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t state,bool internal) {
+bool JobsList::JobFailStateRemember(GMJobRef i,job_state_t state,bool internal) {
   if(!(i->GetLocalDescription(config))) {
     logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
     return false;
@@ -892,7 +908,7 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   return true;
 }
 
-time_t JobsList::PrepareCleanupTime(JobsList::iterator &i,time_t& keep_finished) {
+time_t JobsList::PrepareCleanupTime(GMJobRef i,time_t& keep_finished) {
   JobLocalDescription job_desc;
   time_t t = -1;
   // read lifetime - if empty it wont be overwritten
@@ -905,12 +921,12 @@ time_t JobsList::PrepareCleanupTime(JobsList::iterator &i,time_t& keep_finished)
   return t;
 }
 
-void JobsList::UnlockDelegation(JobsList::iterator &i) {
+void JobsList::UnlockDelegation(GMJobRef i) {
   ARex::DelegationStores* delegs = config.delegations;
   if(delegs) (*delegs)[config.DelegationDir()].ReleaseCred(i->job_id,true,false);
 }
 
-JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
+JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
   ActJobResult job_result = JobDropped;
   // new job - read its status from status file, but first check if it is
   // under the limit of maximum jobs allowed in the system
@@ -943,13 +959,13 @@ JobsList::ActJobResult JobsList::ActJobUndefined(iterator i) {
       // is called for every state change
       //config.job_log->make_file(*i,config);
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
-      RequestAttention(i->job_id); // process ASAP
+      RequestAttention(i); // process ASAP
     } else if(new_state == JOB_STATE_FINISHED) {
       //!!job_state_write_file(*i,config,i->job_state);
-      RequestReprocess(i->job_id); // process immediately
+      RequestReprocess(i); // process immediately
     } else if(new_state == JOB_STATE_DELETED) {
       //!!job_state_write_file(*i,config,i->job_state);
-      RequestReprocess(i->job_id); // process immediately
+      RequestReprocess(i); // process immediately
     } else {
       // Generic case
       logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
@@ -958,13 +974,13 @@ logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       job_state_write_file(*i,config,i->job_state);
       i->Start();
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: old job: %s", i->job_id);
-      RequestAttention(i->job_id); // process ASAP
+      RequestAttention(i); // process ASAP
     }
   } // Not doing JobPending here because that job kind of does not exist.
   return job_result;
 }
 
-JobsList::ActJobResult JobsList::ActJobAccepted(iterator i) {
+JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   // accepted state - job was just accepted by A-REX and we already
   // know that it is accepted - now we are analyzing/parsing request,
   // or it can also happen we are waiting for user specified time
@@ -982,14 +998,14 @@ JobsList::ActJobResult JobsList::ActJobAccepted(iterator i) {
   // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
   if (config.max_jobs_per_dn > 0 && jobs_dn[i->local->DN] >= config.max_jobs_per_dn) {
     JobPending(i);
-    RequestPolling(i->job_id);
+    RequestPolling(i);
     return JobSuccess;
   }
   // check for user specified time
   if(i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
         i->local->processtime.str(Arc::UserTime));
-    RequestPolling(i->job_id);
+    RequestPolling(i);
     return JobSuccess;
   }
   logger.msg(Arc::INFO,"%s: State: ACCEPTED: moving to PREPARING",i->job_id);
@@ -1001,11 +1017,11 @@ JobsList::ActJobResult JobsList::ActJobAccepted(iterator i) {
   std::string cmd = Arc::ArcLocation::GetToolsDir()+"/frontend-info-collector";
   char const * const args[2] = { cmd.c_str(), NULL };
   job_controldiag_mark_put(*i,config,args);
-  RequestReprocess(i->job_id);
+  RequestReprocess(i);
   return JobSuccess;
 }
 
-JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
+JobsList::ActJobResult JobsList::ActJobPreparing(GMJobRef i) {
   // preparing state - job is in data staging system, so check if it has
   // finished and whether all user uploadable files have been uploaded.
   logger.msg(Arc::VERBOSE,"%s: State: PREPARING",i->job_id);
@@ -1040,22 +1056,22 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
         // Wait for user to report complete staging keeping job in PENDING
         JobPending(i);
         // The complete stagein will be reported and will cause RequestAttention()
-        // RequestPolling(i->job_id);
+        // RequestPolling(i);
       } else if(i->local->exec.size() > 0) {
         // Job has executable
         if(!RunningJobsLimitReached()) {
           // And limit of running jobs is not reached
           SetJobState(i, JOB_STATE_SUBMITTING, "Pre-staging finished, passing job to LRMS");
-          RequestReprocess(i->job_id); // act on new state immediately
+          RequestReprocess(i); // act on new state immediately
         } else {
           // Wait for running jobs to fall below limit keeping job in PENDING
           JobPending(i);
-          RequestWaitForRunning(i->job_id);
+          RequestWaitForRunning(i);
         }
       } else {
         // No execution requested
         SetJobState(i, JOB_STATE_FINISHING, "Job does NOT define executable. Going directly to post-staging.");
-        RequestReprocess(i->job_id); // act on new state immediately
+        RequestReprocess(i); // act on new state immediately
       }
     }
     return JobSuccess;
@@ -1066,18 +1082,18 @@ JobsList::ActJobResult JobsList::ActJobPreparing(iterator i) {
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobSubmitting(iterator i) {
+JobsList::ActJobResult JobsList::ActJobSubmitting(GMJobRef i) {
   // everything is ready for submission to batch system or currently submitting
   logger.msg(Arc::VERBOSE,"%s: State: SUBMIT",i->job_id);
   bool state_changed = false;
   if(state_submitting(i,state_changed)) {
     if(state_changed) {
       SetJobState(i, JOB_STATE_INLRMS, "Job is passed to LRMS");
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
       return JobSuccess;
     } else {
       //return JobSuccess; // state_submitting will report job for attention
-      RequestPolling(i->job_id); // hack for hanging child !!
+      RequestPolling(i); // hack for hanging child !!
       return JobSuccess;
     }
   } else {
@@ -1085,18 +1101,18 @@ JobsList::ActJobResult JobsList::ActJobSubmitting(iterator i) {
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobCanceling(JobsList::iterator i) {
+JobsList::ActJobResult JobsList::ActJobCanceling(GMJobRef i) {
   // This state is like submitting, only -cancel instead of -submit
   logger.msg(Arc::VERBOSE,"%s: State: CANCELING",i->job_id);
   bool state_changed = false;
   if(state_canceling(i,state_changed)) {
     if(state_changed) {
       SetJobState(i, JOB_STATE_FINISHING, "Job cancelation succeeded");
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
       return JobSuccess;
     } else {
       //return JobSuccess; // state_canceling will report job for attention
-      RequestPolling(i->job_id); // hack for hanging child !!
+      RequestPolling(i); // hack for hanging child !!
       return JobSuccess;
     }
   } else {
@@ -1104,7 +1120,7 @@ JobsList::ActJobResult JobsList::ActJobCanceling(JobsList::iterator i) {
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobInlrms(JobsList::iterator i) {
+JobsList::ActJobResult JobsList::ActJobInlrms(GMJobRef i) {
   // Job is currently running in LRMS, check if it has finished
   logger.msg(Arc::VERBOSE,"%s: State: INLRMS",i->job_id);
   if(!GetLocalDescription(i)) {
@@ -1129,17 +1145,17 @@ logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for not pending",i->job_id);
       }
     }
     SetJobState(i, JOB_STATE_FINISHING, "Job finished executing in LRMS");
-    RequestReprocess(i->job_id);
+    RequestReprocess(i);
     return JobSuccess;
   } else {
 logger.msg(Arc::ERROR,"%s: State: INLRMS - no mark found",i->job_id);
     // Do polling while waiting for execution to finish - TODO: replace with report from job scanner
-    RequestPolling(i->job_id);
+    RequestPolling(i);
     return JobSuccess;
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobFinishing(iterator i) {
+JobsList::ActJobResult JobsList::ActJobFinishing(GMJobRef i) {
   // Batch job has finished and now ready to upload output files, or
   // upload is already on-going
   logger.msg(Arc::VERBOSE,"%s: State: FINISHING",i->job_id);
@@ -1147,7 +1163,7 @@ JobsList::ActJobResult JobsList::ActJobFinishing(iterator i) {
   if(state_loading(i,state_changed,true)) {
     if(state_changed) {
       SetJobState(i, JOB_STATE_FINISHED, "Stage-out finished.");
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
     } else {
       // still in data staging
     }
@@ -1159,7 +1175,7 @@ JobsList::ActJobResult JobsList::ActJobFinishing(iterator i) {
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
+JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
   // Job has completely finished, check for user requests to restart or
   // clean up job, and if it is time to move to DELETED
   if(job_clean_mark_check(i->job_id,config)) {
@@ -1181,7 +1197,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(JobsList::iterator i) {
         SetJobState(i, JOB_STATE_ACCEPTED, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
 logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job: %s", i->job_id);
-        RequestAttention(i->job_id); // make it start ASAP
+        RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
     } else if((state_ == JOB_STATE_SUBMITTING) ||
@@ -1197,7 +1213,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job: %s", i->job_id);
         JobPending(i); // make it go to end of state immediately
         // TODO: check for order of processing
 logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job2: %s", i->job_id);
-        RequestAttention(i->job_id); // make it start ASAP
+        RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
     } else if(state_ == JOB_STATE_FINISHING) {
@@ -1206,7 +1222,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job2: %s", i->job_id);
         SetJobState(i, JOB_STATE_INLRMS, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
 logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
-        RequestAttention(i->job_id); // make it start ASAP
+        RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
     } else if(state_ == JOB_STATE_UNDEFINED) {
@@ -1248,7 +1264,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
       }
       job_clean_deleted(*i,config,cache_per_job_dirs);
       SetJobState(i, JOB_STATE_DELETED, "Job stayed unattended too long");
-      RequestSlowPolling(i->job_id);
+      RequestSlowPolling(i);
       // DELETED jobs not kept in memory. So it is not important if return is Success or Dropped
       return JobDropped;
     } else {
@@ -1257,13 +1273,13 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
       return JobDropped;
     }
   } else {
-    RequestSlowPolling(i->job_id);
+    RequestSlowPolling(i);
     // FINISHED jobs not kept in memory. So it is not important if return is Success or Dropped
     return JobDropped;
   }
 }
 
-JobsList::ActJobResult JobsList::ActJobDeleted(iterator i) {
+JobsList::ActJobResult JobsList::ActJobDeleted(GMJobRef i) {
   // Job only has a few control files left, check if is it time to
   // remove all traces
   time_t t = -1;
@@ -1274,11 +1290,11 @@ JobsList::ActJobResult JobsList::ActJobDeleted(iterator i) {
     job_clean_final(*i,config);
     return JobDropped;
   }
-  RequestSlowPolling(i->job_id);
+  RequestSlowPolling(i);
   return JobDropped;
 }
 
-bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
+bool JobsList::CheckJobCancelRequest(GMJobRef i) {
   // some states can not be canceled (or there is no sense to do that)
   if((i->job_state != JOB_STATE_CANCELING) &&
      (i->job_state != JOB_STATE_FINISHED) &&
@@ -1310,14 +1326,14 @@ bool JobsList::CheckJobCancelRequest(JobsList::iterator i) {
         SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
       }
       job_cancel_mark_remove(i->job_id,config);
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
       return true;
     }
   }
   return false;
 }
 
-bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
+bool JobsList::CheckJobContinuePlugins(GMJobRef i) {
   bool plugins_result = true;
   if(config.cont_plugins) {
     std::list<ContinuationPlugins::result_t> results;
@@ -1352,7 +1368,7 @@ bool JobsList::CheckJobContinuePlugins(JobsList::iterator i) {
 }
 
 
-JobsList::iterator JobsList::NextJob(JobsList::iterator i, job_state_t old_state, bool old_pending) {
+bool JobsList::NextJob(GMJobRef i, job_state_t old_state, bool old_pending) {
   bool at_limit = RunningJobsLimitReached();
   // update counters
   if(!old_pending) {
@@ -1365,7 +1381,6 @@ JobsList::iterator JobsList::NextJob(JobsList::iterator i, job_state_t old_state
   } else {
     jobs_pending++;
   }
-  ++i;
   if(at_limit && !RunningJobsLimitReached()) {
     // Report about change in conditions
 logger.msg(Arc::ERROR, "++++ NextJob: changed: %s", i->job_id);
@@ -1374,7 +1389,7 @@ logger.msg(Arc::ERROR, "++++ NextJob: changed: %s", i->job_id);
   return i;
 }
 
-JobsList::iterator JobsList::DropJob(JobsList::iterator i, job_state_t old_state, bool old_pending) {
+bool JobsList::DropJob(GMJobRef& i, job_state_t old_state, bool old_pending) {
   bool at_limit = RunningJobsLimitReached();
   // update counters
   if(!old_pending) {
@@ -1382,18 +1397,19 @@ JobsList::iterator JobsList::DropJob(JobsList::iterator i, job_state_t old_state
   } else {
     jobs_pending--;
   }
-  i=jobs.erase(i);
   if(at_limit && !RunningJobsLimitReached()) {
     // Report about change in conditions
 logger.msg(Arc::ERROR, "++++ DropJob: changed: %s", i->job_id);
     RequestAttention();
   };
-  return i;
+  jobs.erase(i->job_id);
+  i.Destroy();
+  return true;
 }
 
 #define IS_ACTIVE_STATE(state) ((state >= JOB_STATE_PREPARING) && (state <= JOB_STATE_FINISHING))
 
-bool JobsList::ActJob(JobsList::iterator &i) {
+bool JobsList::ActJob(GMJobRef& i) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), i->job_id);
   job_state_t perflog_start_state = i->job_state;
 
@@ -1535,17 +1551,17 @@ bool JobsList::ActJob(JobsList::iterator &i) {
      (i->job_state == JOB_STATE_UNDEFINED)) {
     // Such jobs are not kept in memory
     // this is the ONLY place where jobs are removed from memory
-    i = DropJob(i, old_state, old_pending);
+    DropJob(i, old_state, old_pending);
   }
   else {
-    i = NextJob(i, old_state, old_pending);
+    NextJob(i, old_state, old_pending);
   }
 
   return true;
 }
 
 
-JobsList::ActJobResult JobsList::ActJobFailed(iterator i) {
+JobsList::ActJobResult JobsList::ActJobFailed(GMJobRef i) {
   // Failed job - move it to proper state
   logger.msg(Arc::ERROR,"%s: Job failure detected",i->job_id);
   if(!FailedJob(i,false)) { // something is really wrong
@@ -1560,11 +1576,11 @@ JobsList::ActJobResult JobsList::ActJobFailed(iterator i) {
     } else if(i->job_state == JOB_STATE_FINISHING) {
       // No matter if FINISHING fails - it still goes to FINISHED
       SetJobState(i, JOB_STATE_FINISHED, "Job failure detected");
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
     } else {
       // Other states are moved to FINISHING and start post-staging
       SetJobState(i, JOB_STATE_FINISHING, "Job failure detected");
-      RequestReprocess(i->job_id);
+      RequestReprocess(i);
     };
     // Reset pending (it is useless for any post-failure state anyway)
     i->job_pending=false;
@@ -1572,7 +1588,7 @@ JobsList::ActJobResult JobsList::ActJobFailed(iterator i) {
   return JobSuccess;
 }
 
-
+// Description of job status file
 class JobFDesc {
  public:
   JobId id;
@@ -1625,7 +1641,7 @@ bool JobsList::RestartJobs(void) {
 }
 
 bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
-  if(FindJob(id.id) == jobs.end()) {
+  if(!FindJob(id.id)) {
     std::string fname=cdir+'/'+"job."+id.id+".status";
     uid_t uid;
     gid_t gid;
@@ -1650,7 +1666,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
       // job id contains at least 1 character
       if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
         JobFDesc id(file.substr(4,l-7-4));
-        if(FindJob(id.id) == jobs.end()) {
+        if(!FindJob(id.id)) {
           std::string fname=cdir+'/'+file.c_str();
           uid_t uid;
           gid_t gid;
@@ -1688,7 +1704,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
           int ll = sfx->length();
           if(l > (ll+4) && file.substr(l-ll) == *sfx) {
             JobFDesc id(file.substr(4,l-ll-4));
-            if(FindJob(id.id) == jobs.end()) {
+            if(!FindJob(id.id)) {
               std::string fname=cdir+'/'+file.c_str();
               uid_t uid;
               gid_t gid;
@@ -1720,8 +1736,7 @@ bool JobsList::ScanNewJob(const JobId& id) {
     std::string cdir=config.control_dir;
     std::string ndir=cdir+"/"+subdir_new;
     if(!ScanJob(ndir,fid)) return false;
-    iterator i;
-    return AddJobNoCheck(fid.id,i,fid.uid,fid.gid);
+    return AddJobNoCheck(fid.id,fid.uid,fid.gid);
   }
   return false;
 }
@@ -1733,8 +1748,7 @@ bool JobsList::ScanOldJob(const JobId& id) {
   if(!ScanJob(ndir,fid)) return false;
   job_state_t st = job_state_read_file(id,config);
   if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
-    iterator i;
-    return AddJobNoCheck(fid.id,i,fid.uid,fid.gid,st);
+    return AddJobNoCheck(fid.id,fid.uid,fid.gid,st);
   };
   return false;
 }
@@ -1744,8 +1758,8 @@ bool JobsList::ScanNewJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
   // New jobs will be accepted only if number of jobs being processed
   // does not exceed allowed. So avoid scanning if no jobs will be allowed.
-  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
-    std::string cdir=config.control_dir;
+  std::string cdir=config.control_dir;
+  if((config.max_jobs == -1) || (AcceptedJobs() < config.max_jobs)) {
     std::list<JobFDesc> ids;
     // For picking up jobs after service restart
     std::string odir=cdir+"/"+subdir_rew;
@@ -1753,19 +1767,21 @@ bool JobsList::ScanNewJobs(void) {
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-      iterator i;
-      AddJobNoCheck(id->id,i,id->uid,id->gid);
+      if((config.max_jobs != -1) && (AcceptedJobs() >= config.max_jobs)) break;
+      AddJobNoCheck(id->id,id->uid,id->gid);
     };
-    ids.clear();
+  };
+  if((config.max_jobs == -1) || (AcceptedJobs() < config.max_jobs)) {
+    std::list<JobFDesc> ids;
     // For new jobs
     std::string ndir=cdir+"/"+subdir_new;
     if(!ScanJobs(ndir,ids)) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-      iterator i;
+      if((config.max_jobs != -1) && (AcceptedJobs() >= config.max_jobs)) break;
       // adding job with file's uid/gid
-      AddJobNoCheck(id->id,i,id->uid,id->gid);
+      AddJobNoCheck(id->id,id->uid,id->gid);
     };
   };
   perfrecord.End("SCAN-JOBS-NEW");
@@ -1797,9 +1813,8 @@ bool JobsList::ScanNewMarks(void) {
     }
     // Check if such job finished and add it to list.
     if(st == JOB_STATE_FINISHED) {
-      iterator i;
       // That will activate its processing at least for one step.
-      AddJobNoCheck(id->id,i,id->uid,id->gid, st);
+      AddJobNoCheck(id->id,id->uid,id->gid,st);
     }
   }
 
@@ -1807,10 +1822,11 @@ bool JobsList::ScanNewMarks(void) {
   return true;
 }
 
-// For simply collecting all jobs.
+// For simply collecting all jobs. Only used by gm-jobs.
 bool JobsList::ScanAllJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
+  std::list<GMJobRef> alljobs;
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1825,8 +1841,7 @@ bool JobsList::ScanAllJobs(void) {
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-      iterator i;
-      AddJobNoCheck(id->id,i,id->uid,id->gid);
+      AddJobNoCheck(id->id,id->uid,id->gid);
     }
   }
 
@@ -1834,8 +1849,9 @@ bool JobsList::ScanAllJobs(void) {
   return true;
 }
 
+// Only used by gm-jobs
 bool JobsList::AddJob(const JobId& id) {
-  if(FindJob(id) != jobs.end()) return true;
+  if(!FindJob(id)) return true;
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs

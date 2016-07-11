@@ -129,40 +129,6 @@ class GMJob {
   void PrepareToDestroy(void);
 };
 
-class GMJobRef {
-private:
-  GMJob* job_;
-
-public:
-  GMJobRef(GMJob* job) {
-    job_ = job;
-    if(job_) job_->AddReference();
-  }
-
-  GMJobRef(GMJobRef const& other) {
-    job_ = other.job_;
-    if(job_) job_->AddReference();
-  }
-
-  ~GMJobRef() {
-    if (job_) job_->RemoveReference();
-  }
-
-  GMJob& operator*() const {
-    return *job_;
-  }
-
-  GMJob* operator->() const {
-    return job_;
-  }
-
-  void Destroy() {
-    if (job_) job_->DestroyReference();
-    job_ = NULL;
-  }
-
-};
-
 } // namespace ARex
 
 #endif
