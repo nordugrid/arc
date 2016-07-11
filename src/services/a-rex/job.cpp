@@ -995,7 +995,12 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   if(id_.empty()) return false;
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
-  return job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname);
+  if(job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname)) {
+logger_.msg(Arc::WARNING, "=== New file request for attention: %s", id_);
+    CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
+    return true;
+  };
+  return false;
 }
 
 bool ARexJob::ReportFilesComplete(void) {
