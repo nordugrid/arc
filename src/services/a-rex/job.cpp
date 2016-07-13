@@ -646,6 +646,8 @@ bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
   GMJob job(id_,Arc::User(config_.User().get_uid()));
   if(!job_cancel_mark_put(job,config_.GmConfig())) return false;
+logger_.msg(Arc::WARNING, "=== Cancel job request for attention: %s", id_);
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
 
@@ -653,6 +655,8 @@ bool ARexJob::Clean(void) {
   if(id_.empty()) return false;
   GMJob job(id_,Arc::User(config_.User().get_uid()));
   if(!job_clean_mark_put(job,config_.GmConfig())) return false;
+logger_.msg(Arc::WARNING, "=== Clean job request for attention: %s", id_);
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
 
@@ -670,6 +674,8 @@ bool ARexJob::Resume(void) {
     // Failed to report restart request.
     return false;
   };
+logger_.msg(Arc::WARNING, "=== Resume job request for attention: %s", id_);
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
 
@@ -806,7 +812,6 @@ bool ARexJob::delete_job_id(void) {
 }
 
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
-  ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
   return jobs.CountAllJobs();
 }
@@ -814,7 +819,6 @@ int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
 // TODO: optimize
 std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
-  ContinuationPlugins plugins;
   JobsList jobs(config.GmConfig());
   jobs.GetAllJobIds(jlist);
   std::list<std::string>::iterator i = jlist.begin();
@@ -995,17 +999,18 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   if(id_.empty()) return false;
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
-  if(job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname)) {
+  if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname)) return false;
 logger_.msg(Arc::WARNING, "=== New file request for attention: %s", id_);
-    CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
-    return true;
-  };
-  return false;
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
+  return true;
 }
 
 bool ARexJob::ReportFilesComplete(void) {
   if(id_.empty()) return false;
-  return job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/");
+  if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/")) return false;
+logger_.msg(Arc::WARNING, "=== New files request for attention: %s", id_);
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
+  return true;
 }
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {

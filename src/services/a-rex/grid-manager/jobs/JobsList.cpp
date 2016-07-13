@@ -776,6 +776,8 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
       if (!up) { // check for user-uploadable files if downloading
         DTRGenerator::checkUploadedFilesResult res = dtr_generator.checkUploadedFiles(*i);
         if (res == DTRGenerator::uploadedFilesMissing) { // still going
+          // Every file will cause request for attention.
+          // So polling is mostly for handling timeout.
           RequestPolling(i);
           done = false;
         }
@@ -796,6 +798,7 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
   else {
     // not finished yet - should not happen
     logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
+    // Since something is out of sync do polling as backup solution
     RequestPolling(i);
     return true;
   }
@@ -1001,8 +1004,10 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   // check per-DN limit on processing jobs
   // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
-  if (config.max_jobs_per_dn > 0 && jobs_dn[i->local->DN] >= config.max_jobs_per_dn) {
+  if ((config.max_jobs_per_dn > 0) &&
+      (jobs_dn[i->local->DN] >= config.max_jobs_per_dn)) {
     JobPending(i);
+    // Because we have no event for per-DN limit just do polling
     RequestPolling(i);
     return JobSuccess;
   }
@@ -1010,6 +1015,7 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   if(i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: has process time %s",i->job_id.c_str(),
         i->local->processtime.str(Arc::UserTime));
+    // No events for start times yet. Do polling.
     RequestPolling(i);
     return JobSuccess;
   }
@@ -1097,8 +1103,9 @@ JobsList::ActJobResult JobsList::ActJobSubmitting(GMJobRef i) {
       RequestReprocess(i);
       return JobSuccess;
     } else {
-      //return JobSuccess; // state_submitting will report job for attention
-      RequestPolling(i); // hack for hanging child !!
+      // Exited child will report job for attention.
+      // But in case of hanging child we need some hack - use polling
+      RequestPolling(i);
       return JobSuccess;
     }
   } else {
@@ -1116,8 +1123,9 @@ JobsList::ActJobResult JobsList::ActJobCanceling(GMJobRef i) {
       RequestReprocess(i);
       return JobSuccess;
     } else {
-      //return JobSuccess; // state_canceling will report job for attention
-      RequestPolling(i); // hack for hanging child !!
+      // Exited child will report job for attention.
+      // But in case of hanging child we need some hack - use polling
+      RequestPolling(i);
       return JobSuccess;
     }
   } else {
@@ -1154,7 +1162,9 @@ logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for not pending",i->job_id);
     return JobSuccess;
   } else {
 logger.msg(Arc::ERROR,"%s: State: INLRMS - no mark found",i->job_id);
-    // Do polling while waiting for execution to finish - TODO: replace with report from job scanner
+    // Job state scanner will report job for attention.
+    // But in case signal or job information in batch system is
+    // lost do polling as backup solution.
     RequestPolling(i);
     return JobSuccess;
   }

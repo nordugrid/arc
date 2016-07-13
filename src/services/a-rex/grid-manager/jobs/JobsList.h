@@ -97,9 +97,10 @@ class JobsList {
  private:
   bool valid;
 
-  std::map<JobId,GMJobRef> jobs;         // List of jobs currently tracked in memory
-                                         // conveniently indexed by identifier.
-                                         // TODO: It would be nice to remove it.
+  // List of jobs currently tracked in memory conveniently indexed by identifier.
+  // TODO: It would be nice to remove it and use status files distribution among
+  // subfolders in controldir.
+  std::map<JobId,GMJobRef> jobs;         
 
   std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
   Glib::Mutex jobs_processing_lock;
