@@ -74,6 +74,14 @@ public:
     return job_ == NULL;
   }
 
+  bool operator==(GMJobRef const& other) {
+    return (job_ == other.job_);
+  }
+
+  bool operator!=(GMJobRef const& other) {
+    return (job_ != other.job_);
+  }
+
   GMJob& operator*() const {
     return *job_;
   }

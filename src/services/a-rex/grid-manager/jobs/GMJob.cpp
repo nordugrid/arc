@@ -130,6 +130,7 @@ void GMJob::RemoveReference(void) {
   Glib::Mutex::Lock lock(ref_count_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring is unintentionally lost",job_id);
+    lock.release();
     delete this;
   };
 }
@@ -137,6 +138,7 @@ void GMJob::RemoveReference(void) {
 void GMJob::DestroyReference(void) {
   Glib::Mutex::Lock lock(ref_count_lock);
   if(--ref_count == 0) {
+    lock.release();
     delete this;
   } else {
     logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with active references ",job_id);
