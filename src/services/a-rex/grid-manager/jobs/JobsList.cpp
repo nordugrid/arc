@@ -967,13 +967,13 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       // is called for every state change
       //config.job_log->make_file(*i,config);
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
-      RequestAttention(i); // process ASAP
+      RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
       //!!job_state_write_file(*i,config,i->job_state);
-      RequestReprocess(i); // process immediately
+      RequestReprocess(i); // process immediately to fall off
     } else if(new_state == JOB_STATE_DELETED) {
       //!!job_state_write_file(*i,config,i->job_state);
-      RequestReprocess(i); // process immediately
+      RequestReprocess(i); // process immediately to fall off
     } else {
       // Generic case
       logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
@@ -982,7 +982,7 @@ logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       job_state_write_file(*i,config,i->job_state);
       i->Start();
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: old job: %s", i->job_id);
-      RequestAttention(i); // process ASAP
+      RequestAttention(i); // process ASAP TODO: consider Reprocess for some states
     }
   } // Not doing JobPending here because that job kind of does not exist.
   return job_result;
@@ -1399,7 +1399,7 @@ bool JobsList::NextJob(GMJobRef i, job_state_t old_state, bool old_pending) {
   if(at_limit && !RunningJobsLimitReached()) {
     // Report about change in conditions
 logger.msg(Arc::ERROR, "++++ NextJob: changed: %s", i->job_id);
-    RequestAttention();
+    //RequestAttention();
   };
   return i;
 }
