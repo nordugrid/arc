@@ -150,6 +150,9 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
       re->RemoveEnvironment("X509_VOMS_DIR");
     };
   };
+  re->KeepStdin(true);
+  re->KeepStdout(true);
+  re->KeepStderr(true);
   if(!re->Start()) {
     delete rp;
     delete re;
