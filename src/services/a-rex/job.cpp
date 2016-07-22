@@ -223,7 +223,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
   DelegationStores* delegs = config_.GmConfig().Delegations();
   if(!delegs) {
@@ -395,18 +395,10 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   if(!desc.DataStaging.DelegationID.empty()) {
     job_.delegationid = desc.DataStaging.DelegationID; // remember that special delegation
     deleg_ids.push_back(desc.DataStaging.DelegationID); // and store in list of all delegations
-  } else if(!credentials.empty()) {
-    // Have per job credentials - store in delegation storage and refer by id later
-    std::string deleg_id;
-    if(deleg.AddCred(deleg_id, config_.GridName(), credentials)) {
-      job_.delegationid = deleg_id; // remember that ad-hoc delegation
-      deleg_ids.push_back(deleg_id); // and store in list of all delegations
-    } else {
-      failure_="Failed to store per job delegation";
-      failure_type_=ARexJobInternalError;
-      delete_job_id();
-      return;
-    };
+  } else if(!delegid.empty()) {
+    // Have per job credentials - remember and refer by id later
+    job_.delegationid = delegid; // remember that ad-hoc delegation
+    deleg_ids.push_back(delegid); // and store in list of all delegations
   } else {
     // No per job delegation provided.
     // Check if generic delegation is needed at all.
@@ -464,7 +456,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   std::string certificates;
 #if 1
   // For compatibility reasons during transitional period store full proxy if possible
-  if(credentials.empty() && !job_.delegationid.empty()) {
+  if(!job_.delegationid.empty()) {
     (void)deleg.GetCred(job_.delegationid, config_.GridName(), certificates);
   }
   if(!certificates.empty()) {

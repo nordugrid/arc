@@ -57,10 +57,11 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
 
  // End of the HPC BP 1.0 fault handling part
 
-  std::string delegation;
+  std::string delegationid;
   Arc::XMLNode delegated_token = in["arcdeleg:DelegatedToken"];
   if(delegated_token) {
     // Client wants to delegate credentials
+    std::string delegation;
     if(!delegation_stores_.DelegatedToken(config.GmConfig().DelegationDir(),delegated_token,config.GridName(),delegation)) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "CreateActivity: Failed to accept delegation");
@@ -69,9 +70,10 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       out.Destroy();
       return Arc::MCC_Status();
     };
+    delegationid = (std::string)(delegated_token["Id"]);
   };
   JobIDGeneratorARC idgenerator(config.Endpoint());
-  ARexJob job(jsdl,config,delegation,clientid,logger_,idgenerator);
+  ARexJob job(jsdl,config,delegationid,clientid,logger_,idgenerator);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
