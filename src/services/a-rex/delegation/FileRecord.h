@@ -13,6 +13,8 @@ class FileRecord {
   std::string error_str_;
   bool valid_;
   std::string uid_to_path(const std::string& uid);
+  bool make_file(const std::string& uid);
+  bool remove_file(const std::string& uid);
  public:
   class Iterator {
    private:

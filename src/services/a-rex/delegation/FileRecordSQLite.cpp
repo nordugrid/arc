@@ -288,6 +288,7 @@ namespace ARex {
       error_str_ = "Failed to add record to database";
       return "";
     };
+    make_file(uid);
     return uid_to_path(uid);
   }
 
@@ -349,7 +350,6 @@ namespace ARex {
         return false; // have locks
       };
     };
-    ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     {
       std::string sqlcmd = "DELETE FROM rec WHERE (uid = '"+uid+"')";
       if(!dberr("Failed to delete record in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
@@ -360,6 +360,7 @@ namespace ARex {
         return false; // no such record
       };
     };
+    remove_file(uid);
     return true;
   }
 

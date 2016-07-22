@@ -300,6 +300,7 @@ namespace ARex {
     db_rec_->sync(0);
     ::free(pkey); ::free(pdata);
     if(id.empty()) id = uid;
+    make_file(uid);
     return uid_to_path(uid);
   }
 
@@ -372,9 +373,6 @@ namespace ARex {
     std::string owner_tmp;
     std::list<std::string> meta;
     parse_record(uid,id_tmp,owner_tmp,meta,key,data);
-    if(!uid.empty()) {
-      ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
-    };
     if(!dberr("Failed to delete record from database",db_rec_->del(NULL,&key,0))) {
       // TODO: handle error
       ::free(pkey);
@@ -382,6 +380,7 @@ namespace ARex {
     };
     db_rec_->sync(0);
     ::free(pkey);
+    remove_file(uid);
     return true;
   }
 
