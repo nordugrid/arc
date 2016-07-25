@@ -86,16 +86,16 @@ sub get_jobs_in_run($){
 sub get_jobs_status($){
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select server_state,name from result where server_state in (1,2,4)');
+    my $sth = $dbh->prepare('select server_state,name,opaque from result where server_state in (1,2,4)');
     $sth->execute();
-    my (%jobs_status, @result,$job_status, $job_state, $job_name);
-    while(($job_state, $job_name) = $sth->fetchrow_array())
+    my (%jobs_status, @result,$job_status, $job_state, $job_name, $core_count);
+    while(($job_state, $job_name, $core_count) = $sth->fetchrow_array())
     {
 	$job_status="Q";
 	my @tmp=split(/_/,$job_name);
 	$job_name=$tmp[0];
 	if($job_state==4){$job_status="R";}
-	$jobs_status{$job_name}=$job_status;
+	$jobs_status{$job_name}=[$job_status, $core_count];
     }
     return \%jobs_status;
 }
@@ -197,26 +197,29 @@ sub jobs_info ($$@) {
     $jstatus=get_jobs_status($config);
     foreach my $id (@$jids){
         $lrms_jobs{$id}{nodes} = [ hostname ];
-    	$lrms_jobs{$id}{mem} = 2000000000;
+        $lrms_jobs{$id}{mem} = 2000000000;
         $lrms_jobs{$id}{walltime} = "";
         $lrms_jobs{$id}{cputime} = "";
         $lrms_jobs{$id}{comment} = [ "LRMS: Running under boinc" ];
 
-	$lrms_jobs{$id}{reqwalltime} = "";
-	$lrms_jobs{$id}{reqcputime} = "";   
+        $lrms_jobs{$id}{reqwalltime} = "";
+        $lrms_jobs{$id}{reqcputime} = "";   
         $lrms_jobs{$id}{rank} = "0";
-	$lrms_jobs{$id}{cpus} = "1"; 
-   
-	if(! exists $$jstatus{$id})
-	{$lrms_jobs{$id}{status}="O";}
-	elsif($$jstatus{$id} eq "R")
-	{$lrms_jobs{$id}{status}="R"}
-	elsif($$jstatus{$id} eq "Q")
-	{$lrms_jobs{$id}{status}="Q";}
-	else
-	{$lrms_jobs{$id}{status}="O";}
-	
-   }
+        if (! exists $$jstatus{$id} || $$jstatus{$id}[1] == 0) {
+            $lrms_jobs{$id}{cpus} = "1"; 
+        } else {
+            $lrms_jobs{$id}{cpus} = "$$jstatus{$id}[1]"; 
+        } 
+        if(! exists $$jstatus{$id}) {
+            $lrms_jobs{$id}{status} = "O";
+        } elsif($$jstatus{$id}[0] eq "R") {
+            $lrms_jobs{$id}{status} = "R";
+        } elsif($$jstatus{$id}[0] eq "Q") {
+            $lrms_jobs{$id}{status} = "Q";
+        } else {
+            $lrms_jobs{$id}{status} = "O";
+        }
+    }
 
     return %lrms_jobs;
 }
