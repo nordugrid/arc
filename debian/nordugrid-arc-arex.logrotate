@@ -72,7 +72,7 @@
   create
 }
 
-/var/log/arc/perfdata/system.perflog {
+/var/log/arc/perfdata/sysinfo.perflog {
   missingok
   compress
   daily
