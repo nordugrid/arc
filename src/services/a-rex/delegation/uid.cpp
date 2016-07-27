@@ -16,9 +16,14 @@
 namespace ARex {
 
 std::string rand_uid64(void) {
+  static unsigned int cnt;
   struct timeval t;
   gettimeofday(&t,NULL);
-  uint64_t id = (((((uint64_t)(t.tv_sec)) << 8) ^ ((uint64_t)(t.tv_usec/1000))) << 8) ^ rand();
+  uint64_t id =
+      (((uint64_t)((cnt++) & 0xffff))   << 48) |
+      (((uint64_t)(t.tv_sec & 0xffff))  << 32) |
+      (((uint64_t)(t.tv_usec & 0xffff)) << 16) |
+      (((uint64_t)(rand() & 0xffff))    << 0);
   return Arc::inttostr(id,16,16);
 }  
 
