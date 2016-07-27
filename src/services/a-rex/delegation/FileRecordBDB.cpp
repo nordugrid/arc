@@ -286,19 +286,31 @@ namespace ARex {
 
   std::string FileRecordBDB::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return "";
-    Glib::Mutex::Lock lock(lock_);
-    Dbt key;
-    Dbt data;
-    std::string uid = rand_uid64().substr(4);
-    make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
-    void* pkey = key.get_data();
-    void* pdata = data.get_data();
-    if(!dberr("Failed to add record to database",db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE))) {
+    int uidtries = 10; // some sane number
+    std::string uid;
+    while(true) {
+      if(!(uidtries--)) return "";
+      Glib::Mutex::Lock lock(lock_);
+      Dbt key;
+      Dbt data;
+      uid = rand_uid64().substr(4);
+      make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
+      void* pkey = key.get_data();
+      void* pdata = data.get_data();
+      int dbres = db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE);
+      if(dbres == DB_KEYEXIST) {
+        ::free(pkey); ::free(pdata);
+        uid.resize(0);
+        continue;
+      };
+      if(!dberr("Failed to add record to database",dbres)) {
+        ::free(pkey); ::free(pdata);
+        return "";
+      };
+      db_rec_->sync(0);
       ::free(pkey); ::free(pdata);
-      return "";
+      break;
     };
-    db_rec_->sync(0);
-    ::free(pkey); ::free(pdata);
     if(id.empty()) id = uid;
     make_file(uid);
     return uid_to_path(uid);

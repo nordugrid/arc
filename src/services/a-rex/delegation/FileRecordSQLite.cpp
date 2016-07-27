@@ -273,21 +273,36 @@ namespace ARex {
 
   std::string FileRecordSQLite::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return "";
-    Glib::Mutex::Lock lock(lock_);
-    // todo: retries for unique uid?
-    std::string uid = rand_uid64().substr(4);
-    std::string metas;
-    store_strings(meta, metas);
+    int uidtries = 10; // some sane number
+    std::string uid;
+    while(true) {
+      if(!(uidtries--)) {
+        error_str_ = "Out of tries adding record to database";
+        return "";
+      };
+      Glib::Mutex::Lock lock(lock_);
+      uid = rand_uid64().substr(4);
+      std::string metas;
+      store_strings(meta, metas);
+      std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
+               sql_escape(id.empty()?uid:id)+"', '"+
+               sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
+      int dbres = sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL);
+      if(dbres == SQLITE_CONSTRAINT) {
+        // retry due to non-unique id
+        uid.resize(0);
+        continue;
+      };
+      if(!dberr("Failed to add record to database", dbres)) {
+        return "";
+      };
+      if(sqlite3_changes(db_) != 1) {
+        error_str_ = "Failed to add record to database";
+        return "";
+      };
+      break;
+    };
     if(id.empty()) id = uid;
-    std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
-                             sql_escape(id)+"', '"+sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
-    if(!dberr("Failed to add record to database", sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
-      return "";
-    };
-    if(sqlite3_changes(db_) != 1) {
-      error_str_ = "Failed to add record to database";
-      return "";
-    };
     make_file(uid);
     return uid_to_path(uid);
   }

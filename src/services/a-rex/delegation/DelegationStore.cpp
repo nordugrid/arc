@@ -207,6 +207,7 @@ namespace ARex {
     if(!credentials.empty()) {
       if(!Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR)) {
         failure_ = "Local error - failed to create storage for delegation";
+        logger_.msg(Arc::WARNING,"DelegationStore: TouchConsumer failed to create file %s",i->second.path);
         return false;
       };
     };
@@ -307,6 +308,7 @@ namespace ARex {
     if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
       fstore_->Remove(id,client);
       failure_ = "Local error - failed to create storage for delegation";
+      logger_.msg(Arc::WARNING,"DelegationStore: TouchConsumer failed to create file %s",path);
       return false;
     };
     return true;
