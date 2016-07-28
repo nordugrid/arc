@@ -132,6 +132,7 @@ namespace DataStaging {
        <Uid>1000</Uid>
        <Gid>1000</Gid>
        <Caching>true</Caching>
+       <Size>12345</Size>
        <CheckSum>adler32:12345678</CheckSum>
        <MinAverageSpeed>100</MinAverageSpeed>
        <AverageTime>60</AverageTime>
@@ -298,6 +299,8 @@ namespace DataStaging {
 
       // Set source checksum to validate against
       if (dtrnode["CheckSum"]) dtr->get_source()->SetCheckSum((std::string)dtrnode["CheckSum"]);
+      // Set filesize for protocols which need it
+      if (dtrnode["Size"]) dtr->get_source()->SetSize(Arc::stringtoull((std::string)dtrnode["Size"]));
 
       // Get the callbacks sent to Scheduler and connect Delivery
       dtr->registerCallback(this, SCHEDULER);
