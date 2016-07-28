@@ -307,6 +307,25 @@ namespace ARex {
     return uid_to_path(uid);
   }
 
+  bool FileRecordSQLite::Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    std::string metas;
+    store_strings(meta, metas);
+    std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
+             sql_escape(id.empty()?uid:id)+"', '"+
+             sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
+    int dbres = sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL);
+    if(!dberr("Failed to add record to database", dbres)) {
+      return false;
+    };
+    if(sqlite3_changes(db_) != 1) {
+      error_str_ = "Failed to add record to database";
+      return false;
+    };
+    return true;
+  }
+
   std::string FileRecordSQLite::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
     if(!valid_) return "";
     Glib::Mutex::Lock lock(lock_);

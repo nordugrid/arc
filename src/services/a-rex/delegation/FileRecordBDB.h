@@ -48,6 +48,7 @@ class FileRecordBDB: public FileRecord {
   virtual Iterator* NewIterator(void) { return new Iterator(*this); };
   virtual bool Recover(void);
   virtual std::string Add(std::string& id, const std::string& owner, const std::list<std::string>& meta);
+  virtual bool Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta);
   virtual std::string Find(const std::string& id, const std::string& owner, std::list<std::string>& meta);
   virtual bool Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta);
   virtual bool Remove(const std::string& id, const std::string& owner);

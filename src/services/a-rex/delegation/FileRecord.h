@@ -41,28 +41,55 @@ class FileRecord {
     const std::string path(void) const { return frec_.uid_to_path(uid_); };
   };
   friend class FileRecord::Iterator;
+
   FileRecord(const std::string& base, bool create = true): basepath_(base), error_num_(0), valid_(false) {};
+
   virtual ~FileRecord(void) {};
+
   operator bool(void) { return valid_; };
+
   bool operator!(void) { return !valid_; };
+
+  /// Returns textual description of last error.
   std::string Error(void) { return error_str_; };
+
+  /// Obtain an iterator for walking through existing credentials slots.
   virtual Iterator* NewIterator(void) = 0;
+
   virtual bool Recover(void) = 0;
+
+  /// Adds new slot for storing credentials including generation of uid, 
+  /// assignment of id (if empty) and creation of file for storing credentials.
   virtual std::string Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) = 0;
+
+  /// Adds only record in database (to be used for database management only).
+  virtual bool Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) = 0;
+
+  /// Obtains path to stored credentials.
   virtual std::string Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) = 0;
+
+  /// Modifies existing entry in database with new meta values.
   virtual bool Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta) = 0;
+
+  /// Fully removes credentials slot including file which stores credentials.
   virtual bool Remove(const std::string& id, const std::string& owner) = 0;
+
   // Assign specified credential ids specified lock lock_id
   virtual bool AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner) = 0;
-  // Reomove lock lock_id from all associated credentials
+
+  // Remove lock lock_id from all associated credentials
   virtual bool RemoveLock(const std::string& lock_id) = 0;
-  // Reomove lock lock_id from all associated credentials and store 
+
+  // Reomve lock lock_id from all associated credentials and store 
   // identifiers of associated credentials into ids
   virtual bool RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) = 0;
+
   // Fills locks with all known lock ids.
   virtual bool ListLocks(std::list<std::string>& locks) = 0;
+
   // Fills locks with all lock ids associated with specified credential id
   virtual bool ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) = 0;
+
   // Fills ids with identifiers of credentials locked by specified lock_id lock
   virtual bool ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) = 0;
 };

@@ -316,6 +316,24 @@ namespace ARex {
     return uid_to_path(uid);
   }
 
+  bool FileRecordBDB::Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    Dbt key;
+    Dbt data;
+    make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
+    void* pkey = key.get_data();
+    void* pdata = data.get_data();
+    int dbres = db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE);
+    if(!dberr("Failed to add record to database",dbres)) {
+      ::free(pkey); ::free(pdata);
+      return false;
+    };
+    db_rec_->sync(0);
+    ::free(pkey); ::free(pdata);
+    return true;
+  }
+
   std::string FileRecordBDB::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
     if(!valid_) return "";
     Glib::Mutex::Lock lock(lock_);
