@@ -7,7 +7,7 @@ endif
 SUBDIRS = jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check arc-blahp-logger
+pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check arc-blahp-logger gm-delegations-converter
 dist_pkglibexec_SCRIPTS = arc-config-check
 
 man_MANS = arc-vomsac-check.8 arc-config-check.1 arc-blahp-logger.8 gm-jobs.8
@@ -29,6 +29,11 @@ gm_jobs_SOURCES = gm_jobs.cpp
 gm_jobs_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 gm_jobs_LDADD = libgridmanager.la ../delegation/libdelegation.la
+
+gm_delegations_converter_SOURCES = gm_delegations_converter.cpp
+gm_delegations_converter_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+gm_delegations_converter_LDADD = libgridmanager.la ../delegation/libdelegation.la
 
 inputcheck_SOURCES = inputcheck.cpp
 inputcheck_CXXFLAGS = -I$(top_srcdir)/include \
