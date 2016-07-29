@@ -2,6 +2,7 @@ debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/jura
 debian/tmp/usr/lib/arc/ssmsend
+debian/tmp/usr/lib/arc/gm-delegations-converter
 debian/tmp/usr/lib/arc/gm-jobs
 debian/tmp/usr/lib/arc/gm-kick
 debian/tmp/usr/lib/arc/smtp-send
