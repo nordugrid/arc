@@ -1360,7 +1360,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
+%if %{with_sqlite}
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
+%endif
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
 %{_libexecdir}/%{pkgdir}/smtp-send
