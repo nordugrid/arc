@@ -1362,6 +1362,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/jura
 %if %{with_sqlite}
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
+%doc %{_mandir}/man8/gm-delegations-converter.8*
 %endif
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick

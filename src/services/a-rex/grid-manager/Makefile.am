@@ -8,15 +8,17 @@ SUBDIRS = jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 
 if SQLITE_ENABLED
 GM_DELEGATIONS_CONVERTER = gm-delegations-converter
+GM_DELEGATIONS_CONVERTER_MAN = gm-delegations-converter.8
 else
 GM_DELEGATIONS_CONVERTER =
+GM_DELEGATIONS_CONVERTER_MAN =
 endif
 
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check arc-blahp-logger $(GM_DELEGATIONS_CONVERTER)
 dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-vomsac-check.8 arc-config-check.1 arc-blahp-logger.8 gm-jobs.8
+man_MANS = arc-vomsac-check.8 arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 $(GM_DELEGATIONS_CONVERTER_MAN)
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \

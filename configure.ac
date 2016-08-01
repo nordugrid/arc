@@ -2454,6 +2454,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/arc-vomsac-check.8
                  src/services/a-rex/grid-manager/arc-blahp-logger.8
                  src/services/a-rex/grid-manager/gm-jobs.8
+                 src/services/a-rex/grid-manager/gm-delegations-converter.8
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
