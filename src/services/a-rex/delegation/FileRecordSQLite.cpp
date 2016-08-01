@@ -107,6 +107,13 @@ namespace ARex {
         db_ = NULL;
         return false;
       };
+    } else {
+      // SQLite opens database in lazy way. But we still want to know if it is good database.
+      if(!dberr("Error checking database", sqlite3_exec_nobusy(db_, "PRAGMA schema_version;", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
     };
     return true;
   }
