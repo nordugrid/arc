@@ -43,19 +43,14 @@ int main(int argc, char* argv[]) {
                     istring("read information from specified control directory"),
                     istring("dir"), control_dir);
                     
-  bool show_delegs = false;
-  options.AddOption('e', "listdelegs",
-		    istring("print list of available delegation IDs"),
-		    show_delegs);
-
-  std::list<std::string> show_deleg_jobs;
-  options.AddOption('D', "showdelegjob",
-                    istring("print main delegation token of specified Job ID(s)"),
-                    istring("job id"), show_deleg_jobs);
-
+  std::string input_format;
+  options.AddOption('i', "input",
+                    istring("convert from specified input database format [bdb|sqlite]"),
+                    istring("database format"), input_format);
+                    
   std::string output_format;
   options.AddOption('o', "output",
-                    istring("convert current databse into specified output format [bdb|sqlite]"),
+                    istring("convert into specified output database format [bdb|sqlite]"),
                     istring("database format"), output_format);
 
 
@@ -84,6 +79,17 @@ int main(int argc, char* argv[]) {
     break;
   };
 
+  if(!input_format.empty()) {
+    if(input_format == "bdb") {
+      deleg_db_type = DelegationStore::DbBerkeley;
+    } else if(input_format == "sqlite") {
+      deleg_db_type = DelegationStore::DbSQLite;
+    } else {
+      std::cerr << "Unknown input database type requested - " << input_format << std::endl;
+      exit(-1);
+    };
+  };
+
   if(!output_format.empty()) {
     if(output_format == "bdb") {
       deleg_db_type_out = DelegationStore::DbBerkeley;
@@ -97,13 +103,13 @@ int main(int argc, char* argv[]) {
 
   switch(deleg_db_type) {
    case DelegationStore::DbBerkeley:
-    std::cout << "Using original database type - Berkeley DB" << std::endl;
+    std::cout << "Using input database type - Berkeley DB" << std::endl;
     break;
    case DelegationStore::DbSQLite:
-    std::cout << "Using original database type - SQLite" << std::endl;
+    std::cout << "Using input database type - SQLite" << std::endl;
     break;
    default:
-    std::cerr << "Failed identifying source database type" << std::endl;
+    std::cerr << "Failed identifying input database type" << std::endl;
     exit(-1);
   };
   switch(deleg_db_type_out) {
@@ -153,6 +159,7 @@ int main(int argc, char* argv[]) {
     exit(-1);
   };
 
+  unsigned int rec_num = 0;
   // Copy database content record by record
   FileRecord::Iterator* prec = source_db->NewIterator();
   if(!prec) {
@@ -169,8 +176,27 @@ int main(int argc, char* argv[]) {
       copy_success = false;
       std::cerr << "Failed copying record " << id << ", " << owner << " - "
                 << output_db->Error() << std::endl;
+      break;
     };
-    // todo: copy locks
+    std::list<std::string> locks;
+    if(!source_db->ListLocks(id, owner, locks)) {
+      copy_success = false;
+      std::cerr << "Failed obtaining locks for " << id << ", " << owner << " - "
+                << source_db->Error() << std::endl;
+      break;
+    };
+    for(std::list<std::string>::iterator lock = locks.begin(); lock != locks.end(); ++lock) {
+      std::list<std::string> ids;
+      ids.push_back(id);
+      if(!output_db->AddLock(*lock, ids, owner)) {
+        copy_success = false;
+        std::cerr << "Failed adding lock " << *lock << " for " << id << ", " << owner << " - "
+                  << source_db->Error() << std::endl;
+        break;
+      };
+    };
+    if(!copy_success) break;
+    ++rec_num;
   };
   delete prec;
   delete source_db;
@@ -178,7 +204,10 @@ int main(int argc, char* argv[]) {
   if(!copy_success) {
     Arc::DirDelete(delegation_dir_output, true);
     exit(-1);
-  };
+  } else {
+    std::cout << "Copied " << rec_num << " credentials entries" << std::endl;
+    std::cout << "New database created in " << delegation_dir_output << std::endl;
+  }
 
   // Move generated database (first delete old one)
   try {
@@ -228,6 +257,8 @@ int main(int argc, char* argv[]) {
     exit(-1);
   };
 
-  Arc::DirDelete(delegation_dir_output, false);
+  Arc::DirDelete(delegation_dir_output, true);
+  std::cout << "New database moved into " << delegation_dir << std::endl;
   return 0;
 }
+
