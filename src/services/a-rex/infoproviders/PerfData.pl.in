@@ -1,0 +1,548 @@
+#!/usr/bin/perl -w
+
+package PerfData;
+
+########################################################
+# Script for performance collection
+# Requires the NYTProf profiler
+# Requires files generated after the execution of
+# CEinfo.pl
+# Generates output as requested by the NorduGrid
+# collaboration at
+# https://wiki.nordugrid.org/wiki/Logging_of_CE_performance_numbers
+# 
+#
+# 20160414 metrics:
+#   - lrmscalltiming, lrmstype, lrms full command, durationinseconds
+#   - controldirreadtiming, all, directoryname, durationinseconds
+#   - controldirreadtiming, file, filename, durationinseconds
+#   - controldirreadtiming, job, jobid, durationinseconds # this can be derived by above numbers
+#
+# Author: Florido Paganelli florido.paganelli@hp.lu.se, NorduGrid Collaboration
+# 
+########################################################
+
+use File::Basename;
+use Getopt::Long;
+use Sys::Hostname;
+use Data::Dumper::Concise;
+use Cwd;
+#use Devel::NYTProf::Data;
+#use Symbol;
+
+# The profiling tool might be missing in some distributions.
+# Default is to assume is not present.
+my $NYTPROF_PRESENT = 0;
+$ENV{NYTPROF} = "start=no:file=/tmp/arcnytproftmp";
+$NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+if ($NYTPROF_PRESENT) {
+    # temporary workaround to reduce useless files written by
+    # the profiler. Might be removed in the future
+    # NOTE: comment lines out to profile/debug this script or profiling will 
+    # stop after the following line.
+    DB::disable_profile();
+    DB::finish_profile();
+    unlink '/tmp/arcnytproftmp';
+};
+
+use strict;
+
+BEGIN {
+    my $pkgdatadir = dirname($0);
+    unshift @INC, $pkgdatadir;
+}
+
+use ConfigCentral;
+use LogUtils; 
+our $log = LogUtils->getLogger(__PACKAGE__);
+my $debuglevel;
+# default is to delete parsed nytprof files
+my $keepnytproffiles = 0;
+our $configfile;
+my $controldirpath = '';
+# default performance log filename as agreed in the NG wiki
+# https://wiki.nordugrid.org/wiki/Logging_of_CE_performance_numbers#details.2C_agreements
+my $perflogfilename = 'infosys.perflog';
+
+#############################################################
+#  Datastructures to hold metrics to collect
+#  To add new metrics is enough to fill such datastructures
+#  with the needed  information.
+#############################################################
+   		
+# TODO:									    
+#   - controldirreadtiming, job, jobid, durationinseconds 
+#     candidate fine grained: raw file date, job, N/A: can NYTPROF get this runtime info? , sum of the above for each jobid?
+#            There is no way to obtain JOB IDS from NYTProf.
+#            This can be achieved only by adding additional info in the code.
+#     candidate coarse grained: raw file date, job, any , sum of the above for just one call  or NYTPROF block: foreach my $ID (@gridmanager_jobs) {
+#              This can be derived by other numbers. But it requires summing times of all lines inside the for loop above, which is quite time consuming 
+#              and it will not give a much better number than the time to run getgmjobs / number of calls for each file
+
+
+## GMJobsInfo.pm #######################################
+
+# subs for gmjobs
+
+# Implements:
+#  - controldirreadtiming, all, directoryname, durationinseconds
+#     candidate: raw file date, all, $controlsubdir? , sub get_gmjobs 
+#     Can't get specific controlsubdir. Just showing aggregated data for now.
+#    
+# NYTProf datastructure: GMJobsInfo::get_gmjobs => [ ?, ?, ?, external time, internaltime, pointer  ]
+# we always take externaltime
+#
+my $gmjobssubs = {
+   'GMJobsInfo::get_gmjobs' => "controldirreadtiming,all,controldir"
+};
+
+# code patterns to get line info for gmjobsinfo
+
+my $gmjobsinfopatterns = {
+	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+	'.status' => 'my \(\$first_line\) = <GMJOB_STATUS>;', 
+	'.failed' => 'read GMJOB_FAILED, \$chars, 1024;',
+	'.grami'  => 'while \(my \$line = <GMJOB_GRAMI>\) {',
+	'.description' => 'while \(my \$line = <GMJOB_DESCRIPTION>\) {',
+	'.diag'   => 'unless \( open \(GMJOB_DIAG, "<\$gmjob_diag"\) \) {'
+};
+
+# mapping between info sources and output strings
+#
+# Implements:
+#   - controldirreadtiming, file, filename, durationinseconds, number of calls
+# filename is missing as it is currently impossible to get from the profiler.
+# 
+my $gmjobsinfometrics = {
+    'subs' => {	%$gmjobssubs },
+	'codepatterns' => {
+		 'subprefix' => 'controldirreadtiming,file',
+		 'patterns' => { %$gmjobsinfopatterns },
+		 'lines' => {}, # will contain calculated line numbers in source code for the above patterns
+		 'params' => 'incl'
+    }
+};
+
+# Coarse grained LRMSInfo information
+# Implements:
+#      not very interesting: candidate coarse grained: raw file date, LRMSInfo.pm, nofullcommand, 
+#      timing of line  my $result = get_lrms_info($options); <-- same info in infoprovider.log, but maybe good for comparison?
+
+
+my $lrmsinfosubs = {
+   'LRMSInfo::collect' => 'lrmscalltiming,LRMSInfo.pm,collect',
+};
+
+my $lrmsinfometrics = {
+    'subs' => {	%$lrmsinfosubs },
+};
+
+
+# Module stuff for each LRMS, to be loaded depending on config
+# Implements:
+#   - lrmscalltiming, lrmstype, lrms full command, durationinseconds
+#     candidate fine grained: raw file date, lrmsmodulename, lrms full command?, sum of queueinfo and jobsinfo timing   
+#     #   TODO: add lrms full command, must be extracted from code. Exact values will be missing
+
+## fork
+
+my $forkmodsubs = {
+   'FORKmod::queue_info' => 'lrmscalltiming,fork,queue_info',
+   'FORKmod::jobs_info' => 'lrmscalltiming,fork,jobs_info'
+};
+
+
+#my $forkmodpatterns = {
+#	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+#};
+
+my $forkmodmetrics = {
+    'subs' => {	%$forkmodsubs },
+#	'codepatterns' => {
+#		 'subprefix' => 'controldirreadtiming,file',
+#		 'patterns' => { %$forkmodpatterns },
+#		 'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
+#		 'params' => 'incl'
+#    }
+};
+
+## slurm
+
+my $slurmmodsubs = {
+   'SLURM::queue_info' => 'lrmscalltiming,slurm,queue_info',
+   'SLURM::jobs_info' => 'lrmscalltiming,slurm,jobs_info'
+};
+
+
+#my $slurmmodpatterns = {
+#	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+#};
+
+my $slurmmodmetrics = {
+    'subs' => {	%$slurmmodsubs },
+#	'codepatterns' => {
+#		 'subprefix' => 'lrmscalltiming,slurm,command',
+#		 'patterns' => { %$slurmmodpatterns },
+#		 'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
+#		 'params' => 'incl'
+#    }
+};
+
+## Condor
+
+my $condorsubs = {
+   'Condor::queue_info' => 'lrmscalltiming,condor,queue_info',
+   'Condor::jobs_info' => 'lrmscalltiming,condor,jobs_info'
+};
+
+
+#my $condorpatterns = {
+#	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+#};
+
+my $condormetrics = {
+    'subs' => {	%$condorsubs },
+#	'codepatterns' => {
+#		 'subprefix' => 'lrmscalltiming,condor,command',
+#		 'patterns' => { %$condorpatterns },
+#		 'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
+#		 'params' => 'incl'
+#    }
+};
+
+## PBS
+
+my $pbsmodsubs = {
+   'PBSmod::queue_info' => 'lrmscalltiming,pbs,queue_info',
+   'PBSmod::jobs_info' => 'lrmscalltiming,pbs,jobs_info'
+};
+
+
+#my $pbspatterns = {
+#	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+#};
+
+my $pbsmodmetrics = {
+    'subs' => {	%$pbsmodsubs },
+#	'codepatterns' => {
+#		 'subprefix' => 'lrmscalltiming,pbs,command',
+#		 'patterns' => { %$pbsmodpatterns },
+#        'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
+#		 'params' => 'incl'
+#    }
+};
+
+## SGE
+
+my $sgemodsubs = {
+   'SGEmod::queue_info' => 'lrmscalltiming,sge,queue_info',
+   'SGEmod::jobs_info' => 'lrmscalltiming,sge,jobs_info'
+};
+
+
+#my $sgemodpatterns = {
+#	'.local'  => 'my @local_allines = <GMJOB_LOCAL>;',
+#};
+
+my $sgemodmetrics = {
+    'subs' => {	%$sgemodsubs },
+#	'codepatterns' => {
+#		 'subprefix' => 'lrmscalltiming,sge,command',
+#		 'patterns' => { %$sgemodpatterns },
+#		 'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
+#		 'params' => 'incl'
+#    }
+};
+
+## Metrics list ############################################
+
+my $metrics = {
+  'modules' => {
+     'GMJobsInfo.pm' => { %$gmjobsinfometrics },
+     'LRMSInfo.pm' => { %$lrmsinfometrics },
+# These are loaded depending on config
+#    'FORKmod.pm' => { %$forkmodmetrics },
+#    'SLURMmod.pm' => { %$slurmmodmetrics },     
+#    'Condor.pm' => { %$condormetrics },
+#    'PBSmod.pm' => { %$pbsmodmetrics },
+#    'SGEmod.pm' => { %$sgemodmetrics },
+  },
+};
+
+
+############################################################
+# Subroutines
+############################################################
+
+# Scans the modules datastucture and writes out NYTProf data
+sub getdatabymodule {
+
+  my ($arcmodulefilename,$prefixstring,$profile) = @_;
+  
+  my $arcmoduledata = $metrics->{'modules'}{$arcmodulefilename};
+  #  print Data::Dumper::Dumper($arcmoduledata);
+  
+  # TODO: check that profile contains relevant data  
+  
+  # get performance data for given modules
+  if (defined $arcmoduledata->{subs}) {
+      my $modulesubstimes = {};
+	  $modulesubstimes = getsubroutinedata($modulesubstimes,$arcmoduledata->{subs},$profile);
+	  
+	  # output strings
+	  for my $subr (keys %{$arcmoduledata->{subs}}) {
+#	      print Data::Dumper::Dumper($arcmoduledata->{subs});	 
+	      writeperf("$prefixstring,".$arcmoduledata->{subs}{$subr}.','.$modulesubstimes->{$subr}) if defined $modulesubstimes;
+	  }
+  }
+  
+  # print lines information   
+  #print Data::Dumper::Dumper("lines before stats is: ".$arcmoduledata->{codepatterns}{lines});
+  if (defined $arcmoduledata->{codepatterns}) {
+     printfiledata($arcmoduledata->{codepatterns}{lines},$arcmodulefilename,$profile,"$prefixstring,$arcmoduledata->{codepatterns}{subprefix}");
+  }
+}  
+
+# adds to the input hash subroutine times
+sub getsubroutinedata {
+  my ($modulesubstimes,$arcmodulesubs,$profile) = @_;
+  my $subinfo;
+  # get subroutine data
+  for my $subroutine (keys %$arcmodulesubs) {
+	  # TODO: protect from missing data
+         $subinfo = $profile->subinfo_of($subroutine);
+         if (defined $subinfo) {
+			 # Suggested by Tim Bunce:
+             $modulesubstimes->{$subroutine} = $subinfo->incl_time;
+		 } else {
+			 $modulesubstimes->{$subroutine} = '0,0';
+		 }
+  }
+  return $modulesubstimes;
+}
+
+        
+
+# get stats for selected lines of code. Prints file data per line
+# Fills the lines hash in the datastructure
+sub printfiledata {
+   my ($linenumbers,$perlmodulefilename,$profile,$prefixstring) = @_;
+   # get file data
+	    my $fileinfo = $profile->fileinfo_of($perlmodulefilename);	    
+	    my $linesinfo = $fileinfo->line_time_data;
+	    
+	    # [0] is the time for a call, [1] the number of calls
+	    for my $filetype (keys %{$linenumbers}) {
+		   my $line = $linenumbers->{$filetype}; 
+		   if (defined @{$linesinfo}[$line]) {
+	           my $line_time = @{@{$linesinfo}[$line]}[0];
+	           my $line_calls = @{@{$linesinfo}[$line]}[1];
+		       writeperf("$prefixstring,$filetype,$line_time,$line_calls");
+		  }
+		}		
+}
+
+
+# get code line numbers 
+# taking them from the datastructure at the top
+sub getlinenumbers {
+  # calculate line numbers for each pattern 
+  # this could be static, but allows the code to change independently
+  foreach my $module (keys %{$metrics->{'modules'}}) {
+	my $modulehash = $metrics->{'modules'}{$module};
+	if (defined $modulehash->{codepatterns}) {
+     	open ( SF , $module ) or $log->error("$!");
+	    while ( my $fileline = <SF>) {
+			for my $filetype (keys %{$modulehash->{codepatterns}{patterns}}) {
+			   my $pattern = $modulehash->{codepatterns}{patterns}{$filetype};
+			      if ($fileline =~ /$pattern/ ) {
+				      $modulehash->{codepatterns}{lines}{$filetype} = $.;
+			    }
+		    }
+		# TODO: cycle through lines to check that values have been defined,
+		# otherwise there might be an error in the patterns
+		#$log->warning("Pattern $pattern for module $module not found. Please recheck codepatterns datastructure in PerfData.pl") unless (defined $modulehash->{codepatterns}{lines}{$filetype});    
+		    
+		};
+        close (SF);
+
+        #print Data::Dumper::Dumper($metrics->{modules}{$module}{'codepatterns'});
+		};
+    };
+        
+}
+
+# Writes to file the performance information.
+# structure is not checked here, currently it must be enforced by the 
+# various functions creating the output message.
+sub writeperf {
+  my ($msg) = @_;
+  open ( my $filehandle, ">>", $perflogfilename) || log->error("Cannot write to $perflogfilename, exiting");
+  print $filehandle "$msg\n";
+  close $filehandle;
+}
+
+# used to remove files in the nytprof db folder
+sub deletefiles {
+  my ($dbfilefullpath) = @_;
+  unless ($keepnytproffiles) {
+     $log->verbose("deleting file $dbfilefullpath");
+     $log->warning("Cannot delete file $dbfilefullpath: $!") unless unlink $dbfilefullpath;
+  }
+}
+
+
+
+############################################################
+# Main
+############################################################
+
+sub main {
+
+    $log->error('Devel::NYTProf not present. Perfomance files generaton cannot continue. ') unless ($NYTPROF_PRESENT);
+  
+    # Parse command line options
+    my $print_help;
+    my $testfilename;
+    
+    GetOptions("config:s" => \$configfile,
+               "testfilename|test|t:s" => \$testfilename,
+               "debuglevel|d:s" => \$debuglevel,
+               "keepnytproffiles|k!" => \$keepnytproffiles,
+               "help|h"   => \$print_help ); 
+
+    if ($print_help) { 
+        print "
+        This script loads a set of NYTProf databases and extracts relevant data for ARC information system
+        as specified in https://wiki.nordugrid.org/wiki/Logging_of_CE_performance_numbers .
+        Usage: $0 <options>
+        Options:
+        --config                         - full path to arc.conf
+        --testfilename|test|t <filename> - filename to use for testing. 
+                                           If not specified all files in the performance folder will be scanned (default)
+        --debuglevel|d <debuglevel>      - debug level as one of ARC {FATAL|ERROR|WARNING|INFO|VERBOSE|DEBUG}. Default is INFO
+        --keepnytproffiles|k             - if enabled, the script will not delete nytprof files in perfdata/perl_nytprof. Default is to
+                                           wipe out the processed ones to save space.
+        --help                           - this help\n";
+        exit 1;
+    }
+
+    $log->error("--config argument is missing, see --help ") unless ( $configfile );
+       
+    # Read ARC configuration
+    my $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
+    $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc';    
+    
+    my $hostname = ConfigCentral::getValueOf($configfile,'common','hostname');
+        
+    my $arcversion = '@VERSION@';
+
+    $controldirpath = ConfigCentral::getValueOf($configfile,'control','controldir');
+
+    # get lrms info and add relevant metrics to datastructure
+    my $lrms = ConfigCentral::getValueOf($configfile,'common','lrms');
+    if ($lrms eq 'fork') {
+	   	$metrics->{'modules'}{'FORKmod.pm'} = { %$forkmodmetrics };
+	};
+	if  ($lrms =~ /slurm/i) {
+	    $metrics->{'modules'}{'SLURMmod.pm'} = { %$slurmmodmetrics };	
+	};
+	if  ($lrms =~ /pbs/i) {
+	    $metrics->{'modules'}{'PBSmod.pm'} = { %$pbsmodmetrics };	
+	};
+	if  ($lrms =~ /condor/i) {
+	    $metrics->{'modules'}{'Condor.pm'} = { %$condormetrics };	
+	};
+
+    $debuglevel ? LogUtils::level($debuglevel) : LogUtils::level('INFO');
+    LogUtils::timestamps(1);
+    
+    $log->verbose('--keepnytproffiles option detected, db files will not be deleted') if ($keepnytproffiles);
+
+    # calculate line numbers for each pattern 
+    # this could be static, but allows the code to change independently
+    getlinenumbers();
+
+    #print Data::Dumper::Dumper($config);
+    $log->info("Performance folder: ".$perflogdir);
+    
+    # set performance outputfile
+    # timestamp not needed anymore but I will keep the code for now
+    #my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    #my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+    #$perflogfilename = 'infosys_'.$timestamp.'_'.$perflogfilename;
+    $perflogfilename = $perflogdir.'/'.$perflogfilename;
+    $log->info("Performance file will be created: ".$perflogfilename);
+    
+    # open nytprof database files in the folder and save their names
+    my $nytprofperflogdir = $perflogdir.'/perl_nytprof';
+    $log->info("NYTProf databases folder: $nytprofperflogdir");
+    unless (opendir PERFDIR,  $nytprofperflogdir ) {
+        $log->error("Can't access the nytprof perfdata directory: $nytprofperflogdir");
+    }
+
+    my @dbfiles = ();
+
+    if (defined $testfilename) {
+		push @dbfiles,$testfilename;
+	} else {
+       @dbfiles = grep /infosys\_\d{14}.perflog\.raw/, readdir PERFDIR;
+       closedir PERFDIR;
+       # remove last file as it is usually incomplete
+       @dbfiles = sort @dbfiles;
+       my $lastfile = pop @dbfiles;
+       $log->debug("Skipping $nytprofperflogdir/$lastfile as it might be open by CEInfo.pl/NYTProf");
+    }
+   
+    # get some files to scan stats
+    my $totalfilestoscan = @dbfiles;
+    $log->info("Files to scan: $totalfilestoscan");
+    my $processedfiles = 0;
+   
+    # for each file extract relevant calls.
+    foreach my $dbfile (@dbfiles) {
+		#my $dbfile = 'infosys_20160704182917.perflog.raw';
+		$processedfiles++;
+		my $dbfilefullpath = $nytprofperflogdir.'/'.$dbfile;
+		$log->verbose("Processing: $dbfilefullpath , $processedfiles of $totalfilestoscan");
+
+
+        # Hack to solve NYTProf memory overflow. A circular reference in the 
+        # $profile datastructure prevents the garbage collector to cleanup.
+        # in this way each file is processed in a child process that 
+        # forces the garbage collector to cleanup on exit.
+        my $pid = fork(); 
+        log->error('Cannot fork NYTProf scanning, exiting...') unless (defined $pid);
+        ## child code
+        if( $pid == 0 ){ 
+		  $log->debug("Starting helper process for $dbfilefullpath");
+		  use Devel::NYTProf::Data;
+          my $profile = Devel::NYTProf::Data->new( { filename => $dbfilefullpath, quiet => 1 } );
+          #$profile->dump_profile_data();
+	
+	        # Prefix for performance strings.    
+	        my $prefixstring = '';
+		    my $rawtimestamp ='';
+		    if ( $dbfile =~ /infosys\_(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.perflog\.raw/ ) {
+			   # Format POSIX style
+			   $rawtimestamp = "$1-$2-$3".'T'."$4:$5:$6".'Z';
+			};
+			$prefixstring = "$rawtimestamp,$hostname,$arcversion,infosys";
+	    
+	        # cycle throught datastructure
+	        for my $module (keys %{$metrics->{modules}}) {
+	           getdatabymodule($module,$prefixstring,$profile); 
+		    }
+		    exit 0; # children exits here
+        }
+        # parent code
+        # waits for child to exit
+        waitpid ($pid, 0);
+        # delete processed file
+        deletefiles($dbfilefullpath);
+	}
+$log->info("$processedfiles of $totalfilestoscan processed. Results (if any) written to: $perflogfilename");
+exit;
+}
+
+main;

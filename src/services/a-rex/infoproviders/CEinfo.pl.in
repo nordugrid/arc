@@ -37,6 +37,18 @@ BEGIN {
     unshift @INC, $pkgdatadir;
 }
 
+# Attempt to recursively create directory
+# takes absolute filename (absolute path and file name)
+sub createdirs {
+	my ($fullpathfilename, $log) = @_;
+	my @paths;
+	for (my $path = dirname $fullpathfilename; length $path > 1; $path = dirname $path) {
+		push @paths, $path;
+	}
+	mkdir $_ for reverse @paths;
+	$log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
+}
+
 # minimal set of vars before loading the profiler
 our $configfile;
 our $NYTPROF_PRESENT = 0;
@@ -78,11 +90,14 @@ BEGIN {
 			# The profiling tool might be missing in some distributions.
 			# Default is to assume is not present.
 			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc'; 
+			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata'; 
+			# append and create raw folder for NYTProf database files
+			
 			my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 		    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
 		    my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
-		    $perflogfilepath = $perflogdir.'/'.$perflogfilename;
+		    $perflogfilepath = $perflogdir.'/perl_nytprof/'.$perflogfilename;
+		    createdirs($perflogfilepath,$log);
 		    if ( -e $perflogdir ) {
 				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflogfilepath;
 				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
@@ -143,8 +158,10 @@ sub main {
 
     if ($print_help) { 
         print "Usage: $0 <options>
-        --config   - location of arc.conf
-        --help     - this help\n";
+        --config      - location of arc.conf
+        --nojobs|n    - don't include information about jobs
+        --splitjobs|s - write job info in a separate XML file for each job in the controldir
+        --help        - this help\n";
         exit 1;
     }
 
@@ -167,12 +184,7 @@ sub main {
     LogUtils::indentoutput(0);
 
     # Attempt to recursively create directory
-    my @paths;
-    for (my $path = dirname $providerlog; length $path > 1; $path = dirname $path) {
-        push @paths, $path;
-    }
-    mkdir $_ for reverse @paths;
-    $log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
+    createdirs($providerlog,$log);
 
     open STDERR, ">>", $providerlog or $log->error("Failed to open to $providerlog");
     LogUtils::timestamps(1);

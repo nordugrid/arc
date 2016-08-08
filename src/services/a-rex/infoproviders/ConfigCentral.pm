@@ -981,7 +981,12 @@ sub getValueOf ($$$){
    if ($block eq 'common') {
 	   return $config->{$option};
    } else {
-      return $config->{$block}{$option};
+	    if ($block eq 'control'){
+			#print Data::Dumper::Dumper($config->{control});
+            return $config->{control}->{'.'}{$option};
+          } else {
+	         return $config->{$block}{$option};
+	      }
    }
 }
 
