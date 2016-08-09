@@ -66,14 +66,17 @@ int main(int argc, char* argv[]) {
 
   config.Print();
 
+  bool deleg_db_type_from_configuration = false;
   DelegationStore::DbType deleg_db_type = DelegationStore::DbBerkeley;
   DelegationStore::DbType deleg_db_type_out = DelegationStore::DbSQLite;
   switch(config.DelegationDBType()) {
    case GMConfig::deleg_db_bdb:
+    deleg_db_type_from_configuration = true;
     deleg_db_type = DelegationStore::DbBerkeley;
     deleg_db_type_out = DelegationStore::DbSQLite;
     break;
    case GMConfig::deleg_db_sqlite:
+    deleg_db_type_from_configuration = true;
     deleg_db_type = DelegationStore::DbSQLite;
     deleg_db_type_out = DelegationStore::DbBerkeley;
     break;
@@ -81,8 +84,10 @@ int main(int argc, char* argv[]) {
 
   if(!input_format.empty()) {
     if(input_format == "bdb") {
+      deleg_db_type_from_configuration = false;
       deleg_db_type = DelegationStore::DbBerkeley;
     } else if(input_format == "sqlite") {
+      deleg_db_type_from_configuration = false;
       deleg_db_type = DelegationStore::DbSQLite;
     } else {
       std::cerr << "Unknown input database type requested - " << input_format << std::endl;
@@ -232,6 +237,10 @@ int main(int argc, char* argv[]) {
     std::cerr << "Failed deleting source database" << std::endl;
     std::cerr << "You MUST manually copy content of " << delegation_dir_output << 
                  " into " << delegation_dir << std::endl;
+    if(deleg_db_type_from_configuration) {
+      std::cerr << "After that do NOT forget to change database type in confguration file." << std::endl;
+      std::cerr << "Otherwise it will be destoyed next time a-rex starts." << std::endl;
+    }
     exit(-1);
   };
 
@@ -247,6 +256,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Failed copying new database - file " << fullpath_source << std::endl;
         std::cerr << "You MUST manually copy content of " << delegation_dir_output << 
                      " into " << delegation_dir << std::endl;
+        if(deleg_db_type_from_configuration) {
+          std::cerr << "After that do NOT forget to change database type in confguration file." << std::endl;
+          std::cerr << "Otherwise it will be destoyed next time a-rex starts." << std::endl;
+        }
         exit(-1);
       };
     };
@@ -259,6 +272,10 @@ int main(int argc, char* argv[]) {
 
   Arc::DirDelete(delegation_dir_output, true);
   std::cout << "New database moved into " << delegation_dir << std::endl;
+  if(deleg_db_type_from_configuration) {
+    std::cout << "Do NOT forget to change database type in confguration file." << std::endl;
+    std::cout << "Otherwise it will be destoyed next time a-rex starts." << std::endl;
+  }
   return 0;
 }
 
