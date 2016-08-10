@@ -28,6 +28,7 @@ namespace Arc {
     }
 
     node_ = p;
+    is_owner_ = true;
   }
 
   XMLNodeRecover::~XMLNodeRecover() {
