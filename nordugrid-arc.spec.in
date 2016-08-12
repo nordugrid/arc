@@ -148,30 +148,53 @@
 
 %global pkgdir arc
 
+%if %{?fedora}%{!?fedora:0} >= 25 || %{?rhel}%{!?rhel:0} >= 8
+%global use_systemd 1
+%else
+%global use_systemd 0
+%endif
+
 #
 # Macros for scripts
 #
 
 # Stop and disable service on package removal
+%if %{use_systemd}
+%define stop_on_removal() %{expand:%%systemd_preun %(sed 's/[^ ]*/&.service/g' <<< '%{?*}')}
+%else
 %if %{?stop_on_removal:0}%{!?stop_on_removal:1}
 %global stop_on_removal() if [ $1 -eq 0 ]; then for s in %*; do service $s stop > /dev/null 2>&1 || : ; done; for s in %*; do /sbin/chkconfig --del $s; done; fi
 %endif
+%endif
 
 # Enable a service
+%if %{use_systemd}
+%define enable_service() %{expand:%%systemd_post %(sed 's/[^ ]*/&.service/g' <<< '%{?*}')}
+%else
 %if %{?suse_version:1}%{!?suse_version:0}
 %define enable_service() %{expand:%%fillup_and_insserv -f %{?*}}
 %else
 %define enable_service() for s in %{?*}; do /sbin/chkconfig --add $s ; done
 %endif
+%endif
 
 # Conditionally restart service on package update
+%if %{use_systemd}
+%define condrestart_on_update() %{expand:%%systemd_postun_with_restart %(sed 's/[^ ]*/&.service/g' <<< '%{?*}')}
+%else
 %if %{?suse_version:1}%{!?suse_version:0}
 %define condrestart_on_update() %{expand:%%restart_on_update %{?*}} %{expand:%%insserv_cleanup}
 %else
 %define condrestart_on_update() if [ $1 -ge 1 ]; then for s in %{?*}; do service $s condrestart > /dev/null 2>&1 || : ; done; fi
 %endif
+%endif
 
 # Standard service requirements
+%if %{use_systemd}
+%define service_post_requires   systemd-units
+%define service_preun_requires  systemd-units
+%define service_postun_requires systemd-units
+%else
 %if %{?suse_version:1}%{!?suse_version:0}
 %define service_post_requires   %{insserv_prereq}
 %define service_preun_requires  %{insserv_prereq}
@@ -180,6 +203,7 @@
 %define service_post_requires   chkconfig
 %define service_preun_requires  chkconfig, initscripts
 %define service_postun_requires initscripts
+%endif
 %endif
 
 Name:		@PACKAGE@
@@ -941,6 +965,9 @@ export CXXFLAGS="%{optflags} -std=c++11"
 %if %{with_sqlite}
      --enable-sqlite \
 %endif
+%if %{use_systemd}
+     --with-systemd-units-location=%{_unitdir} \
+%endif
      --disable-doc \
      --with-docdir=%{_pkgdocdir} \
      --with-jnidir=%{_jnidir}
@@ -1279,7 +1306,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files hed
 %defattr(-,root,root,-)
 %doc docdir/hed/*
+%if %{use_systemd}
+%{_unitdir}/arched.service
+%{_datadir}/%{pkgdir}/arched-start
+%else
 %{_initrddir}/arched
+%endif
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libecho.apd
@@ -1289,7 +1321,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files gridftpd
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/gridftpd.service
+%{_datadir}/%{pkgdir}/gridftpd-start
+%else
 %{_initrddir}/gridftpd
+%endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
@@ -1298,9 +1335,14 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files ldap-infosys
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/nordugrid-arc-slapd.service
+%{_unitdir}/nordugrid-arc-inforeg.service
+%else
 %{_initrddir}/nordugrid-arc-ldap-infosys
 %{_initrddir}/nordugrid-arc-slapd
 %{_initrddir}/nordugrid-arc-inforeg
+%endif
 %{_datadir}/%{pkgdir}/create-slapd-config
 %{_datadir}/%{pkgdir}/create-inforeg-config
 %{_datadir}/%{pkgdir}/config_parser_compat.sh
@@ -1309,7 +1351,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files aris
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/nordugrid-arc-bdii.service
+%else
 %{_initrddir}/nordugrid-arc-bdii
+%endif
 %{_datadir}/%{pkgdir}/create-bdii-config
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
@@ -1320,7 +1366,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files egiis
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/nordugrid-arc-egiis.service
+%else
 %{_initrddir}/nordugrid-arc-egiis
+%endif
 %{_sbindir}/arc-infoindex-relay
 %{_sbindir}/arc-infoindex-server
 %{_mandir}/man8/arc-infoindex-relay.8*
@@ -1343,20 +1393,35 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files cache-service
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/arc-cache-service.service
+%{_datadir}/%{pkgdir}/arc-cache-service-start
+%else
 %{_initrddir}/arc-cache-service
+%endif
 %{_libdir}/%{pkgdir}/libcacheservice.so
 %{_libdir}/%{pkgdir}/libcacheservice.apd
 
 %files datadelivery-service
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/arc-datadelivery-service.service
+%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
+%else
 %{_initrddir}/arc-datadelivery-service
+%endif
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.so
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
 %files arex
 %defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/a-rex.service
+%{_datadir}/%{pkgdir}/a-rex-start
+%else
 %{_initrddir}/a-rex
+%endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
@@ -1449,12 +1514,22 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files acix-cache
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/cacheserver
+%if %{use_systemd}
+%{_unitdir}/acix-cache.service
+%{_datadir}/%{pkgdir}/acix-cache-start
+%else
 %{_initrddir}/acix-cache
+%endif
 
 %files acix-index
 %defattr(-,root,root,-)
 %{python_sitelib}/acix/indexserver
+%if %{use_systemd}
+%{_unitdir}/acix-index.service
+%{_datadir}/%{pkgdir}/acix-index-start
+%else
 %{_initrddir}/acix-index
+%endif
 %endif
 
 %files devel

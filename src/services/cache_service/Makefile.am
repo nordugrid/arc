@@ -7,6 +7,16 @@ CACHE_SCRIPT =
 endif
 initd_SCRIPTS = $(CACHE_SCRIPT)
 
+if SYSTEMD_UNITS_ENABLED
+CACHE_UNIT = arc-cache-service.service
+CACHE_UNIT_WRAPPER = arc-cache-service-start
+else
+CACHE_UNIT =
+CACHE_UNIT_WRAPPER =
+endif
+units_DATA = $(CACHE_UNIT)
+pkgdata_SCRIPTS = $(CACHE_UNIT_WRAPPER)
+
 libcacheservice_la_SOURCES = CacheService.h CacheService.cpp \
                              CacheServiceGenerator.h CacheServiceGenerator.cpp
 libcacheservice_la_CXXFLAGS = -I$(top_srcdir)/include \

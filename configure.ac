@@ -98,6 +98,15 @@ AC_SUBST(pkglibexecdir)
 ARC_API
 ARC_RELATIVE_PATHS
 
+AC_ARG_WITH(systemd-units-location,
+  AC_HELP_STRING([--with-systemd-units-location=<PATH>], [Location of the systemd unit files. [[None]]]),
+  [ unitsdir="$withval" ],
+  [ unitsdir= ]
+)
+AM_CONDITIONAL([SYSTEMD_UNITS_ENABLED],[test "x$unitsdir" != "x"])
+AC_MSG_RESULT($unitsdir)
+AC_SUBST(unitsdir)
+
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
   [ initddir="$withval" ],
@@ -119,7 +128,7 @@ AC_ARG_WITH(sysv-scripts-location,
     esac
   ]
 )
-AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$initddir" != "x"])
+AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$unitsdir" = "x" && test "x$initddir" != "x"])
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
@@ -2449,6 +2458,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
                  src/services/a-rex/a-rex
+                 src/services/a-rex/a-rex.service
+                 src/services/a-rex/a-rex-start
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/perferator
                  src/services/a-rex/grid-manager/arc-vomsac-check.8
@@ -2517,17 +2528,25 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
+                 src/services/acix/cacheserver/acix-cache.service
                  src/services/acix/cacheserver/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile
+                 src/services/acix/indexserver/acix-index.service
                  src/services/acix/indexserver/test/Makefile
                  src/services/cache_service/Makefile
                  src/services/cache_service/arc-cache-service
+                 src/services/cache_service/arc-cache-service.service
+                 src/services/cache_service/arc-cache-service-start
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
+                 src/services/data-staging/arc-datadelivery-service.service
+                 src/services/data-staging/arc-datadelivery-service-start
                  src/services/gridftpd/Makefile
                  src/services/gridftpd/gridftpd.init
+                 src/services/gridftpd/gridftpd.service
+                 src/services/gridftpd/gridftpd-start
                  src/services/gridftpd/gridftpd.8
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
@@ -2643,6 +2662,8 @@ AC_CONFIG_FILES([Makefile
                  mingw-nordugrid-arc.spec
                  src/hed/daemon/arched.8
                  src/hed/daemon/scripts/arched
+                 src/hed/daemon/scripts/arched.service
+                 src/hed/daemon/scripts/arched-start
                  arcbase.pc
                  nsis/Makefile
                  nsis/arc.nsis

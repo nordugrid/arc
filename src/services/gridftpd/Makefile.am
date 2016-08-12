@@ -16,6 +16,16 @@ uninstall-local:
 	rm -f $(DESTDIR)$(initddir)/gridftpd
 endif
 
+if SYSTEMD_UNITS_ENABLED
+GRIDFTPD_UNIT = gridftpd.service
+GRIDFTPD_UNIT_WRAPPER = gridftpd-start
+else
+GRIDFTPD_UNIT =
+GRIDFTPD_UNIT_WRAPPER =
+endif
+units_DATA = $(GRIDFTPD_UNIT)
+pkgdata_SCRIPTS = $(GRIDFTPD_UNIT_WRAPPER)
+
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp
 libgridftpd_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
