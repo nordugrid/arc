@@ -2461,6 +2461,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/a-rex.service
                  src/services/a-rex/a-rex-start
                  src/services/a-rex/a-rex-backtrace-collect
+                 src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator
                  src/services/a-rex/grid-manager/arc-vomsac-check.8
                  src/services/a-rex/grid-manager/arc-blahp-logger.8

@@ -29,6 +29,8 @@ pkgdata_SCRIPTS = $(AREX_UNIT_WRAPPER) perferator
 
 sbin_SCRIPTS = a-rex-backtrace-collect
 
+man_MANS = a-rex-backtrace-collect.8
+
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
