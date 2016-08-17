@@ -1490,6 +1490,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
+%doc %{_mandir}/man8/a-rex-backtrace-collect.8*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 %dir %{_localstatedir}/spool/arc
