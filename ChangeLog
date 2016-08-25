@@ -1,3 +1,7 @@
+2016-08-25 David Cameron <d.g.cameron@fys.uio.no>
+  * Added new configuration options hostname and port in the acix/cacheserver
+    block
+
 2016-07-04 David Cameron <d.g.cameron@fys.uio.no>
   * Added support for using Rucio as a proxy to read/write to objectstores
 

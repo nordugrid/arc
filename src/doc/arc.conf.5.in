@@ -3767,6 +3767,22 @@ server.
 
 
 .TP
+.B hostname
+Hostname on which the cache server listens. Default is all available interfaces.
+
+.IR Example:
+.br
+hostname="myhost.org"
+
+.TP
+.B port
+Port on which the cache server listens. Default is 5443.
+
+.IR Example:
+.br
+port="6000"
+
+.TP
 .B logfile
 Log file location for the cache server. Default is
 /var/log/arc/acix-cache.log
