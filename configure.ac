@@ -972,12 +972,12 @@ else
 fi
 fi
 
-# Check for SSLv3_method
+# Check for available *_method functions in OpenSSL
 SAVE_CFLAGS=$CFLAGS
 SAVE_LIBS=$LIBS
 CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
-AC_CHECK_FUNCS(SSLv3_method)
+AC_CHECK_FUNCS(SSLv3_method TLS_method TLSv1_method TLSv1_1_method TLSv1_2_method DTLS_method DTLSv1_method DTLSv1_2_method)
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 

@@ -60,11 +60,24 @@ namespace Arc {
   };
 
   enum SecurityLayer {
-    NoSec, TLSSec, GSISec, SSL3Sec, GSIIOSec
+    NoSec,      //< No security applied to this communication
+    TLSSec,     //< HTTPS-like security is used (handshake negotiates highest possible protocol)
+    GSISec,     //< GSI compatible communication
+    SSL3Sec,    //< Start communication from SSLv3 handshake
+    GSIIOSec,   //< Globus GSI implemwntation compatible communication
+    TLS10Sec,   //< TLSv1.0 only protocol
+    TLS11Sec,   //< TLSv1.1 only protocol
+    TLS12Sec,   //< TLSv1.2 only protocol
+    DTLSSec,    //< Automatic selection of DTLS protocol
+    DTLS10Sec,  //< DTLSv1.0 only protocol
+    DTLS12Sec,  //< DTLSv1.0 only protocol
   };
 
   enum EncryptionLevel {
-    NoEnc, RequireEnc, PreferEnc, OptionalEnc
+    NoEnc,      //< No data encryption to be performed
+    RequireEnc, //< Force data encryption
+    PreferEnc,  //< Use data encryption if possible
+    OptionalEnc //< Use data encryption only if needed
   };
 
   class TCPSec {

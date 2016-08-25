@@ -17,6 +17,17 @@
 
 namespace Arc {
 
+  #define SECURITY_IS_SSL(sec) ( \
+    (sec == TLSSec)   || \
+    (sec == TLS10Sec) || (sec == TLS11Sec)  || (sec == TLS12Sec) || \
+    (sec == SSL3Sec)  || \
+    (sec == DTLSSec)  || (sec == DTLS10Sec) || (sec ==DTLS12Sec) \
+  )
+
+  #define SECURITY_IS_GSI(sec) ( \
+    (sec == GSISec) || (sec == GSIIOSec) \
+  )
+
   Logger ClientInterface::logger(Logger::getRootLogger(), "ClientInterface");
 
   static void xml_add_element(XMLNode xml, XMLNode element) {
@@ -140,7 +151,7 @@ namespace Arc {
     if(timeout >=  0) comp.NewChild("Timeout") = tostring(timeout);
     if(no_delay) comp.NewChild("NoDelay") = "true";
 
-    if ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) {
+    if (SECURITY_IS_SSL(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
       if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
       if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
@@ -150,8 +161,15 @@ namespace Arc {
       if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
       if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";
+      else if (sec.sec == TLS10Sec) comp.NewChild("Handshake") = "TLSv1.0";
+      else if (sec.sec == TLS11Sec) comp.NewChild("Handshake") = "TLSv1.1";
+      else if (sec.sec == TLS12Sec) comp.NewChild("Handshake") = "TLSv1.2";
+      else if (sec.sec == DTLSSec) comp.NewChild("Handshake") = "DTLS";
+      else if (sec.sec == DTLS10Sec) comp.NewChild("Handshake") = "DTLSv1.0";
+      else if (sec.sec == DTLS12Sec) comp.NewChild("Handshake") = "DTLSv1.2";
+      else comp.NewChild("Handshake") = "TLS"; // also default
     }
-    else if ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) {
+    else if (SECURITY_IS_GSI(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
       if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
       if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
@@ -264,11 +282,11 @@ namespace Arc {
   }
 
   void ClientTCP::AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libname, const std::string& libpath) {
-    if ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) {
+    if (SECURITY_IS_SSL(sec.sec)) {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tls.client", "tls"),
         handlercfg);
-    } else if ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) {
+    } else if (SECURITY_IS_GSI(sec.sec)) {
       ClientInterface::AddSecHandler(
         ConfigFindComponent(xmlcfg["Chain"], "tls.client", "gsi"),
         handlercfg);
@@ -322,6 +340,7 @@ namespace Arc {
     TCPSec sec;
     if(url.Protocol() == "https") {
       if(url.Option("protocol") == "ssl3") {
+        // TODO: Other options?
         sec.sec = SSL3Sec;
       } else {
         sec.sec = TLSSec;
@@ -364,8 +383,8 @@ namespace Arc {
       relative_uri(url.Option("relativeuri") == "yes"),
       sec(http_url_to_sec(url)) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
-                     ((sec.sec == TLSSec) || (sec.sec == SSL3Sec)) ? "tls" :
-                     ((sec.sec == GSISec) || (sec.sec == GSIIOSec)) ? "gsi" : "tcp");
+                     (SECURITY_IS_SSL(sec.sec)) ? "tls" :
+                     (SECURITY_IS_GSI(sec.sec)) ? "gsi" : "tcp");
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
