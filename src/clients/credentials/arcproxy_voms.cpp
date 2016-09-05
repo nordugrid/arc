@@ -125,7 +125,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
             fqans.push_back(*c_it); // ??
           }
         }
-        Arc::ClientVOMSRESTful client(cfg, vomsline->Host(), port_num, Arc::SSL3Sec, usercfg.Timeout()/* todo: , proxy_host, proxy_port*/);
+        Arc::ClientVOMSRESTful client(cfg, vomsline->Host(), port_num, Arc::TLSSec, usercfg.Timeout()/* todo: , proxy_host, proxy_port*/);
         std::string response;
         Arc::MCC_Status status = client.process(fqans, lifetime, response);
         if (!status) {
@@ -181,7 +181,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
         //logger.msg(Arc::VERBOSE, "Try to get attribute from VOMS server with order: %s", ordering);
         //logger.msg(Arc::VERBOSE, "Message sent to VOMS server %s is: %s", voms_name, send_msg);
 
-        Arc::ClientVOMS client(cfg, vomsline->Host(), port_num, use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
+        Arc::ClientVOMS client(cfg, vomsline->Host(), port_num, use_gsi_comm ? Arc::GSISec : Arc::TLSSec, usercfg.Timeout());
         std::string response;
         Arc::MCC_Status status = client.process(commands, ordering, lifetime, response);
         if (!status) {
