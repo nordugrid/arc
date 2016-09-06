@@ -416,6 +416,7 @@ namespace ArcDMCGridFTP {
     if (!reading) return DataStatus::ReadStopError;
     reading = false;
     // If error in buffer then read thread will already have called abort
+    if (!buffer) return DataStatus::Success;
     if (!buffer->eof_read() && !buffer->error()) {
       logger.msg(VERBOSE, "stop_reading_ftp: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
@@ -637,6 +638,7 @@ namespace ArcDMCGridFTP {
     if (!writing) return DataStatus::WriteStopError;
     writing = false;
     // If error in buffer then write thread will already have called abort
+    if (!buffer) return DataStatus::Success;
     if (!buffer->eof_write() && !buffer->error()) {
       logger.msg(VERBOSE, "StopWriting: aborting connection");
       GlobusResult res = globus_ftp_client_abort(&ftp_handle);
