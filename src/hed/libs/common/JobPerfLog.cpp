@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <fstream>
 
-#ifdef __MACH__
+#ifdef _MACOSX
 #include <mach/clock.h>
 #include <mach/mach.h>
 #endif
@@ -48,7 +48,7 @@ void JobPerfRecord::Start(const std::string& id) {
 
   struct timespec ts;
 
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+#ifdef _MACOSX // OS X does not have clock_gettime, use clock_get_time
   clock_serv_t cclock;
   mach_timespec_t mts;
   host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
@@ -69,7 +69,7 @@ void JobPerfRecord::Start(const std::string& id) {
 void JobPerfRecord::End(const std::string& name) {
   if(start_recorded) {
     timespec end_time;
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+#ifdef _MACOSX // OS X does not have clock_gettime, use clock_get_time
     clock_serv_t cclock;
     mach_timespec_t mts;
     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
