@@ -533,7 +533,7 @@ class Credential {
                                    //from the certificate, after
                                    //verification, the ca certificate
                                    //will be included
-    ArcCredential::PROXYCERTINFO* proxy_cert_info_;
+    PROXY_CERT_INFO_EXTENSION* proxy_cert_info_;
     Credformat       format;
     Time        start_;
     Period      lifetime_;
@@ -547,7 +547,6 @@ class Credential {
     //Proxy policy
     std::string proxyversion_;
     std::string policy_;
-    std::string policylang_;
     int proxyver_;
     int pathlength_;
 

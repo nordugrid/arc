@@ -8,32 +8,33 @@
 #ifndef ARC_VOMSATTRIBUTE_H
 #define ARC_VOMSATTRIBUTE_H
 
-#include <openssl/opensslv.h>
-
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-// Workaround for broken header in openssl 1.0.0
-#include <openssl/safestack.h>
-#undef SKM_ASN1_SET_OF_d2i
-#define	SKM_ASN1_SET_OF_d2i(type, st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
-  (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK) **)CHECKED_PTR_OF(STACK_OF(type)*, st), \
-				pp, length, \
-				CHECKED_D2I_OF(type, d2i_func), \
-				CHECKED_SK_FREE_FUNC(type, free_func), \
-				ex_tag, ex_class)
-#undef SKM_ASN1_SET_OF_i2d
-#define	SKM_ASN1_SET_OF_i2d(type, st, pp, i2d_func, ex_tag, ex_class, is_set) \
-  i2d_ASN1_SET((STACK_OF(OPENSSL_BLOCK) *)CHECKED_STACK_OF(type, st), pp, \
-				CHECKED_I2D_OF(type, i2d_func), \
-				ex_tag, ex_class, is_set)
-#endif
-
-#include <openssl/evp.h>
-#include <openssl/asn1_mac.h>
-#include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include <openssl/stack.h>
-#include <openssl/safestack.h>
-#include <openssl/err.h>
+//#include <openssl/opensslv.h>
+
+//#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+//// Workaround for broken header in openssl 1.0.0
+//#include <openssl/safestack.h>
+//#undef SKM_ASN1_SET_OF_d2i
+//#define	SKM_ASN1_SET_OF_d2i(type, st, pp, length, d2i_func, free_func, ex_tag, ex_class) \
+//  (STACK_OF(type) *)d2i_ASN1_SET((STACK_OF(OPENSSL_BLOCK) **)CHECKED_PTR_OF(STACK_OF(type)*, st), \
+//				pp, length, \
+//				CHECKED_D2I_OF(type, d2i_func), \
+//				CHECKED_SK_FREE_FUNC(type, free_func), \
+//				ex_tag, ex_class)
+//#undef SKM_ASN1_SET_OF_i2d
+//#define	SKM_ASN1_SET_OF_i2d(type, st, pp, i2d_func, ex_tag, ex_class, is_set) \
+//  i2d_ASN1_SET((STACK_OF(OPENSSL_BLOCK) *)CHECKED_STACK_OF(type, st), pp, \
+//				CHECKED_I2D_OF(type, i2d_func), \
+//				ex_tag, ex_class, is_set)
+//#endif
+
+//#include <openssl/evp.h>
+//#include <openssl/asn1t.h>
+//#include <openssl/x509.h>
+//#include <openssl/x509v3.h>
+//#include <openssl/stack.h>
+//#include <openssl/safestack.h>
+//#include <openssl/err.h>
 
 #define VOMS_AC_HEADER "-----BEGIN VOMS AC-----"
 #define VOMS_AC_TRAILER "-----END VOMS AC-----"
@@ -212,6 +213,7 @@ typedef struct ACFULLATTRIBUTES {
   STACK_OF(AC_ATT_HOLDER) *providers;
 } AC_FULL_ATTRIBUTES;
 
+/*
 #if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
 #define IMPL_STACK(type)						\
   DECLARE_STACK_OF(type)						\
@@ -459,12 +461,12 @@ AC_HOLDER *d2i_AC_HOLDER(AC_HOLDER **a, SSLCONST unsigned char **pp, long length
 AC_HOLDER *AC_HOLDER_new(void);
 void AC_HOLDER_free(AC_HOLDER *a);
 
-/* new AC_VAL functions by Valerio */
+* new AC_VAL functions by Valerio *
 int i2d_AC_VAL(AC_VAL *a, unsigned char **pp);
 AC_VAL *d2i_AC_VAL(AC_VAL **a, SSLCONST unsigned char **pp, long length);
 AC_VAL *AC_VAL_new(void);
 void AC_VAL_free(AC_VAL *a);
-/* end */
+* end *
 
 int i2d_AC_INFO(AC_INFO *a, unsigned char **pp);
 AC_INFO *d2i_AC_INFO(AC_INFO **a, SSLCONST unsigned char **p, long length);
@@ -517,6 +519,7 @@ X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
+*/
 
 } // namespace ArcCredential
 

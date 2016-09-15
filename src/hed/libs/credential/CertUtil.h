@@ -10,6 +10,7 @@
 
 namespace ArcCredential {
   
+/*
     #define PROXYCERTINFO_V3      "1.3.6.1.4.1.3536.1.222"
     #ifdef HAVE_OPENSSL_PROXY
       #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.1400"
@@ -17,6 +18,7 @@ namespace ArcCredential {
       #define PROXYCERTINFO_V4      "1.3.6.1.5.5.7.1.14"
     #endif
     #define PROXYCERTINFO_OPENSSL      "1.3.6.1.5.5.7.1.14"
+*/
 
  
     /// Certificate Types
