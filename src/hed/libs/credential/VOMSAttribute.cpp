@@ -10,6 +10,7 @@
 
 namespace ArcCredential {
 
+/*
 int i2d_AC_ATTR(AC_ATTR *a, unsigned char **pp)
 {
   char text[1000];
@@ -570,7 +571,7 @@ AC_INFO *AC_INFO_new(void)
   M_ASN1_New(ret->attrib,   sk_AC_ATTR_new_null);
   ret->id = NULL;
   M_ASN1_New(ret->exts,     sk_X509_EXTENSION_new_null);
-/*   ret->exts=NULL; */
+*   ret->exts=NULL; *
   return(ret);
   M_ASN1_New_Error(AC_F_AC_INFO_NEW);
 }
@@ -1013,6 +1014,7 @@ void AC_FULL_ATTRIBUTES_free(AC_FULL_ATTRIBUTES *a)
   sk_AC_ATT_HOLDER_pop_free(a->providers, AC_ATT_HOLDER_free);
   OPENSSL_free(a);
 }
+*/
 
 static char *norep()
 {
@@ -1314,6 +1316,7 @@ void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 }
 
 
+/*
 IMPL_STACK(AC_IETFATTR)
 IMPL_STACK(AC_IETFATTRVAL)
 IMPL_STACK(AC_ATTR)
@@ -1332,6 +1335,7 @@ IMPL_STACK(AC_CERTS)
 IMPL_STACK(AC_ATTRIBUTE)
 IMPL_STACK(AC_ATT_HOLDER)
 IMPL_STACK(AC_FULL_ATTRIBUTES)
+*/
 
 
 X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth() {
