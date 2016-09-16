@@ -22,7 +22,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 /// Returns number of files that failed to be deleted
 int arcrm(const std::list<Arc::URL>& urls,
-          const Arc::UserConfig& usercfg,
+          Arc::UserConfig& usercfg,
           bool errcont) {
 
   Arc::DataHandle* handle = NULL;
@@ -61,17 +61,21 @@ int arcrm(const std::list<Arc::URL>& urls,
       }
 
       if ((*handle)->RequiresCredentials()) {
-        if (usercfg.ProxyPath().empty() ) {
-          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", url->str());
+        if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
+          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
+          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
           failed++;
           delete handle;
           handle = NULL;
           continue;
         }
-        Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
-        if (holder.GetEndTime() < Arc::Time()){
-          logger.msg(Arc::ERROR, "Proxy expired");
-          logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", url->str());
+        Arc::Credential holder(usercfg);
+        if (!holder.IsValid()) {
+          if (holder.GetEndTime() < Arc::Time()) {
+            logger.msg(Arc::ERROR, "Proxy expired");
+          }
+          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
+          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
           failed++;
           delete handle;
           handle = NULL;

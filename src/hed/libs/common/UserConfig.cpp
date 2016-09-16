@@ -404,7 +404,6 @@ namespace Arc {
       }
     }
 
-    if(has_proxy) require = false;
     // Should we really handle them in pairs
     std::string cert_path = GetEnv("X509_USER_CERT");
     std::string key_path = GetEnv("X509_USER_KEY");
@@ -412,16 +411,16 @@ namespace Arc {
       certificatePath = cert_path;
       file_test_status fts;
       if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
-        certificate_file_error_report(fts,require,certificatePath,logger);
-        if(require) {
+        certificate_file_error_report(fts,!has_proxy,certificatePath,logger);
+        if(!has_proxy) {
           res = false;
         }
         certificatePath.clear();
       }
       keyPath = key_path;
       if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
-        key_file_error_report(fts,require,keyPath,logger);
-        if(require) {
+        key_file_error_report(fts,!has_proxy,keyPath,logger);
+        if(!has_proxy) {
           res = false;
         }
         keyPath.clear();
@@ -429,15 +428,15 @@ namespace Arc {
     } else if (!certificatePath.empty() && !keyPath.empty()) {
       file_test_status fts;
       if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
-        certificate_file_error_report(fts,require,certificatePath,logger);
-        if(require) {
+        certificate_file_error_report(fts,!has_proxy,certificatePath,logger);
+        if(!has_proxy) {
           res = false;
         }
         certificatePath.clear();
       }
       if (test && ((fts = private_file_test(keyPath, user)) != file_test_success)) {
-        key_file_error_report(fts,require,keyPath,logger);
-        if(require) {
+        key_file_error_report(fts,!has_proxy,keyPath,logger);
+        if(!has_proxy) {
           res = false;
         }
         keyPath.clear();
@@ -446,8 +445,8 @@ namespace Arc {
       //If only certificatePath provided, then it could be a pkcs12 file
       file_test_status fts;
       if (test && ((fts = user_file_test(certificatePath, user)) != file_test_success)) {
-        certificate_file_error_report(fts,require,certificatePath,logger);
-        if(require) {
+        certificate_file_error_report(fts,!has_proxy,certificatePath,logger);
+        if(!has_proxy) {
           res = false;
         }
         certificatePath.clear();
@@ -457,8 +456,8 @@ namespace Arc {
       certificatePath = cert_path;
       file_test_status fts;
       if (test && ((fts = user_file_test(cert_path, user)) != file_test_success)) {
-        certificate_file_error_report(fts,require,cert_path,logger);
-        if(require) {
+        certificate_file_error_report(fts,!has_proxy,cert_path,logger);
+        if(!has_proxy) {
           res = false;
         }
         cert_path.clear();
@@ -501,12 +500,12 @@ namespace Arc {
       }
       if (it == search_paths.end() && !has_proxy) {
         logger.msg(VERBOSE, "Certificate and key ('%s' and '%s') not found in any of the paths: %s", "usercert.pem", "userkey.pem", tried_paths);
-        logger.msg(require?WARNING:VERBOSE,
+        logger.msg(!has_proxy?WARNING:VERBOSE,
           "If the proxy or certificate/key does exist, you can manually specify the locations via environment variables "
           "'%s'/'%s' or '%s', or the '%s'/'%s' or '%s' attributes in the client configuration file (e.g. '%s')",
           "X509_USER_CERT", "X509_USER_KEY", "X509_USER_PROXY", "certificatepath", "proxypath", "keypath", "~/.arc/client.conf");
       }
-      if((certificatePath.empty() || keyPath.empty()) && require) {
+      if((certificatePath.empty() || keyPath.empty()) && !has_proxy) {
         res = false;
       }
     }
