@@ -8,6 +8,7 @@
 #ifndef ARC_VOMSATTRIBUTE_H
 #define ARC_VOMSATTRIBUTE_H
 
+#include <openssl/asn1t.h>
 #include <openssl/x509v3.h>
 //#include <openssl/opensslv.h>
 
