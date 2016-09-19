@@ -275,7 +275,7 @@ namespace Arc {
 
     dirn1  = GENERAL_NAME_new();
     dirn2  = GENERAL_NAME_new();
-    holdserial      = M_ASN1_INTEGER_dup(holder->cert_info->serialNumber);
+    holdserial      = ASN1_INTEGER_dup(X509_get_serialNumber(holder));
     serial          = BN_to_ASN1_INTEGER(serialnum, NULL);
     version         = BN_to_ASN1_INTEGER((BIGNUM *)(BN_value_one()), NULL);
     capabilities    = AC_ATTR_new();
@@ -469,12 +469,19 @@ namespace Arc {
     if (certstack)
       sk_X509_EXTENSION_push(a->acinfo->exts, certstack);
 
-    alg1 = X509_ALGOR_dup(issuer->cert_info->signature);
-    alg2 = X509_ALGOR_dup(issuer->sig_alg);
+    alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
+    alg1 = X509_ALGOR_dup(alg1);
+    alg2 = NULL;
+    X509_get0_signature(NULL, (const X509_ALGOR**)&alg2, issuer);
+    alg2 = X509_ALGOR_dup(alg2);
 
-    if (issuer->cert_info->issuerUID)
-      if (!(uid = M_ASN1_BIT_STRING_dup(issuer->cert_info->issuerUID)))
-        ERROR(AC_ERR_MEMORY);
+    {
+      const ASN1_BIT_STRING* issuerUID = NULL;
+      X509_get0_uids(issuer, &issuerUID, NULL);
+      if (issuerUID)
+        if (!(uid = ASN1_STRING_dup(issuerUID)))
+          ERROR(AC_ERR_MEMORY);
+    }
 
     ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
     ASN1_INTEGER_free(a->acinfo->serial);
@@ -606,7 +613,7 @@ err:
     BN_one(dataorder);
 
     //Parse the AC, and insert it into an AC list
-    if((received_ac = d2i_AC(NULL, (SSLCONST unsigned char**)&p, l))) {
+    if((received_ac = d2i_AC(NULL, (const unsigned char**)&p, l))) {
       actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
         aclist = actmplist; 
@@ -630,60 +637,20 @@ err:
 
   static int cb(int ok, X509_STORE_CTX *ctx) {
     if (!ok) {
-      if (ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
       /* since we are just checking the certificates, it is
        * ok if they are self signed. But we should still warn
        * the user.
        */
-      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
       /* Continue after extension errors too */
-      if (ctx->error == X509_V_ERR_INVALID_CA) ok=1;
-      if (ctx->error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
-      if (ctx->error == X509_V_ERR_CERT_CHAIN_TOO_LONG) ok=1;
-      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_INVALID_CA) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_CERT_CHAIN_TOO_LONG) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
     }
     return(ok);
   }
-
-#if 0
-  static bool checkCert(X509 *cert, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
-    X509_STORE *ctx = NULL;
-    X509_STORE_CTX *csc = NULL;
-    X509_LOOKUP *lookup = NULL;
-    int i = 0;
-
-    if(ca_cert_dir.empty() && ca_cert_file.empty()) {
-      CredentialLogger.msg(ERROR,"VOMS: CA directory or CA file must be provided");
-      return false;
-    }
-
-    csc = X509_STORE_CTX_new();
-    ctx = X509_STORE_new();
-    if (ctx && csc) {
-      X509_STORE_set_verify_cb_func(ctx,cb);
-//#ifdef SIGPIPE
-//      signal(SIGPIPE,SIG_IGN);
-//#endif
-      CRYPTO_malloc_init();
-      if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
-        X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc,ctx,cert,NULL);
-        i = X509_verify_cert(csc);
-      }
-      else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
-        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc,ctx,cert,NULL);
-        i = X509_verify_cert(csc);
-      }
-    }
-    if (ctx) X509_STORE_free(ctx);
-    if (csc) X509_STORE_CTX_free(csc);
-
-    return (i != 0);
-  }
-#endif
 
   static bool checkCert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
@@ -703,7 +670,7 @@ err:
 //#ifdef SIGPIPE
 //      signal(SIGPIPE,SIG_IGN);
 //#endif
-      CRYPTO_malloc_init();
+//      CRYPTO_malloc_init();
 
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
         X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
@@ -1304,8 +1271,9 @@ err:
         if (iss) {
           if (key->keyid) {
             unsigned char hashed[20];
-            if (!SHA1(iss->cert_info->key->public_key->data,
-                      iss->cert_info->key->public_key->length,
+            ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(iss);
+            if (!SHA1(pkeystr->data,
+                      pkeystr->length,
                       hashed))
               keyerr = true;
           
@@ -1315,9 +1283,9 @@ err:
           }
           else {
             if (!(key->issuer && key->serial)) keyerr = true;
-            if (M_ASN1_INTEGER_cmp((key->serial), (iss->cert_info->serialNumber))) keyerr = true;
+            if (ASN1_INTEGER_cmp((key->serial), X509_get_serialNumber(iss))) keyerr = true;
             if (key->serial->type != GEN_DIRNAME) keyerr = true;
-            if (X509_NAME_cmp(sk_GENERAL_NAME_value((key->issuer), 0)->d.dirn, (iss->cert_info->subject))) keyerr = true;
+            if (X509_NAME_cmp(sk_GENERAL_NAME_value((key->issuer), 0)->d.dirn, X509_get_subject_name(iss))) keyerr = true;
           }
         }
         AUTHORITY_KEYID_free(key);
@@ -1427,12 +1395,12 @@ err:
         return false;
       }
 
-      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %lx", ASN1_INTEGER_get(cert->cert_info->serialNumber));
+      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %lx", ASN1_INTEGER_get(X509_get_serialNumber(cert)));
       CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %lx", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
 
-      if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
+      if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, X509_get_serialNumber(cert))) {
         CredentialLogger.msg(VERBOSE,"VOMS: the holder serial number %lx is not the same as the serial number in AC %lx, the holder certificate that is used to create a voms proxy could be a proxy certificate with a different serial number as the original EEC cert",
-          ASN1_INTEGER_get(cert->cert_info->serialNumber),
+          ASN1_INTEGER_get(X509_get_serialNumber(cert)),
           ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
       }
@@ -1447,9 +1415,9 @@ err:
      
       char *ac_holder_name_chars = X509_NAME_oneline(name->d.dirn,NULL,0);
       ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
-      char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
+      char *holder_name_chars = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
       std::string holder_name = holder_name_chars; OPENSSL_free(holder_name_chars);
-      char *holder_issuer_name_chars = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
+      char *holder_issuer_name_chars = X509_NAME_oneline(X509_get_issuer_name(cert),NULL,0);
       std::string holder_issuer_name = holder_issuer_name_chars; OPENSSL_free(holder_issuer_name_chars);
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",ac_holder_name.c_str());
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",holder_name.c_str());
@@ -1466,10 +1434,12 @@ err:
         }
       }
 
-      if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
-          (!cert->cert_info->issuerUID && !ac->acinfo->holder->baseid->uid)) {
+      const ASN1_BIT_STRING* issuerUID = NULL;
+      X509_get0_uids(cert, &issuerUID, NULL);
+      if ((ac->acinfo->holder->baseid->uid && issuerUID) ||
+          (!issuerUID && !ac->acinfo->holder->baseid->uid)) {
         if (ac->acinfo->holder->baseid->uid) {
-          if (M_ASN1_BIT_STRING_cmp(ac->acinfo->holder->baseid->uid, cert->cert_info->issuerUID)) {
+          if (ASN1_STRING_cmp(ac->acinfo->holder->baseid->uid, issuerUID)) {
             CredentialLogger.msg(ERROR,"VOMS: the holder issuerUID is not the same as that in AC");
             status |= VOMSACInfo::ACParsingFailed;
             return false;
@@ -1487,7 +1457,7 @@ err:
       if ((sk_GENERAL_NAME_num(names) == 1) ||      //??? 
           ((name = sk_GENERAL_NAME_value(names,0))) ||
           (name->type != GEN_DIRNAME)) {
-        if (X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
+        if (X509_NAME_cmp(name->d.dirn, X509_get_issuer_name(cert))) {
           /* CHECK ALT_NAMES */
           /* in VOMS ACs, checking into alt names is assumed to always fail. */
           CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
@@ -1506,8 +1476,8 @@ err:
     }
     ac_issuer_name = x509name2ascii(name->d.dirn);
     if(issuer) {
-      if (X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-        std::string issuer_name = x509name2ascii(issuer->cert_info->subject);
+      if (X509_NAME_cmp(name->d.dirn, X509_get_subject_name(issuer))) {
+        std::string issuer_name = x509name2ascii(X509_get_subject_name(issuer));
         CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
           issuer_name, ac_issuer_name);
         status |= VOMSACInfo::ACParsingFailed;
@@ -1989,7 +1959,7 @@ err:
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)("acseq")), (char*)(ac_seq.c_str()));
     if(ext!=NULL) {
       asn1.clear();
-      asn1.assign((const char*)(ext->value->data), ext->value->length);
+      asn1.assign((const char*)(X509_EXTENSION_get_data(ext)->data), X509_EXTENSION_get_data(ext)->length);
       ret = true;
       X509_EXTENSION_free(ext);      
     }

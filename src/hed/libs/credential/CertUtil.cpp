@@ -25,9 +25,8 @@ namespace ArcCredential {
   static Arc::Logger& logger = Arc::Logger::rootLogger;
 
 //static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer);
-//static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
+static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
 
-/*
 int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;
   int j;
@@ -39,7 +38,7 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
 
   user_cert = cert;
   cert_store = X509_STORE_new();
-  X509_STORE_set_verify_cb_func(cert_store, verify_callback);
+  // X509_STORE_set_verify_cb_func(cert_store, verify_callback);
   if (*certchain != NULL) {
     for (i=0;i<sk_X509_num(*certchain);i++) {
       cert_in_chain = sk_X509_value(*certchain,i);
@@ -69,11 +68,11 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
     //Last parameter is "untrusted", probably related globus code is wrong.
 
 #if SSLEAY_VERSION_NUMBER >=  0x0090600fL
-    * override the check_issued with our version *
-    store_ctx->check_issued = check_issued;
+    /* override the check_issued with our version */
+    //store_ctx->check_issued = check_issued;
 #endif
 
-    *
+    /*
      * If this is not set, OpenSSL-0.9.8 assumes the proxy cert
      * as an EEC and the next level cert in the chain as a CA cert
      * and throws an invalid CA error. If we set this, the callback
@@ -81,7 +80,7 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
      * ok = 0 with an error "unhandled critical extension"
      * and "path length exceeded".
      * verify_callback will check the critical extension later.
-     *
+     */
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     X509_STORE_CTX_set_flags(store_ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
 #endif
@@ -102,8 +101,8 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
   if(store_ctx != NULL) {
     if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
     *certchain = sk_X509_new_null();
-    for (i=(cert)?1:0; i < sk_X509_num(store_ctx->chain); i++) {
-      X509* tmp = NULL; tmp = X509_dup(sk_X509_value(store_ctx->chain,i));
+    for (i=(cert)?1:0; i < sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)); i++) {
+      X509* tmp = NULL; tmp = X509_dup(sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i));
       sk_X509_insert(*certchain, tmp, i);
     }
   }
@@ -116,7 +115,6 @@ err:
 
   return retval;
 }
-*/
 
 /*
 static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {

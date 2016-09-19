@@ -1300,8 +1300,9 @@ void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
   AUTHORITY_KEYID *keyid = AUTHORITY_KEYID_new();
 
   if (str && keyid) {
-    SHA1(cert->cert_info->key->public_key->data,
-	 cert->cert_info->key->public_key->length,
+    ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(cert);
+    SHA1(pkeystr->data,
+	 pkeystr->length,
 	 (unsigned char*)digest);
     ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
     ASN1_OCTET_STRING_free(keyid->keyid);
