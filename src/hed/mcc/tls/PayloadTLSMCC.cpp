@@ -19,22 +19,6 @@ namespace ArcMCCTLS {
 static const char * ex_data_id = "ARC_MCC_Payload_TLS";
 int PayloadTLSMCC::ex_data_index_ = -1;
 
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-#define FLAG_CRL_DISABLED (0x1)
-
-static unsigned long get_flag_STORE_CTX(X509_STORE_CTX* container) {
-  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
-  if(!it) return 0;
-  return it->Flags();
-}
-
-static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
-  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
-  if(!it) return;
-  it->Flags(flags);
-}
-#endif
-
 Time asn1_to_utctime(const ASN1_UTCTIME *s) {
   std::string t_str;
   if(!s) return Time();
@@ -51,24 +35,7 @@ Time asn1_to_utctime(const ASN1_UTCTIME *s) {
 // This callback implements additional verification
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
-/*
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-  unsigned long flag = get_flag_STORE_CTX(sctx);
-  if(!(flag & FLAG_CRL_DISABLED)) {
-    // Not sure if this will work
-#if OPENSSL_VERSION_NUMBER < 0x00908000
-    if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
-      sctx->flags |= X509_V_FLAG_CRL_CHECK;
-#else
-    if(!(sctx->param->flags & X509_V_FLAG_CRL_CHECK)) {
-      sctx->param->flags |= X509_V_FLAG_CRL_CHECK;
-#endif
-      ok=X509_verify_cert(sctx);
-      return ok;
-    };
-  };
-#endif
-*/
+  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
     switch(err) {
@@ -78,46 +45,20 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         // to allow proxy. But one can never know because used flag
         // setting method is undocumented.
         X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
-        // Calling X509_verify_cert will cause a recursive call to verify_callback.
-        // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error
-        // can't happen anymore.
-        //ok=X509_verify_cert(sctx);
         ok=1;
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+        X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
 #endif
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
-        // Not sure of there is need for recursive X509_verify_cert() here.
+        // Not sure if there is need for recursive X509_verify_cert() here.
         // It looks like openssl runs tests sequentially for whole chain.
         // But not sure if behavior is same in all versions.
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-        if(sctx->param) {
-          X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          //ok=X509_verify_cert(sctx);
-          //X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          ok=1;
-          if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-        };
-#else
-
-#if OPENSSL_VERSION_NUMBER < 0x00908000
-        sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
-#else
-        sctx->param->flags &= ~X509_V_FLAG_CRL_CHECK;
-#endif
-
-        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
-        //ok=X509_verify_cert(sctx);
-        //sctx->flags |= X509_V_FLAG_CRL_CHECK;
-        //set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
         ok=1;
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-#endif
+        X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       default: {
-        PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
         if(it) {
           it->SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
@@ -128,7 +69,6 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   };
   if(ok == 1) {
     // Do additional verification here.
-    PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
     if(it == NULL) {
@@ -282,21 +222,15 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    if(!config_.Set(sslctx_)) goto error;
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   GlobusSetVerifyCertCallback(sslctx_);
+   //!!GlobusSetVerifyCertCallback(sslctx_);
 
    // Allow proxies, request CRL check
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
+   if(SSL_CTX_get0_param(sslctx_) == NULL) {
       logger.msg(ERROR,"Can't set OpenSSL verify flags");
       goto error;
    } else {
-#ifdef HAVE_OPENSSL_PROXY
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
+      X509_VERIFY_PARAM_set_flags(SSL_CTX_get0_param(sslctx_),X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
-#endif
    StoreInstance();
 #ifdef SSL_OP_NO_TICKET
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL | SSL_OP_NO_TICKET);
@@ -375,22 +309,17 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    else {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
-   GlobusSetVerifyCertCallback(sslctx_);
+   //!!GlobusSetVerifyCertCallback(sslctx_);
    if(!config_.Set(sslctx_)) goto error;
 
    // Allow proxies, request CRL check
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
+   if(SSL_CTX_get0_param(sslctx_) == NULL) {
       logger.msg(ERROR,"Can't set OpenSSL verify flags");
       goto error;
    } else {
-#ifdef HAVE_OPENSSL_PROXY
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
+      X509_VERIFY_PARAM_set_flags(SSL_CTX_get0_param(sslctx_),X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
-#endif
+
    StoreInstance();
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL);
    SSL_CTX_set_default_passwd_cb(sslctx_, no_passphrase_callback);

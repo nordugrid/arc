@@ -20,87 +20,86 @@ class BIOMCC {
     PayloadStreamInterface* stream_;
     MCCInterface* next_;
     MCC_Status result_;
+    BIO_METHOD* biom_;
+    BIO* bio_; // not owned by this object
   public:
-    BIOMCC(MCCInterface* next):result_(STATUS_OK) { next_=next; stream_=NULL; };
-    BIOMCC(PayloadStreamInterface* stream):result_(STATUS_OK) { next_=NULL; stream_=stream; };
-    ~BIOMCC(void) { if(stream_ && next_) delete stream_; };
+    BIOMCC(MCCInterface* next):result_(STATUS_OK) {
+      next_=NULL; stream_=NULL;
+      bio_ = NULL;
+      if(MakeMethod()) {
+        bio_ = BIO_new(biom_);
+        if(bio_) {
+          next_=next;
+          BIO_set_data(bio_,this);
+        }
+      }
+    };
+    BIOMCC(PayloadStreamInterface* stream):result_(STATUS_OK) {
+      next_=NULL; stream_=NULL;
+      bio_ = NULL;
+      if(MakeMethod()) {
+        bio_ = BIO_new(biom_);
+        if(bio_) {
+          stream_=stream;
+          BIO_set_data(bio_,this);
+        }
+      }
+    };
+    ~BIOMCC(void) {
+      if(stream_ && next_) delete stream_;
+      if(biom_) BIO_meth_free(biom_);
+    };
+    BIO* GetBIO() const { return bio_; };
     PayloadStreamInterface* Stream() const { return stream_; };
     void Stream(PayloadStreamInterface* stream) { stream_=stream; /*free ??*/ };
     MCCInterface* Next(void) const { return next_; };
     void MCC(MCCInterface* next) { next_=next; };
     const MCC_Status& Result(void) { return result_; }; 
+  private:
     static int  mcc_write(BIO *h, const char *buf, int num);
     static int  mcc_read(BIO *h, char *buf, int size);
     static int  mcc_puts(BIO *h, const char *str);
     static long mcc_ctrl(BIO *h, int cmd, long arg1, void *arg2);
     static int  mcc_new(BIO *h);
     static int  mcc_free(BIO *data);
+    bool MakeMethod(void) {
+      biom_ = BIO_meth_new(BIO_TYPE_FD,"Message Chain Component");
+      if(biom_) {
+        (void)BIO_meth_set_write(biom_,&BIOMCC::mcc_write);
+        (void)BIO_meth_set_read(biom_,&BIOMCC::mcc_read);
+        (void)BIO_meth_set_puts(biom_,&BIOMCC::mcc_puts);
+        (void)BIO_meth_set_ctrl(biom_,&BIOMCC::mcc_ctrl);
+        (void)BIO_meth_set_create(biom_,&BIOMCC::mcc_new);
+        (void)BIO_meth_set_destroy(biom_,&BIOMCC::mcc_free);
+      }
+      return (biom_ != NULL);
+    };
 };
 
-
-static void BIO_set_MCC(BIO* b,MCCInterface* mcc);
-static void BIO_set_MCC(BIO* b,PayloadStreamInterface* stream);
-
-static BIO_METHOD methods_mcc = {
-  BIO_TYPE_FD,"Message Chain Component",
-  BIOMCC::mcc_write,
-  BIOMCC::mcc_read,
-  BIOMCC::mcc_puts,
-  NULL, /* gets, */
-  BIOMCC::mcc_ctrl,
-  BIOMCC::mcc_new,
-  BIOMCC::mcc_free,
-  NULL,
-};
-
-BIO_METHOD *BIO_s_MCC(void) {
-  return(&methods_mcc);
-}
 
 BIO *BIO_new_MCC(MCCInterface* mcc) {
-  BIO *ret;
-  ret=BIO_new(BIO_s_MCC());
-  if (ret == NULL) return(NULL);
-  BIO_set_MCC(ret,mcc);
-  return(ret);
+  BIOMCC* biomcc = new BIOMCC(mcc);
+  BIO* bio = biomcc->GetBIO();
+  if(!bio) delete biomcc;
+  return bio;
 }
 
 BIO* BIO_new_MCC(PayloadStreamInterface* stream) {
-  BIO *ret;
-  ret=BIO_new(BIO_s_MCC());
-  if (ret == NULL) return(NULL);
-  BIO_set_MCC(ret,stream);
-  return(ret);
-}
-
-static void BIO_set_MCC(BIO* b,MCCInterface* mcc) {
-  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
-  if(biomcc == NULL) {
-    biomcc=new BIOMCC(mcc);
-    b->ptr=biomcc;
-  };
-}
-
-static void BIO_set_MCC(BIO* b,PayloadStreamInterface* stream) {
-  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
-  if(biomcc == NULL) {
-    biomcc=new BIOMCC(stream);
-    b->ptr=biomcc;
-  };
+  BIOMCC* biomcc = new BIOMCC(stream);
+  BIO* bio = biomcc->GetBIO();
+  if(!bio) delete biomcc;
+  return bio;
 }
 
 int BIOMCC::mcc_new(BIO *bi) {
-  bi->init=1;
-  bi->num=0;
-  bi->ptr=NULL;
-  // bi->flags=BIO_FLAGS_UPLINK; /* essentially redundant */
+  BIO_set_data(bi,NULL);
   return(1);
 }
 
 int BIOMCC::mcc_free(BIO *b) {
   if(b == NULL) return(0);
-  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
-  b->ptr=NULL;
+  BIOMCC* biomcc = (BIOMCC*)(BIO_get_data(b));
+  BIO_set_data(b,NULL);
   if(biomcc) delete biomcc;
   return(1);
 }
@@ -109,7 +108,7 @@ int BIOMCC::mcc_read(BIO *b, char *out,int outl) {
   int ret=0;
   if (out == NULL) return(ret);
   if(b == NULL) return(ret);
-  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
+  BIOMCC* biomcc = (BIOMCC*)(BIO_get_data(b));
   if(biomcc == NULL) return(ret);
   PayloadStreamInterface* stream = biomcc->Stream();
   if(stream == NULL) return ret;
@@ -131,8 +130,8 @@ int BIOMCC::mcc_write(BIO *b, const char *in, int inl) {
   //clear_sys_error();
   if(in == NULL) return(ret);
   if(b == NULL) return(ret);
-  if(b->ptr == NULL) return(ret);
-  BIOMCC* biomcc = (BIOMCC*)(b->ptr);
+  if(BIO_get_data(b) == NULL) return(ret);
+  BIOMCC* biomcc = (BIOMCC*)(BIO_get_data(b));
   if(biomcc == NULL) return(ret);
   PayloadStreamInterface* stream = biomcc->Stream();
   if(stream != NULL) {
@@ -207,7 +206,7 @@ int BIOMCC::mcc_puts(BIO *bp, const char *str) {
 
 bool BIO_MCC_failure(BIO* bio, MCC_Status& s) {
   if(!bio) return false;
-  BIOMCC* b = (BIOMCC*)(bio->ptr);
+  BIOMCC* b = (BIOMCC*)(BIO_get_data(bio));
   if(!b || b->Result()) return false;
   s = b->Result();
   return true;

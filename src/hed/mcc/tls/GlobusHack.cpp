@@ -8,6 +8,7 @@
 
 namespace ArcMCCTLS {
 
+/*
   static void fix_proxy_nid(X509_EXTENSION* ext,int nid,int gnid) {
     if(ext == NULL) return;
     if(ext->object == NULL) return;
@@ -36,7 +37,7 @@ namespace ArcMCCTLS {
     }
   }
 
-  static int verify_cert_callback(X509_STORE_CTX *sctx,void* /* arg */) {
+  static int verify_cert_callback(X509_STORE_CTX *sctx,void* arg) {
     const char* sn = "proxyCertInfo";
     const char* gsn = "PROXYCERTINFO";
     int nid = OBJ_sn2nid(sn);
@@ -53,6 +54,7 @@ namespace ArcMCCTLS {
     SSL_CTX_set_cert_verify_callback(sslctx,&verify_cert_callback,NULL);
     return true;
   }
+*/
 
 }
 

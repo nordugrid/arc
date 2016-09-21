@@ -2,7 +2,7 @@
 
 namespace ArcMCCTLS {
 
-bool GlobusSetVerifyCertCallback(SSL_CTX* sslctx);
+//bool GlobusSetVerifyCertCallback(SSL_CTX* sslctx);
 
 } // namespace Arc
 
