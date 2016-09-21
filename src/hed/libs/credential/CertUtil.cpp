@@ -38,7 +38,7 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
 
   user_cert = cert;
   cert_store = X509_STORE_new();
-  // X509_STORE_set_verify_cb_func(cert_store, verify_callback);
+  X509_STORE_set_verify_cb_func(cert_store, verify_callback);
   if (*certchain != NULL) {
     for (i=0;i<sk_X509_num(*certchain);i++) {
       cert_in_chain = sk_X509_value(*certchain,i);
@@ -116,13 +116,13 @@ err:
   return retval;
 }
 
-/*
 static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   cert_verify_context*      vctx;
   vctx = (cert_verify_context *) X509_STORE_CTX_get_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX);
   //TODO get SSL object here, special for GSSAPI
   if(!vctx) { return (0);}
 
+  /*
   * Now check for some error conditions which can be disregarded. *
   if(!ok) {
     switch (store_ctx->error) {
@@ -221,13 +221,14 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     default:
       break;
     }
+  */
 
 
 
     //if failed, show the error message.
     if(!ok) {
-      char * subject_name = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert), 0, 0);
-      unsigned long issuer_hash = X509_issuer_name_hash(store_ctx->current_cert);
+      char * subject_name = X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), 0, 0);
+      unsigned long issuer_hash = X509_issuer_name_hash(X509_STORE_CTX_get_current_cert(store_ctx));
 
       logger.msg(Arc::DEBUG,"Error number in store context: %i",(int)(store_ctx->error));
       if(sk_X509_num(store_ctx->chain) == 1) { logger.msg(Arc::VERBOSE,"Self-signed certificate"); }
@@ -252,29 +253,32 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
       return ok;
     }
+/*
     store_ctx->error = 0;
     return ok;
   }
+*/
 
-  * All of the OpenSSL tests have passed and we now get to
+
+  /* All of the OpenSSL tests have passed and we now get to
    * look at the certificate to verify the proxy rules,
    * and ca-signing-policy rules. CRL checking will also be done.
-   *
+   */
 
-  *
+  /*
    * Test if the name ends in CN=proxy and if the issuer
    * name matches the subject without the final proxy.
-   *
+   */
   certType type;
-  bool ret = check_cert_type(store_ctx->current_cert,type);
+  bool ret = check_cert_type(X509_STORE_CTX_get_current_cert(store_ctx),type);
   if(!ret) {
     logger.msg(Arc::ERROR,"Can not get the certificate type");
     return 0;
   }
 
   if(CERT_IS_PROXY(type)){
-   * it is a proxy *
-        * a legacy globus proxy may only be followed by another legacy globus
+   /* it is a proxy */
+        /* a legacy globus proxy may only be followed by another legacy globus
          * proxy or a limited legacy globus_proxy.
          * a limited legacy globus proxy may only be followed by another
          * limited legacy globus proxy
@@ -282,7 +286,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          * compliant proxy
          * a draft compliant limited proxy may only be followed by another draft
          * compliant limited proxy or a draft compliant independent proxy
-         *
+         */
 
     if((CERT_IS_GSI_2_PROXY(vctx->cert_type) && !CERT_IS_GSI_2_PROXY(type)) ||
          (CERT_IS_GSI_3_PROXY(vctx->cert_type) && !CERT_IS_GSI_3_PROXY(type)) ||
@@ -291,7 +295,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       return (0);
     }
 
-    * Limited proxy does not mean it can't be followed by unlimited proxy
+    /* Limited proxy does not mean it can't be followed by unlimited proxy
        because proxy chain is checked recusrsively according to RFC3820.
        Unless specific limitation put on proxy means it can't be used
        for creating another proxy. But for that purpose proxy depth
@@ -305,7 +309,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
       return (0);
     }
-    *
+    */
 
     vctx->proxy_depth++;
     if((vctx->max_proxy_depth!=-1) &&
@@ -317,12 +321,12 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     vctx->cert_type=type;
   }
 	
-  ** We need to check whether the certificate is revoked if it is not a proxy;
+  /** We need to check whether the certificate is revoked if it is not a proxy;
    *for proxy, it does not ever get revoked
-  *
+   */
   if(vctx->cert_type == CERT_TYPE_EEC || vctx->cert_type == CERT_TYPE_CA) {
 #ifdef X509_V_ERR_CERT_REVOKED
-        *
+        /*
          * SSLeay 0.9.0 handles CRLs but does not check them.
          * We will check the crl for this cert, if there
          * is a CRL in the store.
@@ -338,7 +342,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          * subject name matches, and check for revoked
          * if the issuer name matches.
          * this allows the CA to revoke its own cert as well.
-         *
+         */
     int i, n;
     X509_OBJECT     obj;
     X509_CRL *      crl = NULL;
@@ -346,13 +350,13 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     X509_REVOKED *  revoked = NULL;;
     EVP_PKEY *key = NULL;
 
-    **TODO: In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy?
+    /**TODO: In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy?
      * (For proxy, the up-level/issuer need to be checked?)
-     *
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(store_ctx->current_cert), &obj)) {
+     */
+    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), &obj)) {
       if((crl=obj.data.crl) && (crl_info=crl->crl)) {
         * verify the signature on this CRL *
-        key = X509_get_pubkey(store_ctx->current_cert);
+        key = X509_get_pubkey(X509_STORE_CTX_get_current_cert(store_ctx));
         if (X509_CRL_verify(crl, key) <= 0) {
           store_ctx->error = X509_V_ERR_CRL_SIGNATURE_FAILURE;
           // TODO: tell which crl failed
@@ -360,7 +364,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
           EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
         }
 
-        * Check date see if expired *
+        /* Check date see if expired */
         i = X509_cmp_current_time(crl_info->lastUpdate);
         if (i == 0) {
           store_ctx->error = X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD;
@@ -393,20 +397,20 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       X509_OBJECT_free_contents(&obj);
     }
 
-    * now check if the issuer has a CRL, and we are revoked *
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(store_ctx->current_cert), &obj)) {
+    /* now check if the issuer has a CRL, and we are revoked */
+    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)), &obj)) {
       if((crl=obj.data.crl) && (crl_info=crl->crl)) {
-        * check if this cert is revoked *
+        /* check if this cert is revoked */
         n = sk_X509_REVOKED_num(crl_info->revoked);
         for (i=0; i<n; i++) {
           revoked = (X509_REVOKED *)sk_X509_REVOKED_value(crl_info->revoked,i);
-          if(!ASN1_INTEGER_cmp(revoked->serialNumber, X509_get_serialNumber(store_ctx->current_cert))) {
+          if(!ASN1_INTEGER_cmp(revoked->serialNumber, X509_get_serialNumber(X509_STORE_CTX_get_current_cert(store_ctx)))) {
             long serial;
             char buf[256];
             char* subject_string;
             serial = ASN1_INTEGER_get(revoked->serialNumber);
             snprintf(buf, sizeof(buf), "%ld (0x%lX)",serial,serial);
-            subject_string = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),NULL,0);
+            subject_string = X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)),NULL,0);
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
             store_ctx->error = X509_V_ERR_CERT_REVOKED;
             OPENSSL_free(subject_string);
@@ -416,12 +420,12 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
       X509_OBJECT_free_contents(&obj);
     }
-#endif * X509_V_ERR_CERT_REVOKED *
+#endif /* X509_V_ERR_CERT_REVOKED */
 
 
-    ** Only need to check signing policy file for no-proxy certificate*
+    /** Only need to check signing policy file for no-proxy certificate*/
     std::string cadir;
-    if (X509_NAME_cmp(X509_get_subject_name(store_ctx->current_cert), X509_get_issuer_name(store_ctx->current_cert))) {
+    if (X509_NAME_cmp(X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)))) {
 
       cadir = vctx->ca_dir;
       if(cadir.empty()) {
@@ -429,7 +433,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         cadir = ".";
       }
 
-      unsigned long hash = X509_NAME_hash(X509_get_issuer_name(store_ctx->current_cert));
+      unsigned long hash = X509_NAME_hash(X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)));
       unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 * hash *
         + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 * zero termination *;
       char* ca_policy_file_path = (char*) malloc(buffer_len);
@@ -449,16 +453,16 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     return (1); //Every thing that need to check for non-proxy has been passed
   }
 
-  **Add the current certificate into cert chain*
+  /**Add the current certificate into cert chain*/
   if(vctx->cert_chain == NULL) { vctx->cert_chain = sk_X509_new_null(); }
-  sk_X509_push(vctx->cert_chain, X509_dup(store_ctx->current_cert));
+  sk_X509_push(vctx->cert_chain, X509_dup(X509_STORE_CTX_get_current_cert(store_ctx)));
   vctx->cert_depth++;
 
-  **Check the proxy certificate infomation extension*
+  /**Check the proxy certificate infomation extension*/
   STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
-  extensions = store_ctx->current_cert->cert_info->extensions;
+  extensions = X509_STORE_CTX_get_current_cert(store_ctx)->cert_info->extensions;
   int i;
   if(extensions) for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
     ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
@@ -470,13 +474,13 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          nid != NID_ext_key_usage &&
          nid != NID_netscape_cert_type &&
          nid != NID_subject_key_identifier &&
-         nid != NID_authority_key_identifier &&
-         nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
-         nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
-         nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
-         nid != OBJ_sn2nid("PROXYCERTINFO")
+         nid != NID_authority_key_identifier // &&
+         //nid != OBJ_sn2nid("PROXYCERTINFO_V3") &&
+         //nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
+         //nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
+         //nid != OBJ_sn2nid("PROXYCERTINFO")
 #if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
-         && nid != NID_proxyCertInfo
+         && nid != NID_proxyCertInfo // TODO: keep only this?
 #endif
         ) {
         store_ctx->error = X509_V_ERR_CERT_REJECTED;
@@ -485,43 +489,44 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
 
 
+      if(nid == NID_proxyCertInfo) {
 // TODO: do not use openssl version - instead use result of check if
 // proxy extension is supported
-#if (OPENSSL_VERSION_NUMBER > 0x0090706fL) && (nid == NID_proxyCertInfo)
-      * If the openssl version >=097g (which means proxy cert info is
+#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
+      /* If the openssl version >=097g (which means proxy cert info is
        * supported), and NID_proxyCertInfo can be got from the extension,
        * then we use the proxy cert info support from openssl itself.
        * Otherwise we have to use globus-customized proxy cert info support.
-       *
+       */
       PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
       proxycertinfo = (PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext);
       if (proxycertinfo == NULL) {
         logger.msg(Arc::WARNING,"Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format");
       } else {
         int path_length = ASN1_INTEGER_get(proxycertinfo->pcPathLengthConstraint);
-        * ignore negative values *
+        /* ignore negative values */
         if(path_length > -1) {
           if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
             vctx->max_proxy_depth = vctx->proxy_depth + path_length;
             logger.msg(Arc::DEBUG,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
           }
         }
-        **Parse the policy*
-        if(store_ctx->current_cert->ex_flags & EXFLAG_PROXY) {
+        /**Parse the policy*/
+        if(X509_STORE_CTX_get_current_cert(store_ctx)->ex_flags & EXFLAG_PROXY) {
           switch (OBJ_obj2nid(proxycertinfo->proxyPolicy->policyLanguage)) {
             case NID_Independent:
-               * Put whatever explicit policy here to this particular proxy certificate, usually by
+               /* Put whatever explicit policy here to this particular proxy certificate, usually by
                 * pulling them from some database. If there is none policy which need to be explicitly
                 * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
                 * be void of any policy, because here the policylanguage is independent)
-                *
+                */
               vctx->proxy_policy.clear();
               break;
             case NID_id_ppl_inheritAll:
-               * This is basically a NOP *
+               /* This is basically a NOP */
               break;
             default:
-              * Here get the proxy policy *
+              /* Here get the proxy policy */
               vctx->proxy_policy.clear();
               if((proxycertinfo->proxyPolicy) &&
                  (proxycertinfo->proxyPolicy->policy) &&
@@ -530,10 +535,10 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
                    proxycertinfo->proxyPolicy->policy->data,
                    proxycertinfo->proxyPolicy->policy->length);
               }
-              * Use : as separator for policies parsed from different proxy certificate*
-              * !!!! Taking int account previous proxy_policy.clear() !!!!
+              /* Use : as separator for policies parsed from different proxy certificate*/
+              /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!
-                 !!!!  policy collected anyway !!!! *
+                 !!!!  policy collected anyway !!!! */
               vctx->proxy_policy.append(":");
               break;
           }
@@ -542,6 +547,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         proxycertinfo = NULL;
       }
 #else
+#error PROXY extension not supported
       PROXYCERTINFO*  proxycertinfo = NULL;
       if(nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
         proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
@@ -559,22 +565,22 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         }
       }
 
-      **Parse the policy*
+      /**Parse the policy*/
       if(proxycertinfo != NULL) {
         int policynid = OBJ_obj2nid(PROXYPOLICY_get_policy_language(proxycertinfo->proxypolicy));
         if(policynid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) {
-          * Put whatever explicit policy here to this particular proxy certificate, usually by
+          /* Put whatever explicit policy here to this particular proxy certificate, usually by
            * pulling them from some database. If there is none policy which need to be explicitly
            * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
            * be void of any policy, because here the policylanguage is independent)
-           *
+           */
           vctx->proxy_policy.clear();
         }
         else if(policynid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) {
-          * This is basically a NOP *
+          /* This is basically a NOP */
         }
         else {
-          * Here get the proxy policy *
+          /* Here get the proxy policy */
           vctx->proxy_policy.clear();
           if(proxycertinfo->proxypolicy) {
             int length;
@@ -582,11 +588,11 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
             policy_string = (char*)PROXYPOLICY_get_policy(proxycertinfo->proxypolicy, &length);
             if(policy_string && (length > 0)) {
               vctx->proxy_policy.append(policy_string, length);
-              * Use : as separator for policies parsed from different
-                 proxy certificate*
-              * !!!! Taking int account previous proxy_policy.clear() !!!!
+              /* Use : as separator for policies parsed from different
+                 proxy certificate*/
+              /* !!!! Taking int account previous proxy_policy.clear() !!!!
                  !!!! it seems to be impossible to have more than one    !!!!
-                 !!!!  policy collected anyway !!!! *
+                 !!!!  policy collected anyway !!!! */
               vctx->proxy_policy.append(":");
             }
             if(policy_string != NULL) free(policy_string);
@@ -595,10 +601,11 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
         PROXYCERTINFO_free(proxycertinfo); proxycertinfo = NULL;
       }
 #endif
+      }
     }
   }
 
-  *
+  /*
   * We ignored any path length restrictions above because
   * OpenSSL was counting proxies against the limit.
   * If we are on the last cert in the chain, we
@@ -606,8 +613,9 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   * path length check now.
   * See x509_vfy.c check_chain_purpose
   * all we do is substract off the proxy_dpeth
-  *
-  if(store_ctx->current_cert == store_ctx->cert) {
+  */
+  /*
+  if(X509_STORE_CTX_get_current_cert(store_ctx) == store_ctx->cert) {
     if(store_ctx->chain) for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
       X509* cert = sk_X509_value(store_ctx->chain,i);
       if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
@@ -619,6 +627,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
     }
   }
+  */
 
   return (1);
 }

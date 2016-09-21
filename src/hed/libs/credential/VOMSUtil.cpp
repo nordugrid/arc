@@ -336,7 +336,7 @@ namespace Arc {
  
     // stuff the created AC_IETFATTR in ietfattr (values) and define its object
     sk_AC_IETFATTR_push(capabilities->ietfattr, capnames);
-    capabilities->get_type = GET_TYPE_FQAN;
+    //!! todo: capabilities->get_type = GET_TYPE_FQAN;
     ASN1_OBJECT_free(capabilities->type);
     capabilities->type = cobj;
 
@@ -1063,7 +1063,7 @@ err:
         return false;
       }
 
-      std::string fqan((const char*)(capname->data), capname->length);
+      std::string fqan((const char*)(capname->value.octet_string->data), capname->value.octet_string->length);
 
       // if the attribute is like: /knowarc.eu/Role=NULL/Capability=NULL
       // or /knowarc.eu/Role=tester/Capability=NULL

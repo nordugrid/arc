@@ -9,6 +9,7 @@
 #define ARC_VOMSATTRIBUTE_H
 
 #include <openssl/asn1t.h>
+#include <openssl/safestack.h>
 #include <openssl/x509v3.h>
 //#include <openssl/opensslv.h>
 
@@ -159,11 +160,18 @@ typedef struct ACVAL {
 
 DECLARE_ASN1_FUNCTIONS(AC_VAL)
 
-typedef struct asn1_string_st AC_IETFATTRVAL;
+//typedef struct asn1_string_st AC_IETFATTRVAL;
+//typedef ASN1_TYPE AC_IETFATTRVAL;
+#define AC_IETFATTRVAL ASN1_TYPE
+#define sk_AC_IETFATTRVAL_push sk_ASN1_TYPE_push
+#define stack_st_AC_IETFATTRVAL stack_st_ASN1_TYPE
+#define sk_AC_IETFATTRVAL_num sk_ASN1_TYPE_num
+#define sk_AC_IETFATTRVAL_value sk_ASN1_TYPE_value
 
 typedef struct ACIETFATTR {
   STACK_OF(GENERAL_NAME)   *names;
-  STACK_OF(AC_IETFATTRVAL) *values;
+  /*STACK_OF(AC_IETFATTRVAL) *values;*/
+  STACK_OF(ASN1_TYPE) *values;
 } AC_IETFATTR;
 
 DECLARE_ASN1_FUNCTIONS(AC_IETFATTR)
@@ -184,9 +192,9 @@ DECLARE_ASN1_FUNCTIONS(AC_TARGETS)
 
 typedef struct ACATTR {
   ASN1_OBJECT * type;
-  int get_type;
+  //int get_type;
   STACK_OF(AC_IETFATTR) *ietfattr;
-  STACK_OF(AC_FULL_ATTRIBUTES) *fullattributes;
+  //STACK_OF(AC_FULL_ATTRIBUTES) *fullattributes;
 } AC_ATTR;
 #define GET_TYPE_FQAN 1
 #define GET_TYPE_ATTRIBUTES 2
@@ -454,7 +462,7 @@ DECL_STACK(AC_FULL_ATTRIBUTES)
 DEFINE_STACK_OF(AC_TARGET)
 DEFINE_STACK_OF(AC_TARGETS)
 DEFINE_STACK_OF(AC_IETFATTR)
-DEFINE_STACK_OF(AC_IETFATTRVAL)
+//DEFINE_STACK_OF(AC_IETFATTRVAL)
 DEFINE_STACK_OF(AC_ATTR)
 DEFINE_STACK_OF(AC)
 DEFINE_STACK_OF(AC_INFO)
