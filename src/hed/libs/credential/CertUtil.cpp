@@ -26,6 +26,7 @@ namespace ArcCredential {
 
 //static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer);
 static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
+static bool collect_proxy_info(cert_verify_context* vctx, X509* cert);
 
 int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
   int i;
@@ -114,6 +115,23 @@ err:
   if(store_ctx) { X509_STORE_CTX_free(store_ctx); }
 
   return retval;
+}
+
+int collect_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx) {
+  
+  if(cert) {
+    if(!collect_proxy_info(vctx, cert)) return (0);
+  }
+  if (*certchain != NULL) {
+    for (int i=sk_X509_num(*certchain)-1; i >= 0; --i) {
+      X509* cert_in_chain = sk_X509_value(*certchain,i);
+      if(cert_in_chain) {
+        if(!collect_proxy_info(vctx, cert_in_chain)) return (0);
+      }
+    }
+  }
+
+  return (1);
 }
 
 static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
@@ -468,11 +486,44 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   sk_X509_push(vctx->cert_chain, X509_dup(X509_STORE_CTX_get_current_cert(store_ctx)));
   vctx->cert_depth++;
 
+  if(!collect_proxy_info(vctx, X509_STORE_CTX_get_current_cert(store_ctx))) {
+    X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REJECTED);
+    return (0);
+  }
+
+  /*
+  * We ignored any path length restrictions above because
+  * OpenSSL was counting proxies against the limit.
+  * If we are on the last cert in the chain, we
+  * know how many are proxies, so we can do the
+  * path length check now.
+  * See x509_vfy.c check_chain_purpose
+  * all we do is substract off the proxy_dpeth
+  */
+  /*
+  if(X509_STORE_CTX_get_current_cert(store_ctx) == store_ctx->cert) {
+    if(X509_STORE_CTX_get0_chain(store_ctx)) for (i=0; i < sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)); i++) {
+      X509* cert = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i);
+      if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
+               && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
+               && (cert->ex_flags & EXFLAG_BCONS)) {
+        store_ctx->current_cert = cert; * point at failing cert *
+        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_PATH_LENGTH_EXCEEDED);
+        return (0);
+      }
+    }
+  }
+  */
+
+  return (1);
+}
+
+static bool collect_proxy_info(cert_verify_context* vctx, X509* cert) {
   /**Check the proxy certificate infomation extension*/
   const STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
-  extensions = X509_get0_extensions(X509_STORE_CTX_get_current_cert(store_ctx));
+  extensions = X509_get0_extensions(cert);
   int i;
   if(extensions) for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
     ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
@@ -493,9 +544,8 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          && nid != NID_proxyCertInfo // TODO: keep only this?
 #endif
         ) {
-        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REJECTED);
         logger.msg(Arc::ERROR,"Certificate has unknown extension with numeric ID %u and SN %s",(unsigned int)nid,OBJ_nid2sn(nid));
-        return (0);
+        return false;
       }
 
 
@@ -559,89 +609,13 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       }
 #else
 #error PROXY extension not supported
-      PROXYCERTINFO*  proxycertinfo = NULL;
-      if(nid == OBJ_sn2nid("PROXYCERTINFO_V3") || nid == OBJ_sn2nid("PROXYCERTINFO_V4")) {
-        proxycertinfo = (PROXYCERTINFO*) X509V3_EXT_d2i(ext);
-        if (proxycertinfo == NULL) {
-          logger.msg(Arc::WARNING,"Can not convert DER encoded PROXYCERTINFO extension to internal format");
-        } else {
-          int path_length = PROXYCERTINFO_get_path_length(proxycertinfo);
-          * ignore negative values *
-          if(path_length > -1) {
-            if(vctx->max_proxy_depth == -1 || vctx->max_proxy_depth > vctx->proxy_depth + path_length) {
-              vctx->max_proxy_depth = vctx->proxy_depth + path_length;
-              logger.msg(Arc::DEBUG,"proxy_depth: %i, path_length: %i",(int)(vctx->proxy_depth),(int)path_length);
-            }
-          }
-        }
-      }
-
-      /**Parse the policy*/
-      if(proxycertinfo != NULL) {
-        int policynid = OBJ_obj2nid(PROXYPOLICY_get_policy_language(proxycertinfo->proxypolicy));
-        if(policynid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) {
-          /* Put whatever explicit policy here to this particular proxy certificate, usually by
-           * pulling them from some database. If there is none policy which need to be explicitly
-           * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
-           * be void of any policy, because here the policylanguage is independent)
-           */
-          vctx->proxy_policy.clear();
-        }
-        else if(policynid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) {
-          /* This is basically a NOP */
-        }
-        else {
-          /* Here get the proxy policy */
-          vctx->proxy_policy.clear();
-          if(proxycertinfo->proxypolicy) {
-            int length;
-            char* policy_string = NULL;
-            policy_string = (char*)PROXYPOLICY_get_policy(proxycertinfo->proxypolicy, &length);
-            if(policy_string && (length > 0)) {
-              vctx->proxy_policy.append(policy_string, length);
-              /* Use : as separator for policies parsed from different
-                 proxy certificate*/
-              /* !!!! Taking int account previous proxy_policy.clear() !!!!
-                 !!!! it seems to be impossible to have more than one    !!!!
-                 !!!!  policy collected anyway !!!! */
-              vctx->proxy_policy.append(":");
-            }
-            if(policy_string != NULL) free(policy_string);
-          }
-        }
-        PROXYCERTINFO_free(proxycertinfo); proxycertinfo = NULL;
-      }
 #endif
       }
     }
   }
-
-  /*
-  * We ignored any path length restrictions above because
-  * OpenSSL was counting proxies against the limit.
-  * If we are on the last cert in the chain, we
-  * know how many are proxies, so we can do the
-  * path length check now.
-  * See x509_vfy.c check_chain_purpose
-  * all we do is substract off the proxy_dpeth
-  */
-  /*
-  if(X509_STORE_CTX_get_current_cert(store_ctx) == store_ctx->cert) {
-    if(X509_STORE_CTX_get0_chain(store_ctx)) for (i=0; i < sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)); i++) {
-      X509* cert = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i);
-      if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
-               && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
-               && (cert->ex_flags & EXFLAG_BCONS)) {
-        store_ctx->current_cert = cert; * point at failing cert *
-        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_PATH_LENGTH_EXCEEDED);
-        return (0);
-      }
-    }
-  }
-  */
-
-  return (1);
+  return true;
 }
+
 
 bool check_cert_type(X509* cert, certType& type) {
   logger.msg(Arc::DEBUG, "Trying to check X509 cert with check_cert_type");

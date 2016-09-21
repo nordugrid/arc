@@ -128,6 +128,7 @@ namespace ArcCredential {
     } cert_verify_context;
 
     int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx);
+    int collect_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_context* vctx);
     bool check_cert_type(X509* cert, certType& type);
     const char* certTypeToString(certType type);
 

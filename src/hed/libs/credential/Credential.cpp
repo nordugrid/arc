@@ -1097,7 +1097,14 @@ namespace Arc {
       }
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty()) Verify();
+    if(!cacertfile_.empty() || !cacertdir_.empty()) {
+      Verify();
+    } else {
+      if(!collect_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
+        CredentialLogger.msg(INFO, "Certificate information collection failed");
+        LogError();
+      }
+    }
   }
 
   #ifdef HAVE_OPENSSL_OLDRSA
