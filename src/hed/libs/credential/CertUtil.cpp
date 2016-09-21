@@ -125,7 +125,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   /*
   * Now check for some error conditions which can be disregarded. *
   if(!ok) {
-    switch (store_ctx->error) {
+    switch (X509_STORE_CTX_get_error(store_ctx)) {
     case X509_V_ERR_PATH_LENGTH_EXCEEDED:
       *
       * Since OpenSSL does not know about proxies,
@@ -212,7 +212,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * error. As long as the previous cert in the chain is a
       * proxy cert, we ignore this error.
       *
-      X509* prev_cert = sk_X509_value(store_ctx->chain, store_ctx->error_depth-1);
+      X509* prev_cert = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx), X509_STORE_CTX_get_error_depth(store_ctx)-1);
       certType type;
       if(check_cert_type(prev_cert, type)) { if(CERT_IS_PROXY(type)) ok = 1; }
       break;
@@ -230,31 +230,31 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       char * subject_name = X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), 0, 0);
       unsigned long issuer_hash = X509_issuer_name_hash(X509_STORE_CTX_get_current_cert(store_ctx));
 
-      logger.msg(Arc::DEBUG,"Error number in store context: %i",(int)(store_ctx->error));
-      if(sk_X509_num(store_ctx->chain) == 1) { logger.msg(Arc::VERBOSE,"Self-signed certificate"); }
+      logger.msg(Arc::DEBUG,"Error number in store context: %i",(int)(X509_STORE_CTX_get_error(store_ctx)));
+      if(sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)) == 1) { logger.msg(Arc::VERBOSE,"Self-signed certificate"); }
 
-      if (store_ctx->error == X509_V_ERR_CERT_NOT_YET_VALID) {
+      if (X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_CERT_NOT_YET_VALID) {
         logger.msg(Arc::INFO,"The certificate with subject %s  is not valid",subject_name);
       }
-      else if(store_ctx->error == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
+      else if(X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
         logger.msg(Arc::INFO,"Can not find issuer certificate for the certificate with subject %s and hash: %lu",subject_name,issuer_hash);
       }
-      else if(store_ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) {
+      else if(X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_CERT_HAS_EXPIRED) {
         logger.msg(Arc::INFO,"Certificate with subject %s has expired",subject_name);
       }
-      else if(store_ctx->error == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN) {
+      else if(X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN) {
         logger.msg(Arc::INFO,"Untrusted self-signed certificate in chain with "
                    "subject %s and hash: %lu",subject_name,issuer_hash);
       }
       else
-        logger.msg(Arc::INFO,"Certificate verification error: %s",X509_verify_cert_error_string(store_ctx->error));
+        logger.msg(Arc::INFO,"Certificate verification error: %s",X509_verify_cert_error_string(X509_STORE_CTX_get_error(store_ctx)));
 
       if(subject_name) OPENSSL_free(subject_name);
 
       return ok;
     }
 /*
-    store_ctx->error = 0;
+    X509_STORE_CTX_set_error(store_ctx,0);
     return ok;
   }
 */
@@ -306,7 +306,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if(CERT_IS_LIMITED_PROXY(vctx->cert_type) &&
        !(CERT_IS_LIMITED_PROXY(type) || CERT_IS_INDEPENDENT_PROXY(type))) {
       logger.msg(Arc::ERROR,"Can't sign a non-limited, non-independent proxy with a limited proxy");
-      store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
+      X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_SIGNATURE_FAILURE);
       return (0);
     }
     */
@@ -344,82 +344,92 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          * this allows the CA to revoke its own cert as well.
          */
     int i, n;
-    X509_OBJECT     obj;
     X509_CRL *      crl = NULL;
-    X509_CRL_INFO * crl_info = NULL;
     X509_REVOKED *  revoked = NULL;;
     EVP_PKEY *key = NULL;
+    X509_OBJECT*    obj = X509_OBJECT_new();
+    if(!obj) return (0);
 
     /**TODO: In globus code, it check the "issuer, not "subject", because it also includes the situation of proxy?
      * (For proxy, the up-level/issuer need to be checked?)
      */
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), &obj)) {
-      if((crl=obj.data.crl) && (crl_info=crl->crl)) {
-        * verify the signature on this CRL *
+    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)), obj)) {
+      if(crl=X509_OBJECT_get0_X509_CRL(obj)) {
+        /* verify the signature on this CRL */
         key = X509_get_pubkey(X509_STORE_CTX_get_current_cert(store_ctx));
         if (X509_CRL_verify(crl, key) <= 0) {
-          store_ctx->error = X509_V_ERR_CRL_SIGNATURE_FAILURE;
+          X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_SIGNATURE_FAILURE);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"Couldn't verify availability of CRL");
-          EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+          EVP_PKEY_free(key);
+          X509_OBJECT_free(obj);
+          return (0);
         }
 
         /* Check date see if expired */
-        i = X509_cmp_current_time(crl_info->lastUpdate);
+        i = X509_CRL_get0_lastUpdate(crl) ? X509_cmp_current_time(X509_CRL_get0_lastUpdate(crl)) : 0;
         if (i == 0) {
-          store_ctx->error = X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD;
+          X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL the lastUpdate field is not valid");
-          EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+          EVP_PKEY_free(key);
+          X509_OBJECT_free(obj);
+          return (0);
         }
         if(i>0) {
-          store_ctx->error = X509_V_ERR_CRL_NOT_YET_VALID;
+          X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_NOT_YET_VALID);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"The available CRL is not yet valid");
-          EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+          EVP_PKEY_free(key);
+          X509_OBJECT_free(obj);
+          return (0);
         }
 
-        i = (crl_info->nextUpdate != NULL) ? X509_cmp_current_time(crl_info->nextUpdate) : 1;
+        i = X509_CRL_get0_nextUpdate(crl) ? X509_cmp_current_time(X509_CRL_get0_nextUpdate(crl)) : 1;
         if (i == 0) {
-          store_ctx->error = X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD;
+          X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL, the nextUpdate field is not valid");
-          EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+          EVP_PKEY_free(key);
+          X509_OBJECT_free(obj);
+          return (0);
         }
 
         if (i < 0) {
-          store_ctx->error = X509_V_ERR_CRL_HAS_EXPIRED;
+          X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_HAS_EXPIRED);
           logger.msg(Arc::ERROR,"The available CRL has expired");
-          EVP_PKEY_free(key); X509_OBJECT_free_contents(&obj); return (0);
+          EVP_PKEY_free(key);
+          X509_OBJECT_free(obj);
+          return (0);
         }
         EVP_PKEY_free(key);
       }
-      X509_OBJECT_free_contents(&obj);
     }
 
     /* now check if the issuer has a CRL, and we are revoked */
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)), &obj)) {
-      if((crl=obj.data.crl) && (crl_info=crl->crl)) {
+    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)), obj)) {
+      if(crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* check if this cert is revoked */
-        n = sk_X509_REVOKED_num(crl_info->revoked);
+        n = sk_X509_REVOKED_num(X509_CRL_get_REVOKED(crl));
         for (i=0; i<n; i++) {
-          revoked = (X509_REVOKED *)sk_X509_REVOKED_value(crl_info->revoked,i);
-          if(!ASN1_INTEGER_cmp(revoked->serialNumber, X509_get_serialNumber(X509_STORE_CTX_get_current_cert(store_ctx)))) {
+          revoked = (X509_REVOKED *)sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl),i);
+          if(!ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revoked), X509_get_serialNumber(X509_STORE_CTX_get_current_cert(store_ctx)))) {
             long serial;
             char buf[256];
             char* subject_string;
-            serial = ASN1_INTEGER_get(revoked->serialNumber);
+            serial = ASN1_INTEGER_get(X509_REVOKED_get0_serialNumber(revoked));
             snprintf(buf, sizeof(buf), "%ld (0x%lX)",serial,serial);
             subject_string = X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get_current_cert(store_ctx)),NULL,0);
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
-            store_ctx->error = X509_V_ERR_CERT_REVOKED;
+            X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REVOKED);
             OPENSSL_free(subject_string);
-            X509_OBJECT_free_contents(&obj); return (0);
+            X509_OBJECT_free(obj);
+            return (0);
           }
         }
       }
-      X509_OBJECT_free_contents(&obj);
     }
+    X509_OBJECT_free(obj);
 #endif /* X509_V_ERR_CERT_REVOKED */
 
 
@@ -435,11 +445,11 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
       unsigned long hash = X509_NAME_hash(X509_get_issuer_name(X509_STORE_CTX_get_current_cert(store_ctx)));
       unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 * hash *
-        + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 * zero termination *;
+        + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* zero termination */;
       char* ca_policy_file_path = (char*) malloc(buffer_len);
       if(ca_policy_file_path == NULL) {
         logger.msg(Arc::ERROR,"Can't allocate memory for CA policy path");
-        store_ctx->error = X509_V_ERR_APPLICATION_VERIFICATION;
+        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_APPLICATION_VERIFICATION);
         return (0);
       }
       snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir.c_str(), FILE_SEPARATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
@@ -459,10 +469,10 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   vctx->cert_depth++;
 
   /**Check the proxy certificate infomation extension*/
-  STACK_OF(X509_EXTENSION)* extensions;
+  const STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
-  extensions = X509_STORE_CTX_get_current_cert(store_ctx)->cert_info->extensions;
+  extensions = X509_get0_extensions(X509_STORE_CTX_get_current_cert(store_ctx));
   int i;
   if(extensions) for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
     ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
@@ -483,7 +493,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
          && nid != NID_proxyCertInfo // TODO: keep only this?
 #endif
         ) {
-        store_ctx->error = X509_V_ERR_CERT_REJECTED;
+        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REJECTED);
         logger.msg(Arc::ERROR,"Certificate has unknown extension with numeric ID %u and SN %s",(unsigned int)nid,OBJ_nid2sn(nid));
         return (0);
       }
@@ -512,7 +522,8 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
           }
         }
         /**Parse the policy*/
-        if(X509_STORE_CTX_get_current_cert(store_ctx)->ex_flags & EXFLAG_PROXY) {
+        // Must be proxy because proxy extension is set - if(X509_STORE_CTX_get_current_cert(store_ctx)->ex_flags & EXFLAG_PROXY)
+        {
           switch (OBJ_obj2nid(proxycertinfo->proxyPolicy->policyLanguage)) {
             case NID_Independent:
                /* Put whatever explicit policy here to this particular proxy certificate, usually by
@@ -532,7 +543,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
                  (proxycertinfo->proxyPolicy->policy) &&
                  (proxycertinfo->proxyPolicy->policy->data)) {
                 vctx->proxy_policy.append(
-                   proxycertinfo->proxyPolicy->policy->data,
+                   (char const*)(proxycertinfo->proxyPolicy->policy->data),
                    proxycertinfo->proxyPolicy->policy->length);
               }
               /* Use : as separator for policies parsed from different proxy certificate*/
@@ -616,13 +627,13 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   */
   /*
   if(X509_STORE_CTX_get_current_cert(store_ctx) == store_ctx->cert) {
-    if(store_ctx->chain) for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
-      X509* cert = sk_X509_value(store_ctx->chain,i);
+    if(X509_STORE_CTX_get0_chain(store_ctx)) for (i=0; i < sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)); i++) {
+      X509* cert = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i);
       if (((i - vctx->proxy_depth) > 1) && (cert->ex_pathlen != -1)
                && ((i - vctx->proxy_depth) > (cert->ex_pathlen + 1))
                && (cert->ex_flags & EXFLAG_BCONS)) {
         store_ctx->current_cert = cert; * point at failing cert *
-        store_ctx->error = X509_V_ERR_PATH_LENGTH_EXCEEDED;
+        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_PATH_LENGTH_EXCEEDED);
         return (0);
       }
     }
@@ -631,7 +642,6 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
   return (1);
 }
-*/
 
 bool check_cert_type(X509* cert, certType& type) {
   logger.msg(Arc::DEBUG, "Trying to check X509 cert with check_cert_type");
