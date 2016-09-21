@@ -93,6 +93,7 @@ BIO* BIO_new_MCC(PayloadStreamInterface* stream) {
 
 int BIOMCC::mcc_new(BIO *bi) {
   BIO_set_data(bi,NULL);
+  BIO_set_init(bi,1);
   return(1);
 }
 

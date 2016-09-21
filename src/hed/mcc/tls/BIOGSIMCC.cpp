@@ -99,6 +99,7 @@ BIO* BIO_new_GSIMCC(PayloadStreamInterface* stream) {
 
 int BIOGSIMCC::mcc_new(BIO *bi) {
   BIO_set_data(bi,NULL);
+  BIO_set_init(bi,1);
   return(1);
 }
 
