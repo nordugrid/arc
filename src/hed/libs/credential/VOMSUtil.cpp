@@ -161,7 +161,7 @@ namespace Arc {
     #define vo                    "1.3.6.1.4.1.8005.100.100.3"
     #define idatcap               "1.3.6.1.4.1.8005.100.100.4"
 
-    #define attribs            "1.3.6.1.4.1.8005.100.100.11"
+    #define attribs               "1.3.6.1.4.1.8005.100.100.11"
     #define acseq                 "1.3.6.1.4.1.8005.100.100.5"
     #define order                 "1.3.6.1.4.1.8005.100.100.6"
     #define certseq               "1.3.6.1.4.1.8005.100.100.10"
@@ -413,8 +413,10 @@ namespace Arc {
       sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder);
     }  
   
+/*todo
     // push both AC_ATTR into STACK_OF(AC_ATTR)
     sk_AC_ATTR_push(a->acinfo->attrib, capabilities);
+*/
 
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
@@ -444,7 +446,7 @@ namespace Arc {
     certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
     sk_X509_pop_free(stk, X509_free);
 
-    /* Create extensions */
+    // Create extensions
     norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), (char*)"loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
@@ -716,7 +718,7 @@ err:
     EVP_PKEY *key = X509_extract_key(cert);
     if (!key) return false;
 
-    int res;
+    int res = 0;
 #ifdef HAVE_OPENSSL_OLDRSA
     res = ASN1_verify((int (*)())i2d_AC_INFO, ac->sig_alg, ac->signature,
                         (char *)ac->acinfo, key);
@@ -959,10 +961,9 @@ err:
     //certificate stack in the AC. So there should be a local
     //directory which includes the voms server certificate.
     //It is not suppoted anymore.
-    /*check if able to find the signing certificate 
-     among those specific for the vo or else in the vomsdir
-     *directory 
-     */
+    // check if able to find the signing certificate 
+    // among those specific for the vo or else in the vomsdir
+    // directory 
     if(issuer == NULL){
       bool found  = false;
       BIO * in = NULL;
@@ -1458,8 +1459,8 @@ err:
           ((name = sk_GENERAL_NAME_value(names,0))) ||
           (name->type != GEN_DIRNAME)) {
         if (X509_NAME_cmp(name->d.dirn, X509_get_issuer_name(cert))) {
-          /* CHECK ALT_NAMES */
-          /* in VOMS ACs, checking into alt names is assumed to always fail. */
+          // CHECK ALT_NAMES
+          // in VOMS ACs, checking into alt names is assumed to always fail.
           CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
           status |= VOMSACInfo::ACParsingFailed;
           return false;
@@ -1494,8 +1495,10 @@ err:
     //Check AC's extension
     if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
  
+/*todo
     //Check AC's attribute    
     if(!checkAttributes(ac->acinfo->attrib, output, status)) res = false; // ??
+*/
 
     return res;
   }
@@ -1510,6 +1513,7 @@ err:
         Time& from, Time& till, unsigned int& status, bool verify) {
     bool res = true;
     //Extract name 
+/*
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
     int pos = 0;
@@ -1584,6 +1588,7 @@ err:
     }
 
     if(issuer) X509_free(issuer);
+*/
     return res;
   }
 

@@ -202,14 +202,15 @@ typedef struct ACATTR {
 DECLARE_ASN1_FUNCTIONS(AC_ATTR)
 
 typedef struct ACINFO {
-  ASN1_INTEGER             *version;
-  AC_HOLDER                *holder;
-  AC_FORM                  *form;
-  X509_ALGOR               *alg;
-  ASN1_INTEGER             *serial;
-  AC_VAL                   *validity;
-  STACK_OF(AC_ATTR)        *attrib;
-  ASN1_BIT_STRING          *id;
+  ASN1_INTEGER        *version;
+  AC_HOLDER           *holder;
+  AC_FORM             *form;
+  X509_ALGOR          *alg;
+  ASN1_INTEGER        *serial;
+  AC_VAL              *validity;
+  STACK_OF(ASN1_TYPE) *attrib;
+//  STACK_OF(AC_ATTR)        *attrib;
+  ASN1_BIT_STRING     *id;
   STACK_OF(X509_EXTENSION) *exts;
 } AC_INFO;
 
