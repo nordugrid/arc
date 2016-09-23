@@ -167,7 +167,18 @@ namespace Arc {
 
   void InitVOMSAttribute(void) {
 
-    #define OBJC(c,n) { if(OBJ_create(c,n,#c) == 0) CredentialLogger.msg(ERROR, "Failed to create OpenSSL object %s %s - %s", c, n, ERR_error_string(ERR_get_error(),NULL)); }
+    #define OBJCREATE(c,n) { \
+      if(OBJ_create(c,n,#c) == 0) { \
+        unsigned long __err = ERR_get_error(); \
+        if(ERR_GET_REASON(__err) != OBJ_R_OID_EXISTS) { \
+          CredentialLogger.msg(ERROR, \
+                 "Failed to create OpenSSL object %s %s - %u %s", \
+                 c, n, ERR_GET_REASON(__err), ERR_error_string(__err,NULL)); \
+          return; \
+        }; \
+      }; \
+    }
+
     #define OBJSETNID(v,n) { v = OBJ_txt2nid(n); if(v == NID_undef) CredentialLogger.msg(ERROR, "Failed to obtain OpenSSL identifier for %s", n); }
 
     X509V3_EXT_METHOD *vomsattribute_x509v3_ext_meth;
@@ -183,18 +194,18 @@ namespace Arc {
 
     /* VOMS Attribute related objects*/
     //OBJ_create(email, "Email", "Email");
-    OBJC(idatcapOID,"idatcap");
+    OBJCREATE(idatcapOID,"idatcap");
 
-    OBJC(attributesOID,"attributes");
-    OBJC(idcenoRevAvailOID, "idcenoRevAvail");
-    OBJC(idceauthKeyIdentifierOID, "idceauthKeyIdentifier");
-    OBJC(idceTargetsOID, "idceTargets");
-    OBJC(acseqOID, "acseq");
-    OBJC(orderOID, "order");
-    OBJC(vomsOID, "voms");
-    OBJC(incfileOID, "incfile");
-    OBJC(voOID, "vo");
-    OBJC(certseqOID, "certseq");
+    OBJCREATE(attributesOID,"attributes");
+    OBJCREATE(idcenoRevAvailOID, "idcenoRevAvail");
+    OBJCREATE(idceauthKeyIdentifierOID, "idceauthKeyIdentifier");
+    OBJCREATE(idceTargetsOID, "idceTargets");
+    OBJCREATE(acseqOID, "acseq");
+    OBJCREATE(orderOID, "order");
+    OBJCREATE(vomsOID, "voms");
+    OBJCREATE(incfileOID, "incfile");
+    OBJCREATE(voOID, "vo");
+    OBJCREATE(certseqOID, "certseq");
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_auth_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
