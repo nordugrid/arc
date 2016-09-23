@@ -20,6 +20,34 @@
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
 
+#define idpkixOID                "1.3.6.1.5.5.7"
+#define idpkcs9OID               "1.2.840.113549.1.9"
+#define idpeOID                  idpkixOID ".1"
+#define idceOID                  "2.5.29"
+#define idacaOID                 idpkixOID ".10"
+#define idatOID                  "2.5.4"
+#define idpeacauditIdentityOID   idpeOID ".4"
+#define idcetargetInformationOID idceOID ".55"
+#define idceauthKeyIdentifierOID idceOID ".35"
+#define idceauthInfoAccessOID    idpeOID ".1"
+#define idcecRLDistPointsOID     idceOID ".31"
+#define idcenoRevAvailOID        idceOID ".56"
+#define idceTargetsOID           idceOID ".55"
+#define idacaauthentInfoOID      idacaOID ".1"
+#define idacaaccessIdentityOID   idacaOID ".2"
+#define idacachargIdentityOID    idacaOID ".3"
+#define idacagroupOID            idacaOID ".4"
+#define idatclearanceOID         "2.5.1.5.5"
+#define vomsOID                  "1.3.6.1.4.1.8005.100.100.1"
+#define incfileOID               "1.3.6.1.4.1.8005.100.100.2"
+#define voOID                    "1.3.6.1.4.1.8005.100.100.3"
+#define idatcapOID               "1.3.6.1.4.1.8005.100.100.4"
+#define attributesOID            "1.3.6.1.4.1.8005.100.100.11"
+#define acseqOID                 "1.3.6.1.4.1.8005.100.100.5"
+#define orderOID                 "1.3.6.1.4.1.8005.100.100.6"
+#define certseqOID               "1.3.6.1.4.1.8005.100.100.10"
+#define emailOID                 idpkcs9OID ".1"
+
 static std::string default_vomsdir = std::string(G_DIR_SEPARATOR_S) + "etc" + G_DIR_SEPARATOR_S +"grid-security" + G_DIR_SEPARATOR_S + "vomsdir";
 
 #ifdef WIN32
@@ -138,36 +166,9 @@ namespace Arc {
   }
 
   void InitVOMSAttribute(void) {
-    #define idpkix                "1.3.6.1.5.5.7"
-    #define idpkcs9               "1.2.840.113549.1.9"
-    #define idpe                  idpkix ".1"
-    #define idce                  "2.5.29"
-    #define idaca                 idpkix ".10"
-    #define idat                  "2.5.4"
-    #define idpeacauditIdentity   idpe ".4"
-    #define idcetargetInformation idce ".55"
-    #define idceauthKeyIdentifier idce ".35"
-    #define idceauthInfoAccess    idpe ".1"
-    #define idcecRLDistPoints     idce ".31"
-    #define idcenoRevAvail        idce ".56"
-    #define idceTargets           idce ".55"
-    #define idacaauthentInfo      idaca ".1"
-    #define idacaaccessIdentity   idaca ".2"
-    #define idacachargIdentity    idaca ".3"
-    #define idacagroup            idaca ".4"
-    #define idatclearance         "2.5.1.5.5"
-    #define voms                  "1.3.6.1.4.1.8005.100.100.1"
-    #define incfile               "1.3.6.1.4.1.8005.100.100.2"
-    #define vo                    "1.3.6.1.4.1.8005.100.100.3"
-    #define idatcap               "1.3.6.1.4.1.8005.100.100.4"
 
-    #define attribs               "1.3.6.1.4.1.8005.100.100.11"
-    #define acseq                 "1.3.6.1.4.1.8005.100.100.5"
-    #define order                 "1.3.6.1.4.1.8005.100.100.6"
-    #define certseq               "1.3.6.1.4.1.8005.100.100.10"
-    #define email                 idpkcs9 ".1"
-
-    #define OBJC(c,n) { if(OBJ_create(c,n,#c) == 0) CredentialLogger.msg(ERROR, "Failed to create OpenSSL object %s %s", c, n); }
+    #define OBJC(c,n) { if(OBJ_create(c,n,#c) == 0) CredentialLogger.msg(ERROR, "Failed to create OpenSSL object %s %s - %s", c, n, ERR_error_string(ERR_get_error(),NULL)); }
+    #define OBJSETNID(v,n) { v = OBJ_txt2nid(n); if(v == NID_undef) CredentialLogger.msg(ERROR, "Failed to obtain OpenSSL identifier for %s", n); }
 
     X509V3_EXT_METHOD *vomsattribute_x509v3_ext_meth;
 
@@ -182,52 +183,52 @@ namespace Arc {
 
     /* VOMS Attribute related objects*/
     //OBJ_create(email, "Email", "Email");
-    OBJC(idatcap,"idatcap");
+    OBJC(idatcapOID,"idatcap");
 
-    OBJC(attribs,"attributes");
-    OBJC(idcenoRevAvail, "idcenoRevAvail");
-    OBJC(idceauthKeyIdentifier, "authKeyId");
-    OBJC(idceTargets, "idceTargets");
-    OBJC(acseq, "acseq");
-    OBJC(order, "order");
-    OBJC(voms, "voms");
-    OBJC(incfile, "incfile");
-    OBJC(vo, "vo");
-    OBJC(certseq, "certseq");
+    OBJC(attributesOID,"attributes");
+    OBJC(idcenoRevAvailOID, "idcenoRevAvail");
+    OBJC(idceauthKeyIdentifierOID, "idceauthKeyIdentifier");
+    OBJC(idceTargetsOID, "idceTargets");
+    OBJC(acseqOID, "acseq");
+    OBJC(orderOID, "order");
+    OBJC(vomsOID, "voms");
+    OBJC(incfileOID, "incfile");
+    OBJC(voOID, "vo");
+    OBJC(certseqOID, "certseq");
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_auth_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("authKeyId");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idceauthKeyIdentifierOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_avail_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("idcenoRevAvail");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idcenoRevAvailOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_targets_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("idceTargets");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idceTargetsOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_acseq_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("acseq");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, acseqOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_certseq_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("certseq");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, certseqOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_attribs_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("attributes");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, attributesOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
@@ -279,7 +280,7 @@ namespace Arc {
     serial          = BN_to_ASN1_INTEGER(serialnum, NULL);
     version         = BN_to_ASN1_INTEGER((BIGNUM *)(BN_value_one()), NULL);
     capabilities    = AC_ATTR_new();
-    cobj            = OBJ_txt2obj("idatcap",0);
+    cobj            = OBJ_txt2obj(idatcapOID,0);
     capnames        = AC_IETFATTR_new();
     ac_full_attrs   = AC_FULL_ATTRIBUTES_new();
     ac_att_holder   = AC_ATT_HOLDER_new();
@@ -421,7 +422,7 @@ namespace Arc {
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
 
-      ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("attributes"), (char *)(ac_full_attrs->providers));
+      ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(attributesOID), (char *)(ac_full_attrs->providers));
       AC_FULL_ATTRIBUTES_free(ac_full_attrs);
       if (!ext)
         ERROR(AC_ERR_NO_EXTENSION);
@@ -443,22 +444,22 @@ namespace Arc {
    //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
    //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
 
-    certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
+    certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(certseqOID), (char*)stk);
     sk_X509_pop_free(stk, X509_free);
 
     // Create extensions
-    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), (char*)"loc");
+    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idcenoRevAvailOID), (char*)"loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(norevavail, 0); 
 
-    auth = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("authKeyId"), (char *)issuer);
+    auth = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idceauthKeyIdentifierOID), (char *)issuer);
     if (!auth)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(auth, 0); 
 
     if (!complete.empty()) {
-      targetsext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idceTargets"), (char*)(complete.c_str()));
+      targetsext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idceTargetsOID), (char*)(complete.c_str()));
       if (!targetsext)
         ERROR(AC_ERR_NO_EXTENSION);
 
@@ -850,7 +851,7 @@ err:
     X509* issuer = NULL;
     issuer_cert = NULL;
 
-    int nid = OBJ_txt2nid("certseq");
+    int nid = OBJ_txt2nid(certseqOID);
     STACK_OF(X509_EXTENSION) *exts = ac->acinfo->exts;
     int pos = X509v3_get_ext_by_NID(exts, nid, -1);
     if (pos >= 0) {
@@ -1015,7 +1016,7 @@ err:
     GENERAL_NAME *data;
 
     /* find AC_ATTR with IETFATTR type */
-    int  nid = OBJ_txt2nid("idatcap");
+    int  nid = OBJ_txt2nid(idatcapOID);
     int pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if (!(pos >=0)) { 
       CredentialLogger.msg(ERROR,"VOMS: Can not find AC_ATTR with IETFATTR type");
@@ -1185,10 +1186,10 @@ err:
   }
  
   static bool checkExtensions(STACK_OF(X509_EXTENSION) *exts, X509 *iss, std::vector<std::string>& output, unsigned int& status) {
-    int nid1 = OBJ_txt2nid("idcenoRevAvail");
-    int nid2 = OBJ_txt2nid("authorityKeyIdentifier");
-    int nid3 = OBJ_txt2nid("idceTargets");
-    int nid5 = OBJ_txt2nid("attributes");
+    int nid1 = OBJ_txt2nid(idcenoRevAvailOID);
+    int nid2 = OBJ_txt2nid(idceauthKeyIdentifierOID);
+    int nid3 = OBJ_txt2nid(idceTargetsOID);
+    int nid5 = OBJ_txt2nid(attributesOID);
 
     int pos1 = X509v3_get_ext_by_NID(exts, nid1, -1);
     int pos2 = X509v3_get_ext_by_NID(exts, nid2, -1);
@@ -1514,7 +1515,7 @@ err:
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
     int pos = 0;
-    nid = OBJ_txt2nid("idatcap");
+    nid = OBJ_txt2nid(idatcapOID);
     pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if(!(pos >=0)) {
       CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
@@ -1601,7 +1602,7 @@ err:
     bool critical = false;
     X509_EXTENSION * ext;
     AC_SEQ* aclist = NULL;
-    nid = OBJ_txt2nid("acseq");
+    nid = OBJ_txt2nid(acseqOID);
     position = X509_get_ext_by_NID(holder, nid, -1);
     if(position >= 0) {
       ext = X509_get_ext(holder, position);
@@ -1957,7 +1958,7 @@ err:
     bool ret = false;
     X509_EXTENSION* ext = NULL;
     if(ac_seq.empty()) return false;
-    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)("acseq")), (char*)(ac_seq.c_str()));
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(acseqOID), (char*)(ac_seq.c_str()));
     if(ext!=NULL) {
       asn1.clear();
       asn1.assign((const char*)(X509_EXTENSION_get_data(ext)->data), X509_EXTENSION_get_data(ext)->length);

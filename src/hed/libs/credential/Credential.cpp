@@ -1152,7 +1152,7 @@ namespace Arc {
       pos1 = pos2 + 1;
     } while(true);
 
-    if(!numberic && !(ext_obj = OBJ_nid2obj(OBJ_txt2nid((char *)(name.c_str()))))) {
+    if(!numberic && !(ext_obj = OBJ_nid2obj(OBJ_txt2nid(name.c_str())))) {
       //string format, the OID should have been registered before calling OBJ_nid2obj
       CredentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
       LogError(); return NULL;
@@ -1930,7 +1930,7 @@ err:
   bool Credential::AddExtension(const std::string& name, char** binary) {
     X509_EXTENSION* ext = NULL;
     if(binary == NULL) return false;
-    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(name.c_str()), (char*)binary);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
     return false;
   }
