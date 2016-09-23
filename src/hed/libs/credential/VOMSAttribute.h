@@ -170,8 +170,7 @@ DECLARE_ASN1_FUNCTIONS(AC_VAL)
 
 typedef struct ACIETFATTR {
   STACK_OF(GENERAL_NAME)   *names;
-  /*STACK_OF(AC_IETFATTRVAL) *values;*/
-  STACK_OF(ASN1_TYPE) *values;
+  STACK_OF(AC_IETFATTRVAL) *values;
 } AC_IETFATTR;
 
 DECLARE_ASN1_FUNCTIONS(AC_IETFATTR)
@@ -208,8 +207,7 @@ typedef struct ACINFO {
   X509_ALGOR          *alg;
   ASN1_INTEGER        *serial;
   AC_VAL              *validity;
-  STACK_OF(ASN1_TYPE) *attrib;
-//  STACK_OF(AC_ATTR)        *attrib;
+  STACK_OF(AC_ATTR)   *attrib;
   ASN1_BIT_STRING     *id;
   STACK_OF(X509_EXTENSION) *exts;
 } AC_INFO;

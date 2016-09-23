@@ -167,7 +167,7 @@ namespace Arc {
     #define certseq               "1.3.6.1.4.1.8005.100.100.10"
     #define email                 idpkcs9 ".1"
 
-    #define OBJC(c,n) OBJ_create(c,n,#c)
+    #define OBJC(c,n) { if(OBJ_create(c,n,#c) == 0) CredentialLogger.msg(ERROR, "Failed to create OpenSSL object %s %s", c, n); }
 
     X509V3_EXT_METHOD *vomsattribute_x509v3_ext_meth;
 
@@ -1495,10 +1495,8 @@ err:
     //Check AC's extension
     if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
  
-/*todo
     //Check AC's attribute    
     if(!checkAttributes(ac->acinfo->attrib, output, status)) res = false; // ??
-*/
 
     return res;
   }
@@ -1513,7 +1511,6 @@ err:
         Time& from, Time& till, unsigned int& status, bool verify) {
     bool res = true;
     //Extract name 
-/*
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
     int pos = 0;
@@ -1588,7 +1585,6 @@ err:
     }
 
     if(issuer) X509_free(issuer);
-*/
     return res;
   }
 
