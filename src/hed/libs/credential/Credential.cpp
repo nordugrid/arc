@@ -3,6 +3,8 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include <fstream>
@@ -27,6 +29,22 @@
 using namespace ArcCredential;
 
 namespace Arc {
+
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static BN_GENCB* BN_GENCB_new(void) {
+  BN_GENCB* bn = (BN_GENCB*)std::malloc(sizeof(BN_GENCB));
+  if(bn) {
+    std::memset(bn, 0, sizeof(BN_GENCB));
+  }
+}
+
+static void BN_GENCB_free(BN_GENCB* bn) {
+  if(bn) {
+    std::free(bn);
+  }
+}
+#endif
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
   #define DEFAULT_KEYBITS  (1024)

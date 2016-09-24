@@ -2,8 +2,9 @@
 #include <config.h>
 #endif
 
-#include <iostream>
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <arc/Logger.h>
 
 #include <openssl/x509v3.h>
@@ -20,9 +21,45 @@
 #endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
+
 namespace ArcCredential {
 
-  static Arc::Logger& logger = Arc::Logger::rootLogger;
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static X509_OBJECT* X509_OBJECT_new(void) {
+  X509_OBJECT* obj = (X509_OBJECT*)std::malloc(sizeof(X509_OBJECT));
+  if(obj) {
+    std::memset(obj, 0, sizeof(X509_OBJECT));
+  }
+}
+
+static void X509_OBJECT_free(X509_OBJECT* obj) {
+  if(obj) {
+    X509_OBJECT_free_contents(obj);
+    std::free(obj);
+  }
+}
+
+static X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *obj)
+{
+    if(!obj) return NULL;
+    if(obj->type != X509_LU_CRL) return NULL;
+    return obj->data.crl;
+}
+
+#define X509_STORE_CTX_get0_chain X509_STORE_CTX_get_chain
+#define X509_CRL_get0_lastUpdate X509_CRL_get_lastUpdate
+#define X509_CRL_get0_nextUpdate X509_CRL_get_nextUpdate
+
+static const ASN1_INTEGER *X509_REVOKED_get0_serialNumber(const X509_REVOKED *x)
+{
+    if(!x) return NULL;
+    return x->serialNumber;
+}
+
+#endif
+
+static Arc::Logger& logger = Arc::Logger::rootLogger;
 
 //static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer);
 static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
@@ -520,13 +557,11 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
 
 static bool collect_proxy_info(cert_verify_context* vctx, X509* cert) {
   /**Check the proxy certificate infomation extension*/
-  const STACK_OF(X509_EXTENSION)* extensions;
   X509_EXTENSION* ext;
   ASN1_OBJECT* extension_obj;
-  extensions = X509_get0_extensions(cert);
   int i;
-  if(extensions) for (i=0;i<sk_X509_EXTENSION_num(extensions);i++) {
-    ext = (X509_EXTENSION *) sk_X509_EXTENSION_value(extensions,i);
+  for (i=0;i<X509_get_ext_count(cert);i++) {
+    ext = (X509_EXTENSION *) X509_get_ext(cert,i);
     if(X509_EXTENSION_get_critical(ext)) {
       extension_obj = X509_EXTENSION_get_object(ext);
       int nid = OBJ_obj2nid(extension_obj);

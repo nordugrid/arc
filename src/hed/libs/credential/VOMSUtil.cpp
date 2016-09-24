@@ -90,6 +90,31 @@ using namespace ArcCredential;
 
 namespace Arc {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+static void X509_get0_uids(const X509 *x,
+                    const ASN1_BIT_STRING **piuid,
+                    const ASN1_BIT_STRING **psuid) {
+  if (x) {
+    if (piuid != NULL) {
+      if (x->cert_info) {
+        *piuid = x->cert_info->issuerUID;
+      }
+    }
+    if (psuid != NULL) {
+      if (x->cert_info) {
+        *psuid = x->cert_info->subjectUID;
+      }
+    }
+  }
+}
+
+static const X509_ALGOR *X509_get0_tbs_sigalg(const X509 *x) {
+  if(!x) return NULL;
+  if(!(x->cert_info)) return NULL;
+  return x->cert_info->signature;
+}
+#endif
+
   void VOMSTrustList::AddElement(const std::vector<std::string>& encoded_list) {
     VOMSTrustChain chain;
     for(std::vector<std::string>::const_iterator i = encoded_list.begin();
@@ -167,6 +192,11 @@ namespace Arc {
 
   void InitVOMSAttribute(void) {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    #define OBJCREATE(c,n) { \
+      (void)OBJ_create(c,n,#c); \
+    }
+#else
     #define OBJCREATE(c,n) { \
       if(OBJ_create(c,n,#c) == 0) { \
         unsigned long __err = ERR_get_error(); \
@@ -178,6 +208,7 @@ namespace Arc {
         }; \
       }; \
     }
+#endif
 
     #define OBJSETNID(v,n) { v = OBJ_txt2nid(n); if(v == NID_undef) CredentialLogger.msg(ERROR, "Failed to obtain OpenSSL identifier for %s", n); }
 
@@ -263,7 +294,8 @@ namespace Arc {
     AC_IETFATTR *capnames = NULL;
     AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
     ASN1_OBJECT *cobj = NULL;
-    X509_ALGOR *alg1, *alg2;
+    X509_ALGOR *alg1;
+    X509_ALGOR *alg2;
     ASN1_GENERALIZEDTIME *time1 = NULL, *time2 = NULL;
     X509_EXTENSION *norevavail = NULL, *targetsext = NULL, *auth = NULL, *certstack = NULL;
     AC_ATT_HOLDER *ac_att_holder = NULL;
@@ -486,7 +518,11 @@ namespace Arc {
     alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
     alg1 = X509_ALGOR_dup(alg1);
     alg2 = NULL;
-    X509_get0_signature(NULL, (const X509_ALGOR**)&alg2, issuer);
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    X509_get0_signature(NULL, &alg2, issuer);
+#else
+    X509_get0_signature(NULL, (X509_ALGOR const**)&alg2, issuer);
+#endif
     alg2 = X509_ALGOR_dup(alg2);
 
     {

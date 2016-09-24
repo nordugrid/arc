@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
@@ -15,6 +16,26 @@ namespace Arc {
 
 int FileCacheHash::MAX_MD5_LENGTH = 32;
 int FileCacheHash::MAX_SHA1_LENGTH = 40;
+
+
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static EVP_MD_CTX* EVP_MD_CTX_new(void) {
+  EVP_MD_CTX* ctx = (EVP_MD_CTX*)std::malloc(sizeof(EVP_MD_CTX));
+  if(ctx) {
+    EVP_MD_CTX_init(ctx);
+  }
+  return ctx;
+}
+
+static void EVP_MD_CTX_free(EVP_MD_CTX* ctx) {
+  if(ctx) {
+    EVP_MD_CTX_cleanup(ctx);
+    std::free(ctx);
+  }
+}
+#endif
+
 
 std::string FileCacheHash::getHash(std::string url) {
 

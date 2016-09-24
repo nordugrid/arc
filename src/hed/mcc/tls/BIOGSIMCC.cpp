@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+#include <cstring>
+
 #include <openssl/ssl.h>
 
 #include <arc/message/PayloadRaw.h>
@@ -14,6 +17,33 @@
 namespace ArcMCCTLS {
 
 using namespace Arc;
+
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static BIO_METHOD *BIO_meth_new(int type, const char *name) {
+    BIO_METHOD *biom = (BIO_METHOD*)std::malloc(sizeof(BIO_METHOD));
+    if (biom) std::memset(biom,0,sizeof(biom));
+    return biom;
+}
+
+static void BIO_meth_free(BIO_METHOD *biom) {
+    std::free(biom);
+}
+
+static void BIO_set_data(BIO *a, void *ptr) {
+    a->ptr = ptr;
+}
+
+static void *BIO_get_data(BIO *a) {
+    return a->ptr;
+}
+
+static void BIO_set_init(BIO *a, int init) {
+    a->init = init;
+}
+
+#endif
+
 
 class BIOGSIMCC {
   private:
@@ -71,12 +101,21 @@ class BIOGSIMCC {
     bool MakeMethod(void) {
       biom_ = BIO_meth_new(BIO_TYPE_FD,"Message Chain Component");
       if(biom_) {
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+        biom_->bwrite = &BIOGSIMCC::mcc_write;
+        biom_->bread = &BIOGSIMCC::mcc_read;
+        biom_->bputs = &BIOGSIMCC::mcc_puts;
+        biom_->ctrl = &BIOGSIMCC::mcc_ctrl;
+        biom_->create = &BIOGSIMCC::mcc_new;
+        biom_->destroy = &BIOGSIMCC::mcc_free;
+#else
         (void)BIO_meth_set_write(biom_,&BIOGSIMCC::mcc_write);
         (void)BIO_meth_set_read(biom_,&BIOGSIMCC::mcc_read);
         (void)BIO_meth_set_puts(biom_,&BIOGSIMCC::mcc_puts);
         (void)BIO_meth_set_ctrl(biom_,&BIOGSIMCC::mcc_ctrl);
         (void)BIO_meth_set_create(biom_,&BIOGSIMCC::mcc_new);
         (void)BIO_meth_set_destroy(biom_,&BIOGSIMCC::mcc_free);
+#endif
       }
       return (biom_ != NULL);
     };
