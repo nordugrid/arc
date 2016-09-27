@@ -418,12 +418,10 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   void Credential::SetSigningAlgorithm(Signalgorithm signing_algorithm) {
     switch(signing_algorithm) {
       case SIGN_SHA1: signing_alg_ = ((EVP_MD*)EVP_sha1()); break;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       case SIGN_SHA224: signing_alg_ = ((EVP_MD*)EVP_sha224()); break;
       case SIGN_SHA256: signing_alg_ = ((EVP_MD*)EVP_sha256()); break;
       case SIGN_SHA384: signing_alg_ = ((EVP_MD*)EVP_sha384()); break;
       case SIGN_SHA512: signing_alg_ = ((EVP_MD*)EVP_sha512()); break;
-#endif
       default: signing_alg_ = NULL; break;
     }
   }
@@ -1980,11 +1978,7 @@ err:
           STACK_OF(CONF_VALUE) *val;
           CONF_VALUE *nval;
           void *extstr = NULL;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
           const unsigned char *ext_value_data;
-#else
-          unsigned char *ext_value_data;
-#endif
 
           //Get x509 extension method structure
           if (!(method = (X509V3_EXT_METHOD *)(X509V3_EXT_get(ext)))) break;
@@ -2071,11 +2065,7 @@ err:
       }
       */
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
-#else
-      ASN1_digest((int(*)())i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
-#endif
 
       sub_hash = md[0] + (md[1] + (md[2] + (md[3] >> 1) * 256) * 256) * 256;
 
@@ -2316,7 +2306,6 @@ err:
     }
 
     /* Use the signing algorithm in the signer's priv key */
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     {
       int dgst_err = EVP_PKEY_get_default_digest_nid(issuer_priv, &md_nid);
       if(dgst_err <= 0) {
@@ -2331,24 +2320,15 @@ err:
         }
       }
     }
-#endif
     if(dgst_alg == NULL) dgst_alg = proxy->signing_alg_?proxy->signing_alg_:DEFAULT_DIGEST;
 
     /* Check whether the digest algorithm is SHA1 or SHA2*/
     md_nid = EVP_MD_type(dgst_alg);
-#if OPENSSL_VERSION_NUMBER >= 0x0090800fL
     if((md_nid != NID_sha1) && (md_nid != NID_sha224) && (md_nid != NID_sha256) && (md_nid != NID_sha384) && (md_nid != NID_sha512)) {
       CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 or SHA2 to sign certificate requests",
       OBJ_nid2sn(md_nid));
       goto err;
     }
-#else
-    if(md_nid != NID_sha1) {
-      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1/SHA2 to sign certificate requests",
-      OBJ_nid2sn(md_nid));
-      goto err;
-    }
-#endif
 
     if(!X509_sign(proxy_cert, issuer_priv, dgst_alg)) {
       CredentialLogger.msg(ERROR, "Failed to sign the proxy certificate"); LogError(); goto err;
@@ -2930,7 +2910,6 @@ error:
     const EVP_MD* digest = NULL;
     int md_nid;
     char* md_str;
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     if(EVP_PKEY_get_default_digest_nid(pkey_, &md_nid) <= 0) {
       CredentialLogger.msg(INFO, "There is no digest in issuer's private key object");
     }
@@ -2938,7 +2917,6 @@ error:
     if((digest = EVP_get_digestbyname(md_str)) == NULL) {
       CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
     }
-#endif
     if(digest == NULL) digest = EVP_sha1();
 
 

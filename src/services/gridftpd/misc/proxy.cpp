@@ -19,11 +19,6 @@
 #include <arc/credential/Credential.h>
 #include <arc/credentialstore/CredentialStore.h>
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
-#define SSLCONST const
-#else
-#define SSLCONST
-#endif
 
 namespace gridftpd {
 
@@ -74,7 +69,7 @@ namespace gridftpd {
     if(certs_num <= 0) goto err_exit;
     if((cert_chain = sk_X509_new_null()) == NULL) goto err_exit;
     for(n=0,n_=0;n<certs_num;n++) {
-      SSLCONST unsigned char* value = (unsigned char*)client_cert_chain->elements[n].value;
+      const unsigned char* value = (unsigned char*)client_cert_chain->elements[n].value;
       int length = (int)client_cert_chain->elements[n].length;
       X509* cert = d2i_X509(NULL,&value,length);
       if(cert) {

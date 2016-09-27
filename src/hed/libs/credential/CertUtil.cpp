@@ -105,10 +105,8 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
     X509_STORE_CTX_init(store_ctx, cert_store, user_cert, NULL);
     //Last parameter is "untrusted", probably related globus code is wrong.
 
-#if SSLEAY_VERSION_NUMBER >=  0x0090600fL
     /* override the check_issued with our version */
-    //store_ctx->check_issued = check_issued;
-#endif
+    //store_ctx->check_issued = check_issued; todo:
 
     /*
      * If this is not set, OpenSSL-0.9.8 assumes the proxy cert
@@ -119,9 +117,7 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
      * and "path length exceeded".
      * verify_callback will check the critical extension later.
      */
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     X509_STORE_CTX_set_flags(store_ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
-#endif
 
     if (!X509_STORE_CTX_set_ex_data(store_ctx, VERIFY_CTX_STORE_EX_DATA_IDX, (void *)vctx)) {
       logger.msg(Arc::ERROR,"Can not set the STORE_CTX for chain verification");
@@ -193,7 +189,6 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       ok = 1;
       break;
 
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       *
       * OpenSSL-0.9.8 (because of proxy support) has this error
       *(0.9.7d did not have this, not proxy support still)
@@ -204,7 +199,6 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       logger.msg(Arc::DEBUG,"X509_V_ERR_PATH_LENGTH_EXCEEDED --- with proxy");
       ok = 1;
       break;
-#endif
 
 #ifdef X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION
       *
@@ -237,9 +231,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       * cert chain (if any) or EEC as a CA cert and thus would throw
       * as invalid CA error. We handle that error below.
       *
-  #if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       store_ctx->current_cert->ex_flags |= EXFLAG_PROXY;
-  #endif
       ok = 1;
       break;
 #endif
@@ -255,7 +247,6 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       break;
 #endif
 
-#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
     case X509_V_ERR_INVALID_CA:
     {
       *
@@ -272,7 +263,6 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       if(check_cert_type(prev_cert, type)) { if(CERT_IS_PROXY(type)) ok = 1; }
       break;
     }
-#endif
     default:
       break;
     }
@@ -575,9 +565,7 @@ static bool collect_proxy_info(cert_verify_context* vctx, X509* cert) {
          //nid != OBJ_sn2nid("PROXYCERTINFO_V4") &&
          //nid != OBJ_sn2nid("OLD_PROXYCERTINFO") &&
          //nid != OBJ_sn2nid("PROXYCERTINFO")
-#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
          && nid != NID_proxyCertInfo // TODO: keep only this?
-#endif
         ) {
         logger.msg(Arc::ERROR,"Certificate has unknown extension with numeric ID %u and SN %s",(unsigned int)nid,OBJ_nid2sn(nid));
         return false;
@@ -587,7 +575,6 @@ static bool collect_proxy_info(cert_verify_context* vctx, X509* cert) {
       if(nid == NID_proxyCertInfo) {
 // TODO: do not use openssl version - instead use result of check if
 // proxy extension is supported
-#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
       /* If the openssl version >=097g (which means proxy cert info is
        * supported), and NID_proxyCertInfo can be got from the extension,
        * then we use the proxy cert info support from openssl itself.
@@ -642,9 +629,6 @@ static bool collect_proxy_info(cert_verify_context* vctx, X509* cert) {
         PROXY_CERT_INFO_EXTENSION_free(proxycertinfo);
         proxycertinfo = NULL;
       }
-#else
-#error PROXY extension not supported
-#endif
       }
     }
   }
@@ -752,7 +736,6 @@ err:
   return ret;
 }
 
-#if SSLEAY_VERSION_NUMBER >=  0x0090600fL
 /**Replace the OpenSSL check_issued in x509_vfy.c with our own,
  *so we can override the key usage checks if it's a proxy.
  *We are only looking for X509_V_ERR_KEYUSAGE_NO_CERTSIGN
@@ -793,7 +776,6 @@ static int check_issued(X509_STORE_CTX*, X509* x, X509* issuer) {
     return ret_code;
 }
 */
-#endif
 
 const char* certTypeToString(certType type) {
   switch(type) {
