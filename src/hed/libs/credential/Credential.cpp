@@ -34,17 +34,29 @@ namespace Arc {
 
 static BN_GENCB* BN_GENCB_new(void) {
   BN_GENCB* bn = (BN_GENCB*)std::malloc(sizeof(BN_GENCB));
-  if(bn) {
-    std::memset(bn, 0, sizeof(BN_GENCB));
-  }
+  if(bn) std::memset(bn, 0, sizeof(BN_GENCB));
 }
 
 static void BN_GENCB_free(BN_GENCB* bn) {
-  if(bn) {
-    std::free(bn);
-  }
+  if(bn) std::free(bn);
 }
+
 #endif
+
+
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+
+static int X509_get_signature_nid(const X509 *x) {
+    return OBJ_obj2nid(x->sig_alg->algorithm);
+}
+
+static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
+    if (psig) *psig = x->signature;
+    if (palg) *palg = x->sig_alg;
+}
+
+#endif
+ 
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
   #define DEFAULT_KEYBITS  (1024)
@@ -378,12 +390,10 @@ static void BN_GENCB_free(BN_GENCB* bn) {
     int sig_nid = X509_get_signature_nid(cert_);
     switch(sig_nid) {
       case NID_sha1WithRSAEncryption: signing_algorithm = SIGN_SHA1; break;
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
       case NID_sha224WithRSAEncryption: signing_algorithm = SIGN_SHA224; break;
       case NID_sha256WithRSAEncryption: signing_algorithm = SIGN_SHA256; break;
       case NID_sha384WithRSAEncryption: signing_algorithm = SIGN_SHA384; break;
       case NID_sha512WithRSAEncryption: signing_algorithm = SIGN_SHA512; break;
-#endif
     }
     return signing_algorithm;
   }

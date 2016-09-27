@@ -16,6 +16,12 @@
 
 namespace ArcMCCTLS {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+static X509_VERIFY_PARAM *SSL_CTX_get0_param(SSL_CTX *ctx) {
+    return ctx->param;
+}
+#endif
+
 static const char * ex_data_id = "ARC_MCC_Payload_TLS";
 int PayloadTLSMCC::ex_data_index_ = -1;
 

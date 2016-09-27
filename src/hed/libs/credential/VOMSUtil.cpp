@@ -115,6 +115,13 @@ static const X509_ALGOR *X509_get0_tbs_sigalg(const X509 *x) {
 }
 #endif
 
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
+    if (psig) *psig = x->signature;
+    if (palg) *palg = x->sig_alg;
+}
+#endif
+
   void VOMSTrustList::AddElement(const std::vector<std::string>& encoded_list) {
     VOMSTrustChain chain;
     for(std::vector<std::string>::const_iterator i = encoded_list.begin();
