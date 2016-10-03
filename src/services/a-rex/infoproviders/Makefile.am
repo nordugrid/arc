@@ -1,4 +1,4 @@
-pkgdata_SCRIPTS = CEinfo.pl se.pl
+pkgdata_SCRIPTS = CEinfo.pl se.pl PerfData.pl
 dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
