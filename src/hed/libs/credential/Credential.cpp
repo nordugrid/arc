@@ -10,9 +10,6 @@
 #include <fstream>
 #include <fcntl.h>
 #include <iostream>
-//#include <openssl/ui.h>
-//#include <openssl/ssl.h>
-//#include <openssl/evp.h>
 #include <openssl/x509v3.h>
 
 #include <glibmm/fileutils.h>
@@ -258,12 +255,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         //if can not parse it, then it is DER format
         PKCS12* pkcs12 = NULL;
         unsigned char* source_chr = (unsigned char*)(source.c_str());
-#ifdef HAVE_OPENSSL_OLDRSA
-        if((pkcs12 = d2i_PKCS12(NULL, (unsigned char**)&source_chr, source.length())) != NULL){ format=CRED_PKCS; PKCS12_free(pkcs12); }
-#else
-        if((pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&source_chr, source.length())) != NULL){ format=CRED_PKCS; PKCS12_free(pkcs12); }
-#endif
-        else {
+        if((pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&source_chr, source.length())) != NULL){
+          format=CRED_PKCS; PKCS12_free(pkcs12);
+        } else {
           format = CRED_DER;
         }
       }
@@ -571,12 +565,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         break;
 
 /*
+   todo:
         der_chr = (unsigned char*)(cert.c_str());
-#ifdef HAVE_OPENSSL_OLDRSA
-        x509 = d2i_X509(NULL, (unsigned char**)&der_chr, cert.length());
-#else
         x509 = d2i_X509(NULL, (const unsigned char**)&der_chr, cert.length());
-#endif
 
         if(!x509){
           throw CredentialError("Unable to read DER credential from BIO");
@@ -604,11 +595,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       case CRED_PKCS:
         CredentialLogger.msg(DEBUG,"Certificate format is PKCS");
         pkcs_chr = (unsigned char*)(cert.c_str());
-#ifdef HAVE_OPENSSL_OLDRSA
-        pkcs12 = d2i_PKCS12(NULL, (unsigned char**)&pkcs_chr, cert.length());
-#else
         pkcs12 = d2i_PKCS12(NULL, (const unsigned char**)&pkcs_chr, cert.length());
-#endif
         if(pkcs12){
           char password[100];
           EVP_read_pw_string(password, 100, "Enter Password for PKCS12 certificate:", 0);
@@ -698,11 +685,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       case CRED_DER:
         key_chr = (unsigned char*)(key.c_str());
-#ifdef HAVE_OPENSSL_OLDRSA
-        pkey=d2i_PrivateKey(EVP_PKEY_RSA, NULL, (unsigned char**)&key_chr, key.length());
-#else
         pkey=d2i_PrivateKey(EVP_PKEY_RSA, NULL, (const unsigned char**)&key_chr, key.length());
-#endif
         break;
 
       default:
@@ -1133,16 +1116,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
   }
 
-  #ifdef HAVE_OPENSSL_OLDRSA
-  static void keygen_cb(int p, int, void*) {
-    char c='*';
-    if (p == 0) c='.';
-    if (p == 1) c='+';
-    if (p == 2) c='*';
-    if (p == 3) c='\n';
-    std::cerr<<c;
-  }
-  #else
   static int keygen_cb(int p, int, BN_GENCB*) {
     char c='*';
     if (p == 0) c='.';
@@ -1152,7 +1125,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     std::cerr<<c;
     return 1;
   }
-  #endif
 
 
   X509_EXTENSION* Credential::CreateExtension(const std::string& name, const std::string& data, bool crit) {
@@ -1228,15 +1200,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     EVP_PKEY* pkey;
     int keybits = keybits_?keybits_:DEFAULT_KEYBITS;
 
-#ifdef HAVE_OPENSSL_OLDRSA
-    unsigned long prime = RSA_F4;
-    rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
-    if(!rsa_key) {
-      CredentialLogger.msg(ERROR, "RSA_generate_key failed");
-      if(rsa_key) RSA_free(rsa_key);
-      return false;
-    }
-#else
     BN_GENCB* cb = BN_GENCB_new();
     BIGNUM *prime = BN_new();
     rsa_key = RSA_new();
@@ -1272,7 +1235,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
     if(cb) BN_GENCB_free(cb);
     if(prime) BN_free(prime);
-#endif
 
     X509_REQ *req = NULL;
     CredentialLogger.msg(VERBOSE, "Created RSA key, proceeding with request");
@@ -1407,17 +1369,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     if(pkey_) { CredentialLogger.msg(ERROR, "The credential's private key has already been initialized"); return false; };
 
-#ifdef HAVE_OPENSSL_OLDRSA
-    unsigned long prime = RSA_F4;
-    //rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
-    rsa_key = RSA_generate_key(keybits, prime, NULL, NULL);
-    if(!rsa_key) {
-      CredentialLogger.msg(ERROR, "RSA_generate_key failed");
-      LogError();
-      if(rsa_key) RSA_free(rsa_key);
-      return false;
-    }
-#else
     //BN_GENCB cb;
     BIGNUM *prime = BN_new();
     rsa_key = RSA_new();
@@ -1450,7 +1401,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       return false;
     }
     if(prime) BN_free(prime);
-#endif
 
     X509_REQ *req = NULL;
     pkey = EVP_PKEY_new();

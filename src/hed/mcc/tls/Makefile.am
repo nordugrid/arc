@@ -4,12 +4,12 @@ pkglib_LTLIBRARIES = libmcctls.la
 libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp \
                        ConfigTLSMCC.cpp PayloadTLSMCC.cpp \
                        GlobusSigningPolicy.cpp DelegationSecAttr.cpp \
-                       DelegationCollector.cpp GlobusHack.cpp \
+                       DelegationCollector.cpp \
                        BIOMCC.cpp BIOGSIMCC.cpp \
                        PayloadTLSStream.h   MCCTLS.h   \
                        ConfigTLSMCC.h   PayloadTLSMCC.h   \
                        GlobusSigningPolicy.h   DelegationSecAttr.h   \
-                       DelegationCollector.h   GlobusHack.h \
+                       DelegationCollector.h \
                        BIOMCC.h   BIOGSIMCC.h
 libmcctls_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)

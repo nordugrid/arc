@@ -913,7 +913,7 @@ fi
 
 # check openssl
 if test "$enables_hed" = "yes"; then
-PKG_CHECK_MODULES(OPENSSL, [openssl >= 0.9.7a])
+PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.0.1])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 "$PKG_CONFIG" openssl
@@ -924,50 +924,8 @@ if test "$?" = '1'; then
         OPENSSL_V1=`echo $OPENSSL_VERSION | cut -d'.' -f2`
         OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:alpha:]]`
         OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:digit:]] | od -td1 | awk 'NR==1{print $2}'`
-        OPENSSL_PROXY=no
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "7" && test "$OPENSSL_V3" -ge "102"; then
-            OPENSSL_PROXY=yes
-            AC_MSG_NOTICE([Found OpenSSL with PROXY support])
-        else
-            AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
-        fi
-        OPENSSL_X509_VERIFY_PARAM=no
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8"; then
-            OPENSSL_X509_VERIFY_PARAM=yes
-            AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
-        else
-            AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
-        fi
-        OPENSSL_OLDRSA=yes
-        if test "$OPENSSL_V1" -ge "9" && test "$OPENSSL_V2" -ge "8" && test "x$OPENSSL_V3" != "x"; then
-            AC_MSG_NOTICE([No old RSA])
-            OPENSSL_OLDRSA=no
-        fi
     else
         AC_ERROR([Cannot determine OpenSSL version!])
-    fi
-else
-    OPENSSL_PROXY=no
-    "$PKG_CONFIG" --exists 'openssl >= 0.9.7g'
-    if test "$?" = '0' ; then
-            OPENSSL_PROXY=yes
-            AC_MSG_NOTICE([Found OpenSSL with PROXY support])
-    else
-            AC_MSG_NOTICE([WARNING: OpenSSL does not contain PROXY support])
-    fi
-    OPENSSL_X509_VERIFY_PARAM=no
-    "$PKG_CONFIG" --exists 'openssl >= 0.9.8'
-    if test "$?" = '0' ; then
-            OPENSSL_X509_VERIFY_PARAM=yes
-            AC_MSG_NOTICE([Found OpenSSL with X509_VERIFY_PARAM])
-    else
-            AC_MSG_NOTICE([WARNING: OpenSSL does not contain X509_VERIFY_PARAM])
-    fi
-    OPENSSL_OLDRSA=yes
-    "$PKG_CONFIG" --exists 'openssl >= 0.9.8'
-    if test "$?" = '0' ; then
-            AC_MSG_NOTICE([No old RSA])
-            OPENSSL_OLDRSA=no
     fi
 fi
 fi
@@ -1788,8 +1746,6 @@ AM_CONDITIONAL([MOCK_DMC_ENABLED], test x$enables_mock_dmc = xyes)
 AM_CONDITIONAL([GFAL_ENABLED], test x$enables_gfal = xyes)
 AM_CONDITIONAL([S3_DMC_ENABLED], test x$enables_s3 = xyes)
 AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)
-AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
-AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
 AM_CONDITIONAL([CPPUNIT_ENABLED], test x$enables_cppunit = xyes)
 
@@ -1809,15 +1765,6 @@ AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 # Setup defines
 if test -n "$GLOBUS_COMMON_VERSION"; then
     AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
-fi
-if test x"$OPENSSL_PROXY" = xyes; then
-    AC_DEFINE(HAVE_OPENSSL_PROXY,,[define if OPENSSL has PROXY capabilities])
-fi
-if test x"$OPENSSL_X509_VERIFY_PARAM" = xyes; then
-    AC_DEFINE(HAVE_OPENSSL_X509_VERIFY_PARAM,,[define if OPENSSL has X509_VERIFY_PARAM structure])
-fi
-if test x"$OPENSSL_OLDRSA" = xyes; then
-    AC_DEFINE(HAVE_OPENSSL_OLDRSA,,[define if OPENSSL has old RSA generation interface])
 fi
 if test x"$XMLSEC_INSTALLED" = xyes; then
     AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
@@ -2726,19 +2673,4 @@ Monitoring:
 LDAP Monitor        ${enables_ldap_monitor}
 WS Monitor          ${enables_ws_monitor}
 ])
-
-if test "$enables_hed" = "yes"; then
-if test ! "X$OPENSSL_PROXY" = "Xyes"; then
-AC_MSG_RESULT([
-
-OpenSSL contains no support for proxy credentials.
-You will have to use certificate/private key pairs directly.
-Make sure private keys are not protected by password before
-using them.
-It is advisable to update OpenSSL version to at least 0.9.7g
-to avoid this situation.
-
-])
-fi
-fi
 

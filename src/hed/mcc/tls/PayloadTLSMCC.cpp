@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "GlobusSigningPolicy.h"
-#include "GlobusHack.h"
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
@@ -45,7 +44,6 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
     switch(err) {
-#ifdef HAVE_OPENSSL_PROXY
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
         // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag
@@ -54,7 +52,6 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         ok=1;
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
-#endif
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
@@ -83,19 +80,15 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       // Globus signing policy
       // Do not apply to proxies and self-signed CAs.
       if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-#ifdef HAVE_OPENSSL_PROXY
         int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-        if(pos < 0)
-#endif
-        {
-          std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
-          if(in) {
-            if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+        if(pos < 0) {
+          GlobusSigningPolicy globus_policy;
+          if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
+            if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
               it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
               ok=0;
               X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
             };
-            delete in;
           };
         };
       };
@@ -108,11 +101,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
     } else {
       Arc::Period timeleft = exptime - Time();
-#ifdef HAVE_OPENSSL_PROXY
       int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-#else
-      int pos = -1;
-#endif
       //for proxy certificate, give warning 1 hour in advance
       //for EEC certificate, give warning 5 days in advance
       if(((pos < 0) && (timeleft <= 5*24*3600)) ||
@@ -228,7 +217,6 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
    if(!config_.Set(sslctx_)) goto error;
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   //!!GlobusSetVerifyCertCallback(sslctx_);
 
    // Allow proxies, request CRL check
    if(SSL_CTX_get0_param(sslctx_) == NULL) {
@@ -315,7 +303,6 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    else {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
-   //!!GlobusSetVerifyCertCallback(sslctx_);
    if(!config_.Set(sslctx_)) goto error;
 
    // Allow proxies, request CRL check

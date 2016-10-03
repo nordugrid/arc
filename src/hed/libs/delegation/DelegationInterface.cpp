@@ -326,11 +326,7 @@ static bool get_cred_info(const std::string& str,cred_info_t& info) {
           info.valid_till = till;
         };
       };
-#ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) break;
-#else
-      break;
-#endif
       if(idx >= sk_X509_num(cert_sk)) break;
       c = sk_X509_value(cert_sk,idx);
     };
@@ -365,16 +361,6 @@ const std::string& DelegationConsumer::ID(void) {
 }
 
 /*
-#ifdef HAVE_OPENSSL_OLDRSA
-static void progress_cb(int p, int, void*) {
-  char c='*';
-  if (p == 0) c='.';
-  if (p == 1) c='+';
-  if (p == 2) c='*';
-  if (p == 3) c='\n';
-  std::cerr<<c;
-}
-#else
 static int progress_cb(int p, int, BN_GENCB*) {
   char c='*';
   if (p == 0) c='.';
@@ -384,7 +370,6 @@ static int progress_cb(int p, int, BN_GENCB*) {
   std::cerr<<c;
   return 1;
 }
-#endif
 */
 
 static int ssl_err_cb(const char *str, size_t len, void *u) {
@@ -442,19 +427,6 @@ bool DelegationConsumer::Restore(const std::string& content) {
 bool DelegationConsumer::Generate(void) {
   bool res = false;
   int num = 1024;
-#ifdef HAVE_OPENSSL_OLDRSA
-  unsigned long bn = RSA_F4;
-  //RSA *rsa=RSA_generate_key(num,bn,&progress_cb,NULL);
-  RSA *rsa=RSA_generate_key(num,bn,NULL,NULL);
-  if(rsa) {
-    if(key_) RSA_free((RSA*)key_);
-    key_=rsa; rsa=NULL; res=true;
-  } else {
-    LogError();
-    std::cerr<<"RSA_generate_key failed"<<std::endl;
-  };
-  if(rsa) RSA_free(rsa);
-#else
   //BN_GENCB cb;
   BIGNUM *bn = BN_new();
   RSA *rsa = RSA_new();
@@ -480,7 +452,6 @@ bool DelegationConsumer::Generate(void) {
   };
   if(bn) BN_free(bn);
   if(rsa) RSA_free(rsa);
-#endif
   return res;
 }
 
@@ -548,11 +519,9 @@ bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
 
   X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
   subject=buf;
-#ifdef HAVE_OPENSSL_PROXY
   if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
     identity=subject;
   };
-#endif
 
   if(!x509_to_string((RSA*)key_,content)) goto err;
   if(cert_sk) {
@@ -563,11 +532,9 @@ bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
       if(identity.empty()) {
         memset(buf,0,100);
         X509_NAME_oneline(X509_get_subject_name(v),buf,sizeof(buf));
-#ifdef HAVE_OPENSSL_PROXY
         if(X509_get_ext_by_NID(v,NID_proxyCertInfo,-1) < 0) {
           identity=buf;
         };
-#endif
       };
     };
   };
@@ -658,7 +625,6 @@ DelegationProvider::~DelegationProvider(void) {
 }
 
 std::string DelegationProvider::Delegate(const std::string& request,const DelegationRestrictions& restrictions) {
-#ifdef HAVE_OPENSSL_PROXY
   X509 *cert = NULL;
   X509_REQ *req = NULL;
   BIO* in = NULL;
@@ -917,9 +883,6 @@ err:
   if(subject) X509_NAME_free(subject);
   if(policy_string) ASN1_OCTET_STRING_free(policy_string);
   return res;
-#else
-  return "";
-#endif
 }
 
 void DelegationProvider::LogError(void) {

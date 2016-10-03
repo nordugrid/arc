@@ -360,11 +360,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       CredentialLogger.msg(DEBUG,"VOMS: create FQAN: %s",*i);
 
-#ifdef HAVE_OPENSSL_OLDRSA
-      ASN1_OCTET_STRING_set(tmpc, (unsigned char*)((*i).c_str()), (*i).length());
-#else
       ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
-#endif
 
       sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
     }
@@ -420,15 +416,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         value = (*i).substr(pos1 + 1);
       }
 
-#ifdef HAVE_OPENSSL_OLDRSA
-      if (!qual.empty())
-        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(qual.c_str()), qual.length());
-      else
-        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(voname.c_str()), voname.length());
-
-      ASN1_OCTET_STRING_set(ac_attr->name, (unsigned char*)(name.c_str()), name.length());
-      ASN1_OCTET_STRING_set(ac_attr->value, (unsigned char*)(value.c_str()), value.length());
-#else
       if (!qual.empty())
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(qual.c_str()), qual.length());
       else
@@ -436,7 +423,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       ASN1_OCTET_STRING_set(ac_attr->name, (const unsigned char*)(name.c_str()), name.length());
       ASN1_OCTET_STRING_set(ac_attr->value, (const unsigned char*)(value.c_str()), value.length());
-#endif
 
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
@@ -562,13 +548,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     X509_ALGOR_free(a->sig_alg);
     a->sig_alg = alg2;
 
-#ifdef HAVE_OPENSSL_OLDRSA
-    ASN1_sign((int (*)())i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
-	    (char *)a->acinfo, pkey, EVP_md5());
-#else
     ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
             (char *)a->acinfo, pkey, EVP_md5());
-#endif
 
     *ac = a;
     return 0;
@@ -774,13 +755,8 @@ err:
     if (!key) return false;
 
     int res = 0;
-#ifdef HAVE_OPENSSL_OLDRSA
-    res = ASN1_verify((int (*)())i2d_AC_INFO, ac->sig_alg, ac->signature,
-                        (char *)ac->acinfo, key);
-#else
     res = ASN1_verify((int (*)(void*, unsigned char**))i2d_AC_INFO, ac->sig_alg, ac->signature,
                         (char *)ac->acinfo, key);
-#endif
 
     if (!res) CredentialLogger.msg(ERROR,"VOMS: failed to verify AC signature");
   

@@ -152,11 +152,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          std::string certstr;
          x509_to_string(cert, certstr);
          x509chainstr_=certstr+x509chainstr_;
-#ifdef HAVE_OPENSSL_PROXY
          if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
             identity_=subject;
          };
-#endif
          // Parse VOMS attributes from each certificate of the peer chain.
          Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
          bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
@@ -181,11 +179,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       subject=buf;
       //logger.msg(VERBOSE, "Peer name: %s", peer_dn);
       subjects_.push_back(subject);
-#ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
          identity_=subject;
       };
-#endif
       // Parse VOMS attributes from peer certificate
       Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
       bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
