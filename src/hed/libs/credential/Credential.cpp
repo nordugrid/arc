@@ -290,15 +290,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!cert_) return "";
     subject = X509_NAME_dup(X509_get_subject_name(cert_));
 
-#if 0
-    int proxy_depth = verify_ctx_.proxy_depth;
-    for(int i=0; i<proxy_depth; i++) {
-      ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
-      if(ne)
-        X509_NAME_ENTRY_free(ne);
-    }
-#endif
-
     ASN1_STRING* entry;
     std::string entry_str;
     for(;;) {
@@ -363,7 +354,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   std::string Credential::GetProxyPolicy(void) const {
-    return (verify_ctx_.proxy_policy);
+    return verification_proxy_policy;
   }
 
   Period Credential::GetLifeTime(void) const {
@@ -505,7 +496,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       *certchain = NULL;
     }
 
-    //unsigned char* der_chr;
     unsigned char* pkcs_chr;
 
     switch(format) {
@@ -538,8 +528,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       case CRED_DER:
         CredentialLogger.msg(DEBUG,"Certificate format is DER");
-        // TODO: need to fix because of the vulnerability in d2i_X509_bio,
-        // see link: http://www.openssl.org/news/secadv_20120419.txt
         x509 = d2i_X509_bio(certbio, NULL);
         if(!x509){
           throw CredentialError("Unable to read DER credential from BIO");
@@ -562,34 +550,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
           }
           ++n;
         }
-        break;
-
-/*
-   todo:
-        der_chr = (unsigned char*)(cert.c_str());
-        x509 = d2i_X509(NULL, (const unsigned char**)&der_chr, cert.length());
-
-        if(!x509){
-          throw CredentialError("Unable to read DER credential from BIO");
-        }
-*/
-        //Get the issuer chain
-/*
-        *certchain = sk_X509_new_null();
-        n = 0;
-        while(!BIO_eof(certbio)){
-          X509 * tmp = NULL;
-          const unsigned char* cert_chr = (const unsigned char*)(cert.c_str());
-          if(!(tmp = d2i_X509(NULL, &cert_chr, cert.length()))){
-            ERR_clear_error(); break;
-          }
-          if(!sk_X509_insert(*certchain, tmp, n)) {
-            X509_free(tmp);
-            throw CredentialError("Can not insert cert into certificate's issuer chain");
-          }
-          ++n;
-        }
-*/
         break;
 
       case CRED_PKCS:
@@ -725,19 +685,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   void Credential::InitVerification(void) {
-    verify_ctx_.cert_store = NULL;
-    verify_ctx_.cert_depth = 0;
-    verify_ctx_.proxy_depth = 0;
-    verify_ctx_.max_proxy_depth = -1;
-    verify_ctx_.limited_proxy = 0;
-    verify_ctx_.cert_type = CERT_TYPE_EEC;
-    verify_ctx_.cert_chain = sk_X509_new_null();
-    verify_ctx_.ca_dir = cacertdir_;
-    verify_ctx_.ca_file = cacertfile_;
   }
 
   bool Credential::Verify(void) {
-    if(verify_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
+    verification_proxy_policy.clear();
+    if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, verification_proxy_policy)) {
       CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
       verification_valid = true;
       return true;
@@ -801,20 +753,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     proxyversion_ = proxyversion;
     policy_ = policy;
     pathlength_ = pathlength;
+    if(proxy_cert_info_) {
+      PROXY_CERT_INFO_EXTENSION_free(proxy_cert_info_);
+      proxy_cert_info_ = NULL;
+    }
 
     //Get certType
-    if(proxyversion_.compare("GSI2") == 0 || proxyversion_.compare("gsi2") == 0) {
-      if(policylang.compare("LIMITED") == 0 || policylang.compare("limited") == 0) {
-        cert_type_ = CERT_TYPE_GSI_2_LIMITED_PROXY;
-      }
-      else if (policylang.compare("RESTRICTED") == 0 || policylang.compare("restricted") == 0) {
-        CredentialLogger.msg(ERROR,"Globus legacy proxies can not carry policy data or path length constraints");
-      }
-      else {
-        cert_type_ = CERT_TYPE_GSI_2_PROXY;
-      }
-    }
-    else if (proxyversion_.compare("RFC") == 0 || proxyversion_.compare("rfc") == 0) {
+    if (proxyversion_.compare("RFC") == 0 || proxyversion_.compare("rfc") == 0) {
       //The "limited" and "restricted" are from the definition in
       //http://dev.globus.org/wiki/Security/ProxyCertTypes#RFC_3820_Proxy_Certificates
       if(policylang.compare("LIMITED") == 0 || policylang.compare("limited") == 0) {
@@ -834,35 +779,32 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       else if(policylang.compare("ANYLANGUAGE") == 0 || policylang.compare("anylanguage") == 0) {
         cert_type_ = CERT_TYPE_RFC_ANYLANGUAGE_PROXY;  //Defined in openssl version>098
       }
+      else {
+        CredentialLogger.msg(ERROR,"Unsupported proxy policy language is requested - %s", policylang);
+        proxyversion_.clear();
+        policy_.clear();
+        pathlength_ = -1;
+        cert_type_ = CERT_TYPE_CA;
+        return;
+      }
     }
     else if (proxyversion_.compare("EEC") == 0 || proxyversion_.compare("eec") == 0) {
       cert_type_ = CERT_TYPE_EEC;
     }
     else {
-      if(policylang.compare("LIMITED") == 0 || policylang.compare("limited") == 0) {
-        cert_type_ = CERT_TYPE_GSI_3_LIMITED_PROXY;
-      }
-      else if(policylang.compare("RESTRICTED") == 0 || policylang.compare("restricted") == 0) {
-        cert_type_ = CERT_TYPE_GSI_3_RESTRICTED_PROXY;
-      }
-      else if(policylang.compare("INDEPENDENT") == 0 || policylang.compare("independent") == 0) {
-        cert_type_ = CERT_TYPE_GSI_3_INDEPENDENT_PROXY;
-      }
-      else {
-        cert_type_ = CERT_TYPE_GSI_3_IMPERSONATION_PROXY;
-      }
-      // todo: error
+      CredentialLogger.msg(ERROR,"Unsupported proxy version is requested - %s", proxyversion_);
+      proxyversion_.clear();
+      policy_.clear();
+      pathlength_ = -1;
+      cert_type_ = CERT_TYPE_CA;
+      return;
     }
 
     if(cert_type_ != CERT_TYPE_EEC) {
+      // useless check but keep for future extensions
       if(!policy_.empty() && policylang.empty()) {
         CredentialLogger.msg(ERROR,"If you specify a policy you also need to specify a policy language");
         return;
-      }
-
-      if(proxy_cert_info_) {
-        PROXY_CERT_INFO_EXTENSION_free(proxy_cert_info_);
-        proxy_cert_info_ = NULL;
       }
 
       proxy_cert_info_ = PROXY_CERT_INFO_EXTENSION_new();
@@ -890,15 +832,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
             PROXY_POLICY_set_policy_language(ppolicy, policy_object);
           }
           break;
-        case CERT_TYPE_GSI_3_IMPERSONATION_PROXY:
-        case CERT_TYPE_GSI_3_INDEPENDENT_PROXY:
         default:
           break;
       }
 
       //set path length constraint
       if(pathlength >= 0)
-      PROXY_CERT_INFO_EXTENSION_set_path_length(proxy_cert_info_, pathlength_);
+        PROXY_CERT_INFO_EXTENSION_set_path_length(proxy_cert_info_, pathlength_);
 
       //set policy
       std::string policystring;
@@ -944,13 +884,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         PROXY_POLICY_set_policy(ppolicy, (unsigned char*)policystring.c_str(), policystring.size());
       }
 
-      //set the version of PROXY_CERT_INFO_EXTENSION
-      if(proxyversion_ == "RFC" || proxyversion_ == "rfc") {
-        //PROXY_CERT_INFO_EXTENSION_set_version(proxy_cert_info_, 4);
-      } else {
-        //PROXY_CERT_INFO_EXTENSION_set_version(proxy_cert_info_, 3);
-        // todo: error
-      }
     }
   }
 
@@ -1109,7 +1042,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!cacertfile_.empty() || !cacertdir_.empty()) {
       Verify();
     } else {
-      if(!collect_cert_chain(cert_, &cert_chain_, &verify_ctx_)) {
+      if(!collect_cert_chain(cert_, &cert_chain_, verification_proxy_policy)) {
         CredentialLogger.msg(INFO, "Certificate information collection failed");
         LogError();
       }
@@ -1249,8 +1182,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
           if(req) {
             if (X509_REQ_set_version(req,3L)) {
               X509_NAME *name = NULL;
-              unsigned long chtype = MBSTRING_ASC;  //TODO
-              name = parse_name((char*)(dn.c_str()), chtype, 0);
+              name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
               CredentialLogger.msg(VERBOSE, "Setting subject name!");
 
               X509_REQ_set_subject_name(req, name);
@@ -1728,17 +1660,16 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     PROXY_POLICY*  policy = NULL;
     ASN1_OBJECT*  policy_lang = NULL;
     ASN1_OBJECT*  extension_oid = NULL;
-    int certinfo_NID, nid = NID_undef;
+    int nid = NID_undef;
     int i;
 
     //Get the PROXY_CERT_INFO_EXTENSION from request' extension
     req_extensions = X509_REQ_get_extensions(req_);
-    certinfo_NID = NID_proxyCertInfo;
     for(i=0;i<sk_X509_EXTENSION_num(req_extensions);i++) {
       ext = sk_X509_EXTENSION_value(req_extensions,i);
       extension_oid = X509_EXTENSION_get_object(ext);
       nid = OBJ_obj2nid(extension_oid);
-      if((nid != 0) && (nid == certinfo_NID)) {
+      if(nid == NID_proxyCertInfo) {
         if(proxy_cert_info_) {
           PROXY_CERT_INFO_EXTENSION_free(proxy_cert_info_);
           proxy_cert_info_ = NULL;
@@ -1975,7 +1906,6 @@ err:
     unsigned char* certinfo_data = NULL;
     X509_EXTENSION* certinfo_ext = NULL;
     X509_EXTENSION* ext = NULL;
-    int certinfo_NID = NID_proxyCertInfo;
 
     if(cert_ == NULL) {
       CredentialLogger.msg(ERROR, "Credential is not initialized");
@@ -1988,32 +1918,10 @@ err:
     }
 
     //TODO: VOMS
-    /*
-    if(CERT_IS_GSI_3_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_txt2nid(PROXY_CERT_INFO_EXTENSION_V3); }
-    else if(CERT_IS_RFC_PROXY(proxy->cert_type_)) { certinfo_NID = OBJ_txt2nid(PROXY_CERT_INFO_EXTENSION_V4); }
-
-    if(proxy->cert_type_ == CERT_TYPE_GSI_2_LIMITED_PROXY){
-      CN_name = const_cast<char*>("limited proxy");
-      serial_number = M_ASN1_INTEGER_dup(X509_get_serialNumber(issuer));
-    }
-    else if(proxy->cert_type_ == CERT_TYPE_GSI_2_PROXY) {
-      CN_name = const_cast<char*>("proxy");
-      serial_number = M_ASN1_INTEGER_dup(X509_get_serialNumber(issuer));
-    }
-    else if (certinfo_NID != NID_undef)
-    */
     {
       unsigned char   md[SHA_DIGEST_LENGTH];
       long  sub_hash;
       unsigned int   len;
-      /*
-      const X509V3_EXT_METHOD* ext_method = NULL;
-      ext_method = X509V3_EXT_get_nid(certinfo_NID);
-      if((ext_method == NULL) || (ext_method->i2d == NULL)) {
-        CredentialLogger.msg(ERROR, "Can't get X509V3_EXT_METHOD for %s",OBJ_nid2sn(certinfo_NID));
-        LogError(); goto err;
-      }
-      */
 
       ASN1_digest((int (*)(void*, unsigned char**))i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey,md,&len);
 
@@ -2175,10 +2083,8 @@ err:
 err:
     if(issuer) { X509_free(issuer); }
     if(res == false && *tosign) { X509_free(*tosign); *tosign = NULL;}
-    if(certinfo_NID != NID_undef) {
-      if(serial_number) { ASN1_INTEGER_free(serial_number);}
-      if(CN_name) { free(CN_name); }
-    }
+    if(serial_number) { ASN1_INTEGER_free(serial_number);}
+    if(CN_name) { free(CN_name); }
 
     return res;
   }
@@ -2265,7 +2171,7 @@ err:
         if(md_str) {
           if((dgst_alg = EVP_get_digestbyname(md_str)) == NULL) {
             CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
-            // TODO: if disgest is mandatory then probably there must be error.
+            // TODO: if digest is mandatory then probably there must be error.
           }
         }
       }
@@ -2780,9 +2686,8 @@ error:
     if(!extsect.empty()){ extsect_ = extsect; }
     cert_ = X509_new(); 
     X509_NAME *name = NULL;
-    unsigned long chtype = MBSTRING_ASC;
     if(!dn.empty()) {
-      name = parse_name((char*)(dn.c_str()), chtype, 0);
+      name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
       X509_set_subject_name(cert_, name);
       X509_NAME_free(name);
     }
@@ -2835,9 +2740,8 @@ error:
     EVP_PKEY_free(req_pubkey);
 
     X509_NAME *subject = NULL;
-    unsigned long chtype = MBSTRING_ASC;  //TODO
     if(!dn.empty()) {
-      subject = parse_name((char*)(dn.c_str()), chtype, 0);
+      subject = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
       X509_set_subject_name(eec_cert, subject);
       X509_NAME_free(subject);
     }
@@ -3005,7 +2909,6 @@ error:
     if(req_) X509_REQ_free(req_);
     if(rsa_key_) RSA_free(rsa_key_);
     if(extensions_) sk_X509_EXTENSION_pop_free(extensions_, X509_EXTENSION_free);
-    if(verify_ctx_.cert_chain) sk_X509_pop_free(verify_ctx_.cert_chain, X509_free);
   }
 
 }

@@ -10,6 +10,7 @@
 #include <sys/systeminfo.h>
 #endif
 
+#include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
@@ -64,25 +65,6 @@ int getdomainname_mingw (char *name, size_t len) {
   return (GetComputerNameExA(ComputerNameDnsDomain, name, &dlen) ? 0 : -1);
 }
 #define getdomainname getdomainname_mingw
-#endif
-
-#ifndef HAVE_TIMEGM
-// TODO: add lock or move it to Utils
-static time_t timegm (struct tm *tm) {
-  bool tz_found = false;
-  std::string tz = Arc::GetEnv("TZ", tz_found);
-  Arc::SetEnv("TZ","UTC");
-  tzset();
-  tm->tm_isdst = -1;
-  time_t ret = mktime(tm);
-  if(tz_found) {
-    Arc::SetEnv("TZ", tz);
-  } else {
-    Arc::UnsetEnv("TZ");
-  }
-  tzset();
-  return ret;
-}
 #endif
 
 
@@ -383,7 +365,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
  
     // stuff the created AC_IETFATTR in ietfattr (values) and define its object
     sk_AC_IETFATTR_push(capabilities->ietfattr, capnames);
-    //!! todo: capabilities->get_type = GET_TYPE_FQAN;
     ASN1_OBJECT_free(capabilities->type);
     capabilities->type = cobj;
 
@@ -450,10 +431,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder);
     }  
   
-/*todo
     // push both AC_ATTR into STACK_OF(AC_ATTR)
     sk_AC_ATTR_push(a->acinfo->attrib, capabilities);
-*/
 
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
@@ -1337,32 +1316,10 @@ err:
   }
 
   static time_t ASN1_GENERALIZEDTIME_get(const ASN1_GENERALIZEDTIME* const s) {
-    struct tm tm;
-    int offset;
-    memset(&tm,'\0',sizeof tm);
-
-#define g1(n) ((n)-'0')
-#define g2(p) (g1((p)[0])*10+g1((p)[1]))
-#define g4(p) g1((p)[0])*1000+g1((p)[1])*100+g2(p+2)
-
-    tm.tm_year=g4(s->data)-1900;
-    tm.tm_mon=g2(s->data+4)-1;
-    tm.tm_mday=g2(s->data+6);
-    tm.tm_hour=g2(s->data+8);
-    tm.tm_min=g2(s->data+10);
-    tm.tm_sec=g2(s->data+12);
-    if(s->data[14] == 'Z')
-      offset=0;
-    else {
-      offset=g2(s->data+15)*60+g2(s->data+17);
-      if(s->data[14] == '-')
-        offset= -offset;
-    }
-#undef g1
-#undef g2
-#undef g4
-
-    return timegm(&tm)-offset*60;
+    if ((s == NULL) || (s->data == NULL) || (s->length == 0)) return Arc::Time::UNDEFINED;
+    std::string str((char const *)(s->data), s->length);
+    Arc::Time t(str);
+    return t.GetTime();
   }
 
   static bool checkACInfo(X509* cert, X509* issuer, AC* ac, 

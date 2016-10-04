@@ -517,11 +517,9 @@ class Credential {
     std::string certfile_;
     std::string keyfile_;
 
-    // Verification context
-    ArcCredential::cert_verify_context verify_ctx_;
-
     //Verification result
     bool verification_valid;
+    std::string verification_proxy_policy;
 
     //Certificate structures
     X509 *           cert_;    //certificate
