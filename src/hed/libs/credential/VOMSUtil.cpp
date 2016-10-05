@@ -270,26 +270,35 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
   }
 
-  static int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
-             std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attrs, 
-             AC **ac, std::string voname, std::string uri, int lifetime) {
+  static int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder,
+                          EVP_PKEY *pkey, BIGNUM *serialnum,
+                          std::vector<std::string> &fqan,
+                          std::vector<std::string> &targets,
+                          std::vector<std::string>& attrs, 
+                          AC *ac, std::string voname, std::string uri, int lifetime) {
     #define ERROR(e) do { err = (e); goto err; } while (0)
     AC *a = NULL;
-    X509_NAME *subname = NULL, *issname = NULL;
-    GENERAL_NAME *dirn1 = NULL, *dirn2 = NULL;
-    ASN1_INTEGER  *serial = NULL, *holdserial = NULL, *version = NULL;
-    ASN1_BIT_STRING *uid = NULL;
+
     AC_ATTR *capabilities = NULL;
     AC_IETFATTR *capnames = NULL;
-    AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
     ASN1_OBJECT *cobj = NULL;
-    X509_ALGOR *alg1;
-    X509_ALGOR *alg2;
-    ASN1_GENERALIZEDTIME *time1 = NULL, *time2 = NULL;
-    X509_EXTENSION *norevavail = NULL, *targetsext = NULL, *auth = NULL, *certstack = NULL;
+
+    X509_NAME *subname = NULL;
+    X509_NAME *issname = NULL;
+    ASN1_INTEGER  *serial = NULL;
+    ASN1_INTEGER *holdserial = NULL;
+    ASN1_INTEGER *version = NULL;
+    ASN1_BIT_STRING *uid = NULL;
+    AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
+    X509_ALGOR *alg1 = NULL;
+    X509_ALGOR *alg2 = NULL;
+    ASN1_GENERALIZEDTIME *time1 = NULL;
+    ASN1_GENERALIZEDTIME *time2 = NULL;
+    X509_EXTENSION *norevavail = NULL;
+    X509_EXTENSION *targetsext = NULL;
+    X509_EXTENSION *auth = NULL;
+    X509_EXTENSION *certstack = NULL;
     AC_ATT_HOLDER *ac_att_holder = NULL;
-    //char *qual = NULL, *name = NULL, *value = NULL, *tmp1 = NULL, *tmp2 = NULL;
-    STACK_OF(X509) *stk = NULL;
     int err = AC_ERR_UNKNOWN;
     time_t curtime;
 
@@ -298,7 +307,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if (!issuer || !holder || !serialnum || fqan.empty() || !ac || !pkey)
       return AC_ERR_PARAMETERS;
 
-    a = *ac;
+    a = ac;
     subname = X509_NAME_dup(X509_get_issuer_name(holder)); //old or new version?
     issname = X509_NAME_dup(X509_get_subject_name(issuer));
 
@@ -306,24 +315,19 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     time1 = ASN1_GENERALIZEDTIME_set(NULL, curtime);
     time2 = ASN1_GENERALIZEDTIME_set(NULL, curtime+lifetime);
 
-    dirn1  = GENERAL_NAME_new();
-    dirn2  = GENERAL_NAME_new();
+    capabilities    = AC_ATTR_new();
+    capnames        = AC_IETFATTR_new();
+    cobj            = OBJ_txt2obj(idatcapOID,0);
+
     holdserial      = ASN1_INTEGER_dup(X509_get_serialNumber(holder));
     serial          = BN_to_ASN1_INTEGER(serialnum, NULL);
     version         = BN_to_ASN1_INTEGER((BIGNUM *)(BN_value_one()), NULL);
-    capabilities    = AC_ATTR_new();
-    cobj            = OBJ_txt2obj(idatcapOID,0);
-    capnames        = AC_IETFATTR_new();
     ac_full_attrs   = AC_FULL_ATTRIBUTES_new();
     ac_att_holder   = AC_ATT_HOLDER_new();
 
     std::string buffer, complete;
 
-    GENERAL_NAME *g = GENERAL_NAME_new();
-    ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
-
-
-    if (!subname || !issuer || !dirn1 || !dirn2 || !holdserial || !serial ||
+    if (!subname || !issuer || !holdserial || !serial ||
       !capabilities || !cobj || !capnames || !time1 || !time2 || !ac_full_attrs || !ac_att_holder)
       ERROR(AC_ERR_MEMORY);
 
@@ -334,42 +338,50 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     // prepare AC_IETFATTR
     for (std::vector<std::string>::iterator i = fqan.begin(); i != fqan.end(); i++) {
-      ASN1_OCTET_STRING *tmpc = ASN1_OCTET_STRING_new();
+      AC_IETFATTRVAL *tmpc = AC_IETFATTRVAL_new();
       if (!tmpc) {
-        ASN1_OCTET_STRING_free(tmpc);
         ERROR(AC_ERR_MEMORY);
       }
+      tmpc->value.octet_string = ASN1_OCTET_STRING_new();
+      if(!tmpc->value.octet_string) {
+        AC_IETFATTRVAL_free(tmpc);
+        ERROR(AC_ERR_MEMORY);
+      }
+      tmpc->type = V_ASN1_OCTET_STRING;
 
       CredentialLogger.msg(DEBUG,"VOMS: create FQAN: %s",*i);
 
-      ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
+      ASN1_OCTET_STRING_set(tmpc->value.octet_string, (const unsigned char*)((*i).c_str()), (*i).length());
 
       if(capnames->values == NULL) capnames->values = sk_AC_IETFATTRVAL_new_null();
-      sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
+      sk_AC_IETFATTRVAL_push(capnames->values, tmpc);
     }
  
-    //GENERAL_NAME *g = GENERAL_NAME_new();
-    //ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
     buffer.append(voname);
     buffer.append("://");
     buffer.append(uri);
-    if (!tmpr || !g) {
-      GENERAL_NAME_free(g);
-      ASN1_IA5STRING_free(tmpr);
-      ERROR(AC_ERR_MEMORY);
+    {
+      GENERAL_NAME *g = GENERAL_NAME_new();
+      {
+        ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
+        if (!tmpr || !g) {
+          GENERAL_NAME_free(g);
+          ASN1_IA5STRING_free(tmpr);
+          ERROR(AC_ERR_MEMORY);
+        }
+        ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
+        g->type  = GEN_URI;
+        g->d.ia5 = tmpr;
+      }
+      if(capnames->names == NULL) capnames->names = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(capnames->names, g);
     }
 
-    ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
-    g->type  = GEN_URI;
-    g->d.ia5 = tmpr;
-    if(capnames->names == NULL) capnames->names = sk_GENERAL_NAME_new_null();
-    sk_GENERAL_NAME_push(capnames->names, g);
- 
     // stuff the created AC_IETFATTR in ietfattr (values) and define its object
     if(capabilities->ietfattr == NULL) capabilities->ietfattr = sk_AC_IETFATTR_new_null();
-    sk_AC_IETFATTR_push(capabilities->ietfattr, capnames);
+    sk_AC_IETFATTR_push(capabilities->ietfattr, capnames); capnames = NULL;
     ASN1_OBJECT_free(capabilities->type);
-    capabilities->type = cobj;
+    capabilities->type = cobj; cobj = NULL;
 
     // prepare AC_FULL_ATTRIBUTES
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
@@ -379,7 +391,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
  
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr) {
-        AC_ATTRIBUTE_free(ac_attr);
         ERROR(AC_ERR_MEMORY);
       }
 
@@ -393,17 +404,18 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       size_t pos1 = (*i).find_first_of("=");
       if (pos1 == std::string::npos) {
+        AC_ATTRIBUTE_free(ac_attr);
         ERROR(AC_ERR_PARAMETERS);
-      }
-      else {
+      } else {
         name = (*i).substr(pos, pos1 - pos);
         value = (*i).substr(pos1 + 1);
       }
 
-      if (!qual.empty())
+      if (!qual.empty()) {
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(qual.c_str()), qual.length());
-      else
+      } else {
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(voname.c_str()), voname.length());
+      }
 
       ASN1_OCTET_STRING_set(ac_attr->name, (const unsigned char*)(name.c_str()), name.length());
       ASN1_OCTET_STRING_set(ac_attr->value, (const unsigned char*)(value.c_str()), value.length());
@@ -412,9 +424,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
 
-    if (attrs.empty()) 
-      AC_ATT_HOLDER_free(ac_att_holder);
-    else {
+    if (attrs.empty()) {
+      AC_ATT_HOLDER_free(ac_att_holder); ac_att_holder = NULL;
+    } else {
       GENERAL_NAME *g = GENERAL_NAME_new();
       ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
       if (!tmpr || !g) {
@@ -433,40 +445,42 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       if(ac_att_holder->grantor == NULL) ac_att_holder->grantor = sk_GENERAL_NAME_new_null();
       sk_GENERAL_NAME_push(ac_att_holder->grantor, g);
       if(ac_full_attrs->providers == NULL) ac_full_attrs->providers = sk_AC_ATT_HOLDER_new_null();
-      sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder);
+      sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder); ac_att_holder = NULL;
     }  
   
     // push both AC_ATTR into STACK_OF(AC_ATTR)
     if(a->acinfo->attrib == NULL) a->acinfo->attrib = sk_AC_ATTR_new_null();
-    sk_AC_ATTR_push(a->acinfo->attrib, capabilities);
+    sk_AC_ATTR_push(a->acinfo->attrib, capabilities); capabilities = NULL;
 
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
 
       ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(attributesOID), (char *)(ac_full_attrs->providers));
-      AC_FULL_ATTRIBUTES_free(ac_full_attrs);
+      AC_FULL_ATTRIBUTES_free(ac_full_attrs); ac_full_attrs = NULL;
       if (!ext)
         ERROR(AC_ERR_NO_EXTENSION);
 
       if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
       sk_X509_EXTENSION_push(a->acinfo->exts, ext);
-      ac_full_attrs = NULL;
     }
 
-    stk = sk_X509_new_null();
-    sk_X509_push(stk, X509_dup(issuer));
+    {
+      STACK_OF(X509) *stk = sk_X509_new_null();
+      sk_X509_push(stk, X509_dup(issuer));
 
-    if (issuerstack) {
-      for (int j =0; j < sk_X509_num(issuerstack); j++)
-        sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
+      if (issuerstack) {
+        for (int j =0; j < sk_X509_num(issuerstack); j++) {
+          sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
+        }
+      }
+
+      //for(int i=0; i<sk_X509_num(stk); i++)
+      //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
+      //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
+
+      certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(certseqOID), (char*)stk);
+      sk_X509_pop_free(stk, X509_free);
     }
-
-   //for(int i=0; i<sk_X509_num(stk); i++)
-   //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
-   //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
-
-    certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(certseqOID), (char*)stk);
-    sk_X509_pop_free(stk, X509_free);
 
     // Create extensions
     norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idcenoRevAvailOID), (char*)"loc");
@@ -490,20 +504,20 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
 
     if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
-    sk_X509_EXTENSION_push(a->acinfo->exts, norevavail);
-    sk_X509_EXTENSION_push(a->acinfo->exts, auth);
-    if (certstack)
-      sk_X509_EXTENSION_push(a->acinfo->exts, certstack);
+    sk_X509_EXTENSION_push(a->acinfo->exts, norevavail); norevavail = NULL;
+    sk_X509_EXTENSION_push(a->acinfo->exts, auth); auth = NULL;
+    if (certstack) {
+      sk_X509_EXTENSION_push(a->acinfo->exts, certstack); certstack = NULL;
+    }
 
     alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
-    alg1 = X509_ALGOR_dup(alg1);
-    alg2 = NULL;
+    if(alg1) alg1 = X509_ALGOR_dup(alg1);
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     X509_get0_signature(NULL, &alg2, issuer);
 #else
     X509_get0_signature(NULL, (X509_ALGOR const**)&alg2, issuer);
 #endif
-    alg2 = X509_ALGOR_dup(alg2);
+    if(alg2) alg2 = X509_ALGOR_dup(alg2);
 
     {
       const ASN1_BIT_STRING* issuerUID = NULL;
@@ -516,44 +530,65 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(a->acinfo->holder->baseid == NULL) a->acinfo->holder->baseid = AC_IS_new(); // optional
     if(a->acinfo->form == NULL) a->acinfo->form = AC_FORM_new(); // optional
 
-    dirn1->d.dirn = subname;
-    dirn1->type = GEN_DIRNAME;
-    if(a->acinfo->holder->baseid->issuer == NULL) a->acinfo->holder->baseid->issuer = sk_GENERAL_NAME_new_null();
-    sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1);
+    if(subname) {
+      GENERAL_NAME *dirn1 = GENERAL_NAME_new();
+      dirn1->d.dirn = subname;
+      dirn1->type = GEN_DIRNAME;
+      if(a->acinfo->holder->baseid->issuer == NULL) a->acinfo->holder->baseid->issuer = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1);
+    }
 
-    dirn2->d.dirn = issname;
-    dirn2->type = GEN_DIRNAME;
-    if(a->acinfo->form->names == NULL) a->acinfo->form->names = sk_GENERAL_NAME_new_null();
-    sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2);
+    if(issname) {
+      GENERAL_NAME *dirn2 = GENERAL_NAME_new();
+      dirn2->d.dirn = issname;
+      dirn2->type = GEN_DIRNAME;
+      if(a->acinfo->form->names == NULL) a->acinfo->form->names = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2);
+    }
 
-    if(a->acinfo->holder->baseid) ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
-    a->acinfo->holder->baseid->serial = holdserial;
+    if(holdserial) {
+      if(a->acinfo->holder->baseid->serial) ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
+      a->acinfo->holder->baseid->serial = holdserial;
+    }
 
-    ASN1_INTEGER_free(a->acinfo->serial);
-    a->acinfo->serial = serial;
+    if(serial) {
+      ASN1_INTEGER_free(a->acinfo->serial);
+      a->acinfo->serial = serial;
+    }
 
-    ASN1_INTEGER_free(a->acinfo->version);
-    a->acinfo->version = version;
+    if(version) {
+      ASN1_INTEGER_free(a->acinfo->version);
+      a->acinfo->version = version;
+    }
 
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
-    a->acinfo->validity->notBefore = time1;
+    if(time1) {
+      ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
+      a->acinfo->validity->notBefore = time1;
+    }
 
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
-    a->acinfo->validity->notAfter  = time2;
+    if(time2) {
+      ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
+      a->acinfo->validity->notAfter  = time2;
+    }
 
-    ASN1_BIT_STRING_free(a->acinfo->id);
-    a->acinfo->id = uid;
+    if (uid) {
+      ASN1_BIT_STRING_free(a->acinfo->id);
+      a->acinfo->id = uid;
+    }
 
-    X509_ALGOR_free(a->acinfo->alg);
-    a->acinfo->alg = alg1;
+    if(alg1) {
+      X509_ALGOR_free(a->acinfo->alg);
+      a->acinfo->alg = alg1;
+    }
 
-    X509_ALGOR_free(a->sig_alg);
-    a->sig_alg = alg2;
+    if(alg2) {
+      X509_ALGOR_free(a->sig_alg);
+      a->sig_alg = alg2;
+    }
 
     ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
             (char *)a->acinfo, pkey, EVP_md5());
 
-    *ac = a;
     return 0;
 
 err:
@@ -563,8 +598,6 @@ err:
     X509_EXTENSION_free(certstack);
     X509_NAME_free(subname);
     X509_NAME_free(issname);
-    GENERAL_NAME_free(dirn1);
-    GENERAL_NAME_free(dirn2);
     ASN1_INTEGER_free(holdserial);
     ASN1_INTEGER_free(serial);
     AC_ATTR_free(capabilities);
@@ -574,6 +607,10 @@ err:
     ASN1_UTCTIME_free(time2);
     AC_ATT_HOLDER_free(ac_att_holder);
     AC_FULL_ATTRIBUTES_free(ac_full_attrs);
+    X509_ALGOR_free(alg1);
+    X509_ALGOR_free(alg2);
+    ASN1_INTEGER_free(version);
+    ASN1_BIT_STRING_free(uid);
     return err;
   }
 
@@ -591,11 +628,10 @@ err:
     issuerkey = issuer_cred.GetPrivKey();
     holder = holder_cred.GetCert();
 
-    AC* ac = NULL;
-    ac = AC_new();
+    AC* ac = AC_new();
 
     if(createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
-             fqan, targets, attributes, &ac, voname, uri, lifetime)){
+             fqan, targets, attributes, ac, voname, uri, lifetime)){
       if(ac) AC_free(ac);
       if(issuer) X509_free(issuer);
       if(holder) X509_free(holder);
@@ -1041,11 +1077,11 @@ err:
 
 
   static bool checkAttributes(STACK_OF(AC_ATTR) *atts, std::vector<std::string>& attributes, unsigned int& status) {
-    AC_ATTR *caps;
-    STACK_OF(AC_IETFATTRVAL) *values;
-    AC_IETFATTR *capattr;
-    AC_IETFATTRVAL *capname;
-    GENERAL_NAME *data;
+    AC_ATTR *caps = NULL;
+    STACK_OF(AC_IETFATTRVAL) *values = NULL;
+    AC_IETFATTR *capattr = NULL;
+    AC_IETFATTRVAL *capname = NULL;
+    GENERAL_NAME *data = NULL;
 
     /* find AC_ATTR with IETFATTR type */
     int  nid = OBJ_txt2nid(idatcapOID);

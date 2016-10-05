@@ -171,6 +171,8 @@ DECLARE_ASN1_FUNCTIONS(AC_VAL)
 //typedef struct asn1_string_st AC_IETFATTRVAL;
 //typedef ASN1_TYPE AC_IETFATTRVAL;
 #define AC_IETFATTRVAL ASN1_TYPE
+#define AC_IETFATTRVAL_new ASN1_TYPE_new
+#define AC_IETFATTRVAL_free ASN1_TYPE_free
 #define sk_AC_IETFATTRVAL_push sk_ASN1_TYPE_push
 #define stack_st_AC_IETFATTRVAL stack_st_ASN1_TYPE
 #define sk_AC_IETFATTRVAL_num sk_ASN1_TYPE_num
