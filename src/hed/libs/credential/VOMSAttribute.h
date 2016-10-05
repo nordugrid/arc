@@ -175,6 +175,7 @@ DECLARE_ASN1_FUNCTIONS(AC_VAL)
 #define stack_st_AC_IETFATTRVAL stack_st_ASN1_TYPE
 #define sk_AC_IETFATTRVAL_num sk_ASN1_TYPE_num
 #define sk_AC_IETFATTRVAL_value sk_ASN1_TYPE_value
+#define sk_AC_IETFATTRVAL_new_null sk_ASN1_TYPE_new_null
 
 typedef struct ACIETFATTR {
   STACK_OF(GENERAL_NAME)   *names;

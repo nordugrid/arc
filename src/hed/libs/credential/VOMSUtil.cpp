@@ -344,6 +344,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
       ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
 
+      if(capnames->values == NULL) capnames->values = sk_AC_IETFATTRVAL_new_null();
       sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
     }
  
@@ -361,9 +362,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
     g->type  = GEN_URI;
     g->d.ia5 = tmpr;
+    if(capnames->names == NULL) capnames->names = sk_GENERAL_NAME_new_null();
     sk_GENERAL_NAME_push(capnames->names, g);
  
     // stuff the created AC_IETFATTR in ietfattr (values) and define its object
+    if(capabilities->ietfattr == NULL) capabilities->ietfattr = sk_AC_IETFATTR_new_null();
     sk_AC_IETFATTR_push(capabilities->ietfattr, capnames);
     ASN1_OBJECT_free(capabilities->type);
     capabilities->type = cobj;
@@ -405,6 +408,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       ASN1_OCTET_STRING_set(ac_attr->name, (const unsigned char*)(name.c_str()), name.length());
       ASN1_OCTET_STRING_set(ac_attr->value, (const unsigned char*)(value.c_str()), value.length());
 
+      if(ac_att_holder->attributes == NULL) ac_att_holder->attributes = sk_AC_ATTRIBUTE_new_null();
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
 
@@ -426,12 +430,14 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       ASN1_STRING_set(tmpr, buffer.c_str(), buffer.length());
       g->type  = GEN_URI;
       g->d.ia5 = tmpr;
+      if(ac_att_holder->grantor == NULL) ac_att_holder->grantor = sk_GENERAL_NAME_new_null();
       sk_GENERAL_NAME_push(ac_att_holder->grantor, g);
-
+      if(ac_full_attrs->providers == NULL) ac_full_attrs->providers = sk_AC_ATT_HOLDER_new_null();
       sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder);
     }  
   
     // push both AC_ATTR into STACK_OF(AC_ATTR)
+    if(a->acinfo->attrib == NULL) a->acinfo->attrib = sk_AC_ATTR_new_null();
     sk_AC_ATTR_push(a->acinfo->attrib, capabilities);
 
     if (ac_full_attrs) {
@@ -442,12 +448,12 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       if (!ext)
         ERROR(AC_ERR_NO_EXTENSION);
 
+      if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
       sk_X509_EXTENSION_push(a->acinfo->exts, ext);
       ac_full_attrs = NULL;
     }
 
     stk = sk_X509_new_null();
-    
     sk_X509_push(stk, X509_dup(issuer));
 
     if (issuerstack) {
@@ -479,9 +485,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         ERROR(AC_ERR_NO_EXTENSION);
 
       X509_EXTENSION_set_critical(targetsext,1);
+      if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
       sk_X509_EXTENSION_push(a->acinfo->exts, targetsext);
     }
 
+    if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
     sk_X509_EXTENSION_push(a->acinfo->exts, norevavail);
     sk_X509_EXTENSION_push(a->acinfo->exts, auth);
     if (certstack)
@@ -505,25 +513,40 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
           ERROR(AC_ERR_MEMORY);
     }
 
-    ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
-    ASN1_INTEGER_free(a->acinfo->serial);
-    ASN1_INTEGER_free(a->acinfo->version);
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
+    if(a->acinfo->holder->baseid == NULL) a->acinfo->holder->baseid = AC_IS_new(); // optional
+    if(a->acinfo->form == NULL) a->acinfo->form = AC_FORM_new(); // optional
+
     dirn1->d.dirn = subname;
     dirn1->type = GEN_DIRNAME;
+    if(a->acinfo->holder->baseid->issuer == NULL) a->acinfo->holder->baseid->issuer = sk_GENERAL_NAME_new_null();
     sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1);
+
     dirn2->d.dirn = issname;
     dirn2->type = GEN_DIRNAME;
+    if(a->acinfo->form->names == NULL) a->acinfo->form->names = sk_GENERAL_NAME_new_null();
     sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2);
+
+    if(a->acinfo->holder->baseid) ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
     a->acinfo->holder->baseid->serial = holdserial;
+
+    ASN1_INTEGER_free(a->acinfo->serial);
     a->acinfo->serial = serial;
+
+    ASN1_INTEGER_free(a->acinfo->version);
     a->acinfo->version = version;
+
+    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
     a->acinfo->validity->notBefore = time1;
+
+    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
     a->acinfo->validity->notAfter  = time2;
+
+    ASN1_BIT_STRING_free(a->acinfo->id);
     a->acinfo->id = uid;
+
     X509_ALGOR_free(a->acinfo->alg);
     a->acinfo->alg = alg1;
+
     X509_ALGOR_free(a->sig_alg);
     a->sig_alg = alg2;
 
