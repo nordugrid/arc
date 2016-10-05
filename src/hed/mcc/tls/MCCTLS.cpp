@@ -408,6 +408,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       stream = new PayloadTLSMCC(inpayload,config_,logger);
       // Check for established connection
       if(!*stream) {
+        logger.msg(ERROR, "Failed to establish connection: %s", stream->Failure().operator std::string());
         delete stream;
         return MCC_Status();
       }

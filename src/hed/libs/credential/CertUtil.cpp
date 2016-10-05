@@ -308,7 +308,7 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
       }
 
       unsigned long hash = X509_NAME_hash(X509_get_issuer_name(cert));
-      unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 * hash *
+      unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 /* hash */
         + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* zero termination */;
       char* ca_policy_file_path = (char*) malloc(buffer_len);
       if(ca_policy_file_path == NULL) {
