@@ -22,23 +22,14 @@
 #include "listfunc.h"
 
 #define idpkixOID                "1.3.6.1.5.5.7"
-#define idpkcs9OID               "1.2.840.113549.1.9"
-#define idpeOID                  idpkixOID ".1"
+// #define idpkcs9OID               "1.2.840.113549.1.9"
+// #define idpeOID                  idpkixOID ".1"
 #define idceOID                  "2.5.29"
-#define idacaOID                 idpkixOID ".10"
-#define idatOID                  "2.5.4"
-#define idpeacauditIdentityOID   idpeOID ".4"
-#define idcetargetInformationOID idceOID ".55"
+// #define idacaOID                 idpkixOID ".10"
+// #define idatOID                  "2.5.4"
 #define idceauthKeyIdentifierOID idceOID ".35"
-#define idceauthInfoAccessOID    idpeOID ".1"
-#define idcecRLDistPointsOID     idceOID ".31"
 #define idcenoRevAvailOID        idceOID ".56"
 #define idceTargetsOID           idceOID ".55"
-#define idacaauthentInfoOID      idacaOID ".1"
-#define idacaaccessIdentityOID   idacaOID ".2"
-#define idacachargIdentityOID    idacaOID ".3"
-#define idacagroupOID            idacaOID ".4"
-#define idatclearanceOID         "2.5.1.5.5"
 #define vomsOID                  "1.3.6.1.4.1.8005.100.100.1"
 #define incfileOID               "1.3.6.1.4.1.8005.100.100.2"
 #define voOID                    "1.3.6.1.4.1.8005.100.100.3"
@@ -47,7 +38,7 @@
 #define acseqOID                 "1.3.6.1.4.1.8005.100.100.5"
 #define orderOID                 "1.3.6.1.4.1.8005.100.100.6"
 #define certseqOID               "1.3.6.1.4.1.8005.100.100.10"
-#define emailOID                 idpkcs9OID ".1"
+// #define emailOID                 idpkcs9OID ".1"
 
 static std::string default_vomsdir = std::string(G_DIR_SEPARATOR_S) + "etc" + G_DIR_SEPARATOR_S +"grid-security" + G_DIR_SEPARATOR_S + "vomsdir";
 
@@ -189,6 +180,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     #define OBJCREATE(c,n) { \
       if(OBJ_create(c,n,#c) == 0) { \
         unsigned long __err = ERR_get_error(); \
+        std::cerr<<"Failed to create OpenSSL object "<<c<<" "<<n<<" - "<<ERR_GET_REASON(__err)<<" "<<ERR_error_string(__err,NULL)<<std::endl; \
         if(ERR_GET_REASON(__err) != OBJ_R_OID_EXISTS) { \
           CredentialLogger.msg(ERROR, \
                  "Failed to create OpenSSL object %s %s - %u %s", \
@@ -306,6 +298,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     if (!issuer || !holder || !serialnum || fqan.empty() || !ac || !pkey)
       return AC_ERR_PARAMETERS;
+
+    X509V3_CTX extctx;
+    X509V3_set_ctx(&extctx, issuer, NULL, NULL, NULL, 0);
 
     a = ac;
     subname = X509_NAME_dup(X509_get_issuer_name(holder)); //old or new version?
@@ -455,7 +450,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
 
-      ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(attributesOID), (char *)(ac_full_attrs->providers));
+      ext = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(attributesOID), (char *)(ac_full_attrs->providers));
       AC_FULL_ATTRIBUTES_free(ac_full_attrs); ac_full_attrs = NULL;
       if (!ext)
         ERROR(AC_ERR_NO_EXTENSION);
@@ -478,23 +473,23 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
       //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
 
-      certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(certseqOID), (char*)stk);
+      certstack = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(certseqOID), (char*)stk);
       sk_X509_pop_free(stk, X509_free);
     }
 
     // Create extensions
-    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idcenoRevAvailOID), (char*)"loc");
+    norevavail = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idcenoRevAvailOID), (char*)"loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(norevavail, 0); 
 
-    auth = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idceauthKeyIdentifierOID), (char *)issuer);
+    auth = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idceauthKeyIdentifierOID), (char *)"keyid,issuer");
     if (!auth)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(auth, 0); 
 
     if (!complete.empty()) {
-      targetsext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(idceTargetsOID), (char*)(complete.c_str()));
+      targetsext = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idceTargetsOID), (char*)(complete.c_str()));
       if (!targetsext)
         ERROR(AC_ERR_NO_EXTENSION);
 

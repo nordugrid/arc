@@ -398,27 +398,28 @@ char *authkey_i2s(struct v3_ext_method*, void*)
   return norep();
 }
 
-void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
+void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx* ctx, char *data)
 {
-  X509       *cert = (X509 *)data;
-  char digest[21];
-
-  ASN1_OCTET_STRING *str = ASN1_OCTET_STRING_new();
-  AUTHORITY_KEYID *keyid = AUTHORITY_KEYID_new();
-
-  if (str && keyid) {
+  AUTHORITY_KEYID* keyid = NULL;
+  X509* cert = ctx ? ctx->issuer_cert : NULL;
+  if(cert) {
     ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(cert);
-    SHA1(pkeystr->data,
-	 pkeystr->length,
-	 (unsigned char*)digest);
-    ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
-    ASN1_OCTET_STRING_free(keyid->keyid);
-    keyid->keyid = str;
-  }
-  else {
-    if (str) ASN1_OCTET_STRING_free(str);
-    if (keyid) AUTHORITY_KEYID_free(keyid);
-    keyid = NULL;
+    if(pkeystr) {
+      ASN1_OCTET_STRING *str = ASN1_OCTET_STRING_new();
+      if(str) {
+        keyid = AUTHORITY_KEYID_new();
+        if(keyid) {
+          char digest[21];
+          SHA1(pkeystr->data,
+	       pkeystr->length,
+	       (unsigned char*)digest);
+          ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
+          if(keyid->keyid) ASN1_OCTET_STRING_free(keyid->keyid);
+          keyid->keyid = str; str = NULL;
+        }
+        if (str) ASN1_OCTET_STRING_free(str);
+      }
+    }
   }
   return keyid;
 }
