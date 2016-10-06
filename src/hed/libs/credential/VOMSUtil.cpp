@@ -535,7 +535,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       dirn1->d.dirn = subname;
       dirn1->type = GEN_DIRNAME;
       if(a->acinfo->holder->baseid->issuer == NULL) a->acinfo->holder->baseid->issuer = sk_GENERAL_NAME_new_null();
-      sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1);
+      sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1); dirn1 = NULL;
     }
 
     if(issname) {
@@ -543,47 +543,47 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       dirn2->d.dirn = issname;
       dirn2->type = GEN_DIRNAME;
       if(a->acinfo->form->names == NULL) a->acinfo->form->names = sk_GENERAL_NAME_new_null();
-      sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2);
+      sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2); dirn2 = NULL;
     }
 
     if(holdserial) {
       if(a->acinfo->holder->baseid->serial) ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
-      a->acinfo->holder->baseid->serial = holdserial;
+      a->acinfo->holder->baseid->serial = holdserial; holdserial = NULL;
     }
 
     if(serial) {
       ASN1_INTEGER_free(a->acinfo->serial);
-      a->acinfo->serial = serial;
+      a->acinfo->serial = serial; serial = NULL;
     }
 
     if(version) {
       ASN1_INTEGER_free(a->acinfo->version);
-      a->acinfo->version = version;
+      a->acinfo->version = version; version = NULL;
     }
 
     if(time1) {
       ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
-      a->acinfo->validity->notBefore = time1;
+      a->acinfo->validity->notBefore = time1; time1 = NULL;
     }
 
     if(time2) {
       ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
-      a->acinfo->validity->notAfter  = time2;
+      a->acinfo->validity->notAfter  = time2; time2 = NULL;
     }
 
     if (uid) {
       ASN1_BIT_STRING_free(a->acinfo->id);
-      a->acinfo->id = uid;
+      a->acinfo->id = uid; uid = NULL;
     }
 
     if(alg1) {
       X509_ALGOR_free(a->acinfo->alg);
-      a->acinfo->alg = alg1;
+      a->acinfo->alg = alg1; alg1 = NULL;
     }
 
     if(alg2) {
       X509_ALGOR_free(a->sig_alg);
-      a->sig_alg = alg2;
+      a->sig_alg = alg2; alg2 = NULL;
     }
 
     ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
