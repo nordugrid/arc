@@ -913,7 +913,7 @@ fi
 
 # check openssl
 if test "$enables_hed" = "yes"; then
-PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.0.1])
+PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.0.0])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
 "$PKG_CONFIG" openssl
