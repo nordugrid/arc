@@ -32,6 +32,7 @@ namespace Arc {
 static BN_GENCB* BN_GENCB_new(void) {
   BN_GENCB* bn = (BN_GENCB*)std::malloc(sizeof(BN_GENCB));
   if(bn) std::memset(bn, 0, sizeof(BN_GENCB));
+  return bn;
 }
 
 static void BN_GENCB_free(BN_GENCB* bn) {

@@ -16,61 +16,6 @@ namespace ArcCredential {
 
 /* PROXYPOLICY function */
 
-/*
-PROXYPOLICY * PROXYPOLICY_new() {
-  PROXYPOLICY* ret = (PROXYPOLICY*)OPENSSL_malloc(sizeof(PROXYPOLICY));
-  if(ret != NULL) {
-    ret->policyLanguage = OBJ_nid2obj(OBJ_sn2nid(IMPERSONATION_PROXY_SN));
-    ret->policy = NULL;
-  } else {
-    ASN1err(ASN1_F_PROXYPOLICY_NEW, ERR_R_MALLOC_FAILURE);
-  }
-  return ret;
-}
-
-#ifndef NO_OLD_ASN1
-char *ASN1_dup(int (*i2d)(void*, unsigned char**), char *(*d2i)(void**, const unsigned char**, long int), char *x) {
-  unsigned char *b,*p;
-  long i;
-  char *ret;
-  if (x == NULL) return(NULL);
-  i=(long)i2d(x,NULL);
-  b=(unsigned char *)OPENSSL_malloc((unsigned int)i+10);
-  if (b == NULL) { ASN1err(ASN1_F_ASN1_DUP,ERR_R_MALLOC_FAILURE); return(NULL); }
-  p= b;
-  i=i2d(x,&p);
-  p= b;
-  ret=d2i(NULL,(const unsigned char**)&p,i);
-  OPENSSL_free(b);
-  return(ret);
-  }
-#endif
-
-void PROXYPOLICY_free(PROXYPOLICY * policy) {
-  if(policy == NULL) return;
-  ASN1_OBJECT_free(policy->policyLanguage);
-  ASN1_OCTET_STRING_free(policy->policy);
-  OPENSSL_free(policy);
-}
-*/
-
-/* duplicate */
-/*
-PROXYPOLICY * PROXYPOLICY_dup(PROXYPOLICY * policy) {
-  return ((PROXYPOLICY *) ASN1_dup((int (*)(void*, unsigned char**))i2d_PROXYPOLICY,
-				   (char *(*)(void**, const unsigned char**, long int))d2i_PROXYPOLICY,
-				   (char *)policy));
-}
-
-int PROXYPOLICY_print(BIO* bp, PROXYPOLICY* policy) {
-  STACK_OF(CONF_VALUE)* values = NULL;
-  values = i2v_PROXYPOLICY(PROXYPOLICY_x509v3_ext_meth(), policy, values);
-  X509V3_EXT_val_prn(bp, values, 0, 1);
-  sk_CONF_VALUE_pop_free(values, X509V3_conf_free);
-  return 1;
-}
-*/
-
 /* set policy language */
 int PROXY_POLICY_set_policy_language(PROXY_POLICY * policy, ASN1_OBJECT * policy_language) {
   if(policy_language != NULL) {

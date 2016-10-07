@@ -31,6 +31,7 @@ static X509_OBJECT* X509_OBJECT_new(void) {
   if(obj) {
     std::memset(obj, 0, sizeof(X509_OBJECT));
   }
+  return obj;
 }
 
 static void X509_OBJECT_free(X509_OBJECT* obj) {
@@ -213,7 +214,7 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
          */
     int i, n;
     X509_CRL *      crl = NULL;
-    X509_REVOKED *  revoked = NULL;;
+    X509_REVOKED *  revoked = NULL;
     EVP_PKEY *key = NULL;
     X509_OBJECT*    obj = X509_OBJECT_new();
     if(!obj) return (0);
