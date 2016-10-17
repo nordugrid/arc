@@ -225,8 +225,8 @@ bool GlobusSigningPolicy::match(const X509_NAME* issuer_subject,const X509_NAME*
 
 bool GlobusSigningPolicy::open(const X509_NAME* issuer_subject,const std::string& ca_path) {
   close();
-  std::string issuer_subject_str;
-  X509_NAME_to_string(issuer_subject_str,issuer_subject);
+  //std::string issuer_subject_str;
+  //X509_NAME_to_string(issuer_subject_str,issuer_subject);
   unsigned long hash = X509_NAME_hash((X509_NAME*)issuer_subject);
   char hash_str[32];
   snprintf(hash_str,sizeof(hash_str)-1,"%08lx",hash);
