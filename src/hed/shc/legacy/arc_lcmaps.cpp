@@ -147,12 +147,12 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
       };
     };
     gss_buffer_desc peer_buffer;
-#if GLOBUS_GSSAPI_GSI_VERSION >= 12
-    peer_buffer.value = identity_cert;
-    peer_buffer.length = identity_cert?sizeof(X509*):0;
-#else
+#if GLOBUS_GSSAPI_GSI_OLD_OPENSSL
     peer_buffer.value = identity_cert;
     peer_buffer.length = identity_cert?sizeof(X509):0;
+#else
+    peer_buffer.value = identity_cert;
+    peer_buffer.length = identity_cert?sizeof(X509*):0;
 #endif
     OM_uint32 majstat, minstat;
     majstat = gss_import_name(&minstat, &peer_buffer,
