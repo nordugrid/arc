@@ -286,21 +286,52 @@ namespace ARex {
 
   std::string FileRecordBDB::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return "";
+    int uidtries = 10; // some sane number
+    std::string uid;
+    while(true) {
+      if(!(uidtries--)) return "";
+      Glib::Mutex::Lock lock(lock_);
+      Dbt key;
+      Dbt data;
+      uid = rand_uid64().substr(4);
+      make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
+      void* pkey = key.get_data();
+      void* pdata = data.get_data();
+      int dbres = db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE);
+      if(dbres == DB_KEYEXIST) {
+        ::free(pkey); ::free(pdata);
+        uid.resize(0);
+        continue;
+      };
+      if(!dberr("Failed to add record to database",dbres)) {
+        ::free(pkey); ::free(pdata);
+        return "";
+      };
+      db_rec_->sync(0);
+      ::free(pkey); ::free(pdata);
+      break;
+    };
+    if(id.empty()) id = uid;
+    make_file(uid);
+    return uid_to_path(uid);
+  }
+
+  bool FileRecordBDB::Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+    if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbt key;
     Dbt data;
-    std::string uid = rand_uid64().substr(4);
     make_record(uid,(id.empty())?uid:id,owner,meta,key,data);
     void* pkey = key.get_data();
     void* pdata = data.get_data();
-    if(!dberr("Failed to add record to database",db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE))) {
+    int dbres = db_rec_->put(NULL,&key,&data,DB_NOOVERWRITE);
+    if(!dberr("Failed to add record to database",dbres)) {
       ::free(pkey); ::free(pdata);
-      return "";
+      return false;
     };
     db_rec_->sync(0);
     ::free(pkey); ::free(pdata);
-    if(id.empty()) id = uid;
-    return uid_to_path(uid);
+    return true;
   }
 
   std::string FileRecordBDB::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
@@ -372,9 +403,6 @@ namespace ARex {
     std::string owner_tmp;
     std::list<std::string> meta;
     parse_record(uid,id_tmp,owner_tmp,meta,key,data);
-    if(!uid.empty()) {
-      ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
-    };
     if(!dberr("Failed to delete record from database",db_rec_->del(NULL,&key,0))) {
       // TODO: handle error
       ::free(pkey);
@@ -382,6 +410,7 @@ namespace ARex {
     };
     db_rec_->sync(0);
     ::free(pkey);
+    remove_file(uid);
     return true;
   }
 

@@ -125,9 +125,7 @@ std::vector<struct voms_t> AuthUser::arc_to_voms(const std::list<std::string>& a
   std::vector<struct voms_t> voms_list;
   struct voms_t voms_item;
 
-logger.msg(Arc::VERBOSE,"arc_to_voms - %u attributes",attributes.size());
   for(std::list<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
-logger.msg(Arc::VERBOSE,"arc_to_voms: attribute: %s",*v);
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
     // Handle first element which contains VO name

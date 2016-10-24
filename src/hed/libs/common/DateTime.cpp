@@ -806,6 +806,10 @@ namespace Arc {
 
     std::stringstream ss;
 
+    /*
+     Size of year, month and even day is variable.
+     To avoid ambiguity let's keep only time parts.
+ 
     if (remain >= Time::YEAR) {
       ss << remain / Time::YEAR << " "
          << FindNTrans("year", "years", remain / Time::YEAR);
@@ -823,6 +827,7 @@ namespace Arc {
          << FindNTrans("day", "days", remain / Time::DAY);
       remain %= Time::DAY;
     }
+    */
     if (remain >= Time::HOUR) {
       if (remain != seconds) ss << " ";
       ss << remain / Time::HOUR << " "
@@ -851,6 +856,10 @@ namespace Arc {
     std::stringstream ss;
 
     ss << 'P';
+    /*
+     Size of year, month and even day is variable.
+     To avoid ambiguity let's keep only time parts.
+ 
     if (remain >= Time::YEAR) {
       ss << remain / Time::YEAR << 'Y';
       remain %= Time::YEAR;
@@ -863,18 +872,22 @@ namespace Arc {
       ss << remain / Time::DAY << 'D';
       remain %= Time::DAY;
     }
-    if (remain)
+    */
+    if (remain) {
       ss << 'T';
-    if (remain >= Time::HOUR) {
-      ss << remain / Time::HOUR << 'H';
-      remain %= Time::HOUR;
+      if (remain >= Time::HOUR) {
+        ss << remain / Time::HOUR << 'H';
+        remain %= Time::HOUR;
+      }
+      if (remain >= 60) {
+        ss << remain / 60 << 'M';
+        remain %= 60;
+      }
+      if (remain >= 1)
+        ss << remain << 'S';
+    } else {
+      ss << "T0S";
     }
-    if (remain >= 60) {
-      ss << remain / 60 << 'M';
-      remain %= 60;
-    }
-    if (remain >= 1)
-      ss << remain << 'S';
 
     return ss.str();
   }

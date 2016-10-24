@@ -82,15 +82,19 @@ static void mover_callback(Arc::DataMover* mover, Arc::DataStatus status, void* 
   cond.broadcast();
 }
 
-static bool checkProxy(const Arc::UserConfig& usercfg, const Arc::URL& src_file) {
-  if (usercfg.ProxyPath().empty() ) {
-    logger.msg(Arc::ERROR, "Unable to copy %s: No valid credentials found", src_file.str());
+static bool checkProxy(Arc::UserConfig& usercfg, const Arc::URL& src_file) {
+  if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
+    logger.msg(Arc::ERROR, "Unable to copy %s", src_file.str());
+    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
     return false;
   }
-  Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
-  if (holder.GetEndTime() < Arc::Time()){
-    logger.msg(Arc::ERROR, "Proxy expired");
-    logger.msg(Arc::ERROR, "Unable to copy %s: No valid credentials found", src_file.str());
+  Arc::Credential holder(usercfg);
+  if (!holder.IsValid()) {
+    if (holder.GetEndTime() < Arc::Time()) {
+      logger.msg(Arc::ERROR, "Proxy expired");
+    }
+    logger.msg(Arc::ERROR, "Unable to copy %s", src_file.str());
+    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
     return false;
   }
   return true;

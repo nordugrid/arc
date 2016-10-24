@@ -22,7 +22,7 @@ void Generator::receiveDTR(DataStaging::DTR_ptr dtr) {
   logger.msg(Arc::INFO, "Received DTR %s back from scheduler in state %s", dtr->get_id(), dtr->get_status().str());
   Arc::Logger::getRootLogger().removeDestinations();
   // DTR logger destinations can be destroyed when DTR has finished
-  dtr->get_logger()->deleteDestinations();
+  dtr->clean_log_destinations();
   counter.dec();
 }
 

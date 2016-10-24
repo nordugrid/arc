@@ -9,6 +9,7 @@ from acix.cacheserver import pscan, cache, cacheresource
 
 # -- constants
 SSL_DEFAULT = True
+CACHE_INTERFACE = ''
 CACHE_TCP_PORT = 5080
 CACHE_SSL_PORT = 5443
 DEFAULT_CAPACITY = 30000              # number of files in cache
@@ -17,16 +18,21 @@ DEFAULT_CACHE_REFRESH_INTERVAL = 600  # seconds between updating cache
 ARC_CONF = '/etc/arc.conf'
 
 def getCacheConf():
-    '''Return a tuple of (cache_url, cache_dump)'''
+    '''Return a tuple of (cache_url, cache_dump, cache_host, cache_port)'''
 
     # Use cache access URL if mount point and at least one cacheaccess is defined
     cache_url = ''
     cache_dump = False
+    cache_host = CACHE_INTERFACE
+    cache_port = CACHE_SSL_PORT
     config = ARC_CONF
     if 'ARC_CONFIG' in os.environ:
         config = os.environ['ARC_CONFIG']
     cacheaccess = False
+    block = ''
     for line in file(config):
+        if line.startswith('['):
+            block = line[1:-2]
         if line.startswith('arex_mount_point'):
             args = line.split('=', 2)[1]
             url = args.replace('"', '').strip()
@@ -36,15 +42,21 @@ def getCacheConf():
         if (line.startswith('cachedump') and line.find('yes') != -1) or \
            (line.startswith('cache_dump') and line.find('yes') != -1):
             cache_dump = True
+        if block == 'acix/cacheserver' and line.startswith('port'):
+            args = line.split('=', 2)[1]
+            cache_port = int(args.replace('"', '').strip())
+        if block == 'acix/cacheserver' and line.startswith('hostname'):
+            args = line.split('=', 2)[1]
+            cache_host = args.replace('"', '').strip()
     if not cacheaccess:
         cache_url = ''
-    return (cache_url, cache_dump)
+    return (cache_url, cache_dump, cache_host, cache_port)
 
 
 def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
                            capacity=DEFAULT_CAPACITY, refresh_interval=DEFAULT_CACHE_REFRESH_INTERVAL):
 
-    (cache_url, cache_dump) = getCacheConf()
+    (cache_url, cache_dump, cache_host, cache_port) = getCacheConf()
 
     scanner = pscan.CacheScanner(cache_dir, cache_dump)
     cs = cache.Cache(scanner, capacity, refresh_interval, cache_url)
@@ -66,9 +78,9 @@ def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
 
     if use_ssl:
         cf = ssl.ContextFactory()
-        internet.SSLServer(port or CACHE_SSL_PORT, site, cf).setServiceParent(application)
+        internet.SSLServer(port or cache_port, site, cf, interface=cache_host).setServiceParent(application)
     else:
-        internet.TCPServer(port or CACHE_TCP_PORT, site).setServiceParent(application)
+        internet.TCPServer(port or CACHE_TCP_PORT, site, interface=cache_host).setServiceParent(application)
 
     return application
 

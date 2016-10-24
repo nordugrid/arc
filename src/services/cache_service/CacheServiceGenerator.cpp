@@ -89,7 +89,7 @@ namespace Cache {
     std::string jobid (dtr->get_parent_job_id());
 
     // Delete LogStreams and LogDestinations
-    dtr->get_logger()->deleteDestinations();
+    dtr->clean_log_destinations();
 
     // Add to finished jobs
     std::string error_msg;

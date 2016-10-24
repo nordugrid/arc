@@ -279,6 +279,7 @@ prepare() {
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
+    ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
@@ -611,11 +612,13 @@ prepare() {
         mkdir -p `dirname $WSLOGFILE`
     fi
     PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
-    if [ ! -d $PERFLOGDIR ]; then
-        mkdir -p $PERFLOGDIR
+    if [ "$ENABLEPERFLOG" = "yes" ]; then
+        if [ ! -d $PERFLOGDIR ]; then
+            mkdir -p $PERFLOGDIR
+        fi
+        # Set permissions suitable for logs written under user accounts
+        chmod a+rwx $PERFLOGDIR
     fi
-    # Set permissions suitable for logs written under user accounts
-    chmod a+rwx $PERFLOGDIR
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`

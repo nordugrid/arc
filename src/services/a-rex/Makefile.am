@@ -16,7 +16,20 @@ else
 AREX_SCRIPT =
 endif
 initd_SCRIPTS = $(AREX_SCRIPT)
+
+if SYSTEMD_UNITS_ENABLED
+AREX_UNIT = a-rex.service
+AREX_UNIT_WRAPPER = a-rex-start
+else
+AREX_UNIT =
+AREX_UNIT_WRAPPER =
+endif
+units_DATA = $(AREX_UNIT)
+pkgdata_SCRIPTS = $(AREX_UNIT_WRAPPER) perferator
+
 sbin_SCRIPTS = a-rex-backtrace-collect
+
+man_MANS = a-rex-backtrace-collect.8
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
@@ -67,5 +80,3 @@ test_cache_check_LDADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
-
-pkgdata_SCRIPTS = perferator

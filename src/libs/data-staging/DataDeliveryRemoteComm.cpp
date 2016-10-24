@@ -75,6 +75,7 @@ namespace DataStaging {
     dtrnode.NewChild("ID") = dtr_full_id;
     dtrnode.NewChild("Source") = surl;
     dtrnode.NewChild("Destination") = durl;
+    if (dtr->get_source()->CheckSize()) dtrnode.NewChild("Size") = Arc::tostring(dtr->get_source()->GetSize());
     if (dtr->get_source()->CheckCheckSum()) dtrnode.NewChild("CheckSum") = dtr->get_source()->GetCheckSum();
     dtrnode.NewChild("Uid") = Arc::tostring(dtr->get_local_user().get_uid());
     dtrnode.NewChild("Gid") = Arc::tostring(dtr->get_local_user().get_gid());

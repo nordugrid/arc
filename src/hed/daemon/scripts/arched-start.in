@@ -1,0 +1,52 @@
+#!/bin/bash
+
+prog=arched
+RUN=yes
+OPTIONS=""
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/${prog} ]; then
+    . /etc/sysconfig/${prog}
+elif [ -r /etc/default/${prog} ]; then
+    . /etc/default/${prog}
+fi
+
+if [ "x$ARC_CONFIG" != "x" ]; then
+    OPTIONS="-c $ARC_CONFIG"
+fi
+
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+export ARC_LOCATION
+
+if [ `id -u` = 0 ] ; then
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=/var/run/$prog.pid
+    fi
+else
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=$HOME/$prog.pid
+    fi
+fi
+
+if [ "$RUN" != "yes" ] ; then
+    echo "$prog disabled in configuration"
+    return 0
+fi
+
+CMD="$ARC_LOCATION/sbin/$prog"
+if [ ! -x "$CMD" ]; then
+    echo "Missing executable"
+    exit 1
+fi
+
+exec $CMD $OPTIONS

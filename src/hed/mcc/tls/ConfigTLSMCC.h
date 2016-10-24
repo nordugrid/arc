@@ -26,8 +26,14 @@ class ConfigTLSMCC {
   bool globus_gsi_;
   bool globusio_gsi_;
   enum {
-    tls_handshake,
-    ssl3_handshake
+    tls_handshake, // default
+    ssl3_handshake,
+    tls10_handshake,
+    tls11_handshake,
+    tls12_handshake,
+    dtls_handshake,
+    dtls10_handshake,
+    dtls12_handshake,
   } handshake_;
   enum {
     relaxed_voms,
@@ -55,6 +61,12 @@ class ConfigTLSMCC {
   bool IfClientAuthn(void) const { return client_authn_; };
   bool IfTLSHandshake(void) const { return handshake_ == tls_handshake; };
   bool IfSSLv3Handshake(void) const { return handshake_ == ssl3_handshake; };
+  bool IfTLSv1Handshake(void) const { return handshake_ == tls10_handshake; };
+  bool IfTLSv11Handshake(void) const { return handshake_ == tls11_handshake; };
+  bool IfTLSv12Handshake(void) const { return handshake_ == tls12_handshake; };
+  bool IfDTLSHandshake(void) const { return handshake_ == dtls_handshake; };
+  bool IfDTLSv1Handshake(void) const { return handshake_ == dtls10_handshake; };
+  bool IfDTLSv12Handshake(void) const { return handshake_ == dtls12_handshake; };
   bool IfCheckVOMSCritical(void) const { return (voms_processing_ != relaxed_voms); };
   bool IfFailOnVOMSParsing(void) const { return (voms_processing_ == noerrors_voms) || (voms_processing_ == strict_voms); };
   bool IfFailOnVOMSInvalid(void) const { return (voms_processing_ == noerrors_voms); };

@@ -72,6 +72,7 @@ namespace DataStaging {
        use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
        logger(log),
+       delete_log_destinations(true),
        perf_record(perf_log)
   {
     if (!logger) {
@@ -289,6 +290,17 @@ namespace DataStaging {
       if (source_endpoint->CurrentLocationHandle()->Stat(files, datapoints) == Arc::DataStatus::Success) return true;
     }
     return false;
+  }
+
+  void DTR::clean_log_destinations() {
+    // This method makes sure log_destinations is in sync with the LogDestination
+    // objects inside logger. First clear internal list (not deleting objects)
+    log_destinations.clear();
+    // Then delete objects inside logger if requested
+    if (logger) {
+      if (delete_log_destinations) logger->deleteDestinations();
+      else logger->removeDestinations();
+    }
   }
 
   std::list<DTRCallback*> DTR::get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {

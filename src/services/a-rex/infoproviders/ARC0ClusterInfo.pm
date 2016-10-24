@@ -407,6 +407,11 @@ sub collect($) {
                     $j->{reqwalltime} = int $lrmsjob->{reqwalltime}/60 if defined $lrmsjob->{reqwalltime};
                     $j->{reqcputime}  = int $lrmsjob->{reqcputime}/60  if defined $lrmsjob->{reqcputime};
                     $j->{executionnodes}  = $lrmsjob->{nodes} if $lrmsjob->{nodes};
+                    if ($lrms_info->{cluster}{lrms_type} eq "boinc") {
+                        # BOINC allocates a dynamic number of cores to jobs so set here what is actually used
+                        # This is abusing the schema a bit since cpucount is really requested slots
+                        $j->{cpucount}    = int $lrmsjob->{cpus}           if defined $lrmsjob->{cpus};
+                    }
 
                     # LRMS-dependent attributes taken from LRMS when the job
                     # is in state 'INLRMS'

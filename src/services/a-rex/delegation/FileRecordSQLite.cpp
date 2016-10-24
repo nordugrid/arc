@@ -107,6 +107,13 @@ namespace ARex {
         db_ = NULL;
         return false;
       };
+    } else {
+      // SQLite opens database in lazy way. But we still want to know if it is good database.
+      if(!dberr("Error checking database", sqlite3_exec_nobusy(db_, "PRAGMA schema_version;", NULL, NULL, NULL))) {
+        (void)sqlite3_close(db_); // todo: handle error
+        db_ = NULL;
+        return false;
+      };
     };
     return true;
   }
@@ -273,22 +280,57 @@ namespace ARex {
 
   std::string FileRecordSQLite::Add(std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return "";
+    int uidtries = 10; // some sane number
+    std::string uid;
+    while(true) {
+      if(!(uidtries--)) {
+        error_str_ = "Out of tries adding record to database";
+        return "";
+      };
+      Glib::Mutex::Lock lock(lock_);
+      uid = rand_uid64().substr(4);
+      std::string metas;
+      store_strings(meta, metas);
+      std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
+               sql_escape(id.empty()?uid:id)+"', '"+
+               sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
+      int dbres = sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL);
+      if(dbres == SQLITE_CONSTRAINT) {
+        // retry due to non-unique id
+        uid.resize(0);
+        continue;
+      };
+      if(!dberr("Failed to add record to database", dbres)) {
+        return "";
+      };
+      if(sqlite3_changes(db_) != 1) {
+        error_str_ = "Failed to add record to database";
+        return "";
+      };
+      break;
+    };
+    if(id.empty()) id = uid;
+    make_file(uid);
+    return uid_to_path(uid);
+  }
+
+  bool FileRecordSQLite::Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
+    if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-    // todo: retries for unique uid?
-    std::string uid = rand_uid64().substr(4);
     std::string metas;
     store_strings(meta, metas);
-    if(id.empty()) id = uid;
     std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
-                             sql_escape(id)+"', '"+sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
-    if(!dberr("Failed to add record to database", sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
-      return "";
+             sql_escape(id.empty()?uid:id)+"', '"+
+             sql_escape(owner)+"', '"+uid+"', '"+metas+"')";
+    int dbres = sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL);
+    if(!dberr("Failed to add record to database", dbres)) {
+      return false;
     };
     if(sqlite3_changes(db_) != 1) {
       error_str_ = "Failed to add record to database";
-      return "";
+      return false;
     };
-    return uid_to_path(uid);
+    return true;
   }
 
   std::string FileRecordSQLite::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
@@ -349,7 +391,6 @@ namespace ARex {
         return false; // have locks
       };
     };
-    ::unlink(uid_to_path(uid).c_str()); // TODO: handle error
     {
       std::string sqlcmd = "DELETE FROM rec WHERE (uid = '"+uid+"')";
       if(!dberr("Failed to delete record in database",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
@@ -360,6 +401,7 @@ namespace ARex {
         return false; // no such record
       };
     };
+    remove_file(uid);
     return true;
   }
 

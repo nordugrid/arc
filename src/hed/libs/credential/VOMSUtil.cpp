@@ -2007,5 +2007,60 @@ err:
     }
     return VOMSACSeqEncode(ac_seq, asn1);
   }
-} // namespace Arc
 
+
+  // The attributes passed to this method are of "extended fqan" kind with every field 
+  // made of key=value pair. Also each attribute has /VO=voname prepended.
+  // Special ARC attribute /voname=voname/hostname=hostname is used for assigning 
+  // server host name to VO.
+  std::string VOMSFQANFromFull(const std::string& attribute) {
+    std::list<std::string> elements;
+    Arc::tokenize(attribute, elements, "/");
+    // Handle first element which contains VO name
+    std::list<std::string>::iterator i = elements.begin();
+    if(i == elements.end()) return ""; // empty attribute?
+    // Handle first element which contains VO name
+    std::string fqan_voname;
+    std::vector<std::string> keyvalue;
+    Arc::tokenize(*i, keyvalue, "=");
+    if (keyvalue.size() != 2) return ""; // improper record
+    if (keyvalue[0] == "voname") { // VO to hostname association
+      // does not map into FQAN directly
+      return "";
+    } else if(keyvalue[0] == "VO") {
+      fqan_voname = keyvalue[1];
+      if(fqan_voname.empty()) {
+        return "";
+      };
+    } else {
+      // Skip unknown record
+      return "";
+    }
+    ++i;
+    //voms_fqan_t fqan;
+    std::string fqan_group;
+    std::string fqan_role;
+    std::string fqan_capability;
+    for (; i != elements.end(); ++i) {
+      std::vector<std::string> keyvalue;
+      Arc::tokenize(*i, keyvalue, "=");
+      // /Group=mygroup/Role=myrole
+      // Ignoring unrecognized records
+      if (keyvalue.size() == 2) {
+        if (keyvalue[0] == "Group") {
+          fqan_group += "/"+keyvalue[1];
+        } else if (keyvalue[0] == "Role") {
+          fqan_role = keyvalue[1];
+        } else if (keyvalue[0] == "Capability") {
+          fqan_capability = keyvalue[1];
+        };
+      };
+    };
+    std::string fqan = fqan_group;
+    if(!fqan_role.empty()) fqan += "/Role="+fqan_role;
+    if(!fqan_capability.empty()) fqan += "/Capability="+fqan_capability;
+    return fqan;
+  }
+
+
+} // namespace Arc

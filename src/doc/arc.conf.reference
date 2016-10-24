@@ -989,6 +989,11 @@
 ##  Currently supported db_names are bdb and sqlite. Default is bdb.
 #delegationdb="bdb"
 
+## forcedefaultvoms VOMS_FQAN - specify VOMS FQAN which user will be
+## assigned if his/her credentials contain no VOMS attributes.
+## To assign different values to different queues put this command
+## into [queue] block.
+#forcedefaultvoms="/vo/group/subgroup"
 
 ####################################################################
 
@@ -2385,11 +2390,18 @@
 ## server.
 #[acix/cacheserver]
 
-## Log file location for the cache server. Default is
+## hostname - Hostname on which the cache server listens. Default is all
+## available interfaces.
+#hostname="myhost.org"
+
+## port - Port on which the cache server listens. Default is 5443.
+#port="6000"
+
+## logfile - Log file location for the cache server. Default is
 ## /var/log/arc/acix-cache.log
 #logfile="/tmp/acix-cache.log"
 
-## Whether to make a dump of the cache contents in a file at
+## cachedump - Whether to make a dump of the cache contents in a file at
 ## $TMP/ARC-ACIX/timestamp each time the cache server runs. Default is no.
 #cachedump="yes"
 
@@ -2402,7 +2414,7 @@
 ## server can be queried for the location of cached files.
 #[acix/indexserver]
 
-## ACIX cache servers from which to pull information
+## cacheserver - ACIX cache servers from which to pull information
 #cacheserver="https://some.host:5443/data/cache"
 #cacheserver="https://another.host:5443/data/cache"
 

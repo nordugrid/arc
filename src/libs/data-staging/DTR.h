@@ -336,6 +336,11 @@ namespace DataStaging {
      * to avoid duplicate messages */
     std::list<Arc::LogDestination*> log_destinations;
 
+    /// Flag to say whether to delete LogDestinations.
+    /** Set to true when a DTR thread is stuck or lost so it doesn't crash when
+     * waking up after DTR has finished */
+    bool delete_log_destinations;
+
     /// Performance metric logger
     Arc::JobPerfLog perf_log;
 
@@ -606,6 +611,10 @@ namespace DataStaging {
     void connect_logger() { if (logger) logger->setDestinations(log_destinations); };
     /// Disconnect log destinations from logger.
     void disconnect_logger() { if (logger) logger->removeDestinations(); };
+    /// Set whether or not to delete log destinations in delete_logger_destinations()
+    void set_delete_log_destinations(bool del) { delete_log_destinations = del; };
+    /// Clean log destinations. Takes care of cleaning internal list and list in logger.
+    void clean_log_destinations();
 
     /// Pass the DTR from one process to another. Protected by lock.
     static void push(DTR_ptr dtr, StagingProcesses new_owner);

@@ -235,11 +235,43 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // extract from provided MCC
    BIO* bio = (bio_ = config_.GlobusIOGSI()?BIO_new_GSIMCC(mcc):BIO_new_MCC(mcc));
    // Initialize the SSL Context object
-   if(cfg.IfTLSHandshake()) {
-     sslctx_=SSL_CTX_new(SSLv23_client_method());
-   } else {
+   if(cfg.IfSSLv3Handshake()) {
 #ifdef HAVE_SSLV3_METHOD
      sslctx_=SSL_CTX_new(SSLv3_client_method());
+#endif
+   } else if(cfg.IfTLSv1Handshake()) {
+#ifdef HAVE_TLSSV1_METHOD
+     sslctx_=SSL_CTX_new(TLSv1_client_method());
+#endif
+   } else if(cfg.IfTLSv11Handshake()) {
+#ifdef HAVE_TLSSV1_1_METHOD
+     sslctx_=SSL_CTX_new(TLSv1_1_client_method());
+#endif
+   } else if(cfg.IfTLSv12Handshake()) {
+#ifdef HAVE_TLSSV1_2_METHOD
+     sslctx_=SSL_CTX_new(TLSv1_2_client_method());
+#endif
+   } else if(cfg.IfDTLSHandshake()) {
+#ifdef HAVE_DTLS_METHOD
+     sslctx_=SSL_CTX_new(DTLS_client_method());
+#else
+#ifdef HAVE_DTLSV1_METHOD
+     sslctx_=SSL_CTX_new(DTLSv1_client_method());
+#endif
+#endif
+   } else if(cfg.IfDTLSv1Handshake()) {
+#ifdef HAVE_DTLSV1_METHOD
+     sslctx_=SSL_CTX_new(DTLSv1_client_method());
+#endif
+   } else if(cfg.IfDTLSv12Handshake()) {
+#ifdef HAVE_DTLSV1_2_METHOD
+     sslctx_=SSL_CTX_new(DTLSv1_2_client_method());
+#endif
+   } else {
+#ifdef HAVE_TLS_METHOD
+     sslctx_=SSL_CTX_new(TLS_client_method());
+#else
+     sslctx_=SSL_CTX_new(SSLv23_client_method());
 #endif
    };
    if(sslctx_==NULL){

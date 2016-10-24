@@ -1091,6 +1091,7 @@ ARexService::~ARexService(void) {
   if(gm_) delete gm_; // This should stop all GM-related threads too
   delete config_.ContPlugins();
   delete config_.GetJobLog();
+  delete config_.GetJobPerfLog();
   delete config_.GetJobsMetrics();
   if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
   thread_count_.WaitForExit(); // Here A-REX threads are waited for

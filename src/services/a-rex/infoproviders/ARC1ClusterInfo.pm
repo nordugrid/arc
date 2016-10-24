@@ -593,7 +593,7 @@ sub collect($) {
                 # remove VOs from that share, substitute with default VO
                 $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo;
                 # Add supported policies 
-                $GLUE2shares->{$share_vo}{MappingPolicies} = ['BasicMappingPolicy'];
+                $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => ''};
             }
         } else {
        # create as many shares as the authorizedvo in the [cluster] block
@@ -608,7 +608,7 @@ sub collect($) {
 					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
 					# remove VOs from that share, substitute with default VO
 					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
-					$GLUE2shares->{$share_vo}{MappingPolicies} = ['BasicMappingPolicy'];
+					$GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
 				}    
 			}
 	    }
@@ -1179,7 +1179,7 @@ sub collect($) {
         
     my $getMappingPolicies = sub {
 	   my ($shareID, $sharename) = @_;
-	   return undef unless my ($id, $policy) = each @{$GLUE2shares->{$sharename}{MappingPolicies}};
+	   return undef unless my ($policy) = each %{$GLUE2shares->{$sharename}{MappingPolicies}};
        my $sub = $mappingpolicies->{$policy};
        return &{$sub}($shareID, $sharename);
     };

@@ -88,7 +88,7 @@ date_seconds_to_utc () {
 # variable.
 seconds_to_mds_date () {
     _date_seconds=$1
-    return_mds_date=`date -d "@$_date_seconds" +"%Y%m%d%H%M%SZ"`
+    return_mds_date=`date -d "1970-01-01 UTC $_date_seconds seconds" +"%Y%m%d%H%M%SZ"`
     unset _date_seconds
 }
 

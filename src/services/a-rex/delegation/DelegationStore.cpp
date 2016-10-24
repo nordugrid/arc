@@ -22,13 +22,6 @@
 #include "DelegationStore.h"
 
 namespace ARex {
-  static void make_dir_for_file(std::string dpath) {
-    std::string::size_type p = dpath.rfind(G_DIR_SEPARATOR_S);
-    if(p == std::string::npos) return;
-    if(p == 0) return;
-    dpath.resize(p);
-    Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
-  }
 
   DelegationStore::DelegationStore(const std::string& base, DbType db, bool allow_recover):
            logger_(Arc::Logger::rootLogger, "Delegation Storage") {
@@ -134,7 +127,6 @@ namespace ARex {
     std::string key;
     cs->Backup(key);
     if(!key.empty()) {
-      make_dir_for_file(path);
       if(!Arc::FileCreate(path,key,0,0,S_IRUSR|S_IWUSR)) {
         fstore_->Remove(id,client);
         delete cs; cs = NULL;
@@ -213,9 +205,9 @@ namespace ARex {
       return false;
     };
     if(!credentials.empty()) {
-      make_dir_for_file(i->second.path);
       if(!Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR)) {
         failure_ = "Local error - failed to create storage for delegation";
+        logger_.msg(Arc::WARNING,"DelegationStore: TouchConsumer failed to create file %s",i->second.path);
         return false;
       };
     };
@@ -246,7 +238,6 @@ namespace ARex {
       Arc::FileRead(i->second.path,content);
       if(!content.empty()) oldkey = extract_key(content);
       if(!compare_no_newline(newkey,oldkey)) {
-        make_dir_for_file(i->second.path);
         Arc::FileCreate(i->second.path,newkey,0,0,S_IRUSR|S_IWUSR);
       };
     };
@@ -314,10 +305,10 @@ namespace ARex {
       failure_ = "Local error - failed to create slot for delegation. "+fstore_->Error();
       return false;
     }
-    make_dir_for_file(path);
     if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
       fstore_->Remove(id,client);
       failure_ = "Local error - failed to create storage for delegation";
+      logger_.msg(Arc::WARNING,"DelegationStore: TouchConsumer failed to create file %s",path);
       return false;
     };
     return true;
