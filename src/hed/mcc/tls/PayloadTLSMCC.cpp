@@ -131,50 +131,55 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-    if(it == NULL) {
-      Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+    if(!subject_name) {
+      Logger::getRootLogger().msg(ERROR,"Failed to allocate memory for certificate subject while matching policy.");
+      ok=0;
     } else {
-      // Globus signing policy
-      // Do not apply to proxies and self-signed CAs.
-      if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
+      if(it == NULL) {
+        Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      } else {
+        // Globus signing policy
+        // Do not apply to proxies and self-signed CAs.
+        if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
 #ifdef HAVE_OPENSSL_PROXY
-        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-        if(pos < 0)
+          int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
+          if(pos < 0)
 #endif
-        {
-          std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
-          if(in) {
-            if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
-              ok=0;
-              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+          {
+            std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
+            if(in) {
+              if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+                it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
+                ok=0;
+                X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+              };
+              delete in;
             };
-            delete in;
           };
         };
       };
-    };
-    //Check the left validity time of the peer certificate;
-    //Give warning if the certificate is going to be expired
-    //in a while of time
-    Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
-    if(exptime <= Time()) {
-      Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
-    } else {
-      Arc::Period timeleft = exptime - Time();
+      //Check the left validity time of the peer certificate;
+      //Give warning if the certificate is going to be expired
+      //in a while of time
+      Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
+      if(exptime <= Time()) {
+        Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
+      } else {
+        Arc::Period timeleft = exptime - Time();
 #ifdef HAVE_OPENSSL_PROXY
-      int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
+        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
 #else
-      int pos = -1;
+        int pos = -1;
 #endif
-      //for proxy certificate, give warning 1 hour in advance
-      //for EEC certificate, give warning 5 days in advance
-      if(((pos < 0) && (timeleft <= 5*24*3600)) ||
-         (timeleft <= 3600)) {
-        Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+        //for proxy certificate, give warning 1 hour in advance
+        //for EEC certificate, give warning 5 days in advance
+        if(((pos < 0) && (timeleft <= 5*24*3600)) ||
+           (timeleft <= 3600)) {
+          Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+        }
       }
+      OPENSSL_free(subject_name);
     }
-    OPENSSL_free(subject_name);
   };
   return ok;
 }

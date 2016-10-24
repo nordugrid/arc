@@ -127,7 +127,6 @@ class TLSSecAttr: public SecAttr {
 #define SELFSIGNED(cert) (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) == 0)
 
 TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
-   char buf[100];
    std::string subject;
    processing_failed_ = false;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
@@ -139,16 +138,22 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          if(idx == 0) { // Obtain CA subject
            // Sometimes certificates chain contains CA certificate.
            if(!SELFSIGNED(cert)) {
-             buf[0]=0;
-             X509_NAME_oneline(X509_get_issuer_name(cert),buf,sizeof(buf));
-             subject=buf;
-             subjects_.push_back(subject);
+             char* buf = X509_NAME_oneline(X509_get_issuer_name(cert),NULL,0);
+             if(buf) {
+               subject=buf;
+               subjects_.push_back(subject);
+               OPENSSL_free(buf);
+             };
            };
          };
-         buf[0]=0;
-         X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
-         subject=buf;
-         subjects_.push_back(subject);
+         {
+           char* buf = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
+           if(buf) {
+             subject=buf;
+             subjects_.push_back(subject);
+             OPENSSL_free(buf);
+           };
+         };
          std::string certstr;
          x509_to_string(cert, certstr);
          x509chainstr_=certstr+x509chainstr_;
@@ -170,17 +175,23 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       if(subjects_.size() <= 0) { // Obtain CA subject if not obtained yet
         // Check for CA certificate used for connection - overprotection
         if(!SELFSIGNED(peercert)) {
-          buf[0]=0;
-          X509_NAME_oneline(X509_get_issuer_name(peercert),buf,sizeof buf);
-          subject=buf;
-          subjects_.push_back(subject);
+          char* buf = X509_NAME_oneline(X509_get_issuer_name(peercert),NULL,0);
+          if(buf) {
+            subject=buf;
+            subjects_.push_back(subject);
+            OPENSSL_free(buf);
+          };
         };
       };
-      buf[0]=0;
-      X509_NAME_oneline(X509_get_subject_name(peercert),buf,sizeof buf);
-      subject=buf;
-      //logger.msg(VERBOSE, "Peer name: %s", peer_dn);
-      subjects_.push_back(subject);
+      {
+        char* buf = X509_NAME_oneline(X509_get_subject_name(peercert),NULL,0);
+        if(buf) {
+          subject=buf;
+          //logger.msg(VERBOSE, "Peer name: %s", peer_dn);
+          subjects_.push_back(subject);
+          OPENSSL_free(buf);
+        };
+      };
 #ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
          identity_=subject;
@@ -199,10 +210,12 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
    if(identity_.empty()) identity_=subject;
    X509* hostcert = payload.GetCert();
    if (hostcert != NULL) {
-      buf[0]=0;
-      X509_NAME_oneline(X509_get_subject_name(hostcert),buf,sizeof buf);
-      target_=buf;
-      //logger.msg(VERBOSE, "Host name: %s", peer_dn);
+      char* buf = X509_NAME_oneline(X509_get_subject_name(hostcert),NULL,0);
+      if(buf) {
+        target_=buf;
+        //logger.msg(VERBOSE, "Host name: %s", peer_dn);
+        OPENSSL_free(buf);
+      };
    };
    // Cleaning collected VOMS attributes
    for(std::vector<VOMSACInfo>::iterator v = voms_attributes_.begin();
