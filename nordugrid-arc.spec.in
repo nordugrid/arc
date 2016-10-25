@@ -257,6 +257,11 @@ BuildRequires:	%{openldap_devel}
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
+BuildRequires:	globus-gssapi-gsi-devel >= 12.2
+%else
+BuildRequires:	globus-gssapi-gsi-devel < 12.2
+%endif
 %if %{with_canl}
 BuildRequires:	canl-c++-devel
 %endif
@@ -635,6 +640,11 @@ Data Manager Components (DMCs).
 Summary:	ARC Globus plugins
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
+Requires:	globus-gssapi-gsi >= 12.2
+%else
+Requires:	globus-gssapi-gsi < 12.2
+%endif
 
 %description plugins-globus
 NorduGrid is a collaboration aiming at development, maintenance and
