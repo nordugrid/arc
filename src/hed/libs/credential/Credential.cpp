@@ -250,10 +250,13 @@ namespace Arc {
     if(!cert_) return "";
     subject = X509_get_subject_name(cert_);
     std::string str;
-    char buf[256];
-    if(subject!=NULL)
-      X509_NAME_oneline(subject,buf,sizeof(buf));
-    str.append(buf);
+    if(subject!=NULL) {
+      char* buf = X509_NAME_oneline(subject,NULL,0);
+      if(buf) {
+        str.append(buf);
+        OPENSSL_free(buf);
+      }
+    }
     return str;
   }
 
@@ -292,13 +295,15 @@ namespace Arc {
       else break;
     }
 
-    char buf[256];
+    std::string str;
     if(subject!=NULL) {
-      X509_NAME_oneline(subject,buf,sizeof(buf)-1);
+      char* buf = X509_NAME_oneline(subject,NULL,0);
+      if(buf) {
+        str.append(buf);
+        OPENSSL_free(buf);
+      }
       X509_NAME_free(subject);
     }
-    buf[sizeof(buf)-1] = 0;
-    std::string str(buf);
     return str;
   }
 
@@ -311,10 +316,13 @@ namespace Arc {
     if(!cert_) return "";
     issuer = X509_get_issuer_name(cert_);
     std::string str;
-    char buf[256];
-    if(issuer!=NULL)
-      X509_NAME_oneline(issuer,buf,sizeof(buf));
-    str.append(buf);
+    if(issuer!=NULL) {
+      char* buf = X509_NAME_oneline(issuer,NULL,0);
+      if(buf) {
+        str.append(buf);
+        OPENSSL_free(buf);
+      }
+    }
     return str;
   }
 
@@ -329,9 +337,13 @@ namespace Arc {
       // itself because CA is self-signed.
       cacert = sk_X509_value(cert_chain_, num-1);
       caname = X509_get_issuer_name(cacert);
-      char buf[256]; buf[0] = 0;
-      if(caname!=NULL) X509_NAME_oneline(caname,buf,sizeof(buf));
-      str.append(buf);
+      if(caname!=NULL) {
+        char* buf = X509_NAME_oneline(caname,NULL,0);
+        if(buf) {
+          str.append(buf);
+          OPENSSL_free(buf);
+        }
+      }
     }
     return str;
   }

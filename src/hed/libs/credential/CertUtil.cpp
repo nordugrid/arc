@@ -400,14 +400,13 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
           revoked = (X509_REVOKED *)sk_X509_REVOKED_value(crl_info->revoked,i);
           if(!ASN1_INTEGER_cmp(revoked->serialNumber, X509_get_serialNumber(store_ctx->current_cert))) {
             long serial;
-            char buf[256];
-            char* subject_string;
+            char buf[64];
             serial = ASN1_INTEGER_get(revoked->serialNumber);
             snprintf(buf, sizeof(buf), "%ld (0x%lX)",serial,serial);
-            subject_string = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),NULL,0);
+            char* subject_string = X509_NAME_oneline(X509_get_subject_name(store_ctx->current_cert),NULL,0);
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
             store_ctx->error = X509_V_ERR_CERT_REVOKED;
-            OPENSSL_free(subject_string);
+            if(subject_string) OPENSSL_free(subject_string);
             X509_OBJECT_free_contents(&obj); return (0);
           }
         }

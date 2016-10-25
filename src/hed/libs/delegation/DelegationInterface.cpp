@@ -297,7 +297,6 @@ class cred_info_t {
 
 static bool get_cred_info(const std::string& str,cred_info_t& info) {
   // It shold use Credential class. But so far keeping dependencies simple.
-  char buf[256];
   bool r = false;
   X509* cert = NULL;
   STACK_OF(X509)* cert_sk = NULL;
@@ -308,12 +307,20 @@ static bool get_cred_info(const std::string& str,cred_info_t& info) {
     info.strength=0;
     X509* c = cert;
     for(int idx = 0;;++idx) {
-      buf[0]=0;
-      X509_NAME_oneline(X509_get_issuer_name(c),buf,sizeof(buf));
-      info.ca = buf;
-      buf[0]=0;
-      X509_NAME_oneline(X509_get_subject_name(c),buf,sizeof(buf));
-      info.identity=buf;
+      char* buf = X509_NAME_oneline(X509_get_issuer_name(c),NULL,0);
+      if(buf) {
+        info.ca = buf;
+        OPENSSL_free(buf); buf = NULL;
+      } else {
+        info.ca = "";
+      }
+      buf = X509_NAME_oneline(X509_get_subject_name(c),NULL,0);
+      if(buf) {
+        info.identity=buf;
+        OPENSSL_free(buf); buf = NULL;
+      } else {
+        info.identity="";
+      }
       Time from = asn1_to_time(X509_get_notBefore(c));
       Time till = asn1_to_time(X509_get_notAfter(c));
       if(from != Time(Time::UNDEFINED)) {
@@ -536,7 +543,6 @@ bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
   X509 *cert = NULL;
   STACK_OF(X509) *cert_sk = NULL;
   bool res = false;
-  char buf[100];
   std::string subject;
 
   if(!key_) return false;
@@ -545,9 +551,13 @@ bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
 
   content.resize(0);
   if(!x509_to_string(cert,content)) goto err;
-
-  X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
-  subject=buf;
+  {
+    char* buf = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
+    if(buf) {
+      subject=buf;
+      OPENSSL_free(buf);
+    };
+  };
 #ifdef HAVE_OPENSSL_PROXY
   if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
     identity=subject;
@@ -561,11 +571,13 @@ bool DelegationConsumer::Acquire(std::string& content, std::string& identity) {
       if(!v) goto err;
       if(!x509_to_string(v,content)) goto err;
       if(identity.empty()) {
-        memset(buf,0,100);
-        X509_NAME_oneline(X509_get_subject_name(v),buf,sizeof(buf));
 #ifdef HAVE_OPENSSL_PROXY
         if(X509_get_ext_by_NID(v,NID_proxyCertInfo,-1) < 0) {
-          identity=buf;
+          char* buf = X509_NAME_oneline(X509_get_subject_name(v),NULL,0);
+          if(buf) {
+            identity=buf;
+            OPENSSL_free(buf);
+          };
         };
 #endif
       };

@@ -779,10 +779,13 @@ err:
 
   static std::string x509name2ascii(X509_NAME* name) {
     std::string str;
-    char buf[256];
-    if(name!=NULL)
-      X509_NAME_oneline(name, buf, sizeof(buf));
-    str.append(buf);
+    if(name!=NULL) {
+      char* buf = X509_NAME_oneline(name, NULL, 0);
+      if(buf) {
+        str.append(buf);
+        OPENSSL_free(buf);
+      }
+    }
     return str;
   }
 
@@ -799,15 +802,27 @@ err:
       if(n >= chain.size()) return true;
       current = sk_X509_value(certstack,n);
       if(!current) return false;
-      if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
+      char* buf = X509_NAME_oneline(X509_get_subject_name(current),NULL,0);
+      if(!buf) {
         return false;
       }
+      if(chain[n] != buf) {
+        OPENSSL_free(buf);
+        return false;
+      }
+      OPENSSL_free(buf);
     }
     if(n < chain.size()) {
       if(!current) return false;
-      if(chain[n] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
+      char* buf = X509_NAME_oneline(X509_get_subject_name(current),NULL,0);
+      if(!buf) {
         return false;
       }
+      if(chain[n] != buf) {
+        OPENSSL_free(buf);
+        return false;
+      }
+      OPENSSL_free(buf);
     }
 #endif
 
@@ -839,7 +854,12 @@ err:
     if(sk_X509_num(certstack) <= 0) return false;
     X509 *current = sk_X509_value(certstack,0);
 #if 0
-    std::string subject(X509_NAME_oneline(X509_get_subject_name(current),NULL,0));
+    std::string subject;
+    char* buf = X509_NAME_oneline(X509_get_subject_name(current),NULL,0);
+    if(buf) {
+      subject.append(buf);
+      OPENSSL_free(buf);
+    }
     std::list<std::string> unmatched, matched;
     return reg.match(subject,unmatched,matched);
 #endif
@@ -1446,11 +1466,22 @@ err:
       }
      
       char *ac_holder_name_chars = X509_NAME_oneline(name->d.dirn,NULL,0);
-      ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
+      if(ac_holder_name_chars) {
+        ac_holder_name = ac_holder_name_chars;
+        OPENSSL_free(ac_holder_name_chars);
+      }
+      std::string holder_name;
       char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
-      std::string holder_name = holder_name_chars; OPENSSL_free(holder_name_chars);
+      if(holder_name_chars) {
+        holder_name = holder_name_chars;
+        OPENSSL_free(holder_name_chars);
+      }
+      std::string holder_issuer_name;
       char *holder_issuer_name_chars = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
-      std::string holder_issuer_name = holder_issuer_name_chars; OPENSSL_free(holder_issuer_name_chars);
+      if(holder_issuer_name_chars) {
+        holder_issuer_name = holder_issuer_name_chars;
+        OPENSSL_free(holder_issuer_name_chars);
+      }
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",ac_holder_name.c_str());
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",holder_name.c_str());
       CredentialLogger.msg(DEBUG,"VOMS: DN of issuer: %s",holder_issuer_name.c_str());
