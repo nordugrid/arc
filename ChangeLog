@@ -11,9 +11,11 @@
 2016-07-07 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Added support for VO in the GLUE2 schema. Every authorizedvo will 
     generate a different ComputingShare with statistics about the defined VO.
-    For backward compatibility there is a Share without any VO that
-    presents information the same way ARC did before this change.
-    {29933,30067,30077,30078,30288,30582,30583}
+    For minimum backward compatibility there is a Share without any VO 
+    that presents information the same way ARC did before this change,
+    but doesn't list all the VOs as in the previous version. 
+    This breaks backward compatibility with EMIES clients.
+    {29933,30067,30077,30078,30288,30582,30583,31498}
 
 2016-07-04 David Cameron <d.g.cameron@fys.uio.no>
   * Added support for using Rucio as a proxy to read/write to objectstores
