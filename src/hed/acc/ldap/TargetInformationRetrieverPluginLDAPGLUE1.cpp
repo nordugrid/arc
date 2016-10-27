@@ -135,7 +135,8 @@ namespace Arc {
       ComputingEndpoint->Capability.insert("executionmanagement.jobmanager");
 
       ce.set("Name", ComputingShare->Name);
-      ce.set("InfoJobManager", ComputingShare->MappingQueue);
+      ce.set("Name", ComputingShare->MappingQueue);
+      //ce.set("InfoJobManager", ComputingShare->MappingQueue);
 
       ce.set("InfoLRMSType", ComputingManager->ProductName);
       ce.set("InfoLRMSVersion", ComputingManager->ProductVersion);

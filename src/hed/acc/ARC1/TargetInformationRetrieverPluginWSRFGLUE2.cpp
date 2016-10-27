@@ -288,6 +288,9 @@ namespace Arc {
         if (xmlCSNode["Name"]) {
           ComputingShare->Name = (std::string)xmlCSNode["Name"];
         }
+        if (xmlCSNode["MappingQueue"]) {
+          ComputingShare->MappingQueue = (std::string)xmlCSNode["MappingQueue"];
+        }
         if (xmlCSNode["MaxWallTime"]) {
           ComputingShare->MaxWallTime = (std::string)xmlCSNode["MaxWallTime"];
         }

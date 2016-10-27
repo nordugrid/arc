@@ -660,7 +660,11 @@ namespace Arc {
       }
 
       // Set queue name to the selected ExecutionTarget
-      Resources.QueueName = et->ComputingShare->Name;
+      if(et->ComputingShare->MappingQueue.empty()) {
+        Resources.QueueName = et->ComputingShare->Name;
+      } else {
+        Resources.QueueName = et->ComputingShare->MappingQueue;
+      }
     }
 
     return true;
