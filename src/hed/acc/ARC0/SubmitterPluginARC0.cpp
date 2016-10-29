@@ -128,13 +128,7 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg->Timeout())) {
-        logger.msg(INFO, "Submit: Failed to disconnect after submission");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
+      ctrl.Disconnect(usercfg->Timeout());
 
       URL jobid(url);
       URL ContactString(url);
@@ -278,13 +272,7 @@ namespace Arc {
         continue;
       }
 
-      if (!ctrl.Disconnect(usercfg->Timeout())) {
-        logger.msg(INFO, "Submit: Failed to disconnect after submission");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
+      ctrl.Disconnect(usercfg->Timeout());
 
       URL jobid(url);
       URL ContactString(url);
