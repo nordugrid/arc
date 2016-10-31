@@ -23,10 +23,13 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 sub collect($) {
     my ($options) = @_;
 
-    return {} unless $options->{runtimedir};
-
     my $rtes = {};
-    add_static_rtes($options->{runtimedir}, $rtes);
+
+    # system RTEs
+    add_static_rtes("$options->{pkgdatadir}/rte/", $rtes) if $options->{pkgdatadir};
+
+    # user-defined RTEs
+    add_static_rtes($options->{runtimedir}, $rtes) if $options->{runtimedir};
 
     return $rtes;
 }
