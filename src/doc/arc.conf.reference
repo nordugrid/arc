@@ -775,11 +775,12 @@
 ## Default value is 100.
 #max_data_transfer_requests="100"
 
-## maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
+## maxjobs number1 number2 number3 number4 number5 - specifies maximum allowed number of jobs.
 ## number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
 ## number2 - jobs being run (SUBMITTING, INLRMS states)
 ## number3 - jobs being processed per DN
 ## number4 - jobs in whole system
+## number5 - LRMS scripts limit (jobs in SUBMITTING and CANCELING)
 ## Missing number or -1 means no limit.
 #maxjobs="10000 10 2000"
 

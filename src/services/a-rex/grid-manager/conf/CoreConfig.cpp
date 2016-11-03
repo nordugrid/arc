@@ -316,6 +316,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
       }
       if (config.max_jobs_total < 0) config.max_jobs_total = -1;
+
+      max_jobs_s = Arc::ConfigIni::NextArg(rest);
+      if (max_jobs_s.empty()) continue;
+      if (!Arc::stringto(max_jobs_s, config.max_scripts)) {
+        logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
+      }
+      if (config.max_scripts < 0) config.max_scripts = -1;
     }
     else if (command == "wakeupperiod") {
       std::string wakeup_s = Arc::ConfigIni::NextArg(rest);
@@ -606,6 +613,10 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     };
     if (!Arc::Config::elementtoint(tmp_node, "wakeupPeriod", config.wakeup_period)) {
       logger.msg(Arc::ERROR, "Value for wakeupPeriod is incorrect number");
+      return false;
+    };
+    if (!Arc::Config::elementtoint(tmp_node, "maxScripts", config.max_scripts)) {
+      logger.msg(Arc::ERROR, "Value for maxScripts is incorrect number");
       return false;
     };
   }

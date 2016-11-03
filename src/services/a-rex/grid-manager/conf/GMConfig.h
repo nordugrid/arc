@@ -218,6 +218,8 @@ public:
   int MaxPerDN() const { return max_jobs_per_dn; }
   /// Max total jobs in the system
   int MaxTotal() const { return max_jobs_total; }
+  /// Max submit/cancel scripts 
+  int MaxScripts() const { return max_scripts; }
 
   /// Returns true if the shared uid matches the given uid
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
@@ -318,6 +320,8 @@ private:
   int max_jobs;
   /// Maximum jobs running per DN
   int max_jobs_per_dn;
+  /// Maximum submit/cancel scripts running
+  int max_scripts;
 
   /// Whether WS-interface is enabled
   bool enable_arc_interface;

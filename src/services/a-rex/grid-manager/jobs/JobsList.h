@@ -59,6 +59,7 @@ class JobsList {
   JobDescriptionHandler job_desc_handler;
   // number of jobs for every state
   int jobs_num[JOB_STATE_NUM];
+  int jobs_scripts;
   // map of number of active jobs for each DN
   std::map<std::string, ZeroUInt> jobs_dn;
   // number of jobs currently in pending state
@@ -71,6 +72,8 @@ class JobsList {
   bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid);
   // Perform all actions necessary in case of job failure
   bool FailedJob(const iterator &i,bool cancel);
+  // Cleaning reference to running child process
+  void CleanChildProcess(const iterator i);
   // Remove Job from list. All corresponding files are deleted and pointer is
   // advanced. If finished is false - job is not destroyed if it is FINISHED
   // If active is false - job is not destroyed if it is not UNDEFINED. Returns
