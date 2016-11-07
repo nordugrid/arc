@@ -44,14 +44,16 @@ void ARexService::InformationCollector(void) {
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
+        if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*100)) break;
+        continue; // try again
       };
       int failedstat = 0;
       bool infoproviderhastimedout = false;
       while(!run.Wait(infoprovider_wakeup_period_)) {
         if (!infoproviderhastimedout) {
-			logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Using heartbeat file from now on... Consider increasing infoproviders_timeout in arc.conf",
+          logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Using heartbeat file from now on... Consider increasing infoproviders_timeout in arc.conf",
                     infoprovider_wakeup_period_);
-            infoproviderhastimedout = true;
+          infoproviderhastimedout = true;
         }
         logger_.msg(Arc::DEBUG,"Resource information provider timed out: %u seconds. Checking heartbeat file...",
                     infoprovider_wakeup_period_);
@@ -65,91 +67,41 @@ void ARexService::InformationCollector(void) {
         bool statresult;
         statresult=Arc::FileStat(heartbeatFileName, &buf, false);
         if ( !statresult ) {
-			failedstat++;
-			if (failedstat == 1) {
-				logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running? This message will not be repeated.", heartbeatFileName);
-			} else {
-				logger_.msg(Arc::DEBUG,"Cannot stat %s. Are infoproviders running? It happened already %d times.", heartbeatFileName, failedstat);
-			}
-		} else {
-			time_t now;
-			time(&now);
-			// kill infoprovider only if heartbeat has never been updated before timeout
-			if (difftime(now, buf.st_mtime) > infoprovider_wakeup_period_) {
-				logger_.msg(Arc::ERROR,"Checked time: %d | Heartbeat file stat: %d | %s has not beed touched before timeout (%d). \n The performance is too low, infoproviders will be killed. A-REX functionality is not ensured.", now, buf.st_mtime, heartbeatFileName, infoprovider_wakeup_period_);
-				// abruptly kill the infoprovider
-				run.Kill(1);
-			} else {
-				logger_.msg(Arc::DEBUG,"Found recent heartbeat file %s , waiting other %d seconds", heartbeatFileName, infoprovider_wakeup_period_);
-			}
-		}
+          failedstat++;
+          if (failedstat == 1) {
+            logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running? This message will not be repeated.", heartbeatFileName);
+          } else {
+            logger_.msg(Arc::DEBUG,"Cannot stat %s. Are infoproviders running? It happened already %d times.", heartbeatFileName, failedstat);
+          }
+        } else {
+          time_t now;
+          time(&now);
+          // kill infoprovider only if heartbeat has never been updated before timeout
+          if (difftime(now, buf.st_mtime) > infoprovider_wakeup_period_) {
+            logger_.msg(Arc::ERROR,"Checked time: %d | Heartbeat file stat: %d | %s has not beed touched before timeout (%d). \n The performance is too low, infoproviders will be killed. A-REX functionality is not ensured.", now, buf.st_mtime, heartbeatFileName, infoprovider_wakeup_period_);
+            // abruptly kill the infoprovider
+            run.Kill(1);
+          } else {
+            logger_.msg(Arc::DEBUG,"Found recent heartbeat file %s , waiting other %d seconds", heartbeatFileName, infoprovider_wakeup_period_);
+          }
+        }
       }
-      // if out of the while loop, infoprovider has finished correctly
-      {
-        r = run.Result();
-        if (r!=0)
-          logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);
-        else
-          logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
+      // if out of the while loop, infoprovider has finished or was killed
+      r = run.Result();
+      if (r!=0) {
+        logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);
+      } else {
+        logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
       };
     };
     if (r!=0) {
       logger_.msg(Arc::WARNING,"No new informational document assigned");
     } else {
       logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str.substr(0,100));
-      /*
-      Arc::XMLNode root(xml_str);
-      if(root) {
-        // Collect job states
-        glue_states_lock_.lock();
-        GetGlueStates(root,glue_states_);
-        glue_states_lock_.unlock();
-        // Put result into container
-        infodoc_.Arc::InformationContainer::Assign(root,true);
-        logger_.msg(Arc::DEBUG,"Assigned new informational document");
-      } else {
-        logger_.msg(Arc::ERROR,"Failed to create informational document");
-      };
-      */
       // Following code is suboptimal. Most of it should go away
       // and functionality to be moved to information providers.
       if(!xml_str.empty()) {
         // Currently glue states are lost. Counter of all jobs is lost too.
-        /*
-        Arc::XMLNode xml_doc(xml_str);
-        glue_states_lock_.lock();
-        GetGlueStates(xml_doc,glue_states_);
-        glue_states_lock_.unlock();
-        Arc::XMLNode xml_ng = xml_doc["nordugrid"];
-        xml_ng.Destroy();
-        Arc::XMLNode xml_share = xml_doc["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingShares"]["ComputingShare"];
-        for(;(bool)xml_share;++xml_share) {
-          Arc::XMLNode xml_associations = xml_share["Associations"];
-          xml_associations.Destroy();
-        };
-        Arc::XMLNode xml_activity = xml_doc["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingEndpoint"]["ComputingActivities"]["ComputingActivity"];
-        for(;(bool)xml_activity;) {
-          Arc::XMLNode xml_activity_ = xml_activity;
-          ++xml_activity_;
-          std::string activity;
-          xml_activity.GetXML(activity);
-          std::string id = (std::string)xml_activity["ID"];
-          std::string::size_type p = id.rfind(':');
-          if(p != std::string::npos) {
-            id = id.substr(p+1);
-            const JobUsers& users = *(gm_->Users());
-            for(JobUsers::const_iterator user = users.begin();user!=users.end();++user) {
-              if(job_state_time(id,*user) != 0) {
-                job_xml_write_file(id,*user,activity);
-                break;
-              };
-            };
-          };
-          xml_activity.Destroy();
-          xml_activity = xml_activity_;
-        };
-        xml_doc.GetXML(xml_str);
-        */
         infodoc_.Assign(xml_str);
         Arc::XMLNode root = infodoc_.Acquire();
         Arc::XMLNode all_jobs_count = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["AllJobs"];
@@ -158,19 +110,6 @@ void ARexService::InformationCollector(void) {
           all_jobs_count.Destroy(); // is not glue2 info
         };
         infodoc_.Release();
-        /*
-        Arc::XMLNode root = infodoc_.Acquire();
-        if(root) {
-          logger_.msg(Arc::DEBUG,"Assigned new informational document");
-          // Collect job states
-          glue_states_lock_.lock();
-          GetGlueStates(root,glue_states_);
-          glue_states_lock_.unlock();
-        } else {
-          logger_.msg(Arc::ERROR,"Failed to create informational document");
-        };
-        infodoc_.Release();
-        */
       } else {
         logger_.msg(Arc::ERROR,"Informational document is empty");
       };
