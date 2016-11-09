@@ -259,8 +259,8 @@ namespace DataStaging {
       request->set_status(DTRStatus::CACHE_CHECKED);
     } else {
       // Cache checking should have quite a long timeout as it may
-      // take a long time to download a big file
-      request->set_timeout(3600);
+      // take a long time to download a big file or there is a long delivery queue
+      request->set_timeout(86400);
       request->get_logger()->msg(Arc::VERBOSE, "File is cacheable, will check cache");
       if (DtrList.is_being_cached(request)) {
         Arc::Period cache_wait_period(10);
