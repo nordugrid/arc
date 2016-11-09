@@ -304,6 +304,10 @@ namespace DataStaging {
     // If the error has occurred -- we just proceed the normal
     // workflow as if it was not cached at all.
     // But we should clear error flag if it was set by the pre-processor
+
+    //setting timeout back to 1 hour, was set to 1 day in ProcessDTRNEW(). 
+    request->set_timeout(3600);
+    
     request->reset_error_status();
     if (request->get_cache_state() == CACHEABLE) DtrList.caching_started(request);
 
