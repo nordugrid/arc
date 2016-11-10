@@ -46,6 +46,7 @@ JobsList::JobsList(const GMConfig& gmconfig) :
   job_slow_polling_dir = NULL;
 
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
+  jobs_scripts = 0;
   jobs.clear();
 
   for (std::list<std::string>::const_iterator helper = config.Helpers().begin(); helper != config.Helpers().end(); ++helper) {
@@ -494,10 +495,21 @@ bool JobsList::GetLocalDescription(GMJobRef i) const {
   return true;
 }
 
+void JobsList::CleanChildProcess(GMJobRef i) {
+  delete i->child; i->child=NULL;
+  if((i->job_state == JOB_STATE_SUBMITTING) || (i->job_state == JOB_STATE_CANCELING)) --jobs_scripts;
+}
+
 bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
   bool const cancel = false;
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
+    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+      //logger.msg(Arc::WARNING,"%s: Too many LRMS scripts running - limit is %u",
+      //                     i->job_id,config.max_scripts);
+      // returning true but not advancing to next state should cause retry
+      return true;
+    }
     // write grami file for submit-X-job
     // TODO: read existing grami file to check if job is already submitted
     if(!(i->GetLocalDescription(config))) {
@@ -546,6 +558,11 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       }
       return false;
     }
+    ++jobs_scripts;
+    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+      logger.msg(Arc::WARNING,"%s: LRMS scripts limit of %u is reached - suspending submit/cancel",
+                           i->job_id,config.max_scripts);
+    }
     return true;
   }
   // child was run - check if exited and then exit code
@@ -574,7 +591,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     }
     if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
       // In any case it is way too long. Job must fail. Otherwise it will hang forever.
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       if(!cancel) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. Failing.",i->job_id);
         JobFailStateRemember(i,JOB_STATE_SUBMITTING);
@@ -583,7 +600,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
         return false;
       } else {
         logger.msg(Arc::ERROR,"%s: Job cancellation takes too long. Failing.",i->job_id);
-        delete i->child; i->child=NULL;
+        CleanChildProcess(i);
         return false;
       }
     }
@@ -610,7 +627,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       } else {
         logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
       }
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       if(!cancel) i->AddFailure("Job submission to LRMS failed");
       return false;
     }
@@ -618,7 +635,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     // Just pretend everything is alright
   }
   if(!cancel) {
-    delete i->child; i->child=NULL;
+    CleanChildProcess(i);
     // success code - get LRMS job id
     std::string local_id=job_desc_handler.get_local_id(i->job_id);
     if(local_id.length() == 0) {
@@ -646,13 +663,13 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
          ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
         // it takes too long
         logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancellation",i->job_id);
-        delete i->child; i->child=NULL;
+        CleanChildProcess(i);
         return false;
       }
       return true;
     } else {
       logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       job_diagnostics_mark_move(*i,config);
     }
   }
@@ -664,6 +681,12 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
 bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
+    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+      //logger.msg(Arc::WARNING,"%s: Too many LRMS scripts running - limit is %u",
+      //                     i->job_id,config.max_scripts);
+      // returning true but not advancing to next state should cause retry
+      return true;
+    }
     // write grami file for cancel-X-job
     if(!(i->GetLocalDescription(config))) {
       logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
@@ -687,6 +710,11 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
       logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       return false;
     }
+    ++jobs_scripts;
+    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+      logger.msg(Arc::WARNING,"%s: LRMS scripts limit of %u is reached - suspending submit/cancel",
+                           i->job_id,config.max_scripts);
+    }
     return true;
   }
   // child was run - check if exited
@@ -705,9 +733,8 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     }
     if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
       // In any case it is way too long. Job must fail. Otherwise it will hang forever.
-      delete i->child; i->child=NULL;
       logger.msg(Arc::ERROR,"%s: Job cancellation takes too long. Failing.",i->job_id);
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       return false;
     }
     if(!simulate_success) return true;
@@ -724,7 +751,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     // case child was killed. So it is worth to check grami anyway.
     if((i->child->Result() != 0) && (i->child->Result() != -1)) {
       logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       return false;
     }
   } else {
@@ -737,13 +764,13 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
        ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
       // it takes too long
       logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancellation",i->job_id);
-      delete i->child; i->child=NULL;
+      CleanChildProcess(i);
       return false;
     }
     return true;
   } else {
     logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
-    delete i->child; i->child=NULL;
+    CleanChildProcess(i);
     job_diagnostics_mark_move(*i,config);
   }
   // move to next state
@@ -1323,7 +1350,7 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
       // kill running child
       if(i->child) {
         i->child->Kill(0);
-        delete i->child; i->child=NULL;
+        CleanChildProcess(i);
       }
       // put some explanation
       i->AddFailure("User requested to cancel the job");

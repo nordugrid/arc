@@ -83,6 +83,7 @@ void GMConfig::SetDefaults() {
   max_jobs_total = -1;
   max_jobs = -1;
   max_jobs_per_dn = -1;
+  max_scripts = -1;
 
   deleg_db = deleg_db_bdb;
 
