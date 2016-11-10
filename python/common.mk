@@ -4,6 +4,7 @@ pyexecdir    = $(PYTHON_SITE_ARCH)
 ARCSWIGLIBS = common loader message communication compute credential data delegation security
 ARCPYLIBS   = $(ARCSWIGLIBS:=.py)
 ARCWRAPPERS = $(ARCSWIGLIBS:=_wrap.cpp)
+ARCWRAPHDRS = $(ARCSWIGLIBS:=_wrap.h)
 ARCWRAPDEPS = $(foreach module, $(ARCSWIGLIBS), ./$(DEPDIR)/$(module)_wrap.deps)
 ARCSWIGINIT = swigmodulesinit_wrap.cpp arc_init.cpp
 
@@ -73,7 +74,7 @@ _arc_la_LIBADD = \
         $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
-CLEANFILES = $(ARCWRAPPERS) $(ARCPYLIBS) $(BUILT_SOURCES) pydoxygen.i $(ARCPYLIBS:.py=.pyc)
+CLEANFILES = $(ARCWRAPPERS) $(ARCWRAPHDRS) $(ARCPYLIBS) $(BUILT_SOURCES) pydoxygen.i $(ARCPYLIBS:.py=.pyc)
 
 clean-local:
 	-rm -rf __pycache__
