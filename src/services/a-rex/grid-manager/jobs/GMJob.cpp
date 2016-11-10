@@ -138,10 +138,11 @@ void GMJob::RemoveReference(void) {
 void GMJob::DestroyReference(void) {
   Glib::Mutex::Lock lock(ref_count_lock);
   if(--ref_count == 0) {
+    logger.msg(Arc::ERROR,"%s: Job monitoring stop success",job_id);
     lock.release();
     delete this;
   } else {
-    logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with active references ",job_id);
+    logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references",job_id,ref_count);
   };
 }
 
