@@ -431,7 +431,7 @@ sub main {
        
     # Read ARC configuration
     my $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-    $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc';    
+    $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata';    
     
     my $hostname = ConfigCentral::getValueOf($configfile,'common','hostname');
         
