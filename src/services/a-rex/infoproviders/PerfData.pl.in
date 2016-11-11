@@ -169,8 +169,8 @@ my $forkmodmetrics = {
 ## slurm
 
 my $slurmmodsubs = {
-   'SLURM::queue_info' => 'lrmscalltiming,slurm,queue_info',
-   'SLURM::jobs_info' => 'lrmscalltiming,slurm,jobs_info'
+   'SLURMmod::queue_info' => 'lrmscalltiming,slurm,queue_info',
+   'SLURMmod::jobs_info' => 'lrmscalltiming,slurm,jobs_info'
 };
 
 
