@@ -34,11 +34,13 @@ enum job_state_t {
 typedef std::string JobId;
 
 class GMJobRef;
+class GMJobQueue;
 
 /// Represents a job in memory as it passes through the JobsList state machine.
 class GMJob {
  friend class JobsList;
  friend class GMJobRef;
+ friend class GMJobQueue;
  private:
   // State of the job (state machine)
   job_state_t job_state;
@@ -71,7 +73,10 @@ class GMJob {
   /// Maps job state to state name and flag for email at that state
   static job_state_rec_t const states_all[JOB_STATE_NUM];
 
-  Glib::Mutex ref_count_lock;
+
+  // Job references handler
+
+  Glib::Mutex ref_lock;
   int ref_count;
 
   /// Inform job it has new GMJobRef associated
@@ -82,6 +87,14 @@ class GMJob {
 
   /// Inform job that GMJobRef intends to destroy job
   void DestroyReference(void);
+
+  /// Change queue to which job belongs
+  /// Returns true if queue was changed.
+  bool SwitchQueue(GMJobQueue* new_queue, bool no_lock);
+
+  /// Queue to which job is currently associated
+  GMJobQueue* queue;
+  std::list<GMJobRef>::iterator queuePos;
 
 
  public:
@@ -128,6 +141,82 @@ class GMJob {
   time_t GetStartTime() const { return start_time; };
   void PrepareToDestroy(void);
 };
+
+
+class GMJobRef {
+private:
+  GMJob* job_;
+
+public:
+  GMJobRef() {
+    job_ = NULL;
+  }
+
+  GMJobRef(GMJob* job) {
+    job_ = job;
+    if(job_) job_->AddReference();
+  }
+
+  GMJobRef(GMJobRef const& other) {
+    job_ = other.job_;
+    if(job_) job_->AddReference();
+  }
+
+  ~GMJobRef() {
+    if (job_) job_->RemoveReference();
+  }
+
+  GMJobRef& operator=(GMJobRef const& other) {
+    if (job_) job_->RemoveReference();
+    job_ = other.job_;
+    if(job_) job_->AddReference();
+  }
+
+  operator bool() const {
+    return job_ != NULL;
+  }
+
+  bool operator!() const {
+    return job_ == NULL;
+  }
+
+  bool operator==(GMJobRef const& other) {
+    return (job_ == other.job_);
+  }
+
+  bool operator!=(GMJobRef const& other) {
+    return (job_ != other.job_);
+  }
+
+  GMJob& operator*() const {
+    return *job_;
+  }
+
+  GMJob* operator->() const {
+    return job_;
+  }
+
+  void Destroy() {
+    if (job_) job_->DestroyReference();
+    job_ = NULL;
+  }
+};
+
+
+class GMJobQueue {
+ friend GMJob;
+ private:
+  Glib::Mutex lock_;
+  int const priority_;
+  std::list<GMJob*> queue_;
+  GMJobQueue();
+  GMJobQueue(GMJobQueue const& it);
+ public:
+  GMJobQueue(int priority);
+  bool Push(GMJobRef& ref);
+  GMJobRef Pop();
+};
+
 
 } // namespace ARex
 

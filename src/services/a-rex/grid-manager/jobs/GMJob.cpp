@@ -121,13 +121,14 @@ GMJob::~GMJob(void){
   delete local;
 }
 
+
 void GMJob::AddReference(void) {
-  Glib::Mutex::Lock lock(ref_count_lock);
+  Glib::Mutex::Lock lock(ref_lock);
   ++ref_count;
 }
 
 void GMJob::RemoveReference(void) {
-  Glib::Mutex::Lock lock(ref_count_lock);
+  Glib::Mutex::Lock lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring is unintentionally lost",job_id);
     lock.release();
@@ -136,7 +137,7 @@ void GMJob::RemoveReference(void) {
 }
 
 void GMJob::DestroyReference(void) {
-  Glib::Mutex::Lock lock(ref_count_lock);
+  Glib::Mutex::Lock lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring stop success",job_id);
     lock.release();
@@ -145,6 +146,49 @@ void GMJob::DestroyReference(void) {
     logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references",job_id,ref_count);
   };
 }
+
+bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock) {
+  // Lock job instance
+  Glib::Mutex::Lock lock(ref_lock, Glib::NOT_LOCK);
+  if (!no_lock) lock.acquire();
+  GMJobQueue* old_queue = queue;
+  if (old_queue == new_queue) return true; // shortcut
+  // Check priority
+  if (old_queue && new_queue && (new_queue->priority_ > old_queue->priority_)) return false;
+  if (old_queue) {
+    // Lock current queue
+    Glib::Mutex::Lock qlock(queue->lock_);
+    // Remove from current queue
+    old_queue->queue_.remove(this); // ineffective operation!
+    queue = NULL;
+    // Unlock current queue
+  };
+  if (new_queue) {
+    // Lock new queue
+    Glib::Mutex::Lock qlock(new_queue->lock_);
+    // Add to new queue
+    new_queue->queue_.push_back(this);
+    queue = new_queue;
+    // Unlock new queue
+  };
+  // Handle reference counter
+  if(new_queue && !old_queue) {
+    ++ref_count;
+  } else if(!new_queue && old_queue) {
+    if(--ref_count == 0) {
+      if(!no_lock) {
+        logger.msg(Arc::ERROR,"%s: Job monitoring is lost due to removal from queue",job_id);
+        lock.release();
+        delete this;
+      } else {
+        logger.msg(Arc::ERROR,"%s: Job has no reference due to removal from queue",job_id);
+      };
+    };
+  };
+  // Unlock job instance
+  return true;
+}
+
 
 JobLocalDescription* GMJob::GetLocalDescription(const GMConfig& config) {
   if(local) return local;
@@ -180,5 +224,27 @@ void GMJob::PrepareToDestroy(void) {
   // But currently those do not implement safe shutdown.
   // So we will simply wait for them to finish in destructor.
 }
+
+// ----------------------------------------------------------
+
+GMJobQueue::GMJobQueue(int priority):priority_(priority) {
+}
+
+bool GMJobQueue::Push(GMJobRef& ref) {
+  if(ref) {
+    return ref->SwitchQueue(this, false);
+  };
+  return false;
+}
+
+GMJobRef GMJobQueue::Pop() {
+  Glib::Mutex::Lock qlock(lock_);
+  if(queue_.empty()) return GMJobRef();
+  GMJobRef ref(queue_.front());
+  ref->SwitchQueue(NULL, true); 
+  return ref;
+}
+
+
 
 } // namespace ARex

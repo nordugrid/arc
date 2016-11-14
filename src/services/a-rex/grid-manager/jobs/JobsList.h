@@ -37,65 +37,6 @@ public:
 };
 
 
-class GMJobRef {
-private:
-  GMJob* job_;
-
-public:
-  GMJobRef() {
-    job_ = NULL;
-  }
-
-  GMJobRef(GMJob* job) {
-    job_ = job;
-    if(job_) job_->AddReference();
-  }
-
-  GMJobRef(GMJobRef const& other) {
-    job_ = other.job_;
-    if(job_) job_->AddReference();
-  }
-
-  ~GMJobRef() {
-    if (job_) job_->RemoveReference();
-  }
-
-  GMJobRef& operator=(GMJobRef const& other) {
-    if (job_) job_->RemoveReference();
-    job_ = other.job_;
-    if(job_) job_->AddReference();
-  }
-
-  operator bool() const {
-    return job_ != NULL;
-  }
-
-  bool operator!() const {
-    return job_ == NULL;
-  }
-
-  bool operator==(GMJobRef const& other) {
-    return (job_ == other.job_);
-  }
-
-  bool operator!=(GMJobRef const& other) {
-    return (job_ != other.job_);
-  }
-
-  GMJob& operator*() const {
-    return *job_;
-  }
-
-  GMJob* operator->() const {
-    return job_;
-  }
-
-  void Destroy() {
-    if (job_) job_->DestroyReference();
-    job_ = NULL;
-  }
-};
-
 /// List of jobs. This class contains the main job management logic which moves
 /// jobs through the state machine. New jobs found through Scan methods are
 /// held in memory until reaching FINISHED state.
