@@ -40,7 +40,11 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     valid(false),
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
-    job_desc_handler(config), jobs_pending(0) {
+    job_desc_handler(config), jobs_pending(0),
+    jobs_polling(0),
+    jobs_wait_for_running(1),
+    jobs_attention(2),
+    jobs_processing(3) {
 
   job_slow_polling_last = time(NULL);
   job_slow_polling_dir = NULL;
@@ -195,10 +199,14 @@ bool JobsList::RequestAttention(const JobId& id) {
 
 bool JobsList::RequestAttention(GMJobRef i) {
   if(i) {
+    /*
     Glib::Mutex::Lock lock_(jobs_attention_lock);
     logger.msg(Arc::ERROR, "--> job for attention(%u): %s", jobs_attention.size(), i->job_id);
     jobs_attention.remove(i);
     jobs_attention.push_back(i);
+    */
+    logger.msg(Arc::ERROR, "--> job for attention: %s", i->job_id);
+    jobs_attention.Push(i);
     jobs_attention_cond.signal();
     return true;
   };
@@ -251,10 +259,14 @@ void JobsList::WaitAttention(void) {
 
 bool JobsList::RequestWaitForRunning(GMJobRef i) {
   if(i) {
+    /*
     Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
     logger.msg(Arc::ERROR, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), i->job_id);
     jobs_wait_for_running.remove(i);
     jobs_wait_for_running.push_back(i);
+    */
+    logger.msg(Arc::ERROR, "--> job wait for running: %s", i->job_id);
+    jobs_wait_for_running.Push(i);
     return true;
   };
   return false;
@@ -262,10 +274,13 @@ bool JobsList::RequestWaitForRunning(GMJobRef i) {
 
 bool JobsList::RequestPolling(GMJobRef i) {
   if(i) {
+    /*
     Glib::Mutex::Lock lock_(jobs_polling_lock);
     logger.msg(Arc::ERROR, "--> job for polling(%u): %s", jobs_polling.size(), i->job_id);
     jobs_polling.remove(i);
     jobs_polling.push_back(i);
+    */
+    jobs_polling.Push(i);
     return true;
   };
   return false;
@@ -281,15 +296,19 @@ bool JobsList::RequestSlowPolling(GMJobRef i) {
 
 bool JobsList::RequestReprocess(GMJobRef i) {
   if(i) {
+    /*
     Glib::Mutex::Lock lock_(jobs_processing_lock);
     logger.msg(Arc::ERROR, "--> job for reprocess(%u): %s", jobs_processing.size(), i->job_id);
     jobs_processing.push_front(i);
+    */
+    jobs_processing.Unpop(i);
     return true;
   };
   return false;
 }
 
 bool JobsList::ActJobsProcessing(void) {
+  /*
   Glib::Mutex::Lock lock_(jobs_processing_lock);
   while(!jobs_processing.empty()) {
     GMJobRef i = *(jobs_processing.begin());
@@ -300,24 +319,42 @@ bool JobsList::ActJobsProcessing(void) {
     lock_.acquire();
     logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
   };
+  */
+  while(true) {
+    GMJobRef i = jobs_processing.Pop();
+    if(!i) break;
+    logger.msg(Arc::ERROR, "<-- job in processing: %s", i->job_id);
+    ActJob(i);
+  };
   // Check limit on number of running jobs and activate some of them if possible
   if(!RunningJobsLimitReached()) {
+    /*
     Glib::Mutex::Lock lock_wait_for_running_(jobs_wait_for_running_lock);
     if(jobs_wait_for_running.size() > 0) {
       // Processing one by one because some jobs may go to running and some may fail
       RequestAttention(*jobs_wait_for_running.begin());
       jobs_wait_for_running.pop_front();
     };
+    */
+    GMJobRef i = jobs_wait_for_running.Pop();
+    if(i) RequestAttention(i);
   };
 }
 
 bool JobsList::ActJobsAttention(void) {
   {
+    /*
     Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
     Glib::Mutex::Lock lock_attention_(jobs_attention_lock);
     logger.msg(Arc::ERROR, "<-- jobs in attention(%u)", jobs_attention.size());
     jobs_processing.splice(jobs_processing.end(), jobs_attention);
     logger.msg(Arc::ERROR, "<-- jobs from attention(%u)", jobs_attention.size());
+    */
+    while(true) {
+      GMJobRef i = jobs_attention.Pop();
+      if(!i) break;
+      jobs_processing.Push(i);
+    };
   };
   ActJobsProcessing();
   return true;
@@ -325,11 +362,18 @@ bool JobsList::ActJobsAttention(void) {
 
 bool JobsList::ActJobsPolling(void) {
   {
+    /*
     Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
     Glib::Mutex::Lock lock_polling_(jobs_polling_lock);
     logger.msg(Arc::ERROR, "<-- jobs in polling(%u)", jobs_polling.size());
     jobs_processing.splice(jobs_processing.end(), jobs_polling);
     logger.msg(Arc::ERROR, "<-- jobs from polling(%u)", jobs_polling.size());
+    */
+    while(true) {
+      GMJobRef i = jobs_polling.Pop();
+      if(!i) break;
+      jobs_processing.Push(i);
+    };
   };
   ActJobsProcessing();
   // debug info on jobs per DN

@@ -51,18 +51,22 @@ class JobsList {
   // subfolders in controldir.
   std::map<JobId,GMJobRef> jobs;         
 
-  std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
-  Glib::Mutex jobs_processing_lock;
+  //std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
+  //Glib::Mutex jobs_processing_lock;
+  GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 
-  std::list<GMJobRef> jobs_attention;    // List of jobs which need attention
-  Glib::Mutex jobs_attention_lock;
+  //std::list<GMJobRef> jobs_attention;    // List of jobs which need attention
+  //Glib::Mutex jobs_attention_lock;
+  GMJobQueue jobs_attention;    // List of jobs which need attention
   Arc::SimpleCondition jobs_attention_cond;
 
-  std::list<GMJobRef> jobs_polling;      // List of jobs which need polling soon
-  Glib::Mutex jobs_polling_lock;
+  //std::list<GMJobRef> jobs_polling;      // List of jobs which need polling soon
+  //Glib::Mutex jobs_polling_lock;
+  GMJobQueue jobs_polling;      // List of jobs which need polling soon
 
-  std::list<GMJobRef> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
-  Glib::Mutex jobs_wait_for_running_lock;
+  //std::list<GMJobRef> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
+  //Glib::Mutex jobs_wait_for_running_lock;
+  GMJobQueue jobs_wait_for_running; // List of jobs waiting for limit on running jobs
 
 
   time_t job_slow_polling_last;

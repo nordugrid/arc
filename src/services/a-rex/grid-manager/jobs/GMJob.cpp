@@ -147,17 +147,33 @@ void GMJob::DestroyReference(void) {
   };
 }
 
-bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock) {
+bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front) {
   // Lock job instance
   Glib::Mutex::Lock lock(ref_lock, Glib::NOT_LOCK);
   if (!no_lock) lock.acquire();
   GMJobQueue* old_queue = queue;
-  if (old_queue == new_queue) return true; // shortcut
+  if (old_queue == new_queue) {
+    // shortcut
+    if(!to_front) return true;
+    if(!old_queue) return true;
+    // move to front
+    Glib::Mutex::Lock qlock(old_queue->lock_);
+    old_queue->queue_.remove(this); // ineffective operation!
+    old_queue->queue_.push_front(this);
+    return true;
+  };
   // Check priority
-  if (old_queue && new_queue && (new_queue->priority_ > old_queue->priority_)) return false;
+  if (old_queue && new_queue) {
+    if(!to_front) {
+      if(new_queue->priority_ > old_queue->priority_) return false;
+    } else {
+      // If moving to first place in queue accept same priority 
+      if(new_queue->priority_ >= old_queue->priority_) return false;
+    };
+  };
   if (old_queue) {
     // Lock current queue
-    Glib::Mutex::Lock qlock(queue->lock_);
+    Glib::Mutex::Lock qlock(old_queue->lock_);
     // Remove from current queue
     old_queue->queue_.remove(this); // ineffective operation!
     queue = NULL;
@@ -167,7 +183,11 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock) {
     // Lock new queue
     Glib::Mutex::Lock qlock(new_queue->lock_);
     // Add to new queue
-    new_queue->queue_.push_back(this);
+    if(!to_front) {
+      new_queue->queue_.push_back(this);
+    } else {
+      new_queue->queue_.push_front(this);
+    };
     queue = new_queue;
     // Unlock new queue
   };
@@ -232,7 +252,7 @@ GMJobQueue::GMJobQueue(int priority):priority_(priority) {
 
 bool GMJobQueue::Push(GMJobRef& ref) {
   if(ref) {
-    return ref->SwitchQueue(this, false);
+    return ref->SwitchQueue(this, false, false);
   };
   return false;
 }
@@ -241,10 +261,16 @@ GMJobRef GMJobQueue::Pop() {
   Glib::Mutex::Lock qlock(lock_);
   if(queue_.empty()) return GMJobRef();
   GMJobRef ref(queue_.front());
-  ref->SwitchQueue(NULL, true); 
+  ref->SwitchQueue(NULL, true, false); 
   return ref;
 }
 
+bool GMJobQueue::Unpop(GMJobRef& ref) {
+  if(ref) {
+    return ref->SwitchQueue(this, false, true);
+  };
+  return false;
+}
 
 
 } // namespace ARex

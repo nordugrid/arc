@@ -90,7 +90,7 @@ class GMJob {
 
   /// Change queue to which job belongs
   /// Returns true if queue was changed.
-  bool SwitchQueue(GMJobQueue* new_queue, bool no_lock);
+  bool SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front);
 
   /// Queue to which job is currently associated
   GMJobQueue* queue;
@@ -215,6 +215,7 @@ class GMJobQueue {
   GMJobQueue(int priority);
   bool Push(GMJobRef& ref);
   GMJobRef Pop();
+  bool Unpop(GMJobRef& ref);
 };
 
 
