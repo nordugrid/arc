@@ -188,7 +188,7 @@ public:
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
   /// All configured queues
-  const std::list<std::string> & Queues() const { return queues; }
+  const std::list<std::string>& Queues() const { return queues; }
 
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
@@ -227,6 +227,9 @@ public:
   bool MatchShareGid(gid_t sgid) const;
   /// Returns forced VOMS attributes for users which have none
   const std::string & ForcedVOMS(const char * queue = "") const;
+  /// Returns liat of authorized VOs for specified queue
+  const std::list<std::string> & AuthorizedVOs(const char * queue) const;
+
 
 private:
 
@@ -335,6 +338,8 @@ private:
   deleg_db_t deleg_db;
   /// Forced VOMS attribute for non-VOMS credentials per queue
   std::map<std::string,std::string> forced_voms;
+  /// VOs authorized per queue
+  std::map<std::string, std::list<std::string> > authorized_vos;
 
   /// Logger object
   static Arc::Logger logger;

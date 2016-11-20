@@ -97,6 +97,26 @@ JobReqResult JobDescriptionHandler::parse_job_req(JobLocalDescription &job_desc,
   }
 
   job_desc = arc_job_desc;
+  // Additional queue processing
+  // TODO: Temporary solution.
+  // Check for special WLCG queues made out of "queue name_VO name".
+  for(std::list<std::string>::const_iterator q = config.Queues().begin();
+               q != config.Queues().end();++q) {
+    if(*q == job_desc.queue) break;
+    const std::list<std::string> & vos = config.AuthorizedVOs(q->c_str());
+    std::list<std::string>::const_iterator vo = vos.begin();
+    for(;vo != vos.end(); ++vo) {
+      std::string synthetic_queue = *q;
+      synthetic_queue += "_";
+      synthetic_queue += *vo;
+      if(synthetic_queue == job_desc.queue) break;
+    };
+    if(vo != vos.end()) {
+      logger.msg(Arc::WARNING, "Replacing queue '%s' with '%s'", job_desc.queue, *q);
+      job_desc.queue = *q;
+      break;
+    };
+  };
 
   if (check_acl) return get_acl(arc_job_desc);
   return JobReqSuccess;

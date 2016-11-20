@@ -174,6 +174,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           std::string queue_name = *(--config.queues.end());
           config.forced_voms[queue_name] = str;
         }
+      } else if (command == "authorizedvo") {
+        std::string str = Arc::ConfigIni::NextArg(rest);
+        if (str.empty()) {
+          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+        }
+        if (!config.queues.empty()) {
+          std::string queue_name = *(--config.queues.end());
+          config.authorized_vos[queue_name].push_back(str);
+        }
       }
       continue;
     }

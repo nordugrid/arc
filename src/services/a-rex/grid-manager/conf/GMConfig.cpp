@@ -34,6 +34,7 @@ namespace ARex {
 
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
+static std::list<std::string> empty_string_list;
 
 GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
@@ -275,6 +276,11 @@ GMConfig::deleg_db_t GMConfig::DelegationDBType() const {
 const std::string & GMConfig::ForcedVOMS(const char * queue) const {
   std::map<std::string,std::string>::const_iterator pos = forced_voms.find(queue);
   return (pos == forced_voms.end()) ? empty_string : pos->second;
+}
+
+const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const {
+  std::map<std::string, std::list<std::string> >::const_iterator pos = authorized_vos.find(queue);
+  return (pos == authorized_vos.end()) ? empty_string_list : pos->second;
 }
 
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
