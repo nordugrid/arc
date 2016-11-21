@@ -1089,7 +1089,7 @@ ARexService::~ARexService(void) {
   if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   if(gm_) delete gm_; // This should stop all GM-related threads too
-  delete config_.ContPlugins();
+  delete config_.GetContPlugins();
   delete config_.GetJobLog();
   delete config_.GetJobPerfLog();
   delete config_.GetJobsMetrics();

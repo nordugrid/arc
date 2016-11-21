@@ -225,7 +225,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
-  DelegationStores* delegs = config_.GmConfig().Delegations();
+  DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) {
     failure_="Failed to find delegation store";
     failure_type_=ARexJobInternalError;
@@ -557,7 +557,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
   {
     // talk to external plugin to ask if we can proceed
     std::list<ContinuationPlugins::result_t> results;
-    config_.GmConfig().ContPlugins()->run(job,config_.GmConfig(),results);
+    ContinuationPlugins* plugins = config_.GmConfig().GetContPlugins();
+    if(plugins) plugins->run(job,config_.GmConfig(),results);
     std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
     while(result != results.end()) {
       // analyze results
@@ -719,7 +720,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
   // Per job credentials update - renew generic credentials assigned to this job
   if(job_.delegationid.empty()) return false;
-  DelegationStores* delegs = config_.GmConfig().Delegations();
+  DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;

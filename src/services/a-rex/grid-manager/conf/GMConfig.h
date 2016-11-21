@@ -40,8 +40,6 @@ class DelegationStores;
  */
 class GMConfig {
 
-  // Main job loop which heavily uses this class
-  friend class JobsList;
   // Configuration parser which sets values for members of this class
   friend class CoreConfig;
   // Parser of data-staging configuration which uses this class' values as default
@@ -151,9 +149,9 @@ public:
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
-  ContinuationPlugins* ContPlugins() const { return cont_plugins; }
+  ContinuationPlugins* GetContPlugins() const { return cont_plugins; }
   /// DelegationsStores object
-  ARex::DelegationStores* Delegations() const { return delegations; }
+  ARex::DelegationStores* GetDelegations() const { return delegations; }
 
   /// Control directory
   const std::string & ControlDir() const { return control_dir; }

@@ -42,7 +42,7 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
 
   // Convert delegation ids to credential paths.
   // Add default credentials for file which have no own assigned.
-  ARex::DelegationStores* delegs = config.Delegations();
+  ARex::DelegationStores* delegs = config.GetDelegations();
   std::string default_cred = job_proxy_filename(job.get_id(), config); // TODO: drop job.proxy as source of delegation
   if(!job_desc.delegationid.empty()) {
     if(delegs) {
@@ -73,7 +73,7 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
         f->cred = default_cred;
       } else {
         std::string path;
-        ARex::DelegationStores* delegs = config.Delegations();
+        ARex::DelegationStores* delegs = config.GetDelegations();
         if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN);
         f->cred = path;
       };

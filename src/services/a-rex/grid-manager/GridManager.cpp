@@ -192,7 +192,7 @@ bool GridManager::thread() {
     };
     return false;
   };
-  ARex::DelegationStores* delegs = config_.Delegations();
+  ARex::DelegationStores* delegs = config_.GetDelegations();
   if(delegs) {
     ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
     if(!deleg) {
@@ -291,8 +291,10 @@ bool GridManager::thread() {
   for(;;) {
     if(tostop_) break;
     config_.RunHelpers();
-    config_.GetJobLog()->RunReporter(config_);
-    config_.GetJobsMetrics()->Sync();
+    JobLog* joblog = config_.GetJobLog();
+    if(joblog) joblog->RunReporter(config_);
+    JobsMetrics* metrics = config_.GetJobsMetrics();
+    if(metrics) metrics->Sync();
     bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
     // touch heartbeat file
     std::string gm_heartbeat(std::string(config_.ControlDir() + "/" + heartbeat_file));
@@ -316,7 +318,7 @@ bool GridManager::thread() {
     /* process known jobs */
     jobs.ActJobs();
     // Clean old delegations
-    ARex::DelegationStores* delegs = config_.Delegations();
+    ARex::DelegationStores* delegs = config_.GetDelegations();
     if(delegs) {
       ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
       deleg.Expiration(24*60*60);
