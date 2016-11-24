@@ -62,3 +62,8 @@ if [ ! -e "$CONDOR_CONFIG" ]; then
 fi
 echo "Using Condor config file at: $CONDOR_CONFIG"
 export CONDOR_CONFIG
+
+# FIX: Recent versions (8.5+?) of HTCondor does not show all jobs when running condor_q, but only own
+# Solution according Brain Bockelman GGUS 123947
+_condor_CONDOR_Q_ONLY_MY_JOBS=false                                                                 
+export _condor_CONDOR_Q_ONLY_MY_JOBS                                                                 
