@@ -1391,7 +1391,7 @@ bool JobsList::ScanNewJobs(void) {
   return true;
 }
 
-bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
+bool JobsList::ScanOldJobs(unsigned int max_scan_time,int max_scan_jobs) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
   // We are going to scan a dir with a lot of files here. So we scan it in
@@ -1430,13 +1430,13 @@ bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
               JobsList::iterator i;
               AddJobNoCheck(id.id, i, uid, gid);
               ActJob(i);
-              --max_scan_jobs;
+              if(max_scan_jobs > 0) --max_scan_jobs;
             }
           }
         }
       }
-      if(((int)(time(NULL)-start)) >= max_scan_time) break;
-      if(max_scan_jobs <= 0) break;
+      if(((unsigned int)(time(NULL)-start)) >= max_scan_time) break;
+      if(max_scan_jobs == 0) break;
     }
   } catch(Glib::FileError& e) {
     logger.msg(Arc::ERROR,"Failed reading control directory: %s",cdir);

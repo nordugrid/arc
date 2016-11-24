@@ -169,8 +169,10 @@ class JobsList {
   // Look for finished or deleted jobs and process them. Jobs which are
   // restarted will be added back into the main processing loop. This method
   // can be limited in the time it can run for and number of jobs it can scan.
+  // For jobs number -1 is also accepted as no limit.
+  // Time is always limited.
   // It returns false if failed or scanning finished.
-  bool ScanOldJobs(int max_scan_time,int max_scan_jobs);
+  bool ScanOldJobs(unsigned int max_scan_time,int max_scan_jobs);
   // Add job with specified id. 
   // Returns true if job was found and added.
   bool AddJob(const JobId& id);
