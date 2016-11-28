@@ -84,7 +84,7 @@ void JobsList::UpdateJobCredentials(GMJobRef i) {
     if(GetLocalDescription(i)) {
       std::string delegation_id = i->local->delegationid;
       if(!delegation_id.empty()) {
-        ARex::DelegationStores* delegs = config.delegations;
+        ARex::DelegationStores* delegs = config.GetDelegations();
         if(delegs) {
           std::string cred;
           if((*delegs)[config.DelegationDir()].GetCred(delegation_id,i->local->DN,cred)) {
@@ -99,7 +99,8 @@ void JobsList::UpdateJobCredentials(GMJobRef i) {
 void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason) {
   if(i) {
     if(i->job_state != new_state) {
-      config.GetJobsMetrics()->ReportJobStateChange(new_state, i->job_state);
+      JobsMetrics* metrics = config.GetJobsMetrics();
+      if(metrics) metrics->ReportJobStateChange(new_state, i->job_state);
       std::string msg = Arc::Time().str(Arc::UTCTime);
       msg += " Job state change ";
       msg += i->get_state_name();
@@ -123,8 +124,8 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
 bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
   GMJobRef i(new GMJob(id,Arc::User(uid)));
   jobs[id] = i;
-  i->keep_finished=config.keep_finished;
-  i->keep_deleted=config.keep_deleted;
+  i->keep_finished=config.KeepFinished();
+  i->keep_deleted=config.KeepDeleted();
   i->job_state = state;
   if (!GetLocalDescription(i)) {
     // safest thing to do is add failure and move to FINISHED
@@ -154,10 +155,10 @@ int JobsList::AcceptedJobs() const {
 }
 
 bool JobsList::RunningJobsLimitReached() const {
-  if(config.max_jobs_running==-1) return false;
+  if(config.MaxRunning()==-1) return false;
   int num = jobs_num[JOB_STATE_SUBMITTING] +
             jobs_num[JOB_STATE_INLRMS];
-  return num >= config.max_jobs_running;
+  return num >= config.MaxRunning();
 }
 
 /*
@@ -237,7 +238,7 @@ bool JobsList::ScanOldJobs(void) {
   } else {
     // Check if it is time for next scanning
     if((time(NULL) - job_slow_polling_last) >= job_slow_polling_period) {
-      job_slow_polling_dir = new Glib::Dir(config.control_dir+"/"+subdir_old);
+      job_slow_polling_dir = new Glib::Dir(config.ControlDir()+"/"+subdir_old);
       if(job_slow_polling_dir) job_slow_polling_last = time(NULL);
     };
   };
@@ -494,7 +495,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
     r = false;
   }
   // Convert delegation ids to credential paths.
-  std::string default_cred = config.control_dir + "/job." + i->get_id() + ".proxy";
+  std::string default_cred = config.ControlDir() + "/job." + i->get_id() + ".proxy";
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
@@ -502,7 +503,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
         f->cred = default_cred;
       } else {
         std::string path;
-        ARex::DelegationStores* delegs = config.delegations;
+        ARex::DelegationStores* delegs = config.GetDelegations();
         if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN);
         f->cred = path;
       }
@@ -547,9 +548,9 @@ void JobsList::CleanChildProcess(GMJobRef i) {
 bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
-    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+    if((config.MaxScripts()!=-1) && (jobs_scripts>=config.MaxScripts())) {
       //logger.msg(Arc::WARNING,"%s: Too many LRMS scripts running - limit is %u",
-      //                     i->job_id,config.max_scripts);
+      //                     i->job_id,config.MaxScripts());
       // returning true but not advancing to next state should cause retry
       return true;
     }
@@ -575,8 +576,8 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     // submit job to LRMS using submit-X-job
     std::string cmd = Arc::ArcLocation::GetDataDir()+"/submit-"+job_desc->lrms+"-job";
     logger.msg(Arc::INFO,"%s: state SUBMIT: starting child: %s",i->job_id,cmd);
-    std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
-    cmd += " --config " + config.conffile + " " + grami;
+    std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
+    cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
     if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
       i->AddFailure("Failed initiating job submission to LRMS");
@@ -584,9 +585,9 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       return false;
     }
     ++jobs_scripts;
-    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+    if((config.MaxScripts()!=-1) && (jobs_scripts>=config.MaxScripts())) {
       logger.msg(Arc::WARNING,"%s: LRMS scripts limit of %u is reached - suspending submit/cancel",
-                           i->job_id,config.max_scripts);
+                           i->job_id,config.MaxScripts());
     }
     return true;
   }
@@ -661,9 +662,9 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
 bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
   if(i->child == NULL) {
     // no child was running yet, or recovering from fault
-    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+    if((config.MaxScripts()!=-1) && (jobs_scripts>=config.MaxScripts())) {
       //logger.msg(Arc::WARNING,"%s: Too many LRMS scripts running - limit is %u",
-      //                     i->job_id,config.max_scripts);
+      //                     i->job_id,config.MaxScripts());
       // returning true but not advancing to next state should cause retry
       return true;
     }
@@ -683,17 +684,17 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
       state_changed=true;
       return true;
     }
-    std::string grami = config.control_dir+"/job."+(*i).job_id+".grami";
-    cmd += " --config " + config.conffile + " " + grami;
+    std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
+    cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
     if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
       logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       return false;
     }
     ++jobs_scripts;
-    if((config.max_scripts!=-1) && (jobs_scripts>=config.max_scripts)) {
+    if((config.MaxScripts()!=-1) && (jobs_scripts>=config.MaxScripts())) {
       logger.msg(Arc::WARNING,"%s: LRMS scripts limit of %u is reached - suspending submit/cancel",
-                           i->job_id,config.max_scripts);
+                           i->job_id,config.MaxScripts());
     }
     return true;
   }
@@ -722,7 +723,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
   if(!simulate_success) {
     // real processing
     if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
-       ((Arc::Time() - i->child->ExitTime()) < (config.wakeup_period*2))) {
+       ((Arc::Time() - i->child->ExitTime()) < (config.WakeupPeriod()*2))) {
       // not ideal solution
       logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
     }
@@ -937,7 +938,7 @@ time_t JobsList::PrepareCleanupTime(GMJobRef i,time_t& keep_finished) {
 }
 
 void JobsList::UnlockDelegation(GMJobRef i) {
-  ARex::DelegationStores* delegs = config.delegations;
+  ARex::DelegationStores* delegs = config.GetDelegations();
   if(delegs) (*delegs)[config.DelegationDir()].ReleaseCred(i->job_id,true,false);
 }
 
@@ -945,7 +946,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
   ActJobResult job_result = JobDropped;
   // new job - read its status from status file, but first check if it is
   // under the limit of maximum jobs allowed in the system
-  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+  if((AcceptedJobs() < config.MaxJobs()) || (config.MaxJobs() == -1)) {
     job_state_t new_state=job_state_read_file(i->job_id,config);
     if(new_state == JOB_STATE_UNDEFINED) { // something failed
       logger.msg(Arc::ERROR,"%s: Reading status of new job failed",i->job_id);
@@ -972,7 +973,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       // prepare information for logger
       // This call is not needed here because at higher level make_file()
       // is called for every state change
-      //config.job_log->make_file(*i,config);
+      //if(config.GetJobLog()) config.GetJobLog()->make_file(*i,config);
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
@@ -1011,8 +1012,8 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   // check per-DN limit on processing jobs
   // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
-  if ((config.max_jobs_per_dn > 0) &&
-      (jobs_dn[i->local->DN] >= config.max_jobs_per_dn)) {
+  if ((config.MaxPerDN() > 0) &&
+      (jobs_dn[i->local->DN] >= config.MaxPerDN())) {
     JobPending(i);
     // Because we have no event for per-DN limit just do polling
     RequestPolling(i);
@@ -1267,7 +1268,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
     if(i->keep_deleted) {
       // here we have to get the cache per-job dirs to be deleted
       std::list<std::string> cache_per_job_dirs;
-      CacheConfig cache_config(config.cache_params);
+      CacheConfig cache_config(config.CacheParams());
       cache_config.substitute(config, i->user);
       std::vector<std::string> conf_caches = cache_config.getCacheDirs();
       // add each dir to our list
@@ -1357,9 +1358,9 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
 
 bool JobsList::CheckJobContinuePlugins(GMJobRef i) {
   bool plugins_result = true;
-  if(config.cont_plugins) {
+  if(config.GetContPlugins()) {
     std::list<ContinuationPlugins::result_t> results;
-    config.cont_plugins->run(*i,config,results);
+    config.GetContPlugins()->run(*i,config,results);
     std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
     while(result != results.end()) {
       // analyze results
@@ -1510,13 +1511,14 @@ bool JobsList::ActJob(GMJobRef& i) {
         job_result = ActJobFailed(i); // immedaitely process failure
       };
       // Processing to be done on relatively successful state changes
-      config.job_log->make_file(*i,config);
+      JobLog* joblog = config.GetJobLog();
+      if(joblog) joblog->make_file(*i,config);
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
-        config.job_log->finish_info(*i,config);
+        if(joblog) joblog->finish_info(*i,config);
         PrepareCleanupTime(i,i->keep_finished);
       } else if(i->job_state == JOB_STATE_PREPARING) {
-        config.job_log->start_info(*i,config);
+        joblog->start_info(*i,config);
       };
 //            SetJobState(i, JOB_STATE_FINISHED, "Job processing error");
 //            SetJobState(i, JOB_STATE_FINISHING, "Job processing error");
@@ -1654,7 +1656,7 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
 
 // This code is run at service restart
 bool JobsList::RestartJobs(void) {
-  std::string cdir=config.control_dir;
+  std::string cdir=config.ControlDir();
   // Jobs from old version
   bool res1 = RestartJobs(cdir,cdir+"/"+subdir_rew);
   // Jobs after service restart
@@ -1702,7 +1704,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const 
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.control_dir, e.what());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.ControlDir(), e.what());
     return false;
   }
 
@@ -1743,7 +1745,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s",config.control_dir);
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",config.ControlDir());
     return false;
   }
 
@@ -1753,9 +1755,9 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 
 bool JobsList::ScanNewJob(const JobId& id) {
   // New jobs will be accepted only if number of jobs being processed
-  if((AcceptedJobs() < config.max_jobs) || (config.max_jobs == -1)) {
+  if((AcceptedJobs() < config.MaxJobs()) || (config.MaxJobs() == -1)) {
     JobFDesc fid(id);
-    std::string cdir=config.control_dir;
+    std::string cdir=config.ControlDir();
     std::string ndir=cdir+"/"+subdir_new;
     if(!ScanJob(ndir,fid)) return false;
     return AddJobNoCheck(fid.id,fid.uid,fid.gid);
@@ -1765,7 +1767,7 @@ bool JobsList::ScanNewJob(const JobId& id) {
 
 bool JobsList::ScanOldJob(const JobId& id) {
   JobFDesc fid(id);
-  std::string cdir=config.control_dir;
+  std::string cdir=config.ControlDir();
   std::string ndir=cdir+"/"+subdir_old;
   if(!ScanJob(ndir,fid)) return false;
   job_state_t st = job_state_read_file(id,config);
@@ -1780,8 +1782,8 @@ bool JobsList::ScanNewJobs(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
   // New jobs will be accepted only if number of jobs being processed
   // does not exceed allowed. So avoid scanning if no jobs will be allowed.
-  std::string cdir=config.control_dir;
-  if((config.max_jobs == -1) || (AcceptedJobs() < config.max_jobs)) {
+  std::string cdir=config.ControlDir();
+  if((config.MaxJobs() == -1) || (AcceptedJobs() < config.MaxJobs())) {
     std::list<JobFDesc> ids;
     // For picking up jobs after service restart
     std::string odir=cdir+"/"+subdir_rew;
@@ -1789,11 +1791,11 @@ bool JobsList::ScanNewJobs(void) {
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-      if((config.max_jobs != -1) && (AcceptedJobs() >= config.max_jobs)) break;
+      if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
       AddJobNoCheck(id->id,id->uid,id->gid);
     };
   };
-  if((config.max_jobs == -1) || (AcceptedJobs() < config.max_jobs)) {
+  if((config.MaxJobs() == -1) || (AcceptedJobs() < config.MaxJobs())) {
     std::list<JobFDesc> ids;
     // For new jobs
     std::string ndir=cdir+"/"+subdir_new;
@@ -1801,7 +1803,7 @@ bool JobsList::ScanNewJobs(void) {
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
-      if((config.max_jobs != -1) && (AcceptedJobs() >= config.max_jobs)) break;
+      if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
       // adding job with file's uid/gid
       AddJobNoCheck(id->id,id->uid,id->gid);
     };
@@ -1813,7 +1815,7 @@ bool JobsList::ScanNewJobs(void) {
 bool JobsList::ScanNewMarks(void) {
   Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
 
-  std::string cdir=config.control_dir;
+  std::string cdir=config.ControlDir();
   std::string ndir=cdir+"/"+subdir_new;
   std::list<JobFDesc> ids;
   std::list<std::string> sfx;
@@ -1853,7 +1855,7 @@ bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
   subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=config.control_dir;
+    std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     if(!ScanJobs(odir,ids)) return false;
@@ -1880,7 +1882,7 @@ bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
   subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=config.control_dir;
+    std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     if(!ScanJobs(odir,ids)) return false;
@@ -1901,7 +1903,7 @@ GMJobRef JobsList::GetJob(const JobId& id) const {
   subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=config.control_dir;
+    std::string cdir=config.ControlDir();
     std::string odir=cdir+(*subdir);
     std::string fname=odir+'/'+"job."+id+".status";
     uid_t uid;
@@ -1929,7 +1931,7 @@ int JobsList::CountAllJobs() const {
   subdirs.push_back(std::string("/")+subdir_old); // For done jobs
   for(std::list<std::string>::iterator subdir = subdirs.begin();
                                subdir != subdirs.end();++subdir) {
-    std::string cdir=config.control_dir;
+    std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
     if(ScanJobs(odir,ids)) {

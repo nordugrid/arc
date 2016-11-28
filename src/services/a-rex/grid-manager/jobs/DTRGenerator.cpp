@@ -614,7 +614,7 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
     JobLocalDescription job_desc;
     if(job_local_read_file(jobid, config, job_desc)) {
       if(!job_desc.delegationid.empty()) {
-        ARex::DelegationStores* delegs = config.Delegations();
+        ARex::DelegationStores* delegs = config.GetDelegations();
         if(delegs) {
           DelegationStore& deleg = delegs->operator[](config.DelegationDir());
           std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);

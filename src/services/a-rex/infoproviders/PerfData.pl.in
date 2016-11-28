@@ -169,8 +169,8 @@ my $forkmodmetrics = {
 ## slurm
 
 my $slurmmodsubs = {
-   'SLURM::queue_info' => 'lrmscalltiming,slurm,queue_info',
-   'SLURM::jobs_info' => 'lrmscalltiming,slurm,jobs_info'
+   'SLURMmod::queue_info' => 'lrmscalltiming,slurm,queue_info',
+   'SLURMmod::jobs_info' => 'lrmscalltiming,slurm,jobs_info'
 };
 
 
@@ -431,7 +431,7 @@ sub main {
        
     # Read ARC configuration
     my $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-    $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc';    
+    $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata';    
     
     my $hostname = ConfigCentral::getValueOf($configfile,'common','hostname');
         

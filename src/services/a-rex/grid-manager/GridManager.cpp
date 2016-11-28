@@ -224,7 +224,7 @@ bool GridManager::thread() {
   config_.Print();
 
   // Preparing various structures, dirs, etc.
-  ARex::DelegationStores* delegs = config_.Delegations();
+  ARex::DelegationStores* delegs = config_.GetDelegations();
   if(delegs) {
     ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
     if(!deleg) {
@@ -285,8 +285,10 @@ bool GridManager::thread() {
     if(tostop_) break;
     // TODO: check conditions for following calls
     jobs.RunHelpers();
-    config_.GetJobLog()->RunReporter(config_);
-    config_.GetJobsMetrics()->Sync();
+    JobLog* joblog = config_.GetJobLog();
+    if(joblog) joblog->RunReporter(config_);
+    JobsMetrics* metrics = config_.GetJobsMetrics();
+    if(metrics) metrics->Sync();
     // Process jobs which need attention ASAP
     jobs.ActJobsAttention();
     if(((int)(time(NULL) - poll_job_time)) >= 0) {
@@ -307,7 +309,7 @@ bool GridManager::thread() {
       jobs.ActJobsPolling();
       //jobs.ActJobs();
       // Clean old delegations
-      ARex::DelegationStores* delegs = config_.Delegations();
+      ARex::DelegationStores* delegs = config_.GetDelegations();
       if(delegs) {
         ARex::DelegationStore& deleg = (*delegs)[config_.DelegationDir()];
         deleg.Expiration(24*60*60);
