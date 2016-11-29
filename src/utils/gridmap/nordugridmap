@@ -15,12 +15,10 @@ use File::Path;
 use Storable;
 use URI;
 use XML::DOM;
-use Net::LDAP;
 use LWP::UserAgent;
 use LWP::Protocol::https;
 use SOAP::Lite;
 use SOAP::Transport::HTTP;
-use Crypt::OpenSSL::X509;
 
 # please use this when developing
 use warnings;
@@ -35,7 +33,7 @@ use constant {
     VERBOSE => 4,
     DEBUG   => 5,
     # nordugridmap internals
-    VERSION     => "2.2",
+    VERSION     => "3.0",
     USERAGENT   => "nordugridmap"
 };
 
@@ -45,9 +43,6 @@ use constant {
 
 # define configuration flags 
 my %config_flags = (
-    'require_issuerdn_used' => 0,
-    'generate_vomapfile'    => 1,
-    'issuer_processing'     => 0, # strict = 1, relaxed = 0
     'mapuser_processing'    => 0, # overwrite = 1, keep = 0
     'cache_enabled'         => 1,
     'log_to_file'           => 1,
@@ -71,8 +66,12 @@ if ($opt_help) {
     exit(1);
 }
 
-$debug_level = 5 if $opt_test;
-&Logger("Testing mode is enabled using command line option. NO gridmaps will be altered.", DEBUG);
+# print at DEBUG level to STDERR when using testing mode
+if ($opt_test) {
+    $debug_level = 5;
+    $config_flags{'log_to_file'} = 0;
+    &Logger("Nordugridmap is running in a testing mode. There will be no gridmaps altered.", DEBUG);
+}
 
 #
 # CONFIG FILE PARSER (ARC.CONF INI FORMAT EXPECTED)
@@ -123,11 +122,6 @@ while (my $line =<CONFIGFILE>) {
         if (($variable_name eq "source") && ($variable_value eq "nordugrid")) {
             $variable_value = "vomss://voms.ndgf.org:8443/voms/nordugrid.org";
         }
-
-        # check for 'require_issuerdn' options are being used anywhere
-        if ( $variable_name eq "require_issuerdn" ) {
-            $config_flags{"require_issuerdn_used"} = 1 if ($variable_value eq "yes");
-        }
     }
 
     # store values to hash: $parsedconfig{blockname[_blockindex]}{variable_name}
@@ -163,8 +157,6 @@ my $x509key         = $parsedconfig{'nordugridmap'}{'x509_user_key'} ||
                       $parsedconfig{'common'}{'x509_user_key'} ||
                       $ENV{X509_USER_KEY} ||
                       "/etc/grid-security/hostkey.pem";
-my $gridvomapfile   = $parsedconfig{'nordugridmap'}{'vomapfile'} || 
-                      "/etc/grid-security/grid-vo-mapfile";
 my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
                       $parsedconfig{'common'}{'gridmap'} ||
                       "/etc/grid-security/grid-mapfile";
@@ -186,10 +178,8 @@ my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
 &set_numeric_value(\$fetch_url_timeout, 'fetch_timeout', 'numeric integers');
 
 &set_configuration_flag('cache_enabled','cache_enable','yes','no');
-&set_configuration_flag('issuer_processing','issuer_processing','strict','relaxed');
 &set_configuration_flag('mapuser_processing','mapuser_processing','overwrite','keep');
 &set_configuration_flag('allow_empty_unixid','allow_empty_unixid','yes','no');
-&set_configuration_flag('generate_vomapfile','generate_vomapfile','yes','no');
 &set_configuration_flag('voms_use_soap','voms_method','soap','get');
 
 &set_configuration_flag('log_to_file', 'log_to_file', 'yes', 'no') unless $opt_test;
@@ -249,13 +239,6 @@ my %dryrun_sources_data = %sources_list;
 # FETCH SOURCES AND ASSEMBLE GRIDMAPS
 #
 
-# if require_issuerdn used create CA DN's hash 
-my %ca_list = ();
-if ( $config_flags{'require_issuerdn_used'} ) {
-    &Logger("Issuer DN check is requested in the configuration. Building supported CA list.", DEBUG);
-    &create_ca_list(\%ca_list);
-}
-
 # fetch all sources 
 my %sources_data = ();
 &fetch_sources(\%sources_list, \%sources_data);
@@ -266,11 +249,6 @@ my %sources_data = ();
 # assemble gridmapfiles
 my %mapfile_data = ();
 &process_mapfiles(\%mapfile_data, \%sources_data);
-
-# assemble vomapfile 
-if ( $config_flags{'generate_vomapfile'} ) {
-    &process_vo_mapfile($gridvomapfile, \%mapfile_data, \%sources_data);
-}
 
 # write mapfiles to disk
 if ( $opt_test ) {
@@ -335,102 +313,9 @@ sub get_source_flag {
     return $config_flags{$flag_name};
 }
 
-# return parsed edg-mkgridmap configuration hash 
-sub parse_edg_mkgridmap_conf {
-    my $file = shift;
-    my %confighash = ();
-
-    unless (open (EDGMKGRIDMAPCONF, "<$file")) {
-        &Logger("Can't open $file edg-mkgridmap configuration file", ERROR, "ConfigParser.edg-mkgridmap");
-        return (1, \%confighash);
-    }
-
-    &Logger("Parsing edg-mkgridmap configuration file: $file", INFO, "ConfigParser.edg-mkgridmap");
-    my $exit_code = 2;
-    while (my $line =<EDGMKGRIDMAPCONF>) {
-        next if $line =~/^#/;
-        next if $line =~/^\s*$/;
-
-        my ( $keyword, $arg1, $dummy, $arg2 ) = $line =~ /^\s*(\w+)\s+([^\s]+)(\s+([^\s]+))?$/;
-        my $conf_key = 0;
-        my $conf_value = 0;
-
-        unless ( defined $arg1 ) {
-            &Logger("Argument is required in line '$line', ignoring.", WARNING, "ConfigParser.edg-mkgridmap");
-            next;
-        }
-
-        if ( $keyword eq 'group' ) {
-            # convert to external sources
-            $conf_key = 'source';
-            $conf_value = $arg1;
-            if ( defined $arg2 ) {
-                if ( $arg2 eq 'AUTO' ) { 
-                    &Logger("Ignoring unsupported AUTO mapping for source $conf_value", VERBOSE, "ConfigParser.edg-mkgridmap");
-                } else {
-                    $conf_value .= " < mapped_unixid=$arg2";
-                }
-            }
-            $exit_code = 0;
-        } elsif ( $keyword eq 'default_lcluser' ) {
-            # convert to mapped_unixid
-            &Logger("Adding mapped_unixid=$arg1", DEBUG, "ConfigParser.edg-mkgridmap");
-            $confighash{'mapped_unixid'} = $arg1;
-        } elsif ( $keyword eq 'auth' ) {
-            # checking subjects over LDAP auth server is unsupported by nordugridmap
-            &Logger("Ignoring unsupported 'auth' keyword", VERBOSE, "ConfigParser.edg-mkgridmap");
-        } elsif ( $keyword =~ m/^(allow|deny)$/ ) {
-            # confert to filter
-            $conf_key = 'filter';
-            chomp($line);
-            $conf_value = $line;
-        } elsif ( $keyword eq 'gmf_local' ) {
-            # convert to file source
-            $conf_key = 'source';
-            $conf_value = "file://" . $arg1;
-            $exit_code = 0;
-        } else {
-            &Logger("Ignoring unrecognized keyword for directive '$line'", WARNING, "ConfigParser.edg-mkgridmap");
-        }
-
-        if ( $conf_key ) {
-            &Logger("Adding $conf_key record $conf_value", DEBUG, "ConfigParser.edg-mkgridmap");
-            if ( defined $confighash{$conf_key} ) {
-                $confighash{$conf_key} .= '[separator]' . $conf_value;
-            } else {
-                $confighash{$conf_key} = $conf_value;
-            }
-        }
-    }
-    
-    close EDGMKGRIDMAPCONF;
-    # no mapfile assembling required for generated [vo] block
-    $confighash{'file'} = '/dev/null';
-    return ($exit_code, \%confighash);
-}
-
 #
 # MAPPING PROCESSING SUBROUTINES
 #
-
-# assemble vo-mapfile data
-sub process_vo_mapfile {
-    my ( $gvmf, $ref_mapfile_data, $ref_sources_data ) = @_;
-
-    &Logger("Assembling vo-mapfile mapping list", INFO, "AssembleVOMapfile");
-    $ref_mapfile_data->{$gvmf} = {};
-
-    foreach my $block (sort(keys %parsedconfig)) {
-        next unless $block =~ /^vo_/;
-        my $vo_ref = "vo://" . &get_vo_name($block);
-
-        foreach my $dn ( keys %{$ref_sources_data->{$vo_ref}} ) {
-            unless ( defined $ref_mapfile_data->{$gvmf}->{$dn} ) {
-                $ref_mapfile_data->{$gvmf}->{$dn} = '"' . $ref_sources_data->{$vo_ref}->{$dn}->{'source'} . '"';
-            }
-        }
-    }
-}
 
 # assemble grid-mapfiles data
 sub process_mapfiles {
@@ -494,12 +379,8 @@ sub process_vo_blocks {
             unless ( $undefined_cnt ) {
                 unless ( $dryrun ) {
                     # get [vo] block parameters
-                    my $require_issuerdn = "no";
                     my $mapped_user = "";
 
-                    if ( $parsedconfig{$block}{'require_issuerdn'} ) {
-                        $require_issuerdn = $parsedconfig{$block}{'require_issuerdn'};
-                    }
                     if ( $parsedconfig{$block}{'mapped_unixid'} ) {
                         $mapped_user = $parsedconfig{$block}{'mapped_unixid'};
                     }
@@ -521,7 +402,7 @@ sub process_vo_blocks {
                     }
 
                     # print block parameters summary on debug
-                    &Logger("Assembling DNs list for the [vo] block $vo_name (mapped_unixid=$mapped_user, require_issuerdn=$require_issuerdn)", DEBUG, "AssembleBlockData");
+                    &Logger("Assembling DNs list for the [vo] block $vo_name (mapped_unixid=$mapped_user)", DEBUG, "AssembleBlockData");
 
                     # process all sources
                     $ref_sources_data->{$vo_ref} = {};
@@ -531,18 +412,6 @@ sub process_vo_blocks {
                             unless ( defined $ref_sources_data->{$vo_ref}->{$dn} ) {
                                 # check DN is filtered
                                 next unless &rule_match($dn, \@Rules);
-                                # check ISSUERDN if requested
-                                if ( $require_issuerdn eq "yes" ) {
-                                    if ( defined $source_dn_hash{'issuer'} ) {
-                                        next unless &issuer_match($dn, $source_dn_hash{'issuer'}, \%ca_list);
-                                    } else {
-                                        # on 'strict' issuer processing issuer dn is mandatory
-                                        if ( $config_flags{'issuer_processing'} ) {
-                                            &Logger("DN '$dn' filtered due to strict issuer processing.", DEBUG, "AssembleBlockData");
-                                            next;
-                                        }
-                                    }
-                                }
                                 # check mapping user exists for record
                                 if ( $config_flags{'mapuser_processing'} || ! defined $source_dn_hash{'mapuser'} ) {
                                     if ( $mapped_user eq "" ) {
@@ -730,24 +599,6 @@ sub get_block_sources {
         } elsif ( $protocol =~ /^vo$/i ) {
             # [vo] block: use directly as VO source
             push @vo_sources_list, $source_id;
-        } elsif ( $protocol =~ /^edg-mkgridmap$/i ) {
-            # generate edg-mkgridmap block ID
-            my $emkgm_id = "vo_edgmkgm$uri";
-            $emkgm_id =~ s/[^a-zA-Z0-9]/_/g;
-            # if alredy parsed, nothing to do
-            unless ( defined $ref_generated_blocks->{$emkgm_id} ) {
-                # parse egd-mkgridmap configuration file
-                my ( $exit_code, $ref_parsed_confighash ) = &parse_edg_mkgridmap_conf($uri);
-                if ( $exit_code ) {
-                    &Logger("Filed to parse edg-mkgridmap config file $uri", ERROR, "GetInfoSources");
-                } else {
-                    # create [vo] block (with parameters specified in egd-mkgridmap.conf)
-                    $ref_generated_blocks->{$emkgm_id} = $ref_parsed_confighash;
-                    $ref_generated_blocks->{$emkgm_id}{'vo'} = $emkgm_id;
-                    # use created [vo] block as a source
-                    push @vo_sources_list, "vo://$emkgm_id";
-                }
-            }
         } else {
             &Logger("Unsupported protocol found: $source", WARNING, "GetInfoSources");
         }
@@ -779,8 +630,6 @@ sub fetch_sources {
             ($exit_code, $ref_subjects) = &voms_subjects($source, $ref_source_params);
         } elsif ( $protocol =~ /^https?$/i ) {
             ($exit_code, $ref_subjects) = &http_subjects($source, $ref_source_params);
-        } elsif ( $protocol =~ /^ldap$/i ) {
-            ($exit_code, $ref_subjects) = &ldap_subjects($uri, $ref_source_params);
         } elsif ( $protocol =~ /^file$/i ) {
             ($exit_code, $ref_subjects) = &read_gridmap($uri, $ref_source_params);
         } else {
@@ -849,7 +698,7 @@ sub get_http_url {
     return $res->content;
 }
 
-# HTTP(S) sources: expect plain text list of "DN" "CA"
+# HTTP(S) sources: expects plain text list of "DN" 
 sub http_subjects {
     my ($url, $ref_source_params) = @_;
     my %Subjects = ();
@@ -868,89 +717,18 @@ sub http_subjects {
         next if $line =~ /^(\s)*$/;
         chomp($line);
 
-        # get "subject" "issuer" pairs
-        my ($subject, $issuer) = split (/\s+"(.*)"/, $line);
+        # "subject" should be the first and only one parsed parameter
+        my ($subject, $dummy) = split (/\s+"(.*)"/, $line);
         $subject =~ s/"(.*)"/$1/g;
-        $issuer =~ s/"(.*)"/$1/g if $issuer;
 
-        $Subjects{$subject} = { 'subject'    => $subject,
-                                'issuer'     => $issuer };
+        $Subjects{$subject} = { 'subject'    => $subject };
 
         # mapped_unixid can be passed via optional parameters
-	$Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
-
+        $Subjects{$subject}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
         $count++;
     }
 
     &Logger("No information retreived from URL: $url", WARNING, "FetchSourcesData.HTTP") unless $count;
-    return (0, \%Subjects);
-}
-
-# LDAP sources: expect LDAP-schema formated VO Group
-sub ldap_subjects {
-    my ($hostport, $ref_source_params) = @_;
-    my %Subjects = ();
-
-    &Logger("Getting subjects from source: ldap://$hostport", DEBUG, "FetchSourcesData.LDAP");
-
-    my ($host, $port) = split /:/, $hostport;
-    if (! defined $port) { $port=389 }
-    if ($port eq "") { $port=389 }
-    my $ldap = Net::LDAP ->new($host, port => $port, timeout => $fetch_url_timeout );
-    if ( $@ ) {
-        &Logger("VO Group ldap://$host is unreachable:\n $@", ERROR, "FetchSourcesData.LDAP");
-        return (1, \%Subjects);
-    }
-
-    my $base;
-    my $mesg = $ldap->search(base => $base,
-                          timelimit => 120,
-                          filter => "member=*");
-    &Logger($mesg->error . " with $base", WARNING, "FetchSourcesData.LDAP") if $mesg->code;
-
-    foreach my $groupServer ($mesg->all_entries) {
-        my $dn = $groupServer->dn();
-        my @allMembers = $groupServer->get_value('member');
-        &Logger("Entries from the GroupDN: $dn", DEBUG, "FetchSourcesData.LDAP");
-        
-        foreach my $member (@allMembers){
-            my $mesg2 = $ldap->search(base => $member,
-                                      timelimit => 120,
-                                      filter => "cn=*");
-            if ( $mesg2->code ) {
-                &Logger($mesg2->error . " with $base", ERROR, "FetchSourcesData.LDAP");
-                return (1, \%Subjects);
-            }
-            my $entry = $mesg2->entry(0);
-
-            if (!$entry){
-                &Logger("\"$member\" not found", WARNING, "FetchSourcesData.LDAP");
-                next;
-            }
-
-            my $subj = "";
-            my @Subj = $entry->get_value('description');
-            my $cn = $entry->get_value('cn');
-            my $issuer = $entry->get_value('nordugrid-issuerDN');
-
-            foreach $_ (@Subj) {
-                if($_ =~ /^subject=\s*(.*)/){
-                    $subj = $1;
-                    last;
-                }
-            }
-            if ($subj eq ""){
-                &Logger("\"subject=\" not found in description of $cn", WARNING, "FetchSourcesData.LDAP");
-                next;
-            }
-
-            $Subjects{$subj} = { 'subject' => $subj,
-                                 'issuer'  => $issuer };
-
-            # mapped_unixid can be passed via optional parameters
-            $Subjects{$subj}{'mapuser'} = $ref_source_params->{'mapped_unixid'} if defined $ref_source_params->{'mapped_unixid'};
-        }
-    }
     return (0, \%Subjects);
 }
 
@@ -1187,40 +965,6 @@ sub rule_match {
         }
     }
     return 0;
-}
-
-# create issuer dn list
-sub create_ca_list {
-    my $ref_ca_list = shift;
-
-    # get list of CA public key files
-    opendir(CADIR, $capath) or &Logger("Cannot open CA directory $capath", FATAL, "IssuerCAProcessing");
-    my $ca_list_string = "";
-    while (my $file = readdir(CADIR)) {
-        next if ($file !~ m/^[0-9a-f]+\.0/);
-        # get certificate subject
-        my $X509 = Crypt::OpenSSL::X509->new_from_file($capath.'/'.$file);
-        my $ca_dn = $X509->subject();
-        $ca_dn =~ s/(^|,\s)/\//g;
-        # add subject to CA list
-        $ref_ca_list->{$ca_dn} = $ca_dn;
-        $ca_list_string .= " $ca_dn";
-    }
-    &Logger("SUPPORTED Certificate Authorities: $ca_list_string", DEBUG, "IssuerCAProcessing");
-    closedir(CADIR);
-}
-
-# check issuer dn is in the list of allowed
-sub issuer_match {
-    my ($dn, $issuer, $ref_ca_list) = @_;
-    $issuer=~s/\s+$//;
-
-    unless ( $ref_ca_list->{$issuer} ) {
-        &Logger("User '$dn' is denied (certificates issued by $issuer are NOT Authenticated)", DEBUG, "IssuerCAProcessing");
-        return 0;
-    }
-
-    return 1;
 }
 
 #
