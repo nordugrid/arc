@@ -132,6 +132,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("grid-manager"); // 1
   cf.AddSection("infosys"); // 2
   cf.AddSection("queue"); // 3
+  cf.AddSection("cluster"); // 4
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
@@ -141,6 +142,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     std::string rest;
     std::string command;
     cf.ReadNext(command, rest);
+    if (command.empty()) { // EOF
+      break;
+    }
     if (cf.SectionNum() == 2) { // infosys - looking for user name to get share uid
       if (command == "user") {
         config.SetShareID(Arc::User(rest));
@@ -186,8 +190,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       }
       continue;
     }
-    if (command.empty()) { // EOF
-      break;
+    if (cf.SectionNum() == 4) { // cluster
+      if (command == "authorizedvo") {
+        std::string str = Arc::ConfigIni::NextArg(rest);
+        if (str.empty()) {
+          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+        }
+        config.authorized_vos[""].push_back(str);
+      }
+      continue;
     }
     if(command == "arex_mount_point") {
        config.arex_endpoint = Arc::ConfigIni::NextArg(rest);
