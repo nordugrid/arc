@@ -51,21 +51,13 @@ class JobsList {
   // subfolders in controldir.
   std::map<JobId,GMJobRef> jobs;         
 
-  //std::list<GMJobRef> jobs_processing;   // List of jobs currently scheduled for processing
-  //Glib::Mutex jobs_processing_lock;
   GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 
-  //std::list<GMJobRef> jobs_attention;    // List of jobs which need attention
-  //Glib::Mutex jobs_attention_lock;
   GMJobQueue jobs_attention;    // List of jobs which need attention
   Arc::SimpleCondition jobs_attention_cond;
 
-  //std::list<GMJobRef> jobs_polling;      // List of jobs which need polling soon
-  //Glib::Mutex jobs_polling_lock;
   GMJobQueue jobs_polling;      // List of jobs which need polling soon
 
-  //std::list<GMJobRef> jobs_wait_for_running; // List of jobs waiting for limit on running jobs
-  //Glib::Mutex jobs_wait_for_running_lock;
   GMJobQueue jobs_wait_for_running; // List of jobs waiting for limit on running jobs
 
 
@@ -246,6 +238,10 @@ class JobsList {
   std::list<ExternalHelper> helpers;
 
  public:
+  static const int ProcessingQueuePriority = 3;
+  static const int AttentionQueuePriority = 2;
+  static const int WaitQueuePriority = 1;
+
   // Constructor.
   JobsList(const GMConfig& gmconfig);
   ~JobsList(void);

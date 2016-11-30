@@ -70,30 +70,7 @@ GMJob::GMJob(void) {
   local=NULL;
   start_time=time(NULL);
   ref_count = 0;
-}
-
-// Deprecated
-GMJob::GMJob(const GMJob &job) {
-  operator=(job);
-}
-
-// Deprecated
-GMJob& GMJob::operator=(const GMJob &job) {
-  job_state=job.job_state;
-  job_pending=job.job_pending;
-  job_id=job.job_id;
-  session_dir=job.session_dir;
-  failure_reason=job.failure_reason;
-  keep_finished=job.keep_finished;
-  keep_deleted=job.keep_deleted;
-  child=NULL;
-  local=NULL;
-  if(job.local) local=new JobLocalDescription(*job.local);
-  user=job.user;
-  transfer_share=job.transfer_share;
-  start_time=job.start_time;
-  ref_count = 0;
-  return *this;
+  queue = NULL;
 }
 
 GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state_t state) {
@@ -109,6 +86,7 @@ GMJob::GMJob(const JobId &id,const Arc::User& u,const std::string &dir,job_state
   transfer_share=JobLocalDescription::transfersharedefault;
   start_time=time(NULL);
   ref_count = 0;
+  queue = NULL;
 }
 
 GMJob::~GMJob(void){
@@ -123,12 +101,12 @@ GMJob::~GMJob(void){
 
 
 void GMJob::AddReference(void) {
-  Glib::Mutex::Lock lock(ref_lock);
+  Glib::RecMutex::Lock lock(ref_lock);
   ++ref_count;
 }
 
 void GMJob::RemoveReference(void) {
-  Glib::Mutex::Lock lock(ref_lock);
+  Glib::RecMutex::Lock lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring is unintentionally lost",job_id);
     lock.release();
@@ -137,7 +115,7 @@ void GMJob::RemoveReference(void) {
 }
 
 void GMJob::DestroyReference(void) {
-  Glib::Mutex::Lock lock(ref_lock);
+  Glib::RecMutex::Lock lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring stop success",job_id);
     lock.release();
@@ -147,17 +125,16 @@ void GMJob::DestroyReference(void) {
   };
 }
 
-bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front) {
+bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   // Lock job instance
-  Glib::Mutex::Lock lock(ref_lock, Glib::NOT_LOCK);
-  if (!no_lock) lock.acquire();
+  Glib::RecMutex::Lock lock(ref_lock);
   GMJobQueue* old_queue = queue;
   if (old_queue == new_queue) {
     // shortcut
     if(!to_front) return true;
     if(!old_queue) return true;
     // move to front
-    Glib::Mutex::Lock qlock(old_queue->lock_);
+    Glib::RecMutex::Lock qlock(old_queue->lock_);
     old_queue->queue_.remove(this); // ineffective operation!
     old_queue->queue_.push_front(this);
     return true;
@@ -173,7 +150,7 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front) {
   };
   if (old_queue) {
     // Lock current queue
-    Glib::Mutex::Lock qlock(old_queue->lock_);
+    Glib::RecMutex::Lock qlock(old_queue->lock_);
     // Remove from current queue
     old_queue->queue_.remove(this); // ineffective operation!
     queue = NULL;
@@ -181,7 +158,7 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front) {
   };
   if (new_queue) {
     // Lock new queue
-    Glib::Mutex::Lock qlock(new_queue->lock_);
+    Glib::RecMutex::Lock qlock(new_queue->lock_);
     // Add to new queue
     if(!to_front) {
       new_queue->queue_.push_back(this);
@@ -196,13 +173,9 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front) {
     ++ref_count;
   } else if(!new_queue && old_queue) {
     if(--ref_count == 0) {
-      if(!no_lock) {
-        logger.msg(Arc::ERROR,"%s: Job monitoring is lost due to removal from queue",job_id);
-        lock.release();
-        delete this;
-      } else {
-        logger.msg(Arc::ERROR,"%s: Job has no reference due to removal from queue",job_id);
-      };
+      logger.msg(Arc::ERROR,"%s: Job monitoring is lost due to removal from queue",job_id);
+      lock.release(); // release before deleting referenced object
+      delete this;
     };
   };
   // Unlock job instance
@@ -252,25 +225,44 @@ GMJobQueue::GMJobQueue(int priority):priority_(priority) {
 
 bool GMJobQueue::Push(GMJobRef& ref) {
   if(ref) {
-    return ref->SwitchQueue(this, false, false);
+    return ref->SwitchQueue(this);
   };
   return false;
 }
 
 GMJobRef GMJobQueue::Pop() {
-  Glib::Mutex::Lock qlock(lock_);
+  Glib::RecMutex::Lock qlock(lock_);
   if(queue_.empty()) return GMJobRef();
   GMJobRef ref(queue_.front());
-  ref->SwitchQueue(NULL, true, false); 
+  ref->SwitchQueue(NULL); 
   return ref;
 }
 
 bool GMJobQueue::Unpop(GMJobRef& ref) {
   if(ref) {
-    return ref->SwitchQueue(this, false, true);
+    return ref->SwitchQueue(this, true);
   };
   return false;
 }
 
+bool GMJobQueue::Erase(GMJobRef& ref) {
+  if(!ref) return false;
+  Glib::RecMutex::Lock lock(lock_);
+  if(ref->queue == this) {
+    ref->SwitchQueue(NULL);
+    return true;
+  };
+  return false;
+}
+
+bool GMJobQueue::Exists(const GMJobRef& ref) const {
+  if(!ref) return false;
+  Glib::RecMutex::Lock lock(const_cast<Glib::RecMutex&>(lock_));
+  return (ref->queue == this);
+}
+
+void GMJobQueue::Sort(bool (*compare)(GMJobRef const& first, GMJobRef const& second)) {
+  queue_.sort(compare);
+}
 
 } // namespace ARex

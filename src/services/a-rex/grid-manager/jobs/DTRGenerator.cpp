@@ -34,9 +34,11 @@ void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
 
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
-bool compare_job_description(GMJob const& first, GMJob const& second) {
-  int priority_first = first.GetLocalDescription() ? first.GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
-  int priority_second = first.GetLocalDescription() ? second.GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
+bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
+  if(!first) return false;
+  if(!second) return false;
+  int priority_first = first->GetLocalDescription() ? first->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
+  int priority_second = first->GetLocalDescription() ? second->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
   return priority_first > priority_second;
 }
 
@@ -59,19 +61,13 @@ void DTRGenerator::thread() {
     event_lock.lock();
     std::list<std::string>::iterator it_cancel = jobs_cancelled.begin();
     while (it_cancel != jobs_cancelled.end()) {
-      // check if it is still in received queue
-      std::list<GMJob>::iterator it_jobs = jobs_received.begin();
-      for(; it_jobs != jobs_received.end(); ++it_jobs) {
-        if(*it_jobs == *it_cancel) break;
-      };
-      if(it_jobs != jobs_received.end()) {
-        jobs_received.erase(it_jobs);
-        continue;
-      };
-      // job must be in scheduler already
-      event_lock.unlock();
-      processCancelledJob(*it_cancel);
-      event_lock.lock();
+      // check if it is still in received queue and remove
+      if(!jobs_received.Erase(*it_cancel)) {
+        // job must be in scheduler already
+        event_lock.unlock();
+        processCancelledJob(*it_cancel);
+        event_lock.lock();
+      }
       it_cancel = jobs_cancelled.erase(it_cancel);
     }
 
@@ -87,28 +83,26 @@ void DTRGenerator::thread() {
     }
 
     // finally new jobs
-    std::list<GMJob>::iterator it_jobs = jobs_received.begin();
+
     // it can happen that the list grows faster than the jobs are processed
     // so here we only process for a small time to avoid blocking other
     // jobs finishing
     Arc::Time limit(Arc::Time() + Arc::Period(30));
 
     // sort the list by job priority
-    jobs_received.sort(compare_job_description);
-    while (it_jobs != jobs_received.end() && Arc::Time() < limit) {
+    jobs_received.Sort(compare_job_description);
+    GMJobRef job = jobs_received.Pop();
+    while (job && Arc::Time() < limit) {
       event_lock.unlock();
-      bool jobAccepted = processReceivedJob(*it_jobs);
-      processReceivedJob(*it_jobs);
+      bool jobAccepted = processReceivedJob(job);
       event_lock.lock();
-      JobId jobid(it_jobs->get_id());
-      it_jobs = jobs_received.erase(it_jobs);
       if(!jobAccepted) {
-logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
-jobs.RequestAttention(jobid);
-}
+logger.msg(Arc::ERROR, "%s: Requesting attention", job->get_id());
+        jobs.RequestAttention(job); // pass job back
+      }
     }
     event_lock.unlock();
-    Glib::usleep(50000);
+    Glib::usleep(50000); // replace by wait for abort
   }
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler->stop();
@@ -133,7 +127,9 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
     config(config),
     staging_conf(config),
     info(config),
-    jobs(jobs) {
+    jobs(jobs),
+    jobs_received(JobsList::ProcessingQueuePriority+1),
+    jobs_processing(JobsList::ProcessingQueuePriority+1) {
 
   if (!staging_conf) return;
   // Set log level for DTR in job.id.errors files
@@ -218,7 +214,7 @@ void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
   event_lock.unlock();
 }
 
-void DTRGenerator::receiveJob(const GMJob& job) {
+void DTRGenerator::receiveJob(GMJobRef& job) {
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
@@ -227,73 +223,72 @@ void DTRGenerator::receiveJob(const GMJob& job) {
   // Add to jobs list even if Generator is stopped, so that A-REX doesn't
   // think that staging has finished.
   event_lock.lock();
-  jobs_received.push_back(job);
+  jobs_received.Push(job);
   event_lock.unlock();
 }
 
-void DTRGenerator::cancelJob(const GMJob& job) {
+void DTRGenerator::cancelJob(const GMJobRef& job) {
+  if(!job) return;
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
   }
 
   event_lock.lock();
-  jobs_cancelled.push_back(job.get_id());
+  jobs_cancelled.push_back(job->get_id());
   event_lock.unlock();
 }
 
-bool DTRGenerator::queryJobFinished(GMJob& job) {
+bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
+  if(!job) return false;
 
   // Data staging is finished if the job is in finished_jobs and
   // not in active_dtrs or jobs_received.
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
-    if (*i == job) {
-      event_lock.unlock();
-      return false;
-    }
+  if(jobs_received.Exists(job)) {
+    event_lock.unlock();
+    return false;
   }
   event_lock.unlock();
 
   // check if any DTRs in this job are still active
   lock.lock();
-  if (active_dtrs.find(job.get_id()) != active_dtrs.end()) {
+  if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
     lock.unlock();
     return false;
   }
-  std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
+  std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
   if (i != finished_jobs.end() && !i->second.empty()) {
     // add failure to job if any DTR failed
-    job.AddFailure(i->second);
-    finished_jobs[job.get_id()] = "";
+    job->AddFailure(i->second);
+    finished_jobs[job->get_id()] = "";
   }
   lock.unlock();
   return true;
 }
 
-bool DTRGenerator::hasJob(const GMJob& job) {
+bool DTRGenerator::hasJob(const GMJobRef& job) {
+  if(!job) return false;
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
-    if (*i == job) {
-      event_lock.unlock();
-      return true;
-    }
+  if(jobs_received.Exists(job)) {
+    event_lock.unlock();
+    return true;
   }
   event_lock.unlock();
 
   // check if any DTRs in this job are still active
   lock.lock();
-  if (active_dtrs.find(job.get_id()) != active_dtrs.end()) {
+  if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
     lock.unlock();
     return true;
   }
 
   // finally check finished jobs
-  std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
+  std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
   if (i != finished_jobs.end()) {
     lock.unlock();
     return true;
@@ -303,33 +298,32 @@ bool DTRGenerator::hasJob(const GMJob& job) {
   return false;
 }
 
-void DTRGenerator::removeJob(const GMJob& job) {
+void DTRGenerator::removeJob(const GMJobRef& job) {
+  if(!job) return;
 
   // check if this job is still in the received jobs queue
   event_lock.lock();
-  for (std::list<GMJob>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
-    if (*i == job) {
-      event_lock.unlock();
-      logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job.get_id());
-      return;
-    }
+  if(jobs_received.Exists(job)) {
+    event_lock.unlock();
+    logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job->get_id());
+    return;
   }
   event_lock.unlock();
 
   // check if any DTRs in this job are still active
   lock.lock();
-  if (active_dtrs.find(job.get_id()) != active_dtrs.end()) {
+  if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
     lock.unlock();
-    logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job.get_id());
+    logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job->get_id());
     return;
   }
 
   // finally check finished jobs
-  std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
+  std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
   if (i == finished_jobs.end()) {
     // warn if not in finished
     lock.unlock();
-    logger.msg(Arc::WARNING, "%s: Trying remove job from data staging which does not exist", job.get_id());
+    logger.msg(Arc::WARNING, "%s: Trying remove job from data staging which does not exist", job->get_id());
     return;
   }
   finished_jobs.erase(i);
@@ -352,6 +346,17 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
   logger.msg(Arc::DEBUG, "%s: Received DTR %s to copy file %s in state %s",
                           jobid, dtr->get_id(), dtr->get_source()->str(), dtr->get_status().str());
+  GMJobRef job = jobs_processing.Find(jobid);
+  if(!job) {
+    // This job is not being processed anymore (somehow)
+    logger.msg(Arc::ERROR, "%s: Received DTR belongs to inactive job", jobid);
+    scheduler->cancelDTRs(jobid); // Cancel rest of such DTRs
+    lock.lock();
+    finished_jobs[jobid] = std::string("Job was gone while performing data transfer");
+    active_dtrs.erase(jobid);
+    lock.unlock();
+    return false;
+  }
 
   uid_t job_uid = config.StrictSession() ? dtr->get_local_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? dtr->get_local_user().get_gid() : 0;
@@ -366,8 +371,6 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     session_dir = config.SessionRoot(jobid) + '/' + jobid;
   }
 
-  // create JobDescription object to pass to job_..write_file methods
-  GMJob job(jobid, dtr->get_local_user(), session_dir);
   std::string dtr_transfer_statistics;
   
   if (dtr->error() && dtr->is_mandatory() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
@@ -439,11 +442,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
         }
 
         // write back .output file
-        if (!job_output_write_file(job, config, files)) {
+        if (!job_output_write_file(*job, config, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of output files", jobid);
         }
         if(!uploaded_file.pfn.empty()) {
-          if(!job_output_status_add_file(job, config, uploaded_file)) {
+          if(!job_output_status_add_file(*job, config, uploaded_file)) {
             logger.msg(Arc::WARNING, "%s: Failed to write list of output status files", jobid);
           }
         }
@@ -465,7 +468,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           Arc::URL dtr_lfn(dtr->get_source()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
             struct stat st;
-            Arc::FileStat(job.SessionDir() + i->pfn, &st, job_uid, job_gid, true);
+            Arc::FileStat(job->SessionDir() + i->pfn, &st, job_uid, job_gid, true);
             dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
             break;
@@ -474,7 +477,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         }
         // write back .input file
-        if (!job_input_write_file(job, config, files)) {
+        if (!job_input_write_file(*job, config, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of input files", jobid);
         }
       }
@@ -503,7 +506,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
   
   // Print transfer statistics
-  std::string fname = config.ControlDir() + "/job." + job.get_id() + ".statistics";
+  std::string fname = config.ControlDir() + "/job." + job->get_id() + ".statistics";
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
   if(f.is_open() ) {
     f << dtr_transfer_statistics << std::endl;  
@@ -562,7 +565,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         }
       }
-      if (delete_all_files(job.SessionDir(), files, true, job_uid, job_gid) == 2)
+      if (delete_all_files(job->SessionDir(), files, true, job_uid, job_gid) == 2)
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
     }
     // clean up cache joblinks
@@ -573,7 +576,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     std::list<FileData> files;
     if (!job_input_read_file(jobid, config, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
-    else if (delete_all_files(job.SessionDir(), files, false, job_uid, job_gid) == 2)
+    else if (delete_all_files(job->SessionDir(), files, false, job_uid, job_gid) == 2)
       logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
   }
   // add to finished jobs (without overwriting existing error) and finally
@@ -593,20 +596,22 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   lock.unlock();
 
 logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
-  jobs.RequestAttention(jobid);
+  jobs_processing.Erase(job);
+  jobs.RequestAttention(job);
 
   return true;
 }
 
 
-bool DTRGenerator::processReceivedJob(GMJob& job) {
+bool DTRGenerator::processReceivedJob(GMJobRef& job) {
+  if(!job) return false;
 
-  JobId jobid(job.get_id());
+  JobId jobid(job->get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
-             (job.get_state() == JOB_STATE_PREPARING ? "download" : "upload"));
+             (job->get_state() == JOB_STATE_PREPARING ? "download" : "upload"));
 
-  uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
-  uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
+  uid_t job_uid = config.StrictSession() ? job->get_user().get_uid() : 0;
+  uid_t job_gid = config.StrictSession() ? job->get_user().get_gid() : 0;
 
   // Default credentials to be used by transfering files if not specified per file
   std::string default_cred = job_proxy_filename(jobid, config); // TODO: drop job.proxy as source of delegation
@@ -643,18 +648,16 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
     lock.lock();
     finished_jobs[jobid] = std::string("Failed to read list of output files");
     lock.unlock();
-    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
-    //jobs.RequestAttention(jobid);
+    if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     return false;
   }
 
-  if (job.get_state() == JOB_STATE_PREPARING) {
+  if (job->get_state() == JOB_STATE_PREPARING) {
     if (!job_input_read_file(jobid, config, files)) {
       logger.msg(Arc::ERROR, "%s: Failed to read list of input files", jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to read list of input files");
       lock.unlock();
-      //jobs.RequestAttention(jobid);
       return false;
     }
     // check for duplicates (see bug 1285)
@@ -665,7 +668,6 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
           lock.lock();
           finished_jobs[jobid] = std::string("Duplicate file in list of input files: " + i->pfn);
           lock.unlock();
-          //jobs.RequestAttention(jobid);
           return false;
         }
       }
@@ -685,16 +687,15 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
       }
     }
     // pre-clean session dir before downloading
-    if (delete_all_files(job.SessionDir(), files, false, job_uid, job_gid) == 2) {
+    if (delete_all_files(job->SessionDir(), files, false, job_uid, job_gid) == 2) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
       lock.unlock();
-      //jobs.RequestAttention(jobid);
       return false;
     }
   }
-  else if (job.get_state() == JOB_STATE_FINISHING) {
+  else if (job->get_state() == JOB_STATE_FINISHING) {
     files = output_files;
     std::list<FileData>::iterator it;
     // add any output files dynamically added by the user during the job and
@@ -707,20 +708,19 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
         std::string cred(it->cred);
         if(cred.empty()) cred = default_cred;
         std::list<FileData> files_;
-        std::string outputfilelist = job.SessionDir() + std::string("/") + it->pfn.substr(2);
+        std::string outputfilelist = job->SessionDir() + std::string("/") + it->pfn.substr(2);
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
         if (!job_Xput_read_file(outputfilelist, files_, job_uid, job_gid)) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
           // Only write this failure if no previous failure
-          if (!job.CheckFailure(config)) {
+          if (!job->CheckFailure(config)) {
             finished_jobs[jobid] = std::string("Error reading user generated output file list");
           } else {
             finished_jobs[jobid] = "";
           }
           lock.unlock();
           CleanCacheJobLinks(config, job);
-          //jobs.RequestAttention(jobid);
           return false;
         }
         // Attach dynamic files and assign credentials to them unless already available
@@ -735,28 +735,27 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
       if (it->pfn.rfind('/') == it->pfn.length()-1) {
         if (it->lfn.find(':') != std::string::npos) {
           std::string cred(it->cred);
-          std::string dir(job.SessionDir() + it->pfn);
+          std::string dir(job->SessionDir() + it->pfn);
           std::list<std::string> entries;
           if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
             logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
             lock.lock();
             // Only write this failure if no previous failure
-            if (!job.CheckFailure(config)) {
+            if (!job->CheckFailure(config)) {
               finished_jobs[jobid] = std::string("Failed to list output directory");
             } else {
               finished_jobs[jobid] = "";
             }
             lock.unlock();
             CleanCacheJobLinks(config, job);
-            //jobs.RequestAttention(jobid);
             return false;
           }
           // add entries which are not directories or links to output file list
           struct stat st;
           for (std::list<std::string>::iterator i = entries.begin(); i != entries.end(); ++i) {
             if (Arc::FileStat(*i, &st, job_uid, job_gid, false) && S_ISREG(st.st_mode)) {
-              std::string lfn(it->lfn + '/' + i->substr(job.SessionDir().length()+it->pfn.length()));
-              std::string pfn(i->substr(job.SessionDir().length()));
+              std::string lfn(it->lfn + '/' + i->substr(job->SessionDir().length()+it->pfn.length()));
+              std::string pfn(i->substr(job->SessionDir().length()));
               logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
               FileData fd(pfn, lfn);
               fd.cred = cred;
@@ -784,7 +783,6 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
             finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
             lock.unlock();
             CleanCacheJobLinks(config, job);
-            //jobs.RequestAttention(jobid);
             return false;
           }
           Arc::URL u_it(it->lfn);
@@ -797,7 +795,6 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
               finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
               lock.unlock();
               CleanCacheJobLinks(config, job);
-              //jobs.RequestAttention(jobid);
               return false;
             }
             replication = true;
@@ -810,43 +807,40 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
         break;
     }
     // pre-clean session dir before uploading
-    if (delete_all_files(job.SessionDir(), files, true, job_uid, job_gid) == 2) {
+    if (delete_all_files(job->SessionDir(), files, true, job_uid, job_gid) == 2) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
       lock.unlock();
       CleanCacheJobLinks(config, job);
-      //jobs.RequestAttention(jobid);
       return false;
     }
   }
   else {
     // bad state
-    logger.msg(Arc::ERROR, "%s: Received job in a bad state: %s", jobid, job.get_state_name());
+    logger.msg(Arc::ERROR, "%s: Received job in a bad state: %s", jobid, job->get_state_name());
     lock.lock();
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
     lock.unlock();
-    //jobs.RequestAttention(jobid);
     return false;
   }
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(config.ControlDir());
   usercfg.CACertificatesDirectory(config.CertDir());
-  if (config.StrictSession()) usercfg.SetUser(job.get_user());
+  if (config.StrictSession()) usercfg.SetUser(job->get_user());
   // TODO: chelonia bartenders
 
   // create job.id.errors file with correct permissions to add to Logger
-  job_errors_mark_put(job, config);
+  job_errors_mark_put(*job, config);
 
   if (files.empty()) {
     // if job is FINISHING then clean up cache joblinks
-    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
+    if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     // nothing else to do so wake up GM thread and return
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
-    //jobs.RequestAttention(jobid);
     return false;
   }
 
@@ -861,7 +855,7 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
     std::string source;
     std::string original_source;
     std::string destination;
-    if (job.get_state() == JOB_STATE_PREPARING) {
+    if (job->get_state() == JOB_STATE_PREPARING) {
       // If ACIX should be used, use it as source and add original URL as
       // location after DTR is created
       // If cache=check then don't use remote caches as the copy must be up to date
@@ -880,10 +874,10 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
       else {
         source = i->lfn;
       }
-      destination = "file:" + job.SessionDir() + i->pfn;
+      destination = "file:" + job->SessionDir() + i->pfn;
     }
     else {
-      source = "file:" + job.SessionDir() + i->pfn;
+      source = "file:" + job->SessionDir() + i->pfn;
       // Upload to dest ending in '/': append filename to lfn
       // Note: won't work for nested URLs used for index services
       if (i->lfn.rfind('/') == i->lfn.length()-1) {
@@ -932,16 +926,16 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
     dtr_log->addDestination(*dest);
 
     // create DTR and send to Scheduler
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job.get_user().get_uid(), dtr_log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), dtr_log));
     // set retry count (tmp errors only)
     dtr->set_tries_left(staging_conf.max_retries);
     // allow the same file to be uploaded to multiple locations with same LFN
     dtr->set_force_registration(replication);
     // set sub-share for download or upload
-    dtr->set_sub_share((job.get_state() == JOB_STATE_PREPARING) ? "download" : "upload");
+    dtr->set_sub_share((job->get_state() == JOB_STATE_PREPARING) ? "download" : "upload");
     // set priority as given in job description
-    if (job.GetLocalDescription(config))
-      dtr->set_priority(job.GetLocalDescription(config)->priority);
+    if (job->GetLocalDescription(config))
+      dtr->set_priority(job->GetLocalDescription(config)->priority);
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
     // set real location if ACIX is used
@@ -955,7 +949,7 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
     DataStaging::DTRCacheParameters cache_parameters;
     CacheConfig cache_params(config.CacheParams());
     // Substitute cache paths
-    cache_params.substitute(config, job.get_user());
+    cache_params.substitute(config, job->get_user());
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
     cache_parameters.remote_cache_dirs = cache_params.getRemoteCacheDirs();
     dtr->set_cache_parameters(cache_parameters);
@@ -977,20 +971,20 @@ bool DTRGenerator::processReceivedJob(GMJob& job) {
       continue;
     }
     job_desc->transfershare = dtr->get_transfer_share();
-    if (!job_local_write_file(job, config, *job_desc)) {
+    if (!job_local_write_file(*job, config, *job_desc)) {
       logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
     }
     delete job_desc;
   }
   if (!staging) { // nothing needed staged so mark as finished
     // if job is FINISHING then clean up cache joblinks
-    if (job.get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
+    if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     lock.lock();
     finished_jobs[jobid] = "";
     lock.unlock();
-    //jobs.RequestAttention(jobid);
     return false;
   }
+  jobs_processing.Push(job); // take this job
   return true;
 }
 
@@ -1002,15 +996,16 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
   return true;
 }
 
-DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJob& job) {
+DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef& job) {
+  if(!job) return uploadedFilesError;
 
-  JobId jobid(job.get_id());
-  uid_t job_uid = config.StrictSession() ? job.get_user().get_uid() : 0;
-  uid_t job_gid = config.StrictSession() ? job.get_user().get_gid() : 0;
+  JobId jobid(job->get_id());
+  uid_t job_uid = config.StrictSession() ? job->get_user().get_uid() : 0;
+  uid_t job_gid = config.StrictSession() ? job->get_user().get_gid() : 0;
 
   std::string session_dir;
-  if (job.GetLocalDescription(config) && !job.GetLocalDescription(config)->sessiondir.empty())
-    session_dir = job.GetLocalDescription(config)->sessiondir;
+  if (job->GetLocalDescription(config) && !job->GetLocalDescription(config)->sessiondir.empty())
+    session_dir = job->GetLocalDescription(config)->sessiondir;
   else
     session_dir = config.SessionRoot(jobid) + '/' + jobid;
   // get input files list
@@ -1019,7 +1014,7 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJob& j
   std::list<FileData> input_files;
   std::list<FileData> input_files_ = input_files;
   if (!job_input_read_file(jobid, config, input_files)) {
-    job.AddFailure("Error reading list of input files");
+    job->AddFailure("Error reading list of input files");
     logger.msg(Arc::ERROR, "%s: Can't read list of input files", jobid);
     return uploadedFilesError;
   }
@@ -1046,13 +1041,13 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJob& j
       input_files_.clear();
       for (FileData::iterator it = input_files.begin(); it != input_files.end(); ++it)
         input_files_.push_back(*it);
-      if (!job_input_write_file(job, config, input_files_)) {
+      if (!job_input_write_file(*job, config, input_files_)) {
         logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
       }
     }
     else if (err == 1) { // critical failure
       logger.msg(Arc::ERROR, "%s: Critical error for uploadable file %s", jobid, i->pfn);
-      job.AddFailure("User file: "+i->pfn+" - "+error);
+      job->AddFailure("User file: "+i->pfn+" - "+error);
       res = uploadedFilesError;
       break;
     }
@@ -1062,10 +1057,10 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJob& j
     }
   }
   // check for timeout
-  if ((res == uploadedFilesMissing) && ((time(NULL) - job.GetStartTime()) > 600)) { // hard-coded timeout
+  if ((res == uploadedFilesMissing) && ((time(NULL) - job->GetStartTime()) > 600)) { // hard-coded timeout
     for (FileData::iterator i = input_files.begin(); i != input_files.end(); ++i) {
       if (i->lfn.find(":") == std::string::npos) {
-        job.AddFailure("User file: "+i->pfn+" - Timeout waiting");
+        job->AddFailure("User file: "+i->pfn+" - Timeout waiting");
       }
     }
     logger.msg(Arc::ERROR, "%s: Uploadable files timed out", jobid);
@@ -1251,15 +1246,16 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
   }
 }
 
-void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJob& job) const {
+void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& job) const {
+  if(!job) return;
 
   CacheConfig cache_config(config.CacheParams());
-  cache_config.substitute(config, job.get_user());
+  cache_config.substitute(config, job->get_user());
   // there is no uid switch during Release so uid/gid is not so important
   Arc::FileCache cache(cache_config.getCacheDirs(),
                        cache_config.getRemoteCacheDirs(),
                        cache_config.getDrainingCacheDirs(),
-                       job.get_id(), job.get_user().get_uid(), job.get_user().get_gid());
+                       job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();
 }
 

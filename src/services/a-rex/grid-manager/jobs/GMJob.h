@@ -76,7 +76,7 @@ class GMJob {
 
   // Job references handler
 
-  Glib::Mutex ref_lock;
+  Glib::RecMutex ref_lock;
   int ref_count;
 
   /// Inform job it has new GMJobRef associated
@@ -90,7 +90,7 @@ class GMJob {
 
   /// Change queue to which job belongs
   /// Returns true if queue was changed.
-  bool SwitchQueue(GMJobQueue* new_queue, bool no_lock, bool to_front);
+  bool SwitchQueue(GMJobQueue* new_queue, bool to_front = false);
 
   /// Queue to which job is currently associated
   GMJobQueue* queue;
@@ -110,7 +110,6 @@ class GMJob {
   GMJob(const JobId &job_id,const Arc::User& user,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
   GMJob(void);
   GMJob(const GMJob &job);
-  GMJob& operator=(const GMJob &job);
   ~GMJob(void);
   job_state_t get_state() const { return job_state; };
   const char* get_state_name() const;
@@ -172,6 +171,14 @@ public:
     if(job_) job_->AddReference();
   }
 
+  bool operator==(GMJobRef const& other) const {
+    return (job_ == other.job_);
+  }
+
+  bool operator==(GMJob const* job) const {
+    return (job_ == job);
+  }
+
   operator bool() const {
     return job_ != NULL;
   }
@@ -206,7 +213,7 @@ public:
 class GMJobQueue {
  friend GMJob;
  private:
-  Glib::Mutex lock_;
+  Glib::RecMutex lock_;
   int const priority_;
   std::list<GMJob*> queue_;
   GMJobQueue();
@@ -216,6 +223,30 @@ class GMJobQueue {
   bool Push(GMJobRef& ref);
   GMJobRef Pop();
   bool Unpop(GMJobRef& ref);
+  bool Erase(GMJobRef& ref);
+  bool Exists(const GMJobRef& ref) const;
+  void Sort(bool (*compare)(GMJobRef const& first, GMJobRef const& second));
+  template<typename KEY> bool Erase(KEY const& key) {
+    Glib::RecMutex::Lock lock(lock_);
+    for(std::list<GMJob*>::iterator i = queue_.begin();
+                       i != queue_.end(); ++i) {
+      if((*i) && (**i == key)) {
+        (*i)->SwitchQueue(NULL);
+        return true;
+      };
+    };
+    return false;
+  };
+  template<typename KEY> GMJobRef Find(KEY const& key) const {
+    Glib::RecMutex::Lock lock(const_cast<Glib::RecMutex&>(lock_));
+    for(std::list<GMJob*>::const_iterator i = queue_.begin();
+                       i != queue_.end(); ++i) {
+      if((*i) && (**i == key)) {
+        return GMJobRef(*i);
+      };
+    };
+    return GMJobRef();
+  };
 };
 
 

@@ -10,7 +10,7 @@ namespace ARex {
 
 class GMConfig;
 class FileData;
-class GMJob;
+class GMJobRef;
 class JobsList;
 
 /**
@@ -38,7 +38,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
  private:
   /** Active DTRs. Map of job id to DTR id. */
   std::multimap<std::string, std::string> active_dtrs;
-  /** Jobs where all DTRs are finished. Map of job id to failure reason (empty if success) */
+  /** Jobs where all DTRs are finished. Map of job id to failure reason (empty if success)
+     Finished jobs are stored only by ID because they references are already passed
+     back to one of main processing queue. */
   std::map<std::string, std::string> finished_jobs;
   /** Lock for lists */
   Arc::SimpleCondition lock;
@@ -47,7 +49,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** DTRs received */
   std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
-  std::list<GMJob> jobs_received;
+  GMJobQueue jobs_received;
+  /** Jobs being processing */
+  GMJobQueue jobs_processing;
   /** Jobs cancelled. List of Job IDs. */
   std::list<std::string> jobs_cancelled;
   /** Lock for events */
@@ -74,11 +78,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
 
   //static DTRGeneratorCallback receive_dtr;
   
-  /** Function and arguments for callback when all DTRs for a job have finished */
-  /*
-  void (*kicker_func)(void*);
-  void* kicker_arg;
-  */
+  /** The processing object for passing jobs when all DTRs for a job have finished */
   JobsList& jobs;
 
   /** Private constructors */
@@ -91,7 +91,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** Process a received DTR */
   bool processReceivedDTR(DataStaging::DTR_ptr dtr);
   /** Process a received job */
-  bool processReceivedJob(GMJob& job);
+  bool processReceivedJob(GMJobRef& job);
   /** Process a cancelled job */
   bool processCancelledJob(const std::string& jobid);
 
@@ -99,7 +99,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void readDTRState(const std::string& dtr_log);
 
   /** Clean up joblinks dir in caches for given job (called at the end of upload) */
-  void CleanCacheJobLinks(const GMConfig& config, const GMJob& job) const;
+  void CleanCacheJobLinks(const GMConfig& config, const GMJobRef& job) const;
 
   /** Check that user-uploadable file exists.
    * Returns 0 - if file exists
@@ -149,7 +149,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * sends them to the Scheduler.
    * @param job Job description object.
    */
-  void receiveJob(const GMJob& job);
+  void receiveJob(GMJobRef& job);
 
   /**
    * This method is used by A-REX to cancel on-going DTRs. A cancel request
@@ -157,7 +157,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * asychronously deals with cancelling the DTRs.
    * @param job The job which is being cancelled
    */
-  void cancelJob(const GMJob& job);
+  void cancelJob(const GMJobRef& job);
 
   /**
    * Query status of DTRs in job. If all DTRs are finished, returns true,
@@ -168,14 +168,14 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * reason.
    * @return True if all DTRs in the job are finished, false otherwise.
    */
-  bool queryJobFinished(GMJob& job);
+  bool queryJobFinished(const GMJobRef& job);
 
   /**
    * Query whether the Generator has a record of this job.
    * @param job Job to query.
    * @return True if the job is active or finished.
    */
-  bool hasJob(const GMJob& job);
+  bool hasJob(const GMJobRef& job);
 
   /**
    * Remove the job from the Generator. Only finished jobs will be removed,
@@ -183,7 +183,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * method should be called after A-REX has finished PREPARING or FINISHING.
    * @param job The job to remove.
    */
-  void removeJob(const GMJob& job);
+  void removeJob(const GMJobRef& job);
 
   enum checkUploadedFilesResult {
     uploadedFilesSuccess = 0,
@@ -198,7 +198,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * @return 0 if file exists, 1 if it is not a proper file or other error,
    * 2 if the file not there yet
    */
-  checkUploadedFilesResult checkUploadedFiles(GMJob& job);
+  checkUploadedFilesResult checkUploadedFiles(GMJobRef& job);
 };
 
 } // namespace ARex

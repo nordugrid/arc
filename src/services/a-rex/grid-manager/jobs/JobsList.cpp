@@ -42,9 +42,9 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0),
     jobs_polling(0),
-    jobs_wait_for_running(1),
-    jobs_attention(2),
-    jobs_processing(3) {
+    jobs_wait_for_running(WaitQueuePriority),
+    jobs_attention(AttentionQueuePriority),
+    jobs_processing(ProcessingQueuePriority) {
 
   job_slow_polling_last = time(NULL);
   job_slow_polling_dir = NULL;
@@ -762,14 +762,14 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
 bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
 
   // first check if job is already in the system
-  if (!dtr_generator.hasJob(*i)) {
-    dtr_generator.receiveJob(*i);
+  if (!dtr_generator.hasJob(i)) {
+    dtr_generator.receiveJob(i);
     return true;
   }
   // if job has already failed then do not set failed state again if DTR failed
   bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
-  if (dtr_generator.queryJobFinished(*i)) {
+  if (dtr_generator.queryJobFinished(i)) {
     // DTR part already finished. Do other checks if needed.
 
     bool done = true;
@@ -782,7 +782,7 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
     }
     else {
       if (!up) { // check for user-uploadable files if downloading
-        DTRGenerator::checkUploadedFilesResult res = dtr_generator.checkUploadedFiles(*i);
+        DTRGenerator::checkUploadedFilesResult res = dtr_generator.checkUploadedFiles(i);
         if (res == DTRGenerator::uploadedFilesMissing) { // still going
           // Every file will cause request for attention.
           // So polling is mostly for handling timeout.
@@ -800,7 +800,7 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
         state_changed = true;
       }
     }
-    if (done) dtr_generator.removeJob(*i);
+    if (done) dtr_generator.removeJob(i);
     return result;
   }
   else {
@@ -1326,7 +1326,7 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
     if(job_cancel_mark_check(i->job_id,config)) {
       logger.msg(Arc::INFO,"%s: Canceling job because of user request",i->job_id);
       if (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING) {
-        dtr_generator.cancelJob(*i);
+        dtr_generator.cancelJob(i);
       }
       // kill running child
       if(i->child) {
