@@ -380,6 +380,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if (default_lrms.empty()) {
         logger.msg(Arc::ERROR, "defaultlrms is empty"); return false;
       }
+      if (default_lrms.compare("slurm") == 0) { // allow lower case slurm in config
+        default_lrms = "SLURM"; 
+      }
       config.default_lrms = default_lrms;
       std::string default_queue = Arc::ConfigIni::NextArg(rest);
       if (!default_queue.empty()) {
