@@ -60,7 +60,6 @@ config_import_section "grid-manager"
 
 HOSTNAME=$CONFIG_hostname
 PERFDIR=${CONFIG_perflogdir:-/var/log/arc/perfdata}
-NYTPROFDIR=${PERFDIR}/perl_nytprof
 
 # sleep a bit, waiting for performance data to accumulate
 sleep 86400
@@ -71,6 +70,6 @@ MERGEDATE=`date +%Y%m%d`
 write_static_system_data $PERFDIR/sysinfo.perflog
 
 # extract infosys data from nytprofd databases
-/usr/share/arc/PerfData.pl --config=$ARC_CONFIG
+$pkgdatadir/PerfData.pl --config=$ARC_CONFIG || exit $?
 
 
