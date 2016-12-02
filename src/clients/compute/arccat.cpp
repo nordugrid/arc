@@ -155,6 +155,8 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     return 1;
   }
 
+  Arc::URL stdoutdst("stdio:///stdout");
+
   int retval = 0;
   for (std::list<Arc::Job>::const_iterator it = jobs.begin();
        it != jobs.end(); it++) {
@@ -203,12 +205,11 @@ int RUNMAIN(arccat)(int argc, char **argv) {
 
     logger.msg(Arc::VERBOSE, "Catting %s for job %s", resourceName, it->JobID);
 
-    std::ifstream is(filename.c_str());
-    char c;
-    while (is.get(c)) {
-      std::cout.put(c);
+    // Use File DMC in order to handle proper writing to stdout (e.g. supporting redirection and piping from shell).
+    if (!it->CopyJobFile(usercfg, dst, stdoutdst)) {
+      retval = 1;
+      continue;
     }
-    is.close();
   }
 
   close(tmp_h);
