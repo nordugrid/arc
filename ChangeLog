@@ -1,5 +1,5 @@
 2016-12-02 Martin Skou Andersen <skou@nbi.dk>
-  * Support output redirection from shell in arccat (fixes bug 3613)
+  * Support output redirection from shell in arccat (fixes bug 3613) [bugfix;{31582}]
 
 2016-10-31 Andrii Salnikov <manf@grid.org.ua>
   * [ARC 6] New RunTimeEnvironemnt handling approach without sharing a scripts
