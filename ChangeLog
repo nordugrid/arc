@@ -1,3 +1,12 @@
+2016-12-08 Florido Paganelli <florido.paganelli@hep.lu.se>
+  * Fixed issues with paths and SLURM support in PerfData.pl
+    Revs:{31557,31558,31576}  
+    Type:bug
+  * Data collection in perferator is now done using PerfData.pl 
+    instead of nytprofmerge (attempts to ease issues in bug #3616)
+    Revs:{31578,31579}  
+    Type:minor
+  
 2016-12-02 Martin Skou Andersen <skou@nbi.dk>
   * Support output redirection from shell in arccat (fixes bug 3613) [bugfix;{31582}]
 
