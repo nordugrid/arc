@@ -961,7 +961,6 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
     SetJobState(i, new_state, "(Re)Accepting new job"); // this can be any state, after A-REX restart
     job_result = JobSuccess;
     if(new_state == JOB_STATE_ACCEPTED) {
-//!!            state_changed = true; // to trigger email notification, etc.
       // first phase of job - just  accepted - parse request
       logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);
       if(!job_desc_handler.process_job_req(*i,*i->local)) {
@@ -969,7 +968,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
         i->AddFailure("Could not process job description");
         return JobFailed; // go to next job
       }
-      job_state_write_file(*i,config,i->job_state);
+      job_state_write_file(*i,config,i->job_state); // makes sure job state is stored in proper subdir
       // prepare information for logger
       // This call is not needed here because at higher level make_file()
       // is called for every state change
@@ -977,17 +976,15 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
-      //!!job_state_write_file(*i,config,i->job_state);
       RequestReprocess(i); // process immediately to fall off
     } else if(new_state == JOB_STATE_DELETED) {
-      //!!job_state_write_file(*i,config,i->job_state);
       RequestReprocess(i); // process immediately to fall off
     } else {
       // Generic case
       logger.msg(Arc::INFO,"%s: %s: New job belongs to %i/%i",i->job_id.c_str(),
           GMJob::get_state_name(new_state),i->get_user().get_uid(),i->get_user().get_gid());
       // Make it clean state after restart
-      job_state_write_file(*i,config,i->job_state);
+      job_state_write_file(*i,config,i->job_state); // makes sure job state is stored in proper subdir
       i->Start();
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: old job: %s", i->job_id);
       RequestAttention(i); // process ASAP TODO: consider Reprocess for some states
@@ -1192,7 +1189,6 @@ JobsList::ActJobResult JobsList::ActJobFinishing(GMJobRef i) {
     }
     return JobSuccess;
   } else {
-//!!          state_changed=true; // to send mail
     if(!i->CheckFailure(config)) i->AddFailure("Data upload failed");
     return JobFailed;
   }
@@ -1549,7 +1545,7 @@ bool JobsList::ActJob(GMJobRef& i) {
   };
 
   if(job_result == JobFailed) {
-    // If it is still job failed then just forse everything down
+    // If it is still job failed then just force everything down
     logger.msg(Arc::ERROR,"%s: Delete request due to internal problems",i->job_id);
     SetJobState(i, JOB_STATE_FINISHED, "Job processing failed"); // move to finished in order to remove from list
     i->job_pending=false;
