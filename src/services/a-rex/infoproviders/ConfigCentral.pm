@@ -38,7 +38,6 @@ my $lrms_options = {
     ll_bin_path => '*',
     slurm_bin_path => '*',
     slurm_wakeupperiod => '*',
-    slurm_use_sacct => '*',
     dgbridge_stage_dir => '*',
     dgbridge_stage_prepend => '*',
     boinc_db_host => '*',
@@ -46,8 +45,6 @@ my $lrms_options = {
     boinc_db_name => '*',
     boinc_db_user => '*',
     boinc_db_pass => '*',
-    enable_perflog_reporting => '*',
-    perflogdir => '*',
 };
 my $lrms_share_options = {
     queue_node_string => '*',
