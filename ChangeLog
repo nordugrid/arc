@@ -1,3 +1,16 @@
+2016-12-09 Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Added support for lowercase slurm in arc.conf to match other LRMS
+    Revs:{31580}  
+    Type:minor
+
+2016-12-09 Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Fixed bug 3603 
+    Revs:{31566,31567}  
+    Type:bug
+  * Fixed problem in condor info backend reported by Frederic Schaer
+    Revs:{31569}  
+    Type:bug
+
 2016-12-08 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Fixed issues with paths and SLURM support in PerfData.pl
     Revs:{31557,31558,31576}  

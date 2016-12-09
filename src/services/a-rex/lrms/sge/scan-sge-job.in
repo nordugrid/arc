@@ -41,14 +41,8 @@ if [ ! -z "$perflogdir" ]; then
    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
-# first control_dir is used for storing own files
-
-control_dir=$1
-control_dirs=
-while [ $# -gt 0 ] ; do
-  control_dirs="${control_dirs} $1"
-  shift
-done
+ctr_dir=$1
+shift
 
 # Takes diagfile_acct, SGE qacct command, id and extraargs
 # writes output to diagfile_acct (temporary file for accounting info)
@@ -376,131 +370,129 @@ if [ ! -z "$perflogdir" ]; then
    echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, qstat -u '*': $t" >> $perflogfile
 fi
 
-# Go through directories
-for ctr_dir in $control_dirs ; do
-  # Obtain ids of pending/running jobs stored in job.*.local
-  if [ ! -z "$perflogdir" ]; then
-     start_ts=`date +%s.%N`
+
+# Obtain ids of pending/running jobs stored in job.*.local
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+rjobs=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
+       | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/'`
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, control dir traversal: $t" >> $perflogfile
+fi
+
+if [ -z "$rjobs" ] ; then continue ; fi
+ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
+if [ -z "$ids" ] ; then continue ; fi
+# compare them to running jobs and find missing
+bids=
+for id in $ids ; do
+  found=`echo "$pids" | grep "^$id"`
+  if [ -z "$found" ] ; then
+    bids="$bids $id"
   fi
-  rjobs=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
-         | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/'`
-  if [ ! -z "$perflogdir" ]; then
-     stop_ts=`date +%s.%N`
-     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-     echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, control dir traversal: $t" >> $perflogfile
+done
+# go through missing ids
+for id in $bids ; do
+  # find grid job corresponding to current local id
+  jobfile=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
+           | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
+           | xargs grep -l "localid=$id\$" 2>/dev/null`
+  if [ -z "$jobfile" ] ; then continue ; fi
+  # unless running as superuser, skip jobs not belonging to the current user
+  if [ "$my_id" != '0' ] ; then
+    if [ ! -O "$jobfile" ] ; then continue ; fi
   fi
+  # find who runs this job
+  uid=$(get_owner_uid "$jobfile")
+  [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
+  # extract grid id
+  gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
+  donefile="${ctr_dir}/job.${gridid}.lrms_done"
+  countfile="${ctr_dir}/job.${gridid}.lrms_job"
+  failedfile="${ctr_dir}/job.${gridid}.failed"
+  errorsfile="${ctr_dir}/job.${gridid}.errors"
+  localfile="${ctr_dir}/job.${gridid}.local"
+  xmlfile="${ctr_dir}/job.${gridid}.xml"
+  if [ -f "$donefile" ] ; then continue ; fi
+  statusfile="${ctr_dir}/processing/job.${gridid}.status"
+  if [ ! -f "$statusfile" ] ; then continue ; fi
+  status=`cat "$statusfile"`
+  if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
+  # get session directory of this job
+  session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+  commentfile="${session}.comment"
+  commentfile2="${session}/.comment"
+  do_as_uid "$uid" "cat '$commentfile2' >> '$commentfile' 2> /dev/null; rm -f '$commentfile2'";
+  if [  -d "$session" ] ; then
+    diagfile="${session}.diag"
+    diagfile2="${session}/.diag"
+    do_as_uid "$uid" "cat '$diagfile2' >> '$diagfile' 2> /dev/null; rm -f '$diagfile2'";
+    # try to obtain the exit code
+    # $diagfile is owned by the user running the job. Switch user to access it.
+    exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
 
-  if [ -z "$rjobs" ] ; then continue ; fi
-  ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
-  if [ -z "$ids" ] ; then continue ; fi
-  # compare them to running jobs and find missing
-  bids=
-  for id in $ids ; do
-    found=`echo "$pids" | grep "^$id"`
-    if [ -z "$found" ] ; then
-      bids="$bids $id"
+    diagfile_tmp=`mktemp "$TMPDIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
+    diagfile_acct=`mktemp "$TMPDIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
+    noaccounting=
+
+    # qacct can take quite long. Here is a workaround.
+    # Find the accounting file, and copy the last 50000
+    # records to a temp file.
+    acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
+    if [ -f  "$acctfile" ]; then
+      briefacct=`mktemp "$TMPDIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
+      tail -n 50000 "$acctfile" > "$briefacct"
+      if [ $? = 0 ]; then extraargs="-f $briefacct"; fi
+    else
+      # Accounting file is not accessible on this host.
+      noaccounting=1
     fi
-  done
-  # go through missing ids
-  for id in $bids ; do
-    # find grid job corresponding to current local id
-    jobfile=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
-             | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
-             | xargs grep -l "localid=$id\$" 2>/dev/null`
-    if [ -z "$jobfile" ] ; then continue ; fi
-    # unless running as superuser, skip jobs not belonging to the current user
-    if [ "$my_id" != '0' ] ; then
-      if [ ! -O "$jobfile" ] ; then continue ; fi
+
+    eqwmessage=`grep "SGE job state was Eqw" $xmlfile | sed -r 's/<[/]?OtherMessages>//g'`
+
+    # get accounting info. write diag file
+    write_diagfile_acct "$diagfile_acct" "${SGE_BIN_PATH}/qacct" "$id" "$extraargs"
+
+    if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
+
+    # If the last qacct record is about migration,
+    # we should wait for the next qacct record to appear
+    # Delete file, like there was no accounting present at all!
+    if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
+    || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
+        rm -f "$diagfile_acct"
+        olog "SGE job $id: the last record in qacct is about migration. Waiting for next record to appear"
     fi
-    # find who runs this job
-    uid=$(get_owner_uid "$jobfile")
-    [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
-    # extract grid id
-    gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
-    donefile="${ctr_dir}/job.${gridid}.lrms_done"
-    countfile="${ctr_dir}/job.${gridid}.lrms_job"
-    failedfile="${ctr_dir}/job.${gridid}.failed"
-    errorsfile="${ctr_dir}/job.${gridid}.errors"
-    localfile="${ctr_dir}/job.${gridid}.local"
-    xmlfile="${ctr_dir}/job.${gridid}.xml"
-    if [ -f "$donefile" ] ; then continue ; fi
-    statusfile="${ctr_dir}/processing/job.${gridid}.status"
-    if [ ! -f "$statusfile" ] ; then continue ; fi
-    status=`cat "$statusfile"`
-    if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
-    # get session directory of this job
-    session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
-    commentfile="${session}.comment"
-    commentfile2="${session}/.comment"
-    do_as_uid "$uid" "cat '$commentfile2' >> '$commentfile' 2> /dev/null; rm -f '$commentfile2'";
-    if [  -d "$session" ] ; then
-      diagfile="${session}.diag"
-      diagfile2="${session}/.diag"
-      do_as_uid "$uid" "cat '$diagfile2' >> '$diagfile' 2> /dev/null; rm -f '$diagfile2'";
-      # try to obtain the exit code
-      # $diagfile is owned by the user running the job. Switch user to access it.
-      exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
 
-      diagfile_tmp=`mktemp "$TMPDIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
-      diagfile_acct=`mktemp "$TMPDIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
-      noaccounting=
-
-      # qacct can take quite long. Here is a workaround.
-      # Find the accounting file, and copy the last 50000
-      # records to a temp file.
-      acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
-      if [ -f  "$acctfile" ]; then
-        briefacct=`mktemp "$TMPDIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
-        tail -n 50000 "$acctfile" > "$briefacct"
-        if [ $? = 0 ]; then extraargs="-f $briefacct"; fi
-      else
-        # Accounting file is not accessible on this host.
-        noaccounting=1
-      fi
-
-      eqwmessage=`grep "SGE job state was Eqw" $xmlfile | sed -r 's/<[/]?OtherMessages>//g'`
-
-      # get accounting info. write diag file
-      write_diagfile_acct "$diagfile_acct" "${SGE_BIN_PATH}/qacct" "$id" "$extraargs"
-
-      if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
-
-      # If the last qacct record is about migration,
-      # we should wait for the next qacct record to appear
-      # Delete file, like there was no accounting present at all!
-      if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
-      || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
-          rm -f "$diagfile_acct"
-          olog "SGE job $id: the last record in qacct is about migration. Waiting for next record to appear"
-      fi
-
-      # Add accounting info to $diagfile
-      add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$uid" "$commentfile" "$ctr_dir"
-      if [ $? = 0 ]; then
-	  continue
-      fi
-    fi # session directory exists
+    # Add accounting info to $diagfile
+    add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$uid" "$commentfile" "$ctr_dir"
+    if [ $? = 0 ]; then
+	continue
+    fi
+  fi # session directory exists
 
     # This section is only reached when accounting info is not present
 
-    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$localfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
+  handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$localfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
-  done # loop over bids
+done # loop over bids
 
-  # Detect the unlikely situation when a job reappears in the qstat listing
-  # after being absent in the previous run of the scan-*-job (which updated
-  # the counter file)
-  for countfile in `find $ctr_dir -name 'job.*.lrms_job'`; do
-    localfile=${countfile%.lrms_job}.local
-    pid=`sed -n 's/^localid=\([^ ]*\)/\1/p' "$localfile" 2>/dev/null`
-    if [ -z "$pid" ]; then continue; fi
-    if echo "$pids" | grep "^$pid\$" >/dev/null; then
-      olog "SGE job $id disappeared and then reappeared!"
-      rm -f "$countfile"
-    fi
-  done
+# Detect the unlikely situation when a job reappears in the qstat listing
+# after being absent in the previous run of the scan-*-job (which updated
+# the counter file)
+for countfile in `find $ctr_dir -name 'job.*.lrms_job'`; do
+  localfile=${countfile%.lrms_job}.local
+  pid=`sed -n 's/^localid=\([^ ]*\)/\1/p' "$localfile" 2>/dev/null`
+  if [ -z "$pid" ]; then continue; fi
+  if echo "$pids" | grep "^$pid\$" >/dev/null; then
+    olog "SGE job $id disappeared and then reappeared!"
+    rm -f "$countfile"
+  fi
+done
 
-done # loop over control_dirs
 sleep 60
 exit 0
 
