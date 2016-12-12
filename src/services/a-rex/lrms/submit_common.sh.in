@@ -277,7 +277,7 @@ RTE_add_optional_args () {
     while [ -n "${is_arg}" ] ; do
         eval "arg_value=\${joboption_runtime_${rte_idx}_${arg_idx}}"
         # Use -- to avoid echo eating arguments it understands
-        arg_value=$( printf "%s" "$arg_value" | sed 's/"/\\\\\\\"/g' )
+        arg_value=` printf "%s" "$arg_value" | sed 's/"/\\\\\\\"/g' `
         args_value="$args_value \"${arg_value}\""
         arg_idx=$(( arg_idx + 1 ))
         eval "is_arg=\${joboption_runtime_${rte_idx}_${arg_idx}+yes}"
@@ -322,7 +322,7 @@ RTE_jobscript_call () {
         args_value="${rte_stage} "
         RTE_add_optional_args
         # add function call to job script
-        echo "# Calling ${rte_name} function: " $LRMS_JOB_SCRIPT
+        echo "# Calling ${rte_name} function: " >> $LRMS_JOB_SCRIPT
         echo "RTE_function_${rte_idx} ${args_value}" >> $LRMS_JOB_SCRIPT
         echo "if [ \$? -ne 0 ]; then" >> $LRMS_JOB_SCRIPT
         echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>&2" >> $LRMS_JOB_SCRIPT
