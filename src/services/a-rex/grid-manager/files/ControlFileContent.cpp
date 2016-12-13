@@ -27,8 +27,11 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 static inline void write_str(int f,const char* buf, std::string::size_type len) {
   for(;len > 0;) {
     ssize_t l = write(f,buf,len);
-    if((l < 0) && (errno != EINTR)) break;
-    len -= l; buf += l;
+    if(l < 0) {
+      if(errno != EINTR) break;
+    } else {
+      len -= l; buf += l;
+    };
   };
 }
 
