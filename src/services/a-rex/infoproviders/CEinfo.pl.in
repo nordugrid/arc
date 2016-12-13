@@ -66,7 +66,7 @@ BEGIN {
     my $log = LogUtils->getLogger(__PACKAGE__);	
 	my $nojobs;
 	my $splitjobs;
-	my $perffreq = 1200;
+	my $perffreq = 1800;
 	my $print_help;
 	
 	# Make a copy of @ARGV and restore it after extracting options from it.
@@ -167,7 +167,7 @@ sub main {
    
     # Parse command line options
     my $splitjobs;
-    my $perffreq = 1200;
+    my $perffreq = 1800;
     my $print_help;
 
     GetOptions("config:s" => \$configfile,
