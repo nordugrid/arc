@@ -1,3 +1,15 @@
+2016-12-13 Florido Paganelli <florido.paganelli@hep.lu.se>
+  * Reduced frequency of infoproviders performance data collection
+    to half an hour. This solves bug #3616 .
+    Users are encouraged to clean up the folder where the NYTProf performance
+    collection is stored, called perl_nytprof. Default location is
+      /var/log/arc/perfdata/perl_nytprof
+    It is safe to run 
+      rm -f /var/log/arc/perfdata/perl_nytprof/*
+    while A-REX is running. 
+    Revs:{31600,31649}
+    Type:bug
+
 2016-12-09 Christian Ulrik Søttrup <soettrup@nbi.dk>
   * Added support for lowercase slurm in arc.conf to match other LRMS
     Revs:{31580}  
