@@ -1,11 +1,15 @@
-T = $(srcdir)/pbs-test1.t
+TESTS_ENVIRONMENT = \
+	$(PERL) -I$(srcdir) -I$(srcdir)/.. -w -MTest::Harness -e '$$Test::Harness::verbose=0; runtests @ARGV;'
 
-PERL = /usr/bin/perl
-TESTS_ENVIRONMENT = $(PERL) -I$(srcdir) -I$(srcdir)/.. -w
-#TESTS = $(T)
+TESTS = pbs.t slurm.t sge.t
 
-check:
-	srcdir=$(srcdir) $(PERL) -I$(srcdir) -I$(srcdir)/.. -w -MTest::Harness -e '$$Test::Harness::verbose=0; runtests @ARGV;' $(T)
+PERL = @PERL@
 
-EXTRA_DIST = pbs-test1.t pbs-test1-uimock.sh setupPBS.pm \
-             sge-test1.t sge-test1-uimock.sh setupSGE.pm
+check_SCRIPTS = InfoproviderTestSuite.pm command-simulator.sh \
+                $(TESTS)
+
+EXTRA_DIST = InfoproviderTestSuite.pm command-simulator.sh pbs.t slurm.t sge.t
+
+command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
+	cp $< $@
+	chmod +x $@
