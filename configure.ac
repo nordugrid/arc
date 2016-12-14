@@ -2521,6 +2521,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/jura/ssm/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
+                 src/services/a-rex/lrms/test/Makefile
                  src/services/a-rex/lrms/submit_common.sh
                  src/services/a-rex/lrms/scan_common.sh
                  src/services/a-rex/lrms/condor/Makefile
@@ -2549,6 +2550,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/a-rex/lrms/slurm/Makefile
+                 src/services/a-rex/lrms/slurm/test/Makefile
+                 src/services/a-rex/lrms/slurm/test/submit/Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job

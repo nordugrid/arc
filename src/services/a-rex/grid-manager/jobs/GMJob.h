@@ -36,6 +36,7 @@ typedef std::string JobId;
 /// Represents a job in memory as it passes through the JobsList state machine.
 class GMJob {
  friend class JobsList;
+ friend class GMJobMock;
  private:
   // State of the job (state machine)
   job_state_t job_state;

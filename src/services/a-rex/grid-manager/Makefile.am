@@ -16,6 +16,7 @@ endif
 
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check arc-blahp-logger $(GM_DELEGATIONS_CONVERTER)
+noinst_PROGRAMS = test_write_grami_file
 dist_pkglibexec_SCRIPTS = arc-config-check
 
 man_MANS = arc-vomsac-check.8 arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 $(GM_DELEGATIONS_CONVERTER_MAN)
@@ -63,3 +64,8 @@ arc_blahp_logger_CXXFLAGS = -I$(top_srcdir)/include \
 arc_blahp_logger_LDADD = $(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)
+
+test_write_grami_file_SOURCES = test_write_grami_file.cpp
+test_write_grami_file_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+test_write_grami_file_LDADD = libgridmanager.la ../delegation/libdelegation.la
