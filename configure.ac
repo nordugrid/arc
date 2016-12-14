@@ -1915,6 +1915,17 @@ if test "x$LDAP" = "xyes"; then
   AC_DEFINE(HAVE_LDAP,[],[Define if OpenLDAP is available])
 fi
 
+# Check version of Test::More Perl module.
+min_perl_test_more_version_required="0.88" # Stable version of Test::More containing done_testing sub.
+PERL_TEST_DIR=
+perl_test_more_version_found=$(perl -MTest::More -e "print \"\$Test::More::VERSION\"")
+if test $(echo "$perl_test_more_version_found" | cut -d. -f1) -gt $(echo "$min_perl_test_more_version_required" | cut -d. -f1) || \
+   test $(echo "$perl_test_more_version_found" | cut -d. -f1) -eq $(echo "$min_perl_test_more_version_required" | cut -d. -f1) && \
+   test $(echo "$perl_test_more_version_found" | cut -d. -f2) -ge $(echo "$min_perl_test_more_version_required" | cut -d. -f2); then
+  PERL_TEST_DIR="test"
+fi
+AC_SUBST(PERL_TEST_DIR)
+
 # Check for the uuid lib
 UUID_LIBS=""
 if test "$enables_hed" = "yes"; then
