@@ -38,6 +38,7 @@ class DelegationStores;
  * and helper options. Substitution of other variables should be done as
  * necessary using Substitute().
  */
+
 class GMConfig {
 
   // Configuration parser which sets values for members of this class
@@ -228,6 +229,10 @@ public:
   /// Returns liat of authorized VOs for specified queue
   const std::list<std::string> & AuthorizedVOs(const char * queue) const;
 
+  bool UseSSH() const { return sshfs_mounts_enabled; }
+  /// Check if remote directory is mounted
+  bool SSHFS_OK(const std::string& mount_point) const;
+
 
 private:
 
@@ -338,6 +343,9 @@ private:
   std::map<std::string,std::string> forced_voms;
   /// VOs authorized per queue
   std::map<std::string, std::list<std::string> > authorized_vos;
+
+  /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
+  bool sshfs_mounts_enabled;
 
   /// Logger object
   static Arc::Logger logger;

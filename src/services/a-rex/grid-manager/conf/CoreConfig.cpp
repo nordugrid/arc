@@ -133,6 +133,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("infosys"); // 2
   cf.AddSection("queue"); // 3
   cf.AddSection("cluster"); // 4
+  cf.AddSection("ssh");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
@@ -490,6 +491,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       }
       config.forced_voms[""] = str;
     }
+    // SSH
+    else if (command == "remote_host") {
+      std::string remote_host = Arc::ConfigIni::NextArg(rest);
+      if (remote_host.empty()) {
+        logger.msg(Arc::ERROR, "The 'remote_host' attribute value is empty - a host name was expected"); return false;
+      }
+      config.sshfs_mounts_enabled = true;
+    }
   }
   // End of parsing conf commands
 
@@ -723,6 +732,8 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     username <- not used any more
     controlDir
     sessionRootDir
+    ssh
+      remoteHost
     cache
       location
         path
@@ -806,6 +817,17 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   catch (CacheConfigException& e) {
     logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
     return false;
+  }
+
+  // Get ssh parameters
+  Arc::XMLNode to_node  = tmp_node["ssh"];
+  if (to_node) {
+    std::string remote_host = (std::string)to_node["remoteHost"];
+    if (remote_host.empty()) {
+      logger.msg(Arc::ERROR, "The 'remoteHost' element value is empty - a host name was expected");
+      return false;
+    }
+    config.sshfs_mounts_enabled = true;
   }
 
   /*
