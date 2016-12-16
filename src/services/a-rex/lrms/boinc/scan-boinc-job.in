@@ -63,7 +63,7 @@ save_commentfile () {
   errorsfile=$3
   echo '---------- Output of the job wrapper script -----------' >> $errorsfile
   cat $commentfile 2> /dev/null >> $errorsfile
-  echo '------------------------- End of output -------------------------' >> '$errorsfile'
+  echo '------------------------- End of output -------------------------' >> $errorsfile
  
   #do_as_uid "$uid" "$action"
 }
