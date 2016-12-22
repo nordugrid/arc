@@ -117,6 +117,12 @@ my $gmcommon_options = {
     enable_perflog_reporting => '*',
     perflogdir => '*'
 };
+my $sshcommon_options = {
+    remote_user => '*',
+    remote_host => '*',
+    remote_sessiondir => '*',
+    private_key => '*',
+};
 my $ldap_infosys_options = {
     SlapdPort => '*',
     infosys_ldap_run_dir => '*',
@@ -161,6 +167,7 @@ my $config_schema = {
     ttl => '*',
     admindomain => { %$admindomain_options },
     %$gmcommon_options,
+    %$sshcommon_options,
     %$gridftpd_options,
     %$ldap_infosys_options,
     %$lrms_options,
@@ -672,10 +679,12 @@ sub build_config_from_inifile {
 
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
+    my $ssh = { $iniparser->get_section("ssh") };
     rename_keys $common, $config, {providerlog => 'ProviderLog'};
     move_keys $common, $config, [keys %$gmcommon_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
     move_keys $gm, $config, [keys %$gmcommon_options];
+    move_keys $ssh, $config, [keys %$sshcommon_options];
     rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
 
     $config->{debugLevel} = $common->{debug} if $common->{debug};

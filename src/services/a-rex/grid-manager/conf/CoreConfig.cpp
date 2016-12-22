@@ -132,6 +132,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("grid-manager"); // 1
   cf.AddSection("infosys"); // 2
   cf.AddSection("queue"); // 3
+  cf.AddSection("cluster"); // 4
+  cf.AddSection("ssh");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
@@ -141,6 +143,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     std::string rest;
     std::string command;
     cf.ReadNext(command, rest);
+    if (command.empty()) { // EOF
+      break;
+    }
     if (cf.SectionNum() == 2) { // infosys - looking for user name to get share uid
       if (command == "user") {
         config.SetShareID(Arc::User(rest));
@@ -174,11 +179,27 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           std::string queue_name = *(--config.queues.end());
           config.forced_voms[queue_name] = str;
         }
+      } else if (command == "authorizedvo") {
+        std::string str = Arc::ConfigIni::NextArg(rest);
+        if (str.empty()) {
+          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+        }
+        if (!config.queues.empty()) {
+          std::string queue_name = *(--config.queues.end());
+          config.authorized_vos[queue_name].push_back(str);
+        }
       }
       continue;
     }
-    if (command.empty()) { // EOF
-      break;
+    if (cf.SectionNum() == 4) { // cluster
+      if (command == "authorizedvo") {
+        std::string str = Arc::ConfigIni::NextArg(rest);
+        if (str.empty()) {
+          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+        }
+        config.authorized_vos[""].push_back(str);
+      }
+      continue;
     }
     if(command == "arex_mount_point") {
        config.arex_endpoint = Arc::ConfigIni::NextArg(rest);
@@ -316,6 +337,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
       }
       if (config.max_jobs_total < 0) config.max_jobs_total = -1;
+
+      max_jobs_s = Arc::ConfigIni::NextArg(rest);
+      if (max_jobs_s.empty()) continue;
+      if (!Arc::stringto(max_jobs_s, config.max_scripts)) {
+        logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
+      }
+      if (config.max_scripts < 0) config.max_scripts = -1;
     }
     else if (command == "wakeupperiod") {
       std::string wakeup_s = Arc::ConfigIni::NextArg(rest);
@@ -352,6 +380,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       std::string default_lrms = Arc::ConfigIni::NextArg(rest);
       if (default_lrms.empty()) {
         logger.msg(Arc::ERROR, "defaultlrms is empty"); return false;
+      }
+      if (default_lrms.compare("slurm") == 0) { // allow lower case slurm in config
+        default_lrms = "SLURM"; 
       }
       config.default_lrms = default_lrms;
       std::string default_queue = Arc::ConfigIni::NextArg(rest);
@@ -459,6 +490,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
       }
       config.forced_voms[""] = str;
+    }
+    // SSH
+    else if (command == "remote_host") {
+      std::string remote_host = Arc::ConfigIni::NextArg(rest);
+      if (remote_host.empty()) {
+        logger.msg(Arc::ERROR, "The 'remote_host' attribute value is empty - a host name was expected"); return false;
+      }
+      config.sshfs_mounts_enabled = true;
     }
   }
   // End of parsing conf commands
@@ -608,6 +647,10 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
       logger.msg(Arc::ERROR, "Value for wakeupPeriod is incorrect number");
       return false;
     };
+    if (!Arc::Config::elementtoint(tmp_node, "maxScripts", config.max_scripts)) {
+      logger.msg(Arc::ERROR, "Value for maxScripts is incorrect number");
+      return false;
+    };
   }
 
   /*
@@ -689,6 +732,8 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     username <- not used any more
     controlDir
     sessionRootDir
+    ssh
+      remoteHost
     cache
       location
         path
@@ -772,6 +817,17 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
   catch (CacheConfigException& e) {
     logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
     return false;
+  }
+
+  // Get ssh parameters
+  Arc::XMLNode to_node  = tmp_node["ssh"];
+  if (to_node) {
+    std::string remote_host = (std::string)to_node["remoteHost"];
+    if (remote_host.empty()) {
+      logger.msg(Arc::ERROR, "The 'remoteHost' element value is empty - a host name was expected");
+      return false;
+    }
+    config.sshfs_mounts_enabled = true;
   }
 
   /*

@@ -927,7 +927,7 @@ int JobPlugin::close(bool eof) {
    *********************************************** */
   /* talk to external plugin to ask if we can proceed */
   std::list<ContinuationPlugins::result_t> results;
-  cont_plugins->run(job,config,results);
+  if(cont_plugins) cont_plugins->run(job,config,results);
   // analyze results
   std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
   for(;result != results.end();++result) {

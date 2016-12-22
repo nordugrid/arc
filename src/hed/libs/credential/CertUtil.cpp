@@ -281,14 +281,13 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           revoked = (X509_REVOKED *)sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl),i);
           if(!ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revoked), X509_get_serialNumber(cert))) {
             long serial;
-            char buf[256];
-            char* subject_string;
+            char buf[64];
             serial = ASN1_INTEGER_get(X509_REVOKED_get0_serialNumber(revoked));
             snprintf(buf, sizeof(buf), "%ld (0x%lX)",serial,serial);
-            subject_string = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
+            char* subject_string = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
             X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REVOKED);
-            OPENSSL_free(subject_string);
+            if(subject_string) OPENSSL_free(subject_string);
             X509_OBJECT_free(obj);
             return (0);
           }

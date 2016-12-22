@@ -279,6 +279,7 @@ prepare() {
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
+    ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
@@ -579,11 +580,19 @@ prepare() {
     add_library_path "$VOMS_LOCATION"
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64
     else
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64:$LD_LIBRARY_PATH
     fi
     export LD_LIBRARY_PATH
+
+    python_site_arch=`python -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0, "'${ARC_LOCATION}'"))'`
+    if [ "x$PYTHONPATH" = "x" ]; then
+        PYTHONPATH=${python_site_arch}
+    else
+        PYTHONPATH=${python_site_arch}:${PYTHONPATH}
+    fi
+    export PYTHONPATH
 
     case "$LOGLEVEL" in 
         0) LOGLEVEL="FATAL" ;;
@@ -611,11 +620,13 @@ prepare() {
         mkdir -p `dirname $WSLOGFILE`
     fi
     PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
-    if [ ! -d $PERFLOGDIR ]; then
-        mkdir -p $PERFLOGDIR
+    if [ "$ENABLEPERFLOG" = "yes" ]; then
+        if [ ! -d $PERFLOGDIR ]; then
+            mkdir -p $PERFLOGDIR
+        fi
+        # Set permissions suitable for logs written under user accounts
+        chmod a+rwx $PERFLOGDIR
     fi
-    # Set permissions suitable for logs written under user accounts
-    chmod a+rwx $PERFLOGDIR
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
@@ -812,6 +823,22 @@ start() {
 
     prepare
 
+    # If specified in configuration mount remote session directory using SSHFS.
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+    if test "x$REMOTE_HOST" != "x"; then
+        if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
+            log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
+            return 1
+        fi
+        . $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount
+        mount_sshfs
+        RETVAL=$?
+        if [ $RETVAL != 0 ]; then
+            unmount_sshfs
+            return $RETVAL
+        fi
+    fi
+
     eval "$CMD"
     RETVAL=$?
     rm -f "$AREX_CONFIG"
@@ -864,6 +891,19 @@ stop() {
         RETVAL=0
         log_success_msg "$prog shutdown - already stopped"
     fi
+
+    # If specified in configuration and if mounted,
+    # unmount remote session, runtime and cache directories.
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+    if test "x${REMOTE_HOST}" != "x"; then
+        if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
+            log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
+            return 1
+        fi
+        . $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount
+        unmount_sshfs
+    fi
+
     return $RETVAL
 }
 
@@ -916,8 +956,24 @@ case "$1" in
     validate)
 	validate
 	;;
+    mount-sshfs)
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+    if test "x$REMOTE_HOST" != "x"; then
+        if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
+            log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
+            return 1
+        fi
+        . $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount
+        mount_sshfs
+        RETVAL=$?
+        if [ $RETVAL != 0 ]; then
+            unmount_sshfs
+            exit $RETVAL
+        fi
+    fi
+	;;
     *)
-        echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart|force-kill|validate}"
+        echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart|force-kill|validate|mount-sshfs}"
         exit 1
         ;;
 esac

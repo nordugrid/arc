@@ -21,3 +21,11 @@
   rotate 30
   copytruncate	
 }
+/var/log/arc/perfdata/infosys.perflog {
+  missingok
+  compress
+  daily
+  rotate 14
+  create
+}
+

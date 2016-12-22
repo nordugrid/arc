@@ -41,10 +41,13 @@ Time asn1_to_utctime(const ASN1_UTCTIME *s) {
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+std::cerr<<"+++ verify_callback: ok = "<<ok<<std::endl;
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
+std::cerr<<"+++ verify_callback: err = "<<err<<std::endl;
     switch(err) {
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
+std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
         // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag
         // setting method is undocumented.
@@ -53,6 +56,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
+std::cerr<<"+++ verify_callback: proxy missing crl"<<std::endl;
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
         // Not sure if there is need for recursive X509_verify_cert() here.
@@ -62,6 +66,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       default: {
+std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
           it->SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
@@ -71,45 +76,54 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     };
   };
   if(ok == 1) {
+std::cerr<<"+++ additional verification"<<std::endl;
     // Do additional verification here.
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
-    if(it == NULL) {
-      Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+    if(!subject_name) {
+      Logger::getRootLogger().msg(ERROR,"Failed to allocate memory for certificate subject while matching policy.");
+      ok=0;
     } else {
-      // Globus signing policy
-      // Do not apply to proxies and self-signed CAs.
-      if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-        if(pos < 0) {
-          GlobusSigningPolicy globus_policy;
-          if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
-            if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
-              it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
-              ok=0;
-              X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+      if(it == NULL) {
+        Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      } else {
+        // Globus signing policy
+        // Do not apply to proxies and self-signed CAs.
+        if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
+std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
+          int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
+          if(pos < 0) {
+std::cerr<<"+++ additional verification: check signing policy - is proxy"<<std::endl;
+            GlobusSigningPolicy globus_policy;
+            if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
+              if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+                it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
+std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
+                ok=0;
+                X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+              };
             };
           };
         };
       };
-    };
-    //Check the left validity time of the peer certificate;
-    //Give warning if the certificate is going to be expired
-    //in a while of time
-    Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
-    if(exptime <= Time()) {
-      Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
-    } else {
-      Arc::Period timeleft = exptime - Time();
-      int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-      //for proxy certificate, give warning 1 hour in advance
-      //for EEC certificate, give warning 5 days in advance
-      if(((pos < 0) && (timeleft <= 5*24*3600)) ||
-         (timeleft <= 3600)) {
-        Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+      //Check the left validity time of the peer certificate;
+      //Give warning if the certificate is going to be expired
+      //in a while of time
+      Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
+      if(exptime <= Time()) {
+        Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
+      } else {
+        Arc::Period timeleft = exptime - Time();
+        int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
+        //for proxy certificate, give warning 1 hour in advance
+        //for EEC certificate, give warning 5 days in advance
+        if(((pos < 0) && (timeleft <= 5*24*3600)) ||
+           (timeleft <= 3600)) {
+          Logger::getRootLogger().msg(WARNING,"Certificate %s will expire in %s", subject_name, timeleft.istr());
+        }
       }
+      OPENSSL_free(subject_name);
     }
-    OPENSSL_free(subject_name);
   };
   return ok;
 }

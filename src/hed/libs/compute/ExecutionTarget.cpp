@@ -318,13 +318,13 @@ namespace Arc {
   }
 
   std::ostream& operator<<(std::ostream& out, const ComputingShareAttributes& cs) {
-    // Following attributes is not printed:
+    // Following attributes are not printed:
     // Period MaxTotalCPUTime;
     // Period MaxTotalWallTime; // not in current Glue2 draft
-    // std::string MappingQueue;
     // std::string ID;
 
     if (!cs.Name.empty())                    out << IString("Name: %s", cs.Name) << std::endl;
+    if (!cs.MappingQueue.empty())            out << IString("Mapping queue: %s", cs.MappingQueue) << std::endl;
     if (cs.MaxWallTime > -1)                 out << IString("Max wall-time: %s", cs.MaxWallTime.istr()) << std::endl;
     if (cs.MaxTotalWallTime > -1)            out << IString("Max total wall-time: %s", cs.MaxTotalWallTime.istr()) << std::endl;
     if (cs.MinWallTime > -1)                 out << IString("Min wall-time: %s", cs.MinWallTime.istr()) << std::endl;

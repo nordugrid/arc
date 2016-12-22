@@ -1546,6 +1546,28 @@ else
 fi
 AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 
+if test "x$GLOBUS_GSSAPI_GSI_VERSION" = "x"; then
+  GSSAPI_GSI_VERSION_MAJOR=0
+  GSSAPI_GSI_VERSION_MINOR=0
+else
+  GSSAPI_GSI_VERSION_MAJOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^\([[^.]]*\).*/\1/'`;
+  GSSAPI_GSI_VERSION_MINOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^[[^.]]*\.\([[^.]]*\).*/\1/'`;
+fi
+if test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" < "12"; then
+  GLOBUS_GSSAPI_GSI_OLD_OPENSSL=1
+elif  test if test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" = "12"; then
+  if test "$GLOBUS_GSSAPI_GSI_VERSION_MINOR" < "2"; then
+    GLOBUS_GSSAPI_GSI_OLD_OPENSSL=1
+  else
+    GLOBUS_GSSAPI_GSI_OLD_OPENSSL=0
+  fi
+else
+  GLOBUS_GSSAPI_GSI_OLD_OPENSSL=0
+fi
+
+AC_DEFINE_UNQUOTED(GLOBUS_GSSAPI_GSI_VERSION,$GSSAPI_GSI_VERSION_MAJOR,[Globus GSSAPI GSI version])
+AC_DEFINE_UNQUOTED(GLOBUS_GSSAPI_GSI_OLD_OPENSSL,$GLOBUS_GSSAPI_GSI_OLD_OPENSSL,[Globus GSSAPI GSI is for OpenSSL post-1.1])
+
 dnl
 dnl DEFAULT_GLOBUS_LOCATION
 dnl
@@ -1839,6 +1861,61 @@ AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
 if test "x$LDAP" = "xyes"; then
   AC_DEFINE(HAVE_LDAP,[],[Define if OpenLDAP is available])
 fi
+
+# Check version of Test::More Perl module.
+min_perl_test_more_version_required="0.88" # Stable version of Test::More containing done_testing sub.
+PERL_TEST_DIR=
+perl_test_more_version_found=$(perl -MTest::More -e "print \"\$Test::More::VERSION\"")
+if test $(echo "$perl_test_more_version_found" | cut -d. -f1) -gt $(echo "$min_perl_test_more_version_required" | cut -d. -f1) || \
+   test $(echo "$perl_test_more_version_found" | cut -d. -f1) -eq $(echo "$min_perl_test_more_version_required" | cut -d. -f1) && \
+   test $(echo "$perl_test_more_version_found" | cut -d. -f2) -ge $(echo "$min_perl_test_more_version_required" | cut -d. -f2); then
+  PERL_TEST_DIR="test"
+fi
+AC_SUBST(PERL_TEST_DIR)
+
+# Check for the Perl module Inline::Python - temporary during rewrite.
+PERL5LIB_INLINE_PYTHON=
+INLINE_PYTHON_FOUND=no
+AC_ARG_WITH(inline-python,
+  AC_HELP_STRING([--with-inline-python=<PATH>], [Location of the Perl module Inline::Python.]),
+  [if test "$with_inline_python" = "yes"
+   then
+     PERL5LIB_INLINE_PYTHON=
+     if ${PERL} -e "use Inline::Python; exit;" > /dev/null 2>&1
+     then
+       INLINE_PYTHON_FOUND="yes"
+       AC_MSG_NOTICE([Perl module Inline::Python found])
+     else
+       AC_MSG_ERROR([Perl module Inline::Python not found])
+     fi
+   elif test "$with_inline_python" = "no"
+   then
+     AC_MSG_NOTICE([Disabling PYTHON LRMS])
+   else
+     PERL5LIB_INLINE_PYTHON="$with_inline_python"
+     if test -d $PERL5LIB_INLINE_PYTHON; then
+       PERL5LIB_INLINE_PYTHON="-I${PERL5LIB_INLINE_PYTHON}"
+       if `${PERL} ${PERL5LIB_INLINE_PYTHON} -e "use Inline::Python; exit;" > /dev/null 2>&1`
+       then    
+         INLINE_PYTHON_FOUND="yes"
+         AC_MSG_NOTICE([Perl module Inline::Python found])
+       else
+         AC_MSG_ERROR([--with-inline-python given, but test failed: PERL5LIB_INLINE_PYTHON=${PERL5LIB_INLINE_PYTHON}])
+       fi
+     fi
+   fi
+   ],[
+   if `${PERL} -e "use Inline::Python; exit;" > /dev/null 2>&1`
+   then
+     INLINE_PYTHON_FOUND="yes"
+     AC_MSG_NOTICE([Perl module Inline::Python found])
+   else
+     AC_MSG_NOTICE([Perl module Inline::Python not found])
+   fi]
+)
+AC_SUBST(PERL5LIB_INLINE_PYTHON)
+AM_CONDITIONAL([PYTHON_LRMS_ENABLED],[test "x${INLINE_PYTHON_FOUND}" = "xyes"])
+
 
 # Check for the uuid lib
 UUID_LIBS=""
@@ -2428,12 +2505,18 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
                  src/services/a-rex/infoproviders/se.pl
+                 src/services/a-rex/infoproviders/PerfData.pl
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/jura/Makefile
                  src/services/a-rex/jura/jura.1
                  src/services/a-rex/jura/ssm/Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
+                 src/services/a-rex/lrms/test/Makefile
+                 src/services/a-rex/lrms/test/check_scan_script.sh
+                 src/services/a-rex/lrms/arc/Makefile
+                 src/services/a-rex/lrms/arc/lrms/Makefile
+                 src/services/a-rex/lrms/arc/lrms/common/Makefile
                  src/services/a-rex/lrms/submit_common.sh
                  src/services/a-rex/lrms/scan_common.sh
                  src/services/a-rex/lrms/condor/Makefile
@@ -2462,6 +2545,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/a-rex/lrms/slurm/Makefile
+                 src/services/a-rex/lrms/slurm/test/Makefile
+                 src/services/a-rex/lrms/slurm/test/scan/Makefile
+                 src/services/a-rex/lrms/slurm/test/submit/Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
@@ -2473,6 +2559,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/boinc/submit-boinc-job
                  src/services/a-rex/lrms/boinc/scan-boinc-job
                  src/services/a-rex/lrms/boinc/cancel-boinc-job
+                 src/services/a-rex/lrms/slurmpy/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/submit/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
@@ -2578,6 +2668,7 @@ AC_CONFIG_FILES([Makefile
                  src/tests/perf/Makefile
                  src/tests/perf/arcperftest.1
                  src/tests/client/Makefile
+                 src/tests/lrms/Makefile
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile
@@ -2643,6 +2734,9 @@ SQLite:             ${enables_sqlite}
 Enabled features:
 
 Local jobs info in BDB: ${enables_dbjstore}
+
+Python LRMS back-end dependency:
+Inline::Python Perl module: ${INLINE_PYTHON_FOUND}
 
 Included components:
 HED:                ${enables_hed}

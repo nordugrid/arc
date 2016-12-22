@@ -66,6 +66,7 @@ BEGIN {
     my $log = LogUtils->getLogger(__PACKAGE__);	
 	my $nojobs;
 	my $splitjobs;
+	my $perffreq = 1800;
 	my $print_help;
 	
 	# Make a copy of @ARGV and restore it after extracting options from it.
@@ -74,6 +75,7 @@ BEGIN {
 	GetOptions("config:s" => \$configfile,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
+               "perffreq:i" => \$perffreq,
                "help|h"   => \$print_help );
 
 	@ARGV = @options;
@@ -83,7 +85,9 @@ BEGIN {
     } else {
 	
 		my $perflogdir;
-	    my $perflogfilepath;
+		my $perflognytprofdir;
+	    my $perflognytproffilepath;
+	      
 	    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
 	    
 	    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
@@ -91,21 +95,36 @@ BEGIN {
 			# Default is to assume is not present.
 			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
 			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata'; 
-			# append and create raw folder for NYTProf database files
+			$perflognytprofdir = $perflogdir.'/perl_nytprof/';
 			
+			# reduce performance reporting depending on interval by checking dir last modification time
+			if ( -e $perflognytprofdir ) {
+				my $t0 = time();
+				my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
+				my $timediff = $t0 - $mtime;
+				if ($timediff <= $perffreq) {
+					$log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
+					undef $log;
+                    no ConfigCentral;
+                    no LogUtils;
+					return 0;
+				}
+			}
+			
+			# append and create raw folder for NYTProf database files
 			my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 		    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
-		    my $perflogfilename = 'infosys_'.$timestamp.'.perflog.raw';
-		    $perflogfilepath = $perflogdir.'/perl_nytprof/'.$perflogfilename;
-		    createdirs($perflogfilepath,$log);
+		    my $perflognytproffilename = 'infosys_'.$timestamp.'.perflog.raw';
+		    $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
+		    createdirs($perflognytproffilepath,$log);
 		    if ( -e $perflogdir ) {
-				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflogfilepath;
+				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
 				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
 	 		      if ($NYTPROF_PRESENT) {
-					  DB::enable_profile($perflogfilepath);
-					  $log->info("Performance reporting enabled. The database file will be stored in $perflogfilepath");
+					  DB::enable_profile($perflognytproffilepath);
+					  $log->info("Performance reporting enabled. The database file will be stored in $perflognytproffilepath");
 				  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
-		    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflogfilepath. Check arc.conf perflogdir option, directories and permissions"); }
+		    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
 	    }
     }
     undef $log;
@@ -141,7 +160,6 @@ sub timed {
     return $result;
 }
 
-
 sub main {
 
     LogUtils::level('INFO');
@@ -149,19 +167,22 @@ sub main {
    
     # Parse command line options
     my $splitjobs;
+    my $perffreq = 1800;
     my $print_help;
 
     GetOptions("config:s" => \$configfile,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
+               "perffreq:i" => \$perffreq,
                "help|h"   => \$print_help ); 
 
     if ($print_help) { 
         print "Usage: $0 <options>
-        --config      - location of arc.conf
-        --nojobs|n    - don't include information about jobs
-        --splitjobs|s - write job info in a separate XML file for each job in the controldir
-        --help        - this help\n";
+        --config <path-to-arc.conf> - location of arc.conf
+        --nojobs|n                  - don't include information about jobs
+        --splitjobs|s               - write job info in a separate XML file for each job in the controldir
+        --perffreq|p <seconds>      - interval between performance collections, in seconds. Default is 1200
+        --help                      - this help\n";
         exit 1;
     }
 

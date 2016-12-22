@@ -38,10 +38,9 @@ class DelegationStores;
  * and helper options. Substitution of other variables should be done as
  * necessary using Substitute().
  */
+
 class GMConfig {
 
-  // Main job loop which heavily uses this class
-  friend class JobsList;
   // Configuration parser which sets values for members of this class
   friend class CoreConfig;
   // Parser of data-staging configuration which uses this class' values as default
@@ -151,9 +150,9 @@ public:
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
-  ContinuationPlugins* ContPlugins() const { return cont_plugins; }
+  ContinuationPlugins* GetContPlugins() const { return cont_plugins; }
   /// DelegationsStores object
-  ARex::DelegationStores* Delegations() const { return delegations; }
+  ARex::DelegationStores* GetDelegations() const { return delegations; }
 
   /// Control directory
   const std::string & ControlDir() const { return control_dir; }
@@ -188,7 +187,7 @@ public:
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
   /// All configured queues
-  const std::list<std::string> & Queues() const { return queues; }
+  const std::list<std::string>& Queues() const { return queues; }
 
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
@@ -218,6 +217,8 @@ public:
   int MaxPerDN() const { return max_jobs_per_dn; }
   /// Max total jobs in the system
   int MaxTotal() const { return max_jobs_total; }
+  /// Max submit/cancel scripts 
+  int MaxScripts() const { return max_scripts; }
 
   /// Returns true if the shared uid matches the given uid
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
@@ -225,6 +226,13 @@ public:
   bool MatchShareGid(gid_t sgid) const;
   /// Returns forced VOMS attributes for users which have none
   const std::string & ForcedVOMS(const char * queue = "") const;
+  /// Returns liat of authorized VOs for specified queue
+  const std::list<std::string> & AuthorizedVOs(const char * queue) const;
+
+  bool UseSSH() const { return sshfs_mounts_enabled; }
+  /// Check if remote directory is mounted
+  bool SSHFS_OK(const std::string& mount_point) const;
+
 
 private:
 
@@ -318,6 +326,8 @@ private:
   int max_jobs;
   /// Maximum jobs running per DN
   int max_jobs_per_dn;
+  /// Maximum submit/cancel scripts running
+  int max_scripts;
 
   /// Whether WS-interface is enabled
   bool enable_arc_interface;
@@ -331,6 +341,11 @@ private:
   deleg_db_t deleg_db;
   /// Forced VOMS attribute for non-VOMS credentials per queue
   std::map<std::string,std::string> forced_voms;
+  /// VOs authorized per queue
+  std::map<std::string, std::list<std::string> > authorized_vos;
+
+  /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
+  bool sshfs_mounts_enabled;
 
   /// Logger object
   static Arc::Logger logger;

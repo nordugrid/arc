@@ -148,26 +148,38 @@ namespace Arc {
 
     std::map<std::string, std::string>::const_iterator itAtt;
     if ((itAtt = j.OtherAttributes.find("nordugrid:broker;reject_queue")) != j.OtherAttributes.end()) {
-      if (t.ComputingShare->Name.empty()) {
-        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
-        return false;
-      }
-
-      if (t.ComputingShare->Name == itAtt->second) {
-        logger.msg(VERBOSE, "ComputingShare (%s) explicitly rejected", itAtt->second);
-        return false;
+      if (t.ComputingShare->MappingQueue.empty()) {
+        if (t.ComputingShare->Name.empty()) {
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
+          return false;
+        }
+        if (t.ComputingShare->Name == itAtt->second) {
+          logger.msg(VERBOSE, "ComputingShare (%s) explicitly rejected", itAtt->second);
+          return false;
+        }
+      } else {
+        if (t.ComputingShare->MappingQueue == itAtt->second) {
+          logger.msg(VERBOSE, "ComputingShare (%s) explicitly rejected", itAtt->second);
+          return false;
+        }
       }
     }
 
     if (!j.Resources.QueueName.empty()) {
-      if (t.ComputingShare->Name.empty()) {
-        logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
-        return false;
-      }
-
-      if (t.ComputingShare->Name != j.Resources.QueueName) {
-        logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, j.Resources.QueueName);
-        return false;
+      if (t.ComputingShare->MappingQueue.empty()) {
+        if (t.ComputingShare->Name.empty()) {
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
+          return false;
+        }
+        if (t.ComputingShare->Name != j.Resources.QueueName) {
+          logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, j.Resources.QueueName);
+          return false;
+        }
+      } else {
+        if (t.ComputingShare->MappingQueue != j.Resources.QueueName) {
+          logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->MappingQueue, j.Resources.QueueName);
+          return false;
+        }
       }
     }
 

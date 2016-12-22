@@ -1,5 +1,15 @@
-#!/bin/bash
-  
+#!/usr/bin/perl
+
+# TODO: This test is broken!
+
+use strict;
+use InfoproviderTestSuite;
+
+my $suite = new InfoproviderTestSuite('sge');
+
+$suite->test('basic', sub {
+  my @progs = qw(qsub qstat qconf qhost);
+  my $simulator_output = <<'ENDSIMULATOROUTPUT';
 # SGE test suite sge-1
 #   SGE version  6.2
 #   1 nodes 1 cpus
@@ -20,13 +30,8 @@
 # qstat -u '*' -s p
 
 
-cmd="$(basename $0) $*"
-
-case $cmd in
-
-#######################################
-  'qstat -help')
-    cat <<ENDL
+args="qstat -help"
+output=<<<ENDOUTPUT
 SGE 6.2
 usage: qstat [options]
         [-ext]                            view additional attributes
@@ -68,35 +73,33 @@ wc_qinstance             wc_cqueue@wc_host
 wc_qdomain               wc_cqueue@wc_hostgroup
 wc_queue                 wc_cqueue|wc_qdomain|wc_qinstance
 wc_queue_list            wc_queue[,wc_queue,...]
-ENDL
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  "qstat -u * -f")
-    cat <<ENDF
+args="qstat -u \'*\' -f"
+output=<<<ENDOUTPUT
 queuename                      qtype resv/used/tot. load_avg arch          states
 ---------------------------------------------------------------------------------
 all.q@node1.site.org           BIP   0/0/1          0.17     lx24-amd64    
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qconf -sep')
-    cat <<ENDF
+args="qstat -u * -f"
+output=<<<ENDOUTPUT
+queuename                      qtype resv/used/tot. load_avg arch          states
+---------------------------------------------------------------------------------
+all.q@node1.site.org           BIP   0/0/1          0.17     lx24-amd64    
+ENDOUTPUT
+
+args="qconf -sep"
+output=<<<ENDOUTPUT
 HOST                      PROCESSOR        ARCH
 ===============================================
 node1.site.org                    1  lx24-amd64
 ===============================================
 SUM                               1
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qconf -sconf global')
-    cat <<ENDF
+args="qconf -sconf global"
+output=<<<ENDOUTPUT
 #global:
 execd_spool_dir              /opt/n1ge6/x/spool
 mailer                       /bin/mail
@@ -147,21 +150,13 @@ auto_user_delete_time        86400
 delegated_file_staging       false
 reprioritize                 0
 
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qconf -sql')
-    cat <<ENDF
-all.q
-ENDF
-    exit 0
-    ;;
+args="qconf -sql"
+output="all.q"
 
-#######################################
-  'qconf -sq all.q')
-    cat <<ENDF
+args="qconf -sq all.q"
+output=<<<ENDOUTPUT
 qname                 all.q
 hostlist              @allhosts
 seq_no                0
@@ -212,46 +207,78 @@ s_rss                 INFINITY
 h_rss                 INFINITY
 s_vmem                INFINITY
 h_vmem                INFINITY
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qstat -j')
-    cat <<ENDF
+args="qstat -j"
+output=<<<ENDOUTPUT
 scheduling info:            (Collecting of scheduler job information is turned off)
 
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qstat -g c')
-    cat <<ENDF
+args="qstat -g c"
+output=<<<ENDOUTPUT
 CLUSTER QUEUE                   CQLOAD   USED    RES  AVAIL  TOTAL aoACDS  cdsuE  
 --------------------------------------------------------------------------------
 all.q                             0.12      0      0      1      1      0      0 
-ENDF
-    exit 0
-    ;;
+ENDOUTPUT
 
-#######################################
-  'qstat -u * -s rs')
-    cat <<ENDF
-ENDF
-    exit 0
-    ;;
+args="qstat -u * -s rs"
+output=""
+args="qstat -u * -s p"
+output=""
 
-#######################################
-  'qstat -u * -s p')
-    cat <<ENDF
-ENDF
-    exit 0
-    ;;
+# TODO: Below output is NOT from sge tools, but have been adapted to SGEmod code. Please provide working output.
+args="qhost -xml"
+output=<<<ENDOUTPUT
+<qhost>
+<host name="node1.site.org"/>
+</qhost>
+ENDOUTPUT
 
-#######################################
-  *)
-    echo $0: No mock behavior implemented for: $* 2>&1
-    exit 127
-    ;;
-esac
+args="qstat -f"
+output="host=node1.site.org"
+
+args="qhost -F -h node1"
+output="host=node1.site.org"
+ENDSIMULATOROUTPUT
+
+  my $cfg = {  sge_bin_path => "<TESTDIR>/bin",
+               sge_root => "<TESTDIR>/bin",
+               queues => {},
+               jobs => []
+            };
+  $cfg->{queues}{'all.q'} = {users => ['user1']};
+  
+  my $lrms_info = $suite->collect(\@progs, $simulator_output, $cfg);
+  
+  is(ref $lrms_info, 'HASH', 'result type');
+  is(ref $lrms_info->{cluster}, 'HASH', 'has cluster');
+  is($lrms_info->{cluster}{lrms_type}, 'SGE', 'lrms_type');
+  is($lrms_info->{cluster}{lrms_version}, '6.2', 'lrms_version');
+  is($lrms_info->{cluster}{runningjobs}, 0, 'runningjobs');
+  #is($lrms_info->{cluster}{totalcpus}, 1, 'totalcpus');
+  is($lrms_info->{cluster}{queuedcpus}, 0, 'queuedcpus');
+  is($lrms_info->{cluster}{queuedjobs}, 0, 'queuedjobs');
+  is($lrms_info->{cluster}{usedcpus}, 0, 'usedcpus');
+  #is($lrms_info->{cluster}{cpudistribution}, '1cpu:1', 'cpudistribution');
+  
+  is(ref $lrms_info->{queues}, 'HASH', 'has queues');
+  is(ref $lrms_info->{queues}{'all.q'}, 'HASH', 'has queue all.q');
+  ok($lrms_info->{queues}{'all.q'}{status} >= 0, 'all.q->status');
+  is($lrms_info->{queues}{'all.q'}{totalcpus}, 1, 'all.q->totalcpus');
+  is($lrms_info->{queues}{'all.q'}{queued}, 0, 'all.q->queued');
+  is($lrms_info->{queues}{'all.q'}{running}, 0, 'all.q->running');
+  is($lrms_info->{queues}{'all.q'}{maxrunning}, 1, 'all.q->maxrunning');
+  
+  is(ref $lrms_info->{queues}{'all.q'}{users}, 'HASH', 'has users');
+  is(ref $lrms_info->{queues}{'all.q'}{users}{user1}, 'HASH', 'has user1');
+  is($lrms_info->{queues}{'all.q'}{users}{user1}{queuelength}, 0, 'user1->queuelenght');
+  is_deeply($lrms_info->{queues}{'all.q'}{users}{user1}{freecpus}, { '1' => 0 }, 'user1->freecpus');
+  
+  #is(ref $lrms_info->{nodes}, 'HASH', 'has nodes');
+  #is(ref $lrms_info->{nodes}{node1}, 'HASH', 'has node1');
+  #is($lrms_info->{nodes}{node1}{isavailable}, 1, 'node1->isavailable');
+  #is($lrms_info->{nodes}{node1}{slots}, 2, 'node1->slots');
+});
+
+$suite->testing_done();

@@ -1,4 +1,12 @@
-pkgdata_SCRIPTS = CEinfo.pl se.pl
+pythondir = $(PYTHON_SITE_ARCH)/arc
+
+if PYTHON_LRMS_ENABLED
+    PYTHON_LRMS = SLURMPYmod.pm
+else
+    PYTHON_LRMS =
+endif
+
+pkgdata_SCRIPTS = CEinfo.pl se.pl PerfData.pl
 dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
@@ -11,7 +19,9 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	SGE.pm Fork.pm Shared.pm \
 	XmlPrinter.pm GLUE2xmlPrinter.pm \
 	LdifPrinter.pm GLUE2ldifPrinter.pm \
-	NGldifPrinter.pm InfosysHelper.pm
+	NGldifPrinter.pm InfosysHelper.pm $(PYTHON_LRMS)
+
+EXTRA_DIST = SLURMPYmod.pm
 
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 dist_arcldapschema_DATA = schema/nordugrid.schema
@@ -19,7 +29,10 @@ dist_arcldapschema_DATA = schema/nordugrid.schema
 PERL = @PERL@
 
 PERLSCRIPTS = $(dist_pkgdata_DATA) CEinfo.pl
-TESTS_ENVIRONMENT = $(PERL) -I$(srcdir) -Mstrict -wc
+
+TESTS_ENVIRONMENT = \
+	PYTHONPATH=$(abs_top_builddir)/python/python:$(abs_top_builddir)/python/python/arc/.libs:$(abs_top_srcdir)/src/services/a-rex/infoproviders:$(abs_builddir) \
+	$(PERL) -I$(srcdir) -Mstrict -wc
 TESTS = $(PERLSCRIPTS)
 
 check_SCRIPTS = $(PERLSCRIPTS)
@@ -29,4 +42,5 @@ Boinc.pm: FORCE
 	$(eval TESTS := $(shell if `$(PERL) -e "use BDI; exit;" > /dev/null 2>&1`; then echo "$(TESTS)"; else echo "$(TESTS)" | sed 's/Boinc.pm//'; fi))
 FORCE:
 
-SUBDIRS = test
+DIST_SUBDIRS = test
+SUBDIRS = $(PERL_TEST_DIR)

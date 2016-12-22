@@ -174,9 +174,11 @@ void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
       X509_NAME *name = X509_get_subject_name(cert);
       if(name) {
         if(globus_gsi_cert_utils_get_base_name(name,cred) == GLOBUS_SUCCESS) {
-          char buf[256]; buf[0]=0;
-          X509_NAME_oneline(X509_get_subject_name(cert),buf,256);
-          subject=buf;
+          char* buf = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
+          if(buf) {
+            subject=buf;
+            OPENSSL_free(buf);
+          };
         };
       };
     };

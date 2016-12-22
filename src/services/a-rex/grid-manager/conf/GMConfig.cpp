@@ -6,7 +6,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include <unistd.h>
-#include <sys/stat.h>
+#include <sys/stat.h>   // ::SSHFS_OK, check device
+#include <sys/statfs.h> // ::SSHFS_OK, check file system
 
 #include <arc/StringConv.h>
 #include <arc/ArcLocation.h>
@@ -34,6 +35,7 @@ namespace ARex {
 
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
+static std::list<std::string> empty_string_list;
 
 GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
@@ -83,6 +85,7 @@ void GMConfig::SetDefaults() {
   max_jobs_total = -1;
   max_jobs = -1;
   max_jobs_per_dn = -1;
+  max_scripts = -1;
 
   deleg_db = deleg_db_bdb;
 
@@ -91,6 +94,8 @@ void GMConfig::SetDefaults() {
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");
+
+  sshfs_mounts_enabled = false;
 }
 
 bool GMConfig::Load() {
@@ -276,6 +281,11 @@ const std::string & GMConfig::ForcedVOMS(const char * queue) const {
   return (pos == forced_voms.end()) ? empty_string : pos->second;
 }
 
+const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const {
+  std::map<std::string, std::list<std::string> >::const_iterator pos = authorized_vos.find(queue);
+  return (pos == authorized_vos.end()) ? empty_string_list : pos->second;
+}
+
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
   std::string::size_type curpos = 0;
   for (;;) {
@@ -422,4 +432,18 @@ void GMConfig::ExternalHelper::stop() {
   }
 }
 
+bool GMConfig::SSHFS_OK(const std::string& mount_point) const {
+  struct stat st;
+  struct stat st_root;
+  stat(mount_point.c_str(), &st);
+  stat(mount_point.substr(0, mount_point.rfind('/')).c_str(), &st_root);
+  // rootdir and dir on different devices?
+  if (st.st_dev != st_root.st_dev) {
+      struct statfs stfs;
+      statfs(mount_point.c_str(), &stfs);
+      // dir is also a fuse fs?
+      return stfs.f_type == 0x65735546;
+  }
+  return false;
+}
 } // namespace ARex
