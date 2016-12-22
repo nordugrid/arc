@@ -41,13 +41,13 @@ Time asn1_to_utctime(const ASN1_UTCTIME *s) {
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
-std::cerr<<"+++ verify_callback: ok = "<<ok<<std::endl;
+  //std::cerr<<"+++ verify_callback: ok = "<<ok<<std::endl;
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
-std::cerr<<"+++ verify_callback: err = "<<err<<std::endl;
+    //std::cerr<<"+++ verify_callback: err = "<<err<<std::endl;
     switch(err) {
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
-std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
+        //std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
         // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag
         // setting method is undocumented.
@@ -56,7 +56,7 @@ std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
-std::cerr<<"+++ verify_callback: proxy missing crl"<<std::endl;
+        //std::cerr<<"+++ verify_callback: proxy missing crl"<<std::endl;
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
         // Not sure if there is need for recursive X509_verify_cert() here.
@@ -66,7 +66,7 @@ std::cerr<<"+++ verify_callback: proxy missing crl"<<std::endl;
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       default: {
-std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
+        //std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
           it->SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
@@ -76,7 +76,7 @@ std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<s
     };
   };
   if(ok == 1) {
-std::cerr<<"+++ additional verification"<<std::endl;
+    //std::cerr<<"+++ additional verification"<<std::endl;
     // Do additional verification here.
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
@@ -90,15 +90,15 @@ std::cerr<<"+++ additional verification"<<std::endl;
         // Globus signing policy
         // Do not apply to proxies and self-signed CAs.
         if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
+          //std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
           int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
           if(pos < 0) {
-std::cerr<<"+++ additional verification: check signing policy - is proxy"<<std::endl;
+            //std::cerr<<"+++ additional verification: check signing policy - is proxy"<<std::endl;
             GlobusSigningPolicy globus_policy;
             if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
               if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
                 it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
-std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
+                //std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
                 ok=0;
                 X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
               };
