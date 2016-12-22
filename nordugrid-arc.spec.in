@@ -1533,6 +1533,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_pythonlrms}
 %{_libexecdir}/%{pkgdir}/arc-sshfs-mount
 %{python_sitearch}/%{pkgdir}/lrms
+%{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
 %{_sbindir}/a-rex-backtrace-collect

@@ -2612,6 +2612,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/boinc/submit-boinc-job
                  src/services/a-rex/lrms/boinc/scan-boinc-job
                  src/services/a-rex/lrms/boinc/cancel-boinc-job
+                 src/services/a-rex/lrms/slurmpy/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/submit/Makefile
+                 src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile

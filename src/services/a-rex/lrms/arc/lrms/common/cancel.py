@@ -20,11 +20,13 @@ def cancel(cmd, jobid):
      if Config.remote_host:
           ssh_connect(Config.remote_host, Config.remote_user, Config.private_key)
 
-     debug('executing %s with job id %s' % (cmd[0], jobid), 'common.cancel')
+     from os.path import basename
+     executable = basename(cmd[0])
+     debug('executing %s with job id %s' % (executable, jobid), 'common.cancel')
      execute = execute_local if not Config.remote_host else execute_remote
      handle = execute(' '.join(cmd))
      rc = handle.returncode
 
      if rc:
-          error('%s failed' % cmd[0], 'common.cancel')
+          error('%s failed' % executable, 'common.cancel')
      return not rc

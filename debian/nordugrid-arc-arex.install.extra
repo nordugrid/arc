@@ -1,9 +1,11 @@
 debian/tmp/usr/share/arc/job_script.stubs
+debian/tmp/usr/share/arc/SLURMPYmod.pm
 debian/tmp/usr/lib/arc/arc-sshfs-mount
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/pyCancel.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/pyScanner.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/pySubmit.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/slurm.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/common/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/common/cancel.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/lrms/common/config.py*
