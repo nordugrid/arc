@@ -158,7 +158,11 @@ namespace Arc {
       if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
       if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
-      if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
+      if (!cfg.cadir.empty()) {
+        XMLNode cadir = comp.NewChild("CACertificatesDir");
+        cadir = cfg.cadir;
+        cadir.NewAttribute("PolicyGlobus") = "true";
+      };
       comp.NewAttribute("entry") = "tls";
       if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";
       else if (sec.sec == TLS10Sec) comp.NewChild("Handshake") = "TLSv1.0";
@@ -176,7 +180,11 @@ namespace Arc {
       if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
       if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
-      if (!cfg.cadir.empty()) comp.NewChild("CACertificatesDir") = cfg.cadir;
+      if (!cfg.cadir.empty()) {
+        XMLNode cadir = comp.NewChild("CACertificatesDir");
+        cadir = cfg.cadir;
+        cadir.NewAttribute("PolicyGlobus") = "true";
+      };
       if (sec.sec == GSISec) {
         comp.NewChild("GSI") = "globus";
       } else {
