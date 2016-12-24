@@ -84,23 +84,28 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       Logger::getRootLogger().msg(ERROR,"Failed to allocate memory for certificate subject while matching policy.");
       ok=0;
     } else {
+      //std::cerr<<"+++ additional verification: subject "<<subject_name<<std::endl;
       if(it == NULL) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
       } else {
         // Globus signing policy
         // Do not apply to proxies and self-signed CAs.
+        //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;
         if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
           //std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
           int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
           if(pos < 0) {
-            //std::cerr<<"+++ additional verification: check signing policy - is proxy"<<std::endl;
+            //std::cerr<<"+++ additional verification: check signing policy - is not proxy"<<std::endl;
             GlobusSigningPolicy globus_policy;
             if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
+              //std::cerr<<"+++ additional verification: policy is open"<<std::endl;
               if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
                 it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
                 //std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
                 ok=0;
                 X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+              } else {
+                //std::cerr<<"+++ additional verification: passed: "<<subject_name<<std::endl;
               };
             };
           };
