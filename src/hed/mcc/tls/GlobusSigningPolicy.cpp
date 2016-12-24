@@ -20,13 +20,13 @@ using namespace Arc;
 
 static Logger& logger = Logger::getRootLogger();
 
-const char access_id[]       = "access_id_";
-const char positive_rights[] = "pos_rights";
-const char negative_rights[] = "neg_rights";
-const char globus_id[]       = "globus";
-const char sign_id[]         = "CA:sign";
-const char conditions_id[]   = "cond_";
-const char policy_suffix[]   = ".signing_policy";
+static const char access_id[]       = "access_id_";
+static const char positive_rights[] = "pos_rights";
+static const char negative_rights[] = "neg_rights";
+static const char globus_id[]       = "globus";
+static const char sign_id[]         = "CA:sign";
+static const char conditions_id[]   = "cond_";
+static const char policy_suffix[]   = ".signing_policy";
 
 static void get_line(std::istream& in,std::string& s) {
   for(;;) {
@@ -178,7 +178,9 @@ static void X509_NAME_to_string(std::string& str,const X509_NAME* name) {
   return;
 }
 
-bool match_globus_policy(std::istream& in,const X509_NAME* issuer_subject,const X509_NAME* subject) {
+bool GlobusSigningPolicy::match(const X509_NAME* issuer_subject,const X509_NAME* subject) {
+  if(!stream_) return false;
+  std::istream& in(*stream_);
   std::string issuer_subject_str;
   std::string subject_str;
   std::string s;
@@ -221,17 +223,19 @@ bool match_globus_policy(std::istream& in,const X509_NAME* issuer_subject,const 
   return false;
 }
 
-std::istream* open_globus_policy(const X509_NAME* issuer_subject,const std::string& ca_path) {
-  std::string issuer_subject_str;
-  X509_NAME_to_string(issuer_subject_str,issuer_subject);
+bool GlobusSigningPolicy::open(const X509_NAME* issuer_subject,const std::string& ca_path) {
+  close();
+  //std::string issuer_subject_str;
+  //X509_NAME_to_string(issuer_subject_str,issuer_subject);
   unsigned long hash = X509_NAME_hash((X509_NAME*)issuer_subject);
   char hash_str[32];
   snprintf(hash_str,sizeof(hash_str)-1,"%08lx",hash);
   hash_str[sizeof(hash_str)-1]=0;
   std::string fname = ca_path+"/"+hash_str+policy_suffix;
   std::ifstream* f = new std::ifstream(fname.c_str());
-  if(!(*f)) { delete f; return NULL; };
-  return f;
+  if(!(*f)) { delete f; return false; };
+  stream_ = f;
+  return true;
 }
 
 }

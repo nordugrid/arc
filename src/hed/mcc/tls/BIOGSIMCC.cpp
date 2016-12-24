@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
+#include <cstring>
+
 #include <openssl/ssl.h>
 
 #include <arc/message/PayloadRaw.h>
@@ -15,6 +18,33 @@ namespace ArcMCCTLS {
 
 using namespace Arc;
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static BIO_METHOD *BIO_meth_new(int type, const char *name) {
+    BIO_METHOD *biom = (BIO_METHOD*)std::malloc(sizeof(BIO_METHOD));
+    if (biom) std::memset(biom,0,sizeof(biom));
+    return biom;
+}
+
+static void BIO_meth_free(BIO_METHOD *biom) {
+    std::free(biom);
+}
+
+static void BIO_set_data(BIO *a, void *ptr) {
+    a->ptr = ptr;
+}
+
+static void *BIO_get_data(BIO *a) {
+    return a->ptr;
+}
+
+static void BIO_set_init(BIO *a, int init) {
+    a->init = init;
+}
+
+#endif
+
+
 class BIOGSIMCC {
   private:
     PayloadStreamInterface* stream_;
@@ -22,10 +52,36 @@ class BIOGSIMCC {
     unsigned int header_;
     unsigned int token_;
     MCC_Status result_;
+    BIO_METHOD* biom_;
+    BIO* bio_; // not owned by this object
   public:
-    BIOGSIMCC(MCCInterface* next):result_(STATUS_OK) { next_=next; stream_=NULL; header_=4; token_=0; };
-    BIOGSIMCC(PayloadStreamInterface* stream):result_(STATUS_OK) { next_=NULL; stream_=stream; header_=4; token_=0; };
-    ~BIOGSIMCC(void) { if(stream_ && next_) delete stream_; };
+    BIOGSIMCC(MCCInterface* next):result_(STATUS_OK) {
+      next_=NULL; stream_=NULL;
+      bio_ = NULL;
+      if(MakeMethod()) {
+        bio_ = BIO_new(biom_);
+        if(bio_) {
+          next_=next;
+          BIO_set_data(bio_,this);
+        }
+      }
+    };
+    BIOGSIMCC(PayloadStreamInterface* stream):result_(STATUS_OK) {
+      next_=NULL; stream_=NULL;
+      bio_ = NULL;
+      if(MakeMethod()) {
+        bio_ = BIO_new(biom_);
+        if(bio_) {
+          stream_=stream;
+          BIO_set_data(bio_,this);
+        }
+      }
+    };
+    ~BIOGSIMCC(void) {
+      if(stream_ && next_) delete stream_;
+      if(biom_) BIO_meth_free(biom_);
+    };
+    BIO* GetBIO() const { return bio_; };
     PayloadStreamInterface* Stream() const { return stream_; };
     void Stream(PayloadStreamInterface* stream) { stream_=stream; /*free ??*/ };
     MCCInterface* Next(void) const { return next_; };
@@ -35,78 +91,61 @@ class BIOGSIMCC {
     int Token(void) const { return token_; };
     void Token(int v) { token_=v; };
     const MCC_Status& Result(void) { return result_; };
+  private:
     static int  mcc_write(BIO *h, const char *buf, int num);
     static int  mcc_read(BIO *h, char *buf, int size);
     static int  mcc_puts(BIO *h, const char *str);
     static long mcc_ctrl(BIO *h, int cmd, long arg1, void *arg2);
     static int  mcc_new(BIO *h);
     static int  mcc_free(BIO *data);
+    bool MakeMethod(void) {
+      biom_ = BIO_meth_new(BIO_TYPE_FD,"Message Chain Component");
+      if(biom_) {
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+        biom_->bwrite = &BIOGSIMCC::mcc_write;
+        biom_->bread = &BIOGSIMCC::mcc_read;
+        biom_->bputs = &BIOGSIMCC::mcc_puts;
+        biom_->ctrl = &BIOGSIMCC::mcc_ctrl;
+        biom_->create = &BIOGSIMCC::mcc_new;
+        biom_->destroy = &BIOGSIMCC::mcc_free;
+#else
+        (void)BIO_meth_set_write(biom_,&BIOGSIMCC::mcc_write);
+        (void)BIO_meth_set_read(biom_,&BIOGSIMCC::mcc_read);
+        (void)BIO_meth_set_puts(biom_,&BIOGSIMCC::mcc_puts);
+        (void)BIO_meth_set_ctrl(biom_,&BIOGSIMCC::mcc_ctrl);
+        (void)BIO_meth_set_create(biom_,&BIOGSIMCC::mcc_new);
+        (void)BIO_meth_set_destroy(biom_,&BIOGSIMCC::mcc_free);
+#endif
+      }
+      return (biom_ != NULL);
+    };
 };
 
-
-static void BIO_set_GSIMCC(BIO* b,MCCInterface* mcc);
-static void BIO_set_GSIMCC(BIO* b,PayloadStreamInterface* stream);
-
-static BIO_METHOD methods_mcc = {
-  BIO_TYPE_FD,"Message Chain Component",
-  BIOGSIMCC::mcc_write,
-  BIOGSIMCC::mcc_read,
-  BIOGSIMCC::mcc_puts,
-  NULL, /* gets, */
-  BIOGSIMCC::mcc_ctrl,
-  BIOGSIMCC::mcc_new,
-  BIOGSIMCC::mcc_free,
-  NULL,
-};
-
-BIO_METHOD *BIO_s_GSIMCC(void) {
-  return(&methods_mcc);
-}
 
 BIO *BIO_new_GSIMCC(MCCInterface* mcc) {
-  BIO *ret;
-  ret=BIO_new(BIO_s_GSIMCC());
-  if (ret == NULL) return(NULL);
-  BIO_set_GSIMCC(ret,mcc);
-  return(ret);
-}
-
-BIO* BIO_new_GSIMCC(PayloadStreamInterface* stream) {
-  BIO *ret;
-  ret=BIO_new(BIO_s_GSIMCC());
-  if (ret == NULL) return(NULL);
-  BIO_set_GSIMCC(ret,stream);
-  return(ret);
-}
-
-static void BIO_set_GSIMCC(BIO* b,MCCInterface* mcc) {
-  BIOGSIMCC* biomcc = (BIOGSIMCC*)(b->ptr);
-  if(biomcc == NULL) {
-    biomcc=new BIOGSIMCC(mcc);
-    b->ptr=biomcc;
-  };
-}
-
-static void BIO_set_GSIMCC(BIO* b,PayloadStreamInterface* stream) {
-  BIOGSIMCC* biomcc = (BIOGSIMCC*)(b->ptr);
-  if(biomcc == NULL) {
-    biomcc=new BIOGSIMCC(stream);
-    b->ptr=biomcc;
-  };
-}
+  BIOGSIMCC* biomcc = new BIOGSIMCC(mcc);
+  BIO* bio = biomcc->GetBIO();
+  if(!bio) delete biomcc;
+  return bio;
+}   
+    
+BIO* BIO_new_GSIMCC(PayloadStreamInterface* stream) { 
+  BIOGSIMCC* biomcc = new BIOGSIMCC(stream);
+  BIO* bio = biomcc->GetBIO();
+  if(!bio) delete biomcc;
+  return bio;
+}   
 
 int BIOGSIMCC::mcc_new(BIO *bi) {
-  bi->init=1;
-  bi->num=0;
-  bi->ptr=NULL;
-  // bi->flags=BIO_FLAGS_UPLINK; /* essentially redundant */
+  BIO_set_data(bi,NULL);
+  BIO_set_init(bi,1);
   return(1);
 }
 
 int BIOGSIMCC::mcc_free(BIO *b) {
   if(b == NULL) return(0);
-  BIOGSIMCC* biomcc = (BIOGSIMCC*)(b->ptr);
-  b->ptr=NULL;
+  BIOGSIMCC* biomcc = (BIOGSIMCC*)(BIO_get_data(b));
+  BIO_set_data(b,NULL);
   if(biomcc) delete biomcc;
   return(1);
 }
@@ -115,7 +154,7 @@ int BIOGSIMCC::mcc_read(BIO *b, char *out,int outl) {
   int ret=0;
   if (out == NULL) return(ret);
   if(b == NULL) return(ret);
-  BIOGSIMCC* biomcc = (BIOGSIMCC*)(b->ptr);
+  BIOGSIMCC* biomcc = (BIOGSIMCC*)(BIO_get_data(b));
   if(biomcc == NULL) return(ret);
   PayloadStreamInterface* stream = biomcc->Stream();
   if(stream == NULL) return ret;
@@ -158,8 +197,8 @@ int BIOGSIMCC::mcc_write(BIO *b, const char *in, int inl) {
   //clear_sys_error();
   if(in == NULL) return(ret);
   if(b == NULL) return(ret);
-  if(b->ptr == NULL) return(ret);
-  BIOGSIMCC* biomcc = (BIOGSIMCC*)(b->ptr);
+  if(BIO_get_data(b) == NULL) return(ret);
+  BIOGSIMCC* biomcc = (BIOGSIMCC*)(BIO_get_data(b));
   if(biomcc == NULL) return(ret);
   unsigned char header[4];
   header[0]=(inl>>24)&0xff;
@@ -236,7 +275,7 @@ int BIOGSIMCC::mcc_puts(BIO *bp, const char *str) {
 
 bool BIO_GSIMCC_failure(BIO* bio, MCC_Status& s) {
   if(!bio) return false;
-  BIOGSIMCC* b = (BIOGSIMCC*)(bio->ptr);
+  BIOGSIMCC* b = (BIOGSIMCC*)(BIO_get_data(bio));
   if(!b || b->Result()) return false;
   s = b->Result();
   return true;

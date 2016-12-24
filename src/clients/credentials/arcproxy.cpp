@@ -224,12 +224,10 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
 static std::string signTypeToString(Arc::Signalgorithm alg) {
   switch(alg) {
     case Arc::SIGN_SHA1: return "sha1";
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     case Arc::SIGN_SHA224: return "sha224";
     case Arc::SIGN_SHA256: return "sha256";
     case Arc::SIGN_SHA384: return "sha384";
     case Arc::SIGN_SHA512: return "sha512";
-#endif
     default:
       break;
   }

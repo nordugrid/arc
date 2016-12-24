@@ -45,12 +45,10 @@ typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
  **/
 typedef enum { SIGN_DEFAULT = 0,
                SIGN_SHA1,
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
                SIGN_SHA224,
                SIGN_SHA256,
                SIGN_SHA384,
                SIGN_SHA512
-#endif
              } Signalgorithm;
 
 /**Logger to be used by all modules of credentials library*/
@@ -519,11 +517,9 @@ class Credential {
     std::string certfile_;
     std::string keyfile_;
 
-    // Verification context
-    ArcCredential::cert_verify_context verify_ctx_;
-
     //Verification result
     bool verification_valid;
+    std::string verification_proxy_policy;
 
     //Certificate structures
     X509 *           cert_;    //certificate
@@ -533,7 +529,7 @@ class Credential {
                                    //from the certificate, after
                                    //verification, the ca certificate
                                    //will be included
-    ArcCredential::PROXYCERTINFO* proxy_cert_info_;
+    PROXY_CERT_INFO_EXTENSION* proxy_cert_info_;
     Credformat       format;
     Time        start_;
     Period      lifetime_;
@@ -547,7 +543,6 @@ class Credential {
     //Proxy policy
     std::string proxyversion_;
     std::string policy_;
-    std::string policylang_;
     int proxyver_;
     int pathlength_;
 

@@ -121,11 +121,7 @@ int main(void) {
    ArcCredential::PROXYCERTINFO * cert_info2;
    const X509V3_EXT_METHOD* ext_method2 = X509V3_EXT_get_nid(certinfo_v3_NID);
    unsigned char* data2 = ext2->value->data;
-#if(OPENSSL_VERSION_NUMBER >= 0x0090800fL)
    cert_info2 = (ArcCredential::PROXYCERTINFO*)ext_method2->d2i(NULL, (const unsigned char**) &data2, ext2->value->length);
-#else 
-   cert_info2 = (ArcCredential::PROXYCERTINFO*)ext_method2->d2i(NULL, (unsigned char**) &data2, ext2->value->length);
-#endif
    //cert_info2 = (ArcCredential::PROXYCERTINFO*)X509V3_EXT_d2i(ext2);
    
    if (cert_info2 == NULL) std::cerr<<"2. Can not convert DER encode PROXYCERTINFO extension to internal format"<<std::endl;

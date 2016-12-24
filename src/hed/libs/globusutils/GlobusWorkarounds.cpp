@@ -19,7 +19,6 @@ namespace Arc {
   static Glib::Mutex lock_;
 
   bool GlobusRecoverProxyOpenSSL(void) {
-#ifdef HAVE_OPENSSL_PROXY
     // No harm even if not needed - shall trun proxies on for code 
     // which was written with no proxies in mind
     SetEnv("OPENSSL_ALLOW_PROXY_CERTS","1");
@@ -71,9 +70,6 @@ namespace Arc {
     return false;
 #endif // OPENSSL_VERSION_NUMBER > 0x0090804f
 */
-#else  // HAVE_OPENSSL_PROXY
-    return true;
-#endif // HAVE_OPENSSL_PROXY
   }
 
   bool GlobusPrepareGSSAPI(void) {

@@ -512,9 +512,11 @@ namespace Arc {
 
     if(!noca) {
       std::string ca_dir = GetEnv("X509_CERT_DIR");
+      //std::cerr<<"-- ca_dir = "<<ca_dir<<std::endl;
       if (!ca_dir.empty()) {
         caCertificatesDirectory = ca_dir;
         if (test && !dir_test(caCertificatesDirectory)) {
+          //std::cerr<<"-- ca_dir test failed"<<std::endl;
           if(require) {
             logger.msg(WARNING, "Can not access CA certificates directory: %s. The certificates will not be verified.", caCertificatesDirectory);
             res = false;
@@ -522,7 +524,9 @@ namespace Arc {
           caCertificatesDirectory.clear();
         }
       } else if (!caCertificatesDirectory.empty()) {
+        //std::cerr<<"-- caCertificatesDirectory = "<<caCertificatesDirectory<<std::endl;
         if (test && !dir_test(caCertificatesDirectory)) {
+          //std::cerr<<"-- caCertificatesDirectory test failed"<<std::endl;
           if(require) {
             logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
             res = false;
@@ -531,16 +535,22 @@ namespace Arc {
         }
       } else {
         caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S+"certificates";
+        //std::cerr<<"-- option 1 = "<<caCertificatesDirectory<<std::endl;
         if (test && !dir_test(caCertificatesDirectory)) {
           caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S+"certificates";
+          //std::cerr<<"-- option 2 = "<<caCertificatesDirectory<<std::endl;
           if (!dir_test(caCertificatesDirectory)) {
             caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"certificates";
+            //std::cerr<<"-- option 3 = "<<caCertificatesDirectory<<std::endl;
             if (!dir_test(caCertificatesDirectory)) {
               caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+              //std::cerr<<"-- option 4 = "<<caCertificatesDirectory<<std::endl;
               if (!dir_test(caCertificatesDirectory)) {
                 caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"share"+G_DIR_SEPARATOR_S+"certificates";
+                //std::cerr<<"-- option 5 = "<<caCertificatesDirectory<<std::endl;
                 if (!dir_test(caCertificatesDirectory)) {
                   caCertificatesDirectory = std::string(G_DIR_SEPARATOR_S)+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+                  //std::cerr<<"-- option 6 = "<<caCertificatesDirectory<<std::endl;
                   if (!dir_test(caCertificatesDirectory)) {
                     if(require) {
                       logger.msg(WARNING,

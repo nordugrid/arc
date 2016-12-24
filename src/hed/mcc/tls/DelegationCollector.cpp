@@ -29,13 +29,12 @@ DelegationCollector::~DelegationCollector(void) {
 //       Alternatively behavior may be configurable.
 static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
   bool result = false;
-#ifdef HAVE_OPENSSL_PROXY
   PROXY_CERT_INFO_EXTENSION *pci = (PROXY_CERT_INFO_EXTENSION*)X509_get_ext_d2i(cert,NID_proxyCertInfo,NULL,NULL);
   if(!pci) return true; // No proxy 
   switch (OBJ_obj2nid(pci->proxyPolicy->policyLanguage)) {
     case NID_Independent: { // No rights granted
       // Either such situation should be disallowed or 
-      // policy should be generated which granst no right for enything.
+      // policy should be generated which grants no right for anything.
       // First option is easier to implement so using it at least yet.
       logger.msg(DEBUG,"Independent proxy - no rights granted");
     }; break; 
@@ -68,7 +67,6 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
     }; break;
   };
   PROXY_CERT_INFO_EXTENSION_free(pci);
-#endif
   return result;
 }
 

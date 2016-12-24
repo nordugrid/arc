@@ -157,11 +157,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          std::string certstr;
          x509_to_string(cert, certstr);
          x509chainstr_=certstr+x509chainstr_;
-#ifdef HAVE_OPENSSL_PROXY
          if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
             identity_=subject;
          };
-#endif
          // Parse VOMS attributes from each certificate of the peer chain.
          Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
          bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
@@ -192,11 +190,9 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
           OPENSSL_free(buf);
         };
       };
-#ifdef HAVE_OPENSSL_PROXY
       if(X509_get_ext_by_NID(peercert,NID_proxyCertInfo,-1) < 0) {
          identity_=subject;
       };
-#endif
       // Parse VOMS attributes from peer certificate
       Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
       bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
@@ -425,6 +421,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       stream = new PayloadTLSMCC(inpayload,config_,logger);
       // Check for established connection
       if(!*stream) {
+        logger.msg(ERROR, "Failed to establish connection: %s", stream->Failure().operator std::string());
         delete stream;
         return MCC_Status();
       }

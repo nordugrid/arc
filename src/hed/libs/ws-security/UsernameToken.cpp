@@ -25,6 +25,24 @@
 
 namespace Arc {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static EVP_MD_CTX* EVP_MD_CTX_new(void) {
+  EVP_MD_CTX* ctx = (EVP_MD_CTX*)std::malloc(sizeof(EVP_MD_CTX));
+  if(ctx) {
+    EVP_MD_CTX_init(ctx);
+  }
+  return ctx;
+}
+
+static void EVP_MD_CTX_free(EVP_MD_CTX* ctx) {
+  if(ctx) {
+    EVP_MD_CTX_cleanup(ctx);
+    std::free(ctx);
+  }
+}
+#endif
+
 #define WSSE_NAMESPACE   "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" 
 #define WSSE11_NAMESPACE "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd"
 #define WSU_NAMESPACE    "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
@@ -162,7 +180,7 @@ static std::string get_salt(bool mac) {
 }
 
 static std::string digest_password(const std::string& nonce, const std::string& created, const std::string& passwd) {
-  EVP_MD_CTX mdctx;       
+  EVP_MD_CTX* mdctx = NULL;       
   unsigned char md_value[SHA_DIGEST_LENGTH];
   unsigned int md_len;
   
@@ -176,20 +194,22 @@ static std::string digest_password(const std::string& nonce, const std::string& 
 
   //std::cout<<"To digest:"<<todigest<<std::endl;
     
-  EVP_MD_CTX_init(&mdctx);
-  EVP_DigestInit_ex(&mdctx, EVP_sha1(), NULL);
-  EVP_DigestUpdate(&mdctx, todigest.c_str(), todigest.length());
-  EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-  EVP_MD_CTX_cleanup(&mdctx);
-
   std::string ret;
-  ret = Base64::encode(std::string((const char*)md_value, SHA_DIGEST_LENGTH));
+  mdctx = EVP_MD_CTX_new();
+  if(mdctx) {
+    EVP_MD_CTX_init(mdctx);
+    EVP_DigestInit_ex(mdctx, EVP_sha1(), NULL);
+    EVP_DigestUpdate(mdctx, todigest.c_str(), todigest.length());
+    EVP_DigestFinal_ex(mdctx, md_value, &md_len);
+    EVP_MD_CTX_free(mdctx);
+    ret = Base64::encode(std::string((const char*)md_value, SHA_DIGEST_LENGTH));
+  }
 
   return ret;
 }
 
 static std::string generate_derivedkey(const std::string& password, const std::string& salt, int iteration ) {
-  EVP_MD_CTX mdctx;
+  EVP_MD_CTX* mdctx = NULL;
   unsigned char md_value[SHA_DIGEST_LENGTH];
   unsigned int md_len;
   int i;
@@ -199,16 +219,18 @@ static std::string generate_derivedkey(const std::string& password, const std::s
 
   //std::cout<<"To digest:"<<todigest<<" "<<iteration<<std::endl;
 
-  EVP_MD_CTX_init(&mdctx);
-  for(i = 0; i< iteration; i++) {
-    EVP_DigestInit_ex(&mdctx, EVP_sha1(), NULL);
-    EVP_DigestUpdate(&mdctx, todigest.c_str(), todigest.length());
-    memset(md_value, 0, SHA_DIGEST_LENGTH);
-    EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-    todigest.assign((char*)md_value,md_len);
+  mdctx = EVP_MD_CTX_new();
+  if(mdctx) {
+    EVP_MD_CTX_init(mdctx);
+    for(i = 0; i< iteration; i++) {
+      EVP_DigestInit_ex(mdctx, EVP_sha1(), NULL);
+      EVP_DigestUpdate(mdctx, todigest.c_str(), todigest.length());
+      memset(md_value, 0, SHA_DIGEST_LENGTH);
+      EVP_DigestFinal_ex(mdctx, md_value, &md_len);
+      todigest.assign((char*)md_value,md_len);
+    }
+    EVP_MD_CTX_free(mdctx);
   }
-
-  EVP_MD_CTX_cleanup(&mdctx);
 
   return todigest;
 }
