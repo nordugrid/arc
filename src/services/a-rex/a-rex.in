@@ -723,7 +723,7 @@ prepare() {
       <next id=\"http\"/>
       <KeyPath>$X509_USER_KEY</KeyPath>
       <CertificatePath>$X509_USER_CERT</CertificatePath>
-      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+      <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       $VOMS_TRUST_CHAINS
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       $gridmapmatch
