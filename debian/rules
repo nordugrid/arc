@@ -11,7 +11,7 @@ ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
 CXXFLAGS += -std=c++11
 endif
 
-CANL_SUPPORT = yes
+CANL_SUPPORT = no
 
 ifeq ($(CANL_SUPPORT),yes)
 CANL_CONFIGURE_OPTION = --enable-canlxx
