@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Mattias Ellert <mattias.ellert@fysast.uu.se>
 Uploaders: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 5), libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, default-jdk | openjdk-6-jdk | java-gcj-compat-dev, junit, openssl, swig, libnss3-dev, libcanl-c++1-dev, pylint, libxml-simple-perl, libdbi-perl, libsqlite3-dev, libinline-python-perl | dash
+Build-Depends: debhelper (>= 5), libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, default-jdk | openjdk-6-jdk | java-gcj-compat-dev, junit, openssl, swig, libnss3-dev, pylint, libxml-simple-perl, libdbi-perl, libsqlite3-dev, libinline-python-perl | dash
 Standards-Version: 3.9.8
 Homepage: http://www.nordugrid.org
 
