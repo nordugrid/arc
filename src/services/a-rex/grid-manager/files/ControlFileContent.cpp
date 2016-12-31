@@ -24,44 +24,126 @@ namespace ARex {
 static Glib::Mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-static inline void write_str(int f,const char* buf, std::string::size_type len) {
+class KeyValueFile {
+ public:
+  enum OpenMode {
+    Fetch,
+    Create
+  };
+  KeyValueFile(std::string const& fname, OpenMode mode);
+  ~KeyValueFile(void);
+  operator bool(void) { return handle_ != -1; };
+  bool operator!(void) { return handle_ == -1; };
+  bool Write(std::string const& name, std::string const& value);
+  bool Read(std::string& name, std::string& value);
+ private:
+  int handle_;
+  char* read_buf_;
+  int read_buf_pos_;
+  int read_buf_avail_;
+  static int const read_buf_size_ = 256; // normally should fit full line
+  static int const data_max_ = 1024*1024; // sanity protection
+};
+
+KeyValueFile::KeyValueFile(std::string const& fname, OpenMode mode):
+          handle_(-1),read_buf_(NULL),read_buf_pos_(0),read_buf_avail_(0) {
+  if(mode == Create) {
+    handle_ = ::open(fname.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    if(handle_==-1) return;
+    struct flock lock;
+    lock.l_type=F_WRLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+    for(;;) {
+      if(::fcntl(handle_,F_SETLKW,&lock) != -1) break;
+      if(errno == EINTR) continue;
+      ::close(handle_); handle_ = -1;
+      return;
+    };
+    if((::ftruncate(handle_,0) != 0) || (::lseek(handle_,0,SEEK_SET) != 0)) {
+      close(handle_); handle_ = -1;
+      return;
+    };
+  } else {
+    handle_ = ::open(fname.c_str(),O_RDONLY);
+    if(handle_ == -1) return;
+    struct flock lock;
+    lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+    for(;;) {
+      if(::fcntl(handle_,F_SETLKW,&lock) != -1) break; // success
+      if(errno == EINTR) continue; // retry
+      close(handle_); handle_ = -1; // failure
+      return;
+    };
+    read_buf_ = new char[read_buf_size_];
+    if(!read_buf_) {
+      close(handle_); handle_ = -1;
+      return;
+    };
+  };
+}
+
+KeyValueFile::~KeyValueFile(void) {
+  if(handle_ != -1) ::close(handle_);
+  if(read_buf_) delete[] read_buf_;
+}
+
+static inline bool write_str(int f,const char* buf, std::string::size_type len) {
   for(;len > 0;) {
     ssize_t l = write(f,buf,len);
     if(l < 0) {
-      if(errno != EINTR) break;
+      if(errno != EINTR) return false;
     } else {
       len -= l; buf += l;
     };
   };
+  return true;
 }
 
-static inline void write_str(int f,const std::string& str) {
-  write_str(f,str.c_str(),str.length());
+bool KeyValueFile::Write(std::string const& name, std::string const& value) {
+  if(handle_ == -1) return false;
+  if(read_buf_) return false;
+  if(name.empty()) return false;
+  if(name.length() > data_max_) return false;
+  if(value.length() > data_max_) return false;
+  if(!write_str(handle_, name.c_str(), name.length())) return false;
+  if(!write_str(handle_, "=", 1)) return false;
+  if(!write_str(handle_, value.c_str(), value.length())) return false;
+  if(!write_str(handle_, "\n", 1)) return false;
+  return true;
 }
 
-static inline bool read_str(int f,std::string& key,std::string& value) {
-  int const max_size = 4096; // limited for sanity
+bool KeyValueFile::Read(std::string& name, std::string& value) {
+  if(handle_ == -1) return false;
+  if(!read_buf_) return false;
+  name.clear();
+  value.clear();
   char c;
   bool key_done = false;
   for(;;) {
-    ssize_t l = read(f,&c,1);
-    if((l == -1) && (errno == EINTR)) continue;
-    if(l < 0) return false;
-    if(l == 0) {
-      break;
+    if(read_buf_pos_ >= read_buf_avail_) {
+      read_buf_pos_ = 0;
+      read_buf_avail_ = 0;
+      ssize_t l = ::read(handle_, read_buf_, read_buf_size_);
+      if(l < 0) {
+        if(errno == EINTR) continue;
+        return false;
+      };
+      if(l == 0) break; // EOF - not error
+      read_buf_avail_ = l;
     };
-    if(c == '\n') break;
+    c = read_buf_[read_buf_pos_++];
+    if(c == '\n') break; // EOL
     if(!key_done) {
       if(c == '=') {
         key_done = true;
       } else {
-        if(key.length() < max_size) key += c;
+        name += c;
+        if(name.length() > data_max_) return false;
       };
     } else {
-      if(value.length() < max_size) value += c;
+      value += c;
+      if(value.length() > data_max_) return false; 
     };
   };
-  if(key.empty() && value.empty()) return false;
   return true;
 }
 
@@ -410,51 +492,40 @@ std::ostream& operator<<(std::ostream& o,const LRMSResult &r) {
 }
 
 
-static inline void write_pair(int f,const std::string &name,const std::string &value) {
-  if(value.length() <= 0) return;
-  write_str(f,name);
-  write_str(f,"=");
-  write_str(f,value);
-  write_str(f,"\n");
+static inline bool write_pair(KeyValueFile& f,const std::string &name,const std::string &value) {
+  if(value.empty()) return true;
+  return f.Write(name,value);
 }
 
-static inline void write_pair(int f,const std::string &name,const Arc::Time &value) {
-  if(value == -1) return;
-  write_str(f,name);
-  write_str(f,"=");
-  write_str(f,value.str(Arc::MDSTime));
-  write_str(f,"\n");
+static inline bool write_pair(KeyValueFile& f,const std::string &name,const Arc::Time &value) {
+  if(value == -1) return true;
+  return f.Write(name,value.str(Arc::MDSTime));
 }
 
-static inline void write_pair(int f,const std::string &name,bool value) {
-  write_str(f,name);
-  write_str(f,"=");
-  write_str(f,(value?"yes":"no"));
-  write_str(f,"\n");
+static inline bool write_pair(KeyValueFile& f,const std::string &name,bool value) {
+  return f.Write(name,(value?"yes":"no"));
 }
 
-static void write_pair(int f,const std::string &name,const Exec& value) {
-  write_str(f,name);
-  write_str(f,"=");
+static bool write_pair(KeyValueFile& f,const std::string &name,const Exec& value) {
+  std::string value_str;
   for(Exec::const_iterator i=value.begin(); i!=value.end(); ++i) {
-    write_str(f, Arc::escape_chars(*i, " \\\r\n", '\\', false));
-    write_str(f," ");
+    value_str += Arc::escape_chars(*i, " \\\r\n", '\\', false);
+    value_str += " ";
   }
-  write_str(f,"\n");
-  write_str(f,name+"code");
-  write_str(f,"=");
-  write_str(f,Arc::tostring(value.successcode));
-  write_str(f,"\n");
+  if(!f.Write(name,value_str)) return false;
+  if(!f.Write(name+"code",Arc::tostring(value.successcode))) return false;
+  return true;
 }
 
-static void write_pair(int f,const std::string &name,const std::list<Exec>& value) {
+static bool write_pair(KeyValueFile& f,const std::string &name,const std::list<Exec>& value) {
   for(std::list<Exec>::const_iterator v = value.begin();
                  v != value.end(); ++v) {
-    write_pair(f,name,*v);
+    if(!write_pair(f,name,*v)) return false;
   }
+  return true;
 }
 
-static inline bool read_boolean(const std::string& buf) {
+static inline bool parse_boolean(const std::string& buf) {
   if(strncasecmp("yes",buf.c_str(),3) == 0) return true;
   if(strncasecmp("true",buf.c_str(),4) == 0) return true;
   if(strncmp("1",buf.c_str(),1) == 0) return true;
@@ -464,101 +535,84 @@ static inline bool read_boolean(const std::string& buf) {
 bool JobLocalDescription::write(const std::string& fname) const {
   Glib::Mutex::Lock lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_WRLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
-  if(ftruncate(f,0) != 0) { close(f); return false; };
-  if(lseek(f,0,SEEK_SET) != 0) { close(f); return false; };
+  KeyValueFile f(fname,KeyValueFile::Create);
+  if(!f) return false;
   for (std::list<std::string>::const_iterator it=jobreport.begin();
        it!=jobreport.end();
        it++) {
-    write_pair(f,"jobreport",*it);
+    if(!write_pair(f,"jobreport",*it)) return false;
   };
-  write_pair(f,"globalid",globalid);
-  write_pair(f,"headnode",headnode);
-  write_pair(f,"interface",interface);
-  write_pair(f,"lrms",lrms);
-  write_pair(f,"queue",queue);
-  write_pair(f,"localid",localid);
-  write_pair(f,"args",exec);
-  write_pair(f,"pre",preexecs);
-  write_pair(f,"post",postexecs);
-  write_pair(f,"subject",DN);
-  write_pair(f,"starttime",starttime);
-  write_pair(f,"lifetime",lifetime);
-  write_pair(f,"notify",notify);
-  write_pair(f,"processtime",processtime);
-  write_pair(f,"exectime",exectime);
-  write_pair(f,"rerun",Arc::tostring(reruns));
-  if(downloads>=0) write_pair(f,"downloads",Arc::tostring(downloads));
-  if(uploads>=0) write_pair(f,"uploads",Arc::tostring(uploads));
-  write_pair(f,"jobname",jobname);
+  if(!write_pair(f,"globalid",globalid)) return false;
+  if(!write_pair(f,"headnode",headnode)) return false;
+  if(!write_pair(f,"interface",interface)) return false;
+  if(!write_pair(f,"lrms",lrms)) return false;
+  if(!write_pair(f,"queue",queue)) return false;
+  if(!write_pair(f,"localid",localid)) return false;
+  if(!write_pair(f,"args",exec)) return false;
+  if(!write_pair(f,"pre",preexecs)) return false;
+  if(!write_pair(f,"post",postexecs)) return false;
+  if(!write_pair(f,"subject",DN)) return false;
+  if(!write_pair(f,"starttime",starttime)) return false;
+  if(!write_pair(f,"lifetime",lifetime)) return false;
+  if(!write_pair(f,"notify",notify)) return false;
+  if(!write_pair(f,"processtime",processtime)) return false;
+  if(!write_pair(f,"exectime",exectime)) return false;
+  if(!write_pair(f,"rerun",Arc::tostring(reruns))) return false;
+  if(downloads>=0) if(!write_pair(f,"downloads",Arc::tostring(downloads))) return false;
+  if(uploads>=0) if(!write_pair(f,"uploads",Arc::tostring(uploads))) return false;
+  if(!write_pair(f,"jobname",jobname)) return false;
   for (std::list<std::string>::const_iterator ppn=projectnames.begin();
        ppn!=projectnames.end();
        ++ppn) {
-    write_pair(f,"projectname",*ppn);
+    if(!write_pair(f,"projectname",*ppn)) return false;
   };
-  write_pair(f,"gmlog",stdlog);
-  write_pair(f,"cleanuptime",cleanuptime);
-  write_pair(f,"delegexpiretime",expiretime);
-  write_pair(f,"clientname",clientname);
-  write_pair(f,"clientsoftware",clientsoftware);
-  write_pair(f,"delegationid",delegationid);
-  write_pair(f,"sessiondir",sessiondir);
-  write_pair(f,"diskspace",Arc::tostring(diskspace));
-  write_pair(f,"failedstate",failedstate);
-  write_pair(f,"failedcause",failedcause);
-  write_pair(f,"credentialserver",credentialserver);
-  write_pair(f,"freestagein",freestagein);
+  if(!write_pair(f,"gmlog",stdlog)) return false;
+  if(!write_pair(f,"cleanuptime",cleanuptime)) return false;
+  if(!write_pair(f,"delegexpiretime",expiretime)) return false;
+  if(!write_pair(f,"clientname",clientname)) return false;
+  if(!write_pair(f,"clientsoftware",clientsoftware)) return false;
+  if(!write_pair(f,"delegationid",delegationid)) return false;
+  if(!write_pair(f,"sessiondir",sessiondir)) return false;
+  if(!write_pair(f,"diskspace",Arc::tostring(diskspace))) return false;
+  if(!write_pair(f,"failedstate",failedstate)) return false;
+  if(!write_pair(f,"failedcause",failedcause)) return false;
+  if(!write_pair(f,"credentialserver",credentialserver)) return false;
+  if(!write_pair(f,"freestagein",freestagein)) return false;
   for(std::list<std::string>::const_iterator lv=localvo.begin();
       lv != localvo.end(); ++lv) {
-    write_pair(f,"localvo",(*lv));
+    if(!write_pair(f,"localvo",(*lv))) return false;
   };
   for(std::list<std::string>::const_iterator vf=voms.begin();
       vf != voms.end(); ++vf) {
-    write_pair(f,"voms",(*vf));
+    if(!write_pair(f,"voms",(*vf))) return false;
   };
   for(std::list<std::string>::const_iterator act_id=activityid.begin();
       act_id != activityid.end(); ++act_id) {
-    write_pair(f,"activityid",(*act_id));
+    if(!write_pair(f,"activityid",(*act_id))) return false;
   };
   if (migrateactivityid != "") {
-    write_pair(f,"migrateactivityid",migrateactivityid);
-    write_pair(f,"forcemigration",forcemigration);
+    if(!write_pair(f,"migrateactivityid",migrateactivityid)) return false;
+    if(!write_pair(f,"forcemigration",forcemigration)) return false;
   }
-  write_pair(f,"transfershare",transfershare);
-  write_pair(f,"priority",Arc::tostring(priority));
-  close(f);
+  if(!write_pair(f,"transfershare",transfershare)) return false;
+  if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
   return true;
 }
 
 bool JobLocalDescription::read(const std::string& fname) {
   Glib::Mutex::Lock lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_RDONLY);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
-  // using iostream for handling file content
+  KeyValueFile f(fname,KeyValueFile::Fetch);
+  if(!f) return false;
   activityid.clear();
   localvo.clear();
   voms.clear();
   for(;;) {
     std::string name;
     std::string buf;
-    if(!read_str(f,name,buf)) break;
-    if(name.length() == 0) continue;
+    if(!f.Read(name,buf)) return false;
+    if(name.empty() && buf.empty()) break; // EOF
+    if(name.empty()) continue;
     if(buf.empty()) continue;
     if(name == "lrms") { lrms = buf; }
     else if(name == "headnode") { headnode = buf; }
@@ -579,17 +633,17 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "gmlog") { stdlog = buf; }
     else if(name == "rerun") {
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       reruns = n;
     }
     else if(name == "downloads") {
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       downloads = n;
     }
     else if(name == "uploads") {
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       uploads = n;
     }
     else if(name == "args") {
@@ -602,7 +656,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     }
     else if(name == "argscode") {
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       exec.successcode = n;
     }
     else if(name == "pre") {
@@ -615,9 +669,9 @@ bool JobLocalDescription::read(const std::string& fname) {
       preexecs.push_back(pe);
     }
     else if(name == "precode") {
-      if(preexecs.empty()) { close(f); return false; };
+      if(preexecs.empty()) return false;
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       preexecs.back().successcode = n;
     }
     else if(name == "post") {
@@ -630,9 +684,9 @@ bool JobLocalDescription::read(const std::string& fname) {
       postexecs.push_back(pe);
     }
     else if(name == "postcode") {
-      if(postexecs.empty()) { close(f); return false; };
+      if(postexecs.empty()) return false;
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       postexecs.back().successcode = n;
     }
     else if(name == "cleanuptime") { cleanuptime = buf; }
@@ -644,7 +698,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "failedstate") { failedstate = buf; }
     else if(name == "failedcause") { failedcause = buf; }
     else if(name == "credentialserver") { credentialserver = buf; }
-    else if(name == "freestagein") { freestagein = read_boolean(buf); }
+    else if(name == "freestagein") { freestagein = parse_boolean(buf); }
     else if(name == "localvo") {
       localvo.push_back(buf);
     }
@@ -653,44 +707,36 @@ bool JobLocalDescription::read(const std::string& fname) {
     }
     else if(name == "diskspace") {
       unsigned long long int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       diskspace = n;
     }
     else if(name == "activityid") {
       activityid.push_back(buf);
     }
     else if(name == "migrateactivityid") { migrateactivityid = buf; }
-    else if(name == "forcemigration") { forcemigration = read_boolean(buf); }
+    else if(name == "forcemigration") { forcemigration = parse_boolean(buf); }
     else if(name == "transfershare") { transfershare = buf; }
     else if(name == "priority") {
       int n;
-      if(!Arc::stringto(buf,n)) { close(f); return false; };
+      if(!Arc::stringto(buf,n)) return false;
       priority = n;
     }
   }
-  close(f);
   return true;
 }
 
 bool JobLocalDescription::read_var(const std::string &fname,const std::string &vnam,std::string &value) {
   Glib::Mutex::Lock lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_RDONLY);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
+  KeyValueFile f(fname,KeyValueFile::Fetch);
+  if(!f) return false;
   // using iostream for handling file content
   bool found = false;
   for(;;) {
     std::string buf;
     std::string name;
-    if(!read_str(f,name,buf)) break;
-    if(name.length() == 0) continue;
+    if(!f.Read(name, buf)) return false;
+    if(name.empty()) continue;
     if(buf.empty()) continue;
     if(name == vnam) { value = buf; found=true; break; };
   };
