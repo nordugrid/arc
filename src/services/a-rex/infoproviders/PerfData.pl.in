@@ -52,6 +52,9 @@ BEGIN {
     unshift @INC, $pkgdatadir;
 }
 
+# used for code parsing
+my $pkgdatadir = dirname($0);
+
 use ConfigCentral;
 use LogUtils; 
 our $log = LogUtils->getLogger(__PACKAGE__);
@@ -351,7 +354,7 @@ sub getlinenumbers {
   foreach my $module (keys %{$metrics->{'modules'}}) {
 	my $modulehash = $metrics->{'modules'}{$module};
 	if (defined $modulehash->{codepatterns}) {
-     	open ( SF , $module ) or $log->error("$!");
+     	open ( SF , "$pkgdatadir/$module" ) or $log->error("$!");
 	    while ( my $fileline = <SF>) {
 			for my $filetype (keys %{$modulehash->{codepatterns}{patterns}}) {
 			   my $pattern = $modulehash->{codepatterns}{patterns}{$filetype};

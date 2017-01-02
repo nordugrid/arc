@@ -117,7 +117,7 @@ bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
     # Get ldap user from passwd
     bdii_user=`getent passwd ldap openldap | sed 's/:.*//;q'`
-    if [ -z "bdii_user" ]; then
+    if [ -z "$bdii_user" ]; then
 	log_warning_msg "Warning, could not find ldap or openldap user"
 	log_warning_msg "resorting to using the root user"
 	bdii_user=root
