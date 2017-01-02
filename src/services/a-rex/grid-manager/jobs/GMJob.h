@@ -41,6 +41,7 @@ class GMJob {
  friend class JobsList;
  friend class GMJobRef;
  friend class GMJobQueue;
+ friend class GMJobMock;
  private:
   // State of the job (state machine)
   job_state_t job_state;

@@ -130,6 +130,12 @@
 %global with_xmlsec1 0
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
+%global with_pythonlrms 1
+%else
+%global with_pythonlrms 0
+%endif
+
 #
 # CA utils
 #
@@ -340,6 +346,9 @@ BuildRequires:	python-xml
 BuildRequires:	libtool-ltdl-devel
 %else
 BuildRequires:	libtool
+%endif
+%if %{with_pythonlrms}
+BuildRequires:	perl-Inline-Python
 %endif
 %if %{with_sqlite}
 BuildRequires:	sqlite-devel >= 3.6
@@ -602,6 +611,10 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{with_python}
 Requires:	%{name}-python = %{version}-%{release}
+%endif
+%if %{with_pythonlrms}
+Requires:	perl(Inline)
+Requires:	perl(Inline::Python)
 %endif
 Requires:	mktemp
 Requires:	python-twisted-core
@@ -971,6 +984,9 @@ export CXXFLAGS="%{optflags} -std=c++11"
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
+%endif
+%if %{with_pythonlrms}
+     --with-inline-python \
 %endif
 %if %{with_sqlite}
      --enable-sqlite \
@@ -1514,6 +1530,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
 %{_datadir}/%{pkgdir}/ssm/brokers.py*
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
+%if %{with_pythonlrms}
+%{_libexecdir}/%{pkgdir}/arc-sshfs-mount
+%{python_sitearch}/%{pkgdir}/lrms
+%{_datadir}/%{pkgdir}/SLURMPYmod.pm
+%{_datadir}/%{pkgdir}/job_script.stubs
+%endif
 %{_sbindir}/a-rex-backtrace-collect
 
 %if %{with_acix}
@@ -1647,7 +1669,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %doc docdir/python/*
 %{python_sitearch}/_arc.@PYTHON_SOABI@*so
-%{python_sitearch}/arc
+%{python_sitearch}/%{pkgdir}/*.py*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so

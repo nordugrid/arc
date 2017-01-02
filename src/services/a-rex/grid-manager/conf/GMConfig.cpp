@@ -6,7 +6,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include <unistd.h>
-#include <sys/stat.h>
+#include <sys/stat.h>   // ::SSHFS_OK, check device
+#include <sys/statfs.h> // ::SSHFS_OK, check file system
 
 #include <arc/StringConv.h>
 #include <arc/ArcLocation.h>
@@ -93,6 +94,8 @@ void GMConfig::SetDefaults() {
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");
+
+  sshfs_mounts_enabled = false;
 }
 
 bool GMConfig::Load() {
@@ -356,4 +359,18 @@ bool GMConfig::MatchShareGid(gid_t sgid) const {
   return false;
 }
 
+bool GMConfig::SSHFS_OK(const std::string& mount_point) const {
+  struct stat st;
+  struct stat st_root;
+  stat(mount_point.c_str(), &st);
+  stat(mount_point.substr(0, mount_point.rfind('/')).c_str(), &st_root);
+  // rootdir and dir on different devices?
+  if (st.st_dev != st_root.st_dev) {
+      struct statfs stfs;
+      statfs(mount_point.c_str(), &stfs);
+      // dir is also a fuse fs?
+      return stfs.f_type == 0x65735546;
+  }
+  return false;
+}
 } // namespace ARex

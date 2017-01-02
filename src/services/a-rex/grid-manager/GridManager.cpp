@@ -283,6 +283,23 @@ bool GridManager::thread() {
   time_t poll_job_time = time(NULL); // run once immediately + config_.WakeupPeriod();
   for(;;) {
     if(tostop_) break;
+    // TODO: make processing of SSH async or remove SSH from GridManager completely
+    if (config_.UseSSH()) {
+      // TODO: can there be more than one session root?
+      while (!config_.SSHFS_OK(config_.SessionRoots().front())) {
+        logger.msg(Arc::WARNING, "SSHFS mount point of session directory (%s) is broken - waiting for reconnect ...", config_.SessionRoots().front());
+        active_.wait(10000);
+      }
+      while(!config_.SSHFS_OK(config_.RTEDir())) {
+        logger.msg(Arc::WARNING, "SSHFS mount point of runtime directory (%s) is broken - waiting for reconnect ...", config_.RTEDir());
+        active_.wait(10000);
+      }
+      // TODO: can there be more than one cache dir?
+      while(!config_.SSHFS_OK(config_.CacheParams().getCacheDirs().front())) {
+        logger.msg(Arc::WARNING, "SSHFS mount point of cache directory (%s) is broken - waiting for reconnect ...", config_.CacheParams().getCacheDirs().front());
+        active_.wait(10000);
+      }
+    }
     // TODO: check conditions for following calls
     jobs.RunHelpers();
     JobLog* joblog = config_.GetJobLog();
