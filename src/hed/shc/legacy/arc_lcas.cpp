@@ -132,7 +132,7 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
     gss_buffer_desc peer_buffer;
 #if GLOBUS_GSSAPI_GSI_OLD_OPENSSL
     peer_buffer.value = identity_cert;
-    peer_buffer.length = identity_cert?sizeof(X509):0;
+    peer_buffer.length = identity_cert?sizeof(X509*):0; // Globus expects this size despite strored value is X509, not X509*
 #else
     peer_buffer.value = identity_cert;
     peer_buffer.length = identity_cert?sizeof(X509*):0;

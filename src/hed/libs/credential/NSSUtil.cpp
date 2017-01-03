@@ -1647,8 +1647,7 @@ err:
 
     PKCS8_PRIV_KEY_INFO *p8inf = NULL;
     if (pkey) {
-      int p8_broken = PKCS8_OK;
-      if (!(p8inf = EVP_PKEY2PKCS8_broken(pkey, p8_broken))) {
+      if (!(p8inf = EVP_PKEY2PKCS8(pkey))) {
         NSSUtilLogger.msg(ERROR, "Failed to convert EVP_PKEY to PKCS8");
         EVP_PKEY_free(pkey);
         return false;

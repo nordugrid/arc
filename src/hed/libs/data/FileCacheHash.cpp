@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
@@ -16,28 +17,52 @@ namespace Arc {
 int FileCacheHash::MAX_MD5_LENGTH = 32;
 int FileCacheHash::MAX_SHA1_LENGTH = 40;
 
+
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+static EVP_MD_CTX* EVP_MD_CTX_new(void) {
+  EVP_MD_CTX* ctx = (EVP_MD_CTX*)std::malloc(sizeof(EVP_MD_CTX));
+  if(ctx) {
+    EVP_MD_CTX_init(ctx);
+  }
+  return ctx;
+}
+
+static void EVP_MD_CTX_free(EVP_MD_CTX* ctx) {
+  if(ctx) {
+    EVP_MD_CTX_cleanup(ctx);
+    std::free(ctx);
+  }
+}
+#endif
+
+
 std::string FileCacheHash::getHash(std::string url) {
 
+  std::string res("");
   /*
    * example borrowed from http://www.openssl.org/docs/crypto/EVP_DigestInit.html
    */
-  EVP_MD_CTX mdctx;
-  const EVP_MD *md = EVP_sha1(); // change to EVP_md5() for md5 hashes
-  char *mess1 = (char*)url.c_str();
-  unsigned char md_value[EVP_MAX_MD_SIZE];
-  unsigned int md_len, i;
+  EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+  if(mdctx) {
+    const EVP_MD *md = EVP_sha1(); // change to EVP_md5() for md5 hashes
+    if(md) {
+      char *mess1 = (char*)url.c_str();
+      unsigned char md_value[EVP_MAX_MD_SIZE];
+      unsigned int md_len, i;
 
-  EVP_MD_CTX_init(&mdctx);
-  EVP_DigestInit_ex(&mdctx, md, NULL);
-  EVP_DigestUpdate(&mdctx, mess1, strlen(mess1));
-  EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-  EVP_MD_CTX_cleanup(&mdctx);
+      EVP_MD_CTX_init(mdctx);
+      EVP_DigestInit_ex(mdctx, md, NULL);
+      EVP_DigestUpdate(mdctx, mess1, strlen(mess1));
+      EVP_DigestFinal_ex(mdctx, md_value, &md_len);
 
-  char result[3];
-  std::string res("");
-  for (i = 0; i < md_len; i++) {
-    snprintf(result, 3, "%02x", md_value[i]);
-    res.append(result);
+      char result[3];
+      for (i = 0; i < md_len; i++) {
+        snprintf(result, 3, "%02x", md_value[i]);
+        res.append(result);
+      }
+    }
+    EVP_MD_CTX_free(mdctx);
   }
   return res;
 }

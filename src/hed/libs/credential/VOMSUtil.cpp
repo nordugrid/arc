@@ -10,6 +10,7 @@
 #include <sys/systeminfo.h>
 #endif
 
+#include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
@@ -19,6 +20,25 @@
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
+
+#define idpkixOID                "1.3.6.1.5.5.7"
+// #define idpkcs9OID               "1.2.840.113549.1.9"
+// #define idpeOID                  idpkixOID ".1"
+#define idceOID                  "2.5.29"
+// #define idacaOID                 idpkixOID ".10"
+// #define idatOID                  "2.5.4"
+#define idceauthKeyIdentifierOID idceOID ".35"
+#define idcenoRevAvailOID        idceOID ".56"
+#define idceTargetsOID           idceOID ".55"
+#define vomsOID                  "1.3.6.1.4.1.8005.100.100.1"
+#define incfileOID               "1.3.6.1.4.1.8005.100.100.2"
+#define voOID                    "1.3.6.1.4.1.8005.100.100.3"
+#define idatcapOID               "1.3.6.1.4.1.8005.100.100.4"
+#define attributesOID            "1.3.6.1.4.1.8005.100.100.11"
+#define acseqOID                 "1.3.6.1.4.1.8005.100.100.5"
+#define orderOID                 "1.3.6.1.4.1.8005.100.100.6"
+#define certseqOID               "1.3.6.1.4.1.8005.100.100.10"
+// #define emailOID                 idpkcs9OID ".1"
 
 static std::string default_vomsdir = std::string(G_DIR_SEPARATOR_S) + "etc" + G_DIR_SEPARATOR_S +"grid-security" + G_DIR_SEPARATOR_S + "vomsdir";
 
@@ -38,29 +58,42 @@ int getdomainname_mingw (char *name, size_t len) {
 #define getdomainname getdomainname_mingw
 #endif
 
-#ifndef HAVE_TIMEGM
-// TODO: add lock or move it to Utils
-static time_t timegm (struct tm *tm) {
-  bool tz_found = false;
-  std::string tz = Arc::GetEnv("TZ", tz_found);
-  Arc::SetEnv("TZ","UTC");
-  tzset();
-  tm->tm_isdst = -1;
-  time_t ret = mktime(tm);
-  if(tz_found) {
-    Arc::SetEnv("TZ", tz);
-  } else {
-    Arc::UnsetEnv("TZ");
-  }
-  tzset();
-  return ret;
-}
-#endif
-
 
 using namespace ArcCredential;
 
 namespace Arc {
+
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+static void X509_get0_uids(const X509 *x,
+                    const ASN1_BIT_STRING **piuid,
+                    const ASN1_BIT_STRING **psuid) {
+  if (x) {
+    if (piuid != NULL) {
+      if (x->cert_info) {
+        *piuid = x->cert_info->issuerUID;
+      }
+    }
+    if (psuid != NULL) {
+      if (x->cert_info) {
+        *psuid = x->cert_info->subjectUID;
+      }
+    }
+  }
+}
+
+static const X509_ALGOR *X509_get0_tbs_sigalg(const X509 *x) {
+  if(!x) return NULL;
+  if(!(x->cert_info)) return NULL;
+  return x->cert_info->signature;
+}
+#endif
+
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
+    if (psig) *psig = x->signature;
+    if (palg) *palg = x->sig_alg;
+}
+#endif
 
   void VOMSTrustList::AddElement(const std::vector<std::string>& encoded_list) {
     VOMSTrustChain chain;
@@ -138,36 +171,27 @@ namespace Arc {
   }
 
   void InitVOMSAttribute(void) {
-    #define idpkix                "1.3.6.1.5.5.7"
-    #define idpkcs9               "1.2.840.113549.1.9"
-    #define idpe                  idpkix ".1"
-    #define idce                  "2.5.29"
-    #define idaca                 idpkix ".10"
-    #define idat                  "2.5.4"
-    #define idpeacauditIdentity   idpe ".4"
-    #define idcetargetInformation idce ".55"
-    #define idceauthKeyIdentifier idce ".35"
-    #define idceauthInfoAccess    idpe ".1"
-    #define idcecRLDistPoints     idce ".31"
-    #define idcenoRevAvail        idce ".56"
-    #define idceTargets           idce ".55"
-    #define idacaauthentInfo      idaca ".1"
-    #define idacaaccessIdentity   idaca ".2"
-    #define idacachargIdentity    idaca ".3"
-    #define idacagroup            idaca ".4"
-    #define idatclearance         "2.5.1.5.5"
-    #define voms                  "1.3.6.1.4.1.8005.100.100.1"
-    #define incfile               "1.3.6.1.4.1.8005.100.100.2"
-    #define vo                    "1.3.6.1.4.1.8005.100.100.3"
-    #define idatcap               "1.3.6.1.4.1.8005.100.100.4"
 
-    #define attribs            "1.3.6.1.4.1.8005.100.100.11"
-    #define acseq                 "1.3.6.1.4.1.8005.100.100.5"
-    #define order                 "1.3.6.1.4.1.8005.100.100.6"
-    #define certseq               "1.3.6.1.4.1.8005.100.100.10"
-    #define email                 idpkcs9 ".1"
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    #define OBJCREATE(c,n) { \
+      (void)OBJ_create(c,n,#c); \
+    }
+#else
+    #define OBJCREATE(c,n) { \
+      if(OBJ_create(c,n,#c) == 0) { \
+        unsigned long __err = ERR_get_error(); \
+        std::cerr<<"Failed to create OpenSSL object "<<c<<" "<<n<<" - "<<ERR_GET_REASON(__err)<<" "<<ERR_error_string(__err,NULL)<<std::endl; \
+        if(ERR_GET_REASON(__err) != OBJ_R_OID_EXISTS) { \
+          CredentialLogger.msg(ERROR, \
+                 "Failed to create OpenSSL object %s %s - %u %s", \
+                 c, n, ERR_GET_REASON(__err), ERR_error_string(__err,NULL)); \
+          return; \
+        }; \
+      }; \
+    }
+#endif
 
-    #define OBJC(c,n) OBJ_create(c,n,#c)
+    #define OBJSETNID(v,n) { v = OBJ_txt2nid(n); if(v == NID_undef) CredentialLogger.msg(ERROR, "Failed to obtain OpenSSL identifier for %s", n); }
 
     X509V3_EXT_METHOD *vomsattribute_x509v3_ext_meth;
 
@@ -182,52 +206,52 @@ namespace Arc {
 
     /* VOMS Attribute related objects*/
     //OBJ_create(email, "Email", "Email");
-    OBJC(idatcap,"idatcap");
+    OBJCREATE(idatcapOID,"idatcap");
 
-    OBJC(attribs,"attributes");
-    OBJC(idcenoRevAvail, "idcenoRevAvail");
-    OBJC(idceauthKeyIdentifier, "authKeyId");
-    OBJC(idceTargets, "idceTargets");
-    OBJC(acseq, "acseq");
-    OBJC(order, "order");
-    OBJC(voms, "voms");
-    OBJC(incfile, "incfile");
-    OBJC(vo, "vo");
-    OBJC(certseq, "certseq");
+    OBJCREATE(attributesOID,"attributes");
+    OBJCREATE(idcenoRevAvailOID, "idcenoRevAvail");
+    OBJCREATE(idceauthKeyIdentifierOID, "idceauthKeyIdentifier");
+    OBJCREATE(idceTargetsOID, "idceTargets");
+    OBJCREATE(acseqOID, "acseq");
+    OBJCREATE(orderOID, "order");
+    OBJCREATE(vomsOID, "voms");
+    OBJCREATE(incfileOID, "incfile");
+    OBJCREATE(voOID, "vo");
+    OBJCREATE(certseqOID, "certseq");
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_auth_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("authKeyId");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idceauthKeyIdentifierOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_avail_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("idcenoRevAvail");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idcenoRevAvailOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_targets_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("idceTargets");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, idceTargetsOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_acseq_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("acseq");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, acseqOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_certseq_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("certseq");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, certseqOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
     vomsattribute_x509v3_ext_meth = VOMSAttribute_attribs_x509v3_ext_meth();
     if (vomsattribute_x509v3_ext_meth) {
-      vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("attributes");
+      OBJSETNID(vomsattribute_x509v3_ext_meth->ext_nid, attributesOID);
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
 
@@ -238,25 +262,35 @@ namespace Arc {
 
   }
 
-  static int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
-             std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attrs, 
-             AC **ac, std::string voname, std::string uri, int lifetime) {
+  static int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder,
+                          EVP_PKEY *pkey, BIGNUM *serialnum,
+                          std::vector<std::string> &fqan,
+                          std::vector<std::string> &targets,
+                          std::vector<std::string>& attrs, 
+                          AC *ac, std::string voname, std::string uri, int lifetime) {
     #define ERROR(e) do { err = (e); goto err; } while (0)
     AC *a = NULL;
-    X509_NAME *subname = NULL, *issname = NULL;
-    GENERAL_NAME *dirn1 = NULL, *dirn2 = NULL;
-    ASN1_INTEGER  *serial = NULL, *holdserial = NULL, *version = NULL;
-    ASN1_BIT_STRING *uid = NULL;
+
     AC_ATTR *capabilities = NULL;
     AC_IETFATTR *capnames = NULL;
-    AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
     ASN1_OBJECT *cobj = NULL;
-    X509_ALGOR *alg1, *alg2;
-    ASN1_GENERALIZEDTIME *time1 = NULL, *time2 = NULL;
-    X509_EXTENSION *norevavail = NULL, *targetsext = NULL, *auth = NULL, *certstack = NULL;
+
+    X509_NAME *subname = NULL;
+    X509_NAME *issname = NULL;
+    ASN1_INTEGER  *serial = NULL;
+    ASN1_INTEGER *holdserial = NULL;
+    ASN1_INTEGER *version = NULL;
+    ASN1_BIT_STRING *uid = NULL;
+    AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
+    X509_ALGOR *alg1 = NULL;
+    X509_ALGOR *alg2 = NULL;
+    ASN1_GENERALIZEDTIME *time1 = NULL;
+    ASN1_GENERALIZEDTIME *time2 = NULL;
+    X509_EXTENSION *norevavail = NULL;
+    X509_EXTENSION *targetsext = NULL;
+    X509_EXTENSION *auth = NULL;
+    X509_EXTENSION *certstack = NULL;
     AC_ATT_HOLDER *ac_att_holder = NULL;
-    //char *qual = NULL, *name = NULL, *value = NULL, *tmp1 = NULL, *tmp2 = NULL;
-    STACK_OF(X509) *stk = NULL;
     int err = AC_ERR_UNKNOWN;
     time_t curtime;
 
@@ -265,7 +299,10 @@ namespace Arc {
     if (!issuer || !holder || !serialnum || fqan.empty() || !ac || !pkey)
       return AC_ERR_PARAMETERS;
 
-    a = *ac;
+    X509V3_CTX extctx;
+    X509V3_set_ctx(&extctx, issuer, NULL, NULL, NULL, 0);
+
+    a = ac;
     subname = X509_NAME_dup(X509_get_issuer_name(holder)); //old or new version?
     issname = X509_NAME_dup(X509_get_subject_name(issuer));
 
@@ -273,24 +310,19 @@ namespace Arc {
     time1 = ASN1_GENERALIZEDTIME_set(NULL, curtime);
     time2 = ASN1_GENERALIZEDTIME_set(NULL, curtime+lifetime);
 
-    dirn1  = GENERAL_NAME_new();
-    dirn2  = GENERAL_NAME_new();
-    holdserial      = M_ASN1_INTEGER_dup(holder->cert_info->serialNumber);
+    capabilities    = AC_ATTR_new();
+    capnames        = AC_IETFATTR_new();
+    cobj            = OBJ_txt2obj(idatcapOID,0);
+
+    holdserial      = ASN1_INTEGER_dup(X509_get_serialNumber(holder));
     serial          = BN_to_ASN1_INTEGER(serialnum, NULL);
     version         = BN_to_ASN1_INTEGER((BIGNUM *)(BN_value_one()), NULL);
-    capabilities    = AC_ATTR_new();
-    cobj            = OBJ_txt2obj("idatcap",0);
-    capnames        = AC_IETFATTR_new();
     ac_full_attrs   = AC_FULL_ATTRIBUTES_new();
     ac_att_holder   = AC_ATT_HOLDER_new();
 
     std::string buffer, complete;
 
-    GENERAL_NAME *g = GENERAL_NAME_new();
-    ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
-
-
-    if (!subname || !issuer || !dirn1 || !dirn2 || !holdserial || !serial ||
+    if (!subname || !issuer || !holdserial || !serial ||
       !capabilities || !cobj || !capnames || !time1 || !time2 || !ac_full_attrs || !ac_att_holder)
       ERROR(AC_ERR_MEMORY);
 
@@ -301,44 +333,50 @@ namespace Arc {
 
     // prepare AC_IETFATTR
     for (std::vector<std::string>::iterator i = fqan.begin(); i != fqan.end(); i++) {
-      ASN1_OCTET_STRING *tmpc = ASN1_OCTET_STRING_new();
+      AC_IETFATTRVAL *tmpc = AC_IETFATTRVAL_new();
       if (!tmpc) {
-        ASN1_OCTET_STRING_free(tmpc);
         ERROR(AC_ERR_MEMORY);
       }
+      tmpc->value.octet_string = ASN1_OCTET_STRING_new();
+      if(!tmpc->value.octet_string) {
+        AC_IETFATTRVAL_free(tmpc);
+        ERROR(AC_ERR_MEMORY);
+      }
+      tmpc->type = V_ASN1_OCTET_STRING;
 
       CredentialLogger.msg(DEBUG,"VOMS: create FQAN: %s",*i);
 
-#ifdef HAVE_OPENSSL_OLDRSA
-      ASN1_OCTET_STRING_set(tmpc, (unsigned char*)((*i).c_str()), (*i).length());
-#else
-      ASN1_OCTET_STRING_set(tmpc, (const unsigned char*)((*i).c_str()), (*i).length());
-#endif
+      ASN1_OCTET_STRING_set(tmpc->value.octet_string, (const unsigned char*)((*i).c_str()), (*i).length());
 
-      sk_AC_IETFATTRVAL_push(capnames->values, (AC_IETFATTRVAL *)tmpc);
+      if(capnames->values == NULL) capnames->values = sk_AC_IETFATTRVAL_new_null();
+      sk_AC_IETFATTRVAL_push(capnames->values, tmpc);
     }
  
-    //GENERAL_NAME *g = GENERAL_NAME_new();
-    //ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
     buffer.append(voname);
     buffer.append("://");
     buffer.append(uri);
-    if (!tmpr || !g) {
-      GENERAL_NAME_free(g);
-      ASN1_IA5STRING_free(tmpr);
-      ERROR(AC_ERR_MEMORY);
+    {
+      GENERAL_NAME *g = GENERAL_NAME_new();
+      {
+        ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
+        if (!tmpr || !g) {
+          GENERAL_NAME_free(g);
+          ASN1_IA5STRING_free(tmpr);
+          ERROR(AC_ERR_MEMORY);
+        }
+        ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
+        g->type  = GEN_URI;
+        g->d.ia5 = tmpr;
+      }
+      if(capnames->names == NULL) capnames->names = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(capnames->names, g);
     }
 
-    ASN1_STRING_set(tmpr, buffer.c_str(), buffer.size());
-    g->type  = GEN_URI;
-    g->d.ia5 = tmpr;
-    sk_GENERAL_NAME_push(capnames->names, g);
- 
     // stuff the created AC_IETFATTR in ietfattr (values) and define its object
-    sk_AC_IETFATTR_push(capabilities->ietfattr, capnames);
-    capabilities->get_type = GET_TYPE_FQAN;
+    if(capabilities->ietfattr == NULL) capabilities->ietfattr = sk_AC_IETFATTR_new_null();
+    sk_AC_IETFATTR_push(capabilities->ietfattr, capnames); capnames = NULL;
     ASN1_OBJECT_free(capabilities->type);
-    capabilities->type = cobj;
+    capabilities->type = cobj; cobj = NULL;
 
     // prepare AC_FULL_ATTRIBUTES
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
@@ -348,7 +386,6 @@ namespace Arc {
  
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr) {
-        AC_ATTRIBUTE_free(ac_attr);
         ERROR(AC_ERR_MEMORY);
       }
 
@@ -362,37 +399,29 @@ namespace Arc {
 
       size_t pos1 = (*i).find_first_of("=");
       if (pos1 == std::string::npos) {
+        AC_ATTRIBUTE_free(ac_attr);
         ERROR(AC_ERR_PARAMETERS);
-      }
-      else {
+      } else {
         name = (*i).substr(pos, pos1 - pos);
         value = (*i).substr(pos1 + 1);
       }
 
-#ifdef HAVE_OPENSSL_OLDRSA
-      if (!qual.empty())
-        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(qual.c_str()), qual.length());
-      else
-        ASN1_OCTET_STRING_set(ac_attr->qualifier, (unsigned char*)(voname.c_str()), voname.length());
-
-      ASN1_OCTET_STRING_set(ac_attr->name, (unsigned char*)(name.c_str()), name.length());
-      ASN1_OCTET_STRING_set(ac_attr->value, (unsigned char*)(value.c_str()), value.length());
-#else
-      if (!qual.empty())
+      if (!qual.empty()) {
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(qual.c_str()), qual.length());
-      else
+      } else {
         ASN1_OCTET_STRING_set(ac_attr->qualifier, (const unsigned char*)(voname.c_str()), voname.length());
+      }
 
       ASN1_OCTET_STRING_set(ac_attr->name, (const unsigned char*)(name.c_str()), name.length());
       ASN1_OCTET_STRING_set(ac_attr->value, (const unsigned char*)(value.c_str()), value.length());
-#endif
 
+      if(ac_att_holder->attributes == NULL) ac_att_holder->attributes = sk_AC_ATTRIBUTE_new_null();
       sk_AC_ATTRIBUTE_push(ac_att_holder->attributes, ac_attr);
     }
 
-    if (attrs.empty()) 
-      AC_ATT_HOLDER_free(ac_att_holder);
-    else {
+    if (attrs.empty()) {
+      AC_ATT_HOLDER_free(ac_att_holder); ac_att_holder = NULL;
+    } else {
       GENERAL_NAME *g = GENERAL_NAME_new();
       ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
       if (!tmpr || !g) {
@@ -408,105 +437,153 @@ namespace Arc {
       ASN1_STRING_set(tmpr, buffer.c_str(), buffer.length());
       g->type  = GEN_URI;
       g->d.ia5 = tmpr;
+      if(ac_att_holder->grantor == NULL) ac_att_holder->grantor = sk_GENERAL_NAME_new_null();
       sk_GENERAL_NAME_push(ac_att_holder->grantor, g);
-
-      sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder);
+      if(ac_full_attrs->providers == NULL) ac_full_attrs->providers = sk_AC_ATT_HOLDER_new_null();
+      sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder); ac_att_holder = NULL;
     }  
   
     // push both AC_ATTR into STACK_OF(AC_ATTR)
-    sk_AC_ATTR_push(a->acinfo->attrib, capabilities);
+    if(a->acinfo->attrib == NULL) a->acinfo->attrib = sk_AC_ATTR_new_null();
+    sk_AC_ATTR_push(a->acinfo->attrib, capabilities); capabilities = NULL;
 
     if (ac_full_attrs) {
       X509_EXTENSION *ext = NULL;
 
-      ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("attributes"), (char *)(ac_full_attrs->providers));
-      AC_FULL_ATTRIBUTES_free(ac_full_attrs);
+      ext = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(attributesOID), (char *)(ac_full_attrs->providers));
+      AC_FULL_ATTRIBUTES_free(ac_full_attrs); ac_full_attrs = NULL;
       if (!ext)
         ERROR(AC_ERR_NO_EXTENSION);
 
+      if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
       sk_X509_EXTENSION_push(a->acinfo->exts, ext);
-      ac_full_attrs = NULL;
     }
 
-    stk = sk_X509_new_null();
-    
-    sk_X509_push(stk, X509_dup(issuer));
+    {
+      STACK_OF(X509) *stk = sk_X509_new_null();
+      sk_X509_push(stk, X509_dup(issuer));
 
-    if (issuerstack) {
-      for (int j =0; j < sk_X509_num(issuerstack); j++)
-        sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
+      if (issuerstack) {
+        for (int j =0; j < sk_X509_num(issuerstack); j++) {
+          sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
+        }
+      }
+
+      //for(int i=0; i<sk_X509_num(stk); i++)
+      //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
+      //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
+
+      certstack = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(certseqOID), (char*)stk);
+      sk_X509_pop_free(stk, X509_free);
     }
 
-   //for(int i=0; i<sk_X509_num(stk); i++)
-   //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
-   //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0));
-
-    certstack = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("certseq"), (char*)stk);
-    sk_X509_pop_free(stk, X509_free);
-
-    /* Create extensions */
-    norevavail = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idcenoRevAvail"), (char*)"loc");
+    // Create extensions
+    norevavail = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idcenoRevAvailOID), (char*)"loc");
     if (!norevavail)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(norevavail, 0); 
 
-    auth = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("authKeyId"), (char *)issuer);
+    auth = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idceauthKeyIdentifierOID), (char *)"keyid,issuer");
     if (!auth)
       ERROR(AC_ERR_NO_EXTENSION);
     X509_EXTENSION_set_critical(auth, 0); 
 
     if (!complete.empty()) {
-      targetsext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid("idceTargets"), (char*)(complete.c_str()));
+      targetsext = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idceTargetsOID), (char*)(complete.c_str()));
       if (!targetsext)
         ERROR(AC_ERR_NO_EXTENSION);
 
       X509_EXTENSION_set_critical(targetsext,1);
+      if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
       sk_X509_EXTENSION_push(a->acinfo->exts, targetsext);
     }
 
-    sk_X509_EXTENSION_push(a->acinfo->exts, norevavail);
-    sk_X509_EXTENSION_push(a->acinfo->exts, auth);
-    if (certstack)
-      sk_X509_EXTENSION_push(a->acinfo->exts, certstack);
+    if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
+    sk_X509_EXTENSION_push(a->acinfo->exts, norevavail); norevavail = NULL;
+    sk_X509_EXTENSION_push(a->acinfo->exts, auth); auth = NULL;
+    if (certstack) {
+      sk_X509_EXTENSION_push(a->acinfo->exts, certstack); certstack = NULL;
+    }
 
-    alg1 = X509_ALGOR_dup(issuer->cert_info->signature);
-    alg2 = X509_ALGOR_dup(issuer->sig_alg);
-
-    if (issuer->cert_info->issuerUID)
-      if (!(uid = M_ASN1_BIT_STRING_dup(issuer->cert_info->issuerUID)))
-        ERROR(AC_ERR_MEMORY);
-
-    ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
-    ASN1_INTEGER_free(a->acinfo->serial);
-    ASN1_INTEGER_free(a->acinfo->version);
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
-    ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
-    dirn1->d.dirn = subname;
-    dirn1->type = GEN_DIRNAME;
-    sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1);
-    dirn2->d.dirn = issname;
-    dirn2->type = GEN_DIRNAME;
-    sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2);
-    a->acinfo->holder->baseid->serial = holdserial;
-    a->acinfo->serial = serial;
-    a->acinfo->version = version;
-    a->acinfo->validity->notBefore = time1;
-    a->acinfo->validity->notAfter  = time2;
-    a->acinfo->id = uid;
-    X509_ALGOR_free(a->acinfo->alg);
-    a->acinfo->alg = alg1;
-    X509_ALGOR_free(a->sig_alg);
-    a->sig_alg = alg2;
-
-#ifdef HAVE_OPENSSL_OLDRSA
-    ASN1_sign((int (*)())i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
-	    (char *)a->acinfo, pkey, EVP_md5());
+    alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
+    if(alg1) alg1 = X509_ALGOR_dup(alg1);
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    X509_get0_signature(NULL, &alg2, issuer);
 #else
+    X509_get0_signature(NULL, (X509_ALGOR const**)&alg2, issuer);
+#endif
+    if(alg2) alg2 = X509_ALGOR_dup(alg2);
+
+    {
+      const ASN1_BIT_STRING* issuerUID = NULL;
+      X509_get0_uids(issuer, &issuerUID, NULL);
+      if (issuerUID)
+        if (!(uid = ASN1_STRING_dup(issuerUID)))
+          ERROR(AC_ERR_MEMORY);
+    }
+
+    if(a->acinfo->holder->baseid == NULL) a->acinfo->holder->baseid = AC_IS_new(); // optional
+    if(a->acinfo->form == NULL) a->acinfo->form = AC_FORM_new(); // optional
+
+    if(subname) {
+      GENERAL_NAME *dirn1 = GENERAL_NAME_new();
+      dirn1->d.dirn = subname;
+      dirn1->type = GEN_DIRNAME;
+      if(a->acinfo->holder->baseid->issuer == NULL) a->acinfo->holder->baseid->issuer = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(a->acinfo->holder->baseid->issuer, dirn1); dirn1 = NULL;
+    }
+
+    if(issname) {
+      GENERAL_NAME *dirn2 = GENERAL_NAME_new();
+      dirn2->d.dirn = issname;
+      dirn2->type = GEN_DIRNAME;
+      if(a->acinfo->form->names == NULL) a->acinfo->form->names = sk_GENERAL_NAME_new_null();
+      sk_GENERAL_NAME_push(a->acinfo->form->names, dirn2); dirn2 = NULL;
+    }
+
+    if(holdserial) {
+      if(a->acinfo->holder->baseid->serial) ASN1_INTEGER_free(a->acinfo->holder->baseid->serial);
+      a->acinfo->holder->baseid->serial = holdserial; holdserial = NULL;
+    }
+
+    if(serial) {
+      ASN1_INTEGER_free(a->acinfo->serial);
+      a->acinfo->serial = serial; serial = NULL;
+    }
+
+    if(version) {
+      ASN1_INTEGER_free(a->acinfo->version);
+      a->acinfo->version = version; version = NULL;
+    }
+
+    if(time1) {
+      ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notBefore);
+      a->acinfo->validity->notBefore = time1; time1 = NULL;
+    }
+
+    if(time2) {
+      ASN1_GENERALIZEDTIME_free(a->acinfo->validity->notAfter);
+      a->acinfo->validity->notAfter  = time2; time2 = NULL;
+    }
+
+    if (uid) {
+      ASN1_BIT_STRING_free(a->acinfo->id);
+      a->acinfo->id = uid; uid = NULL;
+    }
+
+    if(alg1) {
+      X509_ALGOR_free(a->acinfo->alg);
+      a->acinfo->alg = alg1; alg1 = NULL;
+    }
+
+    if(alg2) {
+      X509_ALGOR_free(a->sig_alg);
+      a->sig_alg = alg2; alg2 = NULL;
+    }
+
     ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
             (char *)a->acinfo, pkey, EVP_md5());
-#endif
 
-    *ac = a;
     return 0;
 
 err:
@@ -516,8 +593,6 @@ err:
     X509_EXTENSION_free(certstack);
     X509_NAME_free(subname);
     X509_NAME_free(issname);
-    GENERAL_NAME_free(dirn1);
-    GENERAL_NAME_free(dirn2);
     ASN1_INTEGER_free(holdserial);
     ASN1_INTEGER_free(serial);
     AC_ATTR_free(capabilities);
@@ -527,6 +602,10 @@ err:
     ASN1_UTCTIME_free(time2);
     AC_ATT_HOLDER_free(ac_att_holder);
     AC_FULL_ATTRIBUTES_free(ac_full_attrs);
+    X509_ALGOR_free(alg1);
+    X509_ALGOR_free(alg2);
+    ASN1_INTEGER_free(version);
+    ASN1_BIT_STRING_free(uid);
     return err;
   }
 
@@ -544,11 +623,10 @@ err:
     issuerkey = issuer_cred.GetPrivKey();
     holder = holder_cred.GetCert();
 
-    AC* ac = NULL;
-    ac = AC_new();
+    AC* ac = AC_new();
 
     if(createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
-             fqan, targets, attributes, &ac, voname, uri, lifetime)){
+             fqan, targets, attributes, ac, voname, uri, lifetime)){
       if(ac) AC_free(ac);
       if(issuer) X509_free(issuer);
       if(holder) X509_free(holder);
@@ -606,7 +684,7 @@ err:
     BN_one(dataorder);
 
     //Parse the AC, and insert it into an AC list
-    if((received_ac = d2i_AC(NULL, (SSLCONST unsigned char**)&p, l))) {
+    if((received_ac = d2i_AC(NULL, (const unsigned char**)&p, l))) {
       actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
         aclist = actmplist; 
@@ -630,60 +708,20 @@ err:
 
   static int cb(int ok, X509_STORE_CTX *ctx) {
     if (!ok) {
-      if (ctx->error == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_CERT_HAS_EXPIRED) ok=1;
       /* since we are just checking the certificates, it is
        * ok if they are self signed. But we should still warn
        * the user.
        */
-      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
       /* Continue after extension errors too */
-      if (ctx->error == X509_V_ERR_INVALID_CA) ok=1;
-      if (ctx->error == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
-      if (ctx->error == X509_V_ERR_CERT_CHAIN_TOO_LONG) ok=1;
-      if (ctx->error == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_INVALID_CA) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_PATH_LENGTH_EXCEEDED) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_CERT_CHAIN_TOO_LONG) ok=1;
+      if (X509_STORE_CTX_get_error(ctx) == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) ok=1;
     }
     return(ok);
   }
-
-#if 0
-  static bool checkCert(X509 *cert, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
-    X509_STORE *ctx = NULL;
-    X509_STORE_CTX *csc = NULL;
-    X509_LOOKUP *lookup = NULL;
-    int i = 0;
-
-    if(ca_cert_dir.empty() && ca_cert_file.empty()) {
-      CredentialLogger.msg(ERROR,"VOMS: CA directory or CA file must be provided");
-      return false;
-    }
-
-    csc = X509_STORE_CTX_new();
-    ctx = X509_STORE_new();
-    if (ctx && csc) {
-      X509_STORE_set_verify_cb_func(ctx,cb);
-//#ifdef SIGPIPE
-//      signal(SIGPIPE,SIG_IGN);
-//#endif
-      CRYPTO_malloc_init();
-      if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
-        X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc,ctx,cert,NULL);
-        i = X509_verify_cert(csc);
-      }
-      else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
-        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc,ctx,cert,NULL);
-        i = X509_verify_cert(csc);
-      }
-    }
-    if (ctx) X509_STORE_free(ctx);
-    if (csc) X509_STORE_CTX_free(csc);
-
-    return (i != 0);
-  }
-#endif
 
   static bool checkCert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
@@ -703,7 +741,7 @@ err:
 //#ifdef SIGPIPE
 //      signal(SIGPIPE,SIG_IGN);
 //#endif
-      CRYPTO_malloc_init();
+//      CRYPTO_malloc_init();
 
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
         X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
@@ -749,14 +787,9 @@ err:
     EVP_PKEY *key = X509_extract_key(cert);
     if (!key) return false;
 
-    int res;
-#ifdef HAVE_OPENSSL_OLDRSA
-    res = ASN1_verify((int (*)())i2d_AC_INFO, ac->sig_alg, ac->signature,
-                        (char *)ac->acinfo, key);
-#else
+    int res = 0;
     res = ASN1_verify((int (*)(void*, unsigned char**))i2d_AC_INFO, ac->sig_alg, ac->signature,
                         (char *)ac->acinfo, key);
-#endif
 
     if (!res) CredentialLogger.msg(ERROR,"VOMS: failed to verify AC signature");
   
@@ -901,7 +934,7 @@ err:
     X509* issuer = NULL;
     issuer_cert = NULL;
 
-    int nid = OBJ_txt2nid("certseq");
+    int nid = OBJ_txt2nid(certseqOID);
     STACK_OF(X509_EXTENSION) *exts = ac->acinfo->exts;
     int pos = X509v3_get_ext_by_NID(exts, nid, -1);
     if (pos >= 0) {
@@ -1012,10 +1045,9 @@ err:
     //certificate stack in the AC. So there should be a local
     //directory which includes the voms server certificate.
     //It is not suppoted anymore.
-    /*check if able to find the signing certificate 
-     among those specific for the vo or else in the vomsdir
-     *directory 
-     */
+    // check if able to find the signing certificate 
+    // among those specific for the vo or else in the vomsdir
+    // directory 
     if(issuer == NULL){
       bool found  = false;
       BIO * in = NULL;
@@ -1060,14 +1092,14 @@ err:
 
 
   static bool checkAttributes(STACK_OF(AC_ATTR) *atts, std::vector<std::string>& attributes, unsigned int& status) {
-    AC_ATTR *caps;
-    STACK_OF(AC_IETFATTRVAL) *values;
-    AC_IETFATTR *capattr;
-    AC_IETFATTRVAL *capname;
-    GENERAL_NAME *data;
+    AC_ATTR *caps = NULL;
+    STACK_OF(AC_IETFATTRVAL) *values = NULL;
+    AC_IETFATTR *capattr = NULL;
+    AC_IETFATTRVAL *capname = NULL;
+    GENERAL_NAME *data = NULL;
 
     /* find AC_ATTR with IETFATTR type */
-    int  nid = OBJ_txt2nid("idatcap");
+    int  nid = OBJ_txt2nid(idatcapOID);
     int pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if (!(pos >=0)) { 
       CredentialLogger.msg(ERROR,"VOMS: Can not find AC_ATTR with IETFATTR type");
@@ -1116,7 +1148,7 @@ err:
         return false;
       }
 
-      std::string fqan((const char*)(capname->data), capname->length);
+      std::string fqan((const char*)(capname->value.octet_string->data), capname->value.octet_string->length);
 
       // if the attribute is like: /knowarc.eu/Role=NULL/Capability=NULL
       // or /knowarc.eu/Role=tester/Capability=NULL
@@ -1237,10 +1269,10 @@ err:
   }
  
   static bool checkExtensions(STACK_OF(X509_EXTENSION) *exts, X509 *iss, std::vector<std::string>& output, unsigned int& status) {
-    int nid1 = OBJ_txt2nid("idcenoRevAvail");
-    int nid2 = OBJ_txt2nid("authorityKeyIdentifier");
-    int nid3 = OBJ_txt2nid("idceTargets");
-    int nid5 = OBJ_txt2nid("attributes");
+    int nid1 = OBJ_txt2nid(idcenoRevAvailOID);
+    int nid2 = OBJ_txt2nid(idceauthKeyIdentifierOID);
+    int nid3 = OBJ_txt2nid(idceTargetsOID);
+    int nid5 = OBJ_txt2nid(attributesOID);
 
     int pos1 = X509v3_get_ext_by_NID(exts, nid1, -1);
     int pos2 = X509v3_get_ext_by_NID(exts, nid2, -1);
@@ -1324,8 +1356,9 @@ err:
         if (iss) {
           if (key->keyid) {
             unsigned char hashed[20];
-            if (!SHA1(iss->cert_info->key->public_key->data,
-                      iss->cert_info->key->public_key->length,
+            ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(iss);
+            if (!SHA1(pkeystr->data,
+                      pkeystr->length,
                       hashed))
               keyerr = true;
           
@@ -1335,9 +1368,9 @@ err:
           }
           else {
             if (!(key->issuer && key->serial)) keyerr = true;
-            if (M_ASN1_INTEGER_cmp((key->serial), (iss->cert_info->serialNumber))) keyerr = true;
+            if (ASN1_INTEGER_cmp((key->serial), X509_get_serialNumber(iss))) keyerr = true;
             if (key->serial->type != GEN_DIRNAME) keyerr = true;
-            if (X509_NAME_cmp(sk_GENERAL_NAME_value((key->issuer), 0)->d.dirn, (iss->cert_info->subject))) keyerr = true;
+            if (X509_NAME_cmp(sk_GENERAL_NAME_value((key->issuer), 0)->d.dirn, X509_get_subject_name(iss))) keyerr = true;
           }
         }
         AUTHORITY_KEYID_free(key);
@@ -1357,32 +1390,10 @@ err:
   }
 
   static time_t ASN1_GENERALIZEDTIME_get(const ASN1_GENERALIZEDTIME* const s) {
-    struct tm tm;
-    int offset;
-    memset(&tm,'\0',sizeof tm);
-
-#define g1(n) ((n)-'0')
-#define g2(p) (g1((p)[0])*10+g1((p)[1]))
-#define g4(p) g1((p)[0])*1000+g1((p)[1])*100+g2(p+2)
-
-    tm.tm_year=g4(s->data)-1900;
-    tm.tm_mon=g2(s->data+4)-1;
-    tm.tm_mday=g2(s->data+6);
-    tm.tm_hour=g2(s->data+8);
-    tm.tm_min=g2(s->data+10);
-    tm.tm_sec=g2(s->data+12);
-    if(s->data[14] == 'Z')
-      offset=0;
-    else {
-      offset=g2(s->data+15)*60+g2(s->data+17);
-      if(s->data[14] == '-')
-        offset= -offset;
-    }
-#undef g1
-#undef g2
-#undef g4
-
-    return timegm(&tm)-offset*60;
+    if ((s == NULL) || (s->data == NULL) || (s->length == 0)) return Arc::Time::UNDEFINED;
+    std::string str((char const *)(s->data), s->length);
+    Arc::Time t(str);
+    return t.GetTime();
   }
 
   static bool checkACInfo(X509* cert, X509* issuer, AC* ac, 
@@ -1447,12 +1458,12 @@ err:
         return false;
       }
 
-      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %lx", ASN1_INTEGER_get(cert->cert_info->serialNumber));
+      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %lx", ASN1_INTEGER_get(X509_get_serialNumber(cert)));
       CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %lx", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
 
-      if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
+      if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, X509_get_serialNumber(cert))) {
         CredentialLogger.msg(VERBOSE,"VOMS: the holder serial number %lx is not the same as the serial number in AC %lx, the holder certificate that is used to create a voms proxy could be a proxy certificate with a different serial number as the original EEC cert",
-          ASN1_INTEGER_get(cert->cert_info->serialNumber),
+          ASN1_INTEGER_get(X509_get_serialNumber(cert)),
           ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
       }
@@ -1471,13 +1482,13 @@ err:
         OPENSSL_free(ac_holder_name_chars);
       }
       std::string holder_name;
-      char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
+      char *holder_name_chars = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
       if(holder_name_chars) {
         holder_name = holder_name_chars;
         OPENSSL_free(holder_name_chars);
       }
       std::string holder_issuer_name;
-      char *holder_issuer_name_chars = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
+      char *holder_issuer_name_chars = X509_NAME_oneline(X509_get_issuer_name(cert),NULL,0);
       if(holder_issuer_name_chars) {
         holder_issuer_name = holder_issuer_name_chars;
         OPENSSL_free(holder_issuer_name_chars);
@@ -1497,10 +1508,12 @@ err:
         }
       }
 
-      if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
-          (!cert->cert_info->issuerUID && !ac->acinfo->holder->baseid->uid)) {
+      const ASN1_BIT_STRING* issuerUID = NULL;
+      X509_get0_uids(cert, &issuerUID, NULL);
+      if ((ac->acinfo->holder->baseid->uid && issuerUID) ||
+          (!issuerUID && !ac->acinfo->holder->baseid->uid)) {
         if (ac->acinfo->holder->baseid->uid) {
-          if (M_ASN1_BIT_STRING_cmp(ac->acinfo->holder->baseid->uid, cert->cert_info->issuerUID)) {
+          if (ASN1_STRING_cmp(ac->acinfo->holder->baseid->uid, issuerUID)) {
             CredentialLogger.msg(ERROR,"VOMS: the holder issuerUID is not the same as that in AC");
             status |= VOMSACInfo::ACParsingFailed;
             return false;
@@ -1518,9 +1531,9 @@ err:
       if ((sk_GENERAL_NAME_num(names) == 1) ||      //??? 
           ((name = sk_GENERAL_NAME_value(names,0))) ||
           (name->type != GEN_DIRNAME)) {
-        if (X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
-          /* CHECK ALT_NAMES */
-          /* in VOMS ACs, checking into alt names is assumed to always fail. */
+        if (X509_NAME_cmp(name->d.dirn, X509_get_issuer_name(cert))) {
+          // CHECK ALT_NAMES
+          // in VOMS ACs, checking into alt names is assumed to always fail.
           CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
           status |= VOMSACInfo::ACParsingFailed;
           return false;
@@ -1537,8 +1550,8 @@ err:
     }
     ac_issuer_name = x509name2ascii(name->d.dirn);
     if(issuer) {
-      if (X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-        std::string issuer_name = x509name2ascii(issuer->cert_info->subject);
+      if (X509_NAME_cmp(name->d.dirn, X509_get_subject_name(issuer))) {
+        std::string issuer_name = x509name2ascii(X509_get_subject_name(issuer));
         CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
           issuer_name, ac_issuer_name);
         status |= VOMSACInfo::ACParsingFailed;
@@ -1574,7 +1587,7 @@ err:
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
     int nid = 0;
     int pos = 0;
-    nid = OBJ_txt2nid("idatcap");
+    nid = OBJ_txt2nid(idatcapOID);
     pos = X509at_get_attr_by_NID((STACK_OF(X509_ATTRIBUTE)*)atts, nid, -1);
     if(!(pos >=0)) {
       CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
@@ -1661,7 +1674,7 @@ err:
     bool critical = false;
     X509_EXTENSION * ext;
     AC_SEQ* aclist = NULL;
-    nid = OBJ_txt2nid("acseq");
+    nid = OBJ_txt2nid(acseqOID);
     position = X509_get_ext_by_NID(holder, nid, -1);
     if(position >= 0) {
       ext = X509_get_ext(holder, position);
@@ -2017,10 +2030,10 @@ err:
     bool ret = false;
     X509_EXTENSION* ext = NULL;
     if(ac_seq.empty()) return false;
-    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)("acseq")), (char*)(ac_seq.c_str()));
+    ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(acseqOID), (char*)(ac_seq.c_str()));
     if(ext!=NULL) {
       asn1.clear();
-      asn1.assign((const char*)(ext->value->data), ext->value->length);
+      asn1.assign((const char*)(X509_EXTENSION_get_data(ext)->data), X509_EXTENSION_get_data(ext)->length);
       ret = true;
       X509_EXTENSION_free(ext);      
     }

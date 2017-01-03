@@ -28,7 +28,7 @@ listfuncTest_LDADD = \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 ca_key.pem ca_cert.pem:
-	openssl req -x509 -set_serial 0 -passout pass:password -newkey rsa:2048 -keyout ca_key.pem -out ca_cert.pem -config $(srcdir)/ca.cnf
+	openssl req -x509 -set_serial 1 -passout pass:password -newkey rsa:2048 -keyout ca_key.pem -out ca_cert.pem -config $(srcdir)/ca.cnf
 
 EXTRA_DIST = ca.cnf
 

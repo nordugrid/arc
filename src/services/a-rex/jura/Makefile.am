@@ -18,7 +18,7 @@ jura_SOURCES = jura.cpp jura.h UsageReporter.cpp UsageReporter.h \
         CARAggregation.cpp CARAggregation.h
 
 jura_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 jura_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

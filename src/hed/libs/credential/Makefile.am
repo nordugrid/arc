@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarccredential.la
-noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
+#noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
 #if WIN32
 #VOMS_HEADER =

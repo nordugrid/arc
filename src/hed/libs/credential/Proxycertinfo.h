@@ -1,9 +1,10 @@
-#ifndef ARC_PROXYCERTINFO_H
-#define ARC_PROXYCERTINFO_H
+#ifndef ARC_PROXY_CERT_INFO_EXTENSION_H
+#define ARC_PROXY_CERT_INFO_EXTENSION_H
 
-#include <openssl/x509.h>
+//#include <openssl/asn1t.h>
+//#include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include <string>
+//#include <string>
 
 /// Internal code for low-level credential handling.
 namespace ArcCredential {
@@ -19,129 +20,157 @@ namespace ArcCredential {
 */
 
 /* predefined policy language */
-#define ANYLANGUAGE_PROXY_OID         "1.3.6.1.5.5.7.21.0"
-#define ANYLANGUAGE_PROXY_SN          "ANYLANGUAGE_PROXY"      //"anyLanguage" in openssl >= 098
-#define ANYLANGUAGE_PROXY_LN          "anyLanguage proxy"
+#define ANYLANGUAGE_PROXY_OBJ         OBJ_id_ppl_anyLanguage
+#define ANYLANGUAGE_PROXY_NID         NID_id_ppl_anyLanguage
+#define ANYLANGUAGE_PROXY_SN          SN_id_ppl_anyLanguage
+#define ANYLANGUAGE_PROXY_LN          LN_id_ppl_anyLanguage
 
-#define IMPERSONATION_PROXY_OID         "1.3.6.1.5.5.7.21.1"
-#define IMPERSONATION_PROXY_SN          "IMPERSONATION_PROXY"  //"inheritAll" in openssl >= 098
-#define IMPERSONATION_PROXY_LN          "GSI impersonation proxy"  
+#define IMPERSONATION_PROXY_OBJ       OBJ_id_ppl_inheritAll 
+#define IMPERSONATION_PROXY_NID       NID_id_ppl_inheritAll
+#define IMPERSONATION_PROXY_SN        SN_id_ppl_inheritAll
+#define IMPERSONATION_PROXY_LN        LN_id_ppl_inheritAll
 
-#define INDEPENDENT_PROXY_OID           "1.3.6.1.5.5.7.21.2"
-#define INDEPENDENT_PROXY_SN            "INDEPENDENT_PROXY"    //"independent" in openssl >=098
-#define INDEPENDENT_PROXY_LN            "GSI independent proxy"
+#define INDEPENDENT_PROXY_OBJ         OBJ_Independent
+#define INDEPENDENT_PROXY_NID         NID_Independent
+#define INDEPENDENT_PROXY_SN          SN_Independent
+#define INDEPENDENT_PROXY_LN          LN_Independent
 
 /* generic policy language */
+/*
 #define GLOBUS_GSI_PROXY_GENERIC_POLICY_OID "1.3.6.1.4.1.3536.1.1.1.8"
 
 #define LIMITED_PROXY_OID               "1.3.6.1.4.1.3536.1.1.1.9"
 #define LIMITED_PROXY_SN                "LIMITED_PROXY"
 #define LIMITED_PROXY_LN                "GSI limited proxy"
+*/
 
 /* error handling */
+/*
 #define ASN1_F_PROXYPOLICY_NEW          450
 #define ASN1_F_D2I_PROXYPOLICY          451
-#define ASN1_F_PROXYCERTINFO_NEW        430
-#define ASN1_F_D2I_PROXYCERTINFO        431
+#define ASN1_F_PROXY_CERT_INFO_EXTENSION_NEW        430
+#define ASN1_F_D2I_PROXY_CERT_INFO_EXTENSION        431
+*/
 
 /* Error codes for the X509V3 functions. */
 /* Function codes. */
+/*
 #define X509V3_F_PROCESS_PCI_VALUE			 150
 #define X509V3_F_R2I_PCI				 155
+*/
 
 /* Reason Code */
+/*
 #define X509V3_R_INVALID_PROXY_POLICY_SETTING		 153
 #define X509V3_R_NO_PROXY_CERT_POLICY_LANGUAGE_DEFINED	 154
 #define X509V3_R_POLICY_WHEN_PROXY_LANGUAGE_REQUIRES_NO_POLICY 159
+*/
 
 /* data structure */
-/// \cond
+/*
 typedef struct PROXYPOLICY_st {
+    ASN1_INTEGER* dummy;
+    ASN1_INTEGER* dummy2;
     ASN1_OBJECT *                       policy_language;
     ASN1_OCTET_STRING *                 policy;
 } PROXYPOLICY;
 
-typedef struct PROXYCERTINFO_st {
+
+ASN1_SEQUENCE(PROXYPOLICY) = {
+  ASN1_EXP_OPT(PROXYPOLICY, dummy, ASN1_INTEGER, 1),
+  ASN1_OPT(PROXYPOLICY, dummy2, ASN1_INTEGER),
+  ASN1_EXP_OPT(PROXYPOLICY, policy_language, ASN1_OBJECT, 1),
+  ASN1_EXP_OPT(PROXYPOLICY, policy, ASN1_OCTET_STRING, 1)
+} ASN1_SEQUENCE_END(PROXYPOLICY)
+
+DECLARE_ASN1_FUNCTIONS(PROXYPOLICY)
+
+IMPLEMENT_ASN1_FUNCTIONS(PROXYPOLICY)
+*/
+
+/*
+typedef struct PROXY_CERT_INFO_EXTENSION_st {
   ASN1_INTEGER * path_length;
   PROXYPOLICY * proxypolicy;
   int version;
-} PROXYCERTINFO;
+} PROXY_CERT_INFO_EXTENSION;
 /// \endcond
+*/
 
 /* PROXYPOLICY function */
 
 /* allocating and free memory */
-PROXYPOLICY * PROXYPOLICY_new();
-void PROXYPOLICY_free(PROXYPOLICY * proxypolicy);
+//PROXYPOLICY * PROXYPOLICY_new();
+//void PROXYPOLICY_free(PROXYPOLICY * proxypolicy);
 
 /* duplicate */
-PROXYPOLICY * PROXYPOLICY_dup(PROXYPOLICY * policy);
+//PROXYPOLICY * PROXYPOLICY_dup(PROXYPOLICY * policy);
 
 /* set policy language */
-int PROXYPOLICY_set_policy_language(PROXYPOLICY * policy, ASN1_OBJECT * policy_language);
+int PROXY_POLICY_set_policy_language(PROXY_POLICY * policy, ASN1_OBJECT * policy_language);
 
-/* Returns newly allocated policy language object copied from policy */
-ASN1_OBJECT * PROXYPOLICY_get_policy_language(PROXYPOLICY * policy);
+/* Returns policy language object from policy */
+ASN1_OBJECT * PROXY_POLICY_get_policy_language(PROXY_POLICY * policy);
 
 /* set policy contents */
-int PROXYPOLICY_set_policy(PROXYPOLICY * proxypolicy, unsigned char * policy, int length);
+int PROXY_POLICY_set_policy(PROXY_POLICY * proxypolicy, unsigned char * policy, int length);
 
 /* get policy contents */
-unsigned char * PROXYPOLICY_get_policy(PROXYPOLICY * policy, int * length);
+unsigned char * PROXY_POLICY_get_policy(PROXY_POLICY * policy, int * length);
 
 /* internal to der conversion */
-int i2d_PROXYPOLICY(PROXYPOLICY * policy, unsigned char ** pp);
+//int i2d_PROXYPOLICY(PROXYPOLICY * policy, unsigned char ** pp);
 
 /* der to internal conversion */
-PROXYPOLICY * d2i_PROXYPOLICY(PROXYPOLICY ** policy, unsigned char ** pp, long length);
+//PROXYPOLICY * d2i_PROXYPOLICY(PROXYPOLICY ** policy, unsigned char ** pp, long length);
 
-X509V3_EXT_METHOD * PROXYPOLICY_x509v3_ext_meth();
+//X509V3_EXT_METHOD * PROXYPOLICY_x509v3_ext_meth();
 
-STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY(struct v3_ext_method * method, PROXYPOLICY * ext, STACK_OF(CONF_VALUE) * extlist);
+//STACK_OF(CONF_VALUE) * i2v_PROXYPOLICY(struct v3_ext_method * method, PROXYPOLICY * ext, STACK_OF(CONF_VALUE) * extlist);
 
-/*PROXYCERTINFO function */
+/*PROXY_CERT_INFO_EXTENSION function */
 
 /* allocating and free memory */
-PROXYCERTINFO * PROXYCERTINFO_new();
-void PROXYCERTINFO_free(PROXYCERTINFO * proxycertinfo);
+//PROXY_CERT_INFO_EXTENSION * PROXY_CERT_INFO_EXTENSION_new();
+//void PROXY_CERT_INFO_EXTENSION_free(PROXY_CERT_INFO_EXTENSION * proxycertinfo);
 
 /* duplicate */
-PROXYCERTINFO * PROXYCERTINFO_dup(PROXYCERTINFO * proxycertinfo);
+//PROXY_CERT_INFO_EXTENSION * PROXY_CERT_INFO_EXTENSION_dup(PROXY_CERT_INFO_EXTENSION * proxycertinfo);
 
-int PROXYCERTINFO_print_fp(FILE* fp, PROXYCERTINFO* cert_info);
+//int PROXY_CERT_INFO_EXTENSION_print_fp(FILE* fp, PROXY_CERT_INFO_EXTENSION* cert_info);
 
 /* set path_length */
-int PROXYCERTINFO_set_path_length(PROXYCERTINFO * proxycertinfo, long path_length);
+int PROXY_CERT_INFO_EXTENSION_set_path_length(PROXY_CERT_INFO_EXTENSION * proxycertinfo, long path_length);
 
-/* get ptah length */
-long PROXYCERTINFO_get_path_length(PROXYCERTINFO * proxycertinfo);
+/* get path length */
+long PROXY_CERT_INFO_EXTENSION_get_path_length(PROXY_CERT_INFO_EXTENSION * proxycertinfo);
 
 /* set proxypolicy */
-int PROXYCERTINFO_set_proxypolicy(PROXYCERTINFO * proxycertinfo, PROXYPOLICY * proxypolicy);
+//int PROXY_CERT_INFO_EXTENSION_set_proxypolicy(PROXY_CERT_INFO_EXTENSION * proxycertinfo, PROXYPOLICY * proxypolicy);
 
 /* get proxypolicy */
-PROXYPOLICY * PROXYCERTINFO_get_proxypolicy(PROXYCERTINFO * proxycertinfo);
+PROXY_POLICY * PROXY_CERT_INFO_EXTENSION_get_proxypolicy(PROXY_CERT_INFO_EXTENSION * proxycertinfo);
 
 /* internal to der conversion */
-int i2d_PROXYCERTINFO(PROXYCERTINFO * proxycertinfo, unsigned char ** pp);
+//int i2d_PROXY_CERT_INFO_EXTENSION(PROXY_CERT_INFO_EXTENSION * proxycertinfo, unsigned char ** pp);
 
 /* der to internal conversion */
-PROXYCERTINFO * d2i_PROXYCERTINFO(PROXYCERTINFO ** cert_info, unsigned char ** a, long length);
+//PROXY_CERT_INFO_EXTENSION * d2i_PROXY_CERT_INFO_EXTENSION(PROXY_CERT_INFO_EXTENSION ** cert_info, unsigned char ** a, long length);
 
-int PROXYCERTINFO_set_version(PROXYCERTINFO *cert_info, int version);
+//int PROXY_CERT_INFO_EXTENSION_set_version(PROXY_CERT_INFO_EXTENSION *cert_info, int version);
 
-STACK_OF(CONF_VALUE) * i2v_PROXYCERTINFO(
-    struct v3_ext_method *              method,
-    PROXYCERTINFO *                     ext,
-    STACK_OF(CONF_VALUE) *              extlist);
+//STACK_OF(CONF_VALUE) * i2v_PROXY_CERT_INFO_EXTENSION(
+//    struct v3_ext_method *              method,
+//    PROXY_CERT_INFO_EXTENSION *                     ext,
+//    STACK_OF(CONF_VALUE) *              extlist);
 
-int i2r_PROXYCERTINFO(X509V3_EXT_METHOD *method, PROXYCERTINFO *ext, BIO *out, int indent);
+//int i2r_PROXY_CERT_INFO_EXTENSION(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *ext, BIO *out, int indent);
 
-PROXYCERTINFO *r2i_PROXYCERTINFO(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, char *value);
+//PROXY_CERT_INFO_EXTENSION *r2i_PROXY_CERT_INFO_EXTENSION(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, char *value);
 
-X509V3_EXT_METHOD * PROXYCERTINFO_v3_x509v3_ext_meth();
+//X509V3_EXT_METHOD * PROXY_CERT_INFO_EXTENSION_v3_x509v3_ext_meth();
 
-X509V3_EXT_METHOD * PROXYCERTINFO_v4_x509v3_ext_meth();
+//X509V3_EXT_METHOD * PROXY_CERT_INFO_EXTENSION_v4_x509v3_ext_meth();
 
 } //namespace ArcCredential
 

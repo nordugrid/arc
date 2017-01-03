@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "GlobusSigningPolicy.h"
-#include "GlobusHack.h"
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
@@ -16,24 +15,14 @@
 
 namespace ArcMCCTLS {
 
-static const char * ex_data_id = "ARC_MCC_Payload_TLS";
-int PayloadTLSMCC::ex_data_index_ = -1;
-
-#ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
-#define FLAG_CRL_DISABLED (0x1)
-
-static unsigned long get_flag_STORE_CTX(X509_STORE_CTX* container) {
-  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
-  if(!it) return 0;
-  return it->Flags();
-}
-
-static void set_flag_STORE_CTX(X509_STORE_CTX* container,unsigned long flags) {
-  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(container);
-  if(!it) return;
-  it->Flags(flags);
+#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
+static X509_VERIFY_PARAM *SSL_CTX_get0_param(SSL_CTX *ctx) {
+    return ctx->param;
 }
 #endif
+
+static const char * ex_data_id = "ARC_MCC_Payload_TLS";
+int PayloadTLSMCC::ex_data_index_ = -1;
 
 Time asn1_to_utctime(const ASN1_UTCTIME *s) {
   std::string t_str;
@@ -51,73 +40,33 @@ Time asn1_to_utctime(const ASN1_UTCTIME *s) {
 // This callback implements additional verification
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
-/*
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-  unsigned long flag = get_flag_STORE_CTX(sctx);
-  if(!(flag & FLAG_CRL_DISABLED)) {
-    // Not sure if this will work
-#if OPENSSL_VERSION_NUMBER < 0x00908000
-    if(!(sctx->flags & X509_V_FLAG_CRL_CHECK)) {
-      sctx->flags |= X509_V_FLAG_CRL_CHECK;
-#else
-    if(!(sctx->param->flags & X509_V_FLAG_CRL_CHECK)) {
-      sctx->param->flags |= X509_V_FLAG_CRL_CHECK;
-#endif
-      ok=X509_verify_cert(sctx);
-      return ok;
-    };
-  };
-#endif
-*/
+  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+  //std::cerr<<"+++ verify_callback: ok = "<<ok<<std::endl;
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
+    //std::cerr<<"+++ verify_callback: err = "<<err<<std::endl;
     switch(err) {
-#ifdef HAVE_OPENSSL_PROXY
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
+        //std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
         // This shouldn't happen here because flags are already set
         // to allow proxy. But one can never know because used flag
         // setting method is undocumented.
         X509_STORE_CTX_set_flags(sctx,X509_V_FLAG_ALLOW_PROXY_CERTS);
-        // Calling X509_verify_cert will cause a recursive call to verify_callback.
-        // But there should be no loop because PROXY_CERTIFICATES_NOT_ALLOWED error
-        // can't happen anymore.
-        //ok=X509_verify_cert(sctx);
         ok=1;
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
+        X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
-#endif
       case X509_V_ERR_UNABLE_TO_GET_CRL: {
+        //std::cerr<<"+++ verify_callback: proxy missing crl"<<std::endl;
         // Missing CRL is not an error (TODO: make it configurable)
         // Consider that to be a policy of site like Globus does
-        // Not sure of there is need for recursive X509_verify_cert() here.
+        // Not sure if there is need for recursive X509_verify_cert() here.
         // It looks like openssl runs tests sequentially for whole chain.
         // But not sure if behavior is same in all versions.
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-        if(sctx->param) {
-          X509_VERIFY_PARAM_clear_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          //ok=X509_verify_cert(sctx);
-          //X509_VERIFY_PARAM_set_flags(sctx->param,X509_V_FLAG_CRL_CHECK);
-          ok=1;
-          if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-        };
-#else
-
-#if OPENSSL_VERSION_NUMBER < 0x00908000
-        sctx->flags &= ~X509_V_FLAG_CRL_CHECK;
-#else
-        sctx->param->flags &= ~X509_V_FLAG_CRL_CHECK;
-#endif
-
-        set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) | FLAG_CRL_DISABLED);
-        //ok=X509_verify_cert(sctx);
-        //sctx->flags |= X509_V_FLAG_CRL_CHECK;
-        //set_flag_STORE_CTX(sctx,get_flag_STORE_CTX(sctx) & (~FLAG_CRL_DISABLED));
         ok=1;
-        if(ok == 1) X509_STORE_CTX_set_error(sctx,X509_V_OK);
-#endif
+        X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       default: {
-        PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+        //std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
           it->SetFailure((std::string)X509_verify_cert_error_string(err));
         } else {
@@ -127,33 +76,37 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     };
   };
   if(ok == 1) {
+    //std::cerr<<"+++ additional verification"<<std::endl;
     // Do additional verification here.
-    PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
     if(!subject_name) {
       Logger::getRootLogger().msg(ERROR,"Failed to allocate memory for certificate subject while matching policy.");
       ok=0;
     } else {
+      //std::cerr<<"+++ additional verification: subject "<<subject_name<<std::endl;
       if(it == NULL) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
       } else {
         // Globus signing policy
         // Do not apply to proxies and self-signed CAs.
+        //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;
         if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-#ifdef HAVE_OPENSSL_PROXY
+          //std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
           int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-          if(pos < 0)
-#endif
-          {
-            std::istream* in = open_globus_policy(X509_get_issuer_name(cert),it->Config().CADir());
-            if(in) {
-              if(!match_globus_policy(*in,X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
+          if(pos < 0) {
+            //std::cerr<<"+++ additional verification: check signing policy - is not proxy"<<std::endl;
+            GlobusSigningPolicy globus_policy;
+            if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
+              //std::cerr<<"+++ additional verification: policy is open"<<std::endl;
+              if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
                 it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
+                //std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
                 ok=0;
                 X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+              } else {
+                //std::cerr<<"+++ additional verification: passed: "<<subject_name<<std::endl;
               };
-              delete in;
             };
           };
         };
@@ -166,11 +119,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
       } else {
         Arc::Period timeleft = exptime - Time();
-#ifdef HAVE_OPENSSL_PROXY
         int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-#else
-        int pos = -1;
-#endif
         //for proxy certificate, give warning 1 hour in advance
         //for EEC certificate, give warning 5 days in advance
         if(((pos < 0) && (timeleft <= 5*24*3600)) ||
@@ -285,23 +234,19 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    SSL_CTX_set_mode(sslctx_,SSL_MODE_ENABLE_PARTIAL_WRITE);
    SSL_CTX_set_session_cache_mode(sslctx_,SSL_SESS_CACHE_OFF);
-   if(!config_.Set(sslctx_)) goto error;
+   if(!config_.Set(sslctx_)) {
+      SetFailure(config_.Failure());
+      goto error;
+   };
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
-   GlobusSetVerifyCertCallback(sslctx_);
 
    // Allow proxies, request CRL check
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
+   if(SSL_CTX_get0_param(sslctx_) == NULL) {
       logger.msg(ERROR,"Can't set OpenSSL verify flags");
       goto error;
    } else {
-#ifdef HAVE_OPENSSL_PROXY
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
+      X509_VERIFY_PARAM_set_flags(SSL_CTX_get0_param(sslctx_),X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
-#endif
    StoreInstance();
 #ifdef SSL_OP_NO_TICKET
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL | SSL_OP_NO_TICKET);
@@ -380,22 +325,19 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    else {
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
    }
-   GlobusSetVerifyCertCallback(sslctx_);
-   if(!config_.Set(sslctx_)) goto error;
+   if(!config_.Set(sslctx_)) {
+      SetFailure(config_.Failure());
+      goto error;
+   }
 
    // Allow proxies, request CRL check
-#ifdef HAVE_OPENSSL_X509_VERIFY_PARAM
-   if(sslctx_->param == NULL) {
+   if(SSL_CTX_get0_param(sslctx_) == NULL) {
       logger.msg(ERROR,"Can't set OpenSSL verify flags");
       goto error;
    } else {
-#ifdef HAVE_OPENSSL_PROXY
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
-#else
-      if(sslctx_->param) X509_VERIFY_PARAM_set_flags(sslctx_->param,X509_V_FLAG_CRL_CHECK);
-#endif
+      X509_VERIFY_PARAM_set_flags(SSL_CTX_get0_param(sslctx_),X509_V_FLAG_CRL_CHECK | X509_V_FLAG_ALLOW_PROXY_CERTS);
    };
-#endif
+
    StoreInstance();
    SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL);
    SSL_CTX_set_default_passwd_cb(sslctx_, no_passphrase_callback);

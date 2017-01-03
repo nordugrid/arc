@@ -20,7 +20,7 @@ pkgdata_SCRIPTS = $(CACHE_UNIT_WRAPPER)
 libcacheservice_la_SOURCES = CacheService.h CacheService.cpp \
                              CacheServiceGenerator.h CacheServiceGenerator.cpp
 libcacheservice_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libcacheservice_la_LIBADD = \
 	../a-rex/grid-manager/libgridmanager.la \
 	../a-rex/delegation/libdelegation.la \

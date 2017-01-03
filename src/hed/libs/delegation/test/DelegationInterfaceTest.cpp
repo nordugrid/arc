@@ -98,9 +98,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEARC() {
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::ARCDelegation));
-#ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::ARCDelegation));
-#endif
 }
 
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
@@ -110,9 +108,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::GDS20));
-#ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::GDS20));
-#endif
 }
 
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIES() {
@@ -122,9 +118,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIES() {
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::EMIES));
-#ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::EMIES));
-#endif
 }
 
 void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIDS() {
@@ -134,9 +128,7 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIDS() {
   Arc::MessageContext context;
 
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::EMIDS));
-#ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::EMIDS));
-#endif
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(DelegationInterfaceTest);

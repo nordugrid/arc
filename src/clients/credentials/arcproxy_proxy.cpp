@@ -69,7 +69,6 @@ void create_proxy(std::string& proxy,
   if(!signing_algorithm.empty() && signing_algorithm != "inherit") {
     if(signing_algorithm == "sha1") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA1);
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
     } else if(signing_algorithm == "sha2") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA256);
     } else if(signing_algorithm == "sha224") {
@@ -80,7 +79,6 @@ void create_proxy(std::string& proxy,
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA384);
     } else if(signing_algorithm == "sha512") {
       cred_request.SetSigningAlgorithm(Arc::SIGN_SHA512);
-#endif
     } else {
       throw std::runtime_error("Unknown signing algorithm specified: "+signing_algorithm);
     }
