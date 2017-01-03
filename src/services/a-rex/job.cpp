@@ -533,7 +533,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
   // Write local file
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();
-    failure_="Failed to create job description";
+    failure_="Failed to store internal job description";
     failure_type_=ARexJobInternalError;
     return;
   };

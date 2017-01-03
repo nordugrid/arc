@@ -56,7 +56,7 @@ public:
   }
 
   bool Select(const Arc::Job& job) const {
-    return (now - job.EndTime) > three_days;
+    return (now - job.EndTime) >= three_days;
   }
 
 private:
@@ -337,7 +337,7 @@ void JobSupervisorTest::TestSelector()
   for (std::list<Arc::Job>::iterator itJ = selectedJobs.begin();
        itJ != selectedJobs.end(); ++itJ) {
     CPPUNIT_ASSERT(itJ->JobID == "test-job-3-days-old" || itJ->JobID == "test-job-4-days-old");
-    CPPUNIT_ASSERT(itJ->EndTime < (Arc::Time()-Arc::Period("P3D")));
+    CPPUNIT_ASSERT(itJ->EndTime <= (Arc::Time()-Arc::Period("P3D")));
   }
 
   delete js;
