@@ -380,7 +380,7 @@ sub getlinenumbers {
 # various functions creating the output message.
 sub writeperf {
   my ($msg) = @_;
-  open ( my $filehandle, ">>", $perflogfilename) || log->error("Cannot write to $perflogfilename, exiting");
+  open ( my $filehandle, ">>", $perflogfilename) || $log->error("Cannot write to $perflogfilename, exiting");
   print $filehandle "$msg\n";
   close $filehandle;
 }
