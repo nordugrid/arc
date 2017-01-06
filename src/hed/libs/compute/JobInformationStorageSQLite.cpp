@@ -66,11 +66,18 @@ namespace Arc {
             "sessiondir, stageindir, stageoutdir, "
             "descriptiondocument, localsubmissiontime, delegationid, UNIQUE(id))",
            NULL, NULL, NULL);   
-      // TODO: index for serviceinformationhost
       if(err != SQLITE_OK) {
         handleError(NULL, err);
         tearDown();
         throw SQLiteException(IString("Unable to create jobs table in data base (%s)", name).str(), err);
+      }
+      err = sqlite3_exec_nobusy(jobDB,
+          "CREATE INDEX IF NOT EXISTS serviceinformationhost ON jobs(serviceinformationhost)",
+           NULL, NULL, NULL);   
+      if(err != SQLITE_OK) {
+        handleError(NULL, err);
+        tearDown();
+        throw SQLiteException(IString("Unable to create index for jobs table in data base (%s)", name).str(), err);
       }
     } else {
       // SQLite opens database in lazy way. But we still want to know if it is good database.
@@ -167,7 +174,7 @@ namespace Arc {
       }
       for (std::list<Job>::const_iterator it = jobs.begin();
            it != jobs.end(); ++it) {
-        std::string sqlcmd = "INSERT OR REPLACE INTO jobs("
+        std::string sqlvalues = "jobs("
           "id, idfromendpoint, name, statusinterface, statusurl, "
           "managementinterfacename, managementurl, "
           "serviceinformationinterfacename, serviceinformationurl, serviceinformationhost, "
@@ -190,18 +197,28 @@ namespace Arc {
              sql_escape(it->JobDescriptionDocument)+"', '"+
              sql_escape(tostring(it->LocalSubmissionTime.GetTime()))+"', '"+
              sql_escape(it->DelegationID.size()>0?*(it->DelegationID.begin()):empty_string)+"')";
-        int err = sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), NULL, NULL, NULL);
+        bool new_job = true;
+        int err = sqlite3_exec_nobusy(db.handle(), ("INSERT OR IGNORE INTO " + sqlvalues).c_str(), NULL, NULL, NULL);
         if(err != SQLITE_OK) {
           logger.msg(VERBOSE, "Unable to write records into job database (%s): Id \"%s\"", name, it->JobID);
           logErrorMessage(err);
           return false;
+        }
+        if(sqlite3_changes(db.handle()) == 0) {
+          err = sqlite3_exec_nobusy(db.handle(), ("REPLACE INTO " + sqlvalues).c_str(), NULL, NULL, NULL);
+          if(err != SQLITE_OK) {
+            logger.msg(VERBOSE, "Unable to write records into job database (%s): Id \"%s\"", name, it->JobID);
+            logErrorMessage(err);
+            return false;
+          }
+          new_job = false;
         }
         if(sqlite3_changes(db.handle()) != 1) {
           logger.msg(VERBOSE, "Unable to write records into job database (%s): Id \"%s\"", name, it->JobID);
           logErrorMessage(err);
           return false;
         }
-        // TODO: newJobs
+        if(new_job) newJobs.push_back(&(*it));
       }
     } catch (const SQLiteException& e) {
       return false;
@@ -225,24 +242,24 @@ namespace Arc {
   static int ReadJobsCallback(void* arg, int colnum, char** texts, char** names) {
     ReadJobsCallbackArg& carg = *reinterpret_cast<ReadJobsCallbackArg*>(arg);
     carg.jobs.push_back(Job());
+    bool accept = false;
     bool drop = false;
     for(int n = 0; n < colnum; ++n) {
-      if(drop) break;
       if(names[n] && texts[n]) {
         if(strcmp(names[n], "id") == 0) {
           carg.jobs.back().JobID = sql_unescape(texts[n]);
           if(carg.jobIdentifiers) {
-            bool found = false;
             for(std::list<std::string>::iterator it = carg.jobIdentifiers->begin();
                            it != carg.jobIdentifiers->end(); ++it) {
               if(*it == carg.jobs.back().JobID) {
-                found = true;
+                accept = true;
                 carg.jobIdentifiers->erase(it);
                 break;
               }
             }
-            if(!found) drop = true;
             // TODO: other id options
+          } else {
+            accept = true;
           }
         } else if(strcmp(names[n], "idfromendpoint") == 0) {
           carg.jobs.back().IDFromEndpoint = sql_unescape(texts[n]);
@@ -261,6 +278,15 @@ namespace Arc {
                      it != carg.rejectEndpoints->end(); ++it) {
               if (carg.jobs.back().JobManagementURL.StringMatches(*it)) {
                 drop = true;
+                break;
+              }
+            }
+          }
+          if(carg.endpoints) {
+            for (std::list<std::string>::const_iterator it = carg.endpoints->begin();
+                     it != carg.endpoints->end(); ++it) {
+              if (carg.jobs.back().JobManagementURL.StringMatches(*it)) {
+                accept = true;
                 break;
               }
             }
@@ -287,41 +313,6 @@ namespace Arc {
     if(drop) {
       carg.jobs.pop_back();
     }
-    // TODO: endpoints
-/*
-      for (std::list<std::string>::const_iterator it = endpoints.begin();
-           it != endpoints.end(); ++it) {
-        // Extract hostname from iterator.
-        URL u(*it);
-        if (u.Protocol() == "file") {
-          u = URL("http://" + *it); // Only need to extract hostname. Prefix with "http://".
-        }
-        if (u.Host().empty()) continue;
-
-        Dbt key((char *)u.Host().c_str(), u.Host().size()), pkey, data;
-        ret = cursor->pget(&key, &pkey, &data, DB_SET);
-        if (ret != 0) {
-          continue;
-        }
-        std::string tmpEndpoint;
-        deserialiseNthJobAttribute(tmpEndpoint, data, 7);
-        URL jobManagementURL(tmpEndpoint);
-        if (jobManagementURL.StringMatches(*it)) {
-          addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
-        }
-        while ((ret = cursor->pget(&key, &pkey, &data, DB_NEXT_DUP)) == 0) {
-          deserialiseNthJobAttribute(tmpEndpoint, data, 7);
-          URL jobManagementURL(tmpEndpoint);
-          if (jobManagementURL.StringMatches(*it)) {
-           addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
-         }
-        }
-      }
-*/
-
-
-
-
     return 0;
   }
 
