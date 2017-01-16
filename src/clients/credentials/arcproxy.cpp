@@ -1211,7 +1211,7 @@ int main(int argc, char *argv[]) {
     bool res = contact_myproxy_server(myproxy_server, myproxy_command, 
       user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert, 
       proxy_start, proxy_period, vomslist, vomses_path, proxy_path, usercfg, logger);
-    if (res && (Arc::lower(myproxy_command) == "get")) {
+    if (res && (Arc::lower(myproxy_command) == "get") && (!vomslist.empty())) {
       // IF the myproxy command is "Get", and voms command is given,
       // then we need to check if the proxy returned from myproxy server
       // includes VOMS AC, if not, we will use the returned proxy to
