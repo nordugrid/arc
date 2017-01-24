@@ -158,6 +158,23 @@ namespace Arc {
     isStorageExisting = isValid = true;
   }
 
+  struct ListJobsCallbackArg {
+    std::list<std::string>& ids;
+    ListJobsCallbackArg(std::list<std::string>& ids):ids(ids) { };
+  };
+
+  static int ListJobsCallback(void* arg, int colnum, char** texts, char** names) {
+    ListJobsCallbackArg& carg = *reinterpret_cast<ListJobsCallbackArg*>(arg);
+    for(int n = 0; n < colnum; ++n) {
+      if(names[n] && texts[n]) {
+        if(strcmp(names[n], "id") == 0) {
+          carg.ids.push_back(texts[n]);
+        }
+      }
+    }
+    return 0;
+  }
+
   bool JobInformationStorageSQLite::Write(const std::list<Job>& jobs, const std::set<std::string>& prunedServices, std::list<const Job*>& newJobs) {
     std::string empty_string;
     if (!isValid) {
@@ -167,11 +184,37 @@ namespace Arc {
     
     try {
       JobDB db(name, true);
+      // Identify jobs to remove
+      std::list<std::string> prunedIds;
+      ListJobsCallbackArg prunedArg(prunedIds);
       for (std::set<std::string>::const_iterator itPruned = prunedServices.begin();
            itPruned != prunedServices.end(); ++itPruned) {
-        std::string sqlcmd = "DELETE FROM jobs WHERE (serviceinformationhost = '" + *itPruned + "')";
-        (void)sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), NULL, NULL, NULL);
+        std::string sqlcmd = "SELECT id FROM jobs WHERE (serviceinformationhost = '" + *itPruned + "')";
+        (void)sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), &ListJobsCallback, &prunedArg, NULL);
       }
+      // Filter out jobs to be modified
+      if(!jobs.empty()) {
+        for(std::list<std::string>::iterator itId = prunedIds.begin(); itId != prunedIds.end();) {
+          bool found = false;
+          for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+            if(it->JobID == *itId) {
+              found = true;
+              break;
+            }
+          }
+          if(found) {
+            itId = prunedIds.erase(itId);
+          } else {
+            ++itId;
+          }
+        }
+      }
+      // Remove identified jobs
+      for(std::list<std::string>::iterator itId = prunedIds.begin(); itId != prunedIds.end(); ++itId) {
+        std::string sqlcmd = "DELETE FROM jobs WHERE (id = '" + *itId + "')";
+        (void)sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), &ListJobsCallback, &prunedArg, NULL);
+      }
+      // Add new jobs
       for (std::list<Job>::const_iterator it = jobs.begin();
            it != jobs.end(); ++it) {
         std::string sqlvalues = "jobs("
@@ -232,6 +275,7 @@ namespace Arc {
     std::list<std::string>* jobIdentifiers;
     const std::list<std::string>* endpoints;
     const std::list<std::string>* rejectEndpoints;
+    std::list<std::string> jobIdentifiersMatched;
     ReadJobsCallbackArg(std::list<Job>& jobs, 
                         std::list<std::string>* jobIdentifiers,
                         const std::list<std::string>* endpoints,
@@ -253,11 +297,10 @@ namespace Arc {
                            it != carg.jobIdentifiers->end(); ++it) {
               if(*it == carg.jobs.back().JobID) {
                 accept = true;
-                carg.jobIdentifiers->erase(it);
+                carg.jobIdentifiersMatched.push_back(*it);
                 break;
               }
             }
-            // TODO: other id options
           } else {
             accept = true;
           }
@@ -265,6 +308,18 @@ namespace Arc {
           carg.jobs.back().IDFromEndpoint = sql_unescape(texts[n]);
         } else if(strcmp(names[n], "name") == 0) {
           carg.jobs.back().Name = sql_unescape(texts[n]);
+          if(carg.jobIdentifiers) {
+            for(std::list<std::string>::iterator it = carg.jobIdentifiers->begin();
+                           it != carg.jobIdentifiers->end(); ++it) {
+              if(*it == carg.jobs.back().Name) {
+                accept = true;
+                carg.jobIdentifiersMatched.push_back(*it);
+                break;
+              }
+            }
+          } else {
+            accept = true;
+          }
         } else if(strcmp(names[n], "statusinterface") == 0) {
           carg.jobs.back().JobStatusInterfaceName = sql_unescape(texts[n]);
         } else if(strcmp(names[n], "statusurl") == 0) {
@@ -310,7 +365,7 @@ namespace Arc {
         }
       }
     }
-    if(drop) {
+    if(drop || !accept) {
       carg.jobs.pop_back();
     }
     return 0;
@@ -356,6 +411,12 @@ namespace Arc {
       if(err != SQLITE_OK) {
         // handle error ??
         return false;
+      }
+      carg.jobIdentifiersMatched.sort();
+      carg.jobIdentifiersMatched.unique();
+      for(std::list<std::string>::iterator itMatched = carg.jobIdentifiersMatched.begin();
+                        itMatched != carg.jobIdentifiersMatched.end(); ++itMatched) {
+        jobIdentifiers.remove(*itMatched);
       }
     } catch (const SQLiteException& e) {
       return false;
