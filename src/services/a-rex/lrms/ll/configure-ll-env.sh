@@ -22,7 +22,7 @@ config_import_section "grid-manager"
 unset perflogdir
 unset perflogfile
 enable_perflog=${CONFIG_enable_perflog_reporting:-no}
-if [ "$CONFIG_enable_perflog_reporting" == "yes" ]; then
+if [ "$CONFIG_enable_perflog_reporting" == "expert-debug-on" ]; then
    perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
    perflogfile="${perflogdir}/backends.perflog"
 fi

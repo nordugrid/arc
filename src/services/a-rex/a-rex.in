@@ -620,7 +620,7 @@ prepare() {
         mkdir -p `dirname $WSLOGFILE`
     fi
     PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
-    if [ "$ENABLEPERFLOG" = "yes" ]; then
+    if [ "$ENABLEPERFLOG" = "expert-debug-on" ]; then
         if [ ! -d $PERFLOGDIR ]; then
             mkdir -p $PERFLOGDIR
         fi
