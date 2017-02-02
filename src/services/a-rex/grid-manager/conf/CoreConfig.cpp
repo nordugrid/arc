@@ -44,9 +44,10 @@ void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
   }
 }
 
+
 bool CoreConfig::CheckYesNoCommand(bool& config_param, const std::string& name, std::string& rest) {
   std::string s = Arc::ConfigIni::NextArg(rest);
-  if (s == "yes") {
+  if (s == "yes" || s == "expert-debug-on") {
     config_param = true;
   }
   else if(s == "no") {
