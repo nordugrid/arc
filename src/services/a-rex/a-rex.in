@@ -621,8 +621,7 @@ prepare() {
     fi
     PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
     if [ -d $PERFLOGDIR ]; then
-	chmod a-rwx $PERFLOGDIR
-	chmod u+rwx $PERFLOGDIR
+	chmod 700 $PERFLOGDIR
     fi
     if [ "$ENABLEPERFLOG" = "expert-debug-on" ]; then
         if [ ! -d $PERFLOGDIR ]; then
