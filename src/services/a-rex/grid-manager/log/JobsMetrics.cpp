@@ -40,13 +40,13 @@ void JobsMetrics::ReportJobStateChange(job_state_t new_state, job_state_t old_st
   Glib::RecMutex::Lock lock_(lock);
   if(old_state < JOB_STATE_UNDEFINED) {
     ++(jobs_processed[old_state]);
-    jobs_processed_changed[old_state] = false;
+    jobs_processed_changed[old_state] = true;
     --(jobs_in_state[old_state]);
-    jobs_in_state_changed[old_state] = false;
+    jobs_in_state_changed[old_state] = true;
   };
   if(new_state < JOB_STATE_UNDEFINED) {
     ++(jobs_in_state[new_state]);
-    jobs_in_state_changed[new_state] = false;
+    jobs_in_state_changed[new_state] = true;
   };
   Sync();
 }
@@ -106,6 +106,11 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
   cmd.push_back(name);
   cmd.push_back("-v");
   cmd.push_back(value);
+  cmd.push_back("-t");//unit-type
+  cmd.push_back("int32");
+  cmd.push_back("-u");//unit
+  cmd.push_back("jobs");
+  
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
   proc->AssignKicker(&RunMetricsKicker, this);
