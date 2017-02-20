@@ -391,7 +391,6 @@ sub get_gmjobs {
                     if defined $kerneltime and defined $usertime;
             }
         }
-        InfosysHelper::heartbeatBeatParam($controldir);
     } # job ID loop
 
     } # controlsubdir loop
