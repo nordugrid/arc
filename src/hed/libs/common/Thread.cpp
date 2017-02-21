@@ -190,10 +190,13 @@ namespace Arc {
                              Glib::THREAD_PRIORITY_NORMAL);
         queue.erase(queue.begin());
       } catch (Glib::Error& e) {
-        threadLogger.msg(ERROR, e.what());
+        threadLogger.msg(ERROR, "%s", e.what());
+        argument->release();
+      } catch (Glib::Exception& e) {
+        threadLogger.msg(ERROR, "%s", e.what());
         argument->release();
       } catch (std::exception& e) {
-        threadLogger.msg(ERROR, e.what());
+        threadLogger.msg(ERROR, "%s", e.what());
         argument->release();
       };
       size = queue.size();
@@ -244,7 +247,15 @@ namespace Arc {
     void *a_temp = arg;
     SimpleCounter *c_temp = count;
     delete this;
-    (*f_temp)(a_temp);
+    try {
+      (*f_temp)(a_temp);
+    } catch (Glib::Error& e) {
+      threadLogger.msg(ERROR, "Thread exited with Glib error: %s", e.what());
+    } catch (Glib::Exception& e) {
+      threadLogger.msg(ERROR, "Thread exited with Glib exception: %s", e.what());
+    } catch (std::exception& e) {
+      threadLogger.msg(ERROR, "Thread exited with generic exception: %s", e.what());
+    };
     if(c_temp) c_temp->dec();
 #ifdef USE_THREAD_DATA
     ThreadData::Remove();
