@@ -32,6 +32,10 @@
 
 #include "DataPointS3.h"
 
+#if defined(HAVE_S3_TIMEOUT)
+#define S3_TIMEOUTMS 0
+#endif
+
 namespace ArcDMCS3 {
 
 using namespace Arc;
@@ -211,6 +215,9 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   hostname = url.Host();
   access_key = Arc::GetEnv("S3_ACCESS_KEY");
   secret_key = Arc::GetEnv("S3_SECRET_KEY");
+#if defined(S3_DEFAULT_REGION)
+  auth_region = Arc::GetEnv("S3_AUTH_REGION");
+#endif
 
   // Extract bucket
   bucket_name = url.Path();
@@ -248,7 +255,11 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   S3BucketContext bucket_context = { 0,                  bucket_name.c_str(),
                                      protocol,           uri_style,
                                      access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                     NULL, auth_region.c_str() };
+#else                                
                                      0 };
+#endif
 
   // ToDo: Port support printf ("Port: %d", url.Port());
 
@@ -293,13 +304,21 @@ DataStatus DataPointS3::Stat(FileInfo &file, DataPointInfoType verb) {
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                      NULL, auth_region.c_str() };
+#else
                                       0 };
+#endif
 
     S3ResponseHandler responseHandler = { &headResponsePropertiesCallback,
                                           &responseCompleteCallback };
     file.SetName(key_name);
 
+#if defined(S3_TIMEOUTMS)
+    S3_head_object(&bucketContext, key_name.c_str(), NULL, S3_TIMEOUTMS, &responseHandler,
+#else
     S3_head_object(&bucketContext, key_name.c_str(), NULL, &responseHandler,
+#endif
                    &file);
 
     if (request_status == S3StatusOK) {
@@ -363,12 +382,20 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                      NULL, auth_region.c_str() };
+#else
                                       0 };
+#endif
 
     S3ResponseHandler responseHandler = { &headResponsePropertiesCallback,
                                           &responseCompleteCallback };
 
+#if defined(S3_TIMEOUTMS)
+    S3_head_object(&bucketContext, key_name.c_str(), NULL, S3_TIMEOUTMS, &responseHandler,
+#else
     S3_head_object(&bucketContext, key_name.c_str(), NULL, &responseHandler,
+#endif
                    &file);
 
     if (request_status == S3StatusOK) {
@@ -384,13 +411,20 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                      NULL, auth_region.c_str() };
+#else
                                       0 };
+#endif
 
     S3ListBucketHandler listBucketHandler = { { &responsePropertiesCallback,
                                                 &responseCompleteCallback },
                                               &listBucketCallback };
 
     S3_list_bucket(&bucketContext, NULL, NULL, NULL, 0, NULL,
+#if defined(S3_TIMEOUTMS)
+                   S3_TIMEOUTMS,
+#endif
                    &listBucketHandler, &files);
 
   } else {
@@ -398,14 +432,27 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                      NULL, auth_region.c_str() };
+#else
                                       0 };
+#endif
 
     S3ListServiceHandler listServiceHandler = { { &responsePropertiesCallback,
                                                   &responseCompleteCallback },
                                                 &listServiceCallback };
 
     S3_list_service(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0,
+#if defined(S3_DEFAULT_REGION)
+                    NULL, auth_region.c_str(),
+                    NULL,
+#if defined(S3_TIMEOUTMS)
+                    S3_TIMEOUTMS,
+#endif
+                    &listServiceHandler, &files);
+#else
                     0, 0, &listServiceHandler, &files);
+#endif
   }
 
   if (request_status == S3StatusOK) {
@@ -423,17 +470,32 @@ DataStatus DataPointS3::Remove() {
                                           &responseCompleteCallback };
 
     S3_delete_bucket(S3ProtocolHTTP, S3UriStylePath, access_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                     secret_key.c_str(), 0, 0, bucket_name.c_str(), auth_region.c_str(), NULL,
+#else
                      secret_key.c_str(), 0, 0, bucket_name.c_str(), 0,
+#endif
+#if defined(S3_TIMEOUTMS)
+                     S3_TIMEOUTMS,
+#endif
                      &responseHandler, 0);
   } else {
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                      NULL, auth_region.c_str() };
+#else
                                       0 };
+#endif
 
     S3ResponseHandler responseHandler = { 0, &responseCompleteCallback };
 
+#if defined(S3_TIMEOUTMS)
+    S3_delete_object(&bucketContext, key_name.c_str(), NULL, S3_TIMEOUTMS, &responseHandler, 0);
+#else
     S3_delete_object(&bucketContext, key_name.c_str(), 0, &responseHandler, 0);
+#endif
   }
 
   if (request_status == S3StatusOK) {
@@ -461,7 +523,15 @@ DataStatus DataPointS3::CreateDirectory(bool with_parents) {
 
   S3CannedAcl cannedAcl = S3CannedAclPrivate;
   S3_create_bucket(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0, 0,
+#if defined(S3_DEFAULT_REGION)
+                   bucket_name.c_str(), auth_region.c_str(), cannedAcl, 0, 0,
+#if defined(S3_TIMEOUTMS)
+                   S3_TIMEOUTMS,
+#endif
+                   &responseHandler, 0);
+#else
                    bucket_name.c_str(), cannedAcl, 0, 0, &responseHandler, 0);
+#endif
 
   if (request_status == S3StatusOK) {
     return DataStatus::Success;
@@ -484,10 +554,17 @@ void DataPointS3::read_file() {
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
                                     access_key.c_str(), secret_key.c_str(),
+#if defined(S3_DEFAULT_REGION)
+                                    0, auth_region.c_str() };
+#else
                                     0 };
+#endif
 
   uint64_t startByte = 0, byteCount = 0;
   S3_get_object(&bucketContext, key_name.c_str(), 0, startByte, byteCount, 0,
+#if defined(S3_TIMEOUTMS)
+                S3_TIMEOUTMS,
+#endif
                 &getObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {
@@ -536,7 +613,11 @@ void DataPointS3::write_file() {
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
                                     access_key.c_str(), secret_key.c_str(),
+#if defined(S3_AUTH_REGION)
+                                    0, auth_region.c_str() };
+#else
                                     0 };
+#endif
 
   S3PutObjectHandler putObjectHandler = { { &responsePropertiesCallback,
                                             &putCompleteCallback },
@@ -558,6 +639,9 @@ void DataPointS3::write_file() {
                                     metaProperties,  useServerSideEncryption };
 
   S3_put_object(&bucketContext, key_name.c_str(), size, &putProperties, NULL,
+#if defined(S3_TIMEOUTMS)
+                S3_TIMEOUTMS,
+#endif
                 &putObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {

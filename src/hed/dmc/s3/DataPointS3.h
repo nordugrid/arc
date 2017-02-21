@@ -48,6 +48,9 @@ public:
 private:
   std::string access_key;
   std::string secret_key;
+#if defined(S3_DEFAULT_REGION)
+  std::string auth_region;
+#endif
   std::string hostname;
   std::string bucket_name;
   std::string key_name;

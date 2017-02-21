@@ -1724,6 +1724,13 @@ if test "x$enables_s3" = "xyes"; then
   LDFLAGS=$SAVE_LDFLAGS
   AC_SUBST(S3_CPPFLAGS)
   AC_SUBST(S3_LIBS)
+  if test x$enables_s3 = xyes
+  then
+      if s3 help 2>&1 | grep -q  -- '--timeout'
+      then
+      AC_DEFINE([HAVE_S3_TIMEOUT],,[Define if S3 API has timeouts])
+      fi
+  fi
 fi
 
 
