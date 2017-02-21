@@ -6,6 +6,7 @@
 #include <map>
 
 #include <arc/StringConv.h>
+#include <arc/Thread.h>
 
 #include "JobsMetrics.h"
 
@@ -37,7 +38,7 @@ void JobsMetrics::SetPath(const char* path) {
   tool_path = path;
 }
 
-  static const char* gmetric_tool = "/usr/bin/gmetric";//use setpath instead?
+static const char* gmetric_tool = "gmetric";
 
 void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state) {
   Glib::RecMutex::Lock lock_(lock);
@@ -114,7 +115,7 @@ void JobsMetrics::Sync(void) {
           Arc::tostring(jobs_processed[state])
          )) {
         jobs_processed_changed[state] = false;
-        //break;
+        return;
       };
     };
     if(jobs_in_state_changed[state]) {
@@ -123,7 +124,7 @@ void JobsMetrics::Sync(void) {
           Arc::tostring(jobs_in_state[state])
          )) {
         jobs_in_state_changed[state] = false;
-        //break;
+        return;
       };
     };
   };
@@ -133,13 +134,11 @@ void JobsMetrics::Sync(void) {
   	std::string histname =  std::string("AREX-JOBS-") + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
   	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]))){
   	  jobs_state_old_new_changed[state_old][state_new] = false;
-  	  //break;
+  	  return;
   	};
       };
     };
   };
-
-  
 }
  
 bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
@@ -174,6 +173,13 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
   return true;
 }
 
+static void SyncAsync(void* arg) {
+  JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
+  if(&it) {
+    it.Sync();
+  };
+}
+
 void JobsMetrics::RunMetricsKicker(void* arg) {
   JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
   if(&it) {
@@ -182,7 +188,10 @@ void JobsMetrics::RunMetricsKicker(void* arg) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.
       if(it.proc->Result() == 0) {
-        it.Sync();
+        // Currently it is not allowed to start new external process
+        // from inside process licker (todo: redesign).
+        // So do it asynchronously from another thread.
+        Arc::CreateThreadFunction(&SyncAsync, arg);
       };
     };
   };
