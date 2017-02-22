@@ -101,10 +101,12 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
   time_delta = time_now - time_lastupdate;
 
   //loop over all states and caluclate rate, 
+  double rate = 0.;
   for (int state = 0; state < JOB_STATE_UNDEFINED; ++state){
-    if(time_delta != 0)
-      jobs_rate[state] = static_cast<double>((jobs_state_accum[state] - jobs_state_accum_last[state])/time_delta);
-
+    if(time_delta != 0){
+      rate = static_cast<double>((jobs_state_accum[state] - jobs_state_accum_last[state])/time_delta);
+      jobs_rate[state] = rate;
+    }
     //only update histograms and values if time since last update is larger or equal defined interval
     if(time_delta >= GMETRIC_STATERATE_UPDATE_INTERVAL){
       time_lastupdate = time_now;
