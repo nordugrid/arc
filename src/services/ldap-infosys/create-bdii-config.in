@@ -100,7 +100,11 @@ infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
 infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
 infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
 
-provider_timeout=${CONFIG_provider_timeout:-300}
+# $provider_timeout refers to the time bdii waits for the provider output to complete.
+provider_timeout=${CONFIG_provider_timeout:-10800}
+# $infoproviders_timeout is a-rex's infoproviders timeout.
+infoproviders_timeout=${CONFIG_infoproviders_timeout:-10800}
+# gm_wakeupperiod is the time a-rex waits before running infoproviders again.
 gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
 gm_wakeupperiod=${gm_wakeupperiod:-120}
 bdii_archive_size=${CONFIG_bdii_archive_size:-0}
@@ -108,11 +112,12 @@ bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 # The infoprovider does the waiting, no need for BDII to do it too.  Use
 # some small timeout to protect the system in case there is a problem with
 # the provier
+# OBS: I think this might not be used by BDII5 anymore.
 bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
 
-# $provider_timeout refers to a-rex's infoprovider. BDII must also include
-# the wait time till the next info collection cycle of a-rex.
-max_cycle=$(( $provider_timeout + $gm_wakeupperiod ))
+
+# max_cycle is the time bdii will trust the content of any provider to be fresh enough 
+max_cycle=$(( $provider_timeout + $infoproviders_timeout + $gm_wakeupperiod ))
 bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
 
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
