@@ -1192,6 +1192,10 @@
 ## are rejected
 #allowunknown="no"
 
+## allowactivedata yes|no - if no, only passive data transfer is allowed.
+## By default both passive and active data transfers are allowed.
+allowactivedata="yes"
+
 ## maxconnections - maximum number of connections accepted by a gridftpd server.
 ## Default is 100.
 #maxconnections="200"

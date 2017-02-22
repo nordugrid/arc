@@ -318,6 +318,18 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
           };
         };
       };
+    } else if(command == "allowactivedata") {
+      std::string value=Arc::ConfigIni::NextArg(rest);
+      if(value == "yes") {
+        active_data=true;
+      } else if(value == "no") {
+        active_data=false;
+      } else {
+        user.user.clear_groups();
+        nodes.clear();
+        logger.msg(Arc::ERROR, "improper attribute for allowactvedata command: %s", value);
+        return 1;
+      };
     }
     else {
       logger.msg(Arc::WARNING, "unsupported configuration command: %s", command);

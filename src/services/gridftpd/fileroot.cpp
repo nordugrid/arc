@@ -370,6 +370,7 @@ FileRoot::FileRoot(void):error(FileNode::no_error) {
   cur_dir="";
   opened_node=nodes.end();
   heavy_encryption=true;
+  active_data=true;
   //unix_mapped=false;
 }
 
