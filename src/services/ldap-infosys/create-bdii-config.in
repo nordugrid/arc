@@ -317,21 +317,6 @@ cat <<-EOF > ${ldif_generator_file}
 	# Do not modify
 	EOF
 
-for se in `config_subsections se`; do
-(
-    config_import_section se/$se
-    cachetime=${CONFIG_cachetime:-$max_cycle}
-
-    cat <<-EOF >> ${ldif_generator_file}
-	
-	BEGIN {
-	    print "\n";
-	    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=grid -se $se 2>> "$providerlog"');
-	}
-	EOF
-)
-done
-
 # NG and GLUE2 come directly from a-rex infoprovider
 cat <<-EOF >> ${ldif_generator_file}
 	
