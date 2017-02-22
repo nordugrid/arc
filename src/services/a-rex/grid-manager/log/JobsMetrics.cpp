@@ -94,26 +94,24 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
   }
   
 
-  //for each statechange, increase number of jobs in the state, at defined periods: calculate rate and update arrays
+  //for each statechange, increase number of jobs in the state and calculate rates,  at defined periods: update accum-array and histograms
   ++jobs_state_accum[new_state];
 
   time_now = time(NULL);
   time_delta = time_now - time_lastupdate;
 
-
-  //reset all rates to 0 to prevent histograms being published with rates from previous iterations
+  //loop over all states and caluclate rate, 
   for (int state = 0; state < JOB_STATE_UNDEFINED; ++state){
-    jobs_rate[state] = 0.;
-    jobs_rate_changed[state] = true;
-  }
+    if(time_delta != 0)
+      jobs_rate[state] = static_cast<double>((jobs_state_accum[state] - jobs_state_accum_last[state])/time_delta);
 
-  if(time_delta >= GMETRIC_STATERATE_UPDATE_PERIOD){
-    time_lastupdate = time_now;
-    double rate = static_cast<double>((jobs_state_accum[new_state] - jobs_state_accum_last[new_state])/time_delta);
-    jobs_rate[new_state] = rate;
-    jobs_state_accum_last[new_state] = jobs_state_accum[new_state];
+    //only update histograms and values if time since last update is larger or equal defined interval
+    if(time_delta >= GMETRIC_STATERATE_UPDATE_INTERVAL){
+      time_lastupdate = time_now;
+      jobs_state_accum_last[state] = jobs_state_accum[state];
+      jobs_rate_changed[state] = true;
+    }
   }
-
   Sync();
 }
 

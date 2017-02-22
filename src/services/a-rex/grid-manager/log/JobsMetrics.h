@@ -11,7 +11,7 @@
 
 #include "../jobs/GMJob.h"
 
-#define GMETRIC_STATERATE_UPDATE_PERIOD 5//to-fix this value could be set in arc.conf to be tailored to site
+#define GMETRIC_STATERATE_UPDATE_INTERVAL 5//to-fix this value could be set in arc.conf to be tailored to site
 
 
 namespace ARex {
