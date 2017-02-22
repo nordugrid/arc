@@ -72,10 +72,10 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     }
 
     //only remove from jobs_state_old_new if job existed with old-new combination in last iteration    
-    //if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
-    --jobs_state_old_new[last_old][last_new];
-    jobs_state_old_new_changed[last_old][last_new] = true;
-    //}
+    if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
+      --jobs_state_old_new[last_old][last_new];
+      jobs_state_old_new_changed[last_old][last_new] = true;
+    }
 
     ++jobs_state_old_new[old_state][new_state];
     jobs_state_old_new_changed[old_state][new_state] = true;
@@ -95,7 +95,9 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
   
 
   //for each statechange, increase number of jobs in the state and calculate rates,  at defined periods: update accum-array and histograms
-  ++jobs_state_accum[new_state];
+  if(new_state < JOB_STATE_UNDEFINED){
+    ++jobs_state_accum[new_state];
+  }
 
   time_now = time(NULL);
   time_delta = time_now - time_lastupdate;
