@@ -5,10 +5,14 @@
 #include <string>
 #include <list>
 #include <fstream>
+#include <ctime>
 
 #include <arc/Run.h>
 
 #include "../jobs/GMJob.h"
+
+#define GMETRIC_STATERATE_UPDATE_PERIOD 5//to-fix this value could be set in arc.conf to be tailored to site
+
 
 namespace ARex {
 
@@ -18,12 +22,22 @@ class JobsMetrics {
   bool enabled;
   std::string config_filename;
   std::string tool_path;
+
+  time_t time_now;
+  time_t time_lastupdate;
+  time_t time_delta;
+  
   unsigned long long int jobs_processed[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_in_state[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_state_old_new[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
+  unsigned long long int jobs_state_accum[JOB_STATE_UNDEFINED];
+  unsigned long long int jobs_state_accum_last[JOB_STATE_UNDEFINED];
+  double jobs_rate[JOB_STATE_UNDEFINED];
+
   bool jobs_processed_changed[JOB_STATE_UNDEFINED];
   bool jobs_in_state_changed[JOB_STATE_UNDEFINED];
   bool jobs_state_old_new_changed[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
+  bool jobs_rate_changed[JOB_STATE_UNDEFINED];
 
   std::map<std::string,job_state_t> jobs_state_old_map;
   std::map<std::string,job_state_t> jobs_state_new_map;
@@ -31,7 +45,7 @@ class JobsMetrics {
   Arc::Run *proc;
   std::string proc_stderr;
 
-  bool RunMetrics(const std::string name, const std::string& value);
+  bool RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit);
   bool CheckRunMetrics(void);
   static void RunMetricsKicker(void* arg);
 

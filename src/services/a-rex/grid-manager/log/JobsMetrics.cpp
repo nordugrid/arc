@@ -21,6 +21,12 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   std::memset(jobs_in_state_changed, 0, sizeof(jobs_in_state_changed));
   std::memset(jobs_state_old_new, 0, sizeof(jobs_state_old_new));
   std::memset(jobs_state_old_new_changed, 0, sizeof(jobs_state_old_new_changed));
+  std::memset(jobs_rate, 0, sizeof(jobs_rate));
+  std::memset(jobs_rate_changed, 0, sizeof(jobs_rate_changed));
+  std::memset(jobs_state_accum, 0, sizeof(jobs_state_accum));
+  std::memset(jobs_state_accum_last, 0, sizeof(jobs_state_accum_last));
+
+  time_lastupdate = time(NULL);
 }
 
 JobsMetrics::~JobsMetrics() {
@@ -66,10 +72,10 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     }
 
     //only remove from jobs_state_old_new if job existed with old-new combination in last iteration    
-    if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
-      --jobs_state_old_new[last_old][last_new];
-      jobs_state_old_new_changed[last_old][last_new] = true;
-    }
+    //if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
+    --jobs_state_old_new[last_old][last_new];
+    jobs_state_old_new_changed[last_old][last_new] = true;
+    //}
 
     ++jobs_state_old_new[old_state][new_state];
     jobs_state_old_new_changed[old_state][new_state] = true;
@@ -87,6 +93,27 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     }
   }
   
+
+  //for each statechange, increase number of jobs in the state, at defined periods: calculate rate and update arrays
+  ++jobs_state_accum[new_state];
+
+  time_now = time(NULL);
+  time_delta = time_now - time_lastupdate;
+
+
+  //reset all rates to 0 to prevent histograms being published with rates from previous iterations
+  for (int state = 0; state < JOB_STATE_UNDEFINED; ++state){
+    jobs_rate[state] = 0.;
+    jobs_rate_changed[state] = true;
+  }
+
+  if(time_delta >= GMETRIC_STATERATE_UPDATE_PERIOD){
+    time_lastupdate = time_now;
+    double rate = static_cast<double>((jobs_state_accum[new_state] - jobs_state_accum_last[new_state])/time_delta);
+    jobs_rate[new_state] = rate;
+    jobs_state_accum_last[new_state] = jobs_state_accum[new_state];
+  }
+
   Sync();
 }
 
@@ -113,8 +140,8 @@ void JobsMetrics::Sync(void) {
     if(jobs_processed_changed[state]) {
       if(RunMetrics(
 		    std::string("AREX-JOBS-PROCESSED-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
-          Arc::tostring(jobs_processed[state])
-         )) {
+		    Arc::tostring(jobs_processed[state]), "int32", "jobs"
+		    )) {
         jobs_processed_changed[state] = false;
         return;
       };
@@ -122,18 +149,28 @@ void JobsMetrics::Sync(void) {
     if(jobs_in_state_changed[state]) {
       if(RunMetrics(
           std::string("AREX-JOBS-IN_STATE-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
-          Arc::tostring(jobs_in_state[state])
-         )) {
+          Arc::tostring(jobs_in_state[state]), "int32", "jobs"
+		    )) {
         jobs_in_state_changed[state] = false;
         return;
       };
     };
+    if(jobs_rate_changed[state]) {
+      if(RunMetrics(
+		    std::string("AREX-JOBS-RATE-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
+		    Arc::tostring(jobs_rate[state]), "double", "jobs/s"
+		    )) {
+        jobs_rate_changed[state] = false;
+        return;
+      };
+    };
   };
+
   for(int state_old = 0; state_old <= JOB_STATE_UNDEFINED; ++state_old){
     for(int state_new = 1; state_new < JOB_STATE_UNDEFINED; ++state_new){
       if(jobs_state_old_new_changed[state_old][state_new]){
   	std::string histname =  std::string("AREX-JOBS-FROM-")  + Arc::tostring(state_old) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-"  + Arc::tostring(state_new) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
-  	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]))){
+  	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]), "double", "jobs/sec")){
   	  jobs_state_old_new_changed[state_old][state_new] = false;
   	  return;
   	};
@@ -142,7 +179,7 @@ void JobsMetrics::Sync(void) {
   };
 }
  
-bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
+  bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
   if(proc) return false;
   std::list<std::string> cmd;
   if(tool_path.empty()) {
@@ -159,9 +196,9 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
   cmd.push_back("-v");
   cmd.push_back(value);
   cmd.push_back("-t");//unit-type
-  cmd.push_back("int32");
+  cmd.push_back(unit_type);
   cmd.push_back("-u");//unit
-  cmd.push_back("jobs");
+  cmd.push_back(unit);
   
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
