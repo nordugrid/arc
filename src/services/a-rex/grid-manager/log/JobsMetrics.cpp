@@ -68,12 +68,11 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     //only remove from jobs_state_old_new if job existed with old-new combination in last iteration    
     if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
       --jobs_state_old_new[last_old][last_new];
+      jobs_state_old_new_changed[last_old][last_new] = true;
     }
 
-    if( (last_old != last_new)){
-      ++jobs_state_old_new[old_state][new_state];
-      jobs_state_old_new_changed[old_state][new_state] = true;
-    }
+    ++jobs_state_old_new[old_state][new_state];
+    jobs_state_old_new_changed[old_state][new_state] = true;
 
     //update the old and new state jobid maps for next iteration
     std::map<std::string, job_state_t>::iterator it;
@@ -107,11 +106,13 @@ void JobsMetrics::Sync(void) {
   Glib::RecMutex::Lock lock_(lock);
   if(!CheckRunMetrics()) return;
   // Run gmetric to report one change at a time
-  std::list<std::string> cmd;
+  //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
+  //Sync is therefore called multiple times until there are not more histograms that have changed
+
   for(int state = 0; state < JOB_STATE_UNDEFINED; ++state) {
     if(jobs_processed_changed[state]) {
       if(RunMetrics(
-          std::string("AREX-JOBS-PROCESSED-") + GMJob::get_state_name(static_cast<job_state_t>(state)),
+		    std::string("AREX-JOBS-PROCESSED-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
           Arc::tostring(jobs_processed[state])
          )) {
         jobs_processed_changed[state] = false;
@@ -120,7 +121,7 @@ void JobsMetrics::Sync(void) {
     };
     if(jobs_in_state_changed[state]) {
       if(RunMetrics(
-          std::string("AREX-JOBS-IN_STATE-") + GMJob::get_state_name(static_cast<job_state_t>(state)),
+          std::string("AREX-JOBS-IN_STATE-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
           Arc::tostring(jobs_in_state[state])
          )) {
         jobs_in_state_changed[state] = false;
@@ -131,7 +132,7 @@ void JobsMetrics::Sync(void) {
   for(int state_old = 0; state_old <= JOB_STATE_UNDEFINED; ++state_old){
     for(int state_new = 1; state_new < JOB_STATE_UNDEFINED; ++state_new){
       if(jobs_state_old_new_changed[state_old][state_new]){
-  	std::string histname =  std::string("AREX-JOBS-") + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
+  	std::string histname =  std::string("AREX-JOBS-FROM-")  + Arc::tostring(state_old) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-"  + Arc::tostring(state_new) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
   	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]))){
   	  jobs_state_old_new_changed[state_old][state_new] = false;
   	  return;
