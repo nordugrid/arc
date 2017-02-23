@@ -30,8 +30,8 @@ class JobsMetrics {
   unsigned long long int jobs_processed[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_in_state[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_state_old_new[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
-  unsigned long long int jobs_state_accum[JOB_STATE_UNDEFINED];
-  unsigned long long int jobs_state_accum_last[JOB_STATE_UNDEFINED];
+  unsigned long long int jobs_state_accum[JOB_STATE_UNDEFINED+1];
+  unsigned long long int jobs_state_accum_last[JOB_STATE_UNDEFINED+1];
   double jobs_rate[JOB_STATE_UNDEFINED];
 
   bool jobs_processed_changed[JOB_STATE_UNDEFINED];

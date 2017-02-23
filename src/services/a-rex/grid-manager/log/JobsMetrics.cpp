@@ -48,6 +48,9 @@ static const char* gmetric_tool = "gmetric";
 
 void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state) {
   Glib::RecMutex::Lock lock_(lock);
+
+
+  //actual states
   if(old_state < JOB_STATE_UNDEFINED) {
     ++(jobs_processed[old_state]);
     jobs_processed_changed[old_state] = true;
@@ -58,6 +61,9 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     ++(jobs_in_state[new_state]);
     jobs_in_state_changed[new_state] = true;
   };
+
+
+  //transitions and rates
   if((old_state <= JOB_STATE_UNDEFINED) && (new_state < JOB_STATE_UNDEFINED)){
   
     job_state_t last_old = JOB_STATE_UNDEFINED;
@@ -71,49 +77,46 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
       last_new = jobs_state_new_map.find(job_id)->second;
     }
 
-    //only remove from jobs_state_old_new if job existed with old-new combination in last iteration    
     if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
       --jobs_state_old_new[last_old][last_new];
       jobs_state_old_new_changed[last_old][last_new] = true;
-    }
-
-    ++jobs_state_old_new[old_state][new_state];
-    jobs_state_old_new_changed[old_state][new_state] = true;
-
-    //update the old and new state jobid maps for next iteration
-    std::map<std::string, job_state_t>::iterator it;
-    it = jobs_state_old_map.find(job_id); 
-    if (it != jobs_state_old_map.end()){
-      it->second = old_state;
+    
+      ++jobs_state_old_new[old_state][new_state];
+      jobs_state_old_new_changed[old_state][new_state] = true;
+      
+      //update the old and new state jobid maps for next iteration
+      std::map<std::string, job_state_t>::iterator it;
+      it = jobs_state_old_map.find(job_id); 
+      if (it != jobs_state_old_map.end()){
+	it->second = old_state;
+      }
+      
+      it = jobs_state_new_map.find(job_id); 
+      if (it != jobs_state_new_map.end()){
+	it->second = new_state;
+      }
     }
     
-    it = jobs_state_new_map.find(job_id); 
-    if (it != jobs_state_new_map.end()){
-      it->second = new_state;
-    }
-  }
-  
 
-  //for each statechange, increase number of jobs in the state and calculate rates,  at defined periods: update accum-array and histograms
-  if(new_state < JOB_STATE_UNDEFINED){
+    //for each statechange, increase number of jobs in the state and calculate rates,  at defined periods: update accum-array and histograms
     ++jobs_state_accum[new_state];
-  }
-
-  time_now = time(NULL);
-  time_delta = time_now - time_lastupdate;
-
-  //loop over all states and caluclate rate, 
-  double rate = 0.;
-  for (int state = 0; state < JOB_STATE_UNDEFINED; ++state){
-    if(time_delta != 0){
-      rate = static_cast<double>((jobs_state_accum[state] - jobs_state_accum_last[state])/time_delta);
-      jobs_rate[state] = rate;
-    }
-    //only update histograms and values if time since last update is larger or equal defined interval
-    if(time_delta >= GMETRIC_STATERATE_UPDATE_INTERVAL){
-      time_lastupdate = time_now;
-      jobs_state_accum_last[state] = jobs_state_accum[state];
-      jobs_rate_changed[state] = true;
+    
+    time_now = time(NULL);
+    time_delta = time_now - time_lastupdate;
+    
+    //loop over all states and caluclate rate, 
+    double rate = 0.;
+    for (int state = 0; state < JOB_STATE_UNDEFINED; ++state){
+      if(time_delta != 0){
+	rate = (static_cast<double>(jobs_state_accum[state]) - static_cast<double>(jobs_state_accum_last[state]))/time_delta;
+	jobs_rate[state] = rate;
+      }
+      //only update histograms and values if time since last update is larger or equal defined interval
+      if(time_delta >= GMETRIC_STATERATE_UPDATE_INTERVAL){
+	time_lastupdate = time_now;
+	jobs_state_accum_last[state] = jobs_state_accum[state];
+	jobs_rate_changed[state] = true;
+      }
     }
   }
   Sync();
@@ -172,7 +175,7 @@ void JobsMetrics::Sync(void) {
     for(int state_new = 1; state_new < JOB_STATE_UNDEFINED; ++state_new){
       if(jobs_state_old_new_changed[state_old][state_new]){
   	std::string histname =  std::string("AREX-JOBS-FROM-")  + Arc::tostring(state_old) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-"  + Arc::tostring(state_new) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
-  	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]), "double", "jobs/sec")){
+  	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]), "int32", "jobs")){
   	  jobs_state_old_new_changed[state_old][state_new] = false;
   	  return;
   	};
