@@ -454,14 +454,18 @@ namespace Arc {
     getContext().destinations.clear();
   }
 
-  void Logger::deleteDestinations(void) {
+  void Logger::deleteDestinations(LogDestination* exclude) {
     Glib::Mutex::Lock lock(mutex);
     std::list<LogDestination*>& destinations = getContext().destinations;
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
-      delete *dest;
-      *dest = NULL;
-      dest = destinations.erase(dest);
+      if (*dest != exclude) {
+        delete *dest;
+        *dest = NULL;
+        dest = destinations.erase(dest);
+      } else {
+        ++dest;
+      }
     }
   }
 

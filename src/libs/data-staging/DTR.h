@@ -614,7 +614,7 @@ namespace DataStaging {
     /// Set whether or not to delete log destinations in delete_logger_destinations()
     void set_delete_log_destinations(bool del) { delete_log_destinations = del; };
     /// Clean log destinations. Takes care of cleaning internal list and list in logger.
-    void clean_log_destinations();
+    void clean_log_destinations(Arc::LogDestination* exclude=NULL);
 
     /// Pass the DTR from one process to another. Protected by lock.
     static void push(DTR_ptr dtr, StagingProcesses new_owner);
