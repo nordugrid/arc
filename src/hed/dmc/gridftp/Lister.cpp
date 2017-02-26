@@ -223,6 +223,7 @@ namespace ArcDMCGridFTP {
                                   globus_size_t length,
                                   globus_off_t,
                                   globus_bool_t eof) {
+    if(!arg) return;
     Lister *it = (Lister*)arg;
     if(!it->data_activated) return;
     length += it->list_shift;
@@ -328,6 +329,7 @@ namespace ArcDMCGridFTP {
                                   unsigned int,
                                   globus_bool_t,
                                   globus_object_t *error) {
+    if(!arg) return;
     /* if(!callback_active) return; */
     Lister *it = (Lister*)arg;
     if (error != GLOBUS_SUCCESS) {
@@ -600,6 +602,12 @@ namespace ArcDMCGridFTP {
             break;
           }
         }
+        // block callback execution in case anything left
+        handle->cc_handle.close_cb_arg = NULL;
+        handle->cc_handle.accept_cb_arg = NULL;
+        handle->cc_handle.auth_cb_arg = NULL;
+        handle->cc_handle.command_cb_arg = NULL;
+        handle->dc_handle.close_callback_arg = NULL;
         globus_mutex_unlock(&(handle->cc_handle.mutex));
         GlobusResult res;
         if(!(res=globus_ftp_control_handle_destroy(handle))) {
