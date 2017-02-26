@@ -913,11 +913,12 @@ namespace ArcDMCGridFTP {
         //  information
         // 250 -
         if (cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
-          logger.msg(INFO, "Immediate completion expected: %s", sresp);
           if(sresp) {
+            logger.msg(INFO, "Immediate completion expected: %s", sresp);
             result.SetDesc("MLST command failed at "+urlstr+" : "+sresp);
             free(sresp); sresp = NULL;
           } else {
+            logger.msg(INFO, "Immediate completion expected");
             result.SetDesc("MLST command failed at "+urlstr);
           }
           return result;
