@@ -43,7 +43,7 @@ static void get_data_staging_shares(const GMConfig& config,
     std::cout<<"Can't read transfer states from "<<dtr_log<<". Perhaps A-REX is not running?"<<std::endl;
     return;
   }
-  // format DTR_ID state priority share [destinatinon]
+  // format DTR_ID state priority share [destination]
   // any state but TRANSFERRING is a pending state
   for (std::list<std::string>::iterator line = data.begin(); line != data.end(); ++line) {
     std::vector<std::string> entries;
@@ -236,22 +236,14 @@ int main(int argc, char* argv[]) {
     counters_pending[i] = 0;
   }
 
-  std::map<std::string, int> share_preparing;
-  std::map<std::string, int> share_preparing_pending;
-  std::map<std::string, int> share_finishing;
-  std::map<std::string, int> share_finishing_pending;
   JobsList jobs(config);
   unsigned int jobs_total = 0;
   std::list<GMJob*> cancel_jobs_list;
   std::list<GMJob*> clean_jobs_list;
 
-  if((!notshow_jobs) || (!notshow_states) || (show_share) ||
+  if((!notshow_jobs) || (!notshow_states) ||
      (cancel_users.size() > 0) || (clean_users.size() > 0) ||
      (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
-    if (show_share) {
-      get_data_staging_shares(config, share_preparing, share_preparing_pending,
-                              share_finishing, share_finishing_pending);
-    }
     if(filter_jobs.size() > 0) {
       for(std::list<std::string>::iterator id = filter_jobs.begin(); id != filter_jobs.end(); ++id) {
         jobs.AddJob(*id);
@@ -317,6 +309,13 @@ int main(int argc, char* argv[]) {
   }
   
   if(show_share) {
+    std::map<std::string, int> share_preparing;
+    std::map<std::string, int> share_preparing_pending;
+    std::map<std::string, int> share_finishing;
+    std::map<std::string, int> share_finishing_pending;
+
+    get_data_staging_shares(config, share_preparing, share_preparing_pending,
+                            share_finishing, share_finishing_pending);
     *outs<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
       *outs<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
