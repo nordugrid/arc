@@ -428,7 +428,7 @@ namespace ArcDMCGridFTP {
         strncpy(cmd,cmds.c_str(),cmds.length()+1);
         cmd[cmds.length()] = 0;
       }
-      if (globus_ftp_control_send_command(handle, cmd, resp_callback, this)
+      if (globus_ftp_control_send_command(handle, cmd, resp_callback, callback_arg)
           != GLOBUS_SUCCESS) {
         logger.msg(VERBOSE, "%s failed", command);
         if (cmd) free(cmd);
@@ -566,7 +566,7 @@ namespace ArcDMCGridFTP {
     bool res = true;
     close_callback_status = CALLBACK_NOTREADY;
     logger.msg(VERBOSE, "Closing connection");
-    if (globus_ftp_control_data_force_close(handle, simple_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_data_force_close(handle, simple_callback, callback_arg) == GLOBUS_SUCCESS) {
       // Timeouts are used while waiting for callbacks just in case they never
       // come. If a timeout happens then the response object is not freed just
       // in case the callback eventually arrives.
@@ -577,14 +577,14 @@ namespace ArcDMCGridFTP {
       }
       if (cbs != CALLBACK_DONE) res = false;
     }
-    //if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    //if (globus_ftp_control_abort(handle, resp_callback, callback_arg) != GLOBUS_SUCCESS) {
     //} else if (wait_for_callback() != CALLBACK_DONE) {
     //    res = false;
     //}
     if(send_command("ABOR", NULL, true, NULL) == GLOBUS_FTP_UNKNOWN_REPLY) {
       res = false;
     }
-    if (globus_ftp_control_quit(handle, resp_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_quit(handle, resp_callback, callback_arg) == GLOBUS_SUCCESS) {
       callback_status_t cbs = wait_for_callback(60);
       if (cbs == CALLBACK_TIMEDOUT) {
         logger.msg(VERBOSE, "Timeout waiting for Globus callback - leaking connection");
@@ -592,7 +592,7 @@ namespace ArcDMCGridFTP {
       }
       if (cbs != CALLBACK_DONE) res = false;
     }
-    if (globus_ftp_control_force_close(handle, close_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_force_close(handle, close_callback, callback_arg) == GLOBUS_SUCCESS) {
       callback_status_t cbs = wait_for_close_callback();
       if (cbs != CALLBACK_DONE) res = false;
     }
@@ -771,8 +771,7 @@ namespace ArcDMCGridFTP {
     /* it looks like _pasv is not enough for connection - start reading
        immediately */
     data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
-    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
-                                             this) != GLOBUS_SUCCESS) {
+    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback, callback_arg) != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to open data channel");
       result.SetDesc("Failed to open data channel to "+urlstr);
       pasv_set = false;
@@ -826,7 +825,7 @@ namespace ArcDMCGridFTP {
       userpass = url.Passwd();
       if (!(res = globus_ftp_control_connect(handle,
                                              const_cast<char*>(host.c_str()),
-                                             port, &resp_callback, this))) {
+                                             port, &resp_callback, callback_arg))) {
         logger.msg(VERBOSE, "Failed connecting to server %s:%d",
                    host.c_str(), port);
         result.SetDesc("Failed connecting to "+urlstr+" : "+res.str());
@@ -879,7 +878,7 @@ namespace ArcDMCGridFTP {
         use_auth = GLOBUS_FALSE;
       }
       if (!(res = globus_ftp_control_authenticate(handle, &auth, use_auth,
-                                          resp_callback, this))) {
+                                          resp_callback, callback_arg))) {
         std::string globus_err(res.str());
         logger.msg(VERBOSE, "Failed authenticating: %s", globus_err);
         result.SetDesc("Failed authenticating at "+urlstr+" : "+globus_err);
@@ -1004,7 +1003,7 @@ namespace ArcDMCGridFTP {
             if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
             memcpy(readbuf,nresp,nlength);
             data_activated = true;
-            list_read_callback(this,handle,GLOBUS_SUCCESS,
+            list_read_callback(callback_arg,handle,GLOBUS_SUCCESS,
                                (globus_byte_t*)readbuf,nlength,0,1);
           }
         };
