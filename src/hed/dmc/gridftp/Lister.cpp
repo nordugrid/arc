@@ -69,7 +69,7 @@ namespace ArcDMCGridFTP {
       globus_mutex_unlock(pos_mutex);
     };
     callback_args[last_arg] = it;
-    last_arg = (void*)(((unsigned int)last_arg) + 1);
+    last_arg = (void*)(((unsigned long int)last_arg) + 1);
     callback_args_mutex.unlock();
     return arg;
   }
