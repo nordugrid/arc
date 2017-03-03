@@ -48,6 +48,7 @@ class JobsMetrics {
   bool RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit);
   bool CheckRunMetrics(void);
   static void RunMetricsKicker(void* arg);
+  static void SyncAsync(void* arg);
 
  public:
   JobsMetrics(void);
