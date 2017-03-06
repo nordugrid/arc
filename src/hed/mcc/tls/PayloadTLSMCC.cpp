@@ -89,12 +89,12 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
       } else {
         // Globus signing policy
-        // Do not apply to proxies and self-signed CAs.
         //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;
         if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
           //std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
-          int pos = X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1);
-          if(pos < 0) {
+          // Do not apply to proxies and self-signed CAs.
+          if((X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) &&
+             (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) != 0)) {
             //std::cerr<<"+++ additional verification: check signing policy - is not proxy"<<std::endl;
             GlobusSigningPolicy globus_policy;
             if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
