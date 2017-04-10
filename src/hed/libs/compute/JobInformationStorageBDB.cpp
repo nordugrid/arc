@@ -552,7 +552,7 @@ namespace Arc {
           URL jobManagementURL(tmpEndpoint);
           if (jobManagementURL.StringMatches(*it)) {
            addJobFromDB(pkey, data, jobs, idsOfAddedJobs, rejectEndpoints);
-         }
+          }
         }
       }
     } catch (const BDBException& e) {

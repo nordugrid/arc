@@ -318,8 +318,8 @@ namespace Arc {
   }
 
   bool UserConfig::JobListType(const std::string& type) {
-    if (type != "XML" && type != "BDB") {
-      logger.msg(WARNING, "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, XML.", type);
+    if (type != "XML" && type != "BDB" && type != "SQLITE") {
+      logger.msg(WARNING, "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, SQLITE, XML.", type);
       joblisttype = "BDB";
       return true;
     }
