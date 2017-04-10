@@ -6,7 +6,7 @@ else
     PYTHON_LRMS =
 endif
 
-pkgdata_SCRIPTS = CEinfo.pl se.pl PerfData.pl
+pkgdata_SCRIPTS = CEinfo.pl PerfData.pl
 dist_pkgdata_SCRIPTS = glue-generator.pl \
 	grid-info-soft-register glite-info-provider-ldap
 
@@ -16,7 +16,7 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \
 	InfoChecker.pm ConfigCentral.pm \
 	ARC0ClusterInfo.pm ARC1ClusterInfo.pm \
-	SGE.pm Fork.pm Shared.pm \
+	SGE.pm Fork.pm \
 	XmlPrinter.pm GLUE2xmlPrinter.pm \
 	LdifPrinter.pm GLUE2ldifPrinter.pm \
 	NGldifPrinter.pm InfosysHelper.pm $(PYTHON_LRMS)

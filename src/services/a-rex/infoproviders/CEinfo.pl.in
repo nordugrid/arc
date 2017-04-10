@@ -509,13 +509,13 @@ sub fix_config {
                    GridftpdPort        => 2811,
                    GridftpdAllowNew    => 1,
                    GridftpdPidFile     => '/var/run/gridftpd.pid',
-                   validity_ttl	  =>  1200,
+                   validity_ttl	  =>  10800,
                    SlapdPort      => 2135,
                    infosys_glue2_service_qualitylevel   => 'production',
                    shared_filesystem => 1,
                    enable_arc_interface => 1,
                    enable_emies_interface => 0,
-                   infoproviders_timeout => 600
+                   infoproviders_timeout => 10800
     );
  
     my %control_defaults = (

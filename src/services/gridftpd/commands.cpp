@@ -724,6 +724,11 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       } else {
         logger.msg(Arc::VERBOSE, "Command PORT");
       };
+      if(!it->froot.active_data) {
+        logger.msg(Arc::ERROR, "active_data is disabled");
+        it->send_response("553 Active data transfer is disabled\r\n");
+        break;
+      }
       CHECK_TRANSFER;
       globus_ftp_control_host_port_t node;
       node=command->port.host_port;

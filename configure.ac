@@ -1547,16 +1547,16 @@ fi
 AC_DEFINE_UNQUOTED(GLOBUS_IO_VERSION,$IO_VERSION_MAJOR,[Globus IO version])
 
 if test "x$GLOBUS_GSSAPI_GSI_VERSION" = "x"; then
-  GSSAPI_GSI_VERSION_MAJOR=0
-  GSSAPI_GSI_VERSION_MINOR=0
+  GLOBUS_GSSAPI_GSI_VERSION_MAJOR=0
+  GLOBUS_GSSAPI_GSI_VERSION_MINOR=0
 else
-  GSSAPI_GSI_VERSION_MAJOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^\([[^.]]*\).*/\1/'`;
-  GSSAPI_GSI_VERSION_MINOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^[[^.]]*\.\([[^.]]*\).*/\1/'`;
+  GLOBUS_GSSAPI_GSI_VERSION_MAJOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^\([[^.]]*\).*/\1/'`;
+  GLOBUS_GSSAPI_GSI_VERSION_MINOR=`echo "$GLOBUS_GSSAPI_GSI_VERSION" | sed 's/^[[^.]]*\.\([[^.]]*\).*/\1/'`;
 fi
-if test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" < "12"; then
+if test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" -lt "12"; then
   GLOBUS_GSSAPI_GSI_OLD_OPENSSL=1
-elif  test if test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" = "12"; then
-  if test "$GLOBUS_GSSAPI_GSI_VERSION_MINOR" < "2"; then
+elif test "$GLOBUS_GSSAPI_GSI_VERSION_MAJOR" -eq "12"; then
+  if test "$GLOBUS_GSSAPI_GSI_VERSION_MINOR" -lt "2"; then
     GLOBUS_GSSAPI_GSI_OLD_OPENSSL=1
   else
     GLOBUS_GSSAPI_GSI_OLD_OPENSSL=0
@@ -1724,6 +1724,13 @@ if test "x$enables_s3" = "xyes"; then
   LDFLAGS=$SAVE_LDFLAGS
   AC_SUBST(S3_CPPFLAGS)
   AC_SUBST(S3_LIBS)
+  if test x$enables_s3 = xyes
+  then
+      if s3 help 2>&1 | grep -q  -- '--timeout'
+      then
+      AC_DEFINE([HAVE_S3_TIMEOUT],,[Define if S3 API has timeouts])
+      fi
+  fi
 fi
 
 
@@ -2504,7 +2511,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/arc-config-check.1
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
-                 src/services/a-rex/infoproviders/se.pl
                  src/services/a-rex/infoproviders/PerfData.pl
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/jura/Makefile

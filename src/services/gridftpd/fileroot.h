@@ -176,6 +176,7 @@ class FileRoot {
  friend class GridFTP_Commands;
  private:
   bool heavy_encryption;
+  bool active_data;
   //bool unix_mapped;
   std::string error;
  public:
