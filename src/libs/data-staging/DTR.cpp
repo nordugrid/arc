@@ -292,13 +292,13 @@ namespace DataStaging {
     return false;
   }
 
-  void DTR::clean_log_destinations() {
+  void DTR::clean_log_destinations(Arc::LogDestination* exclude) {
     // This method makes sure log_destinations is in sync with the LogDestination
     // objects inside logger. First clear internal list (not deleting objects)
     log_destinations.clear();
     // Then delete objects inside logger if requested
     if (logger) {
-      if (delete_log_destinations) logger->deleteDestinations();
+      if (delete_log_destinations) logger->deleteDestinations(exclude);
       else logger->removeDestinations();
     }
   }

@@ -15,6 +15,7 @@
 #include <globus_ftp_control.h>
 #include <globus_object.h>
 
+#include <arc/Thread.h>
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -42,11 +43,60 @@ static void dos_to_unix(char *s) {
   }
 }
 
+
 namespace ArcDMCGridFTP {
 
   using namespace Arc;
 
+
   static Logger logger(Logger::rootLogger, "Lister");
+
+
+  std::map<void*,Lister*> Lister::callback_args;
+
+  Glib::Mutex Lister::callback_args_mutex;
+
+  void* Lister::remember_for_callback(Lister* it) {
+    static void* last_arg = NULL;
+    callback_args_mutex.lock();
+    void* arg = last_arg;
+    std::map<void*,Lister*>::iterator pos = callback_args.find(last_arg);
+    if(pos != callback_args.end()) {
+      // must be very old stuck communication - too old to keep
+      globus_mutex_t* pos_mutex = &pos->second->mutex;
+      globus_mutex_lock(pos_mutex);
+      callback_args.erase(pos);      
+      globus_mutex_unlock(pos_mutex);
+    };
+    callback_args[last_arg] = it;
+    last_arg = (void*)(((unsigned long int)last_arg) + 1);
+    callback_args_mutex.unlock();
+    return arg;
+  }
+
+  Lister* Lister::recall_for_callback(void* arg) {
+    callback_args_mutex.lock();
+    Lister* it = NULL;
+    std::map<void*,Lister*>::iterator pos = callback_args.find(arg);
+    if(pos != callback_args.end()) {
+      it = pos->second;
+      globus_mutex_lock(&it->mutex);
+    };
+    callback_args_mutex.unlock();
+    return it;
+  }
+
+  void Lister::forget_about_callback(void* arg) {
+    callback_args_mutex.lock();
+    std::map<void*,Lister*>::iterator pos = callback_args.find(arg);
+    if(pos != callback_args.end()) {
+      globus_mutex_t* pos_mutex = &pos->second->mutex;
+      globus_mutex_lock(pos_mutex);
+      callback_args.erase(pos);      
+      globus_mutex_unlock(pos_mutex);
+    };
+    callback_args_mutex.unlock();
+  }
 
   void SetAttributes(FileInfo& fi, const char *facts) {
     const char *name;
@@ -157,11 +207,10 @@ namespace ArcDMCGridFTP {
   void Lister::resp_callback(void *arg, globus_ftp_control_handle_t*,
                              globus_object_t *error,
                              globus_ftp_control_response_t *response) {
-    if(!arg) return;
-    Lister *it = (Lister*)arg;
+    Lister *it = recall_for_callback(arg);
+    if(!it) return;
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
-    globus_mutex_lock(&(it->mutex));
     if (error != GLOBUS_SUCCESS) {
       it->callback_status = CALLBACK_ERROR;
       logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
@@ -196,11 +245,10 @@ namespace ArcDMCGridFTP {
   void Lister::close_callback(void *arg, globus_ftp_control_handle_t*,
                              globus_object_t *error,
                              globus_ftp_control_response_t *response) {
-    if(!arg) return;
-    Lister *it = (Lister*)arg;
+    Lister *it = recall_for_callback(arg);
+    if(!it) return;
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
-    globus_mutex_lock(&(it->mutex));
     if (error != GLOBUS_SUCCESS) {
       it->close_callback_status = CALLBACK_ERROR;
     } else {
@@ -223,15 +271,18 @@ namespace ArcDMCGridFTP {
                                   globus_size_t length,
                                   globus_off_t,
                                   globus_bool_t eof) {
-    Lister *it = (Lister*)arg;
-    if(!it->data_activated) return;
+    Lister *it = recall_for_callback(arg);
+    if(!it) return;
+    if(!it->data_activated) {
+      globus_mutex_unlock(&(it->mutex));
+      return;
+    }
     length += it->list_shift;
     if (error != GLOBUS_SUCCESS) {
       /* no such file or connection error - assume no such file */
       logger.msg(INFO, "Error getting list of files (in list)");
       logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
       logger.msg(INFO, "Assuming - file not found");
-      globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
       globus_mutex_unlock(&(it->mutex));
@@ -244,21 +295,20 @@ namespace ArcDMCGridFTP {
     name = it->readbuf;
     it->list_shift = 0;
     for (;;) {
-      if ((*name) == 0)
-        break;
+      if ((*name) == 0) break;
       globus_size_t nlen;
       nlen = strcspn(name, "\n\r");
       name[nlen] = 0;
       logger.msg(VERBOSE, "list record: %s", name);
-      if (nlen == length)
+      if (nlen == length) {
         if (!eof) {
           memmove(it->readbuf, name, nlen);
           it->list_shift = nlen;
           break;
         }
+      }
       if (nlen == 0) { // skip empty std::string
-        if (length == 0)
-          break;
+        if (length == 0) break;
         name++;
         length--;
         continue;
@@ -289,10 +339,8 @@ namespace ArcDMCGridFTP {
       };
       std::list<FileInfo>::iterator i = it->fnames.insert(it->fnames.end(), FileInfo(name));
 
-      if (it->facts)
-        SetAttributes(*i, attrs);
-      if (nlen == length)
-        break;
+      if (it->facts) SetAttributes(*i, attrs);
+      if (nlen == length) break;
       name += (nlen + 1);
       length -= (nlen + 1);
       if (((*name) == '\r') || ((*name) == '\n')) {
@@ -305,18 +353,15 @@ namespace ArcDMCGridFTP {
                                        ((it->readbuf) + (it->list_shift)),
                                        sizeof(it->readbuf) -
                                        (it->list_shift) - 1,
-                                       &list_read_callback, arg) !=
-          GLOBUS_SUCCESS) {
+                                       &list_read_callback, arg) != GLOBUS_SUCCESS) {
         logger.msg(INFO, "Failed reading list of files");
-        globus_mutex_lock(&(it->mutex));
         it->data_callback_status = CALLBACK_ERROR;
         globus_cond_signal(&(it->cond));
-        globus_mutex_unlock(&(it->mutex));
       }
+      globus_mutex_unlock(&(it->mutex));
       return;
     }
     it->data_activated = false;
-    globus_mutex_lock(&(it->mutex));
     it->data_callback_status = CALLBACK_DONE;
     globus_cond_signal(&(it->cond));
     globus_mutex_unlock(&(it->mutex));
@@ -328,11 +373,10 @@ namespace ArcDMCGridFTP {
                                   unsigned int,
                                   globus_bool_t,
                                   globus_object_t *error) {
-    /* if(!callback_active) return; */
-    Lister *it = (Lister*)arg;
+    Lister *it = recall_for_callback(arg);
+    if(!it) return;
     if (error != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
-      globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
       // if data failed no reason to wait for control
       it->callback_status = CALLBACK_ERROR;
@@ -345,17 +389,15 @@ namespace ArcDMCGridFTP {
     it->data_activated = true;
     if (globus_ftp_control_data_read(hctrl, (globus_byte_t*)(it->readbuf),
                                      sizeof(it->readbuf) - 1,
-                                     &list_read_callback, arg) !=
-        GLOBUS_SUCCESS) {
+                                     &list_read_callback, arg) != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed reading data");
-      globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
       // if data failed no reason to wait for control
       it->callback_status = CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
-      globus_mutex_unlock(&(it->mutex));
-      return;
     }
+    globus_mutex_unlock(&(it->mutex));
+    return;
   }
 
   globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg, bool wait_for_response, char **sresp, int* code, char delim) {
@@ -386,7 +428,7 @@ namespace ArcDMCGridFTP {
         strncpy(cmd,cmds.c_str(),cmds.length()+1);
         cmd[cmds.length()] = 0;
       }
-      if (globus_ftp_control_send_command(handle, cmd, resp_callback, this)
+      if (globus_ftp_control_send_command(handle, cmd, resp_callback, callback_arg)
           != GLOBUS_SUCCESS) {
         logger.msg(VERBOSE, "%s failed", command);
         if (cmd) free(cmd);
@@ -514,7 +556,7 @@ namespace ArcDMCGridFTP {
     if (globus_ftp_control_ipv6_allow(handle,GLOBUS_TRUE)  != GLOBUS_SUCCESS) {
       logger.msg(WARNING, "Failed to enable IPv6");
     }
-
+    callback_arg = remember_for_callback(this);
     inited = true;
   }
 
@@ -524,7 +566,7 @@ namespace ArcDMCGridFTP {
     bool res = true;
     close_callback_status = CALLBACK_NOTREADY;
     logger.msg(VERBOSE, "Closing connection");
-    if (globus_ftp_control_data_force_close(handle, simple_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_data_force_close(handle, simple_callback, callback_arg) == GLOBUS_SUCCESS) {
       // Timeouts are used while waiting for callbacks just in case they never
       // come. If a timeout happens then the response object is not freed just
       // in case the callback eventually arrives.
@@ -535,14 +577,14 @@ namespace ArcDMCGridFTP {
       }
       if (cbs != CALLBACK_DONE) res = false;
     }
-    //if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    //if (globus_ftp_control_abort(handle, resp_callback, callback_arg) != GLOBUS_SUCCESS) {
     //} else if (wait_for_callback() != CALLBACK_DONE) {
     //    res = false;
     //}
     if(send_command("ABOR", NULL, true, NULL) == GLOBUS_FTP_UNKNOWN_REPLY) {
       res = false;
     }
-    if (globus_ftp_control_quit(handle, resp_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_quit(handle, resp_callback, callback_arg) == GLOBUS_SUCCESS) {
       callback_status_t cbs = wait_for_callback(60);
       if (cbs == CALLBACK_TIMEDOUT) {
         logger.msg(VERBOSE, "Timeout waiting for Globus callback - leaking connection");
@@ -550,7 +592,7 @@ namespace ArcDMCGridFTP {
       }
       if (cbs != CALLBACK_DONE) res = false;
     }
-    if (globus_ftp_control_force_close(handle, close_callback, this) == GLOBUS_SUCCESS) {
+    if (globus_ftp_control_force_close(handle, close_callback, callback_arg) == GLOBUS_SUCCESS) {
       callback_status_t cbs = wait_for_close_callback();
       if (cbs != CALLBACK_DONE) res = false;
     }
@@ -600,6 +642,12 @@ namespace ArcDMCGridFTP {
             break;
           }
         }
+        // block callback execution in case anything left
+        handle->cc_handle.close_cb_arg = NULL;
+        handle->cc_handle.accept_cb_arg = NULL;
+        handle->cc_handle.auth_cb_arg = NULL;
+        handle->cc_handle.command_cb_arg = NULL;
+        handle->dc_handle.close_callback_arg = NULL;
         globus_mutex_unlock(&(handle->cc_handle.mutex));
         GlobusResult res;
         if(!(res=globus_ftp_control_handle_destroy(handle))) {
@@ -611,6 +659,7 @@ namespace ArcDMCGridFTP {
         };
         handle = NULL;
       };
+      forget_about_callback(callback_arg);
       globus_mutex_destroy(&mutex);
       globus_cond_destroy(&cond);
     }
@@ -722,8 +771,7 @@ namespace ArcDMCGridFTP {
     /* it looks like _pasv is not enough for connection - start reading
        immediately */
     data_callback_status = (callback_status_t)CALLBACK_NOTREADY;
-    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
-                                             this) != GLOBUS_SUCCESS) {
+    if (globus_ftp_control_data_connect_read(handle, &list_conn_callback, callback_arg) != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to open data channel");
       result.SetDesc("Failed to open data channel to "+urlstr);
       pasv_set = false;
@@ -777,7 +825,7 @@ namespace ArcDMCGridFTP {
       userpass = url.Passwd();
       if (!(res = globus_ftp_control_connect(handle,
                                              const_cast<char*>(host.c_str()),
-                                             port, &resp_callback, this))) {
+                                             port, &resp_callback, callback_arg))) {
         logger.msg(VERBOSE, "Failed connecting to server %s:%d",
                    host.c_str(), port);
         result.SetDesc("Failed connecting to "+urlstr+" : "+res.str());
@@ -830,7 +878,7 @@ namespace ArcDMCGridFTP {
         use_auth = GLOBUS_FALSE;
       }
       if (!(res = globus_ftp_control_authenticate(handle, &auth, use_auth,
-                                          resp_callback, this))) {
+                                          resp_callback, callback_arg))) {
         std::string globus_err(res.str());
         logger.msg(VERBOSE, "Failed authenticating: %s", globus_err);
         result.SetDesc("Failed authenticating at "+urlstr+" : "+globus_err);
@@ -913,11 +961,12 @@ namespace ArcDMCGridFTP {
         //  information
         // 250 -
         if (cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
-          logger.msg(INFO, "Immediate completion expected: %s", sresp);
           if(sresp) {
+            logger.msg(INFO, "Immediate completion expected: %s", sresp);
             result.SetDesc("MLST command failed at "+urlstr+" : "+sresp);
             free(sresp); sresp = NULL;
           } else {
+            logger.msg(INFO, "Immediate completion expected");
             result.SetDesc("MLST command failed at "+urlstr);
           }
           return result;
@@ -954,7 +1003,7 @@ namespace ArcDMCGridFTP {
             if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
             memcpy(readbuf,nresp,nlength);
             data_activated = true;
-            list_read_callback(this,handle,GLOBUS_SUCCESS,
+            list_read_callback(callback_arg,handle,GLOBUS_SUCCESS,
                                (globus_byte_t*)readbuf,nlength,0,1);
           }
         };

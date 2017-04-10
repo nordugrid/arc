@@ -184,7 +184,7 @@ void JobsMetrics::Sync(void) {
   };
 }
  
-  bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
+bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
   if(proc) return false;
   std::list<std::string> cmd;
   if(tool_path.empty()) {
@@ -216,14 +216,7 @@ void JobsMetrics::Sync(void) {
   return true;
 }
 
-static void SyncAsync(void* arg) {
-  JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
-  if(&it) {
-    it.Sync();
-  };
-}
-
-void JobsMetrics::RunMetricsKicker(void* arg) {
+void JobsMetrics::SyncAsync(void* arg) {
   JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
   if(&it) {
     Glib::RecMutex::Lock lock_(it.lock);
@@ -231,13 +224,17 @@ void JobsMetrics::RunMetricsKicker(void* arg) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.
       if(it.proc->Result() == 0) {
-        // Currently it is not allowed to start new external process
-        // from inside process licker (todo: redesign).
-        // So do it asynchronously from another thread.
-        Arc::CreateThreadFunction(&SyncAsync, arg);
+        it.Sync();
       };
     };
   };
+}
+
+void JobsMetrics::RunMetricsKicker(void* arg) {
+  // Currently it is not allowed to start new external process
+  // from inside process licker (todo: redesign).
+  // So do it asynchronously from another thread.
+  Arc::CreateThreadFunction(&SyncAsync, arg);
 }
 
 } // namespace ARex

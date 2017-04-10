@@ -46,6 +46,7 @@ public:
   bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
   Arc::LogLevel get_log_level() const { return log_level; };
   std::string get_dtr_log() const { return dtr_log; };
+  std::string get_dtr_central_log() const { return dtr_central_log; };
   std::string get_acix_endpoint() const { return acix_endpoint; };
 
 private:
@@ -97,6 +98,8 @@ private:
   std::string dtr_log;
   /// Log for performance metrics
   Arc::JobPerfLog perf_log;
+  /// Central log file for all DTR messages
+  std::string dtr_central_log;
 
   /// ACIX endpoint from which to find locations of cached files
   std::string acix_endpoint;

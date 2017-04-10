@@ -188,6 +188,9 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "dtrlog") {
       dtr_log = Arc::ConfigIni::NextArg(rest);
     }
+    else if (command == "central_logfile") {
+      dtr_central_log = Arc::ConfigIni::NextArg(rest);
+    }
     else if (command == "acix_endpoint")  {
       std::string endpoint(Arc::ConfigIni::NextArg(rest));
       if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
@@ -224,6 +227,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
     useHostCert
     logLevel
     dtrLog
+    centralDTRLog
   */
   Arc::XMLNode tmp_node = cfg["dataTransfer"]["DTR"];
   if (tmp_node) {
@@ -264,6 +268,7 @@ bool StagingConfig::readStagingConf(const Arc::XMLNode& cfg) {
       }
     }
     if (tmp_node["dtrLog"]) dtr_log = (std::string)tmp_node["dtrLog"];
+    if (tmp_node["centralDTRLog"]) dtr_central_log = (std::string)tmp_node["centraDTRLog"];
   }
   /*
   dataTransfer

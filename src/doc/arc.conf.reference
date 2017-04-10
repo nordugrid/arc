@@ -1059,6 +1059,12 @@
 ## recovery purposes) is periodically dumped. Default is controldir/dtrstate.log
 #dtrlog="/tmp/dtrstate.log"
 
+## central_logfile - A file in which all data staging messages from every job
+## will be logged (in addition to their job.id.errors files). If this option is
+## not present or the path is empty the log file is not created. Note this file
+## is not automatically controlled by logrotate.
+#central_logfile="/var/log/arc/datastaging.log"
+
 ## The following 4 options are used to configure multi-host data staging.
 ##
 ## deliveryservice - URL to a data delivery service which can perform remote

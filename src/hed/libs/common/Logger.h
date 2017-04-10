@@ -527,7 +527,10 @@ namespace Arc {
     void removeDestinations(void);
 
     /// Remove all LogDestinations and delete LogDestination objects.
-    void deleteDestinations(void);
+    /** A LogDestination to not delete can be specified in the exclude parameter.
+     * @param exclude Do not delete this destination
+     */
+    void deleteDestinations(LogDestination* exclude=NULL);
 
     /// Sets the logging threshold.
     /** This method sets the threshold of the Logger. Any message sent

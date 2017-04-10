@@ -9,6 +9,7 @@
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
 #include <arc/URL.h>
+#include <arc/Thread.h>
 #include <arc/globusutils/GSSCredential.h>
 
 #include <globus_ftp_control.h>
@@ -57,6 +58,7 @@ namespace ArcDMCGridFTP {
     callback_status_t wait_for_data_callback();
     callback_status_t wait_for_close_callback();
     void resp_destroy();
+
     static void resp_callback(void *arg, globus_ftp_control_handle_t *h,
                               globus_object_t *error,
                               globus_ftp_control_response_t *response);
@@ -75,6 +77,14 @@ namespace ArcDMCGridFTP {
                                    unsigned int stripe_ndx,
                                    globus_bool_t reused,
                                    globus_object_t *error);
+
+    static std::map<void*,Lister*> callback_args;
+    static Glib::Mutex callback_args_mutex;
+    static void* remember_for_callback(Lister* it);
+    static Lister* recall_for_callback(void* arg);
+    static void forget_about_callback(void* arg);
+    void* callback_arg;
+
     globus_ftp_control_response_class_t
     send_command(const char *command, const char *arg, bool wait_for_response,
                  char **sresp = NULL, int *code = NULL, char delim = 0);
