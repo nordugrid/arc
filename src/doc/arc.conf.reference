@@ -1012,6 +1012,14 @@
 ## into [queue] block.
 #forcedefaultvoms="/vo/group/subgroup"
 
+## arex-ganglia implementation. Can run alongside the standalone gangliarc
+## To enable, the path to gmetric must be set, otherwise the histograms will
+## not show up. Path is usually /usr/bin, but should naturally point to your
+## specific ganglia location 
+#enable_ganglia="yes"
+#ganglialocation="/usr/bin"
+
+
 ####################################################################
 
 

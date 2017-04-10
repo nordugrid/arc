@@ -386,7 +386,7 @@ int main(int argc, char *argv[]) {
                     use_http_comm);
 
   bool use_gsi_proxy = false;
-  options.AddOption('O', "old", istring("use GSI proxy (RFC 3820 compliant proxy is default)"), use_gsi_proxy);
+  options.AddOption('O', "old", istring("this option is not functional (old GSI proxies are not supported anymore)"), use_gsi_proxy);
 
   bool info = false;
   options.AddOption('I', "info", istring("print all information about this proxy."), info);
@@ -1207,6 +1207,11 @@ int main(int argc, char *argv[]) {
   }
   std::string policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
 
+  if (use_gsi_proxy) {
+    std::cout << Arc::IString("The old GSI proxies are not supported anymore. Please do not use -O/--old option.") << std::endl;
+    return EXIT_FAILURE;
+  }
+
   if (!myproxy_command.empty() && (Arc::lower(myproxy_command) != "put")) {
     bool res = contact_myproxy_server(myproxy_server, myproxy_command, 
       user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert, 
@@ -1232,7 +1237,7 @@ int main(int argc, char *argv[]) {
           Arc::Credential signer(proxy_path, proxy_path, "", "");
           std::string proxy_cert;
           create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period, 
-              vomsacseq, use_gsi_proxy, keybits, signing_algorithm);
+              vomsacseq, keybits, signing_algorithm);
           write_proxy_file(proxy_path, proxy_cert);
         }
       }
@@ -1289,7 +1294,7 @@ int main(int argc, char *argv[]) {
 
     std::string proxy_cert;
     create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,      
-        vomsacseq, use_gsi_proxy, keybits, signing_algorithm);
+        vomsacseq, keybits, signing_algorithm);
 
     //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid 
     if (Arc::lower(myproxy_command) == "put")

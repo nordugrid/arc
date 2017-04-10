@@ -943,6 +943,23 @@ sub collect($) {
                                                 ];
     }
 
+    # for the org.nordugrid.local submission endpoint (files created directly in the controldir)
+    $csvendpointsnum = $csvendpointsnum + 1;
+    $epscapabilities->{'org.nordugrid.local'} = [
+                                  'executionmanagement.jobexecution',
+                                  'executionmanagement.jobmanager',
+                                  'executionmanagement.jobdescription',
+                                  'security.delegation'
+                                  ];  
+    $epscapabilities->{'common'} = [
+              @{$epscapabilities->{'common'}},
+              (
+              'data.access.sessiondir.file',
+              'data.access.stageindir.file',
+              'data.access.stageoutdir.file'
+              )
+              ];
+
     # The following is for the Stagein interface
     my $stageinhostport = '';
    
@@ -1007,6 +1024,7 @@ sub collect($) {
     $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # EMIESComputingEndpoint ID
+    my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
@@ -2286,6 +2304,132 @@ sub collect($) {
         
         $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($config->{enable_emies_interface});
 
+        # NorduGrid local submission
+
+        my $getNorguGridLocalSubmissionEndpoint = sub {
+
+            # don't publish if no endpoint URL
+            #return undef unless $config->{enable_emies_interface};
+
+            my $cep = {};
+
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
+
+            $cep->{ID} = "$NGLScepIDp";
+
+            $cep->{Name} = "ARC CE Local Submission";
+
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = $config->{endpoint};
+            # TODO: define a strategy to add data capabilites
+            # $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
+            $cep->{Technology} = 'localfiles';
+            $cep->{InterfaceName} = 'org.nordugrid.local';
+            $cep->{InterfaceVersion} = [ '1.0' ];
+            #$cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            # What is profile for EMIES?
+            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            #$cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "nordugrid-arc";
+            $cep->{ImplementationVersion} = $config->{arcversion};
+
+            $cep->{QualityLevel} = "testing";
+
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
+
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = $servingstate;
+
+            # StartTime: get it from hed
+
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
+
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
+            
+            #$cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+            # ComputingActivities
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              #TODO: change interfacename for jobs?
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.local'); };
+            }
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
+
+            return $cep;
+        };
+
+        # In principle this one should be always published
+        $arexceps->{NorguGridLocalSubmissionEndpoint} = $getNorguGridLocalSubmissionEndpoint;
 
 
         #### Other A-REX ComputingEndpoints. these are currently disabled as I don't know how to handle them.

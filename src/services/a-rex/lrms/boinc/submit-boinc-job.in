@@ -21,16 +21,11 @@ pkgdatadir="$basedir"
 # Parse grami file, read arc config
 ##############################################################
 init $1
-echo runtimedir=$CONFIG_runtimedir
-echo sratch=$CONFIG_scratchdir
 joboption_directory_orig=$joboption_directory
-joboption_directory='`pwd`'
-joboption_stdout='`pwd`/'`basename $joboption_stdout`
-joboption_stderr='`pwd`/'`basename $joboption_stderr`
 read_arc_conf
 
 # make sure session is world-writable
-chmod 777 $joboption_directory
+chmod 777 $joboption_directory_orig
 
 RUNTIME_NODE_SEES_FRONTEND=yes
 
@@ -38,7 +33,8 @@ RUNTIME_NODE_SEES_FRONTEND=yes
 # Zero stage of runtime environments
 ##############################################################
 RTE_stage0
-echo "project_root=$PROJECT_ROOT"
+echo "project_root=$PROJECT_ROOT" 1>&2
+cd $PROJECT_ROOT
 
 ##############################################################
 # create job script
@@ -115,14 +111,6 @@ include_std_streams
 ##############################################################
 move_files_to_node 
 
-echo "" >> $LRMS_JOB_SCRIPT
-echo "RESULT=0" >> $LRMS_JOB_SCRIPT
-echo "" >> $LRMS_JOB_SCRIPT
-
-echo "" >> $LRMS_JOB_SCRIPT
-
-echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
-
 ##############################################################
 #  Runtime configuration
 ##############################################################
@@ -134,7 +122,6 @@ echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG
 #  Go to working dir and start job
 #####################################################
 cd_and_run
-echo "fi" >> $LRMS_JOB_SCRIPT
 
 ## print nodename
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
@@ -216,7 +203,6 @@ fi
 EOF
 
 echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
-echo 
 
 chmod g+r $LRMS_JOB_SCRIPT
 
@@ -276,26 +262,42 @@ JobInput_basename=`basename $JobInput`
 Script_basename=`basename $LRMS_JOB_SCRIPT` 
 
 
-echo "ln $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
+echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "chmod g+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
-echo "ln $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
+echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod g+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
+# Link root file, from different project area if necessary
+[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
 [ -L $RootFile ] && RootFile=`ls -l $RootFile|awk '{print $11}'`
-echo "ln  $RootFile "'`bin/dir_hier_path' $Root_basename '`' >> $LRMS_JOB_BOINC
-echo "chmod g+r "'`bin/dir_hier_path ' $Root_basename '`' >> $LRMS_JOB_BOINC
+echo "ln $RootFile "'`bin/dir_hier_path' $Root_basename '`' >> $LRMS_JOB_BOINC
+[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
+
+# Check whether root input is remote. This assumes the root file is the first
+# file defined in the input file template
+root_input="$Root_basename"
+if [ -n $PROJECT_DOWNLOAD_ROOT ]; then
+  cd $PROJECT_DOWNLOAD_ROOT
+  download_dir=`bin/dir_hier_path $Root_basename | awk -F/ '{print $(NF-1)}'`
+  remote_url="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename}"
+  fsize=`stat -c %s $RootFile`
+  md5=`md5sum $RootFile | awk '{print $1}'`
+  echo "Using remote file $remote_url $fsize $md5" 1>&2
+  root_input="--remote_file $remote_url $fsize $md5"
+  cd $PROJECT_ROOT
+fi
 
 if [ -z $joboption_memory ];then
-memreq=2000000000
+  memreq=2000000000
 else
-memreq=$((joboption_memory*1000000))
+  memreq=$((joboption_memory*1000000))
 fi
 if [ -z $joboption_cputime ];then
-maxcputime=$((2*3600*3000000000))
+  maxcputime=$((2*3600*3000000000))
 else
-maxcputime=$((joboption_cputime*3000000000))
+  maxcputime=$((joboption_cputime*3000000000))
 fi
 
 priority=
@@ -303,22 +305,31 @@ if [ -z $joboption_priority ]; then
   $priority="--priority $joboption_priority"
 fi
 
-echo "bin/create_work -appname $BOINC_APP -wu_name $wu  -wu_template $WU_TEMPLATE -result_template $RESULT_TEMPLATE  --rsc_memory_bound $memreq  --rsc_fpops_est $maxcputime $priority $(basename $JobInput) $Root_basename $RTE_FILE $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
+echo "bin/create_work \
+      --appname $BOINC_APP \
+      --wu_name $wu \
+      --wu_template $WU_TEMPLATE \
+      --result_template $RESULT_TEMPLATE \
+      --rsc_memory_bound $memreq \
+      --rsc_fpops_est $maxcputime \
+      $priority \
+      $root_input \
+      $(basename $JobInput) \
+      $RTE_FILE \
+      $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
 
 echo 'ret=$?' >>$LRMS_JOB_BOINC
-if [ $ret -eq 0 ];then
-echo "successfully submitted workunit $wu"
-fi
+
 echo 'exit $ret' >>$LRMS_JOB_BOINC
 sh $LRMS_JOB_BOINC
 #cat $LRMS_JOB_BOINC
 rc=$?
 
 if [ $rc -eq 0 ];then
-echo "job $wu submitted successfully!" 1>&2
-echo "joboption_jobid=$wu" >> $arg_file
+  echo "job $wu submitted successfully!" 1>&2
+  echo "joboption_jobid=$wu" >> $arg_file
 fi
-echo "----- removing intermediate files ----"
+echo "----- removing intermediate files ----" 1>&2
 rm -fr $LRMS_JOB_BOINC $LRMS_JOB_ERR $LRMS_JOB_OUT $LRMS_JOB_SCRIPT
 #rm -fr $JobInput
 echo "----- exiting submit_boinc_job -----" 1>&2

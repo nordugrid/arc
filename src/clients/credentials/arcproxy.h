@@ -10,7 +10,6 @@ void create_proxy(std::string& proxy,
     const std::string& proxy_policy,
     const Arc::Time& proxy_start, const Arc::Period& proxy_period,
     const std::string& vomsacseq,
-    bool use_gsi_proxy,
     int keybits,
     const std::string& signing_algorithm);
 

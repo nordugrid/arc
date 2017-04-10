@@ -55,7 +55,6 @@ void create_proxy(std::string& proxy,
     const std::string& proxy_policy,
     const Arc::Time& proxy_start, const Arc::Period& proxy_period, 
     const std::string& vomsacseq,
-    bool use_gsi_proxy,
     int keybits,
     const std::string& signing_algorithm) {
 
@@ -94,21 +93,17 @@ void create_proxy(std::string& proxy,
     if (!r) std::cout << Arc::IString("Failed to add VOMS AC extension. Your proxy may be incomplete.") << std::endl;
   }
 
-  if (!use_gsi_proxy) {
-    if(!proxy_policy.empty()) {
-      cred_request.SetProxyPolicy("rfc", "anylanguage", proxy_policy, -1);
-    } else if(CERT_IS_LIMITED_PROXY(signer.GetType())) {
-      // Gross hack for globus. If Globus marks own proxy as limited
-      // it expects every derived proxy to be limited or at least
-      // independent. Independent proxies has little sense in Grid
-      // world. So here we make our proxy globus-limited to allow
-      // it to be used with globus code.
-      cred_request.SetProxyPolicy("rfc", "limited", proxy_policy, -1);
-    } else {
-      cred_request.SetProxyPolicy("rfc", "inheritAll", proxy_policy, -1);
-    }
+  if(!proxy_policy.empty()) {
+    cred_request.SetProxyPolicy("rfc", "anylanguage", proxy_policy, -1);
+  } else if(CERT_IS_LIMITED_PROXY(signer.GetType())) {
+    // Gross hack for globus. If Globus marks own proxy as limited
+    // it expects every derived proxy to be limited or at least
+    // independent. Independent proxies has little sense in Grid
+    // world. So here we make our proxy globus-limited to allow
+    // it to be used with globus code.
+    cred_request.SetProxyPolicy("rfc", "limited", proxy_policy, -1);
   } else {
-    cred_request.SetProxyPolicy("gsi2", "", "", -1);
+    cred_request.SetProxyPolicy("rfc", "inheritAll", proxy_policy, -1);
   }
 
   if (!signer.SignRequest(&cred_request, proxy)) throw std::runtime_error("Failed to sign proxy");

@@ -1,3 +1,41 @@
+2017-03-28 Maiken Pedersen <maiken.pedersen@fys.uio.no>
+  * Arex-ganglia integration is now working. New histograms have also been included.
+    Feature is configurable using enable_ganglia="yes" and ganglialocation="<path>" (usually /usr/bin).
+    Revs:{31856,31859,31870,31875,31876,31877,31880} also linked with Aleksandr Konstantinovs commits
+    Revs:{31864,31879,31899}
+	
+2017-03-03 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Ganglia support for job state changes integrated directly into A-Rex.
+    Revs: {31864,31879,31899}
+    Type: enhancement
+
+2017-01-28 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Handle unexpected callback in GridFTP related code. Improves stability of GridFTP DMC.
+    Revs: {31889, 31890, 31894, 31895}
+    Type: bugfix
+
+2017-01-25 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Introduced support for sqlite as delegation database. To replace unstable BDB.
+    Revs: {31777,31779,31784}
+    Type: bugfix
+	
+2017-02-24 Florido Paganelli <florido.paganelli@hep.lu.se>
+  * Removal of heartbeat between A-REX and infoproviders.
+    (bugs 2036,3573)
+    A consequence of these fixes is that A-REX should be more stable,
+    but infoproviders might take more time. In particular:
+    - The default infoproviders timeout is changed to 3 hours
+    - The default bdii timeout is changed to 6 hours
+    Revs:{31857,31858,31871,31873}
+    DocRevs:{31872,31874}
+    Type:bug
+    
+  * Removal of leftover code from old infoproviders, namely support
+    for gridftp storage. (bug 3286)
+    ARC can no longer publish gridftp Storage Element information.
+    Revs:{31866,31867,31868,31869}
+    Type: bug
+
 2017-02-24 David Cameron <d.g.cameron@fys.uio.no>
   * Add new option to allow all data transfer log messages to be collected in
     a central log (bug 2598)

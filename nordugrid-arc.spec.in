@@ -621,7 +621,11 @@ Requires:	perl(Inline::Python)
 Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
+Requires:	python2-stomppy
+%else
 Requires:	stomppy
+%endif
 Requires:	python-ldap
 Requires:	python-dirq
 Requires:	%{name}-aris = %{version}-%{release}

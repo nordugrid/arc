@@ -857,6 +857,14 @@ int JobPlugin::close(bool eof) {
    * Try to create delegation and proxy file       *
    *********************************************** */
   if(!proxy_fname.empty()) {
+    Arc::Credential cred(proxy_fname, proxy_fname, config.CertDir(), "");
+    using namespace ArcCredential; // needed for macro expansion
+    if (!CERT_IS_RFC_PROXY(cred.GetType())) {
+      error_description="Non-RFC proxies are not supported.";
+      logger.msg(Arc::ERROR, "%s", error_description);
+      delete_job_id();
+      return 1;
+    }
     std::string proxy_data;
     (void)Arc::FileRead(proxy_fname, proxy_data);
     if(!proxy_data.empty()) {

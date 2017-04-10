@@ -67,3 +67,5 @@ export CONDOR_CONFIG
 # Solution according Brain Bockelman GGUS 123947
 _condor_CONDOR_Q_ONLY_MY_JOBS=false                                                                 
 export _condor_CONDOR_Q_ONLY_MY_JOBS                                                                 
+_condor_CONDOR_Q_DASH_BATCH_IS_DEFAULT=false
+export _condor_CONDOR_Q_DASH_BATCH_IS_DEFAULT

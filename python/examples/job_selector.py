@@ -55,7 +55,7 @@ selector = ThreeDaysOldJobSelector()
 js.Select(selector)
 
 for j in js.GetSelectedJobs():
-    print j.JobID
+    print (j.JobID)
 
 # Make operation on selected jobs. E.g.:
 #js.Clean()

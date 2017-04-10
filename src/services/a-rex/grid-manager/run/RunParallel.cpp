@@ -122,8 +122,6 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
   // setting environment  - TODO - better environment 
   if(jobproxy && jobproxy[0]) {
     re->RemoveEnvironment("X509_RUN_AS_SERVER");
-    Arc::UnsetEnv("X509_CERT_DIR");
-    Arc::UnsetEnv("X509_VOMS_DIR");
 
     re->AddEnvironment("X509_USER_PROXY",jobproxy);
     // for Globus 2.2 set fake cert and key, or else it takes 
