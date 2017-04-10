@@ -301,7 +301,7 @@ sub fixbools {
         my $val = $h->{$key};
         if ($val eq '0' or lc $val eq 'false' or lc $val eq 'no' or lc $val eq 'disable') {
             $h->{$key} = '0';
-        } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes' or lc $val eq 'enable') {
+        } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes' or lc $val eq 'enable' or lc $val eq 'expert-debug-on') {
             $h->{$key} = '1';
         } else {
             $log->error("Invalid value for $key");

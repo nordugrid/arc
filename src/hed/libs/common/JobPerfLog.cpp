@@ -93,7 +93,7 @@ void JobPerfLog::Log(const std::string& name, const std::string& id, const times
   std::ofstream logout(log_path.c_str(), std::ofstream::app);
   if(logout.is_open()) {
     uint64_t delta = ((uint64_t)(end.tv_sec-start.tv_sec))*1000000000 + end.tv_nsec - start.tv_nsec;
-    logout << Arc::Time().str(Arc::UTCTime) << "\t" << name << "\t" << id << "\t" << delta << " nS" << std::endl;
+    logout << Arc::Time().str(Arc::UTCTime) << "\t" << name << "\t" << id << "\t" << delta << " ns" << std::endl;
   };
 }
 

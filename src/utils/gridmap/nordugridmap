@@ -1097,8 +1097,8 @@ B<nordugridmap> [B<-t>, B<--test>] [B<-h>, B<--help>] [ B<-c>, B<--config> FILE 
 
 B<nordugridmap> is usually run as a crontab entry
 in order to automatically generate mapfile(s).
-For configuration information consult tne Nordugruid ARC 
-documentation and the arc.conf.template
+For configuration information consult tne Nordugrid ARC 
+documentation and the arc.conf.reference
 
 =head1 OPTIONS
 
@@ -1116,7 +1116,7 @@ Print a help screen.
 =item B<-c>, B<--config> FILE
 
 Specifies the configuration file to be used. By default the /etc/arc.conf is used. B<nordugridmap>
-utilize [nordugridmap] section for general options fine-tunung and processes all the [vo] blocks from the config.
+utilize [nordugridmap] section for general options fine-tuning and processes all the [vo] blocks from the config.
 
 =back
 
@@ -1126,7 +1126,7 @@ The early scripts were based on a modified version of the mkgridmap (v 1.6) scri
 written by the DataGrid - authorization team <sec-grid@infn.it>. Since then the script
 has been considerably rewritten.
 
-In Dec 2011 script logic was completely rewriten and B<nordugridmap> v 2.0 was born.
+In Dec 2011 script logic was completely rewritten and B<nordugridmap> v 2.0 was born.
 
 =head1 COMMENTS
 

@@ -408,12 +408,12 @@ voms_trust_chain = "^/O=Grid/O=NorduGrid"
 
 .TP
 .B enable_perflog_reporting
-enable_perflog_reporting yes/no - Switch on or off performance reporting.
-Default is no.
+enable_perflog_reporting expert-debug-on/no - Switch on or off performance reporting.
+Default is no. Only switch on if you specifically need it, and are aware of the possible local root exploit due to permissive directory.
 
 .IR Example:
 .br
-enable_perflog_reporting="yes"
+enable_perflog_reporting="expert-debug-on"
 
 .TP
 .B perflogdir
