@@ -205,10 +205,20 @@ namespace Arc {
           to_match.erase(to_match.length()-1);
           match_host = true;
         }
-        for (std::list<URLLocation>::iterator l = locations.begin(); l != locations.end(); ++l) {
+        bool exclude = false;
+        if (to_match.find('!') == 0) {
+          to_match.erase(0, 1);
+          exclude = true;
+        }
+        for (std::list<URLLocation>::iterator l = locations.begin(); l != locations.end();) {
           if (match_host) {
             if ((l->Host().length() >= to_match.length()) &&
                 (l->Host().rfind(to_match) == (l->Host().length() - to_match.length()))) {
+              if (exclude) {
+                logger.msg(VERBOSE, "Excluding replica %s matching pattern !%s", l->str(), to_match);
+                l = locations.erase(l);
+                continue;
+              }
               // check if already present
               bool present = false;
               for (std::list<URLLocation>::iterator j = sorted_locations.begin();j!=sorted_locations.end();++j) {
@@ -222,6 +232,11 @@ namespace Arc {
             }
           }
           else if (l->str().find(*p) != std::string::npos) {
+            if (exclude) {
+              logger.msg(VERBOSE, "Excluding replica %s matching pattern !%s", l->str(), to_match);
+              l = locations.erase(l);
+              continue;
+            }
             // check if already present
             bool present = false;
             for (std::list<URLLocation>::iterator j = sorted_locations.begin();j!=sorted_locations.end();++j) {
@@ -233,6 +248,7 @@ namespace Arc {
               sorted_locations.push_back(*l);
             }
           }
+          ++l;
         }
       }
     }

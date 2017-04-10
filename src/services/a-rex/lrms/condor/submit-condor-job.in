@@ -97,7 +97,7 @@ echo "Error = $condor_stderr">> $LRMS_JOB_DESCRIPT
 
 # queue
 if [ ! -z "${joboption_queue}" ] ; then
-  echo "+NordugridQueue = $joboption_queue" >> $LRMS_JOB_DESCRIPT
+    echo "+NordugridQueue = \"$joboption_queue\"" >> $LRMS_JOB_DESCRIPT
 fi
 
 # job name for convenience

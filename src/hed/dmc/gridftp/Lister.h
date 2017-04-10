@@ -54,9 +54,10 @@ namespace ArcDMCGridFTP {
     std::string urlstr;
     GSSCredential* credential;
 
-    callback_status_t wait_for_callback(int to = -1);
-    callback_status_t wait_for_data_callback();
-    callback_status_t wait_for_close_callback();
+    static unsigned int const max_timeout = (60*20); // 20 minutes is really long
+    callback_status_t wait_for_callback(unsigned int to = max_timeout);
+    callback_status_t wait_for_data_callback(unsigned int to = max_timeout);
+    callback_status_t wait_for_close_callback(unsigned int to = max_timeout);
     void resp_destroy();
 
     static void resp_callback(void *arg, globus_ftp_control_handle_t *h,

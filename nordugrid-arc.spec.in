@@ -86,17 +86,23 @@
 %ifarch ppc64
 # The python module doesn't build on RHEL6 ppc64 (.toc1 section overflow)
 %global with_python 0
-%global with_pylint 0
 %else
 %global with_python 1
-%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %endif
 %else
 %global with_python 1
-%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %endif
 %else
 %global with_python 0
+%endif
+
+%if %{with_python}
+%if %{?fedora}%{!?fedora:0} || %{?suse_version:1}%{!?suse_version:0}
+%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
+%else
+%global with_pylint 0
+%endif
+%else
 %global with_pylint 0
 %endif
 

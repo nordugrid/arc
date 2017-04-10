@@ -1118,8 +1118,10 @@
 ## more patterns separated by a pipe  character (|) listed in order of
 ## preference. Replicas will be ordered by the earliest match. If the
 ## dollar character ($) is used at the end of a pattern, the pattern
-## will be matched to the end of the hostname of the replica.
-#preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
+## will be matched to the end of the hostname of the replica. If an
+## exclamation mark (!) is used at the beginning of a pattern, any replicas
+## matching the pattern will be excluded from the sorted replicas.
+#preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$|badhost.org$"
 
 ## copyurl url_head local_path - specifies that URLs, starting from 'url_head'
 ## should be accessed in a different way (most probaly unix open). The

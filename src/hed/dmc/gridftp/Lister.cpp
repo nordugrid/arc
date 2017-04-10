@@ -149,19 +149,15 @@ namespace ArcDMCGridFTP {
     }
   }
 
-  Lister::callback_status_t Lister::wait_for_callback(int to) {
+  Lister::callback_status_t Lister::wait_for_callback(unsigned int to) {
     callback_status_t res;
     globus_mutex_lock(&mutex);
-    if(to < 0) {
-      while (callback_status == CALLBACK_NOTREADY) {
-        globus_cond_wait(&cond, &mutex);
-      }
-    } else {
-      globus_abstime_t timeout;
-      GlobusTimeAbstimeSet(timeout,to,0);
+    globus_abstime_t timeout;
+    GlobusTimeAbstimeSet(timeout,to,0);
+    while (callback_status == CALLBACK_NOTREADY) {
       if (globus_cond_timedwait(&cond, &mutex, &timeout) == ETIMEDOUT) {
-        globus_mutex_unlock(&mutex);
         callback_status = CALLBACK_NOTREADY;
+        globus_mutex_unlock(&mutex);
         return CALLBACK_TIMEDOUT;
       }
     }
@@ -171,11 +167,17 @@ namespace ArcDMCGridFTP {
     return res;
   }
 
-  Lister::callback_status_t Lister::wait_for_data_callback() {
+  Lister::callback_status_t Lister::wait_for_data_callback(unsigned int to) {
     callback_status_t res;
     globus_mutex_lock(&mutex);
+    globus_abstime_t timeout;
+    GlobusTimeAbstimeSet(timeout,to,0);
     while (data_callback_status == CALLBACK_NOTREADY) {
-      globus_cond_wait(&cond, &mutex);
+      if (globus_cond_timedwait(&cond, &mutex, &timeout) == ETIMEDOUT) {
+        data_callback_status = CALLBACK_NOTREADY;
+        globus_mutex_unlock(&mutex);
+        return CALLBACK_TIMEDOUT;
+      }
     }
     res = data_callback_status;
     data_callback_status = CALLBACK_NOTREADY;
@@ -183,11 +185,17 @@ namespace ArcDMCGridFTP {
     return res;
   }
 
-  Lister::callback_status_t Lister::wait_for_close_callback() {
+  Lister::callback_status_t Lister::wait_for_close_callback(unsigned int to) {
     callback_status_t res;
     globus_mutex_lock(&mutex);
+    globus_abstime_t timeout;
+    GlobusTimeAbstimeSet(timeout,to,0);
     while (close_callback_status == CALLBACK_NOTREADY) {
-      globus_cond_wait(&cond, &mutex);
+      if (globus_cond_timedwait(&cond, &mutex, &timeout) == ETIMEDOUT) {
+        close_callback_status = CALLBACK_NOTREADY;
+        globus_mutex_unlock(&mutex);
+        return CALLBACK_TIMEDOUT;
+      }
     }
     res = close_callback_status;
     close_callback_status = CALLBACK_NOTREADY;

@@ -370,17 +370,23 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - %s", jobid, job.Failure());
       ESActivityNotFoundFault(item.NewChild("dummy"),job.Failure());
     } else {
+      /*
+        Despite it is against EMI-ES specs we allow job cleaning request to be accepted
+        even if job is not in terminal state for user convenience.
+
       if((job.State() != "FINISHED") &&
          (job.State() != "DELETED")) {
         logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - state is %s, not terminal", jobid, job.State());
         ESOperationNotAllowedFault(item.NewChild("dummy"),"Not in terminal state");
-      } else if(!job.Clean()) {
+      } else
+      */
+      if(!job.Clean()) {
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
         ESOperationNotAllowedFault(item.NewChild("dummy"),job.Failure());
       } else {
-        logger_.msg(Arc::INFO, "job %s cleaned successfully", jobid);
+        logger_.msg(Arc::INFO, "job %s (will be) cleaned successfully", jobid);
         item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.GmConfig().WakeupPeriod());
       };
     };

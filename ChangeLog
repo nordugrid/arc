@@ -1,6 +1,8 @@
 2017-02-24 David Cameron <d.g.cameron@fys.uio.no>
   * Add new option to allow all data transfer log messages to be collected in
-    a central log
+    a central log (bug 2598)
+    Revs:{31885}
+    Type:minor
 
 2016-12-15 Aleksandr Konstantinov <@>
   * Fixed bug 3599 
