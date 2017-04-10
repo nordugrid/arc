@@ -44,49 +44,12 @@ void ARexService::InformationCollector(void) {
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
-        if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*100)) break;
+        if(thread_count_.WaitForExit()) break;
         continue; // try again
       };
-      int failedstat = 0;
-      bool infoproviderhastimedout = false;
-      while(!run.Wait(infoprovider_wakeup_period_)) {
-        if (!infoproviderhastimedout) {
-          logger_.msg(Arc::WARNING,"Resource information provider timed out: %u seconds. Using heartbeat file from now on... Consider increasing infoproviders_timeout in arc.conf",
-                    infoprovider_wakeup_period_);
-          infoproviderhastimedout = true;
-        }
-        logger_.msg(Arc::DEBUG,"Resource information provider timed out: %u seconds. Checking heartbeat file...",
-                    infoprovider_wakeup_period_);
-        /* check freshness of heartbeat file. If no infoprovider created a new file during the run, performance is not acceptable,
-        and can proceed to kill.
-        */
-        std::string heartbeatFileName;
-        //heartbeatFileName="/tmp/infosys_heartbeat";
-        heartbeatFileName=config_.ControlDir()+"/infosys_heartbeat";
-        struct stat buf;
-        bool statresult;
-        statresult=Arc::FileStat(heartbeatFileName, &buf, false);
-        if ( !statresult ) {
-          failedstat++;
-          if (failedstat == 1) {
-            logger_.msg(Arc::WARNING,"Cannot stat %s. Are infoproviders running? This message will not be repeated.", heartbeatFileName);
-          } else {
-            logger_.msg(Arc::DEBUG,"Cannot stat %s. Are infoproviders running? It happened already %d times.", heartbeatFileName, failedstat);
-          }
-        } else {
-          time_t now;
-          time(&now);
-          // kill infoprovider only if heartbeat has never been updated before timeout
-          if (difftime(now, buf.st_mtime) > infoprovider_wakeup_period_) {
-            logger_.msg(Arc::ERROR,"Checked time: %d | Heartbeat file stat: %d | %s has not beed touched before timeout (%d). \n The performance is too low, infoproviders will be killed. A-REX functionality is not ensured.", now, buf.st_mtime, heartbeatFileName, infoprovider_wakeup_period_);
-            // abruptly kill the infoprovider
-            run.Kill(1);
-          } else {
-            logger_.msg(Arc::DEBUG,"Found recent heartbeat file %s , waiting other %d seconds", heartbeatFileName, infoprovider_wakeup_period_);
-          }
-        }
+      while(!run.Wait()) {
+        logger_.msg(Arc::DEBUG,"Resource information provider failed");
       }
-      // if out of the while loop, infoprovider has finished or was killed
       r = run.Result();
       if (r!=0) {
         logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);

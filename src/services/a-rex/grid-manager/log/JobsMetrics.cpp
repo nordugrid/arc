@@ -3,6 +3,7 @@
 #endif
 
 #include <cstring>
+#include <map>
 
 #include <arc/StringConv.h>
 
@@ -17,6 +18,8 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
   std::memset(jobs_processed_changed, 0, sizeof(jobs_processed_changed));
   std::memset(jobs_in_state_changed, 0, sizeof(jobs_in_state_changed));
+  std::memset(jobs_state_old_new, 0, sizeof(jobs_state_old_new));
+  std::memset(jobs_state_old_new_changed, 0, sizeof(jobs_state_old_new_changed));
 }
 
 JobsMetrics::~JobsMetrics() {
@@ -34,20 +37,56 @@ void JobsMetrics::SetPath(const char* path) {
   tool_path = path;
 }
 
-static const char* gmetric_tool = "gmetric";
+  static const char* gmetric_tool = "/usr/bin/gmetric";//use setpath instead?
 
-void JobsMetrics::ReportJobStateChange(job_state_t new_state, job_state_t old_state) {
+void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state) {
   Glib::RecMutex::Lock lock_(lock);
   if(old_state < JOB_STATE_UNDEFINED) {
     ++(jobs_processed[old_state]);
-    jobs_processed_changed[old_state] = false;
+    jobs_processed_changed[old_state] = true;
     --(jobs_in_state[old_state]);
-    jobs_in_state_changed[old_state] = false;
+    jobs_in_state_changed[old_state] = true;
   };
   if(new_state < JOB_STATE_UNDEFINED) {
     ++(jobs_in_state[new_state]);
-    jobs_in_state_changed[new_state] = false;
+    jobs_in_state_changed[new_state] = true;
   };
+  if((old_state <= JOB_STATE_UNDEFINED) && (new_state < JOB_STATE_UNDEFINED)){
+  
+    job_state_t last_old = JOB_STATE_UNDEFINED;
+    job_state_t last_new = JOB_STATE_UNDEFINED;
+
+    //find this jobs old and new state from last iteration
+    if(jobs_state_old_map.find(job_id) != jobs_state_old_map.end()){
+      last_old = jobs_state_old_map.find(job_id)->second;
+    }
+    if(jobs_state_new_map.find(job_id) != jobs_state_new_map.end()){
+      last_new = jobs_state_new_map.find(job_id)->second;
+    }
+
+    //only remove from jobs_state_old_new if job existed with old-new combination in last iteration    
+    if( (last_old <= JOB_STATE_UNDEFINED) && (last_new < JOB_STATE_UNDEFINED) ){
+      --jobs_state_old_new[last_old][last_new];
+    }
+
+    if( (last_old != last_new)){
+      ++jobs_state_old_new[old_state][new_state];
+      jobs_state_old_new_changed[old_state][new_state] = true;
+    }
+
+    //update the old and new state jobid maps for next iteration
+    std::map<std::string, job_state_t>::iterator it;
+    it = jobs_state_old_map.find(job_id); 
+    if (it != jobs_state_old_map.end()){
+      it->second = old_state;
+    }
+    
+    it = jobs_state_new_map.find(job_id); 
+    if (it != jobs_state_new_map.end()){
+      it->second = new_state;
+    }
+  }
+  
   Sync();
 }
 
@@ -75,7 +114,7 @@ void JobsMetrics::Sync(void) {
           Arc::tostring(jobs_processed[state])
          )) {
         jobs_processed_changed[state] = false;
-        break;
+        //break;
       };
     };
     if(jobs_in_state_changed[state]) {
@@ -84,10 +123,23 @@ void JobsMetrics::Sync(void) {
           Arc::tostring(jobs_in_state[state])
          )) {
         jobs_in_state_changed[state] = false;
-        break;
+        //break;
       };
     };
   };
+  for(int state_old = 0; state_old <= JOB_STATE_UNDEFINED; ++state_old){
+    for(int state_new = 1; state_new < JOB_STATE_UNDEFINED; ++state_new){
+      if(jobs_state_old_new_changed[state_old][state_new]){
+  	std::string histname =  std::string("AREX-JOBS-") + GMJob::get_state_name(static_cast<job_state_t>(state_old)) + "-TO-" + GMJob::get_state_name(static_cast<job_state_t>(state_new));
+  	if(RunMetrics(histname, Arc::tostring(jobs_state_old_new[state_old][state_new]))){
+  	  jobs_state_old_new_changed[state_old][state_new] = false;
+  	  //break;
+  	};
+      };
+    };
+  };
+
+  
 }
  
 bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
@@ -106,6 +158,11 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value) {
   cmd.push_back(name);
   cmd.push_back("-v");
   cmd.push_back(value);
+  cmd.push_back("-t");//unit-type
+  cmd.push_back("int32");
+  cmd.push_back("-u");//unit
+  cmd.push_back("jobs");
+  
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
   proc->AssignKicker(&RunMetricsKicker, this);

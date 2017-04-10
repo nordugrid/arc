@@ -110,7 +110,7 @@ namespace ArcDMCGridFTP {
       globus_abstime_t timeout;
       GlobusTimeAbstimeSet(timeout,to,0);
       if (globus_cond_timedwait(&cond, &mutex, &timeout) == ETIMEDOUT) {
-        // on timeout the mutex is unlocked
+        globus_mutex_unlock(&mutex);
         callback_status = CALLBACK_NOTREADY;
         return CALLBACK_TIMEDOUT;
       }

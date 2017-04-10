@@ -386,7 +386,8 @@ namespace Arc {
         protocol == "https" ||
         protocol == "httpg" ||
         protocol == "arc" ||
-        protocol == "srm") {
+        protocol == "srm" ||
+        protocol == "rucio" ) {
       pos = path.find("?");
       if (pos != std::string::npos) {
         httpoptions = ParseOptions(path.substr(pos + 1), '&', encoded);
