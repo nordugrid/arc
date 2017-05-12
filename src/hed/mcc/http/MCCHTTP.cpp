@@ -184,6 +184,7 @@ static MCC_Status make_raw_fault(Message& outmsg,const MCC_Status& desc) {
   PayloadRaw* outpayload = new PayloadRaw;
   std::string errstr = (std::string)desc;
   if(!errstr.empty()) outpayload->Insert(errstr.c_str(),0);
+  outmsg.Payload(outpayload);
   return desc;
 }
 

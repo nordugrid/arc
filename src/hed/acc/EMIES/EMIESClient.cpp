@@ -1505,7 +1505,7 @@ namespace Arc {
 
   EMIESClients::~EMIESClients(void) {
     std::multimap<URL, EMIESClient*>::iterator it;
-    for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
+    for (it = clients_.begin(); it != clients_.end(); ++it) {
       delete it->second;
     }
   }
@@ -1528,7 +1528,10 @@ namespace Arc {
 
   void EMIESClients::release(EMIESClient* client) {
     if(!client) return;
-    if(!*client) return;
+    if(!*client) {
+      delete client;
+      return;
+    }
     // TODO: maybe strip path from URL?
     clients_.insert(std::pair<URL, EMIESClient*>(client->url(),client));
   }

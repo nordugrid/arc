@@ -34,7 +34,7 @@ namespace Arc {
   private:
     static URL GetAddressOfResource(const Job& job);
     static Logger logger;
-    AREXClients clients;
+    mutable AREXClients clients;
   };
 
 } // namespace Arc

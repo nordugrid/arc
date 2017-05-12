@@ -297,23 +297,38 @@ void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 
   if (!aclist) return NULL;
 
+  AC** ac = aclist;
+
   acseq = AC_SEQ_new();
-  while (*aclist)
-    sk_AC_push(acseq->acs, *aclist++);
+  if(acseq) {
+    while (*ac) {
+      if(!sk_AC_push(acseq->acs, *ac)) break;
+      ++ac;
+    }
+  }
+
+  if((*ac) || (!acseq)) {
+    // Not (all) ACs were transfered - error
+    while (*ac) { AC_free(*ac); ++ac; };
+    free(aclist);
+    if(acseq) AC_SEQ_free(acseq);
+    return NULL;
+  }
+
+  free(aclist);
 
   return (void *)acseq;
 }
 
 void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
-  char *pos;
-  char *list = strdup(data);
+  char* list = strdup(data);
+  char* pos = list;
   AC_TARGETS *a = AC_TARGETS_new();
 
-  do {
-    pos = strchr(list, ',');
-    if (pos)
-      *pos = '\0';
+  while(pos) {
+    char* cpos = strchr(pos, ',');
+    if (cpos) *cpos = '\0';
     {
       GENERAL_NAME *g = GENERAL_NAME_new();
       ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
@@ -325,19 +340,21 @@ void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
         AC_TARGET_free(targ);
         goto err;
       }
-      ASN1_STRING_set(tmpr, list, strlen(list));
+      ASN1_STRING_set(tmpr, pos, strlen(list));
       g->type = GEN_URI;
       g->d.ia5 = tmpr;
       targ->name = g;
       sk_AC_TARGET_push(a->targets, targ);
     }
-    if (pos)
-      list = pos++;
-  } while (pos);
+    pos = cpos;
+    if (pos) ++pos;
+  };
+  free(list);
 
   return a;
 
  err:
+  free(list);
   AC_TARGETS_free(a);
   return NULL;    
 

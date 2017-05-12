@@ -775,9 +775,11 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
         (PROXY_CERT_INFO_EXTENSION*)X509_get_ext_d2i((X509*)cert_,NID_proxyCertInfo,NULL,NULL);
     if(pci) {
       if(pci->proxyPolicy && pci->proxyPolicy->policyLanguage) {
-        char* buf = new char[256];
-        int l = OBJ_obj2txt(buf,255,pci->proxyPolicy->policyLanguage,1);
+        int const bufSize = 255;
+        char* buf = new char[bufSize+1];
+        int l = OBJ_obj2txt(buf,bufSize,pci->proxyPolicy->policyLanguage,1);
         if(l > 0) {
+          if(l > bufSize) l=bufSize;
           buf[l] = 0;
           if(strcmp(GLOBUS_LIMITED_PROXY_OID,buf) == 0) {
             // Gross hack for globus. If Globus marks own proxy as limited
@@ -788,6 +790,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
             obj=OBJ_txt2obj(GLOBUS_LIMITED_PROXY_OID,1);
           };
         };
+        delete[] buf;
       };
       PROXY_CERT_INFO_EXTENSION_free(pci);
     };

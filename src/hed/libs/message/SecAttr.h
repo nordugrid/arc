@@ -102,7 +102,7 @@ namespace Arc {
   class MultiSecAttr: public SecAttr {
    public:
     MultiSecAttr() {};
-    virtual ~MultiSecAttr() {};
+    virtual ~MultiSecAttr();
     virtual operator bool() const;
     virtual bool Export(SecAttrFormat format,XMLNode &val) const;
     virtual bool Import(SecAttrFormat format,XMLNode val);

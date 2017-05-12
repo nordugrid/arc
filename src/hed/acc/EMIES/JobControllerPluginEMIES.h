@@ -34,7 +34,7 @@ namespace Arc {
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
 
   private:
-    EMIESClients clients;
+    mutable EMIESClients clients;
     static Logger logger;
   };
 

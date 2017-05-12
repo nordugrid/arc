@@ -550,7 +550,7 @@ namespace Arc {
 
   AREXClients::~AREXClients(void) {
     std::multimap<URL, AREXClient*>::iterator it;
-    for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
+    for (it = clients_.begin(); it != clients_.end(); ++it) {
       delete it->second;
     }
   }
@@ -574,7 +574,7 @@ namespace Arc {
 
   void AREXClients::release(AREXClient* client) {
     if(!client) return;
-    if(!*client) return;
+    if(!*client) { delete client; return; }
     // TODO: maybe strip path from URL?
     clients_.insert(std::pair<URL, AREXClient*>(client->url(),client));
   }

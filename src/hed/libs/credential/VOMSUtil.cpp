@@ -492,17 +492,20 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       targetsext = X509V3_EXT_conf_nid(NULL, &extctx, OBJ_txt2nid(idceTargetsOID), (char*)(complete.c_str()));
       if (!targetsext)
         ERROR(AC_ERR_NO_EXTENSION);
-
       X509_EXTENSION_set_critical(targetsext,1);
-      if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
-      sk_X509_EXTENSION_push(a->acinfo->exts, targetsext);
     }
 
-    if(a->acinfo->exts == NULL) a->acinfo->exts = sk_X509_EXTENSION_new_null();
-    sk_X509_EXTENSION_push(a->acinfo->exts, norevavail); norevavail = NULL;
-    sk_X509_EXTENSION_push(a->acinfo->exts, auth); auth = NULL;
-    if (certstack) {
-      sk_X509_EXTENSION_push(a->acinfo->exts, certstack); certstack = NULL;
+    if(a->acinfo->exts == NULL) {
+      a->acinfo->exts = sk_X509_EXTENSION_new_null();
+      if(a->acinfo->exts == NULL) ERROR(AC_ERR_NO_EXTENSION);
+    }
+    if(sk_X509_EXTENSION_push(a->acinfo->exts, norevavail)) norevavail = NULL;
+    if(sk_X509_EXTENSION_push(a->acinfo->exts, auth)) auth = NULL;
+    if(certstack) {
+      if(sk_X509_EXTENSION_push(a->acinfo->exts, certstack)) certstack = NULL;
+    }
+    if(targetsext) {
+      if(sk_X509_EXTENSION_push(a->acinfo->exts, targetsext)) targetsext = NULL;
     }
 
     alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
@@ -656,9 +659,6 @@ err:
 
 
   bool addVOMSAC(AC** &aclist, std::string &acorder, std::string &codedac) {
-    AC* received_ac;
-    AC** actmplist = NULL;
-    char *p, *pp;
     BIGNUM* dataorder = NULL;
 
     InitVOMSAttribute();
@@ -666,14 +666,12 @@ err:
     if(codedac.empty()) return true;
     int l = codedac.size();
 
-    pp = (char *)malloc(codedac.size());
+    unsigned char* pp = (unsigned char *)malloc(codedac.size());
     if(!pp) {
       CredentialLogger.msg(ERROR,"VOMS: Can not allocate memory for parsing AC");
       return false; 
     }
-
     memcpy(pp, codedac.data(), l);
-    p = pp;
 
     dataorder = BN_new();
     if (!dataorder) {
@@ -684,24 +682,29 @@ err:
     BN_one(dataorder);
 
     //Parse the AC, and insert it into an AC list
-    if((received_ac = d2i_AC(NULL, (const unsigned char**)&p, l))) {
-      actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
+    unsigned char const* p = pp;
+    AC* received_ac = NULL;
+    if((received_ac = d2i_AC(NULL, &p, l))) {
+      AC** actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
         aclist = actmplist; 
         (void)BN_lshift1(dataorder, dataorder);
         (void)BN_set_bit(dataorder, 0);
         char *buffer = BN_bn2hex(dataorder);
-        acorder = std::string(buffer);
+        if(buffer) acorder = std::string(buffer);
         OPENSSL_free(buffer);
         free(pp); BN_free(dataorder);
       }
       else {
-        listfree((char **)aclist, (freefn)AC_free);  free(pp); BN_free(dataorder); return false;
+        listfree((char **)aclist, (freefn)AC_free);
+        free(pp); BN_free(dataorder);
+        return false;
       }
     }
     else {
       CredentialLogger.msg(ERROR,"VOMS: Can not parse AC");
-      free(pp); BN_free(dataorder); return false;
+      free(pp); BN_free(dataorder);
+      return false;
     }
     return true;
   }
@@ -725,7 +728,6 @@ err:
 
   static bool checkCert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file) {
     X509_STORE *ctx = NULL;
-    X509_STORE_CTX *csc = NULL;
     X509_LOOKUP *lookup = NULL;
     int index = 0;
 
@@ -734,9 +736,8 @@ err:
       return false;
     }
 
-    csc = X509_STORE_CTX_new();
     ctx = X509_STORE_new();
-    if (ctx && csc) {
+    if (ctx) {
       X509_STORE_set_verify_cb_func(ctx,cb);
 //#ifdef SIGPIPE
 //      signal(SIGPIPE,SIG_IGN);
@@ -751,32 +752,36 @@ err:
       }
       //Check the AC issuer certificate's chain
       for (int i = sk_X509_num(stack)-1; i >=0; i--) {
-        //Firstly, try to verify the certificate which is issues by CA;
-        //Then try to verify the next one; the last one is the certificate
-        //(voms server certificate) which issues AC.
-        //Normally the voms server certificate is directly issued by a CA,
-        //in this case, sk_X509_num(stack) should be 1.
-        //On the other hand, if the voms server certificate is issued by a CA
-        //which is issued by an parent CA, and so on, then the AC issuer should 
-        //put those CA certificates (except the root CA certificate which has 
-        //been configured to be trusted on the AC consumer side) together with 
-        //the voms server certificate itself in the 'certseq' part of AC.
-        //
-        //The CA certificates are checked one by one: the certificate which
-        //is signed by root CA is checked firstly; the voms server certificate
-        //is checked lastly.
-        //
-        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
-        index = X509_verify_cert(csc);
-        if(!index) break;
-        //If the 'i'th certificate is verified, then add it as trusted certificate,
-        //then 'i'th certificate will be used as 'trusted certificate' to check
-        //the 'i-1'th certificate
-        X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+        X509_STORE_CTX *csc = X509_STORE_CTX_new();
+        if (csc) {
+          //Firstly, try to verify the certificate which is issues by CA;
+          //Then try to verify the next one; the last one is the certificate
+          //(voms server certificate) which issues AC.
+          //Normally the voms server certificate is directly issued by a CA,
+          //in this case, sk_X509_num(stack) should be 1.
+          //On the other hand, if the voms server certificate is issued by a CA
+          //which is issued by an parent CA, and so on, then the AC issuer should 
+          //put those CA certificates (except the root CA certificate which has 
+          //been configured to be trusted on the AC consumer side) together with 
+          //the voms server certificate itself in the 'certseq' part of AC.
+          //
+          //The CA certificates are checked one by one: the certificate which
+          //is signed by root CA is checked firstly; the voms server certificate
+          //is checked lastly.
+          //
+          if(X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL)) {
+            index = X509_verify_cert(csc);
+          }
+          X509_STORE_CTX_free(csc);
+          if(!index) break;
+          //If the 'i'th certificate is verified, then add it as trusted certificate,
+          //then 'i'th certificate will be used as 'trusted certificate' to check
+          //the 'i-1'th certificate
+          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
+        }
       }
     }
     if (ctx) X509_STORE_free(ctx);
-    if (csc) X509_STORE_CTX_free(csc);
 
     return (index != 0);
   }

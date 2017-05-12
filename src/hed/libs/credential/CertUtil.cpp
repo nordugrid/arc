@@ -195,6 +195,7 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
    *for proxy, it does not ever get revoked
    */
   if((type == CERT_TYPE_EEC) || (type == CERT_TYPE_CA)) {
+    X509_OBJECT* obj = NULL;
         /*
          * SSLeay 0.9.0 handles CRLs but does not check them.
          * We will check the crl for this cert, if there
@@ -212,17 +213,17 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
          * if the issuer name matches.
          * this allows the CA to revoke its own cert as well.
          */
-    int i, n;
-    X509_CRL *      crl = NULL;
-    X509_REVOKED *  revoked = NULL;
-    EVP_PKEY *key = NULL;
-    X509_OBJECT*    obj = X509_OBJECT_new();
-    if(!obj) return (0);
 
+    obj = X509_OBJECT_new();
+    if (!obj) return 0;
     if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(cert), obj)) {
-      if(crl=X509_OBJECT_get0_X509_CRL(obj)) {
+      if(X509_CRL* crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* verify the signature on this CRL */
-        key = X509_get_pubkey(cert);
+        EVP_PKEY* key = X509_get_pubkey(cert);
+        if(!key) {
+          X509_OBJECT_free(obj);
+          return (0);
+        }
         if (X509_CRL_verify(crl, key) <= 0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_SIGNATURE_FAILURE);
           // TODO: tell which crl failed
@@ -231,14 +232,15 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           X509_OBJECT_free(obj);
           return (0);
         }
+        EVP_PKEY_free(key);
 
+        int i = 0;
         /* Check date see if expired */
         i = X509_CRL_get0_lastUpdate(crl) ? X509_cmp_current_time(X509_CRL_get0_lastUpdate(crl)) : 0;
         if (i == 0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL the lastUpdate field is not valid");
-          EVP_PKEY_free(key);
           X509_OBJECT_free(obj);
           return (0);
         }
@@ -246,7 +248,6 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_NOT_YET_VALID);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"The available CRL is not yet valid");
-          EVP_PKEY_free(key);
           X509_OBJECT_free(obj);
           return (0);
         }
@@ -256,29 +257,28 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL, the nextUpdate field is not valid");
-          EVP_PKEY_free(key);
           X509_OBJECT_free(obj);
           return (0);
         }
-
         if (i < 0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_HAS_EXPIRED);
           logger.msg(Arc::ERROR,"The available CRL has expired");
-          EVP_PKEY_free(key);
           X509_OBJECT_free(obj);
           return (0);
         }
-        EVP_PKEY_free(key);
       }
     }
+    X509_OBJECT_free(obj); obj = NULL;
 
     /* now check if the *issuer* has a CRL, and we are revoked */
+    obj = X509_OBJECT_new();
+    if (!obj) return 0;
     if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(cert), obj)) {
-      if(crl=X509_OBJECT_get0_X509_CRL(obj)) {
+      if(X509_CRL* crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* check if this cert is revoked */
-        n = sk_X509_REVOKED_num(X509_CRL_get_REVOKED(crl));
-        for (i=0; i<n; i++) {
-          revoked = (X509_REVOKED *)sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl),i);
+        int n = sk_X509_REVOKED_num(X509_CRL_get_REVOKED(crl));
+        for (int i=0; i<n; i++) {
+          X509_REVOKED* revoked = (X509_REVOKED *)sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl),i);
           if(!ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revoked), X509_get_serialNumber(cert))) {
             long serial;
             char buf[64];
@@ -425,10 +425,10 @@ bool check_cert_type(X509* cert, certType& type) {
 
   ASN1_STRING* data;
   X509_EXTENSION* certinfo_ext;
-  //PROXY_CERT_INFO_EXTENSION* certinfo = NULL;
   PROXY_POLICY* policy = NULL;
   ASN1_OBJECT* policylang = NULL;
   int policynid;
+  PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
 
   int index;
   int critical;
@@ -456,7 +456,6 @@ bool check_cert_type(X509* cert, certType& type) {
     else if((index = X509_get_ext_by_NID(cert, NID_proxyCertInfo, -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
-        PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
         PROXY_POLICY* policy_openssl = NULL;
         ASN1_OBJECT* policylang_openssl = NULL;        
         if((certinfo_openssl = (PROXY_CERT_INFO_EXTENSION *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
@@ -511,7 +510,7 @@ bool check_cert_type(X509* cert, certType& type) {
 
 err:
   if(issuer) { X509_NAME_free(issuer); }
-  //if(certinfo) {PROXY_CERT_INFO_EXTENSION_free(certinfo);}
+  if(certinfo_openssl) {PROXY_CERT_INFO_EXTENSION_free(certinfo_openssl);}
   if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
 
   return ret;

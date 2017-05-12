@@ -16,13 +16,6 @@ namespace ArcCredential {
 
 typedef void (*freefn)(void *);
 
-/* Merges NULL-terminated array of pointers addon into NULL-terminated array base.
-  Returns pointer to new merged array. Old base array is destroyed.
-  In case of error returns NULL and nothing is destroyed.
-  size is the size of array elment and for safety should always
-  be sizeof(char*) */
-extern char **listjoin(char **base, char **addon, int size);
-
 /* Merges element data to NULL-terminated array vect. 
   Returns pointer to new merged array. Old vect array is destroyed.
   size is the size of array element and for safety should always

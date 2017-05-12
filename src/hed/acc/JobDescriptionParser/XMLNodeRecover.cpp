@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <cstring>
 #include <iostream>
 
 #include "XMLNodeRecover.h"
@@ -34,7 +35,10 @@ namespace Arc {
   XMLNodeRecover::~XMLNodeRecover() {
     for (std::list<xmlErrorPtr>::const_iterator it = errors.begin();
          it != errors.end(); ++it) {
-      delete *it;
+      if(*it) {
+        xmlResetError(*it);
+        delete *it;
+      }
     }
   }
 
@@ -64,6 +68,7 @@ namespace Arc {
       return;
     }
     xmlErrorPtr new_error = new xmlError();
+    std::memset(new_error, 0, sizeof(xmlError));
     xmlCopyError(error, new_error);
     xml->errors.push_back(new_error);
   }

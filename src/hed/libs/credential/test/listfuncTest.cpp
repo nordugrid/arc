@@ -33,7 +33,7 @@ void f(void *v) {
 
 void listfuncTest::listTest() {
 
-  char **v1,**v2,**v3,**v4;
+  char **v1,**v2,**v3;
   char *str1,*str2,*str3;
 
   str1 = (char*) malloc(sizeof(char)*6);
@@ -49,22 +49,18 @@ void listfuncTest::listTest() {
   v1 = listadd(NULL,str1,sizeof(char*));
   CPPUNIT_ASSERT(v1);
 
-  v2 = listadd(NULL,str2,sizeof(char*));
-  CPPUNIT_ASSERT(v2);
+  v2 = listadd(v1,str2,sizeof(char*));
+  CPPUNIT_ASSERT(v1);
 
-  v3 = listjoin(v1,v2,sizeof(char*));
+  v3 = listadd(v2,str3,sizeof(char*));
   CPPUNIT_ASSERT(v3);
 
-  v4 = listadd(v3,str3,sizeof(char*));
-  CPPUNIT_ASSERT(v4);
+  CPPUNIT_ASSERT(v3[0] == str1);
+  CPPUNIT_ASSERT(v3[1] == str2);
+  CPPUNIT_ASSERT(v3[2] == str3);
+  CPPUNIT_ASSERT(v3[3] == NULL);
 
-  CPPUNIT_ASSERT(v4[0] == str1);
-  CPPUNIT_ASSERT(v4[1] == str2);
-  CPPUNIT_ASSERT(v4[2] == str3);
-
-  CPPUNIT_ASSERT_EQUAL(listjoin(NULL,NULL,0),(char**)NULL);
-
-  listfree(v4,(freefn)f);
+  listfree(v3,(freefn)f);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(listfuncTest);

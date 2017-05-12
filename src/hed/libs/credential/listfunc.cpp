@@ -8,36 +8,6 @@
 namespace ArcCredential {
 
 
-char **listjoin(char **base, char **addon, int size) {
-  char **store = addon, 
-    **storebase = base,
-    **newvect = NULL;
-  int num = 0, num2=0;
-  int i;
-
-  if (!addon || !(*addon))
-    return base;
-
-  while (*store++)
-    num++;
-
-  if (storebase)
-    while (*storebase++)
-      num2++;
-
-  if ((newvect = (char **)malloc((num+num2+1)*size))) {
-    if (newvect) {
-      memcpy(newvect, base, (size*(num2)));
-      for (i=num2; i <num+num2; i++)
-        newvect[i] = addon[i-num2];
-      newvect[i] = NULL;
-      free(base);
-      return newvect;
-    }
-   }
-  return NULL;
-}
-
 char **listadd(char **vect, char *data, int size) {
   int i = 0;
   char **newvect;

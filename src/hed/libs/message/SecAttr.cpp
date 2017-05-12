@@ -54,6 +54,12 @@ std::list<std::string> SecAttr::getAll(const std::string& id) const {
   return items;
 }
 
+MultiSecAttr::~MultiSecAttr() {
+  for(std::list<SecAttr*>::iterator attr =  attrs_.begin(); attr != attrs_.end(); ++attr) {
+    delete *attr;
+  }
+}
+
 MultiSecAttr::operator bool() const {
   return !attrs_.empty();
 }

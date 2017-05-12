@@ -245,11 +245,11 @@ namespace Arc {
 
     if (repmsg.Payload() != NULL) {
       try {
-        *response =
-          dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
+        *response = dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
+        repmsg.Payload(NULL);
       } catch (std::exception&) {
-        delete repmsg.Payload();
       }
+      delete repmsg.Payload();
     }
     return r;
   }
@@ -280,11 +280,11 @@ namespace Arc {
 
     if (repmsg.Payload() != NULL) {
       try {
-        *response =
-          dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
+        *response = dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
+        repmsg.Payload(NULL);
       } catch (std::exception&) {
-        delete repmsg.Payload();
       }
+      delete repmsg.Payload();
     }
     return r;
   }
@@ -467,9 +467,10 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
+        mresp = NULL;
       } catch (std::exception&) {
-        delete mresp;
       }
+      delete mresp;
     }
     return r;
   }
@@ -567,9 +568,10 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
+        mresp = NULL;
       } catch (std::exception&) {
-        delete mresp;
       }
+      delete mresp;
     }
     return r;
   }
@@ -584,9 +586,10 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
+        mresp = NULL;
       } catch (std::exception&) {
-        delete mresp;
       }
+      delete mresp;
     }
     return r;
   }
@@ -601,9 +604,10 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(mresp);
+        mresp = NULL;
       } catch (std::exception&) {
-        delete mresp;
       }
+      delete mresp;
     }
     return r;
   }
@@ -618,9 +622,10 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(mresp);
+        mresp = NULL;
       } catch (std::exception&) {
-        delete mresp;
       }
+      delete mresp;
     }
     return r;
   }
@@ -714,9 +719,10 @@ namespace Arc {
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+        repmsg.Payload(NULL);
       } catch (std::exception&) {
-        delete repmsg.Payload();
       }
+      delete repmsg.Payload();
     }
     return r;
   }
@@ -742,9 +748,10 @@ namespace Arc {
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+        repmsg.Payload(NULL);
       } catch (std::exception&) {
-        delete repmsg.Payload();
       }
+      delete repmsg.Payload();
     }
     return r;
   }

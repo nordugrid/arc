@@ -22,8 +22,10 @@ void MessageAuth::set(const std::string& key, SecAttr* value) {
   if(attr == attrs_.end()) {
     attrs_[key]=value;
   } else {
-    if(attr->second) delete attr->second;
-    attr->second=value;
+    if(attr->second != value) {
+      if(attr->second) delete attr->second;
+      attr->second=value;
+    };
   };
 }
 

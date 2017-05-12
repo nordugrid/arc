@@ -22,6 +22,10 @@ pkgdatadir="$basedir"
 ##############################################################
 init $1
 joboption_directory_orig=$joboption_directory
+joboption_directory='`pwd`'
+joboption_stdout='`pwd`/'`basename $joboption_stdout`
+joboption_stderr='`pwd`/'`basename $joboption_stderr`
+
 read_arc_conf
 
 # make sure session is world-writable

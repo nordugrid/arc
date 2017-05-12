@@ -38,7 +38,7 @@ namespace Arc {
     // TODO: Determine extended BES interface interface (A-REX WS)
     bool arex_features = true; //et.ComputingService->Type == "org.nordugrid.execution.arex";
 
-    AREXClient* ac = clients.acquire(url, arex_features);
+    AutoPointer<AREXClient> ac(clients.acquire(url, arex_features));
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -122,7 +122,7 @@ namespace Arc {
       jc.addEntity(j);
     }
   
-    clients.release(ac);
+    clients.release(ac.Release());
     return retval;
   }
 
@@ -130,7 +130,7 @@ namespace Arc {
     URL url(et.ComputingEndpoint->URLString);
     bool arex_features = (et.ComputingService->Type == "org.nordugrid.execution.arex") ||
                          (et.ComputingService->Type == "org.nordugrid.arex");
-    AREXClient* ac = clients.acquire(url, arex_features);
+    AutoPointer<AREXClient> ac(clients.acquire(url, arex_features));
 
     SubmissionStatus retval;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -216,7 +216,7 @@ namespace Arc {
       jc.addEntity(j);
     }
   
-    clients.release(ac);
+    clients.release(ac.Release());
     return retval;
   }
 
@@ -225,7 +225,7 @@ namespace Arc {
                              bool forcemigration, Job& job) {
     URL url(et.ComputingEndpoint->URLString);
 
-    AREXClient* ac = clients.acquire(url,true);
+    AutoPointer<AREXClient> ac(clients.acquire(url,true));
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
@@ -258,7 +258,7 @@ namespace Arc {
 
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      clients.release(ac);
+      clients.release(ac.Release());
       return false;
     }
 
@@ -269,20 +269,20 @@ namespace Arc {
     JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
     if (!ures) {
       logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
-      clients.release(ac);
+      clients.release(ac.Release());
       return false;
     }
 
     std::string sNewjobid;
     if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
                     url.Protocol() == "https")) {
-      clients.release(ac);
+      clients.release(ac.Release());
       return false;
     }
 
     if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      clients.release(ac);
+      clients.release(ac.Release());
       return false;
     }
 
@@ -296,7 +296,7 @@ namespace Arc {
 
     if (!PutFiles(preparedjobdesc, sessionurl)) {
       logger.msg(INFO, "Failed uploading local input files");
-      clients.release(ac);
+      clients.release(ac.Release());
       return false;
     }
 
@@ -315,7 +315,7 @@ namespace Arc {
     job.StageOutDir = sessionurl;
     job.SessionDir = sessionurl;
 
-    clients.release(ac);
+    clients.release(ac.Release());
     return true;
   }
 } // namespace Arc

@@ -56,7 +56,7 @@ namespace Arc {
     for (std::map<std::string, std::list<Job*> >::iterator it = groupedJobs.begin();
          it != groupedJobs.end(); ++it) {
       std::list<EMIESResponse*> responses;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(it->first));
+      AutoPointer<EMIESClient> ac(clients.acquire(it->first));
       ac->info(it->second, responses);
 
       for (std::list<Job*>::iterator itJ = it->second.begin();
@@ -88,7 +88,7 @@ namespace Arc {
         delete *itR;
       }
 
-      ((EMIESClients&)clients).release(ac.Release());
+      clients.release(ac.Release());
     }
   }
 
@@ -101,16 +101,16 @@ namespace Arc {
       Job& job = **it;
       EMIESJob ejob;
       ejob = job;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      AutoPointer<EMIESClient> ac(clients.acquire(ejob.manager));
       if (!ac->clean(ejob)) {
         ok = false;
         IDsNotProcessed.push_back(job.JobID);
-        ((EMIESClients&)clients).release(ac.Release());
+        clients.release(ac.Release());
         continue;
       }
 
       IDsProcessed.push_back(job.JobID);
-      ((EMIESClients&)clients).release(ac.Release());
+      clients.release(ac.Release());
     }
 
     return ok;
@@ -125,17 +125,17 @@ namespace Arc {
       Job& job = **it;
       EMIESJob ejob;
       ejob = job;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      AutoPointer<EMIESClient> ac(clients.acquire(ejob.manager));
       if(!ac->kill(ejob)) {
         ok = false;
         IDsNotProcessed.push_back((*it)->JobID);
-        ((EMIESClients&)clients).release(ac.Release());
+        clients.release(ac.Release());
         continue;
       }
 
       (*it)->State = JobStateEMIES((std::string)"emies:TERMINAL");
       IDsProcessed.push_back((*it)->JobID);
-      ((EMIESClients&)clients).release(ac.Release());
+      clients.release(ac.Release());
     }
     return ok;
   }
@@ -158,7 +158,7 @@ namespace Arc {
       Job& job = **it;
       EMIESJob ejob;
       ejob = job;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      AutoPointer<EMIESClient> ac(clients.acquire(ejob.manager));
       std::list<std::string>::const_iterator did = (*it)->DelegationID.begin();
       for(;did != (*it)->DelegationID.end();++did) {
         if(ac->delegation(*did).empty()) {
@@ -171,7 +171,7 @@ namespace Arc {
         continue;
       }
       IDsProcessed.push_back((*it)->JobID);
-      ((EMIESClients&)clients).release(ac.Release());
+      clients.release(ac.Release());
     }
     return false;
   }
@@ -192,16 +192,16 @@ namespace Arc {
 	      logger.msg(VERBOSE, "Resuming job: %s at state: %s (%s)", job.JobID, job.RestartState.GetGeneralState(), job.RestartState());
 	      EMIESJob ejob;
 	      ejob = job;
-	      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+	      AutoPointer<EMIESClient> ac(clients.acquire(ejob.manager));
 	      if(!ac->restart(ejob)) {
 	        ok = false;
 	        IDsNotProcessed.push_back((*it)->JobID);
-	        ((EMIESClients&)clients).release(ac.Release());
+	        clients.release(ac.Release());
 	        continue;
 	      }
 
 	      IDsProcessed.push_back((*it)->JobID);
-	      ((EMIESClients&)clients).release(ac.Release());
+	      clients.release(ac.Release());
 	      logger.msg(VERBOSE, "Job resuming successful");
 	    }
 	    return ok;
@@ -236,9 +236,9 @@ namespace Arc {
       MCCConfig cfg;
       usercfg->ApplyToConfig(cfg);
       Job tjob;
-      AutoPointer<EMIESClient> ac(((EMIESClients&)clients).acquire(ejob.manager));
+      AutoPointer<EMIESClient> ac(clients.acquire(ejob.manager));
       if (!ac->info(ejob, tjob)) {
-        ((EMIESClients&)clients).release(ac.Release());
+        clients.release(ac.Release());
         logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID);
         return false;
       }
@@ -273,7 +273,7 @@ namespace Arc {
         if(stagein)  url = stagein;
         if(stageout) url = stageout;
       }
-      ((EMIESClients&)clients).release(ac.Release());
+      clients.release(ac.Release());
     }
 
     switch (resource) {

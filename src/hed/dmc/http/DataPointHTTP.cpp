@@ -34,7 +34,6 @@ using namespace Arc;
 
   typedef struct {
     DataPointHTTP *point;
-    //ClientHTTP *client;
   } HTTPInfo_t;
 
   class ChunkControl {
@@ -949,7 +948,7 @@ using namespace Arc;
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     URL client_url = point.url;
-    ClientHTTP *client = point.acquire_client(client_url);
+    AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
@@ -964,9 +963,11 @@ using namespace Arc;
                                      &instream);
       if (!r) {
         if (instream) delete instream;
-        delete client; client = NULL;
         // Failed to transfer - retry.
         // 10 times in a row seems to be reasonable number
+        // To make it sure all retriable errors are eliminated
+        // connection is also re-established
+        client = NULL;
         // TODO: mark failure?
         if ((++retries) > 10) {
           transfer_failure = true;
@@ -975,7 +976,9 @@ using namespace Arc;
         }
         // Recreate connection
         client = point.acquire_new_client(client_url);
-        continue;
+        if(client) continue;
+        transfer_failure = true;
+        break;
       }
       if((transfer_info.code == 301) || // permanent redirection
          (transfer_info.code == 302) || // temporary redirection
@@ -984,7 +987,7 @@ using namespace Arc;
         // 305 - redirection to proxy - unhandled
         if (instream) delete instream;
         // Recreate connection now to new URL
-        point.release_client(client_url,client); client = NULL; // return client to poll
+        point.release_client(client_url,client.Release()); // return client to poll
         client_url = transfer_info.location;
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
@@ -1044,6 +1047,7 @@ using namespace Arc;
       // End of transfer - either success or not retrying transfer of whole body
       break;
     }
+    point.release_client(client_url,client.Release());
     return !transfer_failure;
   }
 
@@ -1053,7 +1057,7 @@ using namespace Arc;
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
     URL client_url = point.url;
-    ClientHTTP* client = point.acquire_client(client_url);
+    AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
@@ -1092,7 +1096,7 @@ using namespace Arc;
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
         if (inbuf) delete inbuf;
-        delete client; client = NULL;
+        client = NULL;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
@@ -1103,7 +1107,9 @@ using namespace Arc;
         }
         // Recreate connection
         client = point.acquire_new_client(client_url);
-        continue;
+        if(client) continue;
+        transfer_failure = true;
+        break;
       }
       if (transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle, 0, 0);
@@ -1121,7 +1127,7 @@ using namespace Arc;
         point.chunks->Unclaim(transfer_offset, chunk_length);
         if (inbuf) delete inbuf;
         // Recreate connection now to new URL
-        point.release_client(client_url,client); client = NULL;
+        point.release_client(client_url,client.Release());
         client_url = transfer_info.location;
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
@@ -1255,7 +1261,7 @@ using namespace Arc;
       }
       point.buffer->eof_read(true);
     }
-    point.release_client(client_url,client); client = NULL;
+    point.release_client(client_url,client.Release());
     delete &info;
     point.transfer_lock.unlock();
   }
@@ -1264,7 +1270,7 @@ using namespace Arc;
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
     URL client_url = point.url;
-    ClientHTTP *client = point.acquire_client(client_url);
+    AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     if (!client) return false;
     HTTPClientInfo transfer_info;
     PayloadRawInterface *response = NULL;
@@ -1294,7 +1300,7 @@ using namespace Arc;
         // It is not clear how to retry if early chunks are not available anymore.
         // Let it retry at higher level.
         point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
-        delete client; client = NULL;
+        client = NULL;
         return false;
       }
       if (transfer_info.code == 301 || // Moved permanently
@@ -1302,7 +1308,7 @@ using namespace Arc;
           transfer_info.code == 307) { // Temporary redirection
         // Got redirection response
         // Recreate connection now to new URL
-        point.release_client(client_url,client); client = NULL;
+        point.release_client(client_url,client.Release());
         client_url = transfer_info.location;
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
@@ -1333,12 +1339,14 @@ using namespace Arc;
       if ((transfer_info.code != 201) &&
           (transfer_info.code != 200) &&
           (transfer_info.code != 204)) {  // HTTP error
+        point.release_client(client_url,client.Release());
         point.failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
         return false;
       }
       // Looks like request passed well
       break;
     }
+    point.release_client(client_url,client.Release());
     return true;
   }
 
@@ -1348,7 +1356,7 @@ using namespace Arc;
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
     URL client_url = point.url;
-    ClientHTTP *client = point.acquire_client(client_url);
+    AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
@@ -1380,7 +1388,7 @@ using namespace Arc;
                                      &response);
       if (response) delete response;
       if (!r) {
-        delete client; client = NULL;
+        client = NULL;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
@@ -1448,7 +1456,7 @@ using namespace Arc;
                                          &response);
           if (response) delete response;
           if (!r) {
-            delete client; client = NULL;
+            client = NULL;
             if ((++retries) > 10) {
               point.failure_code = DataStatus(DataStatus::WriteError, r.getExplanation());
               point.buffer->error_write(true);
@@ -1473,7 +1481,7 @@ using namespace Arc;
         }
       }
     }
-    point.release_client(client_url,client); client = NULL;
+    point.release_client(client_url,client.Release());
     delete &info;
     point.transfer_lock.unlock();
   }

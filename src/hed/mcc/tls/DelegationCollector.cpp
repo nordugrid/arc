@@ -71,6 +71,7 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
 }
 
 SecHandlerStatus DelegationCollector::Handle(Arc::Message* msg) const {
+  SecAttr* sattr_ = NULL;
   DelegationMultiSecAttr* sattr = NULL;
   try {
     MessagePayload* mpayload = msg->Payload();
@@ -79,8 +80,11 @@ SecHandlerStatus DelegationCollector::Handle(Arc::Message* msg) const {
     // Currently only TLS payloads are supported
     if(!tstream) return false;
     SecAttr* sattr_ = msg->Auth()->get("DELEGATION POLICY");
-    if(sattr_) sattr=dynamic_cast<DelegationMultiSecAttr*>(sattr_);
-    if(!sattr) sattr=new DelegationMultiSecAttr;
+    if(sattr_) sattr = dynamic_cast<DelegationMultiSecAttr*>(sattr_);
+    if(!sattr) {
+      sattr_ = NULL;
+      sattr = new DelegationMultiSecAttr;
+    }
     X509* cert = tstream->GetPeerCert();
     if (cert != NULL) {
       if(!get_proxy_policy(cert,sattr)) {
@@ -102,7 +106,7 @@ SecHandlerStatus DelegationCollector::Handle(Arc::Message* msg) const {
     if(!sattr_) msg->Auth()->set("DELEGATION POLICY",sattr);
     return true;
   } catch(std::exception&) { };
-  if(sattr) delete sattr;
+  if(!sattr_) delete sattr;
   return false;
 }
 
