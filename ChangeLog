@@ -1,3 +1,7 @@
+2017-05-12 Andrii Salnikov <manf@grid.org.ua>
+  * ARCHERY client implementation
+    Type: new feature
+
 2017-03-28 Maiken Pedersen <maiken.pedersen@fys.uio.no>
   * Arex-ganglia integration is now working. New histograms have also been included.
     Feature is configurable using enable_ganglia="yes" and ganglialocation="<path>" (usually /usr/bin).

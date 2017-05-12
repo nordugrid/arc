@@ -180,6 +180,7 @@ enables_xrootd=yes
 enables_argus=no
 enables_xmlsec1=yes
 enables_dbjstore=yes
+enables_ldns=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -243,8 +244,9 @@ enables_xmlsec1=$enableval
 enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
-enabled_acix=$enableval
+enables_acix=$enableval
 enables_dbjstore=$enableval
+enables_ldns=$enableval
 ],
 [])
 
@@ -277,7 +279,7 @@ enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_cache_service=$enableval
 enables_datadelivery_service=$enableval
-enabled_acix=$enableval
+enables_acix=$enableval
 ],
 [])
 
@@ -1041,6 +1043,36 @@ AC_SUBST(TEST_DIR)
 else
   enables_cppunit="no"
 fi
+
+# check ldns library
+if test "$enables_compute_client" = "yes"; then
+AC_ARG_ENABLE(ldns, AC_HELP_STRING([--disable-ldns], [disable ldns library usage (makes ARCHERY client unavailable) ]),[enables_ldns=$enableval],[])
+if test "$enables_ldns" = "yes"; then
+  PKG_CHECK_MODULES(LDNS, [ldns],[],
+    [AC_PATH_PROG(LDNS_CONFIG, ldns-config, no)
+    if test "x$LDNS_CONFIG" = "xno"; then
+      #TODO: check if we need AC_CHECK_HEADER/AC_CHECK_LIB manual way here for some builds
+      AC_MSG_WARN([ldns-config not found - compute clients will be built without ARCHERY support])
+      LDNS_CFLAGS=
+      LDNS_LIBS=
+      enables_ldns="no"
+    else
+      LDNS_CFLAGS="`$LDNS_CONFIG --cflags`"
+      LDNS_LIBS="`$LDNS_CONFIG --libs`"
+    fi
+    ])
+fi
+AC_SUBST(LDNS_CFLAGS)
+AC_SUBST(LDNS_LIBS)
+else
+  enables_ldns="no"
+fi
+if test "x$enables_ldns" = "xyes" ; then
+  AC_DEFINE(HAVE_LDNS,,[define if LDNS is enabled and available])
+fi
+AC_SUBST(LDNS_CFLAGS)
+AC_SUBST(LDNS_LIBS)
+AM_CONDITIONAL(LDNS_ENABLED, test "x$enables_ldns" = "xyes")
 
 ##############################
 #
@@ -2736,6 +2768,7 @@ NSS:                ${enables_nss}
 CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
 SQLite:             ${enables_sqlite}
+LDNS:               ${enables_ldns}
 
 Enabled features:
 
