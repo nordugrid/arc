@@ -133,6 +133,7 @@ namespace Arc {
      **/
     std::multimap<std::string, std::string> headers;
     URL location; /// Value of location attribute in HTTP response
+    bool keep_alive;
   };
 
 
@@ -218,11 +219,13 @@ namespace Arc {
     virtual MCC_Status Load();
     void RelativeURI(bool val) { relative_uri=val; };
     const URL& GetURL() const { return default_url; };
+    bool GetClosed() const { return closed; }
   protected:
     MCC *http_entry;
     URL default_url;
     bool relative_uri;
     TCPSec sec;
+    bool closed;
     MCC_Status process(const std::string& method, const std::string& path,
                        std::multimap<std::string, std::string>& attributes,
                        uint64_t range_start, uint64_t range_end,

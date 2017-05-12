@@ -1064,6 +1064,7 @@ using namespace Arc;
     DataStatus failure_code;
     bool partial_read_allowed = (client_url.Option("httpgetpartial","yes") == "yes");
     if(partial_read_allowed) for (;;) {
+      if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
         break;
@@ -1146,6 +1147,7 @@ using namespace Arc;
         if ((transfer_info.code == 500) ||
             (transfer_info.code == 503) ||
             (transfer_info.code == 504)) {
+          // Retriable error codes
           if ((++retries) <= 10) continue;
         }
         logger.msg(VERBOSE,"HTTP failure %u - %s",transfer_info.code,transfer_info.reason);
@@ -1199,43 +1201,6 @@ using namespace Arc;
         transfer_handle = -1;
         transfer_pos = pos + l;
       }
-      /*
-      for (unsigned int n = 0;; ++n) {
-        if (!inbuf) break;
-        char *buf = inbuf->Buffer(n);
-        if (!buf) break;
-        uint64_t pos = inbuf->BufferPos(n);
-        unsigned int length = inbuf->BufferSize(n);
-        transfer_pos = inbuf->BufferPos(n) + inbuf->BufferSize(n);
-        // In general case returned chunk may be of different size than
-        // requested
-        for (; length;) {
-          if (transfer_handle == -1) {
-            // Get transfer buffer if needed
-            transfer_size = 0;
-            point.transfer_lock.unlock();
-            if (!point.buffer->for_read(transfer_handle, transfer_size,
-                                        true)) {
-              // No transfer buffer - must be failure or close initiated
-              // externally
-              point.transfer_lock.lock();
-              break;
-            }
-            point.transfer_lock.lock();
-          }
-          unsigned int l = length;
-          if (l > transfer_size) l = transfer_size;
-          char *buf_ = (*point.buffer)[transfer_handle];
-          memcpy(buf_, buf, l);
-          point.buffer->is_read(transfer_handle, l, pos);
-          point.chunks->Claim(pos, l);
-          length -= l;
-          pos += l;
-          buf += l;
-          transfer_handle = -1;
-        }
-      }
-      */
       if (transfer_handle != -1) point.buffer->is_read(transfer_handle, 0, 0);
       if (inbuf) delete inbuf;
       // If server returned chunk which is not overlaping requested one - seems
@@ -1364,6 +1329,7 @@ using namespace Arc;
     DataStatus failure_code;
     // Fall through if partial PUT is not allowed
     if(!partial_write_failure) for (;;) {
+      if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
         break;
@@ -1530,6 +1496,7 @@ using namespace Arc;
 
   void DataPointHTTP::release_client(const URL& curl, ClientHTTP* client) {
     if(!client) return;
+    if(client->GetClosed()) { delete client; return; }
     std::string key = curl.ConnectionURL();
     //if(!*client) return;
     clients_lock.lock();

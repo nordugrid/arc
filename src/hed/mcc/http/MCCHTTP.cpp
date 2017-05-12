@@ -555,6 +555,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",tostring(outpayload->Code()));
   outmsg.Attributes()->set("HTTP:REASON",outpayload->Reason());
+  outmsg.Attributes()->set("HTTP:KEEPALIVE",outpayload->KeepAlive()?"TRUE":"FALSE");
   for(std::map<std::string,std::string>::const_iterator i =
       outpayload->Attributes().begin();i!=outpayload->Attributes().end();++i) {
     outmsg.Attributes()->add("HTTP:"+i->first,i->second);

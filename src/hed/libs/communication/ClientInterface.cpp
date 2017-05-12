@@ -389,7 +389,8 @@ namespace Arc {
       http_entry(NULL),
       default_url(url),
       relative_uri(url.Option("relativeuri") == "yes"),
-      sec(http_url_to_sec(url)) {
+      sec(http_url_to_sec(url)),
+      closed(false) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
                      (SECURITY_IS_SSL(sec.sec)) ? "tls" :
                      (SECURITY_IS_GSI(sec.sec)) ? "gsi" : "tcp");
@@ -484,6 +485,7 @@ namespace Arc {
                          MessagePayload **response) {
     *response = NULL;
     MCC_Status r;
+    if (closed) return r;
     if (!(r=Load())) return r;
     if (!http_entry) return MCC_Status(GENERIC_ERROR,"COMMUNICATION","MCC chain loading produced no entry point");
     MessageAttributes attributes_req;
@@ -554,6 +556,7 @@ namespace Arc {
     for(AttributeIterator i = repmsg.Attributes()->getAll();i.hasMore();++i) {
       info->headers.insert(std::pair<std::string, std::string>(i.key(), *i));
     }
+    closed = (repmsg.Attributes()->get("HTTP:KEEPALIVE") != "TRUE");
     *response = repmsg.Payload();
     return r;
   }
