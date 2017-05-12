@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <poll.h>
@@ -422,13 +424,19 @@ namespace Arc {
     };
   }
 
+  static void exit_child(int code, char const * msg) {
+    int l = strlen(msg);
+    (void)write(2, msg, l);
+    _exit(code);
+  }
+
   bool Run::Start(void) {
     if (started_) return false;
     if (argv_.size() < 1) return false;
     RunPump& pump = RunPump::Instance();
     UserSwitch* usw = NULL;
     RunInitializerArgument *arg = NULL;
-    std::list<std::string>* envp_tmp = new std::list<std::string>;
+    std::list<std::string> envp_tmp;
     try {
       running_ = true;
       Glib::Pid pid = 0;
@@ -436,12 +444,13 @@ namespace Arc {
       // is done with proper uid
       usw = new UserSwitch(0,0);
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
+#ifdef USE_GLIB_PROCESS_SPAWN
       {
       EnvLockWrapper wrapper; // Protection against gettext using getenv
-      *envp_tmp = GetEnv();
-      remove_env(*envp_tmp, envx_);
-      add_env(*envp_tmp, envp_);
-      spawn_async_with_pipes(working_directory, argv_, *envp_tmp,
+      envp_tmp = GetEnv();
+      remove_env(envp_tmp, envx_);
+      add_env(envp_tmp, envp_);
+      spawn_async_with_pipes(working_directory, argv_, envp_tmp,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
                              &pid,
@@ -449,34 +458,113 @@ namespace Arc {
                              stdout_keep_ ? NULL : &stdout_,
                              stderr_keep_ ? NULL : &stderr_);
       };
+#else
+      envp_tmp = GetEnv();
+      remove_env(envp_tmp, envx_);
+      add_env(envp_tmp, envp_);
+      int pipe_stdin[2] = { -1, -1 };
+      int pipe_stdout[2] = { -1, -1 };
+      int pipe_stderr[2] = { -1, -1 };
+      pid = -1;
+      if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
+         (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
+         (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
+        pid = ::fork();
+        if(pid == 0) {
+          // child - set std* and do exec
+          if(pipe_stdin[0] != -1) {
+            close(pipe_stdin[1]);
+            if(dup2(pipe_stdin[0], 0) != 0) exit_child(-1, "Failed to setup stdin\n");
+            close(pipe_stdin[0]);
+          };
+          if(pipe_stdout[1] != -1) {
+            close(pipe_stdout[0]);
+            if(dup2(pipe_stdout[1], 1) != 1) exit_child(-1, "Failed to setup stdout\n");
+            close(pipe_stdout[1]);
+          };
+          if(pipe_stderr[1] != -1) {
+            close(pipe_stderr[0]);
+            if(dup2(pipe_stderr[1], 2) != 2) exit_child(-1, "Failed to setup stderr\n");
+            close(pipe_stderr[1]);
+          };
+          char * * argv = new char*[argv_.size()+1];
+          char * * envp = new char*[envp_tmp.size()+1];
+          int n = 0;
+          for(std::list<std::string>::iterator item = argv_.begin(); item != argv_.end(); ++item) {
+            argv[n++] = const_cast<char*>(item->c_str());
+          };
+          argv[n] = NULL;
+          n = 0;
+          for(std::list<std::string>::iterator item = envp_tmp.begin(); item != envp_tmp.end(); ++item) {
+            envp[n++] = const_cast<char*>(item->c_str());
+          };
+          envp[n] = NULL;
+          arg->Run();
+          if(::chdir(working_directory.c_str()) != 0) {
+            exit_child(-1, "Failed to change working directory\n");
+          }
+
+          // close all handles inherited from parent
+          int max_files = RLIM_INFINITY;
+          struct rlimit lim;
+          if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
+          if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
+ 	  for(int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
+
+          (void)::execve(argv[0], argv, envp);
+          exit_child(-1, "Failed to execute command\n");
+        } else if(pid != -1) {
+          // parent - close unneeded sides of pipes
+          if(pipe_stdin[1] != -1) {
+            close(pipe_stdin[0]); pipe_stdin[0] = -1;
+            stdin_ = pipe_stdin[1]; pipe_stdin[1] = -1;
+          };
+          if(pipe_stdout[0] != -1) {
+            close(pipe_stdout[1]); pipe_stdout[1] = -1;
+            stdout_ = pipe_stdout[0]; pipe_stdout[0] = -1;
+          };
+          if(pipe_stderr[0] != -1) {
+            close(pipe_stderr[1]); pipe_stderr[1] = -1;
+            stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
+          };
+        };
+      };
+      if(pid == -1) {
+        // child was not spawned
+        if(pipe_stdin[0] != -1) close(pipe_stdin[0]);
+        if(pipe_stdin[1] != -1) close(pipe_stdin[1]);
+        if(pipe_stdout[0] != -1) close(pipe_stdout[0]);
+        if(pipe_stdout[1] != -1) close(pipe_stdout[1]);
+        if(pipe_stderr[0] != -1) close(pipe_stderr[0]);
+        if(pipe_stderr[1] != -1) close(pipe_stderr[1]);
+        throw Glib::SpawnError(Glib::SpawnError::FORK, "Generic error");
+      };
+#endif
       *pid_ = pid;
       if (!stdin_keep_) {
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
-      }
+      };
       if (!stdout_keep_) {
         fcntl(stdout_, F_SETFL, fcntl(stdout_, F_GETFL) | O_NONBLOCK);
-      }
+      };
       if (!stderr_keep_) {
         fcntl(stderr_, F_SETFL, fcntl(stderr_, F_GETFL) | O_NONBLOCK);
-      }
+      };
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
-      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
-      delete envp_tmp;
       if(usw) delete usw;
       if(arg) delete arg;
       running_ = false;
       return false;
     };
     pump.Add(this);
-    delete envp_tmp;
     if(usw) delete usw;
     if(arg) delete arg;
     return true;
