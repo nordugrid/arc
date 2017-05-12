@@ -600,12 +600,8 @@ class JobscriptAssemblerSLURM(JobscriptAssembler):
             return
         script += self.get_stub('umask_and_sourcewithargs')
         script += self.get_stub('user_env')
-        if Config.localtransfer:
-            script += self.get_stub('local_transfer')
         script += self.get_stub('runtime_env')
         script += self.get_stub('move_files_to_node')
-        if Config.localtransfer:
-            script += self.get_stub('download_input_files')
         script += "\nRESULT=0\n\n"
         script += "if [ \"$RESULT\" = '0' ] ; then\n"
         script += self.get_stub('rte_stage1')
@@ -622,16 +618,13 @@ fi
         script += self.get_stub('cd_and_run')
         script += "fi\nfi\n"
         script += self.get_stub('rte_stage2')
-        if Config.localtransfer:
-            script += self.get_stub('upload_output_files')
-        else:
-            script += self.get_stub('clean_scratchdir')
+        script += self.get_stub('clean_scratchdir')
         script += self.get_stub('move_files_to_frontend')
         return script
 
     @staticmethod
     def assemble_SBATCH(j, language = "", dialect = ""):
-        # TODO: What about localtransfer, adjusting working directory,
+        # TODO: What about adjusting working directory,
         #       diagnostics, and uploading output files. These should
         #       probably be handled by submisison script.
         

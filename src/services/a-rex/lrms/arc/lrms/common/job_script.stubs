@@ -26,12 +26,6 @@ export '%(ENV)s=%(ENV_VAL)s'
 >
 
 
->> local_transfer
->
-RUNTIME_CONTROL_DIR=%(RUNTIME_CONTROLDIR)s
->
-
-
 >> runtime_env
 >
 
@@ -113,40 +107,6 @@ if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND"
 fi
 if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
   mkdir -p "$RUNTIME_JOB_DIR"
-fi
-
->
-
-
->> download_input_files
->
-ARC_LOCATION=${ARC_LOCATION:-%(ARC_LOCATION)s}
-GLOBUS_LOCATION=${GLOBUS_LOCATION:-%(GLOBUS_LOCATION)s}
-DOWNLOADER=${DOWNLOADER:-%(ARC_TOOLSDIR)s/downloader}
-if [ -z "$ARC_LOCATION" ] ; then
-  echo 'Variable ARC_LOCATION is not set' 1>&2
-  exit 1
-fi
-if [ -z "$GLOBUS_LOCATION" ] ; then
-  echo 'Variable GLOBUS_LOCATION is not set' 1>&2
-  exit 1
-fi
-  export GLOBUS_LOCATION
-  export ARC_LOCATION
-if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-  export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib"
-else
-  export LD_LIBRARY_PATH="$GLOBUS_LOCATION/lib:$LD_LIBRARY_PATH"
-fi
-export SASL_PATH="$GLOBUS_LOCATION/lib/sasl"
-export X509_USER_KEY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-export X509_USER_CERT="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-export X509_USER_PROXY="${RUNTIME_CONTROL_DIR}/job.local.proxy"
-unset X509_RUN_AS_SERVER
-$DOWNLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-if [ $? -ne '0' ] ; then
-  echo 'ERROR: Downloader failed.' 1>&2
-  exit 1
 fi
 
 >
@@ -252,21 +212,6 @@ fi
 
 @
 @@
->
-
-
->> upload_output_files
->
-UPLOADER=${UPLOADER:-%(ARC_TOOLSDIR)s/uploader}
-if [ "$RESULT" = '0' ] ; then
-  $UPLOADER -p -c 'local' "$RUNTIME_CONTROL_DIR" "$RUNTIME_JOB_DIR" 2>>${RUNTIME_CONTROL_DIR}/job.local.errors
-  if [ $? -ne '0' ] ; then
-    echo 'ERROR: Uploader failed.' 1>&2
-    if [ "$RESULT" = '0' ] ; then 
-      RESULT=1 ; fi
-    fi
-  fi
-rm -f "${RUNTIME_CONTROL_DIR}/job.local.proxy"
 >
 
 

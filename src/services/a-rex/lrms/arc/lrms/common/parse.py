@@ -21,7 +21,6 @@ class RTE0EnvCreator(object):
         "RUNTIME_LOCAL_SCRATCH_DIR"  : "config.scratchdir",
         "joboption_directory"        : "config.sessiondir",
         "joboption_controldir"       : "config.controldir",
-        "joboption_localtransfer"    : "config.localtransfer",
         "joboption_arg_#"            : "Application.Executable",
         "joboption_env_#"            : "Application.Environment",
         "joboption_stdin"            : "Application.Input",
@@ -243,7 +242,6 @@ class JobDescriptionParserGRAMi(object):
                    "RUNTIME_LOCAL_SCRATCH_DIR"  : "none",
                    "joboption_directory"        : "OtherAttributes.joboption;directory",
                    "joboption_controldir"       : "OtherAttributes.joboption;controldir",
-                   "joboption_localtransfer"    : "OtherAttributes.joboption;localtransfer",
                    }
         j = arc.compute.JobDescription()
         try:

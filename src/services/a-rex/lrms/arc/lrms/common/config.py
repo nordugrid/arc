@@ -113,9 +113,6 @@ def set_gridmanager(cfg):
    Config.scratchdir = \
        str(cfg.get('grid-manager', 'scratchdir')).strip('"') \
        if cfg.has_option('grid-manager', 'scratchdir') else ''
-   Config.localtransfer = \
-       str(cfg.get('grid-manager', 'localtransfer')).strip('"') == 'yes' \
-       if cfg.has_option('grid-manager', 'localtransfer') else False
    Config.scanscriptlog = \
        str(cfg.get('grid-manager', 'logfile')).strip('"') \
        if cfg.has_option('grid-manager', 'logfile') \

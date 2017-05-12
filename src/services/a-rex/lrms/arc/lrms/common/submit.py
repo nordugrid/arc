@@ -114,13 +114,6 @@ def set_req_mem(jd):
            debug('         memory limit of 1GB will apply.', 'common.submit')
        debug('-'*69, 'common.submit')
 
-   if Config.localtransfer and jd.Resources.IndividualPhysicalMemory.max < 1000:
-       debug('-'*69, 'common.submit')
-       debug('WARNING: localtransfers are enabled and job has less than 1GB of', 'common.submit')
-       debug('         ram. up- and downloaders take up a lot of ram,', 'common.submit')
-       debug('         this can give you problems.', 'common.submit')
-       debug('-'*69, 'common.submit')
-
 
 def get_rte_path(sw):
     rte_path = None
@@ -290,12 +283,8 @@ class JobscriptAssembler(object):
 
           script  = self.get_stub('umask_and_sourcewithargs')
           script += self.get_stub('user_env')
-          if Config.localtransfer:
-               script += self.get_stub('local_transfer')
           script += self.get_stub('runtime_env')
           script += self.get_stub('move_files_to_node')
-          if Config.localtransfer:
-               script += self.get_stub('download_input_files')
           script += "\nRESULT=0\n\n"
           script += "if [ \"$RESULT\" = '0' ] ; then\n"
           script += self.get_stub('rte_stage1')
@@ -303,10 +292,7 @@ class JobscriptAssembler(object):
           script += self.get_stub('cd_and_run')
           script += "fi\nfi\n"
           script += self.get_stub('rte_stage2')
-          if Config.localtransfer:
-               script += self.get_stub('upload_output_files')
-          else:
-               script += self.get_stub('clean_scratchdir')
+          script += self.get_stub('clean_scratchdir')
           script += self.get_stub('move_files_to_frontend')
           return script
 
@@ -365,16 +351,12 @@ class JobscriptAssembler(object):
                'OPTS'                 : lambda item: ' '.join(['"' + opt.replace('"', '\\"') + '"' for opt in item.getOptions()]), # Macro
                'RTE_CONTENT'          : lambda item: get_rte_content(item), # Macro
                # To be setup in a later method
-               'RUNTIME_CONTROLDIR'   : '', # Setup later if localtransfer
-               'OUTPUT_LISTS'         : '', # Setup later if NOT localtransfer
-               'OUTPUT_FILES'         : '', # Setup later if NOT localtransfer
+               'OUTPUT_LISTS'         : '', # Setup later
+               'OUTPUT_FILES'         : '', # Setup later
                'ITEM'                 : lambda item: item # Generic macro
                }
 
-          if Config.localtransfer:
-               self._setup_local_transfer()
-          else:
-               self._setup_cleaning()
+          self._setup_cleaning()
           if not Config.shared_filesystem:
                self._setup_runtime_env()
           self._parse()
@@ -489,49 +471,6 @@ class JobscriptAssembler(object):
                     except KeyError as e:
                          raise ArcError('Unknown key %s at line %i in job_script.stubs.'
                                         % (str(e), num), 'common.submit.JobscriptAssembler')
-
-
-     def _setup_local_transfer(self):
-          """
-          Create runtime control directory and update job input and output files.
-          RUNTIME_CONTROLDIR is added to the string format map.
-          """
-
-          import tempfile, shutil
-          from os.path import join
-          # create runtime controldir
-          self['RUNTIME_CONTROLDIR'] = tempfile.mkdtemp(dir = self['SESSIONDIR'], prefix = 'control.')
-
-          ctrdir = Config.controldir
-          local_ctrdir = self['RUNTIME_CONTROLDIR']
-          gridid = self['GRIDID']
-
-          # securely copy proxy
-          with os.fdopen(os.open(join(local_ctrdir, 'job.local.proxy'),
-                                 os.O_WRONLY | os.O_CREAT, 0600), 'w') as local_proxy:
-               with open(join(ctrdir, 'job.%s.proxy' % gridid), 'r') as proxy:
-                    local_proxy.write(proxy.read())
-
-          # prepare input file
-          job_local_input = join(local_ctrdir, 'job.local.input')
-          shutil.copyfile(join(ctrdir, 'job.%s.input' % gridid), job_local_input)
-          with open(job_local_input, 'a') as local_input:
-               local_input.write(local_ctrdir + ' *.*\n')
-               local_input.write("%s *.*\n" % self['STDOUT'].lstrip(gridid))
-               local_input.write("%s *.*\n" % self['STDERR'].lstrip(gridid))
-
-          # add runtime controldir to output
-          job_output = join(ctrdir, 'job.%s.output' % gridid)
-          with open(job_output, 'a') as output:
-               output.write(local_ctrdir + '\n')
-          shutil.copyfile(job_output, join(local_ctrdir, 'job.local.output'))
-
-          # copy the local file to runtime control dir, else create it
-          try:
-               shutil.copyfile(join(ctrdir, 'job.%s.local' % gridid), join(local_ctrdir, 'job.local.local'))
-          except Exception as e:
-               with open(join(local_ctrdir, 'job.local.local'), 'w'):
-                    pass
 
 
      def _setup_cleaning(self):
