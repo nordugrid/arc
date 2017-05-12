@@ -1992,6 +1992,7 @@ bool JobsList::ExternalHelper::run(JobsList& jobs) {
   proc->AssignKicker(&ExternalHelperKicker, &jobs);
   if (proc->Start()) return true;
   delete proc;
+  proc = NULL;
   logger.msg(Arc::ERROR, "Helper process start failed: %s", command);
   // start failed, doing nothing - maybe in the future
   return false;
