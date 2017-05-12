@@ -109,10 +109,10 @@ namespace ARex {
     } else if(gm_state == "SUBMIT") {
       primary_state="processing-accepting";
     } else if(gm_state == "INLRMS") {
-      //primary_state="processing-queued"; TODO
-      primary_state="processing-running";
-      state_attributes.push_back("app-running"); // TODO
-      //state_attributes.push_back("batch-suspend"); TODO
+      // Reporting job state as not started executing yet.
+      // Because we have no more detailed information this
+      // is probably safest solution.
+      primary_state="processing-queued";
     } else if(gm_state == "FINISHING") {
       primary_state="postprocessing";
       state_attributes.push_back("client-stageout-possible");

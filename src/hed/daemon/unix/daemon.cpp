@@ -58,15 +58,15 @@ static void init_child(const std::string& log_file) {
 }
 
 static void init_parent(pid_t pid,const std::string& pid_file) {
-            if(!pid_file.empty()) {
-                /* write pid to pid file */
-                std::fstream pf(pid_file.c_str(), std::fstream::out);
-                pf << pid << std::endl;
-                pf.close();
-            }
+    if(!pid_file.empty()) {
+        /* write pid to pid file */
+        std::fstream pf(pid_file.c_str(), std::fstream::out);
+        pf << pid << std::endl;
+        pf.close();
+    }
 }
 
-Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool watchdog) : pid_file(pid_file_),log_file(log_file_),watchdog_pid(0)
+Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool watchdog, void (*watchdog_callback)(Daemon*)) : pid_file(pid_file_),log_file(log_file_),watchdog_pid(0),watchdog_cb(watchdog_callback)
 {
     pid_t pid = ::fork();
     switch(pid) {
@@ -108,6 +108,11 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                                 break;
                             }
                         }
+                        if(watchdog_cb) {
+                            // Refresh connection to log files
+                            logreopen();
+                            (*watchdog_cb)(this);
+                        }
                         /* check if child already exited */
                         if(rpid == pid) {
                             /* child exited */
@@ -128,21 +133,37 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                                 logger.msg(WARNING, "Watchdog exiting because application was purposely killed or exited itself");
                                 _exit(1);
                             }
+                        } else if((rpid < 0) && (errno == EINTR)) {
+                            // expected error - continue waiting
                         } else {
-                            logger.msg(ERROR, "Watchdog detected application timeout - killing process");
-                            /* watchdog timeouted - kill process */
+                            // Child not exited and watchdog timeouted or unexpected error - kill child process
+                            logger.msg(ERROR, "Watchdog detected application timeout or error - killing process");
                             // TODO: more sophisticated killing
                             //sighandler_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
                             sig_t old_sigterm = ::signal(SIGTERM,SIG_IGN);
                             int patience = 600; // how long can we wait? Maybe configure it.
                             ::kill(pid,SIGTERM);
-                            while(waitpid(pid,&status,WNOHANG) == 0) {
-                              if(patience-- < 0) break;
-                              sleep(1);
+                            while((rpid = ::waitpid(pid,&status,WNOHANG)) == 0) {
+                                if(patience-- < 0) break;
+                                sleep(1);
                             }
-                            ::kill(pid,SIGKILL);
-                            sleep(1);
-                            ::waitpid(pid,&status,0);
+                            if(rpid != pid) {
+                                logger.msg(WARNING, "Watchdog failed to wait till application exited - sending KILL");
+                                // kill hardly if not exited yet or error was detected
+                                ::kill(pid,SIGKILL);
+                                // clean zomby
+                                patience = 300; // 5 minutes should be enough
+                                while(patience > 0) {
+                                    --patience;
+                                    rpid = ::waitpid(pid,&status,WNOHANG);
+                                    if(rpid == pid) break;
+                                    sleep(1);
+                                }
+                                if(rpid != pid) {
+                                    logger.msg(WARNING, "Watchdog failed to kill application - giving up and exiting");
+                                    _exit(1);
+                                }
+                            }
                             ::signal(SIGTERM,old_sigterm);
                         }
                         break; // go in loop and do another fork

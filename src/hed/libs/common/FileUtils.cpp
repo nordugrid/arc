@@ -219,14 +219,13 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
 #else
   if(mode == 0) mode = S_IRUSR|S_IWUSR;
 #endif
-  char* tempfile = strdup(std::string(filename+".XXXXXX").c_str());
-  int h = ::mkstemp(tempfile);
-  if(h == -1) { free(tempfile); return false; }
-  if(!write_all(h,data.c_str(),data.length())) { ::close(h); free(tempfile); return false; }
+  std::string tempfile = filename+".XXXXXX";
+  int h = ::mkstemp(const_cast<char*>(tempfile.c_str()));
+  if(h == -1) return false;
+  if(!write_all(h,data.c_str(),data.length())) { ::close(h); return false; }
   ::close(h);
-  if(chmod(tempfile, mode) != 0) { unlink(tempfile); free(tempfile); return false; }
-  if(rename(tempfile, filename.c_str()) != 0) { unlink(tempfile); free(tempfile); return false; }
-  free(tempfile);
+  if(chmod(tempfile.c_str(), mode) != 0) { unlink(tempfile.c_str()); return false; }
+  if(rename(tempfile.c_str(), filename.c_str()) != 0) { unlink(tempfile.c_str()); return false; }
   return true;
 }
 

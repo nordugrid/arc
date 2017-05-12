@@ -61,6 +61,12 @@ static void sighup_handler(int) {
     errno = old_errno;
 }
 
+static void daemon_kick(Arc::Daemon*)
+{
+  // Reopen log file(s) which may have been archived by now.
+  sighup_handler(SIGHUP);
+}
+
 static void glib_exception_handler()
 {
   std::cerr << "Glib exception thrown" << std::endl;
@@ -380,7 +386,7 @@ int main(int argc, char **argv)
             std::string root_log_file = init_logger(config["Server"]["Logger"], is_true(config["Server"]["Foreground"]));
             // demonize if the foreground option was not set
             if (!is_true((config)["Server"]["Foreground"])) {
-                main_daemon = new Arc::Daemon(pid_file, root_log_file, is_true((config)["Server"]["Watchdog"]));
+                main_daemon = new Arc::Daemon(pid_file, root_log_file, is_true((config)["Server"]["Watchdog"]), &daemon_kick);
             }
             // set signal handlers
             signal(SIGTERM, sig_shutdown);

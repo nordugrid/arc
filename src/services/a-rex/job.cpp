@@ -454,6 +454,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
   job_.headnode = idgenerator.GetManager();
   job_.interface = idgenerator.GetInterface();
   std::string certificates;
+  job_.expiretime = time(NULL);
 #if 1
   // For compatibility reasons during transitional period store full proxy if possible
   if(!job_.delegationid.empty()) {
@@ -465,6 +466,13 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
       failure_="Failed to write job proxy file";
       failure_type_=ARexJobInternalError;
       return;
+    };
+    try {
+      Arc::Credential cred(certificates,"","","","",false);
+      job_.expiretime = cred.GetEndTime();
+      logger.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
+    } catch(std::exception const& e) {
+      logger.msg(Arc::WARNING, "Credential handling exception: %s", e.what());
     };
   } else
 #endif
@@ -482,6 +490,13 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
               failure_="Failed to write job proxy file";
               failure_type_=ARexJobInternalError;
               return;
+            };
+            try {
+              Arc::Credential cred(certificates,"","","","",false);
+              job_.expiretime = cred.GetEndTime();
+              logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
+            } catch(std::exception const& e) {
+              logger_.msg(Arc::WARNING, "Credential handling exception: %s", e.what());
             };
             break;
           };

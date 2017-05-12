@@ -9,7 +9,14 @@ namespace Arc {
 class Daemon {
   public:
     Daemon():watchdog_pid(0) {};
-    Daemon(const std::string &pid_file_, const std::string &log_file_, bool watchdog);
+    /**
+     Daemonize application and optionally start watchdog.
+     \param pid_file_ path to file to store PID of main process
+     \param log_file_ path to file to direct stdout/stderr of main process
+     \param watchdog if watchdog must be initialized
+     \param watchdog_callback callback to be called when watchdog detects main application failure
+    */
+    Daemon(const std::string &pid_file_, const std::string &log_file_, bool watchdog = false, void (*watchdog_callback)(Daemon*) = NULL);
     ~Daemon();
     void logreopen(void);
     void shutdown(void);
@@ -18,39 +25,7 @@ class Daemon {
     const std::string log_file;
     static Logger logger;
     unsigned int watchdog_pid;
-};
-
-class Watchdogs {
-  private:
-    class Channel {
-      public:
-        int timeout;
-        time_t next;
-    };
-    std::vector<int> timeouts_; 
-    Watchdogs(const Watchdogs&);
-  public:
-    Watchdogs() {};
-    ~Watchdogs() {};
-    /// Open watchdog channel with specified timeout in ms
-    int Open(int timeout);
-    /// Register one more handler of open channel.
-    /// This increases by one how many times Close() method need to be called.
-    void Dup(int channel);
-    /// Send "I'm alive" signal to watchdog
-    void Kick(int channel);
-    /// Close watchdog channel 
-    void Close(int channel);
-};
-
-class Watchdog {
-  private:
-    int id_;
-  public:
-    Watchdog();
-    Watchdog(const Watchdog& handle);
-    ~Watchdog();
-    void Kick(void);
+    void (*watchdog_cb)(Daemon*);
 };
 
 } // namespace Arc

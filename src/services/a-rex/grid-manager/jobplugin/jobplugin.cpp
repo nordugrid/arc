@@ -907,6 +907,14 @@ int JobPlugin::close(bool eof) {
         delete_job_id(); 
         return 1;
       };
+      job_desc.expiretime = time(NULL);
+      if(proxy_is_deleg) {
+        try {
+          Arc::Credential ci(proxy_data, "", config.CertDir(), "", "", false);
+          job_desc.expiretime = ci.GetEndTime();
+        } catch (std::exception&) {
+        };
+      };
 #endif
     };
   }
