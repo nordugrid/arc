@@ -430,8 +430,20 @@ namespace ARex {
   }
 
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id) {
-    std::list<std::pair<std::string,std::string> > ids;
-    return RemoveLock(lock_id,ids);
+    if(!valid_) return false;
+    Glib::Mutex::Lock lock(lock_);
+    // map lock to id,owner 
+    {
+      std::string sqlcmd = "DELETE FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      if(!dberr("removelock:del",sqlite3_exec_nobusy(db_, sqlcmd.c_str(), NULL, NULL, NULL))) {
+        return false;
+      };
+      if(sqlite3_changes(db_) < 1) {
+        error_str_ = "";
+        return false;
+      };
+    };
+    return true;
   }
 
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {

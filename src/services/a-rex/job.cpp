@@ -640,7 +640,11 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
     failure_type_=ARexJobInternalError;
     return;
   };
-  // Put lock on all delegated credentials of this job
+  // Put lock on all delegated credentials of this job.
+  // Because same delegation id can be used multiple times remove
+  // duplicates to avoid adding multiple identical locking records.
+  deleg_ids.sort();
+  deleg_ids.unique();
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
 logger_.msg(Arc::WARNING, "=== New job request for attention: %s", id_);

@@ -991,6 +991,8 @@ int JobPlugin::close(bool eof) {
   // Can do that after creating status file because delegations are 
   // fresh and hence won't be deleted while locking.
   if(!deleg_ids.empty()) {
+    deleg_ids.sort();
+    deleg_ids.unique();
     ARex::DelegationStore store(config.DelegationDir(),deleg_db_type,false);
     if(!store.LockCred(job_id,deleg_ids,subject)) {
       logger.msg(Arc::ERROR, "Failed to lock delegated credentials: %s", store.GetFailure());
