@@ -155,7 +155,7 @@
 %endif
 
 # LDNS
-%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
 %global with_ldns 1
 %else
 %global with_ldns 0
@@ -363,7 +363,7 @@ BuildRequires:	perl-Inline-Python
 BuildRequires:	sqlite-devel >= 3.6
 %endif
 %if %{with_ldns}
-BuildRequires:	ldns-devel
+BuildRequires:	ldns-devel >= 1.6.8
 %endif
 
 %description

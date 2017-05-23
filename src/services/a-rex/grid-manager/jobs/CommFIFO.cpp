@@ -23,8 +23,13 @@ static const std::string fifo_file("/gm.fifo");
 bool CommFIFO::make_pipe(void) {
   bool res = false;
   lock.lock();
+  if (kick_in != -1) {
+    close(kick_in); kick_in = -1;
+  };
+  if (kick_out != -1) {
+    close(kick_out); kick_out = -1;
+  };
   int filedes[2];
-  kick_in=-1; kick_out=-1;
   if(pipe(filedes) == 0) {
     kick_in=filedes[1];
     kick_out=filedes[0];
@@ -72,8 +77,8 @@ bool CommFIFO::wait(int timeout, std::string& event) {
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
     int maxfd=-1;
-    if(kick_out < 0) make_pipe(); // try to recover if had error previously
-    if(kick_out >= 0) { maxfd=kick_out; FD_SET(kick_out,&fin); };
+    if(kick_out == -1) make_pipe(); // try to recover if had error previously
+    if(kick_out != -1) { maxfd=kick_out; FD_SET(kick_out,&fin); };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) {
@@ -164,7 +169,6 @@ bool CommFIFO::wait(int timeout, std::string& event) {
             if((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
               break; // nothing to read more
             };
-            close(kick_in); close(kick_out);
             // Recover after error
             make_pipe();
           } else if(l == 0) {
@@ -215,11 +219,11 @@ CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
   if(result == add_success) {
     lock.lock();
     fds.push_back(el);
-    lock.unlock();
-    if(kick_in >= 0) {
+    if(kick_in != -1) {
       char c = '\0';
       write(kick_in,&c,1);
     };
+    lock.unlock();
   };
   return result;
 }

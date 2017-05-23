@@ -47,8 +47,6 @@ class MCC_TCP_Service: public MCC_TCP
             public:
                 MCC_TCP_Service* obj;
                 int handle;
-                /* pthread_t thread; */
-                int id;
                 bool no_delay;
                 int timeout;
                 mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t, bool nd = false);

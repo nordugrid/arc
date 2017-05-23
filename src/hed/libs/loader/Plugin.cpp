@@ -251,16 +251,20 @@ namespace Arc {
   }
 
 
+  // Look for apd file of specified name and extract plugin descriptor
   static ARCModuleDescriptor* probe_descriptor(std::string name,ModuleManager& manager) {
     std::string::size_type p = 0;
+    // Replace ':' symbol by safe '_'
     for(;;) {
       p=name.find(':',p);
       if(p == std::string::npos) break;
       name.replace(p,1,"_");
       ++p;
     };
+    // Find loadable library file by name
     std::string path = manager.find(name);
     if(path.empty()) return NULL;
+    // Check for presece of plugin descriptor in apd file
     replace_file_suffix(path,"apd");
     std::ifstream in(path.c_str());
     ARCModuleDescriptor* md = new ARCModuleDescriptor(in);
@@ -272,6 +276,7 @@ namespace Arc {
   }
 
 
+  // Try to find and load shared library file by name
   static Glib::Module* probe_module(std::string name,ModuleManager& manager) {
     std::string::size_type p = 0;
     for(;;) {
@@ -331,24 +336,35 @@ namespace Arc {
       PluginDescriptor* desc = (*d).first->desc_m;
       desc=find_constructor(desc,kind,min_version,max_version,1);
       if(!desc) continue;
+      // Suitable plugin descriptor is found ...
       if(arg) {
         arg->set_module((*d).second->module);
       };
       lock.release();
       Plugin* plugin = desc->instance(arg);
       if(plugin) return plugin;
+      // ... but plugin did not instantiate with specified argument
       lock.acquire();
     };
-    
+
+    // Either searching for plugin is enabled
     if(!search) return NULL;
+
+    // Looking for file and especially loading library may take
+    // long time. Especially if it involves network operations.
+    // So releasing lock. No opertions on modules_ are allowed
+    // till lock is re-acquired.
+    lock.release();
+
     // Try to load module of plugin
-    // Look for *.apd first
+    // Look for *.apd first by requested plugin kind
     std::string mname = kind;
     AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
     if(mdesc) {
       if(!mdesc->contains(kind)) return NULL;
     };
-    // Descriptor not found or indicates presence of requested kinds.
+    // Descriptor with suitable name not found.
+    // Check if allowed to load executables
     if(!try_load_) {
       logger.msg(ERROR, "Could not find loadable module descriptor by name %s",kind);
       return NULL;
@@ -369,20 +385,27 @@ namespace Arc {
     // Try to find plugin in new table
     PluginDescriptor* desc = (PluginDescriptor*)ptr;
     for(;;) {
+      // Look for plugin descriptor of suitable kind
       desc=find_constructor(desc,kind,min_version,max_version);
-      if(!desc) break;
+      if(!desc) break; // Out of descriptors
       if(arg) arg->set_module(module);
-      lock.release();
       Plugin* plugin = desc->instance(arg);
-      lock.acquire();
       if(plugin) {
-        // Keep plugin loaded and registered
+        // Plugin instantiated with specified argument.
+        // Keep plugin loaded and registered.
         Glib::Module* nmodule = reload_module(module,*this);
         if(!nmodule) {
           logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+          // clean up
+          delete plugin;
           unload_module(module,*this);
           return NULL;
         };
+        module = NULL; // initial handler is not valid anymore
+       
+        // Re-acqire lock before working with modules_
+        lock.acquire();
+        // Make descriptor and register it in the cache
         ModuleDesc mdesc_i;
         mdesc_i.name = mname;
         if(mdesc) mdesc->get(mdesc_i.plugins);
@@ -390,8 +413,10 @@ namespace Arc {
         modules_.add(&mdesc_i,nmodule,(PluginDescriptor*)ptr);
         return plugin;
       };
+      // Proceede to next descriptor
       ++desc;
     };
+    // Out of descriptors. Release module and exit.
     unload_module(module,*this);
     return NULL;
   }
@@ -422,6 +447,13 @@ namespace Arc {
     };
 
     if(!search) return NULL;
+
+    // Looking for file and especially loading library may take
+    // long time. Especially if it involves network operations.
+    // So releasing lock. No opertions on modules_ are allowed
+    // till lock is re-acquired.
+    lock.release();
+
     // Try to load module - first by name of plugin
     std::string mname = name;
     AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
@@ -471,6 +503,7 @@ namespace Arc {
         unload_module(module,*this);
         return NULL;
       };
+      lock.acquire();
       ModuleDesc mdesc_i;
       mdesc_i.name = mname;
       if(mdesc) mdesc->get(mdesc_i.plugins);
@@ -519,6 +552,9 @@ namespace Arc {
     Glib::Mutex::Lock lock(lock_);
     // Check if module already loaded
     modules_t_::miterator m = modules_.find(name);
+    // Releasing lock in order to avoid locking while loading new module.
+    // The iterator stays valid because modules are not unloaded from cache.
+    lock.release();
     AutoPointer<ARCModuleDescriptor> mdesc;
     if(m) {
       desc = m->second.get_table();
@@ -566,13 +602,15 @@ namespace Arc {
         return false;
       };
     };
-    if(!mname.empty()) {
+    if(!mname.empty()) { // this indicates new module is loaded
       Glib::Module* nmodule=reload_module(module,*this);
       if(!nmodule) {
         logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
+      // Re-acquire lock before registering new module in cache
+      lock.acquire();
       ModuleDesc mdesc_i;
       mdesc_i.name = mname;
       if(mdesc) mdesc->get(mdesc_i.plugins);

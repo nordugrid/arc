@@ -160,6 +160,8 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string& endpoint, int timeout,
 				                   Logger& logger) :
   logger(logger)
 {
+  handle_ = -1;
+  acquired_=false;
   std::string hostname = endpoint;
   std::string::size_type p = hostname.find(':');
   if(p == std::string::npos) return;

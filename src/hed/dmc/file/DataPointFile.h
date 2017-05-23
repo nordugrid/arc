@@ -40,7 +40,7 @@ namespace ArcDMCFile {
     virtual bool RequiresCredentials() const { return false; };
   private:
     SimpleCounter transfers_started;
-    unsigned int get_channel();
+    int open_channel();
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);
     void read_file();

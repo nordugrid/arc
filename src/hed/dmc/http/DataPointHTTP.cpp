@@ -502,9 +502,9 @@ using namespace Arc;
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
-      release_client(rurl,client.Release());
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
         if (inbuf) delete inbuf; inbuf = NULL;
+        release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
@@ -529,6 +529,7 @@ using namespace Arc;
       if(inbuf) {
         XMLNode multistatus(ContentFromPayload(*inbuf));
         delete inbuf; inbuf = NULL;
+        release_client(rurl,client.Release());
         if(multistatus.Name() == "multistatus") {
           XMLNode response = multistatus["response"];
           if((bool)response) {
@@ -538,6 +539,8 @@ using namespace Arc;
             }
           }
         }
+      } else {
+        release_client(rurl,client.Release());
       }
       return DataStatus(DataStatus::StatError,"Can't process WebDAV response");
     }
@@ -580,9 +583,9 @@ using namespace Arc;
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
-      release_client(rurl,client.Release());
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
         if (inbuf) delete inbuf; inbuf = NULL;
+        release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
@@ -607,6 +610,7 @@ using namespace Arc;
       if(inbuf) {
         XMLNode multistatus(ContentFromPayload(*inbuf));
         delete inbuf; inbuf = NULL;
+        release_client(rurl,client.Release());
         if(multistatus.Name() == "multistatus") {
           XMLNode response = multistatus["response"];
           for(;(bool)response;++response) {
@@ -631,6 +635,8 @@ using namespace Arc;
           }
           return DataStatus::Success;
         }
+      } else {
+        release_client(rurl,client.Release());
       }
       return DataStatus(DataStatus::StatError,"Can't process WebDAV response");
     }

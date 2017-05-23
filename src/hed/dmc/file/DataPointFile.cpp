@@ -75,7 +75,7 @@ namespace ArcDMCFile {
     return new DataPointFile(*dmcarg, *dmcarg, dmcarg);
   }
 
-  unsigned int DataPointFile::get_channel() {
+  int DataPointFile::open_channel() {
     // map known channels to strings
     if (!stringto(url.Path().substr(1, url.Path().length()-1), channel_num)) {
       // requested channel is not a number
@@ -88,7 +88,7 @@ namespace ArcDMCFile {
         return fd;
       }
     }
-    fd = dup(channel_num);
+    int fd = dup(channel_num);
     if (fd == -1) {
       if (channel_num < 3) logger.msg(ERROR, "Failed to open stdio channel %s", stdfds[channel_num]);
       else logger.msg(ERROR, "Failed to open stdio channel %d", channel_num);
@@ -108,7 +108,7 @@ namespace ArcDMCFile {
     if (range_end > range_start) {
       range_length = range_end - range_start;
       limit_length = true;
-      if(fd != -1) lseek(fd, range_start, SEEK_SET);
+      if(fd != -1) ::lseek(fd, range_start, SEEK_SET);
       if(fa) fa->fa_lseek(range_start, SEEK_SET);
       offset = range_start;
       if(offset > 0) {
@@ -140,9 +140,9 @@ namespace ArcDMCFile {
       unsigned long long int p = (unsigned long long int)(-1);
       int ll = -1;
       if(fd != -1) {
-        p = lseek(fd, 0, SEEK_CUR);
+        p = ::lseek(fd, 0, SEEK_CUR);
         if (p == (unsigned long long int)(-1)) p = offset;
-        ll = read(fd, (*(buffer))[h], l);
+        ll = ::read(fd, (*(buffer))[h], l);
       }
       if(fa) {
         if(fa) p = fa->fa_lseek(0, SEEK_CUR);
@@ -405,13 +405,18 @@ namespace ArcDMCFile {
   DataStatus DataPointFile::Stat(FileInfo& file, DataPointInfoType verb) {
 
     if(is_channel) {
-      fd = get_channel();
+      int fd = open_channel();
       if (fd == -1){
         logger.msg(VERBOSE, "Can't stat stdio channel %s", url.str());
         return DataStatus(DataStatus::StatError, EBADF, "Can't stat channel");
       }
       struct stat st;
-      fstat(fd, &st);
+      if(::fstat(fd, &st) != 0) {
+        ::close(fd);
+        logger.msg(VERBOSE, "Can't stat stdio channel %s", url.str());
+        return DataStatus(DataStatus::StatError, EBADF, "Can't stat channel");
+      }
+      ::close(fd);
       if (channel_num < 3) file.SetName(stdfds[channel_num]);
       else file.SetName(tostring(channel_num));
       file.SetType(FileInfo::file_type_file);
@@ -538,7 +543,7 @@ namespace ArcDMCFile {
 
     if (is_channel){
       fa = NULL;
-      fd = get_channel();
+      fd = open_channel();
       if (fd == -1) {
         reading = false;
         return DataStatus(DataStatus::ReadStartError, EBADF, "Channel number is not defined");
@@ -582,7 +587,7 @@ namespace ArcDMCFile {
     buffer = &buf;
     /* create thread to maintain reading */
     if(!CreateThreadFunction(&DataPointFile::read_file_start,this,&transfers_started)) {
-      if(fd != -1) close(fd);
+      if(fd != -1) ::close(fd);
       if(fa) { fa->fa_close(); delete fa; }
       fd = -1; fa = NULL;
       logger.msg(VERBOSE, "Failed to create thread");
@@ -597,7 +602,7 @@ namespace ArcDMCFile {
     reading = false;
     if (!buffer->eof_read()) {
       buffer->error_read(true);      /* trigger transfer error */
-      if(fd != -1) close(fd);
+      if(fd != -1) ::close(fd);
       if(fa) fa->fa_close(); // protect?
       fd = -1;
     }
@@ -652,7 +657,7 @@ namespace ArcDMCFile {
     /* try to open */
     buffer = &buf;
     if (is_channel) {
-      fd = get_channel();
+      fd = open_channel();
       if (fd == -1) {
         buffer->error_write(true);
         buffer->eof_write(true);

@@ -259,7 +259,7 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
         ::close(i->handle); i->handle=-1;
     };
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
-        ::close(e->handle); e->handle=-1;
+        ::shutdown(e->handle,2);
     };
     if(!valid_) {
         for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) { };
@@ -278,9 +278,7 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
 }
 
 MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t,bool nd):obj(o),handle(h),no_delay(nd),timeout(t) {
-    static int local_id = 0;
     if(handle == -1) return;
-    id=local_id++;
     // list is locked externally
     std::list<mcc_tcp_exec_t>::iterator e = o->executers_.insert(o->executers_.end(),*this);
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
@@ -344,20 +342,21 @@ void MCC_TCP_Service::listener(void* arg) {
                     bool first_time = true;
                     while((it.max_executers_ > 0) &&
                           (it.executers_.size() >= (size_t) it.max_executers_)) {
-                      if(it.max_executers_drop_) {
-                        logger.msg(WARNING, "Too many connections - dropping new one");
-                        ::shutdown(s,2);
-                        ::close(s);
-                        rejected = true;
-                        break;
-                      } else {
-                        if(first_time)
-                          logger.msg(WARNING, "Too many connections - waiting for old to close");
-                        Glib::TimeVal etime;
-                        etime.assign_current_time();
-                        etime.add_milliseconds(10000); // 10 s
-                        it.cond_.timed_wait(it.lock_,etime);
-                      };
+                        if(it.max_executers_drop_) {
+                            logger.msg(WARNING, "Too many connections - dropping new one");
+                            ::shutdown(h,2);
+                            ::close(h);
+                            rejected = true;
+                            break;
+                        } else {
+                            if(first_time)
+                                logger.msg(WARNING, "Too many connections - waiting for old to close");
+                            Glib::TimeVal etime;
+                            etime.assign_current_time();
+                            etime.add_milliseconds(10000); // 10 s
+                            it.cond_.timed_wait(it.lock_,etime);
+                            first_time = false;
+                        };
                     };
                     if(!rejected) {
                       mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
@@ -519,7 +518,6 @@ static bool get_host_port(struct sockaddr_storage *addr, std::string &host, std:
 void MCC_TCP_Service::executer(void* arg) {
     MCC_TCP_Service& it = *(((mcc_tcp_exec_t*)arg)->obj);
     int s = ((mcc_tcp_exec_t*)arg)->handle;
-    int id = ((mcc_tcp_exec_t*)arg)->id;
     int no_delay = ((mcc_tcp_exec_t*)arg)->no_delay;
     int timeout = ((mcc_tcp_exec_t*)arg)->timeout;
     std::string host_attr,port_attr;
@@ -610,8 +608,10 @@ void MCC_TCP_Service::executer(void* arg) {
     };
     it.lock_.lock();
     for(std::list<mcc_tcp_exec_t>::iterator e = it.executers_.begin();e != it.executers_.end();++e) {
-        if(id == e->id) {
-            s=e->handle;
+        if((mcc_tcp_exec_t*)arg == &(*e)) {
+            logger.msg(VERBOSE, "TCP executor is removed");
+            if(s != e->handle)
+              logger.msg(ERROR, "Sockets do not match on exit %i != %i",s,e->handle);
             it.executers_.erase(e);
             break;
         };

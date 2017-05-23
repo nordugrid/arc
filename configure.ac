@@ -1046,29 +1046,36 @@ fi
 
 # check ldns library
 if test "$enables_compute_client" = "yes"; then
-AC_ARG_ENABLE(ldns, AC_HELP_STRING([--disable-ldns], [disable ldns library usage (makes ARCHERY client unavailable) ]),[enables_ldns=$enableval],[])
-if test "$enables_ldns" = "yes"; then
-  PKG_CHECK_MODULES(LDNS, [ldns],[],
-    [AC_PATH_PROG(LDNS_CONFIG, ldns-config, no)
-    if test "x$LDNS_CONFIG" = "xno"; then
-      #TODO: check if we need AC_CHECK_HEADER/AC_CHECK_LIB manual way here for some builds
-      AC_MSG_WARN([ldns-config not found - compute clients will be built without ARCHERY support])
-      LDNS_CFLAGS=
-      LDNS_LIBS=
-      enables_ldns="no"
-    else
-      LDNS_CFLAGS="`$LDNS_CONFIG --cflags`"
-      LDNS_LIBS="`$LDNS_CONFIG --libs`"
-    fi
+  AC_ARG_ENABLE(ldns, AC_HELP_STRING([--disable-ldns], [disable ldns library usage (makes ARCHERY client unavailable) ]),[enables_ldns=$enableval],[])
+  if test "$enables_ldns" = "yes"; then
+    PKG_CHECK_MODULES(LDNS, [ldns],[],
+      [AC_PATH_PROG(LDNS_CONFIG, ldns-config, no)
+      if test "x$LDNS_CONFIG" = "xno"; then
+        AC_CHECK_HEADER([ldns/ldns.h],
+          [AC_CHECK_LIB([ldns], [ldns_dname_new_frm_str],
+            [
+              LDNS_CFLAGS="$LDNS_CFLAGS"
+              LDNS_LIBS="$LDNS_LIBS -lldns"
+            ],
+          [enables_ldns="no"])
+        ],[enables_ldns="no"])
+      else
+        LDNS_CFLAGS="`$LDNS_CONFIG --cflags`"
+        LDNS_LIBS="`$LDNS_CONFIG --libs`"
+      fi
     ])
-fi
-AC_SUBST(LDNS_CFLAGS)
-AC_SUBST(LDNS_LIBS)
+    if test "$enables_ldns" = "no"; then
+      AC_MSG_WARN([ldns library was not found. Compute clients will be built without ARCHERY support.])
+    fi
+  fi
 else
   enables_ldns="no"
 fi
 if test "x$enables_ldns" = "xyes" ; then
   AC_DEFINE(HAVE_LDNS,,[define if LDNS is enabled and available])
+else
+  LDNS_CFLAGS=
+  LDNS_LIBS=
 fi
 AC_SUBST(LDNS_CFLAGS)
 AC_SUBST(LDNS_LIBS)

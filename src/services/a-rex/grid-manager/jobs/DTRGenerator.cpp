@@ -1216,7 +1216,7 @@ int DTRGenerator::user_file_exists(FileData &dt,
       if (l == 0) break;
       crc.add(buffer, l);
     }
-    close(h);
+    if (h != -1) close(h);
     if (fa) fa->fa_close();
     delete fa;
     crc.end();
