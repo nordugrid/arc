@@ -186,7 +186,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   };
   ~PrefixedFilePayload(void) {
     if(addr_) ::munmap(addr_,length_);
-    ::close(handle_);
+    if(handle_ != -1) ::close(handle_);
   };
   virtual char operator[](Size_t pos) const {
     char* p = ((PrefixedFilePayload*)this)->Content(pos);

@@ -767,29 +767,6 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   return true;
 }
 
-/*
-bool ARexJob::make_job_id(const std::string &id) {
-  if((id.find('/') != std::string::npos) || (id.find('\n') != std::string::npos)) {
-    olog<<"ID contains forbidden characters"<<std::endl;
-    return false;
-  };
-  if((id == "new") || (id == "info")) return false;
-  // claim id by creating empty description file
-  std::string fname=user->ControlDir()+"/job."+id+".description";
-  struct stat st;
-  if(stat(fname.c_str(),&st) == 0) return false;
-  int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
-  // So far assume control directory is on local fs.
-  // TODO: add locks or links for NFS
-  if(h == -1) return false;
-  fix_file_owner(fname,*user);
-  close(h);
-  delete_job_id();
-  job_id=id;
-  return true;
-}
-*/
-
 bool ARexJob::make_job_id(void) {
   if(!config_) return false;
   int i;

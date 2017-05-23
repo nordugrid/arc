@@ -656,6 +656,12 @@ namespace Arc {
      */
     virtual void SetMeta(const DataPoint& p);
 
+    /// Reset meta information to default (undefined) values.
+    /**
+     * \param p object from which information is taken.
+     */
+    virtual void ResetMeta();
+
     /// Compare meta information from another object.
     /**
      * Undefined values are not used for comparison.

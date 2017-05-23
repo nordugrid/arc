@@ -218,6 +218,13 @@ namespace Arc {
       SetValid(p.GetValid());
   }
 
+  void DataPoint::ResetMeta() {
+    size = (unsigned long long int)(-1);
+    checksum.clear();
+    modified = -1;
+    valid = -1;
+  }
+
   bool DataPoint::CompareMeta(const DataPoint& p) const {
     if (CheckSize() && p.CheckSize())
       if (GetSize() != p.GetSize())

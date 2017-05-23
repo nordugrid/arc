@@ -357,7 +357,8 @@ BuildRequires:	libtool-ltdl-devel
 BuildRequires:	libtool
 %endif
 %if %{with_pythonlrms}
-BuildRequires:	perl-Inline-Python
+BuildRequires:	perl(Inline)
+BuildRequires:	perl(Inline::Python)
 %endif
 %if %{with_sqlite}
 BuildRequires:	sqlite-devel >= 3.6
@@ -638,7 +639,7 @@ Requires:	stomppy
 %endif
 Requires:	python-ldap
 Requires:	python-dirq
-Requires:	%{name}-aris = %{version}-%{release}
+Requires:	%{name}-ldap-infosys = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}

@@ -471,7 +471,7 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       delete nextoutmsg.Payload();
       nextoutmsg.Payload(NULL);
    };
-   if(!ret) return MCC_Status();
+   if(!ret) return ret;
    // For nextoutmsg, nothing to do for payload of msg, but
    // transfer some attributes of msg
    outmsg = nextoutmsg;

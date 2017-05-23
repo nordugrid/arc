@@ -4,6 +4,7 @@
 
 // MCC_Status.cpp
 
+#include <arc/StringConv.h>
 #include <arc/message/MCC_Status.h>
 
 namespace Arc {
@@ -23,8 +24,10 @@ namespace Arc {
       return "UNKNOWN_SERVICE_ERROR";
     else if(kind==BUSY_ERROR)
       return "BUSY_ERROR";
+    else if(kind==SESSION_CLOSE)
+      return "SESSION_CLOSE";
     else  // There should be no other alternative!
-      return "";
+      return tostring((unsigned int)kind);
   }
 
   MCC_Status::MCC_Status(StatusKind kind,

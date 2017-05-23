@@ -1464,6 +1464,7 @@ using namespace Arc;
     if(url.Port() != this->url.Port()) return false;
     this->url = url;
     if(triesleft < 1) triesleft = 1;
+    ResetMeta();
     return true;
   }
 

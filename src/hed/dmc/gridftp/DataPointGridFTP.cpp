@@ -1329,6 +1329,7 @@ namespace ArcDMCGridFTP {
     // Globus FTP handle allows changing url completely
     url = u;
     if(triesleft < 1) triesleft = 1;
+    ResetMeta();
     // Cache control connection
     globus_ftp_client_handle_cache_url_state(&ftp_handle, url.plainstr().c_str());
     return true;

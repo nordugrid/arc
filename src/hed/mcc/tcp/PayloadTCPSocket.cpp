@@ -177,9 +177,9 @@ PayloadTCPSocket::~PayloadTCPSocket(void) {
 }
 
 bool PayloadTCPSocket::Get(char* buf,int& size) {
-  if(handle_ == -1) return false;
   ssize_t l = size;
   size=0;
+  if(handle_ == -1) return false;
   int flags = 0;
 #ifndef WIN32
   unsigned int events = POLLIN | POLLPRI | POLLERR;

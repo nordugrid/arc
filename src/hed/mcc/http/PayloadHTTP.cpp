@@ -750,9 +750,9 @@ bool PayloadHTTPIn::Sync(void) {
     char buf[1024];
     int size = sizeof(buf);
     bool r = Get(buf,size);
-    if(body_read_) return true;
     if(!r) break;
   };
+  if(body_read_) return true;
   return false;
 }
 
