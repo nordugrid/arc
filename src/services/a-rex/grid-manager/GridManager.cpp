@@ -91,7 +91,7 @@ static void cache_func(void* arg) {
   for(;;) {
 
     int h = open(logfile.c_str(), O_WRONLY | O_APPEND);
-    if (h < 0) {
+    if (h == -1) {
       std::string dirname(logfile.substr(0, logfile.rfind('/')));
       if (!dirname.empty() && !Arc::DirCreate(dirname, S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
         logger.msg(Arc::WARNING, "Cannot create directories for log file %s."
@@ -99,7 +99,7 @@ static void cache_func(void* arg) {
       }
       else {
         h = open(logfile.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-        if (h < 0) {
+        if (h == -1) {
           logger.msg(Arc::WARNING, "Cannot open cache log file %s: %s. Cache cleaning"
               " messages will be logged to this log", logfile, Arc::StrError(errno));
         }
@@ -108,7 +108,7 @@ static void cache_func(void* arg) {
 
     logger.msg(Arc::DEBUG, "Running command %s", cmd);
     int result = RunRedirected::run(Arc::User(), "cache-clean", -1, h, h, cmd.c_str(), clean_timeout);
-    close(h);
+    if(h != -1) close(h);
     if (result != 0) {
       if (result == -1) logger.msg(Arc::ERROR, "Failed to start cache clean script");
       else logger.msg(Arc::ERROR, "Cache cleaning script failed");
@@ -196,7 +196,7 @@ logger.msg(Arc::WARNING, "==== External request for attention %s", event);
 void touch_heartbeat(const std::string& dir, const std::string& file) {
   std::string gm_heartbeat(dir + "/" + file);
   int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
-  if (r < 0) {
+  if (r == -1) {
     logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
   } else {
     ::close(r); r = -1;

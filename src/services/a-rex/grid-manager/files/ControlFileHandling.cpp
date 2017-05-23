@@ -320,7 +320,8 @@ bool job_mark_add(const std::string &fname,const std::string &content) {
 
 bool job_mark_put(const std::string &fname) {
   int h=open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
-  if(h==-1) return false; close(h); return true;
+  if(h==-1) return false;
+  close(h); return true;
 }
 
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname) {

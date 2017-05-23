@@ -68,7 +68,7 @@ PayloadFile::~PayloadFile(void) {
   if(addr_ != NULL) munmap(addr_,size_);
 #endif
 
-  ::close(handle_);
+  if(handle_ != -1) ::close(handle_);
   handle_=-1; size_=0; addr_=NULL;
   return;
 }

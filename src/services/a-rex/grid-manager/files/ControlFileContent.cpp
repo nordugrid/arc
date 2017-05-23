@@ -741,7 +741,6 @@ bool JobLocalDescription::read_var(const std::string &fname,const std::string &v
     if(buf.empty()) continue;
     if(name == vnam) { value = buf; found=true; break; };
   };
-  close(f);
   return found;
 }
 

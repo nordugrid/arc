@@ -74,7 +74,10 @@ bool FileCopy(const std::string& source_path,const std::string& destination_path
   struct stat st;
   int source_handle = ::open(source_path.c_str(),O_RDONLY,0);
   if(source_handle == -1) return false;
-  if(::fstat(source_handle,&st) != 0) return false;
+  if(::fstat(source_handle,&st) != 0) {
+    ::close(source_handle);
+    return false;
+  }
   int destination_handle = ::open(destination_path.c_str(),O_WRONLY | O_CREAT | O_TRUNC,st.st_mode);
   if(destination_handle == -1) {
     ::close(source_handle);
