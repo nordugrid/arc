@@ -72,7 +72,6 @@ class ModuleManager
           Glib::Module* module;
           int count;
           int usage_count;
-          std::string path;
           void check_unload(ModuleManager* manager);
          public:
           LoadableModuleDescription(void);
@@ -83,6 +82,7 @@ class ModuleManager
           operator bool(void) { return (module != NULL); };
           bool operator!(void) { return (module == NULL); };
           bool operator==(Glib::Module* m) { return (module==m); };
+          void shift(Glib::Module* source, LoadableModuleDescription& target);
           int load(void);
           int unload(ModuleManager* manager);
           int use(void) { ++usage_count; return usage_count; };
@@ -97,19 +97,19 @@ class ModuleManager
         friend class LoadableModuleDescription;
 
         typedef std::map<std::string, LoadableModuleDescription> plugin_cache_t;
+        typedef std::list<LoadableModuleDescription> plugin_trash_t;
 
         Glib::Mutex mlock;
         static Logger logger;
         std::list<std::string> plugin_dir; /** collection of path to directory for modules */
         plugin_cache_t plugin_cache; /** Cache of handles of loaded modules */
+        plugin_trash_t plugin_trash; /** Trash bin of reloaded modules */
         ModuleManager(const ModuleManager&) {};
         ModuleManager& operator=(const ModuleManager&) { return *this; };
     protected:
         /** Unload module by its identifier.
            Decreases load counter and unloads module when it reaches 0. */
         void unload(Glib::Module* module);
-        /** Unload module by its name */
-        void unload(const std::string& name);
     public:
         /** Constructor.
            It is supposed to process correponding configuration subtree

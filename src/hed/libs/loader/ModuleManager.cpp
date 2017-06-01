@@ -47,15 +47,23 @@ ModuleManager::~ModuleManager(void)
   for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
     while(i->second.unload(this) > 0) { };
     if(i->second) {
-      // module is on unloaded only if it is in use according to usage counter
+      // module is not unloaded only if it is in use according to usage counter
       ++i;
     } else {
       plugin_cache.erase(i);
       i = plugin_cache.begin(); // for map erase does not return iterator
     }
   }
+  for(plugin_trash_t::iterator i = plugin_trash.begin(); i != plugin_trash.end();) {
+    while(i->unload(this) > 0) { };
+    if(*i) {
+      ++i;
+    } else {
+      i = plugin_trash.erase(i);
+    }
+  }
   // exit only when all plugins unloaded
-  if(plugin_cache.empty()) return;
+  if(plugin_cache.empty() && plugin_trash.empty()) return;
   // otherwise wait for plugins to be released
   logger.msg(WARNING, "Busy plugins found while unloading Module Manager. Waiting for them to be released.");
   for(;;) {
@@ -74,7 +82,15 @@ ModuleManager::~ModuleManager(void)
         i = plugin_cache.begin(); // for map erase does not return iterator
       }
     }
-    if(plugin_cache.empty()) return;
+    for(plugin_trash_t::iterator i = plugin_trash.begin(); i != plugin_trash.end();) {
+      while(i->unload(this) > 0) { };
+      if(*i) {
+        ++i;
+      } else {
+        i = plugin_trash.erase(i);
+      }
+    }
+    if(plugin_cache.empty() && plugin_trash.empty()) return;
   };
 }
 
@@ -105,21 +121,24 @@ void ModuleManager::unload(Glib::Module *module)
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
       p->second.unload(this);
-      if(!(p->second)) plugin_cache.erase(p);
-      break;
+      if(!(p->second)) {
+        plugin_cache.erase(p);
+      }
+      return;
+    }
+  }
+  for(plugin_trash_t::iterator p = plugin_trash.begin();
+                               p!=plugin_trash.end();++p) {
+    if(*p == module) {
+      p->unload(NULL); // Do not call destructor for trashed module
+      if(!(*p)) {
+        plugin_trash.erase(p);
+      }
+      return;
     }
   }
 }
 
-void ModuleManager::unload(const std::string& name)
-{
-  Glib::Mutex::Lock lock(mlock);
-  plugin_cache_t::iterator p = plugin_cache.find(name);
-  if (p != plugin_cache.end()) {
-    p->second.unload(this);
-    if(!(p->second)) plugin_cache.erase(p);
-  }
-}
 
 void ModuleManager::use(Glib::Module *module)
 {
@@ -128,7 +147,14 @@ void ModuleManager::use(Glib::Module *module)
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
       p->second.use();
-      break;
+      return;
+    }
+  }
+  for(plugin_trash_t::iterator p = plugin_trash.begin();
+                               p!=plugin_trash.end();++p) {
+    if(*p == module) {
+      p->use();
+      return;
     }
   }
 }
@@ -140,8 +166,20 @@ void ModuleManager::unuse(Glib::Module *module)
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
       p->second.unuse();
-      if(!(p->second)) plugin_cache.erase(p);
-      break;
+      if(!(p->second)) {
+        plugin_cache.erase(p);
+      }
+      return;
+    }
+  }
+  for(plugin_trash_t::iterator p = plugin_trash.begin();
+                               p!=plugin_trash.end();++p) {
+    if(*p == module) {
+      p->unuse();
+      if(!(*p)) {
+        plugin_trash.erase(p);
+      }
+      return;
     }
   }
 }
@@ -208,6 +246,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
     if(p->second == omodule) break;
   }
   if(p==plugin_cache.end()) return NULL;
+  // TODO: avoid reloading modules which are already properly loaded
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
   //flags|=Glib::MODULE_BIND_LOCAL;
   Glib::Module *module = new Glib::Module(omodule->get_name(),flags);
@@ -216,8 +255,14 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
     if(module) delete module;
     return NULL;
   }
-  p->second=module;
-  delete omodule;
+  // Move existing module into trash list for later removal and
+  // store handle in current entry.
+  // Trashed module keeps load counter. But usage counter stays in cached entry.
+  LoadableModuleDescription trashed;
+  p->second.shift(module, trashed);
+  if (trashed) {
+    plugin_trash.push_back(trashed);
+  }
   return module;
 }
 
@@ -325,6 +370,15 @@ int ModuleManager::LoadableModuleDescription::unload(ModuleManager* manager) {
   if(count > 0) --count;
   check_unload(manager);
   return count;
+}
+
+void ModuleManager::LoadableModuleDescription::shift(Glib::Module* source, LoadableModuleDescription& target) {
+  target.module = module;
+  target.count = count;
+  module = source;
+  count = 0;  
+  load(); // accepting new module handler
+  target.unload(NULL); // removing reference taken by new module
 }
 
 } // namespace Arc
