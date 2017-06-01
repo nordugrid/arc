@@ -1,3 +1,34 @@
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Fix for multiple file transfers cross-affecting transferred sizes
+    Revs: {32506}
+    Type: bugfix
+
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * File handles leaks and improper usage fixes
+    Revs: {32468,32469,3247132472,32473,32474,32507}
+    Type: bugfix
+
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Loadable modules loading speed-up and possible botleneck removal
+    Revs: {32455,32578}
+    Type: bugfix
+
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Replacing unreliable Glib sprocess spawning with pure fork
+    Revs: {32410,32441}
+    Type: bugfix
+
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * SQLite delegation storage speed-up
+    Revs: {32400,32401}
+    Type: bugfix
+
+2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
+  * Numerous memory leaks and corruptions fixed.
+    Revs: {32357,32358,32359,32360,32363,32364,32365,32366,32367,32368,32370,32372,32372,32373,32374,32395,32469,32462}
+    Type: bugfix
+
+
 2017-05-12 Andrii Salnikov <manf@grid.org.ua>
   * ARCHERY client implementation
     Type: new feature
