@@ -90,7 +90,7 @@ void DTRGenerator::thread() {
     Arc::Time limit(Arc::Time() + Arc::Period(30));
 
     // sort the list by job priority
-    jobs_received.Sort(compare_job_description);
+    //jobs_received.Sort(compare_job_description);
     while (Arc::Time() < limit) {
       GMJobRef job = jobs_received.Pop();
       if(!job) break;
@@ -232,7 +232,7 @@ void DTRGenerator::receiveJob(GMJobRef& job) {
   // Add to jobs list even if Generator is stopped, so that A-REX doesn't
   // think that staging has finished.
   event_lock.lock();
-  jobs_received.Push(job);
+  jobs_received.PushSorted(job, compare_job_description);
   event_lock.signal_nonblock();
   event_lock.unlock();
 }

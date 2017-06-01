@@ -95,7 +95,7 @@ class GMJob {
 
   /// Queue to which job is currently associated
   GMJobQueue* queue;
-  std::list<GMJobRef>::iterator queuePos;
+  //std::list<GMJobRef>::iterator queuePos;
 
 
  public:
@@ -221,12 +221,14 @@ class GMJobQueue {
   GMJobQueue(GMJobQueue const& it);
  public:
   GMJobQueue(int priority);
+  typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);
   bool Push(GMJobRef& ref);
+  bool PushSorted(GMJobRef& ref, comparator_t compare);
   GMJobRef Pop();
   bool Unpop(GMJobRef& ref);
   bool Erase(GMJobRef& ref);
   bool Exists(const GMJobRef& ref) const;
-  void Sort(bool (*compare)(GMJobRef const& first, GMJobRef const& second));
+  void Sort(comparator_t compare);
   template<typename KEY> bool Erase(KEY const& key) {
     Glib::RecMutex::Lock lock(lock_);
     for(std::list<GMJob*>::iterator i = queue_.begin();

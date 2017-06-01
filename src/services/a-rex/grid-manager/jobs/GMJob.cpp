@@ -230,6 +230,34 @@ bool GMJobQueue::Push(GMJobRef& ref) {
   return false;
 }
 
+bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
+  if(ref) {
+    if(ref->SwitchQueue(this)) {
+      // Most of the cases job lands last in list
+      std::list<GMJob*>::reverse_iterator opos = queue_.rbegin();
+      while(opos != queue_.rend()) {
+        if(ref == GMJobRef(*opos)) {
+          // Can it be moved ?
+          std::list<GMJob*>::reverse_iterator npos = opos;
+          std::list<GMJob*>::reverse_iterator rpos = npos;
+          ++npos;
+          while(npos != queue_.rend()) {
+            if(!compare(ref, *npos)) break;
+            rpos = npos;
+            ++npos;
+          };
+          queue_.insert(rpos.base(),*opos);
+          queue_.erase(opos.base());
+          break;
+        };
+        ++opos;
+      };
+      return true;
+    };
+  };
+  return false;
+}
+
 GMJobRef GMJobQueue::Pop() {
   Glib::RecMutex::Lock qlock(lock_);
   if(queue_.empty()) return GMJobRef();
@@ -261,7 +289,7 @@ bool GMJobQueue::Exists(const GMJobRef& ref) const {
   return (ref->queue == this);
 }
 
-void GMJobQueue::Sort(bool (*compare)(GMJobRef const& first, GMJobRef const& second)) {
+void GMJobQueue::Sort(comparator_t compare) {
   queue_.sort(compare);
 }
 
