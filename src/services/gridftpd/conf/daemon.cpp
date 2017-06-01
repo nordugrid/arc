@@ -267,7 +267,7 @@ namespace gridftpd {
     };
     if(close_fds) {
       struct rlimit lim;
-      int max_files;
+      unsigned long long int max_files;
       if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; }
       else { max_files=4096; };
       if(max_files == RLIM_INFINITY) max_files=4096;

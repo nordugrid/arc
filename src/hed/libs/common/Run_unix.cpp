@@ -505,7 +505,7 @@ namespace Arc {
           }
 
           // close all handles inherited from parent
-          int max_files = RLIM_INFINITY;
+          uint64_t max_files = RLIM_INFINITY;
           struct rlimit lim;
           if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
           if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 

@@ -197,7 +197,6 @@ static std::string digest_password(const std::string& nonce, const std::string& 
   std::string ret;
   mdctx = EVP_MD_CTX_new();
   if(mdctx) {
-    EVP_MD_CTX_init(mdctx);
     EVP_DigestInit_ex(mdctx, EVP_sha1(), NULL);
     EVP_DigestUpdate(mdctx, todigest.c_str(), todigest.length());
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
@@ -221,7 +220,6 @@ static std::string generate_derivedkey(const std::string& password, const std::s
 
   mdctx = EVP_MD_CTX_new();
   if(mdctx) {
-    EVP_MD_CTX_init(mdctx);
     for(i = 0; i< iteration; i++) {
       EVP_DigestInit_ex(mdctx, EVP_sha1(), NULL);
       EVP_DigestUpdate(mdctx, todigest.c_str(), todigest.length());
