@@ -621,17 +621,17 @@ Summary:	ARC Remote EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
+Requires:	%{name}-ldap-infosys = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{with_python}
 Requires:	%{name}-python = %{version}-%{release}
 %endif
+Requires:	perl(XML::Simple)
 %if %{with_pythonlrms}
 Requires:	perl(Inline)
 Requires:	perl(Inline::Python)
 %endif
 Requires:	mktemp
-Requires:	python-twisted-core
-Requires:	python-twisted-web
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
 %else
@@ -639,7 +639,6 @@ Requires:	stomppy
 %endif
 Requires:	python-ldap
 Requires:	python-dirq
-Requires:	%{name}-ldap-infosys = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
