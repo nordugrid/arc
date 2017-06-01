@@ -42,19 +42,22 @@ class DTRGenerator: public DataStaging::DTRCallback {
      Finished jobs are stored only by ID because they references are already passed
      back to one of main processing queue. */
   std::map<std::string, std::string> finished_jobs;
-  /** Lock for lists */
-  Arc::SimpleCondition lock;
+  /** Lock for lists - protects active_dtrs and finished_jobs */
+  Arc::SimpleCondition dtrs_lock;
 
   // Event lists
   /** DTRs received */
   std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
   GMJobQueue jobs_received;
-  /** Jobs being processing */
+  /** Jobs being processing.
+      This list is not protected and is used only from DTRGenerator::thread() */
   GMJobQueue jobs_processing;
   /** Jobs cancelled. List of Job IDs. */
   std::list<std::string> jobs_cancelled;
-  /** Lock for events */
+  /** Lock for events.
+      Protects jobs_received, jobs_cancelled and dtrs_received.
+      This object is also used for signaling insertions in aforementioned lists. */
   Arc::SimpleCondition event_lock;
 
   /** Condition to wait on when stopping Generator */
@@ -63,7 +66,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
   DataStaging::ProcessState generator_state;
   /** Grid manager configuration */
   const GMConfig& config;
-  /** A list of files left mid-transfer from a previous process */
+  /** A list of files left mid-transfer from a previous process.
+      This list is not protected and is used only from DTRGenerator::thread() */
   std::list<std::string> recovered_files;
   /** logger to a-rex log */
   static Arc::Logger logger;
