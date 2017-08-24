@@ -36,10 +36,6 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/credential/Credential.h
-#ifdef SWIGJAVA
-// Suppress warning about unknown class std::runtime_error
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Arc::CredentialError;
-#endif
 %{
 #include <arc/credential/Credential.h>
 %}

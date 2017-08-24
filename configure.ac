@@ -165,11 +165,8 @@ fi
 enables_ldap=yes
 enables_mysql=no
 enables_swig_python=yes
-enables_swig_java=yes
 # Features directly related to components
 enables_cppunit=yes
-enables_java=yes
-enables_junit=yes
 enables_python=yes
 enables_altpython=yes
 enables_pylint=yes
@@ -231,8 +228,6 @@ enables_saml_client=$enableval
 enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_hed=$enableval
-enables_java=$enableval
-enables_junit=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
 enables_pylint=$enableval
@@ -319,12 +314,9 @@ AM_CONDITIONAL([PEDANTIC_COMPILE], [test "x$enables_pedantic_compile" = "xyes"])
 #  Swig
 AC_ARG_ENABLE(swig-python, AC_HELP_STRING([--disable-swig-python], [disable SWIG python bindings]),
 [enables_swig_python=$enableval],[])
-AC_ARG_ENABLE(swig-java, AC_HELP_STRING([--disable-swig-java], [disable SWIG java bindings]),
-[enables_swig_java=$enableval],[])
 AC_ARG_ENABLE(swig, AC_HELP_STRING([--disable-swig], [disable all bindings through SWIG]),
-[enables_swig_python=$enableval
- enables_swig_java=$enableval],[])
-if test "$enables_swig_python" = "yes" || test "$enables_swig_java" = "yes"; then
+[enables_swig_python=$enableval],[])
+if test "$enables_swig_python" = "yes"; then
   AC_CHECK_PROGS(SWIG, swig)
   if test "x$SWIG" = "x"; then
     enables_swig="no"
@@ -367,190 +359,6 @@ AM_CONDITIONAL([SWIG_ENABLED],[test "x$enables_swig" = "xyes"])
 
 AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
 [enables_hed=$enableval],[])
-
-#  Java
-dnl Check if Java is explicitly disabled.
-if test "$enables_hed" = "yes"; then
-JAVAC_FLAGS=
-JDK_CFLAGS=
-AC_ARG_ENABLE(java, AC_HELP_STRING([--disable-java], [disable Java components]),
-[enables_java=$enableval
- enables_swig_java=$enableval],[])
-if test "$enables_java" = "yes"; then
-  AC_ARG_WITH(jdk, AC_HELP_STRING([--with-jdk=(JDK)], [path to JDK. If unset the system JDK will be used]))
-
-  JPATH=
-  if test "x$with_jdk" != "x"; then
-    # User specified JDK!
-    JPATH=$with_jdk
-  else
-    # Look for system JDK.
-    for i in /usr/lib/jvm/java-*-openjdk* /usr/lib/jvm/java-*-icedtea* /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun* /usr/lib/gcc/*-redhat-linux/*; do
-      if test -f $i/include/jni.h; then
-        JPATH=$i
-        break
-      fi
-    done
-  fi
-
-  if test "x$JPATH" != "x"; then
-    JDK_CFLAGS="-I$JPATH/include"
-
-    # Any extra includes? Look for them.
-    JAVA_EXTRA_INCLUDE=
-    case "${host}" in
-      *-pc-mingw32 | *-pc-cygwin)
-        JAVA_EXTRA_INCLUDE="win32"
-        ;;
-      *linux* | *kfreebsd* | *gnu* )
-        JAVA_EXTRA_INCLUDE="linux"
-        ;;
-      *solaris*)
-        JAVA_EXTRA_INCLUDE="solaris"
-        ;;
-    esac
-    if test "x$JAVA_EXTRA_INCLUDE" != "x" && test -d $JPATH/include/$JAVA_EXTRA_INCLUDE; then
-      JDK_CFLAGS="$JDK_CFLAGS $JDK_CFLAGS/$JAVA_EXTRA_INCLUDE"
-    fi
-
-    SAVE_CPPFLAGS=$CPPFLAGS
-    CPPFLAGS="$CPPFLAGS $JDK_CFLAGS"
-    AC_CHECK_HEADERS(jni.h,[jni_h="yes"],[jni_h="no"])
-    CPPFLAGS=$SAVE_CPPFLAGS
-
-    AC_PATH_PROGS(JAVA, java gij, , $JPATH/bin:/usr/bin)
-    AC_PATH_PROGS(JAVAC, javac gcj ecj, , $JPATH/bin:/usr/bin)
-    AC_PATH_PROGS(JAR, fastjar jar, , $JPATH/bin:/usr/bin)
-    break
-  fi
-
-  if test "x$with_jdk" = "x" && test "x$JDK_CFLAGS" = "x"; then
-    # If JDK was not found in any of the above locations try system locations.
-    AC_CHECK_HEADERS(jni.h JavaVM/jni.h,[jni_h="yes"; break],[jni_h="no"])
-    AC_CHECK_PROGS(JAVA, java gij)
-    AC_CHECK_PROGS(JAVAC, javac gcj ecj)
-    AC_CHECK_PROGS(JAR, fastjar jar)
-  fi
-
-  # Set absolute limit on Java heap size allocation instead of letting
-  # the java virtual machine and compiler (on Linux) allocate a quarter
-  # of the total memory.
-  JAVA_VM_FLAGS="-Xms50M -Xmx50M"
-  JAVAC_VM_FLAGS="-J-Xms50M -J-Xmx50M"
-
-  JAR_JFLAGS=""
-  # Old versions of fastjar does not ignore -J options
-  if test "x$JAR" != "x" && test "x`basename $JAR`" = "xjar"; then
-      JAR_JFLAGS="$JAVAC_VM_FLAGS"
-  fi
-
-  if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
-    JAVAC_FLAGS="-C -fsource=1.5 -ftarget=1.5 --classpath=."
-  elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
-    JAVAC_FLAGS="$JAVAC_VM_FLAGS -source 1.5 -target 1.5 -cp ."
-  fi
-
-  if test "x$JAVA" != "x" && test "x`basename $JAVA`" = "xjava"; then
-    JAVA_FLAGS="$JAVA_VM_FLAGS"
-  fi
-
-  # Check if version is 1.5 (Iterable was first introduced in 1.5)
-  echo "public abstract class TestIterable implements Iterable< Object > {}" > TestIterable.java
-  if $JAVAC $JAVAC_FLAGS TestIterable.java >/dev/null 2>&1; then
-    java_is_15_or_above="yes"
-  fi
-  rm -f TestIterable.java TestIterable.class
-
-  if test "x$JAVAC" = "x"; then
-    AC_MSG_NOTICE([Missing Java compiler - skipping Java components])
-    enables_java="no"
-  elif test "x$JAR" = "x"; then
-    AC_MSG_NOTICE([Missing Java archiver - skipping Java components])
-    enables_java="no"
-  elif test "x$jni_h" != "xyes"; then
-    AC_MSG_NOTICE([Missing Java headers - skipping Java components])
-    enables_java="no"
-  else
-    AC_MSG_NOTICE([Java available: $JAVAC])
-  fi
-
-  if test "x$enables_java" != "xyes"; then
-    AC_MSG_NOTICE([Missing Java - skipping Java bindings])
-    enables_swig_java="no"
-  elif ! test -f java/arc_wrap.cpp && test "x$enables_swig_java" != "xyes"; then
-    AC_MSG_NOTICE([Missing pre-compiled Java wrapper and SWIG - skipping Java bindings])
-    enables_swig_java="no"
-  fi
-
-fi
-fi
-
-AC_MSG_NOTICE([Java enabled: $enables_java])
-AC_MSG_NOTICE([Java SWIG binding enabled: $enables_swig_java])
-AM_CONDITIONAL([JAVA_ENABLED],[test "x$enables_java" = "xyes"])
-AM_CONDITIONAL([JAVA_SWIG_ENABLED],[test "x$enables_swig_java" = "xyes"])
-AM_CONDITIONAL([JAVA_IS_15_OR_ABOVE], [test "x$java_is_15_or_above" = "xyes"])
-
-AC_SUBST(JAVA)
-AC_SUBST(JAR_JFLAGS)
-AC_SUBST(JAVA_FLAGS)
-AC_SUBST(JAVAC_FLAGS)
-AC_SUBST(JDK_CFLAGS)
-
-AC_ARG_WITH([jnidir],
-AC_HELP_STRING([--with-jnidir=DIR],
-  [Install jar in DIR [[default: ${libdir}/java]]]),
-  [case $withval in
-    yes|no)
-      AC_MSG_ERROR([Invalid DIR])
-      ;;
-    *)
-      jnidir="$withval"
-      ;;
-  esac
-],
-[
-  if test -z "$jnidir"; then
-    jnidir='${libdir}/java'
-  fi
-])
-AC_SUBST(jnidir)
-
-AC_ARG_WITH([jninativedir],
-AC_HELP_STRING([--with-jninativedir=DIR],
-  [Install jar in DIR [[default: ${pkglibdir}]]]),
-  [case $withval in
-    yes|no)
-      AC_MSG_ERROR([Invalid DIR])
-      ;;
-    *)
-      jninativedir="$withval"
-      ;;
-  esac
-],
-[
-  if test -z "$jninativedir"; then
-    jninativedir='${pkglibdir}'
-  fi
-])
-AC_SUBST(jninativedir)
-
-# Try to find junit - used for unit testing of Java bindings.
-dnl Check if JUnit is explicitly disabled.
-if test "$enables_hed" = "yes"; then
-AC_ARG_ENABLE(junit, AC_HELP_STRING([--disable-junit], [disable unit testing of Java bindings]),
-[enables_junit=$enableval],[])
-if test "$enables_java" = "yes" && test "$enables_junit" = "yes"; then
-  if ! test -f /usr/share/java/junit.jar; then
-    enables_junit="no"
-  fi
-else
-  enables_junit="no"
-fi
-fi
-AM_CONDITIONAL([JUNIT_ENABLED], [test "x$enables_junit" = "xyes"])
-AC_MSG_NOTICE([Java unit testing enabled: $enables_junit])
-
 
 # Python
 if test "$enables_hed" = "yes"; then
@@ -2665,11 +2473,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/ws-monitor/mon-icons/Makefile
                  src/services/ws-monitor/lang/Makefile
                  src/services/examples/Makefile
-                 src/services/examples/echo_java/Makefile
                  src/services/examples/echo_python/Makefile
                  src/services/wrappers/Makefile
-                 src/services/wrappers/java/Makefile
-                 src/services/wrappers/java/schema/Makefile
                  src/services/wrappers/python/Makefile
                  src/services/wrappers/python/schema/Makefile
                  src/clients/Makefile
@@ -2724,10 +2529,6 @@ AC_CONFIG_FILES([Makefile
                  src/doc/Makefile
                  src/doc/arc.conf.5
                  swig/Makefile
-                 java/Makefile
-                 java/test/Makefile
-                 java/test/strip_test_file_name_and_run_junit
-                 java/examples/Makefile
                  python/Makefile
                  python/Doxyfile.api
                  python/python/Makefile
@@ -2757,7 +2558,6 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Unit testing:       ${enables_cppunit}
-Java binding:       ${enables_swig_java}
 Python binding:     ${enables_swig_python} ($PYTHON_VERSION)
 Alt.Python binding: ${enables_altpython} ($ALTPYTHON_VERSION)
 

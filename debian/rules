@@ -40,8 +40,6 @@ configure-stamp:
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
-		    --with-jnidir='$${datadir}/java' \
-		    --with-jninativedir='$${libdir}/jni' \
 		    --enable-sqlite \
 		    $(CANL_CONFIGURE_OPTION)
 	touch $@

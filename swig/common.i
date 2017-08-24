@@ -12,9 +12,6 @@
 %template(StringPair) std::pair<std::string, std::string>;
 %wraplist(String, std::string)
 %template(StringSet) std::set<std::string>;
-#ifdef SWIGJAVA
-%template(StringSetIterator) setiterator<std::string>;
-#endif
 %template(StringVector) std::vector<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
 
@@ -43,20 +40,6 @@
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string& out_xml_str };
 #endif
-#ifdef SWIGJAVA
-%ignore Arc::XMLNode::XMLNode(const char*);
-%ignore Arc::XMLNode::XMLNode(const char*, int);
-%ignore Arc::XMLNode::NewChild(const std::string&);
-%ignore Arc::XMLNode::NewChild(const std::string&, int);
-%ignore Arc::XMLNode::NewChild(const std::string&, NS const&, int);
-%ignore Arc::XMLNode::NewChild(const std::string&, NS const&);
-%ignore Arc::XMLNode::Name(const char*);
-%ignore Arc::XMLNode::Attribute(const char*);
-%ignore Arc::XMLNode::NewAttribute(const char*);
-%ignore Arc::XMLNode::NewChild(const char*, int, bool);
-%ignore Arc::XMLNode::NewChild(const char*, const NS&, int, bool);
-%ignore Arc::XMLNode::operator==(const char*); // Arc::XMLNode::operator==(const std::string&) is wrapped instead which is equivalent to this.
-#endif
 %include "../src/hed/libs/common/XMLNode.h"
 %wraplist(XMLNode, Arc::XMLNode);
 #ifdef SWIGPYTHON
@@ -66,9 +49,6 @@
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/ArcConfig.h
 %rename(_print) Arc::Config::print;
-#ifdef SWIGJAVA
-%ignore Arc::Config::Config(const char*);
-#endif
 %{
 #include <arc/ArcConfig.h>
 %}
@@ -155,14 +135,6 @@ private:
 
 %}
 #endif
-#ifdef SWIGJAVA
-/* The static logger object will always exist, so do not set any references. See
- * comments in Arc.i.
- */
-%typemap(javaout) Arc::Logger& Arc::Logger::getRootLogger() {
-  return new $javaclassname($jnicall, $owner);
-}
-#endif
 %include "../src/hed/libs/common/Logger.h"
 %wraplist(LogDestination, Arc::LogDestination*);
 
@@ -180,11 +152,6 @@ private:
 %ignore Arc::Period::operator=(time_t);
 %ignore Arc::Period::operator=(const Period&);
 %ignore operator<<(std::ostream&, const Period&);
-#ifdef SWIGJAVA
-%rename(add) Arc::Time::operator+(const Period&) const;
-%rename(sub) Arc::Time::operator-(const Period&) const;
-%rename(sub) Arc::Time::operator-(const Time&) const;
-#endif
 %include "../src/hed/libs/common/DateTime.h"
 
 
@@ -287,11 +254,6 @@ private:
 #include <arc/Thread.h>
 %}
 %ignore Arc::ThreadId;
-#ifdef SWIGJAVA
-%rename(_wait) Arc::SimpleCondition::wait;
-%rename(_wait) Arc::SimpleCounter::wait;
-%rename(_wait) Arc::ThreadedPointerBase::wait;
-#endif
 %include "../src/hed/libs/common/Thread.h"
 %template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
 

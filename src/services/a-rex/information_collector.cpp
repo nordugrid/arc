@@ -171,7 +171,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
     prefix_ = prefix;
     postfix_ = postfix;
     handle_ = handle;
-    addr_ = NULL;
+    addr_ = MAP_FAILED;
     length_ = 0;
     if(handle != -1) {
       struct stat st;
@@ -179,13 +179,13 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
         if(st.st_size > 0) {
           length_ = st.st_size;
           addr_ = ::mmap(NULL,st.st_size,PROT_READ,MAP_PRIVATE,handle,0);
-          if(!addr_) length_=0;
+          if(addr_ == MAP_FAILED) length_=0;
         };
       };
     };
   };
   ~PrefixedFilePayload(void) {
-    if(addr_) ::munmap(addr_,length_);
+    if(addr_ != MAP_FAILED) ::munmap(addr_,length_);
     if(handle_ != -1) ::close(handle_);
   };
   virtual char operator[](Size_t pos) const {
@@ -212,7 +212,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   };
   virtual char* Buffer(unsigned int num = 0) {
     if(num == 0) return (char*)(prefix_.c_str());
-    if(addr_) {
+    if(addr_ != MAP_FAILED) {
       if(num == 1) return (char*)addr_;
     } else {
       ++num;
@@ -222,7 +222,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   };
   virtual Size_t BufferSize(unsigned int num = 0) const {
     if(num == 0) return prefix_.length();
-    if(addr_) {
+    if(addr_ != MAP_FAILED) {
       if(num == 1) return length_;
     } else {
       ++num;
@@ -232,7 +232,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   };
   virtual Size_t BufferPos(unsigned int num = 0) const {
     if(num == 0) return 0;
-    if(addr_) {
+    if(addr_ != MAP_FAILED) {
       if(num == 1) return prefix_.length();
     } else {
       ++num;

@@ -85,9 +85,6 @@
 %}
 %ignore Arc::DataHandle::operator!;
 %ignore Arc::DataHandle::operator->;
-#ifdef SWIGJAVA
-%ignore Arc::DataHandle::operator*;
-#endif
 %include "../src/hed/libs/data/DataHandle.h"
 
 
@@ -237,12 +234,6 @@ typedef int gid_t;
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data-staging/Scheduler.h
-#ifdef SWIGJAVA
-// Enable a Java class to inherit from Scheduler (and DTRCallback) so that
-// its receiveDTR() is called. DTRCallback cannot be derived from directly
-// because it is pure virtual and swig does not create a constructor.
-%feature("director") Scheduler;
-#endif
 %{
 #include <arc/data-staging/Scheduler.h>
 %}

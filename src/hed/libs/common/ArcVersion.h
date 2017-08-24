@@ -109,8 +109,6 @@ namespace Arc {
    * \include basic_job_submission.cpp
    * \section py Python
    * \include basic_job_submission.py
-   * \section java Java
-   * \include BasicJobSubmission.java
    * \section txt xRSL job description
    * \include helloworld.xrsl
    *
@@ -165,8 +163,6 @@ namespace Arc {
    * \include generator-main.cpp
    * \section py Python
    * \include dtr_generator.py
-   * \section java Java
-   * \include DTRGenerator.java
    */
 
 } // namespace Arc

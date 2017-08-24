@@ -533,7 +533,7 @@ read -r -d '' job_description_input <<'EOF'
 <Executable><Path>/bin/true</Path></Executable>
 </Application>
 <Resources>
-<IndividualPhysicalMemory>1500</IndividualPhysicalMemory>
+<IndividualPhysicalMemory>1572864000</IndividualPhysicalMemory>
 <RuntimeEnvironment>
 <Name>INCREASEMEMORY_1</Name>
 <Option>2000</Option>

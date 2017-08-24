@@ -75,7 +75,7 @@ public:
  * results are sent to the registered EntityConsumer objects (capable of
  * consuming type T objects).
  * 
- * When an Endpoint is added to the EntityRetriever, a new is started which
+ * When an Endpoint is added to the EntityRetriever, a new thread is started which
  * queries the given Endpoint. Each plugin is capable of querying Endpoint
  * objects with given interfaces (which is indicated with the InterfaceName
  * attribute of the Endpoint). If the Endpoint has the InterfaceName specified,
@@ -89,10 +89,9 @@ public:
  * \li the #ServiceEndpointRetriever queries service registries and returns new
  * Endpoint objects
  * \li the #TargetInformationRetriever queries computing elements and returns
- * ComputingServiceType objects containing the GLUE2 information about the
- * computing element
- * \li the #JobListRetriever queries computing elements and returns jobs
- * residing on the computing element
+ * reource information in form of ComputingServiceType objects
+ * \li the #JobListRetriever queries computing elements and returns information
+ * about the jobs at the computing element in form of Job objects
  * 
  * To start querying, a new EntityRetriever needs to be created with the user's 
  * credentials in the UserConfig object, then one or more consumers needs to be 

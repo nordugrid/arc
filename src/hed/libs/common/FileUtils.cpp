@@ -119,7 +119,7 @@ bool FileCopy(int source_handle,int destination_handle) {
 #ifndef WIN32
   if(source_size <= FileCopyBigThreshold) {
     void* source_addr = mmap(NULL,source_size,PROT_READ,MAP_SHARED,source_handle,0);
-    if(source_addr != (void *)(-1)) {
+    if(source_addr != MAP_FAILED) {
       bool r = write_all(destination_handle,source_addr,source_size);
       munmap(source_addr,source_size);
       return r;

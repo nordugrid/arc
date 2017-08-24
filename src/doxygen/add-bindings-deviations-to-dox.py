@@ -54,8 +54,7 @@ for line in f:
             sdkFNOfIgnoredInstance = sdkDocumentationLocation + '/class' + namespaceName + '_1_1' + className + '.html'
             if not expressionsFound.has_key(sdkFNOfIgnoredInstance):
                 expressionsFound[sdkFNOfIgnoredInstance] = []
-            ignoreScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python", "Java"]
-            ignoreScope = ["Java"]   if "SWIGJAVA"   in inIfdef else ignoreScope
+            ignoreScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python"]
             expressionsFound[sdkFNOfIgnoredInstance].append({"text" : "Method is unavailable", "scope" : ignoreScope, "name" : methodName})
             continue
         print "Error: Couldn't parse ignore signature %s" % ignoredName
@@ -76,8 +75,7 @@ for line in f:
             sdkFNOfRenamedInstance = sdkDocumentationLocation + '/class' + namespaceName + '_1_1' + className + '.html'
             if not expressionsFound.has_key(sdkFNOfRenamedInstance):
                 expressionsFound[sdkFNOfRenamedInstance] = []
-            renameScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python", "Java"]
-            renameScope = ["Java"]   if "SWIGJAVA"   in inIfdef else renameScope
+            renameScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python"]
             expressionsFound[sdkFNOfRenamedInstance].append({"text" : "Renamed to <tt>" + toName + "</tt>", "scope" : renameScope, "name" : methodName})
             continue
         print "Error: Couldn't parse rename signature %s" % renameFullName

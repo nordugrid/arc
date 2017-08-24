@@ -1,7 +1,0 @@
-Makefile
-Makefile.in
-arc.jar
-arc_wrap*
-org
-.libs
-.deps

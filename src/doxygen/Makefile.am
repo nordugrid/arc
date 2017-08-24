@@ -16,7 +16,6 @@ CPP_EXAMPLES = $(top_srcdir)/src/hed/libs/common/examples \
 	$(top_srcdir)/src/libs/data-staging/examples \
 	$(top_srcdir)/src/hed/libs/compute/examples
 PYTHON_EXAMPLES = $(top_srcdir)/python/examples
-JAVA_EXAMPLES = $(top_srcdir)/java/examples
 
 SPECIALISATION_MAPPINGS = JobState JobDescription
 SPECIALISATION_MAPPINGS_JobState = \
@@ -42,7 +41,7 @@ Doxyfile.SDK.build: $(top_srcdir)/src/doxygen/Doxyfile.SDK
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
 	sed "s/@INPUT@/$(subst /,\/,$(INPUT) $(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS)))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
-	sed "s/@EXAMPLES@/$(subst /,\/,$(CPP_EXAMPLES) $(PYTHON_EXAMPLES) $(JAVA_EXAMPLES))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
+	sed "s/@EXAMPLES@/$(subst /,\/,$(CPP_EXAMPLES) $(PYTHON_EXAMPLES))/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
 	sed "s/Doxyfile.SDK.layout.xml/Doxyfile.SDK.build.layout.xml/g" Doxyfile.SDK.build > Doxyfile.SDK.build.tmp
 	mv Doxyfile.SDK.build.tmp Doxyfile.SDK.build
@@ -57,26 +56,22 @@ Doxyfile.SDK.build.layout.xml: $(top_srcdir)/src/doxygen/Doxyfile.SDK.layout.xml
 
 SDKDEPENDENCIES = Doxyfile.SDK.build Doxyfile.SDK.build.layout.xml \
 	$(srcdir)/add-bindings-deviations-to-dox.py \
-	$(srcdir)/add-java-getter-setter-method-notice.py \
 	$(srcdir)/images/arcsdk.png \
 	$(srcdir)/adapt-and-filter-mapping-attributes.sed \
 	$(SWIG_DEPENDS) \
 	$(wildcard $(addsuffix /*.h, $(INPUT))) \
 	$(wildcard $(addsuffix /*.cpp, $(CPP_EXAMPLES))) \
 	$(wildcard $(addsuffix /*.py, $(PYTHON_EXAMPLES))) \
-	$(wildcard $(addsuffix /*.java, $(JAVA_EXAMPLES))) \
 	$(addsuffix _Mapping.dox, $(SPECIALISATION_MAPPINGS))
 
 SDK: $(SDKDEPENDENCIES)
 	doxygen -v | awk -F . '{ exit !($$1 >= 2 || $$1 == 1 && $$2 >= 8) }' || (echo "doxygen version 1.8.0 or greater required (version $$(doxygen -v) found)" && exit 1)
 	doxygen Doxyfile.SDK.build
-# Postprocessing: Add deviations from SDK API for language bindings (Python and Java).
+# Postprocessing: Add deviations from SDK API for language bindings (Python).
 	for file in $(SWIG_DEPENDS); do $(PYTHON) $(srcdir)/add-bindings-deviations-to-dox.py $${file} SDK/html; done
-	$(PYTHON) $(srcdir)/add-java-getter-setter-method-notice.py SDK/html
 
 EXTRA_DIST = Doxyfile.SDK Doxyfile.SDK.layout.xml images/arcsdk.png \
 	     add-bindings-deviations-to-dox.py \
-	     add-java-getter-setter-method-notice.py \
 	     adapt-and-filter-mapping-attributes.sed \
 	     create-mapping-documentation.py
 

@@ -1,3 +1,8 @@
+2017-06-29 Martin Skou Andersen <skou@nbi.dk>
+  * Removing support for java
+    Revs: {32748}
+    Type: feature removement
+
 2017-05-26 Aleksandr Konstantinov <aleksandr.konstantinov@fys.uio.no>
   * Fix for multiple file transfers cross-affecting transferred sizes
     Revs: {32506}

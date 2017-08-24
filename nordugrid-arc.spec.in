@@ -3,8 +3,6 @@
 
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
-%{!?_jnidir: %global _jnidir %{_libdir}/java}
-
 %if %{?rhel}%{!?rhel:0} == 5
 %global __python26 %{_bindir}/python2.6
 %{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
@@ -54,29 +52,6 @@
 %else
 %global with_xrootd 0
 %endif
-
-#
-# Java
-#
-%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5
-%if %{?rhel}%{!?rhel:0} == 5
-%ifarch ppc
-# RHEL 5 ppc only has java 1.4
-%global with_java 0
-%global with_junit 0
-%else
-%global with_java %{!?_without_java:1}%{?_without_java:0}
-%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
-%endif
-%else
-%global with_java %{!?_without_java:1}%{?_without_java:0}
-%global with_junit %{!?_without_junit:1}%{?_without_junit:0}
-%endif
-%else
-%global with_java 0
-%global with_junit 0
-%endif
-%global with_gcj %{!?_with_gcj:0}%{?_with_gcj:1}
 
 #
 # Python
@@ -304,16 +279,6 @@ BuildRequires:	libdb-devel
 %else
 BuildRequires:	db4-devel
 %endif
-%endif
-%endif
-%if %{with_java}
-BuildRequires:	java-devel >= 1.5.0
-BuildRequires:	jpackage-utils
-%if %{with_gcj}
-BuildRequires:	java-gcj-compat-devel
-%endif
-%if %{with_junit}
-BuildRequires:	junit
 %endif
 %endif
 # Needed for Boinc backend testing during make check
@@ -877,30 +842,6 @@ Connector (ARC).
 Python bindings for ARC.
 %endif
 
-%if %{with_java}
-%package java
-Summary:	ARC Java wrapper
-Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
-%if %{?fedora}%{!?fedora:0} >= 20 || %{?rhel}%{!?rhel:0} >= 7
-Requires:	java-headless
-%else
-Requires:	java
-%endif
-Requires:	jpackage-utils
-%if %{with_gcj}
-Requires(post):		java-gcj-compat
-Requires(postun):	java-gcj-compat
-%endif
-
-%description java
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-Java bindings for ARC.
-%endif
-
 %package gridmap-utils
 Summary:	NorduGrid authorization tools
 Group:		Applications/Internet
@@ -974,9 +915,6 @@ export CXXFLAGS="%{optflags} -std=c++11"
 %endif
 
 %configure --disable-static \
-%if ! %{with_java}
-     --disable-java \
-%endif
 %if ! %{with_python}
      --disable-swig-python \
 %endif
@@ -1064,10 +1002,6 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
 
 %find_lang %{name}
 
-%if %{with_java} && %{with_gcj}
-%{_bindir}/aot-compile-rpm
-%endif
-
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 cd selinux
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
@@ -1090,7 +1024,6 @@ make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= ins
 make -C src/hed/libs/data/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
 make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C java/examples			DESTDIR=$PWD/docdir/java   pkgdatadir= install-exampleDATA
 make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
@@ -1248,16 +1181,6 @@ fi
 
 %postun acix-index
 %condrestart_on_update acix-index
-%endif
-
-%if %{with_java} && %{with_gcj}
-%post java
-[ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
-%endif
-
-%if %{with_java} && %{with_gcj}
-%postun java
-[ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
 %endif
 
 %if %{with_cautils}
@@ -1706,19 +1629,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python3_sitearch}/arc
-%endif
-
-%if %{with_java}
-%files java
-%defattr(-,root,root,-)
-%doc docdir/java/*
-%{_libdir}/%{pkgdir}/libjarc.so
-%{_jnidir}/arc.jar
-%{_libdir}/%{pkgdir}/libjavaservice.so
-%{_libdir}/%{pkgdir}/libjavaservice.apd
-%if %{with_gcj}
-%{_libdir}/gcj/%{name}
-%endif
 %endif
 
 %files gridmap-utils

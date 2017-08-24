@@ -36,7 +36,7 @@ sub collect($) {
     my @allshares = keys %{$config->{shares}};
 
     # homogeneity of the cluster
-    my $homogeneous; 
+    my $homogeneous;
     if (defined $config->{service}{Homogeneous}) {
         $homogeneous = $config->{service}{Homogeneous};
     } else {
@@ -169,15 +169,15 @@ sub collect($) {
         }
     }
 
-    my @authorizedvos = (); 
+    my @authorizedvos = ();
     if ($config->{service}{AuthorizedVO}) {
         @authorizedvos = @{$config->{service}{AuthorizedVO}};
         # add VO: suffix to each authorized VO
         @authorizedvos = map { "VO:".$_ } @authorizedvos;
     }
 
-	# Assume no connectivity unles explicitly configured otherwise on each
-	# ExecutionEnvironment
+    # Assume no connectivity unles explicitly configured otherwise on each
+    # ExecutionEnvironment
     my ($inbound, $outbound) = (1,1);
     for my $xeconfig (values %{$config->{xenvs}}) {
         $inbound = 0 unless ($xeconfig->{connectivityIn} || 'false') eq 'true';
@@ -286,7 +286,7 @@ sub collect($) {
             }
 
             $q->{'name'} = $share;
-            
+
             if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
                 $q->{status} = 'inactive, grid-manager does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
@@ -297,7 +297,7 @@ sub collect($) {
                                                            : 'inactive, grid-manager is down';
                 }
             } elsif (not $host_info->{processes}{'gridftpd'}) {
-                $q->{status} = 'inactive, gridftpd is down';   
+                $q->{status} = 'inactive, gridftpd is down';
             } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
                 $q->{status} = 'inactive, host credentials missing';
             } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
@@ -338,18 +338,18 @@ sub collect($) {
             $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
-            $q->{gridrunning} = $gridrunning{$share} || 0;   
+            $q->{gridrunning} = $gridrunning{$share} || 0;
             $q->{gridqueued} = $gridqueued{$share} || 0;
             $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));
             if ( $q->{localqueued} < 0 ) {
                 $q->{localqueued} = 0;
-            }  
+            }
             $q->{prelrmsqueued} = $prelrmsqueued{$share} || 0;
             if ( $sconfig->{totalcpus} ) {
                 $q->{totalcpus} = $sconfig->{totalcpus}; # orphan
             } elsif ( $qinfo->{totalcpus} ) {
                 $q->{totalcpus} = $qinfo->{totalcpus};
-            }	
+            }
 
             keys %$gmjobs_info; # reset iterator of each()
 
@@ -418,8 +418,8 @@ sub collect($) {
 
                     #nuj0:status
                     # take care of the GM latency, check if the job is in LRMS
-                    # according to both GM and LRMS, GM might think the job 
-                    # is still in LRMS while the job have already left LRMS              
+                    # according to both GM and LRMS, GM might think the job
+                    # is still in LRMS while the job have already left LRMS
 
                     if ($lrmsjob->{status} and $lrmsjob->{status} ne 'EXECUTED') {
                         $j->{status} = "INLRMS:$lrmsjob->{status}";
@@ -463,9 +463,9 @@ sub collect($) {
                     return undef unless ($sn, $localid) = each %$usermap;
                     # skip users whose SNs need to be base64 encoded
                     if ($sn =~ /^[\s,:<]/ or $sn =~ /[\x0D\x0A\x00]/ or $sn =~ /[^\x00-\x7F]/) {
-						$log->warning("While collecting info for queue $q->{'name'}: user with sn $sn will not be published due to characters that require base64 encoding. Skipping");
-						next;
-					}
+                        $log->warning("While collecting info for queue $q->{'name'}: user with sn $sn will not be published due to characters that require base64 encoding. Skipping");
+                        next;
+                    }
                     $lrms_user = $qinfo->{users}{$localid};
                     last if not exists $qinfo->{acl_users};
                     last if grep { $_ eq $localid } @{$qinfo->{acl_users}};
@@ -476,7 +476,7 @@ sub collect($) {
                 ++$usernumber;
                 my $space = $host_info->{localusers}{$localid};
 
-                #name= CN from the SN  + unique number 
+                #name= CN from the SN  + unique number
                 my $cn = ($sn =~ m#/CN=([^/]+)(/Email)?#) ? $1 : $sn;
 
                 $u->{name} = "${cn}...$usernumber";

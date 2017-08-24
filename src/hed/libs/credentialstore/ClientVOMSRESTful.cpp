@@ -10,20 +10,20 @@ static URL options_to_voms_url(const std::string& host, int port, const TCPSec& 
   URL url("http://127.0.0.1");  //  safe initial value
   if(sec.sec == TLSSec) {
      url.ChangeProtocol("https");
-     if(port <= 0) port == HTTPS_DEFAULT_PORT;
+     if(port <= 0) port = HTTPS_DEFAULT_PORT;
   } else if(sec.sec == SSL3Sec) {
      url.ChangeProtocol("https");
      url.AddOption("protocol","ssl3",true);
-     if(port <= 0) port == HTTPS_DEFAULT_PORT;
+     if(port <= 0) port = HTTPS_DEFAULT_PORT;
   } else if(sec.sec == GSISec) {
      url.ChangeProtocol("httpg");
-     if(port <= 0) port == HTTPG_DEFAULT_PORT;
+     if(port <= 0) port = HTTPG_DEFAULT_PORT;
   } else if(sec.sec == GSIIOSec) {
      url.ChangeProtocol("httpg");
      url.AddOption("protocol","gsi",true);
-     if(port <= 0) port == HTTPG_DEFAULT_PORT;
+     if(port <= 0) port = HTTPG_DEFAULT_PORT;
   } else {
-    if(port <= 0) port == HTTP_DEFAULT_PORT;
+    if(port <= 0) port = HTTP_DEFAULT_PORT;
   }
   if(sec.enc == RequireEnc) {
     url.AddOption("encryption","required",true);

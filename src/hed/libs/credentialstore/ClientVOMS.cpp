@@ -17,26 +17,32 @@ ClientVOMS::ClientVOMS(const BaseConfig& cfg, const std::string& host, int port,
 
 VOMSCommand& VOMSCommand::GetGroup(const std::string& groupname) {
   str = "G"; str.append(groupname);
+  return *this;
 }
 
 VOMSCommand& VOMSCommand::GetRole(const std::string& rolename) {
   str = "R"; str.append(rolename);
+  return *this;
 }
 
 VOMSCommand& VOMSCommand::GetRoleInGroup(const std::string& groupname, const std::string& rolename) {
   str = "B"; str.append(groupname); str.append(":"); str.append(rolename);
+  return *this;
 }
 
 VOMSCommand& VOMSCommand::GetEverything(void) {
   str = "A";
+  return *this;
 }
 
 VOMSCommand& VOMSCommand::GetFQANs(void) {
   str = "M";
+  return *this;
 }
 
 VOMSCommand& VOMSCommand::GetFQAN(const std::string& fqan) {
   str = fqan;
+  return *this;
 }
 
 // EBCDIC is not supported

@@ -207,9 +207,6 @@ namespace Arc {
    * Same example using Python shown below:
    * \include basic_job_submission.py
    * 
-   * And same example using Java:
-   * \include BasicJobSubmission.java
-   * 
    * \since Added in 2.0.0
    * \ingroup compute
    * \headerfile Submitter.h arc/compute/Submitter.h 

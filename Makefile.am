@@ -2,16 +2,13 @@
 
 ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/share/aclocal`
 
-if JAVA_SWIG_ENABLED 
-JAVA_SD = java 
-endif
 if SWIG_ENABLED
 SWIG_SD = swig
 endif
 
-SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) python $(POSUB) debian nsis
+SUBDIRS = src include $(SWIG_SD) python $(POSUB) debian nsis
 
-DIST_SUBDIRS = src include swig java python po debian nsis
+DIST_SUBDIRS = src include swig python po debian nsis
 
 EXTRA_DIST = nordugrid-arc.spec mingw-nordugrid-arc.spec \
 	nordugrid-arc.SlackBuild autogen.sh LICENSE NOTICE \

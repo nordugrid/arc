@@ -45,9 +45,6 @@
 %include <typemaps.i>
 %apply std::string& OUTPUT { std::string &val };
 #endif
-#ifdef SWIGJAVA
-%ignore Arc::SecAttr::equal;
-#endif
 %include "../src/hed/libs/message/SecAttr.h"
 #ifdef SWIGPYTHON
 %clear std::string &val;
@@ -116,11 +113,6 @@
 #ifdef SWIGPYTHON
 %apply std::string& OUTPUT { std::string& out_xml_str };
 #endif
-#ifdef SWIGJAVA
-%ignore Arc::SOAPFault::Reason(const std::string&); // Reason(const char*) is wrapped instead which is equivalent to this one.
-%ignore Arc::SOAPEnvelope::SOAPEnvelope(const char*); // SOAPEnvelope(const std::string&) is wrapped instead which is equivalent to this one.
-%ignore Arc::SOAPEnvelope::SOAPEnvelope(const char*, int); // SOAPEnvelope(const std::string& xml) is wrapped instead which is equivalent to this one.
-#endif
 %include "../src/hed/libs/message/SOAPEnvelope.h"
 #ifdef SWIGPYTHON
 %clear std::string& out_xml_str;
@@ -134,13 +126,6 @@
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/message/PayloadSOAP.h
-#ifdef SWIGJAVA
-/* Multiple inheritance is not supported in Java, so the PayloadSOAP
- * class might not be fully functional. If needed further investigations
- * must be done. Suppress warning for now.
- */
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE) Arc::PayloadSOAP;
-#endif
 %{
 #include <arc/message/PayloadSOAP.h>
 %}
@@ -153,9 +138,6 @@
 %}
 %ignore Arc::PayloadStreamInterface::operator!;
 %ignore Arc::PayloadStream::operator!;
-#ifdef SWIGJAVA
-%ignore Arc::PayloadStreamInterface::Put(const char*); // Put(const std::string&) is wrapped instead which is equivalent to this one.
-#endif
 %include "../src/hed/libs/message/PayloadStream.h"
 
 

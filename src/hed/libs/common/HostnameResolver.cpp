@@ -139,6 +139,7 @@ namespace Arc {
     ::free(addr);
     addr = (sockaddr*)::malloc(length);
     memcpy(addr,other.addr,length);
+    return *this;
   }
 
   HostnameResolver::SockAddr::~SockAddr() {

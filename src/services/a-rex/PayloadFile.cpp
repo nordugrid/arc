@@ -30,7 +30,7 @@ void PayloadFile::SetRead(int h,Size_t start,Size_t end) {
   handle_=h;
   start_=start;
   end_=end;
-  addr_=NULL;
+  addr_=(char*)MAP_FAILED;
   size_=0;
   if(handle_ == -1) return;
   struct stat st;
@@ -48,7 +48,7 @@ void PayloadFile::SetRead(int h,Size_t start,Size_t end) {
 #ifndef WIN32 
   if(size_ > 0) {
     addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
-    if(addr_ == MAP_FAILED) goto error;
+    if(addr_ == (char*)MAP_FAILED) goto error;
   }
 #else 
   goto error;
@@ -58,23 +58,24 @@ void PayloadFile::SetRead(int h,Size_t start,Size_t end) {
 error:
   perror("PayloadFile");
   if(handle_ != -1) ::close(handle_);
-  handle_=-1; size_=0; addr_=NULL;
+  handle_=-1; size_=0; addr_=(char*)MAP_FAILED;
   return;
 }
 
 PayloadFile::~PayloadFile(void) {
 
 #ifndef WIN32 
-  if(addr_ != NULL) munmap(addr_,size_);
+  if(addr_ != (char*)MAP_FAILED) munmap(addr_,size_);
 #endif
 
   if(handle_ != -1) ::close(handle_);
-  handle_=-1; size_=0; addr_=NULL;
+  handle_=-1; size_=0; addr_=(char*)MAP_FAILED;
   return;
 }
 
 char* PayloadFile::Content(Size_t pos) {
   if(handle_ == -1) return NULL;
+  if(addr_ == (char*)MAP_FAILED) return NULL;
   if(pos >= end_) return NULL;
   if(pos < start_) return NULL;
   return (addr_+pos);
@@ -82,6 +83,7 @@ char* PayloadFile::Content(Size_t pos) {
 
 char PayloadFile::operator[](Size_t pos) const {
   if(handle_ == -1) return 0;
+  if(addr_ == (char*)MAP_FAILED) return 0;
   if(pos >= end_) return 0;
   if(pos < start_) return 0;
   return addr_[pos];
@@ -104,7 +106,7 @@ char* PayloadFile::Insert(const char*,Size_t /*pos*/,Size_t /*size*/) {
 char* PayloadFile::Buffer(unsigned int num) {
   if(handle_ == -1) return NULL;
   if(num>0) return NULL;
-  if(addr_ == NULL) return NULL;
+  if(addr_ == (char*)MAP_FAILED) return NULL;
   return addr_+start_;
 }
 

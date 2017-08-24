@@ -18,6 +18,7 @@ static bool elementtoboollogged(Arc::XMLNode pnode,const char* ename,bool& val,A
 template<typename T> static bool elementtointlogged(Arc::XMLNode pnode,const char* ename,T& val,Arc::Logger& logger) {
   if(Arc::Config::elementtoint(pnode, ename, val)) return true;
   logger.msg(Arc::ERROR,"wrong number in %s",ename);
+  return false;
 }
 
 StagingConfig::StagingConfig(const GMConfig& config):

@@ -17,7 +17,7 @@ use Cwd;
 ## must be installed separately.
 #use Data::Dumper::Concise;
 ## usage:
-# print Dumper($datastructure); 
+# print Dumper($datastructure);
 
 use strict;
 
@@ -40,13 +40,13 @@ BEGIN {
 # Attempt to recursively create directory
 # takes absolute filename (absolute path and file name)
 sub createdirs {
-	my ($fullpathfilename, $log) = @_;
-	my @paths;
-	for (my $path = dirname $fullpathfilename; length $path > 1; $path = dirname $path) {
-		push @paths, $path;
-	}
-	mkdir $_ for reverse @paths;
-	$log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
+    my ($fullpathfilename, $log) = @_;
+    my @paths;
+    for (my $path = dirname $fullpathfilename; length $path > 1; $path = dirname $path) {
+        push @paths, $path;
+    }
+    mkdir $_ for reverse @paths;
+    $log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
 }
 
 # minimal set of vars before loading the profiler
@@ -56,76 +56,76 @@ our $NYTPROF_PRESENT = 0;
 # Profiler config and code moved here because we need
 # to get more data before main starts
 BEGIN {
-	use ConfigCentral;
-    use LogUtils; 
+    use ConfigCentral;
+    use LogUtils;
     use Getopt::Long;
-    
-	LogUtils::level('WARNING');
+
+    LogUtils::level('WARNING');
     LogUtils::indentoutput(1);
-	
-    my $log = LogUtils->getLogger(__PACKAGE__);	
-	my $nojobs;
-	my $splitjobs;
-	my $perffreq = 1800;
-	my $print_help;
-	
-	# Make a copy of @ARGV and restore it after extracting options from it.
-	
-	my @options = @ARGV;
-	GetOptions("config:s" => \$configfile,
+
+    my $log = LogUtils->getLogger(__PACKAGE__);
+    my $nojobs;
+    my $splitjobs;
+    my $perffreq = 1800;
+    my $print_help;
+
+    # Make a copy of @ARGV and restore it after extracting options from it.
+
+    my @options = @ARGV;
+    GetOptions("config:s" => \$configfile,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
                "perffreq:i" => \$perffreq,
                "help|h"   => \$print_help );
 
-	@ARGV = @options;
+    @ARGV = @options;
 
     unless ( $configfile ) {
         $log->warning("Performance code setup: No 'config' option, skipping performance configuration. See --help ");
     } else {
-	
-		my $perflogdir;
-		my $perflognytprofdir;
-	    my $perflognytproffilepath;
-	      
-	    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
-	    
-	    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
-			# The profiling tool might be missing in some distributions.
-			# Default is to assume is not present.
-			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata'; 
-			$perflognytprofdir = $perflogdir.'/perl_nytprof/';
-			
-			# reduce performance reporting depending on interval by checking dir last modification time
-			if ( -e $perflognytprofdir ) {
-				my $t0 = time();
-				my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
-				my $timediff = $t0 - $mtime;
-				if ($timediff <= $perffreq) {
-					$log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
-					undef $log;
+
+        my $perflogdir;
+        my $perflognytprofdir;
+        my $perflognytproffilepath;
+
+        my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
+
+        if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
+            # The profiling tool might be missing in some distributions.
+            # Default is to assume is not present.
+            $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
+            $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata';
+            $perflognytprofdir = $perflogdir.'/perl_nytprof/';
+
+            # reduce performance reporting depending on interval by checking dir last modification time
+            if ( -e $perflognytprofdir ) {
+                my $t0 = time();
+                my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
+                my $timediff = $t0 - $mtime;
+                if ($timediff <= $perffreq) {
+                    $log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
+                    undef $log;
                     no ConfigCentral;
                     no LogUtils;
-					return 0;
-				}
-			}
-			
-			# append and create raw folder for NYTProf database files
-			my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
-		    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
-		    my $perflognytproffilename = 'infosys_'.$timestamp.'.perflog.raw';
-		    $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
-		    createdirs($perflognytproffilepath,$log);
-		    if ( -e $perflogdir ) {
-				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
-				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
-	 		      if ($NYTPROF_PRESENT) {
-					  DB::enable_profile($perflognytproffilepath);
-					  $log->info("Performance reporting enabled. The database file will be stored in $perflognytproffilepath");
-				  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
-		    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
-	    }
+                    return 0;
+                }
+            }
+
+            # append and create raw folder for NYTProf database files
+            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+            my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+            my $perflognytproffilename = 'infosys_'.$timestamp.'.perflog.raw';
+            $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
+            createdirs($perflognytproffilepath,$log);
+            if ( -e $perflogdir ) {
+                  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
+                  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+                   if ($NYTPROF_PRESENT) {
+                      DB::enable_profile($perflognytproffilepath);
+                      $log->info("Performance reporting enabled. The database file will be stored in $perflognytproffilepath");
+                  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
+            } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
+        }
     }
     undef $log;
     no ConfigCentral;
@@ -133,7 +133,7 @@ BEGIN {
 }
 
 use ConfigCentral;
-use LogUtils; 
+use LogUtils;
 use HostInfo;
 use RTEInfo;
 use GMJobsInfo;
@@ -164,7 +164,7 @@ sub main {
 
     LogUtils::level('INFO');
     LogUtils::indentoutput(1);
-   
+
     # Parse command line options
     my $splitjobs;
     my $perffreq = 1800;
@@ -174,9 +174,9 @@ sub main {
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
                "perffreq:i" => \$perffreq,
-               "help|h"   => \$print_help ); 
+               "help|h"   => \$print_help );
 
-    if ($print_help) { 
+    if ($print_help) {
         print "Usage: $0 <options>
         --config <path-to-arc.conf> - location of arc.conf
         --nojobs|n                  - don't include information about jobs
@@ -196,7 +196,7 @@ sub main {
     # Dump config (uncomment if needed)
     #print Dumper($config);
 
-     
+
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
@@ -219,7 +219,7 @@ sub main {
 
     # Print GLUE2 XML
     $log->info("Generating GLUE2 XML rendering");
-        
+
     my $glue2data = timed 'ARC1ClusterInfo', sub { ARC1ClusterInfo::collect($data) };
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
     $xmlPrinter->begin('InfoRoot');
@@ -228,70 +228,70 @@ sub main {
 
     # Glue1.2/1.3 cannot be generated without NorduGrid, so we force publishing
     if (!$config->{infosys_nordugrid} and $config->{infosys_glue12}) {
-		$log->warning("NorduGrid schema disabled in arc.conf. Glue1.2/1.3 cannot be generated without NorduGrid Schema, reenabling");
-		$config->{infosys_nordugrid} = 1;
-	}
+        $log->warning("NorduGrid schema disabled in arc.conf. Glue1.2/1.3 cannot be generated without NorduGrid Schema, reenabling");
+        $config->{infosys_nordugrid} = 1;
+    }
 
     # Generate ldif for infosys-ldap
-	$log->info("Generating LDIF renderings");
-	my $ngdata;
-	$ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
-		if ($config->{infosys_nordugrid} or $config->{infosys_glue12});
+    $log->info("Generating LDIF renderings");
+    my $ngdata;
+    $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
+        if ($config->{infosys_nordugrid} or $config->{infosys_glue12});
 
-	my $print_ldif = sub {
-		my ($fh) = @_;
-		if ($config->{infosys_glue2_ldap}) {                
-		   # introduced to find GLUE2 LDAP schema version
-			my $glue2schemaversion;
-			unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
-				$log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
-			} else {
-				 my $linecnt=0;
-				 while (my $line = <GLUE2_SCHEMA>) {
-					chomp $line;
-					next unless $line;
-					if ($line =~ m/# Schema Version: (\d).*/) {
-						$glue2schemaversion = $1; 
-						$log->debug("GLUE2 schema version major identified. It is: $glue2schemaversion");
-						last
-					}
-					if ($linecnt > 25) {
-						$log->debug("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
-						last
-					}
-					$linecnt++;
-				}
-			close GLUE2_SCHEMA;
-			}
-			# override splitjobs for ldap if option specified in arc.conf
-			if ( $config->{infosys_glue2_ldap_showactivities} ) { $splitjobs = 0 };
-			$log->info("Generating GLUE2 LDIF rendering");
-			my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
-			timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
-		}
-		if ($config->{infosys_nordugrid} or $config->{infosys_glue12}) {
-			$log->info("Generating NorduGrid LDIF rendering");
-			my $ldifPrinter = NGldifPrinter->new($fh, $config->{validity_ttl});
-			timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
-		}
-	};
+    my $print_ldif = sub {
+        my ($fh) = @_;
+        if ($config->{infosys_glue2_ldap}) {
+           # introduced to find GLUE2 LDAP schema version
+            my $glue2schemaversion;
+            unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
+                $log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
+            } else {
+                 my $linecnt=0;
+                 while (my $line = <GLUE2_SCHEMA>) {
+                    chomp $line;
+                    next unless $line;
+                    if ($line =~ m/# Schema Version: (\d).*/) {
+                        $glue2schemaversion = $1;
+                        $log->debug("GLUE2 schema version major identified. It is: $glue2schemaversion");
+                        last
+                    }
+                    if ($linecnt > 25) {
+                        $log->debug("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
+                        last
+                    }
+                    $linecnt++;
+                }
+            close GLUE2_SCHEMA;
+            }
+            # override splitjobs for ldap if option specified in arc.conf
+            if ( $config->{infosys_glue2_ldap_showactivities} ) { $splitjobs = 0 };
+            $log->info("Generating GLUE2 LDIF rendering");
+            my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
+            timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
+        }
+        if ($config->{infosys_nordugrid} or $config->{infosys_glue12}) {
+            $log->info("Generating NorduGrid LDIF rendering");
+            my $ldifPrinter = NGldifPrinter->new($fh, $config->{validity_ttl});
+            timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
+        }
+    };
 
-	# only notifiy ldap infosys if ldap is enabled!
-	if ($config->{infosys_nordugrid} or $config->{infosys_glue12} or $config->{infosys_glue2_ldap}) {
-		# check that fifo is working and notify if so.
-		if (InfosysHelper::createLdifScript($config, $print_ldif)) {
-			if (InfosysHelper::notifyInfosys($config)) {
-				$log->verbose("LDAP information system notified");
-			} else {
-				$log->warning("Failed to notify LDAP information system");
-			}
-		} else {
-		   $log->warning("Failed to create ldif generator script for LDAP information system");
-		}
-	} else {
-		$log->verbose("LDAP/ldif information generation is disabled. To enable it, enable one of the options infosys_nordugrid, infosys_glue12, infosys_glue2_ldap.");
-	}
-        
+    # only notifiy ldap infosys if ldap is enabled!
+    if ($config->{infosys_nordugrid} or $config->{infosys_glue12} or $config->{infosys_glue2_ldap}) {
+        # check that fifo is working and notify if so.
+        if (InfosysHelper::createLdifScript($config, $print_ldif)) {
+            if (InfosysHelper::notifyInfosys($config)) {
+                $log->verbose("LDAP information system notified");
+            } else {
+                $log->warning("Failed to notify LDAP information system");
+            }
+        } else {
+           $log->warning("Failed to create ldif generator script for LDAP information system");
+        }
+    } else {
+        $log->verbose("LDAP/ldif information generation is disabled. To enable it, enable one of the options infosys_nordugrid, infosys_glue12, infosys_glue2_ldap.");
+    }
+
     $log->info("############## A-REX infoprovider finished ##############");
 
     # close performance file if enabled
@@ -340,13 +340,13 @@ sub collect($) {
     my $data = {};
     $data->{config} = $config;
     $data->{usermap} = $usermap;
-        
+
     $log->info("Updating frontend information (HostInfo.pm)");
     $data->{host_info} = get_host_info($config,\@localusers);
-        
+
     $log->info("Updating RTE information (RTEInfo.pm)");
     $data->{rte_info} = get_rte_info($config);
-        
+
     $data->{gmjobs_info} = $gmjobs_info;
     $log->info("Updating LRMS information (LRMSInfo.pm)");
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
@@ -417,7 +417,7 @@ sub get_gmjobs_info($) {
 
 
 ##################################################
-# 
+#
 ##################################################
 
 # Check validity and fill in missing 'share' and 'queue' attributes of jobs.
@@ -509,7 +509,7 @@ sub fix_config {
                    GridftpdPort        => 2811,
                    GridftpdAllowNew    => 1,
                    GridftpdPidFile     => '/var/run/gridftpd.pid',
-                   validity_ttl	  =>  10800,
+                   validity_ttl      =>  10800,
                    SlapdPort      => 2135,
                    infosys_glue2_service_qualitylevel   => 'production',
                    shared_filesystem => 1,
@@ -517,7 +517,7 @@ sub fix_config {
                    enable_emies_interface => 0,
                    infoproviders_timeout => 10800
     );
- 
+
     my %control_defaults = (
                   defaultttl  => '604800 2629744'
     );
@@ -527,7 +527,7 @@ sub fix_config {
     }
 
     $config->{control} ||= {};
- 
+
     for (keys %control_defaults) {
         $config->{control}->{"."}->{$_} = $control_defaults{$_} if not defined $config->{control}->{"."}->{$_};
     }
@@ -541,7 +541,7 @@ sub fix_config {
     delete $config->{contacts} unless $config->{contacts} and @{$config->{contacts}};
 
     my $hostname = $config->{hostname} || hostname();
-    {  
+    {
         my @dns = split /\./, $hostname;
         my $shorthost = shift @dns;
         my $dnsdomain = join ".", @dns;
@@ -551,8 +551,8 @@ sub fix_config {
 
         chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
         chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
-        
-        
+
+
         $log->info("ClusterName config option is missing in XML. Trying cluster_alias...") unless $config->{service}{ClusterName};
         $log->info("ClusterAlias in XML or cluster-alias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
         chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
@@ -567,12 +567,12 @@ sub fix_config {
         # fix endpoint information if not complete
         $config->{endpoint} = "$proto://$host:$port$mountpoint"
     } else {
-		# disable all WS interfaces
-		$config->{enable_arc_interface} = 0;
-		$config->{enable_emies_interface} = 0;
-		$log->warning("arex_mount_point not configured. WS interfaces org.nordugrid.xbes and EMI-ES will not be published.");
-	}
-        
+        # disable all WS interfaces
+        $config->{enable_arc_interface} = 0;
+        $config->{enable_emies_interface} = 0;
+        $log->warning("arex_mount_point not configured. WS interfaces org.nordugrid.xbes and EMI-ES will not be published.");
+    }
+
     # fire warning if GLUE2 Service Quality Level is not good
     # TODO: I'd like this to be done by InfoChecker
     if ($config->{infosys_glue2_service_qualitylevel}) {
@@ -583,7 +583,7 @@ sub fix_config {
                                  'testing' => '1'
                                 };
         if (! $closedenumeration->{$qualitylevelstring} ) {
-            $log->error("infosys_glue2_service_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: testing production pre-production development"); 
+            $log->error("infosys_glue2_service_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: testing production pre-production development");
         }
     }
 
