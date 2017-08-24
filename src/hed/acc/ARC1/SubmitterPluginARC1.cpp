@@ -83,9 +83,12 @@ namespace Arc {
         jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
         // compensate for time between request and response on slow networks
         URL sessionurl = jobid;
-        sessionurl.AddOption("threads=2",false);
+        sessionurl.AddOption("threads=3",false);
         sessionurl.AddOption("encryption=optional",false);
-        if(arex_features) sessionurl.AddOption("httpputpartial=yes",false);
+        if(arex_features) {
+          sessionurl.AddOption("httpputpartial=yes",false);
+          sessionurl.AddOption("blocksize=5242880",true);
+        }
     
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
@@ -175,9 +178,12 @@ namespace Arc {
         jobid = URL((std::string)(activityIdentifier["ReferenceParameters"]["JobSessionDir"]));
         // compensate for time between request and response on slow networks
         URL sessionurl = jobid;
-        sessionurl.AddOption("threads=2",false);
+        sessionurl.AddOption("threads=3",false);
         sessionurl.AddOption("encryption=optional",false);
-        if(arex_features) sessionurl.AddOption("httpputpartial=yes",false);
+        if(arex_features) {
+          sessionurl.AddOption("httpputpartial=yes",false);
+          sessionurl.AddOption("blocksize=5242880",true);
+        }
     
         if (!PutFiles(preparedjobdesc, sessionurl)) {
           logger.msg(INFO, "Failed uploading local input files");
@@ -290,9 +296,10 @@ namespace Arc {
     URL newjobid((std::string)(xNewjobid["ReferenceParameters"]["JobSessionDir"]));
 
     URL sessionurl = newjobid;
-    sessionurl.AddOption("threads=2",false);
+    sessionurl.AddOption("threads=3",false);
     sessionurl.AddOption("encryption=optional",false);
     sessionurl.AddOption("httpputpartial=yes",false); // for A-REX
+    sessionurl.AddOption("blocksize=5242880",true);
 
     if (!PutFiles(preparedjobdesc, sessionurl)) {
       logger.msg(INFO, "Failed uploading local input files");

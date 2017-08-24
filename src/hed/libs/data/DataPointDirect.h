@@ -9,7 +9,7 @@
 #include <arc/data/DataPoint.h>
 
 #define MAX_PARALLEL_STREAMS 20
-#define MAX_BLOCK_SIZE (1024 * 1024)
+#define MAX_BLOCK_SIZE (10 * 1024 * 1024)
 
 namespace Arc {
 
