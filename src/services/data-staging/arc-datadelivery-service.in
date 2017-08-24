@@ -208,6 +208,7 @@ prepare() {
         LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
     fi
     export LD_LIBRARY_PATH
+    cd /
 }
 
 start() {

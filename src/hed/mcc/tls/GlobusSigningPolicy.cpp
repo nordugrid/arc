@@ -36,6 +36,11 @@ static void get_line(std::istream& in,std::string& s) {
     std::string::size_type p;
     p=s.find_first_not_of(" \t");
     if(p != std::string::npos) s=s.substr(p);
+    p=s.find_last_not_of(" \t\r\n"); // also trim CRLF
+    if(p == std::string::npos) 
+      s.resize(0);
+    else
+      s.resize(p+1);
     if((!s.empty()) && (s[0] != '#')) break;
   };
   return;

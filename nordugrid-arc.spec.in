@@ -588,7 +588,7 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-ldap-infosys = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{with_python}
-Requires:	%{name}-python = %{version}-%{release}
+Requires:	python2-%{name} = %{version}-%{release}
 %endif
 Requires:	perl(XML::Simple)
 %if %{with_pythonlrms}
@@ -799,12 +799,15 @@ Connector (ARC).
 Header files and libraries needed to develop applications using ARC.
 
 %if %{with_python}
-%package python
+%package -n python2-%{name}
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
+%{?python_provide:%python_provide python2-%{name}}
+Provides:	%{name}-python = %{version}-%{release}
+Obsoletes:	%{name}-python < 5.3.3
 Requires:	%{name} = %{version}-%{release}
 
-%description python
+%description -n python2-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -813,13 +816,16 @@ Python bindings for ARC.
 %endif
 
 %if %{?rhel}%{!?rhel:0} == 5
-%package python26
+%package -n python26-%{name}
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
+%{?python_provide:%python_provide python26-%{name}}
+Provides:	%{name}-python26 = %{version}-%{release}
+Obsoletes:	%{name}-python26 < 5.3.3
 Requires:	%{name} = %{version}-%{release}
 Requires:	python(abi) = 2.6
 
-%description python26
+%description -n python26-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -828,12 +834,15 @@ Python bindings for ARC.
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13
-%package python3
+%package -n python3-%{name}
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
+%{?python_provide:%python_provide python3-%{name}}
+Provides:	%{name}-python3 = %{version}-%{release}
+Obsoletes:	%{name}-python3 < 5.3.3
 Requires:	%{name} = %{version}-%{release}
 
-%description python3
+%description -n python3-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1605,7 +1614,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %endif
 
 %if %{with_python}
-%files python
+%files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
 %{python_sitearch}/_arc.@PYTHON_SOABI@*so
@@ -1617,14 +1626,14 @@ service fetch-crl-cron start > /dev/null 2>&1
 %endif
 
 %if %{?rhel}%{!?rhel:0} == 5
-%files python26
+%files -n python26-%{name}
 %defattr(-,root,root,-)
 %{python26_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python26_sitearch}/arc
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13
-%files python3
+%files -n python3-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python3_sitearch}/arc

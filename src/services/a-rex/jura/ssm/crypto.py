@@ -258,7 +258,7 @@ def get_certificate_subject(certstring):
     '''
     Return the certificate subject's DN, in legacy openssl format.
     '''
-    p1 = Popen(['openssl', 'x509', '-noout', '-subject'],
+    p1 = Popen(['openssl', 'x509', '-noout', '-subject', '-nameopt', 'oneline'],
                stdin=PIPE, stdout=PIPE, stderr=PIPE)
     
     subject, error = p1.communicate(certstring)
@@ -267,7 +267,18 @@ def get_certificate_subject(certstring):
         log.error(error)
         raise CryptoException('Failed to get subject: %s' % error)
     
-    subject = subject.strip()[9:] # remove 'subject= ' from the front
+    subject = subject.strip()[8:] # remove 'subject=' from the front
+    subject = subject.lstrip() # even if there is space after subject=
+    subject = subject.split(', ')
+    
+    for idx in range(len(subject)):
+        el = subject[idx].split(' = ')
+        el = '='.join(el)
+        subject.pop(idx)
+        subject.insert(idx,el)
+    
+    subject = '/' + '/'.join(subject)
+    
     return subject
 
 
