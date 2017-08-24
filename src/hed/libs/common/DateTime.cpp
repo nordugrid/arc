@@ -381,6 +381,46 @@ namespace Arc {
         return ss.str();
       }
 
+    case UserExtTime:
+      {
+        tm tmtime;
+        localtime_r(&gtime, &tmtime);
+
+        std::stringstream ss;
+
+        ss << std::setfill('0');
+
+        ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
+           << std::setw(2) << tmtime.tm_mon + 1 << '-'
+           << std::setw(2) << tmtime.tm_mday << ' '
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << '.'
+           << std::setw(6) << gnano/1000;
+
+        return ss.str();
+      }
+
+    case ElasticTime:
+      {
+        tm tmtime;
+        localtime_r(&gtime, &tmtime);
+
+        std::stringstream ss;
+
+        ss << std::setfill('0');
+
+        ss << std::setw(4) << tmtime.tm_year + 1900 << '-'
+           << std::setw(2) << tmtime.tm_mon + 1 << '-'
+           << std::setw(2) << tmtime.tm_mday << ' '
+           << std::setw(2) << tmtime.tm_hour << ':'
+           << std::setw(2) << tmtime.tm_min << ':'
+           << std::setw(2) << tmtime.tm_sec << '.'
+           << std::setw(3) << gnano/1000000;
+
+        return ss.str();
+      }
+
     case MDSTime:
       {
         tm tmtime;

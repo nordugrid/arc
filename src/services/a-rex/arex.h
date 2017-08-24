@@ -47,7 +47,7 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
   int OpenDocument(void);
   Arc::MessagePayload* Process(Arc::SOAPEnvelope& in);
   void AssignFile(const std::string& filename);
-  void Assign(const std::string& xml);
+  void Assign(const std::string& xml,const std::string filename = "");
 };
 
 #define AREXOP(NAME) Arc::MCC_Status NAME(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out)

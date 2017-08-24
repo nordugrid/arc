@@ -18,6 +18,15 @@
 
 namespace Arc {
 
+  static int bytes_to_mb(unsigned long long int value) {
+    if(value == 0) return 0;
+    return (int)((value - 1) / (1024*1024) + 1);
+  }
+
+  static unsigned long long int mb_to_bytes(int value) {
+    return (unsigned long long int)(1024ull * 1024ull * (unsigned int)value);
+  }
+
   /// \mapname ADL EMI ADL
   /// The libarccompute library has almost full support for EMI Activity
   /// Description Language (ADL) v1.16, it is described in the EMI Execution
@@ -634,18 +643,22 @@ namespace Arc {
       XMLNode memory;
       memory = resources["adl:IndividualPhysicalMemory"];
       if((bool)memory) {
-        if(!stringto((std::string)memory,parsed_jobdescription.Resources.IndividualPhysicalMemory.max)) {
+        unsigned long long int value = -1;
+        if(!stringto((std::string)memory,value)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualPhysicalMemory.");
           return false;
         }
+        parsed_jobdescription.Resources.IndividualPhysicalMemory.max = bytes_to_mb(value);
       }
       /// \mapattr Resources.IndividualVirtualMemory -> IndividualVirtualMemory
       memory = resources["adl:IndividualVirtualMemory"];
       if((bool)memory) {
-        if(!stringto((std::string)memory,parsed_jobdescription.Resources.IndividualVirtualMemory.max)) {
+        unsigned long long int value = -1;
+        if(!stringto((std::string)memory,value)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualVirtualMemory.");
           return false;
         }
+        parsed_jobdescription.Resources.IndividualVirtualMemory.max = bytes_to_mb(value);
       }
       /// \mapattr Resources.DiskSpaceRequirement -> DiskSpace
       memory = resources["adl:DiskSpaceRequirement"];
@@ -655,7 +668,7 @@ namespace Arc {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in DiskSpaceRequirement.");
           return false;
         }
-        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = (v - 1) / 1024*1024 + 1;
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = bytes_to_mb(v);
       }
       /// \mapattr Resources.RemoteSessionAccess -> SessionDirectoryAccess
       if((bool)resources["adl:RemoteSessionAccess"]) {
@@ -1011,15 +1024,15 @@ namespace Arc {
     }
     /// \mapattr Resources.IndividualPhysicalMemory <- IndividualPhysicalMemory
     if(job.Resources.IndividualPhysicalMemory.max != -1) {
-      resources.NewChild("IndividualPhysicalMemory") = tostring(job.Resources.IndividualPhysicalMemory.max);
+      resources.NewChild("IndividualPhysicalMemory") = tostring(mb_to_bytes(job.Resources.IndividualPhysicalMemory.max));
     }
     /// \mapattr Resources.IndividualVirtualMemory <- IndividualVirtualMemory
     if(job.Resources.IndividualVirtualMemory.max != -1) {
-      resources.NewChild("IndividualVirtualMemory") = tostring(job.Resources.IndividualVirtualMemory.max);
+      resources.NewChild("IndividualVirtualMemory") = tostring(mb_to_bytes(job.Resources.IndividualVirtualMemory.max));
     }
     /// \mapattr Resources.DiskSpaceRequirement <- DiskSpace
-    if(job.Resources.DiskSpaceRequirement.DiskSpace.min > -1) {
-      resources.NewChild("DiskSpaceRequirement") = tostring(job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024);
+    if(job.Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
+      resources.NewChild("DiskSpaceRequirement") = tostring(mb_to_bytes(job.Resources.DiskSpaceRequirement.DiskSpace.max));
     }
     /// \mapattr Resources.RemoteSessionAccess <- SessionDirectoryAccess
     switch(job.Resources.SessionDirectoryAccess) {

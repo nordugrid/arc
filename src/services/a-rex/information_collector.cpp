@@ -65,7 +65,7 @@ void ARexService::InformationCollector(void) {
       // and functionality to be moved to information providers.
       if(!xml_str.empty()) {
         // Currently glue states are lost. Counter of all jobs is lost too.
-        infodoc_.Assign(xml_str);
+        infodoc_.Assign(xml_str,config_.ControlDir()+G_DIR_SEPARATOR_S+"info.xml");
         Arc::XMLNode root = infodoc_.Acquire();
         Arc::XMLNode all_jobs_count = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["AllJobs"];
         if((bool)all_jobs_count) {
@@ -310,52 +310,63 @@ void OptimizedInformationContainer::AssignFile(const std::string& filename) {
   olock_.unlock();
 }
 
-void OptimizedInformationContainer::Assign(const std::string& xml) {
-  std::string filename;
-  int h = Glib::file_open_tmp(filename);
+void OptimizedInformationContainer::Assign(const std::string& xml, const std::string filename) {
+  std::string tmpfilename;
+  int h = -1;
+  if(filename.empty()) {
+    h = Glib::file_open_tmp(tmpfilename);
+  } else {
+    tmpfilename = filename;
+    tmpfilename += ".tmpXXXXXX";
+    h = Glib::mkstemp(tmpfilename);
+  };
   if(h == -1) {
     Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to create temporary file");
     return;
   };
-  Arc::Logger::getRootLogger().msg(Arc::VERBOSE,"OptimizedInformationContainer created temporary file: %s",filename);
+  Arc::Logger::getRootLogger().msg(Arc::VERBOSE,"OptimizedInformationContainer created temporary file: %s",tmpfilename);
   for(std::string::size_type p = 0;p<xml.length();++p) {
     ssize_t l = ::write(h,xml.c_str()+p,xml.length()-p);
     if(l == -1) {
-      ::unlink(filename.c_str());
+      ::unlink(tmpfilename.c_str());
       ::close(h);
       Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to store XML document to temporary file");
       return;
     };
     p+=l;
   };
-  if(parse_xml_) {
-    Arc::XMLNode newxml(xml);
-    if(!newxml) {
-      ::unlink(filename.c_str());
-      ::close(h);
-      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
+  Arc::XMLNode newxml(parse_xml_?xml:std::string());
+  if(parse_xml_ && !newxml) {
+    ::unlink(tmpfilename.c_str());
+    ::close(h);
+    Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to parse XML");
+    return;
+  };
+  // Here we have XML stored in file and optionally parsed
+  // Attach to new file
+  olock_.lock();
+  if(filename.empty()) {
+    if(!filename_.empty()) ::unlink(filename_.c_str());
+    filename_ = tmpfilename;
+  } else {
+    if(::rename(tmpfilename.c_str(), filename.c_str()) != 0) {
+      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to rename temprary file");
       return;
     };
-    // Here we have XML stored in file and parsed
-    olock_.lock();
-    if(!filename_.empty()) ::unlink(filename_.c_str());
-    if(handle_ != -1) ::close(handle_);
+    // Do not delete old file if same name requested - it is removed by rename()
+    if(!filename_.empty()) if(filename_ != filename) ::unlink(filename_.c_str());
     filename_ = filename;
-    handle_ = h;
+  };   
+  if(handle_ != -1) ::close(handle_);
+  handle_ = h;
+  if(parse_xml_) {
+    // Assign parsed xml
     lock_.lock();
     doc_.Swap(newxml);
     lock_.unlock();
     Arc::InformationContainer::Assign(doc_,false);
-    olock_.unlock();
-  } else {
-    // Here we have XML stored in file
-    olock_.lock();
-    if(!filename_.empty()) ::unlink(filename_.c_str());
-    if(handle_ != -1) ::close(handle_);
-    filename_ = filename;
-    handle_ = h;
-    olock_.unlock();
   };
+  olock_.unlock();
 }
 
 #define ESINFOFAULT(MSG) { \

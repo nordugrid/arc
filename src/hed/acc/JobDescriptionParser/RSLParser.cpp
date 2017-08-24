@@ -323,6 +323,7 @@ namespace Arc {
           parsing_result.SetFailure();
           parsing_result.AddError(JobDescriptionParsingError(IString("Junk at end of RSL").str(), GetLinePosition(n)));
           delete parsed;
+          parsed = NULL;
           return NULL;
         }
       }

@@ -24,7 +24,8 @@
 
 namespace Arc {
 
-  #define DefaultLogLevel (DEBUG)
+  static const Arc::LogLevel DefaultLogLevel = Arc::DEBUG;
+  static Arc::LogFormat DefaultLogFormat = Arc::LongFormat;
 
   static std::string list_to_domain(const std::list<std::string>& subdomains) {
     std::string domain;
@@ -229,10 +230,14 @@ namespace Arc {
   }
 
   LogDestination::LogDestination()
-    : format(LongFormat) {}
+    : format(DefaultLogFormat) {}
 
   void LogDestination::setFormat(const LogFormat& newformat) {
     format = newformat;
+  }
+
+  void LogDestination::setDefaultFormat(const LogFormat& newformat) {
+    DefaultLogFormat = newformat;
   }
 
   void LogDestination::setPrefix(const std::string& pre) {

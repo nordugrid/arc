@@ -15,6 +15,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/IniConfig.h>
 #include <arc/ArcLocation.h>
+#include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/StringConv.h>
@@ -307,6 +308,29 @@ int main(int argc, char **argv)
     signal(SIGHUP,&sighup_handler);
     // Set up Glib exception handler
     Glib::add_exception_handler(sigc::ptr_fun(&glib_exception_handler));
+    // Debug code for setting different logging formats
+    char const * log_time_format = ::getenv("ARC_LOGGER_TIME_FORMAT");
+    if(log_time_format) {
+        if(strcmp(log_time_format,"USER") == 0) {
+            Arc::Time::SetFormat(Arc::UserTime);
+        } else if(strcmp(log_time_format,"USEREXT") == 0) {
+            Arc::Time::SetFormat(Arc::UserExtTime);
+        } else if(strcmp(log_time_format,"ELASTIC") == 0) {
+            Arc::Time::SetFormat(Arc::ElasticTime);
+        } else if(strcmp(log_time_format,"MDS") == 0) {
+            Arc::Time::SetFormat(Arc::MDSTime);
+        } else if(strcmp(log_time_format,"ASC") == 0) {
+            Arc::Time::SetFormat(Arc::ASCTime);
+        } else if(strcmp(log_time_format,"ISO") == 0) {
+            Arc::Time::SetFormat(Arc::ISOTime);
+        } else if(strcmp(log_time_format,"UTC") == 0) {
+            Arc::Time::SetFormat(Arc::UTCTime);
+        } else if(strcmp(log_time_format,"RFC1123") == 0) {
+            Arc::Time::SetFormat(Arc::RFC1123Time);
+        } else if(strcmp(log_time_format,"EPOCH") == 0) {
+            Arc::Time::SetFormat(Arc::EpochTime);
+        };
+    };
     // Temporary stderr destination for error messages
     Arc::LogStream logcerr(std::cerr);
     Arc::Logger::getRootLogger().addDestination(logcerr);

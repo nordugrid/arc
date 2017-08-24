@@ -1014,10 +1014,10 @@ bool PayloadHTTPOut::FlushBody(PayloadStreamInterface& stream) {
           };
         };
         delete[] tbuf;
+        tbuf = NULL;
         if(use_chunked_transfer_) {
           if(!stream.Put("0\r\n\r\n")) {
             error_ = IString("Failed to write body to output stream").str();
-            delete[] tbuf;
             return false;
           };
         };

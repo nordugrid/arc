@@ -570,11 +570,13 @@ namespace Arc {
      **/
     std::string NetworkInfo;
     
+    /// Specifies amount of requested RAM in MB
     /**
      * \mapdefattr IndividualPhysicalMemory Arc::ResourcesType
      **/
     Range<int> IndividualPhysicalMemory;
     
+    /// Specifies amount of requested virtual memory in MB
     /**
      * \mapdefattr IndividualVirtualMemory Arc::ResourcesType
      **/

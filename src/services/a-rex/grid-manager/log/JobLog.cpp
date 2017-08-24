@@ -48,7 +48,7 @@ bool JobLog::SetPeriod(int new_period) {
 bool JobLog::open_stream(std::ofstream &o) {
     o.open(filename.c_str(),std::ofstream::app);
     if(!o.is_open()) return false;
-    o<<(Arc::Time().str(Arc::UserTime));
+    o<<(Arc::Time().str());
     o<<" ";
     return true;
 }

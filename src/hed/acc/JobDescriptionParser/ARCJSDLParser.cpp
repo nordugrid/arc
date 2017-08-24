@@ -18,6 +18,28 @@
 
 namespace Arc {
 
+  static Range<int> bytes_to_mb(Range<long long int> value) {
+    Range<int> result(-1);
+    result.min = (value.min < 0) ? -1 : ((value.min == 0) ? 0 : (int)((value.min - 1) / (1024*1024) + 1));
+    result.max = (value.max < 0) ? -1 : ((value.max == 0) ? 0 : (int)((value.max - 1) / (1024*1024) + 1));
+    return result;
+  }
+
+  static int bytes_to_mb(long long int value) {
+    return (value < 0) ? -1 : ((value == 0) ? 0 : (int)((value - 1) / (1024*1024) + 1));
+  }
+
+  static Range<long long int> mb_to_bytes(Range<int> value) {
+    Range<long long int> result(-1);
+    result.min = 1024ll * 1024ll * value.min;
+    result.max = 1024ll * 1024ll * value.max;
+    return result;
+  }
+
+  static long long int mb_to_bytes(int value) {
+    return 1024ll * 1024ll * value;
+  }
+
   #define JSDL_NAMESPACE "http://schemas.ggf.org/jsdl/2005/11/jsdl"
   #define JSDL_POSIX_NAMESPACE "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
   #define JSDL_ARC_NAMESPACE "http://www.nordugrid.org/ws/schemas/jsdl-arc"
@@ -496,14 +518,16 @@ namespace Arc {
     // Range<int> IndividualPhysicalMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualPhysicalMemory"])) {
-      if (!parseRange<int>(resource["IndividualPhysicalMemory"], parsed_jobdescription.Resources.IndividualPhysicalMemory)) {
+      Range<long long int> value(-1);
+      if (!parseRange<long long int>(resource["IndividualPhysicalMemory"], value)) {
         return false;
       }
+      parsed_jobdescription.Resources.IndividualPhysicalMemory = bytes_to_mb(value);
     }
     else if (bool(xmlXApplication["MemoryLimit"])) {
       long long jsdlMemoryLimit = -1;
       if (stringto<long long>((std::string)xmlXApplication["MemoryLimit"], jsdlMemoryLimit)) {
-        parsed_jobdescription.Resources.IndividualPhysicalMemory.max = (int)(jsdlMemoryLimit/(1024*1024));
+        parsed_jobdescription.Resources.IndividualPhysicalMemory.max = bytes_to_mb(jsdlMemoryLimit);
       }
       else {
         parsed_jobdescription.Resources.IndividualPhysicalMemory = Range<int>(-1);
@@ -514,13 +538,19 @@ namespace Arc {
     // Range<int> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
-      if (!parseRange<int>(resource["IndividualVirtualMemory"], parsed_jobdescription.Resources.IndividualVirtualMemory)) {
+      Range<long long int> value(-1);
+      if (!parseRange<long long int>(resource["IndividualVirtualMemory"], value)) {
         return false;
       }
+      parsed_jobdescription.Resources.IndividualVirtualMemory = bytes_to_mb(value);
     }
     else if (bool(xmlXApplication["VirtualMemoryLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["VirtualMemoryLimit"], parsed_jobdescription.Resources.IndividualVirtualMemory.max))
+      long long int jsdlMemoryLimit = -1;
+      if (stringto<long long int>((std::string)xmlXApplication["VirtualMemoryLimit"], jsdlMemoryLimit)) {
+        parsed_jobdescription.Resources.IndividualVirtualMemory.max = bytes_to_mb(jsdlMemoryLimit);
+      } else {
         parsed_jobdescription.Resources.IndividualVirtualMemory = Range<int>(-1);
+      }
     }
 
     // Range<int> IndividualCPUTime;
@@ -578,13 +608,15 @@ namespace Arc {
     // Range<int> DiskSpace;
     // If the consolidated element exist parse it, else try to parse the JSDL one.
     if (bool(resource["DiskSpaceRequirement"]["DiskSpace"])) {
-      Range<long long int> diskspace = -1;
+      Range<long long int> diskspace(-1);
       if (!parseRange<long long int>(resource["DiskSpaceRequirement"]["DiskSpace"], diskspace)) {
         return false;
       }
-      if (diskspace > -1) {
-        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
-        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+      if (diskspace.max > -1) {
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = bytes_to_mb(diskspace.max);
+      }
+      if (diskspace.min > -1) {
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = bytes_to_mb(diskspace.min);
       }
     }
     else if (bool(resource["FileSystem"]["DiskSpace"])) {
@@ -593,10 +625,10 @@ namespace Arc {
         return false;
       }
       if (diskspace.max > -1) {
-        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.max = bytes_to_mb(diskspace.max);
       }
       if (diskspace.min > -1) {
-        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.DiskSpace.min = bytes_to_mb(diskspace.min);
       }
     }
 
@@ -607,7 +639,7 @@ namespace Arc {
          parsed_jobdescription.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
       }
       else if (cachediskspace > -1) {
-        parsed_jobdescription.Resources.DiskSpaceRequirement.CacheDiskSpace = cachediskspace/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.CacheDiskSpace = bytes_to_mb(cachediskspace);
       }
     }
 
@@ -618,7 +650,7 @@ namespace Arc {
         parsed_jobdescription.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
       }
      else if (sessiondiskspace > -1) {
-        parsed_jobdescription.Resources.DiskSpaceRequirement.SessionDiskSpace = sessiondiskspace/(1024*1024);
+        parsed_jobdescription.Resources.DiskSpaceRequirement.SessionDiskSpace = bytes_to_mb(sessiondiskspace);
       }
     }
 
@@ -1019,14 +1051,14 @@ namespace Arc {
     if (job.Resources.TotalWallTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:WallTimeLimit") = tostring(job.Resources.TotalWallTime.range.max);
     if (job.Resources.IndividualPhysicalMemory.max != -1) {
-      xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max*1024*1024);
+      xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(mb_to_bytes(job.Resources.IndividualPhysicalMemory.max));
     }
     if (job.Resources.TotalCPUTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime.range.max);
     if (job.Resources.SlotRequirement.NumberOfSlots != -1)
       xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
     if (job.Resources.IndividualVirtualMemory.max != -1)
-      xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory.max);
+      xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(mb_to_bytes(job.Resources.IndividualVirtualMemory.max));
     if (job.Resources.ParallelEnvironment.ThreadsPerProcess != -1)
       xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.ParallelEnvironment.ThreadsPerProcess);
 
@@ -1096,9 +1128,9 @@ namespace Arc {
     // Range<int> IndividualPhysicalMemory;
     {
       XMLNode xmlIPM(ns,"IndividualPhysicalMemory");
-      outputARCJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
+      outputARCJSDLRange(mb_to_bytes(job.Resources.IndividualPhysicalMemory), xmlIPM, (long long int)-1);
       // JSDL compliance...
-      outputJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
+      outputJSDLRange(mb_to_bytes(job.Resources.IndividualPhysicalMemory), xmlIPM, (long long int)-1);
       if (xmlIPM.Size() > 0)
         xmlResources.NewChild(xmlIPM);
     }
@@ -1106,8 +1138,8 @@ namespace Arc {
     // Range<int> IndividualVirtualMemory;
     {
       XMLNode xmlIVM(ns,"IndividualVirtualMemory");
-      outputARCJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
-      outputJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
+      outputARCJSDLRange(mb_to_bytes(job.Resources.IndividualVirtualMemory), xmlIVM, (long long int)-1);
+      outputJSDLRange(mb_to_bytes(job.Resources.IndividualVirtualMemory), xmlIVM, (long long int)-1);
       if (xmlIVM.Size() > 0)
         xmlResources.NewChild(xmlIVM);
     }
@@ -1117,13 +1149,7 @@ namespace Arc {
       XMLNode xmlDiskSpace(ns,"arc-jsdl:DiskSpace");
       XMLNode xmlFileSystem(ns,"DiskSpace"); // JDSL compliance...
       if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1 || job.Resources.DiskSpaceRequirement.DiskSpace.min != -1) {
-        Range<long long int> diskspace;
-        if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1) {
-          diskspace.max = job.Resources.DiskSpaceRequirement.DiskSpace.max*1024*1024;
-        }
-        if (job.Resources.DiskSpaceRequirement.DiskSpace.min != -1) {
-          diskspace.min = job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024;
-        }
+        Range<long long int> diskspace = mb_to_bytes(job.Resources.DiskSpaceRequirement.DiskSpace);
         outputARCJSDLRange(diskspace, xmlDiskSpace, (long long int)-1);
 
         // JSDL compliance...
@@ -1136,12 +1162,12 @@ namespace Arc {
 
         // int CacheDiskSpace;
         if (job.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-          dsr.NewChild("arc-jsdl:CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace*1024*1024);
+          dsr.NewChild("arc-jsdl:CacheDiskSpace") = tostring(mb_to_bytes(job.Resources.DiskSpaceRequirement.CacheDiskSpace));
         }
 
         // int SessionDiskSpace;
         if (job.Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
-          dsr.NewChild("arc-jsdl:SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace*1024*1024);
+          dsr.NewChild("arc-jsdl:SessionDiskSpace") = tostring(mb_to_bytes(job.Resources.DiskSpaceRequirement.SessionDiskSpace));
         }
       }
 

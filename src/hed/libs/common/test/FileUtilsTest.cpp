@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 
 class FileUtilsTest
@@ -52,6 +53,7 @@ void FileUtilsTest::setUp() {
   Arc::TmpDirCreate(tmpdir);
   testroot = tmpdir;
   sep = G_DIR_SEPARATOR_S;
+  Arc::FileAccess::testtune();
 }
 
 void FileUtilsTest::tearDown() {

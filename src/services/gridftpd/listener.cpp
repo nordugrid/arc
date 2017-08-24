@@ -122,7 +122,28 @@ void sig_term(int signum) {
 int main_internal(int argc,char** argv);
 
 int main(int argc,char** argv) {
-
+  char const * log_time_format = ::getenv("ARC_LOGGER_TIME_FORMAT");
+  if(log_time_format) {
+    if(strcmp(log_time_format,"USER") == 0) {
+      Arc::Time::SetFormat(Arc::UserTime);
+    } else if(strcmp(log_time_format,"USEREXT") == 0) {
+      Arc::Time::SetFormat(Arc::UserExtTime);
+    } else if(strcmp(log_time_format,"ELASTIC") == 0) {
+      Arc::Time::SetFormat(Arc::ElasticTime);
+    } else if(strcmp(log_time_format,"MDS") == 0) {
+      Arc::Time::SetFormat(Arc::MDSTime);
+    } else if(strcmp(log_time_format,"ASC") == 0) {
+      Arc::Time::SetFormat(Arc::ASCTime);
+    } else if(strcmp(log_time_format,"ISO") == 0) {
+      Arc::Time::SetFormat(Arc::ISOTime);
+    } else if(strcmp(log_time_format,"UTC") == 0) {
+      Arc::Time::SetFormat(Arc::UTCTime);
+    } else if(strcmp(log_time_format,"RFC1123") == 0) {
+      Arc::Time::SetFormat(Arc::RFC1123Time);
+    } else if(strcmp(log_time_format,"EPOCH") == 0) {
+      Arc::Time::SetFormat(Arc::EpochTime);
+    };
+  };
   // temporary stderr destination until configuration is read and used in daemon.daemon()
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);
@@ -183,7 +204,28 @@ int main(int argc,char** argv) {
 #endif
   setpgid(0,0);
 #endif
-
+  char const * log_time_format = ::getenv("ARC_LOGGER_TIME_FORMAT");
+  if(log_time_format) {
+    if(strcmp(log_time_format,"USER") == 0) {
+      Arc::Time::SetFormat(Arc::UserTime);
+    } else if(strcmp(log_time_format,"USEREXT") == 0) {
+      Arc::Time::SetFormat(Arc::UserExtTime);
+    } else if(strcmp(log_time_format,"ELASTIC") == 0) {
+      Arc::Time::SetFormat(Arc::ElasticTime);
+    } else if(strcmp(log_time_format,"MDS") == 0) {
+      Arc::Time::SetFormat(Arc::MDSTime);
+    } else if(strcmp(log_time_format,"ASC") == 0) {
+      Arc::Time::SetFormat(Arc::ASCTime);
+    } else if(strcmp(log_time_format,"ISO") == 0) {
+      Arc::Time::SetFormat(Arc::ISOTime);
+    } else if(strcmp(log_time_format,"UTC") == 0) {
+      Arc::Time::SetFormat(Arc::UTCTime);
+    } else if(strcmp(log_time_format,"RFC1123") == 0) {
+      Arc::Time::SetFormat(Arc::RFC1123Time);
+    } else if(strcmp(log_time_format,"EPOCH") == 0) {
+      Arc::Time::SetFormat(Arc::EpochTime);
+    };
+  };
   // temporary stderr destination until configuration is read and used in daemon.daemon()
   Arc::LogStream logcerr(std::cerr);
   Arc::Logger::getRootLogger().addDestination(logcerr);

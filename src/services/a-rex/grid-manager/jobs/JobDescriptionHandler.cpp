@@ -251,6 +251,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
   f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
   f<<"joboption_virtualmemory="<<(arc_job_desc.Resources.IndividualVirtualMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualVirtualMemory.max):"")<<std::endl;
+  f<<"joboption_disk="<<(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max != -1 ? Arc::tostring(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max):"")<<std::endl;
 
   //calculate the number of nodes/hosts needed
   {

@@ -215,6 +215,9 @@ namespace Arc {
     /// Set format for this log destination.
     void setFormat(const LogFormat& newformat);
 
+    /// Set format for any new log destination.
+    static void setDefaultFormat(const LogFormat& newformat);
+
     /// Set a prefix for this log destination to be logged before messages.
     /** The prefix is prepended to messages in all formats except EmptyFormat.
      * \since Added in 4.0.0.

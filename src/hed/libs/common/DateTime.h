@@ -23,7 +23,9 @@ namespace Arc {
     ISOTime,       ///< YYYY-MM-DDTHH:MM:SS+HH:MM
     UTCTime,       ///< YYYY-MM-DDTHH:MM:SSZ
     RFC1123Time,   ///< Day, DD Mon YYYY HH:MM:SS GMT
-    EpochTime      ///< 1234567890
+    EpochTime,     ///< 1234567890
+    UserExtTime,   ///< YYYY-MM-DD HH:MM:SS.mmmmmm (microseconds resolution)
+    ElasticTime,   ///< YYYY-MM-DD HH:MM:SS.mmm (milliseconds resolution, suitable for Elasticsearch)
   };
 
   /// Base to use when constructing a new Period.
