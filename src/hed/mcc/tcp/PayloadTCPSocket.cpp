@@ -21,7 +21,10 @@
 
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
+#include <arc/HostnameResolver.h>
 #include "PayloadTCPSocket.h"
+
+#define USE_REMOTE_HOSTNAME_RESOLVER 1
 
 namespace ArcMCCTCP {
 
@@ -54,12 +57,13 @@ static int spoll(int h, int timeout, unsigned int& events) {
 
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
 {
+  std::string port_str = tostring(port);
+#ifndef USE_REMOTE_HOSTNAME_RESOLVER
   struct addrinfo hint;
   memset(&hint, 0, sizeof(hint));
   hint.ai_family = AF_UNSPEC;
   hint.ai_socktype = SOCK_STREAM;
   hint.ai_protocol = IPPROTO_TCP;
-  std::string port_str = tostring(port);
   struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if ((ret != 0) || (!info)) {
@@ -70,12 +74,32 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   }
   int s = -1;
   for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
+    int family = info_->ai_family;
+    socklen_t slen = info_->ai_addrlen;
+    struct sockaddr* saddr = info_->ai_addr;
+#else
+  HostnameResolver* hr = HostnameResolver::Acquire();
+  std::list<HostnameResolver::SockAddr> info;
+  int ret = hr->hr_resolve(hostname, port_str, false, info);
+  HostnameResolver::Release(hr);
+  if ((ret != 0) || (info.empty())) {
+    std::string err_str = gai_strerror(ret); 
+    error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
+    logger.msg(VERBOSE, "%s", error_);
+    return -1;
+  }
+  int s = -1;
+  for(std::list<HostnameResolver::SockAddr>::iterator info_ = info.begin(); info_ != info.end(); ++info_) {
+    int family = info_->Family();
+    socklen_t slen = info_->Length();
+    struct sockaddr const* saddr = info_->Addr();
+#endif
     logger.msg(VERBOSE,"Trying to connect %s(%s):%d",
-                     hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
-    s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
+                     hostname,family==AF_INET6?"IPv6":"IPv4",port);
+    s = ::socket(family, SOCK_STREAM, IPPROTO_TCP);
     if(s == -1) {
       error_ = IString("Failed to create socket for connecting to %s(%s):%d - %s",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
       logger.msg(VERBOSE, "%s", error_);
       continue;
@@ -89,13 +113,13 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     } else {
       logger.msg(VERBOSE, "Failed to get TCP socket options for connection"
                         " to %s(%s):%d - timeout won't work - %s",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno));
     }
-    if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
+    if(::connect(s, saddr, slen) == -1) {
       if(errno != EINPROGRESS) {
         error_ = IString("Failed to connect to %s(%s):%i - %s",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
         logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
@@ -105,7 +129,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       int pres = spoll(s,timeout_,events);
       if(pres == 0) {
         error_ = IString("Timeout connecting to %s(%s):%i - %i s",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port,
                         timeout_).str();
         logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
@@ -113,7 +137,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       }
       if(pres != 1) {
         error_ = IString("Failed while waiting for connection to %s(%s):%i - %s",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno)).str();
         logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
@@ -123,7 +147,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       // POLLERR and POLLHUP so we can use them directly. 
       if(events & (POLLERR | POLLHUP)) {
         error_ = IString("Failed to connect to %s(%s):%i",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port).str();
         logger.msg(VERBOSE, "%s", error_);
         close(s); s = -1;
         continue;
@@ -132,7 +156,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
 #else
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
       error_ = IString("Failed to connect to %s(%s):%i",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
+                        hostname,family==AF_INET6?"IPv6":"IPv4",port).str();
       logger.msg(VERBOSE, "%s", error_);
       close(s); s = -1;
       continue;
@@ -140,7 +164,9 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
 #endif
     break;
   };
+#ifndef USE_REMOTE_HOSTNAME_RESOLVER
   freeaddrinfo(info);
+#endif
   if(s != -1) error_ = "";
   return s;
 }
