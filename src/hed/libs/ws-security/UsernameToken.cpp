@@ -152,7 +152,7 @@ static XMLNode get_node(XMLNode& parent,const char* name) {
 
 static std::string get_nonce() {
   unsigned char buf[16];
-  int i = RAND_pseudo_bytes(buf, 16);
+  int i = RAND_bytes(buf, 16);
   if (i < 0) {
     std::cout<<"Something wrong with random generator"<<std::endl;
   }
@@ -165,7 +165,7 @@ static std::string get_nonce() {
 
 static std::string get_salt(bool mac) {
   unsigned char buf[16];
-  int i = RAND_pseudo_bytes(buf, 16);
+  int i = RAND_bytes(buf, 16);
   if (i < 0) {
     std::cout<<"Something wrong with random generator"<<std::endl;
   }

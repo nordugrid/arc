@@ -42,7 +42,9 @@ namespace Arc {
   }
 
   OpenSSLThreadCleaner::~OpenSSLThreadCleaner(void) {
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     ERR_remove_state(0);
+#endif
   }
 
   void OpenSSLThreadCleaner::Dup(void) {
@@ -73,6 +75,7 @@ namespace Arc {
     };
   }
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
   static void ssl_locking_cb(int mode, int n, const char * s_, int n_){
     if(!ssl_locks) {
       logger().msg(FATAL, "SSL locks not initialized");
@@ -100,6 +103,7 @@ namespace Arc {
   //static void* ssl_idptr_cb(void) {
   //  return (void*)(Glib::Thread::self());
   //}
+#endif
 
   bool OpenSSLInit(void) {
     Glib::Mutex::Lock flock(lock);
@@ -107,6 +111,7 @@ namespace Arc {
       if(!PersistentLibraryInit("modcrypto")) {
         logger().msg(WARNING, "Failed to lock arccrypto library in memory");
       };
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
       SSL_load_error_strings();
       if(!SSL_library_init()){
         logger().msg(ERROR, "Failed to initialize OpenSSL library");
@@ -114,6 +119,17 @@ namespace Arc {
         ERR_free_strings();
         return false;
       };
+#else
+      if(!OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS |
+                           OPENSSL_INIT_LOAD_CRYPTO_STRINGS |
+                           OPENSSL_INIT_ADD_ALL_CIPHERS |
+                           OPENSSL_INIT_ADD_ALL_DIGESTS |
+                           OPENSSL_INIT_NO_LOAD_CONFIG, NULL)) {
+        logger().msg(ERROR, "Failed to initialize OpenSSL library");
+        HandleOpenSSLError();
+        return false;
+      };
+#endif
       // We could RAND_seed() here. But since 0.9.7 OpenSSL
       // knows how to make use of OS specific source of random
       // data. I think it's better to let OpenSSL do a job.
@@ -125,6 +141,7 @@ namespace Arc {
       // documentation) hence we do not use it.
       //  A.K.
     };
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     // Always make sure our own locks are installed
     int num_locks = CRYPTO_num_locks();
     if(num_locks > 0) {
@@ -148,6 +165,7 @@ namespace Arc {
     if(!initialized) {
       OpenSSL_add_all_algorithms();
     }
+#endif
     new OpenSSLThreadCleaner;
     initialized=true;
     return true;

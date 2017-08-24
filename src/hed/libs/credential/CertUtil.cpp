@@ -51,6 +51,9 @@ static X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *obj)
 #define X509_STORE_CTX_get0_chain X509_STORE_CTX_get_chain
 #define X509_CRL_get0_lastUpdate X509_CRL_get_lastUpdate
 #define X509_CRL_get0_nextUpdate X509_CRL_get_nextUpdate
+#define X509_STORE_CTX_get_by_subject X509_STORE_get_by_subject
+#define X509_getm_notAfter X509_get_notAfter
+#define X509_getm_notBefore X509_get_notBefore
 
 static const ASN1_INTEGER *X509_REVOKED_get0_serialNumber(const X509_REVOKED *x)
 {
@@ -216,7 +219,7 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
 
     obj = X509_OBJECT_new();
     if (!obj) return 0;
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(cert), obj)) {
+    if (X509_STORE_CTX_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(cert), obj)) {
       if(X509_CRL* crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* verify the signature on this CRL */
         EVP_PKEY* key = X509_get_pubkey(cert);
@@ -273,7 +276,7 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
     /* now check if the *issuer* has a CRL, and we are revoked */
     obj = X509_OBJECT_new();
     if (!obj) return 0;
-    if (X509_STORE_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(cert), obj)) {
+    if (X509_STORE_CTX_get_by_subject(store_ctx, X509_LU_CRL, X509_get_issuer_name(cert), obj)) {
       if(X509_CRL* crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* check if this cert is revoked */
         int n = sk_X509_REVOKED_num(X509_CRL_get_REVOKED(crl));

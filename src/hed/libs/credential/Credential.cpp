@@ -39,6 +39,11 @@ static void BN_GENCB_free(BN_GENCB* bn) {
   if(bn) std::free(bn);
 }
 
+#define X509_getm_notAfter X509_get_notAfter
+#define X509_getm_notBefore X509_get_notBefore
+#define X509_set1_notAfter X509_set_notAfter
+#define X509_set1_notBefore X509_set_notBefore
+
 #endif
 
 
@@ -157,20 +162,20 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(certchain) for (n = 0; n < sk_X509_num(certchain); n++) {
       tmp_cert = sk_X509_value(certchain, n);
 
-      atime = X509_get_notAfter(tmp_cert);
+      atime = X509_getm_notAfter(tmp_cert);
       Time e = asn1_to_utctime(atime);
       if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
-      atime = X509_get_notBefore(tmp_cert);
+      atime = X509_getm_notBefore(tmp_cert);
       Time s = asn1_to_utctime(atime);
       if (start_time == Time(-1) || s > start_time) { start_time = s; }
     }
 
-    atime = X509_get_notAfter(cert);
+    atime = X509_getm_notAfter(cert);
     Time e = asn1_to_utctime(atime);
     if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
-    atime = X509_get_notBefore(cert);
+    atime = X509_getm_notBefore(cert);
     Time s = asn1_to_utctime(atime);
     if (start_time == Time(-1) || s > start_time) { start_time = s; }
 
@@ -1769,8 +1774,8 @@ err:
   bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, const Time& start, const Period& lifetime) {
     Time pt1 = start;
     Time pt2 = start + lifetime;
-    Time it1 = asn1_to_utctime(X509_get_notBefore(issuer));
-    Time it2 = asn1_to_utctime(X509_get_notAfter(issuer));
+    Time it1 = asn1_to_utctime(X509_getm_notBefore(issuer));
+    Time it2 = asn1_to_utctime(X509_getm_notAfter(issuer));
     if(pt1 < it1) pt1 = it1;
     if(pt2 > it2) pt2 = it2;
     ASN1_UTCTIME* not_before = utc_to_asn1time(pt1);
@@ -1780,8 +1785,8 @@ err:
       if(not_after) ASN1_UTCTIME_free(not_after);
       return false;
     }
-    X509_set_notBefore(tosign, not_before);
-    X509_set_notAfter(tosign, not_after);
+    X509_set1_notBefore(tosign, not_before);
+    X509_set1_notAfter(tosign, not_after);
     ASN1_UTCTIME_free(not_before);
     ASN1_UTCTIME_free(not_after);
     return true;
@@ -2552,11 +2557,11 @@ err:
     if (!X509_set_issuer_name(x,X509_get_subject_name(xca))) goto end;
     if (!X509_set_serialNumber(x,bs)) goto end;
 
-    if (X509_gmtime_adj(X509_get_notBefore(x), start) == NULL)
+    if (X509_gmtime_adj(X509_getm_notBefore(x), start) == NULL)
       goto end;
 
     /* hardwired expired */
-    if (X509_gmtime_adj(X509_get_notAfter(x), lifetime) == NULL)
+    if (X509_gmtime_adj(X509_getm_notAfter(x), lifetime) == NULL)
       goto end;
 
     if (clrext) {

@@ -139,11 +139,13 @@ sub get_cert_info {
 
     # Inspect host certificate
     my $hostcert = $options->{x509_user_cert};
-    chomp (my $issuerca = `$openssl x509 -noout -issuer -in '$hostcert'`);
+    chomp (my $issuerca = `$openssl x509 -noout -issuer -nameopt oneline -in '$hostcert'`);
     if ($?) {
         $log->warning("Failed processing host certificate file: $hostcert") if $?;
     } else {
-        $issuerca =~ s/issuer= //;
+        $issuerca =~ s/, /\//g;
+        $issuerca =~ s/ = /=/g;
+        $issuerca =~ s/^[^=]*= */\//;
         $host_info->{issuerca} = $issuerca;
         $host_info->{hostcert_enddate} = enddate($openssl, $hostcert);
         system("$openssl x509 -noout -checkend 3600 -in '$hostcert'");
@@ -170,9 +172,12 @@ sub get_cert_info {
 
     my %trustedca;
     foreach my $cert ( sort values %certfiles ) {
-       chomp (my $ca_sn = `$openssl x509 -checkend 3600 -noout -subject -in '$cert'`);
+       chomp (my $ca_sn = `$openssl x509 -checkend 3600 -noout -subject -nameopt oneline -in '$cert'`);
        my $is_expired = $?;
-       $ca_sn =~ s/subject= //;
+       $ca_sn = (split(/\n/, $ca_sn))[0];
+       $ca_sn =~ s/, /\//g;
+       $ca_sn =~ s/ = /=/g;
+       $ca_sn =~ s/^[^=]*= */\//;
        if ($ca_sn eq $issuerca) {
            chomp (my $issuerca_hash = `$openssl x509 -noout -hash -in '$cert'`);
            if ($?) {

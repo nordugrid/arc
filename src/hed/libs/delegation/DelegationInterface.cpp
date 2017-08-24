@@ -24,6 +24,15 @@
 
 namespace Arc {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+#define X509_getm_notAfter X509_get_notAfter
+#define X509_getm_notBefore X509_get_notBefore
+#define X509_set1_notAfter X509_set_notAfter
+#define X509_set1_notBefore X509_set_notBefore
+
+#endif
+
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 #define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
 //#define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
@@ -321,8 +330,8 @@ static bool get_cred_info(const std::string& str,cred_info_t& info) {
       } else {
         info.identity="";
       }
-      Time from = asn1_to_time(X509_get_notBefore(c));
-      Time till = asn1_to_time(X509_get_notAfter(c));
+      Time from = asn1_to_time(X509_getm_notBefore(c));
+      Time till = asn1_to_time(X509_getm_notAfter(c));
       if(from != Time(Time::UNDEFINED)) {
         if((info.valid_from == Time(Time::UNDEFINED)) || (from > info.valid_from)) {
           info.valid_from = from;
@@ -834,17 +843,17 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   };
   validity_start -= validity_start_adjustment;
   //Set "notBefore"
-  if( X509_cmp_time(X509_get_notBefore((X509*)cert_), &validity_start) < 0) {
-    X509_time_adj(X509_get_notBefore(cert), 0L, &validity_start);
+  if( X509_cmp_time(X509_getm_notBefore((X509*)cert_), &validity_start) < 0) {
+    X509_time_adj(X509_getm_notBefore(cert), 0L, &validity_start);
   }
   else {
-    X509_set_notBefore(cert, X509_get_notBefore((X509*)cert_));
+    X509_set1_notBefore(cert, X509_getm_notBefore((X509*)cert_));
   }
   //Set "not After"
   if(validity_end == (time_t)(-1)) {
-    X509_set_notAfter(cert,X509_get_notAfter((X509*)cert_));
+    X509_set1_notAfter(cert,X509_getm_notAfter((X509*)cert_));
   } else {
-    X509_gmtime_adj(X509_get_notAfter(cert), (validity_end-validity_start));
+    X509_gmtime_adj(X509_getm_notAfter(cert), (validity_end-validity_start));
   };
   X509_set_pubkey(cert,pkey);
   EVP_PKEY_free(pkey); pkey=NULL;

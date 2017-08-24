@@ -725,29 +725,89 @@ fi
 # check openssl
 if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.0.0])
+PKG_CHECK_MODULES(OPENSSL_1_1, [openssl >= 1.1.0], [
+  OPENSSL_CFLAGS="$OPENSSL_CFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
+  AC_MSG_NOTICE([Forcing off deprecated functions for OpenSSL >= 1.1])
+], [
+  AC_MSG_NOTICE([OpenSSL is pre-1.1])
+])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
-"$PKG_CONFIG" openssl
-if test "$?" = '1'; then
-    if test "x$OPENSSL_BIN" != "x"; then
-        OPENSSL_VERSION=`$OPENSSL_BIN version | cut -d' ' -f2`
-        AC_MSG_NOTICE([Found OpenSSL version $OPENSSL_VERSION])
-        OPENSSL_V1=`echo $OPENSSL_VERSION | cut -d'.' -f2`
-        OPENSSL_V2=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:alpha:]]`
-        OPENSSL_V3=`echo $OPENSSL_VERSION | cut -d'.' -f3 | tr -d [[:digit:]] | od -td1 | awk 'NR==1{print $2}'`
-    else
-        AC_ERROR([Cannot determine OpenSSL version!])
-    fi
-fi
 fi
 
 # Check for available *_method functions in OpenSSL
-SAVE_CFLAGS=$CFLAGS
+SAVE_CPPFLAGS=$CPPFLAGS
 SAVE_LIBS=$LIBS
-CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
+CPPFLAGS="$CPPFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
-AC_CHECK_FUNCS(SSLv3_method TLS_method TLSv1_method TLSv1_1_method TLSv1_2_method DTLS_method DTLSv1_method DTLSv1_2_method)
-CFLAGS=$SAVE_CFLAGS
+AC_LANG_PUSH([C++])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)SSLv3_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_SSLV3_METHOD,1,[define if SSLv3_method is available])],
+  [AC_MSG_NOTICE([No SSLv3_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)TLSv1_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_TLSV1_METHOD,1,[define if TLSv1_method is available])],
+  [AC_MSG_NOTICE([No TLSv1_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)TLSv1_1_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_TLSV1_1_METHOD,1,[define if TLSv1_1_method is available])],
+  [AC_MSG_NOTICE([No TLSv1_1_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)TLSv1_2_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_TLSV1_2_METHOD,1,[define if TLSv1_2_method is available])],
+  [AC_MSG_NOTICE([No TLSv1_2_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)TLS_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_TLS_METHOD,1,[define if TLS_method is available])],
+  [AC_MSG_NOTICE([No TLS_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)DTLSv1_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_DTLSV1_METHOD,1,[define if DTLSv1_method is available])],
+  [AC_MSG_NOTICE([No DTLSv1_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)DTLSv1_2_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_DTLSV1_2_METHOD,1,[define if DTLSv1_2_method is available])],
+  [AC_MSG_NOTICE([No DTLSv1_2_method function avialable])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+void _test(void) { (void)DTLS_method(); }
+  ]])],
+  [AC_DEFINE(HAVE_DTLS_METHOD,1,[define if DTLS_method is available])],
+  [AC_MSG_NOTICE([No DTLS_method function avialable])])
+
+AC_LANG_POP([C++])
+CPPFLAGS=$SAVE_CPPFLAGS
 LIBS=$SAVE_LIBS
 
 #check mozilla nss

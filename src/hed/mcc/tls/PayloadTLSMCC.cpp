@@ -15,6 +15,15 @@
 
 namespace ArcMCCTLS {
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+
+#define X509_getm_notAfter X509_get_notAfter
+#define X509_getm_notBefore X509_get_notBefore
+#define X509_set1_notAfter X509_set_notAfter
+#define X509_set1_notBefore X509_set_notBefore
+
+#endif
+
 #if (OPENSSL_VERSION_NUMBER < 0x10002000L)
 static X509_VERIFY_PARAM *SSL_CTX_get0_param(SSL_CTX *ctx) {
     return ctx->param;
@@ -114,7 +123,7 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       //Check the left validity time of the peer certificate;
       //Give warning if the certificate is going to be expired
       //in a while of time
-      Time exptime = asn1_to_utctime(X509_get_notAfter(cert));
+      Time exptime = asn1_to_utctime(X509_getm_notAfter(cert));
       if(exptime <= Time()) {
         Logger::getRootLogger().msg(WARNING,"Certificate %s already expired",subject_name);
       } else {
@@ -189,40 +198,56 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // extract from provided MCC
    BIO* bio = (bio_ = config_.GlobusIOGSI()?BIO_new_GSIMCC(mcc):BIO_new_MCC(mcc));
    // Initialize the SSL Context object
+   long ctx_options = 0;
+
    if(cfg.IfSSLv3Handshake()) {
-#ifdef HAVE_SSLV3_METHOD
+#if defined HAVE_SSLV3_METHOD
      sslctx_=SSL_CTX_new(SSLv3_client_method());
+#elif defined HAVE_TLS_METHOD
+     ctx_options |= SSL_OP_NO_SSLv3;
+     sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv1Handshake()) {
-#ifdef HAVE_TLSSV1_METHOD
+#if defined HAVE_TLSV1_METHOD
      sslctx_=SSL_CTX_new(TLSv1_client_method());
+#elif defined HAVE_TLS_METHOD
+     ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_1;
+     sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv11Handshake()) {
-#ifdef HAVE_TLSSV1_1_METHOD
+#if defined HAVE_TLSSV1_1_METHOD
      sslctx_=SSL_CTX_new(TLSv1_1_client_method());
+#elif defined HAVE_TLS_METHOD
+     ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1;
+     sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv12Handshake()) {
 #ifdef HAVE_TLSSV1_2_METHOD
      sslctx_=SSL_CTX_new(TLSv1_2_client_method());
+#elif defined HAVE_TLS_METHOD
+     ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1;
+     sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfDTLSHandshake()) {
-#ifdef HAVE_DTLS_METHOD
+#if defined HAVE_DTLS_METHOD
      sslctx_=SSL_CTX_new(DTLS_client_method());
-#else
-#ifdef HAVE_DTLSV1_METHOD
-     sslctx_=SSL_CTX_new(DTLSv1_client_method());
-#endif
 #endif
    } else if(cfg.IfDTLSv1Handshake()) {
-#ifdef HAVE_DTLSV1_METHOD
+#if defined HAVE_DTLSV1_METHOD
      sslctx_=SSL_CTX_new(DTLSv1_client_method());
+#elif defined HAVE_DTLS_METHOD
+     sslctx_=SSL_CTX_new(DTLS_client_method());
+     ctx_options |= SSL_OP_NO_DTLSv1_2;
 #endif
    } else if(cfg.IfDTLSv12Handshake()) {
-#ifdef HAVE_DTLSV1_2_METHOD
+#if defined HAVE_DTLSV1_2_METHOD
      sslctx_=SSL_CTX_new(DTLSv1_2_client_method());
+#elif defined HAVE_DTLS_METHOD
+     sslctx_=SSL_CTX_new(DTLS_client_method());
+     ctx_options |= SSL_OP_NO_DTLSv1;
 #endif
    } else {
-#ifdef HAVE_TLS_METHOD
+#if defined HAVE_TLS_METHOD
      sslctx_=SSL_CTX_new(TLS_client_method());
 #else
      sslctx_=SSL_CTX_new(SSLv23_client_method());
@@ -249,10 +274,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    StoreInstance();
 #ifdef SSL_OP_NO_TICKET
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL | SSL_OP_NO_TICKET);
+   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL | SSL_OP_NO_TICKET;
 #else
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL);
+   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL;
 #endif
+   SSL_CTX_set_options(sslctx_, ctx_options);
 
    SSL_CTX_set_default_passwd_cb(sslctx_, no_passphrase_callback);
    /* Get DN from certificate, and put it into message's attribute */
@@ -306,11 +332,19 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    // Creating BIO for communication through provided stream
    BIO* bio = (bio_ = config_.GlobusIOGSI()?BIO_new_GSIMCC(stream):BIO_new_MCC(stream));
    // Initialize the SSL Context object
+   long ctx_options = 0;
    if(cfg.IfTLSHandshake()) {
+#if defined HAVE_TLS_METHOD
+     sslctx_=SSL_CTX_new(TLS_server_method());
+#else
      sslctx_=SSL_CTX_new(SSLv23_server_method());
+#endif
    } else {
-#ifdef HAVE_SSLV3_METHOD
+#if defined HAVE_SSLV3_METHOD
      sslctx_=SSL_CTX_new(SSLv3_server_method());
+#elif defined HAVE_TLS_METHOD
+     sslctx_=SSL_CTX_new(TLS_server_method());
+     ctx_options |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_1;
 #endif
    };
    if(sslctx_==NULL){
@@ -339,7 +373,8 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    };
 
    StoreInstance();
-   SSL_CTX_set_options(sslctx_, SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL);
+   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL;
+   SSL_CTX_set_options(sslctx_, ctx_options);
    SSL_CTX_set_default_passwd_cb(sslctx_, no_passphrase_callback);
 
    // Creating SSL object for handling connection

@@ -10,6 +10,8 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/pkcs12.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
 #include <openssl/err.h>
 
 #include <arc/Logger.h>

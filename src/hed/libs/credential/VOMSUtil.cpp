@@ -180,7 +180,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     #define OBJCREATE(c,n) { \
       if(OBJ_create(c,n,#c) == 0) { \
         unsigned long __err = ERR_get_error(); \
-        std::cerr<<"Failed to create OpenSSL object "<<c<<" "<<n<<" - "<<ERR_GET_REASON(__err)<<" "<<ERR_error_string(__err,NULL)<<std::endl; \
         if(ERR_GET_REASON(__err) != OBJ_R_OID_EXISTS) { \
           CredentialLogger.msg(ERROR, \
                  "Failed to create OpenSSL object %s %s - %u %s", \
