@@ -31,6 +31,7 @@ require_once('toreload.inc');
 require_once('ldap_purge.inc');
 require_once('recursive_giis_info.inc');
 require_once('emirs_info.inc');
+require_once('archery.inc');
 require_once('postcode.inc');
 require_once('cache.inc');
 
@@ -58,6 +59,7 @@ $giislist = &$toppage->giislist;
 $emirslist= &$toppage->emirslist;
 $cert     = &$toppage->cert;
 $yazyk    = &$toppage->language;
+$archery_list = &$toppage->archery_list;
 
 // Header table
 
@@ -149,17 +151,24 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
     if ($debug) dbgmsg("<b> ::: ".$errors["105"]."$showvo</b>");
   }
   if ( $display != "all" && !$showvo ) $filter  = "(&".$filstr."(".$display."))";
-  
-  // Top GIIS server: get all from the pre-defined list
-  
-  $ngiis    = count($giislist);
-  $ts1      = time();
+
   //========================= GET CLUSTER LIST ============================
-  $gentries = recursive_giis_info($giislist,"cluster",$errors,$debug);
-  $gentries = emirs_info($emirslist,"cluster",$errors,$gentries,$debug,$cert);
+  $gentries = array();
+  // EGIIS
+  if ( ! empty($giislist) )     {
+      $ngiis    = count($giislist);
+      $ts1      = time();
+      $gentries = recursive_giis_info($giislist,"cluster",$errors,$debug);
+      $ts2      = time();
+      if($debug) dbgmsg("<br><b>".$errors["106"].$ngiis." (".($ts2-$ts1).$errors["104"].")</b><br>");
+  }
+  // EMIR
+  if ( ! empty($emirslist))     $gentries = emirs_info($emirslist,"cluster",$errors,$gentries,$debug,$cert);
+  // ARCHERY
+  if ( ! empty($archery_list) ) $gentries = array_merge($gentries, archery_info($archery_list, $schema, $errors, $debug));
+
   //=======================================================================
-  $ts2      = time(); if($debug) dbgmsg("<br><b>".$errors["106"].$ngiis." (".($ts2-$ts1).$errors["104"].")</b><br>");
-  
+
   $nc = count($gentries);
   
   if ( !$nc ) {
@@ -167,6 +176,11 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
     $errno = "1";
     echo "<br><font color=\"red\"><b>".$errors[$errno]."</b></font>\n";
     return $errno;
+  } else {
+      if ( $debug == 2 ) {
+          dbgmsg("<div align=\"center\"><br><u>".$errors["119"]."cluster: ".$nc."</u><br></div>");
+          foreach ( $gentries as $num=>$val ) dbgmsg($val["host"].":".$val["base"]."<br>");
+      }
   }
   
   $dsarray = array ();

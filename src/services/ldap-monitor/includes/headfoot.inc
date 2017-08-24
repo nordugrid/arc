@@ -40,6 +40,8 @@ class LmDoc { // class LmDoc
   var $emirslist  = array();
   var $cert;
 
+  var $archery_list = array();
+
   /**
    * @return LmDoc
    * @param wintyp string
@@ -67,87 +69,92 @@ class LmDoc { // class LmDoc
 
       if ( $wintyp ) {
 
-	$this->module = $wintyp;
+	    $this->module = $wintyp;
 
-	// Localize
+        // Localize
 
-	$yaccept = @$_SERVER["HTTP_ACCEPT_LANGUAGE"] ;
-	if ( !$yaccept ) $yaccept = "en";
-	if ( FORCE_LANG != "default" ) $yaccept = FORCE_LANG;
-	$yazyk  = "en";
-	$yazyki = explode(",",$yaccept);
-	foreach ( $yazyki as $option ) {
-          if ( $yazyk != "en" ) continue;
-	  $option = trim($option);
-          $option = substr($option,0,2); 
-	  // some sniffing
-	  // touch("test/".$option);
-	  // echo "<!--$option-->\n";
-	  $locfile = $option.".inc";
-	  if ( !file_exists("lang/".$locfile) ) continue;
-	  $yazyk   = $option;
+        $yaccept = @$_SERVER["HTTP_ACCEPT_LANGUAGE"] ;
+        if ( !$yaccept ) $yaccept = "en";
+        if ( FORCE_LANG != "default" ) $yaccept = FORCE_LANG;
+        $yazyk  = "en";
+        $yazyki = explode(",",$yaccept);
+        foreach ( $yazyki as $option ) {
+              if ( $yazyk != "en" ) continue;
+          $option = trim($option);
+              $option = substr($option,0,2);
+          // some sniffing
+          // touch("test/".$option);
+          // echo "<!--$option-->\n";
+          $locfile = $option.".inc";
+          if ( !file_exists("lang/".$locfile) ) continue;
+          $yazyk   = $option;
+            }
+        $locfile = $yazyk.".inc";
+
+        include $locfile;
+
+        setlocale(LC_ALL, $yazyk);
+
+        $this->language  = $yazyk;
+        $this->strings   = $message;
+        $this->errors    = $message["errors"];
+        $this->countries = $message["tlconvert"];
+        $this->mdsattr   = $message["mdsattr"];
+        $this->isattr    = $message["isattr"];
+
+        // Assigns $this->clusdes   = $message["clusdes"];
+        $this->$wintyp   = $message[$wintyp];
+
+        $toptitle = $message[$wintyp][0];
+
+        // Set page parameters
+        require ('settings.inc');
+
+        $inpnam   = implode("_",array("def",$wintyp));
+
+        // Page style definitions (see settings.inc)
+
+        // Sets top window title
+        $this->title    = ( $toptitle ) ? $toptitle : "";
+
+        // Refresh rate
+        $this->refresh  = (${$inpnam}["refresh"])  ? ${$inpnam}["refresh"]  : 0;
+
+        // Background and link colors
+        $this->bg       = (${$inpnam}["bgcolor"])  ? ${$inpnam}["bgcolor"]  : "#ffffff";
+        $this->lc       = (${$inpnam}["lcolor"])   ? ${$inpnam}["lcolor"]   : "#cc0000";
+
+        // Dumps the header HTML code
+        $titles = explode(":",$this->title); // sometimes titles are many
+        echo "<title>".$titles[0]." ".$extratitle."</title>\n";
+        if ( $this->refresh ) echo "<meta http-equiv=\"refresh\" content=".$this->refresh.">\n";
+        echo "<style>\n";
+        echo "<!--\n";
+        echo "A {text-decoration:none; }\n";
+        echo "A:link {color: ".$this->lc."; }\n";
+        echo "A:visited {color: ".$this->lc."; }\n";
+        echo "A:first-child {color: ".$this->lc."; }\n";
+        echo "BODY {background-color: ".$this->bg."; font-size:small; height:auto;}\n";
+        echo "P {padding: 0em; margin: 10px 0px 6px 0px; font-size:small; }\n";
+        echo "TD {font-size:small;}\n";
+        echo "DT {text-align: justify;}\n";
+        echo "DD {text-align: justify;}\n";
+        echo ".right {text-align: right; padding: 0em; margin: 0em;}\n";
+        echo ".fix {font-family: monospace;}\n";
+        echo "//-->\n";
+        echo "</style>\n";
+
+        // define giislist
+        if ( ! isset($emirslist) ) {
+          $emirslist = array ();
         }
-	$locfile = $yazyk.".inc";
-
-	include $locfile;
-
-	setlocale(LC_ALL, $yazyk);
-
-	$this->language  = $yazyk;
-	$this->strings   = $message;
-	$this->errors    = $message["errors"];
-	$this->countries = $message["tlconvert"];
-	$this->mdsattr   = $message["mdsattr"];
-	$this->isattr    = $message["isattr"];
-	
-	// Assigns $this->clusdes   = $message["clusdes"]; 
-	$this->$wintyp   = $message[$wintyp]; 
-
-	$toptitle = $message[$wintyp][0];
-	
-	// Set page parameters
-	require ('settings.inc');
-	
-	$inpnam   = implode("_",array("def",$wintyp));
-	
-	// Page style definitions (see settings.inc)
-
-	// Sets top window title
-	$this->title    = ( $toptitle ) ? $toptitle : "";
-
-	// Refresh rate
-	$this->refresh  = (${$inpnam}["refresh"])  ? ${$inpnam}["refresh"]  : 0;
-
-	// Background and link colors
-	$this->bg       = (${$inpnam}["bgcolor"])  ? ${$inpnam}["bgcolor"]  : "#ffffff";
-	$this->lc       = (${$inpnam}["lcolor"])   ? ${$inpnam}["lcolor"]   : "#cc0000";
-
-	// Dumps the header HTML code 
-	$titles = explode(":",$this->title); // sometimes titles are many
-	echo "<title>".$titles[0]." ".$extratitle."</title>\n";
-	if ( $this->refresh ) echo "<meta http-equiv=\"refresh\" content=".$this->refresh.">\n";
-	echo "<style>\n";
-	echo "<!--\n";
-	echo "A {text-decoration:none; }\n";
-	echo "A:link {color: ".$this->lc."; }\n";
-	echo "A:visited {color: ".$this->lc."; }\n";
-	echo "A:first-child {color: ".$this->lc."; }\n";
-	echo "BODY {background-color: ".$this->bg."; font-size:small; height:auto;}\n";
-	echo "P {padding: 0em; margin: 10px 0px 6px 0px; font-size:small; }\n";
-	echo "TD {font-size:small;}\n";
-	echo "DT {text-align: justify;}\n";
-	echo "DD {text-align: justify;}\n";
-	echo ".right {text-align: right; padding: 0em; margin: 0em;}\n";
-	echo ".fix {font-family: monospace;}\n";
-	echo "//-->\n";
-	echo "</style>\n";
-
-	// define giislist
-
-	$this->giislist = $giislist;
-	$this->emirslist= $emirslist;
-	$this->cert = $cert;
-
+        if ( ! isset($archery_list)) {
+          $archery_list = array ();
+        }
+        $this->giislist  = $giislist;
+        $this->emirslist = $emirslist;
+        $this->cert = $cert;
+        $this->archery_list = $archery_list;
       }
       
       // Finishes HTML header, starts document body

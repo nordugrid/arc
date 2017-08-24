@@ -1297,6 +1297,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
+%{_libdir}/%{pkgdir}/arc-hostname-resolver
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs

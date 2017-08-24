@@ -38,21 +38,25 @@ array("host" => "index4.nordugrid.org",
 //      "vo"   => "Germany")
 );
 
+// list of ARCHERY endpoints to query
+$archery_list = array (
+    array (
+        "endpoint" => "grid.org.ua",
+        // TODO: add country grouping identifier if needed (something not sounds like VO :-))
+    )
+);
+
 // list of available EMIRs
+/*
 $emirslist = array(
 array("schema" => "https",
       "host" => "testbed-emi5.grid.upjs.sk",
       "port" => "54321",
       "base" => "mds-vo-name=NorduGrid,o=grid")
 );
-
 /*
- * place of the certificate file
- *
- * Set up SSL connection to server that requires client certificate:
- *
+ * To set up TLS connection to EMIR server client certificate is mandatory:
  * Convert client certificate from *.pfx (pkcs12) into *.pem with openssl (if needed):
- *
  * > openssl pkcs12 -in keys.pfx -out keys.pem
  */
 $cert = "/var/www/ldap-monitor-svn/includes/test.pem";

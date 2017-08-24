@@ -23,7 +23,7 @@ function emirs_info($emirslist,$element,$errors,$gentries,$debug="0",$cert)
 
   $tlim = 2;
   $tout = 5;
-  if($debug && count($emirslist) < 5) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["130"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</div><BR>");
+  if($debug && !empty($emirslist)) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["130"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</div><BR>");
 
 
   $nemirs    = count($emirslist);

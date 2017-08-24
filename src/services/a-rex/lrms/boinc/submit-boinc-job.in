@@ -3,7 +3,7 @@
 #
 #  Input: path to grami file (same as Globus).
 #  This script creates a temporary job script and runs it
-
+DEBUG=0
 echo "----- starting submit_boinc_job -----" 1>&2
 joboption_lrms=boinc
 
@@ -175,7 +175,7 @@ do
    i=$((i+1))
    eval opt=\${joboption_outputfile_$i}
    ret=`notnull $opt`
-   echo $ret
+   echo "ret="$ret
 done
 
 files=$(echo $result_list|tr " " "\n")
@@ -208,7 +208,7 @@ EOF
 
 echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
 
-chmod g+r $LRMS_JOB_SCRIPT
+chmod a+r $LRMS_JOB_SCRIPT
 
 
 #######################################
@@ -244,17 +244,30 @@ RTE_FILE="rte_"$wu".tar.gz"
 RTE_LOCATION="$joboption_directory_orig/RTE.tar.gz"
 
 echo "#!/bin/bash" >> $LRMS_JOB_BOINC
+echo "set -x" >> $LRMS_JOB_BOINC
+
 tflist=""
-Root_basename=""
-RootFileOrig=""
+Root_basename=()
+RootFile=()
+## RootFile keeps the orginal path of the root files
+## Root_basename keeps the basename of the root files, with adding JobID to make them unique
+i=0
 for file in `ls $joboption_directory_orig`
   do
-    [[ $file == *.root.* ]] && echo skip root file $file && RootFileOrig=$file && Root_basename=$JobId"_"$file && continue
-    tflist=$tflist" "$joboption_directory_orig/$file
+    echo $file|grep ".root" > /dev/null
+    ret=$?
+    if [ $ret -eq 0 ]; then
+      echo skip root file $file
+      Root_basename[$i]=$JobId"_"$file
+      RootFile[$i]=$joboption_directory_orig/$file 
+      sed -i -e "/#rename root file/a\mv ATLAS.root_$i $file" $LRMS_JOB_SCRIPT
+      let i=$i+1
+      continue
+    else
+      tflist=$tflist" "$joboption_directory_orig/$file
+    fi
   done
 
-RootFile=$joboption_directory_orig/$RootFileOrig
-sed -i -e "s/#rename root file/mv ATLAS.root $RootFileOrig/g" $LRMS_JOB_SCRIPT
 echo tar zhcvf $JobInput $tflist
 echo "tar zhcvf $JobInput $tflist" >> $LRMS_JOB_BOINC
 echo tar zhcvf $RTE_LOCATION $rflist
@@ -265,39 +278,111 @@ echo "cd $PROJECT_ROOT " >>$LRMS_JOB_BOINC
 JobInput_basename=`basename $JobInput`
 Script_basename=`basename $LRMS_JOB_SCRIPT` 
 
-
 echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
-echo "chmod g+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
+echo "chmod a+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
-echo "chmod g+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
+echo "chmod a+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
 echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
-echo "chmod g+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
+echo "chmod a+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
-# Link root file, from different project area if necessary
 [ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
-[ -L $RootFile ] && RootFile=`ls -l $RootFile|awk '{print $11}'`
-echo "ln $RootFile "'`bin/dir_hier_path' $Root_basename '`' >> $LRMS_JOB_BOINC
+
+## process the root files as remote files
+cd $PROJECT_ROOT
+echo "current directory is the project_root: "$PWD
+remote_url=()
+fsize=()
+md5=()
+i=0
+while [ $i -lt ${#RootFile[@]} ]
+do
+  [ -L ${RootFile[$i]} ] && RootFile[$i]=`ls -l ${RootFile[$i]}|awk '{print $11}'`
+  echo "ln  ${RootFile[$i]} "'`bin/dir_hier_path' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
+  echo "chmod a+r "'`bin/dir_hier_path ' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
+  download_dir=`bin/dir_hier_path ${Root_basename[$i]} | awk -F/ '{print $(NF-1)}'`
+  remote_url[$i]="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename[$i]}"
+  fsize[$i]=`stat -c %s ${RootFile[$i]}`
+  md5[$i]=`md5sum ${RootFile[$i]} | awk '{print $1}'`
+  echo "Using remote file ${remote_url[$i]} ${fsize[$i]} ${md5[$i]}" 1>&2
+  let i=$i+1
+done
+
 [ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
 
-# Check whether root input is remote. This assumes the root file is the first
-# file defined in the input file template
-root_input="$Root_basename"
-if [ -n $PROJECT_DOWNLOAD_ROOT ]; then
-  cd $PROJECT_DOWNLOAD_ROOT
-  download_dir=`bin/dir_hier_path $Root_basename | awk -F/ '{print $(NF-1)}'`
-  remote_url="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename}"
-  fsize=`stat -c %s $RootFile`
-  md5=`md5sum $RootFile | awk '{print $1}'`
-  echo "Using remote file $remote_url $fsize $md5" 1>&2
-  root_input="--remote_file $remote_url $fsize $md5"
-  cd $PROJECT_ROOT
-fi
+## generate the input template file
+let ifileno=3+${#remote_url[@]}
+i=0
+intmp=""
+while [ $i -lt $ifileno ]
+do
+  intmp="$intmp
+<file_info>
+   <number>$i</number>
+</file_info>"
 
+  let i=$i+1
+done
+intmp="$intmp
+<workunit>"
+i=0
+while [ $i -lt ${#remote_url[@]} ]
+do
+  intmp="$intmp
+ <file_ref>
+     <file_number>$i</file_number>
+     <open_name>shared/ATLAS.root_$i</open_name>
+     <copy_file/>
+   </file_ref>"
+  
+  let i=$i+1
+done
+
+intmp="$intmp
+  <file_ref>
+     <file_number>$i</file_number>
+     <open_name>shared/input.tar.gz</open_name>
+     <copy_file/>
+   </file_ref>
+  <file_ref>"
+
+let i=$i+1
+intmp="$intmp
+     <file_number>$i</file_number>
+     <open_name>shared/RTE.tar.gz</open_name>
+     <copy_file/>
+   </file_ref>
+"
+let i=$i+1
+intmp="$intmp
+   <file_ref>
+        <file_number>$i</file_number>
+        <open_name>shared/start_atlas.sh</open_name>
+        <copy_file/>
+    </file_ref>"
+
+intmp="$intmp
+   <rsc_disk_bound>15000000000</rsc_disk_bound>
+   <min_quorum>1</min_quorum>
+   <target_nresults>1</target_nresults>
+   <rsc_fpops_bound>6000000000000000000</rsc_fpops_bound>
+   <max_error_results>8</max_error_results>
+   <max_success_results>4</max_success_results>
+   <max_total_results>12</max_total_results>
+   <delay_bound>86400</delay_bound>
+   </workunit>"
+
+WU_TEMPLATE="/tmp/ATLAS_"$wu
+cat << EOF  > $WU_TEMPLATE
+$intmp
+EOF
+
+#######################################
 if [ -z $joboption_memory ];then
   memreq=2000000000
 else
   memreq=$((joboption_memory*1000000))
 fi
+
 if [ -z $joboption_cputime ];then
   maxcputime=$((2*3600*3000000000))
 else
@@ -309,24 +394,35 @@ if [ -z $joboption_priority ]; then
   $priority="--priority $joboption_priority"
 fi
 
-echo "bin/create_work \
+cmd="bin/create_work \
       --appname $BOINC_APP \
       --wu_name $wu \
       --wu_template $WU_TEMPLATE \
       --result_template $RESULT_TEMPLATE \
       --rsc_memory_bound $memreq \
       --rsc_fpops_est $maxcputime \
-      $priority \
-      $root_input \
+      $priority"
+j=0
+while [ $j -lt ${#remote_url[@]} ] 
+do
+  cmd="$cmd \
+  --remote_file ${remote_url[$j]} ${fsize[$j]} ${md5[$j]}"
+  let j=$j+1
+done
+
+cmd="$cmd \
       $(basename $JobInput) \
       $RTE_FILE \
-      $(basename $LRMS_JOB_SCRIPT)" >> $LRMS_JOB_BOINC
-
+      $(basename $LRMS_JOB_SCRIPT)"
+echo $cmd >> $LRMS_JOB_BOINC
 echo 'ret=$?' >>$LRMS_JOB_BOINC
 
 echo 'exit $ret' >>$LRMS_JOB_BOINC
-sh $LRMS_JOB_BOINC
-#cat $LRMS_JOB_BOINC
+if [ $DEBUG -eq 2 ];then
+  cat $LRMS_JOB_BOINC
+else
+   sh $LRMS_JOB_BOINC 1>&2 >/tmp/log.boinc
+fi
 rc=$?
 
 if [ $rc -eq 0 ];then
@@ -334,8 +430,12 @@ if [ $rc -eq 0 ];then
   echo "joboption_jobid=$wu" >> $arg_file
 fi
 echo "----- removing intermediate files ----" 1>&2
-rm -fr $LRMS_JOB_BOINC $LRMS_JOB_ERR $LRMS_JOB_OUT $LRMS_JOB_SCRIPT
-#rm -fr $JobInput
+if [ $DEBUG -ne 1 ];then
+  rm -fr $WU_TEMPLATE
+  rm -fr $LRMS_JOB_BOINC $LRMS_JOB_ERR $LRMS_JOB_OUT $LRMS_JOB_SCRIPT
+  rm -fr $JobInput
+fi
+
 echo "----- exiting submit_boinc_job -----" 1>&2
 echo "" 1>&2
 exit $rc

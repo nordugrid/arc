@@ -18,6 +18,7 @@ debian/tmp/usr/lib/arc/libmodcredential.so
 debian/tmp/usr/lib/arc/libmodcrypto.apd
 debian/tmp/usr/lib/arc/libmodcredential.apd
 debian/tmp/usr/lib/arc/arc-file-access
+debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/share/arc/examples/arc.conf.reference
 debian/tmp/usr/share/arc/schema
