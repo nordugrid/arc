@@ -2,7 +2,8 @@ pkglib_LTLIBRARIES = libaccARC1.la
 #noinst_LTLIBRARIES = libarexclient.la
 noinst_LTLIBRARIES = libaccJLRWSRFBES.la
 
-libaccARC1_la_SOURCES  = SubmitterPluginARC1.cpp SubmitterPluginARC1.h \
+libaccARC1_la_SOURCES  = \
+	SubmitterPluginARC1.cpp SubmitterPluginARC1.h \
 	JobListRetrieverPluginARC1.cpp JobListRetrieverPluginARC1.h \
 	JobControllerPluginARC1.cpp JobControllerPluginARC1.h \
 	AREXClient.cpp AREXClient.h \

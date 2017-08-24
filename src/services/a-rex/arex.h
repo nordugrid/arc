@@ -58,7 +58,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status cache_get(Arc::Message& outmsg, const std::string& subpath, off_t range_start, off_t range_end, ARexGMConfig& config, bool no_content);
  protected:
   Arc::ThreadRegistry thread_count_;
-  Arc::NS ns_;
+  static Arc::NS ns_;
   Arc::Logger logger_;
   DelegationStores delegation_stores_;
   OptimizedInformationContainer infodoc_;
@@ -114,16 +114,27 @@ class ARexService: public Arc::Service {
   AREXOP(ESGetActivityStatus);
   AREXOP(ESGetActivityInfo);
 
-  // Convenience methods
-  Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
-  Arc::MCC_Status make_fault(Arc::Message& outmsg);
-  Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
-  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg,const char* resp = NULL);
-
   // HTTP operations
-  Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
-  Arc::MCC_Status Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
-  Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
+  Arc::MCC_Status GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status GetNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status GetCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+
+  Arc::MCC_Status HeadJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status HeadNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status HeadDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status HeadCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+
+  Arc::MCC_Status PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status PutLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status PutInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status PutNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status PutDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status PutCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
 
   // A-REX faults
   void GenericFault(Arc::SOAPFault& fault);
@@ -180,6 +191,21 @@ class ARexService: public Arc::Service {
   ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);
   virtual ~ARexService(void);
   virtual Arc::MCC_Status process(Arc::Message& inmsg,Arc::Message& outmsg);
+
+  // HTTP paths
+  static char const* InfoPath;
+  static char const* LogsPath;
+  static char const* NewPath;
+  static char const* DelegationPath;
+  static char const* CachePath;
+
+  // Convenience methods
+  static Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
+  static Arc::MCC_Status make_fault(Arc::Message& outmsg);
+  static Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
+  static Arc::MCC_Status make_soap_fault(Arc::Message& outmsg,const char* resp = NULL);
+  static Arc::MCC_Status extract_content(Arc::Message& inmsg, std::string& content,uint32_t size_limit = 0);
+
   void InformationCollector(void);
   virtual bool RegistrationCollector(Arc::XMLNode &doc);
   virtual std::string getID();

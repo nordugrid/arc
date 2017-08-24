@@ -289,7 +289,9 @@ using namespace Arc;
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "http" &&
         ((const URL &)(*dmcarg)).Protocol() != "https" &&
-        ((const URL &)(*dmcarg)).Protocol() != "httpg")
+        ((const URL &)(*dmcarg)).Protocol() != "httpg" &&
+        ((const URL &)(*dmcarg)).Protocol() != "dav" &&
+        ((const URL &)(*dmcarg)).Protocol() != "davs")
       return NULL;
     return new DataPointHTTP(*dmcarg, *dmcarg, dmcarg);
   }
@@ -1473,7 +1475,9 @@ using namespace Arc;
     if(!curl) return NULL;
     if((curl.Protocol() != "http") &&
        (curl.Protocol() != "https") &&
-       (curl.Protocol() != "httpg")) return NULL;
+       (curl.Protocol() != "httpg") &&
+       (curl.Protocol() != "dav") &&
+       (curl.Protocol() != "davs")) return NULL;
     ClientHTTP* client = NULL;
     std::string key = curl.ConnectionURL();
     clients_lock.lock();
@@ -1495,7 +1499,9 @@ using namespace Arc;
     if(!curl) return NULL;
     if((curl.Protocol() != "http") &&
        (curl.Protocol() != "https") &&
-       (curl.Protocol() != "httpg")) return NULL;
+       (curl.Protocol() != "httpg") &&
+       (curl.Protocol() != "dav") &&
+       (curl.Protocol() != "davs")) return NULL;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     return new ClientHTTP(cfg, curl, usercfg.Timeout());
@@ -1553,6 +1559,6 @@ using namespace Arc;
 } // namespace Arc
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
-  { "http", "HED:DMC", "HTTP or HTTP over SSL (https)", 0, &ArcDMCHTTP::DataPointHTTP::Instance },
+  { "http", "HED:DMC", "HTTP, HTTP over SSL (https) or DAV(s)", 0, &ArcDMCHTTP::DataPointHTTP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

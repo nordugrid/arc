@@ -257,7 +257,7 @@ class PasswordSourceFile: public Arc::PasswordSource {
   };
 };
 
-int main(int argc, char *argv[]) {
+static int runmain(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
 
@@ -1325,5 +1325,11 @@ int main(int argc, char *argv[]) {
 
   return EXIT_SUCCESS;
 
+}
+
+int main(int argc, char **argv) {
+  int xr = runmain(argc,argv);
+  _exit(xr);
+  return 0;
 }
 

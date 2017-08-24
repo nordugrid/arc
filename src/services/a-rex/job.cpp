@@ -223,7 +223,22 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator,  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+  std::string job_desc_str;
+  // Make full XML doc out of subtree
+  {
+    Arc::XMLNode jsdldoc;
+    jsdl.New(jsdldoc);
+    jsdldoc.GetDoc(job_desc_str);
+  };
+  make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
+}
+
+ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+  make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
+}
+
+void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
   if(!config_) return;
   DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) {
@@ -235,14 +250,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
-  // Turn job description into text
-  std::string job_desc_str;
-  // Make full XML doc out of subtree
-  {
-    Arc::XMLNode jsdldoc;
-    jsdl.New(jsdldoc);
-    jsdldoc.GetDoc(job_desc_str);
-  };
   // Choose session directory
   std::string sessiondir;
   if (!ChooseSessionDir(id_, sessiondir)) {
@@ -261,7 +268,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
     return;
   };
   // Analyze job description (checking, substituting, etc)
-  JobDescriptionHandler job_desc_handler(config.GmConfig());
+  JobDescriptionHandler job_desc_handler(config_.GmConfig());
   Arc::JobDescription desc;
   JobReqResult parse_result = job_desc_handler.parse_job_req(id_,job_,desc,true);
   if((failure_type_=setfail(parse_result)) != ARexJobNoError) {
@@ -470,9 +477,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
     try {
       Arc::Credential cred(certificates,"","","","",false);
       job_.expiretime = cred.GetEndTime();
-      logger.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
+      logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
     } catch(std::exception const& e) {
-      logger.msg(Arc::WARNING, "Credential handling exception: %s", e.what());
+      logger_.msg(Arc::WARNING, "Credential handling exception: %s", e.what());
     };
   } else
 #endif
@@ -561,7 +568,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& deleg
   };
   // Write ACL file
   if(!acl.empty()) {
-    if(!job_acl_write_file(id_,config.GmConfig(),acl)) {
+    if(!job_acl_write_file(id_,config_.GmConfig(),acl)) {
       delete_job_id();
       failure_="Failed to process/store job ACL";
       failure_type_=ARexJobInternalError;
@@ -963,7 +970,22 @@ int ARexJob::OpenLogFile(const std::string& name) {
   if(id_.empty()) return -1;
   if(strchr(name.c_str(),'/')) return -1;
   std::string fname = config_.GmConfig().ControlDir() + "/job." + id_ + "." + name;
-  return ::open(fname.c_str(),O_RDONLY);
+  int h = ::open(fname.c_str(),O_RDONLY);
+  if(name == "status") {
+    if(h != -1) return h;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_cur + "/job." + id_ + "." + name;
+    h = ::open(fname.c_str(),O_RDONLY);
+    if(h != -1) return h;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_new + "/job." + id_ + "." + name;
+    h = ::open(fname.c_str(),O_RDONLY);
+    if(h != -1) return h;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_rew + "/job." + id_ + "." + name;
+    h = ::open(fname.c_str(),O_RDONLY);
+    if(h != -1) return h;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_old + "/job." + id_ + "." + name;
+    h = ::open(fname.c_str(),O_RDONLY);
+  };
+  return h;
 }
 
 std::list<std::string> ARexJob::LogFiles(void) {
@@ -981,6 +1003,8 @@ std::list<std::string> ARexJob::LogFiles(void) {
     logs.push_back(name.substr(prefix.length()));
   };
   delete dir;
+  // Add always present status
+  logs.push_back("status");
   return logs;
 }
 

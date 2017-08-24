@@ -22,5 +22,11 @@ else
 EMIES =
 endif
 
-SUBDIRS = TEST $(ARC0) ARC1 $(EMIES) CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser SER ldap
-DIST_SUBDIRS = TEST ARC0 ARC1 EMIES CREAM Broker PythonBroker UNICORE JobDescriptionParser SER ldap
+if ARCREST_ENABLED
+ARCREST = ARCREST
+else
+ARCREST =
+endif
+
+SUBDIRS = TEST $(ARC0) ARC1 $(ARCREST) $(EMIES) CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser SER ldap
+DIST_SUBDIRS = TEST ARC0 ARC1 ARCREST EMIES CREAM Broker PythonBroker UNICORE JobDescriptionParser SER ldap

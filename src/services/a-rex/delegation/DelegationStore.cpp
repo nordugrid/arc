@@ -419,5 +419,39 @@ namespace ARex {
     return true;
   }
 
+  bool DelegationStore::GetRequest(std::string& id,const std::string& client,std::string& request) {
+    Arc::DelegationConsumerSOAP* consumer = NULL;
+    if(!id.empty()) {
+      consumer = FindConsumer(id,client);
+    };
+    if(consumer == NULL) {
+      consumer = AddConsumer(id,client);
+    };
+    if(consumer == NULL) return false;
+    if(id.empty()) {
+      ReleaseConsumer(consumer);
+      return false;
+    };
+    bool result = consumer->Request(request);
+    ReleaseConsumer(consumer);
+    return result;
+  }
+
+  bool DelegationStore::PutDeleg(const std::string& id,const std::string& client,const std::string& credentials) {
+    Arc::DelegationConsumerSOAP* consumer = FindConsumer(id,client);
+    if(consumer == NULL) return false;
+    std::string content(credentials);
+    if(!consumer->Acquire(content)) {
+      ReleaseConsumer(consumer);
+      return false;
+    };
+    if(!TouchConsumer(consumer,content)) {
+      ReleaseConsumer(consumer);
+      return false;
+    };
+    ReleaseConsumer(consumer);
+    return true;
+  }
+
 } // namespace ARex
 

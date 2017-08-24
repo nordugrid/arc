@@ -42,5 +42,14 @@ namespace ARex {
     return operator[](path).DelegatedToken(credentials,token,client);
   }
 
+  bool DelegationStores::GetRequest(const std::string& path,std::string& id,const std::string& client,std::string& request) {
+    return operator[](path).GetRequest(id,client,request);
+  }
+
+  bool DelegationStores::PutDeleg(const std::string& path,const std::string& id,const std::string& client,const std::string& credentials) {
+    return operator[](path).PutDeleg(id,client,credentials);
+  }
+
+
 } // namespace ARex
 

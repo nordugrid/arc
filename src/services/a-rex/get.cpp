@@ -29,17 +29,35 @@
 
 namespace ARex {
 
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
-static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
 
-Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath) {
-  bool force_logs = false;
-  off_t range_start = 0;
-  off_t range_end = (off_t)(-1);
+static Arc::PayloadRaw* newFileInfo(int handle = -1) {
+  Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+  if(handle != -1) {
+    struct stat st;
+    if(buf && (::fstat(handle,&st) == 0)) buf->Truncate(st.st_size);
+    ::close(handle);
+  } else {
+    if(buf) buf->Truncate(0);
+  }
+  return buf;
+}
+
+
+static Arc::PayloadRaw* newFileInfo(Arc::FileAccess& file) {
+  struct stat st;
+  Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+  if(buf && (file.fa_fstat(st))) buf->Truncate(st.st_size);
+  return buf;
+}
+
+static void ExtractRange(Arc::Message& inmsg, off_t& range_start, off_t& range_end) {
+  range_start = 0;
+  range_end = (off_t)(-1);
   {
     std::string val;
     val=inmsg.Attributes()->get("HTTP:RANGESTART");
-    if(!val.empty()) { // Negative ranges not supported
+    if(!val.empty()) {
+      // Negative ranges not supported
       if(!Arc::stringto<off_t>(val,range_start)) {
         range_start=0;
       } else {
@@ -56,189 +74,75 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
       };
     };
   };
-  if(id.empty()) {
-    // Make list of jobs
-    std::string html;
-    html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Jobs list</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
-    std::list<std::string> jobs = ARexJob::Jobs(config,logger_);
-    for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
-      std::string line = "<LI><I>job</I> <A HREF=\"";
-      line+=config.Endpoint()+"/"+(*job);
-      line+="\">";
-      line+=(*job);
-      line+="</A>";
-      line+=" <A HREF=\"";
-      line+=config.Endpoint()+"/?logs/"+(*job);
-      line+="\">logs</A>\r\n";
-      html+=line;
-    };
-    html+="</UL>\r\n";
-    // Service description access
-    html+="<A HREF=\""+config.Endpoint()+"/?info\">SERVICE DESCRIPTION</A>";
-    html+="</BODY>\r\n</HTML>";
-    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-    if(buf) buf->Insert(html.c_str(),0,html.length());
-    outmsg.Payload(buf);
-    outmsg.Attributes()->set("HTTP:content-type","text/html");
-    return Arc::MCC_Status(Arc::STATUS_OK);
-  };
-  if(id == "?info") {
-    if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-    int h = infodoc_.OpenDocument();
-    if(h == -1) return Arc::MCC_Status();
-    Arc::MessagePayload* payload = newFileRead(h);
-    if(!payload) { ::close(h); return Arc::MCC_Status(); };
-    outmsg.Payload(payload);
-    outmsg.Attributes()->set("HTTP:content-type","text/xml");
-    return Arc::MCC_Status(Arc::STATUS_OK);
-  };
-  if(id == "?logs") {
-    force_logs = true;
-    if(subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-    std::string::size_type p = subpath.find('/');
-    if(p == 0) { subpath = subpath.substr(1); p = subpath.find('/'); };
-    if(p == std::string::npos) {
-      id = subpath; subpath = "";
-    } else {
-      id = subpath.substr(0,p); subpath = subpath.substr(p+1);
-    };
-  };
-  if (id == "cache") {
-    return cache_get(outmsg, subpath, range_start, range_end, config, false);
-  }
-  ARexJob job(id,config,logger_);
-  if(!job) {
-    // There is no such job
-    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
-    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-  };
-  Arc::MCC_Status r;
-  if(force_logs) {
-    r=http_get_log(outmsg,config.Endpoint()+"/?logs/"+id,job,subpath,range_start,range_end,false);
-  } else {
-    r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,range_start,range_end,false);
-  };
-  if(!r) {
-    // Can't get file
-    logger.msg(Arc::ERROR, "Get: can't process file %s", subpath);
-    return r;
-  };
-  return Arc::MCC_Status(Arc::STATUS_OK);
-} 
+}
 
-Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath) {
-  bool force_logs = false;
-  if(id.empty()) {
-    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-    if(buf) buf->Truncate(0);
-    outmsg.Payload(buf);
-    outmsg.Attributes()->set("HTTP:content-type","text/html");
-    return Arc::MCC_Status(Arc::STATUS_OK);
-  }
-  if(id == "?info") {
-    if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-    int h = infodoc_.OpenDocument();
-    if(h == -1) return Arc::MCC_Status();
-    struct stat st;
-    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-    if(buf && (::fstat(h,&st) == 0)) buf->Truncate(st.st_size);
-    ::close(h);
-    outmsg.Payload(buf);
-    outmsg.Attributes()->set("HTTP:content-type","text/html");
-    return Arc::MCC_Status(Arc::STATUS_OK);
+// --------------------------------------------------------------------------------------------------------------
+
+static Arc::MCC_Status GetJobsList(Arc::Message& outmsg,ARexGMConfig& config,Arc::Logger& logger) {
+  std::string html;
+  html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Jobs list</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
+  std::list<std::string> jobs = ARexJob::Jobs(config,logger);
+  for(std::list<std::string>::iterator job = jobs.begin();job!=jobs.end();++job) {
+    std::string line = "<LI><I>job</I> <A HREF=\"";
+    line+=config.Endpoint()+"/"+(*job);
+    line+="\">";
+    line+=(*job);
+    line+="</A>";
+    line+=" <A HREF=\"";
+    line+=config.Endpoint()+"/"+ARexService::LogsPath+"/"+(*job);
+    line+="\">logs</A>\r\n";
+    html+=line;
   };
-  if(id == "?logs") {
-    force_logs = true;
-    if(subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-    std::string::size_type p = subpath.find('/');
-    if(p == 0) { subpath = subpath.substr(1); p = subpath.find('/'); };
-    if(p == std::string::npos) {
-      id = subpath; subpath = "";
-    } else {
-      id = subpath.substr(0,p); subpath = subpath.substr(p+1);
-    };
-  };
-  if (id == "cache") {
-    return cache_get(outmsg, subpath, 0, (off_t)(-1), config, true);
-  }
-  ARexJob job(id,config,logger_);
-  if(!job) {
-    // There is no such job
-    logger_.msg(Arc::ERROR, "Head: there is no job %s - %s", id, job.Failure());
-    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-  };
-  Arc::MCC_Status r;
-  if(force_logs) {
-    r=http_get_log(outmsg,config.Endpoint()+"/?logs/"+id,job,subpath,0,(off_t)(-1),true);
-  } else {
-    r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(off_t)(-1),true);
-  };
-  if(!r) {
-    // Can't stat file
-    logger.msg(Arc::ERROR, "Head: can't process file %s", subpath);
-    return r;
-  };
+  html+="</UL>\r\n";
+  // Service description access
+  html+="<A HREF=\""+config.Endpoint()+"/"+ARexService::InfoPath+"\">SERVICE DESCRIPTION</A>";
+  html+="</BODY>\r\n</HTML>";
+  Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+  if(buf) buf->Insert(html.c_str(),0,html.length());
+  outmsg.Payload(buf);
+  outmsg.Attributes()->set("HTTP:content-type","text/html");
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-// burl - base URL
-// bpath - base path
-// hpath - path relative to base path and base URL
-// start - chunk start
-// start - chunk end
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content) {
-Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=%s, hpath=%s", (unsigned long long int)start, (unsigned long long int)end, burl, hpath);
-  if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
-  if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
-  std::string joblog = job.LogDir();
-  if(!joblog.empty()) {
-    if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  && 
-       ((hpath[joblog.length()] == '/') || (hpath[joblog.length()] == 0))) {
-      hpath.erase(0,joblog.length()+1);
-      return http_get_log(outmsg,burl+"/"+joblog,job,hpath,start,end,no_content);
+static Arc::MCC_Status GetFilesList(Arc::Message& outmsg,ARexGMConfig& config,
+                          Arc::FileAccess& dir,std::string const& baseurl,std::string const& basepath,
+                          Arc::Logger& logger) {
+  std::string html;
+  html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
+  for(;;) {
+    std::string file;
+    if(!dir.fa_readdir(file)) break;
+    if(file == ".") continue;
+    if(file == "..") continue;
+    std::string fpath = basepath+"/"+file;
+    struct stat st;
+    if(lstat(fpath.c_str(),&st) == 0) {
+      if(S_ISREG(st.st_mode)) {
+        std::string line = "<LI><I>file</I> <A HREF=\"";
+        line+=baseurl+"/"+file;
+        line+="\">";
+        line+=file;
+        line+="</A> - "+Arc::tostring(st.st_size)+" bytes"+"\r\n";
+        html+=line;
+      } else if(S_ISDIR(st.st_mode)) {
+        std::string line = "<LI><I>dir</I> <A HREF=\"";
+        line+=baseurl+"/"+file+"/";
+        line+="\">";
+        line+=file;
+        line+="</A>\r\n";
+        html+=line;
+      };
+    } else {
+      std::string line = "<LI><I>unknown</I> <A HREF=\"";
+      line+=baseurl+"/"+file;
+      line+="\">";
+      line+=file;
+      line+="</A>\r\n";
+      html+=line;
     };
   };
-  Arc::FileAccess* dir = job.OpenDir(hpath);
-  if(dir) {
-    // Directory - html with file list
-    if(!no_content) {
-      std::string file;
-      std::string html;
-      html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
-      std::string furl = burl;
-      if(!hpath.empty()) furl+="/"+hpath;
-      std::string path = job.GetFilePath(hpath);
-      for(;;) {
-        if(!dir->fa_readdir(file)) break;
-        if(file == ".") continue;
-        if(file == "..") continue;
-        std::string fpath = path+"/"+file;
-        struct stat st;
-        if(lstat(fpath.c_str(),&st) == 0) {
-          if(S_ISREG(st.st_mode)) {
-            std::string line = "<LI><I>file</I> <A HREF=\"";
-            line+=furl+"/"+file;
-            line+="\">";
-            line+=file;
-            line+="</A> - "+Arc::tostring(st.st_size)+" bytes"+"\r\n";
-            html+=line;
-          } else if(S_ISDIR(st.st_mode)) {
-            std::string line = "<LI><I>dir</I> <A HREF=\"";
-            line+=furl+"/"+file+"/";
-            line+="\">";
-            line+=file;
-            line+="</A>\r\n";
-            html+=line;
-          };
-        } else {
-          std::string line = "<LI><I>unknown</I> <A HREF=\"";
-          line+=furl+"/"+file;
-          line+="\">";
-          line+=file;
-          line+="</A>\r\n";
-          html+=line;
-        };
-      };
+  // Add virtual logs folder
+  /*
       if((hpath.empty()) && (!joblog.empty())) {
         std::string line = "<LI><I>dir</I> <A HREF=\"";
         line+=furl+"/"+joblog;
@@ -247,38 +151,61 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
         line+="</A> - log directory\r\n";
         html+=line;
       };
-      html+="</UL>\r\n</BODY>\r\n</HTML>";
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf) buf->Insert(html.c_str(),0,html.length());
-      outmsg.Payload(buf);
-      outmsg.Attributes()->set("HTTP:content-type","text/html");
-    } else {
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf) buf->Truncate(0);
-      outmsg.Payload(buf);
-      outmsg.Attributes()->set("HTTP:content-type","text/html");
+  */
+  html+="</UL>\r\n</BODY>\r\n</HTML>";
+  Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+  if(buf) buf->Insert(html.c_str(),0,html.length());
+  outmsg.Payload(buf);
+  outmsg.Attributes()->set("HTTP:content-type","text/html");
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+// --------------------------------------------------------------------------------------------------------------
+
+Arc::MCC_Status ARexService::GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(id.empty()) {
+    // Not a specific job - generate page with list of jobs
+    return GetJobsList(outmsg,config,logger_);
+  }
+  ARexJob job(id,config,logger_);
+  if(!job) {
+    // There is no such job
+    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  };
+  std::string hpath = Arc::trim(subpath,"/"); // prepare clean sub-path
+  std::string joblog = job.LogDir();
+  if(!joblog.empty()) {
+    if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  && 
+       ((hpath[joblog.length()] == '/') || (hpath[joblog.length()] == '\0'))) {
+      hpath.erase(0,joblog.length()+1);
+      return GetLogs(inmsg,outmsg,config,id,hpath);
     };
+  };
+  // File or folder
+  Arc::FileAccess* dir = job.OpenDir(subpath);
+  if(dir) {
+    // Directory - html with file list
+    std::string dirurl = config.Endpoint()+"/"+id;
+    if(!hpath.empty()) dirurl+="/"+hpath;
+    std::string dirpath = job.GetFilePath(hpath);
+    Arc::MCC_Status r = GetFilesList(outmsg,config,*dir,dirurl,dirpath,logger_);
     dir->fa_closedir();
     Arc::FileAccess::Release(dir);
-    return Arc::MCC_Status(Arc::STATUS_OK);
+    return r;
   };
   Arc::FileAccess* file = job.OpenFile(hpath,true,false);
   if(file) {
-    // File 
-    if(!no_content) {
-      Arc::MessagePayload* h = newFileRead(file,start,end);
-      if(!h) {
-        file->fa_close(); Arc::FileAccess::Release(file);
-        return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-      };
-      outmsg.Payload(h);
-    } else {
-      struct stat st;
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf && (file->fa_fstat(st))) buf->Truncate(st.st_size);
+    // File or similar
+    off_t range_start;
+    off_t range_end;
+    ExtractRange(inmsg, range_start, range_end);
+    Arc::MessagePayload* h = newFileRead(file,range_start,range_end);
+    if(!h) {
       file->fa_close(); Arc::FileAccess::Release(file);
-      outmsg.Payload(buf);
+      return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
     };
+    outmsg.Payload(h);
     outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
@@ -287,53 +214,178 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
-static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content) {
+Arc::MCC_Status ARexService::GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(id.empty()) {
+    // Not a specific job - not expected
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  ARexJob job(id,config,logger_);
+  if(!job) {
+    // There is no such job
+    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  };
+  std::string hpath = Arc::trim(subpath,"/"); // prepare clean sub-path
   if(hpath.empty()) {
-    if(!no_content) {
-      std::list<std::string> logs = job.LogFiles();
-      std::string html;
-      html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job Logs</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
-      for(std::list<std::string>::iterator l = logs.begin();l != logs.end();++l) {
-        if(strncmp(l->c_str(),"proxy",5) == 0) continue;
-        std::string line = "<LI><I>file</I> <A HREF=\"";
-        line+=burl+"/"+(*l);
-        line+="\">";
-        line+=*l;
-        line+="</A> - log file\r\n";
-        html+=line;
-      };
-      html+="</UL>\r\n</BODY>\r\n</HTML>";
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf) buf->Insert(html.c_str(),0,html.length());
-      outmsg.Payload(buf);
-      outmsg.Attributes()->set("HTTP:content-type","text/html");
-    } else {
-      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf) buf->Truncate(0);
-      outmsg.Payload(buf);
-      outmsg.Attributes()->set("HTTP:content-type","text/html");
+    std::list<std::string> logs = job.LogFiles();
+    std::string html;
+    html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job Logs</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
+    for(std::list<std::string>::iterator l = logs.begin();l != logs.end();++l) {
+      if(strncmp(l->c_str(),"proxy",5) == 0) continue;
+      std::string line = "<LI><I>file</I> <A HREF=\"";
+      line+=config.Endpoint()+"/"+ARexService::LogsPath+"/"+id+"/"+(*l);
+      line+="\">";
+      line+=*l;
+      line+="</A> - log file\r\n";
+      html+=line;
     };
+    html+="</UL>\r\n</BODY>\r\n</HTML>";
+    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+    if(buf) buf->Insert(html.c_str(),0,html.length());
+    outmsg.Payload(buf);
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else {
     int file = job.OpenLogFile(hpath);
     if(file != -1) {
-      if(!no_content) {
-        Arc::MessagePayload* h = newFileRead(file,start,end);
-        if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
+      off_t range_start;
+      off_t range_end;
+      ExtractRange(inmsg, range_start, range_end);
+      Arc::MessagePayload* h = newFileRead(file,range_start,range_end);
+      if(h) {
         outmsg.Payload(h);
+        outmsg.Attributes()->set("HTTP:content-type","text/plain");
+        return Arc::MCC_Status(Arc::STATUS_OK);
       } else {
-        struct stat st;
-        Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-        if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
         ::close(file);
-        outmsg.Payload(buf);
-      };
+      }
+    };
+  };
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+}
+
+Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  int h = infodoc_.OpenDocument();
+  if(h == -1) return Arc::MCC_Status();
+  Arc::MessagePayload* payload = newFileRead(h);
+  if(!payload) { ::close(h); return Arc::MCC_Status(); };
+  outmsg.Payload(payload);
+  outmsg.Attributes()->set("HTTP:content-type","text/xml");
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status ARexService::GetNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+}
+
+Arc::MCC_Status ARexService::GetCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  off_t range_start = 0;
+  off_t range_end = (off_t)(-1);
+  ExtractRange(inmsg, range_start, range_end);
+  return cache_get(outmsg, subpath, range_start, range_end, config, false);
+}
+
+// --------------------------------------------------------------------------------------------------------------
+
+Arc::MCC_Status ARexService::HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(id.empty()) {
+    // Not a specific job - not expected
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  }
+  ARexJob job(id,config,logger_);
+  if(!job) {
+    // There is no such job
+    logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  };
+  std::string hpath = Arc::trim(subpath,"/"); // prepare clean sub-path
+  if(hpath.empty()) {
+    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+    if(buf) buf->Truncate(0);
+    outmsg.Payload(buf);
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  } else {
+    int file = job.OpenLogFile(hpath);
+    if(file != -1) {
+      struct stat st;
+      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+      if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
+      ::close(file);
+      outmsg.Payload(buf);
       outmsg.Attributes()->set("HTTP:content-type","text/plain");
       return Arc::MCC_Status(Arc::STATUS_OK);
     };
   };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
+
+Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  int h = infodoc_.OpenDocument();
+  if(h == -1) return Arc::MCC_Status();
+  outmsg.Payload(newFileInfo(h));
+  outmsg.Attributes()->set("HTTP:content-type","text/xml");
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status ARexService::HeadNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+}
+
+Arc::MCC_Status ARexService::HeadCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  off_t range_start = 0;
+  off_t range_end = (off_t)(-1);
+  return cache_get(outmsg, subpath, range_start, range_end, config, true);
+}
+
+Arc::MCC_Status ARexService::HeadJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(id.empty()) {
+    // Not a specific job - page with list of jobs
+    outmsg.Payload(newFileInfo());
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+  ARexJob job(id,config,logger_);
+  if(!job) {
+    // There is no such job
+    logger_.msg(Arc::ERROR, "Head: there is no job %s - %s", id, job.Failure());
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  };
+  std::string hpath = Arc::trim(subpath,"/"); // prepare clean sub-path
+  std::string joblog = job.LogDir();
+  if(!joblog.empty()) {
+    if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  &&
+       ((hpath[joblog.length()] == '/') || (hpath[joblog.length()] == '\0'))) {
+      hpath.erase(0,joblog.length()+1);
+      return HeadLogs(inmsg,outmsg,config,id,hpath);
+    };
+  };
+  // File or folder
+  Arc::FileAccess* dir = job.OpenDir(subpath);
+  if(dir) {
+    // Directory - html with file list
+    outmsg.Payload(newFileInfo());
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
+    dir->fa_closedir();
+    Arc::FileAccess::Release(dir);
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  };
+  Arc::FileAccess* file = job.OpenFile(hpath,true,false);
+  if(file) {
+    // File or similar
+    outmsg.Payload(newFileInfo(*file));
+    file->fa_close(); Arc::FileAccess::Release(file);
+    outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  };
+  // Can't process this path
+  // offset=0; size=0;
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+}
+
+// -------------------------------------------------------------------------------------------------
 
 static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc::Logger& logger) {
 

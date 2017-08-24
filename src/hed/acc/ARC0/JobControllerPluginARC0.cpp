@@ -165,10 +165,13 @@ namespace Arc {
             (*jit)->UsedTotalCPUTime =
               Period((std::string)(*xit)["nordugrid-job-usedcputime"],
                      PeriodMinutes);
-          if ((*xit)["nordugrid-job-usedwalltime"])
+          if ((*xit)["nordugrid-job-usedwalltime"]) {
             (*jit)->UsedTotalWallTime =
               Period((std::string)(*xit)["nordugrid-job-usedwalltime"],
                      PeriodMinutes);
+            if(((*jit)->RequestedSlots > 1) && ((*jit)->UsedTotalWallTime > 0))
+              (*jit)->UsedTotalWallTime = (*jit)->UsedTotalWallTime.GetPeriod() * (*jit)->RequestedSlots;
+          }
           if ((*xit)["nordugrid-job-exitcode"])
             (*jit)->ExitCode = stringtoi((*xit)["nordugrid-job-exitcode"]);
           if ((*xit)["Mds-validfrom"]) {

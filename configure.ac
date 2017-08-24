@@ -203,6 +203,7 @@ enables_saml_client=yes
 enables_wsrf_client=yes
 enables_unicore_client=no
 enables_emies_client=yes
+enables_arcrest_client=no
 #  Documentation
 enables_doc=yes
 # ACIX cache index
@@ -2138,6 +2139,10 @@ AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables b
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
 AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
 
+AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--enable-arcrest-client], [enables building ARC REST interface client plugins (not affected by --enable-all).]),
+  [enables_arcrest_client=$enableval],[])
+AC_MSG_NOTICE([ARC REST plugin(s) enabled: $enables_arcrest_client])
+AM_CONDITIONAL([ARCREST_ENABLED],[test "x$enables_arcrest_client" = "xyes"])
 
 # Check for consistency among disabled components
 if test "$enables_hed" = "no"; then
@@ -2273,6 +2278,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/ARC0/Makefile
                  src/hed/acc/ARC1/Makefile
                  src/hed/acc/ARC1/test/Makefile
+                 src/hed/acc/ARCREST/Makefile
                  src/hed/acc/EMIES/Makefile
                  src/hed/acc/EMIES/arcemiestest.1
                  src/hed/acc/EMIES/schema/Makefile
@@ -2605,6 +2611,7 @@ WSRF client:        ${enables_wsrf_client}
 
 UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
+ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}
 
 Documentation:      ${enables_doc}

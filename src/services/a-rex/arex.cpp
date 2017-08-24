@@ -27,6 +27,7 @@
 #include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/jobs/ContinuationPlugins.h"
+#include "grid-manager/files/ControlFileHandling.h"
 #include "arex.h"
 
 namespace ARex {
@@ -78,6 +79,12 @@ static const std::string ES_AINFO_NPREFIX("esainfo");
 static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity/types");
 
 static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
+
+char const* ARexService::InfoPath = "*info";
+char const* ARexService::LogsPath = "*logs";
+char const* ARexService::NewPath = "*new";
+char const* ARexService::DelegationPath = "*deleg";
+char const* ARexService::CachePath = "cache";
 
 #define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
 #define AREX_POLICY_OPERATION_ADMIN "Admin"
@@ -418,6 +425,35 @@ Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg, const char* r
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+Arc::MCC_Status ARexService::extract_content(Arc::Message& inmsg,std::string& content,uint32_t size_limit) {
+  // Identify payload
+  Arc::MessagePayload* payload = inmsg.Payload();
+  if(!payload) {
+    return Arc::MCC_Status(Arc::GENERIC_ERROR,"","Missing payload");
+  };
+  Arc::PayloadStreamInterface* stream = dynamic_cast<Arc::PayloadStreamInterface*>(payload);
+  Arc::PayloadRawInterface* buf = dynamic_cast<Arc::PayloadRawInterface*>(payload);
+  if((!stream) && (!buf)) {
+    return Arc::MCC_Status(Arc::GENERIC_ERROR,"","Error processing payload");
+  }
+  // Fetch content
+  content.clear();
+  if(stream) {
+    std::string add_str;
+    while(stream->Get(add_str)) {
+      content.append(add_str);
+      if((size_limit != 0) && (content.size() >= size_limit)) break;
+    }
+  } else {
+    for(unsigned int n = 0;buf->Buffer(n);++n) {
+      content.append(buf->Buffer(n),buf->BufferSize(n));
+      if((size_limit != 0) && (content.size() >= size_limit)) break;
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+
 Arc::MCC_Status ARexService::make_http_fault(Arc::Message& outmsg,int code,const char* resp) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   outmsg.Payload(outpayload);
@@ -521,32 +557,54 @@ static std::string GetPath(Arc::Message &inmsg,std::string &base) {
   return make_soap_fault(outmsg,"Operation not supported"); \
 }
 
+static void GetIdFromPath(std::string& subpath, std::string& id) {
+  std::string::size_type subpath_pos = Arc::get_token(id, subpath, 0, "/");
+  subpath.erase(0,subpath_pos);
+  while(subpath[0] == '/') subpath.erase(0,1);
+}
 
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Split request path into parts: service, job and file path. 
   // TODO: make it HTTP independent
   std::string endpoint;
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
-  std::string id = GetPath(inmsg,endpoint);
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   logger_.msg(Arc::INFO, "Connection from %s: %s", inmsg.Attributes()->get("TCP:REMOTEHOST"), inmsg.Attributes()->get("TLS:IDENTITYDN"));
-  if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && id.empty()) id=endpoint;
+  std::string subpath = GetPath(inmsg,endpoint);
+  if((inmsg.Attributes()->get("PLEXER:PATTERN").empty()) && subpath.empty()) subpath=endpoint;
   logger_.msg(Arc::VERBOSE, "process: method: %s", method);
   logger_.msg(Arc::VERBOSE, "process: endpoint: %s", endpoint);
-  while(id[0] == '/') id=id.substr(1);
-  std::string subpath;
-  {
-    std::string::size_type p = id.find('/');
-    if(p != std::string::npos) {
-      subpath = id.substr(p);
-      id.resize(p);
-      while(subpath[0] == '/') subpath=subpath.substr(1);
-    };
+  std::string id;
+  GetIdFromPath(subpath, id);
+  // Make SubOpCache separate service
+  enum { SubOpNone, SubOpInfo, SubOpLogs, SubOpNew, SubOpDelegation, SubOpCache } sub_op = SubOpNone;
+  // Sort out path
+  if(id == InfoPath) {
+    sub_op = SubOpInfo;
+    id.erase();
+  } else if(id == LogsPath) {
+    sub_op = SubOpLogs;
+    GetIdFromPath(subpath, id);
+  } else if(id == NewPath) {
+    sub_op = SubOpNew;
+    id.erase();
+  } else if(id == DelegationPath) {
+    sub_op = SubOpDelegation;
+    GetIdFromPath(subpath, id);
+  } else if(id == CachePath) {
+    sub_op = SubOpCache;
+    id.erase();
   };
   logger_.msg(Arc::VERBOSE, "process: id: %s", id);
+  logger_.msg(Arc::VERBOSE, "process: subop: %s", (sub_op==SubOpNone)?"none":
+                                                  ((sub_op==SubOpInfo)?InfoPath:
+                                                  ((sub_op==SubOpLogs)?LogsPath:
+                                                  ((sub_op==SubOpNew)?NewPath:
+                                                  ((sub_op==SubOpDelegation)?DelegationPath:
+                                                  ((sub_op==SubOpCache)?CachePath:"unknown"))))));
   logger_.msg(Arc::VERBOSE, "process: subpath: %s", subpath);
 
-  // Sort out request
+  // Sort out request and identify operation requested
   Arc::PayloadSOAP* inpayload = NULL;
   Arc::XMLNode op;
   ARexSecAttr* sattr = NULL;
@@ -609,6 +667,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   if(method == "POST") {
     // Check if request is for top of tree (BES factory) or particular 
     // job (listing activity)
+    // It must be base URL in request
+    if(sub_op != SubOpNone) {
+      logger_.msg(Arc::ERROR, "POST request on special path is not supported");
+      return make_soap_fault(outmsg);
+    };
     if(id.empty()) {
       // Factory operations
       logger_.msg(Arc::VERBOSE, "process: factory endpoint");
@@ -751,22 +814,33 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #if 1
             // But for compatibility during intermediate period store delegations in
             // per-job proxy file too.
-            // Obtaining all jobs associated with that delegation id would cause 
-            // scanning all job.#.local files for associates delegationid.
-            // To avoid this costly procedure job.#.proxy will be updated 
-            // when job state changes (including restart).
-            /*
             if(op.Name() == "PutDelegation") {
               // PutDelegation
               //   DelegationID
               //   Credential
               std::string id = op["DelegationId"];
               if(!id.empty()) {
-                delegation_stores_[config->GmConfig().DelegationDir()].
-
+                DelegationStore& delegation_store(delegation_stores_[config->GmConfig().DelegationDir()]);
+                std::list<std::string> job_ids;
+                if(delegation_store.GetLocks(id,config->GridName(),job_ids)) {
+                  for(std::list<std::string>::iterator job_id = job_ids.begin(); job_id != job_ids.end(); ++job_id) {
+                    // check if that is main delegation for this job
+                    std::string delegationid;
+                    if(job_local_read_delegationid(*job_id,config->GmConfig(),delegationid)) {
+                      if(id == delegationid) {
+                        std::string credentials;
+                        if(delegation_store.GetCred(id,config->GridName(),credentials)) {
+                          if(!credentials.empty()) {
+                            GMJob job(*job_id,Arc::User(config->User().get_uid()));
+                            (void)job_proxy_write_file(job,config->GmConfig(),credentials);
+                          };
+                        };
+                      };
+                    };
+                  }; 
+                };
               };
             };
-            */
 #endif
           };
         };
@@ -818,6 +892,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     } else {
       // Listing operations for session directories
       // TODO: proper failure like interface is not supported
+      logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
+      return make_soap_fault(outmsg,"Operation not supported");
     };
     if(!ProcessSecHandlers(outmsg,"outgoing")) {
       logger_.msg(Arc::ERROR, "Security Handlers processing failed");
@@ -829,9 +905,29 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     // HTTP plugin either provides buffer or stream
     logger_.msg(Arc::VERBOSE, "process: GET");
     logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
+    Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
-    // TODO: in case of error generate some content
-    Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
+    switch(sub_op) {
+      case SubOpInfo:
+        ret = GetInfo(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNew:
+        ret = GetNew(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpLogs:
+        ret = GetLogs(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpDelegation:
+        ret = GetDelegation(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpCache:
+        ret = GetCache(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNone:
+      default:
+        ret = GetJob(inmsg,outmsg,*config,id,subpath);
+        break;
+    };
     if(ret) {
       if(!ProcessSecHandlers(outmsg,"outgoing")) {
         logger_.msg(Arc::ERROR, "Security Handlers processing failed");
@@ -841,7 +937,28 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     return ret;
   } else if(method == "HEAD") {
-    Arc::MCC_Status ret = Head(inmsg,outmsg,*config,id,subpath);
+    Arc::MCC_Status ret;
+    switch(sub_op) {
+      case SubOpInfo:
+        ret = HeadInfo(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNew:
+        ret = HeadNew(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpLogs:
+        ret = HeadLogs(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpDelegation:
+        ret = HeadDelegation(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpCache:
+        ret = HeadCache(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNone:
+      default:
+        ret = HeadJob(inmsg,outmsg,*config,id,subpath);
+        break;
+    };
     if(ret) {
       if(!ProcessSecHandlers(outmsg,"outgoing")) {
         logger_.msg(Arc::ERROR, "Security Handlers processing failed");
@@ -852,11 +969,29 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return ret;
   } else if(method == "PUT") {
     logger_.msg(Arc::VERBOSE, "process: PUT");
+    Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
-    Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath);
-    if(!ret) return make_fault(outmsg);
-    // Put() does not generate response yet
-    ret=make_empty_response(outmsg);
+    switch(sub_op) {
+      case SubOpInfo:
+        ret = PutInfo(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNew:
+        ret = PutNew(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpLogs:
+        ret = PutLogs(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpDelegation:
+        ret = PutDelegation(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpCache:
+        ret = PutCache(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNone:
+      default:
+        ret = PutJob(inmsg,outmsg,*config,id,subpath);
+        break;
+    };
     if(ret) {
       if(!ProcessSecHandlers(outmsg,"outgoing")) {
         logger_.msg(Arc::ERROR, "Security Handlers processing failed");
@@ -873,6 +1008,74 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return Arc::MCC_Status();
   };
   return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::HeadDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  return make_http_fault(outmsg,405,"No probing on delegation interface");
+}
+
+Arc::MCC_Status ARexService::GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!subpath.empty()) {
+    return make_http_fault(outmsg,500,"No additional path expected");
+  };
+  std::string deleg_id = id; // Update request in case of non-empty id
+  std::string deleg_request;
+  if(!delegation_stores_.GetRequest(config.GmConfig().DelegationDir(),
+                                    deleg_id,config.GridName(),deleg_request)) {
+    return make_http_fault(outmsg,500,"Failed generating delegation request");
+  };
+  // Create positive HTTP response
+  Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+  if(buf) buf->Insert(deleg_request.c_str(),0,deleg_request.length());
+  outmsg.Payload(buf);
+  outmsg.Attributes()->set("HTTP:content-type","application/x-pem-file"); // ??
+  outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(200));
+  outmsg.Attributes()->set("HTTP:REASON",deleg_id.c_str());
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status ARexService::PutDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!subpath.empty()) {
+    return make_http_fault(outmsg,500,"No additional path expected");
+  };
+  if(id.empty()) {
+    return make_http_fault(outmsg,500,"Delegation id expected");
+  };
+  // Fetch HTTP content
+  std::string content;
+  Arc::MCC_Status res = ARexService::extract_content(inmsg,content,1024*1024); // 1mb size limit is sane enough
+  if(!res)
+    return make_http_fault(outmsg,500,res.getExplanation().c_str());
+  if(content.empty())
+    return make_http_fault(outmsg,500,"Missing payload");
+  if(!delegation_stores_.PutDeleg(config.GmConfig().DelegationDir(),
+                                    id,config.GridName(),content)) {
+    return make_http_fault(outmsg,500,"Failed accepting delegation");
+  };
+#if 1
+  // In case of update for compatibility during intermediate period store delegations in
+  // per-job proxy file too.
+  DelegationStore& delegation_store(delegation_stores_[config.GmConfig().DelegationDir()]);
+  std::list<std::string> job_ids;
+  if(delegation_store.GetLocks(id,config.GridName(),job_ids)) {
+    for(std::list<std::string>::iterator job_id = job_ids.begin(); job_id != job_ids.end(); ++job_id) {
+      // check if that is main delegation for this job
+      std::string delegationid;
+      if(job_local_read_delegationid(*job_id,config.GmConfig(),delegationid)) {
+        if(id == delegationid) {
+          std::string credentials;
+          if(delegation_store.GetCred(id,config.GridName(),credentials)) {
+            if(!credentials.empty()) {
+              GMJob job(*job_id,Arc::User(config.User().get_uid()));
+              (void)job_proxy_write_file(job,config.GmConfig(),credentials);
+            };
+          };
+        };
+      };
+    };
+  };
+#endif
+  return make_empty_response(outmsg);
 }
 
 static void information_collector_starter(void* arg) {
@@ -913,6 +1116,33 @@ void ARexService::gm_threads_starter() {
   CreateThreadFunction(&information_collector_starter, this);
 }
 
+class ArexServiceNamespaces: public Arc::NS {
+ public:
+  ArexServiceNamespaces() {
+    // Define supported namespaces
+    Arc::NS& ns_(*this);
+    ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
+    ns_[BES_GLUE2_NPREFIX]=BES_GLUE2_NAMESPACE;
+    ns_[BES_GLUE2PRE_NPREFIX]=BES_GLUE2PRE_NAMESPACE;
+    ns_[BES_GLUE2D_NPREFIX]=BES_GLUE2D_NAMESPACE;
+    ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
+    ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
+    ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;
+    ns_[ES_TYPES_NPREFIX]=ES_TYPES_NAMESPACE;
+    ns_[ES_CREATE_NPREFIX]=ES_CREATE_NAMESPACE;
+    ns_[ES_DELEG_NPREFIX]=ES_DELEG_NAMESPACE;
+    ns_[ES_RINFO_NPREFIX]=ES_RINFO_NAMESPACE;
+    ns_[ES_MANAG_NPREFIX]=ES_MANAG_NAMESPACE;
+    ns_[ES_AINFO_NPREFIX]=ES_AINFO_NAMESPACE;
+    ns_["wsa"]="http://www.w3.org/2005/08/addressing";
+    ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
+    ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
+    ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
+    ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
+  };
+};
+
+Arc::NS ARexService::ns_ = ArexServiceNamespaces();
 
 ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Service(cfg,parg),
               logger_(Arc::Logger::rootLogger, "A-REX"),
@@ -928,25 +1158,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   config_.SetJobPerfLog(new Arc::JobPerfLog());
   config_.SetContPlugins(new ContinuationPlugins());
   // logger_.addDestination(logcerr);
-  // Define supported namespaces
-  ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
-  ns_[BES_GLUE2_NPREFIX]=BES_GLUE2_NAMESPACE;
-  ns_[BES_GLUE2PRE_NPREFIX]=BES_GLUE2PRE_NAMESPACE;
-  ns_[BES_GLUE2D_NPREFIX]=BES_GLUE2D_NAMESPACE;
-  ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
-  ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
-  ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;
-  ns_[ES_TYPES_NPREFIX]=ES_TYPES_NAMESPACE;
-  ns_[ES_CREATE_NPREFIX]=ES_CREATE_NAMESPACE;
-  ns_[ES_DELEG_NPREFIX]=ES_DELEG_NAMESPACE;
-  ns_[ES_RINFO_NPREFIX]=ES_RINFO_NAMESPACE;
-  ns_[ES_MANAG_NPREFIX]=ES_MANAG_NAMESPACE;
-  ns_[ES_AINFO_NPREFIX]=ES_AINFO_NAMESPACE;
-  ns_["wsa"]="http://www.w3.org/2005/08/addressing";
-  ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
-  ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
-  ns_["wsrf-r"]="http://docs.oasis-open.org/wsrf/r-2";
-  ns_["wsrf-rw"]="http://docs.oasis-open.org/wsrf/rw-2";
   // Obtain information from configuration
 
   endpoint_=(std::string)((*cfg)["endpoint"]);

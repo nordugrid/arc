@@ -7,6 +7,8 @@
 #include <string>
 #include <list>
 
+#include <unistd.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -99,7 +101,7 @@ int arcrm(const std::list<Arc::URL>& urls,
   return failed;
 }
 
-int main(int argc, char **argv) {
+static int runmain(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -203,3 +205,10 @@ int main(int argc, char **argv) {
   }
   return 0;
 }
+
+int main(int argc, char **argv) {
+  int xr = runmain(argc,argv);
+  _exit(xr);
+  return 0;
+}
+

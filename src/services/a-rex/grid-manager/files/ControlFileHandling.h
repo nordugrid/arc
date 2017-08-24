@@ -158,6 +158,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
 // Read only some attributes from previously mentioned file.
 bool job_local_read_cleanuptime(const JobId &id,const GMConfig &config,time_t &cleanuptime);
 bool job_local_read_failed(const JobId &id,const GMConfig &config,std::string &state,std::string &cause);
+bool job_local_read_delegationid(const JobId &id,const GMConfig &config,std::string &delegationid);
 
 // Write and read file containing list of input files. Each line of file
 // contains name of input file relative to session directory and optionally

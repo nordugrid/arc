@@ -608,12 +608,26 @@ namespace Arc {
         out << IString(" Requested CPU Time: %s",
                              RequestedTotalCPUTime.istr())
                   << std::endl;
-      if (UsedTotalCPUTime != -1)
-        out << IString(" Used CPU Time: %s",
+      if (UsedTotalCPUTime != -1) {
+        if (RequestedSlots > 1) {
+          out << IString(" Used CPU Time: %s (%s per slot)",
+                             UsedTotalCPUTime.istr(),
+                             Arc::Period(UsedTotalCPUTime.GetPeriod() / RequestedSlots).istr()) << std::endl;
+        } else {
+          out << IString(" Used CPU Time: %s",
                              UsedTotalCPUTime.istr()) << std::endl;
-      if (UsedTotalWallTime != -1)
-        out << IString(" Used Wall Time: %s",
+        }
+      }
+      if (UsedTotalWallTime != -1) {
+        if (RequestedSlots > 1) {
+          out << IString(" Used Wall Time: %s (%s per slot)",
+                             UsedTotalWallTime.istr(),
+                             Arc::Period(UsedTotalWallTime.GetPeriod() / RequestedSlots).istr()) << std::endl;
+        } else {
+          out << IString(" Used Wall Time: %s",
                              UsedTotalWallTime.istr()) << std::endl;
+        }
+      }
       if (UsedMainMemory != -1)
         out << IString(" Used Memory: %d", UsedMainMemory)
                   << std::endl;

@@ -8,6 +8,7 @@ HEADERFILESCHECK:
 	if diff ./$(DEPDIR)/HEADERFILES HEADERFILES >/dev/null 2>&1 ; then \
 		rm -f HEADERFILES ; \
 	else \
+		mkdir -p ./$(DEPDIR) ; \
 		mv HEADERFILES ./$(DEPDIR)/HEADERFILES ; \
 	fi
 

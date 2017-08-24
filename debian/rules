@@ -7,8 +7,10 @@ COMMA = ,
 LDFLAGS := $(filter-out -Wl$(COMMA)-Bsymbolic-functions,$(LDFLAGS))
 
 ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
-# Workaround for too new libsigc++/glibmm
+ifeq ($(shell echo __GNUC__ | gcc -E - | tail -1),5)
+# Workaround for too new libsigc++/glibmm, too old gcc combination
 CXXFLAGS += -std=c++11
+endif
 endif
 
 CANL_SUPPORT = no
@@ -27,6 +29,8 @@ configure-stamp:
 	if [ ! -f po/POTFILES.in.save ] ; then \
 	    cp -p po/POTFILES.in po/POTFILES.in.save ; \
 	fi
+
+	dh_autoreconf
 
 	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-z,defs" \
@@ -54,7 +58,9 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	$(MAKE)
+ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
 	$(MAKE) check
+endif
 
 	touch $@
 
@@ -85,12 +91,14 @@ clean:
 	find python src -name *.pyc -exec rm {} ';'
 	rm -rf src/services/acix/*/test/_trial_temp
 
+	dh_autoreconf_clean
+
 	dh_clean configure-stamp build-stamp
 
 install: build-stamp
 	dh_testdir
 	dh_testroot
-	[ -x /usr/bin/dh_prep ] && dh_prep || dh_clean -k
+	dh_prep
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 
@@ -135,12 +143,7 @@ binary-arch: install
 	dh_installexamples -a
 	dh_installman -a
 	dh_installlogrotate -a
-	if dpkg --compare-versions `dpkg-query -W -f='$${version}' debhelper` \
-	    lt 7.4.16 ; then \
-	dh_install -a ; \
-	else \
-	dh_install -a --fail-missing ; \
-	fi
+	dh_install -a --fail-missing
 	dh_installchangelogs -a
 	dh_installinit -p nordugrid-arc-hed --name arched
 	dh_installinit -p nordugrid-arc-arex --name a-rex
@@ -149,8 +152,8 @@ binary-arch: install
 	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis -- start 76 2 3 4 5 . stop 24 0 1 6 .
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
 	dh_perl -a
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
-	[ -x /usr/bin/dh_lintian ] && dh_lintian -a || :
+	dh_python2 -a
+	dh_lintian -a
 	dh_link -a
 	dh_strip -a --dbg-package=nordugrid-arc-dbg
 	dh_compress -a -X .pdf
@@ -170,12 +173,7 @@ binary-indep: install
 	dh_installexamples -i
 	dh_installman -i
 	dh_installlogrotate -i
-	if dpkg --compare-versions `dpkg-query -W -f='$${version}' debhelper` \
-	    lt 7.4.16 ; then \
-	dh_install -i ; \
-	else \
-	dh_install -i --fail-missing ; \
-	fi
+	dh_install -i --fail-missing
 	dh_installchangelogs -i
 	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-bdii -- start 76 2 3 4 5 . stop 24 0 1 6 .
 	dh_installinit -p nordugrid-arc-ldap-infosys --name nordugrid-arc-ldap-infosys -- stop 20 0 1 2 3 4 5 6 .
@@ -184,8 +182,8 @@ binary-indep: install
 	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
 	dh_installinit -p nordugrid-arc-acix-index --name acix-index
 	dh_perl -i
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
-	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
+	dh_python2 -i
+	dh_lintian -i
 	dh_link -i
 	dh_compress -i -X .pdf
 	dh_fixperms -i

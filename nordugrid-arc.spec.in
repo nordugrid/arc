@@ -482,11 +482,10 @@ nordugrid-arc-egiis to be a part of a EGIIS service.
 %package aris
 Summary:	ARC local information system
 Group:		System Environment/Libraries
-Requires:	%{name}-ldap-infosys = %{version}-%{release}
-Requires:	bdii
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	%{name}-ldap-infosys = %{version}-%{release}
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 Requires:	bdii

@@ -33,6 +33,12 @@ class DelegationStores {
   /// If operation produces credentials token it is returned in 'credentials'.
   /// If operation is successful returns true.
   bool Process(const std::string& path,const Arc::SOAPEnvelope& in,Arc::SOAPEnvelope& out,const std::string& client,std::string& credentials);
+  /// Provides delegation request from storage 'path' for cpecified 'id' and 'client'. If 'id' is empty
+  /// then new storage slot is created and its identifier stored in 'id'.
+  bool GetRequest(const std::string& path,std::string& id,const std::string& client,std::string& request);
+  /// Stores delegated credentials corresponding to delegation request obtained by call to GetRequest().
+  /// Only public part is expected in 'credentials'.
+  bool PutDeleg(const std::string& path,const std::string& id,const std::string& client,const std::string& credentials);
   /// Stores delegated credentials token defined by 'token' into storage 'path'. 
   /// Extracted token is also returned in 'credentials'.
   /// If operation is successful returns true.

@@ -78,7 +78,7 @@ namespace Arc {
     friend class Run;
     friend class Watchdog;
   private:
-    static Glib::Mutex instance_lock_;
+    static Glib::StaticMutex instance_lock_;
     static RunPump *instance_;
     static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
@@ -115,7 +115,7 @@ namespace Arc {
     static void fork_handler(void);
   };
 
-  Glib::Mutex RunPump::instance_lock_;
+  Glib::StaticMutex RunPump::instance_lock_ = GLIBMM_STATIC_MUTEX_INIT;
   RunPump* RunPump::instance_ = NULL;
   unsigned int RunPump::mark_ = ~RunPumpMagic;
 

@@ -8,13 +8,13 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
-#include "JobListRetrieverPluginARC1.h"
+#include "JobListRetrieverPluginREST.h"
 
 namespace Arc {
 
-  Logger JobListRetrieverPluginARC1::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
+  Logger JobListRetrieverPluginREST::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.REST");
 
-  bool JobListRetrieverPluginARC1::isEndpointNotSupported(const Endpoint& endpoint) const {
+  bool JobListRetrieverPluginREST::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -38,7 +38,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginARC1::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginREST::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(endpoint.URLString));
@@ -46,7 +46,7 @@ namespace Arc {
       return s;
     }
 
-    logger.msg(DEBUG, "Collecting Job (A-REX jobs) information.");
+    logger.msg(DEBUG, "Collecting Job (A-REX REST jobs) information.");
 
     DataHandle dir_url(url, uc);
     if (!dir_url) {
@@ -75,16 +75,17 @@ namespace Arc {
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobIDURL.fullstr();
       j.ServiceInformationURL = url;
-      j.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
+      j.ServiceInformationInterfaceName = "org.nordugrid.arcrest";
       j.JobStatusURL = url;
-      j.JobStatusInterfaceName = "org.nordugrid.xbes";
+      j.JobStatusInterfaceName = "org.nordugrid.arcrest";
       j.JobManagementURL = url;
-      j.JobManagementInterfaceName = "org.nordugrid.xbes";
+      j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = file->GetName();
       j.StageInDir = jobIDURL;
       j.StageOutDir = jobIDURL;
       j.SessionDir = jobIDURL;
-      
+      // j.DelegationID.push_back(delegationId); - TODO: Implement through reading job.#.status
+ 
       jobs.push_back(j);
     }
 

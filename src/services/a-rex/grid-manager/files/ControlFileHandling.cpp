@@ -544,6 +544,12 @@ bool job_local_read_failed(const JobId &id,const GMConfig &config,std::string &s
   return true;
 }
 
+bool job_local_read_delegationid(const JobId &id,const GMConfig &config,std::string &delegationid) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_local;
+  if(!job_local_read_var(fname,"cleanuptime",delegationid)) return false;
+  return true;
+}
+
 /* job.ID.input functions */
 
 bool job_input_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {

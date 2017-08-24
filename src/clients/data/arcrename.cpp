@@ -5,6 +5,8 @@
 #include <string>
 #include <list>
 
+#include <unistd.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
@@ -90,7 +92,7 @@ bool arcrename(const Arc::URL& old_url,
   return true;
 }
 
-int main(int argc, char **argv) {
+static int runmain(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
@@ -181,3 +183,10 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+int main(int argc, char **argv) {
+  int xr = runmain(argc,argv);
+  _exit(xr);
+  return 0;
+}
+

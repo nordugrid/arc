@@ -880,7 +880,7 @@ namespace Arc {
          << FindNTrans("minute", "minutes", remain / 60);
       remain %= 60;
     }
-    if (remain >= 1) {
+    if ((remain >= 1) || (seconds == 0)) {
       if (remain != seconds) ss << " ";
       ss << remain << " "
          << FindNTrans("second", "seconds", remain);
@@ -923,7 +923,7 @@ namespace Arc {
         ss << remain / 60 << 'M';
         remain %= 60;
       }
-      if (remain >= 1)
+      if ((remain >= 1) || (seconds == 0))
         ss << remain << 'S';
     } else {
       ss << "T0S";

@@ -119,6 +119,15 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
 
   /** Returns credential ids locked by specific lock id */
   std::list<std::pair<std::string,std::string> > ListLockedCredIDs(const std::string& lock_id);
+
+  /** Provides delegation request specified 'id' and 'client'. If 'id' is empty
+      then new storage slot is created and its identifier stored in 'id'. */
+  bool GetRequest(std::string& id,const std::string& client,std::string& request);
+
+  /** Stores delegated credentials corresponding to delegation request obtained by call to GetRequest().
+      Only public part is expected in 'credentials'. */
+  bool PutDeleg(const std::string& id,const std::string& client,const std::string& credentials);
+
 };
 
 } // namespace ARex

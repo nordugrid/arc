@@ -346,7 +346,7 @@ namespace Arc {
 
   static TCPSec http_url_to_sec(const URL& url) {
     TCPSec sec;
-    if(url.Protocol() == "https") {
+    if(url.Protocol() == "https" || url.Protocol() == "davs") {
       if(url.Option("protocol") == "ssl3") {
         // TODO: Other options?
         sec.sec = SSL3Sec;
