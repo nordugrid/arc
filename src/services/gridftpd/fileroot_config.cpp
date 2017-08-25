@@ -33,289 +33,101 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
     return 1;
   };
   cf=new Arc::ConfigIni(cfile);
-  cf->AddSection("common");
-  cf->AddSection("gridftpd");
+  cf->AddSection("common");    // 0 
+  cf->AddSection("gridftpd");  // 1
   for(;;) {
     std::string rest;
     std::string command;
     cf->ReadNext(command,rest);
     if(command.length() == 0) break; /* EOF */
-    if(cf->SubSection()[0] != 0) continue;
     int r;
-    r=daemon.config(command,rest);
-    if(r == 0) continue;
-    if(r == -1) { cfile.close(); delete cf; return 1; };
-    if(command == "port") {
-      if(params) {
-        if(sscanf(rest.c_str(),"%u",&(params->port)) != 1) {
-          logger.msg(Arc::ERROR, "Wrong port number in configuration");
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-      };
-    } else if(command == "maxconnections") {
-      if(params) {
-        if(sscanf(rest.c_str(),"%u",&(params->max_connections)) != 1) {
-          logger.msg(Arc::ERROR, "Wrong maxconnections number in configuration");
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-      };
-    } else if(command == "defaultbuffer") {
-      if(params) {
-        if(sscanf(rest.c_str(),"%u",&(params->default_buffer)) != 1) {
-          logger.msg(Arc::ERROR, "Wrong defaultbuffer number in configuration");
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-      };
-    } else if(command == "maxbuffer") {
-      if(params) {
-        if(sscanf(rest.c_str(),"%u",&(params->max_buffer)) != 1) {
-          logger.msg(Arc::ERROR, "Wrong maxbuffer number in configuration");
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-      };
-    } else if(command == "firewall") {
-      if(params) {
-        std::string value=Arc::ConfigIni::NextArg(rest);
-        int    errcode;
-        struct hostent* host;
-        struct hostent  hostbuf;
-#ifdef _MACOSX
-        char   buf[BUFSIZ];
-        if((host=gethostbyname2(value.c_str(),AF_INET)) == NULL) { //TODO: Deal with IPv6
-#else
-#ifndef _AIX
-#ifndef sun
-        char   buf[BUFSIZ];
-        if(gethostbyname_r(value.c_str(),
-                &hostbuf,buf,sizeof(buf),&host,&errcode)) {
-#else
-        char   buf[BUFSIZ];
-        if((host=gethostbyname_r(value.c_str(),
-                &hostbuf,buf,sizeof(buf),&errcode)) == NULL) {
-#endif
-#else
-        struct hostent_data buf[BUFSIZ];
-        if((errcode=gethostbyname_r(value.c_str(),
-                (host=&hostbuf),buf))) {
-#endif
-#endif
-          logger.msg(Arc::ERROR, "Can't resolve host %s", value);
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-        if( (host == NULL) ||
-            (host->h_length < sizeof(struct in_addr)) ||
-            (host->h_addr_list[0] == NULL) ) {
-          logger.msg(Arc::ERROR, "Can't resolve host %s", value);
-          cfile.close();
-          delete cf;
-          return 1;
-        };
-        unsigned char* addr = (unsigned char*)(&(((struct in_addr*)(host->h_addr_list[0]))->s_addr));
-        params->firewall[0]=addr[0];
-        params->firewall[1]=addr[1];
-        params->firewall[2]=addr[2];
-        params->firewall[3]=addr[3];
-      };
-    };
-  };
-  cfile.close();
-  delete cf;
-  return 0;
-}
+    if(daemon.config(cf->Section(),command,rest) == -1) { cfile.close(); delete cf; return 1; };
 
+    if(cf->SubSection()[0] != 0) continue;
 
+    if(cf->SectionNum() == 0) { // [common]
 
-int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
-  bool right_group = true;
-  user.user.select_group(NULL);
-  for(;;) {
-    std::string rest=Arc::ConfigFile::read_line(cfile);
-    std::string command=Arc::ConfigIni::NextArg(rest);
-    if(command.length() == 0) break; /* EOF */
-    if(gridftpd::Daemon::skip_config(command) == 0) {
-    }
-    else if(command == "include") {  /* include content of another file */
-      std::string name=Arc::ConfigIni::NextArg(rest);
-      std::ifstream cfile_;
-      cfile_.open(name.c_str(),std::ifstream::in);
-      if(!cfile_.is_open()) {
-        logger.msg(Arc::ERROR, "couldn't open file %s", name);
-        return 1;
-      };
-      config(cfile_,pluginpath);
-      cfile_.close();
-    }
-    else if(command == "encryption") {  /* is encryption allowed ? */
-      std::string value=Arc::ConfigIni::NextArg(rest);
-      if(value == "yes") {
-        heavy_encryption=true;
-      } else if(value == "no") {
-        heavy_encryption=false;
-      } else {
-        user.user.clear_groups();
-        nodes.clear();
-        logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
-        return 1;
-      };
-    }
-    else if(command == "allowunknown") { /* should user be present in grid-mapfile ? */
-      std::string value=Arc::ConfigIni::NextArg(rest);
-      if(value == "yes") {
-        user.gridmap=true;
-      } else if(value == "no") {
-        if(!user.gridmap) {
-          logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
-          return 1;
-        };
-      } else {
-        user.user.clear_groups();
-        nodes.clear();
-        logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
-        return 1;
-      };
-    }
-    else if(command == "group") { /* definition of group of users based on DN */
-      if(!right_group) {
-        for(;;) {
-          rest=Arc::ConfigFile::read_line(cfile);
-          command=Arc::ConfigIni::NextArg(rest);
-          if(command.length() == 0) break; /* eof - bad */
-          if(command == "end") break;
-        };
-        continue;
-      };
-      std::string group_name=Arc::ConfigIni::NextArg(rest);
-      int decision = AAA_NO_MATCH;
-      for(;;) {
-        std::string rest=Arc::ConfigFile::read_line(cfile);
-        if(rest.length() == 0) break; /* eof - bad */
-        if(rest == "end") break;
-        if(decision == AAA_NO_MATCH) {
-          decision = user.user.evaluate(rest.c_str());
-          if(decision == AAA_FAILURE) {
-            //decision=AAA_NO_MATCH;
-            logger.msg(Arc::ERROR, "Failed processing authorization group %s",group_name);
+    } else if(cf->SectionNum() == 1) { // [gridftpd]
+      if(command == "port") {
+        if(params) {
+          if(sscanf(rest.c_str(),"%u",&(params->port)) != 1) {
+            logger.msg(Arc::ERROR, "Wrong port number in configuration");
+            cfile.close();
+            delete cf;
             return 1;
           };
         };
-      };
-      if(decision == AAA_POSITIVE_MATCH) user.user.add_group(group_name);
-    }
-    else if(command == "vo") {
-      if(gridftpd::config_vo(user.user,command,rest,&logger) != 0) {
-        logger.msg(Arc::ERROR, "couldn't process VO configuration");
-        return 1;
-      };
-    }
-    else if(command == "unixmap") {  /* map to local unix user */
-      if(!user.mapped()) {
-        if(user.mapname(rest.c_str()) == AAA_FAILURE) {
-          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-          return 1;
-        };
-      };
-    }
-    else if(command == "unixgroup") {  /* map to local unix user */
-      if(!user.mapped()) {
-        if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
-          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-          return 1;
-        };
-      };
-    }
-    else if(command == "unixvo") {  /* map to local unix user */
-      if(!user.mapped()) {
-        if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
-          logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-          return 1;
-        };
-      };
-    }
-    else if(command == "groupcfg") {  /* next commands only for these groups */
-      user.user.select_group(NULL);
-      if(rest.find_first_not_of(" \t") == std::string::npos) {
-        right_group=true;
-        continue;
-      };
-      right_group=false;
-      for(;;) {
-        std::string group_name=Arc::ConfigIni::NextArg(rest);
-        if(group_name.length() == 0) break;
-        right_group=user.user.select_group(group_name);
-        if(right_group) {
-          break;
-        };
-      };
-    }
-    else if(command == "pluginpath") {
-      if(!right_group) continue;
-      pluginpath=Arc::ConfigIni::NextArg(rest);
-      if(pluginpath.length() == 0) pluginpath="/";
-    }
-    else if(command == "port") {
-
-    }
-    else if(command == "plugin") {
-      if(!right_group) {
-        for(;;) {
-          rest=Arc::ConfigFile::read_line(cfile);
-          command=Arc::ConfigIni::NextArg(rest);
-          if(command.length() == 0) break; /* eof - bad */
-          if(command == "end") break;
-        };
-        continue;
-      };
-      std::string dir = Arc::ConfigIni::NextArg(rest);
-      std::string plugin = Arc::ConfigIni::NextArg(rest);
-      if(plugin.length() == 0) {
-        logger.msg(Arc::WARNING, "can't parse configuration line: %s %s %s %s", command, dir, plugin, rest);
-        continue;
-      };
-      dir=subst_user_spec(dir,&user);
-      if(!Arc::CanonicalDir(dir,false)) {
-        logger.msg(Arc::WARNING, "bad directory in plugin command: %s", dir);
-        continue;
-      };
-      /* look if path is not already registered */
-      bool already_have_this_path=false;
-      for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
-        if((*i) == dir) {
-          already_have_this_path=true;
-          break;
-        };
-      };
-      if(already_have_this_path) {
-        logger.msg(Arc::WARNING, "Already have directory: %s", dir);
-        for(;;) {
-          rest=Arc::ConfigFile::read_line(cfile);
-          command=Arc::ConfigIni::NextArg(rest);
-          if(command.length() == 0) break; /* eof - bad */
-          if(command == "end") break;
-        };
-      }
-      else {
-        logger.msg(Arc::INFO, "Registering directory: %s with plugin: %s", dir, plugin);
-        plugin=pluginpath+'/'+plugin;
-        FileNode node((char*)(dir.c_str()),(char*)(plugin.c_str)(),cfile,user);
-        if(node.has_plugin()) { nodes.push_back(node); }
-        else {
-          logger.msg(Arc::ERROR, "file node creation failed: %s", dir);
-          for(;;) {
-            rest=Arc::ConfigFile::read_line(cfile);
-            command=Arc::ConfigIni::NextArg(rest);
-            if(command.length() == 0) break; /* eof - bad */
-            if(command == "end") break;
+      } else if(command == "maxconnections") {
+        if(params) {
+          if(sscanf(rest.c_str(),"%u",&(params->max_connections)) != 1) {
+            logger.msg(Arc::ERROR, "Wrong maxconnections number in configuration");
+            cfile.close();
+            delete cf;
+            return 1;
           };
+        };
+      } else if(command == "defaultbuffer") {
+        if(params) {
+          if(sscanf(rest.c_str(),"%u",&(params->default_buffer)) != 1) {
+            logger.msg(Arc::ERROR, "Wrong defaultbuffer number in configuration");
+            cfile.close();
+            delete cf;
+            return 1;
+          };
+        };
+      } else if(command == "maxbuffer") {
+        if(params) {
+          if(sscanf(rest.c_str(),"%u",&(params->max_buffer)) != 1) {
+            logger.msg(Arc::ERROR, "Wrong maxbuffer number in configuration");
+            cfile.close();
+            delete cf;
+            return 1;
+          };
+        };
+      } else if(command == "firewall") {
+        if(params) {
+          std::string value=Arc::ConfigIni::NextArg(rest);
+          int    errcode;
+          struct hostent* host;
+          struct hostent  hostbuf;
+    #ifdef _MACOSX
+          char   buf[BUFSIZ];
+          if((host=gethostbyname2(value.c_str(),AF_INET)) == NULL) { //TODO: Deal with IPv6
+    #else
+    #ifndef _AIX
+    #ifndef sun
+          char   buf[BUFSIZ];
+          if(gethostbyname_r(value.c_str(),
+                  &hostbuf,buf,sizeof(buf),&host,&errcode)) {
+    #else
+          char   buf[BUFSIZ];
+          if((host=gethostbyname_r(value.c_str(),
+                  &hostbuf,buf,sizeof(buf),&errcode)) == NULL) {
+    #endif
+    #else
+          struct hostent_data buf[BUFSIZ];
+          if((errcode=gethostbyname_r(value.c_str(),
+                  (host=&hostbuf),buf))) {
+    #endif
+    #endif
+            logger.msg(Arc::ERROR, "Can't resolve host %s", value);
+            cfile.close();
+            delete cf;
+            return 1;
+          };
+          if( (host == NULL) ||
+              (host->h_length < sizeof(struct in_addr)) ||
+              (host->h_addr_list[0] == NULL) ) {
+            logger.msg(Arc::ERROR, "Can't resolve host %s", value);
+            cfile.close();
+            delete cf;
+            return 1;
+          };
+          unsigned char* addr = (unsigned char*)(&(((struct in_addr*)(host->h_addr_list[0]))->s_addr));
+          params->firewall[0]=addr[0];
+          params->firewall[1]=addr[1];
+          params->firewall[2]=addr[2];
+          params->firewall[3]=addr[3];
         };
       };
     } else if(command == "allowactivedata") {
@@ -330,21 +142,29 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
         logger.msg(Arc::ERROR, "improper attribute for allowactvedata command: %s", value);
         return 1;
       };
-    }
-    else {
-      logger.msg(Arc::WARNING, "unsupported configuration command: %s", command);
     };
   };
+  cfile.close();
+  delete cf;
   return 0;
 }
 
+
+static int const cfgsec_common_mapping_n = 0;
+static int const cfgsec_common_n = 1;
+static int const cfgsec_group_n = 2;
+static int const cfgsec_gridftpd_n = 3;
+static int const cfgsec_vo_n = 4;
+
+// Second level configuration method used when forking for new connection.
 int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
   typedef enum {
+    conf_state_none,
     conf_state_single,
-    conf_state_group,
-    conf_state_plugin
+    conf_state_group,  // inside [group] configuration
+    conf_state_plugin  // inside plugin configuration
   } config_state_t;
-  config_state_t st = conf_state_single;
+  config_state_t st = conf_state_none;
   bool right_group = true;
   user.user.select_group(NULL);
   std::string group_name; // =config_next_arg(rest);
@@ -363,14 +183,14 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
     std::string rest;
     std::string command;
     cf.ReadNext(command,rest);
-    if(!right_group) {
+    if(!right_group) { // skip configuration for wrong auth group
       if(!cf.SectionNew()) continue;
     };
-    int r = gridftpd::config_vo(user.user,cf,command,rest,&logger);
-    if(r==0) continue;
+    int r = gridftpd::config_vo(user.user,cf,command,rest,&logger); // [vo] processing
+    if(r==0) continue; // processed
     if(cf.SectionNew()) {
       if(right_group) switch(st) {
-        case conf_state_group: {
+        case conf_state_group: { // authgroup processing ended
           if(group_name.length() == 0) {
             logger.msg(Arc::ERROR, "unnamed group");
             return 1;
@@ -379,9 +199,9 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             user.user.add_group(group_name);
           };
         }; break;
-        case conf_state_plugin: {
+        case conf_state_plugin: { // plugin processing ended
           if(plugin_name.length() == 0) {
-            logger.msg(Arc::WARNING, "undefined plugin");
+            logger.msg(Arc::WARNING, "undefined plugin name");
             break;
           };
           if(plugin_path.length() == 0) {
@@ -433,113 +253,97 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       right_group = true;
       user.user.select_group(NULL);
       group_decision = AAA_NO_MATCH;
-      // 0 - common, 1 - group, 2 - gridftpd, 3 - vo
-      if(cf.SectionNum() == 1) {
+      if(cf.SectionNum() == cfgsec_group_n) { // auth group definition
         st=conf_state_group;
         group_name=cf.SubSection();
-      } else if(cf.SubSection()[0] == 0) {
+      } else if(cf.SubSection()[0] == 0) { // no subsection
         st=conf_state_single;
-      } else {
+      } else if(cf.SectionNum() == cfgsec_gridftpd_n) { // subsection of gridftpd
         st=conf_state_plugin;
+        plugin_name=cf.SubSection();
+        plugin_path=cf.SubSection();
+        // TODO: support for windows
+        plugin_name+="plugin.so"; // library name is postfixed with plugin.so
+      } else {
+        st=conf_state_none;
       };
     };
+    // processing command
     if((command.length() == 0) && (rest.length() == 0)) break; /* EOF */
     switch(st) {
-      case conf_state_single: {
-        if(gridftpd::Daemon::skip_config(command) == 0) {
-        } else if(command == "include") {  /* include content of another file */
-          std::string name=Arc::ConfigIni::NextArg(rest);
-          std::ifstream cfile_;
-          cfile_.open(name.c_str(),std::ifstream::in);
-          if(!cfile_.is_open()) {
-            logger.msg(Arc::ERROR, "couldn't open file %s", name);
-            return 1;
-          };
-          config(cfile_,pluginpath); // included are in old format
-          cfile_.close();
-        } else if(command == "encryption") {  /* is encryption allowed ? */
-          std::string value=Arc::ConfigIni::NextArg(rest);
-          if(value == "yes") {
-            heavy_encryption=true;
-          } else if(value == "no") {
-            heavy_encryption=false;
-          } else {
-            user.user.clear_groups();
-            nodes.clear();
-            logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
-            return 1;
-          };
-        } else if(command == "allowunknown") {
-          /* should user be present in grid-mapfile ? */
-          std::string value=Arc::ConfigIni::NextArg(rest);
-          if(value == "yes") {
-            user.gridmap=true;
-          } else if(value == "no") {
-            if(!user.gridmap) {
-              logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
+      case conf_state_none: // not our sub-section
+        break;
+      case conf_state_single: { // ordinary section
+        if(cf.SectionNum() == cfgsec_gridftpd_n) { // [gridftpd]
+          if(command == "encryption") {  /* is encryption allowed ? */
+            std::string value=Arc::ConfigIni::NextArg(rest);
+            if(value == "yes") {
+              heavy_encryption=true;
+            } else if(value == "no") {
+              heavy_encryption=false;
+            } else {
+              user.user.clear_groups();
+              nodes.clear();
+              logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
               return 1;
             };
-          } else {
-            user.user.clear_groups();
-            nodes.clear();
-            logger.msg(Arc::ERROR, "improper attribute for allowunknown command: %s", value);
-            return 1;
-          };
-        } else if(command == "pluginpath") {
-          if(!right_group) continue;
-          pluginpath=Arc::ConfigIni::NextArg(rest);
-          if(pluginpath.length() == 0) pluginpath="/";
-        } else if(command == "hostname") { // should be in [common]
-          hostname=Arc::ConfigIni::NextArg(rest);
-        } else if(command == "port") {
-          port=Arc::ConfigIni::NextArg(rest);
-        } else if(command == "unixmap") {  /* map to local unix user */
-          if(!user.mapped()) {
-            if(user.mapname(rest.c_str()) == AAA_FAILURE) {
-              user.user.clear_groups(); nodes.clear();
-              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+          } else if(command == "allowunknown") {
+            /* should user be present in grid-mapfile ? */
+            std::string value=Arc::ConfigIni::NextArg(rest);
+            if(value == "yes") {
+              user.gridmap=true;
+            } else if(value == "no") {
+              if(!user.gridmap) {
+                logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
+                return 1;
+              };
+            } else {
+              user.user.clear_groups();
+              nodes.clear();
+              logger.msg(Arc::ERROR, "improper attribute for allowunknown command: %s", value);
               return 1;
             };
+          } else if(command == "port") {
+            port=Arc::ConfigIni::NextArg(rest);
           };
-        } else if(command == "unixgroup") {  /* map to local unix user */
-          if(!user.mapped()) {
-            if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
-              user.user.clear_groups(); nodes.clear();
-              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-              return 1;
+        } else if(cf.SectionNum() == cfgsec_common_n) { // [common]
+          if(command == "hostname") { // should be in [common]
+            hostname=Arc::ConfigIni::NextArg(rest);
+          };
+        } else if(cf.SectionNum() == cfgsec_common_mapping_n) {
+          if(command == "unixmap") {  /* map to local unix user */
+            if(!user.mapped()) {
+              if(user.mapname(rest.c_str()) == AAA_FAILURE) {
+                user.user.clear_groups(); nodes.clear();
+                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+                return 1;
+              };
             };
-          };
-        } else if(command == "unixvo") {  /* map to local unix user */
-          if(!user.mapped()) {
-            if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
-              user.user.clear_groups(); nodes.clear();
-              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-              return 1;
+          } else if(command == "unixgroup") {  /* map to local unix user */
+            if(!user.mapped()) {
+              if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
+                user.user.clear_groups(); nodes.clear();
+                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+                return 1;
+              };
+            };
+          } else if(command == "unixvo") {  /* map to local unix user */
+            if(!user.mapped()) {
+              if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
+                user.user.clear_groups(); nodes.clear();
+                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+                return 1;
+              };
             };
           };
         };
       }; break;
       case conf_state_group: {
-        /* definition of group of users based on DN */
+        /* definition of authorization group */
         if(command == "name") {
           group_name=rest;
-        } else if(command == "groupcfg") {
-          user.user.select_group(NULL);
-          if(rest.find_first_not_of(" \t") == std::string::npos) {
-            right_group=true;
-          } else {
-            right_group=false;
-            for(;;) {
-              std::string group_name=Arc::ConfigIni::NextArg(rest);
-              if(group_name.length() == 0) break;
-              right_group=user.user.select_group(group_name);
-              if(right_group) {
-                break;
-              };
-            };
-          };
         } else {
-          if(group_decision == AAA_NO_MATCH) {
+          if(group_decision == AAA_NO_MATCH) { // not decided yet
             rest=command+" "+rest;
             group_decision = user.user.evaluate(rest.c_str());
             if(group_decision == AAA_FAILURE) {
@@ -551,12 +355,14 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
         };
       }; break;
       case conf_state_plugin: {
-        if(command == "groupcfg") {
+        // plugin configuration processing
+        if(command == "allowaccess") {
           user.user.select_group(NULL);
           if(rest.find_first_not_of(" \t") == std::string::npos) {
-            right_group=true;
+            logger.msg(Arc::ERROR, "Missing authgroup name in allowaccess");
+            return 1;
           } else {
-            right_group=false;
+            right_group=false; // switch default to not allowed
             for(;;) {
               std::string group_name=Arc::ConfigIni::NextArg(rest);
               if(group_name.length() == 0) break;
@@ -566,8 +372,6 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
               };
             };
           };
-        } else if(command == "plugin") {
-          plugin_name=rest;
         } else if(command == "path") {
           plugin_path=rest;
         } else {
@@ -582,6 +386,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
   return 0;
 }
 
+// Main configuration method applied after forking for new connection.
 int FileRoot::config(globus_ftp_control_auth_info_t *auth,
                      globus_ftp_control_handle_t *handle) {
   /* open and read configuration file */
@@ -594,8 +399,10 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
     return 1;
   };
   cf=new Arc::ConfigIni(cfile);
+  // keep in sync with cfgsec_* constants
+  cf->AddSection("common/mapping");
   cf->AddSection("common");
-  cf->AddSection("group");
+  cf->AddSection("authgroup");
   cf->AddSection("gridftpd");
   cf->AddSection("vo");
   /* keep information about user */

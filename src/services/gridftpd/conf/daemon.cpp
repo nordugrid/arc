@@ -92,137 +92,100 @@ namespace gridftpd {
     return 0;
   }
 
-  int Daemon::config(const std::string& cmd,std::string& rest) {
-    if(cmd == "gridmap") {
-      Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
-    } else if(cmd == "hostname") {
-      Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
-    } else if(cmd == "globus_tcp_port_range") {
-      Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest.c_str()); return 0;
-    } else if(cmd == "globus_udp_port_range") {
-      Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest.c_str()); return 0;
-    } else if(cmd == "x509_user_key") {
-      Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
-    } else if(cmd == "x509_user_cert") {
-      Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
-    } else if(cmd == "x509_cert_dir") {
-      Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
-    } else if(cmd == "http_proxy") {
-      Arc::SetEnv("ARC_HTTP_PROXY",rest.c_str()); return 0;
-    } else if(cmd == "x509_voms_dir") {
-      Arc::SetEnv("X509_VOMS_DIR",rest.c_str()); return 0;
-    } else if(cmd == "voms_processing") {
-      Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
-    } else if(cmd == "voms_trust_chain") {
-      // There could be multiple "voms_trust_chain" for multiple voms servers
-      std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
-      if(!voms_trust_chains.empty()) voms_trust_chains.append("\n").append(rest);
-      else voms_trust_chains = rest;
-      Arc::SetEnv("VOMS_TRUST_CHAINS",voms_trust_chains.c_str()); return 0;
-    };
-    if(cmd == "daemon") {
-      if(daemon_) {
+  int Daemon::config(const std::string& section, const std::string& cmd,std::string& rest) {
+	if(section == "common") {
+	  if(cmd == "gridmap") {
+	    Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
+	  } else if(cmd == "hostname") {
+	    Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
+	  } else if(cmd == "x509_host_key") {
+	    Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
+	  } else if(cmd == "x509_host_cert") {
+	    Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
+	  } else if(cmd == "x509_cert_dir") {
+	    Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
+      } else if(cmd == "x509_voms_dir") {
+	    Arc::SetEnv("X509_VOMS_DIR",rest.c_str()); return 0;
+      } else if(cmd == "voms_processing") {
+        Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
+      } else if(cmd == "http_proxy") {
+        Arc::SetEnv("ARC_HTTP_PROXY",rest.c_str()); return 0;
+      } else {
+        return 1; // not processed command
+      };
+	} else if(section == "common/mapping") {
+	  if(cmd == "gridmap") {
+	    Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
+	  };
+	} else if(section == "gridftpd") {
+	  // [gridftpd] section
+      if(cmd == "logfile") {
+        if(logfile_.length() == 0) logfile_=Arc::ConfigIni::NextArg(rest);
+      } else if(cmd == "logreopen") {
         std::string arg = Arc::ConfigIni::NextArg(rest);
         if(arg=="") {
-          logger.msg(Arc::ERROR, "Missing option for command daemon");
+          logger.msg(Arc::ERROR, "Missing option for command logreopen");
           return -1;
         };
-        if(strcasecmp("yes",arg.c_str()) == 0) { daemon_=true; }
-        else if(strcasecmp("no",arg.c_str()) == 0) { daemon_=false; }
-        else { logger.msg(Arc::ERROR, "Wrong option in daemon"); return -1; };
-      };
-    } else if(cmd == "logfile") {
-      if(logfile_.length() == 0) logfile_=Arc::ConfigIni::NextArg(rest);
-    } else if(cmd == "logsize") {
-      if(logsize_ == 0) {
-        char* p;
-        logsize_ = strtol(rest.c_str(),&p,10);
-        if(logsize_ < 0) {
-          logsize_=0;
-          logger.msg(Arc::ERROR, "Improper size of log '%s'", rest);
-          return -1;
-        };
-        if((*p) == ' ') {
-          for(;*p;++p) if((*p) != ' ') break;
-          if(*p) {
-            lognum_ = strtol(p,&p,10);
-            if(lognum_ < 0) {
-              logsize_=0; lognum_=0;
-              logger.msg(Arc::ERROR, "Improper number of logs '%s'", rest);
-              return -1;
+        if(strcasecmp("yes",arg.c_str()) == 0) { logreopen_=true; }
+        else if(strcasecmp("no",arg.c_str()) == 0) { logreopen_=false; }
+        else { logger.msg(Arc::ERROR, "Wrong option in logreopen"); return -1; };
+      } else if(cmd == "user") {
+        if(uid_ == (uid_t)(-1)) {
+          std::string username = Arc::ConfigIni::NextArg(rest);
+          std::string groupname("");
+          std::string::size_type n = username.find(':');
+          if(n != std::string::npos) { groupname=username.c_str()+n+1; username.resize(n); };
+          if(username.length() == 0) { uid_=0; gid_=0; } else {
+            struct passwd pw_;
+            struct passwd *pw;
+            char buf[BUFSIZ];
+            getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
+            if(pw == NULL) {
+              logger.msg(Arc::ERROR, "No such user: %s", username);
+              uid_=0; gid_=0; return -1;
             };
+            uid_=pw->pw_uid;
+            gid_=pw->pw_gid;
+           };
+          if(groupname.length() != 0) {
+            struct group gr_;
+            struct group *gr;
+            char buf[BUFSIZ];
+            getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
+            if(gr == NULL) {
+              logger.msg(Arc::ERROR, "No such group: %s", groupname);
+              gid_=0; return -1;
+            };
+            gid_=gr->gr_gid;
           };
-        } else if((*p) != 0) {
-          logsize_=0; lognum_=0;
-          logger.msg(Arc::ERROR, "Improper argument for logsize '%s'", rest);
-          return -1;
         };
-      };
-    } else if(cmd == "logreopen") {
-      std::string arg = Arc::ConfigIni::NextArg(rest);
-      if(arg=="") {
-        logger.msg(Arc::ERROR, "Missing option for command logreopen");
-        return -1;
-      };
-      if(strcasecmp("yes",arg.c_str()) == 0) { logreopen_=true; }
-      else if(strcasecmp("no",arg.c_str()) == 0) { logreopen_=false; }
-      else { logger.msg(Arc::ERROR, "Wrong option in logreopen"); return -1; };
-    } else if(cmd == "user") {
-      if(uid_ == (uid_t)(-1)) {
-        std::string username = Arc::ConfigIni::NextArg(rest);
-        std::string groupname("");
-        std::string::size_type n = username.find(':');
-        if(n != std::string::npos) { groupname=username.c_str()+n+1; username.resize(n); };
-        if(username.length() == 0) { uid_=0; gid_=0; } else {
-          struct passwd pw_;
-          struct passwd *pw;
-          char buf[BUFSIZ];
-          getpwnam_r(username.c_str(),&pw_,buf,BUFSIZ,&pw);
-
-          if(pw == NULL) {
-            logger.msg(Arc::ERROR, "No such user: %s", username);
-            uid_=0; gid_=0; return -1;
+      } else if(cmd == "pidfile") {
+        if(pidfile_.length() == 0) pidfile_=Arc::ConfigIni::NextArg(rest);
+      } else if(cmd == "loglevel") {
+        if(debug_ == -1) {
+          char* p;
+          debug_ = strtol(rest.c_str(),&p,10);
+          if(((*p) != 0) || (debug_<0)) {
+            logger.msg(Arc::ERROR, "Improper debug level '%s'", rest);
+            return -1;
           };
-          uid_=pw->pw_uid;
-          gid_=pw->pw_gid;
-         };
-        if(groupname.length() != 0) {
-          struct group gr_;
-          struct group *gr;
-          char buf[BUFSIZ];
-          getgrnam_r(groupname.c_str(),&gr_,buf,BUFSIZ,&gr);
-          if(gr == NULL) {
-            logger.msg(Arc::ERROR, "No such group: %s", groupname);
-            gid_=0; return -1;
-          };
-          gid_=gr->gr_gid;
         };
+	  } else if(cmd == "x509_host_key") {
+	    Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
+	  } else if(cmd == "x509_host_cert") {
+	    Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
+	  } else if(cmd == "x509_cert_dir") {
+	    Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
+      } else if(cmd == "globus_tcp_port_range") {
+        Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest.c_str()); return 0;
+      } else if(cmd == "globus_udp_port_range") {
+        Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest.c_str()); return 0;
+      } else {
+        return 1; // not processed command
       };
-    } else if(cmd == "pidfile") {
-      if(pidfile_.length() == 0) pidfile_=Arc::ConfigIni::NextArg(rest);
-    } else if(cmd == "debug") {
-      if(debug_ == -1) {
-        char* p;
-        debug_ = strtol(rest.c_str(),&p,10);
-        if(((*p) != 0) || (debug_<0)) {
-          logger.msg(Arc::ERROR, "Improper debug level '%s'", rest);
-          return -1;
-        };
-      };
-    } else {
-      return 1;
-    };
-    return 0;
-  }
-
-  int Daemon::skip_config(const std::string& cmd) {
-    if(cmd == "debug") return 0;
-    if(cmd == "daemon") return 0;
-    if(cmd == "logfile") return 0;
-    if(cmd == "logsize") return 0;
-    if(cmd == "user") return 0;
-    if(cmd == "pidfile") return 0;
-    return 1;
+	};
+    return 0; // proccessed command
   }
 
   int Daemon::getopt(int argc, char * const argv[],const char *optstring) {

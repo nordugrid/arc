@@ -141,7 +141,7 @@ class FileNode {
   };
   /* this constructor is for real load of plugin - 
      it should be used to create really new FileNode */
-  FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user);
+  FileNode(char const* dirname, char const* plugin, std::istream &cfile,userspec_t &user);
   ~FileNode(void);
 
   bool has_plugin(void) const { return (plug != NULL); };
@@ -216,7 +216,6 @@ class FileRoot {
   int time(const char* name,time_t *time);
   int checkfile(const char* name,DirEntry &obj,DirEntry::object_info_level mode);
   int config(globus_ftp_control_auth_info_t* auth,globus_ftp_control_handle_t *handle);
-  int config(std::ifstream &cfile,std::string &pluginpath);
   int config(Arc::ConfigIni &cf,std::string &pluginpath);
   static int config(gridftpd::Daemon &daemon,ServerParams* params);
 };

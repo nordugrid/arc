@@ -22,8 +22,7 @@ namespace gridftpd {
     Daemon(void);
     ~Daemon(void);
     int arg(char c);
-    int config(const std::string& cmd,std::string& rest);
-    static int skip_config(const std::string& cmd);
+    int config(const std::string& section, const std::string& cmd,std::string& rest);
     int getopt(int argc, char * const argv[],const char *optstring);
     int daemon(bool close_fds = false);
     const char* short_help(void);

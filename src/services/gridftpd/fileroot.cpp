@@ -22,7 +22,7 @@ int FilePlugin::release(void) {
   return count;
 }
 
-FileNode::FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user) {
+FileNode::FileNode(char const* dirname,char const* plugin,std::istream &cfile,userspec_t &user) {
   plug=NULL;
   init=NULL;
   point=std::string(dirname);

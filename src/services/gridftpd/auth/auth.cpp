@@ -66,13 +66,11 @@ AuthResult AuthUser::match_vo(const char* line) {
 
 AuthUser::source_t AuthUser::sources[] = {
   { "all", &AuthUser::match_all },
-  { "group", &AuthUser::match_group },
+  { "authgroup", &AuthUser::match_group },
   { "subject", &AuthUser::match_subject },
   { "file", &AuthUser::match_file },
-  { "remote", &AuthUser::match_ldap },
   { "voms", &AuthUser::match_voms },
-  { "vo", &AuthUser::match_vo },
-  { "lcas", &AuthUser::match_lcas },
+  { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
 };
