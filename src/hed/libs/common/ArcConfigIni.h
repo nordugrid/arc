@@ -14,6 +14,7 @@ class ConfigIni {
   ConfigFile* fin;
   bool open;
   std::list<std::string> section_names;
+  std::string section_indicator;
   std::string current_section;
   int current_section_n;
   std::list<std::string>::iterator current_section_p;
@@ -39,6 +40,12 @@ class ConfigIni {
   /// Specifies section name which will be processed.
   /// Unspecified sections will be skipped by ReadNext() methods.
   bool AddSection(const char* name);
+
+  /// By default ReadNext does not informa about presence of the 
+  /// section. Only commands from sections are returned.
+  /// If section indicator is set ReadNext returns immediately 
+  /// when new section is started with indicator reported as read line.
+  void SetSectionIndicator(const char* ind = NULL) { section_indicator = ind?ind:""; };
 
   /// Read next line of configuration from sesction(s) specified by AddSection().
   /// Returns true in case of success and fills content of line into line.

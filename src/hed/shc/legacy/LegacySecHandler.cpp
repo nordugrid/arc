@@ -59,12 +59,12 @@ class LegacySHCP: public ConfigParser {
   };
 
   virtual bool BlockEnd(const std::string& id, const std::string& name) {
-    if(id == "group") {
+    if(id == "authgroup") {
       if(group_name_.empty()) group_name_ = name;
       if((group_match_ == AAA_POSITIVE_MATCH) && !group_name_.empty()) {
         auth_.add_group(group_name_);
       };
-    } else if(id == "vo") {
+    } else if(id == "userlist") {
       if(vo_name_.empty()) vo_name_ = name;
       if(vo_match_ && !vo_name_.empty()) {
         auth_.add_vo(vo_name_);
@@ -74,20 +74,20 @@ class LegacySHCP: public ConfigParser {
   };
 
   virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
-    if(id == "group") {
+    if(id == "authgroup") {
       if(group_match_ == AAA_NO_MATCH) {
         group_match_ = auth_.evaluate((cmd + " " + line).c_str());
       };
-    } else if(id == "vo") {
+    } else if(id == "userlist") {
       if(!vo_match_) {
-        if(cmd == "file") {
+        if(cmd == "outfile") {
           if(!line.empty()) {
             // Because file=filename looks exactly like 
             // matching rule evaluate() can be used
-            int r = auth_.evaluate((cmd + " " + line).c_str());
+            int r = auth_.evaluate((std::string("file ") + line).c_str());
             vo_match_ = (r == AAA_POSITIVE_MATCH);
           };
-        } else if(cmd == "vo") {
+        } else if(cmd == "name") {
           vo_name_ = line;
         };
       };

@@ -67,13 +67,11 @@ AuthResult AuthUser::match_vo(const char* line) {
 
 AuthUser::source_t AuthUser::sources[] = {
   { "all", &AuthUser::match_all },
-  { "group", &AuthUser::match_group },
+  { "authgroup", &AuthUser::match_group },
   { "subject", &AuthUser::match_subject },
   { "file", &AuthUser::match_file },
-  { "remote", &AuthUser::match_ldap },
   { "voms", &AuthUser::match_voms },
-  { "vo", &AuthUser::match_vo },
-  { "lcas", &AuthUser::match_lcas },
+  { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
 };
@@ -304,7 +302,7 @@ void AuthUser::add_group(const std::string& grp) {
 
 void AuthUser::add_vo(const std::string& vo) {
   vos_.push_back(vo);
-  logger.msg(Arc::VERBOSE,"Assigned to VO %s",vo);
+  logger.msg(Arc::VERBOSE,"Assigned to userlist %s",vo);
 }
 
 void AuthUser::add_groups(const std::list<std::string>& grps) {

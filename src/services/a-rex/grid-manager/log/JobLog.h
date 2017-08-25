@@ -61,9 +61,9 @@ class JobLog {
   /* Create data file for Reporter */
   bool make_file(GMJob &job,const GMConfig &config);
   /* Set credential file names for accessing logging service */
-  void SetCredentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir);
+  void SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir);
   /* Set accounting options (e.g. batch size for SGAS LUTS) */
-  void SetOptions(std::string &options) { report_config.push_back(std::string("accounting_options=")+options); }
+  void SetOptions(std::string const &options) { report_config.push_back(std::string("accounting_options=")+options); }
 };
 
 } // namespace ARex

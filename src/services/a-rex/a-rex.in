@@ -277,41 +277,34 @@ prepare() {
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
-    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager wslogfile`
+    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces logfile`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
     ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
+    LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager loglevel`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
     WATCHDOG=`readconfigvar "$ARC_CONFIG" grid-manager watchdog`
     USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
-    GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
-    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" grid-manager voms_processing`
-    VOMS_TRUST_CHAINS=`readconfigvars "$ARC_CONFIG" grid-manager voms_trust_chain | voms_trust_to_xml`
-    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
-    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
-    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
-    if [ "$GRIDFTPD_PRESENT" == 'true' ] ; then
-        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" gridftpd allowunknown`
-        USERMAP_BLOCK='gridftpd'
-        USERAUTH_BLOCK='gridftpd/jobs'
-    else
-        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager allowunknown`
-        USERMAP_BLOCK='grid-manager'
-        USERAUTH_BLOCK='grid-manager'
-    fi
+    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_job_control_requests`
+    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_infosys_requests`
+    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_data_transfer_requests`
+    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces/emies allowunknown`
+    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
+    GRIDMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
+    USERMAP_BLOCK='common/mapping'
+    USERAUTH_BLOCK='grid-manager/wsinterfaces/emies'
     if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
@@ -325,10 +318,6 @@ prepare() {
     if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
         GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
     fi
-    if [ -z "$VOMS_PROCESSING" ] ; then
-        VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
-    fi
-    VOMS_TRUST_CHAINS="$VOMS_TRUST_CHAINS"`readconfigvars "$ARC_CONFIG" common voms_trust_chain | voms_trust_to_xml`
 
     # Exporting collected variables
     if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
@@ -458,7 +447,7 @@ prepare() {
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -466,9 +455,9 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -484,7 +473,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_endpoint`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -492,13 +481,13 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_usermap`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" grid-manager arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_acceptnotapplicable`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -727,7 +716,6 @@ prepare() {
       <KeyPath>$X509_USER_KEY</KeyPath>
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
-      $VOMS_TRUST_CHAINS
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->

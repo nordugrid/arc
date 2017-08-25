@@ -58,7 +58,7 @@ class LegacyPDPCP: public ConfigParser {
 
   virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
     //if(group_matched_) return true;
-    if(cmd != "groupcfg") return true;
+    if(cmd != "allowaccess") return true;
     std::string bname = id;
     if(!name.empty()) bname = bname+"/"+name;
     for(std::list<LegacyPDP::cfgblock>::iterator block = file_.blocks.begin();

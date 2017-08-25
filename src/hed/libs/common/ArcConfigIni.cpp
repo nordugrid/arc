@@ -62,7 +62,9 @@ bool ConfigIni::ReadNext(std::string& line) {
       current_section_n=-1;
       current_section_p=section_names.end();
       current_section_changed=true;
-      continue;
+      if (section_indicator.empty()) continue;
+      line=section_indicator;
+      n=0;
     };
     if(!section_names.empty()) { // only limited sections allowed
       bool match = false;

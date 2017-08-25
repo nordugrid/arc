@@ -191,7 +191,7 @@ bool JobLog::make_file(GMJob &job, const GMConfig& config) {
   return result;
 }
 
-void JobLog::SetCredentials(std::string &key_path,std::string &certificate_path,std::string &ca_certificates_dir)
+void JobLog::SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir)
 {
   if (!key_path.empty()) 
     report_config.push_back(std::string("key_path=")+key_path);
