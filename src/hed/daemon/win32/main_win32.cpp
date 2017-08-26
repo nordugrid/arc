@@ -87,11 +87,15 @@ static std::string init_logger(Arc::Config& cfg)
     for(;(bool)xlevel;++xlevel) {
       std::string domain = xlevel.Attribute("Domain");
       Arc::LogLevel level = Arc::WARNING;
-      if(!istring_to_level((std::string)xlevel, level)) {
-        logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)xlevel);
-      } else {
-        Arc::Logger::setThresholdForDomain(level,domain);
+      if (!istring_to_level((std::string)xlevel, level)) {
+        unsigned int ilevel;
+        if (Arc::stringto((std::string)xlevel, ilevel)) {
+          level = Arc::old_level_to_level(ilevel);
+        } else {
+          logger.msg(Arc::WARNING, "Unknown log level %s", (std::string)xlevel);
+        }
       }
+      Arc::Logger::setThresholdForDomain(level,domain);
     }
 
     std::string log_file = (log["File"] ? (std::string)log["File"] :  Glib::build_filename(Glib::get_tmp_dir(), "arched.log"));

@@ -124,12 +124,14 @@ $verbose=1 if $debug;
 # bits of the configuration. This hash shall keep track of these.
 
 my %introducedSections = (
+	"userlist" => [],
 	"authgroup" => [],
-	"queue" => [],
+	"grid-manager/jura/sgas" => [],
+	"grid-manager/jura/apel" => [],
 	"infosys/cluster/registration" => [],
-	"infosys/index" => [],
-	"infosys/glue1/site" => [],
 	"queue" => [],
+	"infosys/glue1/site" => [],
+	"infosys/index" => []
 );
 
 print STDERR "The following sections have configurable subgroups: "
@@ -240,7 +242,7 @@ sub confchecktripel($$$) {
 	printf STDOUT "Checking in block %s, name %s, value %s\n",$block,$name,$value if ($verbose);
 
 	# check the certificate
-	if ($block eq "common" and $name eq "x509_user_cert") {
+	if ($block eq "common" and $name eq "x509_host_cert") {
 		if (! -e $value) {
 			e("The host certificate '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
@@ -254,7 +256,7 @@ sub confchecktripel($$$) {
 	}
 
 	# check the key
-	elsif ($block eq "common" and $name eq "x509_user_key") {
+	elsif ($block eq "common" and $name eq "x509_host_key") {
 		if (! -e $value) {
 			e("The host key '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
@@ -267,7 +269,7 @@ sub confchecktripel($$$) {
 	# check the certificate direcotry
 	elsif ($block eq "common" and $name eq "x509_cert_dir") {
 		if (! -d $value) {
-			e("$name: The certificate directory does not exist.\n");
+			e("$name: The certificate directory $value does not exist.\n");
 		} else {
 			my @r0s=glob($value."/*.r0");
 			if ($#r0s == -1) {
@@ -421,24 +423,27 @@ sub validconfparams() {
 	my @validparams;
 	my @validblocks;
 	my @multiparams;
+	my @novalueparams;
 	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
 		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
 		return ( \@validparams, \@validblocks );
 	}
 	my $multivalued = 0;
 	while (my $line = <ARCREF>) {
-		if ($line =~ m/^#(\w*)\s*=(.*)$/) { # match #parameter="value"
+		if ($line =~ m/^#(\w*)\s*(=.*)?$/) { # match #parameter[=value]
 			my $name = $1;
-			# take out spaces and quotes
+			my $value = $2;
+			# take out spaces
 			$name =~ s/^\s*//;
 			$name =~ s/\s*$//;
-			$name =~ s/^"(.*)"$/$1/;
-			$name =~ s/^'(.*)'$/$1/;
 			if (!grep(/^$name$/, @validparams)) {
 				push(@validparams, $name);
 				if ($multivalued) {
 				  push(@multiparams, $name);
 				  $multivalued = 0;
+				}
+				if (!defined $value) {
+				    push(@novalueparams, $name);
 				}
 			}
 		} elsif ($line =~ m|^#\[(.*)\]$|) { # match #[section]
@@ -454,7 +459,7 @@ sub validconfparams() {
 		  $multivalued = 1; # the next option can be multivalued
 		}
 	}
-	return ( \@validparams, \@validblocks, \@multiparams );
+	return ( \@validparams, \@validblocks, \@multiparams, \@novalueparams );
 }
 	
 =item configuration check
@@ -471,10 +476,9 @@ sub confcheck($) {
 		e("Could not open '$arcconf' for reading.\n");
 		return;
 	}
-  # Blocks which are allowed to be empty
-  my @emptyblocks = ("gangliarc");
+
 	# valid parameter names and blocks
-	my ($validparams, $validblocks, $multiple) = validconfparams();
+	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
@@ -491,10 +495,6 @@ sub confcheck($) {
 
 		# a new block?
 		if ($line =~ m/^\s*\[(.+)\]\s*$/) {
-			if (defined $blockname and $blockcontents == 0 and !grep(/^$blockname$/, @emptyblocks)) {
-				e("$arcconf: Block \"$blockname\" is empty\n");
-			}
-
 			$blockname = $1;
 			$blockcontents = 0;
 
@@ -521,8 +521,8 @@ sub confcheck($) {
 		my $value;
 
 		# look out for crap
-		unless ($line =~ m/^([^=]*)=(.*)$/) {
-			e("$arcconf: $c: Line is erroneous!\n");
+		unless ($line =~ m/^([^=]*)(=.*)?$/) {
+			e("$arcconf: $c: Bad line!\n");
 			next;
 		}
 
@@ -531,20 +531,22 @@ sub confcheck($) {
 
 		$name =~ s/^\s*//;
 		$name =~ s/\s*$//;
+		
+		if (!defined $value and !grep(/^$name$/, @$novalueparams)) {
+		    e("$arcconf: $c: No value specified for $name\n");
+		    next;
+		} 
+		
+		if (defined $value) {
+		    $value =~ s/^=//;
+		    $value =~ s/^\s*//;
+		    $value =~ s/\s*$//;
 
-		$value =~ s/^\s*//;
-		$value =~ s/\s*$//;
-
-		if ($name =~ m/^"/ and $name !~ m/"$/
-			or $name =~ m/^'/ and $name !~ m/'$/
-			or $name !~ m/^"/ and $name =~ m/"$/
-			or $name !~ m/^'/ and $name =~ m/'$/) {
-				w("$arcconf: $c: badly quoted attribute name?\n");
-		}
-		if ($value =~ m/^"/ and $value =~ m/"$/
-		  or $value =~ m/^'/ and $value =~ m/'$/) {
-				w("$arcconf: $c: quotes around attribute value\n");
-				$warnings++;
+    		if ($value =~ m/^"/ and $value =~ m/"$/
+	    	  or $value =~ m/^'/ and $value =~ m/'$/) {
+		    		w("$arcconf: $c: quotes around attribute value\n");
+			    	$warnings++;
+		    }
 		}
 
 		# are we within a block?
@@ -593,7 +595,7 @@ sub confcheck($) {
 			foreach my $item (sort keys %$x) {
 				next if $item eq ">]|found|[<";
 				foreach my $val (split />\]\|sep\|\[</, $config->{$key}{$item}) {
-					printf "%s=\"%s\"\n", $item, $val;
+					printf "%s=%s\n", $item, $val;
 				}
 			}
 		}
@@ -611,7 +613,7 @@ sub check_completeness() {
 
 	my @required=("common", "grid-manager", "infosys", "cluster");
 
-	my ($validparams, $validblocks) = validconfparams();
+	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
 	# testing for unknown
 	foreach my $k (keys %$config) {
@@ -669,8 +671,8 @@ sub check_completeness() {
 	}
 
 	# lrms
-	if (!exists($config->{common}{lrms}) && !exists($config->{"grid-manager"}{lrms})) {
-		e("The entry lrms must not be missed.\n");
+	if (!exists($config->{lrms})) {
+		e("The lrms block is mandatory.\n");
 	}
 
 }

@@ -1,1 +1,24 @@
 #a dedicated changelog file for the configuration reengineering 
+
+2017-04-06 Andrii Salnikov <manf@grid.org.ua>
+ * Nordugridmap changed to support new configuraion format
+ * Change #17 renamed [userlist/NAME] block to force defined by block name
+ * Change #19 renamed vo->name from [userlist] - can be used to redefine block name as a hidden feature but should not be used
+ * Change #20 renamed file->outfile from [userlist]
+ * Change #21 modified possible source arguments (vo -> userlist)
+ * Change #22 modified empty mapped_unixid parsing (allow empty)
+ * Change #24 and #5 renamed x509_user_cert -> x509_host_cert in [nordugridmap] and [common]
+ * Change #25 and #6 renamed x509_user_key -> x509_host_key in [nordugridmap] and [common]
+ * Change #29 modified allow_empty_unixid default value (set to 'yes') in [nordugridmap]
+ * Change #30 renamed debug->loglevel in [nordugridmap]
+
+2017-04-05 Andrii Salnikov <manf@grid.org.ua>
+ * Tracking of nordugridmap deprecations already committed to trunk
+ * Change #26 deleted generate_vomapfile from [nordugridmap] block
+ * Change #27 deleted vomapfile from [nordugridmap] block
+ * Change #28 deleted issuer_processing from [nordugridmap] block
+ * Change #18 deleted id from [userlist/NAME] block
+ * Chnage #23 deleted require_issuerdn from [userlist/NAME]
+
+2017-04-05 David Cameron <d.g.cameron@fys.uio.no>
+  * Validator now works with new configuration format

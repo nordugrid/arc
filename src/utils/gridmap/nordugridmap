@@ -25,7 +25,7 @@ use warnings;
 use strict;
 
 use constant {
-    # debug level constants
+    # logging level constants
     FATAL   => 0,
     ERROR   => 1,
     WARNING => 2,
@@ -33,7 +33,7 @@ use constant {
     VERBOSE => 4,
     DEBUG   => 5,
     # nordugridmap internals
-    VERSION     => "3.0",
+    VERSION     => "4.0",
     USERAGENT   => "nordugridmap"
 };
 
@@ -47,10 +47,10 @@ my %config_flags = (
     'cache_enabled'         => 1,
     'log_to_file'           => 1,
     'voms_use_soap'         => 1, # voms_method: soap = 1, get = 0
-    'allow_empty_unixid'    => 0
+    'allow_empty_unixid'    => 1
 );
 
-my $debug_level = 2;
+my $log_level = 2;
 my $fetch_url_timeout = 15;
 my $opt_help;
 my $opt_test;
@@ -68,7 +68,7 @@ if ($opt_help) {
 
 # print at DEBUG level to STDERR when using testing mode
 if ($opt_test) {
-    $debug_level = 5;
+    $log_level = 5;
     $config_flags{'log_to_file'} = 0;
     &Logger("Nordugridmap is running in a testing mode. There will be no gridmaps altered.", DEBUG);
 }
@@ -78,13 +78,13 @@ if ($opt_test) {
 #
 
 unless (open (CONFIGFILE, "<$fileopt")) {
-    &Logger("Can't open $fileopt configuration file",FATAL);
+    &Logger("Can't open $fileopt configuration file", FATAL);
 }
 
 my %parsedconfig = ();
 my $blockname;
-my $blockindex=0;
 my $lineindex=0;
+my $parseoptions=0;
 
 while (my $line =<CONFIGFILE>) {
     $lineindex++;
@@ -93,38 +93,46 @@ while (my $line =<CONFIGFILE>) {
     next if $line =~/^\s+$/;
 
     # parse block name
-    if ($line =~/\[([^\/]+).*\]/ ) {
-        $blockindex++;
+    if ($line =~/\[([^\] ]+)\]/ ) {
         $blockname = $1;
-        unless ( $blockname =~ /^(common|nordugridmap)$/ ) {
-            $blockname = sprintf("%s_%03i",$1,$blockindex);
+        if ( $blockname =~ /^(common$|nordugridmap$|userlist)/ ) {
+            $parseoptions = 1;
+            $parsedconfig{$blockname}{'configline'} = $lineindex;
+            if ($blockname =~ /^userlist\/([-a-zA-Z0-9_\.]+)$/ ) {
+                $parsedconfig{$blockname}{'name'} = $1
+            } elsif ($blockname =~ /^userlist$/ ) {
+                &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist/NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
+            }
+            next;
         }
-        $parsedconfig{$blockname}{'configline'} = $lineindex;
-        next;
+        $parseoptions = 0;
     }
 
-    # skip every block not related to nordugridmap
-    next unless ( $blockname =~/^(common|nordugridmap|vo_)/ );
-
-    # get variable = "value"
-    next unless ( $line =~/^(\w+)\s*=\s*"(.*)"\s*$/ );
+    # skip parsing for not relevant blocks
+    next unless $parseoptions;
+    
+    # get variable = value OR variable = "value"
+    next unless ( $line =~/^(\w+)\s*=\s*(.*)\s*$/ );
     my $variable_name=$1;
     my $variable_value=$2;
-
-    if ( $blockname =~/^vo_/ ) {
+    
+    # trim optional double quotes (still the case for mapped_unixid="")
+    $variable_value =~ s/^"(.*)"$/$1/;
+    
+    if ( $blockname =~/^userlist\// ) {
         # special parsing for the local grid-mapfile
         if ($variable_name eq "localmapfile") {
             $variable_name = "source";
             $variable_value = "file://" . $variable_value;
         }
 
-        # special parsing for the nordugrid VO: source="nordugrid"
+        # special parsing for the nordugrid VO members: source="nordugrid"
         if (($variable_name eq "source") && ($variable_value eq "nordugrid")) {
             $variable_value = "vomss://voms.ndgf.org:8443/voms/nordugrid.org";
         }
     }
 
-    # store values to hash: $parsedconfig{blockname[_blockindex]}{variable_name}
+    # store values to hash: $parsedconfig{blockname}{variable_name}
     unless ($parsedconfig{$blockname}{$variable_name}) {
         $parsedconfig{$blockname}{$variable_name} = $variable_value;
     } else {
@@ -138,10 +146,10 @@ close CONFIGFILE;
 # CHECK CONFIGURATION FOR REQUIRED INFO
 # 
 
-# check [vo] blocks exists
+# check [userlist] blocks exists
 my @blocknames_tmp = (keys %parsedconfig);
-unless ( grep /^vo_/, @blocknames_tmp) {
-    &Logger("There are no [vo] blocks are found in the $fileopt configuration file", FATAL);
+unless ( grep /^userlist\//, @blocknames_tmp) {
+    &Logger("There are no [userlist/NAME] blocks are found in the $fileopt configuration file", FATAL, "ConfigParser");
 }
 
 # general configurable options (order: [nordugridmap] -> [common] -> $ENV -> defaults);
@@ -149,13 +157,13 @@ my $capath          = $parsedconfig{"nordugridmap"}{"x509_cert_dir"} ||
                       $parsedconfig{"common"}{"x509_cert_dir"} ||
                       $ENV{X509_CERT_DIR} ||
                       "/etc/grid-security/certificates/";
-my $x509cert        = $parsedconfig{'nordugridmap'}{'x509_user_cert'} ||
-                      $parsedconfig{'common'}{'x509_user_cert'} ||
-                      $ENV{X509_USER_CERT} ||
+my $x509cert        = $parsedconfig{'nordugridmap'}{'x509_host_cert'} ||
+                      $parsedconfig{'common'}{'x509_host_cert'} ||
+                      $ENV{X509_HOST_CERT} || $ENV{X509_USER_CERT} ||
                       "/etc/grid-security/hostcert.pem";
-my $x509key         = $parsedconfig{'nordugridmap'}{'x509_user_key'} ||
-                      $parsedconfig{'common'}{'x509_user_key'} ||
-                      $ENV{X509_USER_KEY} ||
+my $x509key         = $parsedconfig{'nordugridmap'}{'x509_host_key'} ||
+                      $parsedconfig{'common'}{'x5security09_host_key'} ||
+                      $ENV{X509_HOST_KEY} || $ENV{X509_USER_KEY} ||
                       "/etc/grid-security/hostkey.pem";
 my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
                       $parsedconfig{'common'}{'gridmap'} ||
@@ -174,7 +182,7 @@ my $cachedir        = $parsedconfig{'nordugridmap'}{'cachedir'} ||
 my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
                       3 * 24 * 60 * 60; # three days old
 
-&set_numeric_value(\$debug_level, 'debug', '0 to 5') unless $opt_test;
+&set_numeric_value(\$log_level, 'loglevel', '0 to 5') unless $opt_test;
 &set_numeric_value(\$fetch_url_timeout, 'fetch_timeout', 'numeric integers');
 
 &set_configuration_flag('cache_enabled','cache_enable','yes','no');
@@ -209,31 +217,31 @@ if ( $config_flags{'cache_enabled'} ) {
 }
 
 #
-# PROCESS [VO] BLOCKS DEPENDENCIES
+# PROCESS [USERLIST] BLOCKS DEPENDENCIES
 #
 
 # generate a list of all external sources to fetch
-# generate a list of [vo] blocks dependencies
+# generate a list of [userlist] blocks dependencies
 my %sources_list = (); 
 my %sources_deps = ();
 my %generated_blocks = ();
 
 # process blocks defined in arc.conf
 foreach my $block (sort(keys %parsedconfig)) {
-    next unless $block =~ /^vo_/;
-    my $voname = &get_vo_name($block);
-    $sources_deps{"vo://".$voname} = &get_block_sources($block, \%sources_list, \%generated_blocks);
+    next unless $block =~ /^userlist\//;
+    my $listname = &get_userlist_name($block);
+    $sources_deps{"userlist://".$listname} = &get_block_sources($block, \%sources_list, \%generated_blocks);
 }
 
-# process blocks generated authomaticaly on the previous step
+# process blocks generated automaticaly on the previous step
 foreach my $block (sort(keys %generated_blocks)) {
-    $sources_deps{"vo://".$block} = &get_block_sources($block, \%sources_list, \%generated_blocks, \%generated_blocks);
+    $sources_deps{"userlist://".$block} = &get_block_sources($block, \%sources_list, \%generated_blocks, \%generated_blocks);
     $parsedconfig{$block} = $generated_blocks{$block};
 }
 
 # ensure loop-free configuration
 my %dryrun_sources_data = %sources_list;
-&process_vo_blocks(\%sources_deps, \%dryrun_sources_data, 1);
+&process_userlist_blocks(\%sources_deps, \%dryrun_sources_data, 1);
 
 #
 # FETCH SOURCES AND ASSEMBLE GRIDMAPS
@@ -243,8 +251,8 @@ my %dryrun_sources_data = %sources_list;
 my %sources_data = ();
 &fetch_sources(\%sources_list, \%sources_data);
 
-# assemble [vo] blocks gridmap lists
-&process_vo_blocks(\%sources_deps, \%sources_data);
+# assemble [userlist] blocks gridmap lists
+&process_userlist_blocks(\%sources_deps, \%sources_data);
 
 # assemble gridmapfiles
 my %mapfile_data = ();
@@ -263,13 +271,13 @@ if ( $opt_test ) {
 # GENERAL CONFIGURATION PARSER SUBROUTINES
 #
 
-# get VO name for [vo] block
-sub get_vo_name {
+# get userlist name for [userlist] block
+sub get_userlist_name {
     my $block = shift;
-    if ( $parsedconfig{$block}{'vo'} ) {
-        return $parsedconfig{$block}{'vo'};
+    if ( $parsedconfig{$block}{'name'} ) {
+        return $parsedconfig{$block}{'name'};
     } else {
-        &Logger("Parameter 'vo' is required but not set inside the [vo] block. Please check your configuratinon ($fileopt line $parsedconfig{$block}{'configline'})", FATAL, "ConfigParser");
+        &Logger("Userlist name is missing for block defined in $fileopt line $parsedconfig{$block}{'configline'})", FATAL, "ConfigParser");
     }
 }
 
@@ -322,8 +330,8 @@ sub process_mapfiles {
     my ( $ref_mapfile_data, $ref_sources_data ) = @_;
 
     foreach my $block (sort(keys %parsedconfig)) {
-        next unless $block =~ /^vo_/;
-        my $gmf = $parsedconfig{$block}{'file'} || $default_mapfile;
+        next unless $block =~ /^userlist\//;
+        my $gmf = $parsedconfig{$block}{'outfile'} || $default_mapfile;
 
         next if $gmf eq '/dev/null';
         next if defined $ref_mapfile_data->{$gmf};
@@ -331,8 +339,8 @@ sub process_mapfiles {
         &Logger("Assembling gridmap file: $gmf", INFO, "AssembleGridMapfile");
         $ref_mapfile_data->{$gmf} = {};
 
-        my @vo_blocks_list = &get_file_vo_sources($gmf);
-        foreach my $source ( @vo_blocks_list ) {
+        my @userlist_blocks = &get_file_userlist_sources($gmf);
+        foreach my $source ( @userlist_blocks ) {
             foreach my $dn ( keys %{$ref_sources_data->{$source}} ) {
                 unless ( defined $ref_mapfile_data->{$gmf}->{$dn} ) {
                     $ref_mapfile_data->{$gmf}->{$dn} = $ref_sources_data->{$source}->{$dn}->{'mapuser'};
@@ -344,17 +352,17 @@ sub process_mapfiles {
     }
 }
 
-# asseble [vo] blocks mapping data
-sub process_vo_blocks {
+# assemble [userlist] blocks mapping data
+sub process_userlist_blocks {
     my ($ref_sources_deps, $ref_sources_data, $dryrun) = @_;
 
     my $blocks_unfinished = 1;
     my $blocks_processed = 1;
 
-    # loop until all [vo] blocks are processed
+    # loop until all [userlist] blocks are processed
     while ( $blocks_unfinished ) {
         if ( $blocks_processed == 0 ) {
-            &Logger("Loop detected in the [vo] blocks dependencied. Please review you configuration.", FATAL, "AssembleBlockData");
+            &Logger("Loop detected in the [userlist] blocks dependencied. Please review you configuration.", FATAL, "AssembleBlockData");
         }
 
         # initial values
@@ -362,30 +370,30 @@ sub process_vo_blocks {
         $blocks_processed = 0;
 
         foreach my $block (sort(keys %parsedconfig)) {
-            next unless $block =~ /^vo_/;
+            next unless $block =~ /^userlist\//;
 
-            my $vo_name = &get_vo_name($block);
-            my $vo_ref = "vo://" . $vo_name;
-            next if defined $ref_sources_data->{$vo_ref};
+            my $list_name = &get_userlist_name($block);
+            my $userlist_ref = "userlist://" . $list_name;
+            next if defined $ref_sources_data->{$userlist_ref};
             $blocks_unfinished++;
 
             # check all sources fetched or already assembled
             my $undefined_cnt = 0;
-            foreach my $source ( @{$ref_sources_deps->{$vo_ref}} ) {
+            foreach my $source ( @{$ref_sources_deps->{$userlist_ref}} ) {
                 $undefined_cnt++ unless defined $ref_sources_data->{$source};
             }
 
-            # assemble [vo] block gridmap
+            # assemble [userlist] block gridmap
             unless ( $undefined_cnt ) {
                 unless ( $dryrun ) {
-                    # get [vo] block parameters
+                    # get [userlist] block parameters
                     my $mapped_user = "";
 
                     if ( $parsedconfig{$block}{'mapped_unixid'} ) {
                         $mapped_user = $parsedconfig{$block}{'mapped_unixid'};
                     }
 
-                    # define [vo] block filter if any
+                    # define [userlist] block filter if any
                     my @Rules = ();
                     if ( $parsedconfig{$block}{'filter'} ) {
                         my @filters = split /\[separator\]/, $parsedconfig{$block}{'filter'};
@@ -402,46 +410,46 @@ sub process_vo_blocks {
                     }
 
                     # print block parameters summary on debug
-                    &Logger("Assembling DNs list for the [vo] block $vo_name (mapped_unixid=$mapped_user)", DEBUG, "AssembleBlockData");
+                    &Logger("Assembling DNs list for the [userlist/$list_name] block", DEBUG, "AssembleBlockData");
 
                     # process all sources
-                    $ref_sources_data->{$vo_ref} = {};
-                    foreach my $source ( @{$ref_sources_deps->{$vo_ref}} ) {
+                    $ref_sources_data->{$userlist_ref} = {};
+                    foreach my $source ( @{$ref_sources_deps->{$userlist_ref}} ) {
                         foreach my $dn ( keys %{$ref_sources_data->{$source}} ) {
                             my %source_dn_hash = %{$ref_sources_data->{$source}->{$dn}};
-                            unless ( defined $ref_sources_data->{$vo_ref}->{$dn} ) {
+                            unless ( defined $ref_sources_data->{$userlist_ref}->{$dn} ) {
                                 # check DN is filtered
                                 next unless &rule_match($dn, \@Rules);
                                 # check mapping user exists for record
                                 if ( $config_flags{'mapuser_processing'} || ! defined $source_dn_hash{'mapuser'} ) {
                                     if ( $mapped_user eq "" ) {
                                         unless ( $config_flags{'allow_empty_unixid'} ) {
-                                            &Logger("There is no mapping for DN '$dn' in [vo] block $vo_name. Skiping record.", WARNING, "AssembleBlockData");
+                                            &Logger("There is no mapping for DN '$dn' in [userlist/$list_name] block. Skipping record.", WARNING, "AssembleBlockData");
                                             next;
                                         } else {
-                                            &Logger("Using empty mapping for DN '$dn' in [vo] block $vo_name.", VERBOSE, "AssembleBlockData");
+                                            &Logger("Using empty mapping for DN '$dn' in [userlist/$list_name] block.", VERBOSE, "AssembleBlockData");
                                         }
                                     }
                                 }
 
                                 # if we are still here - add entry
-                                $ref_sources_data->{$vo_ref}->{$dn} = \%source_dn_hash;
+                                $ref_sources_data->{$userlist_ref}->{$dn} = \%source_dn_hash;
                                 # always map to common user on 'rewrite' mapuser processing
-                                if ( $config_flags{'mapuser_processing'} || ! defined $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'} ) {
-                                        $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'} = $mapped_user;
+                                if ( $config_flags{'mapuser_processing'} || ! defined $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'} ) {
+                                        $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'} = $mapped_user;
                                 }
-                                &Logger("Adding mapping entry '$dn -> $ref_sources_data->{$vo_ref}->{$dn}->{'mapuser'}' for the '$vo_name' [vo] block.", DEBUG, "AssembleBlockData");
+                                &Logger("Adding mapping entry '$dn -> $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'}' for the [userlist/$list_name] block.", DEBUG, "AssembleBlockData");
                                 # maintain information about where record is come from
-                                unless ( defined $ref_sources_data->{$vo_ref}->{$dn}->{'source'} ) {
-                                    $ref_sources_data->{$vo_ref}->{$dn}->{'source'} = $source;
+                                unless ( defined $ref_sources_data->{$userlist_ref}->{$dn}->{'source'} ) {
+                                    $ref_sources_data->{$userlist_ref}->{$dn}->{'source'} = $source;
                                 }
                             } else {
-                                &Logger("Mapping for '$dn' entry already exists for the '$vo_name' [vo] block. Skiped.", DEBUG, "AssembleBlockData");
+                                &Logger("Mapping for '$dn' entry already exists for the [userlist/$list_name] block. Skiped.", DEBUG, "AssembleBlockData");
                             }
                         }
                     }
                 } else {
-                    $ref_sources_data->{$vo_ref} = 1;
+                    $ref_sources_data->{$userlist_ref} = 1;
                 }
                 $blocks_processed++;
             }
@@ -465,8 +473,8 @@ sub write_mapfiles_data {
             }
 
             close($gmf);
-	    my $uid = getpwnam($owner);
-	    my $gid = getgrnam($group);
+            my $uid = getpwnam($owner);
+            my $gid = getgrnam($group);
             chown $uid, $gid, $tmp_mapfile;
             chmod oct($chmod), $tmp_mapfile;
             rename $tmp_mapfile, $mapfile;
@@ -484,22 +492,22 @@ sub write_mapfiles_data {
 # SOURCES DEPENDENCIES TRACKING SUBROTINES
 #
 
-# return array of [vo] blocks required to generate gridmapfile
-sub get_file_vo_sources {
+# return array of [userlist] blocks required to generate gridmapfile
+sub get_file_userlist_sources {
     my $file_name = shift;
-    my @file_vos_list = ();
+    my @file_userlists = ();
 
     foreach my $block (sort(keys %parsedconfig)) {
-        next unless $block =~ /^vo_/;
-        if ( defined $parsedconfig{$block}{'file'} ) {
-            next unless $parsedconfig{$block}{'file'} eq $file_name;
+        next unless $block =~ /^userlist\//;
+        if ( defined $parsedconfig{$block}{'outfile'} ) {
+            next unless $parsedconfig{$block}{'outfile'} eq $file_name;
         } else {
             next unless $file_name eq $default_mapfile;
         }
-        push @file_vos_list, "vo://".get_vo_name($block);
+        push @file_userlists, "userlist://".get_userlist_name($block);
     }
 
-    return @file_vos_list;
+    return @file_userlists;
 }
 
 # extract optional per-source parameters from source string and return hash
@@ -530,23 +538,23 @@ sub get_block_sources {
     # parsed arc.conf hash is used by default
     $ref_confighash = \%parsedconfig unless defined $ref_confighash;
     # array with block dependencied
-    my @vo_sources_list = ();
+    my @userlist_sources = ();
 
-    &Logger("Getting sources for VO block: $block_id", DEBUG, "GetInfoSources");
+    &Logger("Getting sources for [$block_id] block", DEBUG, "GetInfoSources");
     my @urls = split /\[separator\]/, $ref_confighash->{$block_id}{'source'};
     foreach my $source (@urls) {
         &Logger("Found mapping source record: $source", DEBUG, "GetInfoSources");
         # get optional per-source parameters
         my $ref_source_params = &get_source_params(\$source);
         my $source_id = $source;
-        # check sources is already in sources list
+        # check sources are already in sources list
         if ( defined $ref_sources_list->{$source} ) {
             # if source parameters differ - use block_id prefix
             if ( &Storable::freeze($ref_source_params) ne &Storable::freeze($ref_sources_list->{$source}) ) {
                 &Logger("Adding block ID prefix for duplicate source URL with different parameters set", DEBUG, "GetInfoSources");
                 $source_id = "$block_id|$source";
             } else {
-	            &Logger("Source URL is already defined", DEBUG, "GetInfoSources");
+                &Logger("Source URL is already defined", DEBUG, "GetInfoSources");
             }
         }
         # get source protocol
@@ -568,42 +576,42 @@ sub get_block_sources {
                     # put mapped_unixid parameter
                     my %fqan_source_params = %$ref_source_params;
                     $fqan_source_params{'mapped_unixid'} = $map_id;
-                    # save as [vo] block source
+                    # save as [userlist] block source
                     $ref_sources_list->{$fqan_source_id} = \%fqan_source_params;
-                    push @vo_sources_list, $fqan_source_id;
+                    push @userlist_sources, $fqan_source_id;
                 }
             }
-            # standalone VOMS URL: retreive and use directly as VO source
+            # standalone VOMS URL: retreive DNs and use directly as userlist source
             # FQANs before original URL to apply specific maps first
             $ref_sources_list->{$source_id} = $ref_source_params;
-            push @vo_sources_list, $source_id;
+            push @userlist_sources, $source_id;
 
         } elsif ( $protocol =~ /^(https?|ldap)$/i ) {
-            # external sources: retreive and use directly as VO source
+            # external sources: retreive and use directly as userlist source
             $ref_sources_list->{$source_id} = $ref_source_params;
-            push @vo_sources_list, $source_id;
+            push @userlist_sources, $source_id;
         } elsif ( $protocol =~ /^file$/i ) {
-            # local file: if created by nordugridmap - use [vo] blocks as VO sources
+            # local file: if created by nordugridmap - use [userlist] blocks as userlist sources
             #             if file is independent source - use directly
-            my @file_vo_sources = &get_file_vo_sources($uri);
-            if ( @file_vo_sources ) {
-                push @vo_sources_list, @file_vo_sources;
+            my @file_userlist_sources = &get_file_userlist_sources($uri);
+            if ( @file_userlist_sources ) {
+                push @userlist_sources, @file_userlist_sources;
             } else {
                 if ( -e $uri ) {
                     $ref_sources_list->{$source_id} = $ref_source_params;
-                    push @vo_sources_list, $source_id;
+                    push @userlist_sources, $source_id;
                 } else {
                     &Logger("File source '$uri' does not exists. Ignoring.", WARNING, "GetInfoSources");
                 }
             } 
-        } elsif ( $protocol =~ /^vo$/i ) {
-            # [vo] block: use directly as VO source
-            push @vo_sources_list, $source_id;
+        } elsif ( $protocol =~ /^userlist$/i ) {
+            # [userlist] block: use directly as userlist source
+            push @userlist_sources, $source_id;
         } else {
             &Logger("Unsupported protocol found: $source", WARNING, "GetInfoSources");
         }
     }
-    return \@vo_sources_list;
+    return \@userlist_sources;
 }
 
 
@@ -641,7 +649,7 @@ sub fetch_sources {
                 &write_cached_subjects($source_id, $ref_subjects) unless $opt_test;
             }
         } else {
-            &Logger("Fail to retreive data from URL: $source", WARNING, "FetchSourcesData");
+            &Logger("Failed to retreive data from URL: $source", WARNING, "FetchSourcesData");
             if ( $use_cache ) {
                 my ($err_code, $cache_ref_subjects) = &read_cached_subjects($source_id);
                 unless ($err_code) {
@@ -899,7 +907,7 @@ sub read_gridmap {
     }
     binmode IN;
 
-    # mapped_unixid can be passed via optional parameters, overwriting is controlled by 'mapuser_processing' option
+    # mapped_unixid can be passed via optional parameters, overriding is controlled by 'mapuser_processing' option
     my $def_mapuser = ( defined $ref_source_params->{'mapped_unixid'} ) ? $ref_source_params->{'mapped_unixid'} : 0;
     my $map_overwrite = &get_source_flag($ref_source_params, 'mapuser_processing','mapuser_processing','overwrite','keep');
 
@@ -1065,7 +1073,7 @@ sub debug_stringv {
 sub Logger {
     my ( $text, $threshold, $subsystem ) = @_;
     $threshold = &debug_numericv($threshold);
-    if ( $threshold <= $debug_level ) {
+    if ( $threshold <= $log_level ) {
         my $timestring = strftime("%Y-%m-%d %H:%M:%S", @{ &localtime() } );
         $subsystem = ( defined $subsystem ) ? ".$subsystem" : "";
         printf STDERR "[%s] [Nordugridmap%s] [%s] [$$] %s\n", $timestring, $subsystem, &debug_stringv($threshold), $text;
@@ -1116,7 +1124,8 @@ Print a help screen.
 =item B<-c>, B<--config> FILE
 
 Specifies the configuration file to be used. By default the /etc/arc.conf is used. B<nordugridmap>
-utilize [nordugridmap] section for general options fine-tuning and processes all the [vo] blocks from the config.
+utilize [nordugridmap] section for general options fine-tuning and processes all the [userlist/NAME] 
+blocks from the config.
 
 =back
 

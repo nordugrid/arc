@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+ ******************************************************************************
+ ** This profile is specific to the datadelivery-service because this is the **
+ ** only known HED service using the profile scheme. If you want to create a **
+ ** new service using profiles please create a new profile.xml file and      **
+ ** include it in the [common] section of your ini file.                     **
+ ******************************************************************************
  Profiles are used to convert INI-style configuration files into XMLs
 which are then consumed by 'arched' and possibly other utilities.
 INI-style files consist of sections marked by 
@@ -62,12 +68,12 @@ attributes depending on how the mapping should be done.
     xmlns:janitor="http://www.nordugrid.org/schemas/Janitor/2009/08"
   >
   <base:Server>
-    <base:PidFile inisections="common" initag="pidfile" inidefaultvalue="/var/run/arched.pid"/>
-    <base:User inisections="common" initag="user"/>
+    <base:PidFile inisections="datadelivery-service common" initag="pidfile" inidefaultvalue="/var/run/arched.pid"/>
+    <base:User inisections="datadelivery-service common" initag="user"/>
     <base:Group inisections="common" initag="group"/>
     <base:Logger>
-      <base:File inisections="common" initag="logfile" inidefaultvalue="/var/log/arc/arched.log"/>
-      <base:Level inisections="common" initag="loglevel" inidefaultvalue="WARNING"/>
+      <base:File inisections="datadelivery-service common" initag="logfile" inidefaultvalue="/var/log/arc/arched.log"/>
+      <base:Level inisections="datadelivery-service common" initag="loglevel" inidefaultvalue="WARNING"/>
       <!-- By default Logrotate is used. Configuring arc-logrotatation might cause problems.
       <Maxsize inisections="common" initag="logmaxsize">10000000</Maxsize>
       <Backups inisections="common" initag="logbackups">10</Backups>
@@ -79,7 +85,7 @@ attributes depending on how the mapping should be done.
   </ModuleManager>
   <Plugins>
     <Name>mcctcp</Name>
-    <Name initokendisables="common#secure=no">mcctls</Name>
+    <Name initokendisables="datadelivery-service#secure=no">mcctls</Name>
     <Name>mcchttp</Name>
     <Name>mccsoap</Name>
     <Name>arcshc</Name>
@@ -91,15 +97,15 @@ attributes depending on how the mapping should be done.
   </Plugins>
   <Chain>
     <Component name="tcp.service" id="tcp">
-      <next initokendisables="common#secure=no" id="tls"/>
-      <next initokenenables="common#secure=no" id="http"/>
+      <next initokendisables="datadelivery-service#secure=no" id="tls"/>
+      <next initokenenables="datadelivery-service#secure=no" id="http"/>
       <tcp:Listen>
-        <tcp:Interface inisections="common" initag="interface" inidefaultvalue="localhost"/>
-        <tcp:Port inisections="common" initag="port" inidefaultvalue="443"/>
-        <tcp:Version inisections="common" initag="ipversion" inidefaultvalue="4"/>
+        <tcp:Interface inisections="datadelivery-service common" initag="interface" inidefaultvalue="localhost"/>
+        <tcp:Port inisections="datadelivery-service common" initag="port" inidefaultvalue="443"/>
+        <tcp:Version inisections="datadelivery-service common" initag="ipversion" inidefaultvalue="4"/>
       </tcp:Listen>
     </Component>
-    <Component initokendisables="common#secure=no" name="tls.service" id="tls">
+    <Component initokendisables="datadelivery-service#secure=no" name="tls.service" id="tls">
       <next id="http"/>
       <SecHandler name="identity.map" id="map" event="incoming" initokenenables="common#identitymap">
         <!-- identitymap=path in [common] enables mapping of user DN to local username -->

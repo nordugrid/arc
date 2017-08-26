@@ -599,7 +599,7 @@ sub rename_keys {
     }
 }
 
-##################### Read config via arcconfig_parser.py ################
+##################### Read config via arcconfig-parser ################
 
 # execute parser and get json data
 sub read_json_config {
@@ -607,7 +607,7 @@ sub read_json_config {
 	my $jsonconfig='';
 	{ 
       local $/; # slurp mode
-	  open (my $jsonout, "$pkgdatadir/arcconfig_parser.py -e json -c $arcconf |");
+	  open (my $jsonout, "$pkgdatadir/arcconfig-parser -e json -c $arcconf |");
 	  $jsonconfig = <$jsonout>;
 	  close $jsonout;
 	}
@@ -1259,7 +1259,7 @@ sub build_config_from_json {
     # TODO: parse queues with something similar to list_subsections
     # hash keys stripped of the queue/ prefix will do
     my @qnames=();
-    for my $keyname (keys $jsonconf) {
+    for my $keyname (keys %{$jsonconf}) {
 	   push(@qnames,$1) if $keyname =~ /queue\/(.*)/;
 	}
     for my $name (@qnames) {

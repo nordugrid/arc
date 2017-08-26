@@ -284,6 +284,7 @@ BuildRequires:	db4-devel
 # Needed for Boinc backend testing during make check
 BuildRequires:	perl(DBI)
 # Needed for infoprovider testing during make check
+BuildRequires:	perl(JSON::XS)
 BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
 BuildRequires:	perl(Test::Harness)
@@ -1229,7 +1230,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
-%{_libexecdir}/%{pkgdir}/arcconfig_parser.py
+%{_libexecdir}/%{pkgdir}/arcconfig-parser
 %dir %{python_sitearch}/%{pkgdir}
 %{python_sitearch}/%{pkgdir}/config
 %dir %{_datadir}/%{pkgdir}

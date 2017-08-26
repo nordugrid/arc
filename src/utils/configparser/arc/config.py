@@ -1,4 +1,3 @@
-#!/usr/bin/python2
 import logging
 import json
 import re
@@ -99,15 +98,28 @@ def export_bash(blocks=None, subsections=False):
     return eval_str
 
 
-def get_value(option, blocks=None):
+def _blocks_list(blocks=None):
     if blocks is None:
         blocks = []
     # ability to pass single block name as a string
     if isinstance(blocks, basestring):
         blocks = [blocks]
-    # return value
-    for b in blocks:
+    return blocks
+
+
+def get_value(option, blocks=None):
+    for b in _blocks_list(blocks):
         if b in __cached_config:
             if option in __cached_config[b]:
                 return __cached_config[b][option]
     return None
+
+
+def check_blocks(blocks=None, and_logic=True):
+    result = and_logic
+    for b in _blocks_list(blocks):
+        if and_logic:
+            result = (b in __cached_config) and result
+        else:
+            result = (b in __cached_config) or result
+    return result

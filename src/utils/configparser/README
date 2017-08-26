@@ -4,30 +4,30 @@
 
 ## 1. Get value of option in block:
 
-# arcconfig_parser.py --block infosys --option providerlog
+# arcconfig-parser --block infosys --option providerlog
 /var/log/arc/infoprovider.log
 
 ## 2. Get value of option in blocks (in order they are specified, e.g. if not
 found in gridftpd look in the common block):
 
-# arcconfig_parser.py --block gridftpd --block common  --option x509_user_key
+# arcconfig-parser --block gridftpd --block common  --option x509_user_key
 /etc/grid-security/hostkey.pem
 
 ## 3. Export entire configuration to JSON:
-arcconfig_parser.py --export json
-HINT: use 'arcconfig_parser.py --export json | jq .' to view hihglighted JSON structure in shell
+arcconfig-parser --export json
+HINT: use 'arcconfig-parser --export json | jq .' to view hihglighted JSON structure in shell
 
 ## 4. Export block options to JSON (for Perl):
-arcconfig_parser.py --block infosys --export json
+arcconfig-parser --block infosys --export json
 {"infosys": {"registrationlog": "/var.....
 
 ## 5. Export block and subblocks options to JSON
-# arcconfig_parser.py --block infosys --subblocks --export json
+# arcconfig-parser --block infosys --subblocks --export json
 {"infosys/admindomain": {"www": "http://e....
 
 ## 6. Export for BASH (compatible with current config representation in shell-based LRMS backends)
 
-# arcconfig_parser.py --block infosys --block grid-manager --block common --export bash
+# arcconfig-parser --block infosys --block grid-manager --block common --export bash
 CONFIG_controldir="/var/spool/arc/jobstatus"
 CONFIG_defaultttl="1210000"
 CONFIG_delegationdb="sqlite"
@@ -42,12 +42,18 @@ CONFIG_sessiondir_1="/home/grid/arc/session drain"
 
 ## 7. Using BASH export
 
-# eval $( arcconfig_parser.py --block infosys --block grid-manager --block common --export bash )
+# eval $( arcconfig-parser --block infosys --block grid-manager --block common --export bash )
 # echo $CONFIG_gridmap
 
-## 8. Using from python as a module
+## 8. Check block(s) exists
 
-    import arc import config
+# arcconfig-parser --block infoXXsys --block grid-manager
+# echo $?
+1
+
+## 9. Using from python as a module
+
+    from arc import config
 
     config.parse_arc_conf('/tmp/arc.conf')
 

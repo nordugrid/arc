@@ -144,7 +144,7 @@ if [ "x$ARC_CONFIG" = "x" ]; then
     fi
 fi
 
-PID_FILE=`readconfigvar "$ARC_CONFIG" common pidfile`
+PID_FILE=`readconfigvar "$ARC_CONFIG" datadelivery-service pidfile`
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -163,7 +163,7 @@ else
     fi
 fi
 
-LOG_FILE=`readconfigvar "$ARC_CONFIG" common logfile`
+LOG_FILE=`readconfigvar "$ARC_CONFIG" datadelivery-service logfile`
 if [ "x$LOG_FILE" = "x" ]; then
     LOG_FILE=/var/log/arc/datadelivery-service.log
 fi
@@ -189,7 +189,7 @@ prepare() {
     fi
     
     # check that if service is insecure no allowed_dns are defined
-    SECURE=`readconfigvar "$ARC_CONFIG" common secure`
+    SECURE=`readconfigvar "$ARC_CONFIG" datadelivery-service secure`
     ALLOWEDDN=`readconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
     if [ "$SECURE" = "no" ]; then
         if [ "x$ALLOWEDDN" != "x" ]; then
