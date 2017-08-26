@@ -6,8 +6,14 @@ package ConfigCentral;
 use strict;
 use warnings;
 
+# added to parse JSON stuff
+binmode STDOUT, ":utf8";
+use utf8;
+
 use XML::Simple;
 use Data::Dumper qw(Dumper);
+use JSON::XS;
+#use Data::Dumper::Concise;
 
 use IniParser;
 use InfoChecker;
@@ -16,9 +22,273 @@ use LogUtils;
 # while parsing, loglevel is WARNING (the default)
 our $log = LogUtils->getLogger(__PACKAGE__);
 
-###############################################################
-# Internal representation of configuration data after parsing #
-###############################################################
+#######################################################################
+## Representation of configuration data after parsing using the python
+## parser. Mostly 1:1 with arc.conf, but there are exceptions indicated
+## below.
+#######################################################################
+
+#my $pylrms_options = { # former lrms_options, added missing data
+	#lrms => '',
+    #pbs_bin_path => '*',
+    #pbs_log_path => '*',
+    #dedicated_node_string => '*',
+    #maui_bin_path => '*',
+    #condor_bin_path => '*',
+    #condor_config => '*',
+    #condor_rank => '*',
+    #sge_bin_path => '*',
+    #sge_root => '*',
+    #sge_cell => '*',
+    #sge_qmaster_port => '*',
+    #sge_execd_port => '*',
+    #lsf_bin_path => '*',
+    #lsf_profile_path => '*',
+    #lsf_architecture => '*',
+    #ll_bin_path => '*',
+    #ll_consumable_resources => '*',
+    #slurm_bin_path => '*',
+    #slurm_wakeupperiod => '*',
+    #dgbridge_stage_dir => '*',
+    #dgbridge_stage_prepend => '*',
+    #boinc_db_host => '*',
+    #boinc_db_port => '*',
+    #boinc_db_name => '*',
+    #boinc_db_user => '*',
+    #boinc_db_pass => '*',
+#}; 
+
+#my $pylrms_queue_options = { # former lrms_share_options
+    #pbs_queue_node => '*', # previously queue_node_string
+    #condor_requirements => '*',
+    #sge_jobopts => '*',
+    #lsf_architecture => '*',
+    #ll_consumable_resources => '*',
+#};
+#my $pyxenv_options = {
+    #Platform => '*',
+    #Homogeneous => '*',
+    #PhysicalCPUs => '*',
+    #LogicalCPUs => '*',
+    #CPUVendor => '*',
+    #CPUModel => '*',
+    #CPUVersion => '*',
+    #CPUClockSpeed => '*',
+    #CPUTimeScalingFactor => '*',
+    #WallTimeScalingFactor => '*',
+    #MainMemorySize => '*',
+    #VirtualMemorySize => '*',
+    #OSFamily => '*',
+    #OSName => '*',
+    #OSVersion => '*',
+    #VirtualMachine => '*',
+    #NetworkInfo => '*',
+    #ConnectivityIn => '*',
+    #ConnectivityOut => '*',
+    #Benchmark => [ '*' ],
+    #OpSys => [ '*' ],
+    #nodecpu => '*',
+#};
+
+## [queue/NAME] blocks
+#my $pyqueue_options = { # former part of share_options
+    #totalcpus => '*',
+    #defaultmemory => '*',
+    #authorizedvo =>  [ '*' ],
+#};
+
+## commodity datastructure to represent glue2 stuff
+## should be different from what is done now, 
+## shares should be created per policy and
+## use the queue info
+#my $pyqueue_glue2_options = { # former share_options, should only old GLUE2 concepts
+    #MaxVirtualMemory => '*',
+    #MaxSlotsPerJob => '*',
+    #SchedulingPolicy => '*',
+    #Preemption => '*',
+#};
+
+## [gridmanager] block
+#my $pygridmanager_options = { # former gmuser_options
+    #controldir => '',
+    #sessiondir => [ '' ],
+    #cachedir => [ '*' ],
+    #cachesize => '*',
+    #defaultttl => '*',
+    #infoproviders_timelimit => '*', # former infoproviders_timeout in infosys section
+#};
+
+## [common] block
+#my $pycommon_options = { # former gmcommon_options, cleared old arc.conf data
+    #gmconfig => '*', # TODO: what was this meant for? Maybe A-REX XML?
+    #wsurl => '*',
+    #hostname => '*',
+    #maxjobs => '*',
+    #maxload => '*',
+    #maxloadshare => '*',
+    #wakeupperiod => '*',
+    #gridmap => '*',
+    #x509_host_key => '*',
+    #x509_host_cert => '*',
+    #x509_cert_dir => '*',
+    #runtimedir => '*',
+    #gnu_time => '*',
+    #shared_filesystem => '*',
+    #shared_scratch => '*',
+    #scratchdir => '*',
+    #enable_perflog_reporting => '*',
+    #perflogdir => '*'
+#};
+
+## TODO: my something for interfaces
+##    enable_emies_interface => '*',
+##    enable_arc_interface => '*',
+
+## [lrms/ssh] block
+#my $pylrmsssh_options = { # former sshcommon_options
+    #remote_user => '*',
+    #remote_host => '*',
+    #remote_sessiondir => '*',
+    #private_key => '*',
+#};
+
+## [infosys] block
+
+#my $pyinfosys_options = {
+     #validity_ttl => '*'	
+#}
+
+## [infosys/ldap] block
+#my $pyinfosys_ldap_options = { # former ldap_infosys_options
+    #port => '*' # former SlapdPort
+#};
+
+## TODO: [infosys/glue2] and [infosys/glue2/ldap]
+##    infosys_glue2_ldap_showactivities => '*',
+    ##infosys_glue2_service_qualitylevel => '*',
+## 
+## TODO: change to new LDAP format 
+## my $admindomain_options = {
+##    Name => '*',
+##    OtherInfo => [ '*' ],
+##    Description => '*',
+##    WWW => '*',
+##    Distributed => '*',
+##    Owner => '*'
+##};
+
+## TODO: interfaces blocks
+##    infosys_nordugrid => '*',
+##    infosys_glue12 => '*',
+##    infosys_glue2_ldap => '*',
+
+## TODO: [infosys/ldap/bdii] block
+##    infosys_ldap_run_dir => '*',
+##    bdii_var_dir => '*',
+##    bdii_tmp_dir => '*',
+##    bdii_run_dir => '*',
+##    bdii_update_pid_file => '*',
+
+#my $pygridftpd_options = { # former gridftpd_options
+##    GridftpdEnabled => '*', # may not be needed anymore as we just check the block
+    #port => '*', # former GridftpdPort
+    #path => '/jobs', # former GridftpdMountPoint, now hardcoded
+    #allownew => '*', # former GridftpdAllowNew
+    #pidfile => '*', # former GridftpdPidFile
+#};
+
+## # # # # # # # # # # # # #
+
+#my $config_schema = {
+    #defaultLocalName => '*',
+    #debugLevel => '*',
+    #ProviderLog => '*',
+    #PublishNordugrid => '*',
+    #AdminDomain => '*',
+    #ttl => '*',
+    #admindomain => { %$admindomain_options },
+    #%$gmcommon_options,
+    #%$sshcommon_options,
+    #%$gridftpd_options,
+    #%$ldap_infosys_options,
+    #%$lrms_options,
+    #%$lrms_share_options,
+    #control => {
+        #'*' => {
+            #%$gmuser_options
+        #}
+    #},
+    #service => {
+        #OtherInfo => [ '*' ],
+        #StatusInfo => [ '*' ],
+        #Downtime => '*',
+        #ClusterName => '*',
+        #ClusterAlias => '*',
+        #ClusterComment => '*',
+        #ClusterOwner => [ '*' ],
+        #Middleware => [ '*' ],
+        #AuthorizedVO => [ '*' ],
+        #LocalSE => [ '*' ],
+        #InteractiveContactstring => [ '*' ],
+        #%$xenv_options,
+        #%$share_options,
+    #},
+    #location => {
+        #Name => '*',
+        #Address => '*',
+        #Place => '*',
+        #Country => '*',
+        #PostCode => '*',
+        #Latitude => '*',
+        #Longitude => '*',
+    #},
+    #contacts => [ {
+        #Name => '*',
+        #OtherInfo => [ '*' ],
+        #Detail => '',
+        #Type => '',
+    #} ],
+    #accesspolicies => [ {
+        #Rule => [ '' ],
+        #UserDomainID => [ '' ],
+    #} ],
+    #mappingpolicies => [ {
+        #ShareName => [ '' ],
+        #Rule => [ '' ],
+        #UserDomainID => [ '' ],
+    #} ],
+    #xenvs => {
+        #'*' => {
+            #OtherInfo => [ '*' ],
+            #NodeSelection => {
+                #Regex => [ '*' ],
+                #Command => [ '*' ],
+                #Tag => [ '*' ],
+            #},
+            #%$xenv_options,
+        #}
+    #},
+    #shares => {
+        #'*' => {
+            #Description => '*',
+            #OtherInfo => [ '*' ],
+            #MappingQueue => '*',
+            #ExecutionEnvironmentName => [ '' ],
+            #%$share_options,
+            #%$lrms_share_options,
+        #}
+    #}
+#};
+
+#my $allbools = [ qw(
+                 #PublishNordugrid Homogeneous VirtualMachine
+                 #ConnectivityIn ConnectivityOut Preemption
+                 #infosys_nordugrid infosys_glue12 infosys_glue2_ldap infosys_glue2_ldap_showactivities
+                 #GridftpdEnabled GridftpdAllowNew Distributed enable_arc_interface enable_emies_interface enable_perflog_reporting) ];
+
+######################################################################
+# Legacy Internal representation of configuration data after parsing #
+######################################################################
 
 my $lrms_options = {
     pbs_bin_path => '*',
@@ -328,6 +598,25 @@ sub rename_keys {
         delete $h->{$key};
     }
 }
+
+##################### Read config via arcconfig_parser.py ################
+
+# execute parser and get json data
+sub read_json_config {
+	my ($arcconf,$pkgdatadir) = @_;
+	my $jsonconfig='';
+	{ 
+      local $/; # slurp mode
+	  open (my $jsonout, "$pkgdatadir/arcconfig_parser.py -e json -c $arcconf |");
+	  $jsonconfig = <$jsonout>;
+	  close $jsonout;
+	}
+	my $config = decode_json($jsonconfig);
+	#print Dumper($config);
+    
+    return $config;
+}
+
 
 ############################ ARC xml config ##############################
 
@@ -850,6 +1139,212 @@ sub build_config_from_inifile {
 }
 
 #
+# Reads the json config file passed as the first argument and produces a config
+# hash conforming to $config_schema. 
+#
+sub build_config_from_json {
+    my ($file,$arc_location,$config) = @_;
+    
+    my $jsonconf = read_json_config($file,$arc_location);
+
+    print Dumper($jsonconf);
+
+    # Will add to an already existing config.
+    $config ||= {};
+    $config->{service} ||= {};
+    $config->{control} ||= {};
+    $config->{location} ||= {};
+    $config->{contacts} ||= [];
+    $config->{accesspolicies} ||= [];   
+    $config->{mappingpolicies} ||= [];
+    $config->{xenvs} ||= {};
+    $config->{shares} ||= {};
+    $config->{admindomain} ||= {};
+
+
+    my $common = $jsonconf->{'common'};
+    my $gm = $jsonconf->{'grid-manager'};
+    my $ssh = $jsonconf->{'ssh'};
+    rename_keys $common, $config, {providerlog => 'ProviderLog'};
+    move_keys $common, $config, [keys %$gmcommon_options];
+    move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
+    move_keys $gm, $config, [keys %$gmcommon_options];
+    move_keys $ssh, $config, [keys %$sshcommon_options];
+    rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
+
+    $config->{debugLevel} = $common->{debug} if $common->{debug};
+
+    move_keys $common, $config, [keys %$ldap_infosys_options];
+
+    my $infosys = $jsonconf->{"infosys"};
+    rename_keys $infosys, $config, {providerlog => 'ProviderLog',
+                                    provider_loglevel => 'debugLevel',
+                                    port => 'SlapdPort'};
+    move_keys $infosys, $config, [keys %$ldap_infosys_options];
+
+    # no need for this, only one grid manager. Might be deleted
+    #my @cnames = $iniparser->list_subsections('grid-manager');
+    #for my $name (@cnames) {
+    #    my $section = { $iniparser->get_section("grid-manager/$name") };
+    #    $config->{control}{$name} ||= {};
+    #    move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
+    #}
+
+    # Cherry-pick some gridftp options
+    # TODO: clean this into a proper section, not the mess that is now!
+    if (defined $jsonconf->{'gridftpd/jobs'}) {
+        my $gconf = $jsonconf->{'gridftpd'};
+        my $gjconf = $jsonconf->{'gridftpd/jobs'};
+        $config->{GridftpdEnabled} = 'yes';
+        $config->{GridftpdPort} = $gconf->{port} if $gconf->{port};
+        $config->{GridftpdMountPoint} = $gjconf->{path} if $gjconf->{path};
+        $config->{GridftpdAllowNew} = $gjconf->{allownew} if defined $gjconf->{allownew};
+        # TODO: check if remote dirs have been removed
+        #$config->{remotegmdirs} = $gjconf{remotegmdirs} if defined $gjconf{remotegmdirs};
+        $config->{GridftpdPidFile} = $gconf->{pidfile} if defined $gconf->{pidfile};
+    } else {
+        $config->{GridftpdEnabled} = 'no';
+    }
+
+    # global AdminDomain configuration
+    if (defined $jsonconf->{'infosys/admindomain'}) {
+        my $admindomain_options = { $jsonconf->{'infosys/admindomain'} };
+        rename_keys $admindomain_options, $config->{'admindomain'}, {name => 'Name',
+                                                    otherinfo => 'OtherInfo',
+                                                    description => 'Description',
+                                                    www => 'WWW',
+                                                    distributed => 'Distributed',
+                                                    owner => 'Owner'
+                                                    };
+        move_keys $admindomain_options, $config->{'admindomain'}, [keys %$admindomain_options];
+
+    } else {
+        $log->info('[infosys/admindomain] section missing. No site information will be published.');
+    }
+
+    ############################ legacy ini config file structure #############################
+
+    move_keys $common, $config, ['AdminDomain'];
+
+    my $cluster = $jsonconf->{'cluster'};
+    if (%$cluster) {
+        # Ignored: cluster_location, lrmsconfig
+        rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
+        rename_keys $cluster, $config->{location}, { cluster_location => 'PostCode' };
+        rename_keys $cluster, $config->{service}, {
+                                 interactive_contactstring => 'InteractiveContactstring',
+                                 cluster_owner => 'ClusterOwner', localse => 'LocalSE',
+                                 authorizedvo => 'AuthorizedVO', homogeneity => 'Homogeneous',
+                                 architecture => 'Platform', opsys => 'OpSys', benchmark => 'Benchmark',
+                                 nodememory => 'MaxVirtualMemory', middleware => 'Middleware',
+                                 cluster_alias => 'ClusterAlias', comment => 'ClusterComment'};
+        if ($cluster->{clustersupport} and $cluster->{clustersupport} =~ /(.*)@/) {
+            my $contact = {};
+            push @{$config->{contacts}}, $contact;
+            $contact->{Name} = $1;
+            $contact->{Detail} = "mailto:".$cluster->{clustersupport};
+            $contact->{Type} = 'usersupport';
+        }
+        if (defined $cluster->{nodeaccess}) {
+            $config->{service}{ConnectivityIn} = 0;
+            $config->{service}{ConnectivityOut} = 0;
+            for (split '\[separator\]', $cluster->{nodeaccess}) {
+                $config->{service}{ConnectivityIn} = 1 if lc $_ eq 'inbound';
+                $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
+            }
+        }
+        move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
+        move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];
+    }
+    # TODO: parse queues with something similar to list_subsections
+    # hash keys stripped of the queue/ prefix will do
+    my @qnames=();
+    for my $keyname (keys $jsonconf) {
+	   push(@qnames,$1) if $keyname =~ /queue\/(.*)/;
+	}
+    for my $name (@qnames) {
+        my $queue = $jsonconf->{"queue/$name"};
+
+        my $sconf = $config->{shares}{$name} ||= {};
+        my $xeconf = $config->{xenvs}{$name} ||= {};
+        push @{$sconf->{ExecutionEnvironmentName}}, $name;
+
+        $log->error("MappingQuue option only allowed under ComputingShare section") if $queue->{MappingQuue};
+        delete $queue->{MappingQueue};
+        $log->error("ExecutionEnvironmentName option only allowed under ComputingShare section") if $queue->{ExecutionEnvironmentName};
+        delete $queue->{ExecutionEnvironmentName};
+        $log->error("NodeSelection option only allowed under ExecutionEnvironment section") if $queue->{NodeSelection};
+        delete $queue->{NodeSelection};
+
+        rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
+                                     nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
+        move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
+
+        rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
+                                      opsys => 'OpSys', benchmark => 'Benchmark'};
+        move_keys $queue, $xeconf, [keys %$xenv_options];
+        $xeconf->{NodeSelection} = {};
+    }
+
+    ################################# new ini config file structure ##############################
+    ## TODO: these do not exist for real. The new ini was never used.
+#~ 
+    #~ my $provider = { $iniparser->get_section("InfoProvider") };
+    #~ move_keys $provider, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
+    #~ move_keys $provider, $config->{service}, [keys %{$config_schema->{service}}];
+#~ 
+    #~ my @gnames = $iniparser->list_subsections('ExecutionEnvironment');
+    #~ for my $name (@gnames) {
+        #~ my $xeconf = $config->{xenvs}{$name} ||= {};
+        #~ my $section = { $iniparser->get_section("ExecutionEnvironment/$name") };
+        #~ $xeconf->{NodeSelection} ||= {};
+        #~ $xeconf->{NodeSelection}{Regex} = $section->{NodeSelectionRegex} if $section->{NodeSelectionRegex};
+        #~ $xeconf->{NodeSelection}{Command} = $section->{NodeSelectionCommand} if $section->{NodeSelectionCommand};
+        #~ $xeconf->{NodeSelection}{Tag} = $section->{NodeSelectionTag} if $section->{NodeSelectionTag};
+        #~ move_keys $section, $xeconf, [keys %$xenv_options, 'OtherInfo'];
+    #~ }
+    #~ my @snames = $iniparser->list_subsections('ComputingShare');
+    #~ for my $name (@snames) {
+        #~ my $sconf = $config->{shares}{$name} ||= {};
+        #~ my $section = { $iniparser->get_section("ComputingShare/$name") };
+        #~ move_keys $section, $sconf, [keys %{$config_schema->{shares}{'*'}}];
+    #~ }
+    #~ my $location = { $iniparser->get_section("Location") };
+    #~ $config->{location} = $location if %$location;
+    #~ my @ctnames = $iniparser->list_subsections('Contact');
+    #~ for my $name (@ctnames) {
+        #~ my $section = { $iniparser->get_section("Contact/$name") };
+        #~ push @{$config->{contacts}}, $section;
+    #~ }
+
+    # Create a list with all multi-valued options based on $config_schema.
+    my @multival = ();
+    hash_tree_apply $config_schema, sub { my $h = shift;
+                                           for (keys %$h) {
+                                               next if ref $h->{$_} ne 'ARRAY';
+                                               next if ref $h->{$_}[0]; # exclude deep structures
+                                               push @multival, $_;
+                                           }
+                                     };
+    # Transform multi-valued options into arrays
+    hash_tree_apply $config, sub { my $h = shift;
+                                   while (my ($k,$v) = each %$h) {
+                                       next if ref $v; # skip anything other than scalars
+                                       $h->{$k} = [split '\[separator\]', $v];
+                                       unless (grep {$k eq $_} @multival) {
+                                           $h->{$k} = pop @{$h->{$k}}; # single valued options, remember last defined value only
+                                       }
+                                   }
+                             };
+
+    hash_tree_apply $config, sub { fixbools shift, $allbools };
+
+    print Dumper($config);
+    return $config;
+}
+
+
+#
 # Check whether a file is XML
 #
 sub isXML {
@@ -876,13 +1371,15 @@ sub isXML {
 sub parseConfig {
     my ($file, $arc_location) = @_;
     my $config;
-    if (isXML($file)) {
-        $config = build_config_from_xmlfile($file, $arc_location);
-        my $inifile = $config->{gmconfig};
-        $config = build_config_from_inifile($inifile, $config) if $inifile;
-    } else {
-        $config = build_config_from_inifile($file);
-    }
+    #if (isXML($file)) {
+    #    $config = build_config_from_xmlfile($file, $arc_location);
+    #    my $inifile = $config->{gmconfig};
+    #    $config = build_config_from_inifile($inifile, $config) if $inifile;
+    #} else {
+    #    $config = build_config_from_inifile($file);
+    #}
+    
+    $config = build_config_from_json($file,$arc_location,$config);
 
     LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
 

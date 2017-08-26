@@ -1201,8 +1201,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc docdir/arc.conf.reference README AUTHORS LICENSE NOTICE ChangeLog
-%dir %{_libdir}/%{pkgdir}
-%dir %{_libexecdir}/%{pkgdir}
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1211,7 +1209,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarccrypto.so.*
 %{_libdir}/libarcdata.so.*
 %{_libdir}/libarcdatastaging.so.*
-%{_libdir}/%{pkgdir}/DataStagingDelivery
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*
@@ -1221,6 +1218,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_xmlsec1}
 %{_libdir}/libarcxmlsec.so.*
 %endif
+%dir %{_libdir}/%{pkgdir}
 # We need to have libmodcrypto.so close to libarccrypto
 %{_libdir}/%{pkgdir}/libmodcrypto.so
 %{_libdir}/%{pkgdir}/libmodcrypto.apd
@@ -1229,12 +1227,17 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
+%{_libdir}/%{pkgdir}/DataStagingDelivery
+%dir %{_libexecdir}/%{pkgdir}
+%{_libexecdir}/%{pkgdir}/arcconfig_parser.py
+%dir %{python_sitearch}/%{pkgdir}
+%{python_sitearch}/%{pkgdir}/config
+%dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
-%dir %{_datadir}/%{pkgdir}
 
 %files client
 %defattr(-,root,root,-)

@@ -445,8 +445,7 @@
 ## dgbridge_stage_prepend url - Desktop Bridge url prefix pointing to dgbridge_stage_dir.
 ## default: not set
 #dgbridge_stage_prepend=http://edgi-bridge.example.com/DGBridge/
-#
-#
+
 ### end of [lrms] block #####################################################
 
 
@@ -595,7 +594,7 @@
 ##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information 
 ##						(if no mapping information provided by sources)
 ## default: ""
-#mapped unixid
+#mapped_unixid
 #mapped_unixid=gridtest
 ## CHANGE22: Modified. The empty value should work the same way as missing parameter. set the default to ""
 
@@ -633,8 +632,7 @@
 ## default: not set
 #filter=deny *infn*
 #filter=allow *NorduGrid*
-#
-#
+
 ### end of the [userlist/NAME] block ######################################
 
 
@@ -2066,7 +2064,7 @@ CHANGE43: modified. implement a default! in the format of root@localhost.
 
 
 ### [gridftpd/filedir] block #########################################
-## The fileplugin modul of the gridftp server can be used to set up a 
+## The fileplugin module of the gridftp server can be used to set up a 
 ## simplistic grid storage element (SE). This subblock enables and configures
 ## such an SE by "exporting" a directory using the gridftpd's fileplugin.
 ## Comment out this block if you don't need a SE.

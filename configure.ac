@@ -2585,6 +2585,8 @@ AC_CONFIG_FILES([Makefile
                  src/tests/perf/arcperftest.1
                  src/tests/client/Makefile
                  src/tests/lrms/Makefile
+                 src/utils/configparser/Makefile
+                 src/utils/configparser/arc/Makefile
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile

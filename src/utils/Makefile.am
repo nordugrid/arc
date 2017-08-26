@@ -10,5 +10,5 @@ else
 BUILD_SOURCES = $(GRIDMAP)
 endif
 
-SUBDIRS = $(BUILD_SOURCES)
-DIST_SUBDIRS = hed gridmap
+SUBDIRS = $(BUILD_SOURCES) configparser
+DIST_SUBDIRS = hed gridmap configparser
