@@ -147,8 +147,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("queue");
   static const int lrms_secnum = 7;
   cf.AddSection("lrms");
-  static const int cluster_secnum = 10;
+  static const int cluster_secnum = 8;
   cf.AddSection("cluster");
+  static const int ssh_secnum = 9;
   cf.AddSection("ssh");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
@@ -166,8 +167,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 
     if (cf.SectionNum() == common_secnum) { // common
       if (cf.SubSection()[0] == '\0') {
-        //hostname=myhost.org
-        //http_proxy=proxy.mydomain.org:3128
         if(command == "x509_voms_dir") {
           config.voms_dir = rest;
         }
@@ -539,12 +538,21 @@ CHANGE: implement a default! in the format of root@localhost.
       continue;
     }
     if (cf.SectionNum() == cluster_secnum) { // cluster
-      if (command == "authorizedvo") {
-        std::string str = Arc::ConfigIni::NextArg(rest);
-        if (str.empty()) {
-          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
-        }
-        config.authorized_vos[""].push_back(str);
+      if (cf.SubSection()[0] == '\0') {
+        if (command == "authorizedvo") {
+          std::string str = Arc::ConfigIni::NextArg(rest);
+          if (str.empty()) {
+            logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+          }
+          config.authorized_vos[""].push_back(str);
+        };
+      };
+      continue;
+    }
+
+    if (cf.SectionNum() == ssh_secnum) { // ssh
+      if (cf.SubSection()[0] == '\0') {
+        config.sshfs_mounts_enabled = true;
       }
       continue;
     }
@@ -607,13 +615,7 @@ CHANGE: implement a default! in the format of root@localhost.
     // Assign default value
     config.helper_log = "/var/log/arc/job.helper.errors";
   }
-
-  if(ws_enabled) {
-    if(config.arex_endpoint.empty()) {
-      config.arex_endpoint = "https://:443/arex"; // TODO: test
-    }
-  }
-
+ 
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
   config.Substitute(config.control_dir);

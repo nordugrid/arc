@@ -235,9 +235,9 @@ prepare() {
     MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
     MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces/emies allowunknown`
+    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/ws/emies allowunknown`
     USERMAP_BLOCK='common/mapping'
-    USERAUTH_BLOCK='grid-manager/wsinterfaces/emies'
+    USERAUTH_BLOCK='grid-manager/ws/emies'
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi

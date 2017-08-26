@@ -15,8 +15,8 @@
 # which contains commands to start A-REX service. Service
 # is either run isolated or with WS interface enabled.
 # To enable WS interface ARC0 configuration file must 
-# contain [grid-manager/wsinterfaces/emies] section
-# and mandatory option in [grid-manager/wsinterfaces]:
+# contain [grid-manager/ws/emies] section
+# and mandatory option in [grid-manager/ws]:
 #    wsurl="a_rex_url"
 
 ### BEGIN INIT INFO
@@ -277,7 +277,7 @@ prepare() {
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
-    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces logfile`
+    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager/ws logfile`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
     ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager loglevel`
@@ -290,16 +290,19 @@ prepare() {
     X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_cert`
     X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
-    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
-    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
-    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_job_control_requests`
-    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_infosys_requests`
-    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces/emies allowunknown`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager/data-staging globus_tcp_port_range`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager/data-staging globus_udp_port_range`
+    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_job_control_requests`
+    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_infosys_requests`
+    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_data_transfer_requests`
+    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/ws/emies allowunknown`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     GRIDMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
-    USERAUTH_BLOCK='grid-manager/wsinterfaces/emies'
+    USERAUTH_BLOCK='grid-manager/ws/emies'
+    GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
+    ARC_HTTP_PROXY=`readconfigvar "$ARC_CONFIG" common http_proxy`
+    SERVICEMAIL=`readconfigvar "$ARC_CONFIG" grid-manager mail`
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
@@ -312,11 +315,18 @@ prepare() {
     if [ -z "$GRIDMAP" ] ; then
         GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
     fi
-    if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
-        GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
+    if [ -z "$GRIDHOSTNAME" ] ; then
+      GRIDHOSTNAME="$HOSTNAME"
     fi
-    if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
-        GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+    if [ -z "$GRIDHOSTNAME" ] ; then
+      GRIDHOSTNAME=`hostname -f`
+    fi
+    if [ -z "$GRIDHOSTNAME" ] ; then
+        log_failure_msg "Failed to determine host name for this computer"
+        exit 1
+    fi
+    if [ -z "$SERVICEMAIL" ] ; then
+      SERVICEMAIL="root@$GRIDHOSTNAME"
     fi
 
     # Exporting collected variables
@@ -326,6 +336,8 @@ prepare() {
     if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
     if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
     if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+    if [ ! -z "$GRIDHOSTNAME" ] ; then export HOSTNAME="$GRIDHOSTNAME" ; fi
+    if [ ! -z "$ARC_HTTP_PROXY" ] ; then export ARC_HTTP_PROXY ; fi
 
     # Required defaults
     if [ -z "$GRIDMAP" ] ; then
@@ -352,10 +364,10 @@ prepare() {
     arex_port=""
     arex_path=""
     arex_service_plexer=""
-    ws_present=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces`
-    arex_present=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces/emies`
+    ws_present=`testconfigblock "$ARC_CONFIG" grid-manager/ws`
+    arex_present=`testconfigblock "$ARC_CONFIG" grid-manager/ws/emies`
     if [ "$ws_present" = 'true' ] ; then
-        arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces wsurl`
+        arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager/ws wsurl`
         if [ ! -z "$arex_mount_point" ] ; then
             arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
             arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
@@ -375,7 +387,7 @@ prepare() {
             fi
         else
             arex_proto='https'
-            arex_host=`hostname -f`
+            arex_host="$GRIDHOSTNAME"
             arex_port='443'
             arex_path='arex'
             arex_mount_point=${arex_proto}://${arex_host}:${arex_port}/${arex_path}
@@ -460,7 +472,7 @@ prepare() {
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -468,9 +480,9 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -486,7 +498,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_endpoint`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -494,13 +506,13 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_usermap`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterface/argus arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_acceptnotapplicable`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -539,7 +551,7 @@ prepare() {
     # cache service
     cache_service_plexer=""
     cache_service=""
-    use_cache_service=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces/cache`
+    use_cache_service=`testconfigblock "$ARC_CONFIG" grid-manager/ws/cache`
     if [ "$use_cache_service" = "true" ]; then
         if [ "$ws_present" != 'true' ] ; then
             log_failure_msg "WS interface must be turned on to use cache service"
@@ -563,6 +575,11 @@ prepare() {
   <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
   </PDP>
 </SecHandler>"
+    fi
+
+    service_mail=""
+    if [ ! -z "$SERVICEMAIL" ] ; then
+        service_mail="<serviceMail>$SERVICEMAIL</serviceMail>"
     fi
 
     AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
@@ -678,6 +695,7 @@ prepare() {
   <Plugins><Name>arex</Name></Plugins>
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
+      $service_mail
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
     </Service>
   </Chain>
@@ -740,6 +758,7 @@ prepare() {
       $arex_endpoint
       $emir_registration
       $isis_registration
+      $service_mail
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
@@ -818,6 +837,7 @@ prepare() {
       $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
+      $service_mail
       $legacy_shc
       $argus_shc
       $arex_endpoint

@@ -1,0 +1,56 @@
+######################################################################
+######### General arc.conf python parser usage examples ##############
+######################################################################
+
+## 1. Get value of option in block:
+
+# arcconfig_parser.py --block infosys --option providerlog
+/var/log/arc/infoprovider.log
+
+## 2. Get value of option in blocks (in order they are specified, e.g. if not
+found in gridftpd look in the common block):
+
+# arcconfig_parser.py --block gridftpd --block common  --option x509_user_key
+/etc/grid-security/hostkey.pem
+
+## 3. Export entire configuration to JSON:
+arcconfig_parser.py --export json
+HINT: use 'arcconfig_parser.py --export json | jq .' to view hihglighted JSON structure in shell
+
+## 4. Export block options to JSON (for Perl):
+arcconfig_parser.py --block infosys --export json
+{"infosys": {"registrationlog": "/var.....
+
+## 5. Export block and subblocks options to JSON
+# arcconfig_parser.py --block infosys --subblocks --export json
+{"infosys/admindomain": {"www": "http://e....
+
+## 6. Export for BASH (compatible with current config representation in shell-based LRMS backends)
+
+# arcconfig_parser.py --block infosys --block grid-manager --block common --export bash
+CONFIG_controldir="/var/spool/arc/jobstatus"
+CONFIG_defaultttl="1210000"
+CONFIG_delegationdb="sqlite"
+CONFIG_hostname="sample1.nordugrid.org"
+CONFIG_maaxrerun="5"
+CONFIG_maxjobs="10000 -1"
+CONFIG_runtimedir="/home/grid/arc/runtime"
+CONFIG_sessiondir="__array__" # <= NEW define for multivalued values that indicate indexed vars
+CONFIG_sessiondir_0="/mnt/scratch/grid/arc/session"
+CONFIG_sessiondir_1="/home/grid/arc/session drain"
+...
+
+## 7. Using BASH export
+
+# eval $( arcconfig_parser.py --block infosys --block grid-manager --block common --export bash )
+# echo $CONFIG_gridmap
+
+## 8. Using from python as a module
+
+    import arc import config
+
+    config.parse_arc_conf('/tmp/arc.conf')
+
+    a = config.get_value('x509_host_key', ['grid-manager', 'common'])
+    b = config.get_value('allowunknown', 'gridftpd')
+

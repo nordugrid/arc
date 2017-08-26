@@ -93,19 +93,19 @@ namespace gridftpd {
   }
 
   int Daemon::config(const std::string& section, const std::string& cmd,std::string& rest) {
-	if(section == "common") {
-	  if(cmd == "gridmap") {
-	    Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
-	  } else if(cmd == "hostname") {
-	    Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
-	  } else if(cmd == "x509_host_key") {
-	    Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
-	  } else if(cmd == "x509_host_cert") {
-	    Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
-	  } else if(cmd == "x509_cert_dir") {
-	    Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
+    if(section == "common") {
+      if(cmd == "gridmap") {
+        Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
+      } else if(cmd == "hostname") {
+        Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
+      } else if(cmd == "x509_host_key") {
+        Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
+      } else if(cmd == "x509_host_cert") {
+        Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
+      } else if(cmd == "x509_cert_dir") {
+        Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
       } else if(cmd == "x509_voms_dir") {
-	    Arc::SetEnv("X509_VOMS_DIR",rest.c_str()); return 0;
+        Arc::SetEnv("X509_VOMS_DIR",rest.c_str()); return 0;
       } else if(cmd == "voms_processing") {
         Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
       } else if(cmd == "http_proxy") {
@@ -113,12 +113,12 @@ namespace gridftpd {
       } else {
         return 1; // not processed command
       };
-	} else if(section == "common/mapping") {
-	  if(cmd == "gridmap") {
-	    Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
-	  };
-	} else if(section == "gridftpd") {
-	  // [gridftpd] section
+    } else if(section == "common/mapping") {
+      if(cmd == "gridmap") {
+        Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
+      };
+    } else if(section == "gridftpd") {
+      // [gridftpd] section
       if(cmd == "logfile") {
         if(logfile_.length() == 0) logfile_=Arc::ConfigIni::NextArg(rest);
       } else if(cmd == "logreopen") {
@@ -171,12 +171,12 @@ namespace gridftpd {
             return -1;
           };
         };
-	  } else if(cmd == "x509_host_key") {
-	    Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
-	  } else if(cmd == "x509_host_cert") {
-	    Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
-	  } else if(cmd == "x509_cert_dir") {
-	    Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
+      } else if(cmd == "x509_host_key") {
+        Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
+      } else if(cmd == "x509_host_cert") {
+        Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
+      } else if(cmd == "x509_cert_dir") {
+        Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
       } else if(cmd == "globus_tcp_port_range") {
         Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest.c_str()); return 0;
       } else if(cmd == "globus_udp_port_range") {
@@ -184,7 +184,7 @@ namespace gridftpd {
       } else {
         return 1; // not processed command
       };
-	};
+    };
     return 0; // proccessed command
   }
 

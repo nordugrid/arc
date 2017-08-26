@@ -412,12 +412,19 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
     return 1;
   };
   gridftpd::GMEnvironment env;
-  if(!env)
+  if(!env) {
+    logger.msg(Arc::ERROR, "failed to initialize environment variables");
+    delete cf;
     return 1;
-
-  std::string pluginpath = "/";
+  };
+  std::string pluginpath;
   std::list<std::string> pluginpaths = Arc::ArcLocation::GetPlugins();
-  if(!pluginpaths.empty()) pluginpath=pluginpaths.front();
+  if(pluginpaths.empty()) {
+    logger.msg(Arc::ERROR, "failed to identify plugins path");
+    delete cf;
+    return 1;
+  };
+  pluginpath=pluginpaths.front();
   int r;
   r = config(*cf,pluginpath);
   cfile.close();

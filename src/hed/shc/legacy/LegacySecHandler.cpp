@@ -76,7 +76,11 @@ class LegacySHCP: public ConfigParser {
   virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
     if(id == "authgroup") {
       if(group_match_ == AAA_NO_MATCH) {
-        group_match_ = auth_.evaluate((cmd + " " + line).c_str());
+        if(cmd == "name") {
+          group_name_ = line;
+        } else {
+          group_match_ = auth_.evaluate((cmd + " " + line).c_str());
+        };
       };
     } else if(id == "userlist") {
       if(!vo_match_) {
