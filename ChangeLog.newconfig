@@ -1,5 +1,13 @@
 #a dedicated changelog file for the configuration reengineering 
 
+2017-04-06 Florido Paganelli <florido.paganelli@hep.lu.se>
+ * Added preliminary code to parse json and convert into 
+   current infoproviders configuration schema. 
+   Lacks all of the new options.
+   Not tested with CEinfo.pl, 
+   just unit tested the ConfigCentral.pm module
+   Revs: {32210,32211,32223}
+
 2017-04-06 Andrii Salnikov <manf@grid.org.ua>
  * Nordugridmap changed to support new configuraion format
  * Change #17 renamed [userlist/NAME] block to force defined by block name

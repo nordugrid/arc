@@ -17,7 +17,7 @@ __cached_config = {}
 # define parsing function
 def parse_arc_conf(conf_f='/etc/arc.conf'):
     __regexes = {
-        'block': re.compile(r'^\[(?P<block>[-\w/]+)\]\s*$'),
+        'block': re.compile(r'^\[(?P<block>[-\w/]+(?P<blockname>:[^\[\]:/]+)?)\]\s*$'),
         'skip': re.compile(r'^(?:#.*|\s*)$'),
         # includes support for the following cases:
         #   'option=value'
@@ -66,7 +66,7 @@ def _config_subset(blocks=None, subsections=False):
                 blocks_dict[s] = __cached_config[s]
                 continue
             # if requested - check for sub-blocks match
-            if s.startswith(b + '/') and subsections is True:
+            if subsections is True and re.search(r'^' + b + r'[/:]', s):
                 blocks_dict[s] = __cached_config[s]
     return blocks_dict
 
@@ -86,6 +86,7 @@ def export_bash(blocks=None, subsections=False):
     block_dict = _config_subset(blocks, subsections)
     for b in reversed(block_dict.keys()):
         for k, v in block_dict[b].iteritems():
+            k = k.replace('/', '_').replace(':', '_')
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
                 for i, vi in enumerate(v):

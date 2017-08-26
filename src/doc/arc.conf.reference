@@ -8,38 +8,42 @@
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
 ## The arc.conf configuration file consists of blocks like
-## [common], [grid-manager], [gridftpd], [cluster], [infosys], etc..
+## [common], [arex], [gridftpd], [cluster], [infosys], etc..
 ##
-## A block is identified by its blockname. A blockname consists of
-## keywords and optionally block identifiers: [queue/short] here 'queue' is
-## a keyword while 'short' is an identifier. Block names must be UNIQUE.
-## A block starts with a unique [blockname] and ends with
-## the next [blockname] directive.
-## A block may have sub-blocks e.g. [grid-manager/wsinterfaces] or
-## [infosys/glue2/ldap].
+## A block is identified by its block header. A block header may consist of
+## keywords and optionally block identifiers. Keywords may be separated by "/" 
+## and used to label subblocks (e.g. [arex/jura]), while block identifiers
+## are separated by ":" from keywords. For example, in the [queue:short] 
+## block header 'queue' is a keyword while 'short' is an identifier, the name of the queue.
+## Block headers must be UNIQUE.
+##
+## A block starts with a unique [blocheader] and ends where the next block starts, that is 
+## at the next [blockheader] directive. A block may have sub-blocks e.g. [arex/ws].
 ##
 ## Configuration blocks contain (variable, variable value) pairs following the syntax:
 ## variable=the variable value(s) come(s) in single line and everything is part of the value till the end of the line.
 ## Note that quotes around the variable value(s) MUST not be used any longer.
 ## Commented out or unset configuration options (variables) take their default values!
-## Some parts of the configuration file are order-dependent: there can be blocks or
-## configuration variables that may require other blocks be defined earlier. On the other hand,
-## the order of the variables within a specific block is irrelevant.
 ## Note that the arc.conf is CASE-SENSITIVE!
+##
+## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
+## [userlist:name] and [authgroup:name] MUST appear before the [arex] or [gridftp] blocks. 
+## Furthermore, the order of the authorization blocks itself may have influence over authorization decisions!
+## On the other hand, the order of the variables within a specific block is irrelevant.
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## enabling (turning on) a functionality, a service or an interface requires the presence of the
-## appropriate configuration block. To disable a service or an interface, simply comment out
+## appropriate configuration block. To disable a service or an interface, simply delete or comment out
 ## the related arc.conf block (you may need to rerun the corresponding startup script).
 ##
 ## As an example, in order to set up a minimalistic ARC CE with a WS-interface
-## you need to configure at least the [common],[grid-manager],[lrms],[gridmanager/wsinterfaces],
-## [infosys],[infosys/glue2],[cluster] and [queue/name] blocks.
+## you need to configure at least the [common],[arex],[lrms],[arex/ws],
+## [infosys],[infosys/glue2],[cluster] and [queue:name] blocks.
 ##
 ## As another example, when the ARC CE is configured according to the "classic" setup with
 ## gridftp-based jobsubmission interface and LDAP infosys publishing the nordugrid schema,
-## the following blocks are needed: [common], [grid-manager], [gridftpd], [gridftpd/jobs],
-## [infosys], [infosys/ldap], [infosys/ldap/bdii],[infosys/nordugrid],[cluster] and [queue/queue_name]
+## the following blocks are needed: [common], [arex], [gridftpd], [gridftpd/jobs],
+## [infosys], [infosys/ldap], [infosys/ldap/bdii], [infosys/nordugrid], [cluster] and [queue:name]
 ##
 ## Developers: This file is parsed by configuration validation scripts and so
 ##   it is important that it follows the agreed syntax: For each block or
@@ -75,7 +79,6 @@
 ## The common block parameters may be overridden by the specific sections of the components later.
 ## The [common] always appears at the beginning of the config file. The parameters set within this block
 ## are available for all the other blocks thus shared by the different components of ARC.
-## TODO decide if we need  loglevel as new config parameter in this block
 #[common]
 
 ## hostname - The FQDN of the frontend on which the ARC services are deployed.
@@ -84,22 +87,10 @@
 #hostname=myhost.org
 ## CHANGE1: modified semantics
 
-## enable_perflog_reporting yes/no - Turns on/of the performance metrics collection and reporting 
-## built-in feature of the various ARC components.
-## allowedvalues: expert-debug-on no
-## default: no
-#enable_perflog_reporting=expert-debug-on
-## CHANGE2: new parameter
-
-## perflogdir path - The directory containing the performance metric files.
-## default: /var/log/arc/perfdata
-#perflogdir=/var/log/arc/perfdata
-## CHANGE3: new parameter
-
 ## http_proxy  url - The http proxy server.
 ## default: not set
 #http_proxy=proxy.mydomain.org:3128
-## CHANGE4: moved here from the [grid-manager] block
+## CHANGE4: moved here from the old [grid-manager] block
 
 ### X509 related parameters
 ## x509_host_key - (previously x509_user_key) Server credential location. Sets the full path to the host private key.
@@ -134,7 +125,7 @@
 ##              VOMS extension is marked as critical. This is a default.
 ##   strict - fail if any parsing error was discovered.
 ##   noerrors - fail if any parsing or validation error happened.
-## This parameter can also be used in [grid-manager] and [griftpd] blocks.
+## This parameter can also be used in [arex] and [griftpd] blocks.
 ## allowedvalues: relaxed standard strict noerrors
 ## default: standard
 #voms_processing=standard
@@ -155,6 +146,23 @@
 ##
 ##
 ### end of the [common] block ##############################################
+
+
+### The [common/perflog] block ##############################################
+## This block enables the server-side performance logging of various ARC components.
+## Having this block uncommented turns on the performance metrics collection
+## and reporting. Only switch on if you specifically need it, and are aware of
+## the possible local root exploit due to permissive directory.
+#[common/perflog]
+## CHANGE2: NEW block
+
+## perflogdir path - The directory containing the performance metric files.
+## default: /var/log/arc/perfdata
+#perflogdir=/var/log/arc/perfdata
+## CHANGE3: new parameter
+##
+##
+### end of the [common/perflog] block #######################################
 
 
 ### The [common/mapping] block ##############################################
@@ -225,7 +233,7 @@
 #[lrms]
 ## CHANGE10: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
-## lrms lrmstype [queue] - Sets the type of the LRMS (queue system) and optionally the default queue name.
+## lrms lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the default queue name.
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
 ## For lrmstype, the following values can be chosen:
@@ -245,15 +253,15 @@
 ## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
 ## there is no need to specify (Sun/Oracle) Grid Engine versions and flavours.
 ##
-## The optional "queue" parameter specifies the default Grid queue of the
-## LRMS. Jobs will be submitted to this queue if they do not specify queue
-## name in job description. Queue name must match one of the [queue/queue_name] blocks.
+## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
+## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
+## the job descriptions submitted to the ARC CE do not specify a requested queue.
+## This queue name must match one of the [queue:queue_name] blocks.
 ##
 ## mandatory: yes
 ## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy lsfpy sceapi
 ## default: not set
 #lrms=pbs gridlong
-#lrms=slurm
 ## CHANGE11: new lrmstype values added (slurmpy, lsfpy, sceapi).
 
 ## lrmsconfig text - An optional free text field to describe the configuration of your
@@ -445,7 +453,8 @@
 ## dgbridge_stage_prepend url - Desktop Bridge url prefix pointing to dgbridge_stage_dir.
 ## default: not set
 #dgbridge_stage_prepend=http://edgi-bridge.example.com/DGBridge/
-
+##
+##
 ### end of [lrms] block #####################################################
 
 
@@ -474,49 +483,52 @@
 
 ## remote_sessiondir path - Session directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'sessiondir'
-## attribute in the 'grid-manager' block.
+## attribute in the [arex] block.
 ## default: not set
 #remote_sessiondir=/scratch/grid
 
 ## remote_runtimedir path - Runtime environment directory on cluster frontend to
 ## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
-## attribute in the 'grid-manager' block.
+## attribute in the [arex] block.
 ## default: not set
 #remote_runtimedir=/SOFTWARE/runtime
 
 ## remote_cachedir path - Cache directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
-## attribute in the 'grid-manager' block.
+## attribute in the [arex] block.
 ## default: not set
 #remote_cachedir=/scratch/cache
 
 ## ssh_timeout time - Timeout of establishing ssh connection. Unit in seconds.
 ## default: TODO
 #ssh_timeout=10
-
+##
+##
 ### end of [lrms/ssh] block #####################################################
 
 
-### The [userlist/NAME] (previously [vo]) blocks #####################################################
-## The [userlist/NAME] blocks are used to define userlists and configure how those are
+### The [userlist:name] (previously [vo]) blocks ################################
+## The [userlist:name] blocks are used to define userlists and configure how those are
 ## generated by the nordugridmap utility, including the optional user mapping information.
 ## The userlist is identified with the generated file that is stored in the "outfile".
 ## Please note that behaviour of the nordugridmap external utility can be further modified by
 ## the optional [nordugridmap] block (see next block).
-## Note that the [userlist/name] block by itself does not affect authorization. In order to define
+## Note that the [userlist:name] block by itself does not affect authorization. In order to define
 ## auth rules userlists can be referenced within the [authgroup] blocks by the userlist=name parameter.
 ## Also, the generated "outfile" can be used via the 'file' auth rule of the [authgroup] block.
-#[userlist/biousers]
+## The order of this block in arc.conf may influence authorization decision. This block must appear before the
+## [arex] blocks.
+#[userlist:biousers]
 ## CHANGE17: new blockname that better reflects the purpose of the config block. This block is not defining any VO!
 
 ## id blockid - specifies the unique configuration block id (this does not affect nordugridmap utility)
 ## CHANGE18: DELETED  should be removed from code and config now that the userlist blocks have unique names
 
-## name userlist_name - (previously vo) This optional parameter specifies the name of the userlist.
-## This must be the same as the one in the [userlist/name] block name.
+## vo vo_name - This optional parameter specifies the name of the userlist.
+## This must be the same as the one in the [userlist/name] block name. 
 ## default: not set
-#name=biousers
-## CHANGE19: renamed from "vo"
+#vo=biousers
+## CHANGE19: DELETED. use the name from the block header instead!
 
 ## outfile path - (previously file) The full path of the GENERATED file that contains the
 ## userlist (with optional mapping info).
@@ -632,8 +644,9 @@
 ## default: not set
 #filter=deny *infn*
 #filter=allow *NorduGrid*
-
-### end of the [userlist/NAME] block ######################################
+##
+##
+### end of the [userlist:name] block ######################################
 
 
 ### The [nordugridmap] block ###########################################
@@ -753,10 +766,10 @@
 ### end of the [nordugridmap] block ##################################
 
 
-### The [authgroup/NAME] (previously [group]) blocks ######################################
+### The [authgroup:name] (previously [group]) blocks ######################################
 ## These configuration blocks contain authorization rules. These rules determine which
 ## authorization group a user belongs to. Then, the access control of ARC services are
-## implemented via specifying the [authgroup/NAME] to which certain permissions are granted.
+## implemented via specifying the [authgroup:name] to which certain permissions are granted.
 ## For more info please read "Security Framework of ARC" at
 ## http://www.nordugrid.org/documents/arc-security-documentation.pdf
 ## The authgroup should not be mistaken for a virtual organisation (VO).
@@ -781,15 +794,17 @@
 ## matching.
 ##
 ## All the objects used in the rules (e.g. userlists) MUST be defined before it may be used.
-## In this respect the arc.conf is ORDER SENSITIVE.
-#[authgroup/allowedusers]
+## In this respect the arc.conf is ORDER SENSITIVE. The order of this block in arc.conf may 
+## influence authorization decision. This block must appear before the [arex] blocks.
+#[authgroup:allowedusers]
 ## CHANGE31: renamed the block.
 
 ## name authgroup_name - This optional parameter specifies the name of the authgroup.
-## This must be the same as the one in the [authgroup/name] block name.
-## If this parameter not set then the name of the subblock is used instead, for example [authgroup/allowedusers]
+## This must be the same as the one in the [authgroup:name] block name.
+## If this parameter not set then the name of the subblock is used instead, for example [authgroup:allowedusers]
 ## default: not set
 #name=allowedusers
+## CHANGE186: DELETED. use the name from the block header instead!
 
 ## subject certificate_subject - Rule to match specific subject of user's
 ## X.509 certificate. No masks, patterns and regular expressions are allowed.
@@ -854,17 +869,16 @@
 #all
 ##
 ##
-### end of the [authgroup/NAME] blocks ###############################
+### end of the [authgroup:name] blocks ###############################
 
 
-### The [grid-manager] block #########################################
-## The [grid-manager] block, together with its various subblocks,
+### The [arex] block - previously [grid-manager] #####################
+## The [arex] block, together with its various subblocks,
 ## configures the A-REX service hosted in *arched*. A-REX takes care of
 ## various middleware tasks on the frontend such as job creation and management,
 ## stagein/stageout, LRMS job submission, data caching, etc...
-## Name of this block is historical and comes from times when this functionality was
-## handled by separate process called grid-manager.
-#[grid-manager]
+#[arex]
+## CHANGE173: renamed block
 
 ## user user[:group] - Switch to a non root user/group after startup.
 ## Use with caution because of possible limited functionality.
@@ -899,6 +913,7 @@
 
 ## logfile path - Specify A-REX log file location. If using an external log
 ## rotation tool be careful to make sure it matches the path specified here.
+## TODO: RENAMING as part of the de-grid-managerization????
 ## default: /var/log/arc/grid-manager.log
 #logfile=/var/log/arc/grid-manager.log
 
@@ -1042,13 +1057,13 @@
 ## infoproviders_timelimit seconds - (previously infoproviders_timeout) Sets the
 ## execution time limit of the infoprovider scripts started by the A-REX.
 ## Infoprovider scripts running longer than the specified timelimit are
-## gracefully handled by the grid-manager (the behaviour depends on
+## gracefully handled by the A-REX (the behaviour depends on
 ## the state of the system)
 ## Increase this value if you have many jobs in the controldir and
 ## infoproviders need more time to process.
 ## default: 1200
 #infoproviders_timelimit=1200
-## CHANGED42: rename, infoproviders_timelimit, move to grid-manager block
+## CHANGED42: rename, infoproviders_timelimit, move to [arex] block
 
 ## pidfile path - Specify location of file containing PID of daemon process.
 ## default: /var/run/arched-arex.pid
@@ -1092,32 +1107,32 @@
 ## CHANGE45: DELETED.  remove from code, config.
 
 ## globus_tcp_port_range - Firewall configuration.
-## CHANGE46: MOVED from this block to [grid-manager/data-staging]
+## CHANGE46: MOVED from this block to [arex/data-staging]
 
 ## globus_udp_port_range - Firewall configuration.
-## CHANGE47: MOVED from this block to [grid-manager/data-staging]
+## CHANGE47: MOVED from this block to [arex/data-staging]
 
 ## x509_user_cert - Location of credentials for service.
-## CHANGE48: DELETED. no need to separately set these for grid-manager. The common block is enough.
+## CHANGE48: DELETED. no need to separately set these for A-REX. The common block is enough.
 
 ## x509_user_key - Location of credentials for service.
-## CHANGE49: DELETED. no need to separately set these for grid-manager. The common block is enough.
+## CHANGE49: DELETED. no need to separately set these for A-REX. The common block is enough.
 
 ## x509_cert_dir - Location of trusted CA certificates
-## CHANGE50: DELETED. no need to separately set these for grid-manager. The common block is enough.
+## CHANGE50: DELETED. no need to separately set these for A-REX. The common block is enough.
 ##
 ##
-### end of the [grid-manager] block ###################################
+### end of the [arex] block ###################################
 
 
-### The [grid-manager/cache] block #########################################
+### The [arex/cache] block #########################################
 ## This subblock enables and configures the cache functionality of A-REX.
 ## A-REX can cache input files downloaded as part of stagein proces of grid jobs
 ## so that subsequent jobs requiring the same file don’t have to downloading it again.
 ## The cached file will be symlinked (or copied) into the session directory of the job.
-## To disable to cache functionality simply comment out the [grid-manager/cache] config block.
+## To disable to cache functionality simply comment out the [arex/cache] config block.
 ## For more information about the cache functionality of A-REX consult the sysadmin guide.
-#[grid-manager/cache]
+#[arex/cache]
 ## CHANGE51: new block
 
 ## logfile path - (previously cachelogfile) sets the filename where output of the cache-clean
@@ -1187,23 +1202,23 @@
 #cachecleantimeout=10000
 ##
 ##
-### end of the [grid-manager/cache] #############################################
+### end of the [arex/cache] #############################################
 
 
-### The [grid-manager/data-staging] (previously [data-staging]) block ###########
+### The [arex/data-staging] (previously [data-staging]) block ###########
 ## This subblock enables and configures the data staging capabilities of A-REX:
 ## A subsystem called DTR (Data Transfer Reloaded) is responsible for collecting input data
 ## for a job before submission to the LRMS, and for staging out data
 ## after the job has finished. Automagic data staging of A-REX is a very powerful feature,
 ## disabling this functionality (by commenting out the subblock) is not recommended.
-#[grid-manager/data-staging]
-## CHANGE55: rename the block as [grid-manager/data-staging]
+#[arex/data-staging]
+## CHANGE55: RENAMED block
 
 ## loglevel - (previously debug) Sets the log level for transfer logging in job.id.errors files,
 ## between 0 (FATAL) and 5 (DEBUG). Default is to use value set by loglevel option in
-## [grid-manager] section.
+## [arex] section.
 ## allowedvalues: 0 1 2 3 4 5
-## default: loglevel in [grid-manager]
+## default: loglevel in [arex]
 #loglevel=4
 ## CHANGE56: renamed as loglevel.
 
@@ -1385,16 +1400,16 @@
 #remotesizelimit=100000
 ##
 ##
-### end of the [grid-manager/datastaging] block ############################
+### end of the [arex/datastaging] block ############################
 
 
-### The [grid-manager/ws] block #################################
+### The [arex/ws] block #################################
 ## A-REX exposes a set of Web Service interfaces that can be used to create and
 ## manage jobs, obtain information about the CE and the jobs, handle delegations,
 ## access cache information, so on. Comment out this block if you don't want to
 ## provide WS-interfaces for various A-REX functionalities.
-#[grid-manager/ws]
-## CHANGE66: new block. most of the parameters originates from the [grid-manager] block
+#[arex/ws]
+## CHANGE66: new block. most of the parameters originates from the old [grid-manager] block
 
 ## wsurl url - (previously arex_mount_point) Specifies the base URL under which
 ## the web service intrefaces will be available. The URL argument must be a
@@ -1431,17 +1446,17 @@
 #max_data_transfer_requests=100
 ##
 ##
-### end of the [grid-manager/ws] block ##############################
+### end of the [arex/ws] block ##############################
 
 
-### The [grid-manager/ws/emies] block ################################
+### The [arex/ws/emies] block ################################
 ## EMIES is "The" Web Service interface offered by A-REX to create and manage computational jobs,
 ## obtain resource and activity information, also handle delegation. EMIES is a complete set of
 ## Computing Element interface, it encapsulates all the functionality a CE should expose via its interface.
 ## See interface description at
 ## http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt
 ## If you don't want to offer EMIES interface, remove or comment out this block in our arc.conf.
-#[grid-manager/ws/emies]
+#[arex/ws/emies]
 ## CHANGE71: new subblock
 
 ## allowunknown yes/no - Specifies whether to check user subject against grid-mapfile and
@@ -1480,10 +1495,11 @@
 #maxjobdesc=0
 ## CHANGE75: new parameter in this block. Implement support in the code for WS-interface.
 ##
-### end of the [grid-manager/ws/emies] block ##############################
+##
+### end of the [arex/ws/emies] block ##############################
 
 
-### The [grid-manager/ws/cache] block ################################
+### The [arex/ws/cache] block ################################
 ## The content of the A-REX cache can be accessed via a WS-interface.
 ## Configuring this block will allow reading cache files through a special URL:
 ## For example, if the remote file gsiftp://remotehost/file1 is stored in the cache
@@ -1491,7 +1507,7 @@
 ## then the cached copy of the file can be access via the following special URL:
 ## https://hostname:344/arex/cache/gsiftp://remotehost/file1
 ## Comment out this block if you don't want to expose the cache content via WS-interface.
-#[grid-manager/ws/cache]
+#[arex/ws/cache]
 ## CHANGE76: new block
 
 ## cacheaccess rule - This parameter defines the access control rules for the cache wsinterface,
@@ -1513,10 +1529,10 @@
 #cacheaccess=gsiftp://host.org/private/data/bob/.* dn /O=Grid/O=NorduGrid/.*
 ##
 ##
-### end of the [grid-manager/ws/cache] block ####################
+### end of the [arex/ws/cache] block ####################
 
 
-### The [grid-manager/ws/candypond] block (previously cacheservice) #############
+### The [arex/ws/candypond] block (previously cacheservice) #############
 ## The CandyPond (Cache and deliver your pilot on-demand data) A-REX Web
 ## Service (previously called Cache Service) exposes various useful operations
 ## for the pilot job model where input data for jobs is not known until the job
@@ -1524,21 +1540,21 @@
 ## The CandyPond service is available via the wsurl/candypond URL
 ## (e.g. https://hostname:443/arex/candypond)
 ## Note that CandyPond uses the same DTR data staging framework that is used by
-## A-REX and configured via the [grid-manager/data-staging] block.
+## A-REX and configured via the [arex/data-staging] block.
 ## Comment out this block if you don't need the CandyPond functionality and
 ## don't want to expose this interface.
 ## TODO David: describe in the sysadmin manual what are those useful operations, also give give reference to the interface description (wsrf, at least)
-#[grid-manager/ws/candypond]
-## CHANGE77: new block, renamed service:
+#[arex/ws/candypond]
+## CHANGE77: new block, renamed service
 
 ## enable_cache_service yes|no - Turn on or off the cache service interface.
 ## CHANGE78: DELETED. Service interface, functionality is enabled/disabled by subblocks.
 ##
 ##
-### end of the [grid-manager/ws/candypond] block ####################
+### end of the [arex/ws/candypond] block ####################
 
 
-### The [grid-manager/ws/argus] block ############################
+### The [arex/ws/argus] block ############################
 ## The Web Service components of A-REX may directly use the Argus service
 ## (https://twiki.cern.ch/twiki/bin/view/EGEE/AuthorizationFramework)
 ## for requesting authorization decisions and performing client mapping
@@ -1547,7 +1563,7 @@
 ## When this block is enabled, A-REX will communicate to Argus PEP or PDP service
 ## for every WS interface operation!
 ## Comment out this block if you don't intend to use any external Argus service with ARC.
-#[grid-manager/ws/argus]
+#[arex/ws/argus]
 ## CHANGE79: new block for the Argus functionality. Change code so that Argus is turned on/off based on this block
 
 ## arguspep_endpoint url - Specifies URL of Argus PEPD service to use for
@@ -1603,7 +1619,7 @@
 #arguspdp_acceptnotapplicable=no
 ##
 ##
-#### end of the [grid-manager/ws/argus] block #####################
+#### end of the [arex/ws/argus] block #####################
 
 
 ### The [acix/cachescanner] (previously [acix/cacheserver]) block ##########
@@ -1638,7 +1654,6 @@
 ## $TMP/ARC-ACIX/timestamp each time the cache server runs.
 ## default: no
 #cachedump=yes
-
 ##
 ##
 ### end of the [acix/cachescanner] block ############################
@@ -1669,7 +1684,7 @@
 ### end of the [acix/indexserver] block ############################
 
 
-### The [grid-manager/jura] block ###################################
+### The [arex/jura] block ###################################
 ## JURA is the accounting  record generating and reporting module of A-REX.
 ## A-REX periodically executes JURA to processes the job log files,
 ## and based on the accounting target destinations specified in them,
@@ -1680,13 +1695,12 @@
 ## accounting services.
 ## Note that a dedicated "accounting target" subblock is needed for every accounting
 ## destination. The target subblocks are either of a type apel or sgas:
-## [grid-manager/jura/apel/targetname] or [grid-manager/jura/sgas/targetname]
-#[grid-manager/jura]
+## [arex/jura/apel:targetname] or [arex/jura/sgas:targetname]
+#[arex/jura]
 ## CHANGE85: new dedicated block for JURA
 ## CHANGE86: A-REX should NOT provide the possibility of client-side target selection (in xrsl) any longer!
 
-## jobreport logfile path - (previously jobreport_logfile) The name of the file
-## jura logfile.
+## logfile path - (previously jobreport_logfile) The name of the jura logfile.
 ## default: /var/log/arc/jura.log
 #logfile=/var/log/arc/jura.log
 ## CHANGE87: renamed.
@@ -1696,24 +1710,6 @@
 ## default: 3
 #loglevel=3
 ## CHANGE88: new parameter!  implement it in the code
-
-## TODO: another enable parameter: defining archive directory should enable archiving?
-## enable_archiving yes/no [archiv_dir] - Enables the archiving functionality of JURA.
-## If enable (yes), then the generated usage records are stored
-## in a the specified archiv_dir directory on the disk with the following
-## file naming convention used: "usagerecord[Type].<jobid>.<random>".
-## Here Type is one of the supported record formats such as OGFUR or CAR.
-## By default the archiving is turned off.
-## default: no /var/log/arc/jura/archive
-#enable_archiving=yes /var/log/arc/jura/archive
-## CHANGE89: new parameter. new behaviour. new defaults.
-
-## archivettl days - The archive time to live (ttl) parameter
-## sets the number of days to keep the archive records in the archiv_dir.
-## If not specified the records are kept forever.
-## default: not set
-#archivettl=365
-## CHANGE90: new parameter
 
 ## urbatchsize number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
@@ -1772,20 +1768,50 @@
 ## jobreport options [name:value, ...]- specifies additional parameters for the jobreporter.
 ## CHANGE101: DELETED. a new block structure was created to configure those jura options.
 
-## jobreport=URL ... number – specifies that A-REX has to report information about jobs being
+## jobreport=URL ... number  specifies that A-REX has to report information about jobs being
 ## CHANGE102: DELETED. new blocks are introduced as a replacement.
 ##
 ##
-### end of the [grid-manager/jura] block ########################################
+### end of the [arex/jura] block ########################################
 
 
-### The [grid-manager/jura/sgas/NAME] blocks ##############################
-## An SGAS sub-block of [grid-manager/jura] enables and configures an SGAS accounting
+## The [arex/jura/archiving] block ##############################
+## This block enables the archiving functionality of JURA.
+## If archiving is enabled then the generated usage records are stored
+## in a the specified archivedir directory on the disk with the following
+## file naming convention used: "usagerecord[Type].<jobid>.<random>".
+## Here Type is one of the supported record formats such as OGFUR or CAR.
+## By default the archiving is turned off.
+#[arex/jura/archiving]
+## CHANGE89: NEW block
+
+## archivettl days - The archive time to live (ttl) parameter
+## sets the number of days to keep the archive records in the archivedir.
+## If not specified the records are kept forever.
+## default: not set
+#archivettl=365
+## CHANGE90: new parameter. new feature to implement!
+
+## archivedir path - Sets the directory path for the archived usage records.
+## If archiving is turned on, then the generated usage records are stored
+## in this directory with the following file naming convention used: 
+## "usagerecord[Type].<jobid>.<random>".
+## Here Type is one of the supported record formats such as OGFUR or CAR.
+## default:  /var/log/arc/jura/archive
+#archivedir=/var/log/arc/jura/archive
+## CHANGE172: NEW
+##
+##
+### end of the [arex/jura/archiving] block ########################
+
+
+### The [arex/jura/sgas:targetname] blocks ##############################
+## An SGAS sub-block of [arex/jura] enables and configures an SGAS accounting
 ## server as a target destination to which JURA will send properly formatted usage records.
-## The [grid-manager/jura] config values are applicable for every target sub-block but
+## The [arex/jura] config values are applicable for every target sub-block but
 ## also can be overwritten.
-## You need to define a separate block with a unique NAME for every SGAS target server.
-#[grid-manager/jura/sgas/neic_sgas]
+## You need to define a separate block with a unique targetname for every SGAS target server.
+#[arex/jura/sgas:neic_sgas]
 ## CHANGE103: new dedicated sub-blocks for SGAS JURA targets
 
 ## targeturl url - The service endpoint URL of SGAS server.
@@ -1817,16 +1843,16 @@
 ## CHANGE107: new parameter.
 ##
 ##
-### end of the [grid-manager/jura/sgas/NAME] blocks ########################
+### end of the [arex/jura/sgas:targetname] blocks ########################
 
 
-### The [grid-manager/jura/apel/NAME] blocks ###############################
-## An APEL sub-block of [grid-manager/jura] enables and configures an APEL accounting
+### The [arex/jura/apel:targetname] blocks ###############################
+## An APEL sub-block of [arex/jura] enables and configures an APEL accounting
 ## server as a target destination to which JURA will send properly formatted usage records.
-## The [grid-manager/jura] config values are applicable for every target sub-block but
+## The [arex/jura] config values are applicable for every target sub-block but
 ## also can be overwritten.
-## You need to define a separate block with a unique NAME for every APEL target server.
-#[grid-manager/jura/apel/egi_prod_apel]
+## You need to define a separate block with a unique targetname for every APEL target server.
+#[arex/jura/apel:egi_prod_apel]
 ## CHANGE108: new dedicated sub-blocks for APEL JURA targets
         
 ## targeturl url - The service endpoint URL of the APEL accounting server.
@@ -1887,7 +1913,7 @@
 ## CHANGE117: new parameter. new default.
 ##
 ##
-### end of the [grid-manager/jura/apel/NAME] blocks ############################
+### end of the [arex/jura/apel:targetname] blocks ############################
 
 
 ### The [gridftpd] block #######################################################
@@ -2056,7 +2082,7 @@
 ## default: 5242880
 #maxjobdesc=0
 
-## configfile service_configuration_path - If [gridftpd] and [grid-manager]
+## configfile service_configuration_path - If [gridftpd] and [arex]
 ## configuration parts are located in separate files this configuration
 ## CHANGE130: DELETED.
 ##
@@ -2178,7 +2204,7 @@
 ## directories and their content are readable by the 'unix_user' and the 'unix_user'
 ## has access to the full LRMS information including jobs submitted by
 ## other users. The A-REX directories (controldir, sessiondir
-## runtimedir, cachedir) are specified in the [grid-manager] block
+## runtimedir, cachedir) are specified in the [arex] block
 ## default: the ldap_user
 #user=root
 
@@ -2395,7 +2421,6 @@
 ## Default is zero, i.e. no limits are set.
 ## default: 0
 #cachettl=0
-
 ##
 ##
 ### end of the [infosys/ldap/bdii] block ########################################
@@ -2433,6 +2458,11 @@
 
 
 ### The [infosys/cluster/registration/NAME] blocks ############
+## WARNING: the ldap-based registration is OBSOLETE technology,
+## there are plans to phase it out.
+## This part of the configuration was not reviewed and modified
+##
+## during the arc.conf restructuring:  these are legacy structures and parameters!
 ## This sub-block configures the registration process of a CE (computing cluster)
 ## to an EGIIS index service.
 ## A cluster may register to several Index Services, this case
@@ -2440,11 +2470,6 @@
 ## NorduGrid maintains a webpage with information on major
 ## Index Services:
 ## http://www.nordugrid.org/NorduGridMDS/index_service.html
-##
-## WARNING: the ldap-based registration is obsolete technology,
-## there are plans to phase it out.
-## This part of the configuration was not reviewed and modified
-## during the arc.conf restructuring:  these are legacy structures and parameters!
 #[infosys/cluster/registration/registrationtoindex1]
 
 ## targethostname - the hostname of the machine running the registration target
@@ -2662,19 +2687,20 @@
 ### end of the [cluster] block #####################
 
 
-### The [queue/NAME] blocks #######################################
+### The [queue:name] blocks #######################################
 ## Each grid-enabled queue on the cluster should be represented and described
 ## by a separate queue block. The queue_name should be used as a label in the block name.
 ## In case of fork, or other LRMSes with no queue names, just use any unique string.
 ## A queue can represent a PBS/LSF/SGE/SLURM/LL queue, a SGE pool, a Condor
 ## pool or a single machine in case 'fork' type of LRMS.
 ## This block describes the queue characteristics.
-#[queue/gridlong]
+#[queue:gridlong]
 
 ## name  string - Sets the name of the grid-enabled queue. It MUST match the name
 ## label from the queue block header.
 ## default: not set
 #name=gridlong
+## CHANGE187: DELETED. use the name in the block header instead!
 
 ## homogeneity True/False - determines whether the queue consists of identical NODES with
 ## respect to  cputype, memory, installed software (opsys).
@@ -2844,7 +2870,7 @@
 ## CHANGE154: DELETED
 ##
 ##
-### end of the [queue/NAME] blocks ########################
+### end of the [queue:name] blocks ########################
 
 
 ## Infosys Schema sub-blocks: The following infosys sub-blocks enable
@@ -3014,13 +3040,13 @@
 ### end of the [infosys/glue1] schema block ###########################
 
 
-### The [infosys/glue1/site/sitename] (previously [infosys/site/sitename]) block ################
+### The [infosys/glue1/site:name] (previously [infosys/site/sitename]) block ################
 ## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB etc... The sitename
 ## part of the block header is to be declarative of the site-bdii being generated.
 ##
-#[infosys/glue1/site/sitename]
+#[infosys/glue1/site:name]
 ## CHANGE164: renamed. turn on/off the fake site-bdii based on this block.
 
 ## unique_id id - The unique id used to identify this site, eg "NDGF-T1"
@@ -3033,10 +3059,14 @@
 #url=ldap://host.domain:2170/mds-vo-name=something,o=grid
 ##
 ##
-### end of the [infosys/glue1/site/sitename] block ###################################
+### end of the [infosys/glue1/site:name] block ###################################
 
 
 ### The [infosys/index/indexname] block ################################
+## WARNING: the ldap-based Info Index Service, together with the registration
+## is OBSOLETE technology, there are plans to phase it out.
+## This part of the configuration was not reviewed during the arc.conf restructuring:
+## these are legacy structures and parameters!
 ##
 ## This block enables and configures the ARC Information Index Service (EGIIS).
 ## A separate Index block is required for every Index Service you may run on the same machine.
@@ -3044,11 +3074,6 @@
 ##
 ## The 'indexname' constitutes to the
 ## 'mds-vo-name=indexname,o=grid' LDAP suffix characterizing the Index Service.
-##
-## WARNING: the ldap-based Info Index Service, together with the registration
-## is obsolete technology, there are plans to phase it out.
-## This part of the configuration was not reviewed during the arc.conf restructuring:
-## these are legacy structures and parameters!
 #[infosys/index/indexname]
 
 ## name - The unique (within the hosting machine) name of the
@@ -3082,6 +3107,10 @@
 
 
 ### The [infosys/index/indexname/registration/registrationname] blocks ####
+## WARNING: the ldap-based registration is OBSOLETE technology,
+## there are plans to phase it out.
+## This part of the configuration was not reviewed during the arc.conf restructuring:
+## these are legacy structures and parameters!!
 ## [infosys/index/indexname/registration/registrationname]
 ## Index service registration block
 ## This block enables a registration process initiated by the
@@ -3091,10 +3120,6 @@
 ## Index Services:
 ## http://www.nordugrid.org/NorduGridMDS/index_service.html
 ##
-## WARNING: the ldap-based registration is obsolete technology,
-## there are plans to phase it out.
-## This part of the configuration was not reviewed during the arc.conf restructuring:
-## these are legacy structures and parameters!!
 #[infosys/index/indexname/registration/registrationname]
 
 ## targethostname - the hostname of the machine running the registration target
@@ -3139,6 +3164,9 @@
 ## ttl - The suggested TTL to be included in the registration.  The default
 ## is twice the registration period.
 #ttl=600
+##
+##
+### end of the [infosys/index/indexname/registration/registrationname] block #########
 
 
 ### [registration/emir] block #######################################
@@ -3160,37 +3188,120 @@
 
 ## disablereg_xbes yes/no - disablereg_xbes may be used to selectively disable registration of
 ## CHANGE169: DELETED
-
-####################################################################
 ##
-### The [gangliarc] block ##########################################
 ##
-## Gangliarc provides monitoring of ARC-specific metrics through ganglia.
-## It can be run with zero configuration or customised with options in the
-## [gangliarc] block.
-#[gangliarc]
+### end of the [registration/emir] block ############################
 
-## frequency - The period between each information gathering cycle, in seconds.
+
+### The [datadelivery-service] block ###############################
+##
+## This block configures and enables the data delivery service. This service performs data
+## transfers on hosts remote to A-REX. Each data delivery service host requires
+## this block to be present in its configuration file. If host certificates are
+## required (secure=yes) then the corresponding x509 options can be specified
+## in [common] if they differ from the default.
+#[datadelivery-service]
+## CHANGE174: NEW block 
+
+## interface hostname - Hostname of service host. Specifies hostname on which the service
+## listens
+## default: all available interfaces
+#interface=localhost
+## CHANGE175: NEW
+
+## port port - Port on which service listens
+## default: 443
+#port=8443
+## CHANGE176: NEW
+
+## ipversion  number - IP version to use
+## default: 4
+#ipversion=6
+## CHANGE177: NEW
+
+## pidfile path - pid file of the daemon
+## default: /var/run/arched-datadelivery-service.pid
+#pidfile=/tmp/delivery.pid
+## CHANGE178: NEW
+
+## logfile path - log file of the daemon
+## default: /var/log/arc/datadelivery-service.log
+#logfile=/tmp/delivery.log
+## CHANGE179: NEW
+
+## user  username - user under which the service runs (should only be changed in special
+## cases)
+## default: user starting the service
+#user=grid
+## CHANGE180: NEW
+
+## secure  yes/no - Set to "no" if the service should run without a host certificate.
+## The corresponding deliveryservice parameters in A-REX configuration should
+## use http rather than https
+## allowedvalues: yes no
+## default: yes
+#secure=no
+## CHANGE181:  NEW
+
+## allowed_ip  ip - IP address authorized to access service. Normally this is the
+## A-REX host IP.
+## mandatory
+## multivalued
+## default: not set
+#allowed_ip=1.2.3.4
+## CHANGE182: NEW
+
+## allowed_dn DN - DN authorized to access service. This option restricts access
+## to specified DNs (of the users who submit jobs to A-REX). It is only
+## effective if secure=yes.
+## multivalued
+## default: not set
+#allowed_dn=/O=Grid/O=Big VO/CN=Main Boss
+## CHANGE183: NEW
+
+## allowed_dir  path - Path the service is allowed to read/write to. This is usually
+## one or more cache and/or session directories. See the CE sysadmin guide for
+## more information on possible datadelivery service configurations
+## mandatory
+## multivalued
+## default: not set
+#allowed_dir=/shared/arc/cache
+#allowed_dir=/shared/arc/session
+## CHANGE184: NEW
+##
+##
+### end of the [datadelivery-service] block ##############
+
+
+### The [arex/ganglia] block  - previously [gangliarc] ###############################
+##
+## This block enables the monitoring of ARC-specific metrics through ganglia.
+## 
+## TODO: FIX the description above, collect all ganglia variables in this block.
+#[arex/ganglia]
+## CHANGE185: RENAMED block, merged of all ganglia inside this single block
+
+## frequency seconds - The period between each information gathering cycle, in seconds.
 ## default: 20
 #frequency=30
 
-## gmetric_exec - Path to gmetric executable.
+## gmetric_exec path - Path to gmetric executable.
 ## default: /usr/bin/gmetric
 #gmetric_exec=/usr/local/bin/gmetric
 
-## logfile - log file of the daemon.
+## logfile path - log file of the daemon.
 ## default: /var/log/arc/gangliarc.log
 #logfile=/tmp/gangliarc.log
 
-## pidfile - pid file of the daemon.
+## pidfile pid - pid file of the daemon.
 ## default: /var/run/gangliarc.pid
 #pidfile=/tmp/gangliarc.pid
 
-## python_bin_path - path to python executable.
+## python_bin_path  path - path to python executable.
 ## default: /usr/bin/python
 #python_bin_path=/usr/local/bin/python
 
-## metrics - the metrics to be monitored.
+## metrics name_of_the_metrics - the metrics to be monitored. 
 ## metrics takes a comma-separated list of one or more of the following metrics:
 ## - staging -- number of tasks in different data staging states
 ## - cache -- free cache space
@@ -3202,70 +3313,8 @@
 ## - jobstates -- number of jobs in different A-REX internal stages
 ## - all -- all of the above metrics
 ## default: all
+## allowedvalues: staging cache session heartbeat processingjobs failedjobs jobstates all
 #metrics=all
-
-####################################################################
 ##
-### The [datadelivery-service] block ###############################
 ##
-## This block configures the data delivery service. This service performs data
-## transfers on hosts remote to A-REX. Each data delivery service host requires
-## this block to be present in its configuration file. If host certificates are
-## required (secure=yes) then the corresponding x509 options can be specified
-## in [common] if they differ from the default.
-#[datadelivery-service]
-
-## interface - Hostname of service host. Specifies hostname on which the service
-## listens
-## default: all available interfaces
-#interface=localhost
-
-## port - Port on which service listens
-## default: 443
-#port=8443
-
-## ipversion - IP version to use
-## default: 4
-#ipversion=6
-
-## pidfile - pid file of the daemon
-## default: /var/run/arched-datadelivery-service.pid
-#pidfile=/tmp/delivery.pid
-
-## logfile - log file of the daemon
-## default: /var/log/arc/datadelivery-service.log
-#logfile=/tmp/delivery.log
-
-## user - user under which the service runs (should only be changed in special
-## cases)
-## default: user starting the service
-#user=grid
-
-## secure - Set to "no" if the service should run without a host certificate.
-## The corresponding deliveryservice parameters in A-REX configuration should
-## use http rather than https
-## default: yes
-#secure=no
-
-## allowed_ip - IP address authorized to access service. Normally this is the
-## A-REX host IP.
-## mandatory
-## multivalued
-## default: not set
-#allowed_ip=1.2.3.4
-
-## allowed_dn - DN authorized to access service. This option restricts access
-## to specified DNs (of the users who submit jobs to A-REX). It is only
-## effective if secure=yes.
-## multivalued
-## default: not set
-#allowed_dn=/O=Grid/O=Big VO/CN=Main Boss
-
-## allowed_dir - Path the service is allowed to read/write to. This is usually
-## one or more cache and/or session directories. See the CE sysadmin guide for
-## more information on possible datadelivery service configurations
-## mandatory
-## multivalued
-## default: not set
-#allowed_dir=/shared/arc/cache
-#allowed_dir=/shared/arc/session
+### end of the [arex/ganglia] block ##############
