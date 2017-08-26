@@ -7,7 +7,13 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <sys/stat.h>   // ::SSHFS_OK, check device
+
+#ifdef _MACOSX
+#include <sys/param.h>
+#include <sys/mount.h>
+#else
 #include <sys/statfs.h> // ::SSHFS_OK, check file system
+#endif
 
 #include <arc/StringConv.h>
 #include <arc/ArcLocation.h>

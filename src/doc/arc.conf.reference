@@ -86,9 +86,9 @@
 
 ## enable_perflog_reporting yes/no - Turns on/of the performance metrics collection and reporting 
 ## built-in feature of the various ARC components. 
-## allowedvalues: yes no
+## allowedvalues: expert-debug-on no
 ## default: no
-#enable_perflog_reporting=no
+#enable_perflog_reporting=expert-debug-on
 ## CHANGE: new parameter
 
 ## perflogdir path - The directory containing the performance metric files.
@@ -184,6 +184,10 @@
 ## multivalued: yes
 ## default: not set
 #unixmap=nobody:nogroup all
+## ARC ships with LCMAPS plugin that can be enabled with following unixmap configuration.
+## For more information about configuring LCMAPS itself see section 'Using LCAS/LCMAPS' in the ARC 
+## Computing Element System Administrator Guide).
+#unixmap=* mapplugin 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 
 ## unixgroup authgroup rule - Mapping rule only for users belonging to
 ##  specified authorization 'authgroup'. It is similar to an additional filter
@@ -203,6 +207,7 @@
 ## exists for convenience for setups which base mapping on VOs users belong to.
 ## multivalued: yes
 ## default: not set
+## TODO: Suggestion: consider to rename 'unixvo' option to something like 'unixmap_userlist' to eliminate this VO-based possible misunderstood naming
 #unixvo=ATLAS unixuser atlas:atlas
 ## CHANGE: modified option. It uses the name from the [userlist/name] block 
 ##
@@ -450,10 +455,46 @@
 ## Currently the python slurm and lsf batch modules are able to utilize remote ssh.
 #[lrms/ssh]
 ## CHANGE: new sub-block
+## TODO: indicate which parameter is mandatory from this sub-block
 
-## TODO: Martin to add all the lrms/ssh config parameters here
-#
-#
+## remote_host hostname - Define the remote cluster frontend machine which contains
+## session, cache and runtime directories and where jobs should be submitted to.
+## default: not set
+#remote_host=myremotehost.org
+
+## private_key path - Location of the private key which should be used establish
+## connection to the machine specified by the 'remote_host' attribute.
+## default: TODO
+#private_key=/etc/grid-security/hostkey-priv.pem
+
+## remote_user user - User on remote cluster which should be used for mounting
+## directories, submitting and managing jobs, and gathering information about
+## cluster.
+## default: TODO
+#remote_user=grid
+
+## remote_sessiondir path - Session directory on cluster frontend to be
+## mounted (sshfs) on CE machine at directory specified by the 'sessiondir'
+## attribute in the 'grid-manager' block.
+## default: not set
+#remote_sessiondir=/scratch/grid
+
+## remote_runtimedir path - Runtime environment directory on cluster frontend to
+## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
+## attribute in the 'grid-manager' block.
+## default: not set
+#remote_runtimedir=/SOFTWARE/runtime
+
+## remote_cachedir path - Cache directory on cluster frontend to be
+## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
+## attribute in the 'grid-manager' block.
+## default: not set
+#remote_cachedir=/scratch/cache
+
+## ssh_timeout time - Timeout of establishing ssh connection. Unit in seconds.
+## default: TODO
+#ssh_timeout=10
+
 ### end of [lrms/ssh] block #####################################################
 
 
@@ -464,7 +505,7 @@
 ## Please note that behaviour of the nordugridmap external utility can be further modified by
 ## the optional [nordugridmap] block (see next block).
 ## Note that the [userlist/name] block by itself does not affect authorization. In order to define
-## auth rules userlists can be referenced within the [authgroup] blocks by the userlist="name" parameter.
+## auth rules userlists can be referenced within the [authgroup] blocks by the userlist=name parameter.
 ## Also, the generated "outfile" can be used via the 'file' auth rule of the [authgroup] block.
 #[userlist/biousers]
 ## CHANGE: new blockname that better reflects the purpose of the config block. This block is not defining any VO!
@@ -513,7 +554,7 @@
 ##
 ## For each separate source URL it is possible to override some parameters
 ## value. You can use the following syntax to perform this:
-##    source="URL < parameter1=value1 parameter2=value2"
+##    source=URL < parameter1=value1 parameter2=value2
 ## You can override the following parameters:
 ##    mapped_unixid       for http(s),voms(s),ldap and file URLs
 ##    cache_enable        for http(s),voms(s),ldap and file URLs
@@ -554,9 +595,9 @@
 ##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information 
 ##						(if no mapping information provided by sources)
 ## default: ""
-#mapped unixid=""
+#mapped unixid=
 #mapped_unixid=gridtest
-## CHANGE: check that the "" value works the same way as missing parameter. set the default to ""
+## CHANGE: check that the empty value works the same way as missing parameter. set the default to ""
 
 ## voms_fqan_map fqan unixid - The local UNIXID which is used to map voms(s)
 ## sources with specific FQAN given.
@@ -608,15 +649,15 @@
 
 ### X509 related parameters
 ## x509_host_key - Optional parameter to overwrite [common] block values.
-#x509_host_key="/etc/grid-security/hostkey.pem"
+#x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE: renamed
 
 ## x509_host_cert - Optional parameter to overwrite [common] block values.
-#x509_host_cert="/etc/grid-security/hostcert.pem"
+#x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE: renamed
 
 ## x509_cert_dir - Optional parameter to overwrite [common] block values.
-#x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir=/etc/grid-security/certificates
 
 ## gridmap_owner username - The owner of the generated mapfiles. 
 ## default: root
@@ -669,7 +710,7 @@
 ## Please see 'mapped_unixid' description in [userlist/name] block for details.
 ## allowedvalues: keep overwrite 
 ## default: "keep"
-#mapuser_processing="keep"
+#mapuser_processing=keep
 
 ## allow_empty_unixid yes/no - Controls whether empty (or unspecified)
 ## 'mapped_unixid' [userlist/name] block option is allowed to be used.
@@ -795,12 +836,12 @@
 ##  In arguments following substitutions are supported:
 ##   %D - subject of certicate
 ##   %P - path to proxy
-## TODO: Consider whether to keep following remark (there is no general plugin info in guide)
-## ARC ships with LCAS plugin (for more information see section 'Using LCAS/LCMAPS' in the ARC 
-## Computing Element System Administrator Guide) as follows:
+## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
+## For more information about configuring LCAS itself see section 'Using LCAS/LCMAPS' in the ARC 
+## Computing Element System Administrator Guide).
 ## multivalued
 ## default: not set
-#plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/grid-security/lcas/lcas.db.arc
+#plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
 ## lcas library directory database - Call LCAS functions to check rule.
 ## CHANGE: DELETED. The same can be done with the "plugin" parameter
@@ -812,6 +853,7 @@
 ## still should be written as all="" for consistency.
 ## default: not set
 #all=""
+#TODO: all= VS all=""
 ##
 ##
 ### end of the [authgroup/name] blocks ###############################
@@ -828,7 +870,7 @@
 
 ## user user[:group] - Switch to a non root user/group after startup.
 ## Use with caution because of possible limited functionality.
-## default: TODO
+## default: do not switch
 #user=grid:grid
 
 ## norootpower yes|no - If set to yes, all job management processes
@@ -966,6 +1008,10 @@
 ## multivalued
 ## default: not set
 #statecallout=ACCEPTED timeout=10 /usr/libexec/arc/bank %C/job.%I.local %S
+##TODO: Suggestion: replace not-existing /usr/libexec/arc/bank with e.g. /usr/libexec/arc/arc-blahp-logger or remove completely
+## authplugin=FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy
+## arc-blahp-logger: a statecallout plugin shipped with ARC: it's purpose is to write
+## accounting log for every finished job in BLAH format.
 #statecallout=ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy
 ## arc-vomsac-check: a statecallout plugin shipped with ARC: it's purpose is to enforce
 ## per-queue access policies based on VOMS attributes present in user's
@@ -1018,7 +1064,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## helper user executable arguments - By enabling this parameter A-REX will 
 ## run an external "helper" program under the user useraccount. The program will be
 ## kept running, every time the executable finishes it will be started again.
-## As a limitation, currently only ’.’ is supported as username, which corresponds 
+## As a limitation, currently only '.' is supported as username, which corresponds 
 ## to the user running A-REX. 
 ## default: not set
 #helper=. /usr/local/bin/myutility
@@ -1032,10 +1078,10 @@ CHANGE: implement a default! in the format of root@localhost.
 ## CHANGE: DELETED.  remove from code, config.
 
 ## globus_tcp_port_range - Firewall configuration.
-## CHANGE: DELETED. no need to separately set these for grid-manager. The common block is enough.
+## CHANGE: MOVED from this block to [grid-manager/data-staging] 
 
 ## globus_udp_port_range - Firewall configuration.
-## CHANGE: DELETED. no need to separately set these for grid-manager. The common block is enough.
+## CHANGE: MOVED from this block to [grid-manager/data-staging]
 
 ## x509_user_cert - Location of credentials for service.
 ## CHANGE: DELETED. no need to separately set these for grid-manager. The common block is enough. remove from arc.conf but can be kept as a secret option in the code.
@@ -1078,7 +1124,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## evenly over the caches.
 ## Optional link_path specifies the path at which the cache_path is accessible on
 ## computing nodes, if it is different from the path on the A-REX host.
-## Example: cache="/shared/cache /frontend/jobcache"
+## Example: cache=/shared/cache /frontend/jobcache
 ## If "link-path" is set to '.' files are not soft-linked, but copied to session
 ## directory. If a cache directory needs to be drained, then cachedir
 ## should specify "drain" as the link path, in which case no new files will be
@@ -1095,12 +1141,10 @@ CHANGE: implement a default! in the format of root@localhost.
 ## by cache, as a percentage of the space on the file system on which
 ## the cache directory is located. When the max is exceeded, files will
 ## be deleted to bring the used space down to the min level. It is a
-## good idea to have the cache on its own separate file system. To turn
-## off this feature "cachesize" without parameters can be specified.
-## default: TODO
+## good idea to have the cache on its own separate file system. If cachesize
+## is not specified the cache will not be cleaned by A-REX.
+## default: do not clean
 #cachesize=80 70
-#cachesize=""
-## TODO: check that cachesize="" works the same was as cachesize= and turns off the feature
 
 ## cachelifetime time - If cache cleaning is enabled by setting cachesize,
 ## files accessed less recently than the given time period will be deleted. 
@@ -1112,8 +1156,8 @@ CHANGE: implement a default! in the format of root@localhost.
 ## other data. If set to yes then cache-clean calculates the size of the cache
 ## instead of using filesystem used space.
 ## allowedvalues: yes no
-## default: TODO
-#cacheshared="yes"
+## default: no
+#cacheshared=yes
 
 ## cachespacetool path [options] - specifies an alternative tool to "df" that
 ## cache-clean should use to obtain space information on the cache file system.
@@ -1145,9 +1189,9 @@ CHANGE: implement a default! in the format of root@localhost.
 ## between 0 (FATAL) and 5 (DEBUG). Default is to use value set by loglevel option in
 ## [grid-manager] section.
 ## allowedvalues: 0 1 2 3 4 5 
-## default: TODO 
+## default: loglevel in [grid-manager] 
 #loglevel=4
-## CHANGE: renamed as loglevel. Furthermore, there should be a default in case not set in grid-manager
+## CHANGE: renamed as loglevel.
 
 ## statefile path - (previously dtrlog) A file in which data staging state information 
 ## (for monitoring and recovery purposes) is periodically dumped.
@@ -1163,8 +1207,8 @@ CHANGE: implement a default! in the format of root@localhost.
 
 ## maxtransfertries number - the maximum number of times download and upload will
 ## be attempted per job (retries are only performed if an error is judged to be temporary)
-## default: TODO
-#maxtransfertries=10
+## default: 10
+#maxtransfertries=20
 
 ## securetransfer yes|no - if data connection allows to choose use
 ## secure|non-secure data transfer. Currently only works for gridftp.
@@ -1178,6 +1222,22 @@ CHANGE: implement a default! in the format of root@localhost.
 ## default: yes
 #passivetransfer=yes
 ## CHANGE: new default: yes
+
+## globus_tcp_port_range port_range - In a firewalled environment 
+## the software which uses GSI needs to know what ports are available. 
+## If not set a random port is selected.
+## These variable are similar to the Globus enviroment variables:
+## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+## default: random port
+#globus_tcp_port_range=9000,12000
+
+## globus_udp_port_range port_range - In a firewalled environment 
+## the software which uses GSI needs to know what ports are available. 
+## If not set a random port is selected.
+## These variable are similar to the Globus enviroment variables:
+## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+## default: random port
+#globus_udp_port_range=9000,12000
 
 ## httpgetpartial yes|no - If yes, HTTP GET transfers may transfer data in
 ## chunks/parts. If no - data is always transfered in one piece.
@@ -1280,15 +1340,20 @@ CHANGE: implement a default! in the format of root@localhost.
 ## dollar character ($) is used at the end of a pattern, the pattern
 ## will be matched to the end of the hostname of the replica.
 ## default: not set
-#preferredpattern=srm://myhost.ac.uk|.uk$|ndgf.org$
+#preferredpattern=srm://myhost.ac.uk|.uk$|ndgf.org$|badhost.org$
+
+## central_logfile - A file in which all data staging messages from every job
+## will be logged (in addition to their job.id.errors files). If this option is
+## not present or the path is empty the log file is not created. Note this file
+## is not automatically controlled by logrotate.
+#central_logfile=/var/log/arc/datastaging.log
 
 ## The following 4 options are used to configure multi-host data staging.
 ##
 ## deliveryservice URL - The URL to a data delivery service which can perform remote
 ## data staging
 ## default: not set
-#deliveryservice=https://myhost.org:443/datadeliveryservice 
-## TODO: fix the example 
+#deliveryservice=https://myhost.org:443/datadeliveryservice
 
 ## localdelivery yes/no - If any deliveryservice is defined, this option determines
 ## whether local data transfer is also performed.
@@ -1299,7 +1364,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## remotesizelimit size - Lower limit on file size (in bytes) of files that remote
 ## hosts should transfer. Can be used to increase performance by transferring
 ## small files using local processes.
-## default: TODO
+## default: no limit
 #remotesizelimit=100000
 ##
 ##
@@ -1424,23 +1489,26 @@ CHANGE: implement a default! in the format of root@localhost.
 ### end of the [grid-manager/wsinterfaces/cache] block ####################
 
 
-### The [grid-manager/wsinterfaces/dfpj] block (previously cacheservice)#############
-## The DownloaderForPilotJobs (DFPJ) A-REX Web Service(previously called Cache Service) 
-## exposes various useful operations for the pilot job model.  
-## where input data for jobs is not known until the job is running on the worker node.
-## The dfpj service is available via the wsurl/dpjs URL (e.g. https://hostname:443/arex/dpjs)
-## Note that dfpj uses the same DTR data staging framework that is used by A-REX and 
-## configured via the [grid-manager/data-staging] block.
-## Comment out this block if you don't need the DFPJ functionality and don't want to expose this interface.
+### The [grid-manager/wsinterfaces/candypond] block (previously cacheservice) #############
+## The CandyPond (Cache and deliver your pilot on-demand data) A-REX Web
+## Service (previously called Cache Service) exposes various useful operations
+## for the pilot job model where input data for jobs is not known until the job
+## is running on the worker node.
+## The CandyPond service is available via the wsurl/candypond URL
+## (e.g. https://hostname:443/arex/candypond)
+## Note that CandyPond uses the same DTR data staging framework that is used by
+## A-REX and configured via the [grid-manager/data-staging] block.
+## Comment out this block if you don't need the CandyPond functionality and
+## don't want to expose this interface.
 ## TODO David: describe in the sysadmin manual what are those useful operations, also give give reference to the interface description (wsrf, at least)
-#[grid-manager/wsinterfaces/dfpj]
+#[grid-manager/wsinterfaces/candypond]
 ## CHANGE: new block, renamed service: 
 
 ## enable_cache_service yes|no - Turn on or off the cache service interface.
 ## CHANGE: DELETED. Service interface, functionality is enabled/disabled by subblocks. 
 ##
 ##
-### end of the [grid-manager/wsinterfaces/dfpj] block ####################
+### end of the [grid-manager/wsinterfaces/candypond] block ####################
 
 
 ### The [grid-manager/wsinterface/argus] block ############################
@@ -1505,7 +1573,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## "NotApplicable" as reason to deny request.
 ## allowedvalues: yes no
 ## default: no
-#arguspdp_acceptnotapplicable="no"
+#arguspdp_acceptnotapplicable=no
 ##
 ##
 #### end of the [grid-manager/wsinterface/argus] block
@@ -1543,7 +1611,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## The index server component of ACIX collects cache content filters
 ## from a set of cache scanners configured. 
 ## The index server can be queried for the location of cached files. 
-## The usual (hardcoded?) service endpoint is https://hostname:6443/data/index and a query is 
+## The service endpoint is https://hostname:6443/data/index and a query is 
 ## performed via giving the URLs to check as comma-separated values to the "url" option, e.g.:
 ## index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1
 ## Comment out this block if you don't run an ACIX Index server.
@@ -1645,15 +1713,15 @@ CHANGE: implement a default! in the format of root@localhost.
 
 ### conf parameters to specify alternative credentials for JURA.
 ## x509_host_key - Optional parameter to overwrite [common] block values.
-#x509_host_key="/etc/grid-security/hostkey.pem"
+#x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE: new parameter in this block
 
 ## x509_host_cert - Optional parameter to overwrite [common] block values.
-#x509_host_cert="/etc/grid-security/hostcert.pem"
+#x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE: new parameter in this block
 
 ## x509_cert_dir - Optional parameter to overwrite [common] block values.
-#x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE: new parameter in this block
 
 ## jobreport credentials path [key_file [cert_file [ca_dir]]] 
@@ -1800,7 +1868,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## WARNING: Make sure that the certificate files are owned by the user/group
 ## specified by this option. 
 ## default: root:root
-#user="grid"
+#user=grid
 
 ## loglevel level - (previously debug) Set log level of the gridftpd daemon, between
 ## 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
@@ -1835,6 +1903,10 @@ CHANGE: implement a default! in the format of root@localhost.
 
 ## include - Include contents of another config file.
 ## CHANGE: DELETED. no need for this feature any longer 
+
+## allowactivedata yes|no - if no, only passive data transfer is allowed.
+## By default both passive and active data transfers are allowed.
+#allowactivedata=yes
 
 ## maxconnections number - The maximum number of connections accepted by a gridftpd server.
 ## default: 100
@@ -1874,19 +1946,19 @@ CHANGE: implement a default! in the format of root@localhost.
 ## firewall hostname - The hostname or IP address to use in response to PASV command
 ## instead of the IP address of a network interface of computer.
 ## default: not set
-#firewall="my.host.org"
+#firewall=my.host.org
 
 ### X509 related parameters
 ## x509_host_key - Optional parameter to overwrite [common] block values.
-#x509_host_key="/etc/grid-security/hostkey.pem"
+#x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE: renamed
 
 ## x509_host_cert - Optional parameter to overwrite [common] block values.
-#x509_host_cert="/etc/grid-security/hostcert.pem"
+#x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE: renamed
 
 ## x509_cert_dir - Optional parameter to overwrite [common] block values.
-#x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir=/etc/grid-security/certificates
 
 ## pluginpath - directory where the plugin libraries are installed, default is
 ## CHANGE: DELETED. hide this parameter from arc.conf. gridftp service should work out-of-the-box on a standard linux installation.
@@ -1929,7 +2001,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## that are allowed to access the gridftp-based jobsubmission interface.
 ## If this parameter is not set, then the gridmapfile from [common] is used for authorization.
 ## default: not set
-#allowaccess="biousers atlasusers"
+#allowaccess=biousers atlasusers
 ## CHANGE: renamed
 
 ## remotegmdirs controldir sessiondir - Specifies control
@@ -1964,7 +2036,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## that are allowed to access the gridftp-based jobsubmission interface.
 ## If this parameter is not set, then the gridmapfile from [common] is used for authorization.
 ## default: not set
-#allowaccess="biousers atlasusers"
+#allowaccess=biousers atlasusers
 ## CHANGE: renamed
 
 ## path virtdir - The name of the virtual directory served by the gridftp server.
@@ -2171,7 +2243,7 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ## Normally it is sufficient to use only standard schema file locations, 
 ## therefore not to set this parameter.
 ## default: not set
-#ldap_schema_dir="/nfs/ldap/schema/"
+#ldap_schema_dir=/nfs/ldap/schema/
 
 ## infosys_nordugrid enable - These three variables decide which schema should be used for
 ## CHANGE: DELETED. subblocks are used to enable/disable schema-specific publishing.
@@ -2479,7 +2551,7 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ## value of "cpu MHz". Do NOT set this attribute on cluster level if the NODES
 ## are inhomogeneous with respect to cputype, instead arrange the nodes into
 ## homogeneous groups assigned to a queue and use queue-level attributes. Setting
-## the nodecpu="adotf" will result in Automatic Determination On The Frontend,
+## the nodecpu=adotf will result in Automatic Determination On The Frontend,
 ## which should only be used if the frontend has the same cputype as the
 ## homogeneous nodes.
 ## default: not set
@@ -2687,7 +2759,7 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ## proxy certificate (requires the arc-vomsac-check plugin to be enabled).
 ## This is a TEMPORARY solution for enforcing queue-based access control with authplugins
 ## Matching rules have the following format:
-##   ac_policy="[+/-]VOMS: <FQAN>"
+##   ac_policy=[+/-]VOMS: <FQAN>
 ## Please read arc-vomsac-check manual page for more information.
 ## multivalued
 ## default: not set
