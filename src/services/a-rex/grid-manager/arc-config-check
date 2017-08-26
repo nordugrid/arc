@@ -124,16 +124,12 @@ $verbose=1 if $debug;
 # bits of the configuration. This hash shall keep track of these.
 
 my %introducedSections = (
-	"group" => [],
-	"gridftpd" => [],
+	"authgroup" => [],
 	"queue" => [],
 	"infosys/cluster/registration" => [],
 	"infosys/index" => [],
-	"infosys/se" => [],
-	"infosys/site" => [],
-	"janitor" => [],
+	"infosys/glue1/site" => [],
 	"queue" => [],
-	"se" => []
 );
 
 print STDERR "The following sections have configurable subgroups: "
@@ -424,10 +420,12 @@ sub validconfparams() {
 
 	my @validparams;
 	my @validblocks;
+	my @multiparams;
 	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
 		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
 		return ( \@validparams, \@validblocks );
 	}
+	my $multivalued = 0;
 	while (my $line = <ARCREF>) {
 		if ($line =~ m/^#(\w*)\s*=(.*)$/) { # match #parameter="value"
 			my $name = $1;
@@ -438,6 +436,10 @@ sub validconfparams() {
 			$name =~ s/^'(.*)'$/$1/;
 			if (!grep(/^$name$/, @validparams)) {
 				push(@validparams, $name);
+				if ($multivalued) {
+				  push(@multiparams, $name);
+				  $multivalued = 0;
+				}
 			}
 		} elsif ($line =~ m|^#\[(.*)\]$|) { # match #[section]
 			my $blockname = $1;
@@ -448,9 +450,11 @@ sub validconfparams() {
 				}
 			}
 			push(@validblocks, $blockname) if !$dynamic;
+		} elsif ($line =~ m/^## multivalued$/) {
+		  $multivalued = 1; # the next option can be multivalued
 		}
 	}
-	return ( \@validparams, \@validblocks );
+	return ( \@validparams, \@validblocks, \@multiparams );
 }
 	
 =item configuration check
@@ -467,20 +471,10 @@ sub confcheck($) {
 		e("Could not open '$arcconf' for reading.\n");
 		return;
 	}
-	# parameters which are allowed more than once
-	# taken from arc.conf.reference - somehow this needs to be kept in sync
-	my @multiple = ("voms_trust_chain", "source", "filter", "subject",
-		 "file", "voms", "sessiondir", "cachedir",
-		"remotecachedir", "jobreport", "share_limit", "authplugin",
-		"allowsubmit", "copyurl", "linkurl", "definedshare",
-		"deliveryservice", "unixmap", "unixgroup", "unixvo", "dir",
-		"remotegmdirs", "allowreg", "cluster_owner", "authorizedvo",
-		"clustersupport", "opsys", "benchmark", "nodeaccess",
-		"localse", "cacheserver", "cacheaccess");
   # Blocks which are allowed to be empty
   my @emptyblocks = ("gangliarc");
 	# valid parameter names and blocks
-	my ($validparams, $validblocks) = validconfparams();
+	my ($validparams, $validblocks, $multiple) = validconfparams();
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
@@ -537,13 +531,9 @@ sub confcheck($) {
 
 		$name =~ s/^\s*//;
 		$name =~ s/\s*$//;
-		$name =~ s/^"(.*)"$/$1/;
-		$name =~ s/^'(.*)'$/$1/;
 
 		$value =~ s/^\s*//;
 		$value =~ s/\s*$//;
-		$value =~ s/^"(.*)"$/$1/;
-		$value =~ s/^'(.*)'$/$1/;
 
 		if ($name =~ m/^"/ and $name !~ m/"$/
 			or $name =~ m/^'/ and $name !~ m/'$/
@@ -551,11 +541,9 @@ sub confcheck($) {
 			or $name !~ m/^'/ and $name =~ m/'$/) {
 				w("$arcconf: $c: badly quoted attribute name?\n");
 		}
-		if ($value =~ m/^"/ and $value !~ m/"$/
-			or $value =~ m/^'/ and $value !~ m/'$/
-			or $value !~ m/^"/ and $value =~ m/"$/
-			or $value !~ m/^'/ and $value =~ m/'$/) {
-				w("$arcconf: $c: badly quoted value?\n");
+		if ($value =~ m/^"/ and $value =~ m/"$/
+		  or $value =~ m/^'/ and $value =~ m/'$/) {
+				w("$arcconf: $c: quotes around attribute value\n");
 				$warnings++;
 		}
 
@@ -579,7 +567,7 @@ sub confcheck($) {
 		$blockcontents++;
 
 		if ($config->{$blockname}{$name}) {
-			if (grep(/^$name$/, @multiple)) {
+			if (grep(/^$name$/, @$multiple)) {
 				$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
 			} else {
 				w("$arcconf:$c: duplicate parameter: ".$name."\n");

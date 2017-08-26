@@ -82,24 +82,24 @@
 ## mandatory
 ## default: as a safety fallback solution, the return value of the shell command hostname -f is used
 #hostname=myhost.org
-## CHANGE: modified semantics
+## CHANGE1: modified semantics
 
 ## enable_perflog_reporting yes/no - Turns on/of the performance metrics collection and reporting 
 ## built-in feature of the various ARC components. 
 ## allowedvalues: expert-debug-on no
 ## default: no
 #enable_perflog_reporting=expert-debug-on
-## CHANGE: new parameter
+## CHANGE2: new parameter
 
 ## perflogdir path - The directory containing the performance metric files.
 ## default: /var/log/arc/perfdata
 #perflogdir=/var/log/arc/perfdata
-## CHANGE: new parameter
+## CHANGE3: new parameter
 
 ## http_proxy  url - The http proxy server.
 ## default: not set
 #http_proxy=proxy.mydomain.org:3128
-## CHANGE: moved here from the [grid-manager] block
+## CHANGE4: moved here from the [grid-manager] block
 
 ### X509 related parameters
 ## x509_host_key - (previously x509_user_key) Server credential location. Sets the full path to the host private key.
@@ -107,14 +107,14 @@
 ## If indicated, the variable can be set individually for each service/component in the corresponding block.
 ## default: /etc/grid-security/hostkey.pem
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: renamed 
+## CHANGE5: renamed 
 
-## x509_user_cert - (previously x509_user_cert) Server credential location. Sets the full path to the host public certificate.
+## x509_host_cert - (previously x509_user_cert) Server credential location. Sets the full path to the host public certificate.
 ## These variables are similar to the GSI environment variable X509_USER_CERT
 ## If indicated, the variable can be set individually for each service/component in the corresponding block.
 ## default: /etc/grid-security/hostcert.pem
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: renamed as host_cert
+## CHANGE6: renamed
 
 ## x509_cert_dir - Location of trusted CA certificates.
 ## This variable is similar to the GSI enviroment variable X509_CERT_DIR
@@ -141,7 +141,7 @@
 
 ## voms_trust_chain - Define the DN chain that the host services trust when the
 ## voms AC from peer voms proxy certificate is parsed and validated.
-## CHANGE: DELETED should be removed from code and config!
+## CHANGE7: DELETED should be removed from code and config!
 
 ### Coarse-grained initial authorization
 ## gridmap path - The location of the so-called gridmap file. The gridmap file contains a list of
@@ -161,7 +161,7 @@
 ## This block defines the grid-identity --- local unix identity mapping rules used by 
 ## various ARC components. 
 #[common/mapping]
-## CHANGE: This is a new block
+## CHANGE8: This is a new block
 
 ## gridmap path - The gridmap file location. Preferably should be set in the [common] block but 
 ## may be set here as well.
@@ -181,7 +181,7 @@
 ##  For safety reasons if sophisticated mapping is used it is better to
 ##  finish mapping sequence with default mapping to nonexistent or safe
 ##  account.
-## multivalued: yes
+## multivalued
 ## default: not set
 #unixmap=nobody:nogroup all
 ## ARC ships with LCMAPS plugin that can be enabled with following unixmap configuration.
@@ -195,7 +195,7 @@
 ##  authorization group. Only rules which generate unix user and group names
 ##  may be used in this command. Please read "ARC Computing Element System
 ##  Administrator Guide" for more information.
-## multivalued: yes
+## multivalued
 ## default: not set
 #unixgroup=users simplepool /etc/grid-security/pool/users
 
@@ -205,11 +205,11 @@
 ## Please read "ARC Computing Element. System Administrator Guide" for more
 ## information. This command is similar to 'unixgroup' described above and
 ## exists for convenience for setups which base mapping on VOs users belong to.
-## multivalued: yes
+## multivalued
 ## default: not set
 ## TODO: Suggestion: consider to rename 'unixvo' option to something like 'unixmap_userlist' to eliminate this VO-based possible misunderstood naming
 #unixvo=ATLAS unixuser atlas:atlas
-## CHANGE: modified option. It uses the name from the [userlist/name] block 
+## CHANGE9: modified option. It uses the name from the [userlist/name] block 
 ##
 ##
 ### end of the [common/mapping] block ##############################################
@@ -223,7 +223,7 @@
 ## For detailed description of recommended LRMS setups for ARC please refer to ARC CE sysadmin guide:
 ## http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf
 #[lrms]
-## CHANGE: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
+## CHANGE10: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
 ## lrms lrmstype [queue] - Sets the type of the LRMS (queue system) and optionally the default queue name.
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
@@ -254,13 +254,13 @@
 ## default: not set
 #lrms=pbs gridlong
 #lrms=slurm
-## CHANGE: new lrmstype values added (slurmpy, lsfpy, sceapi). FIX annoying SLURM spelling!!!
+## CHANGE11: new lrmstype values added (slurmpy, lsfpy, sceapi). FIX annoying SLURM spelling!!!
 
 ## lrmsconfig text - An optional free text field to describe the configuration of your
 ## Local Resource Management System (batch system). The value is published in the infosys.
 ## default: not set
 #lrmsconfig=single job per processor
-## CHANGE: moved here from the [cluster] block
+## CHANGE12: moved here from the [cluster] block
 
 ## defaultmemory number - The LRMS memory request of job to be set by A-REX if
 ## a user submits a job without specifying how much memory should be used.
@@ -268,7 +268,7 @@
 ## This is the amount of memory (specified in MB) that a job will request.
 ## default: not set
 #defaultmemory=512
-## CHANGE: moved here from the [cluster] block
+## CHANGE13: moved here from the [cluster] block
 
 ### PBS options: set these only in case of lrms=pbs 
 ## pbs_bin_path path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
@@ -612,7 +612,7 @@
 ##
 ## This allows to simplify configuration, especially in redundancy cases when
 ## several VOMS servers are used for the same VO.
-## multivalued: yes
+## multivalued
 ## default: not set
 #voms_fqan_map=/atlas/Role=VO-Admin atlasadmin
 #voms_fqan_map=/atlas/Role=production atlasprod
@@ -629,7 +629,7 @@
 ##
 ## If at least one allow filter is specified implicit deny is used at the end
 ## of ACL. If only deny filters are present - implicit allow used at the end.
-## multivalued: yes
+## multivalued
 ## default: not set
 #filter=deny *infn*
 #filter=allow *NorduGrid*
@@ -954,11 +954,16 @@
 ## default:  604800 2592000
 #defaultttl=2592000
 
-## shared_filesystem yes/no - Specifies if computing node can access session directory at frontend. 
+## shared_filesystem yes/no - Specifies if computing nodes can access folders mounted
+## with protocols like NFS with the same pathnames as the frontend. 
+## Note that the default “yes” assumes that the paths to the session directories
+## are the same on both frontend and nodes. 
+## If these paths are not the same, then one should set the scratchdir option.
+## The option changes the RUNTIME_NODE_SEES_FRONTEND variable in the submission scripts.
 ## allowedvalues: yes no
 ## default: yes
 #shared_filesystem=yes
-## TODO Florido: clarify the mount path on the node vs. frontend.
+## TODO Florido: clarify the mount path on the node vs. frontend. DONE
 
 ## scratchdir path - The path on computing node to move session directory to before
 ## execution. If defined should contain the path to the directory on the
@@ -1439,6 +1444,13 @@ CHANGE: implement a default! in the format of root@localhost.
 ## http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt 
 ## If you don't want to offer EMIES interface, remove or comment out this block in our arc.conf.
 #[grid-manager/wsinterfaces/emies]
+
+## allowunknown yes|no - Specifies whether to check user subject against grid-mapfile and
+## reject missing users. By default unknown (not in the grid-mapfile) grid users
+## are rejected by the gridftp server (for both plugins).
+## allowedvalues: yes no
+## default: no
+#allowunknown=no
 
 ## allownew yes/no - The 'allownew' config parameter sets if the Computing Element accepts
 ## submission of new jobs via the WS-interface. This parameter can be used to close down the CE. 

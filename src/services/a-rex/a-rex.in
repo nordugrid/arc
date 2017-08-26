@@ -15,9 +15,9 @@
 # which contains commands to start A-REX service. Service
 # is either run isolated or with WS interface enabled.
 # To enable WS interface ARC0 configuration file must 
-# contain undocumented option in [grid-manager] section:
-#
-#    arex_mount_point="a_rex_url"
+# contain [grid-manager/wsinterfaces/emies] section
+# and mandatory option in [grid-manager/wsinterfaces]:
+#    wsurl="a_rex_url"
 
 ### BEGIN INIT INFO
 # Provides:          a-rex
@@ -346,30 +346,53 @@ prepare() {
 
     # Web Service configuration
     arex_endpoint=""
-    arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager arex_mount_point`
-    arex_mount_point=${arex_mount_point:-`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`}
-    if [ ! -z "$arex_mount_point" ] ; then
-        arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
-        arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
-        arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
-        arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-        if [ -z "$arex_port" ] ; then
+    arex_mount_point=""
+    arex_proto=""
+    arex_host=""
+    arex_port=""
+    arex_path=""
+    arex_service_plexer=""
+    ws_present=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces`
+    arex_present=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces/emies`
+    if [ "$ws_present" = 'true' ] ; then
+        arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager/wsinterfaces wsurl`
+        if [ ! -z "$arex_mount_point" ] ; then
+            arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
+            arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
+            arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
+            arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
             if [ "$arex_proto" = "https" ] ; then
-                arex_port="443"
+                if [ -z "$arex_port" ] ; then
+                    arex_port="443"
+                fi
+            elif [ "$arex_proto" = "http" ] ; then
+                if [ -z "$arex_port" ] ; then
+                    arex_port="80"
+                fi
             else
-                arex_port="80"
+                log_failure_msg "Unsupported protocol '$arex_proto' for WS interface"
+                exit 1
             fi
+        else
+            arex_proto='https'
+            arex_host=`hostname -f`
+            arex_port='443'
+            arex_path='arex'
+            arex_mount_point=${arex_proto}://${arex_host}:${arex_port}/${arex_path}
         fi
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
+        arex_path="/$arex_path"
     fi
-
-    enable_emies_interface=`readconfigvar "$ARC_CONFIG" grid-manager enable_emies_interface`
-    if [ ! -z "$enable_emies_interface" ] ; then
-        enable_emies_interface="<arex:enableEMIESInterface>$enable_emies_interface</arex:enableEMIESInterface>"
+    if [ "$arex_present" = 'true' ] ; then
+        if [ "$ws_present" != 'true' ] ; then
+            log_failure_msg "WS interface must be turned on to use A-REX/EMIES WS service"
+            exit 1
+        fi
+        arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
 
     emir_registration=""
-#    if [ ! -z "$arex_mount_point" ]; then
+#    if [ "$arex_present" = 'true' ]; then
 #        emir_urls=`readconfigvar "$ARC_CONFIG" "registration/emir" emirurls`
 #        if [ ! -z "$emir_urls" ]; then
 #            emir_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
@@ -402,7 +425,7 @@ prepare() {
 #    fi
 
     isis_registration=""
-    if [ ! -z "$arex_mount_point" ]; then
+    if [ "$arex_present" = 'true' ]; then
         isis_urls=`readconfigvar "$ARC_CONFIG" "registration/isis" isisurls`
         if [ ! -z "$isis_urls" ]; then
             isis_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
@@ -433,16 +456,6 @@ prepare() {
             fi
         fi
     fi
-
-    infoproviders_timeout=`readconfigvar "$ARC_CONFIG" infosys infoproviders_timeout`
-    if [ -z "$infoproviders_timeout" ]; then
-        infoproviders_wakeup="\
-<arex:InfoproviderWakeupPeriod>600</arex:InfoproviderWakeupPeriod>"
-    else
-        infoproviders_wakeup="\
-<arex:InfoproviderWakeupPeriod>$infoproviders_timeout</arex:InfoproviderWakeupPeriod>"
-    fi
-
 
     argus_shc=""
     argus_plugin=""
@@ -526,16 +539,13 @@ prepare() {
     # cache service
     cache_service_plexer=""
     cache_service=""
-    use_cache_service=`readconfigvar "$ARC_CONFIG" grid-manager enable_cache_service`
-    if [ "$use_cache_service" = "yes" ]; then
-        
-        use_dtr=`readconfigvar "$ARC_CONFIG" grid-manager enable_dtr`
-        if [ -z "$arex_mount_point" -o "$use_dtr" = "no" ]; then
-            log_failure_msg "Both DTR and A-REX WS interface must be turned on to use cache service"
+    use_cache_service=`testconfigblock "$ARC_CONFIG" grid-manager/wsinterfaces/cache`
+    if [ "$use_cache_service" = "true" ]; then
+        if [ "$ws_present" != 'true' ] ; then
+            log_failure_msg "WS interface must be turned on to use cache service"
             exit 1
         fi
-        
-        cache_service_plexer="<next id=\"cacheservice\">^/cacheservice</next>"
+        cache_service_plexer="<next id=\"cacheservice\">^$arex_path/cache</next>"
         cache_service="\
     <Service name=\"cacheservice\" id=\"cacheservice\">\
       $legacy_shc
@@ -669,19 +679,85 @@ prepare() {
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
-      $infoproviders_wakeup
     </Service>
   </Chain>
 </ArcConfig>
 "
 
+    # A-Rex with WS interface over HTTP
+    AREXCFGWS="\
+<?xml version=\"1.0\"?>
+<ArcConfig
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
+  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
+  xmlns:cacheservice=\"urn:cacheservice_config\">
+  <Server>
+    <PidFile>$PID_FILE</PidFile>
+    <Logger>
+      <File>$LOGFILE</File>
+      <File>$WSLOGFILE</File>
+      <Level>$LOGLEVEL</Level>
+      <Backups>$LOGNUM</Backups>
+      <Maxsize>$LOGSIZE</Maxsize>
+      <Reopen>$LOGREOPEN</Reopen>
+    </Logger>
+    <Watchdog>$WATCHDOG</Watchdog>
+  </Server>
+  <ModuleManager>
+    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+  <Plugins><Name>identitymap</Name></Plugins>
+  <Plugins><Name>arcshc</Name></Plugins>
+  <Plugins><Name>arcshclegacy</Name></Plugins>
+  $argus_plugin
+  <Chain>
+    <Component name=\"tcp.service\" id=\"tcp\">
+      <next id=\"http\"/>
+      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name=\"http.service\" id=\"http\">
+      <next id=\"soap\">POST</next>
+      <next id=\"plexer\">GET</next>
+      <next id=\"plexer\">PUT</next>
+      <next id=\"plexer\">HEAD</next>
+    </Component>
+    <Component name=\"soap.service\" id=\"soap\">
+      <next id=\"plexer\"/>
+    </Component>
+    <Plexer name=\"plexer.service\" id=\"plexer\">
+      $cache_service_plexer
+      $arex_service_plexer
+    </Plexer>
+    <Service name=\"a-rex\" id=\"a-rex\">
+      $legacy_shc
+      $argus_shc
+      $arex_endpoint
+      $emir_registration
+      $isis_registration
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
+      <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
+      <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
+    </Service>
+    $cache_service
+  </Chain>
+</ArcConfig>
+"
+ 
     # A-Rex with WS interface over HTTPS
     AREXCFGWSS="\
 <?xml version=\"1.0\"?>
 <ArcConfig
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
   xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
+  xmlns:cacheservice=\"urn:cacheservice_config\">
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
@@ -738,19 +814,17 @@ prepare() {
       <next id=\"plexer\"/>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
-      <next id=\"a-rex\">^/$arex_path</next>
       $cache_service_plexer
+      $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
       $legacy_shc
       $argus_shc
       $arex_endpoint
-      $enable_emies_interface
       $emir_registration
       $isis_registration
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
-      $infoproviders_wakeup
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
@@ -759,13 +833,14 @@ prepare() {
 </ArcConfig>
 "
 
-    if [ -z "$arex_proto" ] ; then
+    if [ "$ws_present" != 'true' ] ; then
         echo "$AREXCFG" > "$AREX_CONFIG"
-    elif [ "$arex_proto" = "https" ] ; then
-        echo "$AREXCFGWSS" > "$AREX_CONFIG"
     else
-        log_failure_msg "Unsupported protocol: $arex_proto"
-        exit 1
+        if [ "$arex_proto" = 'http' ] ; then
+            echo "$AREXCFGWS" > "$AREX_CONFIG"
+        else
+            echo "$AREXCFGWSS" > "$AREX_CONFIG"
+        fi
     fi
 
     if [ ! -z "$USERNAME" ] ; then

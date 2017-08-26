@@ -95,7 +95,7 @@ void GMConfig::SetDefaults() {
 
   deleg_db = deleg_db_bdb;
 
-  enable_arc_interface = true;
+  enable_arc_interface = false;
   enable_emies_interface = false;
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
