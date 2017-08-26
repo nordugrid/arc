@@ -102,26 +102,15 @@ fi
 
 # Check for existence of a system ldap, this command will be used by bdii
 slapd_cmd=
-slapd_env=
 if [ "x" = "x$CONFIG_slapd" ]; then
     O_IFS=$IFS
     IFS=:
-    # slapd2.4 search added to overcome SL5 problems
-    # can be removed once redhat5 is not supported anymore
     for dir in $PATH; do
-        if [ -x "$dir/slapd2.4" ]; then
-            slapd_cmd="$dir/slapd2.4"
-            break
-        fi
+	if [ -x "$dir/slapd" ]; then
+	    slapd_cmd="$dir/slapd"
+	    break
+	fi
     done
-    if [ -z "$slapd_cmd" ]; then
-        for dir in $PATH; do
-            if [ -x "$dir/slapd" ]; then
-                slapd_cmd="$dir/slapd"
-                break
-            fi
-        done
-    fi
     IFS=$O_IFS
 else
     slapd_cmd=$CONFIG_slapd
@@ -134,19 +123,12 @@ fi
 
 find_ldap_database_module() {
     # First try to find a separate module
-    # openldap2.4 search added to overcome SL5 problems
-    # can be removed once redhat5 is not supported anymore
-    if [[ "$slapd_cmd" =~ '2.4' ]]; then
-       ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
-        -name "back_${database}.la" -printf ":%h/" 2>/dev/null)
-    else 
-       ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
+    ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
 	/usr/lib/ldap -name "back_${database}.la" -printf ":%h/" 2>/dev/null)
-    fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      back_${database}"
-	grep -E -q "(^|:)${ldapdir}(:|$)" <<< ${ldapdirs} || \
+	grep -E -q "${ldapdir}(:|$)" <<< ${ldapdirs} || \
 	    ldapdirs=${ldapdirs}${ldapdir}
     else
 	# Separate module not found - check for preloaded module
@@ -160,19 +142,12 @@ find_ldap_database_module() {
 
 find_ldap_overlay_module() {
     # Try to find a separate module
-    # openldap2.4 search added to overcome SL5 problems
-    # can be removed once redhat5 is not supported anymore
-    if [[ "$slapd_cmd" =~ '2.4' ]]; then
-       ldapdir=$(find /usr/lib64/openldap2.4 /usr/lib/openldap2.4 \
-        -name "${overlay}.la" -printf ":%h/" 2>/dev/null)
-    else
-    	ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
+    ldapdir=$(find /usr/lib64/openldap /usr/lib/openldap /usr/lib64/ldap \
 	/usr/lib/ldap -name "${overlay}.la" -printf ":%h/" 2>/dev/null)
-    fi
     if [ -n "$ldapdir" ]; then
 	# Separate module found
 	ldapmodule="moduleload      ${overlay}"
-	grep -E -q "(^|:)${ldapdir}(:|$)" <<< ${ldapdirs} || \
+	grep -E -q "${ldapdir}(:|$)" <<< ${ldapdirs} || \
 	    ldapdirs=${ldapdirs}${ldapdir}
     else
 	# Module not found
@@ -205,7 +180,6 @@ if [ -z "$overlay" ]; then
 fi
 moduleload_rwm="${ldapmodule}"
 
-
 if [ "$(config_subsections infosys/index)" ]; then
     database=shell
     find_ldap_database_module
@@ -214,30 +188,8 @@ if [ "$(config_subsections infosys/index)" ]; then
 	exit 1
     fi
     moduleload_shell="${ldapmodule}"
-
-    if [ -n "${ldapmodule}" ]; then
-    ldapdir=`sed 's/^://;s,/:.*,,' <<< "$ldapdir"`
-	dlname=`( . ${ldapdir}/back_shell.la ; echo ${dlname} )`
-	slapd_env="ARC_LDAPLIB_SHELL=${ldapdir}/${dlname}"
-    fi
-
-    if [ -r ${giis_location}/lib64/arc/arc-infoindex-slapd-wrapper.so ]; then
-	pkglibdir=${giis_location}/lib64/arc
-    elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ]; then
-	pkglibdir=${giis_location}/lib/arc
-    else
-	echo "Error, could not find infoindex slapd wrapper, please install the package nordugrid-arc-egiis to run an index server"
-	exit 1
-    fi
-    ldapdirs=${ldapdirs}:${pkglibdir}
-    moduleload_index="moduleload      arc-infoindex-slapd-wrapper"
-
-    if [ -z "${slapd_env}" ] ; then
-	slapd_env="LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so"
-    fi
 else
     moduleload_shell=
-    moduleload_index=
 fi
 
 ldapdirs=`sed 's/^://' <<< $ldapdirs`
@@ -289,7 +241,6 @@ cat <<-EOF >> $bdii_slapd_conf
 	$moduleload_relay
 	$moduleload_rwm
 	$moduleload_shell
-	$moduleload_index
 
 	allow bind_v2
 
@@ -399,9 +350,9 @@ chown $bdii_user: $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
 if [ "x$slapd_hostnamebind" = "x*" ]; then
-    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 else
-    echo ${slapd_env} ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 fi
 chmod +x ${bdii_slapd_cmd}
 

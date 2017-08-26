@@ -26,7 +26,6 @@ EOM
   /usr/share/arc/ldap-schema/* r,
   /{,var/}run/arc/infosys/bdii-slapd.conf r,
   /{,var/}run/arc/infosys/giis-fifo wk,
-  /usr/lib/arc/arc-infoindex-slapd-wrapper.so rm,
   /usr/sbin/arc-infoindex-relay ix,
   /tmp/* rwk,
 # AppArmor profile for NorduGrid ARC EGIIS END

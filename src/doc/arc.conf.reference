@@ -92,8 +92,8 @@
 ## CHANGE: new parameter
 
 ## perflogdir path - The directory containing the performance metric files.
-## default: var/log/arc/perfdata
-#perflogdir=var/log/arc/perfdata
+## default: /var/log/arc/perfdata
+#perflogdir=/var/log/arc/perfdata
 ## CHANGE: new parameter
 
 ## http_proxy  url - The http proxy server.
@@ -880,6 +880,12 @@
 ## default: no
 #norootpower=yes
 
+## delegationdb db_name - specify which DB to use to store delegations.
+## Currently supported db_names are bdb and sqlite
+## default: bdb
+## TODO change default to sqlite?
+#delegationdb=bdb
+
 ## watchdog yes/no - Specifies if additional watchdog processes is spawned to restart
 ## main process if it is stuck or dies.
 ## allowedvalues: yes no
@@ -1073,6 +1079,13 @@ CHANGE: implement a default! in the format of root@localhost.
 ## default: var/log/arc/job.helper.errors
 #helperlog=var/log/arc/job.helper.errors
 ## CHANGE: new parameter, check the default.
+
+## forcedefaultvoms VOMS_FQAN - specify VOMS FQAN which user will be
+## assigned if his/her credentials contain no VOMS attributes.
+## To assign different values to different queues put this command
+## into [queue] block.
+## default: not set
+#forcedefaultvoms=/vo/group/subgroup
 
 ## localcred timeout plugin_path - Every time an external executable
 ## CHANGE: DELETED.  remove from code, config.
@@ -1346,6 +1359,7 @@ CHANGE: implement a default! in the format of root@localhost.
 ## will be logged (in addition to their job.id.errors files). If this option is
 ## not present or the path is empty the log file is not created. Note this file
 ## is not automatically controlled by logrotate.
+## default: not set
 #central_logfile=/var/log/arc/datastaging.log
 
 ## The following 4 options are used to configure multi-host data staging.
@@ -1475,15 +1489,17 @@ CHANGE: implement a default! in the format of root@localhost.
 ## A rule has three parts:
 ## 1. Regular expression defining a URL pattern
 ## 2. Credential attribute to match against a client's credential
-## 3. Credential value to match against a client's credential
+## 3. Regular expression defining a credential value to match against a client's
+##    credential
 ## A client is allowed to access the cached file if a URL pattern matches the
-## cached file URL and the client's credential has the attribute and value
-## required for that pattern. Possible values for credential attribute are dn,
-## voms:vo, voms:role and voms:group. Remote cache access requires that the
+## cached file URL and the client's credential has the attribute and matches the
+## value required for that pattern. Possible values for credential attribute are
+## dn, voms:vo, voms:role and voms:group. Remote cache access requires that the
+## A-REX web interface is enabled via arex_mount_point.
 ## multivalued
 ## default: not set
 #cacheaccess=gsiftp://host.org/private/data/.* voms:vo myvo:production
-#cacheaccess=gsiftp://host.org/private/data/bob/.* dn /O=Grid/CN=Bob
+#cacheaccess=gsiftp://host.org/private/data/bob/.* dn /O=Grid/O=NorduGrid/.*
 ##
 ##
 ### end of the [grid-manager/wsinterfaces/cache] block ####################
@@ -1598,6 +1614,20 @@ CHANGE: implement a default! in the format of root@localhost.
 ## default: /var/log/arc/acix-cachescanner.log
 #logfile=/tmp/acix-cachescanner.log
 ## CHANGE: modified default for the logfile
+
+## hostname - Hostname on which the cache server listens
+## default: listen on all available interfaces.
+#hostname=myhost.org
+
+## port - Port on which the cache server listens
+## default: 5443
+#port=6000
+
+## cachedump - Whether to make a dump of the cache contents in a file at
+## $TMP/ARC-ACIX/timestamp each time the cache server runs.
+## default: no
+#cachedump=yes
+
 ##
 ##
 ### end of the [acix/cachescanner] block ############################
@@ -2406,28 +2436,28 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
 ## targethostname - the hostname of the machine running the registration target
 ## Index Service
-#targethostname="index.myinstitute.org"
+#targethostname=index.myinstitute.org
 
 ## targetport - the port on which the target Index Service is running.
 ## The default is the 2135 Infosys port.
-#targetport="2135"
+#targetport=2135
 
 ## targetsuffix - the LDAP suffix of the target Index Service
-#targetsuffix="mds-vo-name=BigIndex,o=grid"
+#targetsuffix=mds-vo-name=BigIndex,o=grid
 
 ## regperiod - The registration period in seconds, the registration messages are
 ## continously sent according to the regperiod. Default is 120 sec.
-#regperiod="300"
+#regperiod=300
 
 ## registranthostname - the hostname of the machine sending the registrations.
 ## This attribute inherits its value from the [common] and [infosys] blocks,
 ## most cases no need to set.
-#registranthostname="myhost.org"
+#registranthostname=myhost.org
 
 ## registrantport - the port of the slapd service hosting the
 ## registrant Index Service. The attribute inherits its value from the
 ## [infosys] block (and therefore defaults to 2135)
-#registrantport="2135"
+#registrantport=2135
 
 ## registrantsuffix - the LDAP suffix of the registrant cluster resource
 ## It is automatically determined from the [infosys] block and the
@@ -2436,15 +2466,15 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ## please mind uppercase/lowercase characters above if defining
 ## allowreg in an index!
 ## Don't set it unless you want to overwrite the default.
-#registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
+#registrantsuffix=nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid
 
 ## timeout - The suggested timeout to be included in the registration.
 ## Default: 45.
-#timeout="45"
+#timeout=45
 
 ## ttl - The suggested TTL to be included in the registration.  The default
 ## is twice the registration period.
-#ttl="600"
+#ttl=600
 ##
 ##
 ### end of the [infosys/cluster/registration/registrationname] blocks ###########
@@ -2876,8 +2906,6 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 ## computingservice_qualitylevel qlevel - (previously infosys_glue2_service_qualitylevel) 
 ## Allows a sysadmin to define different GLUE2 QualityLevel values for A-REX.
 ## Refer to GLUE2 documentation for the qualitylevel definitions.
-## multivalued: no
-## mandatory: no
 ## allowedvalues: production pre-production testing development
 ## default: production
 #computingservice_qualitylevel=production
@@ -3117,3 +3145,46 @@ HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
 ## disablereg_xbes yes/no - disablereg_xbes may be used to selectively disable registration of
 ## CHANGE: DELETED
+
+####################################################################
+##
+### The [gangliarc] block ##########################################
+##
+## Gangliarc provides monitoring of ARC-specific metrics through ganglia.
+## It can be run with zero configuration or customised with options in the
+## [gangliarc] block.
+#[gangliarc]
+
+## frequency - The period between each information gathering cycle, in seconds.
+## default: 20
+#frequency=30
+
+## gmetric_exec - Path to gmetric executable.
+## default: /usr/bin/gmetric
+#gmetric_exec=/usr/local/bin/gmetric
+
+## logfile - log file of the daemon.
+## default: /var/log/arc/gangliarc.log
+#logfile=/tmp/gangliarc.log
+
+## pidfile - pid file of the daemon.
+## default: /var/run/gangliarc.pid
+#pidfile=/tmp/gangliarc.pid
+
+## python_bin_path - path to python executable.
+## default: /usr/bin/python
+#python_bin_path=/usr/local/bin/python
+
+## metrics - the metrics to be monitored.
+## metrics takes a comma-separated list of one or more of the following metrics:
+## - staging -- number of tasks in different data staging states
+## - cache -- free cache space
+## - session -- free session directory space
+## - heartbeat -- last modification time of A-REX heartbeat 
+## - processingjobs -- the number of jobs currently being processed by ARC (jobs
+##                     between PREPARING and FINISHING states)
+## - failedjobs -- the number of failed jobs per last 100 finished
+## - jobstates -- number of jobs in different A-REX internal stages
+## - all -- all of the above metrics
+## default: all
+#metrics=all

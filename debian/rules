@@ -158,7 +158,7 @@ binary-arch: install
 	dh_strip -a --dbg-package=nordugrid-arc-dbg
 	dh_compress -a -X .pdf
 	dh_fixperms -a
-	dh_makeshlibs -a -X arc-infoindex-slapd-wrapper.so
+	dh_makeshlibs -a
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a

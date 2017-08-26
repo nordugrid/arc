@@ -1351,8 +1351,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_sbindir}/arc-infoindex-server
 %{_mandir}/man8/arc-infoindex-relay.8*
 %{_mandir}/man8/arc-infoindex-server.8*
-%{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
-%{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.apd
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 %{_datadir}/selinux/packages/%{name}
 %endif
