@@ -9,7 +9,7 @@
 #include <arc/communication/ClientInterface.h>
 #include <sstream>
 
-namespace Arc
+namespace ArcJura
 {
   CARDestination::CARDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.CARDestination"),
@@ -76,7 +76,7 @@ namespace Arc
 
   }
 
-  void CARDestination::report(Arc::JobLogFile &joblog)
+  void CARDestination::report(JobLogFile &joblog)
   {
     //if (joblog.exists())
       {

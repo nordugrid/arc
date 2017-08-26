@@ -9,10 +9,10 @@
 #include "ApelDestination.h"
 #include "CARDestination.h"
 
-namespace Arc
+namespace ArcJura
 {
 
-  Destination* Destination::createDestination(Arc::JobLogFile &joblog)
+  Destination* Destination::createDestination(JobLogFile &joblog)
   {
     std::string url=joblog["loggerurl"];
     if (url.substr(0,3) == "CAR") {
@@ -106,7 +106,7 @@ namespace Arc
                    );
         }
     }
-    return Arc::MCC_Status(STATUS_OK);
+    return Arc::MCC_Status(Arc::STATUS_OK);
   }
   
   void Destination::log_sent_ids(Arc::XMLNode usagerecordset, int nr_of_records, Arc::Logger &logger, std::string type) {

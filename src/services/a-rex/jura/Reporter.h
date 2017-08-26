@@ -14,7 +14,7 @@
 
 #include "Destinations.h"
 
-namespace Arc
+namespace ArcJura
 {
   /** The class for main JURA functionality. Traverses the 'logs' dir
    *  of the given control directory, and reports usage data extracted from 

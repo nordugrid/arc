@@ -10,7 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/DateTime.h>
 
-namespace Arc
+namespace ArcJura
 {
   class JobLogFile: public std::map<std::string, std::string>
   /**

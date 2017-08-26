@@ -9,7 +9,7 @@
 #include <arc/communication/ClientInterface.h>
 #include <sstream>
 
-namespace Arc
+namespace ArcJura
 {
   LutsDestination::LutsDestination(std::string url_, std::string vo_filter_):
     logger(Arc::Logger::rootLogger, "JURA.LutsReReporter"),
@@ -101,7 +101,7 @@ namespace Arc
     max_ur_set_size=JURA_DEFAULT_MAX_UR_SET_SIZE;
   }
 
-  void LutsDestination::report(Arc::JobLogFile &joblog)
+  void LutsDestination::report(JobLogFile &joblog)
   {
     //if (joblog.exists())
       {
@@ -200,13 +200,13 @@ namespace Arc
 
   Arc::MCC_Status LutsDestination::send_request(const std::string &urset)
   {
-    ClientHTTP httpclient(cfg, service_url);
+    Arc::ClientHTTP httpclient(cfg, service_url);
     //TODO: Absolute or relative url was in the configuration?
     httpclient.RelativeURI(true);
 
-    PayloadRaw http_request;
-    PayloadRawInterface *http_response = NULL;
-    HTTPClientInfo http_info;
+    Arc::PayloadRaw http_request;
+    Arc::PayloadRawInterface *http_response = NULL;
+    Arc::HTTPClientInfo http_info;
     std::multimap<std::string, std::string> http_attributes;
     Arc::MCC_Status status;
 

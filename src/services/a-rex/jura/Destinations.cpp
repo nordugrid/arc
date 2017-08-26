@@ -6,10 +6,10 @@
 
 #include "Destinations.h"
 
-namespace Arc
+namespace ArcJura
 {
 
-  void Destinations::report(Arc::JobLogFile &joblog)
+  void Destinations::report(JobLogFile &joblog)
   {
     std::string dest_id=joblog["loggerurl"]; 
     //TODO same service URL with different reporting parameters?

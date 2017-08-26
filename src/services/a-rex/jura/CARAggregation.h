@@ -6,7 +6,7 @@
 #include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 
-namespace Arc
+namespace ArcJura
 {
 
   /** Aggregation record collecting and reporting for APEL. */

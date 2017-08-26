@@ -5,17 +5,17 @@
 #include "JobLogFile.h"
 #include <string>
 
-namespace Arc
+namespace ArcJura
 {
   /** Class to handle a set of reporting destinations. */
-  class Destinations:public std::map<std::string,Arc::Destination*>
+  class Destinations:public std::map<std::string,Destination*>
   {
   public:
     /** Reports the given job log file to a destination. If an adapter
      *  object for the specific destination already exists in the set,
      *  it uses that, otherwise creates a new one.
      */
-    void report(Arc::JobLogFile &joblog);
+    void report(JobLogFile &joblog);
     ~Destinations();
   };
 

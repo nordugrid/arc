@@ -16,7 +16,7 @@
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
 
-namespace Arc
+namespace ArcJura
 {
 
   /** Constructor. Pass name of directory containing job log files,
@@ -46,7 +46,7 @@ namespace Arc
                    expiration_time);
       }
     //Collection of logging destinations:
-    dests=new Arc::Destinations();
+    dests=new Destinations();
   }
 
   /**
@@ -67,7 +67,7 @@ namespace Arc
         logger.msg(Arc::ERROR, 
                    "Could not open log directory \"%s\": %s",
                    job_log_dir.c_str(),
-                   StrError(errno)
+                   Arc::StrError(errno)
                    );
         return -1;
       }
@@ -79,7 +79,7 @@ namespace Arc
         logger.msg(Arc::ERROR, 
                    "Could not open output directory \"%s\": %s",
                    out_dir.c_str(),
-                   StrError(errno)
+                   Arc::StrError(errno)
                    );
         closedir(dirp);
         return -1;
@@ -96,10 +96,10 @@ namespace Arc
         if (logfilepattern.match(entp->d_name))
           {
             //Parse log file
-            Arc::JobLogFile *logfile;
+            JobLogFile *logfile;
             //TODO handle DOS-style path separator!
             std::string fname=job_log_dir+"/"+entp->d_name;
-            logfile=new Arc::JobLogFile(fname);
+            logfile=new JobLogFile(fname);
             if (!out_dir.empty())
               {
                 if ((*logfile)["jobreport_option_archiving"] == "")
@@ -159,8 +159,8 @@ namespace Arc
                   {
                     //Duplicate content of log file, overwriting URL with
                     //each '-u' command line option, disabling file deletion
-                    Arc::JobLogFile *dupl_logfile=
-                      new Arc::JobLogFile(*logfile);
+                    JobLogFile *dupl_logfile=
+                      new JobLogFile(*logfile);
                     dupl_logfile->allowRemove(false);
 
                     for (int it=0; it<(int)urls.size(); it++)
@@ -192,7 +192,7 @@ namespace Arc
         logger.msg(Arc::ERROR, 
                    "Error reading log directory \"%s\": %s",
                    job_log_dir.c_str(),
-                   StrError(errno)
+                   Arc::StrError(errno)
                    );
         return -2;
       }

@@ -15,7 +15,7 @@
 #include "Reporter.h"
 #include "Destination.h"
 
-namespace Arc
+namespace ArcJura
 {
   /** The class for main JURA functionality. Traverses the 'logs' dir
    *  of the given control directory, and reports usage data extracted from 
@@ -25,7 +25,7 @@ namespace Arc
   {
   private:
     Arc::Logger logger;
-    Arc::Destination *dest;
+    Destination *dest;
     /** Directory where A-REX puts archived job logs */
     std::string archivedjob_log_dir;
     struct tm* start;

@@ -15,7 +15,7 @@
 #include <arc/message/Message.h>
 #include <arc/message/PayloadSOAP.h>
 
-namespace Arc
+namespace ArcJura
 {
 
   /** Reporting destination adapter for APEL. */

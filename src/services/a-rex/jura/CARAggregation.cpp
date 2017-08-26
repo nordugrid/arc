@@ -13,7 +13,7 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 
-namespace Arc
+namespace ArcJura
 {
   CARAggregation::CARAggregation(std::string _host):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
@@ -339,7 +339,7 @@ namespace Arc
 
         // NumberOfJobs
         std::ostringstream nrofjobs;
-        nrofjobs << stringtoi(((std::string)node["NumberOfJobs"]))+1;
+        nrofjobs << Arc::stringtoi(((std::string)node["NumberOfJobs"]))+1;
         node["NumberOfJobs"] =  nrofjobs.str();
 
         //node.NewChild("Memory");

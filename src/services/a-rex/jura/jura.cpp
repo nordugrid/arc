@@ -21,11 +21,14 @@
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
+#include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include "Reporter.h"
 #include "UsageReporter.h"
 #include "ReReporter.h"
 #include "CARAggregation.h"
+#include "Config.h"
 
 
 int main(int argc, char **argv)
@@ -51,8 +54,9 @@ int main(int argc, char **argv)
   std::string year  = "";
   std::string month = "";
   std::string vo_filters=""; 
+  std::string config_file;
   int n;
-  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:r:afsvL")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:r:c:afsvL")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -76,26 +80,26 @@ int main(int argc, char **argv)
           std::cerr<<"Add URL value before a topic. (for example: -u [...] -t [...])\n";
           return -1;
       }
-      topics.back() = (std::string(optarg));
+      topics.back() = optarg;
       break;
     case 'o':
-      output_dir = (std::string(optarg));
+      output_dir = optarg;
       break;
     case 'a':
       aggregation = true;
       break;
     case 'y':
-      year = (std::string(optarg));
+      year = optarg;
       break;
     case 'F':
-      vo_filters = (std::string(optarg));
+      vo_filters = optarg;
       break;
     case 'm':
-      month = (std::string(optarg));
+      month = optarg;
       break;
     case 'r':
       ur_resend = true;
-      resend_range = (std::string(optarg));
+      resend_range = optarg;
       break;
     case 'f':
       std::cout << "Force resend all aggregation records." << std::endl;
@@ -113,12 +117,21 @@ int main(int argc, char **argv)
     case 'L':
       logcerr.setFormat(Arc::LongFormat);
       break;
-    default: { std::cerr<<"Options processing error\n"; return 1; }
+    case 'c':
+      config_file = optarg;
+    default: { std::cerr<<"Options processing error"<<std::endl; return 1; }
     }
   }
   
+  if(config_file.empty()) config_file = Arc::GetEnv("ARC_CONFIG");
+  if(config_file.empty()) config_file = "/etc/arc.conf";
+  ArcJura::Config config(config_file.c_str());
+  if(!config) {
+    std::cerr<<"Configuration file processing error"<<std::endl; return 1;
+  }
+
   if ( aggregation ) {
-    Arc::CARAggregation* aggr;
+    ArcJura::CARAggregation* aggr;
     for (int i=0; i<(int)urls.size(); i++)
       {
         std::cout << urls[i] << std::endl;
@@ -145,7 +158,7 @@ int main(int argc, char **argv)
             continue;
           }
         std::cerr << "Aggregation record(s) sending to " << host << std::endl;
-        aggr = new Arc::CARAggregation(host, port, topics[i], sync);
+        aggr = new ArcJura::CARAggregation(host, port, topics[i], sync);
 
         if ( !year.empty() )
           {
@@ -162,17 +175,17 @@ int main(int argc, char **argv)
 
   // The essence:
   int argind;
-  Arc::Reporter *usagereporter;
+  ArcJura::Reporter *usagereporter;
   for (argind=optind ; argind<argc ; ++argind)
     {
       if ( ur_resend ) {
           std::cerr << "resend opt:" << resend_range << std::endl;
-          usagereporter=new Arc::ReReporter(
+          usagereporter=new ArcJura::ReReporter(
                           std::string(argv[argind]),
                           resend_range, urls, topics, vo_filters );
 
       } else {
-          usagereporter=new Arc::UsageReporter(
+          usagereporter=new ArcJura::UsageReporter(
                           std::string(argv[argind])+"/logs",
                           ex_period, urls, topics, vo_filters, output_dir );
       }

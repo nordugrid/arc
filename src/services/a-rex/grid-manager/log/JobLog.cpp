@@ -130,12 +130,12 @@ bool JobLog::RunReporter(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Failure creating slot for reporter child process");
     return false;
   };
-  std::string errlog = config.ControlDir() + "/job.logger.errors"; // backward compatibility
+  std::string errlog;
   JobLog* joblog = config.GetJobLog();
   if(joblog) {
     if(!joblog->logfile.empty()) errlog = joblog->logfile;
   };
-  proc->AssignInitializer(&initializer,(void*)errlog.c_str());
+  proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", cmd);
   if(!proc->Start()) {
     delete proc;

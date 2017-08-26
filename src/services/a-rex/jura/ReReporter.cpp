@@ -19,7 +19,7 @@
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
 
-namespace Arc
+namespace ArcJura
 {
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
@@ -126,7 +126,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
         logger.msg(Arc::ERROR, 
                    "Could not open log directory \"%s\": %s",
                    archivedjob_log_dir.c_str(),
-                   StrError(errno)
+                   Arc::StrError(errno)
                    );
         return -1;
       }
@@ -166,7 +166,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
         logger.msg(Arc::ERROR, 
                    "Error reading log directory \"%s\": %s",
                    archivedjob_log_dir.c_str(),
-                   StrError(errno)
+                   Arc::StrError(errno)
                    );
         return -2;
       }

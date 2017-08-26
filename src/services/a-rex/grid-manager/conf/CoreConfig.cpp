@@ -128,6 +128,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   std::list<std::string> helpers;
   std::string jobreport_publisher;
   bool helper_log_is_set = false;
+  bool job_log_log_is_set = false;
   bool ws_enabled = false;
   Arc::ConfigIni cf(cfile);
   cf.SetSectionIndicator(".");
@@ -456,6 +457,7 @@ CHANGE: implement a default! in the format of root@localhost.
             if (logfile.empty()) {
               logger.msg(Arc::ERROR, "Missing file name in jobreport_logfile"); return false;
             };
+            job_log_log_is_set = true;
             config.job_log->SetLogFile(logfile.c_str());
           };
         }
@@ -609,6 +611,7 @@ CHANGE: implement a default! in the format of root@localhost.
   }
   if(config.job_log) {
     config.job_log->SetLogger(jobreport_publisher.c_str());
+    if(!job_log_log_is_set) config.job_log->SetLogFile("/var/log/arc/jura.log");
   }
 
   if(!helper_log_is_set) {

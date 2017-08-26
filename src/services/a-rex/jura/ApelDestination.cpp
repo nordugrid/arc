@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string> 
 
-namespace Arc
+namespace ArcJura
 {
   ApelDestination::ApelDestination(std::string url_, std::string topic_):
     logger(Arc::Logger::rootLogger, "JURA.ApelReReporter"),
@@ -113,7 +113,7 @@ namespace Arc
     max_ur_set_size=JURA_DEFAULT_MAX_APEL_UR_SET_SIZE;
   }
 
-  void ApelDestination::report(Arc::JobLogFile &joblog)
+  void ApelDestination::report(JobLogFile &joblog)
   {
     //if (joblog.exists())
       {

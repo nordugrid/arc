@@ -15,7 +15,7 @@ jura_SOURCES = jura.cpp jura.h UsageReporter.cpp UsageReporter.h \
 	JobLogFile.cpp JobLogFile.h Destinations.cpp Destinations.h \
 	Destination.cpp Destination.h LutsDestination.cpp LutsDestination.h \
         ApelDestination.cpp ApelDestination.h CARDestination.cpp CARDestination.h \
-        CARAggregation.cpp CARAggregation.h
+        CARAggregation.cpp CARAggregation.h Config.cpp Config.h
 
 jura_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)

@@ -27,7 +27,7 @@
 #include <arc/win32.h>
 #endif
 
-namespace Arc
+namespace ArcJura
 {
 
   std::string replaceChar(std::string str, char ch1, char ch2) {
@@ -209,7 +209,7 @@ namespace Arc
            "Could not read archive file %s for job log file %s (%s), generating new Usage Record",
            archive_fn.c_str(),
            filename.c_str(),
-           StrError(errno));
+           Arc::StrError(errno));
       }
     //Otherwise go on and create new UR
     //***
@@ -662,7 +662,7 @@ namespace Arc
                 Arc::Logger::rootLogger.msg(Arc::ERROR,
                     "Failed to create archive directory %s: %s",
                     dir_name.c_str(),
-                    StrError(errno));
+                    Arc::StrError(errno));
               }
           }
         
@@ -675,7 +675,7 @@ namespace Arc
             Arc::Logger::rootLogger.msg(Arc::ERROR,
                                         "Failed to write file %s: %s",
                                         archive_fn.c_str(),
-                                        StrError(errno));
+                                        Arc::StrError(errno));
           }
       }
     //***
@@ -703,7 +703,7 @@ namespace Arc
            "Could not read archive file %s for job log file %s (%s), generating new Usage Record",
            archive_fn.c_str(),
            filename.c_str(),
-           StrError(errno));
+           Arc::StrError(errno));
       }
     //Otherwise go on and create new UR
     //***
@@ -1088,7 +1088,7 @@ namespace Arc
     if (find("jobreport_option_benchmark_value")!=end())
       {
         std::string value = (*this)["jobreport_option_benchmark_value"];
-        float float_value = stringtof(value);
+        float float_value = Arc::stringtof(value);
         if (float_value==0)
           {
             Arc::Logger::rootLogger.msg(Arc::WARNING,
@@ -1279,7 +1279,7 @@ namespace Arc
                 Arc::Logger::rootLogger.msg(Arc::ERROR,
                     "Failed to create archive directory %s: %s",
                     dir_name.c_str(),
-                    StrError(errno));
+                    Arc::StrError(errno));
               }
           }
 
@@ -1292,7 +1292,7 @@ namespace Arc
             Arc::Logger::rootLogger.msg(Arc::ERROR,
                                         "Failed to write file %s: %s",
                                         archive_fn.c_str(),
-                                        StrError(errno));
+                                        Arc::StrError(errno));
           }
       }
     //***
@@ -1323,7 +1323,7 @@ namespace Arc
     if (e)
       Arc::Logger::rootLogger.msg(Arc::ERROR,"Failed to delete file %s:%s",
                       filename.c_str(),
-                      StrError(errno));
+                      Arc::StrError(errno));
   }
 
   std::string JobLogFile::getArchivingPath(bool car)
