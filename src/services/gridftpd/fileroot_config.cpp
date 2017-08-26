@@ -130,18 +130,6 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
           params->firewall[3]=addr[3];
         };
       };
-    } else if(command == "allowactivedata") {
-      std::string value=Arc::ConfigIni::NextArg(rest);
-      if(value == "yes") {
-        active_data=true;
-      } else if(value == "no") {
-        active_data=false;
-      } else {
-        user.user.clear_groups();
-        nodes.clear();
-        logger.msg(Arc::ERROR, "improper attribute for allowactvedata command: %s", value);
-        return 1;
-      };
     };
   };
   cfile.close();
@@ -305,6 +293,18 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             };
           } else if(command == "port") {
             port=Arc::ConfigIni::NextArg(rest);
+          } else if(command == "allowactivedata") {
+            std::string value=Arc::ConfigIni::NextArg(rest);
+            if(value == "yes") {
+              active_data=true;
+            } else if(value == "no") {
+              active_data=false;
+            } else {
+              user.user.clear_groups();
+              nodes.clear();
+              logger.msg(Arc::ERROR, "improper attribute for allowactvedata command: %s", value);
+              return 1;
+            };
           };
         } else if(cf.SectionNum() == cfgsec_common_n) { // [common]
           if(command == "hostname") { // should be in [common]
