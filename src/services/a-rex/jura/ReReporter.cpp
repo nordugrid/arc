@@ -40,12 +40,15 @@ std::vector<std::string> split(const std::string &s, char delim) {
    *  expiration time of files in seconds, list of URLs in case of 
    *  interactive mode.
    */
-  ReReporter::ReReporter(Config const & config, std::string archivedjob_log_dir_, std::string time_range_):
+  ReReporter::ReReporter(std::string archivedjob_log_dir_, std::string time_range_,
+                               std::vector<std::string> urls_, std::vector<std::string> topics_,
+                               std::string vo_filters_):
     logger(Arc::Logger::rootLogger, "JURA.ReReporter"),
     dest(NULL),
     archivedjob_log_dir(archivedjob_log_dir_),
-    apels(config.getAPEL()),
-    sgases(config.getSGAS())
+    urls(urls_),
+    topics(topics_),
+    vo_filters(vo_filters_)
   {
     logger.msg(Arc::INFO, "Initialised, archived job log dir: %s",
                archivedjob_log_dir.c_str());
@@ -90,21 +93,21 @@ std::vector<std::string> split(const std::string &s, char delim) {
                start->tm_year, start->tm_mon, start->tm_mday,
                end->tm_year, end->tm_mon, end->tm_mday, end->tm_hour, end->tm_min);
     //Collection of logging destinations:
-    if (!apels.empty())
+    if (!urls.empty())
       {
         logger.msg(Arc::VERBOSE, "Interactive mode.");
-        std::string url=apels[0].targeturl.str();
-        std::string topic=apels[0].topic;
-        //dest = new ApelReReporter(url, topic);
-        dest = new ApelDestination(url, topic);
-        regexp = "usagerecordCAR.[0-9A-Za-z]+\\.[^.]+$";
-      }
-    if (!sgases.empty())
-      {
-        logger.msg(Arc::VERBOSE, "Interactive mode.");
-        std::string url=sgases[0].targeturl.str();
-        dest = new LutsDestination(url, ""); //!! vo_filters_);
-        regexp = "usagerecord.[0-9A-Za-z]+\\.[^.]+$";
+        std::string url=urls.at(0);
+        std::string topic=topics.at(0);
+
+        if ( !topic.empty() ||
+              url.substr(0,4) == "APEL"){
+            //dest = new ApelReReporter(url, topic);
+            dest = new ApelDestination(url, topic);
+            regexp = "usagerecordCAR.[0-9A-Za-z]+\\.[^.]+$";
+        }else{
+            dest = new LutsDestination(url, vo_filters_);
+            regexp = "usagerecord.[0-9A-Za-z]+\\.[^.]+$";
+        }
       }
   }
 
@@ -147,7 +150,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
             // checking it is in the given range
             if ( mktime(start) <= mktime(clock) &&
                  mktime(clock) <= mktime(end)) {
-                //!! if ( vo_filters != "")
+                if ( vo_filters != "")
                   {
      // TODO: if we want
                   }

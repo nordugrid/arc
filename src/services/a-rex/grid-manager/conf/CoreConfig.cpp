@@ -47,7 +47,7 @@ void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
 
 bool CoreConfig::CheckYesNoCommand(bool& config_param, const std::string& name, std::string& rest) {
   std::string s = Arc::ConfigIni::NextArg(rest);
-  if (s == "yes" || s == "expert-debug-on") {
+  if (s == "yes") {
     config_param = true;
   }
   else if(s == "no") {
@@ -135,13 +135,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int common_secnum = 0;
   cf.AddSection("common");
   static const int emies_secnum = 1;
-  cf.AddSection("grid-manager/wsinterfaces/emies");
+  cf.AddSection("arex/ws/emies");
   static const int ws_secnum = 2;
-  cf.AddSection("grid-manager/wsinterfaces");
+  cf.AddSection("arex/ws");
   static const int jura_secnum = 3;
-  cf.AddSection("grid-manager/jura");
+  cf.AddSection("arex/jura");
   static const int gm_secnum = 4;
-  cf.AddSection("grid-manager");
+  cf.AddSection("arex");
   static const int infosys_secnum = 5;
   cf.AddSection("infosys"); 
   static const int queue_secnum = 6;
@@ -152,9 +152,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("cluster");
   static const int ssh_secnum = 9;
   cf.AddSection("ssh");
+  static const int perflog_secnum = 10;
+  cf.AddSection("common/perflog");
+  static const int ganglia_secnum = 11;
+  cf.AddSection("arex/ganglia");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
-    config.job_perf_log->SetOutput("/var/log/arc/perfdata/data.perflog");
+    config.job_perf_log->SetOutput("/var/log/arc/perfdata/arex.perflog");
   }
   // process configuration information here
   for(;;) {
@@ -170,14 +174,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if (cf.SubSection()[0] == '\0') {
         if(command == "x509_voms_dir") {
           config.voms_dir = rest;
-        }
-        else if (command == "enable_perflog_reporting") { //
-          if (!config.job_perf_log) continue;
-          bool enable = false;
-          if (!CheckYesNoCommand(enable, command, rest)) return false;
-          config.job_perf_log->SetEnabled(enable);
-        }
-        else if (command == "perflogdir") { // 
+        };
+      };
+      continue;
+    };
+
+    if (cf.SectionNum() == perflog_secnum) { // common/perflog
+      if (cf.SubSection()[0] == '\0') {
+        if(config.job_perf_log) config.job_perf_log->SetEnabled(true);
+        if (command == "perflogdir") { // 
           if (!config.job_perf_log) continue;
           std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
           if(!fname.empty()) fname += "/arex.perflog";
@@ -205,7 +210,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       continue;
     };
 
-    if (cf.SectionNum() == gm_secnum) { // grid-manager
+    if (cf.SectionNum() == gm_secnum) { // arex
       if (cf.SubSection()[0] == '\0') {
         if (command == "user") {
           config.SetShareID(Arc::User(rest));
@@ -379,22 +384,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             logger.msg(Arc::ERROR, "Wrong option in delegationdb"); return false;
           };
         }
-        if (command == "enable_ganglia") {
-          if (!config.jobs_metrics) continue;
-          bool enable = false;
-          if (!CheckYesNoCommand(enable, command, rest)) return false;
-          config.jobs_metrics->SetEnabled(enable);
-        }
-        else if (command == "ganglialocation") {
-          if (!config.jobs_metrics) continue;
-          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
-          config.jobs_metrics->SetPath(fname.c_str());
-        }
-        else if (command == "gangliaconfig") {
-          if (!config.jobs_metrics) continue;
-          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
-          config.jobs_metrics->SetPath(fname.c_str());
-        }
         else if (command == "forcedefaultvoms") {
           std::string str = Arc::ConfigIni::NextArg(rest);
           if (str.empty()) {
@@ -417,7 +406,24 @@ CHANGE: implement a default! in the format of root@localhost.
       continue;
     };
 
-    if (cf.SectionNum() == ws_secnum) { // grid-manager/wsinterfaces
+    if (cf.SectionNum() == ganglia_secnum) { // arex/ganglia
+      if (cf.SubSection()[0] == '\0') {
+        config.jobs_metrics->SetEnabled(true);
+        if (command == "gmetric_exec") {
+          if (!config.jobs_metrics) continue;
+          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+          config.jobs_metrics->SetGmetricPath(fname.c_str());
+        }
+        else if (command == "gangliaconfig") {
+          if (!config.jobs_metrics) continue;
+          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+          config.jobs_metrics->SetConfig(fname.c_str());
+        }
+      };
+      continue;
+    };
+
+    if (cf.SectionNum() == ws_secnum) { // arex/ws
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         if(command == "wsurl") {
@@ -427,7 +433,7 @@ CHANGE: implement a default! in the format of root@localhost.
       continue;
     };
 
-    if (cf.SectionNum() == emies_secnum) { // grid-manager/wsinterfaces/emies
+    if (cf.SectionNum() == emies_secnum) { // arex/ws/emies
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         config.enable_emies_interface = true;
@@ -448,7 +454,7 @@ CHANGE: implement a default! in the format of root@localhost.
       continue;
     };
 
-    if (cf.SectionNum() == jura_secnum) { // grid-manager/jura
+    if (cf.SectionNum() == jura_secnum) { // arex/jura
       if (cf.SubSection()[0] == '\0') {
         jobreport_publisher = "jura";
         if (command == "logfile") {
@@ -460,6 +466,16 @@ CHANGE: implement a default! in the format of root@localhost.
             job_log_log_is_set = true;
             config.job_log->SetLogFile(logfile.c_str());
           };
+        }
+        else if (command == "urdelivery_frequency") {
+          if (config.job_log) {
+            std::string period_s = Arc::ConfigIni::NextArg(rest);
+            unsigned int period = 0;
+            if (!Arc::stringto(period_s, period)) {
+              logger.msg(Arc::ERROR, "Wrong number in urdelivery_frequency: %s", period_s); return false;
+            }
+            config.job_log->SetPeriod(period);
+          }
         }
         else if (command == "x509_host_key") {
           std::string jobreport_key = Arc::ConfigIni::NextArg(rest);
@@ -473,30 +489,6 @@ CHANGE: implement a default! in the format of root@localhost.
           std::string jobreport_cadir = Arc::ConfigIni::NextArg(rest);
           config.job_log->SetCredentials("", "", jobreport_cadir);
         }
-/*
-## jobreport=URL ... number �.. specifies that A-REX has to report information about jobs being
-## CHANGE: DELETED. new blocks are introduced as a replacement.
-#loglevel=3
-## CHANGE: new parameter!  implement it in the code
-#archiving=yes /var/log/arc/jura/archive
-## CHANGE: new parameter. new behaviour. new defaults.
-#archivettl=365
-## CHANGE: new parameter
-#urbatchsize=80
-## CHANGE: new parameter. new default.
-#vomsless_vo=fgi.csc.fi vomss://voms.fgi.csc.fi:8443/voms/fgi.csc.fi
-## CHANGE: new parameter.
-#vo_group=bio
-## CHANGE: new parameter
-#urdelivery_keepfailed=30
-## CHANGE: new parameter.
-#urdelivery_frequency=3600
-## CHANGE: renamed
-## jobreport publisher - name of the accounting records publisher.
-## CHANGE: DELETED. hardcode JURA as THE publisher in A-REX.
-## jobreport options [name:value, ...]- specifies additional parameters for the jobreporter.
-## CHANGE: DELETED. a new block structure was created to configure those jura options.
-*/
       };
       continue;
     };
@@ -511,30 +503,32 @@ CHANGE: implement a default! in the format of root@localhost.
     }
 
     if (cf.SectionNum() == queue_secnum) { // queue
-      if (cf.SectionNew()) {
-        std::string name = cf.SubSection();
-        if (name.empty()) {
-          logger.msg(Arc::ERROR, "No queue name given in queue block name"); return false;
+      if (cf.SubSection()[0] == '\0') {
+        if (cf.SectionNew()) {
+          std::string name = cf.SectionIdentifier();
+          if (name.empty()) {
+            logger.msg(Arc::ERROR, "No queue name given in queue block name"); return false;
+          }
+          config.queues.push_back(name);
         }
-        config.queues.push_back(name);
-      }
-      if (command == "forcedefaultvoms") {
-        std::string str = Arc::ConfigIni::NextArg(rest);
-        if (str.empty()) {
-          logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
-        }
-        if (!config.queues.empty()) {
-          std::string queue_name = *(--config.queues.end());
-          config.forced_voms[queue_name] = str;
-        }
-      } else if (command == "authorizedvo") {
-        std::string str = Arc::ConfigIni::NextArg(rest);
-        if (str.empty()) {
-          logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
-        }
-        if (!config.queues.empty()) {
-          std::string queue_name = *(--config.queues.end());
-          config.authorized_vos[queue_name].push_back(str);
+        if (command == "forcedefaultvoms") {
+          std::string str = Arc::ConfigIni::NextArg(rest);
+          if (str.empty()) {
+            logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
+          }
+          if (!config.queues.empty()) {
+            std::string queue_name = *(--config.queues.end());
+            config.forced_voms[queue_name] = str;
+          }
+        } else if (command == "authorizedvo") {
+          std::string str = Arc::ConfigIni::NextArg(rest);
+          if (str.empty()) {
+            logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+          }
+          if (!config.queues.empty()) {
+            std::string queue_name = *(--config.queues.end());
+            config.authorized_vos[queue_name].push_back(str);
+          }
         }
       }
       continue;
@@ -558,51 +552,6 @@ CHANGE: implement a default! in the format of root@localhost.
       }
       continue;
     }
-
-
-/*
-    else if (command == "jobreport") { // service to report information to
-      if (!config.job_log) continue;
-      for(;;) {
-        std::string url = Arc::ConfigIni::NextArg(rest);
-        if (url.empty()) break;
-        unsigned int i;
-        if (Arc::stringto(url, i)) {
-          config.job_log->SetExpiration(i);
-          continue;
-        }
-        config.job_log->SetReporter(url.c_str());
-      }
-    }
-    else if (command == "jobreport_vo_filters") { // which VO will be send to the server
-      if (!config.job_log) continue;
-      for(;;) {
-        std::string voFilters = Arc::ConfigIni::NextArg(rest);
-        if (voFilters.empty()) break;
-        config.job_log->SetVoFilters(voFilters.c_str());
-      }
-    }
-    else if (command == "jobreport_period") { // Period of running in seconds: e.g. 3600
-      if (!config.job_log) continue;
-      std::string period_s = Arc::ConfigIni::NextArg(rest);
-      if (period_s.empty()) {
-        period_s = REPORTER_PERIOD;
-      }
-      int period;
-      if (!Arc::stringto(period_s, period)) {
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period_s); return false;
-      }
-      if (!config.job_log->SetPeriod(period)) {
-        std::string default_value = REPORTER_PERIOD;
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: %s", period, default_value); return false;
-      }
-    }
-    else if (command == "jobreport_options") { // e.g. for SGAS, interpreted by usage reporter
-      if (!config.job_log) continue;
-      std::string accounting_options = Arc::ConfigIni::NextArg(rest);
-      config.job_log->SetOptions(accounting_options);
-    }
-*/
   };
   // End of parsing conf commands
 
@@ -692,38 +641,6 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     std::string fname = tmp_node;
     config.job_log->SetOutput(fname.c_str());
   }
-  tmp_node = cfg["jobReport"];
-  if (tmp_node && config.job_log) {
-    std::string url = tmp_node["destination"];
-    if (!url.empty()) {
-      // destination is required
-      config.job_log->SetReporter(url.c_str());
-      std::string publisher = tmp_node["publisher"];
-      if (publisher.empty()) publisher = "jura";
-      config.job_log->SetLogger(publisher.c_str());
-      unsigned int i;
-      if (Arc::stringto(tmp_node["expiration"], i)) config.job_log->SetExpiration(i);
-      std::string period = tmp_node["Period"];
-      if (period.empty()) period = REPORTER_PERIOD;
-      unsigned int p;
-      if (!Arc::stringto(period, p)) {
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %s", period); return false;
-      }
-      if (!config.job_log->SetPeriod(p)) {
-        std::string default_value = REPORTER_PERIOD;
-        logger.msg(Arc::ERROR, "Wrong number in jobreport_period: %d, minimal value: %s", p, default_value); return false;
-      }      
-      std::string parameters = tmp_node["parameters"];
-      if (!parameters.empty()) config.job_log->SetOptions(parameters);
-      std::string jobreport_key = tmp_node["KeyPath"];
-      std::string jobreport_cert = tmp_node["CertificatePath"];
-      std::string jobreport_cadir = tmp_node["CACertificatesDir"];
-      config.job_log->SetCredentials(jobreport_key, jobreport_cert, jobreport_cadir);
-      std::string logfile = tmp_node["logfile"];
-      if (!logfile.empty()) config.job_log->SetLogFile(logfile.c_str());
-    }
-  }
-
   /*
   loadLimits
     maxJobsTracked
@@ -892,7 +809,7 @@ bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
     return false;
   };
   config.fixdir = (GMConfig::fixdir_t)n;
-  GMConfig::deleg_db_t deleg_db = GMConfig::deleg_db_bdb;
+  GMConfig::deleg_db_t deleg_db = GMConfig::deleg_db_sqlite;
   const char* deleg_db_opts[] = { "bdb", "sqlite", NULL };
   if (!Arc::Config::elementtoenum(tmp_node, "delegationDB", n=(int)deleg_db, deleg_db_opts)) {
     logger.msg(Arc::ERROR, "The delegationDB element is incorrect value");

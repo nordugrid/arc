@@ -131,9 +131,9 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
       };
     } else if(command == "unixmap") {  /* map to local unix user */
       if(!job_map) job_map.mapname(rest.c_str());
-    } else if(command == "unixgroup") {  /* map to local unix user */
+    } else if(command == "unixgroupmap") {  /* map to local unix user */
       if(!job_map) job_map.mapgroup(rest.c_str());
-    } else if(command == "unixvo") {  /* map to local unix user */
+    } else if(command == "unixlistmap") {  /* map to local unix user */
       if(!job_map) job_map.mapvo(rest.c_str());
     } else if(command == "maxjobdesc") {
       if(rest.empty()) {
@@ -163,7 +163,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
     initialized = false;
   } else if(!config.Load()) { // read configuration
-    logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
+    logger.msg(Arc::ERROR, "Failed processing A-REX configuration");
     initialized=false;
   } else if (gm_dirs_info.size() > 0 && config.SessionRoots().size() > 1) {
     logger.msg(Arc::ERROR, "Cannot use multiple session directories and remotegmdirs at the same time");
@@ -257,7 +257,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
   }
-  deleg_db_type = DelegationStore::DbBerkeley;
+  deleg_db_type = DelegationStore::DbSQLite;
   switch(config.DelegationDBType()) {
    case GMConfig::deleg_db_bdb:
     deleg_db_type = DelegationStore::DbBerkeley;
@@ -970,7 +970,7 @@ int JobPlugin::close(bool eof) {
   if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED)) {
     logger.msg(Arc::ERROR, "Failed writing status");
     delete_job_id(); 
-    error_description="Failed registering job in grid-manager.";
+    error_description="Failed registering job in A-REX.";
     return 1;
   };
 

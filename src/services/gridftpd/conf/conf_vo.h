@@ -11,11 +11,7 @@
 namespace gridftpd {
 
   int config_vo(AuthUser& user,Arc::ConfigIni& sect,std::string& cmd,std::string& rest,Arc::Logger* logger = NULL);
-  int config_vo(AuthUser& user,const std::string& cmd,std::string& rest,Arc::Logger* logger = NULL);
-  int config_vo(AuthUser& user,const char* cmd,const char* rest,Arc::Logger* logger = NULL);
   int config_vo(std::list<AuthVO>& vos,Arc::ConfigIni& sect,std::string& cmd,std::string& rest,Arc::Logger* logger = NULL);
-  int config_vo(std::list<AuthVO>& vos,const std::string& cmd,std::string& rest,Arc::Logger* logger = NULL);
-  int config_vo(std::list<AuthVO>& vos,const char* cmd,const char* rest,Arc::Logger* logger = NULL);
   
 } // namespace gridftpd
 

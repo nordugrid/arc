@@ -56,11 +56,11 @@ class JobsMetrics {
 
   void SetEnabled(bool val);
 
-  /* chose name of configuration file */
+  /* Set path of configuration file */
   void SetConfig(const char* fname);
 
-  /* chose name of configuration file */
-  void SetPath(const char* path);
+  /* Set path/name of gmetric  */
+  void SetGmetricPath(const char* path);
 
   void ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state);
 

@@ -174,7 +174,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
     if(!right_group) { // skip configuration for wrong auth group
       if(!cf.SectionNew()) continue;
     };
-    int r = gridftpd::config_vo(user.user,cf,command,rest,&logger); // [vo] processing
+    int r = gridftpd::config_vo(user.user,cf,command,rest,&logger); // [userlist] processing
     if(r==0) continue; // processed
     if(cf.SectionNew()) {
       if(right_group) switch(st) {
@@ -241,11 +241,13 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       right_group = true;
       user.user.select_group(NULL);
       group_decision = AAA_NO_MATCH;
-      if(cf.SectionNum() == cfgsec_group_n) { // auth group definition
-        st=conf_state_group;
-        group_name=cf.SubSection();
-      } else if(cf.SubSection()[0] == 0) { // no subsection
-        st=conf_state_single;
+      if(cf.SubSection()[0] == 0) { // no subsection
+        if(cf.SectionNum() == cfgsec_group_n) { // auth group definition
+          st=conf_state_group;
+          group_name=cf.SectionIdentifier();
+        } else if(cf.SubSection()[0] == 0) { // no subsection
+          st=conf_state_single;
+        };
       } else if(cf.SectionNum() == cfgsec_gridftpd_n) { // subsection of gridftpd
         st=conf_state_plugin;
         plugin_name=cf.SubSection();
@@ -319,7 +321,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
                 return 1;
               };
             };
-          } else if(command == "unixgroup") {  /* map to local unix user */
+          } else if(command == "unixgroupmap") {  /* map to local unix user */
             if(!user.mapped()) {
               if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
                 user.user.clear_groups(); nodes.clear();
@@ -327,7 +329,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
                 return 1;
               };
             };
-          } else if(command == "unixvo") {  /* map to local unix user */
+          } else if(command == "unixlistmap") {  /* map to local unix user */
             if(!user.mapped()) {
               if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
                 user.user.clear_groups(); nodes.clear();
@@ -404,7 +406,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   cf->AddSection("common");
   cf->AddSection("authgroup");
   cf->AddSection("gridftpd");
-  cf->AddSection("vo");
+  cf->AddSection("userlist");
   /* keep information about user */
   if(!user.fill(auth,handle,config_file.c_str())) {
     logger.msg(Arc::ERROR, "failed to process client identification");

@@ -12,13 +12,15 @@ namespace ArcJura
   class Config
   {
   public:
-    Config(char const * configFile);
+    Config(char const * configFile = NULL);
     operator bool() { return processed; }
     bool operator!() { return !processed; }
 
+    std::string const & getControlDir() const { return controldir; }
     std::string const & getLogfile() const { return logfile; }
     Arc::LogLevel getLoglevel() const { return loglevel; }
-    std::string const & getArchiving() const { return archiving; }
+    bool getArchiving() const { return archiving; }
+    std::string const & getArchiveDir() const { return archivedir; }
     unsigned int getArchivettl() const { return archivettl; }
     unsigned int getUrbatchsize() const { return urbatchsize; }
     std::string const & getVOMSlessVO() const { return vomsless_vo; }
@@ -63,15 +65,17 @@ namespace ArcJura
 
     static char const * const default_logfile;
     static Arc::LogLevel const default_loglevel;
-    static char const * const default_archiving;
+    static char const * const default_archivedir;
     static unsigned int const default_archivettl;
     static unsigned int const default_urbatchsize;
     static unsigned int const default_urdelivery_keepfailed;
     static unsigned int const default_urdelivery_frequency;
 
+    std::string controldir;
     std::string logfile;
     Arc::LogLevel loglevel;
-    std::string archiving;
+    bool archiving;
+    std::string archivedir;
     unsigned int archivettl;
     unsigned int urbatchsize;
     std::string vomsless_vo;

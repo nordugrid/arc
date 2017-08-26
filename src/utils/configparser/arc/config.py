@@ -10,14 +10,15 @@ log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
 
-# module-wise dict to store parsed config
-__cached_config = {}
+# module-wise data structures to store parsed config
+__parsed_config = {}
+__parsed_blocks = []
 
 
 # define parsing function
 def parse_arc_conf(conf_f='/etc/arc.conf'):
     __regexes = {
-        'block': re.compile(r'^\[(?P<block>[-\w/]+(?P<blockname>:[^\[\]:/]+)?)\]\s*$'),
+        'block': re.compile(r'^\s*\[(?P<block>[^:\[\]]+(?P<block_name>:[^\[\]]+)?)\]\s*$'),
         'skip': re.compile(r'^(?:#.*|\s*)$'),
         # includes support for the following cases:
         #   'option=value'
@@ -26,18 +27,22 @@ def parse_arc_conf(conf_f='/etc/arc.conf'):
         'option': re.compile(r'^(?P<option>[^=\[\]\n\s]+)\s*(?:=|(?=\s*$))\s*(?P<value>.*)\s*$')
     }
     with open(conf_f, 'rb') as arcconf:
-        block_name = None
+        block_id = None
         for ln, confline in enumerate(arcconf):
             if re.match(__regexes['skip'], confline):
                 continue
             block_match = re.match(__regexes['block'], confline)
             if block_match:
-                block_name = block_match.groupdict()['block']
-                __cached_config[block_name] = {}
+                block_dict = block_match.groupdict()
+                block_id = block_dict['block']
+                __parsed_config[block_id] = {}
+                __parsed_blocks.append(block_id)
+                if block_dict['block_name'] is not None:
+                    __parsed_config[block_id]['__block_name'] = block_dict['block_name'][1:]
                 continue
             option_match = re.match(__regexes['option'], confline)
             if option_match:
-                if block_name is None:
+                if block_id is None:
                     logger.error('Option definition comes before block definition and will be ignored - line #%s: %s',
                                  ln + 1, confline.strip('\n'))
                     continue
@@ -45,36 +50,41 @@ def parse_arc_conf(conf_f='/etc/arc.conf'):
                 value = option_match.groupdict()['value']
                 if value.startswith('"') and value.endswith('"'):
                     value = value[1:-1]
-                if option in __cached_config[block_name]:
-                    if isinstance(__cached_config[block_name][option], list):
-                        value = __cached_config[block_name][option] + [value]
+                if option in __parsed_config[block_id]:
+                    if isinstance(__parsed_config[block_id][option], list):
+                        value = __parsed_config[block_id][option] + [value]
                     else:
-                        value = [__cached_config[block_name][option], value]
-                __cached_config[block_name][option] = value
+                        value = [__parsed_config[block_id][option], value]
+                __parsed_config[block_id][option] = value
                 continue
             logger.warning("Failed to parse line #%s: %s", ln + 1, confline.strip('\n'))
 
 
-def _config_subset(blocks=None, subsections=False):
+def _config_subset(blocks=None):
     if blocks is None:
         blocks = []
     blocks_dict = {}
-    for b in blocks:
-        for s in __cached_config.keys():
-            # add block if it exactly match requested name
-            if s == b:
-                blocks_dict[s] = __cached_config[s]
-                continue
-            # if requested - check for sub-blocks match
-            if subsections is True and re.search(r'^' + b + r'[/:]', s):
-                blocks_dict[s] = __cached_config[s]
+    for cb in __parsed_config.keys():
+        if cb in blocks:
+            blocks_dict[cb] = __parsed_config[cb]
     return blocks_dict
+
+
+def _blocks_list(blocks=None):
+    if blocks is None:
+        blocks = []
+    # ability to pass single block name as a string
+    if isinstance(blocks, basestring):
+        blocks = [blocks]
+    return blocks
 
 
 def export_json(blocks=None, subsections=False):
     if blocks is not None:
-        return json.dumps(_config_subset(blocks, subsections))
-    return json.dumps(__cached_config)
+        if subsections:
+            blocks = get_subblocks(blocks)
+        return json.dumps(_config_subset(blocks))
+    return json.dumps(__parsed_config)
 
 
 def export_bash(blocks=None, subsections=False):
@@ -82,11 +92,12 @@ def export_bash(blocks=None, subsections=False):
     # if blocks chain is not specified - default is to parse just [common]
     if blocks is None:
         blocks = ['common']
+    if subsections:
+        blocks = get_subblocks(blocks, True)
+    blocks_dict = _config_subset(blocks)
     bash_config = {}
-    block_dict = _config_subset(blocks, subsections)
-    for b in reversed(block_dict.keys()):
-        for k, v in block_dict[b].iteritems():
-            k = k.replace('/', '_').replace(':', '_')
+    for b in blocks:
+        for k, v in blocks_dict[b].iteritems():
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
                 for i, vi in enumerate(v):
@@ -99,28 +110,38 @@ def export_bash(blocks=None, subsections=False):
     return eval_str
 
 
-def _blocks_list(blocks=None):
-    if blocks is None:
-        blocks = []
-    # ability to pass single block name as a string
-    if isinstance(blocks, basestring):
-        blocks = [blocks]
-    return blocks
-
-
 def get_value(option, blocks=None):
     for b in _blocks_list(blocks):
-        if b in __cached_config:
-            if option in __cached_config[b]:
-                return __cached_config[b][option]
+        if b in __parsed_config:
+            if option in __parsed_config[b]:
+                return __parsed_config[b][option]
     return None
+
+
+def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
+    if blocks is None:
+        blocks = []
+    subblocks = []
+    for b in blocks:
+        bsb = []
+        for cb in __parsed_blocks:
+            if re.search(r'^' + b + r'[/:]', cb):
+                bsb.append(cb)
+        if is_sorted:
+            bsb.sort()
+        parent_block = [b] if b in __parsed_blocks else []
+        if is_reversed:
+            subblocks = bsb + parent_block + subblocks
+        else:
+            subblocks += parent_block + bsb
+    return subblocks
 
 
 def check_blocks(blocks=None, and_logic=True):
     result = and_logic
     for b in _blocks_list(blocks):
         if and_logic:
-            result = (b in __cached_config) and result
+            result = (b in __parsed_config) and result
         else:
-            result = (b in __cached_config) or result
+            result = (b in __parsed_config) or result
     return result

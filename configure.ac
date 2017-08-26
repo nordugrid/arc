@@ -178,6 +178,7 @@ enables_argus=no
 enables_xmlsec1=yes
 enables_dbjstore=yes
 enables_ldns=yes
+enables_sqlitejstore=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -243,6 +244,7 @@ enables_doc=$enableval
 enables_acix=$enableval
 enables_dbjstore=$enableval
 enables_ldns=$enableval
+enables_sqlitejstore=$enableval
 ],
 [])
 
@@ -830,27 +832,22 @@ AC_SUBST(NSS_LIBS)
 AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 
 #check SQLite
-enables_sqlite=no
 SQLITE_INSTALLED=no
-dnl Check if sqlite is explicitly enabled, default is disable.
-AC_ARG_ENABLE(sqlite, AC_HELP_STRING([--enable-sqlite], [enable use of the SQLite (not affected by --enable-all)]),[enables_sqlite="$enableval"],[])
-if test "$enables_sqlite" = "yes"; then
-  PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
-    AC_MSG_WARN([Cannot locate SQLite newer than 3.6])
-    SQLITE_INSTALLED=no
-    enables_sqlite=no
-  ])
-  if test "x$SQLITE_INSTALLED" = "xyes" ; then
-    AC_DEFINE(HAVE_SQLITE,,[define if SQLite is enabled and available])
-    # Check for finction available since 3.8
-    SAVE_CFLAGS=$CFLAGS
-    SAVE_LIBS=$LIBS
-    CFLAGS="$CFLAGS $SQLITE_CFLAGS"
-    LIBS="$LIBS $SQLITE_LIBS"
-    AC_CHECK_FUNCS(sqlite3_errstr)
-    CFLAGS=$SAVE_CFLAGS
-    LIBS=$SAVE_LIBS
-  fi
+PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
+  AC_MSG_WARN([Cannot locate SQLite newer than 3.6])
+  SQLITE_INSTALLED=no
+  enables_sqlite=no
+])
+if test "x$SQLITE_INSTALLED" = "xyes" ; then
+  AC_DEFINE(HAVE_SQLITE,,[define if SQLite is available])
+  # Check for finction available since 3.8
+  SAVE_CFLAGS=$CFLAGS
+  SAVE_LIBS=$LIBS
+  CFLAGS="$CFLAGS $SQLITE_CFLAGS"
+  LIBS="$LIBS $SQLITE_LIBS"
+  AC_CHECK_FUNCS(sqlite3_errstr)
+  CFLAGS=$SAVE_CFLAGS
+  LIBS=$SAVE_LIBS
 fi
 AC_SUBST(SQLITE_CFLAGS)
 AC_SUBST(SQLITE_LIBS)
@@ -1331,6 +1328,22 @@ if test "x$enables_dbjstore" = "xyes"; then
   AC_DEFINE(DBJSTORE_ENABLED,, [define if to build job information in BDB storage])
 fi
 
+# SQLITEJSTORE (storing jobs information in SQLite)
+AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local jobs information in SQLite]),
+  [enables_sqlitejstore=$enableval],[])
+if test "$enables_sqlitejstore" = "yes"; then
+  if test "x$SQLITE_INSTALLED" != "xyes" ; then
+    AC_MSG_NOTICE([For storing jobs in SQLite install SQLite 3.6 or newer - disabling])
+    enables_dbjstore="no"
+  fi
+fi
+AC_MSG_NOTICE([Storing jobs in SQLite enabled: $enables_sqlitejstore])
+AM_CONDITIONAL([SQLITEJSTORE_ENABLED],[test "x$enables_sqlitejstore" = "xyes"])
+if test "x$enables_sqlitejstore" = "xyes"; then
+  AC_DEFINE(SQLITEJSTORE_ENABLED,, [define if to build job information in SQLite storage])
+fi
+
+# globus/gpt packages
 # globus/gpt packages
 if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(GLOBUS_COMMON, [globus-common], [
@@ -1712,6 +1725,8 @@ enables_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
 enables_dbcxx=no
 if test -n "$DBCXX_LIBS" ; then enables_dbcxx=yes; fi
+enables_sqlite=no
+if test "x$SQLITE_INSTALLED" = "xyes" ; then enables_sqlite=yes; fi
 
 # Check for LDAP
 
@@ -2001,6 +2016,9 @@ AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable 
 if test "$enables_a_rex_service" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
     AC_MSG_NOTICE([A-Rex can't be built for WIN32 environment - disabling])
+    enables_a_rex_service="no"
+  elif test "x$SQLITE_INSTALLED" != "xyes" ; then
+    AC_MSG_NOTICE([A-Rex can't be built without SQLite - disabling])
     enables_a_rex_service="no"
   elif test "x$DBCXX_LIBS" = "x" ; then
     AC_MSG_NOTICE([A-Rex can't be built without C++ API for DB4.x - disabling])
@@ -2647,7 +2665,8 @@ LDNS:               ${enables_ldns}
 
 Enabled features:
 
-Local jobs info in BDB: ${enables_dbjstore}
+Local jobs info in BDB:    ${enables_dbjstore}
+Local jobs info in SQLite: ${enables_sqlitejstore}
 
 Python LRMS back-end dependency:
 Inline::Python Perl module: ${INLINE_PYTHON_FOUND}

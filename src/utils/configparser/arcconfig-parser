@@ -37,9 +37,12 @@ else:
                     print v
             else:
                 print values
-        # check block name existence if no defined option
+        # work with blocks structure
         else:
-            if not check_blocks(cmd_args.block):
+            if cmd_args.subblocks:
+                for sb in get_subblocks(cmd_args.block):
+                    print sb
+            elif not check_blocks(cmd_args.block):
                 sys.exit(1)
     else:
         parser.print_help()

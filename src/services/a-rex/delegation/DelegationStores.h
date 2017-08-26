@@ -20,7 +20,7 @@ class DelegationStores {
   DelegationStore::DbType db_type_;
   DelegationStores(const DelegationStores&) { };
  public:
-  DelegationStores(DelegationStore::DbType db_type = DelegationStore::DbBerkeley);
+  DelegationStores(DelegationStore::DbType db_type = DelegationStore::DbSQLite);
   ~DelegationStores(void);
   void SetDbType(DelegationStore::DbType db_type) { db_type_ = db_type; };
   /// Returns or creates delegation storage associated with 'path'.

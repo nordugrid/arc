@@ -9,6 +9,19 @@
 namespace Arc {
 
 /// This class is used to process ini-like configuration files.
+/// Those files consist of sections which have folloving format:
+///
+///  [section/subsection:identifier]
+///  key=value
+///  key=value
+///
+/// The section names are enclosed in [] and  consist of 
+/// multiple parts separated by /. The section may have
+/// optional identifier separated from rest of then name by :.
+/// The section name parts may not contain : character.
+/// Hence if : is present in name all characters to the right
+/// are treated as identifier.
+///
 class ConfigIni {
  private:
   ConfigFile* fin;
@@ -16,6 +29,7 @@ class ConfigIni {
   std::list<std::string> section_names;
   std::string section_indicator;
   std::string current_section;
+  std::string current_identifier;
   int current_section_n;
   std::list<std::string>::iterator current_section_p;
   int line_number;
@@ -41,10 +55,11 @@ class ConfigIni {
   /// Unspecified sections will be skipped by ReadNext() methods.
   bool AddSection(const char* name);
 
-  /// By default ReadNext does not informa about presence of the 
+  /// By default ReadNext does not inform about presence of the 
   /// section. Only commands from sections are returned.
   /// If section indicator is set ReadNext returns immediately 
   /// when new section is started with indicator reported as read line.
+  /// Note: indicator can't be empty string.
   void SetSectionIndicator(const char* ind = NULL) { section_indicator = ind?ind:""; };
 
   /// Read next line of configuration from sesction(s) specified by AddSection().
@@ -56,7 +71,7 @@ class ConfigIni {
   /// command and value.
   bool ReadNext(std::string& name,std::string& value);
 
-  /// Return name of the section to which last read line belongs.
+  /// Return full name of the section to which last read line belongs.
   /// This name also includes subsection name.
   const char* Section(void) const { return current_section.c_str(); };
 
@@ -88,6 +103,9 @@ class ConfigIni {
   /// relative to subsection given by name. If current subsection
   /// does not match specified name then NULL is returned.
   const char* SubSectionMatch(const char* name);
+
+  /// Return identifier of the section to which last read line belongs.
+  const char* SectionIdentifier(void) const { return current_identifier.c_str(); }
 
   /// Helper method which reads keyword from string at 'line' separated by 'separator'
   /// and stores it in 'str'. Each couple of characters starting from \ is

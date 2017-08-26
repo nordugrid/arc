@@ -71,8 +71,8 @@ CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
 
 void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
   
-  cf.AddSection("common");
-  cf.AddSection("grid-manager");
+  cf.AddSection("common"); // 0
+  cf.AddSection("arex");   // 1
   
   for(;;) {
     std::string rest;

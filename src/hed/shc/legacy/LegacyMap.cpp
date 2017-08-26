@@ -69,7 +69,7 @@ class LegacyMapCP: public ConfigParser {
   virtual bool BlockStart(const std::string& id, const std::string& name) {
     if(map_) return true; // already mapped
     std::string bname = id;
-    if(!name.empty()) bname = bname+"/"+name;
+    if(!name.empty()) bname = bname+":"+name;
     if(file_.blocknames.empty()) {
       is_block_ = true;
       return true;
@@ -99,18 +99,18 @@ class LegacyMapCP: public ConfigParser {
         logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixmap %s", line);
         return false;
       };
-    } else if(cmd == "unixgroup") {
+    } else if(cmd == "unixgroupmap") {
       //# unixgroup group rule
       //unixgroup="users simplepool /etc/grid-security/pool/users"
       if(map_.mapgroup(line.c_str()) == AAA_FAILURE) {
-        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixgroup %s", line);
+        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixgroupmap %s", line);
         return false;
       };
-    } else if(cmd == "unixvo") {
+    } else if(cmd == "unixlistmap") {
       //# unixvo vo rule
       //unixvo="ATLAS unixuser atlas:atlas"
       if(map_.mapvo(line.c_str()) == AAA_FAILURE) {
-        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixvo %s", line);
+        logger_.msg(Arc::ERROR, "Failed processing user mapping command: unixlistmap %s", line);
         return false;
       };
     };

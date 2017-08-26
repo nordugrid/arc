@@ -98,13 +98,13 @@ readconfigvar() {
 }
 
 check_cert() {
-  X509_USER_CERT=`readconfigvar "$ARC_CONFIG" gridftpd x509_user_cert`
-  X509_USER_KEY=`readconfigvar "$ARC_CONFIG" gridftpd x509_user_key`
+  X509_USER_CERT=`readconfigvar "$ARC_CONFIG" gridftpd x509_host_cert`
+  X509_USER_KEY=`readconfigvar "$ARC_CONFIG" gridftpd x509_host_key`
   if [ -z "$X509_USER_CERT" ] ; then
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
   fi
   if [ -z "$X509_USER_KEY" ] ; then
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
   fi
   if [ -z "$X509_USER_CERT" ] ; then
     X509_USER_CERT=/etc/grid-security/hostcert.pem

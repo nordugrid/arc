@@ -14,9 +14,7 @@
 
 #define DELEGATION_USES_SQLITE 1
 
-#ifdef HAVE_SQLITE
 #include "FileRecordSQLite.h"
-#endif
 #include "FileRecordBDB.h"
 
 #include "DelegationStore.h"
@@ -34,11 +32,9 @@ namespace ARex {
       case DbBerkeley:
         fstore_ = new FileRecordBDB(base, allow_recover);
         break;
-#ifdef HAVE_SQLITE
       case DbSQLite:
         fstore_ = new FileRecordSQLite(base, allow_recover);
         break;
-#endif
       default:
         failure_ = "Unsupported database type requested for delegation storage.";
         logger_.msg(Arc::ERROR,"%s",failure_);
@@ -73,11 +69,9 @@ namespace ARex {
             case DbBerkeley:
               fstore_ = new FileRecordBDB(base);
               break;
-#ifdef HAVE_SQLITE
             case DbSQLite:
               fstore_ = new FileRecordSQLite(base);
               break;
-#endif
             default:
               // Must not happen - already sorted out above.
               return;

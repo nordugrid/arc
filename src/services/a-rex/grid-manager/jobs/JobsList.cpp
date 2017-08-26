@@ -970,9 +970,9 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       }
       job_state_write_file(*i,config,i->job_state); // makes sure job state is stored in proper subdir
       // prepare information for logger
-      // This call is not needed here because at higher level make_file()
+      // This call is not needed here because at higher level WriteJobRecord()
       // is called for every state change
-      //if(config.GetJobLog()) config.GetJobLog()->make_file(*i,config);
+      //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
 logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
@@ -1508,13 +1508,13 @@ bool JobsList::ActJob(GMJobRef& i) {
       };
       // Processing to be done on relatively successful state changes
       JobLog* joblog = config.GetJobLog();
-      if(joblog) joblog->make_file(*i,config);
+      if(joblog) joblog->WriteJobRecord(*i,config);
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
-        if(joblog) joblog->finish_info(*i,config);
+        if(joblog) joblog->WriteFinishInfo(*i,config);
         PrepareCleanupTime(i,i->keep_finished);
       } else if(i->job_state == JOB_STATE_PREPARING) {
-        joblog->start_info(*i,config);
+        joblog->WriteStartInfo(*i,config);
       };
 //            SetJobState(i, JOB_STATE_FINISHED, "Job processing error");
 //            SetJobState(i, JOB_STATE_FINISHING, "Job processing error");

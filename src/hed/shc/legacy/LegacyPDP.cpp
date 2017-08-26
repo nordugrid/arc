@@ -42,7 +42,7 @@ class LegacyPDPCP: public ConfigParser {
  protected:
   virtual bool BlockStart(const std::string& id, const std::string& name) {
     std::string bname = id;
-    if(!name.empty()) bname = bname+"/"+name;
+    if(!name.empty()) bname = bname+":"+name;
     for(std::list<LegacyPDP::cfgblock>::iterator block = file_.blocks.begin();
                                  block != file_.blocks.end();++block) {
       if(block->name == bname) {
@@ -60,7 +60,7 @@ class LegacyPDPCP: public ConfigParser {
     //if(group_matched_) return true;
     if(cmd != "allowaccess") return true;
     std::string bname = id;
-    if(!name.empty()) bname = bname+"/"+name;
+    if(!name.empty()) bname = bname+":"+name;
     for(std::list<LegacyPDP::cfgblock>::iterator block = file_.blocks.begin();
                                  block != file_.blocks.end();++block) {
       if(block->name == bname) {

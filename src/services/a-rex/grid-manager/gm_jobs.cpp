@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
   if (!control_dir.empty()) config.SetControlDir(control_dir);
   config.Print();
 
-  DelegationStore::DbType deleg_db_type = DelegationStore::DbBerkeley;
+  DelegationStore::DbType deleg_db_type = DelegationStore::DbSQLite;
   switch(config.DelegationDBType()) {
    case GMConfig::deleg_db_bdb:
     deleg_db_type = DelegationStore::DbBerkeley;

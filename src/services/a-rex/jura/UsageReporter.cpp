@@ -23,21 +23,24 @@ namespace ArcJura
    *  expiration time of files in seconds, list of URLs in case of 
    *  interactive mode.
    */
-  UsageReporter::UsageReporter(Config const & config,std::string job_log_dir_, time_t expiration_time_,
+  UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
+                               std::vector<std::string> urls_, std::vector<std::string> topics_,
+                               std::string vo_filters_,
                                std::string out_dir_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     dests(NULL),
     job_log_dir(job_log_dir_),
     expiration_time(expiration_time_),
-    apels(config.getAPEL()),
-    sgases(config.getSGAS()),
+    urls(urls_),
+    topics(topics_),
+    vo_filters(vo_filters_),
     out_dir(out_dir_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
                job_log_dir.c_str());
     logger.msg(Arc::VERBOSE, "Expiration time: %d seconds",
                expiration_time);
-    if ((!apels.empty()) || (!sgases.empty()))
+    if (!urls.empty())
       {
         logger.msg(Arc::VERBOSE, "Interactive mode.",
                    expiration_time);
@@ -107,13 +110,13 @@ namespace ArcJura
                   }
               }
 
-            //!! if ( vo_filters != "")
-            //!!   {
-            //!!        (*logfile)["vo_filters"] = vo_filters;
-            //!!   }
+            if ( vo_filters != "")
+              {
+                  (*logfile)["vo_filters"] = vo_filters;
+              }
             //A. Non-interactive mode: each jlf is parsed, and if valid, 
             //   submitted to the destination given  by "loggerurl=..."
-            if (apels.empty())
+            if (urls.empty())
               {
                 // Check creation time and remove it if really too old
                 if( expiration_time>0 && logfile->olderThan(expiration_time) )
@@ -160,12 +163,12 @@ namespace ArcJura
                       new JobLogFile(*logfile);
                     dupl_logfile->allowRemove(false);
 
-                    for (int it=0; it<(int)apels.size(); it++)
+                    for (int it=0; it<(int)urls.size(); it++)
                       {
-                        (*dupl_logfile)["loggerurl"] = apels[it].targeturl;
-                        if (!apels[it].topic.empty())
+                        (*dupl_logfile)["loggerurl"] = urls[it];
+                        if (!topics[it].empty())
                           {
-                            (*dupl_logfile)["topic"] = apels[it].topic;
+                            (*dupl_logfile)["topic"] = topics[it];
                           }
 
                         //Pass duplicated job log content to the appropriate 

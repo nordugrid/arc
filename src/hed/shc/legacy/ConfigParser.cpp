@@ -76,7 +76,7 @@ bool ConfigParser::Parse(void) {
       line = line.substr(1,line.length()-2);
       block_id_ = "";
       block_name_ = "";
-      std::string::size_type ps = line.find('/');
+      std::string::size_type ps = line.find(':');
       if(ps != std::string::npos) {
         block_name_ = Arc::trim(line.substr(ps+1));
         line.resize(ps);

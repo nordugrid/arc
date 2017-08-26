@@ -3,7 +3,7 @@
 # Init file for the A-REX service
 #
 # chkconfig: 2345 75 25
-# description: NorduGrid grid-manager
+# description: NorduGrid A-REX
 #
 # config: /etc/sysconfig/globus
 # config: /etc/sysconfig/nordugrid
@@ -15,8 +15,8 @@
 # which contains commands to start A-REX service. Service
 # is either run isolated or with WS interface enabled.
 # To enable WS interface ARC0 configuration file must 
-# contain [grid-manager/ws/emies] section
-# and mandatory option in [grid-manager/ws]:
+# contain [arex/ws/emies] section
+# and mandatory option in [arex/ws]:
 #    wsurl="a_rex_url"
 
 ### BEGIN INIT INFO
@@ -237,7 +237,7 @@ if [ "x$ARC_CONFIG" = "x" ]; then
 fi
 
 # PID and lock file
-PID_FILE=`readconfigvar "$ARC_CONFIG" grid-manager pidfile`
+PID_FILE=`readconfigvar "$ARC_CONFIG" arex pidfile`
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -276,33 +276,35 @@ prepare() {
     #  User name
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
-    LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
-    WSLOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager/ws logfile`
-    PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
+    LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
+    WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
     ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager loglevel`
-    LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
-    LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
-    WATCHDOG=`readconfigvar "$ARC_CONFIG" grid-manager watchdog`
-    USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
+    LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
+    ENABLEPERFLOG=`testconfigblock "$ARC_CONFIG" common/perflog`
+    PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common/perflog perflogdir`
+    LOGSIZE=`readconfigvar "$ARC_CONFIG" arex logsize`
+    LOGREOPEN=`readconfigvar "$ARC_CONFIG" arex logreopen`
+    WATCHDOG=`readconfigvar "$ARC_CONFIG" arex watchdog`
+    USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
+    GRIDTMPDIR=`readconfigvar "$ARC_CONFIG" arex tmpdir`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_key`
-    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
-    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager/data-staging globus_tcp_port_range`
-    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager/data-staging globus_udp_port_range`
-    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_job_control_requests`
-    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_infosys_requests`
-    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager/ws max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" grid-manager/ws/emies allowunknown`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" arex x509_host_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" arex x509_host_key`
+    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" arex x509_cert_dir`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_tcp_port_range`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_udp_port_range`
+    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_job_control_requests`
+    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_infosys_requests`
+    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
+    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     GRIDMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
-    USERAUTH_BLOCK='grid-manager/ws/emies'
+    USERAUTH_BLOCK='arex/ws/emies'
     GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
     ARC_HTTP_PROXY=`readconfigvar "$ARC_CONFIG" common http_proxy`
-    SERVICEMAIL=`readconfigvar "$ARC_CONFIG" grid-manager mail`
+    SERVICEMAIL=`readconfigvar "$ARC_CONFIG" arex mail`
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
@@ -364,10 +366,10 @@ prepare() {
     arex_port=""
     arex_path=""
     arex_service_plexer=""
-    ws_present=`testconfigblock "$ARC_CONFIG" grid-manager/ws`
-    arex_present=`testconfigblock "$ARC_CONFIG" grid-manager/ws/emies`
+    ws_present=`testconfigblock "$ARC_CONFIG" arex/ws`
+    arex_present=`testconfigblock "$ARC_CONFIG" arex/ws/emies`
     if [ "$ws_present" = 'true' ] ; then
-        arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager/ws wsurl`
+        arex_mount_point=`readconfigvar "$ARC_CONFIG" arex/ws wsurl`
         if [ ! -z "$arex_mount_point" ] ; then
             arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
             arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
@@ -472,7 +474,7 @@ prepare() {
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -480,9 +482,9 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -498,7 +500,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_endpoint`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -506,13 +508,13 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_usermap`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" grid-manager/ws/argus arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_acceptnotapplicable`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -551,7 +553,7 @@ prepare() {
     # cache service
     cache_service_plexer=""
     cache_service=""
-    use_cache_service=`testconfigblock "$ARC_CONFIG" grid-manager/ws/cache`
+    use_cache_service=`testconfigblock "$ARC_CONFIG" arex/ws/cache`
     if [ "$use_cache_service" = "true" ]; then
         if [ "$ws_present" != 'true' ] ; then
             log_failure_msg "WS interface must be turned on to use cache service"
@@ -639,7 +641,7 @@ prepare() {
     if [ -d $PERFLOGDIR ]; then
 	chmod 700 $PERFLOGDIR
     fi
-    if [ "$ENABLEPERFLOG" = "expert-debug-on" ]; then
+    if [ "$ENABLEPERFLOG" = 'true' ]; then
         if [ ! -d $PERFLOGDIR ]; then
             mkdir -p $PERFLOGDIR
         fi

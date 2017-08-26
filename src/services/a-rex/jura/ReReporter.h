@@ -14,7 +14,6 @@
 
 #include "Reporter.h"
 #include "Destination.h"
-#include "Config.h"
 
 namespace ArcJura
 {
@@ -31,15 +30,18 @@ namespace ArcJura
     std::string archivedjob_log_dir;
     struct tm* start;
     struct tm* end;
-    std::vector<Config::APEL> const & apels;
-    std::vector<Config::SGAS> const & sgases;
+    std::vector<std::string> urls; 
+    std::vector<std::string> topics;
+    std::string vo_filters;
     std::string regexp;
   public:
     /** Constructor. Gets the job log dir and the expiration time in seconds.
      *  Default expiration time is infinity (represented by zero value).
      */
-    ReReporter(Config const & config,
-               std::string archivedjob_log_dir_, std::string time_range_="");
+    ReReporter(std::string archivedjob_log_dir_, std::string time_range_="",
+                  std::vector<std::string> urls_=std::vector<std::string>(),
+                  std::vector<std::string> topics_=std::vector<std::string>(),
+                  std::string vo_filters_="");
     /** Processes job log files in '<control_dir>/logs'. */
     int report();
     ~ReReporter();

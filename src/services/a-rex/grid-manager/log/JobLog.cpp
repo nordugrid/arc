@@ -24,19 +24,11 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600),ex_period(0) {
+JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600) {
 }
-
-//JobLog::JobLog(const char* fname):proc(NULL),last_run(0),ex_period(0) {
-//  filename=fname;
-//}
 
 void JobLog::SetOutput(const char* fname) {
   filename=fname;
-}
-
-void JobLog::SetExpiration(time_t period) {
-  ex_period=period;
 }
 
 bool JobLog::SetPeriod(int new_period) {
@@ -53,7 +45,7 @@ bool JobLog::open_stream(std::ofstream &o) {
     return true;
 }
 
-bool JobLog::start_info(GMJob &job,const GMConfig &config) {
+bool JobLog::WriteStartInfo(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
@@ -74,7 +66,7 @@ bool JobLog::start_info(GMJob &job,const GMConfig &config) {
     return true;
 }
 
-bool JobLog::finish_info(GMJob &job,const GMConfig &config) {
+bool JobLog::WriteFinishInfo(GMJob &job,const GMConfig &config) {
   if(filename.length()==0) return true;
     std::ofstream o;
     if(!open_stream(o)) return false;
@@ -118,12 +110,13 @@ bool JobLog::RunReporter(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Logger name is not specified");
     return false;
   }
-  std::string cmd = Arc::ArcLocation::GetToolsDir()+"/"+logger_name;
-  cmd += " -L";  // for long format of logging
-  if(ex_period) cmd += " -E " + Arc::tostring(ex_period);
-  if(!vo_filters.empty()) cmd += " -F " + vo_filters;
-  cmd += " " + config.ControlDir();
-  proc = new Arc::Run(cmd);
+  // Reporter is tun with only argument - configuration file.
+  // It is supposed to parse that configuration file to obtain other parameters.
+  std::list<std::string> argv;
+  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+logger_name);
+  argv.push_back("-c");
+  argv.push_back(config.ConfigFile());
+  proc = new Arc::Run(argv);
   if((!proc) || (!(*proc))) {
     delete proc;
     proc = NULL;
@@ -136,7 +129,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
     if(!joblog->logfile.empty()) errlog = joblog->logfile;
   };
   proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
-  logger.msg(Arc::DEBUG, "Running command %s", cmd);
+  logger.msg(Arc::DEBUG, "Running command %s", argv.front());
   if(!proc->Start()) {
     delete proc;
     proc = NULL;
@@ -156,38 +149,14 @@ bool JobLog::SetLogFile(const char* fname) {
   return true;
 }
 
-bool JobLog::SetVoFilters(const char* filters) {
-  if(filters) vo_filters = (std::string(filters));
-  return true;
-}
-
-bool JobLog::SetReporter(const char* destination) {
-  if(destination) urls.push_back(std::string(destination));
-  return true;
-}
-
-bool JobLog::make_file(GMJob &job, const GMConfig& config) {
+bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
+  // Records are written only for first and last states
   if((job.get_state() != JOB_STATE_ACCEPTED) &&
      (job.get_state() != JOB_STATE_FINISHED)) return true;
-  bool result = true;
-  // for configured loggers
-  for(std::list<std::string>::iterator u = urls.begin();u!=urls.end();u++) {
-    if(u->length()) result = job_log_make_file(job,config,*u,report_config) && result;
-  };
-  // for user's logger
-  JobLocalDescription* local;
-  if(!job.GetLocalDescription(config)) {
-    result=false;
-  } else if((local=job.GetLocalDescription(config)) == NULL) { 
-    result=false;
-  } else {
-    if(!(local->jobreport.empty())) {
-      for (std::list<std::string>::iterator v = local->jobreport.begin();
-           v!=local->jobreport.end(); v++) {
-        result = job_log_make_file(job,config,*v,report_config) && result;
-      }
-    };
-  };
+
+  // Only one record per job state change is generated now
+  bool result = job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
+
   return result;
 }
 

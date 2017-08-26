@@ -47,7 +47,8 @@ bool ConfigIni::ReadNext(std::string& line) {
   for(;;) {
     line=fin->read_line();
     if(line=="") { // eof
-      current_section="";
+      current_section.clear();
+      current_identifier.clear();
       current_section_n=-1;
       current_section_p=section_names.end();
       current_section_changed=true;
@@ -59,6 +60,13 @@ bool ConfigIni::ReadNext(std::string& line) {
       n++; std::string::size_type nn = line.find(']',n);
       if(nn == std::string::npos) { line=""; return false; }; // missing ']'
       current_section=line.substr(n,nn-n);
+      std::string::size_type ipos = current_section.find(':');
+      if(ipos == std::string::npos) {
+        current_identifier.clear();
+      } else {
+        current_identifier=current_section.substr(ipos+1);
+        current_section.resize(ipos);
+      };
       current_section_n=-1;
       current_section_p=section_names.end();
       current_section_changed=true;

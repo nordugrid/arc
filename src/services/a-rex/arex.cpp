@@ -527,7 +527,7 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
       inmsg.Context()->Add("arex.gmconfig",config);
     } else {
       delete config; config=NULL;
-      logger_.msg(Arc::ERROR, "Failed to acquire grid-manager's configuration");
+      logger_.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
     };
   };
   return config;

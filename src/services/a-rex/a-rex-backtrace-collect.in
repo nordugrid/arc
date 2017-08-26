@@ -63,7 +63,7 @@ if [ ! -f "${ARCHED}" ]; then
     exit 1
 fi
 
-LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
+LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
 LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
 COREDIR=`dirname "${LOGFILE}"`/arccore
 if [ ! -d "${COREDIR}" ]; then

@@ -40,7 +40,7 @@ void JobsMetrics::SetConfig(const char* fname) {
   config_filename = fname;
 }
 
-void JobsMetrics::SetPath(const char* path) {
+void JobsMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
 
@@ -190,7 +190,7 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
   if(tool_path.empty()) {
     cmd.push_back(gmetric_tool);
   } else {
-    cmd.push_back(tool_path+G_DIR_SEPARATOR_S+gmetric_tool);
+    cmd.push_back(tool_path);
   };
   if(!config_filename.empty()) {
     cmd.push_back("-c");
