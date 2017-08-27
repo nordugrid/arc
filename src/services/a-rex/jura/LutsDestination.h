@@ -3,6 +3,7 @@
 
 #include "Destination.h"
 #include "JobLogFile.h"
+#include "Config.h"
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -22,6 +23,7 @@ namespace ArcJura
   private:
     Arc::Logger logger;
     Arc::MCCConfig cfg;
+    const Config::SGAS conf;
     Arc::URL service_url;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
@@ -41,7 +43,7 @@ namespace ArcJura
     /** Constructor. Service URL and LUTS-related parameters (e.g. UR
      *  batch size) are extracted from the given job log file.
      */
-    LutsDestination(JobLogFile& joblog);
+    LutsDestination(JobLogFile& joblog, const Config::SGAS &conf);
     LutsDestination(std::string url_, std::string vo_filter_);
     /** Generates record from job log file content, collects it into the
      *  UR batch, and if batch is full, submits it to the service. 

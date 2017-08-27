@@ -11,8 +11,9 @@
 
 namespace ArcJura
 {
-  CARDestination::CARDestination(JobLogFile& joblog):
+  CARDestination::CARDestination(JobLogFile& joblog, const Config::APEL &_conf):
     logger(Arc::Logger::rootLogger, "JURA.CARDestination"),
+    conf(_conf),
     urn(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
                    "UsageRecords")
@@ -67,12 +68,7 @@ namespace ArcJura
     //Default value:
     max_ur_set_size=1000;
     //From jobreport_options:
-    std::string urbatch=joblog["jobreport_option_urbatch"];
-    if (!urbatch.empty())
-      {
-        std::istringstream is(urbatch);
-        is>>max_ur_set_size;
-      }
+    max_ur_set_size=conf.urbatchsize;
 
   }
 

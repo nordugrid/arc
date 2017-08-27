@@ -3,6 +3,7 @@
 
 #include "Destination.h"
 #include "JobLogFile.h"
+#include "Config.h"
 #include <stdexcept>
 #include <string>
 #include <map>
@@ -22,6 +23,7 @@ namespace ArcJura
   private:
     Arc::Logger logger;
     Arc::MCCConfig cfg;
+    const Config::APEL conf;
     Arc::URL service_url;
     std::string output_dir;
     /** Max number of URs to put in a set before submitting it */
@@ -41,7 +43,7 @@ namespace ArcJura
     /** Constructor. Service URL and CAR-related parameters (e.g. UR
      *  batch size) are extracted from the given job log file.
      */
-    CARDestination(JobLogFile& joblog);
+    CARDestination(JobLogFile& joblog, const Config::APEL &conf);
     /** Generates record from job log file content, collects it into the
      *  UR batch, and if batch is full, submits it to the service. 
      */

@@ -174,7 +174,7 @@ process_log_file () {
 
     statusfile=`echo "$name" 2>/dev/null | sed -n 's/job\.\([^\.]*\)\.local$/processing\/job.\1.status/p'`
 
-    # more protection - check if grid-manager thinks job is still running
+    # more protection - check if arex thinks job is still running
     egrep 'INLRMS|SUBMIT|CANCELING' "$statusfile" >/dev/null 2>&1
     if [ ! $? = '0' ] ; then continue ; fi
 

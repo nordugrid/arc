@@ -6,7 +6,7 @@ read -r -d '' job_description_input <<'EOF'
 EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF
@@ -57,7 +57,7 @@ read -r -d '' job_description_input <<'EOF'
 EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF
@@ -119,7 +119,7 @@ read -r -d '' job_description_input <<'EOF'
 EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF

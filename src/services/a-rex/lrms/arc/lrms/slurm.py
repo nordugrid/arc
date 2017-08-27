@@ -634,7 +634,7 @@ fi
         #~    return (False, "")
     
         product  = "#!/bin/bash -l\n"
-        product += "# SLURM batch job script built by grid-manager\n" # << TODO
+        product += "# SLURM batch job script built by arex\n" # << TODO
         
         # TODO: Make configurable    
         # rerun is handled by GM, do not let SLURM requeue jobs itself.

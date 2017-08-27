@@ -27,8 +27,9 @@ namespace ArcJura
     init(url_.substr(5), topic_, "", "", "", "");
   }
 
-  ApelDestination::ApelDestination(JobLogFile& joblog):
+  ApelDestination::ApelDestination(JobLogFile& joblog, const Config::APEL &_conf):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
+    conf(_conf),
     rereport(false),
     use_ssl("false"),
     urn(0),
@@ -40,18 +41,8 @@ namespace ArcJura
     init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
 
     //From jobreport_options:
-    std::string urbatch=joblog["jobreport_option_urbatch"];
-    if (!urbatch.empty())
-      {
-         std::istringstream is(urbatch);
-        is>>max_ur_set_size;
-      }
-    std::string o_use_ssl=joblog["jobreport_option_use_ssl"];
-    std::transform(o_use_ssl.begin(), o_use_ssl.end(), o_use_ssl.begin(), tolower);
-    if (o_use_ssl == "true")
-      {
-          use_ssl="true";
-      }
+    max_ur_set_size=conf.urbatchsize;
+    use_ssl=conf.use_ssl;
   }
 
   void ApelDestination::init(std::string serviceurl_,std::string topic_, std::string outputdir_, std::string cert_, std::string key_, std::string ca_)

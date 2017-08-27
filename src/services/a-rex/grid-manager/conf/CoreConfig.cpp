@@ -409,7 +409,7 @@ CHANGE: implement a default! in the format of root@localhost.
     if (cf.SectionNum() == ganglia_secnum) { // arex/ganglia
       if (cf.SubSection()[0] == '\0') {
         config.jobs_metrics->SetEnabled(true);
-        if (command == "gmetric_exec") {
+        if (command == "gmetric_bin") {
           if (!config.jobs_metrics) continue;
           std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
           config.jobs_metrics->SetGmetricPath(fname.c_str());

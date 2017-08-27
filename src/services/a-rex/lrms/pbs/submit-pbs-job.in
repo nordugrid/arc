@@ -69,7 +69,7 @@ is_cluster=true
 ##############################################################
 # Start job script
 ##############################################################
-echo "# PBS batch job script built by grid-manager" > $LRMS_JOB_SCRIPT
+echo "# PBS batch job script built by arex" > $LRMS_JOB_SCRIPT
 # write PBS output to 'comment' file
 echo "#PBS -e '${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
 echo "#PBS -j eo">> $LRMS_JOB_SCRIPT

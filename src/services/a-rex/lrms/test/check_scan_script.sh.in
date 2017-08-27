@@ -63,12 +63,12 @@ for test in ${TESTS}; do
   fi
   
   # Add sessiondir and controldir attributes to arc.conf configuration.
-  if test $(grep '^[[]grid-manager][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
-    sed -i "/^[[]grid-manager][[:space:]]*$/ a\
+  if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
+    sed -i "/^[[]arex][[:space:]]*$/ a\
 sessiondir=\"`pwd`\"\n\
 controldir=\"`pwd`/controldir\"" ${test}.arc.conf
   else 
-    echo $'\n'"[grid-manager]"$'\n'"sessiondir=\"`pwd`\""$'\n'"controldir=\"`pwd`/controldir\"" >> ${test}.arc.conf
+    echo $'\n'"[arex]"$'\n'"sessiondir=\"`pwd`\""$'\n'"controldir=\"`pwd`/controldir\"" >> ${test}.arc.conf
   fi
 
   # Setup command simulation

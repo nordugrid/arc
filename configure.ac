@@ -177,8 +177,8 @@ enables_xrootd=yes
 enables_argus=no
 enables_xmlsec1=yes
 enables_dbjstore=yes
-enables_ldns=yes
 enables_sqlitejstore=yes
+enables_ldns=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -2503,11 +2503,15 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
+                 src/services/acix/cacheserver/acix-cache
+                 src/services/acix/cacheserver/acix-cache-start
                  src/services/acix/cacheserver/acix-cache.service
                  src/services/acix/cacheserver/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile
+                 src/services/acix/indexserver/acix-index
+                 src/services/acix/indexserver/acix-index-start
                  src/services/acix/indexserver/acix-index.service
                  src/services/acix/indexserver/test/Makefile
                  src/services/cache_service/Makefile

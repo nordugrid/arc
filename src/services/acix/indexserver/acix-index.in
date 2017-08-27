@@ -106,6 +106,14 @@ do_start() {
         log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
         exit 1
     fi
+    
+    # Check if service is defined in configuration
+    libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
+    $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index > /dev/null 2>&1
+    if [ $? -eq 1 ]; then
+        log_failure_msg "Block [acix-index] not defined in configuration"
+        exit 1
+    fi
 
     echo -n "Starting ARC cache index..."
 

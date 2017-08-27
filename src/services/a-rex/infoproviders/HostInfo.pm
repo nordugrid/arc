@@ -15,7 +15,7 @@ use LogUtils;
 use InfoChecker;
 
 our $host_options_schema = {
-        x509_user_cert => '*',
+        x509_host_cert => '*',
         x509_cert_dir  => '*',
         wakeupperiod   => '*',
         processes      => [ '' ],
@@ -125,8 +125,8 @@ sub get_cert_info {
 
     my $host_info = {};
 
-    if (not $options->{x509_user_cert}) {
-        $log->info("x509_user_cert not configured");
+    if (not $options->{x509_host_cert}) {
+        $log->info("x509_host_cert not configured");
         return $host_info;
     }
 
@@ -138,7 +138,7 @@ sub get_cert_info {
     $log->error("Could not find openssl command") unless $openssl;
 
     # Inspect host certificate
-    my $hostcert = $options->{x509_user_cert};
+    my $hostcert = $options->{x509_host_cert};
     chomp (my $issuerca = `$openssl x509 -noout -issuer -nameopt oneline -in '$hostcert'`);
     if ($?) {
         $log->warning("Failed processing host certificate file: $hostcert") if $?;
@@ -356,7 +356,7 @@ sub get_host_info {
 #### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 sub test {
-    my $options = { x509_user_cert => '/etc/grid-security/hostcert.pem',
+    my $options = { x509_host_cert => '/etc/grid-security/hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
                     control => {
                         '.' => {

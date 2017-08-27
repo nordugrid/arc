@@ -7,8 +7,71 @@
 ## There are out-of-the-box minimal configuration templates provided.
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
-## The arc.conf configuration file consists of blocks like
-## [common], [arex], [gridftpd], [cluster], [infosys], etc..
+## The arc.conf configuration file consists of the following blocks 
+## TODO: give a very short description for each block above
+##
+##  [common] - description tbd
+##  [common/perflog] - description tbd
+##  [common/mapping] - description tbd
+##  [lrms]
+##  [lrms/ssh]
+##  [userlist:biousers]
+##  [authgroup:allowedusers]
+##  [arex]
+##  [arex/cache]
+##  [arex/data-staging]
+##  [arex/ws]
+##  [arex/ws/emies]
+##  [arex/ws/cache]
+##  [arex/ws/candypond]
+##  [arex/ws/argus]
+##  [arex/jura]
+##  [arex/jura/archiving]
+##  [arex/jura/sgas:neic_sgas]
+##  [arex/jura/apel:egi_prod_apel]
+##  [arex/ganglia]
+##  [gridftpd]
+##  [gridftpd/jobs]
+##  [gridftpd/filedir]
+##  [infosys]
+##  [infosys/ldap]
+##  [infosys/ldap/bdii]
+##  [infosys/registration]
+##  [infosys/cluster/registration/registrationtoindex1]
+##  [cluster]
+##  [queue:gridlong]
+##  [infosys/nordugrid]
+##  [infosys/glue2]
+##  [infosys/glue2/ldap]
+##  [infosys/glue1]
+##  [infosys/glue1/site:name]
+##  [infosys/index/indexname]
+##  [infosys/index/indexname/registration/registrationname]
+##  [datadelivery-service]
+##  [acix-scanner]
+##  [acix-index]
+##  [nordugridmap]
+##
+## TODO: document block priority as agreed: everything overtakes [common], 
+## [queue] -> [cluster] -> [lrms] -> [common]
+##
+## TODO: describe the "space rules" 
+##
+## A block configures an ARC service, a service interface, a utility or a subsystem.
+## Enabling (turning on) a functionality, a service or an interface requires the presence of the
+## appropriate configuration block. To disable a service or an interface, simply delete or comment out
+## with a "#" the related arc.conf block (you may need to rerun the corresponding startup script).
+##
+## TODO: specify which blocks are mandatory/optional for certain deployment scenario.
+##
+## As an example, in order to set up a minimalistic ARC CE with a WS-interface
+## you need to configure at least the [common],[arex],[lrms],[arex/ws],
+## [infosys],[infosys/glue2],[cluster] and [queue:name] blocks.
+##
+## As another example, when the ARC CE is configured according to the "classic" setup with
+## gridftp-based jobsubmission interface and LDAP infosys publishing the nordugrid schema,
+## the following blocks are needed: [common], [arex], [gridftpd], [gridftpd/jobs],
+## [infosys], [infosys/ldap], [infosys/ldap/bdii], [infosys/nordugrid], [cluster] and [queue:name]
 ##
 ## A block is identified by its block header. A block header may consist of
 ## keywords and optionally block identifiers. Keywords may be separated by "/" 
@@ -21,8 +84,9 @@
 ## at the next [blockheader] directive. A block may have sub-blocks e.g. [arex/ws].
 ##
 ## Configuration blocks contain (variable, variable value) pairs following the syntax:
+## TODO: introduce consistent terminology for variable/value or config parameter value. decide naming!
 ## variable=the variable value(s) come(s) in single line and everything is part of the value till the end of the line.
-## Note that quotes around the variable value(s) MUST not be used any longer.
+## Note that quotes around the variable value(s) must NOT be used any longer.
 ## Commented out or unset configuration options (variables) take their default values!
 ## Note that the arc.conf is CASE-SENSITIVE!
 ##
@@ -31,19 +95,6 @@
 ## Furthermore, the order of the authorization blocks itself may have influence over authorization decisions!
 ## On the other hand, the order of the variables within a specific block is irrelevant.
 ##
-## A block configures an ARC service, a service interface, a utility or a subsystem.
-## enabling (turning on) a functionality, a service or an interface requires the presence of the
-## appropriate configuration block. To disable a service or an interface, simply delete or comment out
-## the related arc.conf block (you may need to rerun the corresponding startup script).
-##
-## As an example, in order to set up a minimalistic ARC CE with a WS-interface
-## you need to configure at least the [common],[arex],[lrms],[arex/ws],
-## [infosys],[infosys/glue2],[cluster] and [queue:name] blocks.
-##
-## As another example, when the ARC CE is configured according to the "classic" setup with
-## gridftp-based jobsubmission interface and LDAP infosys publishing the nordugrid schema,
-## the following blocks are needed: [common], [arex], [gridftpd], [gridftpd/jobs],
-## [infosys], [infosys/ldap], [infosys/ldap/bdii], [infosys/nordugrid], [cluster] and [queue:name]
 ##
 ## Developers: This file is parsed by configuration validation scripts and so
 ##   it is important that it follows the agreed syntax: For each block or
@@ -93,21 +144,21 @@
 ## CHANGE4: moved here from the old [grid-manager] block
 
 ### X509 related parameters
-## x509_host_key - (previously x509_user_key) Server credential location. Sets the full path to the host private key.
+## x509_host_key path - (previously x509_user_key) Server credential location. Sets the full path to the host private key.
 ## These variables are similar to the GSI enviroment variable X509_USER_KEY
 ## If indicated, the variable can be set individually for each service/component in the corresponding block.
 ## default: /etc/grid-security/hostkey.pem
 #x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE5: renamed
 
-## x509_host_cert - (previously x509_user_cert) Server credential location. Sets the full path to the host public certificate.
+## x509_host_cert path - (previously x509_user_cert) Server credential location. Sets the full path to the host public certificate.
 ## These variables are similar to the GSI environment variable X509_USER_CERT
 ## If indicated, the variable can be set individually for each service/component in the corresponding block.
 ## default: /etc/grid-security/hostcert.pem
 #x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE6: renamed
 
-## x509_cert_dir - Location of trusted CA certificates.
+## x509_cert_dir path  - Location of trusted CA certificates.
 ## This variable is similar to the GSI enviroment variable X509_CERT_DIR
 ## If indicated, the variable can be set individually for each service/component in the corresponding block.
 ## default: /etc/grid-security/certificates
@@ -246,8 +297,6 @@
 ##    slurm   - SLURM
 ##    boinc   - Boinc
 ##    slurmpy - new generation SLURM scripts (provide access to slurm via ssh too)
-##    lsfpy   - new generation of LSF scripts (provide access to LSF via ssh too)
-##    sceapi  - The Chinese HPC Grid
 ## PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
 ## and Torque (the official name for ScalablePBS). There is no need to specify
 ## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
@@ -258,21 +307,23 @@
 ## the job descriptions submitted to the ARC CE do not specify a requested queue.
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
-## mandatory: yes
-## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy lsfpy sceapi
+## mandatory
+## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy
 ## default: not set
 #lrms=pbs gridlong
-## CHANGE11: new lrmstype values added (slurmpy, lsfpy, sceapi).
+#lrms=slurm
+## CHANGE11: new lrmstype values added (slurmpy).
 
 ## lrmsconfig text - An optional free text field to describe the configuration of your
-## Local Resource Management System (batch system). The value is published in the infosys.
+## Local Resource Management System (batch system). The value is published in the infosys,
+## and is not used otherwise.
 ## default: not set
 #lrmsconfig=single job per processor
 ## CHANGE12: moved here from the [cluster] block
 
-## defaultmemory number - The LRMS memory request of job to be set by A-REX if
-## a user submits a job without specifying how much memory should be used.
-## The order is: xrsl -> defaultmemory -> nodememory -> 1GB.
+## defaultmemory number - The LRMS memory request of job to be set by the LRMS backend
+## scripts, if a user submits a job without specifying how much memory should be used.
+## The order of precedence is: job description -> defaultmemory -> nodememory -> 1GB.
 ## This is the amount of memory (specified in MB) that a job will request.
 ## default: not set
 #defaultmemory=512
@@ -389,13 +440,14 @@
 #slurm_bin_path=/usr/bin
 
 ## slurm_wakeupperiod numsec - How long should infosys wait before querying SLURM for new data (seconds)
-## default: TODO
+## default: 30
 #slurm_wakeupperiod=15
 
 ## slurm_use_sacct yes/no - Indicates whether ARC should use sacct instead of scontrol
 ## to obtain information about finished jobs
+## Not supported by slurmpy.
 ## allowedvalues: yes no
-## default: TODO
+## default: not set
 #slurm_use_sacct=yes
 
 ### LSF options: set these only in case of lrms=lsf
@@ -460,24 +512,32 @@
 
 ### The [lrms/ssh] block ##############################################
 ## This sub-block configures the ssh environment for remote batch management.
-## Currently the python slurm and lsf batch modules are able to utilize remote ssh.
+## Parameters within this block are relevant if the cluster frontend is remotely
+## located wrt. CE frontend (machine running A-REX). If specified with the
+## parameters below, the session, cache and runtime directories will be mounted
+## from the cluster frontend on the CE frontend using sshfs. Job submission and
+## management will done using ssh (Paramiko).
+## Currently the python slurm (slurmpy) batch module are able to utilize remote ssh.
 #[lrms/ssh]
 ## CHANGE16: new sub-block
 ## TODO: indicate which parameter is mandatory from this sub-block
 
 ## remote_host hostname - Define the remote cluster frontend machine which contains
 ## session, cache and runtime directories and where jobs should be submitted to.
+## mandatory
 ## default: not set
 #remote_host=myremotehost.org
 
 ## private_key path - Location of the private key which should be used establish
 ## connection to the machine specified by the 'remote_host' attribute.
+## mandatory
 ## default: TODO
 #private_key=/etc/grid-security/hostkey-priv.pem
 
 ## remote_user user - User on remote cluster which should be used for mounting
 ## directories, submitting and managing jobs, and gathering information about
 ## cluster.
+## mandatory
 ## default: TODO
 #remote_user=grid
 
@@ -496,11 +556,12 @@
 ## remote_cachedir path - Cache directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
 ## attribute in the [arex] block.
+## mandatory
 ## default: not set
 #remote_cachedir=/scratch/cache
 
 ## ssh_timeout time - Timeout of establishing ssh connection. Unit in seconds.
-## default: TODO
+## default: 10
 #ssh_timeout=10
 ##
 ##
@@ -913,9 +974,9 @@
 
 ## logfile path - Specify A-REX log file location. If using an external log
 ## rotation tool be careful to make sure it matches the path specified here.
-## TODO: RENAMING as part of the de-grid-managerization????
-## default: /var/log/arc/grid-manager.log
-#logfile=/var/log/arc/grid-manager.log
+## default: /var/log/arc/arex.log
+#logfile=/var/log/arc/arex.log
+## CHANGE189: modified default (renamed file)
 
 ## joblog path - Specifies where to store specialized log about started
 ## and finished jobs. If path is empty or the parameter is not set - log is not written.
@@ -1622,7 +1683,7 @@
 #### end of the [arex/ws/argus] block #####################
 
 
-### The [acix/cachescanner] (previously [acix/cacheserver]) block ##########
+### The [acix-scanner] (previously [acix/cacheserver]) block ##########
 ## The ARC Cache Index (ACIX) is a distributed system that maintains
 ## a catalog of locations of cached files stored in various A-REX caches.
 ## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
@@ -1633,7 +1694,7 @@
 ## server.
 ## Comment out this block if you don't want the content of the cache scanned and
 ## eventually pulled and indexed by ACIX.
-#[acix/cachescanner]
+#[acix-scanner]
 ## CHANGE82: renamed block, renamed component (cache scanner, instead of cacheserver)
 ## TODO: update ACIX documentation (sysadmin 4.4.3) with new name, maybe even new package names are needed
 
@@ -1656,10 +1717,10 @@
 #cachedump=yes
 ##
 ##
-### end of the [acix/cachescanner] block ############################
+### end of the [acix-scanner] block ############################
 
 
-### The [acix/indexserver] block ###################################
+### The [acix-index] (previously [acix/indexserver]) block #################################
 ## The ARC Cache Index (ACIX) is a distributed system that maintains
 ## a catalog of locations of cached files stored in various A-REX caches.
 ## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
@@ -1672,7 +1733,7 @@
 ## index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1
 ## Comment out this block if you don't run an ACIX Index server.
 ## TODO: reference the interface specification.
-#[acix/indexserver]
+#[acix-index]
 
 ## cachescanner url - (previously cacheserver) ACIX cache scanners from which to pull information
 ## multivalued
@@ -1681,7 +1742,7 @@
 #cachescanner=https://another.host:5443/data/cache
 ## CHANGE84: renamed
 ##
-### end of the [acix/indexserver] block ############################
+### end of the [acix-index] block ############################
 
 
 ### The [arex/jura] block ###################################
@@ -2406,7 +2467,7 @@
 #bdii_delete_delay=0
 
 ## Sets BDII_READ_TIMEOUT in bdii configuration file
-## default: $provider_timeout + $wakeupperiod
+## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
 #bdii_read_timeout=300
 
 ## Information about how to authenticate to the registered information server
@@ -2631,6 +2692,8 @@
 ## Do NOT set this attribute on cluster level if the NODES are inhomogeneous
 ## with respect to their memories, instead arrange the nodes into homogeneous
 ## groups assigned to a queue and use queue-level attributes.
+## This value is used by LRMS backend scripts to put in the job script if the
+## 'lrms/defaultmemory' attribute is not specified.
 ## default: not set
 #nodememory=512
 
@@ -2885,7 +2948,7 @@
 ##  [infosys/glue2/ldap] - The LDAP rendering of the GLUE2 model
 ##  [infosys/glue2/xml] - The XML rendering of the GLUE2 model
 ##  [infosys/glue1] - The legacy GLUE1 model (only LDAP)
-##  [infosys/glue1/site] - The site BDII element of the GLUE1 legacy model
+##  [infosys/glue1/site:name] - The site BDII element of the GLUE1 legacy model
 
 
 ### The [infosys/nordugrid] schema sub-block ###########################
@@ -3023,7 +3086,7 @@
 
 ## processor_other_description string - GLUE1 proc description
 ## default: not set
-#processor_other_description= Cores 3, Benchmark 9.8-HEP-SPEC06
+#processor_other_description=Cores 3, Benchmark 9.8-HEP-SPEC06
 
 ## glue_site_web url - GLUE1 site web url
 ## default: not set
@@ -3034,7 +3097,8 @@
 #glue_site_unique_id=NDGF-T1
 
 ## provide_glue_site_info yes/no - This variable decides if the GlueSite should be published.
-## CHANGE163: DELETED.  use the [infosys/glue1/site] block instead.
+## CHANGE163: DELETED.  disabled if one or more [infosys/glue1/site:name]
+##                      blocks exist, otherwise enabled.
 ##
 ##
 ### end of the [infosys/glue1] schema block ###########################
@@ -3275,19 +3339,17 @@
 
 ### The [arex/ganglia] block  - previously [gangliarc] ###############################
 ##
-## This block enables the monitoring of ARC-specific metrics through ganglia.
+## This block enables the monitoring of ARC-specific metrics through and existing ganglia
+## installation. Earlier versions (ARC < 6.0) relied on the standalone tool gangliarc 
+## which is now deprecated.
 ## 
-## TODO: FIX the description above, collect all ganglia variables in this block.
 #[arex/ganglia]
 ## CHANGE185: RENAMED block, merged of all ganglia inside this single block
 
-## frequency seconds - The period between each information gathering cycle, in seconds.
-## default: 20
-#frequency=30
-
-## gmetric_exec path - Path to gmetric executable.
+## gmetric_bin_path - (previously gmetric_exec) The path to gmetric executable.
 ## default: /usr/bin/gmetric
-#gmetric_exec=/usr/local/bin/gmetric
+#gmetric_bin_path=/usr/local/bin/gmetric
+## CHANGE186: Moved from deleted [gangliarc] block and renamed. Path used in arex-ganglia implementation JobsMetrics.cpp assumes path of type /usr/bin, not /usr/bin/gmetric, so must be changed in cpp file.
 
 ## logfile path - log file of the daemon.
 ## default: /var/log/arc/gangliarc.log
@@ -3297,9 +3359,15 @@
 ## default: /var/run/gangliarc.pid
 #pidfile=/tmp/gangliarc.pid
 
-## python_bin_path  path - path to python executable.
+## python_bin_path - The path to python executable. 
 ## default: /usr/bin/python
 #python_bin_path=/usr/local/bin/python
+## CHANGE187: Renamed back to original python_bin_path
+
+## ganglialocation path - path to ganglia gmetric executable
+## default: /usr/bin
+#ganglialocation=/usr/local/bin
+## DELETE188: Deleted from [grid-manager] block, documented first in 5.3.0. Use gmetric_bin instead.
 
 ## metrics name_of_the_metrics - the metrics to be monitored. 
 ## metrics takes a comma-separated list of one or more of the following metrics:
@@ -3315,6 +3383,11 @@
 ## default: all
 ## allowedvalues: staging cache session heartbeat processingjobs failedjobs jobstates all
 #metrics=all
+##
+
+## frequency seconds - The period between each information gathering cycle, in seconds.
+## default: 20
+#frequency=30
 ##
 ##
 ### end of the [arex/ganglia] block ##############

@@ -17,7 +17,7 @@ config_parse_file $ARC_CONFIG 1>&2 || exit $?
 
 config_import_section "common"
 config_import_section "infosys"
-config_import_section "grid-manager"
+config_import_section "arex"
 config_import_section "cluster"
 
 # Also read queue section

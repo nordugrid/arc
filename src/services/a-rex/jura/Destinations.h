@@ -4,6 +4,7 @@
 #include "Destination.h"
 #include "JobLogFile.h"
 #include <string>
+#include "Config.h"
 
 namespace ArcJura
 {
@@ -15,7 +16,7 @@ namespace ArcJura
      *  object for the specific destination already exists in the set,
      *  it uses that, otherwise creates a new one.
      */
-    void report(JobLogFile &joblog);
+    void report(JobLogFile &joblog, const Config::ACCOUNTING &conf);
     ~Destinations();
   };
 

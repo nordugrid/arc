@@ -13,6 +13,7 @@ from twisted.python import log
 from twisted.internet import reactor, defer, protocol
 from twisted.protocols import basic
 
+from arc import config
 ARC_CONF = '/etc/arc.conf'
 DATA_CACHE_SUBDIR = 'data'
 
@@ -85,33 +86,19 @@ class ScanProtocol(protocol.ProcessProtocol):
 
 def getARCCacheDirs():
 
-    cache_dirs = []
-    config = ARC_CONF
-    if 'ARC_CONFIG' in os.environ:
-        config = os.environ['ARC_CONFIG']
-    ingm = False
-    for line in file(config):
-        if line.startswith('['):
-            ingm = line.startswith('[grid-manager]')
-        if ingm and line.startswith('cachedir') or line.startswith('remotecachedir'):
-            args = line.split('=', 2)[1]
-            cache_dir = args.split(' ')[0].replace('"', '').strip()
-            cache_dirs.append(cache_dir)
+    config.parse_arc_conf(os.environ['ARC_CONFIG'] if 'ARC_CONFIG' in os.environ else ARC_CONF)
+    cache_dirs = config.get_value('cachedir', 'arex/cache', force_list=True)
+    # First value is cachedir, second value can be 'drain'
+    cache_dirs = [c.split()[0] for c in cache_dirs] if cache_dirs else []
     return cache_dirs
-
 
 
 class CacheScanner:
 
-    def __init__(self, cache_dir=None, cache_dump=False):
+    def __init__(self, cache_dir=[], cache_dump=False):
 
-        if cache_dir is None:
+        if not cache_dir:
             cache_dir = getARCCacheDirs()
-
-        # compat with older configs, where cache_dir is a string
-        # but we need to support multiple cache dirs
-        if type(cache_dir) is str:
-            cache_dir = [cache_dir]
 
         self.cache_dir = cache_dir
         self.cache_dump = cache_dump

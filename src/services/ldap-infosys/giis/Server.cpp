@@ -56,7 +56,8 @@ Server::Server(const std::string& fifo, const std::string& conf) : fifo(fifo) {
   while(getline(cfg, line)) {
     if(line[0] == '[' && line[line.size() - 1] == ']') {
       while(!line.empty() &&
-	    line.substr(1, 14) == "infosys/index/" &&
+	    line.substr(1, 13) == "infosys/index" &&
+	    (line[14] == '/' || line[14] == ':') &&
 	    line.find('/', 15) == std::string::npos) {
 	Index ix(line.substr(15, line.size() - 16));
 	while(getline(cfg, line)) {

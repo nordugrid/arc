@@ -56,7 +56,7 @@ mktempscript
 ##############################################################
 # Start job script
 ##############################################################
-echo "# LL batch job script built by grid-manager" > $LRMS_JOB_SCRIPT
+echo "# LL batch job script built by arex" > $LRMS_JOB_SCRIPT
 
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then

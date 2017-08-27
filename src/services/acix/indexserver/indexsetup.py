@@ -6,6 +6,7 @@ from twisted.web import resource, server
 from acix.core import ssl
 from acix.indexserver import index, indexresource
 
+from arc import config
 
 # -- constants
 SSL_DEFAULT = True
@@ -16,20 +17,12 @@ ARC_CONF = '/etc/arc.conf'
 
 def getCacheServers():
 
-    cache_dirs = []
-    config = ARC_CONF
-    if 'ARC_CONFIG' in os.environ:
-        config = os.environ['ARC_CONFIG']
-    for line in file(config):
-        if line.startswith('cacheserver'):
-            args = line.split('=', 2)[1]
-            cache_dir = args.replace('"', '').strip()
-            cache_dirs.append(cache_dir)
+    config.parse_arc_conf(os.environ['ARC_CONFIG'] if 'ARC_CONFIG' in os.environ else ARC_CONF)
+    cachescanners = config.get_value('cachescanner', 'acix-index', force_list=True)
     # use localhost as default if none defined
-    if len(cache_dirs) == 0:
-        cache_dirs.append('https://localhost:5443/data/cache')
-    return cache_dirs
-
+    if not cachescanners:
+        cachescanners = ['https://localhost:5443/data/cache']
+    return cachescanners
 
 def createIndexApplication(use_ssl=SSL_DEFAULT, port=None,
                            refresh_interval=DEFAULT_INDEX_REFRESH_INTERVAL):

@@ -78,13 +78,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# Source the config parsing routines
-if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
-else
-    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-    exit 1
-fi
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
@@ -94,24 +88,27 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-# Read arc.conf
-config_parse_file $ARC_CONFIG || exit $?
-
-# Check for infosys-block
-if ! config_match_section infosys; then
-    log_warning_msg "Missing infosys configuration block"
+# Check for infosys block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+    log_warning_msg "Missing [infosys] configuration block"
     exit 0
 fi
 
-config_hide_all
-config_import_section common
+# Check for infosys/ldap block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
+    log_warning_msg "Missing [infosys/ldap] configuration block"
+    exit 0
+fi
+
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
 
 # These options need to come from the infosys-block, not from common
 unset CONFIG_logfile
 unset CONFIG_user
 unset CONFIG_port
 
-config_import_section infosys
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -138,7 +135,7 @@ if [ ! -x ${USERSHELL} ]; then
     exit 1
 fi
 
-giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
+giis_location=${ARC_LOCATION}
 
 if [ `id -u` = 0 ]; then
     # Debian does not have /var/lock/subsys
@@ -155,7 +152,7 @@ infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-giis_fifo=${CONFIG_giis_fifo:-${infosys_ldap_run_dir}/giis-fifo}
+giis_fifo=${infosys_ldap_run_dir}/giis-fifo
 
 start () {
     if [ -r "${lockfile}" ]; then
@@ -164,7 +161,7 @@ start () {
 	return ${RETVAL}
     fi
 
-    if [ ! "`config_subsections infosys/index`" ]; then
+    if [ -z "$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index -s)" ]; then
 	log_failure_msg "No $prog defined in $ARC_CONFIG"
 	exit 1
     fi

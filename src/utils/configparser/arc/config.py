@@ -24,7 +24,7 @@ def parse_arc_conf(conf_f='/etc/arc.conf'):
         #   'option=value'
         #   'option = value' (just in case we will decide to allow spaces)
         #   'option=' or 'option'
-        'option': re.compile(r'^(?P<option>[^=\[\]\n\s]+)\s*(?:=|(?=\s*$))\s*(?P<value>.*)\s*$')
+        'option': re.compile(r'^\s*(?P<option>[^=\[\]\n\s]+)\s*(?:=|(?=\s*$))\s*(?P<value>.*)\s*$')
     }
     with open(conf_f, 'rb') as arcconf:
         block_id = None
@@ -93,10 +93,14 @@ def export_bash(blocks=None, subsections=False):
     if blocks is None:
         blocks = ['common']
     if subsections:
-        blocks = get_subblocks(blocks, True)
+        blocks = get_subblocks(blocks, is_reversed=True)
+    else:
+        blocks.reverse()
     blocks_dict = _config_subset(blocks)
     bash_config = {}
     for b in blocks:
+        if b not in blocks_dict:
+            continue
         for k, v in blocks_dict[b].iteritems():
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
@@ -110,11 +114,19 @@ def export_bash(blocks=None, subsections=False):
     return eval_str
 
 
-def get_value(option, blocks=None):
+def get_value(option, blocks=None, force_list=False, bool_yesno=False):
     for b in _blocks_list(blocks):
         if b in __parsed_config:
             if option in __parsed_config[b]:
-                return __parsed_config[b][option]
+                value = __parsed_config[b][option]
+                if bool_yesno:
+                    if value == 'yes':
+                        value = True
+                    elif value == 'no':
+                        value = False
+                if force_list and not isinstance(value, list):
+                    value = [value]
+                return value
     return None
 
 

@@ -20,8 +20,9 @@ namespace ArcJura
     init(url_,"","","");
   }
 
-  LutsDestination::LutsDestination(JobLogFile& joblog):
+  LutsDestination::LutsDestination(JobLogFile& joblog, const Config::SGAS &_conf):
     logger(Arc::Logger::rootLogger, "JURA.LutsDestination"),
+    conf(_conf),
     urn(0),
     usagerecordset(Arc::NS("","http://schema.ogf.org/urf/2003/09/urf"),
                    "UsageRecords")
@@ -29,12 +30,7 @@ namespace ArcJura
     init(joblog["loggerurl"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
 
     //From jobreport_options:
-    std::string urbatch=joblog["jobreport_option_urbatch"];
-    if (!urbatch.empty())
-      {
-        std::istringstream is(urbatch);
-        is>>max_ur_set_size;
-      }
+    max_ur_set_size=conf.urbatchsize;
 
   }
 
@@ -103,6 +99,8 @@ namespace ArcJura
 
   void LutsDestination::report(JobLogFile &joblog)
   {
+    // Here can add extra attributes for joblog from the configuration if it is necessary.
+
     //if (joblog.exists())
       {
         //Store copy of job log

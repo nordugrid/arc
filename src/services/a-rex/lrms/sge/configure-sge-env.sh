@@ -19,7 +19,7 @@ config_parse_file $ARC_CONFIG 1>&2 || exit $?
 
 config_import_section "common"
 config_import_section "infosys"
-config_import_section "grid-manager"
+config_import_section "arex"
 
 # Also read queue section
 if [ ! -z "$joboption_queue" ]; then

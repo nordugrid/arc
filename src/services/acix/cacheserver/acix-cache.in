@@ -89,7 +89,15 @@ do_start() {
         exit 1
     fi
     
-    echo -n "Starting ARC cache server..."
+    # Check if service is defined in configuration
+    libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
+    $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner > /dev/null 2>&1
+    if [ $? -eq 1 ]; then
+        log_failure_msg "Block [acix-scanner] not defined in configuration"
+        exit 1
+    fi
+    
+    echo -n "Starting ARC cache scanner..."
 
     # Check if we are already running
     if [ -f $PIDFILE ]; then
@@ -103,18 +111,10 @@ do_start() {
         fi
         rm -f "$PIDFILE" "$LOCKFILE"
     fi
-
-    CONFIG_SECTION=acix\\/cacheserver
-    # read in cacheserver section from arc.conf
-    # this will put the read values into the environment, e.g., $logfile
-    eval `sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \
-              -e 's/;.*$//' \
-              -e 's/[[:space:]]*$//' \
-              -e 's/^[[:space:]]*//' \
-              -e "s/^\(.*\)=\([^\"']*\)$/\1=\"\2\"/" \
-               < $ARC_CONFIG \
-               | sed -n -e "/^\[$CONFIG_SECTION\]/,/^\s*\[/{/^[^;].*\=.*/p;}" `
-    LOGFILE=${logfile:-$DEFAULT_LOGFILE}
+    
+    # Load configuration into env vars
+    eval "$( $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner --export bash )"
+    LOGFILE=${CONFIG_logfile:-$DEFAULT_LOGFILE}
     LOGD=`dirname $LOGFILE`
     LOGN=`basename $LOGFILE`
     

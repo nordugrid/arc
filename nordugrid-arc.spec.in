@@ -591,6 +591,7 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{with_python}
 Requires:	python2-%{name} = %{version}-%{release}
 %endif
+Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
 %if %{with_pythonlrms}
 Requires:	perl(Inline)
@@ -1232,7 +1233,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %dir %{python_sitearch}/%{pkgdir}
-%{python_sitearch}/%{pkgdir}/config
+%{python_sitearch}/%{pkgdir}/config.py*
 %dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference

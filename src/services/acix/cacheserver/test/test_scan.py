@@ -56,7 +56,7 @@ class ScanTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def testScan(self):
 
-        scanner = pscan.CacheScanner(self.tmpdir+'/cache')
+        scanner = pscan.CacheScanner([self.tmpdir+'/cache'])
         l = []
 
         yield scanner.scan(lambda url : l.append(url))

@@ -63,7 +63,7 @@ done
 
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
 
-echo "#job script built by grid-manager and input file for BOINC job" >> $LRMS_JOB_SCRIPT
+echo "#job script built by arex and input file for BOINC job" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 set -x 

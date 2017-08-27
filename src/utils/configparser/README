@@ -82,9 +82,27 @@ infosys/glue1
     config.parse_arc_conf('/tmp/arc.conf')
 
     # get list of all 'queue' subblocks sorted by name
-    sb = config.get_subblocks(['queue'], is_sorted=True) 
+    >>> sb = config.get_subblocks(['queue'], is_sorted=True) 
+    >>> sb
+    ['queue:grid', 'queue:grid_rt']
+
     # get value of 'x509_host_key' from 'arex' block and than from 'common' if not found in 'arex'
-    a = config.get_value('x509_host_key', ['arex', 'common'])
+    >>> a = config.get_value('x509_host_key', ['arex', 'common'])
+    >>> a
+    '/etc/grid-security/hostkey.pem'
+
     # get value of 'allowunknown' option from 'gridftpd' blocks
-    b = config.get_value('allowunknown', 'gridftpd')
+    >>> b = config.get_value('allowunknown', 'gridftpd')
+    >>> b
+    'yes'
+
+    # get value of 'allowunknown' option from 'gridftpd' blocks (always return list)
+    >>> c = config.get_value('allowunknown', 'gridftpd', force_list=True)
+    >>> c
+    ['yes']
+
+    # get value of 'allowunknown' option from 'gridftpd' blocks (return boolean value)
+    >>> d = config.get_value('allowunknown', 'gridftpd', bool_yesno=True)
+    >>> d
+    True
 

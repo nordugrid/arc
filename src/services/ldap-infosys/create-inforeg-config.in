@@ -8,13 +8,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# Source the config parsing routines
-if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
-else
-    echo "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-    exit 1
-fi
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
@@ -24,25 +18,22 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-# Read arc.conf
-config_parse_file $ARC_CONFIG || exit $?
-
-# Check for infosys-block
-if ! config_match_section infosys; then
-    echo "Missing infosys configuration block"
+# Check for infosys block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+    echo "Missing [infosys] configuration block"
     exit 1
 fi
 
-config_hide_all
-config_import_section common
-config_import_section cluster
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b cluster -e bash)
 
-# These options need to come from the infosys-block, not from common
+# These options need to come from the infosys block, not from common
 unset CONFIG_logfile
 unset CONFIG_user
 unset CONFIG_port
 
-config_import_section infosys
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -93,15 +84,10 @@ echo "# Do not modify." >> $registrationconf
 echo >> $registrationconf
 
 (
-    config_hide_all
-    config_import_section common
-    config_import_section cluster
-    config_import_section infosys
-
     # Cluster registration blocks
-    for p in `config_subsections infosys/cluster/registration`; do
+    for p in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/cluster/registration -s); do
 	(
-	    config_import_section infosys/cluster/registration/$p
+	    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${p} -e bash)
 
 	    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=grid"}
 	    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
@@ -121,16 +107,15 @@ echo >> $registrationconf
     done
 
     # SE registration blocks
-    for seentry in `config_subsections infosys/se`; do
+    for seentry in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/se -s); do
 	(
-	    CONFIG_name=
-	    config_import_section se/$seentry
-	    sename=${CONFIG_name:-$seentry}
-	    config_import_section infosys/se/$seentry
+	    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${seentry} -e bash)
+	    grep -q /registration <<< ${CONFIG___block_name} && continue
+	    sename=${CONFIG___block_name}
 
-	    for p in `config_subsections infosys/se/$seentry/registration`; do
+	    for p in $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${seentry}/registration -s); do
 		(
-		    config_import_section infosys/se/$seentry/registration/$p
+		    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${p} -e bash)
 
 		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=grid"}
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
@@ -152,15 +137,15 @@ echo >> $registrationconf
     done
 
     # Registrations of the Index Services
-    for vo in `config_subsections infosys/index`; do
+    for vo in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index -s); do
 	(
-	    CONFIG_name=
-	    config_import_section infosys/index/$vo
-	    indexname=${CONFIG_name:-$vo}
+	    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo} -e bash)
+	    grep -q /registration <<< ${CONFIG___block_name} && continue
+	    indexname=${CONFIG___block_name}
 
-	    for r in `config_subsections infosys/index/$vo/registration`; do
+	    for p in $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo}/registration -s); do
 		(
-		    config_import_section infosys/index/$vo/registration/$r
+		    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${p} -e bash)
 
 		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=grid"}
 		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}

@@ -12,18 +12,18 @@
 namespace ArcJura
 {
 
-  Destination* Destination::createDestination(JobLogFile &joblog)
+  Destination* Destination::createDestination(JobLogFile &joblog, const Config::ACCOUNTING &conf)
   {
     std::string url=joblog["loggerurl"];
     if (url.substr(0,3) == "CAR") {
-        return new CARDestination(joblog);
+        return new CARDestination(joblog, (const Config::APEL &)conf);
     }
     //TODO distinguish
     if ( !joblog["topic"].empty() ||
          url.substr(0,4) == "APEL"){
-        return new ApelDestination(joblog);
+        return new ApelDestination(joblog, (const Config::APEL &)conf);
     }else{
-        return new LutsDestination(joblog);
+        return new LutsDestination(joblog, (const Config::SGAS &)conf);
     }
   }
 

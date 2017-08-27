@@ -77,13 +77,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# Source the config parsing routines
-if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
-else
-    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-    exit 1
-fi
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
@@ -93,28 +87,24 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-# Read arc.conf
-config_parse_file $ARC_CONFIG || exit $?
-
-# Check for infosys-block
-if ! config_match_section infosys; then
-    log_failure_msg "Missing infosys configuration block"
+# Check for infosys block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+    log_failure_msg "Missing [infosys] configuration block"
     exit 1
 fi
 
-config_hide_all
-config_import_section common
-config_import_section infosys
-
-bdii_location=${CONFIG_bdii_location:-/usr}
-bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
-if [ ! -x $bdii_update_cmd ] || grep -q BDII_PID_FILE $bdii_update_cmd; then
-    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
-    bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
-else
-    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-    bdii_run_dir=${bdii_var_dir}
+# Check for infosys/ldap block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
+    log_failure_msg "Missing [infosys/ldap] configuration block"
+    exit 1
 fi
+
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii -e bash)
+
+bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 slapd_pid_file=${bdii_run_dir}/db/slapd.pid
 
 infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}

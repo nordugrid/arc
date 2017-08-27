@@ -78,7 +78,7 @@ def set_common(cfg):
 
 def set_gridmanager(cfg):
    """
-   Set [grid-manager] :py:data:`~lrms.common.Config` attributes.
+   Set [arex] :py:data:`~lrms.common.Config` attributes.
 
    :param cfg: parsed arc.conf
    :type cfg: :py:class:`ConfigParser.ConfigParser`
@@ -88,41 +88,41 @@ def set_gridmanager(cfg):
 
    # log threshold
    Config.log_threshold = arc.INFO
-   if cfg.has_option('grid-manager', 'debug'):
+   if cfg.has_option('arex', 'debug'):
        try:
-           value = int(cfg.get('grid-manager', 'debug')).strip('"')
+           value = int(cfg.get('arex', 'debug')).strip('"')
            Config.log_threshold = (arc.FATAL, arc.ERROR, arc.WARNING, arc.INFO, arc.VERBOSE, arc.DEBUG)[value]
        except:
            pass
    # joboption_directory
-   Config.sessiondir = str(cfg.get('grid-manager', 'sessiondir')).strip('"') \
-       if cfg.has_option('grid-manager', 'sessiondir') else ''
-   Config.controldir = str(cfg.get('grid-manager', 'controldir')).strip('"') \
-       if cfg.has_option('grid-manager', 'controldir') else ''
-   Config.runtimedir = str(cfg.get('grid-manager', 'runtimedir')).strip('"') \
-       if cfg.has_option('grid-manager', 'runtimedir') else ''
+   Config.sessiondir = str(cfg.get('arex', 'sessiondir')).strip('"') \
+       if cfg.has_option('arex', 'sessiondir') else ''
+   Config.controldir = str(cfg.get('arex', 'controldir')).strip('"') \
+       if cfg.has_option('arex', 'controldir') else ''
+   Config.runtimedir = str(cfg.get('arex', 'runtimedir')).strip('"') \
+       if cfg.has_option('arex', 'runtimedir') else ''
    # RUNTIME_FRONTEND_SEES_NODE
    Config.shared_scratch = \
-       str(cfg.get('grid-manager', 'shared_scratch')).strip('"') \
-       if cfg.has_option('grid-manager', 'shared_scratch') else ''
+       str(cfg.get('arex', 'shared_scratch')).strip('"') \
+       if cfg.has_option('arex', 'shared_scratch') else ''
    # RUNTIME_NODE_SEES_FRONTEND
    Config.shared_filesystem = \
-       not cfg.has_option('grid-manager', 'shared_filesystem') or \
-       str(cfg.get('grid-manager', 'shared_filesystem')).strip('"') != 'no'
+       not cfg.has_option('arex', 'shared_filesystem') or \
+       str(cfg.get('arex', 'shared_filesystem')).strip('"') != 'no'
    # RUNTIME_LOCAL_SCRATCH_DIR
    Config.scratchdir = \
-       str(cfg.get('grid-manager', 'scratchdir')).strip('"') \
-       if cfg.has_option('grid-manager', 'scratchdir') else ''
+       str(cfg.get('arex', 'scratchdir')).strip('"') \
+       if cfg.has_option('arex', 'scratchdir') else ''
    Config.scanscriptlog = \
-       str(cfg.get('grid-manager', 'logfile')).strip('"') \
-       if cfg.has_option('grid-manager', 'logfile') \
-       else '/var/log/arc/grid-manager.log'
+       str(cfg.get('arex', 'logfile')).strip('"') \
+       if cfg.has_option('arex', 'logfile') \
+       else '/var/log/arc/arex.log'
    Config.gnu_time = \
-       str(cfg.get('grid-manager', 'gnu_time')).strip('"') \
-       if cfg.has_option('grid-manager', 'gnu_time') else '/usr/bin/time'
+       str(cfg.get('arex', 'gnu_time')).strip('"') \
+       if cfg.has_option('arex', 'gnu_time') else '/usr/bin/time'
    Config.nodename = \
-       str(cfg.get('grid-manager', 'nodename')).strip('"') \
-       if cfg.has_option('grid-manager', 'nodename') else '/bin/hostname -f'
+       str(cfg.get('arex', 'nodename')).strip('"') \
+       if cfg.has_option('arex', 'nodename') else '/bin/hostname -f'
    # SSH
    from pwd import getpwuid
    Config.remote_host = \

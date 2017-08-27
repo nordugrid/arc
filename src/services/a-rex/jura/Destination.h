@@ -3,6 +3,7 @@
 
 
 #include "JobLogFile.h"
+#include "Config.h"
 #include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 
@@ -26,7 +27,7 @@ namespace ArcJura
     /** Creates an instance of the inherited class corresponding to
      *  the destination for the given job log file. 
      */
-    static Destination* createDestination(JobLogFile &joblog);
+    static Destination* createDestination(JobLogFile &joblog, const Config::ACCOUNTING &conf);
     std::string Current_Time( time_t parameter_time = time(NULL) );
     Arc::MCC_Status OutputFileGeneration(std::string prefix, Arc::URL url, std::string output_dir, std::string message,Arc::Logger& logger);
     /** Logged the sent jobIds */

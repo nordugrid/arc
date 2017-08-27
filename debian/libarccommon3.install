@@ -21,7 +21,7 @@ debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
-debian/tmp/usr/lib/python?.?/site-packages/arc/config
+debian/tmp/usr/lib/python?.?/site-packages/arc/config.py*
 debian/tmp/usr/share/arc/examples/arc.conf.reference
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo

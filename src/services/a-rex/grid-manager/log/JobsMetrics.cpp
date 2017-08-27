@@ -44,7 +44,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
 
-static const char* gmetric_tool = "gmetric";
+static const char* gmetric_tool = "/usr/bin/gmetric";
 
 void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state) {
   Glib::RecMutex::Lock lock_(lock);

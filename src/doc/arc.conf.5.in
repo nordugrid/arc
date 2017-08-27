@@ -3856,12 +3856,12 @@ The period between each information gathering cycle, in seconds. Default is 20.
 frequency="30"
 
 .TP
-.B gmetric_exec
+.B gmetric_bin
 Path to gmetric executable. Default is /usr/bin/gmetric.
 
 .IR Example:
 .br
-gmetric_exec="/usr/local/bin/gmetric"
+gmetric_bin="/usr/local/bin/gmetric"
 
 .TP
 .B logfile
@@ -3880,12 +3880,12 @@ pid file of the daemon. Default is /var/run/gangliarc.pid.
 pidfile="/tmp/gangliarc.pid"
 
 .TP
-.B python_bin_path
+.B python_bin
 path to python executable. Default is /usr/bin/python.
 
 .IR Example:
 .br
-python_bin_path="/usr/local/bin/python"
+python_bin="/usr/local/bin/python"
 
 .TP
 .B metrics

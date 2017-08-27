@@ -17,7 +17,7 @@ EOF
 read -r -d '' arc_test_configuration <<'EOF'
 [common]
 slurm_bin_path="@PWD@/bin"
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF
@@ -70,7 +70,7 @@ EOF
 read -r -d '' arc_test_configuration <<'EOF'
 [common]
 slurm_bin_path="@PWD@/bin"
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF
@@ -134,7 +134,7 @@ EOF
 read -r -d '' arc_test_configuration <<'EOF'
 [common]
 slurm_bin_path="@PWD@/bin"
-[grid-manager]
+[arex]
 scratchdir="/local/scratch"
 shared_filesystem=no
 EOF

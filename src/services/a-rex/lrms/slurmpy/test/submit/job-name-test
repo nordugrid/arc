@@ -10,7 +10,7 @@ EOF
 
 read -r -d '' expected_lrms_job_script <<'EOF'
 #!/bin/bash -l
-# SLURM batch job script built by grid-manager
+# SLURM batch job script built by arex
 #SBATCH --no-requeue
 #SBATCH -e /my/session/directory.comment
 #SBATCH -o /my/session/directory.comment

@@ -33,19 +33,16 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-CONFIG_SECTION=acix\\/indexserver
-# read in cacheserver section from arc.conf
-# this will put the read values into the environment, e.g., $logfile
-eval `sed -e 's/[[:space:]]*\=[[:space:]]*/=/g' \
-          -e 's/;.*$//' \
-          -e 's/[[:space:]]*$//' \
-          -e 's/^[[:space:]]*//' \
-          -e "s/^\(.*\)=\([^\"']*\)$/\1=\"\2\"/" \
-           < $ARC_CONFIG \
-           | sed -n -e "/^\[$CONFIG_SECTION\]/,/^\s*\[/{/^[^;].*\=.*/p;}" `
-LOGFILE=${logfile:-$DEFAULT_LOGFILE}
-LOGD=`dirname $LOGFILE`
-LOGN=`basename $LOGFILE`
+# Check if service is defined in configuration
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
+$libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index > /dev/null 2>&1
+if [ $? -eq 1 ]; then
+    log_failure_msg "Block [acix-index] not defined in configuration"
+    exit 1
+fi
+
+LOGD=`dirname $DEFAULT_LOGFILE`
+LOGN=`basename $DEFAULT_LOGFILE`
 
 if [ ! -d $LOGD ]; then
     mkdir -p $LOGD

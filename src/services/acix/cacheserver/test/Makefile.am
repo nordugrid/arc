@@ -1,7 +1,7 @@
 TESTSCRIPTS = test_cacheresource.py test_scan.py
 
 if ACIX_TESTS_ENABLED
-TESTS_ENVIRONMENT = PYTHONPATH=$(top_srcdir)/src/services $(TRIAL)
+TESTS_ENVIRONMENT = PYTHONPATH=$(top_srcdir)/src/services:${top_srcdir}/src/utils/configparser $(TRIAL)
 TESTS = $(TESTSCRIPTS)
 else
 TESTS =

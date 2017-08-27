@@ -78,13 +78,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# Source the config parsing routines
-if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
-else
-    log_failure_msg "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-    exit 1
-fi
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
@@ -94,18 +88,15 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-# Read arc.conf
-config_parse_file $ARC_CONFIG || exit $?
-
-# Check for infosys-block
-if ! config_match_section infosys; then
-    log_failure_msg "Missing infosys configuration block"
+# Check for infosys block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+    log_failure_msg "Missing [infosys] configuration block"
     exit 1
 fi
 
-config_hide_all
-config_import_section common
-config_import_section infosys
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
 
 if [ `id -u` = 0 ]; then
     # Debian does not have /var/lock/subsys

@@ -28,11 +28,17 @@ namespace ArcJura
     std::string const & getVOGroup() const { return vo_group; }
     unsigned int getUrdeliveryKeepfaild() const { return urdelivery_keepfailed; }
     unsigned int getUrdeliveryFrequency() const { return urdelivery_frequency; }
+    std::string const & getHostKey() const { return host_key; }
+    std::string const & getHostCert() const { return host_cert; }
+    std::string const & getCADir() const { return ca_cert_dir; }
 
-    class SGAS {
+    class ACCOUNTING {};
+    
+    class SGAS : public ACCOUNTING {
     public:
       static unsigned int const default_urbatchsize;
       SGAS(): urbatchsize(default_urbatchsize) {}
+      SGAS(const SGAS &_conf);
       std::string name;
       Arc::URL targeturl;
       std::string localid_prefix;
@@ -42,10 +48,11 @@ namespace ArcJura
 
     std::vector<SGAS> const getSGAS() const { return sgas_entries; }
 
-    class APEL {
+    class APEL : public ACCOUNTING {
     public:
       static unsigned int const default_urbatchsize;
       APEL(): benchmark_value(NAN), use_ssl(false), urbatchsize(default_urbatchsize) {}
+      APEL(const APEL &_conf);
       std::string name;
       Arc::URL targeturl;
       std::string topic;
@@ -83,6 +90,9 @@ namespace ArcJura
     std::string vo_group;
     unsigned int urdelivery_keepfailed;
     unsigned int urdelivery_frequency;
+    std::string host_key;
+    std::string host_cert;
+    std::string ca_cert_dir;
     std::vector<SGAS> sgas_entries;
     std::vector<APEL> apel_entries;
 

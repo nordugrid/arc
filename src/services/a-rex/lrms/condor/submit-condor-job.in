@@ -76,7 +76,7 @@ rm -f "$LRMS_JOB_SCRIPT"
 LRMS_JOB_SCRIPT="${joboption_directory}/condorjob.sh"
 LRMS_JOB_DESCRIPT="${joboption_directory}/condorjob.jdl"
 
-echo "# HTCondor job description built by grid-manager" > $LRMS_JOB_DESCRIPT
+echo "# HTCondor job description built by arex" > $LRMS_JOB_DESCRIPT
 echo "Executable = condorjob.sh" >> $LRMS_JOB_DESCRIPT
 echo "Input = $joboption_stdin" >> $LRMS_JOB_DESCRIPT
 echo "Log = ${joboption_directory}/log">> $LRMS_JOB_DESCRIPT

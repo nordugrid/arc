@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Helper script to flag done LoadLeveler jobs.
-# The script is called periodically by the grid-manager.
+# The script is called periodically by the arex.
 #
 
 # This function retrieve the jobs status and id in one shot

@@ -2,6 +2,12 @@
 
 package CEInfo;
 
+## RESTRUCTURING PHASE ################
+## changes are identified by the tags
+## #C changenumber
+#######################################
+
+
 ########################################################
 # Driver for information collection
 ########################################################
@@ -62,17 +68,19 @@ BEGIN {
 
     LogUtils::level('WARNING');
     LogUtils::indentoutput(1);
-
-    my $log = LogUtils->getLogger(__PACKAGE__);
-    my $nojobs;
-    my $splitjobs;
-    my $perffreq = 1800;
-    my $print_help;
-
-    # Make a copy of @ARGV and restore it after extracting options from it.
-
-    my @options = @ARGV;
-    GetOptions("config:s" => \$configfile,
+	
+    my $log = LogUtils->getLogger(__PACKAGE__);	
+    my $dumpconfig = 0;
+	my $nojobs;
+	my $splitjobs;
+	my $perffreq = 1800;
+	my $print_help;
+	
+	# Make a copy of @ARGV and restore it after extracting options from it.
+	
+	my @options = @ARGV;
+	GetOptions("config:s" => \$configfile,
+	           "dumpconfig|d" => \$dumpconfig,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
                "perffreq:i" => \$perffreq,
@@ -83,28 +91,30 @@ BEGIN {
     unless ( $configfile ) {
         $log->warning("Performance code setup: No 'config' option, skipping performance configuration. See --help ");
     } else {
-
-        my $perflogdir;
-        my $perflognytprofdir;
-        my $perflognytproffilepath;
-
-        my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
-
-        if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
-            # The profiling tool might be missing in some distributions.
-            # Default is to assume is not present.
-            $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-            $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata';
-            $perflognytprofdir = $perflogdir.'/perl_nytprof/';
-
-            # reduce performance reporting depending on interval by checking dir last modification time
-            if ( -e $perflognytprofdir ) {
-                my $t0 = time();
-                my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
-                my $timediff = $t0 - $mtime;
-                if ($timediff <= $perffreq) {
-                    $log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
-                    undef $log;
+	
+		my $perflogdir;
+		my $perflognytprofdir;
+	    my $perflognytproffilepath;
+	      
+	    # TODO: change getValueOf implementation in configcentral
+	    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
+	    
+	    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
+			# The profiling tool might be missing in some distributions.
+			# Default is to assume is not present.
+			# TODO: change getValueOf implementation in configcentral
+			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
+			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata'; 
+			$perflognytprofdir = $perflogdir.'/perl_nytprof/';
+			
+			# reduce performance reporting depending on interval by checking dir last modification time
+			if ( -e $perflognytprofdir ) {
+				my $t0 = time();
+				my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
+				my $timediff = $t0 - $mtime;
+				if ($timediff <= $perffreq) {
+					$log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
+					undef $log;
                     no ConfigCentral;
                     no LogUtils;
                     return 0;
@@ -166,11 +176,13 @@ sub main {
     LogUtils::indentoutput(1);
 
     # Parse command line options
+    my $dumpconfig = 0;
     my $splitjobs;
     my $perffreq = 1800;
     my $print_help;
 
     GetOptions("config:s" => \$configfile,
+    	       "dumpconfig|d" => \$dumpconfig,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
                "perffreq:i" => \$perffreq,
@@ -179,6 +191,7 @@ sub main {
     if ($print_help) {
         print "Usage: $0 <options>
         --config <path-to-arc.conf> - location of arc.conf
+        --dumpconfig                - dumps internal representation of a-rex configuration and exits.
         --nojobs|n                  - don't include information about jobs
         --splitjobs|s               - write job info in a separate XML file for each job in the controldir
         --perffreq|p <seconds>      - interval between performance collections, in seconds. Default is 1200
@@ -195,12 +208,17 @@ sub main {
 
     # Dump config (uncomment if needed)
     #print Dumper($config);
-
+    
+    # Dump internal datastructure if required and exit
+    
+    if ($dumpconfig) { ConfigCentral::dumpInternalDatastructure($config); exit 0};
 
     # Change level for root logger (affects all loggers from now on)
-    LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
+    #C 134
+    LogUtils::level($config->{'infosys'}{'loglevel'}) if defined $config->{'infosys'}{'loglevel'};
 
-    my $providerlog = $config->{ProviderLog} || "/var/log/arc/infoprovider.log";
+    #C 133
+    my $providerlog = $config->{'infosys'}{'logfile'} || "/var/log/arc/infoprovider.log";
     $log->info("Redirecting further messages to $providerlog");
     LogUtils::indentoutput(0);
 
@@ -369,7 +387,7 @@ sub get_host_info($$) {
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
     $host_opts->{processes} = ['arched', 'gridftpd'];
-    $host_opts->{x509_user_cert} = $config->{x509_user_cert};
+    $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{sessiondir} = $config->{sessiondir};

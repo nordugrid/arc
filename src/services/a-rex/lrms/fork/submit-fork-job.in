@@ -43,7 +43,7 @@ chmod u+x ${LRMS_JOB_SCRIPT}
 # Start job script
 ##############################################################
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
-echo "# Fork job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "# Fork job script built by arex" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
 ##############################################################

@@ -9,7 +9,7 @@
 namespace ArcJura
 {
 
-  void Destinations::report(JobLogFile &joblog)
+  void Destinations::report(JobLogFile &joblog, const Config::ACCOUNTING &conf)
   {
     std::string dest_id=joblog["loggerurl"]; 
     //TODO same service URL with different reporting parameters?
@@ -17,7 +17,7 @@ namespace ArcJura
     if (find(dest_id)==end()) //New destination
       {
         // Create the appropriate adapter
-        Destination *dest = Destination::createDestination(joblog);
+        Destination *dest = Destination::createDestination(joblog, conf);
         if (dest)
           (*this)[dest_id] = dest;
         else

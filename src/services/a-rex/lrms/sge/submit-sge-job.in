@@ -61,7 +61,7 @@ mktempscript
 # Start job script
 ##############################################################
 echo '#!@posix_shell@' > $LRMS_JOB_SCRIPT
-echo "# SGE batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "# SGE batch job script built by arex" >> $LRMS_JOB_SCRIPT
 # Job not rerunable:
 echo "#$ -r n" >> $LRMS_JOB_SCRIPT
 # Don't send mail when job finishes:

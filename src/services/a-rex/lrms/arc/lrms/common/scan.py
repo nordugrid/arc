@@ -2,7 +2,7 @@
 Defines constants and functions related to scanning.
 
 RUNNING: list of possible states reported by the bactch system for jobs that are running
-MESSAGES: mapping between job state reported by batch system and grid-manager state
+MESSAGES: mapping between job state reported by batch system and arex state
 UID: user ID of user running PythonLRMS
 GID: group ID of user running PythonLRMS
 """

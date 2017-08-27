@@ -14,6 +14,7 @@
 
 #include "Reporter.h"
 #include "Destinations.h"
+#include "Config.h"
 
 namespace ArcJura
 {
@@ -31,17 +32,13 @@ namespace ArcJura
     time_t expiration_time;
     std::vector<std::string> urls; 
     std::vector<std::string> topics;
-    std::string vo_filters;
     std::string out_dir;
+    ArcJura::Config config;
   public:
     /** Constructor. Gets the job log dir and the expiration time in seconds.
      *  Default expiration time is infinity (represented by zero value).
      */
-    UsageReporter(std::string job_log_dir_, time_t expiration_time_=0,
-                  std::vector<std::string> urls_=std::vector<std::string>(),
-                  std::vector<std::string> topics_=std::vector<std::string>(),
-                  std::string vo_filters_="",
-                  std::string out_dir_="");
+    UsageReporter(ArcJura::Config config);
     /** Processes job log files in '<control_dir>/logs'. */
     int report();
     ~UsageReporter();

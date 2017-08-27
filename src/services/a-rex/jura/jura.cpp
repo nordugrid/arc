@@ -42,7 +42,6 @@ int main(int argc, char **argv)
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   opterr=0;
-  time_t ex_period = 0;
   std::vector<std::string> urls;
   std::vector<std::string> topics;
   std::string output_dir;
@@ -56,21 +55,10 @@ int main(int argc, char **argv)
   std::string vo_filters=""; 
   std::string config_file;
   int n;
-  while((n=getopt(argc,argv,":E:u:t:o:y:F:m:r:c:afsvL")) != -1) {
+  while((n=getopt(argc,argv,":u:t:o:y:F:m:r:c:afsvL")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
-    case 'E': 
-      {
-        char* p;
-        int i = strtol(optarg,&p,10);
-        if(((*p) != 0) || (i<=0)) {
-          std::cerr<<"Improper expiration period '"<<optarg<<"'"<<std::endl;
-          exit(1);
-        }
-        ex_period=i*(60*60*24);
-      } 
-      break;
     case 'u':
       urls.push_back(std::string(optarg));
       topics.push_back("");
@@ -119,6 +107,7 @@ int main(int argc, char **argv)
       break;
     case 'c':
       config_file = optarg;
+      break;
     default: { std::cerr<<"Options processing error"<<std::endl; return 1; }
     }
   }
@@ -174,23 +163,17 @@ int main(int argc, char **argv)
   }
 
   // The essence:
-  int argind;
   ArcJura::Reporter *usagereporter;
-  for (argind=optind ; argind<argc ; ++argind)
-    {
-      if ( ur_resend ) {
-          std::cerr << "resend opt:" << resend_range << std::endl;
-          usagereporter=new ArcJura::ReReporter(
-                          std::string(argv[argind]),
-                          resend_range, urls, topics, vo_filters );
+  if ( ur_resend ) {
+      std::cerr << "resend opt:" << resend_range << std::endl;
+      usagereporter=new ArcJura::ReReporter(
+                      config.getArchiveDir(),
+                      resend_range, urls, topics, vo_filters );
 
       } else {
-          usagereporter=new ArcJura::UsageReporter(
-                          std::string(argv[argind])+"/logs",
-                          ex_period, urls, topics, vo_filters, output_dir );
-      }
-      usagereporter->report();
-      delete usagereporter;
-    }
+      usagereporter=new ArcJura::UsageReporter(config);
+  }
+  usagereporter->report();
+  delete usagereporter;
   return 0;
 }

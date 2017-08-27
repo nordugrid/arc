@@ -23,24 +23,25 @@ namespace ArcJura
    *  expiration time of files in seconds, list of URLs in case of 
    *  interactive mode.
    */
-  UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
-                               std::vector<std::string> urls_, std::vector<std::string> topics_,
-                               std::string vo_filters_,
-                               std::string out_dir_):
+  UsageReporter::UsageReporter(ArcJura::Config config_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     dests(NULL),
-    job_log_dir(job_log_dir_),
-    expiration_time(expiration_time_),
-    urls(urls_),
-    topics(topics_),
-    vo_filters(vo_filters_),
-    out_dir(out_dir_)
+    config(config_)
   {
+    job_log_dir=config.getControlDir()+"/logs";
+    expiration_time=config.getUrdeliveryKeepfaild()*(60*60*24);
+    //urls(urls_),
+    //topics(topics_),
+    //vo_filters(vo_filters_),
+    if (config.getArchiving()) {
+      out_dir=config.getArchiveDir();
+    }
+    
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
                job_log_dir.c_str());
     logger.msg(Arc::VERBOSE, "Expiration time: %d seconds",
                expiration_time);
-    if (!urls.empty())
+    if (!urls.empty() || !config.getSGAS().empty() || !config.getAPEL().empty())
       {
         logger.msg(Arc::VERBOSE, "Interactive mode.",
                    expiration_time);
@@ -110,10 +111,24 @@ namespace ArcJura
                   }
               }
 
-            if ( vo_filters != "")
-              {
-                  (*logfile)["vo_filters"] = vo_filters;
-              }
+            if (!config.getVOMSlessVO().empty()) {
+              (*logfile)["jobreport_option_vomsless_vo"] = config.getVOMSlessVO();
+            }
+            if (!config.getVOMSlessIssuer().empty()) {
+              (*logfile)["jobreport_option_vomsless_issuer"] = config.getVOMSlessIssuer();
+            }
+            if (!config.getVOGroup().empty()) {
+              (*logfile)["jobreport_option_vo_group"] = config.getVOGroup();
+            }
+            if (!config.getHostKey().empty()) {
+              (*logfile)["key_path"] = config.getHostKey();
+            }
+            if (!config.getHostCert().empty()) {
+              (*logfile)["certificate_path"] = config.getHostCert();
+            }
+            if (!config.getCADir().empty()) {
+              (*logfile)["ca_certificates_dir"] = config.getCADir();
+            }
             //A. Non-interactive mode: each jlf is parsed, and if valid, 
             //   submitted to the destination given  by "loggerurl=..."
             if (urls.empty())
@@ -128,15 +143,67 @@ namespace ArcJura
                     logfile->remove();
                   } 
                 else
-                  {
-                    // Set topic option if it is needed
-                    if ( (*logfile)["loggerurl"].substr(0,4) == "APEL" ) {
-                       (*logfile)["topic"] = (*logfile)["jobreport_option_topic"];
+                  { 
+                    //TODO: handle logfile removing problem by multiple destination
+                    //      it is not remove jet only when expired
+
+                    
+                    //Create SGAS reports
+                    std::vector<Config::SGAS> const & sgases = config.getSGAS();
+                    for (int i=0; i<(int)sgases.size(); i++) {
+                      JobLogFile *dupl_logfile=
+                        new JobLogFile(*logfile);
+                      dupl_logfile->allowRemove(false);
+
+                      // Set only loggerurl option
+                      (*dupl_logfile)["loggerurl"] = sgases[i].targeturl.fullstr();
+                      (*dupl_logfile)["jobreport_option_localid_prefix"] = sgases[i].localid_prefix;
+                      
+                      std::string vo_filters;
+                      for (int j=0; j<(int)sgases[i].vofilters.size(); j++) {
+                        if (!vo_filters.empty()) {
+                          vo_filters += ",";
+                        }
+                        vo_filters += sgases[i].vofilters[j] + " " + sgases[i].targeturl.fullstr();
+                      }
+                      if ( vo_filters != "")
+                      {
+                          (*dupl_logfile)["vo_filters"] = vo_filters;
+                      }
+                      //Pass job log file content to the appropriate 
+                      //logging destination
+                      dests->report(*dupl_logfile,sgases[i]);
+                      //(deep copy performed)
+                      delete dupl_logfile;
                     }
-                    //Pass job log file content to the appropriate 
-                    //logging destination
-                    dests->report(*logfile);
-                    //(deep copy performed)
+
+                    // Create APEL reports
+                    std::vector<Config::APEL> const & apels = config.getAPEL();
+                    for (int i=0; i<(int)apels.size(); i++) {
+                      JobLogFile *dupl_logfile=
+                        new JobLogFile(*logfile);
+                      dupl_logfile->allowRemove(false);
+                      // Set loggerurl and topic option
+                      (*dupl_logfile)["loggerurl"] = "APEL:" + apels[i].targeturl.fullstr();
+                      (*dupl_logfile)["topic"] = apels[i].topic;
+                      if (!apels[i].gocdb_name.empty()) {
+                        (*dupl_logfile)["jobreport_option_gocdb_name"] = apels[i].gocdb_name;
+                      }
+                      if (!apels[i].benchmark_type.empty()) {
+                        (*dupl_logfile)["jobreport_option_benchmark_type"] = apels[i].benchmark_type;
+                        std::ostringstream buff;
+                        buff<<apels[i].benchmark_value;
+                        (*dupl_logfile)["jobreport_option_benchmark_value"] = buff.str();
+                      }
+                      if (!apels[i].benchmark_description.empty()) {
+                        (*dupl_logfile)["jobreport_option_benchmark_description"] = apels[i].benchmark_description;
+                      }
+                      //Pass job log file content to the appropriate 
+                      //logging destination
+                      dests->report(*dupl_logfile,apels[i]);
+                      //(deep copy performed)
+                      delete dupl_logfile;
+                    }
                   }
               }
 
@@ -173,7 +240,7 @@ namespace ArcJura
 
                         //Pass duplicated job log content to the appropriate 
                         //logging destination
-                        dests->report(*dupl_logfile);
+                 //       dests->report(*dupl_logfile);
                         //(deep copy performed)
 
                       }

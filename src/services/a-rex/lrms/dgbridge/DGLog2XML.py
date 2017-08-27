@@ -124,7 +124,7 @@ def parseini(inifile):
     stage_path = config.get('common', 'dgbridge_stage_dir')
     xmldir = os.path.join(stage_path,"monitor")
 
-    controldir = config.get('grid-manager', 'controldir')
+    controldir = config.get('arex', 'controldir')
     logdir = os.path.join(controldir,"3gbridge_logs")
 
     return xmldir,logdir

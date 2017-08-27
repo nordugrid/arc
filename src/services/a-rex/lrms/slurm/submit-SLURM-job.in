@@ -63,7 +63,7 @@ is_cluster=true
 # Start job script
 ##############################################################
 echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
-echo "# SLURM batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "# SLURM batch job script built by arex" >> $LRMS_JOB_SCRIPT
 
 # rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
@@ -384,8 +384,7 @@ fi
 while [ "$SLURM_TRIES" -lt '10' ] ; do
 
     # Unset all environment variables before calling sbatch. Otherwise
-    # SLURM will forward them to the job and leak information about
-    # the grid-manager.
+    # SLURM will forward them to the job and leak information about arex.
     # Only unset lines with assignments.
     # Risks unsetting variables in sub assignments, but this is likely harmless.
     # TODO: Maybe we only should unset $ARC_*, $CONFIG_*, $GLOBUS_* etc?

@@ -28,7 +28,7 @@ fi
 function goToParentAndRemoveDir() {
   export PATH=${ORIG_PATH}
   cd ..
-  rm -rf ${1}
+  #rm -rf ${1}
   if test "${lrms_script_name}x" != "x"; then
     rm -f ${lrms_script_name} ${lrms_script_name}.out ${lrms_script_name}.err
   fi
@@ -107,24 +107,24 @@ for test in ${TESTS}; do
     export SIMULATOR_ERRORS_FILE=$(pwd)/simulator_errors
   fi
   
-  if test $(grep '^[[]grid-manager][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
-    sed -i "/^[[]grid-manager][[:space:]]*$/ a\
+  if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
+    sed -i "/^[[]arex][[:space:]]*$/ a\
 sessiondir=\"$(pwd)\"\n\
 controldir=\"$(pwd)/controldir\"" ${test}.arc.conf
   else 
-    echo $'\n'"[grid-manager]"$'\n'"sessiondir=\"$(pwd)\""$'\n'"controldir=\"$(pwd)/controldir\"" >> ${test}.arc.conf
+    echo $'\n'"[arex]"$'\n'"sessiondir=\"$(pwd)\""$'\n'"controldir=\"$(pwd)/controldir\"" >> ${test}.arc.conf
   fi
 
 
   # If defined, write RTEs to disk
   if test "x${rtes}" != "x"; then
     mkdir rtes
-    # Add runtimedir attribute to arc.conf. If 'grid-manager' section does not exist, add it as well.
-    if test $(grep '^[[]grid-manager][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
-      sed -i "/^[[]grid-manager][[:space:]]*$/ a\
+    # Add runtimedir attribute to arc.conf. If 'arex' section does not exist, add it as well.
+    if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
+      sed -i "/^[[]arex][[:space:]]*$/ a\
 runtimedir=$(pwd)/rtes" ${test}.arc.conf
     else 
-      echo $'\n'"[grid-manager]"$'\n'"runtimedir=$(pwd)/rtes" >> ${test}.arc.conf
+      echo $'\n'"[arex]"$'\n'"runtimedir=$(pwd)/rtes" >> ${test}.arc.conf
     fi
     for rte in ${rtes}; do
       echo "${!rte}" > rtes/${rte}

@@ -3,8 +3,14 @@ package ConfigCentral;
 # Builds an intermediate config hash that is used by the A-REX infoprovider and LRMS control scripts
 # Can read XML and INI
 
+## RESTRUCTURING PHASE ################
+## changes are identified by the tags
+## #C changenumber
+#######################################
+
 use strict;
 use warnings;
+use File::Basename;
 
 # added to parse JSON stuff
 binmode STDOUT, ":utf8";
@@ -152,7 +158,7 @@ our $log = LogUtils->getLogger(__PACKAGE__);
     #private_key => '*',
 #};
 
-## [infosys] block
+## [infosys] blocks
 
 #my $pyinfosys_options = {
      #validity_ttl => '*'	
@@ -278,6 +284,9 @@ our $log = LogUtils->getLogger(__PACKAGE__);
             #%$lrms_share_options,
         #}
     #}
+    #infosys => {
+	  # loglevel => ''
+    #}
 #};
 
 #my $allbools = [ qw(
@@ -374,8 +383,10 @@ my $gmcommon_options = {
     maxloadshare => '*',
     wakeupperiod => '*',
     gridmap => '*',
-    x509_user_key => '*',
-    x509_user_cert => '*',
+    #x509_user_key => '*',  # C 5
+    x509_host_key => '*',   # C 5
+    #x509_user_cert => '*', # C 6
+    x509_host_cert => '*',  # C 6
     x509_cert_dir => '*',
     runtimedir => '*',
     gnu_time => '*',
@@ -430,18 +441,19 @@ my $admindomain_options = {
 
 my $config_schema = {
     defaultLocalName => '*',
-    debugLevel => '*',
-    ProviderLog => '*',
+    
+    #ProviderLog => '*', #C 133
     PublishNordugrid => '*',
     AdminDomain => '*',
     ttl => '*',
-    admindomain => { %$admindomain_options },
+    admindomain => { %$admindomain_options },   
+    
     %$gmcommon_options,
     %$sshcommon_options,
     %$gridftpd_options,
     %$ldap_infosys_options,
     %$lrms_options,
-    %$lrms_share_options,
+    %$lrms_share_options,    
     control => {
         '*' => {
             %$gmuser_options
@@ -506,7 +518,18 @@ my $config_schema = {
             %$share_options,
             %$lrms_share_options,
         }
-    }
+    },
+    # start of newly added items for arcconf restructuring
+    infosys => {
+		logfile => '*',  #C 133
+		loglevel => '*', #C 134, replaces ProviderLog
+		validity_ttl => '*',
+		user => '*'
+    },
+    arex => {
+		loglevel => '*', # replaces $config_schema->{debugLevel}, C 37
+		infoproviders_timelimit => '*'
+	}
 };
 
 my $allbools = [ qw(
@@ -603,234 +626,22 @@ sub rename_keys {
 
 # execute parser and get json data
 sub read_json_config {
-	my ($arcconf,$pkgdatadir) = @_;
+   	my ($arcconf) = @_;	
+	
+    # get the calling script basepath. Will be used to
+    # find external scripts like arcconfig-parser.
+    my $libexecpath = dirname($0);	
+	
 	my $jsonconfig='';
 	{ 
       local $/; # slurp mode
-	  open (my $jsonout, "$pkgdatadir/arcconfig-parser -e json -c $arcconf |");
+	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json -c $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
 	  $jsonconfig = <$jsonout>;
 	  close $jsonout;
 	}
 	my $config = decode_json($jsonconfig);
 	#print Dumper($config);
     
-    return $config;
-}
-
-
-############################ ARC xml config ##############################
-
-sub read_arex_config {
-    my ($file) = @_;
-    my %xmlopts = (NSexpand => 0, ForceArray => 1, KeepRoot => 1, KeyAttr => {});
-    my $xml = XML::Simple->new(%xmlopts);
-    my $data;
-    eval { $data = $xml->XMLin($file) };
-    $log->error("Failed to parse XML file $file: $@") if $@;
-    hash_tree_apply $data, \&hash_strip_prefixes;
-    my $services;
-    $services = $data->{Service}
-        if  ref $data eq 'HASH'
-        and ref $data->{Service} eq 'ARRAY';
-    $services = $data->{ArcConfig}[0]{Chain}[0]{Service}
-        if  not $services
-        and ref $data eq 'HASH'
-        and ref $data->{ArcConfig} eq 'ARRAY'
-        and ref $data->{ArcConfig}[0] eq 'HASH'
-        and ref $data->{ArcConfig}[0]{Chain} eq 'ARRAY'
-        and ref $data->{ArcConfig}[0]{Chain}[0] eq 'HASH'
-        and ref $data->{ArcConfig}[0]{Chain}[0]{Service} eq 'ARRAY';
-    return undef unless $services;
-    for my $srv (@$services) {
-        next unless ref $srv eq 'HASH';
-        return $srv if $srv->{name} eq 'a-rex';
-    }
-    return undef;
-}
-
-
-#
-# Reads the XML config file passed as the first argument and produces a config
-# hash conforming to $config_schema.
-#
-sub build_config_from_xmlfile {
-    my ($file, $arc_location) = @_;
-
-    my $arex = read_arex_config($file);
-    $log->fatal("A-REX config not found in $file") unless ref $arex eq 'HASH';
-
-    # The structure that will hold all config options
-    my $config = {};
-    $config->{control} = {};
-    $config->{service} = {};
-    $config->{location} = {};
-    $config->{contacts} = [];
-    $config->{accesspolicies} = [];
-    $config->{mappingpolicies} = [];
-    $config->{xenvs} = {};
-    $config->{shares} = {};
-
-    # Special treatment for xml elements that have empty content. XMLSimple
-    # converts these into an empty hash. Since ForceArray => 1 was used, these
-    # hashes are placed inside an array. Replace these empty hashes with the
-    # empty string. Do not touch keys that normally contain deep structures.
-    my @deepstruct = qw(control dataTransfer Globus cache location remotelocation loadLimits
-                        LRMS InfoProvider Location Contact ExecutionEnvironment
-                        ComputingShare NodeSelection AccessPolicy MappingPolicy);
-    hash_tree_apply $arex, sub { my $h = shift;
-                                 while (my ($k,$v) = each %$h) {
-                                     next unless ref($v) eq 'ARRAY';
-                                     next if grep {$k eq $_} @deepstruct;
-                                     my $nv = [ map {(ref $_ eq 'HASH' && ! scalar %$_) ? '' : $_ } @$v ];
-                                     $h->{$k} = $nv;
-                                 }
-                           };
-
-    # Collapse unnnecessary arrays created by XMLSimple.  All hash keys are
-    # array valued now due to using ForceArray => 1.  For keys that corresound
-    # to options which are not multivalued, the arrays should contain only one
-    # element. Replace these arrays with the value of the last element. Keys
-    # corresponding to multivalued options are left untouched.
-    my @multival = qw(cache location remotelocation control sessionRootDir remotegmdirs
-                      OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
-                      StatusInfo Regex Command Tag ExecutionEnvironmentName AuthorizedVO
-                      Contact ExecutionEnvironment ComputingShare
-                      InteractiveContactstring AccessPolicy MappingPolicy ShareName Rule UserDomainID);
-    hash_tree_apply $arex, sub { my $h = shift;
-                                 while (my ($k,$v) = each %$h) {
-                                     next unless ref($v) eq 'ARRAY';
-                                     next if grep {$k eq $_} @multival;
-                                     $v = pop @$v;
-                                     $h->{$k} = $v;
-                                 }
-                           };
-
-    move_keys $arex, $config, ['endpoint', 'debugLevel'];
-    $config->{ttl} = 2 * $arex->{InfoproviderWakeupPeriod} if $arex->{InfoproviderWakeupPeriod};
-
-    my $usermap = hash_get_hashref($arex, 'usermap');
-    my $username = $usermap->{'defaultLocalName'};
-    $config->{defaultLocalName} = $username if $username;
-
-    my $gmconfig = $arex->{gmconfig};
-    if ($gmconfig) {
-        if (not ref $gmconfig) {
-            $config->{gmconfig} = $gmconfig;
-        } elsif (ref $gmconfig eq 'HASH') {
-            $config->{gmconfig} = $gmconfig->{content}
-                if $gmconfig->{content} and $gmconfig->{type}
-                                        and $gmconfig->{type} eq 'INI';
-        }
-    }
-
-    my $controls = hash_get_arrayref($arex, 'control');
-    for my $control (@$controls) {
-        $log->fatal("badly formed 'control' element in XML config") unless ref $control eq 'HASH';
-        my $user = $control->{username} || '.';
-        my $cconf = {};
-
-        my $controldir = $control->{controlDir};
-        $cconf->{controldir} = $controldir if $controldir;
-        my $sessiondirs =  $control->{sessionRootDir}; # an array
-        $cconf->{sessiondir} = $sessiondirs if $sessiondirs;
-
-        my $ttl = $control->{defaultTTL} || '';
-        my $ttr = $control->{defaultTTR} || '';
-        $cconf->{defaultttl} = "$ttl $ttr" if $ttl;
-
-        my $caches = hash_get_arrayref($control, 'cache');
-        for my $cache (@$caches) {
-            $log->fatal("badly formed 'cache' element in XML config") unless ref $cache eq 'HASH';
-            my $locations = hash_get_arrayref($cache, 'location');
-            for my $location (@$locations) {
-                $log->fatal("badly formed 'location' element in XML config") unless ref $location eq 'HASH';
-                next unless $location->{path};
-                push @{$cconf->{cachedir}}, $location->{path};
-            }
-            my $rlocations = hash_get_arrayref($cache, 'remotelocation');
-            for my $location (@$rlocations) {
-                $log->fatal("badly formed 'location' element in XML config") unless ref $location eq 'HASH';
-                next unless $location->{path};
-                push @{$cconf->{remotecachedir}}, $location->{path};
-            }
-            my $low = $cache->{lowWatermark} || '';
-            my $high = $cache->{highWatermark} || '';
-            $cconf->{cachesize} = "$low $high" if $low;
-        }
-        $config->{control}{$user} = $cconf;
-    }
-
-    my $globus = hash_get_hashref(hash_get_hashref($arex, 'dataTransfer'), 'Globus');
-
-    # these are obsolete now -- kept only for backwards compatibility
-    rename_keys $globus, $config, {certpath => 'x509_user_cert', keypath => 'x509_user_key',
-                                   cadir => 'x509_cert_dir'};
-
-    rename_keys $globus, $config, {CertificatePath => 'x509_user_cert', KeyPath => 'x509_user_key',
-                                   CACertificatesDir => 'x509_cert_dir', gridmapfile => 'gridmap'};
-
-    my $load = hash_get_hashref($arex, 'loadLimits');
-    my $mj = $load->{maxJobsTracked} || '-1';
-    my $mjr = $load->{maxJobsRun} || '-1';
-    # maxJobsTransfered, maxJobsTransferedAddtional and maxFilesTransfered are parsed for backward compatibility.
-    my $mjt = $load->{maxJobsTransferred} || $load->{maxJobsTransfered} || '-1';
-    my $mjta = $load->{maxJobsTransferredAdditional} || $load->{maxJobsTransferedAdditional} || '-1';
-    my $mft = $load->{maxFilesTransferred} || $load->{maxFilesTransfered} || '-1';
-    $config->{maxjobs} = "$mj $mjr";
-    $config->{maxload} = "$mjt $mjta $mft";
-
-    if ($load->{maxLoadShare} and $load->{loadShareType}) {
-        $config->{maxloadshare} = $load->{maxLoadShare}." ".$load->{loadShareType};
-    }
-
-    $config->{wakeupperiod} = $load->{wakeupPeriod} if defined $load->{wakeupPeriod};
-
-    my $lrms = hash_get_hashref($arex, 'LRMS');
-    $config->{lrms} = $lrms->{type} if $lrms->{type};
-    $config->{lrms} .= " ".$lrms->{defaultShare} if $lrms->{defaultShare};
-
-    move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    rename_keys $lrms, $config, {runtimeDir => 'runtimedir',
-                                 scratchDir => 'scratchdir',
-                                 sharedScratch => 'shared_scratch',
-                                 sharedFilesystem => 'shared_filesystem',
-                                 GNUTimeUtility => 'gnu_time'};
-
-    my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
-
-    rename_keys $ipcfg, $ipcfg, {Name => 'ClusterName'};
-
-    move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
-    move_keys $ipcfg, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
-    move_keys $ipcfg, $config, [keys %$gridftpd_options];
-    rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
-
-    rename_keys $ipcfg, $config, {AccessPolicy => 'accesspolicies', MappingPolicy => 'mappingpolicies'};
-
-    my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
-    for my $xe (@$xenvs) {
-        $log->fatal("badly formed 'ExecutionEnvironment' element in XML config") unless ref $xe eq 'HASH';
-        my $name = $xe->{name};
-        $log->fatal("ExecutionEnvironment without name attribute") unless $name;
-        my $xeconf = $config->{xenvs}{$name} = {};
-        $xeconf->{NodeSelection} = hash_get_hashref($xe, 'NodeSelection');
-        move_keys $xe, $xeconf, [keys %{$config_schema->{xenvs}{'*'}}];
-    }
-
-    my $shares = hash_get_arrayref($ipcfg, 'ComputingShare');
-    for my $s (@{$shares}) {
-        $log->fatal("badly formed 'ComputingShare' element in XML config") unless ref $s eq 'HASH';
-        my $name = $s->{name};
-        $log->error("ComputingShare without name attribute") unless $name;
-        my $sconf = $config->{shares}{$name} = {};
-        move_keys $s, $sconf, [keys %{$config_schema->{shares}{'*'}}];
-    }
-
-    hash_tree_apply $config, sub { fixbools shift, $allbools };
-
-    _substitute($config, $arc_location);
-
-    #print(Dumper $config);
     return $config;
 }
 
@@ -936,221 +747,25 @@ sub _substitute {
     return $config;
 }
 
-
-#
-# Reads the INI config file passed as the first argument and produces a config
-# hash conforming to $config_schema. An already existing config hash can be
-# passed as a second, optional, argument in which case opptions read from the
-# INI file will be merged into the hash overriding options already present.
-#
-sub build_config_from_inifile {
-    my ($inifile, $config) = @_;
-
-    my $iniparser = SubstitutingIniParser->new($inifile);
-    if (not $iniparser) {
-        $log->error("Failed parsing config file: $inifile\n");
-        return $config;
-    }
-    $log->error("Not a valid INI configuration file: $inifile") unless $iniparser->list_sections();
-
-    # Will add to an already existing config.
-    $config ||= {};
-    $config->{service} ||= {};
-    $config->{control} ||= {};
-    $config->{location} ||= {};
-    $config->{contacts} ||= [];
-    $config->{accesspolicies} ||= [];   
-    $config->{mappingpolicies} ||= [];
-    $config->{xenvs} ||= {};
-    $config->{shares} ||= {};
-    $config->{admindomain} ||= {};
-
-
-    my $common = { $iniparser->get_section("common") };
-    my $gm = { $iniparser->get_section("grid-manager") };
-    my $ssh = { $iniparser->get_section("ssh") };
-    rename_keys $common, $config, {providerlog => 'ProviderLog'};
-    move_keys $common, $config, [keys %$gmcommon_options];
-    move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    move_keys $gm, $config, [keys %$gmcommon_options];
-    move_keys $ssh, $config, [keys %$sshcommon_options];
-    rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
-
-    $config->{debugLevel} = $common->{debug} if $common->{debug};
-
-    move_keys $common, $config, [keys %$ldap_infosys_options];
-
-    my $infosys = { $iniparser->get_section("infosys") };
-    rename_keys $infosys, $config, {providerlog => 'ProviderLog',
-                                    provider_loglevel => 'debugLevel',
-                                    port => 'SlapdPort'};
-    move_keys $infosys, $config, [keys %$ldap_infosys_options];
-
-    my @cnames = $iniparser->list_subsections('grid-manager');
-    for my $name (@cnames) {
-        my $section = { $iniparser->get_section("grid-manager/$name") };
-        $config->{control}{$name} ||= {};
-        move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
-    }
-
-    # Cherry-pick some gridftp options
-    if ($iniparser->has_section('gridftpd/jobs')) {
-        my %gconf = $iniparser->get_section('gridftpd');
-        my %gjconf = $iniparser->get_section('gridftpd/jobs');
-        $config->{GridftpdEnabled} = 'yes';
-        $config->{GridftpdPort} = $gconf{port} if $gconf{port};
-        $config->{GridftpdMountPoint} = $gjconf{path} if $gjconf{path};
-        $config->{GridftpdAllowNew} = $gjconf{allownew} if defined $gjconf{allownew};
-        $config->{remotegmdirs} = $gjconf{remotegmdirs} if defined $gjconf{remotegmdirs};
-        $config->{GridftpdPidFile} = $gconf{pidfile} if defined $gconf{pidfile};
-    } else {
-        $config->{GridftpdEnabled} = 'no';
-    }
-
-    # global AdminDomain configuration
-    if ($iniparser->has_section('infosys/admindomain')) {
-        my $admindomain_options = { $iniparser->get_section('infosys/admindomain') };
-        rename_keys $admindomain_options, $config->{'admindomain'}, {name => 'Name',
-                                                    otherinfo => 'OtherInfo',
-                                                    description => 'Description',
-                                                    www => 'WWW',
-                                                    distributed => 'Distributed',
-                                                    owner => 'Owner'
-                                                    };
-        move_keys $admindomain_options, $config->{'admindomain'}, [keys %$admindomain_options];
-
-    } else {
-        $log->info('[infosys/admindomain] section missing. No site information will be published.');
-    }
-
-    ############################ legacy ini config file structure #############################
-
-    move_keys $common, $config, ['AdminDomain'];
-
-    my $cluster = { $iniparser->get_section('cluster') };
-    if (%$cluster) {
-        # Ignored: cluster_location, lrmsconfig
-        rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
-        rename_keys $cluster, $config->{location}, { cluster_location => 'PostCode' };
-        rename_keys $cluster, $config->{service}, {
-                                 interactive_contactstring => 'InteractiveContactstring',
-                                 cluster_owner => 'ClusterOwner', localse => 'LocalSE',
-                                 authorizedvo => 'AuthorizedVO', homogeneity => 'Homogeneous',
-                                 architecture => 'Platform', opsys => 'OpSys', benchmark => 'Benchmark',
-                                 nodememory => 'MaxVirtualMemory', middleware => 'Middleware',
-                                 cluster_alias => 'ClusterAlias', comment => 'ClusterComment'};
-        if ($cluster->{clustersupport} and $cluster->{clustersupport} =~ /(.*)@/) {
-            my $contact = {};
-            push @{$config->{contacts}}, $contact;
-            $contact->{Name} = $1;
-            $contact->{Detail} = "mailto:".$cluster->{clustersupport};
-            $contact->{Type} = 'usersupport';
-        }
-        if (defined $cluster->{nodeaccess}) {
-            $config->{service}{ConnectivityIn} = 0;
-            $config->{service}{ConnectivityOut} = 0;
-            for (split '\[separator\]', $cluster->{nodeaccess}) {
-                $config->{service}{ConnectivityIn} = 1 if lc $_ eq 'inbound';
-                $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
-            }
-        }
-        move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
-        move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    }
-    my @qnames = $iniparser->list_subsections('queue');
-    for my $name (@qnames) {
-        my $queue = { $iniparser->get_section("queue/$name") };
-
-        my $sconf = $config->{shares}{$name} ||= {};
-        my $xeconf = $config->{xenvs}{$name} ||= {};
-        push @{$sconf->{ExecutionEnvironmentName}}, $name;
-
-        $log->error("MappingQuue option only allowed under ComputingShare section") if $queue->{MappingQuue};
-        delete $queue->{MappingQueue};
-        $log->error("ExecutionEnvironmentName option only allowed under ComputingShare section") if $queue->{ExecutionEnvironmentName};
-        delete $queue->{ExecutionEnvironmentName};
-        $log->error("NodeSelection option only allowed under ExecutionEnvironment section") if $queue->{NodeSelection};
-        delete $queue->{NodeSelection};
-
-        rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
-                                     nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
-        move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
-
-        rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
-                                      opsys => 'OpSys', benchmark => 'Benchmark'};
-        move_keys $queue, $xeconf, [keys %$xenv_options];
-        $xeconf->{NodeSelection} = {};
-    }
-
-    ################################# new ini config file structure ##############################
-
-    my $provider = { $iniparser->get_section("InfoProvider") };
-    move_keys $provider, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
-    move_keys $provider, $config->{service}, [keys %{$config_schema->{service}}];
-
-    my @gnames = $iniparser->list_subsections('ExecutionEnvironment');
-    for my $name (@gnames) {
-        my $xeconf = $config->{xenvs}{$name} ||= {};
-        my $section = { $iniparser->get_section("ExecutionEnvironment/$name") };
-        $xeconf->{NodeSelection} ||= {};
-        $xeconf->{NodeSelection}{Regex} = $section->{NodeSelectionRegex} if $section->{NodeSelectionRegex};
-        $xeconf->{NodeSelection}{Command} = $section->{NodeSelectionCommand} if $section->{NodeSelectionCommand};
-        $xeconf->{NodeSelection}{Tag} = $section->{NodeSelectionTag} if $section->{NodeSelectionTag};
-        move_keys $section, $xeconf, [keys %$xenv_options, 'OtherInfo'];
-    }
-    my @snames = $iniparser->list_subsections('ComputingShare');
-    for my $name (@snames) {
-        my $sconf = $config->{shares}{$name} ||= {};
-        my $section = { $iniparser->get_section("ComputingShare/$name") };
-        move_keys $section, $sconf, [keys %{$config_schema->{shares}{'*'}}];
-    }
-    my $location = { $iniparser->get_section("Location") };
-    $config->{location} = $location if %$location;
-    my @ctnames = $iniparser->list_subsections('Contact');
-    for my $name (@ctnames) {
-        my $section = { $iniparser->get_section("Contact/$name") };
-        push @{$config->{contacts}}, $section;
-    }
-
-    # Create a list with all multi-valued options based on $config_schema.
-    my @multival = ();
-    hash_tree_apply $config_schema, sub { my $h = shift;
-                                           for (keys %$h) {
-                                               next if ref $h->{$_} ne 'ARRAY';
-                                               next if ref $h->{$_}[0]; # exclude deep structures
-                                               push @multival, $_;
-                                           }
-                                     };
-    # Transform multi-valued options into arrays
-    hash_tree_apply $config, sub { my $h = shift;
-                                   while (my ($k,$v) = each %$h) {
-                                       next if ref $v; # skip anything other than scalars
-                                       $h->{$k} = [split '\[separator\]', $v];
-                                       unless (grep {$k eq $_} @multival) {
-                                           $h->{$k} = pop @{$h->{$k}}; # single valued options, remember last defined value only
-                                       }
-                                   }
-                             };
-
-    hash_tree_apply $config, sub { fixbools shift, $allbools };
-
-    #print (Dumper $config);
-    return $config;
-}
-
 #
 # Reads the json config file passed as the first argument and produces a config
 # hash conforming to $config_schema. 
 #
 sub build_config_from_json {
-    my ($file,$arc_location,$config) = @_;
+    my ($file) = @_;
     
-    my $jsonconf = read_json_config($file,$arc_location);
+    my $jsonconf = read_json_config($file);
 
-    print Dumper($jsonconf);
+    ## TODO: set and check defaults.
+    ## maybe add the default checker in InfoChecker.pm?
+    ## this is required for the mandatory values. Program should exit with 
+    ## errors or solve the issue automatically if the mandatory value
+    ## is not set.
+    ## $jsonconf = InfoChecker::setDefaults($jsonconf);
 
-    # Will add to an already existing config.
-    $config ||= {};
+    # Those values that are the same as in arc.conf will 
+    # be copied and checked.
+    my $config ||= {};
     $config->{service} ||= {};
     $config->{control} ||= {};
     $config->{location} ||= {};
@@ -1161,34 +776,46 @@ sub build_config_from_json {
     $config->{shares} ||= {};
     $config->{admindomain} ||= {};
 
+    # start of restructured pieces of information
+    $config->{infosys} ||= {};
+    $config->{arex} ||= {};
+    #  end of restructured pieces of information
 
-    my $common = $jsonconf->{'common'};
-    my $gm = $jsonconf->{'grid-manager'};
-    my $ssh = $jsonconf->{'ssh'};
-    rename_keys $common, $config, {providerlog => 'ProviderLog'};
+
+    my $common = $jsonconf->{'common'};    
     move_keys $common, $config, [keys %$gmcommon_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    move_keys $gm, $config, [keys %$gmcommon_options];
+    
+    # C 173
+    my $arex = $jsonconf->{'a-rex'};
+    move_keys $arex, $config, [keys %$gmcommon_options];
+    rename_keys $arex, $config, {arex_mount_point => 'endpoint'};
+    
+    my $ssh = $jsonconf->{'ssh'};
     move_keys $ssh, $config, [keys %$sshcommon_options];
-    rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
+    
+    
+    # C 37 changed there is no more common debuglevel
+    # TODO: remove debugLevel occurences everywhere else 
+    # $config->{debugLevel} = $common->{debug} if $common->{debug}; 
+    
 
-    $config->{debugLevel} = $common->{debug} if $common->{debug};
-
+    # TODO: create a proper subconfig for this, remove references to this one
     move_keys $common, $config, [keys %$ldap_infosys_options];
 
-    my $infosys = $jsonconf->{"infosys"};
-    rename_keys $infosys, $config, {providerlog => 'ProviderLog',
-                                    provider_loglevel => 'debugLevel',
-                                    port => 'SlapdPort'};
+    #C 133 134
+    my $infosys = $jsonconf->{'infosys'};
+        
+    move_keys $infosys, $config->{'infosys'}, [keys %$infosys];
+        
+    rename_keys $infosys, $config, {port => 'SlapdPort'};
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
-
-    # no need for this, only one grid manager. Might be deleted
-    #my @cnames = $iniparser->list_subsections('grid-manager');
-    #for my $name (@cnames) {
-    #    my $section = { $iniparser->get_section("grid-manager/$name") };
-    #    $config->{control}{$name} ||= {};
-    #    move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
-    #}
+    
+    # only one grid manager user, formerly represented by a dot
+    $config->{control}{'.'} ||= {};
+    move_keys $arex, $config->{control}{'.'}, [keys %$gmuser_options];
+    # C 173
+    move_keys $arex, $config->{arex}, [keys %$arex];
 
     # Cherry-pick some gridftp options
     # TODO: clean this into a proper section, not the mess that is now!
@@ -1339,7 +966,6 @@ sub build_config_from_json {
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
-    print Dumper($config);
     return $config;
 }
 
@@ -1369,7 +995,7 @@ sub isXML {
 # file override the ones from the XML file.
 #
 sub parseConfig {
-    my ($file, $arc_location) = @_;
+    my ($file,$arc_location) = @_;
     my $config;
     #if (isXML($file)) {
     #    $config = build_config_from_xmlfile($file, $arc_location);
@@ -1379,14 +1005,17 @@ sub parseConfig {
     #    $config = build_config_from_inifile($file);
     #}
     
-    $config = build_config_from_json($file,$arc_location,$config);
+    $config = build_config_from_json($file);
 
-    LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
+    #print Dumper($config);
+
+    # C 134
+    LogUtils::level($config->{arex}{loglevel}) if $config->{arex}{loglevel};
 
     my $checker = InfoChecker->new($config_schema);
     my @messages = $checker->verify($config,1);
-    $log->info("config key config->$_") foreach @messages;
-    $log->info("Some required config options are missing") if @messages;
+    $log->verbose("config key config->$_") foreach @messages;
+    $log->verbose("Some required config options are missing") if @messages;
 
     return $config;
 }
@@ -1476,24 +1105,34 @@ sub printLRMSConfigScript {
     _print_shell_end();
 }
 
-## Cherry picks arc.conf values
-## this does not work properly now since arc.conf is parsed
-## into the strange GLUE2-like intermediate representation
-## described at the top of this file.
+## getValueOf: Cherry picks arc.conf values
+## Perl wrapper for the python parser
 ## input: configfile,configblock, configoption
 sub getValueOf ($$$){
-   my ($configfile,$block,$option) = @_;
-   my $config = ConfigCentral::parseConfig($configfile);	
-   if ($block eq 'common') {
-	   return $config->{$option};
-   } else {
-	    if ($block eq 'control'){
-			#print Data::Dumper::Dumper($config->{control});
-            return $config->{control}->{'.'}{$option};
-          } else {
-	         return $config->{$block}{$option};
-	      }
-   }
+   	my ($arcconf,$block,$option) = @_;	
+	
+    # get the calling script basepath. Will be used to
+    # find external scripts like arcconfig-parser.
+    my $libexecpath = dirname($0);	
+	
+	my $value='';
+	{ 
+      local $/; # slurp mode
+	  open (my $parserout, "$libexecpath/arcconfig-parser -c $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+	  $value = <$parserout>;
+	  close $parserout;
+	}
+
+    # strip trailing newline
+    chomp $value;
+  
+    return $value;
+
+}
+
+sub dumpInternalDatastructure ($){
+	my ($config) = @_;
+    print Dumper($config);
 }
 
 1;

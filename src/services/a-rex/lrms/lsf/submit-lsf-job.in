@@ -64,7 +64,7 @@ if [ ! -z "$LSF_BIN_PATH" ] ; then
 fi
 
 echo "#! /bin/bash" > $LRMS_JOB_SCRIPT
-echo "#LSF batch job script built by grid-manager" >> $LRMS_JOB_SCRIPT
+echo "#LSF batch job script built by arex" >> $LRMS_JOB_SCRIPT
 echo "#" >> $LRMS_JOB_SCRIPT
 
 # Specify the bash shell as default

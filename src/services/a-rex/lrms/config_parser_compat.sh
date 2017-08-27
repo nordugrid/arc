@@ -13,7 +13,7 @@
 #
 #   config_parse_file /etc/arc.conf || exit 1
 #   config_import_section common
-#   config_import_section grid-manager
+#   config_import_section arex
 #   config_import_section infosys
 #   
 #   set | grep CONFIG_

@@ -8,13 +8,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-# Source the config parsing routines
-if [ -r "$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh" ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
-else
-    echo "Could not find $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-    exit 1
-fi
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
@@ -24,24 +18,28 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-# Read arc.conf
-config_parse_file $ARC_CONFIG || exit $?
-
-# Check for infosys-block
-if ! config_match_section infosys; then
-    echo "Missing infosys configuration block"
+# Check for infosys block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+    echo "Missing [infosys] configuration block"
     exit 1
 fi
 
-config_hide_all
-config_import_section common
+# Check for infosys/ldap block
+if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
+    echo "Missing [infosys/ldap] configuration block"
+    exit 1
+fi
 
-# These options need to come from the infosys-block, not from common
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
+
+# These options need to come from the infosys block, not from common
 unset CONFIG_logfile
 unset CONFIG_user
 unset CONFIG_port
 
-config_import_section infosys
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -63,23 +61,16 @@ threads=${CONFIG_threads:-32}
 timelimit=${CONFIG_timelimit:-2400}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
-bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 
 infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
-giis_fifo=${CONFIG_giis_fifo:-${infosys_ldap_run_dir}/giis-fifo}
+giis_location=${ARC_LOCATION}
+giis_fifo=${infosys_ldap_run_dir}/giis-fifo
 
-bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
-if [ ! -x $bdii_update_cmd ] || grep -q BDII_PID_FILE $bdii_update_cmd; then
-    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
-    bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
-else
-    bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-    bdii_run_dir=${bdii_var_dir}
-fi
+bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
+bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"hdb"}
@@ -180,7 +171,7 @@ if [ -z "$overlay" ]; then
 fi
 moduleload_rwm="${ldapmodule}"
 
-if [ "$(config_subsections infosys/index)" ]; then
+if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index; then
     database=shell
     find_ldap_database_module
     if [ -z "${database}" ]; then
@@ -253,11 +244,11 @@ cat <<-EOF >> $bdii_slapd_conf
 	timelimit       $timelimit
 	EOF
 
-for vo in `config_subsections infosys/index`; do
+for vo in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index -s); do
     (
-	CONFIG_name=
-	config_import_section infosys/index/$vo
-	indexname=${CONFIG_name:-$vo}
+	eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo} -e bash)
+	grep -q /registration <<< ${CONFIG___block_name} && continue
+	indexname=${CONFIG___block_name}
 
 	cat <<-EOF >> $bdii_slapd_conf
 
@@ -273,11 +264,8 @@ for vo in `config_subsections infosys/index`; do
 done
 
 if [ -n "${moduleload_rwm}" ]; then 
-    (
-    admindomain="UNDEFINEDVALUE"
-    CONFIG_name=
-    config_import_section infosys/admindomain
-    admindomain="urn:ad:${CONFIG_name:-$admindomain}"
+    admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)
+    admindomain="urn:ad:${$admindomain:-UNDEFINEDVALUE}"
 
     cat <<-EOF >> $bdii_slapd_conf
 
@@ -310,7 +298,6 @@ if [ -n "${moduleload_rwm}" ]; then
 	overlay         rwm
 	suffixmassage   "GLUE2GroupID=services,o=glue"
 	EOF
-    )
 fi
 
 cat <<-EOF >> $bdii_slapd_conf
@@ -415,26 +402,4 @@ chown $bdii_user: ${bdii_var_dir}/db/stats/DB_CONFIG
 # if the BDII low memory workaround has been applied, remove the temp file
 if [ -r $TEMPBDIIDBCONFIG ]; then
     rm -f $TEMPBDIIDBCONFIG
-fi
-
-# Create cron configuration for slapd checkpointing cron
-
-db_archive=${CONFIG_db_archive:-/usr/sbin/slapd_db_archive}
-db_checkpoint=${CONFIG_db_checkpoint:-/usr/sbin/slapd_db_checkpoint}
-
-slapd_cron_checkpoint=${CONFIG_slapd_cron_checkpoint:-disable}
-
-if [ "x${slapd_cron_checkpoint}" = "xenable" ]; then
-    if [ -n $db_checkpoint ] && [ -x $db_checkpoint ] && \
-       [ -n $db_archive ]    && [ -x $db_archive ]    && \
-       [ -d "/etc/cron.d" ]; then
-	cat <<-EOF > /etc/cron.d/nordugrid-arc-aris
-0-59/5 * * * * $bdii_user $db_checkpoint -1 -h $bdii_var_dir/db/arc && $db_archive -a -h $bdii_var_dir/db/arc|xargs rm -f
-EOF
-    else
-	echo "You have enabled slapd cron checkpointing." 
-	echo "However, it could not be configured."
-	echo "Please check db_checkpoint and db_archive in ${ARC_CONFIG}."
-	exit 1
-    fi
 fi

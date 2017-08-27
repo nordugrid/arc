@@ -98,10 +98,10 @@ while (my $line =<CONFIGFILE>) {
         if ( $blockname =~ /^(common$|nordugridmap$|userlist)/ ) {
             $parseoptions = 1;
             $parsedconfig{$blockname}{'configline'} = $lineindex;
-            if ($blockname =~ /^userlist\/([-a-zA-Z0-9_\.]+)$/ ) {
+            if ($blockname =~ /^userlist:([^\[\]]+)$/ ) {
                 $parsedconfig{$blockname}{'name'} = $1
             } elsif ($blockname =~ /^userlist$/ ) {
-                &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist/NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
+                &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist:NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
             }
             next;
         }
@@ -119,7 +119,7 @@ while (my $line =<CONFIGFILE>) {
     # trim optional double quotes (still the case for mapped_unixid="")
     $variable_value =~ s/^"(.*)"$/$1/;
     
-    if ( $blockname =~/^userlist\// ) {
+    if ( $blockname =~/^userlist:/ ) {
         # special parsing for the local grid-mapfile
         if ($variable_name eq "localmapfile") {
             $variable_name = "source";
@@ -146,10 +146,10 @@ close CONFIGFILE;
 # CHECK CONFIGURATION FOR REQUIRED INFO
 # 
 
-# check [userlist] blocks exists
+# check [userlist:NAME] blocks exists
 my @blocknames_tmp = (keys %parsedconfig);
-unless ( grep /^userlist\//, @blocknames_tmp) {
-    &Logger("There are no [userlist/NAME] blocks are found in the $fileopt configuration file", FATAL, "ConfigParser");
+unless ( grep /^userlist:/, @blocknames_tmp) {
+    &Logger("There are no [userlist:NAME] blocks had been found in the $fileopt configuration file", FATAL, "ConfigParser");
 }
 
 # general configurable options (order: [nordugridmap] -> [common] -> $ENV -> defaults);
@@ -224,19 +224,12 @@ if ( $config_flags{'cache_enabled'} ) {
 # generate a list of [userlist] blocks dependencies
 my %sources_list = (); 
 my %sources_deps = ();
-my %generated_blocks = ();
 
 # process blocks defined in arc.conf
 foreach my $block (sort(keys %parsedconfig)) {
-    next unless $block =~ /^userlist\//;
+    next unless $block =~ /^userlist:/;
     my $listname = &get_userlist_name($block);
-    $sources_deps{"userlist://".$listname} = &get_block_sources($block, \%sources_list, \%generated_blocks);
-}
-
-# process blocks generated automaticaly on the previous step
-foreach my $block (sort(keys %generated_blocks)) {
-    $sources_deps{"userlist://".$block} = &get_block_sources($block, \%sources_list, \%generated_blocks, \%generated_blocks);
-    $parsedconfig{$block} = $generated_blocks{$block};
+    $sources_deps{"userlist://".$listname} = &get_block_sources($block, \%sources_list);
 }
 
 # ensure loop-free configuration
@@ -330,7 +323,7 @@ sub process_mapfiles {
     my ( $ref_mapfile_data, $ref_sources_data ) = @_;
 
     foreach my $block (sort(keys %parsedconfig)) {
-        next unless $block =~ /^userlist\//;
+        next unless $block =~ /^userlist:/;
         my $gmf = $parsedconfig{$block}{'outfile'} || $default_mapfile;
 
         next if $gmf eq '/dev/null';
@@ -370,7 +363,7 @@ sub process_userlist_blocks {
         $blocks_processed = 0;
 
         foreach my $block (sort(keys %parsedconfig)) {
-            next unless $block =~ /^userlist\//;
+            next unless $block =~ /^userlist:/;
 
             my $list_name = &get_userlist_name($block);
             my $userlist_ref = "userlist://" . $list_name;
@@ -410,7 +403,7 @@ sub process_userlist_blocks {
                     }
 
                     # print block parameters summary on debug
-                    &Logger("Assembling DNs list for the [userlist/$list_name] block", DEBUG, "AssembleBlockData");
+                    &Logger("Assembling DNs list for the [userlist:$list_name] block", DEBUG, "AssembleBlockData");
 
                     # process all sources
                     $ref_sources_data->{$userlist_ref} = {};
@@ -424,10 +417,10 @@ sub process_userlist_blocks {
                                 if ( $config_flags{'mapuser_processing'} || ! defined $source_dn_hash{'mapuser'} ) {
                                     if ( $mapped_user eq "" ) {
                                         unless ( $config_flags{'allow_empty_unixid'} ) {
-                                            &Logger("There is no mapping for DN '$dn' in [userlist/$list_name] block. Skipping record.", WARNING, "AssembleBlockData");
+                                            &Logger("There is no mapping for DN '$dn' in [userlist:$list_name] block. Skipping record.", WARNING, "AssembleBlockData");
                                             next;
                                         } else {
-                                            &Logger("Using empty mapping for DN '$dn' in [userlist/$list_name] block.", VERBOSE, "AssembleBlockData");
+                                            &Logger("Using empty mapping for DN '$dn' in [userlist:$list_name] block.", VERBOSE, "AssembleBlockData");
                                         }
                                     }
                                 }
@@ -438,13 +431,13 @@ sub process_userlist_blocks {
                                 if ( $config_flags{'mapuser_processing'} || ! defined $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'} ) {
                                         $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'} = $mapped_user;
                                 }
-                                &Logger("Adding mapping entry '$dn -> $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'}' for the [userlist/$list_name] block.", DEBUG, "AssembleBlockData");
+                                &Logger("Adding mapping entry '$dn -> $ref_sources_data->{$userlist_ref}->{$dn}->{'mapuser'}' for the [userlist:$list_name] block.", DEBUG, "AssembleBlockData");
                                 # maintain information about where record is come from
                                 unless ( defined $ref_sources_data->{$userlist_ref}->{$dn}->{'source'} ) {
                                     $ref_sources_data->{$userlist_ref}->{$dn}->{'source'} = $source;
                                 }
                             } else {
-                                &Logger("Mapping for '$dn' entry already exists for the [userlist/$list_name] block. Skiped.", DEBUG, "AssembleBlockData");
+                                &Logger("Mapping for '$dn' entry already exists for the [userlist:$list_name] block. Skiped.", DEBUG, "AssembleBlockData");
                             }
                         }
                     }
@@ -498,7 +491,7 @@ sub get_file_userlist_sources {
     my @file_userlists = ();
 
     foreach my $block (sort(keys %parsedconfig)) {
-        next unless $block =~ /^userlist\//;
+        next unless $block =~ /^userlist:/;
         if ( defined $parsedconfig{$block}{'outfile'} ) {
             next unless $parsedconfig{$block}{'outfile'} eq $file_name;
         } else {
@@ -534,7 +527,7 @@ sub get_source_params {
 
 # return list of block dependencied and fill external sources list
 sub get_block_sources {
-    my ($block_id, $ref_sources_list, $ref_generated_blocks, $ref_confighash) = @_;
+    my ($block_id, $ref_sources_list, $ref_confighash) = @_;
     # parsed arc.conf hash is used by default
     $ref_confighash = \%parsedconfig unless defined $ref_confighash;
     # array with block dependencied
@@ -601,12 +594,16 @@ sub get_block_sources {
                     $ref_sources_list->{$source_id} = $ref_source_params;
                     push @userlist_sources, $source_id;
                 } else {
-                    &Logger("File source '$uri' does not exists. Ignoring.", WARNING, "GetInfoSources");
+                    &Logger("File source '$uri' does not exist. Ignoring.", WARNING, "GetInfoSources");
                 }
             } 
         } elsif ( $protocol =~ /^userlist$/i ) {
             # [userlist] block: use directly as userlist source
-            push @userlist_sources, $source_id;
+            if ( defined $ref_confighash->{"userlist:$uri"} ) {
+                push @userlist_sources, $source_id;
+            } else {
+                &Logger("Userlist source '$source_id' does not exist. Ignoring.", WARNING, "GetInfoSources");
+            }
         } else {
             &Logger("Unsupported protocol found: $source", WARNING, "GetInfoSources");
         }
@@ -1124,7 +1121,7 @@ Print a help screen.
 =item B<-c>, B<--config> FILE
 
 Specifies the configuration file to be used. By default the /etc/arc.conf is used. B<nordugridmap>
-utilize [nordugridmap] section for general options fine-tuning and processes all the [userlist/NAME] 
+utilize [nordugridmap] section for general options fine-tuning and processes all the [userlist:NAME] 
 blocks from the config.
 
 =back
