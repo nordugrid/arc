@@ -285,6 +285,11 @@ const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const
   return (pos == authorized_vos.end()) ? empty_string_list : pos->second;
 }
 
+const std::list<std::string> & GMConfig::AllowedGroups(const char * queue) const {
+  std::map<std::string, std::list<std::string> >::const_iterator pos = allowed_groups.find(queue);
+  return (pos == allowed_groups.end()) ? empty_string_list : pos->second;
+}
+
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
   std::string::size_type curpos = 0;
   for (;;) {

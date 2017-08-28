@@ -2,7 +2,7 @@
 
 import argparse
 import sys
-from arc.config import *
+from arc.utils.config import *
 
 # command line arguments parsing
 parser = argparse.ArgumentParser(description='Nordugrid ARC configuration parser')

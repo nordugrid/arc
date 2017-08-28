@@ -446,15 +446,19 @@ CHANGE: implement a default! in the format of root@localhost.
         if (command == "allownew_override") { // Note: not available in xml
           config.allow_submit += " " + Arc::ConfigIni::NextArg(rest);
         }
-/*
-#allownew=yes
-## CHANGE: new parameter in this block. Implement support in the code for WS-interface.
-## maxjobdesc size - specifies maximal allowed size of job description
-## in bytes. Default value is 5MB. Use 0 to set unlimited size.
-## default: 5242880
-#maxjobdesc=0
-## CHANGE: new parameter in this block. Implement support in the code for WS-interface.
-*/
+        else if (command == "maxjobdesc") { // Note: not available in xml
+          std::string maxjobdesc_s = Arc::ConfigIni::NextArg(rest);
+          if (!Arc::stringto(maxjobdesc_s, config.maxjobdesc)) {
+            logger.msg(Arc::ERROR, "Wrong number in maxjobdesc command"); return false;
+          }
+        } else if (command == "allowaccess") {
+          while(!rest.empty()) {
+            std::string str = Arc::ConfigIni::NextArg(rest);
+            if(!str.empty()) {
+              config.allowed_groups[""].push_back(str);
+            };
+          };
+        };
       };
       continue;
     };
@@ -533,6 +537,16 @@ CHANGE: implement a default! in the format of root@localhost.
           if (!config.queues.empty()) {
             std::string queue_name = *(--config.queues.end());
             config.authorized_vos[queue_name].push_back(str);
+          }
+        } else if (command == "allowaccess") {
+          if (!config.queues.empty()) {
+            std::string queue_name = *(--config.queues.end());
+            while(!rest.empty()) {
+              std::string str = Arc::ConfigIni::NextArg(rest);
+              if(!str.empty()) {
+                config.allowed_groups[queue_name].push_back(str);
+              }
+            }
           }
         }
       }

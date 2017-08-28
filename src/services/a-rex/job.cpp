@@ -44,6 +44,34 @@ using namespace ARex;
 
 Arc::Logger ARexGMConfig::logger(Arc::Logger::getRootLogger(), "ARexGMConfig");
 
+static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, std::string& matched) {
+  for(std::list<std::string>::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((*l1) == (*l2)) {
+        matched = *l1;
+        return true;
+      };
+    };
+  };
+  return false;
+}
+
+static bool match_groups(std::list<std::string> const & groups, ARexGMConfig& config) {
+  std::string matched_group;
+  for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
+    if(*a) {
+      // This security attribute collected information about user's authorization groups
+      Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
+      if(sattr) {
+        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+          return true;
+        };
+      };
+    };
+  };
+  return false;
+}
+
 ARexGMConfig::ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
     config_(config),user_(uname),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
   //if(!InitEnvironment(configfile)) return;
@@ -317,7 +345,19 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
         delete_job_id();
         return;
       };
-      if(*q == job_.queue) break;
+      if(*q == job_.queue) {
+        // Before allowing this queue check for allowed authorization group
+        std::list<std::string> const & groups = config_.GmConfig().AllowedGroups(job_.queue.c_str());
+        if(!groups.empty()) {
+          if(!match_groups(groups, config_)) {
+            failure_="Requested queue "+job_.queue+" is not allowed for this user";
+            failure_type_=ARexJobConfigurationError;
+            delete_job_id();
+            return;
+          };
+        };
+        break;
+      };
     };
   };
   // Check for various unsupported features
@@ -512,16 +552,14 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
     };
   };
   // Collect authorized VOMS/VO - so far only source is ARCLEGACYPDP
-  {
-    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
-      if(*a) {
-        Arc::SecAttr* sattr = (*a)->get("ARCLEGACYPDP");
-        if(sattr) {
-          std::list<std::string> voms = sattr->getAll("VOMS");
-          job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
-          std::list<std::string> vo = sattr->getAll("VO");
-          job_.localvo.insert(job_.localvo.end(),vo.begin(),vo.end());
-        };
+  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+    if(*a) {
+      Arc::SecAttr* sattr = (*a)->get("ARCLEGACYPDP");
+      if(sattr) {
+        std::list<std::string> voms = sattr->getAll("VOMS");
+        job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
+        std::list<std::string> vo = sattr->getAll("VO");
+        job_.localvo.insert(job_.localvo.end(),vo.begin(),vo.end());
       };
     };
   };

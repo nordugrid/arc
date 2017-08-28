@@ -47,16 +47,15 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
+pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
 pkgdatadir="$basedir"
 
-. "$pkgdatadir/config_parser_compat.sh" || exit $?
+arcconfig_parser=${pkglibexecdir}/arcconfig-parser
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-config_parse_file $ARC_CONFIG 1>&2 || exit $?
 
-config_import_section "common"
-config_import_section "grid-manager"
-
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
+eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b gridmanager -e bash)
 
 HOSTNAME=$CONFIG_hostname
 PERFDIR=${CONFIG_perflogdir:-/var/log/arc/perfdata}

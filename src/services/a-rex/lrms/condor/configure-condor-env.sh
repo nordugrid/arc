@@ -1,14 +1,10 @@
 
-if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
+if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
 
-. "$pkgdatadir/config_parser_compat.sh" || exit $?
+blocks="-b arex -b infosys -b common"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-config_parse_file $ARC_CONFIG || exit $?
-
-config_import_section "common"
-config_import_section "infosys"
-config_import_section "arex"
+eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 
 # performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
 unset perflogdir
@@ -25,14 +21,6 @@ fi
 # Condor executables are located using the following cues:
 # 1. condor_bin_path option in arc.conf
 # 2. PATH environment variable
-
-# Synopsis:
-# 
-#   . config_parser.sh
-#   config_parse_file /etc/arc.conf || exit 1
-#   config_import_section "common"
-#   . configure-condor-env.sh || exit 1
-
 
 if [ ! -z "$CONFIG_condor_bin_path" ]; 
 then 

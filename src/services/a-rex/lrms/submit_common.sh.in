@@ -33,6 +33,7 @@ init () {
    parse_arg_file $1
 
    if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
+   if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
    if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
 
    # May use joboption_queue (set by parse_arg_file)
@@ -71,19 +72,14 @@ init () {
 
 read_arc_conf () {
    ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-   . $pkgdatadir/config_parser_compat.sh || exit $?
 
-   config_parse_file $ARC_CONFIG 1>&2 || exit $?
-   config_import_section "common"
-   config_import_section "cluster"
-
+   blocks="-b cluster -b common"
    # Also read queue section
    if [ ! -z "$joboption_queue" ]; then
-     if ! config_import_section "queue/$joboption_queue"; then
-         echo "ERROR: Job requested invalid share: $joboption_queue" 1>&2
-         exit 1
-     fi
+      blocks="-b queue:$joboption_queue $blocks"
    fi
+
+   eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 }
 
 

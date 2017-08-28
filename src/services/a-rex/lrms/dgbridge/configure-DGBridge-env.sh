@@ -6,17 +6,13 @@
 # Reading configuration from $ARC_CONFIG
 ##############################################################
 
-if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
+if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
 
-. "$pkgdatadir/config_parser.sh" || exit $?
+# Order matters
+blocks="-b lrms -b arex -b infosys -b common"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-config_parse_file $ARC_CONFIG 1>&2 || exit $?
-
-config_import_section "common"
-config_import_section "infosys"
-config_import_section "arex"
-config_import_section "lrms"
+eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 
 dgbridge_stage_dir=$CONFIG_dgbridge_stage_dir
 dgbridge_stage_prepend=$CONFIG_dgbridge_stage_prepend

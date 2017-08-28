@@ -133,7 +133,7 @@ runtimedir=$(pwd)/rtes" ${test}.arc.conf
   fi
 
   # Write GRAMi file.
-  ../${TEST_WRITE_GRAMI_FILE} --grami "${test}" --conf "${test}.arc.conf" "${job_description_input}" 2>&1 >> /dev/null
+  ../${TEST_WRITE_GRAMI_FILE} --grami "${test}" --conf "${test}.arc.conf" "${job_description_input}" 2>&1 > /dev/null
   if test $? -ne 0; then
     echo -n "F"
     errorOutput="$errorOutput"$'\n\n'"Error: Writing GRAMI file failed."

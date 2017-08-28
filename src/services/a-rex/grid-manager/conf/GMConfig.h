@@ -197,6 +197,9 @@ public:
   /// Maximum number of job re-runs allowed
   int Reruns() const { return reruns; }
 
+  /// Maximum size for job description
+  int MaxJobDescSize() const { return maxjobdesc; }
+
   /// Strategy for fixing directories
   fixdir_t FixDirectories() const { return fixdir; }
 
@@ -220,10 +223,14 @@ public:
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
   /// Returns true if any of the shared gids matches the given gid
   bool MatchShareGid(gid_t sgid) const;
-  /// Returns forced VOMS attributes for users which have none
+  /// Returns forced VOMS attributes for users which have none.
+  /// If queue is not specified value for server is returned.
   const std::string & ForcedVOMS(const char * queue = "") const;
-  /// Returns liat of authorized VOs for specified queue
+  /// Returns list of authorized VOs for specified queue
   const std::list<std::string> & AuthorizedVOs(const char * queue) const;
+  /// Returns list of authorization groups for specified queue.
+  /// If queue is not specified value for server is returned.
+  const std::list<std::string> & AllowedGroups(const char * queue = "") const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -292,6 +299,8 @@ private:
   fixdir_t fixdir;
   /// Maximal value of times job is allowed to be rerun
   int reruns;
+  /// Maximal size of job description
+  int maxjobdesc;
   /// Maximum time for A-REX to wait between each loop processing jobs
   unsigned int wakeup_period;
   /// Groups allowed to submit while job submission is disabled
@@ -324,6 +333,8 @@ private:
   std::map<std::string,std::string> forced_voms;
   /// VOs authorized per queue
   std::map<std::string, std::list<std::string> > authorized_vos;
+  /// groups allowed per queue
+  std::map<std::string, std::list<std::string> > allowed_groups;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;

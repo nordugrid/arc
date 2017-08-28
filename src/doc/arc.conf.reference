@@ -1,22 +1,19 @@
 ####################################################################
 ##
 ## This is the arc.conf REFERENCE DOCUMENT defining the configuration blocks and
-## variables for the ARC services.
+## configuration options for the ARC services.
 ##
 ## WARNING: this file will not work as a configuration template!
-## There are out-of-the-box minimal configuration templates provided.
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
 ## The arc.conf configuration file consists of the following blocks 
-## TODO: give a very short description for each block above
 ##
-##  [common] - description tbd
-##  [common/perflog] - description tbd
-##  [common/mapping] - description tbd
-##  [lrms]
-##  [lrms/ssh]
+##  [common]
+##  [common/mapping]
 ##  [userlist:biousers]
 ##  [authgroup:allowedusers]
+##  [lrms]
+##  [lrms/ssh]
 ##  [arex]
 ##  [arex/cache]
 ##  [arex/data-staging]
@@ -29,40 +26,32 @@
 ##  [arex/jura/archiving]
 ##  [arex/jura/sgas:neic_sgas]
 ##  [arex/jura/apel:egi_prod_apel]
-##  [monitoring/ganglia]
 ##  [gridftpd]
 ##  [gridftpd/jobs]
 ##  [gridftpd/filedir]
 ##  [infosys]
 ##  [infosys/ldap]
 ##  [infosys/ldap/bdii]
-##  [infosys/registration]
-##  [infosys/cluster/registration/registrationtoindex1]
-##  [cluster]
-##  [queue:gridlong]
 ##  [infosys/nordugrid]
 ##  [infosys/glue2]
 ##  [infosys/glue2/ldap]
 ##  [infosys/glue1]
 ##  [infosys/glue1/site:name]
-##  [infosys/index/indexname]
-##  [infosys/index/indexname/registration/registrationname]
+##  [cluster]
+##  [cluster/registration:indexname]
+##  [queue:gridlong]
 ##  [datadelivery-service]
 ##  [acix-scanner]
 ##  [acix-index]
+##  [monitoring]
+##  [monitoring/perflog]
+##  [monitoring/ganglia]
 ##  [nordugridmap]
-##
-## TODO: document block priority as agreed: everything overtakes [common], 
-## [queue] -> [cluster] -> [lrms] -> [common]
-##
-## TODO: describe the "space rules" 
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## Enabling (turning on) a functionality, a service or an interface requires the presence of the
 ## appropriate configuration block. To disable a service or an interface, simply delete or comment out
 ## with a "#" the related arc.conf block (you may need to rerun the corresponding startup script).
-##
-## TODO: specify which blocks are mandatory/optional for certain deployment scenario.
 ##
 ## As an example, in order to set up a minimalistic ARC CE with a WS-interface
 ## you need to configure at least the [common],[arex],[lrms],[arex/ws],
@@ -77,59 +66,60 @@
 ## keywords and optionally block identifiers. Keywords may be separated by "/" 
 ## and used to label subblocks (e.g. [arex/jura]), while block identifiers
 ## are separated by ":" from keywords. For example, in the [queue:short] 
-## block header 'queue' is a keyword while 'short' is an identifier, the name of the queue.
+## block header 'queue' is a keyword while 'short' is an identifier, e.g. the name of the queue.
 ## Block headers must be UNIQUE.
 ##
 ## A block starts with a unique [blocheader] and ends where the next block starts, that is 
 ## at the next [blockheader] directive. A block may have sub-blocks e.g. [arex/ws].
 ##
-## Configuration blocks contain (variable, variable value) pairs following the syntax:
-## TODO: introduce consistent terminology for variable/value or config parameter value. decide naming!
-## variable=the variable value(s) come(s) in single line and everything is part of the value till the end of the line.
-## Note that quotes around the variable value(s) must NOT be used any longer.
-## Commented out or unset configuration options (variables) take their default values!
+## Configuration blocks contain (config option, config value) pairs following the syntax:
+## config_option= value element [optional value element]  in single line 
+## and everything is part of config value till the end of the line.
+## Note that quotes around the configuration value(s) must NOT be used any longer.
+## Commented out or unset configuration options take their default values!
 ## Note that the arc.conf is CASE-SENSITIVE!
 ##
 ## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
 ## [userlist:name] and [authgroup:name] MUST appear before the [arex] or [gridftp] blocks. 
 ## Furthermore, the order of the authorization blocks itself may have influence over authorization decisions!
-## On the other hand, the order of the variables within a specific block is irrelevant.
+## On the other hand, the order of the config options within a specific block is irrelevant.
 ##
 ##
-## Developers: This file is parsed by configuration validation scripts and so
+## Developers: This file is parsed by configuration validation script and so
 ##   it is important that it follows the agreed syntax: For each block or
 ##   option please add explanatory text with two ## followed by a space at the
 ##   beginning of the line and then an example with a single # and no spaces at
 ##   the beginning of the line. These examples are used as reference parameters
-##	 for the block and variable names!
+##   for the block and configuration option names!
 ##
 ## Below we give a detailed description of all the configuration options of the
-## different configuration blocks. Every configuration variable is described
-## in a dedicated block with the following reference notation:
+## different configuration blocks. Every configuration option is described
+## in a dedicated paragraph with the following reference notation:
 ##
-## variable_name = variable_value [variable_values]  - Here comes the explanation
-## of the variable. Mandatory variables are indicated by an asterix prefix to the variable name e.g.
-## *mandatory_variable vs. optional_variable.
+## config_option_name = value [optional values]  - Here comes the explanation
+## of the config option. Mandatory configuration options are indicated by an asterix prefix to the option name e.g.
+## *mandatory_configoption vs. optional_configoption.
 ## The explanation is followed by the special keyword "multivalued" in a separate line to indicate 
-## that it can be set multiple times (multivalued). Missing such keyword means the variable is
-## can only occur once in the arc.conf. By default the arc.conf parameters are optional
-## and single-valued. For some variables only a fix set of values are allowed. These are
+## that it can be set multiple times (multivalued). Missing such keyword means the config option
+## can only occur once in the arc.conf. By default the arc.conf config options are optional
+## and single-valued. For some config options only a fix set of values are allowed. These are
 ## listed in a separate line after the "allowedvalues" keyword.
-## The default of every parameter is explicitly given in the "default:" line.
-## The last line of the paragraph is always a valid example preceded by a single #
+## The default of every config option is explicitly given in the "default:" line.
+## The last line of the paragraph is always a valid example preceded by a single "#"
+## here comes a valid example:
 ## multivalued
 ## type: e.g. string (types to be agreed later)
 ## allowedvalues: 12 34 56
 ## default: 34
-#variable_name=56
+#config_option_name=56
 ###########################################################################
 
 
 ### The [common] block ##############################################
 ## Common configuration affecting all ARC components, usually related to networking or security 
 ## or service behaviour.
-## The common block parameters may be overridden by the specific sections of the components later.
-## The [common] always appears at the beginning of the config file. The parameters set within this block
+## The common block options may be overridden by the specific sections of the components later.
+## The [common] always appears at the beginning of the config file. The config options set within this block
 ## are available for all the other blocks thus shared by the different components of ARC.
 #[common]
 
@@ -187,11 +177,10 @@
 
 ### Coarse-grained initial authorization
 ## gridmap = path - The location of the so-called gridmap file. The gridmap file contains a list of
-## grid identities (DNs) with their local unix ID mappings. If the gridmap option is configured
+## grid identities (Subject Names) with their local unix ID mappings. If the gridmap option is configured
 ## then its content is used as a coarse-grained authorization rule by the ARC services
-## which most of the cases implies that the user with the DN is granted access.
-## DNs listed in the gridmapfile are also published as authorized users in the nordugrid information schema.
-## This variable may be set individually for certain ARC services in their corresponding blocks.
+## which most of the cases implies that the user with the Subject Name is granted access.
+## Subject Names listed in the gridmapfile are also published as authorized users in the nordugrid information schema.
 ## default: /etc/grid-security/grid-mapfile
 #gridmap=/etc/grid-security/grid-mapfile
 ##
@@ -199,25 +188,8 @@
 ### end of the [common] block ##############################################
 
 
-### The [common/perflog] block ##############################################
-## This block enables the server-side performance logging of various ARC components.
-## Having this block uncommented turns on the performance metrics collection
-## and reporting. Only switch on if you specifically need it, and are aware of
-## the possible local root exploit due to permissive directory.
-#[common/perflog]
-## CHANGE2: NEW block
-
-## perflogdir = path - The directory containing the performance metric files.
-## default: /var/log/arc/perfdata
-#perflogdir=/var/log/arc/perfdata
-## CHANGE3: new parameter
-##
-##
-### end of the [common/perflog] block #######################################
-
-
 ### The [common/mapping] block ##############################################
-## This block defines the grid-identity --- local unix identity mapping rules used by
+## This block defines the grid-identity to local unix identity mapping rules used by
 ## various ARC components.
 #[common/mapping]
 ## CHANGE8: This is a new block
@@ -272,6 +244,251 @@
 ##
 ##
 ### end of the [common/mapping] block ##############################################
+
+
+### The [userlist:name] (previously [vo]) blocks ################################
+## The [userlist:name] blocks are used to define userlists and configure how those are
+## generated by the nordugridmap utility, including the optional user mapping information.
+## The userlist is identified with the generated file that is stored in the "outfile".
+## Please note that behaviour of the nordugridmap external utility can be further modified by
+## the optional [nordugridmap] block (see next block).
+## Note that the [userlist:name] block by itself does not affect authorization. In order to define
+## auth rules userlists can be referenced within the [authgroup] blocks by the userlist=name parameter.
+## Also, the generated "outfile" can be used via the 'file' auth rule of the [authgroup] block.
+## The order of this block in arc.conf may influence authorization decision. This block must appear before the
+## [arex] blocks.
+#[userlist:biousers]
+## CHANGE17: new blockname that better reflects the purpose of the config block. This block is not defining any VO!
+
+## id blockid - specifies the unique configuration block id (this does not affect nordugridmap utility)
+## CHANGE18: DELETED  should be removed from code and config now that the userlist blocks have unique names
+
+## vo vo_name - This optional parameter specifies the name of the userlist.
+## This must be the same as the one in the [userlist/name] block name. 
+## default: not set
+#vo=biousers
+## CHANGE19: DELETED. use the name from the block header instead!
+
+## outfile = path - (previously file) The full path of the GENERATED file that contains the
+## userlist (with optional mapping info).
+## If the same file specified as output for different [userlist/name] blocks
+## then nordugridmap will automatically merge entries following the order of the blocks.
+## default: the value of the gridmap parameter from [common] or /etc/grid-security/grid-mapfile
+#outfile=/etc/grid-security/lists/atlas-users
+## CHANGE20: renamed from "file"
+
+## *source = url - the URL of the VO database which is used to generate the userlist.
+## The nordugridmap will use this URL to automatically generate and keep
+## up-to-date userlist (mapfile) specified by the 'outfile' attribute.
+##
+## url is a multivalued attribute, several sources can be specified
+## and all the users from those sources will be merged into the same file.
+## The source URLs are processed in the given order.
+##
+## Currently supported URL types are:
+##    http(s)://  - URL to plain text file. File should contain a list
+##                 of DNs with optional issuer certificate authority DN
+##                 (see require_issuerdn): "user DN" ["issuer DN"]
+##    voms(s)://  - URL to VOMS-Admin interface
+##    file://     - local file (stand-alone or dynamicaly generated by
+##                 nordugridmap). File should contain a list of DNs with
+##                 optional mapped unixid: "user DN" [mapped user ID]
+##                 Result of optional mapped unixid processing depend
+##                 on mapuser_processing option settings.
+##    userlist:// - reference to another [userlist/name] configuration block
+##    nordugrid   - add NorduGrid VO members
+##
+## You can use either userlist:// or file:// entries to specify dependencies
+## between [userlist/name] blocks, but using userlist:// is a recommended way.
+##
+## For each separate source URL it is possible to override some parameters
+## value. You can use the following syntax to perform this:
+##    source=URL < parameter1=value1 parameter2=value2
+## You can override the following parameters:
+##    mapped_unixid       for http(s),voms(s),ldap and file URLs
+##    cache_enable        for http(s),voms(s),ldap and file URLs
+##    voms_method         for voms(s) URLs
+##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided
+##                        (control mapped_unixid overriding behaviour for URL)
+## multivalued
+## default: not set
+#source=vomss://voms.ndgf.org:8443/voms/nordugrid.org
+#source=vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin
+#source=vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org < voms_method=get
+#source=http://www.nordugrid.org/developers.dn
+#source=file:///etc/grid-security/priviliged_users.dn
+#source=userlist://biousers
+#source=nordugrid
+## CHANGE21: MODIFIED options: edg-mkgridmap source option is removed (obsolete technology);  vo source option is renamed as userlist.
+
+## mapped_unixid = unixid - The local UNIXID which is optionally used in the generated
+## outfile by the nordugridmap utility.
+##
+## If any of the sources have already provided mapping information (file://
+## or userlist://) behavior depends on 'mapuser_processing' from the [nordugridmap] block:
+##    mapuser_processing = 'overwrite': ignore already provided mapping and
+##                         apply mapped_unixid for all sources
+##    mapuser_processing = 'keep': apply mapped_unixid only for sources that
+##                         does not already has mapping information
+##
+## If the 'mapped_unixid' config parameter is not specified or has empty value,
+## then behavior depends on the value of 'allow_empty_unixid' from the [nordugridmap] block:
+##   If the allow_empty_unixid = 'yes': then empty value will be used for mapped_unixid
+##                         which means that nordugridmap will generate only
+##                         the list of DNs without mapping (consider using
+##                         mapuser_processing='overwrite' along with this
+##                         option or sources that does not provide previously
+##                         defined mapping information)
+##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information
+##						(if no mapping information provided by sources)
+## default: ""
+#mapped_unixid
+#mapped_unixid=gridtest
+## CHANGE22: Modified. The empty value should work the same way as missing parameter. set the default to ""
+
+## voms_fqan_map = fqan unixid - The local UNIXID which is used to map voms(s)
+## sources with specific FQAN given.
+##
+## Several voms_fqan_map can be specified for a [userlist/name] block.
+## For each voms(s) sources in [userlist/name] block and every voms_fqan_map record
+## separate source record will be automatically generated with mapped_unixid
+## overwritten to specified one.
+##
+## Sources are generated in a given voms_fqan_map order. Original voms(s) source
+## URL are processed LAST.
+##
+## This allows to simplify configuration, especially in redundancy cases when
+## several VOMS servers are used for the same VO.
+## multivalued
+## default: not set
+#voms_fqan_map=/atlas/Role=VO-Admin atlasadmin
+#voms_fqan_map=/atlas/Role=production atlasprod
+
+## require_issuerdn yes/no - YES would map only those DNs obtained from the urls...
+## CHANGE23: DELETED. no valid use-case for this feature any longer.
+
+## filter = ACL string - An ACL filter for the nordugridmap utility. Multiple
+## allow/deny statements are possible. The fetched DNs are filtered against
+## the specified rules before they are added to the generated outfile.
+##
+## * can be used as a wildcard. You may run the nordugridmap with the --test
+## command line option to see how the filters you specified work.
+##
+## If at least one allow filter is specified implicit deny is used at the end
+## of ACL. If only deny filters are present - implicit allow used at the end.
+## multivalued
+## default: not set
+#filter=deny *infn*
+#filter=allow *NorduGrid*
+##
+##
+### end of the [userlist:name] block ######################################
+
+
+### The [authgroup:name] (previously [group]) blocks ######################################
+## These configuration blocks contain authorization rules. These rules determine which
+## authorization group a user belongs to. Then, the access control of ARC services are
+## implemented via specifying the [authgroup:name] to which certain permissions are granted.
+## For more info please read "Security Framework of ARC" at
+## http://www.nordugrid.org/documents/arc-security-documentation.pdf
+## The authgroup should not be mistaken for a virtual organisation (VO).
+## An authgroup may match a single VO if only a single check (rule) on VO membership is perfomed.
+## It is however more common to allow multiple VOs in a single authgroup.
+##
+## IMPORTANT: Rules in an authgroup are processed in their order of appearance.
+## The first matching rule decides the membership of the user to the authgroup
+## being evaluated and the processing STOPS within that authgroup. This does not mean that
+## the same user is not processed for the next authgroup: all [authgroup/name] blocks are
+## evaluated, even if a user already has a match with one of the earlier groups.
+##
+## There are positively and negatively matching rules.
+## If a rule is matched positively then the user tested is accepted
+## into the respective group and further processing is stopped. Upon a
+## negative match the user would be rejected for that group - processing
+## stops too. The sign of rule is determined by prepending the rule with
+## '+' (for positive) or '-' (for negative) signs. '+' is default and can
+## be omitted. A rule may also be prepended with '!' to invert result of rule,
+## which will let the rule match the complement of users. That complement
+## operator ('!') may be combined with the operator for positive or negative
+## matching.
+##
+## All the objects used in the rules (e.g. userlists) MUST be defined before it may be used.
+## In this respect the arc.conf is ORDER SENSITIVE. The order of this block in arc.conf may 
+## influence authorization decision. This block must appear before the [arex] blocks.
+#[authgroup:allowedusers]
+## CHANGE31: renamed the block.
+
+## name authgroup_name - This optional parameter specifies the name of the authgroup.
+## This must be the same as the one in the [authgroup:name] block name.
+## If this parameter not set then the name of the subblock is used instead, for example [authgroup:allowedusers]
+## default: not set
+#name=allowedusers
+## CHANGE186: DELETED. use the name from the block header instead!
+
+## subject = certificate_subject - Rule to match specific subject of user's
+## X.509 certificate. No masks, patterns and regular expressions are allowed.
+## multivalued
+## default: not set
+#subject=/O=Grid/O=Big VO/CN=Main Boss
+#subject=/O=Grid/O=Big VO/CN=Deputy Boss
+
+## file = path - Processes a list of DNs stored in an external file one per line and adds those to
+## the authgroup.
+## multivalued
+## default: not set
+#file=/etc/grid-security/local_users
+#file=/etc/grid-security/atlas_users
+## CHANGE32: Modified semantics. The external file should only contain DNs, no complex rules. No need to change the code.
+
+## voms = vo group role capabilities - Match VOMS attribute in user's credential.
+##  Use '*' to match any value.
+## multivalued
+## default: not set
+#voms=nordugrid Guests * *
+#voms=atlas students prodman *
+
+## authgroup = group_name [group_name ...] - (previously group) Match user already belonging to one
+## of specified authgroups. The authgroup referred here must be defined earlier in
+## configuration file. Multiple authgroup names may be specified for this rule.
+## That allows creating hierarchical structure of authorization groups like
+## 'clients' are those which are 'users' and 'admins'.
+## multivalued
+## default: not set
+#authgroup=local_admins
+#authgroup=local_admins remote_users
+## CHANGE33: renamed
+
+## userlist = ulist_name [ulist_name ...] - (previously vo) Match user belonging to ulist_name defined
+## in an earlier [userlist:ulist_name] block. Multiple userlist names are allowed for this rule.
+## multivalued
+## default: not set
+#userlist=biousers
+## CHANGE34: renamed
+
+## plugin = timeout path [argument ...] - Run external executable or
+##  function from shared library. Rule is matched if plugin returns 0.
+##  In arguments following substitutions are supported:
+##   %D - subject of certicate
+##   %P - path to proxy
+## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
+## For more information about configuring LCAS itself see section 'Using LCAS/LCMAPS' in the ARC
+## Computing Element System Administrator Guide.
+## multivalued
+## default: not set
+#plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
+
+## lcas library directory database - Call LCAS functions to check rule.
+## CHANGE35: DELETED. The same can be done with the "plugin" parameter
+
+## remote URL ... - Check user's credentials against remote service. Only
+## CHANGE36: DELETED.  Feature is not used for ages. Code simplification.
+
+## all - Matches any user identity. This variable requires no arguments or values.
+## default: not set
+#all=
+##
+##
+### end of the [authgroup:name] blocks ###############################
 
 
 ### The [lrms] block ##############################################
@@ -396,7 +613,6 @@
 ## jobs will be allowed to run on any of the nodes in the pool. When configuring
 ## multiple queues, you can differentiate them based on memory size or disk
 ## space, for example.
-## TODO: wrongly implemented in the backends: queue-level values are ignored! report bug
 ## default: not set
 #condor_requirements=(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)
 
@@ -472,7 +688,7 @@
 ## ll_consumable_resources = yes/no - Indicates whether the LoadLeveler setup is
 ## using Consumable Resources.
 ## allowedvalues: yes no
-## default: TODO
+## default: no
 #ll_consumable_resources=yes
 
 ### Boinc options: set these only in case of lrms=boinc
@@ -523,23 +739,27 @@
 ## *remote_host = hostname - Define the remote cluster frontend machine which contains
 ## session, cache and runtime directories and where jobs should be submitted to.
 ## default: not set
+## mandatory
 #remote_host=myremotehost.org
 
 ## *private_key = path - Location of the private key which should be used establish
 ## connection to the machine specified by the 'remote_host' attribute.
-## default: TODO
+## default: not set
+## mandatory
 #private_key=/etc/grid-security/hostkey-priv.pem
 
 ## *remote_user = user - User on remote cluster which should be used for mounting
 ## directories, submitting and managing jobs, and gathering information about
 ## cluster.
-## default: TODO
+## default: not set
+## mandatory
 #remote_user=grid
 
 ## remote_sessiondir = path - Session directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'sessiondir'
 ## attribute in the [arex] block.
 ## default: not set
+## mandatory
 #remote_sessiondir=/scratch/grid
 
 ## remote_runtimedir = path - Runtime environment directory on cluster frontend to
@@ -562,370 +782,6 @@
 ### end of [lrms/ssh] block #####################################################
 
 
-### The [userlist:name] (previously [vo]) blocks ################################
-## The [userlist:name] blocks are used to define userlists and configure how those are
-## generated by the nordugridmap utility, including the optional user mapping information.
-## The userlist is identified with the generated file that is stored in the "outfile".
-## Please note that behaviour of the nordugridmap external utility can be further modified by
-## the optional [nordugridmap] block (see next block).
-## Note that the [userlist:name] block by itself does not affect authorization. In order to define
-## auth rules userlists can be referenced within the [authgroup] blocks by the userlist=name parameter.
-## Also, the generated "outfile" can be used via the 'file' auth rule of the [authgroup] block.
-## The order of this block in arc.conf may influence authorization decision. This block must appear before the
-## [arex] blocks.
-#[userlist:biousers]
-## CHANGE17: new blockname that better reflects the purpose of the config block. This block is not defining any VO!
-
-## id blockid - specifies the unique configuration block id (this does not affect nordugridmap utility)
-## CHANGE18: DELETED  should be removed from code and config now that the userlist blocks have unique names
-
-## vo vo_name - This optional parameter specifies the name of the userlist.
-## This must be the same as the one in the [userlist/name] block name. 
-## default: not set
-#vo=biousers
-## CHANGE19: DELETED. use the name from the block header instead!
-
-## outfile = path - (previously file) The full path of the GENERATED file that contains the
-## userlist (with optional mapping info).
-## If the same file specified as output for different [userlist/name] blocks
-## then nordugridmap will automatically merge entries following the order of the blocks.
-## default: the value of the gridmap parameter from [common] or /etc/grid-security/grid-mapfile
-#outfile=/etc/grid-security/lists/atlas-users
-## CHANGE20: renamed from "file"
-
-## *source = url - the URL of the VO database which is used to generate the userlist.
-## The nordugridmap will use this URL to automatically generate and keep
-## up-to-date userlist (mapfile) specified by the 'outfile' attribute.
-##
-## url is a multivalued attribute, several sources can be specified
-## and all the users from those sources will be merged into the same file.
-## The source URLs are processed in the given order.
-##
-## Currently supported URL types are:
-##    http(s)://  - URL to plain text file. File should contain a list
-##                 of DNs with optional issuer certificate authority DN
-##                 (see require_issuerdn): "user DN" ["issuer DN"]
-##    voms(s)://  - URL to VOMS-Admin interface
-##    ldap://     - expect LDAP-schema formatted VO Group
-##    file://     - local file (stand-alone or dynamicaly generated by
-##                 nordugridmap). File should contain a list of DNs with
-##                 optional mapped unixid: "user DN" [mapped user ID]
-##                 Result of optional mapped unixid processing depend
-##                 on mapuser_processing option settings.
-##    userlist:// - reference to another [userlist/name] configuration block
-##    nordugrid   - add NorduGrid VO members
-##
-## You can use either userlist:// or file:// entries to specify dependencies
-## between [userlist/name] blocks, but using userlist:// is a recommended way.
-##
-## For each separate source URL it is possible to override some parameters
-## value. You can use the following syntax to perform this:
-##    source=URL < parameter1=value1 parameter2=value2
-## You can override the following parameters:
-##    mapped_unixid       for http(s),voms(s),ldap and file URLs
-##    cache_enable        for http(s),voms(s),ldap and file URLs
-##    voms_method         for voms(s) URLs
-##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided
-##                        (control mapped_unixid overriding behaviour for URL)
-## multivalued
-## default: not set
-#source=vomss://voms.ndgf.org:8443/voms/nordugrid.org
-#source=vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin < mapped_unixid=atlasadmin
-#source=vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org < voms_method=get
-#source=http://www.nordugrid.org/developers.dn
-#source=ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org
-#source=file:///etc/grid-security/priviliged_users.dn
-#source=userlist://biousers
-#source=nordugrid
-## CHANGE21: MODIFIED options: edg-mkgridmap source option is removed (obsolete technology);  vo source option is renamed as userlist.
-
-## mapped_unixid = unixid - The local UNIXID which is optionally used in the generated
-## outfile by the nordugridmap utility.
-##
-## If any of the sources have already provided mapping information (file://
-## or userlist://) behavior depends on 'mapuser_processing' from the [nordugridmap] block:
-##    mapuser_processing = 'overwrite': ignore already provided mapping and
-##                         apply mapped_unixid for all sources
-##    mapuser_processing = 'keep': apply mapped_unixid only for sources that
-##                         does not already has mapping information
-##
-## If the 'mapped_unixid' config parameter is not specified or has empty value,
-## then behavior depends on the value of 'allow_empty_unixid' from the [nordugridmap] block:
-##   If the allow_empty_unixid = 'yes': then empty value will be used for mapped_unixid
-##                         which means that nordugridmap will generate only
-##                         the list of DNs without mapping (consider using
-##                         mapuser_processing='overwrite' along with this
-##                         option or sources that does not provide previously
-##                         defined mapping information)
-##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information
-##						(if no mapping information provided by sources)
-## default: ""
-#mapped_unixid
-#mapped_unixid=gridtest
-## CHANGE22: Modified. The empty value should work the same way as missing parameter. set the default to ""
-
-## voms_fqan_map = fqan unixid - The local UNIXID which is used to map voms(s)
-## sources with specific FQAN given.
-##
-## Several voms_fqan_map can be specified for a [userlist/name] block.
-## For each voms(s) sources in [userlist/name] block and every voms_fqan_map record
-## separate source record will be automatically generated with mapped_unixid
-## overwritten to specified one.
-##
-## Sources are generated in a given voms_fqan_map order. Original voms(s) source
-## URL are processed LAST.
-##
-## This allows to simplify configuration, especially in redundancy cases when
-## several VOMS servers are used for the same VO.
-## multivalued
-## default: not set
-#voms_fqan_map=/atlas/Role=VO-Admin atlasadmin
-#voms_fqan_map=/atlas/Role=production atlasprod
-
-## require_issuerdn yes/no - YES would map only those DNs obtained from the urls...
-## CHANGE23: DELETED. no valid use-case for this feature any longer.
-
-## filter = ACL string - An ACL filter for the nordugridmap utility. Multiple
-## allow/deny statements are possible. The fetched DNs are filtered against
-## the specified rules before they are added to the generated outfile.
-##
-## * can be used as a wildcard. You may run the nordugridmap with the --test
-## command line option to see how the filters you specified work.
-##
-## If at least one allow filter is specified implicit deny is used at the end
-## of ACL. If only deny filters are present - implicit allow used at the end.
-## multivalued
-## default: not set
-#filter=deny *infn*
-#filter=allow *NorduGrid*
-##
-##
-### end of the [userlist:name] block ######################################
-
-
-### The [nordugridmap] block ###########################################
-## This optional block is used to fine-tune the behavior of the
-## nordugridmap utility - an ARC tool used to generate grid-mapfiles.
-## Normal setups don't need to configure this block.
-## Please refer to [userlist/name] block above to find information how
-## to specify sources for userlist generation. This section setup
-## general source-independent parameters.
-#[nordugridmap]
-
-### X509 related parameters
-## x509_host_key = path - Optional parameter to overwrite [common] block values.
-#x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE24: renamed
-
-## x509_host_cert = path - Optional parameter to overwrite [common] block values.
-#x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE25: renamed
-
-## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
-#x509_cert_dir=/etc/grid-security/certificates
-
-## gridmap_owner = username - The owner of the generated mapfiles.
-## default: root
-#gridmap_owner=root
-
-## gridmap_group = groupname - The group of generated gridmapfiles.
-## default: root
-#gridmap_group=root
-
-## gridmap_permissions = filemode - The permissions of generated gridmapfiles.
-## default: 0600
-#gridmap_permissions=0600
-
-## generate_vomapfile - control is nordugridmap will generate
-## vo-mapfile used by arc-ur-logger. Default is 'yes'.
-## CHANGE26: DELETED, we don't support arc-ur-logger any longer. don't generate that file any longer either.
-
-## vomapfile - path to vo-mapfile location.
-## CHANGE27: DELETED, we don't support arc-ur-logger any longer. don't generate that file any longer either.
-
-## log_to_file = yes/no - control whether logging output of nordugridmap
-## will be saved to file. If the value is 'no' nordugridmap will write all 
-## information to STDERR.
-## allowedvalues: yes no
-## default: yes
-#log_to_file=no
-
-## logfile = path - specify the nordugridmap log file location when log_to_file is set yes.
-## default: /var/log/arc/nordugridmap.log
-#logfile=/var/log/arc/nordugridmap.log
-
-## cache_enable = yes/no - Controls whether caching of external sources will be used.
-## allowedvalues: yes no
-## default: yes
-#cache_enable=yes
-
-## cachedir = path - Specifies the path where cached sources will be stored.
-## default: /var/spool/nordugrid/gridmapcache/
-#cachedir=/var/spool/nordugrid/gridmapcache/
-
-## cachetime = seconds - Controls how long (in seconds) the cached information
-## remains valid. Default is 259200 (3 days).
-## default: 259200
-#cachetime=259200
-
-## issuer_processing - control the behavior of [userlist/name] block's require_issuerdn
-## CHANGE28: DELETED
-
-## mapuser_processing = owerwrite/keep - Controls the behavior of [userlist/name] block's mapped_unixid
-## parameter usage. Valid values are 'overwrite' and 'keep'.
-## Please see 'mapped_unixid' description in [userlist/name] block for details.
-## allowedvalues: keep overwrite
-## default: "keep"
-#mapuser_processing=keep
-
-## allow_empty_unixid = yes/no - Controls whether empty (or unspecified)
-## 'mapped_unixid' [userlist/name] block option is allowed to be used.
-## Please see 'mapped_unixid' description for details.
-## allowedvalues: yes no
-## default: yes
-#allow_empty_unixid=no
-## CHANGE29: MODIFIED. set default to yes.
-
-## voms_method = soap/get - Controls how to get information from VOMS(S) sources.
-## Valid values are:
-##   soap - call SOAP method directly using SOAP::Lite
-##   get  - use old implementation that manually parses XML response
-## allowedvalues: soap get
-## default: soap
-#voms_method=soap
-
-## loglevel = level - (previously debug) Controls the verbosity of nordugridmap output. Valid
-## values are:
-##   0 - FATAL   - only critical fatal error shown
-##   1 - ERROR   - errors, including non-critical are shown
-##   2 - WARNING (default) - configuration errors that can be ignored
-##   3 - INFO    - processing information
-##   4 - VERBOSE - a bit more processing information
-##   5 - DEBUG   - lot of processing information
-##
-## When test run is requested (--test command line option of the
-## nordugridmap) loglevel is automatically set to 5 (DEBUG).
-## Default is 2 (WARNING)
-## allowedvalues: 0 1 2 3 4 5
-## default: 4
-#loglevel=4
-## CHANGE30: renamed as loglevel
-
-## fetch_timeout = seconds - Controls how many time (in seconds) nordugridmap will
-## wait for external sources retrieval.
-## default: 15
-#fetch_timeout=15
-##
-##
-### end of the [nordugridmap] block ##################################
-
-
-### The [authgroup:name] (previously [group]) blocks ######################################
-## These configuration blocks contain authorization rules. These rules determine which
-## authorization group a user belongs to. Then, the access control of ARC services are
-## implemented via specifying the [authgroup:name] to which certain permissions are granted.
-## For more info please read "Security Framework of ARC" at
-## http://www.nordugrid.org/documents/arc-security-documentation.pdf
-## The authgroup should not be mistaken for a virtual organisation (VO).
-## An authgroup may match a single VO if only a single check (rule) on VO membership is perfomed.
-## It is however more common to allow multiple VOs in a single authgroup.
-##
-## IMPORTANT: Rules in an authgroup are processed in their order of appearance.
-## The first matching rule decides the membership of the user to the authgroup
-## being evaluated and the processing STOPS within that authgroup. This does not mean that
-## the same user is not processed for the next authgroup: all [authgroup/name] blocks are
-## evaluated, even if a user already has a match with one of the earlier groups.
-##
-## There are positively and negatively matching rules.
-## If a rule is matched positively then the user tested is accepted
-## into the respective group and further processing is stopped. Upon a
-## negative match the user would be rejected for that group - processing
-## stops too. The sign of rule is determined by prepending the rule with
-## '+' (for positive) or '-' (for negative) signs. '+' is default and can
-## be omitted. A rule may also be prepended with '!' to invert result of rule,
-## which will let the rule match the complement of users. That complement
-## operator ('!') may be combined with the operator for positive or negative
-## matching.
-##
-## All the objects used in the rules (e.g. userlists) MUST be defined before it may be used.
-## In this respect the arc.conf is ORDER SENSITIVE. The order of this block in arc.conf may 
-## influence authorization decision. This block must appear before the [arex] blocks.
-#[authgroup:allowedusers]
-## CHANGE31: renamed the block.
-
-## name authgroup_name - This optional parameter specifies the name of the authgroup.
-## This must be the same as the one in the [authgroup:name] block name.
-## If this parameter not set then the name of the subblock is used instead, for example [authgroup:allowedusers]
-## default: not set
-#name=allowedusers
-## CHANGE186: DELETED. use the name from the block header instead!
-
-## subject = certificate_subject - Rule to match specific subject of user's
-## X.509 certificate. No masks, patterns and regular expressions are allowed.
-## multivalued
-## default: not set
-#subject=/O=Grid/O=Big VO/CN=Main Boss
-#subject=/O=Grid/O=Big VO/CN=Deputy Boss
-
-## file = path - Processes a list of DNs stored in an external file and adds those to
-## the authgroup.
-## multivalued
-## default: not set
-#file=/etc/grid-security/local_users
-#file=/etc/grid-security/atlas_users
-## CHANGE32: Modified semantics. The external file should only contain DNs, no complex rules. No need to change the code.
-
-## voms = vo group role capabilities - Match VOMS attribute in user's credential.
-##  Use '*' to match any value.
-## multivalued
-## default: not set
-#voms=nordugrid Guests * *
-#voms=atlas students prodman *
-
-## authgroup = group_name [group_name ...] - (previously group) Match user already belonging to one
-## of specified authgroups. The authgroup referred here must be defined earlier in
-## configuration file. Multiple authgroup names may be specified for this rule.
-## That allows creating hierarchical structure of authorization groups like
-## 'clients' are those which are 'users' and 'admins'.
-## multivalued
-## default: not set
-#authgroup=local_admins
-#authgroup=local_admins remote_users
-## CHANGE33: renamed
-
-## userlist = ulist_name [ulist_name ...] - (previously vo) Match user belonging to ulist_name defined
-## in an earlier [userlist/ulist_name] block. Multiple userlist names are allowed for this rule.
-## multivalued
-## default: not set
-#userlist=biousers
-## CHANGE34: renamed
-
-## plugin = timeout path [argument ...] - Run external executable or
-##  function from shared library. Rule is matched if plugin returns 0.
-##  In arguments following substitutions are supported:
-##   %D - subject of certicate
-##   %P - path to proxy
-## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
-## For more information about configuring LCAS itself see section 'Using LCAS/LCMAPS' in the ARC
-## Computing Element System Administrator Guide.
-## multivalued
-## default: not set
-#plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
-
-## lcas library directory database - Call LCAS functions to check rule.
-## CHANGE35: DELETED. The same can be done with the "plugin" parameter
-
-## remote URL ... - Check user's credentials against remote service. Only
-## CHANGE36: DELETED.  Feature is not used for ages. Code simplification.
-
-## all - Matches any user identity. This variable requires no arguments or values.
-## default: all is not set
-#all
-## TODO check if it is OK like this
-##
-##
-### end of the [authgroup:name] blocks ###############################
-
 
 ### The [arex] block - previously [grid-manager] #####################
 ## The [arex] block, together with its various subblocks,
@@ -942,7 +798,7 @@
 
 ## norootpower = yes|no - If set to yes, all job management processes
 ## will switch to mapped user's identity while accessing session directory.
-## This is useful if session directory is on NFS root squashing turned on.
+## This is useful if session directory is on NFS with root squashing turned on.
 ## allowedvalues: yes no
 ## default: no
 #norootpower=yes
@@ -1123,7 +979,7 @@
 #pidfile=/var/run/arched-arex.pid
 
 ## mail = email_address - Specifies the email address from where the notification mails are sent
-## default: root@hostname
+## default: <username>@<hostname>
 #mail=grid.support@somewhere.org
 ## CHANGE43: modified. implement a default! in the format of root@localhost. 
 
@@ -1145,9 +1001,9 @@
 
 ## helperlog = path - Configuration option to specify the location of log for helpers.
 ## default: /var/log/arc/job.helper.errors
+## default: ???
 #helperlog=/var/log/arc/job.helper.errors
 ## CHANGE44: new parameter
-## TODO check the default.
 
 ## forcedefaultvoms = VOMS_FQAN - specify VOMS FQAN which user will be
 ## assigned if his/her credentials contain no VOMS attributes.
@@ -1514,7 +1370,7 @@
 
 ## allowunknown = yes/no - Specifies whether to check user subject against grid-mapfile and
 ## reject missing users. By default unknown (not in the grid-mapfile) grid users
-## are rejected by the gridftp server (for both plugins).
+## are rejected by the server.
 ## allowedvalues: yes no
 ## default: no
 #allowunknown=no
@@ -1535,9 +1391,11 @@
 #allownew_override=yourauthgroup
 ## CHANGE73: rename. modify behaviour: possible to specify several groups on a single line!
 
-## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization groups
-## that are allowed to access the WS EMIES - based jobsubmission interface.
-## If this parameter is not set, then the gridmapfile from [common] is used for authorization.
+## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization
+## groups that are allowed to access the WS EMIES - based jobsubmission interface.
+## If this parameter is not set, then no additional restrictions are applied for authorizing
+## user access.
+## The matching group is also used for evaluating VOMS attributes representing the user.
 ## default: not set
 #allowaccess=biousers atlasusers
 ## CHANGE74: new parameter in the EMIES block
@@ -1596,9 +1454,8 @@
 ## A-REX and configured via the [arex/data-staging] block.
 ## Comment out this block if you don't need the CandyPond functionality and
 ## don't want to expose this interface.
-## TODO David: describe in the sysadmin manual what are those useful operations, also give give reference to the interface description (wsrf, at least)
 #[arex/ws/candypond]
-## CHANGE77: new block, renamed service
+## CHANGE77: NEW block, renamed service
 
 ## enable_cache_service yes|no - Turn on or off the cache service interface.
 ## CHANGE78: DELETED. Service interface, functionality is enabled/disabled by subblocks.
@@ -1673,69 +1530,6 @@
 ##
 ##
 #### end of the [arex/ws/argus] block #####################
-
-
-### The [acix-scanner] (previously [acix/cacheserver]) block ##########
-## The ARC Cache Index (ACIX) is a distributed system that maintains
-## a catalog of locations of cached files stored in various A-REX caches.
-## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
-## This config block enables and configures the cache scanner component of ACIX.
-## The scanning component of ACIX runs alongside A-REX.
-## It periodically scans the cache directories and composes a Bloom
-## filter of A-REX cache content which can be pulled by an ACIX index
-## server.
-## Comment out this block if you don't want the content of the cache scanned and
-## eventually pulled and indexed by ACIX.
-#[acix-scanner]
-## CHANGE82: renamed block, renamed component (cache scanner, instead of cacheserver)
-## TODO: update ACIX documentation (sysadmin 4.4.3) with new name, maybe even new package names are needed
-
-## logfile = path -  Log file location for the ACIX cache scanner.
-## default: /var/log/arc/acix-cachescanner.log
-#logfile=/tmp/acix-cachescanner.log
-## CHANGE83: modified default for the logfile
-
-## hostname = string - Hostname on which the cache server listens
-## default: listen on all available interfaces.
-#hostname=myhost.org
-
-## port = port - Port on which the cache server listens
-## default: 5443
-#port=6000
-
-## cachedump = yes/no - Whether to make a dump of the cache contents in a file at
-## $TMP/ARC-ACIX/timestamp each time the cache server runs.
-## default: no
-## allowedvalues: yes no
-#cachedump=yes
-##
-##
-### end of the [acix-scanner] block ############################
-
-
-### The [acix-index] (previously [acix/indexserver]) block #################################
-## The ARC Cache Index (ACIX) is a distributed system that maintains
-## a catalog of locations of cached files stored in various A-REX caches.
-## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
-## This config block enables and configures the index server component of ACIX.
-## The index server component of ACIX collects cache content filters
-## from a set of cache scanners configured.
-## The index server can be queried for the location of cached files.
-## The service endpoint is https://hostname:6443/data/index and a query is
-## performed via giving the URLs to check as comma-separated values to the "url" option, e.g.:
-## index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1
-## Comment out this block if you don't run an ACIX Index server.
-## TODO: reference the interface specification.
-#[acix-index]
-
-## cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information
-## multivalued
-## default: not set
-#cachescanner=https://some.host:5443/data/cache
-#cachescanner=https://another.host:5443/data/cache
-## CHANGE84: renamed
-##
-### end of the [acix-index] block ############################
 
 
 ### The [arex/jura] block ###################################
@@ -2118,7 +1912,9 @@
 
 ## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization groups
 ## that are allowed to access the gridftp-based jobsubmission interface.
-## If this parameter is not set, then the gridmapfile from [common] is used for authorization.
+## If this parameter is not set, then no additional restrictions are applied for authorizing
+## user access.
+## The matching group is also used for evaluating VOMS attributes representing the user.
 ## default: not set
 #allowaccess=biousers atlasusers
 ## CHANGE128: renamed
@@ -2153,7 +1949,8 @@
 
 ## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization groups
 ## that are allowed to access the gridftp-based jobsubmission interface.
-## If this parameter is not set, then the gridmapfile from [common] is used for authorization.
+## If this parameter is not set, then no additional restrictions are applied for authorizing
+## user access.
 ## default: not set
 #allowaccess=biousers atlasusers
 ## CHANGE132: renamed
@@ -2475,96 +2272,176 @@
 ### end of the [infosys/ldap/bdii] block ########################################
 
 
-### The [infosys/registration] block
-## This block enables the infosys registration functionality of ARC:
-## Registration is a process which periodically sends some limited information
-## (mostly contact data) about a CE to a specified information index service (EGIIS).
-## Comment out this block if you don't want to run the registration process.
-##
-## IMPORTANT: To details of the actual registrations are defined either in the
-## [infosys/cluster/registration/registrationname] or
-## [infosys/index/indexname/registration/registrationname] sub-blocks (see below).
-## The former defines a CE registering to an EGIIS, while the latter is an
-## EGIIS registering to EGIIS.
-##
-## Please note that the entire infosys registration subsystem is considered as an
-## obsolete technology in ARC, there are plans to phase out these components!
-#[infosys/registration]
-## CHANGE149: new block. use this block in the infosys startup scripts!
-
-## registrationlog = path - specifies the logfile for the registration processes
-## initiated by your machine.
-## default: /var/log/arc/inforegistration.log
-#registrationlog=/var/log/arc/inforegistration.log
-
-## sizelimit = number - sizelimit affects registration to egiis
-## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
-## Default is zero, i.e. no limits are set.
-## default: 0
-#sizelimit=10
-##
-## end of the [infosys/registration] block #################################
+## Infosys Schema sub-blocks: The following infosys sub-blocks enable
+## information publishing according to various information schema.
+## In order to publish information in a certain schema, the corresponding
+## sub-block must be defined in addition to the schema-neutral [cluster] and [queue/name] blocks!
+## Comment out a specific schema block if you don't want to publish a specific
+## information schema representation.
+## Currently available information model (schema) sub-blocks:
+##  [infosys/nordugrid] - The native ARC info representation of a cluster and its queues
+##  [infosys/glue2] - The GLUE2 information model, both LDAP and XML (the latter is for WS-interface)
+##  [infosys/glue2/ldap] - The LDAP rendering of the GLUE2 model
+##  [infosys/glue1] - The legacy GLUE1 model (only LDAP)
+##  [infosys/glue1/site:name] - The site BDII element of the GLUE1 legacy model
 
 
-### The [infosys/cluster/registration/NAME] blocks ############
-## WARNING: the ldap-based registration is OBSOLETE technology,
-## there are plans to phase it out.
-## This part of the configuration was not reviewed and modified
-##
-## during the arc.conf restructuring:  these are legacy structures and parameters!
-## This sub-block configures the registration process of a CE (computing cluster)
-## to an EGIIS index service.
-## A cluster may register to several Index Services, this case
-## each registration process should have its own sub-block.
-## NorduGrid maintains a webpage with information on major
-## Index Services:
-## http://www.nordugrid.org/NorduGridMDS/index_service.html
-#[infosys/cluster/registration/registrationtoindex1]
-
-## targethostname - the hostname of the machine running the registration target
-## Index Service
-#targethostname=index.myinstitute.org
-
-## targetport - the port on which the target Index Service is running.
-## The default is the 2135 Infosys port.
-#targetport=2135
-
-## targetsuffix - the LDAP suffix of the target Index Service
-#targetsuffix=mds-vo-name=BigIndex,o=grid
-
-## regperiod - The registration period in seconds, the registration messages are
-## continously sent according to the regperiod. Default is 120 sec.
-#regperiod=300
-
-## registranthostname - the hostname of the machine sending the registrations.
-## This attribute inherits its value from the [common] and [infosys] blocks,
-## most cases no need to set.
-#registranthostname=myhost.org
-
-## registrantport - the port of the slapd service hosting the
-## registrant Index Service. The attribute inherits its value from the
-## [infosys] block (and therefore defaults to 2135)
-#registrantport=2135
-
-## registrantsuffix - the LDAP suffix of the registrant cluster resource
-## It is automatically determined from the [infosys] block and the
-## registration blockname. In this case the default registrantsuffix will be:
-##    "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
-## please mind uppercase/lowercase characters above if defining
-## allowreg in an index!
-## Don't set it unless you want to overwrite the default.
-#registrantsuffix=nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid
-
-## timeout - The suggested timeout to be included in the registration.
-## Default: 45.
-#timeout=45
-
-## ttl - The suggested TTL to be included in the registration.  The default
-## is twice the registration period.
-#ttl=600
+### The [infosys/nordugrid] schema sub-block ###########################
+## Enables the publication of the NorduGrid information model in
+## the LDAP-based infosys. See the NORDUGRID-TECH-4 for schema definition.
+## The configuration block does not contain any parameter. The information tree
+## is populated based on the contents of the schema-neutral [cluster] and [queue/name] blocks.
+#[infosys/nordugrid]
+## CHANGE155: new schema block. should be used to turn on/off nordugrid-ldap publication.
 ##
 ##
-### end of the [infosys/cluster/registration/NAME] blocks ###########
+### end of the [infosys/nordugrid] schema block ########################
+
+
+### The [infosys/glue2] schema sub-block ###########################
+## Enables the publication of the GLUE2 information model both in the LDAP and
+## XML rendering.
+## The information tree is populated based on the contents of the schema-neutral 
+## [cluster] and [queue/name] blocks and the GLUE2 specific schema sub-blocks.
+#[infosys/glue2]
+## CHANGE156: new schema block. should be used to turn on/off GLUE2 publication (both ldap & xml)
+
+## AdminDomain entity parameters:
+## admindomain_name = string - The Name attribute for the admindomain. This will show
+## in top-BDII to group the resources belonging to this cluster.
+## To group a bunch of clusters under the same AdminDomain, just use the same name.
+## If not specified, will default to UNDEFINEDVALUE.
+## default: UNDEFINEDVALUE
+#admindomain_name=ARC-TESTDOMAIN
+
+## admindomain_description = text - The free-form description of this domain.
+## default: not set
+#admindomain_description=ARC test Domain
+
+## admindomain_www = url - The URL pointing at a site holding information about the AdminDomain.
+## default: not set
+#admindomain_www=http://www.nordugrid.org/
+
+## admindomain_distributed = yes/no - Set this to yes if the domain is distributed
+## that means, if the resources belonging to the domain
+## are considered geographically distributed.
+## allowedvalues: yes no
+## default: ???
+#admindomain_distributed=yes
+
+## admindomain_owner = email - The contact email of a responsible person for the domain
+## default: not set
+#admindomain_owner=admin@nordugrid.org
+
+## admindomain_otherinfo = text - Free-form text that fills the OtherInfo GLUE2 field.
+## no need to set, used only for future development.
+## default: not set
+#admindomain_otherinfo=Test Other info
+
+## ComputingService entity parameters:
+## computingservice_qualitylevel = qlevel - (previously infosys_glue2_service_qualitylevel)
+## Allows a sysadmin to define different GLUE2 QualityLevel values for A-REX.
+## Refer to GLUE2 documentation for the qualitylevel definitions.
+## allowedvalues: production pre-production testing development
+## default: production
+#computingservice_qualitylevel=production
+## CHANGE157: renamed
+##
+##
+## end of the [infosys/glue2] schema block ########################
+
+
+### The [infosys/glue2/ldap] schema sub-block ###########################
+## Enables the publication of the LDAP-rendering of the GLUE2 infomodel.
+## The information tree is populated based on the contents of the schema-neutral
+## [cluster] and [queue/name] blocks and the GLUE2 specific schema sub-blocks.
+#[infosys/glue2/ldap]
+## CHANGE158: new schema block. should be used to turn on/off GLUE2 LDAP tree publication.
+
+## infosys_glue2_ldap - Enables GLUE2 schema
+## CHANGE: DELETED. use block instead.
+
+## showactivities = yes/no - (previously infosys_glue2_ldap_showactivities) Enables GLUE2
+## ComputingActivities to appear in the LDAP rendering
+## allowedvalues: yes no
+## default: no
+#showactivities=no
+## CHANGE160: renamed.
+##
+##
+### end of the [infosys/glue2/ldap] schema sub-block ###########################
+
+
+### The [infosys/glue1] (previously [infosys/glue12]) schema block ##########
+## This block enables the publication of GLUE1 LDAP representation of a CE.
+## The information tree is populated based on the contents of the schema-neutral
+## [cluster] and [queue/name] blocks and the GLUE1 specific schema sub-blocks.
+## This block holds information that is needed by the glue1, in addition to the
+## schema-neutral blocks.
+#[infosys/glue1]
+## CHANGE161: renamed. should be used to turn on/off GLUE1 publication.
+
+## infosys_glue12 - Enables glue1.2/1.3 schema
+## CHANGE162: DELETED. use block instead
+
+## resource_location = string - GLUE1 location attribute.
+## IMPORTANT: no slashes or backslashes here!
+## default: not set
+#resource_location=Kastrup, Denmark
+
+## resource_latitude = latitude - GLUE1 latitude.
+## default: not set
+#resource_latitude=55.75000
+
+## resource_longitude = longitude - GLUE1 longitude.
+## default: not set
+#resource_longitude=12.41670
+
+## cpu_scaling_reference_si00 = number - GLUE1 CPU_scaling
+## default: not set
+#cpu_scaling_reference_si00=2400
+
+## processor_other_description = string - GLUE1 proc description
+## default: not set
+#processor_other_description=Cores 3, Benchmark 9.8-HEP-SPEC06
+
+## glue_site_web = url - GLUE1 site web url
+## default: not set
+#glue_site_web=http://www.ndgf.org
+
+## glue_site_unique_id = siteid - GLUE1 site id
+## default: not set
+#glue_site_unique_id=NDGF-T1
+
+## provide_glue_site_info yes/no - This variable decides if the GlueSite should be published.
+## CHANGE163: DELETED.  disabled if one or more [infosys/glue1/site:name]
+##                      blocks exist, otherwise enabled.
+##
+##
+### end of the [infosys/glue1] schema block ###########################
+
+
+### The [infosys/glue1/site:name] (previously [infosys/site/sitename]) block ################
+## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
+## the LDAP server. This block is used to configure ARC to generate a
+## semi-fake site-bdii that can be registered in GOCDB etc... The sitename
+## part of the block header is to be declarative of the site-bdii being generated.
+##
+#[infosys/glue1/site:name]
+## CHANGE164: renamed. turn on/off the fake site-bdii based on this block.
+
+## unique_id = id - The unique id used to identify this site, eg "NDGF-T1"
+## default: not set
+#unique_id=NDGF-T1
+
+## url = url - The url of the resource BDII underlying the fake site bdii. It is on the format:
+## ldap://host.domain:2170/mds-vo-name=something,o=grid.
+## default: not set
+#url=ldap://host.domain:2170/mds-vo-name=something,o=grid
+##
+##
+### end of the [infosys/glue1/site:name] block ###################################
+
 
 
 ## Information schema-neutral blocks [cluster] and [queue/NAME] contain attributes
@@ -2739,6 +2616,90 @@
 ### end of the [cluster] block #####################
 
 
+### The [cluster/registration:indexname] block
+## This block enables the infosys registration functionality of ARC:
+## Registration is a process which periodically sends some limited information
+## (mostly contact data) about a CE to a specified information index service (EGIIS).
+## Comment out this block if you don't want to run the registration process.
+##
+## Please note that the entire infosys registration subsystem is considered as an
+## obsolete technology in ARC, there are plans to phase out these components!
+#[cluster/registration]
+## CHANGE149: NEW block. use this block in the infosys startup scripts!
+
+## registrationlog = path - specifies the logfile for the registration processes
+## initiated by your machine.
+## default: /var/log/arc/inforegistration.log
+#registrationlog=/var/log/arc/inforegistration.log
+
+## sizelimit = number - sizelimit affects registration to egiis
+## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
+## Default is zero, i.e. no limits are set.
+## default: 0
+#sizelimit=10
+
+## *targetgiis = name - the name of the index service to which the registration to be sent. 
+## default: none
+#targetgiis=ATLASGIIS
+## CHANGE212: NEW parameter
+
+## *targethostname = hostname - the hostname of the machine running the registration target
+## Index Service
+## default: none
+#targethostname=index.myinstitute.org
+## CHANGE204: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## targetport = number - the port on which the target Index Service is running.
+## The default is the 2135 Infosys port.
+## default: 2135
+#targetport=2135
+## CHANGE205: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## targetsuffix = string - the LDAP suffix of the target Index Service
+## default: ???
+#targetsuffix=mds-vo-name=BigIndex,o=grid
+## CHANGE206: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## regperiod = seconds - The registration period in seconds, the registration messages are
+## continously sent according to the regperiod. Default is 120 sec.
+## default: 120
+#regperiod=300
+## CHANGE207: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## registranthostname = hostname - the hostname of the machine sending the registrations.
+## This attribute inherits its value from the [common] and [infosys] blocks,
+## most cases no need to set.
+## default: inhereted from [common block]
+#registranthostname=myhost.org
+## CHANGE208: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## registrantport = port - the port of the slapd service hosting the
+## registrant Index Service. The attribute inherits its value from the
+## [infosys] block (and therefore defaults to 2135)
+## default: 2135
+#registrantport=2135
+## CHANGE209: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## registrantsuffix = string - the LDAP suffix of the registrant cluster resource
+## It is automatically determined from the [infosys] block and the
+## registration blockname. In this case the default registrantsuffix will be:
+##    "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
+## please mind uppercase/lowercase characters above if defining
+## allowreg in an index!
+## Don't set it unless you want to overwrite the default.
+#registrantsuffix=nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid
+## CHANGE210: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+
+## ttl = seconds - The suggested TTL to be included in the registration.  The default
+## is twice the registration period.
+## default: 2 x regperiod
+#ttl=600
+## CHANGE211: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
+##
+##
+### end of the [cluster/registration:indexname] block ###########
+
+
 ### The [queue:name] blocks #######################################
 ## Each grid-enabled queue on the cluster should be represented and described
 ## by a separate queue block. The queue_name should be used as a label in the block name.
@@ -2815,7 +2776,6 @@
 ## jobs will be allowed to run on any of the nodes in the pool. When configuring
 ## multiple queues, you can differentiate them based on memory size or disk
 ## space, for example.
-## TODO: wrongly implemented in the backends: queue-level values are ignored!
 ## default: not set
 #condor_requirements=(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)
 
@@ -2857,19 +2817,18 @@
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 
-## OSName = string - Only for GLUE2
+## osname = string - Only for GLUE2
 ## multivalued
 ## default: not set
-## TODO why is it Uppercase?
-#OSName=Ubuntu
+#osname=Ubuntu
 
-## OSVersion = string - Only for GLUE2
+## osversion = string - Only for GLUE2
 ## default: not set
-#OSVersion=12.04
+#osversion=12.04
 
-## OSFamily = string - Only for GLUE2
+## osfamily = string - Only for GLUE2
 ## default: not set
-#OSFamily=linux
+#osfamily=linux
 
 ## benchmark = name value - see description at [cluster] block
 ## multivalued
@@ -2877,16 +2836,16 @@
 #benchmark=SPECINT2000 222
 #benchmark=SPECFP2000 333
 
-## ac_policy = rule - Defines queue access policy rules based on VOMS attributes in user's
-## proxy certificate (requires the arc-vomsac-check plugin to be enabled).
-## This is a TEMPORARY solution for enforcing queue-based access control with authplugins
-## Matching rules have the following format:
-##   ac_policy=[+/-]VOMS: <FQAN>
-## Please read arc-vomsac-check manual page for more information.
-## multivalued
+## allowaccess = authgroup [authgroup ...] - Specifies authorization groups
+## that are allowed to submit jobs to this queue. It does not override simular 
+## parameter specified in [gridftpd/jobs] and [arex/ws/emies] blocks.
+## If this parameter is not set, then no additional restrictions are applied for
+## authorizing user abbility to submit jobs to this queue.
+## The matching group from this parameter does not affect which VOMS
+## attributes are selected as representing the user.
 ## default: not set
-#ac_policy=-VOMS: /badvo
-#ac_policy=VOMS: /.*/Role=production
+#allowaccess=biousers atlasusers
+## CHANGE214: NEW parameter in the [queue:name] block
 
 ## authorizedvo = voname - This attribute is used to advertise which VOs are authorized
 ## on each specific queue. Multiple entries are allowed.
@@ -2925,326 +2884,6 @@
 ##
 ### end of the [queue:name] blocks ########################
 
-
-## Infosys Schema sub-blocks: The following infosys sub-blocks enable
-## information publishing according to various information schema.
-## In order to publish information in a certain schema, the corresponding
-## sub-block must be defined in addition to the schema-neutral [cluster] and [queue/name] blocks!
-## Comment out a specific schema block if you don't want to publish a specific
-## information schema representation.
-## Currently available information model (schema) sub-blocks:
-##	[infosys/nordugrid] - The native ARC info representation of a cluster and its queues
-##  [infosys/glue2] - The GLUE2 information model, both LDAP and XML (the latter is for WS-interface)
-##  [infosys/glue2/ldap] - The LDAP rendering of the GLUE2 model
-##  [infosys/glue2/xml] - The XML rendering of the GLUE2 model
-##  [infosys/glue1] - The legacy GLUE1 model (only LDAP)
-##  [infosys/glue1/site:name] - The site BDII element of the GLUE1 legacy model
-
-
-### The [infosys/nordugrid] schema sub-block ###########################
-## Enables the publication of the NorduGrid information model in
-## the LDAP-based infosys. See the NORDUGRID-TECH-4 for schema definition.
-## The configuration block does not contain any parameter. The information tree
-## is populated based on the contents of the schema-neutral [cluster] and [queue/name] blocks.
-#[infosys/nordugrid]
-## CHANGE155: new schema block. should be used to turn on/off nordugrid-ldap publication.
-##
-##
-### end of the [infosys/nordugrid] schema block ########################
-
-
-### The [infosys/glue2] schema sub-block ###########################
-## Enables the publication of the GLUE2 information model both in the LDAP and
-## XML rendering.
-## The information tree is populated based on the contents of the schema-neutral 
-## [cluster] and [queue/name] blocks and the GLUE2 specific schema sub-blocks.
-#[infosys/glue2]
-## CHANGE156: new schema block. should be used to turn on/off GLUE2 publication (both ldap & xml)
-
-## AdminDomain entity parameters:
-## admindomain_name = string - The Name attribute for the admindomain. This will show
-## in top-BDII to group the resources belonging to this cluster.
-## To group a bunch of clusters under the same AdminDomain, just use the same name.
-## If not specified, will default to UNDEFINEDVALUE.
-## default: UNDEFINEDVALUE
-#admindomain_name=ARC-TESTDOMAIN
-
-## admindomain_description = text - The free-form description of this domain.
-## default: not set
-#admindomain_description=ARC test Domain
-
-## admindomain_www = url - The URL pointing at a site holding information about the AdminDomain.
-## default: not set
-#admindomain_www=http://www.nordugrid.org/
-
-## admindomain_distributed = yes/no - Set this to yes if the domain is distributed
-## that means, if the resources belonging to the domain
-## are considered geographically distributed.
-## allowedvalues: yes no
-## default: TODO
-#admindomain_distributed=yes
-
-## admindomain_owner = email - The contact email of a responsible person for the domain
-## default: not set
-#admindomain_owner=admin@nordugrid.org
-
-## admindomain_otherinfo = text - Free-form text that fills the OtherInfo GLUE2 field.
-## no need to set, used only for future development.
-## default: not set
-#admindomain_otherinfo=Test Other info
-
-## ComputingService entity parameters:
-## computingservice_qualitylevel = qlevel - (previously infosys_glue2_service_qualitylevel)
-## Allows a sysadmin to define different GLUE2 QualityLevel values for A-REX.
-## Refer to GLUE2 documentation for the qualitylevel definitions.
-## allowedvalues: production pre-production testing development
-## default: production
-#computingservice_qualitylevel=production
-## CHANGE157: renamed
-
-## ExecutionEnvironment entity parameters:
-## execenv_osname = string - Name of the operating system distribution or product name. Lowercase.
-## multivalued
-## default: not set
-#execenv_osname=Ubuntu
-## TODO: Define the semantics with respect to osname in the queue block
-
-## execenv_osversion = string - Vendor specific string that identifies the operating system version.
-## default: not set
-#execenv_osversion=12.04
-## TODO: Define the semantics with respect to osversion in the queue block
-
-## execenv_osfamily = string - Name that identify a family of operating systems, e.g. linux
-## kernel or windows kernel based. Lowercase.
-## default: not set
-#execenv_osfamily=linux
-## TODO: Define the semantics with respect to osfamily in the queue block
-##
-##
-## end of the [infosys/glue2] schema block ########################
-
-
-### The [infosys/glue2/ldap] schema sub-block ###########################
-## Enables the publication of the LDAP-rendering of the GLUE2 infomodel.
-## The information tree is populated based on the contents of the schema-neutral
-## [cluster] and [queue/name] blocks and the GLUE2 specific schema sub-blocks.
-#[infosys/glue2/ldap]
-## CHANGE158: new schema block. should be used to turn on/off GLUE2 LDAP tree publication.
-
-## infosys_glue2_ldap - Enables GLUE2 schema
-## CHANGE: DELETED. use block instead.
-
-## showactivities = yes/no - (previously infosys_glue2_ldap_showactivities) Enables GLUE2
-## ComputingActivities to appear in the LDAP rendering
-## allowedvalues: yes no
-## default: no
-#showactivities=no
-## CHANGE160: renamed.
-##
-##
-### end of the [infosys/glue2/ldap] schema sub-block ###########################
-
-
-### The [infosys/glue1] (previously [infosys/glue12]) schema block ##########
-## This block enables the publication of GLUE1 LDAP representation of a CE.
-## The information tree is populated based on the contents of the schema-neutral
-## [cluster] and [queue/name] blocks and the GLUE1 specific schema sub-blocks.
-## This block holds information that is needed by the glue1, in addition to the
-## schema-neutral blocks.
-#[infosys/glue1]
-## CHANGE161: renamed. should be used to turn on/off GLUE1 publication.
-
-## infosys_glue12 - Enables glue1.2/1.3 schema
-## CHANGE162: DELETED. use block instead
-
-## resource_location = string - GLUE1 location attribute.
-## IMPORTANT: no slashes or backslashes here!
-## default: not set
-#resource_location=Kastrup, Denmark
-
-## resource_latitude = latitude - GLUE1 latitude.
-## default: not set
-#resource_latitude=55.75000
-
-## resource_longitude = longitude - GLUE1 longitude.
-## default: not set
-#resource_longitude=12.41670
-
-## cpu_scaling_reference_si00 = number - GLUE1 CPU_scaling
-## default: not set
-#cpu_scaling_reference_si00=2400
-
-## processor_other_description = string - GLUE1 proc description
-## default: not set
-#processor_other_description=Cores 3, Benchmark 9.8-HEP-SPEC06
-
-## glue_site_web = url - GLUE1 site web url
-## default: not set
-#glue_site_web=http://www.ndgf.org
-
-## glue_site_unique_id = siteid - GLUE1 site id
-## default: not set
-#glue_site_unique_id=NDGF-T1
-
-## provide_glue_site_info yes/no - This variable decides if the GlueSite should be published.
-## CHANGE163: DELETED.  disabled if one or more [infosys/glue1/site:name]
-##                      blocks exist, otherwise enabled.
-##
-##
-### end of the [infosys/glue1] schema block ###########################
-
-
-### The [infosys/glue1/site:name] (previously [infosys/site/sitename]) block ################
-## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
-## the LDAP server. This block is used to configure ARC to generate a
-## semi-fake site-bdii that can be registered in GOCDB etc... The sitename
-## part of the block header is to be declarative of the site-bdii being generated.
-##
-#[infosys/glue1/site:name]
-## CHANGE164: renamed. turn on/off the fake site-bdii based on this block.
-
-## unique_id = id - The unique id used to identify this site, eg "NDGF-T1"
-## default: not set
-#unique_id=NDGF-T1
-
-## url = url - The url of the resource BDII underlying the fake site bdii. It is on the format:
-## ldap://host.domain:2170/mds-vo-name=something,o=grid.
-## default: not set
-#url=ldap://host.domain:2170/mds-vo-name=something,o=grid
-##
-##
-### end of the [infosys/glue1/site:name] block ###################################
-
-
-### The [infosys/index/indexname] block ################################
-## WARNING: the ldap-based Info Index Service, together with the registration
-## is OBSOLETE technology, there are plans to phase it out.
-## This part of the configuration was not reviewed during the arc.conf restructuring:
-## these are legacy structures and parameters!
-##
-## This block enables and configures the ARC Information Index Service (EGIIS).
-## A separate Index block is required for every Index Service you may run on the same machine.
-## You don't need this block unless you are running an EGIIS!
-##
-## The 'indexname' constitutes to the
-## 'mds-vo-name=indexname,o=grid' LDAP suffix characterizing the Index Service.
-#[infosys/index/indexname]
-
-## name - The unique (within the hosting machine) name of the
-## Index Service. Its value becomes part of the LDAP suffix
-## of the Index Service:
-## (mds-vo-name=value of the name attribute, o=grid)
-#name=indexname
-
-## allowregistration - Implements registration filtering within an Index Sevice
-## Sets the Local Information Trees or lower level Index Services
-## allowed to register to the Index Service. List each allowed registrants
-## with the allowreg atribute.
-## WARNING: specifying allowreg implies setting up a strict filtering,
-## only the matching registrants will be able to register to the Index.
-## The wildcard * can be used in allowreg. Several allowreg lines can be used.
-## Some examples:
-## -All the Swedish machines can register regardless they are resources or Indices
-## allowreg=*.se:2135
-## -Cluster resources from Denmark can register
-## allowreg=*.dk:2135/nordugrid-cluster-name=*, Mds-Vo-name=local, o=grid
-## -Storage resources from HIP, Finland can register
-## allowreg=*hip.fi:2135/nordugrid-se-name=*, Mds-Vo-name=local, o=grid
-## -The index1.sweden.se can register as a Sweden Index  (and only as a Sweden Index)
-## allowreg=index1.sweden.se:2135/Mds-vo-Name=Sweden,o=Grid
-## -Any Index Service can register
-## allowreg=*:2135/Mds-vo-Name=*,o=Grid
-#allowreg=trusted.host.org.se:2135/Mds-vo-Name=Trusted-Index,o=Grid
-##
-##
-### end of the [infosys/index/indexname] block ##############
-
-
-### The [infosys/index/indexname/registration/registrationname] blocks ####
-## WARNING: the ldap-based registration is OBSOLETE technology,
-## there are plans to phase it out.
-## This part of the configuration was not reviewed during the arc.conf restructuring:
-## these are legacy structures and parameters!!
-## [infosys/index/indexname/registration/registrationname]
-## Index service registration block
-## This block enables a registration process initiated by the
-## 'indexname' Index Service (configured previuosly)
-## to a target Index Service.
-## NorduGrid maintains a webpage with information on major
-## Index Services:
-## http://www.nordugrid.org/NorduGridMDS/index_service.html
-##
-#[infosys/index/indexname/registration/registrationname]
-
-## targethostname - the hostname of the machine running the registration target
-## Index Service
-#targethostname=index.myinstitute.org
-
-## targetport - the port on which the target Index Service is running.
-## The default is the 2135 Infosys port.
-#targetport=2135
-
-## targetsuffix - the LDAP suffix of the target Index Service
-#targetsuffix=mds-vo-name=BigIndex,o=grid
-
-## regperiod - The registration period in seconds, the registration messages are
-## continously sent according to the regperiod. Default is 120 sec.
-#regperiod=300
-
-## registranthostname - the hostname of the machine sending the registrations.
-## This attribute inherits its value from the [common] and [infosys] blocks,
-## most cases no need to set.
-#registranthostname=myhost.org
-
-## registrantport - the port of the slapd service hosting the
-## registrant Index Service. The attribute inherits its value from the
-## [infosys] block (and therefore defaults to 2135)
-#registrantport=2135
-
-## registrantsuffix - the LDAP suffix of the registrant Index Service.
-## It is automatically determined from the registration block name,
-## therefore most of the cases no need to specify.
-## In this case the default registrantsuffix will be:
-##                  "Mds-Vo-name=indexname"
-## please mind uppercase/lowercase characters in the above string
-## when defining allowreg in an index!
-## Don't set it unless you want to overwrite the default.
-#registrantsuffix=mds-vo-name=indexname,o=grid
-
-## timeout - The suggested timeout to be included in the registration.
-## Default: 120.
-#timeout=120
-
-## ttl - The suggested TTL to be included in the registration.  The default
-## is twice the registration period.
-#ttl=600
-##
-##
-### end of the [infosys/index/indexname/registration/registrationname] block #########
-
-
-### [registration/emir] block #######################################
-## Services registration into EMIR block
-## configures and enables the registration process of a
-## services enabled in this configuration file into EMI
-## indexing service (EMIR).
-## Currently only implemented for A-REX.
-## CHANGE165: DELETED. entire emir registration block is removed from arc.conf. check for code cleenup as well.
-
-## emiurls url - List of URL separated by comma of EMIR services which are to accept
-## CHANGE166: DELETED
-
-## validity sec - Time in seconds for which registration records should stay valid.
-## CHANGE167: DELETED
-
-## period sec - Time in seconds how othen registration record should be sent to the
-## CHANGE168: DELETED
-
-## disablereg_xbes yes/no - disablereg_xbes may be used to selectively disable registration of
-## CHANGE169: DELETED
-##
-##
-### end of the [registration/emir] block ############################
 
 
 ### The [datadelivery-service] block ###############################
@@ -3325,6 +2964,97 @@
 ### end of the [datadelivery-service] block ##############
 
 
+### The [acix-scanner] (previously [acix/cacheserver]) block ##########
+## The ARC Cache Index (ACIX) is a distributed system that maintains
+## a catalog of locations of cached files stored in various A-REX caches.
+## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
+## This config block enables and configures the cache scanner component of ACIX.
+## The scanning component of ACIX runs alongside A-REX.
+## It periodically scans the cache directories and composes a Bloom
+## filter of A-REX cache content which can be pulled by an ACIX index
+## server.
+## Comment out this block if you don't want the content of the cache scanned and
+## eventually pulled and indexed by ACIX.
+#[acix-scanner]
+## CHANGE82: renamed block, renamed component (cache scanner, instead of cacheserver)
+
+## logfile = path -  Log file location for the ACIX cache scanner.
+## default: /var/log/arc/acix-cachescanner.log
+#logfile=/tmp/acix-cachescanner.log
+## CHANGE83: modified default for the logfile
+
+## hostname = string - Hostname on which the cache server listens
+## default: listen on all available interfaces.
+#hostname=myhost.org
+
+## port = port - Port on which the cache server listens
+## default: 5443
+#port=6000
+
+## cachedump = yes/no - Whether to make a dump of the cache contents in a file at
+## $TMP/ARC-ACIX/timestamp each time the cache server runs.
+## default: no
+## allowedvalues: yes no
+#cachedump=yes
+##
+##
+### end of the [acix-scanner] block ############################
+
+
+### The [acix-index] (previously [acix/indexserver]) block #################################
+## The ARC Cache Index (ACIX) is a distributed system that maintains
+## a catalog of locations of cached files stored in various A-REX caches.
+## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
+## This config block enables and configures the index server component of ACIX.
+## The index server component of ACIX collects cache content filters
+## from a set of cache scanners configured.
+## The index server can be queried for the location of cached files.
+## The service endpoint is https://hostname:6443/data/index and a query is
+## performed via giving the URLs to check as comma-separated values to the "url" option, e.g.:
+## index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1
+## Comment out this block if you don't run an ACIX Index server.
+#[acix-index]
+
+## cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information
+## multivalued
+## default: not set
+#cachescanner=https://some.host:5443/data/cache
+#cachescanner=https://another.host:5443/data/cache
+## CHANGE84: renamed
+##
+### end of the [acix-index] block ############################
+
+
+### The [monitoring] block  ###############################
+##
+## This block enables the monitoring capabilities of ARC services. At the moment two subsystems are 
+## available: the performance metric collection [monitoring/perflog] and the ganglia monitoring 
+## [monitoring/ganglia]. 
+## CHANGE191: new block
+#[monitoring]
+
+##
+##
+### end of the [monitoring] block ###########################
+
+
+### The [monitoring/perflog] block ##############################################
+## This block enables the server-side performance logging of various ARC components.
+## Having this block uncommented turns on the performance metrics collection
+## and reporting. Only switch on if you specifically need it, and are aware of
+## the possible local root exploit due to permissive directory.
+#[monitoring/perflog]
+## CHANGE2: NEW block
+
+## perflogdir = path - The directory containing the performance metric files.
+## default: /var/log/arc/perfdata
+#perflogdir=/var/log/arc/perfdata
+## CHANGE3: new parameter
+##
+##
+### end of the [monitoring/perflog] block #######################################
+
+
 ### The [monitoring/ganglia] block  - previously [gangliarc] ###############################
 ##
 ## This block enables the monitoring of ARC-specific metrics through and existing ganglia
@@ -3332,8 +3062,7 @@
 ## Ganglia is now integrated into ARC to extract jobmetrics. Ganglia for system metrics is
 ## for the moment still run as separate gangliarc instance.
 ## 
-##
-## TODO: Later this will be extended with [monitoring/ganglia/jobs] and [monitoring/ganglia/system]
+## Later this sub-block will be extended with [monitoring/ganglia/jobs] and [monitoring/ganglia/system]
 ##
 #[monitoring/ganglia]
 ## CHANGE185: RENAMED block, merged of all ganglia inside this single block
@@ -3341,7 +3070,7 @@
 ## gmetric_bin_path = path - (previously gmetric_exec) The path to gmetric executable.
 ## default: /usr/bin/gmetric
 #gmetric_bin_path=/usr/local/bin/gmetric
-## CHANGE186: Moved from deleted [gangliarc] block and renamed. Path used in arc-ganglia implementation JobsMetrics.cpp
+## CHANGE190: Moved from deleted [gangliarc] block and renamed. Path used in arc-ganglia implementation JobsMetrics.cpp
 ## assumes path of type /usr/bin, not /usr/bin/gmetric, so must be changed in cpp file.
 
 ## logfile = path - log file of the daemon.
@@ -3355,12 +3084,11 @@
 ## python_bin_path = path - The path to python executable. 
 ## default: /usr/bin/python
 #python_bin_path=/usr/local/bin/python
-## CHANGE187: Renamed back to original python_bin_path
 
 ## ganglialocation path - path to ganglia gmetric executable
 ## default: /usr/bin
 #ganglialocation=/usr/local/bin
-## CHANGE188: Deleted from [grid-manager] block, documented first in 5.3.0. Use gmetric_bin instead.
+## CHANGE188: DELETED. documented first in 5.3.0. Use gmetric_bin instead.
 
 ## metrics = name_of_the_metrics - the metrics to be monitored. 
 ## metrics takes a comma-separated list of one or more of the following metrics:
@@ -3386,3 +3114,218 @@
 ### end of the [monitoring/ganglia] block ##############
 
 
+
+### The [nordugridmap] block ###########################################
+## This optional block is used to fine-tune the behavior of the
+## nordugridmap utility - an ARC tool used to generate grid-mapfiles.
+## Normal setups don't need to configure this block.
+## Please refer to [userlist/name] block above to find information how
+## to specify sources for userlist generation. This section setup
+## general source-independent parameters.
+#[nordugridmap]
+
+### X509 related parameters
+## x509_host_key = path - Optional parameter to overwrite [common] block values.
+#x509_host_key=/etc/grid-security/hostkey.pem
+## CHANGE24: renamed
+
+## x509_host_cert = path - Optional parameter to overwrite [common] block values.
+#x509_host_cert=/etc/grid-security/hostcert.pem
+## CHANGE25: renamed
+
+## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
+#x509_cert_dir=/etc/grid-security/certificates
+
+## gridmap_owner = username - The owner of the generated mapfiles.
+## default: root
+#gridmap_owner=root
+
+## gridmap_group = groupname - The group of generated gridmapfiles.
+## default: root
+#gridmap_group=root
+
+## gridmap_permissions = filemode - The permissions of generated gridmapfiles.
+## default: 0600
+#gridmap_permissions=0600
+
+## generate_vomapfile - control is nordugridmap will generate
+## vo-mapfile used by arc-ur-logger. Default is 'yes'.
+## CHANGE26: DELETED, we don't support arc-ur-logger any longer. don't generate that file any longer either.
+
+## vomapfile - path to vo-mapfile location.
+## CHANGE27: DELETED, we don't support arc-ur-logger any longer. don't generate that file any longer either.
+
+## log_to_file = yes/no - control whether logging output of nordugridmap
+## will be saved to file. If the value is 'no' nordugridmap will write all 
+## information to STDERR.
+## allowedvalues: yes no
+## default: yes
+#log_to_file=no
+
+## logfile = path - specify the nordugridmap log file location when log_to_file is set yes.
+## default: /var/log/arc/nordugridmap.log
+#logfile=/var/log/arc/nordugridmap.log
+
+## cache_enable = yes/no - Controls whether caching of external sources will be used.
+## allowedvalues: yes no
+## default: yes
+#cache_enable=yes
+
+## cachedir = path - Specifies the path where cached sources will be stored.
+## default: /var/spool/nordugrid/gridmapcache/
+#cachedir=/var/spool/nordugrid/gridmapcache/
+
+## cachetime = seconds - Controls how long (in seconds) the cached information
+## remains valid. Default is 259200 (3 days).
+## default: 259200
+#cachetime=259200
+
+## issuer_processing - control the behavior of [userlist/name] block's require_issuerdn
+## CHANGE28: DELETED
+
+## mapuser_processing = owerwrite/keep - Controls the behavior of [userlist/name] block's mapped_unixid
+## parameter usage. Valid values are 'overwrite' and 'keep'.
+## Please see 'mapped_unixid' description in [userlist/name] block for details.
+## allowedvalues: keep overwrite
+## default: "keep"
+#mapuser_processing=keep
+
+## allow_empty_unixid = yes/no - Controls whether empty (or unspecified)
+## 'mapped_unixid' [userlist/name] block option is allowed to be used.
+## Please see 'mapped_unixid' description for details.
+## allowedvalues: yes no
+## default: yes
+#allow_empty_unixid=no
+## CHANGE29: MODIFIED. set default to yes.
+
+## voms_method = soap/get - Controls how to get information from VOMS(S) sources.
+## Valid values are:
+##   soap - call SOAP method directly using SOAP::Lite
+##   get  - use old implementation that manually parses XML response
+## allowedvalues: soap get
+## default: soap
+#voms_method=soap
+
+## loglevel = level - (previously debug) Controls the verbosity of nordugridmap output. Valid
+## values are:
+##   0 - FATAL   - only critical fatal error shown
+##   1 - ERROR   - errors, including non-critical are shown
+##   2 - WARNING (default) - configuration errors that can be ignored
+##   3 - INFO    - processing information
+##   4 - VERBOSE - a bit more processing information
+##   5 - DEBUG   - lot of processing information
+##
+## When test run is requested (--test command line option of the
+## nordugridmap) loglevel is automatically set to 5 (DEBUG).
+## Default is 2 (WARNING)
+## allowedvalues: 0 1 2 3 4 5
+## default: 4
+#loglevel=4
+## CHANGE30: renamed as loglevel
+
+## fetch_timeout = seconds - Controls how many time (in seconds) nordugridmap will
+## wait for external sources retrieval.
+## default: 15
+#fetch_timeout=15
+##
+##
+### end of the [nordugridmap] block ##################################
+
+
+
+
+
+#######################################################################################
+#######################################################################################
+##########################                           ##################################
+##########################  DELETED, OBSOLETE BLOCKS ##################################
+##########################                           ##################################
+#######################################################################################  
+ 
+ 
+ 
+ ### [registration/emir] block #######################################
+## Services registration into EMIR block
+## configures and enables the registration process of a
+## services enabled in this configuration file into EMI
+## indexing service (EMIR).
+## Currently only implemented for A-REX.
+## CHANGE165: DELETED. entire emir registration block is removed from arc.conf. check for code cleanup as well.
+
+## emiurls url - List of URL separated by comma of EMIR services which are to accept
+## CHANGE166: DELETED
+
+## validity sec - Time in seconds for which registration records should stay valid.
+## CHANGE167: DELETED
+
+## period sec - Time in seconds how othen registration record should be sent to the
+## CHANGE168: DELETED
+
+## disablereg_xbes yes/no - disablereg_xbes may be used to selectively disable registration of
+## CHANGE169: DELETED
+##
+##
+### end of the [registration/emir] block ############################
+
+
+### The [infosys/index/indexname] block ################################
+## WARNING: the ldap-based Info Index Service, together with the registration
+## is OBSOLETE technology, therefore the new config format is not supporting GIIS.
+## Use earlier ARC releases if you want to setup an EGIS server.
+## CHANGE191: DELETED block, the entire block is deleted.
+ 
+## name - The unique (within the hosting machine) name of the
+## CHANGE192: DELETED
+
+## allowregistration - Implements registration filtering within an Index Sevice
+## CHANGE193: DELETED
+##
+### end of the [infosys/index/indexname] block ##############
+
+
+### The [infosys/index/indexname/registration/registrationname] blocks ####
+## WARNING: the ldap-based registration is OBSOLETE technology therefore 
+## the new config is not suppoprting seting up GIIS services. Use previous ARC releases for that.
+## CHANGE194: DELETED. entire config block is deleted.
+
+## targethostname - the hostname of the machine running the registration target
+## CHANGE195: DELETED
+
+## targetport - the port on which the target Index Service is running.
+## CHANGE196: DELETED
+
+## targetsuffix - the LDAP suffix of the target Index Service
+## CHANGE197: DELETED
+
+## regperiod - The registration period in seconds, the registration messages are
+## CHANGE198: DELETED
+
+## registranthostname - the hostname of the machine sending the registrations.
+## CHANGE199: DELETED
+
+## registrantport - the port of the slapd service hosting the
+## CHANGE200: DELETED
+
+## registrantsuffix - the LDAP suffix of the registrant Index Service.
+## CHANGE201: DELETED
+
+## timeout - The suggested timeout to be included in the registration.
+## CHANGE202: DELETED
+
+## ttl - The suggested TTL to be included in the registration.  The default
+## CHANGE203: DELETED
+##
+##
+### end of the [infosys/index/indexname/registration/registrationname] block #########
+
+
+### The [infosys/cluster/registration/NAME] blocks ############
+## WARNING: the ldap-based registration is OBSOLETE technology,
+## there are plans to phase it out.
+## This part of the configuration was not reviewed and modified
+## CHANGE213: DELETED block, all the config options are moved to the new [cluster/registration:name] block
+##
+##
+### end of the [infosys/cluster/registration/NAME] blocks ###########
+
+ 

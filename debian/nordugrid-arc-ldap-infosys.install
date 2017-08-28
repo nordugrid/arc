@@ -4,4 +4,3 @@ debian/tmp/usr/share/arc/grid-info-soft-register
 
 debian/tmp/usr/share/arc/create-slapd-config
 debian/tmp/usr/share/arc/create-inforeg-config
-debian/tmp/usr/share/arc/config_parser_compat.sh

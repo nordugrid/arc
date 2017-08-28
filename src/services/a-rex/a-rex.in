@@ -142,7 +142,7 @@ readconfigvar() {
     fi
     bname="[$2]"
     vname=$3
-    cat "$fname" | sed -e 's/\e$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
@@ -244,7 +244,8 @@ prepare() {
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
     ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
-    GRIDMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
+    GRIDMAPAUTH=`readconfigvar "$ARC_CONFIG" common gridmap`
+    GRIDMAPMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
     USERAUTH_BLOCK='arex/ws/emies'
     GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
@@ -259,8 +260,8 @@ prepare() {
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
     fi
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+    if [ -z "$GRIDMAPMAP" ] ; then
+      GRIDMAPMAP="$GRIDMAPAUTH"
     fi
     if [ -z "$GRIDHOSTNAME" ] ; then
       GRIDHOSTNAME="$HOSTNAME"
@@ -272,23 +273,37 @@ prepare() {
         log_failure_msg "Failed to determine host name for this computer"
         exit 1
     fi
+    if [ "$USERNAME" = "root" ] ; then
+        USERNAME=""
+    fi
+    if [ "$GROUPNAME" = "root" ] ; then
+        GROUPNAME=""
+    fi
     if [ -z "$SERVICEMAIL" ] ; then
-      SERVICEMAIL="root@$GRIDHOSTNAME"
+      if [ ! -z "$USERNAME" ] ; then
+        SERVICEMAIL="$USERNAME@$GRIDHOSTNAME"
+      else
+        SERVICEMAIL="root@$GRIDHOSTNAME"
+      fi
     fi
 
     # Exporting collected variables
     if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
     if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
     if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-    if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
+    if [ ! -z "$GRIDMAPMAP" ] ; then export GRIDMAP="$GRIDMAPMAP"
+    elif [ ! -z "$GRIDMAPAUTH" ] ; then export GRIDMAP="$GRIDMAPAUTH" ; fi
     if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
     if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
     if [ ! -z "$GRIDHOSTNAME" ] ; then export HOSTNAME="$GRIDHOSTNAME" ; fi
     if [ ! -z "$ARC_HTTP_PROXY" ] ; then export ARC_HTTP_PROXY ; fi
 
     # Required defaults
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=/etc/grid-security/grid-mapfile
+    if [ -z "$GRIDMAPAUTH" ] ; then
+        GRIDMAPAUTH=/etc/grid-security/grid-mapfile
+    fi
+    if [ -z "$GRIDMAPMAP" ] ; then
+        GRIDMAPMAP=/etc/grid-security/grid-mapfile
     fi
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=/etc/grid-security/hostcert.pem
@@ -519,7 +534,7 @@ prepare() {
         gridmapmatch="\
 <!-- Do initial user filtering by gridmap file -->
 <SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
+  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAPAUTH\">
   </PDP>
 </SecHandler>"
     fi
@@ -566,13 +581,6 @@ prepare() {
         5) LOGLEVEL="DEBUG" ;;
         *) LOGLEVEL="WARNING" ;;
     esac
-
-    if [ "$USERNAME" = "root" ] ; then
-        USERNAME=""
-    fi
-    if [ "$GROUPNAME" = "root" ] ; then
-        GROUPNAME=""
-    fi
 
     LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
     if [ ! -d `dirname $LOGFILE` ]; then
@@ -744,7 +752,7 @@ prepare() {
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
+        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAPMAP</LocalList></PDP>
         <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>
       </SecHandler>
       <!-- Match client to legacy authorization groups -->
