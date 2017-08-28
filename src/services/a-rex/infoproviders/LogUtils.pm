@@ -151,6 +151,8 @@ sub _log {
     my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
     $name = $name ? "$name" : "";
+    # strip any newline in the message, substitute with '  \\  ', for nicer error reporting
+    $msg =~  s/[\r\n]/  \\\\  /g;
     print STDERR  $indented.($ts_enabled ? "[".timestamp()."] " : "")."[$name] [$severity] [$$] $msg\n";
 }
 

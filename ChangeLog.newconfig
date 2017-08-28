@@ -1,6 +1,18 @@
 #a dedicated changelog file for the configuration reengineering 
 
-2017-08-15 Florido Paganelli florido.paganelli@hep.lu.se
+2017-08-22 Florido Paganelli <florido.paganelli@hep.lu.se>
+  * Implementation of C 156, review of GLUE2 values
+  * Removal of obsolete code in ConfigCentral.pm.in
+  * Changes in creation of Policy objects
+  * Fixed warnings caused by new datastructure
+  Revs: {32840}
+
+2017-08-15 David Cameron <d.g.cameron@fys.uio.no>
+  * Changed data staging code to handle new format
+  * Renamed cache service to candypond and adapted to new configuration
+  Revs: {32828,32832}
+
+2017-08-15 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Implemented enable-by-block features for renderings, changes 155,156,158,161
   * Rewritten lrms block parsing, but LRMS modules need to be checked against it
   * Revised lrms test suite to work with new config
@@ -9,7 +21,7 @@
   * Improved some log output
   Revs: {32813,32820,32822,32823,32824,32830}
 
-2017-08-05 Florido Paganelli florido.paganelli@hep.lu.se
+2017-08-05 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Rewritten loading of defaults, implemented some enable-by-block features
   * Created a subroutine to set defaults and check default block dependencies
   * enable-by-block implemented for: ldap, bdii, nordugrid, glue1, glue2, glue2/ldap
@@ -17,12 +29,12 @@
   * some GLUE2 elements need restructuring and defaults, ongoing
   Revs: {32808, 32812}
 
-2017-07-17 Florido Paganelli florido.paganelli@hep.lu.se
+2017-07-17 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Code restructuring for gridftpd, lrms blocks and defaults.
   * Implements changes 71, 72, 125 and some enable-by-block features.
   Revs: {32795} 
 
-2017-07-14 Florido Paganelli florido.paganelli@hep.lu.se
+2017-07-14 Florido Paganelli <florido.paganelli@hep.lu.se>
  * Modified initdevenv.sh to match python parser deployment changes
  * Initial support for new blocks like [arex] and enabling EMIES via blocks
  * Some of the new [infosys] block options implemented
@@ -30,7 +42,8 @@
  Revs: {32773,32774,32793}
 
 2016-05-15 David Cameron <d.g.cameron@fys.uio.no>
- * Adapt ACIX to new conf parser and format
+  * Adapt ACIX to new conf parser and format
+  Revs: {32460,32461}
 
 2017-05-10 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Added an option --dumpconfig to CEinfo.pl to dump the infoproviders internal 

@@ -104,10 +104,14 @@ sub collect($) {
 # Obtain the end date of a certificate (in seconds since the epoch)
 sub enddate {
     my ($openssl, $certfile) = @_;
-
     # assuming here that the file exists and is a well-formed certificate.
-    chomp (my $stdout=`$openssl x509 -noout -enddate -in '$certfile'`);
-    return undef if $?;
+    my $stdout =`$openssl x509 -noout -enddate -in '$certfile' 2>&1`;
+    if ($?) {
+	   $log->info("openssl error: $stdout");
+       return undef;
+    }
+    chomp ($stdout);
+
 
     my %mon = (Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11);
     if ($stdout =~ m/notAfter=(\w{3})  ?(\d\d?) (\d\d):(\d\d):(\d\d) (\d{4}) GMT/ and exists $mon{$1}) {
@@ -139,9 +143,9 @@ sub get_cert_info {
 
     # Inspect host certificate
     my $hostcert = $options->{x509_host_cert};
-    chomp (my $issuerca = `$openssl x509 -noout -issuer -nameopt oneline -in '$hostcert'`);
+    chomp (my $issuerca = `$openssl x509 -noout -issuer -nameopt oneline -in '$hostcert' 2>&1`);
     if ($?) {
-        $log->warning("Failed processing host certificate file: $hostcert") if $?;
+        $log->warning("Failed processing host certificate file: $hostcert, openssl error: $issuerca") if $?;
     } else {
         $issuerca =~ s/, /\//g;
         $issuerca =~ s/ = /=/g;

@@ -433,17 +433,17 @@ sub main {
     $log->error("--config argument is missing, see --help ") unless ( $configfile );
        
     # Read ARC configuration
-    my $perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
+    my $perflogdir = ConfigCentral::getValueOf($configfile,'monitoring/perflog','perflogdir');
     $perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata';    
     
     my $hostname = ConfigCentral::getValueOf($configfile,'common','hostname');
         
     my $arcversion = '@VERSION@';
 
-    $controldirpath = ConfigCentral::getValueOf($configfile,'control','controldir');
+    $controldirpath = ConfigCentral::getValueOf($configfile,'arex','controldir');
 
     # get lrms info and add relevant metrics to datastructure
-    my $lrms = ConfigCentral::getValueOf($configfile,'common','lrms');
+    my $lrms = ConfigCentral::getValueOf($configfile,'lrms','lrms');
     if ($lrms eq 'fork') {
 	   	$metrics->{'modules'}{'FORKmod.pm'} = { %$forkmodmetrics };
 	};

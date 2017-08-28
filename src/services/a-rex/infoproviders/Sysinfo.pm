@@ -182,10 +182,11 @@ sub osinfo {
     $info->{release} = $release;
 
     if ($sysname =~ /linux/i) {
-        my ($id, $descr, $version);
+        my ($msg, $id, $descr, $version);
         if (-x '/usr/bin/lsb_release' or -x '/bin/lsb_release') {
-            if (open RELEASE, 'lsb_release -a |') {
+            if (open RELEASE, "lsb_release -a 2>&1 |") {
                 while (<RELEASE>) {
+					$msg = $1 if m/^(No.*)/;
                     $id = lc $1 if m/^Distributor ID:\s+(.*)/;
                     $descr = $1 if m/^Description:\s+(.*)/;
                     $version = $1 if m/^Release:\s+([.\d]+)/;

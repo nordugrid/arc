@@ -37,7 +37,7 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 
 my $confdefaults = {
 	common => {
-       arcversion     => '@VERSION@',
+       arcversion => '@VERSION@',
        # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
        infosys_glue2_service_qualitylevel   => 'production',
        shared_filesystem => 1,
@@ -92,7 +92,7 @@ my $confdefaults = {
        #bdii_read_timeout=300
    },
    'infosys/glue2' => {
-       admindomain_name => 'UNDEFINEDVALUE',
+       admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
        admindomain_distributed => 'no',
        computingservice_qualitylevel => 'production'
    },
@@ -185,6 +185,7 @@ my $gmuser_options = {
     defaultttl => '*',
 };
 my $gmcommon_options = {
+	arcversion => '',
     # lrms => '', C 10 removed from here to the lrms hash
     gmconfig => '*',
     endpoint => '*',
@@ -253,15 +254,6 @@ my $ldap_infosys_options = {
 #    GridftpdPidFile => '*',
 #};
 
-my $admindomain_options = {
-    Name => '*',
-    OtherInfo => [ '*' ],
-    Description => '*',
-    WWW => '*',
-    Distributed => '*',
-    Owner => '*'
-};
-
 # [arex] subblocks
 my $wsemies_options = { # C 71
 	 allownew => '*'	    # C 72
@@ -273,14 +265,17 @@ my $ws_options = {
     emies => { %$wsemies_options } # C 71
 };
 
+my $admindomain_options = {
+	Name => '*',
+    Description => '*',
+    WWW => '*',
+    Distributed => '*',
+    Owner => '*',
+    OtherInfo => '*',
+};
+
 # C 156
 my $glue2_options = {
-    admindomain_name => '*',
-    admindomain_description => '*',
-    admindomain_www => '*',
-    admindomain_distributed => '*',
-    admindomain_owner => '*',
-    admindomain_otherinfo => '*',
     computingservice_qualitylevel => '*' # 157
 };
 
@@ -290,9 +285,8 @@ my $config_schema = {
     defaultLocalName => '*',
     
     #ProviderLog => '*', #C 133
-    PublishNordugrid => '*',
-    AdminDomain => '*',
     ttl => '*',
+
     admindomain => { %$admindomain_options },   
     
     %$gmcommon_options,
@@ -321,6 +315,7 @@ my $config_schema = {
         InteractiveContactstring => [ '*' ],
         %$xenv_options,
         %$share_options,
+        QualityLevel => ''
     },
     location => {
         Name => '*',
@@ -337,15 +332,19 @@ my $config_schema = {
         Detail => '',
         Type => '',
     } ],
-    accesspolicies => [ {
-        Rule => [ '' ],
-        UserDomainID => [ '' ],
-    } ],
-    mappingpolicies => [ {
-        ShareName => [ '' ],
-        Rule => [ '' ],
-        UserDomainID => [ '' ],
-    } ],
+    accesspolicies => {
+        '*' => {
+			Rule => [ '' ],
+            UserDomainID => [ '' ]
+		}
+    },
+    mappingpolicies => {
+		'*' => {
+           ShareName => [ '' ],
+           Rule => [ '' ],
+           UserDomainID => [ '' ],
+        }
+    },
     xenvs => {
         '*' => {
             OtherInfo => [ '*' ],
@@ -361,7 +360,7 @@ my $config_schema = {
         '*' => {
             Description => '*',
             OtherInfo => [ '*' ],
-            MappingQueue => '*',
+            MappingQueue => '',
             ExecutionEnvironmentName => [ '' ],
             %$share_options,
             %$lrms_share_options,
@@ -508,7 +507,7 @@ sub rename_keys {
 sub merge_hash_values {
 	my ($hash1,$hash2) = @_;
     for (keys %{$hash2}) {
-        $hash1->{$_} = $hash2->{$_} if not defined $hash1->{$_};
+        $hash1->{$_} = $hash2->{$_} if ((not defined $hash1->{$_}) || ($hash1->{$_} eq ''));
     }
 }
 
@@ -664,8 +663,8 @@ sub build_config_from_json {
     ## TODO: maybe move all glue2 stuff into some GLUE2 subset?
     $config->{location} ||= {};
     $config->{contacts} ||= [];
-    $config->{accesspolicies} ||= [];   
-    $config->{mappingpolicies} ||= [];
+    $config->{accesspolicies} ||= {};   
+    $config->{mappingpolicies} ||= {};
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
 
@@ -774,37 +773,29 @@ sub build_config_from_json {
 		$config->{infosys}{glue2} ||= {};
 		my $glue2conf = $jsonconf->{'infosys/glue2'};
 		move_keys $glue2conf, $config->{infosys}{glue2}, [keys %$glue2_options];
+		rename_keys $config->{infosys}{glue2}, $config->{service}, {computingservice_qualitylevel => 'QualityLevel'};
 		# GLUE2 ldap
         if (defined $jsonconf->{'infosys/glue2/ldap'}) {
 		   $config->{infosys}{glue2}{ldap} ||= {};
 		   my $glue2ldapconf = $jsonconf->{'infosys/glue2/ldap'};
 	       move_keys $glue2ldapconf, $config->{infosys}{glue2}{ldap}, [keys %{$config_schema->{infosys}{glue2}{ldap}}];
-        }
-    }    
+        }    
 
-    # AdminDomain
-    ## TODO: change code to use new config
-    ## make it possible to disable publishing
-    if (defined $jsonconf->{'infosys/glue2'}{admindomain_name}) {
-        my $admindomain_options = $jsonconf->{'infosys/glue2'};
-        rename_keys $admindomain_options, $config->{'admindomain'}, {
-			     admindomain_name => 'Name',
-                 admindomain_otherinfo => 'OtherInfo',
-                 admindomain_description => 'Description',
-                 admindomain_www => 'WWW',
-                 admindomain_distributed => 'Distributed',
-                 admindomain_owner => 'Owner'
-                 };
-        move_keys $admindomain_options, $config->{'admindomain'}, [keys %$admindomain_options];
-
-    } else {
-        $log->info('[infosys/glue2] section missing admindomain information. No site information will be published.');
+	    # AdminDomain
+	    $config->{admindomain} ||= {};
+	    $log->warning('[infosys/glue2] section missing admindomain_name information. Default will be set to GLUE2 default UNDEFINEDVALUE.') if ($jsonconf->{'infosys/glue2'}{admindomain_name} eq 'UNDEFINEDVALUE' );
+        my $admindomainconf = $jsonconf->{'infosys/glue2'};
+        rename_keys $admindomainconf, $config->{'admindomain'}, {
+				admindomain_name => 'Name',
+				admindomain_description => 'Description',
+                admindomain_www => 'WWW',
+                admindomain_distributed => 'Distributed',
+                admindomain_owner => 'Owner',
+                admindomain_otherinfo => 'OtherInfo'
+		}			
     }
-
     ############################ legacy ini config file structure #############################
 
-    # TODO What does this one do? something is wrong here.
-    move_keys $common, $config, ['AdminDomain'];
 
     my $cluster = $jsonconf->{'cluster'};
     if (%$cluster) {
@@ -834,10 +825,11 @@ sub build_config_from_json {
             }
         }
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
-        move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];
+        # TODO: check if this is needed
+        move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
     }
-    # TODO: parse queues with something similar to list_subsections
-    # hash keys stripped of the queue: prefix will do
+    
+    # Generate initial shares and execution environments array, using configured queues
     my @qnames=();
     for my $keyname (keys %{$jsonconf}) {
 	   push(@qnames,$1) if $keyname =~ /queue\:(.*)/;
@@ -845,24 +837,23 @@ sub build_config_from_json {
     for my $name (@qnames) {
         my $queue = $jsonconf->{"queue:$name"};
 
+        # at first every bare queue is a share
         my $sconf = $config->{shares}{$name} ||= {};
+        $config->{shares}{$name}{MappingQueue} = $name;
+        
         my $xeconf = $config->{xenvs}{$name} ||= {};
         push @{$sconf->{ExecutionEnvironmentName}}, $name;
-
-        $log->error("MappingQuue option only allowed under ComputingShare section") if $queue->{MappingQuue};
-        delete $queue->{MappingQueue};
-        $log->error("ExecutionEnvironmentName option only allowed under ComputingShare section") if $queue->{ExecutionEnvironmentName};
-        delete $queue->{ExecutionEnvironmentName};
-        $log->error("NodeSelection option only allowed under ExecutionEnvironment section") if $queue->{NodeSelection};
-        delete $queue->{NodeSelection};
 
         rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
                                      nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
         move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
 
+        # TODO: change opsys here if needed
         rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
                                       opsys => 'OpSys', benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
+        
+        # TODO: what is this?
         $xeconf->{NodeSelection} = {};
     }
 
@@ -924,28 +915,8 @@ sub build_config_from_json {
 
 
 #
-# Check whether a file is XML
-#
-sub isXML {
-    my $file = shift;
-    $log->fatal("Can't open $file") unless open (CONFIGFILE, "<$file");
-    my $isxml = 0;
-    while (my $line = <CONFIGFILE>) {
-        chomp $line;
-        next unless $line;
-        if ($line =~ m/^\s*<\?xml/) {$isxml = 1; last};
-        if ($line =~ m/^\s*<!--/)   {$isxml = 1; last};
-        last;
-    }
-    close CONFIGFILE;
-    return $isxml;
-}
-
-#
-# Grand config parser for A-REX. It can parse INI and XML config files. When
-# parsing an XML config, it checks for the gmconfig option and parses the
-# linked INI file too, merging the 2 configs. Options defined in the INI
-# file override the ones from the XML file.
+# Infoproviders config parser. It takes in input a json file which 
+# represents arc.conf and manipulates it to prepare information.
 #
 sub parseConfig {
     my ($file,$arc_location) = @_;
@@ -971,6 +942,7 @@ sub parseConfig {
     return $config;
 }
 
+# TODO: is this still used? Otherwise remove
 ################### support for shell scripts ############################
 
 {
@@ -1010,6 +982,7 @@ sub parseConfig {
     }
 }
 
+# TODO: review this in the light of new config. Can it be removed?
 #
 # Reads A-REX config and prints out configuration options for LRMS control
 # scripts. Only the LRMS-related options are handled. The output is executable
@@ -1099,24 +1072,15 @@ sub set_defaults {
 	}
 }
 
-# Alters the parsed configuration options by:
-#  * adding some defaults
-#  * flattening per-user options
-# 20140225 - synched some options from GMConfig.cpp
-# 20170802 - moved out of CEinfo.pl.in, renamed as set_defaults
-# TODO: separate default setting from defaults used exclusively by the
-#       infosys. Maybe this is a good candidate for glue2 stuff?
+# 
+# Defines some more complex defaults that depend on multiple configuration
+# sections
+# Generates proper GLUE2 information from bare config
+#
 
 sub fix_config {
     my ($config) = @_;
 
-    # TODO: check if this one is to be done before moving data to control
-    #$config->{control} ||= {};
-    #merge_hash_values($config->{control}{"."}->,$control_defaults);
- 
-    #for (keys %control_defaults) {
-    #    $config->{control}->{"."}->{$_} = $control_defaults{$_} if not defined $config->{control}->{"."}->{$_};
-    #}
     $config->{service} ||= {};
     $config->{shares} ||= {};
     $config->{xenvs} ||= {};
@@ -1136,24 +1100,14 @@ sub fix_config {
         my @dns = split /\./, $hostname;
         my $shorthost = shift @dns;
         my $dnsdomain = join ".", @dns;
-
-        $log->info("AdminDomain config option is missing in XML. Defaulting to arc.conf values") unless $config->{AdminDomain};
-        $log->info("AdminDomain name in [infosys/admindomain] block is missing or incorrect in arc.conf. Defaulting to UNDEFINEDVALUE") unless $config->{admindomain}{Name};
-
-        chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
-        chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
         
-        
-        $log->info("ClusterName config option is missing in XML. Trying cluster_alias...") unless $config->{service}{ClusterName};
-        $log->info("ClusterAlias in XML or cluster-alias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
-        chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
+        $log->info("clusteralias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
+        chomp ($config->{service}{ClusterAlias} ||= $shorthost);
     }
 
-    # Manage A-REX WS interfaces publication
-    # TODO DEFAULTS: manage this in some default fixes elsewhere, preferrably ConfigCentral.pm, even better in arcconfig-parser
+    # Define a-rex endpoints. Hardcoded after ARC6.
     if (defined $config->{arex}{ws}) {
-		# TODO: temporary, should be substituted by the enable-by-block paradigm all over the code
-		$config->{enable_emies_interface} = 1;
+		# sets default URL
 	    $config->{arex}{ws}{wsurl} = 'https://'.$config->{hostname}.':443/arex' unless (defined $config->{arex}{ws}{wsurl});
 		$config->{arex}{ws}{wsurl} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)};
         my ($proto,$host,$port,$mountpoint) = ($1,$2,$3,$4);
@@ -1164,43 +1118,76 @@ sub fix_config {
         # fix endpoint information if not complete
         $config->{arex}{ws}{wsurl} = "$proto://$host:$port$mountpoint"
     } else {
-		# disable all WS interfaces
-		# TODO: remove and check that this is done via the enable-by-block system now
-		$config->{enable_arc_interface} = 0;
-		$config->{enable_emies_interface} = 0;
-		$log->warning("arex/ws block not present or wsurl not configured. WS interface EMI-ES will not be published.");
+		$log->verbose("WS interface disabled. Add [arex/ws] block to enable");
 	}
         
     # fire warning if GLUE2 Service Quality Level is not good
     # TODO: I'd like this to be done by InfoChecker
-    if ($config->{infosys_glue2_service_qualitylevel}) {
-        my $qualitylevelstring = $config->{infosys_glue2_service_qualitylevel};
+    if (defined $config->{service}{QualityLevel}) {
+		my $qualitylevelstring = $config->{service}{QualityLevel};
         my $closedenumeration = {'development' => '1',
                                  'pre-production' => '1',
                                  'production' => '1',
                                  'testing' => '1'
-                                };
-        if (! $closedenumeration->{$qualitylevelstring} ) {
-            $log->error("infosys_glue2_service_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: testing production pre-production development"); 
+        
+                                 };
+        unless (defined $closedenumeration->{$config->{service}{QualityLevel}}) {
+			 my @enum = keys %$closedenumeration;
+			 $log->error("computingservice_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: @enum");
         }
     }
 
-    # TDOD: remove this or move it into ConfigCentral (create shares based on configured VOs in ConfigCentral? Is this possible/good?)
+    # TODO: create shares based on configured VOs in ConfigCentral? Is this possible/good?)
     # why are these checks not done by InfoChecker?
     # Cross-check MappingPolicy references and move them to the share wehre they belong
-    for my $s (@{$config->{mappingpolicies}}) {
-        $log->error("MappingPolicy must include a ShareName option")
-            unless $s->{ShareName};
-        $log->error("MappingPolicy must include a Rule option")
-            unless $s->{Rule};
-        $log->error("MappingPolicy must include a UserDomainID option")
-            unless $s->{UserDomainID};
-        for my $name (@{$s->{ShareName}}) {
-            $log->error("MappingPolicy associated with non-existent Share: $name")
-                unless $config->{shares}{$name};
-            push @{$config->{shares}{$name}{mappingpolicies}}, $s;
-        }
+    
+    # Initialize policies data based on authorization information.
+    # This might be extended in the future for more complex scenarios. For now
+    # only VO based ones are built.
+    
+    my %queuenamesset = map { $_ => '1' } (keys %{$config->{shares}});
+    
+    if (defined $config->{service}{AuthorizedVO}) {
+	    for my $policy (@{$config->{service}{AuthorizedVO}}) {
+			$config->{mappingpolicies}{$policy} ||= {};
+	        $config->{mappingpolicies}{$policy}{Scheme} = 'basic;';
+	        $config->{mappingpolicies}{$policy}{Rule} = [ "vo:$policy" ];
+			$config->{mappingpolicies}{$policy}{queues} = Storable::dclone(\%queuenamesset);
+	
+		    $config->{accesspolicies}{$policy} ||= {};
+	        $config->{accesspolicies}{$policy}{Scheme} = 'basic;';
+	        $config->{accesspolicies}{$policy}{Rule} = [ "vo:$policy" ];
+	
+	    }
+	}
+    
+    for my $queue (keys %queuenamesset) {
+		if (defined $config->{shares}{$queue}{authorizedvo}) {
+	        for my $policy (@{$config->{shares}{$queue}{authorizedvo}}) {
+				#$log->debug("$policy".Dumper($config->{mappingpolicies}));
+				$config->{mappingpolicies}{$policy} ||= {};
+	            $config->{mappingpolicies}{$policy}{Scheme} = 'basic';
+	            $config->{mappingpolicies}{$policy}{Rule} = [ "vo:$policy" ];
+	            $config->{mappingpolicies}{$policy}{queues}{$queue} = '1';
+	
+	            $config->{accesspolicies}{$policy} ||= {};            
+	            $config->{accesspolicies}{$policy}{Scheme} = 'basic';
+	            $config->{accesspolicies}{$policy}{Rule} = [ "vo:$policy" ];
+			}
+		}
     }
+	
+	# Disable this for now, but it should replace similar code in ARC1ClusterInfo.pm    
+    #for my $s (keys %{$config->{mappingpolicies}}) {
+        ## generate new share names and their data
+        #for my $queuename (keys %{$config->{mappingpolicies}{$s}{queues}}) {
+            #my $newsharename = $queuename.'_'.$s;
+            ## temporary until we fix mappingqueues properly
+            #$config->{shares}{$newsharename} = Storable::dclone($config->{shares}{$queuename});
+            ## TODO: add this to the other shares too!
+            #$config->{shares}{$newsharename}{MappingQueue} = $queuename;
+        #};
+    #}
 
 }
 

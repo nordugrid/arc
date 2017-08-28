@@ -4,6 +4,7 @@ package ARC1ClusterInfo;
 # and prepares the GLUE2 information model of A-REX.
 
 use Storable;
+#use Data::Dumper;
 use FileHandle;
 use File::Temp;
 use POSIX qw(ceil);
@@ -594,6 +595,7 @@ sub collect($) {
                 # remove VOs from that share, substitute with default VO
                 $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo;
                 # Add supported policies 
+                # TODO: use config elements for this
                 $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => ''};
             }
         } else {
@@ -609,6 +611,7 @@ sub collect($) {
 					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
 					# remove VOs from that share, substitute with default VO
 					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+					# TODO: use config elements for this
 					$GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
 				}    
 			}
@@ -832,7 +835,7 @@ sub collect($) {
     }
    
     my $admindomain = $config->{admindomain}{Name};
-    my $lrmsname = $config->{lrms};
+    my $lrmsname = $config->{lrms}{lrms};
 
     # Calculate endpoint URLs for A-REX and ARIS.
     # check what is enabled in configuration
@@ -844,7 +847,7 @@ sub collect($) {
     my $epscapabilities = {};
 
     # defaults now set in ConfigCentral
-    my $ldaphostport = "ldap://$hostname:$config->{ldap}{port}/";
+    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/";
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -2663,7 +2666,7 @@ sub collect($) {
             # must be updated
             # port hardcoded for tests 
             $ep->{URL} = $ldapngendpoint;
-            $ep->{ID} = "$ARISepIDp:ldapng:$config->{SlapdPort}";
+            $ep->{ID} = "$ARISepIDp:ldapng:$config->{infosys}{ldap}{port}";
             $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapng'};
             $ep->{Technology} = 'ldap';
             $ep->{InterfaceName} = 'org.nordugrid.ldapng';
@@ -2728,7 +2731,7 @@ sub collect($) {
             # must be updated
             # port hardcoded for tests 
             $ep->{URL} = $ldapglue1endpoint;
-            $ep->{ID} = "$ARISepIDp:ldapglue1:$config->{SlapdPort}";
+            $ep->{ID} = "$ARISepIDp:ldapglue1:$config->{infosys}{ldap}{port}";
             $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue1'};
             $ep->{Technology} = 'ldap';
             $ep->{InterfaceName} = 'org.nordugrid.ldapglue1';
@@ -2793,7 +2796,7 @@ sub collect($) {
             # must be updated
             # port hardcoded for tests 
             $ep->{URL} = $ldapglue2endpoint;
-            $ep->{ID} = "$ARISepIDp:ldapglue2:$config->{SlapdPort}";
+            $ep->{ID} = "$ARISepIDp:ldapglue2:$config->{infosys}{ldap}{port}";
             $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue2'};
             $ep->{Technology} = 'ldap';
             $ep->{InterfaceName} = 'org.nordugrid.ldapglue2';
@@ -2970,13 +2973,14 @@ sub collect($) {
 
         return undef unless my ($share, $dummy) = each %{$GLUE2shares};
 
-        my $qinfo = $lrms_info->{queues}{$share};
-
         # Prepare flattened config hash for this share.
         my $sconfig = { %{$config->{service}}, %{$GLUE2shares->{$share}} };
 
         # List of all shares submitting to the current queue, including the current share.
         my $qname = $sconfig->{MappingQueue} || $share;
+        
+        # get lrms stats from the actual queues, not share names as they might not match
+        my $qinfo = $lrms_info->{queues}{$qname};
 
         if ($qname) {
             my $siblings = $sconfig->{siblingshares} = [];
@@ -3154,6 +3158,7 @@ sub collect($) {
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
         } else {
+			# $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
             $freeslots = $qinfo->{totalcpus} - $qinfo->{running} || 0;
         }
 
