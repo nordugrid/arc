@@ -1,5 +1,5 @@
-#ifndef CACHESERVICE_H_
-#define CACHESERVICE_H_
+#ifndef CANDYPONDSERVICE_H_
+#define CANDYPONDSERVICE_H_
 
 
 #include <arc/infosys/RegisteredService.h>
@@ -14,12 +14,12 @@
 #include "../a-rex/grid-manager/files/ControlFileHandling.h"
 #include "../a-rex/delegation/DelegationStore.h"
 
-#include "CacheServiceGenerator.h"
+#include "CandyPondGenerator.h"
 
-namespace Cache {
+namespace CandyPond {
 
 /**
- * CacheService provides functionality for A-REX cache operations that can be
+ * CandyPond provides functionality for A-REX cache operations that can be
  * performed by remote clients. It currently consists of three operations:
  * CacheCheck - allows querying of the cache for the presence of files.
  * CacheLink - enables a running job to dynamically request cache files to
@@ -27,12 +27,12 @@ namespace Cache {
  * CacheLinkQuery - query the status of a transfer initiated by CacheLink.
  * This service is especially useful in the case of pilot job workflows where
  * job submission does not follow the usual ARC workflow. In order for input
- * files to be available to jobs, the pilot job can call the cache service to
+ * files to be available to jobs, the pilot job can call CandyPond to
  * prepare them. If requested files are not present in the cache, they can be
- * downloaded by the cache service if requested, using the DTR data staging
+ * downloaded by CandyPond if requested, using the DTR data staging
  * framework.
  */
-class CacheService: public Arc::RegisteredService {
+class CandyPond: public Arc::RegisteredService {
 
  private:
   /** Return codes of cache link */
@@ -45,15 +45,16 @@ class CacheService: public Arc::RegisteredService {
     PermissionError,         // user doesn't have permission on original source
     LinkError,               // error while linking to session dir
     DownloadError,           // error downloading cache file
+    BadURLError,             // A bad URL was supplied which could not be handled
   };
   /** Construct a SOAP error message with optional extra reason string */
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
-  /** CacheService namespace */
+  /** CandyPond namespace */
   Arc::NS ns;
   /** A-REX configuration */
   ARex::GMConfig config;
   /** Generator to handle data staging */
-  CacheServiceGenerator* dtr_generator;
+  CandyPondGenerator* dtr_generator;
   /** Logger object */
   static Arc::Logger logger;
 
@@ -84,29 +85,29 @@ class CacheService: public Arc::RegisteredService {
 
  public:
   /**
-   * Make a new CacheService. Reads the configuration and determines
+   * Make a new CandyPond. Reads the configuration and determines
    * the validity of the service.
    */
-  CacheService(Arc::Config *cfg, Arc::PluginArgument* parg);
+  CandyPond(Arc::Config *cfg, Arc::PluginArgument* parg);
   /**
-   * Destroy the CacheService
+   * Destroy the CandyPond
    */
-  virtual ~CacheService(void);
+  virtual ~CandyPond(void);
   /**
-   * Main method called by HED when CacheService is invoked. Directs call
-   * to appropriate CacheService method.
+   * Main method called by HED when CandyPond is invoked. Directs call
+   * to appropriate CandyPond method.
    */
   virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
   /**
    * Supplies information on the service for use in the information system.
    */
   bool RegistrationCollector(Arc::XMLNode &doc);
-  /** Returns true if the CacheService is valid. */
+  /** Returns true if the CandyPond is valid. */
   operator bool() { return valid; };
-  /** Returns true if the CacheService is not valid. */
+  /** Returns true if the CandyPond is not valid. */
   bool operator!() { return !valid; };
 };
 
-} // namespace Cache
+} // namespace CandyPond
 
-#endif /* CACHESERVICE_H_ */
+#endif /* CANDYPONDSERVICE_H_ */

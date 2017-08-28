@@ -26,47 +26,20 @@ CacheConfig::CacheConfig(const GMConfig& config):
   if(!cfile.open(config.ConfigFile())) throw CacheConfigException("Can't open configuration file");
   
   /* detect type of file */
-  switch(cfile.detect()) {
-    case Arc::ConfigFile::file_XML: {
-      Arc::XMLNode cfg;
-      if(!cfg.ReadFromStream(cfile)) {
-        cfile.close();
-        throw CacheConfigException("Can't interpret configuration file as XML");
-      };
-      cfile.close();
-      try {
-        parseXMLConf(cfg);
-      } catch (CacheConfigException& e) {
-        cfile.close();
-        throw;
-      }
-    }; break;
-    case Arc::ConfigFile::file_INI: {
-      Arc::ConfigIni cf(cfile);
-      try {
-        parseINIConf(cf);
-      } catch (CacheConfigException& e) {
-        cfile.close();
-        throw;
-      }
-    }; break;
-    default: {
-      cfile.close();
-      throw CacheConfigException("Can't recognize type of configuration file");
-    }; break;
-  };
-  cfile.close();
-}
+  if (cfile.detect() != Arc::ConfigFile::file_INI) {
+    cfile.close();
+    throw CacheConfigException("Can't recognize type of configuration file");
+  }
 
-CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
-    _cache_max(100),
-    _cache_min(100),
-    _log_file("/var/log/arc/cache-clean.log"),
-    _log_level("INFO") ,
-    _lifetime("0"),
-    _cache_shared(false),
-    _clean_timeout(0) {
-  parseXMLConf(cfg);
+  Arc::ConfigIni cf(cfile);
+  try {
+    parseINIConf(cf);
+  } catch (CacheConfigException& e) {
+    cfile.close();
+    throw;
+  }
+
+  cfile.close();
 }
 
 void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
@@ -218,126 +191,6 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
       }
     }
 
-  }
-}
-
-void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
-  /*
-  control
-    controlDir
-    sessionRootDir
-    cache
-      location
-        path
-        link
-      remotelocation
-        path
-        link
-      highWatermark
-      lowWatermark
-      cacheLifetime
-      cacheLogFile
-      cacheLogLevel
-      cacheCleanTimeout
-      cacheShared
-      cacheSpaceTool
-    defaultTTL
-    defaultTTR
-    maxReruns
-    noRootPower
-  */
-  Arc::XMLNode control_node = cfg;
-  if(control_node.Name() != "control") {
-    control_node = cfg["control"];
-  }
-  if (!control_node) throw CacheConfigException("No control element found in configuration");
-
-  Arc::XMLNode cache_node = control_node["cache"];
-  if (!cache_node) return; // no cache configured
-
-  Arc::XMLNode location_node = cache_node["location"];
-  for(;location_node;++location_node) {
-    std::string cache_dir = location_node["path"];
-    std::string cache_link_dir = location_node["link"];
-    if(cache_dir.length() == 0)
-      throw CacheConfigException("Missing path in cache location element");
-
-    // validation of paths
-    while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-    if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
-    if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
-    if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
-      while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-      if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
-      if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
-    }
-
-    // add this cache to our list
-    std::string cache = cache_dir;
-    bool isDrainingCache = false;
-    // check if the cache dir needs to be drained
-    if (cache_link_dir == "drain") {
-      cache = cache_dir.substr(0, cache_dir.find (" "));
-      cache_link_dir = "";
-      isDrainingCache = true;
-    }
-
-    if (!cache_link_dir.empty())
-      cache += " "+cache_link_dir;
-
-    // TODO: handle paths with spaces
-    if(isDrainingCache)
-      _draining_cache_dirs.push_back(cache);
-    else
-      _cache_dirs.push_back(cache);
-  }
-  Arc::XMLNode high_node = cache_node["highWatermark"];
-  Arc::XMLNode low_node = cache_node["lowWatermark"];
-  if (high_node && !low_node) {
-    throw CacheConfigException("missing lowWatermark parameter");
-  } else if (low_node && !high_node) {
-    throw CacheConfigException("missing highWatermark parameter");
-  } else if (low_node && high_node) {
-    off_t max_i;
-    if(!Arc::stringto((std::string)high_node,max_i))
-      throw CacheConfigException("bad number in highWatermark parameter");
-    if (max_i > 100)
-      throw CacheConfigException("number is too high in highWatermark parameter");
-    _cache_max = max_i;
-
-    off_t min_i;
-    if(!Arc::stringto((std::string)low_node,min_i))
-      throw CacheConfigException("bad number in lowWatermark parameter");
-    if (min_i > 100)
-      throw CacheConfigException("number is too high in lowWatermark parameter");
-    if (min_i >= max_i)
-      throw CacheConfigException("highWatermark must be greater than lowWatermark");
-    _cache_min = min_i;
-  }
-  std::string cache_log_file = cache_node["cacheLogFile"];
-  if (!cache_log_file.empty()) {
-    if (cache_log_file.length() < 2 || cache_log_file[0] != '/' || cache_log_file[cache_log_file.length()-1] == '/')
-      throw CacheConfigException("Bad filename in cachelogfile parameter");
-    _log_file = cache_log_file;
-  }
-  std::string cache_log_level = cache_node["cacheLogLevel"];
-  if (!cache_log_level.empty())
-    _log_level = cache_log_level;
-  std::string cache_lifetime = cache_node["cacheLifetime"];
-  if (!cache_lifetime.empty())
-    _lifetime = cache_lifetime;
-  std::string cache_shared = cache_node["cacheShared"];
-  if (cache_shared == "yes") {
-    _cache_shared = true;
-  }
-  std::string cache_space_tool = cache_node["cacheSpaceTool"];
-  if (!cache_space_tool.empty()) {
-    _cache_space_tool = cache_space_tool;
-  }
-  std::string clean_timeout = cache_node["cacheCleanTimeout"];
-  if (!clean_timeout.empty()) {
-    if(!Arc::stringto(clean_timeout, _clean_timeout))
-      throw CacheConfigException("bad number in cacheCleanTimeout parameter");
   }
 }
 

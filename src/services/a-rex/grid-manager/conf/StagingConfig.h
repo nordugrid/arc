@@ -6,7 +6,6 @@
 #include <arc/JobPerfLog.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/XMLNode.h>
 #include <arc/ArcConfigFile.h>
 
 #include "GMConfig.h"
@@ -19,8 +18,7 @@ class DTRGenerator;
 class StagingConfig {
   friend class DTRGenerator;
 public:
-  /// Load config from [data-staging] or <dataTransfer> section of ini or xml
-  /// configuration file.
+  /// Load config from [arex/data-staging] section of configuration file
   StagingConfig(const GMConfig& config);
 
   operator bool() const { return valid; };
@@ -59,10 +57,6 @@ private:
   /// Number of files per share to keep prepared
   int max_prepared;
 
-  // TODO: the next 8 members are already defined in <dataTransfer> in xml.
-  // Need to move them to <DTR> instead. For now they are only processed for
-  // ini-style config with [data-staging]
-
   /// Minimum speed for transfer over min_speed_time seconds
   unsigned long long int min_speed;
   /// Time over which to calculate min_speed
@@ -73,11 +67,11 @@ private:
   time_t max_inactivity_time;
   /// Max retries for failed transfers that can be retried
   int max_retries;
-  /// Whether or not to use passive transfer (off by default)
+  /// Whether or not to use passive transfer
   bool passive;
-  /// Whether or not to use secure transfer (off by default)
+  /// Whether or not to use secure transfer
   bool secure;
-  /// Whether to use partial HTTP GET transfers (on by default)
+  /// Whether to use partial HTTP GET transfers
   bool httpgetpartial;
   /// Pattern for choosing preferred replicas
   std::string preferred_pattern;
@@ -110,8 +104,6 @@ private:
   /// Logger object
   static Arc::Logger logger;
 
-  /// Read in params from XML config
-  bool readStagingConf(const Arc::XMLNode& cfg);
   /// Read in params from ini config
   bool readStagingConf(Arc::ConfigFile& cfile);
   /// Convert parameter to integer with mimimum value of -1

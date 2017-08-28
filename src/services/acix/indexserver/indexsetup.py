@@ -6,7 +6,7 @@ from twisted.web import resource, server
 from acix.core import ssl
 from acix.indexserver import index, indexresource
 
-from arc import config
+from arc.utils import config
 
 # -- constants
 SSL_DEFAULT = True

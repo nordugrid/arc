@@ -35,7 +35,6 @@ static void get_data_staging_shares(const GMConfig& config,
     return;
   }
   std::string dtr_log = staging_conf.get_dtr_log();
-  if (dtr_log.empty()) dtr_log = config.ControlDir()+"/dtrstate.log";
 
   // read DTR state info
   std::list<std::string> data;

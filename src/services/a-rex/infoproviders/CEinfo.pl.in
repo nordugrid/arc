@@ -46,13 +46,13 @@ BEGIN {
 # Attempt to recursively create directory
 # takes absolute filename (absolute path and file name)
 sub createdirs {
-    my ($fullpathfilename, $log) = @_;
-    my @paths;
-    for (my $path = dirname $fullpathfilename; length $path > 1; $path = dirname $path) {
-        push @paths, $path;
-    }
-    mkdir $_ for reverse @paths;
-    $log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
+	my ($fullpathfilename, $log) = @_;
+	my @paths;
+	for (my $path = dirname $fullpathfilename; length $path > 1; $path = dirname $path) {
+		push @paths, $path;
+	}
+	mkdir $_ for reverse @paths;
+	$log->error("Failed to create directory $paths[0], error: $!") if @paths and not -d $paths[0];
 }
 
 # minimal set of vars before loading the profiler
@@ -96,16 +96,22 @@ BEGIN {
 		my $perflognytprofdir;
 	    my $perflognytproffilepath;
 	      
-	    # TODO: change getValueOf implementation in configcentral
-	    my $enable_perflog_reporting = ConfigCentral::getValueOf($configfile,'common','enable_perflog_reporting');
+	    # TODO: update according to new config
 	    
-	    if (defined $enable_perflog_reporting && $enable_perflog_reporting) {
+	    # C134
+        my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
+        #C 134
+        LogUtils::level($infosysloglevel);	    
+	    
+	    my $enable_perflog_reporting = ConfigCentral::isBlockPresent($configfile,'monitoring/perflog');
+	    
+	    if ($enable_perflog_reporting) {
 			# The profiling tool might be missing in some distributions.
 			# Default is to assume is not present.
-			# TODO: change getValueOf implementation in configcentral
-			$perflogdir = ConfigCentral::getValueOf($configfile,'common','perflogdir');
-			$perflogdir ||= ($perflogdir) ? $perflogdir : '/var/log/arc/perfdata'; 
+			$perflogdir = ConfigCentral::getValueOf($configfile,'monitoring/perflog','perflogdir');
+			$log->error("perflogdir parameter not defined or no default set in code, $perflogdir") if ((!defined $perflogdir) || $perflogdir eq '');
 			$perflognytprofdir = $perflogdir.'/perl_nytprof/';
+			$log->info("Performance reporting enabled. The database files will be stored in $perflognytprofdir");
 			
 			# reduce performance reporting depending on interval by checking dir last modification time
 			if ( -e $perflognytprofdir ) {
@@ -117,25 +123,25 @@ BEGIN {
 					undef $log;
                     no ConfigCentral;
                     no LogUtils;
-                    return 0;
-                }
-            }
-
-            # append and create raw folder for NYTProf database files
-            my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
-            my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
-            my $perflognytproffilename = 'infosys_'.$timestamp.'.perflog.raw';
-            $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
-            createdirs($perflognytproffilepath,$log);
-            if ( -e $perflogdir ) {
-                  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
-                  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
-                   if ($NYTPROF_PRESENT) {
-                      DB::enable_profile($perflognytproffilepath);
-                      $log->info("Performance reporting enabled. The database file will be stored in $perflognytproffilepath");
-                  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
-            } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
-        }
+					return 0;
+				}
+			}
+			
+			# append and create raw folder for NYTProf database files
+			my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+		    my $timestamp=POSIX::strftime("%Y%m%d%H%M%S", $sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
+		    my $perflognytproffilename = 'infosys_'.$timestamp.'.perflog.raw';
+		    $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
+		    createdirs($perflognytproffilepath,$log);
+		    if ( -e $perflogdir ) {
+				  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
+				  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+	 		      if ($NYTPROF_PRESENT) {
+					  DB::enable_profile($perflognytproffilepath);
+					  $log->info("Performance reporting enabled. The database file is $perflognytproffilepath");
+				  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
+		    } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
+	    }
     }
     undef $log;
     no ConfigCentral;
@@ -203,22 +209,16 @@ sub main {
         $log->error("a command line argument is missing, see --help ");
     }
 
-    # Read ARC configuration
-    our $config = timed 'ConfigCentral', sub { ConfigCentral::parseConfig($configfile) };
-
-    # Dump config (uncomment if needed)
-    #print Dumper($config);
-    
-    # Dump internal datastructure if required and exit
-    
-    if ($dumpconfig) { ConfigCentral::dumpInternalDatastructure($config); exit 0};
-
+    # setup output to logfile before parsing the complete config file
+       
+    # C134
+    my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
     # Change level for root logger (affects all loggers from now on)
     #C 134
-    LogUtils::level($config->{'infosys'}{'loglevel'}) if defined $config->{'infosys'}{'loglevel'};
-
+    LogUtils::level($infosysloglevel);
     #C 133
-    my $providerlog = $config->{'infosys'}{'logfile'} || "/var/log/arc/infoprovider.log";
+    my $providerlog = ConfigCentral::getValueOf($configfile,'infosys','logfile');
+
     $log->info("Redirecting further messages to $providerlog");
     LogUtils::indentoutput(0);
 
@@ -229,9 +229,22 @@ sub main {
     LogUtils::timestamps(1);
     $log->info("############## A-REX infoprovider started  ##############");
 
-    fix_config($config);
-    check_config($config);
+    # Read ARC configuration
+    our $config = timed 'ConfigCentral', sub { ConfigCentral::parseConfig($configfile) };
 
+    # Dump config (uncomment if needed)
+    #print Dumper($config);
+    
+    # Dump internal datastructure if required and exit
+    
+    if ($dumpconfig) { 
+		$log->info("Dumping configuration and exiting");
+		ConfigCentral::dumpInternalDatastructure($config); 
+		$log->info("############## A-REX infoprovider finished ##############");
+		exit 0;
+	};
+
+    $log->info('Start data collection...');
     my $data = timed 'all info collectors', sub { CEInfo::collect($config) };
     $data->{nojobs} = $nojobs;
 
@@ -244,72 +257,67 @@ sub main {
     timed 'GLUE2xml', sub { $xmlPrinter->Domains($glue2data) };
     $xmlPrinter->end('InfoRoot');
 
-    # Glue1.2/1.3 cannot be generated without NorduGrid, so we force publishing
-    if (!$config->{infosys_nordugrid} and $config->{infosys_glue12}) {
-        $log->warning("NorduGrid schema disabled in arc.conf. Glue1.2/1.3 cannot be generated without NorduGrid Schema, reenabling");
-        $config->{infosys_nordugrid} = 1;
-    }
-
     # Generate ldif for infosys-ldap
-    $log->info("Generating LDIF renderings");
-    my $ngdata;
-    $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
-        if ($config->{infosys_nordugrid} or $config->{infosys_glue12});
+	$log->info("Generating LDIF renderings");
+	my $ngdata;
+	$ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) } if ( defined $config->{infosys}{nordugrid} );
 
-    my $print_ldif = sub {
-        my ($fh) = @_;
-        if ($config->{infosys_glue2_ldap}) {
-           # introduced to find GLUE2 LDAP schema version
-            my $glue2schemaversion;
-            unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
-                $log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
-            } else {
-                 my $linecnt=0;
-                 while (my $line = <GLUE2_SCHEMA>) {
-                    chomp $line;
-                    next unless $line;
-                    if ($line =~ m/# Schema Version: (\d).*/) {
-                        $glue2schemaversion = $1;
-                        $log->debug("GLUE2 schema version major identified. It is: $glue2schemaversion");
-                        last
-                    }
-                    if ($linecnt > 25) {
-                        $log->debug("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
-                        last
-                    }
-                    $linecnt++;
-                }
-            close GLUE2_SCHEMA;
-            }
-            # override splitjobs for ldap if option specified in arc.conf
-            if ( $config->{infosys_glue2_ldap_showactivities} ) { $splitjobs = 0 };
-            $log->info("Generating GLUE2 LDIF rendering");
-            my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
-            timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
-        }
-        if ($config->{infosys_nordugrid} or $config->{infosys_glue12}) {
-            $log->info("Generating NorduGrid LDIF rendering");
-            my $ldifPrinter = NGldifPrinter->new($fh, $config->{validity_ttl});
-            timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
-        }
-    };
+    # Write out LDIF document(s)
+	my $print_ldif = sub {
+		my ($fh) = @_;
+		if ( defined $config->{infosys}{glue2}{ldap}) {                
+		   # introduced to find GLUE2 LDAP schema version
+			my $glue2schemaversion;
+			unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
+				$log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
+			} else {
+				 my $linecnt=0;
+				 while (my $line = <GLUE2_SCHEMA>) {
+					chomp $line;
+					next unless $line;
+					if ($line =~ m/# Schema Version: (\d).*/) {
+						$glue2schemaversion = $1; 
+						$log->debug("GLUE2 schema version major identified. It is: $glue2schemaversion");
+						last
+					}
+					if ($linecnt > 25) {
+						$log->debug("Can't identify GLUE2 schema version. Will create LDIF in compatibility mode");
+						last
+					}
+					$linecnt++;
+				}
+			close GLUE2_SCHEMA;
+			}
+			# override splitjobs for ldap if option specified in arc.conf
+			if ( $config->{infosys}{glue2}{ldap}{showactivities} ) { $splitjobs = 0 };
+			$log->info("Generating GLUE2 LDIF rendering");
+			my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
+			timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
+		}
+		if ($config->{infosys}{nordugrid}) {
+			$log->info("Generating NorduGrid LDIF rendering");
+			my $ldifPrinter = NGldifPrinter->new($fh, $config->{infosys}{validity_ttl});
+			timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
+		}
+	};
 
-    # only notifiy ldap infosys if ldap is enabled!
-    if ($config->{infosys_nordugrid} or $config->{infosys_glue12} or $config->{infosys_glue2_ldap}) {
-        # check that fifo is working and notify if so.
-        if (InfosysHelper::createLdifScript($config, $print_ldif)) {
-            if (InfosysHelper::notifyInfosys($config)) {
-                $log->verbose("LDAP information system notified");
-            } else {
-                $log->warning("Failed to notify LDAP information system");
-            }
-        } else {
-           $log->warning("Failed to create ldif generator script for LDAP information system");
-        }
-    } else {
-        $log->verbose("LDAP/ldif information generation is disabled. To enable it, enable one of the options infosys_nordugrid, infosys_glue12, infosys_glue2_ldap.");
-    }
-
+	# only notifiy ldap infosys if ldap is enabled!
+	# C 141 use block to check if ldap is enabled
+	if ( defined $config->{infosys}{ldap}) {
+		# check that fifo is working and notify if so.
+		if (InfosysHelper::createLdifScript($config->{infosys}{ldap}, $print_ldif)) {
+			if (InfosysHelper::notifyInfosys($config->{infosys}{ldap})) {
+				$log->verbose("LDAP information system notified");
+			} else {
+				$log->warning("Failed to notify LDAP information system");
+			}
+		} else {
+		   $log->warning("Failed to create ldif generator script for LDAP information system");
+		}
+	} else {
+		$log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
+	}
+        
     $log->info("############## A-REX infoprovider finished ##############");
 
     # close performance file if enabled
@@ -412,10 +420,17 @@ sub get_rte_info($) {
 sub get_lrms_info($$$) {
     my ($config,$localusers,$jobids) = @_;
 
-    # possibly any options from config are needed, so just clone it all
-    my $lrms_opts = Storable::dclone($config);
+    # TODO: possibly any options from config are needed, but they should be 
+    # moved into the lrms block if required.
+    
+    # this conforms to LRMSInfo.pm specification
+    my $lrms_opts = Storable::dclone($config->{lrms});
+    # TODO: double check this cleanup, if needed
     delete $lrms_opts->{$_} for qw(xenvs shares);
     $lrms_opts->{jobs} = $jobids;
+    ## TODO: review and implement this, is cleaner than what we have now
+    ## This former implementation of shares might solve problems in ARC1ClusterInfo.
+    ## nowadays it is not used.
     for my $share ( keys %{$config->{shares}} ) {
         $lrms_opts->{queues}{$share} = $config->{shares}{$share};
         $lrms_opts->{queues}{$share}{users} = $localusers;
@@ -443,12 +458,14 @@ sub get_gmjobs_info($) {
 sub fix_jobs {
     my ($config, $gmjobs_info) = @_;
 
-    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms} || '';
+    # TODO: this should be already splitted in ConfigCentral
+    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms}{lrms} || ''; # C 10
     for my $jobid (keys %$gmjobs_info) {
         my $job = $gmjobs_info->{$jobid};
         my $share = $job->{share};
 
         # If A-REX has not chosen a share for the job, default to one.
+        # why?!? and how do we know?
         if (not $share) {
             my $msg = "A-REX has not chosen a share for job $jobid";
             if ($defaultshare) {
@@ -508,163 +525,7 @@ sub read_grid_mapfile($) {
     return $usermap;
 }
 
-
-# Alters the parsed configuration options by:
-#  * adding some defaults
-#  * flattening per-user options
-# 20140225 - synched some options from GMConfig.cpp
-
-sub fix_config {
-    my ($config) = @_;
-
-    my %config_defaults = (
-                   arcversion     => '@VERSION@',
-                   infosys_nordugrid   => 1,
-                   infosys_glue12      => 0,
-                   infosys_glue2_ldap  => 1,
-                   GridftpdEnabled     => 0,
-                   GridftpdMountPoint  => '/jobs',
-                   GridftpdPort        => 2811,
-                   GridftpdAllowNew    => 1,
-                   GridftpdPidFile     => '/var/run/gridftpd.pid',
-                   validity_ttl      =>  10800,
-                   SlapdPort      => 2135,
-                   infosys_glue2_service_qualitylevel   => 'production',
-                   shared_filesystem => 1,
-                   enable_arc_interface => 1,
-                   enable_emies_interface => 0,
-                   infoproviders_timeout => 10800
-    );
-
-    my %control_defaults = (
-                  defaultttl  => '604800 2629744'
-    );
-
-    for (keys %config_defaults) {
-        $config->{$_} = $config_defaults{$_} if not defined $config->{$_};
-    }
-
-    $config->{control} ||= {};
-
-    for (keys %control_defaults) {
-        $config->{control}->{"."}->{$_} = $control_defaults{$_} if not defined $config->{control}->{"."}->{$_};
-    }
-
-
-    $config->{service} ||= {};
-    $config->{shares} ||= {};
-    $config->{xenvs} ||= {};
-
-    delete $config->{location} unless $config->{location} and %{$config->{location}};
-    delete $config->{contacts} unless $config->{contacts} and @{$config->{contacts}};
-
-    my $hostname = $config->{hostname} || hostname();
-    {
-        my @dns = split /\./, $hostname;
-        my $shorthost = shift @dns;
-        my $dnsdomain = join ".", @dns;
-
-        $log->info("AdminDomain config option is missing in XML. Defaulting to arc.conf values") unless $config->{AdminDomain};
-        $log->info("AdminDomain name in [infosys/admindomain] block is missing or incorrect in arc.conf. Defaulting to UNDEFINEDVALUE") unless $config->{admindomain}{Name};
-
-        chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
-        chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
-
-
-        $log->info("ClusterName config option is missing in XML. Trying cluster_alias...") unless $config->{service}{ClusterName};
-        $log->info("ClusterAlias in XML or cluster-alias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
-        chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
-    }
-
-    # Manage A-REX WS interfaces publication
-    if ($config->{endpoint} and $config->{endpoint} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)}) {
-        my ($proto,$host,$port,$mountpoint) = ($1,$2,$3,$4);
-        $port ||= 80 if $proto eq "http";
-        $port ||= 443 if $proto eq "https";
-        $config->{arexhostport} = "$host:$port";
-        # fix endpoint information if not complete
-        $config->{endpoint} = "$proto://$host:$port$mountpoint"
-    } else {
-        # disable all WS interfaces
-        $config->{enable_arc_interface} = 0;
-        $config->{enable_emies_interface} = 0;
-        $log->warning("arex_mount_point not configured. WS interfaces org.nordugrid.xbes and EMI-ES will not be published.");
-    }
-
-    # fire warning if GLUE2 Service Quality Level is not good
-    # TODO: I'd like this to be done by InfoChecker
-    if ($config->{infosys_glue2_service_qualitylevel}) {
-        my $qualitylevelstring = $config->{infosys_glue2_service_qualitylevel};
-        my $closedenumeration = {'development' => '1',
-                                 'pre-production' => '1',
-                                 'production' => '1',
-                                 'testing' => '1'
-                                };
-        if (! $closedenumeration->{$qualitylevelstring} ) {
-            $log->error("infosys_glue2_service_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: testing production pre-production development");
-        }
-    }
-
-    # Cross-check MappingPolicy references and move them to the share wehre they belong
-    for my $s (@{$config->{mappingpolicies}}) {
-        $log->error("MappingPolicy must include a ShareName option")
-            unless $s->{ShareName};
-        $log->error("MappingPolicy must include a Rule option")
-            unless $s->{Rule};
-        $log->error("MappingPolicy must include a UserDomainID option")
-            unless $s->{UserDomainID};
-        for my $name (@{$s->{ShareName}}) {
-            $log->error("MappingPolicy associated with non-existent Share: $name")
-                unless $config->{shares}{$name};
-            push @{$config->{shares}{$name}{mappingpolicies}}, $s;
-        }
-    }
-
-}
-
-
-# Does some consistency checks on the parsed configuration options
-
-sub check_config {
-    my ($config) = @_;
-
-    $log->error("No queue or ComputingShare configured") unless %{$config->{shares}};
-    $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
-
-    $log->error("No control directory configured")
-        unless %{$config->{control}} or $config->{remotegmdirs};
-    while (my ($user, $control) = each %{$config->{control}}) {
-        $log->error("No control directory configured for user $user") unless $control->{controldir};
-        $log->error("No session directory configured for user $user") unless $control->{sessiondir};
-    }
-
-    # Cross-check ExecutionEnvironment references
-    for my $s (values %{$config->{shares}}) {
-        next unless $s->{ExecutionEnvironmentName};
-        for my $group (@{$s->{ExecutionEnvironmentName}}) {
-            $log->error("ComputingShare associated with non-existent ExecutionEnvironment: $group")
-                unless $config->{xenvs}{$group};
-        }
-    }
-    for my $s (values %{$config->{xenvs}}) {
-        delete $s->{NodeSelection} unless %{$s->{NodeSelection}};
-    }
-
-    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms} || '';
-    $log->error("defaultShare set to nonexistent ComputingShare")
-        if $defaultshare and not $config->{shares}{$defaultshare};
-
-    if ($config->{contacts}) {
-        for (@{$config->{contacts}}) {
-            $log->warning("Contact is missing Type") and next unless $_->{Type};
-            $log->warning("Contact is missing Detail") and next unless $_->{Detail};
-            $log->warning("Contact Detail is not an URI: ".$_->{Detail}) and next
-                unless $_->{Detail} =~ m/^\w+:/;
-        }
-    }
-}
-
-
+## CHECK: This probably belongs here, info from HostInfo.pm and LRMS modules is required
 # Replaces 'adotf' in config options with autodetected values
 
 sub fix_adotf {

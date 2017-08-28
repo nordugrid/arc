@@ -17,41 +17,41 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
 
-#include "CacheService.h"
+#include "CandyPond.h"
 
-namespace Cache {
+namespace CandyPond {
 
 static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
-    CacheService* s = new CacheService((Arc::Config*)(*srvarg),arg);
+    CandyPond* s = new CandyPond((Arc::Config*)(*srvarg),arg);
     if (*s)
       return s;
     delete s;
     return NULL;
 }
 
-Arc::Logger CacheService::logger(Arc::Logger::rootLogger, "CacheService");
+Arc::Logger CandyPond::logger(Arc::Logger::rootLogger, "CandyPond");
 
-CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
+CandyPond::CandyPond(Arc::Config *cfg, Arc::PluginArgument* parg) :
                                                RegisteredService(cfg,parg),
                                                dtr_generator(NULL) {
   valid = false;
   // read configuration information
   /*
-  cacheservice config specifies A-REX conf file
-    <cacheservice:config>/etc/arc.conf</cacheservice:config>
+  candypond config specifies A-REX conf file
+    <candypond:config>/etc/arc.conf</candypond:config>
   */
-  ns["cacheservice"] = "urn:cacheservice_config";
+  ns["candypond"] = "urn:candypond_config";
 
-  if (!(*cfg)["cache"] || !(*cfg)["cache"]["config"]) {
+  if (!(*cfg)["service"] || !(*cfg)["service"]["config"]) {
     // error - no config defined
-    logger.msg(Arc::ERROR, "No A-REX config file found in cache service configuration");
+    logger.msg(Arc::ERROR, "No A-REX config file found in candypond configuration");
     return;
   }
-  std::string arex_config = (std::string)(*cfg)["cache"]["config"];
+  std::string arex_config = (std::string)(*cfg)["service"]["config"];
   logger.msg(Arc::INFO, "Using A-REX config file %s", arex_config);
 
   config.SetConfigFile(arex_config);
@@ -60,29 +60,29 @@ CacheService::CacheService(Arc::Config *cfg, Arc::PluginArgument* parg) :
     return;
   }
   config.Print();
-  if (config.CacheParams().getCacheDirs().empty()) { // do we care about remote caches?
+  if (config.CacheParams().getCacheDirs().empty()) {
     logger.msg(Arc::ERROR, "No caches defined in configuration");
     return;
   }
 
   // check if we are running along with A-REX or standalone
   bool with_arex = false;
-  if ((*cfg)["cache"]["witharex"] && (std::string)(*cfg)["cache"]["witharex"] == "true") with_arex = true;
+  if ((*cfg)["service"]["witharex"] && (std::string)(*cfg)["service"]["witharex"] == "true") with_arex = true;
 
   // start Generator for data staging
-  dtr_generator = new CacheServiceGenerator(config, with_arex);
+  dtr_generator = new CandyPondGenerator(config, with_arex);
 
   valid = true;
 }
 
-CacheService::~CacheService(void) {
+CandyPond::~CandyPond(void) {
   if (dtr_generator) {
     delete dtr_generator;
     dtr_generator = NULL;
   }
 }
 
-Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
+Arc::MCC_Status CandyPond::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
   /*
    Accepts:
    <CacheCheck>
@@ -124,12 +124,20 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
 
     std::string fileurl = (std::string)in["CacheCheck"]["TheseFilesNeedToCheck"]["FileURL"][n];
     Arc::XMLNode resultelement = results.NewChild("Result");
+    resultelement.NewChild("FileURL") = fileurl;
     bool fileexist = false;
     std::string file_lfn;
     Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
     Arc::UserConfig usercfg(cred_type);
     Arc::URL url(fileurl);
     Arc::DataHandle d(url, usercfg);
+
+    if (!d) {
+      logger.msg(Arc::ERROR, "Can't handle URL %s", fileurl);
+      resultelement.NewChild("ExistInTheCache") = "false";
+      resultelement.NewChild("FileSize") = "0";
+      continue;
+    }
 
     logger.msg(Arc::INFO, "Looking up URL %s", d->str());
 
@@ -149,7 +157,6 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
     else if (errno != ENOENT)
       logger.msg(Arc::ERROR, "Problem accessing cache file %s: %s", file_lfn, Arc::StrError(errno));
 
-    resultelement.NewChild("FileURL") = fileurl;
     resultelement.NewChild("ExistInTheCache") = (fileexist ? "true": "false");
     if (fileexist)
       resultelement.NewChild("FileSize") = Arc::tostring(fileStat.st_size);
@@ -159,7 +166,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
+Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& mapped_user) {
   /*
    Accepts:
    <CacheLink>
@@ -326,10 +333,21 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     std::string filename = (std::string)f_name;
     std::string session_file = session_dir + '/' + filename;
 
+    Arc::XMLNode resultelement = results.NewChild("Result");
+
     logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
+    resultelement.NewChild("FileURL") = fileurl;
 
     Arc::URL u(fileurl);
     Arc::DataHandle d(u, usercfg);
+    if (!d) {
+      logger.msg(Arc::ERROR, "Can't handle URL %s", fileurl);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::BadURLError);
+      resultelement.NewChild("ReturnCodeExplanation") = "Could not hande input URL";
+      error_happened = true;
+      continue;
+    }
+
     d->SetSecure(false);
     // the actual url used with the cache
     std::string url = d->str();
@@ -338,13 +356,11 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     bool is_locked = false;
 
     if (!cache.Start(url, available, is_locked, true)) {
-      Arc::XMLNode resultelement = results.NewChild("Result");
-      resultelement.NewChild("FileURL") = fileurl;
       if (is_locked) {
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Locked);
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Locked);
         resultelement.NewChild("ReturnCodeExplanation") = "File is locked";
       } else {
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::CacheError);
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::CacheError);
         resultelement.NewChild("ReturnCodeExplanation") = "Error starting cache";
       }
       error_happened = true;
@@ -356,14 +372,12 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
       to_download[fileurl] = session_file;
       continue;
     }
-    Arc::XMLNode resultelement = results.NewChild("Result");
-    resultelement.NewChild("FileURL") = fileurl;
     // file is in cache - check permissions
     if (!cache.CheckDN(url, dn)) {
       Arc::DataStatus res = d->Check(false);
       if (!res.Passed()) {
         logger.msg(Arc::ERROR, "Permission checking failed: %s", url);
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::PermissionError);
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::PermissionError);
         resultelement.NewChild("ReturnCodeExplanation") = "Permission denied";
         error_happened = true;
         continue;
@@ -382,7 +396,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
         continue;
       }
       // failed to link - report as if not there
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::LinkError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
       error_happened = true;
       continue;
@@ -395,7 +409,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
       if (!fa.fa_setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
           !fa.fa_rename(session_file, scratch_file)) {
         logger.msg(Arc::ERROR, "Failed to move %s to %s: %s", session_file, scratch_file, Arc::StrError(errno));
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
+        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::LinkError);
         resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to move file from session dir to scratch";
         error_happened = true;
         continue;
@@ -403,7 +417,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     }
 
     // everything went ok so report success
-    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+    resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Success);
     resultelement.NewChild("ReturnCodeExplanation") = "Success";
   }
 
@@ -412,7 +426,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("FileURL") = i->first;
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::NotAvailable);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::NotAvailable);
       resultelement.NewChild("ReturnCodeExplanation") = "File not available";
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
@@ -428,7 +442,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     // if one DTR failed to start then don't start any more
     // TODO cancel others already started
     if (stage_start_error) {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
       continue;
     }
@@ -436,19 +450,19 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const
     logger.msg(Arc::VERBOSE, "Starting new DTR for %s", i->first);
     if (!dtr_generator->addNewRequest(mapped_user, i->first, i->second, usercfg, jobid, priority)) {
       logger.msg(Arc::ERROR, "Failed to start new DTR for %s", i->first);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
       stage_start_error = true;
     }
     else {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Staging);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Staging);
       resultelement.NewChild("ReturnCodeExplanation") = "Staging started";
     }
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status CacheService::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) {
+Arc::MCC_Status CandyPond::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) {
   /*
    Accepts:
    <CacheLinkQuery>
@@ -483,22 +497,22 @@ Arc::MCC_Status CacheService::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) 
   if (dtr_generator->queryRequestsFinished(jobid, error)) {
     if (error.empty()) {
       logger.msg(Arc::INFO, "Job %s: all files downloaded successfully", jobid);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Success);
       resultelement.NewChild("ReturnCodeExplanation") = "Success";
     }
     else if (error == "Job not found") {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::CacheError);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::CacheError);
       resultelement.NewChild("ReturnCodeExplanation") = "No such job";
     }
     else {
       logger.msg(Arc::INFO, "Job %s: Some downloads failed", jobid);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::DownloadError);
+      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
       resultelement.NewChild("ReturnCodeExplanation") = "Download failed: " + error;
     }
   }
   else {
     logger.msg(Arc::VERBOSE, "Job %s: files still downloading", jobid);
-    resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Staging);
+    resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Staging);
     resultelement.NewChild("ReturnCodeExplanation") = "Still staging";
   }
 
@@ -506,11 +520,11 @@ Arc::MCC_Status CacheService::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) 
 }
 
 
-Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
+Arc::MCC_Status CandyPond::process(Arc::Message &inmsg, Arc::Message &outmsg) {
 
   // Check authorization
   if(!ProcessSecHandlers(inmsg, "incoming")) {
-    logger.msg(Arc::ERROR, "CacheService: Unauthorized");
+    logger.msg(Arc::ERROR, "CandyPond: Unauthorized");
     return make_soap_fault(outmsg, "Authorization failed");
   }
 
@@ -591,21 +605,21 @@ Arc::MCC_Status CacheService::process(Arc::Message &inmsg, Arc::Message &outmsg)
   }
   else {
     // only POST supported
-    logger.msg(Arc::ERROR, "Only POST is supported in CacheService");
+    logger.msg(Arc::ERROR, "Only POST is supported in CandyPond");
     return Arc::MCC_Status();
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-bool CacheService::RegistrationCollector(Arc::XMLNode &doc) {
+bool CandyPond::RegistrationCollector(Arc::XMLNode &doc) {
   Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
   Arc::XMLNode regentry(isis_ns, "RegEntry");
-  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.cacheservice";
+  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.candypond";
   regentry.New(doc);
   return true;
 }
 
-Arc::MCC_Status CacheService::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {
+Arc::MCC_Status CandyPond::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
@@ -619,9 +633,9 @@ Arc::MCC_Status CacheService::make_soap_fault(Arc::Message& outmsg, const std::s
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-} // namespace Cache
+} // namespace CandyPond
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
-    { "cacheservice", "HED:SERVICE", NULL, 0, &Cache::get_service },
+    { "candypond", "HED:SERVICE", NULL, 0, &CandyPond::get_service },
     { NULL, NULL, NULL, 0, NULL }
 };

@@ -52,7 +52,9 @@ use InfoChecker;
 #    $lrms_info_schema - for checking data returned by LRMS modules
 
 my $lrms_options_schema = {
-    'lrms' => '',              # name of the LRMS module
+	# C 10 new lrms block, more options are passed
+    'lrms' => '',              # old name of the LRMS module 
+    'defaultqueue' => '*',      # default queue, optional
     'queues' => {              # queue names are keys in this hash
         '*' => {
 	    'users' => [ '' ]  # list of user IDs to query in the LRMS
@@ -142,7 +144,15 @@ sub collect($) {
     my ($options) = @_;
     my ($checker, @messages);
 
-    my ($lrms_name, $share) = split / /, $options->{lrms};
+    
+    #print Dumper($options);
+    # these lines are meant to take the 
+    # default queue. Maybe should be done differently having the default
+    # explicitly stored in the config.
+    #my $lrmsstring = ($options->{lrms});
+    #my ($lrms_name, $share) = split / /, $lrmsstring; # C 10 new lrms block
+    my $lrms_name = $options->{lrms};
+    my $share = $options->{defaultqueue};
     $options->{scheduling_policy} = $options->{SchedulingPolicy} if $options->{SchedulingPolicy};
     $log->error('lrms option is missing') unless $lrms_name;
     load_lrms($lrms_name);
@@ -255,7 +265,7 @@ sub test {
     LogUtils::level('VERBOSE');
     require Data::Dumper; import Data::Dumper qw(Dumper);
     $log->debug("Options: " . Dumper($options));
-    my $results = LRMSInfo::collect($options);
+    my $results = LRMSInfo::collect($options->{lrms});
     $log->debug("Results: " . Dumper($results));
 }
 

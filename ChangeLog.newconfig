@@ -1,5 +1,34 @@
 #a dedicated changelog file for the configuration reengineering 
 
+2017-08-15 Florido Paganelli florido.paganelli@hep.lu.se
+  * Implemented enable-by-block features for renderings, changes 155,156,158,161
+  * Rewritten lrms block parsing, but LRMS modules need to be checked against it
+  * Revised lrms test suite to work with new config
+  * Added/Improved functions to cherry pick options, including defaults
+  * Implemented changes 2,3 (perflog) to CEinfo.pl, still need to work on PerfData.pl
+  * Improved some log output
+  Revs: {32813,32820,32822,32823,32824,32830}
+
+2017-08-05 Florido Paganelli florido.paganelli@hep.lu.se
+  * Rewritten loading of defaults, implemented some enable-by-block features
+  * Created a subroutine to set defaults and check default block dependencies
+  * enable-by-block implemented for: ldap, bdii, nordugrid, glue1, glue2, glue2/ldap
+  * changed code to log configuration parsing in infoproviders logs
+  * some GLUE2 elements need restructuring and defaults, ongoing
+  Revs: {32808, 32812}
+
+2017-07-17 Florido Paganelli florido.paganelli@hep.lu.se
+  * Code restructuring for gridftpd, lrms blocks and defaults.
+  * Implements changes 71, 72, 125 and some enable-by-block features.
+  Revs: {32795} 
+
+2017-07-14 Florido Paganelli florido.paganelli@hep.lu.se
+ * Modified initdevenv.sh to match python parser deployment changes
+ * Initial support for new blocks like [arex] and enabling EMIES via blocks
+ * Some of the new [infosys] block options implemented
+ * Added various comments to parts I wish to restructure
+ Revs: {32773,32774,32793}
+
 2016-05-15 David Cameron <d.g.cameron@fys.uio.no>
  * Adapt ACIX to new conf parser and format
 

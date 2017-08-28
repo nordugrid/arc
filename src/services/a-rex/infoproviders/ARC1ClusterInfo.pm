@@ -556,11 +556,12 @@ sub collect($) {
     my $nojobs = $data->{nojobs};
 
     my $creation_time = timenow();
-    my $validity_ttl = $config->{validity_ttl};
+    my $validity_ttl = $config->{infosys}{validity_ttl};
     my $hostname = $config->{hostname} || $host_info->{hostname};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
+    ## NOTE: this might be moved to ConfigCentral, but Share is a glue only concept...
     # GLUE2 shares differ from the configuration one.
     # the one to one mapping from a share to a queue is too strong.
     # the following datastructure reshuffles queues into proper
@@ -842,10 +843,8 @@ sub collect($) {
     my $csvcapabilities = {};
     my $epscapabilities = {};
 
-    # sets the default slapd port if not defined in config file.
-    # this is not nice, as default port might change and would be hardcoded.
-    # grid-infosys script sets the defaults so there is no smarter way of doing this now.
-    my $ldaphostport = defined($config->{SlapdPort}) ? "ldap://$hostname:$config->{SlapdPort}/" : "ldap://$hostname:2135/";
+    # defaults now set in ConfigCentral
+    my $ldaphostport = "ldap://$hostname:$config->{ldap}{port}/";
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -878,8 +877,8 @@ sub collect($) {
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
         
     # for org.nordugrid.gridftpjob
-    if ($config->{GridftpdEnabled} == 1) { 
-	$gridftphostport = "$hostname:$config->{GridftpdPort}";
+    if ( $config->{gridftpd}{enabled} == 1 ) { 
+	$gridftphostport = "$hostname:$config->{gridftpd}{port}";
 	$csvendpointsnum++;
     $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
                 'executionmanagement.jobexecution',
@@ -976,21 +975,21 @@ sub collect($) {
     # ARIS LDAP endpoints
     
     # ldapng
-    if ($config->{infosys_nordugrid} || $config->{infosys_glue12}) {
+    if ( defined $config->{infosys}{nordugrid} ) {
         $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue1
-    if ($config->{infosys_glue12}) {
+    if ( defined $config->{infosys}{glue1} ) {
         $csvendpointsnum++;
         $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
         $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue2
-    if ($config->{infosys_glue2_ldap}) {
+    if ( defined $config->{infosys}{glue2}{ldap} ) {
         $csvendpointsnum++;
         $ldapglue2endpoint = $ldaphostport."o=glue";
         $epscapabilities->{'org.nordugrid.ldapglue2'} = [ 'information.discovery.resource' ];
@@ -1028,7 +1027,7 @@ sub collect($) {
     
     # Computing Endpoints IDs
     my $ARCgftpjobcepID;
-    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{GridftpdMountPoint}; # ARCGridFTPComputingEndpoint ID
+    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint}; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID;
     $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
@@ -1040,7 +1039,7 @@ sub collect($) {
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
-    push(@cepIDs,$ARCgftpjobcepID) if ($config->{GridftpdEnabled} == 1);
+    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled} == 1);
     push(@cepIDs,$ARCWScepID) if ($config->{enable_arc_interface});
     push(@cepIDs,$EMIEScepIDp) if ($config->{enable_emies_interface});
     
@@ -1590,7 +1589,7 @@ sub collect($) {
             # Name not necessary -- why? added back
             $cep->{Name} = "ARC GridFTP job execution interface";
 
-            $cep->{URL} = "gsiftp://$gridftphostport".$config->{GridftpdMountPoint};
+            $cep->{URL} = "gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint};
             $cep->{ID} = $ARCgftpjobcepID;
             $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.gridftpjob'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'gridftp';
@@ -1633,7 +1632,7 @@ sub collect($) {
             }
 
             # check if gridftpd is running, by checking pidfile existence
-            push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{GridftpdPidFile});
+            push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{gridftpd}{pidfile});
 
             if (%healthissues) {
             my @infos;
@@ -1647,7 +1646,7 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            if ( $config->{GridftpdAllowNew} == 0 ) {
+            if ( $config->{gridftpd}{allownew} == 0 ) {
                 $cep->{ServingState} = 'draining';
             } else {
                 $cep->{ServingState} = $servingstate;
@@ -1775,13 +1774,11 @@ sub collect($) {
             }
 
             # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
-            $cep->{ServingState} = $servingstate;
+            if ( $config->{arex}{ws}{emies}{allownew} == 0 ) {
+                $cep->{ServingState} = 'draining';
+            } else {
+                $cep->{ServingState} = $servingstate;
+            }
 
             # StartTime: get it from hed
 
@@ -1903,12 +1900,6 @@ sub collect($) {
             }
 
             # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
             $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
@@ -2046,13 +2037,6 @@ sub collect($) {
             $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
             $ep->{TrustedCA} = $host_info->{trustedcas}; # array
             
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -2148,13 +2132,6 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
             $cep->{ServingState} = 'production';
 
             # StartTime: get it from hed
@@ -2288,13 +2265,6 @@ sub collect($) {
             $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
             $ep->{TrustedCA} = $host_info->{trustedcas}; # array
             
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -2513,13 +2483,6 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
             $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
@@ -2644,13 +2607,6 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
             $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
@@ -2738,13 +2694,6 @@ sub collect($) {
             $ep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -2810,13 +2759,6 @@ sub collect($) {
             $ep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -2882,13 +2824,6 @@ sub collect($) {
             $ep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -2995,13 +2930,6 @@ sub collect($) {
             $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
             $ep->{TrustedCA} = $host_info->{trustedcas}; # array
             
-            # OBS: Do 'queueing' and 'closed' states apply for aris?
-            # OBS: Is there an allownew option for aris?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $ep->{ServingState} = 'draining';
-            #} else {
-            #    $ep->{ServingState} = 'production';
-            #}
             $ep->{ServingState} = 'production';
 
             # TODO: StartTime: get it from hed?
@@ -3176,12 +3104,7 @@ sub collect($) {
         $csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
 
         # ServingState: closed and queuing are not yet supported
-        # OBS: Is there an allownew option for a-rex?
-        #if ( $config->{GridftpdAllowNew} == 0 ) {
-        #    $csha->{ServingState} = 'draining';
-        #} else {
-        #    $csha->{ServingState} = 'production';
-        #}
+        # OBS: this serving state should come from LRMS.
         $csha->{ServingState} = 'production';
 
         # Count local jobs
@@ -3718,13 +3641,6 @@ sub collect($) {
 	    $ep->{HealthState} = 'ok';
 	    }
 
-	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-	    # OBS: Is there an allownew option for a-rex?
-	    #if ( $config->{GridftpdAllowNew} == 0 ) {
-	    #    $ep->{ServingState} = 'draining';
-	    #} else {
-	    #    $ep->{ServingState} = 'production';
-	    #}
 	    $ep->{ServingState} = 'production';
 
 	    # StartTime: get it from hed
@@ -3856,13 +3772,6 @@ sub collect($) {
 	    $ep->{HealthState} = 'ok';
 	    }
 
-	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-	    # OBS: Is there an allownew option for a-rex?
-	    #if ( $config->{GridftpdAllowNew} == 0 ) {
-	    #    $ep->{ServingState} = 'draining';
-	    #} else {
-	    #    $ep->{ServingState} = 'production';
-	    #}
 	    $ep->{ServingState} = 'production';
 
 	    # StartTime: get it from hed

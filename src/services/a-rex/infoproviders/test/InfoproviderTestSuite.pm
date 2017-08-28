@@ -68,7 +68,7 @@ sub collect {
     }
   }
   $$cfg{lrms} = $self->{_lrms};
-
+  
   my $lrms_info = LRMSInfo::collect($cfg);
 
   if (-e "$self->{_current_testdir}/simulator-errors.dat") {

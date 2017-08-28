@@ -168,7 +168,15 @@ Slurmctld(primary/backup) at test-machine/(NULL) are UP/DOWN
 ENDOUTPUT
 ENDSIMULATOROUTPUT
   
-  my $cfg = { slurm_bin_path => "<TESTDIR>/bin", queues => { queue1 => { users => ['user1'] } }, jobs => ['1', '2'] };
+  my $cfg = { 
+	   slurm_bin_path => "<TESTDIR>/bin",
+	   queues => {
+		   queue1 => {
+			    users => ['user1'] 
+		   } 
+	   }, 
+	   jobs => ['1', '2'] 
+	   };
 
   my $lrms_info = $suite->collect(\@progs, $simulator_output, $cfg);
 

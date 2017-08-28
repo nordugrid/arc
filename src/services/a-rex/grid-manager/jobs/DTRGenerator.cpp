@@ -141,14 +141,11 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
 
   // Convert A-REX configuration values to DTR configuration
 
-  // If not configured, set the DTR dump file to the first control dir registered
-  std::string dtr_log(staging_conf.dtr_log);
-  if (dtr_log.empty()) dtr_log = config.ControlDir()+"/dtrstate.log";
-  scheduler->SetDumpLocation(dtr_log);
+  scheduler->SetDumpLocation(staging_conf.dtr_log);
 
   // Read DTR state from previous dump to find any transfers stopped half-way
   // If those destinations appear again, add overwrite=yes
-  readDTRState(dtr_log);
+  readDTRState(staging_conf.dtr_log);
 
   // Central DTR log if configured
   if (!staging_conf.get_dtr_central_log().empty()) {

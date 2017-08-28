@@ -1,15 +1,15 @@
-#ifndef CACHESERVICEGENERATOR_H_
-#define CACHESERVICEGENERATOR_H_
+#ifndef CANDYPONDGENERATOR_H_
+#define CANDYPONDGENERATOR_H_
 
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
 #include "../a-rex/grid-manager/conf/StagingConfig.h"
 
-namespace Cache {
+namespace CandyPond {
 
-  /// DTR Generator for the cache service.
-  class CacheServiceGenerator : public DataStaging::DTRCallback {
+  /// DTR Generator for CandyPond.
+  class CandyPondGenerator : public DataStaging::DTRCallback {
 
   private:
     /// Scheduler object to process DTRs.
@@ -43,17 +43,17 @@ namespace Cache {
     /// Start Generator and get Scheduler instance.
     /**
      * If with_arex is true then it is assumed that A-REX takes care of
-     * configuring, starting and stopping the DTR Scheduler. If cache service
+     * configuring, starting and stopping the DTR Scheduler. If CandyPond
      * is run outside of A-REX then it starts an independent DTR instance,
      * using parameters given in arc.conf.
      * @param config A-REX configuration
      * @param with_arex If true then we assume A-REX starts the scheduler, if
      * false then we start and stop it.
      */
-    CacheServiceGenerator(const ARex::GMConfig& config, bool with_arex);
+    CandyPondGenerator(const ARex::GMConfig& config, bool with_arex);
 
     /// Stop Scheduler if we are not running with A-REX
-    ~CacheServiceGenerator();
+    ~CandyPondGenerator();
 
     /// Callback method to receive completed DTRs
     void receiveDTR(DataStaging::DTR_ptr dtr);
@@ -84,6 +84,6 @@ namespace Cache {
     bool queryRequestsFinished(const std::string& jobid, std::string& error);
   };
 
-} // namespace Cache
+} // namespace CandyPond
 
-#endif /* CACHESERVICEGENERATOR_H_ */
+#endif /* CANDYPONDGENERATOR_H_ */

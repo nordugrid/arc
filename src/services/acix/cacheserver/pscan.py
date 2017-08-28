@@ -13,7 +13,7 @@ from twisted.python import log
 from twisted.internet import reactor, defer, protocol
 from twisted.protocols import basic
 
-from arc import config
+from arc.utils import config
 ARC_CONF = '/etc/arc.conf'
 DATA_CACHE_SUBDIR = 'data'
 

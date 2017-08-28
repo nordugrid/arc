@@ -242,7 +242,8 @@ args="qhost -F -h node1"
 output="host=node1.site.org"
 ENDSIMULATOROUTPUT
 
-  my $cfg = {  sge_bin_path => "<TESTDIR>/bin",
+  my $cfg = {  
+	           sge_bin_path => "<TESTDIR>/bin",
                sge_root => "<TESTDIR>/bin",
                queues => {},
                jobs => []

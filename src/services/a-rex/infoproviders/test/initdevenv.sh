@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Script to create dev environment for perl infoproviders
 # author: florido.paganelli@hep.lu.se
@@ -90,14 +90,32 @@ while getopts ":lh" opt; do
   esac
 done
 
-
+# check that we are in the correct dir
+if ! [ -e CEinfo.pl.in ]; then
+   echo "Wrong directory. Run this script from the infoproviders source"
+   echo "folder with"
+   echo "source test/initdevenv.sh <options>"
+   exit 1
+fi
 
 # create symlink to python parser
 echo "Creating symlink to python parser..."
-ln -fs ../../../utils/configparser/arcconfig-parser arcconfig-parser
+mkdir -p /tmp/libexec/arc/
+SRCABSOLUTEPATH=$(readlink -f ../../../)
+ln -fs $SRCABSOLUTEPATH/utils/configparser/arcconfig-parser /tmp/libexec/arc/arcconfig-parser
+echo "Location: $SRCABSOLUTEPATH/utils/configparser/arcconfig-parser"
+
+echo "extending ARC_LOCATION and PYTHONPATH"
+export ARC_LOCATION='/tmp'
+export PYTHONPATH=$SRCABSOLUTEPATH/utils/configparser/:$PYTHONPATH
+echo "Location: $PYTHONPATH"
 echo ""
 
-echo "please see test-arc.conf and pass it to CEinfo.pl"
+# missing file in module tree, I hope this is a temporary fix...
+echo "adding __init__.py to $SRCABSOLUTEPATH/utils/configparser/arc/utils/ ..."
+touch $SRCABSOLUTEPATH/utils/configparser/arc/utils/__init__.py
+
+echo "modify test/test-arc.conf and pass it to CEinfo.pl"
 echo "AREX call: ./CEinfo.pl --splitjobs --config test/test-arc.conf"
 echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config test/test-arc.conf" 
 

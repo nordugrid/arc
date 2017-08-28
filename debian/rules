@@ -73,7 +73,7 @@ clean:
 	rm -f debian/nordugrid-arc-arex.install
 	rm -f debian/nordugrid-arc-arex.a-rex.init
 	rm -f debian/nordugrid-arc-hed.arched.init
-	rm -f debian/nordugrid-arc-cache-service.arc-cache-service.init
+	rm -f debian/nordugrid-arc-candypond.arc-candypond.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.gridftpd.init
 	rm -f debian/nordugrid-arc-aris.nordugrid-arc-bdii.init
@@ -112,8 +112,8 @@ install: build-stamp
 	   debian/nordugrid-arc-arex.a-rex.init
 	mv debian/tmp/etc/init.d/arched \
 	   debian/nordugrid-arc-hed.arched.init
-	mv debian/tmp/etc/init.d/arc-cache-service \
-	   debian/nordugrid-arc-cache-service.arc-cache-service.init
+	mv debian/tmp/etc/init.d/arc-candypond \
+	   debian/nordugrid-arc-candypond.arc-candypond.init
 	mv debian/tmp/etc/init.d/arc-datadelivery-service \
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	mv debian/tmp/etc/init.d/gridftpd \
@@ -147,7 +147,7 @@ binary-arch: install
 	dh_installchangelogs -a
 	dh_installinit -p nordugrid-arc-hed --name arched
 	dh_installinit -p nordugrid-arc-arex --name a-rex
-	dh_installinit -p nordugrid-arc-cache-service --name arc-cache-service
+	dh_installinit -p nordugrid-arc-candypond --name arc-candypond
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis -- start 76 2 3 4 5 . stop 24 0 1 6 .
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd

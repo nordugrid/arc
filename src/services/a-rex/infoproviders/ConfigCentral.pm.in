@@ -29,271 +29,82 @@ use LogUtils;
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 #######################################################################
-## Representation of configuration data after parsing using the python
-## parser. Mostly 1:1 with arc.conf, but there are exceptions indicated
-## below.
+## Block defaults. Will be removed once the python parser returns 
+## defaults.
+## The defaults below are taken from arc.defaults.conf and
+## for default enabled blocks this is not yet decided.
 #######################################################################
 
-#my $pylrms_options = { # former lrms_options, added missing data
-	#lrms => '',
-    #pbs_bin_path => '*',
-    #pbs_log_path => '*',
-    #dedicated_node_string => '*',
-    #maui_bin_path => '*',
-    #condor_bin_path => '*',
-    #condor_config => '*',
-    #condor_rank => '*',
-    #sge_bin_path => '*',
-    #sge_root => '*',
-    #sge_cell => '*',
-    #sge_qmaster_port => '*',
-    #sge_execd_port => '*',
-    #lsf_bin_path => '*',
-    #lsf_profile_path => '*',
-    #lsf_architecture => '*',
-    #ll_bin_path => '*',
-    #ll_consumable_resources => '*',
-    #slurm_bin_path => '*',
-    #slurm_wakeupperiod => '*',
-    #dgbridge_stage_dir => '*',
-    #dgbridge_stage_prepend => '*',
-    #boinc_db_host => '*',
-    #boinc_db_port => '*',
-    #boinc_db_name => '*',
-    #boinc_db_user => '*',
-    #boinc_db_pass => '*',
-#}; 
+my $confdefaults = {
+	common => {
+       arcversion     => '@VERSION@',
+       # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
+       infosys_glue2_service_qualitylevel   => 'production',
+       shared_filesystem => 1,
+       enable_arc_interface => 1,
+       enable_emies_interface => 0
+    },
+   arex => {
+	   defaultttl  => '604800 2629744',
+       infoproviders_timelimit => 10800 # C 42	
+   },
+   gridftpd => {
+	    port => '2811',    
+        pidfile => '/var/run/gridftpd.pid',
+        allownew => 'yes'
+   },
+   'gridftpd/jobs' => {
+	    mountpoint => '/jobs'
+   },
+   infosys => {
+	# default blocks, not in arc.conf but for convenience here
+	# this can be changed using defined but kept here for the moment
+	glue2 => {},
+	# default values
+	validity_ttl =>  10800,
+	loglevel => '1',
+	logfile => '/var/log/arc/infoprovider.log'
+   },
+   'infosys/ldap' => {
+      port => '2135',
+      infosys_ldap_run_dir => '/var/run/arc/infosys/'
+   },
+   'infosys/ldap/bdii' => {
+	   # TODO: remove values unused by providers.
+	   # check InfosysHelper code
+       bdii_debug_level => 'ERROR',
+       provider_timeout => '10800',
+       bdii_location => '/usr',
+       bdii_run_dir => '/var/run/arc/bdii',
+       bdii_log_dir => '/var/log/arc/bdii',
+       bdii_tmp_dir => '/var/tmp/arc/bdii',
+       bdii_var_dir => '/var/lib/arc/bdii',
+       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid',
+       bdii_conf => '/var/run/arc/infosys/bdii.conf',
+       bdii_update_cmd => '/usr/sbin/bdii-update',
+       bdii_db_config => '/etc/bdii/DB_CONFIG',
+       bdii_archive_size => 0,
+       bdii_breathe_time => '10',
+       bdii_delete_delay => 0,
+       ## TODO: fix this elsewere, the value should be set according to the formula below
+       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
+       ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+       #bdii_read_timeout=300
+   },
+   'infosys/glue2' => {
+       admindomain_name => 'UNDEFINEDVALUE',
+       admindomain_distributed => 'no',
+       computingservice_qualitylevel => 'production'
+   },
+   'infosys/glue2/ldap' => {
+	   showactivities => 'no'
+   },
+   'monitoring/perflog' => {
+	   perflogdir => '/var/log/arc/perfdata'
+   }
+};
 
-#my $pylrms_queue_options = { # former lrms_share_options
-    #pbs_queue_node => '*', # previously queue_node_string
-    #condor_requirements => '*',
-    #sge_jobopts => '*',
-    #lsf_architecture => '*',
-    #ll_consumable_resources => '*',
-#};
-#my $pyxenv_options = {
-    #Platform => '*',
-    #Homogeneous => '*',
-    #PhysicalCPUs => '*',
-    #LogicalCPUs => '*',
-    #CPUVendor => '*',
-    #CPUModel => '*',
-    #CPUVersion => '*',
-    #CPUClockSpeed => '*',
-    #CPUTimeScalingFactor => '*',
-    #WallTimeScalingFactor => '*',
-    #MainMemorySize => '*',
-    #VirtualMemorySize => '*',
-    #OSFamily => '*',
-    #OSName => '*',
-    #OSVersion => '*',
-    #VirtualMachine => '*',
-    #NetworkInfo => '*',
-    #ConnectivityIn => '*',
-    #ConnectivityOut => '*',
-    #Benchmark => [ '*' ],
-    #OpSys => [ '*' ],
-    #nodecpu => '*',
-#};
 
-## [queue/NAME] blocks
-#my $pyqueue_options = { # former part of share_options
-    #totalcpus => '*',
-    #defaultmemory => '*',
-    #authorizedvo =>  [ '*' ],
-#};
-
-## commodity datastructure to represent glue2 stuff
-## should be different from what is done now, 
-## shares should be created per policy and
-## use the queue info
-#my $pyqueue_glue2_options = { # former share_options, should only old GLUE2 concepts
-    #MaxVirtualMemory => '*',
-    #MaxSlotsPerJob => '*',
-    #SchedulingPolicy => '*',
-    #Preemption => '*',
-#};
-
-## [gridmanager] block
-#my $pygridmanager_options = { # former gmuser_options
-    #controldir => '',
-    #sessiondir => [ '' ],
-    #cachedir => [ '*' ],
-    #cachesize => '*',
-    #defaultttl => '*',
-    #infoproviders_timelimit => '*', # former infoproviders_timeout in infosys section
-#};
-
-## [common] block
-#my $pycommon_options = { # former gmcommon_options, cleared old arc.conf data
-    #gmconfig => '*', # TODO: what was this meant for? Maybe A-REX XML?
-    #wsurl => '*',
-    #hostname => '*',
-    #maxjobs => '*',
-    #maxload => '*',
-    #maxloadshare => '*',
-    #wakeupperiod => '*',
-    #gridmap => '*',
-    #x509_host_key => '*',
-    #x509_host_cert => '*',
-    #x509_cert_dir => '*',
-    #runtimedir => '*',
-    #gnu_time => '*',
-    #shared_filesystem => '*',
-    #shared_scratch => '*',
-    #scratchdir => '*',
-    #enable_perflog_reporting => '*',
-    #perflogdir => '*'
-#};
-
-## TODO: my something for interfaces
-##    enable_emies_interface => '*',
-##    enable_arc_interface => '*',
-
-## [lrms/ssh] block
-#my $pylrmsssh_options = { # former sshcommon_options
-    #remote_user => '*',
-    #remote_host => '*',
-    #remote_sessiondir => '*',
-    #private_key => '*',
-#};
-
-## [infosys] blocks
-
-#my $pyinfosys_options = {
-     #validity_ttl => '*'	
-#}
-
-## [infosys/ldap] block
-#my $pyinfosys_ldap_options = { # former ldap_infosys_options
-    #port => '*' # former SlapdPort
-#};
-
-## TODO: [infosys/glue2] and [infosys/glue2/ldap]
-##    infosys_glue2_ldap_showactivities => '*',
-    ##infosys_glue2_service_qualitylevel => '*',
-## 
-## TODO: change to new LDAP format 
-## my $admindomain_options = {
-##    Name => '*',
-##    OtherInfo => [ '*' ],
-##    Description => '*',
-##    WWW => '*',
-##    Distributed => '*',
-##    Owner => '*'
-##};
-
-## TODO: interfaces blocks
-##    infosys_nordugrid => '*',
-##    infosys_glue12 => '*',
-##    infosys_glue2_ldap => '*',
-
-## TODO: [infosys/ldap/bdii] block
-##    infosys_ldap_run_dir => '*',
-##    bdii_var_dir => '*',
-##    bdii_tmp_dir => '*',
-##    bdii_run_dir => '*',
-##    bdii_update_pid_file => '*',
-
-#my $pygridftpd_options = { # former gridftpd_options
-##    GridftpdEnabled => '*', # may not be needed anymore as we just check the block
-    #port => '*', # former GridftpdPort
-    #path => '/jobs', # former GridftpdMountPoint, now hardcoded
-    #allownew => '*', # former GridftpdAllowNew
-    #pidfile => '*', # former GridftpdPidFile
-#};
-
-## # # # # # # # # # # # # #
-
-#my $config_schema = {
-    #defaultLocalName => '*',
-    #debugLevel => '*',
-    #ProviderLog => '*',
-    #PublishNordugrid => '*',
-    #AdminDomain => '*',
-    #ttl => '*',
-    #admindomain => { %$admindomain_options },
-    #%$gmcommon_options,
-    #%$sshcommon_options,
-    #%$gridftpd_options,
-    #%$ldap_infosys_options,
-    #%$lrms_options,
-    #%$lrms_share_options,
-    #control => {
-        #'*' => {
-            #%$gmuser_options
-        #}
-    #},
-    #service => {
-        #OtherInfo => [ '*' ],
-        #StatusInfo => [ '*' ],
-        #Downtime => '*',
-        #ClusterName => '*',
-        #ClusterAlias => '*',
-        #ClusterComment => '*',
-        #ClusterOwner => [ '*' ],
-        #Middleware => [ '*' ],
-        #AuthorizedVO => [ '*' ],
-        #LocalSE => [ '*' ],
-        #InteractiveContactstring => [ '*' ],
-        #%$xenv_options,
-        #%$share_options,
-    #},
-    #location => {
-        #Name => '*',
-        #Address => '*',
-        #Place => '*',
-        #Country => '*',
-        #PostCode => '*',
-        #Latitude => '*',
-        #Longitude => '*',
-    #},
-    #contacts => [ {
-        #Name => '*',
-        #OtherInfo => [ '*' ],
-        #Detail => '',
-        #Type => '',
-    #} ],
-    #accesspolicies => [ {
-        #Rule => [ '' ],
-        #UserDomainID => [ '' ],
-    #} ],
-    #mappingpolicies => [ {
-        #ShareName => [ '' ],
-        #Rule => [ '' ],
-        #UserDomainID => [ '' ],
-    #} ],
-    #xenvs => {
-        #'*' => {
-            #OtherInfo => [ '*' ],
-            #NodeSelection => {
-                #Regex => [ '*' ],
-                #Command => [ '*' ],
-                #Tag => [ '*' ],
-            #},
-            #%$xenv_options,
-        #}
-    #},
-    #shares => {
-        #'*' => {
-            #Description => '*',
-            #OtherInfo => [ '*' ],
-            #MappingQueue => '*',
-            #ExecutionEnvironmentName => [ '' ],
-            #%$share_options,
-            #%$lrms_share_options,
-        #}
-    #}
-    #infosys => {
-	  # loglevel => ''
-    #}
-#};
-
-#my $allbools = [ qw(
-                 #PublishNordugrid Homogeneous VirtualMachine
-                 #ConnectivityIn ConnectivityOut Preemption
-                 #infosys_nordugrid infosys_glue12 infosys_glue2_ldap infosys_glue2_ldap_showactivities
-                 #GridftpdEnabled GridftpdAllowNew Distributed enable_arc_interface enable_emies_interface enable_perflog_reporting) ];
 
 ######################################################################
 # Legacy Internal representation of configuration data after parsing #
@@ -374,7 +185,7 @@ my $gmuser_options = {
     defaultttl => '*',
 };
 my $gmcommon_options = {
-    lrms => '',
+    # lrms => '', C 10 removed from here to the lrms hash
     gmconfig => '*',
     endpoint => '*',
     hostname => '*',
@@ -393,8 +204,6 @@ my $gmcommon_options = {
     shared_filesystem => '*',
     shared_scratch => '*',
     scratchdir => '*',
-    enable_emies_interface => '*',
-    enable_arc_interface => '*',
     enable_perflog_reporting => '*',
     perflogdir => '*'
 };
@@ -404,29 +213,45 @@ my $sshcommon_options = {
     remote_sessiondir => '*',
     private_key => '*',
 };
-my $ldap_infosys_options = {
-    SlapdPort => '*',
-    infosys_ldap_run_dir => '*',
-    bdii_var_dir => '*',
-    bdii_tmp_dir => '*',
+
+# C 147
+my $bdii_options = {
+    # TODO: remove values unused by providers.
+    # check InfosysHelper code
+    bdii_debug_level => '*',
+    provider_timeout => '*',
+    bdii_location => '*',
     bdii_run_dir => '*',
-    infosys_nordugrid => '*',
-    infosys_glue12 => '*',
-    infosys_glue2_ldap => '*',
+    bdii_log_dir => '*',
+    bdii_tmp_dir => '*',
+    bdii_var_dir => '*',
     bdii_update_pid_file => '*',
+    bdii_conf => '*',
+    bdii_update_cmd => '*',
+    bdii_db_config => '*',
+    bdii_archive_size => '*',
+    bdii_breathe_time => '*',
+    bdii_delete_delay => '*',
+    bdii_read_timeout => '*'
+};
+
+# C 141
+my $ldap_infosys_options = {
+    port => '*',
+    infosys_ldap_run_dir => '*',
     infosys_glue2_ldap_showactivities => '*',
     infosys_glue2_service_qualitylevel => '*',
-    infoproviders_timeout => '*',
     validity_ttl => '*'
 };
-my $gridftpd_options = {
-    GridftpdEnabled => '*',
-    GridftpdPort => '*',
-    GridftpdMountPoint => '*',
-    GridftpdAllowNew => '*',
-    remotegmdirs => [ '*' ],
-    GridftpdPidFile => '*',
-};
+
+# C 125-130 renaming these properly direcly in the gridftpd block
+#my $gridftpd_options = {
+#    GridftpdEnabled => '*',
+#    GridftpdPort => '*',
+#    GridftpdMountPoint => '*',
+#    GridftpdAllowNew => '*',
+#    GridftpdPidFile => '*',
+#};
 
 my $admindomain_options = {
     Name => '*',
@@ -435,6 +260,28 @@ my $admindomain_options = {
     WWW => '*',
     Distributed => '*',
     Owner => '*'
+};
+
+# [arex] subblocks
+my $wsemies_options = { # C 71
+	 allownew => '*'	    # C 72
+	}; 
+
+# C 66
+my $ws_options = {
+    wsurl => '*',
+    emies => { %$wsemies_options } # C 71
+};
+
+# C 156
+my $glue2_options = {
+    admindomain_name => '*',
+    admindomain_description => '*',
+    admindomain_www => '*',
+    admindomain_distributed => '*',
+    admindomain_owner => '*',
+    admindomain_otherinfo => '*',
+    computingservice_qualitylevel => '*' # 157
 };
 
 # # # # # # # # # # # # # #
@@ -450,10 +297,11 @@ my $config_schema = {
     
     %$gmcommon_options,
     %$sshcommon_options,
-    %$gridftpd_options,
-    %$ldap_infosys_options,
-    %$lrms_options,
-    %$lrms_share_options,    
+    # moved all these to their own subtrees to be in sync with new config
+    # %$gridftpd_options,
+    # %$ldap_infosys_options,
+    # %$lrms_options,
+    # %$lrms_share_options,    
     control => {
         '*' => {
             %$gmuser_options
@@ -520,23 +368,54 @@ my $config_schema = {
         }
     },
     # start of newly added items for arcconf restructuring
+    # C 10
+    lrms => {
+	    lrms => '',
+	    defaultqueue => '*',
+	    lrmsconfig => '*',
+	    %$lrms_options,
+	    %$lrms_share_options
+	},
     infosys => {
+		nordugrid => {}, # C 155
 		logfile => '*',  #C 133
 		loglevel => '*', #C 134, replaces ProviderLog
 		validity_ttl => '*',
-		user => '*'
+		user => '*',
+		ldap => { # C141
+			%$ldap_infosys_options, # C 141
+			%$bdii_options # C 147
+		},
+		glue1 => {}, # C 161
+	    glue2 => { # C 156
+	       %$glue2_options,
+	       ldap => { # C158
+		       showactivities => '*'
+	       }
+	    }
     },
     arex => {
+		defaultttl => '*',
+		logfile => '*',
 		loglevel => '*', # replaces $config_schema->{debugLevel}, C 37
-		infoproviders_timelimit => '*'
+		infoproviders_timelimit => '*', # C 42
+		ws => { %$ws_options } # C 66
+	},
+	gridftpd => {
+		enabled => '*',
+		port => '*',
+		mountpoint => '*',
+	    allownew => '*',
+	    pidfile => '*'
 	}
 };
 
+# TODO: remove some or change because of the enable-by-block strategy
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
-                 infosys_nordugrid infosys_glue12 infosys_glue2_ldap infosys_glue2_ldap_showactivities
-                 GridftpdEnabled GridftpdAllowNew Distributed enable_arc_interface enable_emies_interface enable_perflog_reporting) ];
+                 showactivities
+                 enabled allownew Distributed enable_perflog_reporting) ];
 
 ############################ Generic functions ###########################
 
@@ -622,6 +501,17 @@ sub rename_keys {
     }
 }
 
+# Takes two hash references and merges values
+# the value of hash2 is taken if the value in 
+# hash1 is not defined
+# usage: merge_hash_values(hash1,hash2)
+sub merge_hash_values {
+	my ($hash1,$hash2) = @_;
+    for (keys %{$hash2}) {
+        $hash1->{$_} = $hash2->{$_} if not defined $hash1->{$_};
+    }
+}
+
 ##################### Read config via arcconfig-parser ################
 
 # execute parser and get json data
@@ -649,7 +539,7 @@ sub _substitute {
     my ($config, $arc_location) = @_;
     my $control = $config->{control};
 
-    my ($lrms, $defqueue) = split " ", $config->{lrms} || '';
+    my ($lrms, $defqueue) = split " ", $config->{lrms}{lrms} || ''; # C 10 moved lrms name to a new block
 
     die 'Gridmap user list feature is not supported anymore. Please use @filename to specify user list.'
         if exists $control->{'*'};
@@ -756,53 +646,56 @@ sub build_config_from_json {
     
     my $jsonconf = read_json_config($file);
 
-    ## TODO: set and check defaults.
+    ## TODO: check defaults.
     ## maybe add the default checker in InfoChecker.pm?
     ## this is required for the mandatory values. Program should exit with 
     ## errors or solve the issue automatically if the mandatory value
     ## is not set.
     ## $jsonconf = InfoChecker::setDefaults($jsonconf);
-
+    ## ALTERNATIVE: defaults are produced by the python parser. The the above step is not needed.
+    ## I am quite sure some subsystem-dependent logic will be needed.
+    set_defaults($jsonconf);
+    
     # Those values that are the same as in arc.conf will 
     # be copied and checked.
     my $config ||= {};
     $config->{service} ||= {};
     $config->{control} ||= {};
+    ## TODO: maybe move all glue2 stuff into some GLUE2 subset?
     $config->{location} ||= {};
     $config->{contacts} ||= [];
     $config->{accesspolicies} ||= [];   
     $config->{mappingpolicies} ||= [];
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
-    $config->{admindomain} ||= {};
 
     # start of restructured pieces of information
     $config->{infosys} ||= {};
+    # use service for first implementation
     $config->{arex} ||= {};
+    $config->{lrms} ||= {};
     #  end of restructured pieces of information
-
+    
 
     my $common = $jsonconf->{'common'};    
+    ## TODO: remove everything that should not be in $config
     move_keys $common, $config, [keys %$gmcommon_options];
-    move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
+    
+    # C 10 new lrms block
+    my $lrms = $jsonconf->{'lrms'};
+    # some options in lrms, moved to $config for  backward compatibility, 
+    # should be moved to {lrms} instead
+    #move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
+    move_keys $lrms, $config->{'lrms'}, [keys %$lrms];
+    move_keys $lrms, $config->{'lrms'}, [keys %$lrms_options, keys %$lrms_share_options];   
     
     # C 173
-    my $arex = $jsonconf->{'a-rex'};
+    my $arex = $jsonconf->{'arex'};
     move_keys $arex, $config, [keys %$gmcommon_options];
-    rename_keys $arex, $config, {arex_mount_point => 'endpoint'};
     
     my $ssh = $jsonconf->{'ssh'};
     move_keys $ssh, $config, [keys %$sshcommon_options];
-    
-    
-    # C 37 changed there is no more common debuglevel
-    # TODO: remove debugLevel occurences everywhere else 
-    # $config->{debugLevel} = $common->{debug} if $common->{debug}; 
-    
-
-    # TODO: create a proper subconfig for this, remove references to this one
-    move_keys $common, $config, [keys %$ldap_infosys_options];
-
+        
     #C 133 134
     my $infosys = $jsonconf->{'infosys'};
         
@@ -816,41 +709,101 @@ sub build_config_from_json {
     move_keys $arex, $config->{control}{'.'}, [keys %$gmuser_options];
     # C 173
     move_keys $arex, $config->{arex}, [keys %$arex];
+    # use service for first implementation
+    #move_keys $arex, $config->{service}, [keys %$service];
 
-    # Cherry-pick some gridftp options
-    # TODO: clean this into a proper section, not the mess that is now!
+    # NEW: arex subblocks
+    # C 71
+    if (defined $jsonconf->{'arex/ws'}) {
+       my $arexws = $jsonconf->{'arex/ws'};
+       $config->{arex}{ws} ||= {};
+       move_keys $arexws, $config->{arex}{ws}, [keys %$ws_options];
+    }
+       
+    if (defined $jsonconf->{'arex/ws/emies'}) {
+        my $arexwsemies = $jsonconf->{'arex/ws/emies'};
+        $config->{arex}{ws}{emies} ||= {};
+        move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
+    } 
+
+
+    # gridftpd config    
     if (defined $jsonconf->{'gridftpd/jobs'}) {
-        my $gconf = $jsonconf->{'gridftpd'};
-        my $gjconf = $jsonconf->{'gridftpd/jobs'};
-        $config->{GridftpdEnabled} = 'yes';
-        $config->{GridftpdPort} = $gconf->{port} if $gconf->{port};
-        $config->{GridftpdMountPoint} = $gjconf->{path} if $gjconf->{path};
-        $config->{GridftpdAllowNew} = $gjconf->{allownew} if defined $gjconf->{allownew};
-        # TODO: check if remote dirs have been removed
-        #$config->{remotegmdirs} = $gjconf{remotegmdirs} if defined $gjconf{remotegmdirs};
-        $config->{GridftpdPidFile} = $gconf->{pidfile} if defined $gconf->{pidfile};
+		$config->{gridftpd} ||= {};
+		my $gconf = $jsonconf->{'gridftpd'};
+	    my $gjconf = $jsonconf->{'gridftpd/jobs'};
+	    move_keys $gconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
+	    move_keys $gjconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
+	    $config->{gridftpd}{enabled} = 1;
     } else {
-        $config->{GridftpdEnabled} = 'no';
+	    $log->verbose("[gridftpd/jobs] block not found in arc.conf. Disabling gridftpd job interface information generation.")	
+	}
+
+    # LDAP config
+    if (defined $jsonconf->{'infosys/ldap'}) {
+		$config->{infosys}{ldap} ||= {};
+		my $ldapconf = $jsonconf->{'infosys/ldap'};
+	    move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$ldap_infosys_options];
+	    
+	    # BDII config
+        if (defined $jsonconf->{'infosys/ldap/bdii'}) {
+		   my $ldapconf = $jsonconf->{'infosys/ldap/bdii'};
+	       move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$bdii_options];
+        } else {
+	       $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values")	
+	    }
+    } else {
+	    $log->verbose("[infosys/ldap] block not found in arc.conf Disabling LDAP/LDIF information generation.")	
+	}
+
+    # information schemas
+    # NorduGRID
+    if (defined $jsonconf->{'infosys/nordugrid'}) {
+		$config->{infosys}{nordugrid} ||= {};
     }
 
-    # global AdminDomain configuration
-    if (defined $jsonconf->{'infosys/admindomain'}) {
-        my $admindomain_options = { $jsonconf->{'infosys/admindomain'} };
-        rename_keys $admindomain_options, $config->{'admindomain'}, {name => 'Name',
-                                                    otherinfo => 'OtherInfo',
-                                                    description => 'Description',
-                                                    www => 'WWW',
-                                                    distributed => 'Distributed',
-                                                    owner => 'Owner'
-                                                    };
+    # Glue 1.2/1.3
+    # this is only used to enable rendering here, no need to parse.
+    # glue-generator.pl actually processes that information.
+    if (defined $jsonconf->{'infosys/glue1'}) {
+		$config->{infosys}{glue1} ||= {};
+    }    
+
+    ####### GLUE2
+    if (defined $jsonconf->{'infosys/glue2'}) {
+		$config->{infosys}{glue2} ||= {};
+		my $glue2conf = $jsonconf->{'infosys/glue2'};
+		move_keys $glue2conf, $config->{infosys}{glue2}, [keys %$glue2_options];
+		# GLUE2 ldap
+        if (defined $jsonconf->{'infosys/glue2/ldap'}) {
+		   $config->{infosys}{glue2}{ldap} ||= {};
+		   my $glue2ldapconf = $jsonconf->{'infosys/glue2/ldap'};
+	       move_keys $glue2ldapconf, $config->{infosys}{glue2}{ldap}, [keys %{$config_schema->{infosys}{glue2}{ldap}}];
+        }
+    }    
+
+    # AdminDomain
+    ## TODO: change code to use new config
+    ## make it possible to disable publishing
+    if (defined $jsonconf->{'infosys/glue2'}{admindomain_name}) {
+        my $admindomain_options = $jsonconf->{'infosys/glue2'};
+        rename_keys $admindomain_options, $config->{'admindomain'}, {
+			     admindomain_name => 'Name',
+                 admindomain_otherinfo => 'OtherInfo',
+                 admindomain_description => 'Description',
+                 admindomain_www => 'WWW',
+                 admindomain_distributed => 'Distributed',
+                 admindomain_owner => 'Owner'
+                 };
         move_keys $admindomain_options, $config->{'admindomain'}, [keys %$admindomain_options];
 
     } else {
-        $log->info('[infosys/admindomain] section missing. No site information will be published.');
+        $log->info('[infosys/glue2] section missing admindomain information. No site information will be published.');
     }
 
     ############################ legacy ini config file structure #############################
 
+    # TODO What does this one do? something is wrong here.
     move_keys $common, $config, ['AdminDomain'];
 
     my $cluster = $jsonconf->{'cluster'};
@@ -884,13 +837,13 @@ sub build_config_from_json {
         move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];
     }
     # TODO: parse queues with something similar to list_subsections
-    # hash keys stripped of the queue/ prefix will do
+    # hash keys stripped of the queue: prefix will do
     my @qnames=();
     for my $keyname (keys %{$jsonconf}) {
-	   push(@qnames,$1) if $keyname =~ /queue\/(.*)/;
+	   push(@qnames,$1) if $keyname =~ /queue\:(.*)/;
 	}
     for my $name (@qnames) {
-        my $queue = $jsonconf->{"queue/$name"};
+        my $queue = $jsonconf->{"queue:$name"};
 
         my $sconf = $config->{shares}{$name} ||= {};
         my $xeconf = $config->{xenvs}{$name} ||= {};
@@ -914,7 +867,7 @@ sub build_config_from_json {
     }
 
     ################################# new ini config file structure ##############################
-    ## TODO: these do not exist for real. The new ini was never used.
+    ## TODO: remove this section once arc.conf.restructuring is done
 #~ 
     #~ my $provider = { $iniparser->get_section("InfoProvider") };
     #~ move_keys $provider, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
@@ -997,13 +950,6 @@ sub isXML {
 sub parseConfig {
     my ($file,$arc_location) = @_;
     my $config;
-    #if (isXML($file)) {
-    #    $config = build_config_from_xmlfile($file, $arc_location);
-    #    my $inifile = $config->{gmconfig};
-    #    $config = build_config_from_inifile($inifile, $config) if $inifile;
-    #} else {
-    #    $config = build_config_from_inifile($file);
-    #}
     
     $config = build_config_from_json($file);
 
@@ -1016,6 +962,11 @@ sub parseConfig {
     my @messages = $checker->verify($config,1);
     $log->verbose("config key config->$_") foreach @messages;
     $log->verbose("Some required config options are missing") if @messages;
+
+    # 20170802 moved these two from CEinfo.pl.in
+    # TODO: merge into one, eventually remove fix config thanks to the defaults
+    fix_config($config);
+    check_config($config);
 
     return $config;
 }
@@ -1105,9 +1056,201 @@ sub printLRMSConfigScript {
     _print_shell_end();
 }
 
+sub set_defaults {
+    my ($config) = @_;
+    
+    $log->debug("Applying defaults");
+    
+    ## TODO: create default blocks here. Ongoing    
+    
+    # force gridftpd defaults if only gridftpd/jobs is found in config
+    if (defined $config->{'gridftpd/jobs'}) {
+		$log->warning("[gridftpd] block not found but subblocks defined. Using [gridftpd] defaults");
+		$config->{gridftpd} ||= {}
+	}
+
+    # Force NorduGRID publishing if glue1 is enabled
+    if (defined $config->{'infosys/glue1'}) {
+       unless (defined $config->{'infosys/nordugrid'}) {
+	       $log->warning("Glue1 information is based on NorduGRID schema. Automatically enabling [infosys/nordugrid]. Manually add such block to arc.conf to remove this message");
+           $config->{'infosys/nordugrid'} ||= {};
+       }
+    }
+    
+    # force ldap defaults if ldap renderings are enabled in config
+    if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
+		unless (defined $config->{'infosys/ldap'}) {
+		    $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure blocks [infosys/ldap] and [infosys/ldap/bdii] to remove this message.");
+		    $config->{'infosys/ldap'} ||= {};
+		    $config->{'infosys/ldap/bdii'} ||= {};
+		}
+	}
+    
+    ## end of default blocks creation
+       
+       
+    for (keys %$confdefaults) {
+		if (defined $config->{$_}) {
+			$config->{$_} ||= {};
+			merge_hash_values($config->{$_},$confdefaults->{$_});
+		} else {
+		  $log->debug("$_ block missing");
+	    }
+	}
+}
+
+# Alters the parsed configuration options by:
+#  * adding some defaults
+#  * flattening per-user options
+# 20140225 - synched some options from GMConfig.cpp
+# 20170802 - moved out of CEinfo.pl.in, renamed as set_defaults
+# TODO: separate default setting from defaults used exclusively by the
+#       infosys. Maybe this is a good candidate for glue2 stuff?
+
+sub fix_config {
+    my ($config) = @_;
+
+    # TODO: check if this one is to be done before moving data to control
+    #$config->{control} ||= {};
+    #merge_hash_values($config->{control}{"."}->,$control_defaults);
+ 
+    #for (keys %control_defaults) {
+    #    $config->{control}->{"."}->{$_} = $control_defaults{$_} if not defined $config->{control}->{"."}->{$_};
+    #}
+    $config->{service} ||= {};
+    $config->{shares} ||= {};
+    $config->{xenvs} ||= {};
+
+    # Parse for defaultqueue
+    my ($lrmsname, $defaultqueue) = split /\s+/, $config->{lrms}{lrms} || ''; # C 10
+    $config->{'lrms'}{'lrms'} = $lrmsname; 
+    $config->{'lrms'}{'defaultqueue'} = $defaultqueue if defined $defaultqueue;
+
+
+    ## TODO: rewrite these two objects in some consistent way
+    delete $config->{location} unless $config->{location} and %{$config->{location}};
+    delete $config->{contacts} unless $config->{contacts} and @{$config->{contacts}};
+
+    my $hostname = $config->{hostname} || hostname();
+    {  
+        my @dns = split /\./, $hostname;
+        my $shorthost = shift @dns;
+        my $dnsdomain = join ".", @dns;
+
+        $log->info("AdminDomain config option is missing in XML. Defaulting to arc.conf values") unless $config->{AdminDomain};
+        $log->info("AdminDomain name in [infosys/admindomain] block is missing or incorrect in arc.conf. Defaulting to UNDEFINEDVALUE") unless $config->{admindomain}{Name};
+
+        chomp ($config->{admindomain}{Name} ||= "UNDEFINEDVALUE");
+        chomp ($config->{AdminDomain} ||= "UNDEFINEDVALUE");
+        
+        
+        $log->info("ClusterName config option is missing in XML. Trying cluster_alias...") unless $config->{service}{ClusterName};
+        $log->info("ClusterAlias in XML or cluster-alias in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
+        chomp ($config->{service}{ClusterName} ||= $config->{service}{ClusterAlias} ||= $shorthost);
+    }
+
+    # Manage A-REX WS interfaces publication
+    # TODO DEFAULTS: manage this in some default fixes elsewhere, preferrably ConfigCentral.pm, even better in arcconfig-parser
+    if (defined $config->{arex}{ws}) {
+		# TODO: temporary, should be substituted by the enable-by-block paradigm all over the code
+		$config->{enable_emies_interface} = 1;
+	    $config->{arex}{ws}{wsurl} = 'https://'.$config->{hostname}.':443/arex' unless (defined $config->{arex}{ws}{wsurl});
+		$config->{arex}{ws}{wsurl} =~ m{^(https?)://([^:/]+)(?::(\d+))?(.*)};
+        my ($proto,$host,$port,$mountpoint) = ($1,$2,$3,$4);
+        $port ||= 80 if $proto eq "http";
+        $port ||= 443 if $proto eq "https";
+        # TODO DEFAULTS: ok to have this in the config datastructure, find a proper place, maybe better inside {arex}
+        $config->{arexhostport} = "$host:$port";
+        # fix endpoint information if not complete
+        $config->{arex}{ws}{wsurl} = "$proto://$host:$port$mountpoint"
+    } else {
+		# disable all WS interfaces
+		# TODO: remove and check that this is done via the enable-by-block system now
+		$config->{enable_arc_interface} = 0;
+		$config->{enable_emies_interface} = 0;
+		$log->warning("arex/ws block not present or wsurl not configured. WS interface EMI-ES will not be published.");
+	}
+        
+    # fire warning if GLUE2 Service Quality Level is not good
+    # TODO: I'd like this to be done by InfoChecker
+    if ($config->{infosys_glue2_service_qualitylevel}) {
+        my $qualitylevelstring = $config->{infosys_glue2_service_qualitylevel};
+        my $closedenumeration = {'development' => '1',
+                                 'pre-production' => '1',
+                                 'production' => '1',
+                                 'testing' => '1'
+                                };
+        if (! $closedenumeration->{$qualitylevelstring} ) {
+            $log->error("infosys_glue2_service_qualitylevel contains \"$qualitylevelstring\" which is an invalid value. Allowed value is one of: testing production pre-production development"); 
+        }
+    }
+
+    # TDOD: remove this or move it into ConfigCentral (create shares based on configured VOs in ConfigCentral? Is this possible/good?)
+    # why are these checks not done by InfoChecker?
+    # Cross-check MappingPolicy references and move them to the share wehre they belong
+    for my $s (@{$config->{mappingpolicies}}) {
+        $log->error("MappingPolicy must include a ShareName option")
+            unless $s->{ShareName};
+        $log->error("MappingPolicy must include a Rule option")
+            unless $s->{Rule};
+        $log->error("MappingPolicy must include a UserDomainID option")
+            unless $s->{UserDomainID};
+        for my $name (@{$s->{ShareName}}) {
+            $log->error("MappingPolicy associated with non-existent Share: $name")
+                unless $config->{shares}{$name};
+            push @{$config->{shares}{$name}{mappingpolicies}}, $s;
+        }
+    }
+
+}
+
+## TODO: check these checks need to aggregate info from other sources (e.g. info fetched by other modules)
+## simplify some stuff already done earlier
+# Does some consistency checks on the parsed configuration options
+# 20170802: moved out of CEinfo.pl.in
+
+sub check_config {
+    my ($config) = @_;
+
+    $log->error("No queue or ComputingShare configured") unless %{$config->{shares}};
+    $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
+
+    $log->error("No control directory configured")
+        unless %{$config->{control}} or $config->{remotegmdirs};
+    while (my ($user, $control) = each %{$config->{control}}) {
+        $log->error("No control directory configured for user $user") unless $control->{controldir};
+        $log->error("No session directory configured for user $user") unless $control->{sessiondir};
+    }
+
+    # Cross-check ExecutionEnvironment references
+    for my $s (values %{$config->{shares}}) {
+        next unless $s->{ExecutionEnvironmentName};
+        for my $group (@{$s->{ExecutionEnvironmentName}}) {
+            $log->error("ComputingShare associated with non-existent ExecutionEnvironment: $group")
+                unless $config->{xenvs}{$group};
+        }
+    }
+    for my $s (values %{$config->{xenvs}}) {
+        delete $s->{NodeSelection} unless %{$s->{NodeSelection}};
+    }
+
+    $log->error("GLUE2: defaultqueue set to nonexistent ComputingShare")
+        if $config->{lrms}{defaultqueue} and not $config->{shares}{$config->{lrms}{defaultqueue}};
+
+    if ($config->{contacts}) {
+        for (@{$config->{contacts}}) {
+            $log->warning("Contact is missing Type") and next unless $_->{Type};
+            $log->warning("Contact is missing Detail") and next unless $_->{Detail};
+            $log->warning("Contact Detail is not an URI: ".$_->{Detail}) and next
+                unless $_->{Detail} =~ m/^\w+:/;
+        }
+    }
+}
+
 ## getValueOf: Cherry picks arc.conf values
 ## Perl wrapper for the python parser
 ## input: configfile,configblock, configoption
+## TODO: maybe use read_json_config for security reasons?
 sub getValueOf ($$$){
    	my ($arcconf,$block,$option) = @_;	
 	
@@ -1125,9 +1268,23 @@ sub getValueOf ($$$){
 
     # strip trailing newline
     chomp $value;
+
+    # get defaults
+    if ( !(defined $value) || $value eq 'None') {
+        $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});	
+	}
   
     return $value;
 
+}
+
+## isBlockPresent: returns true if block exists in config
+sub isBlockPresent ($$) {
+    my ($arcconf,$block) = @_;	
+
+    my $jsonconf = read_json_config($arcconf);
+	
+	if (defined $jsonconf->{$block}) { return 1 } else { return 0 } ;
 }
 
 sub dumpInternalDatastructure ($){

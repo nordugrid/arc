@@ -510,23 +510,23 @@ prepare() {
   </ConfigBlock>
 </SecHandler>"
 
-    # cache service
-    cache_service_plexer=""
-    cache_service=""
-    use_cache_service=`testconfigblock "$ARC_CONFIG" arex/ws/cache`
-    if [ "$use_cache_service" = "true" ]; then
+    # candypond
+    candypond_plexer=""
+    candypond=""
+    use_candypond=`testconfigblock "$ARC_CONFIG" arex/ws/candypond`
+    if [ "$use_candypond" = "true" ]; then
         if [ "$ws_present" != 'true' ] ; then
-            log_failure_msg "WS interface must be turned on to use cache service"
+            log_failure_msg "WS interface must be turned on to use candypond"
             exit 1
         fi
-        cache_service_plexer="<next id=\"cacheservice\">^$arex_path/cache</next>"
-        cache_service="\
-    <Service name=\"cacheservice\" id=\"cacheservice\">\
+        candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
+        candypond="\
+    <Service name=\"candypond\" id=\"candypond\">\
       $legacy_shc
-      <cacheservice:cache>\
-        <cacheservice:config>$ARC_CONFIG</cacheservice:config>\
-        <cacheservice:witharex>true</cacheservice:witharex>\
-      </cacheservice:cache>\
+      <candypond:service>\
+        <candypond:config>$ARC_CONFIG</candypond:config>\
+        <candypond:witharex>true</candypond:witharex>\
+      </candypond:service>\
     </Service>"
     fi
     
@@ -652,7 +652,7 @@ prepare() {
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
   xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
-  xmlns:cacheservice=\"urn:cacheservice_config\">
+  xmlns:candypond=\"urn:candypond_config\">
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
@@ -689,7 +689,7 @@ prepare() {
       <next id=\"plexer\"/>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
-      $cache_service_plexer
+      $candypond_plexer
       $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
@@ -704,7 +704,7 @@ prepare() {
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
-    $cache_service
+    $candypond
   </Chain>
 </ArcConfig>
 "
@@ -716,7 +716,7 @@ prepare() {
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
   xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
   xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
-  xmlns:cacheservice=\"urn:cacheservice_config\">
+  xmlns:candypond=\"urn:candypond_config\">
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
@@ -770,7 +770,7 @@ prepare() {
       <next id=\"plexer\"/>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
-      $cache_service_plexer
+      $candypond_plexer
       $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
@@ -785,7 +785,7 @@ prepare() {
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
-    $cache_service
+    $candypond
   </Chain>
 </ArcConfig>
 "

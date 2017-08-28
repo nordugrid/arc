@@ -3,13 +3,13 @@
 
 #include "../a-rex/grid-manager/conf/UrlMapConfig.h"
 
-#include "CacheServiceGenerator.h"
+#include "CandyPondGenerator.h"
 
-namespace Cache {
+namespace CandyPond {
 
-  Arc::Logger CacheServiceGenerator::logger(Arc::Logger::rootLogger, "CacheServiceGenerator");
+  Arc::Logger CandyPondGenerator::logger(Arc::Logger::rootLogger, "CandyPondGenerator");
 
-  CacheServiceGenerator::CacheServiceGenerator(const ARex::GMConfig& conf, bool with_arex) :
+  CandyPondGenerator::CandyPondGenerator(const ARex::GMConfig& conf, bool with_arex) :
       generator_state(DataStaging::INITIATED),
       use_host_cert(false),
       scratch_dir(conf.ScratchDir()),
@@ -76,13 +76,13 @@ namespace Cache {
     generator_state = DataStaging::RUNNING;
   }
 
-  CacheServiceGenerator::~CacheServiceGenerator() {
+  CandyPondGenerator::~CandyPondGenerator() {
     generator_state = DataStaging::STOPPED;
     if (!run_with_arex) scheduler->stop();
     // delete scheduler? it is possible another thread is using the static instance
   }
 
-  void CacheServiceGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
+  void CandyPondGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
 
     // Take DTR out of processing map and add to finished jobs
     logger.msg(Arc::INFO, "DTR %s finished with state %s", dtr->get_id(), dtr->get_status().str());
@@ -143,7 +143,7 @@ namespace Cache {
     }
   }
 
-  bool CacheServiceGenerator::addNewRequest(const Arc::User& user,
+  bool CandyPondGenerator::addNewRequest(const Arc::User& user,
                                             const std::string& source,
                                             const std::string& destination,
                                             const Arc::UserConfig& usercfg,
@@ -176,7 +176,7 @@ namespace Cache {
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(use_host_cert);
     // use a separate share from A-REX downloads
-    dtr->set_sub_share("cache-service-download");
+    dtr->set_sub_share("candypond-download");
 
     // substitute cache paths based on user
     ARex::CacheConfig cache_params(config.CacheParams());
@@ -202,7 +202,7 @@ namespace Cache {
     return true;
   }
 
-  bool CacheServiceGenerator::queryRequestsFinished(const std::string& jobid, std::string& error) {
+  bool CandyPondGenerator::queryRequestsFinished(const std::string& jobid, std::string& error) {
 
     // First check currently processing DTRs
     processing_lock.lock();
@@ -228,4 +228,4 @@ namespace Cache {
     return true;
   }
 
-} // namespace Cache
+} // namespace CandyPond

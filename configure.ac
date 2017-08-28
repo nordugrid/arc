@@ -190,7 +190,7 @@ enables_a_rex_service=yes
 enables_gridftpd_service=yes
 enables_ldap_service=yes
 enables_giis_service=yes
-enables_cache_service=yes
+enables_candypond=yes
 enables_datadelivery_service=yes
 enables_ldap_monitor=yes
 enables_ws_monitor=yes
@@ -219,7 +219,7 @@ enables_ldap_service=$enableval
 enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_ws_monitor=$enableval
-enables_cache_service=$enableval
+enables_candypond=$enableval
 enables_datadelivery_service=$enableval
 enables_compute_client=$enableval
 enables_credentials_client=$enableval
@@ -275,7 +275,7 @@ enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
-enables_cache_service=$enableval
+enables_candypond=$enableval
 enables_datadelivery_service=$enableval
 enables_acix=$enableval
 ],
@@ -2119,20 +2119,19 @@ AC_MSG_NOTICE([WS Monitor enabled: $enables_ws_monitor])
 AM_CONDITIONAL([WS_MONITOR_ENABLED],[test "x$enables_ws_monitor" = "xyes"])
 
 # Cache service
-AC_ARG_ENABLE(cache_service, AC_HELP_STRING([--disable-cache-service], [disable building cache service]),
-  [enables_cache_service=$enableval],[])
-if test "$enables_cache_service" = "yes"; then
+AC_ARG_ENABLE(candypond, AC_HELP_STRING([--disable-candypond], [disable building candypond]),
+  [enables_candypond=$enableval],[])
+if test "$enables_candypond" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
-    enables_cache_service="no"
-    AC_MSG_NOTICE([Cache service can't be built for WIN32 environment - disabling])
+    enables_candypond="no"
+    AC_MSG_NOTICE([CandyPond service can't be built for WIN32 environment - disabling])
   elif test ! "x$enables_a_rex_service" = "xyes" ; then
-    enables_cache_service="no"
-    AC_MSG_NOTICE([Cache service can't be built without A-REX - disabling])
+    enables_candypond="no"
+    AC_MSG_NOTICE([CandyPond can't be built without A-REX - disabling])
   fi
 fi
-AC_MSG_NOTICE([Cache service enabled: $enables_cache_service])
-AM_CONDITIONAL([CACHE_SERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
-AM_CONDITIONAL([CACHE_WEBSERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
+AC_MSG_NOTICE([CandyPond enabled: $enables_candypond])
+AM_CONDITIONAL([CANDYPOND_ENABLED],[test "x$enables_candypond" = "xyes"])
 
 # DataDelivery service
 AC_ARG_ENABLE(datadelivery_service, AC_HELP_STRING([--disable-datadelivery-service], [disable building DataDelivery service]),
@@ -2225,7 +2224,7 @@ AM_CONDITIONAL([ARCREST_ENABLED],[test "x$enables_arcrest_client" = "xyes"])
 # Check for consistency among disabled components
 if test "$enables_hed" = "no"; then
   if test "$enables_a_rex_service" = "yes" -o \
-          "$enables_cache_service" = "yes" -o \
+          "$enables_candypond" = "yes" -o \
           "$enables_datadelivery_service" = "yes" -o \
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
@@ -2515,10 +2514,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/acix/indexserver/acix-index-start
                  src/services/acix/indexserver/acix-index.service
                  src/services/acix/indexserver/test/Makefile
-                 src/services/cache_service/Makefile
-                 src/services/cache_service/arc-cache-service
-                 src/services/cache_service/arc-cache-service.service
-                 src/services/cache_service/arc-cache-service-start
+                 src/services/candypond/Makefile
+                 src/services/candypond/arc-candypond
+                 src/services/candypond/arc-candypond.service
+                 src/services/candypond/arc-candypond-start
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/data-staging/arc-datadelivery-service.service
@@ -2684,7 +2683,7 @@ A-REX service:      ${enables_a_rex_service}
 GRIDFTPD service:   ${enables_gridftpd_service}
 LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
-CACHE service:      ${enables_cache_service}
+CANDYPOND service:  ${enables_candypond}
 DATADELIVERY service: ${enables_datadelivery_service}
 ACIX service:       ${enables_acix}
 

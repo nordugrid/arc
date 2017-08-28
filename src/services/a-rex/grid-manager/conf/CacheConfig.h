@@ -3,7 +3,6 @@
 
 #include <arc/ArcRegex.h>
 #include <arc/User.h>
-#include <arc/XMLNode.h>
 #include <arc/ArcConfigIni.h>
 
 namespace ARex {
@@ -78,18 +77,12 @@ class CacheConfig {
    * Parsers for the two different conf styles
    */
   void parseINIConf(Arc::ConfigIni& cf);
-  void parseXMLConf(const Arc::XMLNode& cfg);
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
     * private member variables with cache parameters.
     */
   CacheConfig(const GMConfig& config);
-   /**
-    * Create a new CacheConfig instance. Read the XML config tree and fill in
-    * private member variables with cache parameters.
-    */
-  CacheConfig(const Arc::XMLNode& cfg);
   /**
    * Empty CacheConfig
    */
