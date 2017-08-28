@@ -71,8 +71,8 @@ CacheConfig::CacheConfig(const Arc::XMLNode& cfg):
 
 void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
   
-  cf.AddSection("common"); // 0
-  cf.AddSection("arex");   // 1
+  cf.AddSection("arex/cache");   // 0
+  cf.AddSection("arex/ws/cache");   // 1
   
   for(;;) {
     std::string rest;
@@ -81,158 +81,143 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
 
     if(command.length() == 0) break; // EOF
     
-    else if(command == "remotecachedir") {
-      std::string cache_dir = Arc::ConfigIni::NextArg(rest);
-      if(cache_dir.length() == 0) continue; // cache is disabled
-      std::string cache_link_dir = Arc::ConfigIni::NextArg(rest);
-       
-      // take off leading slashes
-      if (cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-      // add this cache to our list
-      std::string cache = cache_dir;
-      // check if the cache dir needs to be drained 
-      bool isDrainingCache = false;
-      if (cache_link_dir == "drain") {
-        cache = cache_dir.substr(0, cache_dir.find(" "));
-        cache_link_dir = "";
-        isDrainingCache = true;
-      }
-      if (!cache_link_dir.empty()) cache += " "+cache_link_dir;
-   
-      if(isDrainingCache)
-        _draining_cache_dirs.push_back(cache);  
-      else
-        _remote_cache_dirs.push_back(cache);
-    }
-    else if(command == "cachedir") {
-      std::string cache_dir = Arc::ConfigIni::NextArg(rest);
-      if(cache_dir.length() == 0) continue; // cache is disabled
-      std::string cache_link_dir = Arc::ConfigIni::NextArg(rest);
+    if (cf.SectionNum() == 0) { // arex/cache
+      if (cf.SubSection()[0] == '\0') {
+        if(command == "cachedir") {
+          std::string cache_dir = Arc::ConfigIni::NextArg(rest);
+          if(cache_dir.length() == 0) continue; // cache is disabled
+          std::string cache_link_dir = Arc::ConfigIni::NextArg(rest);
 
-      // validation of paths
-      while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-      if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
-      if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
-      if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
-        while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-        if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
-        if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
-      }
-      // add this cache to our list
-      std::string cache = cache_dir;
-      bool isDrainingCache = false;
-      // check if the cache dir needs to be drained 
-      if (cache_link_dir == "drain") {
-        cache = cache_dir.substr(0, cache_dir.find(' '));
-        cache_link_dir = "";
-        isDrainingCache = true;
-      }
-      if (!cache_link_dir.empty())
-        cache += " "+cache_link_dir;
+          // validation of paths
+          while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
+          if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
+          if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
+          if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
+            while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
+            if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
+            if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
+          }
+          // add this cache to our list
+          std::string cache = cache_dir;
+          bool isDrainingCache = false;
+          // check if the cache dir needs to be drained 
+          if (cache_link_dir == "drain") {
+            cache = cache_dir.substr(0, cache_dir.find(' '));
+            cache_link_dir = "";
+            isDrainingCache = true;
+          }
+          if (!cache_link_dir.empty())
+            cache += " "+cache_link_dir;
 
-      if (isDrainingCache)
-        _draining_cache_dirs.push_back(cache); 
-      else
-        _cache_dirs.push_back(cache);
-    }
-    else if(command == "cachesize") {
-      std::string max_s = Arc::ConfigIni::NextArg(rest);
-      if(max_s.length() == 0)
-        continue; 
+          if (isDrainingCache)
+            _draining_cache_dirs.push_back(cache); 
+          else
+            _cache_dirs.push_back(cache);
+        }
+        else if(command == "cachesize") {
+          std::string max_s = Arc::ConfigIni::NextArg(rest);
+          if(max_s.length() == 0)
+            continue; 
 
-      std::string min_s = Arc::ConfigIni::NextArg(rest);
-      if(min_s.length() == 0)
-        throw CacheConfigException("Not enough parameters in cachesize parameter");
+          std::string min_s = Arc::ConfigIni::NextArg(rest);
+          if(min_s.length() == 0)
+            throw CacheConfigException("Not enough parameters in cachesize parameter");
 
-      off_t max_i;
-      if(!Arc::stringto(max_s,max_i))
-        throw CacheConfigException("bad number in cachesize parameter");
-      if (max_i > 100 || max_i < 0)
-        throw CacheConfigException("max cache size must be between 0 and 100");
-      _cache_max = max_i;
+          off_t max_i;
+          if(!Arc::stringto(max_s,max_i))
+            throw CacheConfigException("bad number in cachesize parameter");
+          if (max_i > 100 || max_i < 0)
+            throw CacheConfigException("max cache size must be between 0 and 100");
+          _cache_max = max_i;
       
-      off_t min_i;
-      if(!Arc::stringto(min_s,min_i))
-        throw CacheConfigException("bad number in cachesize parameter");
-      if (min_i > 100 || min_i < 0)
-        throw CacheConfigException("min cache size must be between 0 and 100");
-      if (min_i >= max_i)
-        throw CacheConfigException("max cache size must be greater than min size");
-      _cache_min = min_i;
-    }
-    else if(command == "cachelogfile") {
-      std::string logfile = Arc::ConfigIni::NextArg(rest);
-      if (logfile.length() < 2 || logfile[0] != '/' || logfile[logfile.length()-1] == '/')
-        throw CacheConfigException("Bad filename in cachelogfile parameter");
-      _log_file = logfile;
-    }
-    else if(command == "cacheloglevel") {
-      std::string log_level = Arc::ConfigIni::NextArg(rest);
-      if(log_level.length() == 0)
-        throw CacheConfigException("No value specified in cacheloglevel");
-      off_t level_i;
-      if(!Arc::stringto(log_level, level_i))
-        throw CacheConfigException("bad number in cacheloglevel parameter");
-      // manual conversion from int to log level
-      switch (level_i) {
-        case 0: { _log_level = "FATAL"; };
-          break;
-        case 1: { _log_level = "ERROR"; };
-          break;
-        case 2: { _log_level = "WARNING"; };
-          break;
-        case 3: { _log_level = "INFO"; };
-          break;
-        case 4: { _log_level = "VERBOSE"; };
-          break;
-        case 5: { _log_level = "DEBUG"; };
-          break;
-        default: { _log_level = "INFO"; };
-          break;
-      } 
-    }
-    else if(command == "cachelifetime") {
-      std::string lifetime = Arc::ConfigIni::NextArg(rest);
-      if(lifetime.length() != 0) {
-        _lifetime = lifetime;
+          off_t min_i;
+          if(!Arc::stringto(min_s,min_i))
+            throw CacheConfigException("bad number in cachesize parameter");
+          if (min_i > 100 || min_i < 0)
+            throw CacheConfigException("min cache size must be between 0 and 100");
+          if (min_i >= max_i)
+            throw CacheConfigException("max cache size must be greater than min size");
+          _cache_min = min_i;
+        }
+        else if(command == "logfile") {
+          std::string logfile = Arc::ConfigIni::NextArg(rest);
+          if (logfile.length() < 2 || logfile[0] != '/' || logfile[logfile.length()-1] == '/')
+            throw CacheConfigException("Bad filename in cachelogfile parameter");
+          _log_file = logfile;
+        }
+        else if(command == "loglevel") {
+          std::string log_level = Arc::ConfigIni::NextArg(rest);
+          if(log_level.length() == 0)
+            throw CacheConfigException("No value specified in cacheloglevel");
+          off_t level_i;
+          if(!Arc::stringto(log_level, level_i))
+            throw CacheConfigException("bad number in cacheloglevel parameter");
+          // manual conversion from int to log level
+          switch (level_i) {
+            case 0: { _log_level = "FATAL"; };
+              break;
+            case 1: { _log_level = "ERROR"; };
+              break;
+            case 2: { _log_level = "WARNING"; };
+              break;
+            case 3: { _log_level = "INFO"; };
+              break;
+            case 4: { _log_level = "VERBOSE"; };
+              break;
+            case 5: { _log_level = "DEBUG"; };
+              break;
+            default: { _log_level = "INFO"; };
+              break;
+          } 
+        }
+        else if(command == "cachelifetime") {
+          std::string lifetime = Arc::ConfigIni::NextArg(rest);
+          if(lifetime.length() != 0) {
+            _lifetime = lifetime;
+          }
+        }
+        else if(command == "cacheshared") {
+          std::string cache_shared = Arc::ConfigIni::NextArg(rest);
+          if (cache_shared == "yes") {
+            _cache_shared = true;
+          }
+          else if (cache_shared != "no") {
+            throw CacheConfigException("Bad value in cacheshared parameter");
+          }
+        }
+        else if (command == "cachespacetool") {
+          _cache_space_tool = rest;
+        }
+        else if (command == "cachecleantimeout") {
+          std::string timeout = Arc::ConfigIni::NextArg(rest);
+          if(timeout.length() == 0)
+            continue;
+
+          if(!Arc::stringto(timeout, _clean_timeout))
+            throw CacheConfigException("bad number in cachecleantimeout parameter");
+        }
+      }
+    } else if (cf.SectionNum() == 1) { // arex/ws/cache
+      if (cf.SubSection()[0] == '\0') {
+        if (command == "cacheaccess") {
+          Arc::RegularExpression regexp(Arc::ConfigIni::NextArg(rest));
+          if (!regexp.isOk()) throw CacheConfigException("Bad regexp " + regexp.getPattern() + " in cacheaccess");
+
+          std::string cred_type(Arc::ConfigIni::NextArg(rest));
+          if (cred_type.empty()) throw CacheConfigException("Missing credential type in cacheaccess");
+
+          Arc::RegularExpression cred_value(rest);
+          if (!cred_value.isOk()) throw CacheConfigException("Missing credential value in cacheaccess");
+
+          struct CacheAccess ca;
+          ca.regexp = regexp;
+          ca.cred_type = cred_type;
+          ca.cred_value = cred_value;
+          _cache_access.push_back(ca);
+        }
       }
     }
-    else if(command == "cacheshared") {
-      std::string cache_shared = Arc::ConfigIni::NextArg(rest);
-      if (cache_shared == "yes") {
-        _cache_shared = true;
-      }
-      else if (cache_shared != "no") {
-        throw CacheConfigException("Bad value in cacheshared parameter");
-      }
-    }
-    else if (command == "cachespacetool") {
-      _cache_space_tool = rest;
-    }
-    else if (command == "cachecleantimeout") {
-      std::string timeout = Arc::ConfigIni::NextArg(rest);
-      if(timeout.length() == 0)
-        continue;
 
-      if(!Arc::stringto(timeout, _clean_timeout))
-        throw CacheConfigException("bad number in cachecleantimeout parameter");
-    }
-    else if (command == "cacheaccess") {
-      Arc::RegularExpression regexp(Arc::ConfigIni::NextArg(rest));
-      if (!regexp.isOk()) throw CacheConfigException("Bad regexp " + regexp.getPattern() + " in cacheaccess");
-
-      std::string cred_type(Arc::ConfigIni::NextArg(rest));
-      if (cred_type.empty()) throw CacheConfigException("Missing credential type in cacheaccess");
-
-      Arc::RegularExpression cred_value(rest);
-      if (!cred_value.isOk()) throw CacheConfigException("Missing credential value in cacheaccess");
-
-      struct CacheAccess ca;
-      ca.regexp = regexp;
-      ca.cred_type = cred_type;
-      ca.cred_value = cred_value;
-      _cache_access.push_back(ca);
-    }
   }
 }
 
@@ -354,49 +339,10 @@ void CacheConfig::parseXMLConf(const Arc::XMLNode& cfg) {
     if(!Arc::stringto(clean_timeout, _clean_timeout))
       throw CacheConfigException("bad number in cacheCleanTimeout parameter");
   }
-  Arc::XMLNode remote_location_node = cache_node["remotelocation"];
-  for(;remote_location_node;++remote_location_node) {
-    std::string cache_dir = remote_location_node["path"];
-    std::string cache_link_dir = remote_location_node["link"];
-    if(cache_dir.length() == 0)
-      throw CacheConfigException("Missing path in remote cache location element");
-
-    // validation of paths
-    while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
-    if (cache_dir[0] != '/') throw CacheConfigException("Remote cache path must start with '/'");
-    if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache path cannot contain '..'");
-    if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain" && cache_link_dir != "replicate") {
-      while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
-      if (cache_link_dir[0] != '/') throw CacheConfigException("Remote cache link path must start with '/'");
-      if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Remote cache link path cannot contain '..'");
-    }
-
-    // add this cache to our list
-    std::string cache = cache_dir;
-    bool isDrainingCache = false;
-    // check if the cache dir needs to be drained
-    if (cache_link_dir == "drain") {
-      cache = cache_dir.substr(0, cache_dir.find (" "));
-      cache_link_dir = "";
-      isDrainingCache = true;
-    }
-
-    if (!cache_link_dir.empty())
-      cache += " "+cache_link_dir;
-
-    // TODO: handle paths with spaces
-    if(isDrainingCache)
-      _draining_cache_dirs.push_back(cache);
-    else
-      _remote_cache_dirs.push_back(cache);
-  }
 }
 
 void CacheConfig::substitute(const GMConfig& config, const Arc::User& user) {
   for (std::vector<std::string>::iterator i = _cache_dirs.begin(); i != _cache_dirs.end(); ++i) {
-    config.Substitute(*i, user);
-  }
-  for (std::vector<std::string>::iterator i = _remote_cache_dirs.begin(); i != _remote_cache_dirs.end(); ++i) {
     config.Substitute(*i, user);
   }
   for (std::vector<std::string>::iterator i = _draining_cache_dirs.begin(); i != _draining_cache_dirs.end(); ++i) {

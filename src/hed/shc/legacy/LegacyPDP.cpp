@@ -77,7 +77,7 @@ class LegacyPDPCP: public ConfigParser {
   LegacyPDP::cfgfile& file_;
 };
 
-LegacyPDP::LegacyPDP(Arc::Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg) {
+LegacyPDP::LegacyPDP(Arc::Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg),attrname_("ARCLEGACYPDP"),srcname_("ARCLEGACY") {
   any_ = false;
   Arc::XMLNode group = (*cfg)["Group"];
   while((bool)group) {
@@ -88,6 +88,14 @@ LegacyPDP::LegacyPDP(Arc::Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg) {
   while((bool)vo) {
     vos_.push_back((std::string)vo);
     ++vo;
+  };
+  Arc::XMLNode attrname = (*cfg)["AttrName"];
+  if((bool)attrname) {
+    attrname_ = (std::string)attrname;
+  };
+  Arc::XMLNode srcname = (*cfg)["SourceAttrName"];
+  if((bool)srcname) {
+    srcname_ = (std::string)srcname;
   };
   Arc::XMLNode block = (*cfg)["ConfigBlock"];
   while((bool)block) {
@@ -192,11 +200,11 @@ bool LegacyPDPAttr::equal(const SecAttr &b) const {
 
 ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
   if(any_) return true; // No need to perform anything if everyone is allowed
-  Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
+  Arc::SecAttr* sattr = msg->Auth()->get(srcname_);
   if(!sattr) {
     // Only if information collection is done per context.
     // Check if decision is already made.
-    Arc::SecAttr* dattr = msg->AuthContext()->get("ARCLEGACYPDP");
+    Arc::SecAttr* dattr = msg->AuthContext()->get(attrname_);
     if(dattr) {
       LegacyPDPAttr* pattr = dynamic_cast<LegacyPDPAttr*>(dattr);
       if(pattr) {
@@ -205,9 +213,9 @@ ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
       };
     };
   };
-  if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
+  if(!sattr) sattr = msg->AuthContext()->get(srcname_);
   if(!sattr) {
-    logger.msg(Arc::ERROR, "LegacyPDP: there is no ARCLEGACY Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.");
+    logger.msg(Arc::ERROR, "LegacyPDP: there is no %s Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.",srcname_);
     return false;
   };
   LegacySecAttr* lattr = dynamic_cast<LegacySecAttr*>(sattr);
@@ -223,15 +231,15 @@ ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
     decision = true;
     const std::list<std::string>& matched_voms = lattr->GetGroupVOMS(match);
     const std::list<std::string>& matched_vo = lattr->GetGroupVO(match);
-    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision, matched_voms, matched_vo));
+    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo));
   } else if(match_lists(vos_,vos,match,logger)) {
     decision = true;
     const std::list<std::string> matched_voms;
     std::list<std::string> matched_vo;
     matched_vo.push_back(match);
-    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision, matched_voms, matched_vo));
+    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo));
   } else {
-    msg->AuthContext()->set("ARCLEGACYPDP",new LegacyPDPAttr(decision));
+    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision));
   };
   return decision;
 }

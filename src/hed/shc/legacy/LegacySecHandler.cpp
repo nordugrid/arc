@@ -23,7 +23,11 @@ Arc::Plugin* LegacySecHandler::get_sechandler(Arc::PluginArgument* arg) {
   return plugin;
 }
 
-LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg) {
+LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg),attrname_("ARCLEGACY") {
+  Arc::XMLNode attrname = (*cfg)["AttrName"];
+  if((bool)attrname) {
+    attrname_ = (std::string)attrname;
+  };
   Arc::XMLNode conf_file = (*cfg)["ConfigFile"];
   while((bool)conf_file) {
     std::string filename = (std::string)conf_file;
@@ -114,7 +118,7 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
     logger.msg(Arc::ERROR, "LegacySecHandler: configuration file not specified");
     return false;
   };
-  Arc::SecAttr* attr = msg->AuthContext()->get("ARCLEGACY");
+  Arc::SecAttr* attr = msg->AuthContext()->get(attrname_);
   if(attr) {
     LegacySecAttr* lattr = dynamic_cast<LegacySecAttr*>(attr);
     if(lattr) {
@@ -159,7 +163,7 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
 
 
   // Pass all matched groups and VOs to Message in SecAttr
-  msg->AuthContext()->set("ARCLEGACY",sattr.Release());
+  msg->AuthContext()->set(attrname_,sattr.Release());
   return true;
 }
 

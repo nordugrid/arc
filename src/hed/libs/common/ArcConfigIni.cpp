@@ -56,25 +56,35 @@ bool ConfigIni::ReadNext(std::string& line) {
     };
     std::string::size_type n=line.find_first_not_of(" \t");
     if(n == std::string::npos) continue; // should never happen
-    if(line[n] == '[') {  // section
-      n++; std::string::size_type nn = line.find(']',n);
-      if(nn == std::string::npos) { line=""; return false; }; // missing ']'
-      current_section=line.substr(n,nn-n);
+    line.erase(0,n);
+    std::string::size_type ne=line.find_last_not_of(" \t");
+    if(ne == std::string::npos) continue;
+    line.resize(ne+1);
+    if(line[0] == '[') {  // section
+      if(line[line.length()-1] != ']') { line=""; return false; }; // missing ']'
+      current_section=line.substr(1,line.length()-2);
       std::string::size_type ipos = current_section.find(':');
       if(ipos == std::string::npos) {
         current_identifier.clear();
       } else {
         current_identifier=current_section.substr(ipos+1);
         current_section.resize(ipos);
+        std::string::size_type spos=current_identifier.find_first_not_of(" \t");
+        if(spos == std::string::npos) spos=current_identifier.length();
+        current_identifier.erase(0,spos);
+        spos=current_identifier.find_last_not_of(" \t");
+        if(spos == std::string::npos) spos=-1;
+        current_identifier.resize(spos+1);
       };
       current_section_n=-1;
       current_section_p=section_names.end();
       current_section_changed=true;
       if (section_indicator.empty()) continue;
+      // fall through for reporting section start
       line=section_indicator;
-      n=0;
     };
     if(!section_names.empty()) { // only limited sections allowed
+      // todo: optimize to perform matching only on section change
       bool match = false;
       int s_n = -1;
       for(std::list<std::string>::iterator sec = section_names.begin();
@@ -91,7 +101,6 @@ bool ConfigIni::ReadNext(std::string& line) {
       };
       if(!match) continue;
     };
-    line.erase(0,n);
     break;
   };
   return true;
@@ -100,20 +109,15 @@ bool ConfigIni::ReadNext(std::string& line) {
 bool ConfigIni::ReadNext(std::string& name,std::string& value) {
   if(!ReadNext(name)) return false;
   std::string::size_type n = name.find('=');
-  if(n == std::string::npos) { value=""; return true; };
+  if(n == std::string::npos) { value=""; return true; }; // name only option, no value
   value=name.c_str()+n+1;
   name.erase(n);
-  std::string::size_type l = value.length();
-  for(n = 0;n<l;n++) if((value[n] != ' ') && (value[n] != '\t')) break;
-  if(n>=l) { value=""; return true; };
-  if(n) value.erase(0,n);
-  if(value[0] != '"') return true;
-  std::string::size_type nn = value.rfind('"');
-  if(nn == 0) return true; // strange
-  std::string::size_type n_ = value.find('"',1);
-  if((nn > n_) && (n_ != 1)) return true;
-  value.erase(nn);
-  value.erase(0,1);
+  n=name.find_last_not_of(" \t");
+  if(n == std::string::npos) n=-1;
+  name.resize(n+1);
+  n=value.find_first_not_of(" \t");
+  if(n == std::string::npos) n=value.length();
+  value.erase(0,n);
   return true;
 }
 

@@ -40,10 +40,6 @@ class CacheConfig {
     * List of (cache dir [link dir])
     */
    std::vector<std::string> _cache_dirs;
-   /**
-    * List of (cache dir [link dir]) for remote caches
-    */
-   std::vector<std::string> _remote_cache_dirs;
    int _cache_max;
    int _cache_min;
    /**
@@ -99,7 +95,6 @@ class CacheConfig {
    */
   CacheConfig(): _cache_max(0), _cache_min(0), _cache_shared(false), _clean_timeout(0) {};
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
-  std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
   /// Substitute all cache paths, with information given in user if necessary
   void substitute(const GMConfig& config, const Arc::User& user);

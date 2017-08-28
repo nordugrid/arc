@@ -20,6 +20,8 @@ class LegacyMap : public ArcSec::SecHandler {
     cfgfile(const std::string& fname):filename(fname) {};
   };
   std::list<cfgfile> blocks_;
+  std::string attrname_;
+  std::string srcname_;
  public:
   LegacyMap(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~LegacyMap(void);

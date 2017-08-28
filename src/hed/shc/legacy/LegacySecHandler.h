@@ -18,7 +18,7 @@ namespace ArcSHCLegacy {
 class LegacySecHandler : public ArcSec::SecHandler {
  private:
   std::list<std::string> conf_files_;
-
+  std::string attrname_;
  public:
   LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
   virtual ~LegacySecHandler(void);

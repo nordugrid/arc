@@ -118,7 +118,6 @@ void GMConfig::Print() const {
   logger.msg(Arc::INFO, "\tdefault ttl      : %u", keep_finished);
 
   std::vector<std::string> conf_caches = cache_params.getCacheDirs();
-  std::vector<std::string> remote_conf_caches = cache_params.getRemoteCacheDirs();
   if(conf_caches.empty()) {
     logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
     return;
@@ -128,12 +127,6 @@ void GMConfig::Print() const {
     logger.msg(Arc::INFO, "\tCache            : %s", (*i).substr(0, (*i).find(" ")));
     if ((*i).find(" ") != std::string::npos)
       logger.msg(Arc::INFO, "\tCache link dir   : %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
-  }
-  // list each remote cache
-  for (std::vector<std::string>::iterator i = remote_conf_caches.begin(); i != remote_conf_caches.end(); i++) {
-    logger.msg(Arc::INFO, "\tRemote cache     : %s", (*i).substr(0, (*i).find(" ")));
-    if ((*i).find(" ") != std::string::npos)
-      logger.msg(Arc::INFO, "\tRemote cache link: %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
   }
   if (cache_params.cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
   else logger.msg(Arc::INFO, "\tCache cleaning disabled");

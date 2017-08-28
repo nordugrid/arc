@@ -18,6 +18,20 @@ LegacySecAttr::LegacySecAttr(Arc::Logger& logger):logger_(logger) {
 LegacySecAttr::~LegacySecAttr(void) {
 }
 
+static char const * parse_vo_name(const std::string& id) {
+  if(::strncmp(id.c_str(), "VO:", 3) == 0) {
+    return id.c_str() + 3;
+  };
+  return NULL;
+}
+
+static char const * parse_voms_name(const std::string& id) {
+  if(::strncmp(id.c_str(), "VOMS:", 5) == 0) {
+    return id.c_str() + 5;
+  };
+  return NULL;
+}
+
 std::string LegacySecAttr::get(const std::string& id) const {
   if(id == "GROUP") {
     if(groups_.size() > 0) return *groups_.begin();
@@ -27,12 +41,24 @@ std::string LegacySecAttr::get(const std::string& id) const {
     if(VOs_.size() > 0) return *VOs_.begin();
     return "";
   };
+  if(char const * group = parse_voms_name(id)) {
+    const std::list<std::string>& VOMSs = LegacySecAttr::GetGroupVOMS(group);
+    if(VOMSs.size() > 0) return *VOMSs.begin(); 
+    return "";
+  };
+  if(char const * group = parse_vo_name(id)) {
+    const std::list<std::string>& VOs = LegacySecAttr::GetGroupVO(group);
+    if(VOs.size() > 0) return *VOs.begin(); 
+    return "";
+  };
   return "";
 }
 
 std::list<std::string> LegacySecAttr::getAll(const std::string& id) const {
   if(id == "GROUP") return groups_;
   if(id == "VO") return VOs_;
+  if(char const * group = parse_voms_name(id)) return GetGroupVOMS(group);
+  if(char const * group = parse_vo_name(id)) return GetGroupVO(group);
   return std::list<std::string>();
 }
 

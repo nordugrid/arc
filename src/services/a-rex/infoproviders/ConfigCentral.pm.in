@@ -630,7 +630,7 @@ sub read_json_config {
 	
     # get the calling script basepath. Will be used to
     # find external scripts like arcconfig-parser.
-    my $libexecpath = dirname($0);	
+    my $libexecpath = ($ENV{'ARC_LOCATION'} || '@prefix@') . '/@pkglibexecsubdir@';
 	
 	my $jsonconfig='';
 	{ 
@@ -1113,7 +1113,7 @@ sub getValueOf ($$$){
 	
     # get the calling script basepath. Will be used to
     # find external scripts like arcconfig-parser.
-    my $libexecpath = dirname($0);	
+    my $libexecpath = ($ENV{'ARC_LOCATION'} || '@prefix@') . '/@pkglibexecsubdir@';
 	
 	my $value='';
 	{ 

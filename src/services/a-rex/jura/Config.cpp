@@ -75,14 +75,16 @@ namespace ArcJura
               std::cerr<<"Wrong loglevel ("<< rest << ") attributum value given!"<<std::endl;
               return;
             }
-            switch(loglevel) {
+            switch(loglevel_num) {
               case 0: loglevel = Arc::DEBUG; break;
               case 1: loglevel = Arc::VERBOSE; break;
               case 2: loglevel = Arc::INFO; break;
               case 3: loglevel = Arc::WARNING; break;
               case 4: loglevel = Arc::ERROR; break;
               case 5: loglevel = Arc::FATAL; break;
-              default: return;
+              default: 
+                std::cerr<<"Wrong loglevel ("<< rest << ") attributum value given!"<<std::endl;
+                return;
             }
           } else if (command == "urbatchsize") {
             if (!Arc::stringto(rest, urbatchsize)) {

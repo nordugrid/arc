@@ -118,12 +118,13 @@ testconfigblock() {
         return
     fi
     bname="[$2]"
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' | {
+    cat "$fname" | sed -e 's/\e$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
                 return
             fi
+            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
             if [ "$line" = "$bname" ] ; then
                 echo 'true'
                 return
@@ -134,97 +135,43 @@ testconfigblock() {
 }
 
 readconfigvar() {
+    # subnames (after : ) are not supported
     fname=$1
     if [ ! -r "$fname" ]; then
         return
     fi
     bname="[$2]"
     vname=$3
-    value=
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
+    cat "$fname" | sed -e 's/\e$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
                 return
             fi
+            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
             if [ "$line" = "$bname" ] ; then
+                # requested block started
                 while true ; do
                     read line
                     if [ ! $? = 0 ] ; then
                         return
                     fi
+                    line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
                     lstart=`echo "$line" | head -c 1`
                     if [ "$lstart" = '[' ] ; then
+                        # next block started
                         return
                     fi
-                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+                    vlname=`echo "$line" | sed -e 's/[[:space:]]*=.*//;t;s/.*//'`
                     if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed 's/[^=]*=//'`
-                        eval "echo $val"
-                        return
-                    fi
-                done
-            fi
-        done
-    }
-}
-
-readconfigvars() {
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
-    fi
-    bname="[$2]"
-    vname=$3
-    value=
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            if [ "$line" = "$bname" ] ; then
-                while true ; do
-                    read line
-                    if [ ! $? = 0 ] ; then
-                        return
-                    fi
-                    lstart=`echo "$line" | head -c 1`
-                    if [ "$lstart" = '[' ] ; then
-                        return
-                    fi
-                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-                    if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed 's/[^=]*=//'`
+                        val=`echo "$line" | sed -e 's/[^=]*=[[:space:]]*//'`
                         echo "$val"
+                        return
                     fi
                 done
             fi
         done
     }
-}
-
-tokenize() {
-    line="$1"
-    prefix="$2"
-    suffix="$3"
-    while true; do
-        if [ -z "$line" ]; then break; fi
-        token=`echo "$line" | sed 's/^"\([^"]*\)" *.*/\1/;t exit;s/^\([^ ]*\)  *.*/\1/;:exit'`
-        line=`echo "$line" | sed 's/^"[^"]*" *\(.*\)/\1/;t exit;s/^[^ ]*  *\(.*\)/\1/;t exit;s/.*//;:exit'`
-        echo "${prefix}${token}${suffix}"
-    done
-}
-
-voms_trust_to_xml() {
-    xml=""
-    while true; do
-        read line
-        if [ $? -ne '0' ]; then break; fi
-        if [ -z "$line" ]; then continue; fi
-        xmlchain=`tokenize "$line" "<VOMSCertTrustDN>" "</VOMSCertTrustDN>"`
-        echo "<VOMSCertTrustDNChain>${xmlchain}</VOMSCertTrustDNChain>"
-    done
 }
 
 # ARC_CONFIG
@@ -282,8 +229,6 @@ prepare() {
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
     ENABLEPERFLOG=`testconfigblock "$ARC_CONFIG" common/perflog`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common/perflog perflogdir`
-    LOGSIZE=`readconfigvar "$ARC_CONFIG" arex logsize`
-    LOGREOPEN=`readconfigvar "$ARC_CONFIG" arex logreopen`
     WATCHDOG=`readconfigvar "$ARC_CONFIG" arex watchdog`
     USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
     GRIDTMPDIR=`readconfigvar "$ARC_CONFIG" arex tmpdir`
@@ -648,15 +593,6 @@ prepare() {
         # Set permissions suitable for logs written under user accounts
         chmod a+rwx $PERFLOGDIR
     fi
-    LOGSIZE=${LOGSIZE:--1 -1}
-    LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
-    LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
-    LOGREOPEN=${LOGREOPEN:-no}
-    if [ "$LOGREOPEN" = "yes" ] ; then
-        LOGREOPEN="true"
-    else
-        LOGREOPEN="false"
-    fi
     WATCHDOG=${WATCHDOG:-no}
     if [ "$WATCHDOG" = "yes" ] ; then
         WATCHDOG="true"
@@ -685,9 +621,6 @@ prepare() {
     <Logger>
       <File>$LOGFILE</File>
       <Level>$LOGLEVEL</Level>
-      <Backups>$LOGNUM</Backups>
-      <Maxsize>$LOGSIZE</Maxsize>
-      <Reopen>$LOGREOPEN</Reopen>
     </Logger>
     <Watchdog>$WATCHDOG</Watchdog>
   </Server>
@@ -718,9 +651,6 @@ prepare() {
       <File>$LOGFILE</File>
       <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
-      <Backups>$LOGNUM</Backups>
-      <Maxsize>$LOGSIZE</Maxsize>
-      <Reopen>$LOGREOPEN</Reopen>
     </Logger>
     <Watchdog>$WATCHDOG</Watchdog>
   </Server>
@@ -785,9 +715,6 @@ prepare() {
       <File>$LOGFILE</File>
       <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
-      <Backups>$LOGNUM</Backups>
-      <Maxsize>$LOGSIZE</Maxsize>
-      <Reopen>$LOGREOPEN</Reopen>
     </Logger>
     <Watchdog>$WATCHDOG</Watchdog>
   </Server>

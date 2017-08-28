@@ -23,31 +23,6 @@ ConfigParser::ConfigParser(const std::string& filename, Arc::Logger& logger):log
 ConfigParser::~ConfigParser(void) {
 }
 
-static bool is_nested(const std::string& line) {
-  if(line.length() < 2) return false;
-  if(line[0] != '"') return false;
-  if(line[line.length()-1] != '"') return false;
-  std::string::size_type p = 1;
-  for(;p<line.length()-1;) {
-    for(;p<line.length()-1;++p) if(!::isspace(line[p])) break;
-    if(p >= line.length()-1) break;
-    if(line[p] == '"') {
-      for(++p;p<line.length()-1;++p) {
-        if(line[p] == '"') break;
-      };
-      if(p >= line.length()-1) return false;
-      ++p;
-    } else {
-      for(++p;p<line.length()-1;++p) {
-        if(isspace(line[p])) break;
-        if(line[p] == '"') return false;
-      };
-      if(p >= line.length()-1) break;
-    };
-  };
-  return true;
-}
-
 bool ConfigParser::Parse(void) {
   if(!f_) {
     logger_.msg(Arc::ERROR, "Configuration file can not be read");
@@ -66,6 +41,10 @@ bool ConfigParser::Parse(void) {
     if(line[0] == '[') {
       if(line.length() < 2) {
         logger_.msg(Arc::ERROR, "Configuration file is broken - block name is too short: %s",line);
+        return false;
+      };
+      if(line[line.length()-1] != ']') {
+        logger_.msg(Arc::ERROR, "Configuration file is broken - block name does not end with ]: %s",line);
         return false;
       };
       if(!block_id_.empty()) {
@@ -96,13 +75,6 @@ bool ConfigParser::Parse(void) {
     } else {
       cmd = Arc::trim(line.substr(0,p));
       line = Arc::trim(line.substr(p+1));
-      if(is_nested(line)) line=line.substr(1,line.length()-2);
-    };
-    if(cmd == "name") {
-      if(p != std::string::npos) {
-        block_name_ = Arc::trim(Arc::trim(line),"\"");
-      };
-      continue;
     };
     if(!ConfigLine(block_id_,block_name_,cmd,line)) {
       return false;

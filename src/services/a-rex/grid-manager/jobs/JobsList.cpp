@@ -1271,11 +1271,6 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
       for (std::vector<std::string>::iterator it = conf_caches.begin(); it != conf_caches.end(); it++) {
         cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
       }
-      // add remote caches
-      std::vector<std::string> remote_caches = cache_config.getRemoteCacheDirs();
-      for (std::vector<std::string>::iterator it = remote_caches.begin(); it != remote_caches.end(); it++) {
-        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
-      }
       // add draining caches
       std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
       for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {

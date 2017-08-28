@@ -23,7 +23,15 @@ Arc::Plugin* LegacyMap::get_sechandler(Arc::PluginArgument* arg) {
   return plugin;
 }
 
-LegacyMap::LegacyMap(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg) {
+LegacyMap::LegacyMap(Arc::Config *cfg,Arc::ChainContext* ctx,Arc::PluginArgument* parg):SecHandler(cfg,parg),attrname_("ARCLEGACYMAP"),srcname_("ARCLEGACY") {
+  Arc::XMLNode attrname = (*cfg)["AttrName"];
+  if((bool)attrname) {
+    attrname_ = (std::string)attrname;
+  };
+  Arc::XMLNode srcname = (*cfg)["SourceAttrName"];
+  if((bool)srcname) {
+    srcname_ = (std::string)srcname;
+  };
   Arc::XMLNode block = (*cfg)["ConfigBlock"];
   while((bool)block) {
     std::string filename = (std::string)(block["ConfigFile"]);
@@ -173,11 +181,11 @@ ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
     logger.msg(Arc::ERROR, "LegacyMap: no configurations blocks defined");
     return false;
   };
-  Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
+  Arc::SecAttr* sattr = msg->Auth()->get(srcname_);
   if(!sattr) {
     // Only if information collection is done per context.
     // Check if decision is already made.
-    Arc::SecAttr* dattr = msg->AuthContext()->get("ARCLEGACYMAP");
+    Arc::SecAttr* dattr = msg->AuthContext()->get(attrname_);
     if(dattr) {
       LegacyMapAttr* mattr = dynamic_cast<LegacyMapAttr*>(dattr);
       if(mattr) {
@@ -190,9 +198,9 @@ ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
       };
     };
   };
-  if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
+  if(!sattr) sattr = msg->AuthContext()->get(srcname_);
   if(!sattr) {
-    logger.msg(Arc::ERROR, "LegacyPDP: there is no ARCLEGACY Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.");
+    logger.msg(Arc::ERROR, "LegacyPDP: there is no %s Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.",srcname_);
     return false;
   };
   LegacySecAttr* lattr = dynamic_cast<LegacySecAttr*>(sattr);
@@ -218,7 +226,7 @@ ArcSec::SecHandlerStatus LegacyMap::Handle(Arc::Message* msg) const {
     };
   };
   // Store decision even if no id was selected
-  msg->AuthContext()->set("ARCLEGACYMAP",new LegacyMapAttr(id));
+  msg->AuthContext()->set(attrname_,new LegacyMapAttr(id));
   return true;
 }
 

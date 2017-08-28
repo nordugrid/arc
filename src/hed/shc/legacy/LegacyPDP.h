@@ -35,6 +35,8 @@ class LegacyPDP : public ArcSec::PDP {
   bool any_;
   std::list<std::string> groups_;
   std::list<std::string> vos_;
+  std::string attrname_;
+  std::string srcname_;
  public:
   static Arc::Plugin* get_pdp(Arc::PluginArgument *arg);
   LegacyPDP(Arc::Config* cfg, Arc::PluginArgument* parg);
