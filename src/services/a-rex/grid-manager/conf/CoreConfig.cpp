@@ -146,12 +146,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("infosys"); 
   static const int queue_secnum = 6;
   cf.AddSection("queue");
-  static const int lrms_secnum = 7;
+  static const int ssh_secnum = 7;
+  cf.AddSection("lrms/ssh");
+  static const int lrms_secnum = 8;
   cf.AddSection("lrms");
-  static const int cluster_secnum = 8;
+  static const int cluster_secnum = 9;
   cf.AddSection("cluster");
-  static const int ssh_secnum = 9;
-  cf.AddSection("ssh");
   static const int perflog_secnum = 10;
   cf.AddSection("common/perflog");
   static const int ganglia_secnum = 11;
@@ -198,6 +198,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           std::string default_lrms = Arc::ConfigIni::NextArg(rest);
           if (default_lrms.empty()) {
             logger.msg(Arc::ERROR, "lrms is empty"); return false;
+          }
+          if (default_lrms == "slurm") { // allow lower case slurm in config
+            default_lrms = "SLURM";
           }
           config.default_lrms = default_lrms;
           std::string default_queue = Arc::ConfigIni::NextArg(rest);
@@ -254,6 +257,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
           }
           if (config.max_jobs_total < 0) config.max_jobs_total = -1;
+
+          max_jobs_s = Arc::ConfigIni::NextArg(rest);
+          if (max_jobs_s.empty()) {
+            logger.msg(Arc::ERROR, "Missing number in maxjobs"); return false;
+          }
+          if (!Arc::stringto(max_jobs_s, config.max_scripts)) {
+            logger.msg(Arc::ERROR, "Wrong number in maxjobs: %s", max_jobs_s); return false;
+          }
+          if (config.max_scripts < 0) config.max_scripts = -1;
         }
         else if(command == "norootpower") {
           if (!CheckYesNoCommand(config.strict_session, command, rest)) return false;
@@ -391,17 +403,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
           config.forced_voms[""] = str;
         }
-/*
-#watchdog=no
-#shared_filesystem=yes
-## TODO Florido: clarify the mount path on the node vs. frontend.
-#tmpdir=/tmp
-#infoproviders_timelimit=1200
-## CHANGED: rename, infoproviders_timelimit, move to grid-manager block
-#pidfile=/var/run/arched-arex.pid
-CHANGE: implement a default! in the format of root@localhost.
-*/
- 
+        /*
+          #infoproviders_timelimit
+          Currently information provider timeout is not implemented,
+          hence no need to read this option.
+        */
       };
       continue;
     };
@@ -443,7 +449,12 @@ CHANGE: implement a default! in the format of root@localhost.
         ws_enabled = true;
         config.enable_emies_interface = true;
         config.enable_arc_interface =  true; // so far
-        if (command == "allownew_override") { // Note: not available in xml
+        if (command == "allownew") { // Note: not available in xml
+          bool enable = false;
+          if (!CheckYesNoCommand(enable, command, rest)) return false;
+          config.allow_new = enable;
+        }
+        else if (command == "allownew_override") { // Note: not available in xml
           config.allow_submit += " " + Arc::ConfigIni::NextArg(rest);
         }
         else if (command == "maxjobdesc") { // Note: not available in xml

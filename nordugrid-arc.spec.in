@@ -401,7 +401,7 @@ This package contains the ARC gridftp server which has a plugin framework.
 Current plugins include:
 
   fileplugin : Standard gridftp server based on Globus globus-ftp-control
-  jobplugin  : Classical ARC job submission interface
+  jobsplugin : Classical ARC job submission interface
 
 %package cache-service
 Summary:	ARC cache service
@@ -1309,7 +1309,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_initrddir}/gridftpd
 %endif
 %{_sbindir}/gridftpd
-%{_libdir}/%{pkgdir}/jobplugin.*
+%{_libdir}/%{pkgdir}/jobsplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*

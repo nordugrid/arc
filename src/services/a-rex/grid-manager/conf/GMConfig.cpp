@@ -35,6 +35,8 @@ namespace ARex {
 #define DEFAULT_KEEP_DELETED (30*24*60*60)
 // default maximal allowed amount of reruns
 #define DEFAULT_JOB_RERUNS (5)
+// default maximal size of job description
+#define DEFAULT_MAX_JOB_DESC (5*1024*1024)
 // default wake up period for main job loop
 #define DEFAULT_WAKE_UP (600)
 
@@ -85,7 +87,9 @@ void GMConfig::SetDefaults() {
   strict_session = false;
   fixdir = fixdir_always;
   reruns = DEFAULT_JOB_RERUNS;
+  maxjobdesc = DEFAULT_MAX_JOB_DESC;
   wakeup_period = DEFAULT_WAKE_UP;
+  allow_new = true;
 
   max_jobs_running = -1;
   max_jobs_total = -1;

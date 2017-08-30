@@ -186,6 +186,9 @@ public:
   /// Username of user running A-REX
   const std::string & UnixName() const { return gm_user.Name(); }
 
+  /// Returns true if submission of new jobs is allowed
+  bool AllowNew() const { return allow_new; }
+
   /// Groups allowed to submit when general job submission is disabled
   const std::string & AllowSubmit() const { return allow_submit; }
 
@@ -301,6 +304,8 @@ private:
   int reruns;
   /// Maximal size of job description
   int maxjobdesc;
+  /// If submission of new jobs is allowed
+  bool allow_new;
   /// Maximum time for A-REX to wait between each loop processing jobs
   unsigned int wakeup_period;
   /// Groups allowed to submit while job submission is disabled

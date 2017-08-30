@@ -225,7 +225,6 @@ prepare() {
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
-    ENABLEPERFLOG=`readconfigvar "$ARC_CONFIG" common enable_perflog_reporting`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
     ENABLEPERFLOG=`testconfigblock "$ARC_CONFIG" common/perflog`
     PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common/perflog perflogdir`
@@ -295,6 +294,7 @@ prepare() {
     elif [ ! -z "$GRIDMAPAUTH" ] ; then export GRIDMAP="$GRIDMAPAUTH" ; fi
     if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
     if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+    if [ ! -z "$GRIDTMPDIR" ] ; then export TMPDIR="$GRIDTMPDIR" ; fi
     if [ ! -z "$GRIDHOSTNAME" ] ; then export HOSTNAME="$GRIDHOSTNAME" ; fi
     if [ ! -z "$ARC_HTTP_PROXY" ] ; then export ARC_HTTP_PROXY ; fi
 
