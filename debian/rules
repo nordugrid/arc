@@ -152,7 +152,7 @@ binary-arch: install
 	dh_installinit -p nordugrid-arc-egiis --name nordugrid-arc-egiis -- start 76 2 3 4 5 . stop 24 0 1 6 .
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
 	dh_perl -a
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
+	dh_python2 -a
 	dh_lintian -a
 	dh_link -a
 	dh_strip -a --dbg-package=nordugrid-arc-dbg
@@ -182,7 +182,7 @@ binary-indep: install
 	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
 	dh_installinit -p nordugrid-arc-acix-index --name acix-index
 	dh_perl -i
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
+	dh_python2 -i
 	dh_lintian -i
 	dh_link -i
 	dh_compress -i -X .pdf
