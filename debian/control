@@ -87,9 +87,9 @@ Description: ARC GridFTP server
    jobsplugin : Classical ARC job submission interface
 
 Package: nordugrid-arc-candypond
-Provides: nordugrid-arc-nox-cache-service
-Replaces: nordugrid-arc-nox-cache-service (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~)
+Provides: nordugrid-arc-nox-cache-service, nordugrid-arc-cache-service
+Replaces: nordugrid-arc-nox-cache-service (<< 1.3.0~), nordugrid-arc-cache-service (<< 6.0.0~)
+Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~), nordugrid-arc-nox-cache-service (<< 6.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC CandyPond service

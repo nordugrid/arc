@@ -3,7 +3,7 @@ TESTS = basic-test memory-test count-test queue-test job-name-test \
 
 TESTS_ENVIRONMENT = \
 	PERL5LIB=$(abs_top_srcdir)/src/services/a-rex/infoproviders \
-	PYTHONPATH=$(abs_top_builddir)/python/python:$(abs_top_builddir)/python/python/arc/.libs:$(abs_top_srcdir)/src/services/a-rex/lrms \
+	PYTHONPATH=$(abs_top_builddir)/python/python:$(abs_top_builddir)/python/python/arc/.libs \
 	ARC_PLUGIN_PATH=$(abs_top_builddir)/src/hed/acc/JobDescriptionParser/.libs \
 	ARC_LOCATION=$(abs_builddir) \
 	TEST_WRITE_GRAMI_FILE=$(top_builddir)/src/services/a-rex/grid-manager/test_write_grami_file \

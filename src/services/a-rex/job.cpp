@@ -268,6 +268,11 @@ ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std:
 
 void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
   if(!config_) return;
+  if(!config_.GmConfig().MaxJobDescSize()) {
+    failure_="New job submission is not allowed";
+    failure_type_=ARexJobConfigurationError;
+    return;
+  }
   DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) {
     failure_="Failed to find delegation store";
@@ -278,6 +283,12 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
+  if((config_.GmConfig().MaxJobDescSize() > 0) && (job_desc_str.size() > config_.GmConfig().MaxJobDescSize())) {
+    delete_job_id();
+    failure_="Job description is too big";
+    failure_type_=ARexJobConfigurationError;
+    return;
+  };
   // Choose session directory
   std::string sessiondir;
   if (!ChooseSessionDir(id_, sessiondir)) {

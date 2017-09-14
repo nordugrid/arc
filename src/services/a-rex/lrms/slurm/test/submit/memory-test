@@ -108,7 +108,7 @@ slurm_bin_path="@PWD@/bin"
 [cluster]
 nodememory=200
 
-[queue/nordugrid]
+[queue:nordugrid]
 nodememory=700
 EOF
 
