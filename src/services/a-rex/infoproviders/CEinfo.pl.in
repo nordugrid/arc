@@ -119,7 +119,7 @@ BEGIN {
                 my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks) = stat($perflognytprofdir);
                 my $timediff = $t0 - $mtime;
                 if ($timediff <= $perffreq) {
-                    $log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection" );
+                    $log->debug("$perflognytprofdir changed $timediff seconds ago, less than $perffreq. Skipping performance data collection");
                     undef $log;
                     no ConfigCentral;
                     no LogUtils;
@@ -134,12 +134,12 @@ BEGIN {
             $perflognytproffilepath = $perflognytprofdir.$perflognytproffilename;
             createdirs($perflognytproffilepath,$log);
             if ( -e $perflogdir ) {
-                  $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
-                  $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
-                   if ($NYTPROF_PRESENT) {
-                      DB::enable_profile($perflognytproffilepath);
-                      $log->info("Performance reporting enabled. The database file is $perflognytproffilepath");
-                  } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
+                $ENV{NYTPROF} = "savesrc=0:start=no:file=".$perflognytproffilepath;
+                $NYTPROF_PRESENT = eval { require Devel::NYTProf; 1; };
+                if ($NYTPROF_PRESENT) {
+                    DB::enable_profile($perflognytproffilepath);
+                    $log->info("Performance reporting enabled. The database file is $perflognytproffilepath");
+                } else { $log->warning("Devel::NYTProf PERL module not installed. Performance data cannot be collected."); }
             } else { $log->warning("Cannot access directory $perflogdir. Unable to open performance file $perflognytproffilepath. Check arc.conf perflogdir option, directories and permissions"); }
         }
     }
@@ -265,8 +265,8 @@ sub main {
     # Write out LDIF document(s)
     my $print_ldif = sub {
         my ($fh) = @_;
-        if ( defined $config->{infosys}{glue2}{ldap}) {
-           # introduced to find GLUE2 LDAP schema version
+        if ( defined $config->{infosys}{glue2}{ldap} ) {
+            # introduced to find GLUE2 LDAP schema version
             my $glue2schemaversion;
             unless (open (GLUE2_SCHEMA, "</etc/ldap/schema/GLUE20.schema")) {
                 $log->debug("CEinfo.pl didn't find GLUE20.schema in standard location. Will create LDIF in compatibitity mode.");
@@ -303,7 +303,7 @@ sub main {
 
     # only notifiy ldap infosys if ldap is enabled!
     # C 141 use block to check if ldap is enabled
-    if ( defined $config->{infosys}{ldap}) {
+    if ( defined $config->{infosys}{ldap} ) {
         # check that fifo is working and notify if so.
         if (InfosysHelper::createLdifScript($config->{infosys}{ldap}, $print_ldif)) {
             if (InfosysHelper::notifyInfosys($config->{infosys}{ldap})) {
