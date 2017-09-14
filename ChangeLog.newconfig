@@ -1,5 +1,11 @@
 #a dedicated changelog file for the configuration reengineering 
 
+2017-08-29  Florido Paganelli <florido.paganelli@hep.lu.se>
+  * PerfData.pl updated to new config
+  * Improved error messaging in logs
+  * Fixed errors in GLUE2 rendering caused by new config
+  Revs: {32873,32874,32875,32882}
+
 2017-08-22 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Implementation of C 156, review of GLUE2 values
   * Removal of obsolete code in ConfigCentral.pm.in

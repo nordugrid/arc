@@ -559,6 +559,11 @@ sub collect($) {
     my $creation_time = timenow();
     my $validity_ttl = $config->{infosys}{validity_ttl};
     my $hostname = $config->{hostname} || $host_info->{hostname};
+    
+    my $wsenabled =  (defined $config->{arex}{ws}) ? 1 : 0;
+    my $emiesenabled = (defined $config->{arex}{ws}{emies}) ? 1 : 0;
+    
+    my $wsendpoint = $config->{arex}{ws}{wsurl};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -900,7 +905,7 @@ sub collect($) {
     
     # for org.nordugrid.xbes
     my $arexhostport = '';
-    if ($config->{enable_arc_interface}) {
+    if ($wsenabled) {
       $arexhostport = $config->{arexhostport};
       $csvendpointsnum = $csvendpointsnum + 2; # xbes and wsrf
       $epscapabilities->{'org.nordugrid.xbes'} = [
@@ -921,7 +926,7 @@ sub collect($) {
         
     # The following are for EMI-ES
     my $emieshostport = '';
-    if ($config->{enable_emies_interface}) {
+    if ($emiesenabled) {
         $emieshostport = $config->{arexhostport};
         $csvendpointsnum = $csvendpointsnum + 5;
         $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
@@ -1032,9 +1037,9 @@ sub collect($) {
     my $ARCgftpjobcepID;
     $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint}; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID;
-    $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{enable_arc_interface}; # ARCWSComputingEndpoint ID
+    $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$wsendpoint" if $wsenabled; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
-    $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # EMIESComputingEndpoint ID
+    $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
     $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
@@ -1043,8 +1048,8 @@ sub collect($) {
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled} == 1);
-    push(@cepIDs,$ARCWScepID) if ($config->{enable_arc_interface});
-    push(@cepIDs,$EMIEScepIDp) if ($config->{enable_emies_interface});
+    push(@cepIDs,$ARCWScepID) if ($wsenabled);
+    push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     
     my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
@@ -1282,7 +1287,7 @@ sub collect($) {
 
           my $share = $gmjob->{share};
           # TODO: this here is never used! What was here for?
-          #my $gridid = $config->{endpoint}."/$jobid";
+          #my $gridid = $wsendpoint."/$jobid";
 
           $cact->{Type} = 'single';
           $cact->{ID} = $cactIDs{$share}{$jobid};
@@ -1425,13 +1430,13 @@ sub collect($) {
             $cep->{Name} = "ARC CE XBES WSRF submission interface and WSRF LIDI Information System";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.xbes'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'org.ogf.bes';
             $cep->{InterfaceVersion} = [ '1.0' ];
             $cep->{InterfaceExtension} = [ 'urn:org.nordugrid.xbes' ];
-            $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+            $cep->{WSDL} = [ $wsendpoint."/?wsdl" ];
             # Wrong type, should be URI
             $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
                         "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
@@ -1576,7 +1581,7 @@ sub collect($) {
         };
 
         # don't publish if arex_mount_point not configured in arc.conf
-        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if ($config->{enable_arc_interface});
+        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if ($wsenabled);
 
         # ARC GridFTPd job submission interface 
           
@@ -1708,7 +1713,7 @@ sub collect($) {
         my $getEMIESActivityCreationComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $config->{enable_emies_interface};
+            return undef unless $emiesenabled;
 
             my $cep = {};
 
@@ -1721,7 +1726,7 @@ sub collect($) {
             $cep->{Name} = "ARC CE EMI-ES ActivityCreation Port Type";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'webservice';
@@ -1827,14 +1832,14 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if ($emiesenabled);
 
         # EMI-ES ActivityManagement port type
         
         my $getEMIESActivityManagementComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $config->{enable_emies_interface};
+            return undef unless $emiesenabled;
 
             my $cep = {};
 
@@ -1847,7 +1852,7 @@ sub collect($) {
             $cep->{Name} = "ARC CE EMI-ES ActivityManagement Port Type";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             $cep->{Capability} = [ @{$epscapabilities->{'org.ogf.glue.emies.activitymanagement'}}, @{$epscapabilities->{'common'}} ];
             $cep->{Technology} = 'webservice';
@@ -1949,7 +1954,7 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if ($emiesenabled);
 
 
         # EMI-ES ResourceInfo port type
@@ -1967,7 +1972,7 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = $config->{endpoint};
+            $ep->{URL} = $wsendpoint;
             # TODO: put only the port here
             $ep->{ID} = "$EMIEScepIDp:ri";
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.resourceinfo'};;
@@ -2058,7 +2063,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if ($emiesenabled);
 
         # TODO: add EMIES Delegation, ActivityInfo, ActivityManagement
         
@@ -2067,7 +2072,7 @@ sub collect($) {
         my $getEMIESActivityInfoComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $config->{enable_emies_interface};
+            return undef unless $emiesenabled;
 
             my $cep = {};
 
@@ -2080,7 +2085,7 @@ sub collect($) {
             $cep->{Name} = "ARC CE EMI-ES ActivtyInfo Port Type";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activityinfo'};
             $cep->{Technology} = 'webservice';
@@ -2181,7 +2186,7 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if ($emiesenabled);
         
         
         # EMIES Delegation port type
@@ -2196,7 +2201,7 @@ sub collect($) {
             # Name not necessary -- why? plan was to have it configurable.
             $ep->{Name} = "ARC CE EMI-ES Delegation Port Type";
 
-            $ep->{URL} = $config->{endpoint};
+            $ep->{URL} = $wsendpoint;
             $ep->{ID} = "$EMIEScepIDp:d";
             $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.delegation'};;
             $ep->{Technology} = 'webservice';
@@ -2286,7 +2291,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($emiesenabled);
 
         # ARCREST 
 
@@ -2419,7 +2424,7 @@ sub collect($) {
         my $getNorguGridLocalSubmissionEndpoint = sub {
 
             # don't publish if no endpoint URL
-            #return undef unless $config->{enable_emies_interface};
+            #return undef unless $emiesenabled;
 
             my $cep = {};
 
@@ -2431,7 +2436,7 @@ sub collect($) {
             $cep->{Name} = "ARC CE Local Submission";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             # $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'localfiles';
@@ -2554,13 +2559,13 @@ sub collect($) {
             $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
 
             # OBS: ideally HED should be asked for the URL
-            #$cep->{URL} = $config->{endpoint};
+            #$cep->{URL} = $wsendpoint;
             $cep->{Capability} = [ 'data.management.transfer' ];
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'Stagein';
             $cep->{InterfaceVersion} = [ '1.0' ];
             #$cep->{InterfaceExtension} = [ '' ];
-            $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+            $cep->{WSDL} = [ $wsendpoint."/?wsdl" ];
             # Wrong type, should be URI
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
@@ -2860,9 +2865,9 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = $config->{endpoint};
+            $ep->{URL} = $wsendpoint;
             # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:wsrfglue2:$config->{endpoint}";
+            $ep->{ID} = "$ARISepIDp:wsrfglue2:$wsendpoint";
             $ep->{Capability} = ['information.discovery.resource'];
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
@@ -2951,7 +2956,7 @@ sub collect($) {
             return $ep;
         };
         
-        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if ($config->{enable_arc_interface});
+        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if ($wsenabled);
 
         
         # Collect endpoints in the datastructure

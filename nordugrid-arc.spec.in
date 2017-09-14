@@ -403,8 +403,8 @@ Current plugins include:
   fileplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
-%package cache-service
-Summary:	ARC cache service
+%package candypond
+Summary:	ARC CandyPond service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
@@ -414,12 +414,12 @@ Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%description cache-service
+%description candypond
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the ARC cache service. It provides a way to perform
+This package contains the ARC CandyPond service. It provides a way to perform
 some operations on the A-REX cache remotely. It can be especially helpful
 for data management within a pilot job framework.
 
@@ -1082,14 +1082,14 @@ rm -rf $RPM_BUILD_ROOT
 %postun gridftpd
 %condrestart_on_update gridftpd
 
-%post cache-service
-%enable_service arc-cache-service
+%post candypond
+%enable_service arc-candypond
 
-%preun cache-service
-%stop_on_removal arc-cache-service
+%preun candypond
+%stop_on_removal arc-candypond
 
-%postun cache-service
-%condrestart_on_update arc-cache-service
+%postun candypond
+%condrestart_on_update arc-candypond
 
 %post datadelivery-service
 %enable_service arc-datadelivery-service
@@ -1232,6 +1232,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %dir %{python_sitearch}/%{pkgdir}/utils
+%{python_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python_sitearch}/%{pkgdir}/utils/config.py*
 %dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
@@ -1368,16 +1369,16 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ws-monitor
 %doc %{_mandir}/man7/ws-monitor.7*
 
-%files cache-service
+%files candypond
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/arc-cache-service.service
-%{_datadir}/%{pkgdir}/arc-cache-service-start
+%{_unitdir}/arc-candypond.service
+%{_datadir}/%{pkgdir}/arc-candypond-start
 %else
-%{_initrddir}/arc-cache-service
+%{_initrddir}/arc-candypond
 %endif
-%{_libdir}/%{pkgdir}/libcacheservice.so
-%{_libdir}/%{pkgdir}/libcacheservice.apd
+%{_libdir}/%{pkgdir}/libcandypond.so
+%{_libdir}/%{pkgdir}/libcandypond.apd
 
 %files datadelivery-service
 %defattr(-,root,root,-)
