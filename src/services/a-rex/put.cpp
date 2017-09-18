@@ -36,7 +36,6 @@ static bool write_file(Arc::FileAccess& h,char* buf,size_t size) {
   return true;
 }
 
-<<<<<<< .working
 Arc::MCC_Status ARexService::PutInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   return make_http_fault(outmsg,501,"Not Implemented");
 }

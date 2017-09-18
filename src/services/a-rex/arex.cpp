@@ -907,7 +907,6 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
     Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
-<<<<<<< .working
     switch(sub_op) {
       case SubOpInfo:
         ret = GetInfo(inmsg,outmsg,*config,subpath);
