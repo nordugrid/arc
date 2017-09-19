@@ -1963,8 +1963,10 @@ static void ExternalHelperInitializer(void* arg) {
 }
 
 static void ExternalHelperKicker(void* arg) {
-  JobsList* jobs = reinterpret_cast<JobsList*>(arg);
-  if(jobs) jobs->RequestAttention();
+  // Uncomment following if we must support helpers
+  // which can't run gm-kick.
+  // JobsList* jobs = reinterpret_cast<JobsList*>(arg);
+  // if(jobs) jobs->RequestAttention();
 }
 
 bool JobsList::ExternalHelper::run(JobsList& jobs) {

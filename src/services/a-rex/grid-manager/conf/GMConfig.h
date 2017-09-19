@@ -190,7 +190,7 @@ public:
   bool AllowNew() const { return allow_new; }
 
   /// Groups allowed to submit when general job submission is disabled
-  const std::string & AllowSubmit() const { return allow_submit; }
+  const std::list<std::string> & AllowSubmit() const { return allow_submit; }
 
   /// Length of time to keep session dir after job finishes
   time_t KeepFinished() const { return keep_finished; }
@@ -309,7 +309,7 @@ private:
   /// Maximum time for A-REX to wait between each loop processing jobs
   unsigned int wakeup_period;
   /// Groups allowed to submit while job submission is disabled
-  std::string allow_submit;
+  std::list<std::string> allow_submit;
   /// List of associated external processes
   std::list<std::string> helpers;
 

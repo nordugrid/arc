@@ -455,7 +455,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           config.allow_new = enable;
         }
         else if (command == "allownew_override") { // Note: not available in xml
-          config.allow_submit += " " + Arc::ConfigIni::NextArg(rest);
+          config.allow_submit.push_back(Arc::ConfigIni::NextArg(rest));
         }
         else if (command == "maxjobdesc") { // Note: not available in xml
           std::string maxjobdesc_s = Arc::ConfigIni::NextArg(rest);

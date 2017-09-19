@@ -58,13 +58,15 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
 
 static bool match_groups(std::list<std::string> const & groups, ARexGMConfig& config) {
   std::string matched_group;
-  for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
-    if(*a) {
-      // This security attribute collected information about user's authorization groups
-      Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
-      if(sattr) {
-        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
-          return true;
+  if(!groups.empty()) {
+    for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
+      if(*a) {
+        // This security attribute collected information about user's authorization groups
+        Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
+        if(sattr) {
+          if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+            return true;
+          };
         };
       };
     };
@@ -268,11 +270,14 @@ ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std:
 
 void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
   if(!config_) return;
-  if(!config_.GmConfig().MaxJobDescSize()) {
-    failure_="New job submission is not allowed";
-    failure_type_=ARexJobConfigurationError;
-    return;
-  }
+  if(!config_.GmConfig().AllowNew()) {
+    std::list<std::string> const & groups = config_.GmConfig().AllowSubmit();
+    if(!match_groups(groups, config_)) {
+      failure_="New job submission is not allowed";
+      failure_type_=ARexJobConfigurationError;
+      return;
+    };
+  };
   DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) {
     failure_="Failed to find delegation store";

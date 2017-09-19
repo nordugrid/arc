@@ -924,10 +924,12 @@ cd -
 %endif
 
 %build
-%if %{?fedora}%{!?fedora:0} == 23
-# Workaround for too new libsigc++/glibmm + too old gcc combo in Fedora 23
-export CXXFLAGS="%{optflags} -std=c++11"
-%endif
+if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
+  if [ `echo __GNUC__ | gcc -E - | tail -1` -lt 6 ] ; then
+    # Workaround for too new libsigc++/glibmm, too old gcc combination
+    export CXXFLAGS="%{optflags} -std=c++11"
+  fi
+fi
 
 %configure --disable-static \
 %if ! %{with_python}
