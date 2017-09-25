@@ -142,10 +142,10 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   // Check priority
   if (old_queue && new_queue) {
     if(!to_front) {
-      if(new_queue->priority_ > old_queue->priority_) return false;
+      if(!(new_queue->priority_ > old_queue->priority_)) return false;
     } else {
       // If moving to first place in queue accept same priority 
-      if(new_queue->priority_ >= old_queue->priority_) return false;
+      if(!(new_queue->priority_ >= old_queue->priority_)) return false;
     };
   };
   if (old_queue) {
