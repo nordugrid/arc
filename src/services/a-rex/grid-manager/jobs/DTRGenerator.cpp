@@ -1062,6 +1062,7 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef
       break;
     }
     else { // still waiting
+      logger.msg(Arc::VERBOSE, "%s: User has NOT uploaded file %s", jobid, i->pfn);
       res = uploadedFilesMissing;
       ++i;
     }

@@ -246,8 +246,10 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
             rpos = npos;
             ++npos;
           };
-          queue_.insert(rpos.base(),*opos);
-          queue_.erase(opos.base());
+          if(rpos != opos) {  // no reason to move to itself
+            queue_.insert(rpos.base(),*opos);
+            queue_.erase(opos.base());
+          };
           break;
         };
         ++opos;
