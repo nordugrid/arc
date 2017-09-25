@@ -45,11 +45,11 @@ Arc::MCC_Status ARexService::PutCache(Arc::Message& inmsg,Arc::Message& outmsg,A
 }
 
 static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, std::string& errstr,
-                                  Arc::PayloadStreamInterface& stream, FileChunksRef fc, bool& complete) {
+                                  Arc::PayloadStreamInterface& stream, FileChunks& fc, bool& complete) {
   complete = false;
   // TODO: Use memory mapped file to minimize number of in memory copies
   const int bufsize = 1024*1024;
-  if(!fc->Size()) fc->Size(stream.Size());
+  if(!fc.Size()) fc.Size(stream.Size());
   off_t pos = stream.Pos(); 
   if(file.fa_lseek(pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
@@ -72,7 +72,7 @@ static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, s
       errstr = "failed to write to file - "+err;
       return ARexService::make_http_fault(outmsg, 500, "Error writing to file");
     };
-    if(size) fc->Add(pos,size);
+    if(size) fc.Add(pos,size);
     pos+=size;
   };
   delete[] buf;
@@ -87,10 +87,10 @@ static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, s
 }
 
 static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, std::string& errstr,
-                                  Arc::PayloadRawInterface& buf, FileChunksRef fc, bool& complete) {
+                                  Arc::PayloadRawInterface& buf, FileChunks& fc, bool& complete) {
   complete = false;
   bool got_something = false;
-  if(!fc->Size()) fc->Size(buf.Size());
+  if(!fc.Size()) fc.Size(buf.Size());
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);
     if(sbuf == NULL) break;
@@ -109,7 +109,7 @@ static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, s
         errstr = "failed to write to file - "+err;
         return ARexService::make_http_fault(outmsg, 500, "Error writing file");
       };
-      if(size) fc->Add(offset,size);
+      if(size) fc.Add(offset,size);
     };
   };
   if((buf.Size() == 0) && (!got_something)) {
@@ -142,7 +142,7 @@ Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   };
 
   // Prepare access to file 
-  FileChunksRef fc = files_chunks_.Get(job.ID()+"/"+subpath);
+  FileChunksRef fc(files_chunks_.Get(job.ID()+"/"+subpath));
   Arc::FileAccess* file = job.CreateFile(subpath.c_str());
   if(file == NULL) {
     // TODO: report something
@@ -154,9 +154,9 @@ Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   std::string err;
   bool complete(false);
   if(stream) {
-    r = PutJobFile(outmsg,*file,err,*stream,fc,complete);
+    r = PutJobFile(outmsg,*file,err,*stream,*fc,complete);
   } else {
-    r = PutJobFile(outmsg,*file,err,*buf,fc,complete);
+    r = PutJobFile(outmsg,*file,err,*buf,*fc,complete);
   }
   file->fa_close(); Arc::FileAccess::Release(file);
   if(r) {

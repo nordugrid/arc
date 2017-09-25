@@ -78,10 +78,14 @@ class FileChunksList {
 class FileChunksRef {
  private:
   FileChunks& obj;
+  FileChunksRef();
+  FileChunksRef(FileChunksRef const&);
+  FileChunksRef& operator=(FileChunksRef const&);
  public:
   FileChunksRef(FileChunks& o):obj(o) { };
   ~FileChunksRef(void) { obj.Release(); };
   FileChunks* operator->(void) { return &obj; };
+  FileChunks& operator*(void) { return obj; };
 };
 
 } // namespace ARex
