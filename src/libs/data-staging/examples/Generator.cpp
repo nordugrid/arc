@@ -1,3 +1,4 @@
+#include <arc/credential/Credential.h>
 #include <arc/GUID.h>
 #include "Generator.h"
 

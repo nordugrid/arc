@@ -969,8 +969,7 @@ fi
      --with-systemd-units-location=%{_unitdir} \
 %endif
      --disable-doc \
-     --with-docdir=%{_pkgdocdir} \
-     --with-jnidir=%{_jnidir}
+     --with-docdir=%{_pkgdocdir}
 
 make %{?_smp_mflags}
 
@@ -1235,14 +1234,21 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
+
+##working - maikenp
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
+%dir %{python_sitearch}/%{pkgdir}
+%{python_sitearch}/%{pkgdir}/__init__.py*
 %dir %{python_sitearch}/%{pkgdir}/utils
 %{python_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python_sitearch}/%{pkgdir}/utils/config.py*
 %dir %{_datadir}/%{pkgdir}
+##merge-left
+%{_libdir}/%{pkgdir}/arc-hostname-resolver
+##merge-right
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
@@ -1627,7 +1633,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %doc docdir/python/*
 %{python_sitearch}/_arc.@PYTHON_SOABI@*so
-%{python_sitearch}/%{pkgdir}/*.py*
+%{python_sitearch}/%{pkgdir}/[^_]*.py*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so

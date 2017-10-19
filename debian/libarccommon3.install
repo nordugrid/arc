@@ -21,6 +21,7 @@ debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
+debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/config.py*
 debian/tmp/usr/share/arc/examples/arc.conf.reference

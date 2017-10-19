@@ -50,7 +50,6 @@ namespace DataStaging {
        destination_url_str(destination_url.str()),
        use_acix(false),
        user(uid),
-       rfc_proxy(false),
        parent_job_id(jobid),
        priority(50),
        transfershare("_default"),
@@ -419,6 +418,49 @@ namespace DataStaging {
        cache_dirs(caches),
        remote_cache_dirs(remote_caches),
        drain_cache_dirs(drain_caches) {
+  }
+
+  DTRCredentialInfo::DTRCredentialInfo(const std::string& DN,
+                                       const Arc::Time& expirytime,
+                                       const std::list<std::string> vomsfqans):
+       DN(DN),
+       expirytime(expirytime),
+       vomsfqans(vomsfqans) {
+  }
+
+  std::string DTRCredentialInfo::extractVOMSVO() const {
+    if (vomsfqans.empty()) return "";
+    std::vector<std::string> parts;
+    Arc::tokenize(*(vomsfqans.begin()), parts, "/");
+    return parts.at(0);
+  }
+
+  std::string DTRCredentialInfo::extractVOMSGroup() const {
+    if (vomsfqans.empty()) return "";
+    std::string vomsvo;
+    for (std::list<std::string>::const_iterator i = vomsfqans.begin(); i != vomsfqans.end(); ++i) {
+      std::vector<std::string> parts;
+      Arc::tokenize(*i, parts, "/");
+      if (vomsvo.empty()) vomsvo = parts.at(0);
+      if (parts.size() > 1 && parts.at(1).find("Role=") != 0) {
+        return std::string(vomsvo+":"+parts.at(1));
+      }
+    }
+    return std::string(vomsvo + ":null");
+  }
+
+  std::string DTRCredentialInfo::extractVOMSRole() const {
+    if (vomsfqans.empty()) return "";
+    std::string vomsvo;
+    for (std::list<std::string>::const_iterator i = vomsfqans.begin(); i != vomsfqans.end(); ++i) {
+      std::vector<std::string> parts;
+      Arc::tokenize(*i, parts, "/");
+      if (vomsvo.empty()) vomsvo = parts.at(0);
+      if (parts.size() > 1 && parts.at(1).find("Role=") == 0) {
+        return std::string(parts.at(0)+":"+parts.at(1).substr(5));
+      }
+    }
+    return std::string(vomsvo + ":null");
   }
 
   DTR_ptr createDTRPtr(const std::string& source,

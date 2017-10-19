@@ -391,8 +391,8 @@ else
 fi
 
 priority=
-if [ -z $joboption_priority ]; then
-  $priority="--priority $joboption_priority"
+if [ ! -z "$joboption_priority" ]; then
+  priority="--priority $joboption_priority"
 fi
 
 cmd="bin/create_work \

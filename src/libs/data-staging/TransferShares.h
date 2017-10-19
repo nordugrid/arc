@@ -3,8 +3,6 @@
 
 #include <map>
 
-#include <arc/credential/VOMSUtil.h>
-
 #include "DTR.h"
 
 namespace DataStaging {
@@ -42,26 +40,6 @@ namespace DataStaging {
 
     /// Configured share type
     ShareType shareType;
-
-    /// Find the name of the share this dtr belongs to, when a USER ShareType is used
-    std::string extract_user_share(const Arc::Credential& cred){
-      return getCredentialProperty(cred, "dn");
-    }
-
-    /// Find the name of the share this dtr belongs to, when a VO ShareType is used
-    std::string extract_vo_share(const Arc::Credential& cred){
-      return getCredentialProperty(cred, "voms:vo");
-    }
-
-    /// Find the name of the share this dtr belongs to, when a GROUP ShareType is used
-    std::string extract_group_share(const Arc::Credential& cred){
-      return getCredentialProperty(cred, "voms:group");
-    }
-
-    /// Find the name of the share this dtr belongs to, when a ROLE ShareType is used
-    std::string extract_role_share(const Arc::Credential& cred){
-      return getCredentialProperty(cred, "voms:role");
-    }
 
   public:
 

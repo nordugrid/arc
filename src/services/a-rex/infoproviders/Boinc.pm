@@ -47,46 +47,64 @@ sub db_conn($){
 }
 
 sub get_total_cpus($){
-   
+    # Total number of hosts that finished jobs recently
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select sum(p_ncpus) from host where expavg_credit>0');
+    my $where = "";
+    if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select count(distinct hostid) from result where server_state=5'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
-    if(defined($result)){return $result;}
-    else{ return 0;}
+    if(defined($result)){
+        # Return a reasonable number to allow bootstrapping projects
+        if($result < 100) {$result = 100;}
+        return $result;
+    }
+    return 0;
 }
 sub get_max_cpus($){
+    # Total number of hosts with running and finished jobs
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select sum(p_ncpus) from host');
+    my $where = "";
+    if (defined($$config{boinc_app_id})) { $where = " where appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select count(distinct hostid) from result'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
 sub get_jobs_in_que($){
+    # Unsent jobs on BOINC server
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select count(*) from result where server_state in (1,2)');
+    my $where = "";
+    if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select count(*) from result where server_state in (1,2)'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
 sub get_jobs_in_run($){
+    # Jobs in progress
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select count(*) from result where server_state=4');
+    my $where = "";
+    if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select count(*) from result where server_state=4'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
     else{ return 0;}
 }
 sub get_jobs_status($){
+    # Convert BOINC status into ARC LRMS state for each job
     my $config=shift;
     my $dbh = db_conn($config);
-    my $sth = $dbh->prepare('select server_state,name,opaque from result where server_state in (1,2,4)');
+    my $where = "";
+    if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select server_state,name,opaque from result where server_state in (1,2,4)'.$where);
     $sth->execute();
     my (%jobs_status, @result,$job_status, $job_state, $job_name, $core_count);
     while(($job_state, $job_name, $core_count) = $sth->fetchrow_array())

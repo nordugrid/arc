@@ -311,6 +311,14 @@ boinc_db_user="boinc"
 .br
 boinc_db_pass="password"
 
+.TP
+.B boinc_app_id = id
+ID of the app handled by this CE. Setting this option makes database queries
+much faster in large projects with many apps.
+
+.IR Example:
+.br
+boinc_app_id="1"
 
 .SH Other [common] options
 

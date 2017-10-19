@@ -623,21 +623,22 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
 
   // Default credentials to be used by transfering files if not specified per file
   std::string default_cred = job_proxy_filename(jobid, config); // TODO: drop job.proxy as source of delegation
-  {
-    JobLocalDescription job_desc;
-    if(job_local_read_file(jobid, config, job_desc)) {
-      if(!job_desc.delegationid.empty()) {
-        ARex::DelegationStores* delegs = config.GetDelegations();
-        if(delegs) {
-          DelegationStore& deleg = delegs->operator[](config.DelegationDir());
-          std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
-          if(!fname.empty()) {
-            default_cred = fname;
-          };
-        };
-      };
-    };
-  };
+
+  JobLocalDescription job_desc;
+  if(job_local_read_file(jobid, config, job_desc)) {
+    if(!job_desc.delegationid.empty()) {
+      ARex::DelegationStores* delegs = config.GetDelegations();
+      if(delegs) {
+        DelegationStore& deleg = delegs->operator[](config.DelegationDir());
+        std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
+        if(!fname.empty()) {
+          default_cred = fname;
+        }
+      }
+    }
+  }
+  // Collect credential info for DTRs
+  DataStaging::DTRCredentialInfo cred_info(job_desc.DN, job_desc.expiretime, job_desc.voms);
 
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
@@ -967,6 +968,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);
     // callbacks for info
     dtr->registerCallback(&info, DataStaging::SCHEDULER);
+    dtr->set_credential_info(cred_info);
     dtrs_lock.lock();
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
     dtrs_lock.unlock();

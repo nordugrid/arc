@@ -155,7 +155,7 @@ binary-arch: install
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
 	dh_lintian -a
 	dh_link -a
-	dh_strip -a --dbg-package=nordugrid-arc-dbg
+	dh_strip -a
 	dh_compress -a -X .pdf
 	dh_fixperms -a
 	dh_makeshlibs -a

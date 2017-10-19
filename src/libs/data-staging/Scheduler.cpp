@@ -604,8 +604,8 @@ namespace DataStaging {
           if (request->get_tries_left() > 0) {
             // Check if credentials are ok
             if (request->get_source()->RequiresCredentials() || request->get_destination()->RequiresCredentials()) {
-               Arc::Credential cred(request->get_usercfg());
-               if (cred.GetEndTime() < Arc::Time()) {
+               Arc::Time exp_time = request->get_credential_info().getExpiryTime();
+               if (exp_time < Arc::Time()) {
                  request->get_logger()->msg(Arc::WARNING, "Proxy has expired");
                  // Append this information to the error string
                  DTRErrorStatus status = request->get_error_status();
@@ -812,22 +812,6 @@ namespace DataStaging {
 
     // Only local is configured
     if (configured_delivery_services.size() == 1 && configured_delivery_services.front() == DTR::LOCAL_DELIVERY) return;
-
-    // Check if proxy can be used with remote services
-    if (!request->is_rfc_proxy()) {
-      for (std::vector<Arc::URL>::const_iterator i = configured_delivery_services.begin();
-           i != configured_delivery_services.end(); ++i) {
-        if (*i == DTR::LOCAL_DELIVERY) {
-          request->get_logger()->msg(Arc::INFO, "Using non-RFC proxy so only local delivery can be used");
-          request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
-          return;
-        }
-      }
-      // No local defined so log a warning
-      request->get_logger()->msg(Arc::WARNING, "Using non-RFC proxy so forcing local delivery");
-      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
-      return;
-    }
 
     // Check for size limit under which local should be used
     if (remote_size_limit > 0 &&

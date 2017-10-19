@@ -68,11 +68,8 @@ namespace DataStaging {
       return;
     }
     // DN is used for checking cache permissions
-    Arc::Credential cred(request->get_usercfg().ProxyPath(),
-                         request->get_usercfg().ProxyPath(),
-                         request->get_usercfg().CACertificatesDirectory(), "");
-    std::string dn = cred.GetIdentityName();
-    Arc::Time exp_time = cred.GetEndTime();
+    std::string dn = request->get_credential_info().getDN();
+    Arc::Time exp_time = request->get_credential_info().getExpiryTime();
 
     std::string canonic_url(request->get_source()->GetURL().plainstr());
     std::string cacheoption(request->get_source()->GetURL().Option("cache"));
@@ -746,10 +743,9 @@ namespace DataStaging {
     bool was_downloaded = (request->get_cache_state() == CACHE_DOWNLOADED) ? true : false;
     if (was_downloaded) {
       // Add DN to cached permissions
-      Arc::Credential cred(request->get_usercfg().ProxyPath(),
-                           request->get_usercfg().ProxyPath(),
-                           request->get_usercfg().CACertificatesDirectory(), "");
-      cache.AddDN(canonic_url, cred.GetIdentityName(), cred.GetEndTime());
+      std::string dn = request->get_credential_info().getDN();
+      Arc::Time exp_time = request->get_credential_info().getExpiryTime();
+      cache.AddDN(canonic_url, dn, exp_time);
     }
 
     bool try_again = false;

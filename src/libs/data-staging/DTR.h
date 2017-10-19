@@ -144,6 +144,39 @@ namespace DataStaging {
                        std::vector<std::string> drain_caches);
   };
 
+  /// Class for storing credential information
+  /**
+   * To avoid handling credentials directly this class is used to hold
+   * information in simple string/time attributes. It should be filled before
+   * the DTR is started.
+   * \ingroup datastaging
+   * \headerfile DTR.h arc/data-staging/DTR.h
+   */
+  class DTRCredentialInfo {
+   public:
+    /// Default constructor
+    DTRCredentialInfo() {};
+    /// Constructor with supplied credential info
+    DTRCredentialInfo(const std::string& DN,
+                      const Arc::Time& expirytime,
+                      const std::list<std::string> vomsfqans);
+    /// Get the DN
+    std::string getDN() const { return DN; };
+    /// Get the expiry time
+    Arc::Time getExpiryTime() const { return expirytime; };
+    /// Get the VOMS VO
+    std::string extractVOMSVO() const;
+    /// Get the VOMS Group (first in the supplied list of fqans)
+    std::string extractVOMSGroup() const;
+    /// Get the VOMS Role (first in the supplied list of fqans)
+    std::string extractVOMSRole() const;
+   private:
+    std::string DN;
+    Arc::Time expirytime;
+    std::list<std::string> vomsfqans;
+
+  };
+
   /// Represents possible cache states of this DTR
   /** \ingroup datastaging */
   enum CacheState {
@@ -239,9 +272,8 @@ namespace DataStaging {
     /// Local user information
     Arc::User user;
 
-    /// Whether the credentials for this DTR are of type RFC proxy (and
-    /// hence remote delivery service can be used for transfer)
-    bool rfc_proxy;
+    /// Credential information
+    DTRCredentialInfo credentials;
 
     /// Job that requested the transfer. Could be used as a generic way of grouping DTRs.
     std::string parent_job_id;
@@ -474,10 +506,10 @@ namespace DataStaging {
     /// Get the priority
     int get_priority() const { return priority; };
      
-    /// Set whether credentials are type RFC proxy
-    void set_rfc_proxy(bool rfc) { rfc_proxy = rfc; };
-    /// Get whether credentials are type RFC proxy
-    bool is_rfc_proxy() const { return rfc_proxy; };
+    /// Set credential info
+    void set_credential_info(const DTRCredentialInfo& cred) { credentials = cred; };
+    /// Get credential info
+    const DTRCredentialInfo& get_credential_info() const { return credentials; };
 
     /// Set the transfer share. sub_share is automatically added to transfershare.
     void set_transfer_share(const std::string& share_name);

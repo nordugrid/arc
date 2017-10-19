@@ -584,7 +584,7 @@ read -r -d '' job_script_patch <<'EOF'
  #SBATCH -n 1
  #SBATCH 
 -#SBATCH --mem-per-cpu=1000
-+#SBATCH --mem-per-cpu=12001
++#SBATCH --mem-per-cpu=13500
  
  # Overide umask of execution node (sometime values are really strange)
  umask 077
