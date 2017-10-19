@@ -86,14 +86,14 @@ bool ArcAuthZ::MakePDPs(XMLNode cfg) {
 
 SecHandlerStatus ArcAuthZ::Handle(Arc::Message* msg) const {
   pdp_container_t::const_iterator it;
-  bool r = false;
+  PDPStatus r(PDPStatus::STATUS_DENY, "Security handler misconfigured"); // goes through if no PDP is defined
   for(it=pdps_.begin();it!=pdps_.end();it++){
     r = it->pdp->isPermitted(msg);
-    if((r == true) && (it->action == PDPDesc::breakOnAllow)) break;
-    if((r == false) && (it->action == PDPDesc::breakOnDeny)) break;
+    if((r) && (it->action == PDPDesc::breakOnAllow)) break;
+    if((!r) && (it->action == PDPDesc::breakOnDeny)) break;
     if(it->action == PDPDesc::breakAlways) break;
   }
-  return r;
+  return SecHandlerStatus(r.getCode(), r.getExplanation()); // Origin???
 }
 
 } // namespace ArcSec

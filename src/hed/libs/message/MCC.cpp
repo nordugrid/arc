@@ -52,7 +52,7 @@ namespace Arc {
     }
   }
 
-  bool MCC::ProcessSecHandlers(Message& message,
+  MCC_Status MCC::ProcessSecHandlers(Message& message,
              const std::string& label) const {
     // Each MCC/Service can define security handler queues in the configuration
     // file, the queues have labels specified in handlers configuration 'event'
@@ -73,21 +73,22 @@ namespace Arc {
     std::map<std::string, std::list<ArcSec::SecHandler *> >::const_iterator q =
       sechandlers_.find(label);
     if (q == sechandlers_.end()) {
-      logger.msg(DEBUG,
-     "No security processing/check requested for '%s'", label);
-      return true;
+      logger.msg(DEBUG, "No security processing/check requested for '%s'", label);
+      return MCC_Status(STATUS_OK);
     }
-    for (std::list<ArcSec::SecHandler *>::const_iterator h = q->second.begin();
+    for (std::list<ArcSec::SecHandler*>::const_iterator h = q->second.begin();
          h != q->second.end(); ++h) {
       const ArcSec::SecHandler *handler = *h;
       if (!handler) continue; // Shouldn't happen. Just a sanity check.
-      if (!(handler->Handle(&message))) {
-        logger.msg(INFO, "Security processing/check failed");
-        return false;
+      ArcSec::SecHandlerStatus ret = handler->Handle(&message);
+      if (!ret) {
+        logger.msg(INFO, "Security processing/check failed: %s", (std::string)ret);
+        return MCC_Status(GENERIC_ERROR, ret.getOrigin(),
+                           ret.getExplanation().empty()?(std::string("Security error: ")+Arc::tostring(ret.getCode())):ret.getExplanation());
       }
     }
     logger.msg(DEBUG, "Security processing/check passed");
-    return true;
+    return MCC_Status(STATUS_OK);
   }
 
   XMLNode MCCConfig::MakeConfig(XMLNode cfg) const {

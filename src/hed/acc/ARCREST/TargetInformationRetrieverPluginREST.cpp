@@ -20,6 +20,8 @@ namespace Arc {
 
   using namespace Arc;
 
+  #define HTTP_OK (200)
+
 
   Logger TargetInformationRetrieverPluginREST::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.REST");
 
@@ -68,6 +70,10 @@ namespace Arc {
     if(!res) {
       delete response;
       return Arc::EndpointQueryingStatus(EndpointQueryingStatus::FAILED,res.getExplanation());
+    }
+    if(info.code != HTTP_OK) {
+      delete response;
+      return Arc::EndpointQueryingStatus(EndpointQueryingStatus::FAILED, "Error "+Arc::tostring(info.code)+": "+info.reason);
     }
     if((response == NULL) || (response->Buffer(0) == NULL)) {
       delete response;

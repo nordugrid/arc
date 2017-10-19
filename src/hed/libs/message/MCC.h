@@ -67,7 +67,7 @@ namespace Arc {
         functionality.
         This is a convenience method and has to be called by the implemention
         of the MCC. */
-    bool ProcessSecHandlers(Message& message,
+    MCC_Status ProcessSecHandlers(Message& message,
                             const std::string& label = "") const;
 
     /// A logger for MCCs.

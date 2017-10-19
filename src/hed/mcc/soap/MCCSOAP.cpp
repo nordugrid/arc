@@ -156,12 +156,15 @@ MCC_SOAP_Client::MCC_SOAP_Client(Config *cfg,PluginArgument* parg):MCC_SOAP(cfg,
 MCC_SOAP_Client::~MCC_SOAP_Client(void) {
 }
 
-static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL) 
-{
+static MCC_Status make_raw_fault(Message& outmsg, const char* reason1 = NULL, const char* reason2 = NULL, const char* reason3 = NULL) {
   NS ns;
   SOAPEnvelope soap(ns,true);
   soap.Fault()->Code(SOAPFault::Receiver);
-  if(reason != NULL) soap.Fault()->Reason(0, reason);
+  std::string reason;
+  if(reason1) { if(!reason.empty()) reason+=": "; reason += reason1; };
+  if(reason2) { if(!reason.empty()) reason+=": "; reason += reason2; };
+  if(reason3) { if(!reason.empty()) reason+=": "; reason += reason3; };
+  if(!reason.empty()) soap.Fault()->Reason(0, reason.c_str());
   std::string xml; soap.GetXML(xml);
   PayloadRaw* payload = new PayloadRaw;
   payload->Insert(xml.c_str());
@@ -169,20 +172,28 @@ static MCC_Status make_raw_fault(Message& outmsg,const char* reason = NULL)
   return MCC_Status(STATUS_OK);
 }
 
-static MCC_Status make_soap_fault(Message& outmsg,bool senderfault,const char* reason = NULL) {
+static MCC_Status make_soap_fault(Message& outmsg, bool senderfault, const char* reason1 = NULL, const char* reason2 = NULL, const char* reason3 = NULL) {
   PayloadSOAP* soap = new PayloadSOAP(NS(),true);
   soap->Fault()->Code(senderfault?SOAPFault::Sender:SOAPFault::Receiver);
-  if(reason != NULL) soap->Fault()->Reason(0, reason);
+  std::string reason;
+  if(reason1) { if(!reason.empty()) reason+=": "; reason += reason1; };
+  if(reason2) { if(!reason.empty()) reason+=": "; reason += reason2; };
+  if(reason3) { if(!reason.empty()) reason+=": "; reason += reason3; };
+  soap->Fault()->Reason(0, reason.c_str());
   outmsg.Payload(soap);
   return MCC_Status(STATUS_OK);
 }
 
 static MCC_Status make_soap_fault(Message& outmsg,Message& oldmsg,bool senderfault,const char* reason = NULL) {
-  if(oldmsg.Payload()) {
-    delete oldmsg.Payload();
-    oldmsg.Payload(NULL);
-  };
-  return make_soap_fault(outmsg,senderfault,reason);
+  // Fetch additional info from HTTP and generic content
+  std::string http_reason = oldmsg.Attributes()->get("HTTP:REASON");
+  MCC_Status ret = make_soap_fault(outmsg, senderfault, reason,
+                                                        (!http_reason.empty())?http_reason.c_str():NULL,
+                                                        oldmsg.Payload()?ContentFromPayload(*oldmsg.Payload()):NULL);
+  // Release original payload
+  delete oldmsg.Payload();
+  oldmsg.Payload(NULL);
+  return ret;
 }
 
 MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
@@ -211,9 +222,13 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   SOAPSecAttr* sattr = new SOAPSecAttr(nextpayload);
   nextinmsg.Auth()->set("SOAP",sattr);
   // Checking authentication and authorization; 
-  if(!ProcessSecHandlers(nextinmsg,"incoming")) {
-    logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
-    return make_raw_fault(outmsg, "Security check failed for SOAP request");
+
+  {
+    MCC_Status sret = ProcessSecHandlers(nextinmsg,"incoming");
+    if(!sret) {
+      logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message: %s",std::string(sret));
+      return make_raw_fault(outmsg, "Security check failed for SOAP request", std::string(sret).c_str());
+    };
   };
   // TODO: pass SOAP action from HTTP header to SOAP:ACTION attribute
   // Call next MCC 
@@ -248,10 +263,13 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     // it back to previous MCC and let it decide.
     logger.msg(INFO, "next element of the chain returned unknown payload - passing through");
     //Checking authentication and authorization; 
-    if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
-      logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
-      delete nextoutmsg.Payload();
-      return make_raw_fault(outmsg,"Security check failed for SOAP response");
+    {
+      MCC_Status sret = ProcessSecHandlers(nextoutmsg,"outgoing");
+      if(!sret) {
+        logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message: %s",std::string(sret));
+        delete nextoutmsg.Payload();
+        return make_raw_fault(outmsg,"Security check failed for SOAP response", std::string(sret).c_str());
+      };
     };
     outmsg = nextoutmsg;
     return MCC_Status(STATUS_OK);
@@ -261,9 +279,13 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     return make_raw_fault(outmsg,"There is no valid SOAP response");
   };
   //Checking authentication and authorization; 
-  if(!ProcessSecHandlers(nextoutmsg,"outgoing")) {
-    logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message");
-    delete retpayload; return make_raw_fault(outmsg,"Security check failed for SOAP response");
+  {
+    MCC_Status sret = ProcessSecHandlers(nextoutmsg,"outgoing");
+    if(!sret) {
+      logger.msg(ERROR, "Security check failed in SOAP MCC for outgoing message: %s",std::string(sret));
+      delete retpayload;
+      return make_raw_fault(outmsg,"Security check failed for SOAP response", std::string(sret).c_str());
+    };
   };
   // Convert to Raw - TODO: more efficient conversion
   PayloadRaw* outpayload = new PayloadRaw;
@@ -352,17 +374,15 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     std::string errstr = "Failed to send SOAP message: "+(std::string)ret;
     return make_soap_fault(outmsg,nextoutmsg,false,errstr.c_str());
   };
-  if(!nextoutmsg.Payload()) {
+  MessagePayload* retpayload = nextoutmsg.Payload();
+  if(!retpayload) {
     return make_soap_fault(outmsg,nextoutmsg,false,"No response for SOAP message received");
   };
-  MessagePayload* retpayload = nextoutmsg.Payload();
-  if(!retpayload) return make_soap_fault(outmsg,nextoutmsg,false,"No valid response for SOAP message received");
+  // Try to interpret response payload as SOAP
   PayloadSOAP* outpayload  = new PayloadSOAP(*retpayload);
-  if(!outpayload) {
-    return make_soap_fault(outmsg,nextoutmsg,false,"Response is not SOAP");
-  };
   if(!(*outpayload)) {
-    delete outpayload; return make_soap_fault(outmsg,nextoutmsg,false,"Response is not valid SOAP");
+    delete outpayload;
+    return make_soap_fault(outmsg,nextoutmsg,false,"Response is not valid SOAP");
   };
   outmsg = nextoutmsg;
   outmsg.Payload(outpayload);

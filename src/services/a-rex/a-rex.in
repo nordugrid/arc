@@ -749,6 +749,12 @@ prepare() {
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
+    </Component>
+    <Component name=\"http.service\" id=\"http\">
+      <next id=\"soap\">POST</next>
+      <next id=\"plexer\">GET</next>
+      <next id=\"plexer\">PUT</next>
+      <next id=\"plexer\">HEAD</next>
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
@@ -759,12 +765,6 @@ prepare() {
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_CONFIG</ConfigFile>
       </SecHandler>
-    </Component>
-    <Component name=\"http.service\" id=\"http\">
-      <next id=\"soap\">POST</next>
-      <next id=\"plexer\">GET</next>
-      <next id=\"plexer\">PUT</next>
-      <next id=\"plexer\">HEAD</next>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>

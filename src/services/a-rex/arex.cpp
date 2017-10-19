@@ -620,9 +620,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       return make_soap_fault(outmsg);
     };
     if(logger_.getThreshold() <= Arc::VERBOSE) {
-        std::string str;
-        inpayload->GetDoc(str, true);
-        logger_.msg(Arc::VERBOSE, "process: request=%s",str);
+      std::string str;
+      inpayload->GetDoc(str, true);
+      logger_.msg(Arc::VERBOSE, "process: request=%s",str);
     };
     // Analyzing request
     op = inpayload->Child(0);
@@ -645,9 +645,14 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     sattr->SetResource(endpoint,id,subpath);
   }
 
-  if(!ProcessSecHandlers(inmsg,"incoming")) {
-    logger_.msg(Arc::ERROR, "Security Handlers processing failed");
-    return make_soap_fault(outmsg, "Not authorized");
+  {
+    Arc::MCC_Status sret = ProcessSecHandlers(inmsg,"incoming");
+    if(!sret) {
+      logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
+      std::string fault_str = "Not authorized: " + std::string(sret);
+      // TODO: HTTP response for non-POST requests
+      return make_soap_fault(outmsg, fault_str.c_str());
+    };
   };
 
   // Process grid-manager configuration if not done yet
@@ -874,10 +879,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
             logger_.msg(Arc::VERBOSE, "process: response is not SOAP");
           };
         };
-        if(!ProcessSecHandlers(outmsg,"outgoing")) {
-          logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+        Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+        if(!sret) {
+          logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
           delete outmsg.Payload(NULL);
-          return Arc::MCC_Status();
+          return sret;
         };
         return Arc::MCC_Status(Arc::STATUS_OK);
       } else {
@@ -895,10 +901,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
       return make_soap_fault(outmsg,"Operation not supported");
     };
-    if(!ProcessSecHandlers(outmsg,"outgoing")) {
-      logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+    Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+    if(!sret) {
+      logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
       delete outmsg.Payload(NULL);
-      return Arc::MCC_Status();
+      return sret;
     };
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else if(method == "GET") {
@@ -929,10 +936,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      if(!ProcessSecHandlers(outmsg,"outgoing")) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+      if(!sret) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s",std::string(sret));
         delete outmsg.Payload(NULL);
-        return Arc::MCC_Status();
+        return sret;
       };
     };
     return ret;
@@ -960,10 +968,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      if(!ProcessSecHandlers(outmsg,"outgoing")) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+      if(!sret) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
         delete outmsg.Payload(NULL);
-        return Arc::MCC_Status();
+        return sret;
       };
     };
     return ret;
@@ -993,10 +1002,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      if(!ProcessSecHandlers(outmsg,"outgoing")) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+      if(!sret) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
         delete outmsg.Payload(NULL);
-        return Arc::MCC_Status();
+        return sret;
       };
     };
     return ret;

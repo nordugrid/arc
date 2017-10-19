@@ -48,5 +48,14 @@ namespace ArcSec{
     return explanation;
   }
 
+  SecHandlerStatus::operator std::string(void) const {
+    if(!explanation.empty()) {
+      if(!origin.empty()) return origin+": "+explanation;
+      return explanation;
+    }
+    if(!origin.empty()) return origin+": security error "+Arc::tostring(code);
+    return "Security error "+Arc::tostring(code);
+  }
+
 }
 

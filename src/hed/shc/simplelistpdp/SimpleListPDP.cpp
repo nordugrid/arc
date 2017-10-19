@@ -37,7 +37,7 @@ PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
   std::string line;
   if(location.empty() && dns.empty()) {
     logger.msg(ERROR, "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration.");
-    return false; 
+    return PDPStatus(PDPStatus::STATUS_DENY, "Misconfigured authorization list");
   }
   logger.msg(DEBUG, "Subject to match: %s", subject);
   for(std::list<std::string>::const_iterator dn = dns.begin();
@@ -52,7 +52,7 @@ PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
   std::ifstream fs(location.c_str());
   if(fs.fail()) {
     logger.msg(ERROR, "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration");
-    return false;
+    return PDPStatus(PDPStatus::STATUS_DENY, "Misconfigured authorization list");
   }   
 
   while (fs.good()) {
@@ -77,5 +77,5 @@ PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
   }
   fs.close();
   logger.msg(ERROR, "Not authorized from simplelist.pdp: %s", subject);
-  return false;
+  return PDPStatus(PDPStatus::STATUS_DENY, "Subject does not match authorization list");
 }

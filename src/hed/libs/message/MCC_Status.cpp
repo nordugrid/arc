@@ -56,6 +56,11 @@ namespace Arc {
   }
 
   MCC_Status::operator std::string() const{
+    if(origin.empty()) {
+      if(explanation.empty()) return string(kind);
+      return string(kind) + " (" + explanation + ")";
+    }
+    if(explanation.empty()) return origin + ": " + string(kind);
     return origin + ": " + string(kind) + " (" + explanation + ")";
   }
 

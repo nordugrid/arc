@@ -1235,7 +1235,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
 
-##working - maikenp
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
@@ -1246,9 +1245,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{python_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python_sitearch}/%{pkgdir}/utils/config.py*
 %dir %{_datadir}/%{pkgdir}
-##merge-left
-%{_libdir}/%{pkgdir}/arc-hostname-resolver
-##merge-right
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
@@ -1632,6 +1628,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
+%dir %{python_sitearch}/%{pkgdir}
 %{python_sitearch}/_arc.@PYTHON_SOABI@*so
 %{python_sitearch}/%{pkgdir}/[^_]*.py*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
@@ -1644,14 +1641,14 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -n python26-%{name}
 %defattr(-,root,root,-)
 %{python26_sitearch}/_arc.@ALTPYTHON_SOABI@*so
-%{python26_sitearch}/arc
+%{python26_sitearch}/%{pkgdir}
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13
 %files -n python3-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.@ALTPYTHON_SOABI@*so
-%{python3_sitearch}/arc
+%{python3_sitearch}/%{pkgdir}
 %endif
 
 %files gridmap-utils

@@ -44,11 +44,9 @@ namespace Arc {
   }
 
   EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
-    EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
-
     URL url(CreateURL(cie.URLString));
     if (!url) {
-      return s;
+      return EndpointQueryingStatus::FAILED;
     }
 
     logger.msg(DEBUG, "Collecting EMI-ES GLUE2 computing info endpoint information.");
@@ -57,7 +55,7 @@ namespace Arc {
     EMIESClient ac(url, cfg, uc.Timeout());
     XMLNode servicesQueryResponse;
     if (!ac.sstat(servicesQueryResponse)) {
-      return s;
+      return EndpointQueryingStatus(EndpointQueryingStatus::FAILED, ac.failure());
     }
 
     ExtractTargets(url, servicesQueryResponse, csList);
@@ -66,8 +64,8 @@ namespace Arc {
       (*it)->InformationOriginEndpoint = cie;
     }
 
-    if (!csList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
-    return s;
+    if (csList.empty()) return EndpointQueryingStatus::FAILED;
+    return EndpointQueryingStatus::SUCCESSFUL;
   }
 
   void TargetInformationRetrieverPluginEMIES::ExtractTargets(const URL& url, XMLNode response, std::list<ComputingServiceType>& csList) {

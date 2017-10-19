@@ -48,7 +48,7 @@ class Service: public MCCInterface
 
         /** Executes security handlers of specified queue.
           For more information please see description of MCC::ProcessSecHandlers */
-        bool ProcessSecHandlers(Message& message,const std::string& label = "") const;
+        MCC_Status ProcessSecHandlers(Message& message,const std::string& label = "") const;
 
     public:
         /** Example constructor - Server takes at least its configuration subtree */

@@ -168,6 +168,10 @@ static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, Payl
   return MCC_Status(STATUS_OK);
 }
 
+static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, PayloadStreamInterface& stream, Message& outmsg, int code, std::string const & desc) {
+  return make_http_fault(logger, inpayload, stream, outmsg, code, desc.empty()?"":desc.c_str());
+}
+
 static MCC_Status make_raw_fault(Message& outmsg,const char* desc = NULL) {
   PayloadRaw* outpayload = new PayloadRaw;
   if(desc) outpayload->Insert(desc,0);
@@ -279,8 +283,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
       nextpayload.Attributes().begin();i!=nextpayload.Attributes().end();++i) {
     nextinmsg.Attributes()->add("HTTP:"+i->first,i->second);
   };
-  if(!ProcessSecHandlers(nextinmsg,"incoming")) {
-    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
+  {
+    MCC_Status sret = ProcessSecHandlers(nextinmsg,"incoming");
+    if(!sret) {
+      return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST,(std::string)sret); // Maybe not 400 ?
+    };
   };
   // Call next MCC
   MCCInterface* next = Next(nextpayload.Method());
@@ -319,9 +326,12 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     delete nextoutmsg.Payload();
     return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_INTERNAL_ERR);
   };
-  if(!ProcessSecHandlers(nextinmsg,"outgoing")) {
-    delete nextoutmsg.Payload();
-    return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST); // Maybe not 400 ?
+  {
+    MCC_Status sret = ProcessSecHandlers(nextinmsg,"outgoing");
+    if(!sret) {
+      delete nextoutmsg.Payload();
+      return make_http_fault(logger,nextpayload,*inpayload,outmsg,HTTP_BAD_REQUEST,(std::string)sret); // Maybe not 400 ?
+    };
   };
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response

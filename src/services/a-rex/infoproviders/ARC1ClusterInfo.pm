@@ -38,7 +38,12 @@ sub glue2bool {
 # TODO: Stage-in and Stage-out are substates of what?
 sub bes_state {
     my ($gm_state,$lrms_state) = @_;
-    if      ($gm_state eq "ACCEPTED") {
+    my $is_pending = 0;
+    if ($gm_state =~ /^PENDING:/) {
+      $is_pending = 1;
+      $gm_state = substr $gm_state, 7
+    }
+    if ($gm_state eq "ACCEPTED") {
         return [ "Pending", "Accepted" ];
     } elsif ($gm_state eq "PREPARING") {
         return [ "Running", "Stage-in" ];
@@ -87,53 +92,49 @@ sub emies_state {
                     'State' => '',
                     'Attributes' => ''
                    };
-    if      ($gm_state eq "ACCEPTED") {
+
+    my $is_pending = 0;
+    if ($gm_state =~ /^PENDING:/) {
+      $is_pending = 1;
+      $gm_state = substr $gm_state, 8
+    }
+
+    if ($gm_state eq "ACCEPTED") {
         $es_state->{State} = [ "accepted" ];
         $es_state->{Attributes} = [ "client-stagein-possible" ];
-        return $es_state;
     } elsif ($gm_state eq "PREPARING") {
         $es_state->{State} = [ "preprocessing" ];
         $es_state->{Attributes} = [ "client-stagein-possible", "server-stagein" ];
-        return $es_state;
     } elsif ($gm_state eq "SUBMIT") {
         $es_state->{State} = [ "processing-accepting" ];
-        return $es_state;
     } elsif ($gm_state eq "INLRMS") {
         # TODO: check hot to map these!
         if (not defined $lrms_state) {
             $es_state->{State} = [ "processing-running" ];
             $es_state->{Attributes} = [ "app-running" ];
-            return $es_state;
         } elsif ($lrms_state eq 'Q') {
             $es_state->{State} = [ "processing-queued" ];
             $es_state->{Attributes} = '';
-            return $es_state;
         } elsif ($lrms_state eq 'R') {
             $es_state->{State} = [ "processing-running" ];
             $es_state->{Attributes} = [ "app-running" ];
-            return $es_state;
         } elsif ($lrms_state eq 'EXECUTED'
               or $lrms_state eq '') {
             $es_state->{State} = [ "processing-running" ];
             $es_state->{Attributes} = '';
-            return $es_state;
         } elsif ($lrms_state eq 'S') {
             $es_state->{State} = [ "processing-running" ];
             $es_state->{Attributes} = [ "batch-suspend" ];
-            return $es_state;
         } else {
             $es_state->{State} = [ "processing-running" ];
             $es_state->{Attributes} = '';
-            return $es_state;
         }
     } elsif ($gm_state eq "FINISHING") {
             $es_state->{State} = [ "postprocessing" ];
             $es_state->{Attributes} = [ "client-stageout-possible", "server-stageout" ];
-            return $es_state;
     } elsif ($gm_state eq "CANCELING") {
             $es_state->{State} = [ "processing" ];
             $es_state->{Attributes} = [ "processing-cancel" ];
-            return $es_state;
     } elsif ($gm_state eq "KILLED") {
             $es_state->{State} = [ "terminal" ];
             # introduced for bug #3036
@@ -174,55 +175,47 @@ sub emies_state {
             # introduced for bug #3036
             if (! defined($failure_state)) {
                 $log->warning('EMIES Failure state attribute cannot be determined.');
-                return $es_state;
             } else {
                 if ($failure_state eq "ACCEPTED")  {                
                     $es_state->{Attributes} = ["validation-failure"];
-                    return $es_state;
                 } elsif ($failure_state eq "PREPARING") {
                     $es_state->{Attributes} = ["preprocessing-failure"];
-                    return $es_state;
                 } elsif ($failure_state eq "SUBMIT") {
                     $es_state->{Attributes} = ["processing-failure"];
-                    return $es_state;
                 } elsif ($failure_state eq "INLRMS") {
                     if ( $lrms_state eq "R" ) {
                         $es_state->{Attributes} = ["processing-failure","app-failure"];
-                        return $es_state;
                     } else {
                         $es_state->{Attributes} = ["processing-failure"];
-                        return $es_state;
                     }                
                 } elsif ($failure_state eq "FINISHING") {
                     $es_state->{Attributes} = ["postprocessing-failure"];
-                    return $es_state;
                 } elsif ($failure_state eq "FINISHED") {
                     # TODO: $es_state->{Attributes} = '';
-                    return $es_state;
                 } elsif ($failure_state eq "DELETED") {
                     # TODO: $es_state->{Attributes} = '';
-                    return $es_state;
                 } elsif ($failure_state eq "CANCELING") {
                     # TODO: $es_state->{Attributes} = '';
-                    return $es_state;
                 } else {
-                    return $es_state;
+                    # Nothing
                 }
             }
     } elsif ($gm_state eq "FINISHED") {
             $es_state->{State} = [ "terminal" ];
             $es_state->{Attributes} = [ "client-stageout-possible" ];
-            return $es_state;
     } elsif ($gm_state eq "DELETED") {
             $es_state->{State} = [ "terminal" ];
             $es_state->{Attributes} = [ "expired" ];
-            return $es_state;
     } elsif ($gm_state) { # this is the "pending" case
         $es_state->{Attributes} = ["server-paused"];
-        return $es_state;
     } else {
-        return $es_state;
-        }
+        # No idea
+    }
+
+    if ( $is_pending ) {
+      push @{$es_state->{Attributes}}, "server-paused";
+    }
+    return $es_state;
 }
 
 # input is an array with (state, lrms_state, failure_state)
@@ -248,7 +241,7 @@ sub getGMStatus {
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             next;
         } else {
-			my ($first_line) = <GMJOB_STATUS>;
+            my ($first_line) = <GMJOB_STATUS>;
             close GMJOB_STATUS;
             unless ($first_line) {
 				$log->warning("Job $ID: cannot get status from file $gmjob_status : Skipping job");
@@ -3031,6 +3024,10 @@ sub collect($) {
             }
         }
 
+	## duplicate line? 
+        ## get lrms stats from the actual queues, not share names as they might not match
+        #my $qinfo = $lrms_info->{queues}{$qname};
+        
         my $csha = {};
 
         $csha->{CreationTime} = $creation_time;
@@ -3195,7 +3192,8 @@ sub collect($) {
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
         } else {
-			# $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
+	    # TODO: to be removed after patch testing. Uncomment to check values
+	    # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
             $freeslots = $qinfo->{totalcpus} - $qinfo->{running} || 0;
         }
 
