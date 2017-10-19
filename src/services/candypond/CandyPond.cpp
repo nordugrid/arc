@@ -16,6 +16,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
+#include <arc/credential/Credential.h>
 
 #include "CandyPond.h"
 
