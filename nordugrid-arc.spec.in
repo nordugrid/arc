@@ -181,18 +181,18 @@
 
 # Standard service requirements
 %if %{use_systemd}
-%define service_post_requires   systemd-units
-%define service_preun_requires  systemd-units
-%define service_postun_requires systemd-units
+%define service_post_requires	systemd-units
+%define service_preun_requires	systemd-units
+%define service_postun_requires	systemd-units
 %else
 %if %{?suse_version:1}%{!?suse_version:0}
-%define service_post_requires   %{insserv_prereq}
-%define service_preun_requires  %{insserv_prereq}
-%define service_postun_requires %{insserv_prereq}
+%define service_post_requires	%{insserv_prereq}
+%define service_preun_requires	%{insserv_prereq}
+%define service_postun_requires	%{insserv_prereq}
 %else
-%define service_post_requires   chkconfig
-%define service_preun_requires  chkconfig, initscripts
-%define service_postun_requires initscripts
+%define service_post_requires	chkconfig
+%define service_preun_requires	chkconfig, initscripts
+%define service_postun_requires	initscripts
 %endif
 %endif
 
@@ -221,9 +221,7 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
-%if %{with_python}
 BuildRequires:	python-devel
-%endif
 %if %{?rhel}%{!?rhel:0} == 5
 BuildRequires:	python26-devel
 %endif
