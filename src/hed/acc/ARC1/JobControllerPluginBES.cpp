@@ -23,6 +23,10 @@ namespace Arc {
 
   Logger JobControllerPluginBES::logger(Logger::getRootLogger(), "JobControllerPlugin.BES");
 
+  void JobControllerPluginBES::SetUserConfig(const UserConfig& uc) {
+    JobControllerPlugin::SetUserConfig(uc);
+  }
+
   bool JobControllerPluginBES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";

@@ -10,7 +10,8 @@ namespace Arc {
   class JobControllerPluginBES : public JobControllerPlugin {
   public:
     JobControllerPluginBES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.ogf.bes"); }
-    ~JobControllerPluginBES() {}
+    virtual ~JobControllerPluginBES() {}
+    virtual void SetUserConfig(const UserConfig& uc);
 
     static Plugin* Instance(PluginArgument *arg) {
       JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);

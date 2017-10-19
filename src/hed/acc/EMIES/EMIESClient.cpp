@@ -1500,13 +1500,15 @@ namespace Arc {
 
   // TODO: does it need locking?
 
-  EMIESClients::EMIESClients(const UserConfig& usercfg):usercfg_(usercfg) {
+  EMIESClients::EMIESClients(const UserConfig& usercfg):usercfg_(&usercfg) {
   }
 
   EMIESClients::~EMIESClients(void) {
-    std::multimap<URL, EMIESClient*>::iterator it;
-    for (it = clients_.begin(); it != clients_.end(); ++it) {
+    while(true) {
+      std::multimap<URL, EMIESClient*>::iterator it = clients_.begin();
+      if(it == clients_.end()) break;
       delete it->second;
+      clients_.erase(it);
     }
   }
 
@@ -1521,8 +1523,8 @@ namespace Arc {
     }
     // Else create a new one and return with that
     MCCConfig cfg;
-    usercfg_.ApplyToConfig(cfg);
-    EMIESClient* client = new EMIESClient(url, cfg, usercfg_.Timeout());
+    if(usercfg_) usercfg_->ApplyToConfig(cfg);
+    EMIESClient* client = new EMIESClient(url, cfg, usercfg_?usercfg_->Timeout():0);
     return client;
   }
 
@@ -1534,6 +1536,18 @@ namespace Arc {
     }
     // TODO: maybe strip path from URL?
     clients_.insert(std::pair<URL, EMIESClient*>(client->url(),client));
+  }
+
+  void EMIESClients::SetUserConfig(const UserConfig& uc) {
+    // Changing user configuration may change identity.
+    // Hence all open connections become invalid.
+    usercfg_ = &uc;
+    while(true) {
+      std::multimap<URL, EMIESClient*>::iterator it = clients_.begin();
+      if(it == clients_.end()) break;
+      delete it->second;
+      clients_.erase(it);
+    }
   }
 
 }

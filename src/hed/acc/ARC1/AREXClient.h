@@ -190,12 +190,13 @@ namespace Arc {
 
   class AREXClients {
     std::multimap<URL, AREXClient*> clients_;
-    const UserConfig& usercfg_;
+    const UserConfig* usercfg_;
   public:
     AREXClients(const UserConfig& usercfg);
     ~AREXClients(void);
     AREXClient* acquire(const URL& url, bool arex_features);
     void release(AREXClient* client);
+    void SetUserConfig(const UserConfig& uc);
   };
 
 }

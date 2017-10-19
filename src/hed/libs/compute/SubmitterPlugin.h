@@ -101,7 +101,7 @@ namespace Arc {
     /**
      * \since Added in 5.1.0
      **/
-    void SetUserConfig(const UserConfig& uc) { usercfg = &uc; }
+    virtual void SetUserConfig(const UserConfig& uc) { usercfg = &uc; }
 
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;

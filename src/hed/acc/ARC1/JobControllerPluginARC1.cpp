@@ -24,6 +24,11 @@ namespace Arc {
 
   Logger JobControllerPluginARC1::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC1");
 
+  void JobControllerPluginARC1::SetUserConfig(const UserConfig& uc) {
+    JobControllerPlugin::SetUserConfig(uc);
+    clients.SetUserConfig(uc);
+  }
+
   URL JobControllerPluginARC1::GetAddressOfResource(const Job& job) {
     return job.ServiceInformationURL;
   }

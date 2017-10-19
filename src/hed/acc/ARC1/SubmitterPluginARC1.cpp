@@ -27,6 +27,11 @@ namespace Arc {
 
   Logger SubmitterPluginARC1::logger(Logger::getRootLogger(), "SubmitterPlugin.ARC1");
 
+  void SubmitterPluginARC1::SetUserConfig(const UserConfig& uc) {
+    SubmitterPlugin::SetUserConfig(uc);
+    clients.SetUserConfig(uc);
+  }
+
   bool SubmitterPluginARC1::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";

@@ -19,6 +19,7 @@ namespace Arc {
   public:
     SubmitterPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg), clients(usercfg) { supportedInterfaces.push_back("org.ogf.bes"); }
     ~SubmitterPluginARC1() { /*deleteAllClients();*/ }
+    virtual void SetUserConfig(const UserConfig& uc);
 
     static Plugin* Instance(PluginArgument *arg) {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);

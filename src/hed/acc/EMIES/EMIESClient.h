@@ -342,12 +342,13 @@ namespace Arc {
 
   class EMIESClients {
     std::multimap<URL, EMIESClient*> clients_;
-    const UserConfig& usercfg_;
+    const UserConfig* usercfg_;
   public:
     EMIESClients(const UserConfig& usercfg);
     ~EMIESClients(void);
     EMIESClient* acquire(const URL& url);
     void release(EMIESClient* client);
+    void SetUserConfig(const UserConfig& uc);
   };
 
 }

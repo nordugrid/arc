@@ -14,7 +14,10 @@ namespace Arc {
     JobControllerPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) {
       supportedInterfaces.push_back("org.ogf.glue.emies.activitymanagement");
     }
-    ~JobControllerPluginEMIES() {}
+
+    virtual ~JobControllerPluginEMIES() {}
+
+    virtual void SetUserConfig(const UserConfig& uc);
 
     static Plugin* Instance(PluginArgument *arg) {
       JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);

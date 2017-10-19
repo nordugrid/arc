@@ -12,7 +12,8 @@ namespace Arc {
   class JobControllerPluginARC1 : public JobControllerPlugin {
   public:
     JobControllerPluginARC1(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) { supportedInterfaces.push_back("org.nordugrid.xbes"); }
-    ~JobControllerPluginARC1() {}
+    virtual ~JobControllerPluginARC1() {}
+    virtual void SetUserConfig(const UserConfig& uc);
 
     static Plugin* Instance(PluginArgument *arg) {
       JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);

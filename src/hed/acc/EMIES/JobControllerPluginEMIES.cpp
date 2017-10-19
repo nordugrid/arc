@@ -27,6 +27,11 @@ namespace Arc {
 
   Logger JobControllerPluginEMIES::logger(Logger::getRootLogger(), "JobControllerPlugin.EMIES");
 
+  void JobControllerPluginEMIES::SetUserConfig(const UserConfig& uc) {
+    JobControllerPlugin::SetUserConfig(uc);
+    clients.SetUserConfig(uc);
+  }
+
   bool JobControllerPluginEMIES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
@@ -132,8 +137,8 @@ namespace Arc {
         clients.release(ac.Release());
         continue;
       }
-
-      (*it)->State = JobStateEMIES((std::string)"emies:TERMINAL");
+      // Force assign terminal state so job is cleaned afterwards
+      (*it)->State = JobStateEMIES((std::string)"emies:terminal");
       IDsProcessed.push_back((*it)->JobID);
       clients.release(ac.Release());
     }

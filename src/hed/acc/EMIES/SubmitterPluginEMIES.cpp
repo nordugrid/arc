@@ -26,6 +26,17 @@ namespace Arc {
 
   Logger SubmitterPluginEMIES::logger(Logger::getRootLogger(), "SubmitterPlugin.EMIES");
 
+  SubmitterPluginEMIES::SubmitterPluginEMIES(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(usercfg) {
+    supportedInterfaces.push_back("org.ogf.glue.emies.activitycreation");
+  }
+
+  SubmitterPluginEMIES::~SubmitterPluginEMIES() { }
+
+  void SubmitterPluginEMIES::SetUserConfig(const UserConfig& uc) {
+    SubmitterPlugin::SetUserConfig(uc);
+    clients.SetUserConfig(uc);    
+  }
+
   bool SubmitterPluginEMIES::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";

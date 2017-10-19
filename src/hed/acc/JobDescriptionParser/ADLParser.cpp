@@ -399,11 +399,19 @@ namespace Arc {
       if(executable && !ParseExecutable(executable, parsed_jobdescription.Application.Executable, dialect, logger)) {
         return false;
       }
-      // ARC extension: Rerun
+      // ARC extensions: Rerun, Priority
       // TODO: Add note about this being a ARC extension.
       /// \mapattr Application.Rerun -> Rerun
       if((bool)application["nordugrid-adl:Rerun"])
-      parsed_jobdescription.Application.Rerun = stringtoi((std::string)application["nordugrid-adl:Rerun"]);
+        parsed_jobdescription.Application.Rerun = stringtoi((std::string)application["nordugrid-adl:Rerun"]);
+      /// \mapattr Application.Priority -> Priority
+      if((bool)application["nordugrid-adl:Priority"]) {
+        parsed_jobdescription.Application.Priority = stringtoi((std::string)application["nordugrid-adl:Priority"]);
+        if (parsed_jobdescription.Application.Priority > 100) {
+          logger.msg(VERBOSE, "[ADLParser] priority is too large - using max value 100");
+          parsed_jobdescription.Application.Priority = 100;
+        }
+      }
 
       /// \mapattr Application.Input -> Input
       parsed_jobdescription.Application.Input = (std::string)application["adl:Input"];
@@ -879,12 +887,17 @@ namespace Arc {
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
     /// \mapattr Application.Error <- Error
     if(!job.Application.Error.empty()) application.NewChild("Error") = job.Application.Error;
-    // ARC extension: Rerun
+    // ARC extensions: Rerun, Priority
+    /// TODO: Add mapping note that these elements are an extention.
     /// \mapattr Application.Rerun -> Rerun
-    /// TODO: Add mapping note that this element is an extention.
     if(job.Application.Rerun > -1) {
       XMLNode rerun = application.NewChild("nordugrid-adl:Rerun");
       rerun = tostring(job.Application.Rerun);
+    }
+    /// \mapattr Application.Priority -> Priority
+    if(job.Application.Priority > -1) {
+      XMLNode priority = application.NewChild("nordugrid-adl:Priority");
+      priority = tostring(job.Application.Priority);
     }
 
     /// \mapattr Application.Environment <- Environment
@@ -940,7 +953,6 @@ namespace Arc {
       }
     }
 
-    // job.Application.Priority
     // job.Application.ProcessingStartTime
     // job.Application.AccessControl
     // job.Application.CredentialService

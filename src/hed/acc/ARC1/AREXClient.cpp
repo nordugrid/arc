@@ -545,7 +545,7 @@ namespace Arc {
 
   // TODO: does it need locking?
 
-  AREXClients::AREXClients(const UserConfig& usercfg):usercfg_(usercfg) {
+  AREXClients::AREXClients(const UserConfig& usercfg):usercfg_(&usercfg) {
   }
 
   AREXClients::~AREXClients(void) {
@@ -567,8 +567,8 @@ namespace Arc {
     }
     // Else create a new one and return with that
     MCCConfig cfg;
-    usercfg_.ApplyToConfig(cfg);
-    AREXClient* client = new AREXClient(url, cfg, usercfg_.Timeout(), arex_features);
+    if(usercfg_) usercfg_->ApplyToConfig(cfg);
+    AREXClient* client = new AREXClient(url, cfg, usercfg_?usercfg_->Timeout():0, arex_features);
     return client;
   }
 
@@ -577,6 +577,18 @@ namespace Arc {
     if(!*client) { delete client; return; }
     // TODO: maybe strip path from URL?
     clients_.insert(std::pair<URL, AREXClient*>(client->url(),client));
+  }
+
+  void AREXClients::SetUserConfig(const UserConfig& uc) {
+    // Changing user configuration may change identity.
+    // Hence all open connections become invalid.
+    usercfg_ = &uc;
+    while(true) {
+      std::multimap<URL, AREXClient*>::iterator it = clients_.begin();
+      if(it == clients_.end()) break;
+      delete it->second;
+      clients_.erase(it);
+    }
   }
 
 }
