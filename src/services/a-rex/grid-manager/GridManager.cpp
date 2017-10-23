@@ -373,11 +373,13 @@ GridManager::GridManager(GMConfig& config):tostop_(false), config_(config) {
 }
 
 GridManager::~GridManager(void) {
+  if(!jobs_) return; // Not initialized at all
   logger.msg(Arc::INFO, "Shutting down job processing");
   // Tell main thread to stop
   tostop_ = true;
   // Wait for main thread
   while(true) {
+    jobs_->RequestAttention(); // Kick jobs processor to release control
     if(active_.wait(1000)) break;
   }
 }
