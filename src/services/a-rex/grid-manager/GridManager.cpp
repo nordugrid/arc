@@ -379,7 +379,8 @@ GridManager::~GridManager(void) {
   tostop_ = true;
   // Wait for main thread
   while(true) {
-    jobs_->RequestAttention(); // Kick jobs processor to release control
+    if(jobs_) // Race condition again
+      jobs_->RequestAttention(); // Kick jobs processor to release control
     if(active_.wait(1000)) break;
   }
 }

@@ -1309,13 +1309,14 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
 ARexService::~ARexService(void) {
   if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
-  if(gm_) delete gm_; // This should stop all GM-related threads too
+  delete gm_; // This should stop all GM-related threads too
+  thread_count_.WaitForExit(); // Here A-REX threads are waited for
+  // There should be no more threads using resources - can proceed
+  if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
   delete config_.GetContPlugins();
   delete config_.GetJobLog();
   delete config_.GetJobPerfLog();
   delete config_.GetJobsMetrics();
-  if(config_.ConfigIsTemp()) unlink(config_.ConfigFile().c_str());
-  thread_count_.WaitForExit(); // Here A-REX threads are waited for
 }
 
 } // namespace ARex
