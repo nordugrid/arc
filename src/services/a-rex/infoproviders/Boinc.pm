@@ -52,7 +52,7 @@ sub get_total_cpus($){
     my $dbh = db_conn($config);
     my $where = "";
     if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
-    my $sth = $dbh->prepare('select count(distinct hostid) from result where server_state=5'.$where);
+    my $sth = $dbh->prepare('select count(distinct hostid) from result where server_state=4'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){
@@ -67,8 +67,8 @@ sub get_max_cpus($){
     my $config=shift;
     my $dbh = db_conn($config);
     my $where = "";
-    if (defined($$config{boinc_app_id})) { $where = " where appid=$$config{boinc_app_id}"; }
-    my $sth = $dbh->prepare('select count(distinct hostid) from result'.$where);
+    if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
+    my $sth = $dbh->prepare('select count(distinct hostid) from result where server_state=4'.$where);
     $sth->execute();
     my $result = $sth->fetchrow_array();
     if(defined($result)){return $result;}
