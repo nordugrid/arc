@@ -104,7 +104,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
   // Loop over input job description files
   for (std::list<std::string>::iterator it = opt.jobdescriptionfiles.begin();
-       it != opt.jobdescriptionfiles.end(); it++) {
+       it != opt.jobdescriptionfiles.end(); ++it) {
 
     std::ifstream descriptionfile(it->c_str());
 
@@ -126,10 +126,10 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     Arc::JobDescriptionResult parseres = Arc::JobDescription::Parse((std::string)buffer, jobdescs);
     if (parseres) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
-           itJ != jobdescs.end(); itJ++) {
+           itJ != jobdescs.end(); ++itJ) {
         itJ->Application.DryRun = opt.dryrun;
         for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
-             itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
+             itJAlt != itJ->GetAlternatives().end(); ++itJAlt) {
           itJAlt->Application.DryRun = opt.dryrun;
         }
       }
@@ -148,16 +148,16 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
 
   //Loop over job description input strings
   for (std::list<std::string>::iterator it = opt.jobdescriptionstrings.begin();
-       it != opt.jobdescriptionstrings.end(); it++) {
+       it != opt.jobdescriptionstrings.end(); ++it) {
 
     std::list<Arc::JobDescription> jobdescs;
     Arc::JobDescriptionResult parseres = Arc::JobDescription::Parse(*it, jobdescs);
     if (parseres) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
-           itJ != jobdescs.end(); itJ++) {
+           itJ != jobdescs.end(); ++itJ) {
         itJ->Application.DryRun = opt.dryrun;
         for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
-             itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
+             itJAlt != itJ->GetAlternatives().end(); ++itJAlt) {
           itJAlt->Application.DryRun = opt.dryrun;
         }
       }
@@ -327,7 +327,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
   Arc::ComputingServiceUniq csu;
   Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), usercfg.RejectDiscoveryURLs(), preferredInterfaceNames);
   csr.addConsumer(csu);
-  for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+  for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
     csr.addEndpoint(*it);
   }
   csr.wait();

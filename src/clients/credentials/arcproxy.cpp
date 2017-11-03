@@ -117,7 +117,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   // All of the information about nss db location  will be 
   // merged together for users to choose
   std::map<std::string, std::string>::iterator it;
-  for(it = ini_home.begin(); it != ini_home.end(); it++) {
+  for(it = ini_home.begin(); it != ini_home.end(); ++it) {
     std::string pf_ini = (*it).first;
     std::string pf_home = (*it).second;
 
@@ -147,7 +147,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
             }
             if (inivalue[0] == "Path") path = inivalue[1];
           }
-          if(inivalue[0].find("Profile") != std::string::npos) { i--; break; }
+          if(inivalue[0].find("Profile") != std::string::npos) { --i; break; }
           std::advance(i, 1);
         }
         std::string nss_path;
@@ -174,7 +174,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
   }
   int n = 1;
   std::list<ArcAuthNSS::certInfo>::iterator it;
-  for(it = certInfolist.begin(); it != certInfolist.end(); it++) {
+  for(it = certInfolist.begin(); it != certInfolist.end(); ++it) {
     ArcAuthNSS::certInfo cert_info = (*it);
     std::string sub_dn = cert_info.subject_dn;
     std::string cn_name;
@@ -206,9 +206,8 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
 
   std::cout << Arc::IString("Please choose the one you would use (1-%d): ", certInfolist.size());
   if(certInfolist.size() == 1) { it = certInfolist.begin(); certname = (*it).certname; }
-  char c;
   while(true && (certInfolist.size()>1)) {
-    c = getchar();
+    char c = getchar();
     int num = c - '0';
     if((num<=certInfolist.size()) && (num>=1)) {
       it = certInfolist.begin();
@@ -834,7 +833,7 @@ static int runmain(int argc, char *argv[]) {
 
   std::map<std::string, std::string> constraints;
   for (std::list<std::string>::iterator it = constraintlist.begin();
-       it != constraintlist.end(); it++) {
+       it != constraintlist.end(); ++it) {
     std::string::size_type pos = it->find('=');
     if (pos != std::string::npos)
       constraints[it->substr(0, pos)] = it->substr(pos + 1);
@@ -847,7 +846,7 @@ static int runmain(int argc, char *argv[]) {
   passprompts[pass_myproxy] = std::pair<std::string,bool>("MyProxy server",false);
   passprompts[pass_myproxy_new] = std::pair<std::string,bool>("MyProxy server (new)",true);
   for (std::list<std::string>::iterator it = passsourcelist.begin();
-       it != passsourcelist.end(); it++) {
+       it != passsourcelist.end(); ++it) {
     std::string::size_type pos = it->find('=');
     if (pos == std::string::npos) {
       logger.msg(Arc::ERROR, "Cannot parse password source expression %s "

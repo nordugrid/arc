@@ -33,7 +33,7 @@ ConsoleRecovery::~ConsoleRecovery(void) {
 
 #else
 
-ConsoleRecovery::ConsoleRecovery(void) { }
+ConsoleRecovery::ConsoleRecovery(void) { ti=NULL; }
 
 ConsoleRecovery::~ConsoleRecovery(void) { }
 
@@ -42,7 +42,7 @@ ConsoleRecovery::~ConsoleRecovery(void) { }
 std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);
   std::list<std::string> serviceURLs;
-  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+  for (std::list<Arc::Endpoint>::const_iterator it = endpoints.begin(); it != endpoints.end(); ++it) {
     serviceURLs.push_back(it->URLString);
   }
   return serviceURLs;
@@ -65,11 +65,11 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
   std::list<Arc::Endpoint> services;
   if (computingelements.empty() && registries.empty()) {
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
-    for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); its++) {
+    for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); ++its) {
       services.push_back(*its);
     }
   } else {
-    for (std::list<std::string>::const_iterator it = computingelements.begin(); it != computingelements.end(); it++) {
+    for (std::list<std::string>::const_iterator it = computingelements.begin(); it != computingelements.end(); ++it) {
       // check if the string is a group or alias
       std::list<Arc::ConfigEndpoint> newServices = usercfg.GetServices(*it, Arc::ConfigEndpoint::COMPUTINGINFO);
       if (newServices.empty()) {
@@ -83,7 +83,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services
-        for (std::list<Arc::ConfigEndpoint>::iterator its = newServices.begin(); its != newServices.end(); its++) {
+        for (std::list<Arc::ConfigEndpoint>::iterator its = newServices.begin(); its != newServices.end(); ++its) {
           if (!requestedSubmissionInterfaceName.empty()) {
             // if there was a submission interface requested, this overrides the one from the config
             its->RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;    
@@ -92,7 +92,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
         }
       }
     }
-    for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); it++) {
+    for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); ++it) {
       // check if the string is a name of a group
       std::list<Arc::ConfigEndpoint> newServices = usercfg.GetServices(*it, Arc::ConfigEndpoint::REGISTRY);
       if (newServices.empty()) {
@@ -143,9 +143,9 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind(*itType, modules);
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
+         itMod != modules.end(); ++itMod) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
+           itPlug != itMod->plugins.end(); ++itPlug) {
         std::cout << "  " << itPlug->name;
         if (*itType == "HED:BrokerPlugin" && itPlug->name == chosenBroker) {
           std::cout << " (default)";

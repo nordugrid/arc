@@ -816,10 +816,11 @@ int ArgusPDPClient::create_xacml_request_emi(Arc::XMLNode& request, std::list<Ar
         std::string role_attr_id = XACML_DCISEC_ATTRIBUTE_ROLE; //"http://dci-sec.org/xacml/attribute/role"
 
         // TODO: handle no roles
-        for(std::list<std::string>::iterator role = roles.begin(); role!=roles.end(); ++role) {
-          if(role->empty()) { roles.erase(role); continue; }
+        for(std::list<std::string>::iterator role = roles.begin(); role!=roles.end();) {
+          if(role->empty()) { role = roles.erase(role); continue; }
           if(prole.empty()) { prole = *role; pgroup = group; }
           logger.msg(Arc::DEBUG,"Adding VOMS role value: %s", *role);
+          ++role;
         }
         if(roles.size()>0) xacml_element_add_attribute(subject, roles, XACML_DATATYPE_STRING, role_attr_id, group);
       }

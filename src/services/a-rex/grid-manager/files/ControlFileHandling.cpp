@@ -151,7 +151,7 @@ LRMSResult job_lrms_mark_read(const JobId &id,const GMConfig &config) {
 
 bool job_cancel_mark_put(const GMJob &job,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_cancel;
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_cancel_mark_check(const JobId &id,const GMConfig &config) {
@@ -166,7 +166,7 @@ bool job_cancel_mark_remove(const JobId &id,const GMConfig &config) {
 
 bool job_restart_mark_put(const GMJob &job,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_restart;
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_restart_mark_check(const JobId &id,const GMConfig &config) {
@@ -181,7 +181,7 @@ bool job_restart_mark_remove(const JobId &id,const GMConfig &config) {
 
 bool job_clean_mark_put(const GMJob &job,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/" + subdir_new + "/job." + job.get_id() + sfx_clean;
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_clean_mark_check(const JobId &id,const GMConfig &config) {
@@ -197,12 +197,12 @@ bool job_clean_mark_remove(const JobId &id,const GMConfig &config) {
 bool job_failed_mark_put(const GMJob &job,const GMConfig &config,const std::string &content) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
-  return job_mark_write(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_mark_write(fname,content) && fix_file_owner(fname,job) && fix_file_permissions(fname,job,config);
 }
 
 bool job_failed_mark_add(const GMJob &job,const GMConfig &config,const std::string &content) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_failed;
-  return job_mark_add(fname,content) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_mark_add(fname,content) && fix_file_owner(fname,job) && fix_file_permissions(fname,job,config);
 }
 
 bool job_failed_mark_check(const JobId &id,const GMConfig &config) {
@@ -243,9 +243,9 @@ bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
-    return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
+    return job_mark_put(fa,fname) && fix_file_permissions(fa,fname);
   };
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
@@ -278,7 +278,7 @@ bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
     Arc::FileDelete(fname1);
   }
   // behaviour is to create file in control dir even if reading fails
-  return Arc::FileCreate(fname2, data) & fix_file_owner(fname2,job) & fix_file_permissions(fname2,job,config);
+  return Arc::FileCreate(fname2, data) && fix_file_owner(fname2,job) && fix_file_permissions(fname2,job,config);
 }
 
 bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
@@ -286,9 +286,9 @@ bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
-    return job_mark_put(fa,fname) & fix_file_permissions(fa,fname);
+    return job_mark_put(fa,fname) && fix_file_permissions(fa,fname);
   };
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_lrmsoutput_mark_remove(const GMJob &job,const GMConfig &config) {
@@ -364,12 +364,12 @@ long int job_mark_size(const std::string &fname) {
 
 bool job_errors_mark_put(const GMJob &job,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_errors;
-  return job_mark_put(fname) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_errors_mark_add(const GMJob &job,const GMConfig &config,const std::string &msg) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_errors;
-  return job_mark_add(fname,msg) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_mark_add(fname,msg) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 std::string job_errors_filename(const JobId &id, const GMConfig &config) {
@@ -437,7 +437,7 @@ bool job_state_write_file(const GMJob &job,const GMConfig &config,job_state_t st
     fname = config.ControlDir() + "/job." + job.get_id() + sfx_status; remove(fname.c_str());
     fname = config.ControlDir() + "/" + subdir_cur + "/job." + job.get_id() + sfx_status;
   };
-  return job_state_write_file(fname,state,pending) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_state_write_file(fname,state,pending) && fix_file_owner(fname,job) && fix_file_permissions(fname,job,config);
 }
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
@@ -482,7 +482,7 @@ bool job_description_read_file(const std::string &fname,std::string &desc) {
 
 bool job_description_write_file(const GMJob &job,const GMConfig &config,const std::string &desc) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_desc;
-  return Arc::FileCreate(fname, desc) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return Arc::FileCreate(fname, desc) && fix_file_owner(fname,job) && fix_file_permissions(fname,job,config);
 }
 
 bool job_acl_read_file(const JobId &id,const GMConfig &config,std::string &acl) {
@@ -507,7 +507,7 @@ bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string
 
 bool job_local_write_file(const GMJob &job,const GMConfig &config,const JobLocalDescription &job_desc) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_local;
-  return job_local_write_file(fname,job_desc) & fix_file_owner(fname,job) & fix_file_permissions(fname,job,config);
+  return job_local_write_file(fname,job_desc) && fix_file_owner(fname,job) && fix_file_permissions(fname,job,config);
 }
 
 bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc) {
@@ -554,7 +554,7 @@ bool job_local_read_delegationid(const JobId &id,const GMConfig &config,std::str
 
 bool job_input_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_input;
-  return job_Xput_write_file(fname,files) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_Xput_write_file(fname,files) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_input_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
@@ -582,7 +582,7 @@ bool job_input_status_add_file(const GMJob &job,const GMConfig &config,const std
   data += line.str();
   bool r = Arc::FileCreate(fname, data);
   lock.release();
-  return r & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return r && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_input_status_read_file(const JobId &id,const GMConfig &config,std::list<std::string>& files) {
@@ -600,7 +600,7 @@ bool job_input_status_read_file(const JobId &id,const GMConfig &config,std::list
 /* job.ID.output functions */
 bool job_output_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files,job_output_mode mode) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_output;
-  return job_Xput_write_file(fname,files,mode) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_Xput_write_file(fname,files,mode) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_output_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
@@ -616,12 +616,12 @@ bool job_output_status_add_file(const GMJob &job,const GMConfig &config,const Fi
   std::ostringstream line;
   line<<file<<"\n";
   data += line.str();
-  return Arc::FileCreate(fname, data) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return Arc::FileCreate(fname, data) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_output_status_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_outputstatus;
-  return job_Xput_write_file(fname,files) & fix_file_owner(fname,job) & fix_file_permissions(fname);
+  return job_Xput_write_file(fname,files) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_output_status_read_file(const JobId &id,const GMConfig &config,std::list<FileData> &files) {
@@ -678,7 +678,7 @@ std::string job_proxy_filename(const JobId &id, const GMConfig &config){
 
 bool job_proxy_write_file(const GMJob &job,const GMConfig &config,const std::string &cred) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_proxy;
-  return Arc::FileCreate(fname, cred, 0, 0, S_IRUSR | S_IWUSR) & fix_file_owner(fname,job);
+  return Arc::FileCreate(fname, cred, 0, 0, S_IRUSR | S_IWUSR) && fix_file_owner(fname,job);
 }
 
 bool job_proxy_read_file(const JobId &id,const GMConfig &config,std::string &cred) {

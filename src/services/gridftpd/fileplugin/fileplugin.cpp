@@ -24,10 +24,11 @@
 #include "../misc.h"
 
 #ifndef HAVE_STRERROR_R
-static char * strerror_r (int errnum, char * buf, size_t buflen) {
+int strerror_r (int errnum, char * buf, size_t buflen) {
   char * estring = strerror (errnum);
   strncpy (buf, estring, buflen);
-  return buf;
+  buf[buflen-1] = '\0';
+  return 0;
 }
 #endif
 
@@ -209,24 +210,9 @@ int makedirs(std::string &name) {
     };
     /* no such object - create */
     if(mkdir(dname.c_str(),S_IRWXU | S_IRWXG | S_IRWXO) == 0) continue;
-    char* errmsg;
-    char errmgsbuf[256];
-#ifdef _MACOSX
-    int ret = strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#else
-#ifndef _AIX
-#ifndef sun
-    errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#else
-    errmgsbuf[0]=0; errmsg=errmgsbuf;
-    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#endif
-#else
-    errmgsbuf[0]=0; errmsg=errmgsbuf;
-    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#endif
-#endif
-    logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
+    char errmgsbuf[256] = "";
+    (void)strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+    logger.msg(Arc::ERROR, "mkdir failed: %s", errmgsbuf);
     return 1; /* directory creation failed */
   };
   return 0;
@@ -282,24 +268,9 @@ int DirectFilePlugin::makedir(std::string &dname) {
         i->unix_reset();
       };
     };
-    char* errmsg;
-    char errmgsbuf[256];
-#ifdef _MACOSX
-    int ret = strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#else
-#ifndef _AIX
-#ifndef sun
-    errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#else
-    errmgsbuf[0]=0; errmsg=errmgsbuf;
-    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#endif
-#else
-    errmgsbuf[0]=0; errmsg=errmgsbuf;
-    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
-#endif
-#endif
-    logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
+    char errmgsbuf[256] = "";
+    (void)strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+    logger.msg(Arc::ERROR, "mkdir failed: %s", errmgsbuf);
     return 1; /* directory creation failed */
   };
   return 0;

@@ -55,7 +55,7 @@ namespace Arc {
     // Destroy ThreadData instance of current thread
     static void Remove(void);
     // Copy items from another instance (uses Dup method)
-    void Inherit(ThreadData* old);
+    void Inherit(ThreadData* parent);
     // Attach item to this instance
     void AddItem(const std::string& key,ThreadDataItem* item);
     // Fetch item from this instance

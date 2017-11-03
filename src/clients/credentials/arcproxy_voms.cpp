@@ -111,7 +111,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
       if(use_http_comm) {
         // RESTful interface
         std::list<std::string> fqans;
-        for(std::list<std::string>::const_iterator c_it = voms_commands.begin(); c_it != voms_commands.end(); c_it++) {
+        for(std::list<std::string>::const_iterator c_it = voms_commands.begin(); c_it != voms_commands.end(); ++c_it) {
           if (c_it->empty()) {
             // ?? fqans.push_back("/"+voms_name);
           } else if (Arc::lower(*c_it) == "all") {
@@ -144,7 +144,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
       } else {
         // old interface
         std::list<Arc::VOMSCommand> commands;
-        for(std::list<std::string>::const_iterator c_it = voms_commands.begin(); c_it != voms_commands.end(); c_it++) {
+        for(std::list<std::string>::const_iterator c_it = voms_commands.begin(); c_it != voms_commands.end(); ++c_it) {
           if (c_it->empty()) {
             commands.push_back(Arc::VOMSCommand().GetGroup("/"+vomsline->Name()));
           } else if (Arc::lower(*c_it) == "all") {
@@ -170,7 +170,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
           }
         }
         std::list<std::pair<std::string,std::string> > ordering;
-        for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); o_it++) {
+        for(std::list<std::string>::iterator o_it = orderlist.begin(); o_it != orderlist.end(); ++o_it) {
           std::string::size_type pos = o_it->find(':');
           if(pos == std::string::npos) {
             ordering.push_back(std::pair<std::string,std::string>(*o_it,""));

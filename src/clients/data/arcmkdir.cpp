@@ -37,7 +37,7 @@ bool arcmkdir(const Arc::URL& file_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator file = files.begin();
-         file != files.end(); file++) {
+         file != files.end(); ++file) {
       if (!arcmkdir(*file, usercfg, with_parents))
         r = false;
     }
@@ -140,9 +140,9 @@ static int runmain(int argc, char **argv) {
 
     std::cout << Arc::IString("Protocol plugins available:") << std::endl;
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
+         itMod != modules.end(); ++itMod) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
+           itPlug != itMod->plugins.end(); ++itPlug) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }

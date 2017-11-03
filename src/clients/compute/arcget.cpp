@@ -83,7 +83,7 @@ int RUNMAIN(arcget)(int argc, char **argv) {
     logger.msg(Arc::INFO, "Job download directory: %s ", opt.downloaddir);
   }
 
-  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
+  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); ++it) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }

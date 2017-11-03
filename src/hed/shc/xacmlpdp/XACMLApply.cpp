@@ -84,25 +84,29 @@ XACMLApply::~XACMLApply() {
   designator_it = designator_list.begin();
   apply_it = sub_apply_list.begin();
  
-  for(;attrval_it != attrval_list.end(); attrval_it++) { 
+  for(;attrval_it != attrval_list.end();) { 
     AttributeValue* attrval = (*attrval_it).second;
     attrval_list.erase(attrval_it);
     delete attrval;
+    attrval_it = attrval_list.begin();
   }
-  for(;selector_it != selector_list.end(); selector_it++) {  
+  for(;selector_it != selector_list.end();) {  
     AttributeSelector* selector = (*selector_it).second;
     selector_list.erase(selector_it);
     delete selector;
+    selector_it = selector_list.begin();
   }
-  for(;designator_it != designator_list.end(); designator_it++) {
+  for(;designator_it != designator_list.end();) {
     AttributeDesignator* designator = (*designator_it).second;
     designator_list.erase(designator_it);
     delete designator;
+    designator_it = designator_list.begin();
   }
-  for(;apply_it != sub_apply_list.end(); apply_it++) {
+  for(;apply_it != sub_apply_list.end();) {
     XACMLApply* apply = (*apply_it).second;
     sub_apply_list.erase(apply_it);
     delete apply;
+    apply_it = sub_apply_list.begin();
   }
 }
 

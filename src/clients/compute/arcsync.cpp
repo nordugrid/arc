@@ -38,7 +38,7 @@ public:
     ser.addConsumer(*this);
     jlr.addConsumer(jobs);
     
-    for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+    for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
       if (it->HasCapability(Arc::Endpoint::REGISTRY)) {
         ser.addEndpoint(*it);
       } else {

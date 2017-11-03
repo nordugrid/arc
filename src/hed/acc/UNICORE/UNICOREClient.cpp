@@ -679,15 +679,16 @@ namespace Arc {
     }
 
     if (!((*resp)["ChangeActivityStatusResponse"])) {
-      delete resp;
       XMLNode fs;
       (*resp)["Fault"]["faultstring"].New(fs);
       faultstring = (std::string)fs;
       if (faultstring != "") {
+        delete resp;
         logger.msg(ERROR, faultstring);
         return false;
       }
       if (result != "true") {
+        delete resp;
         logger.msg(ERROR, "Job termination failed");
         return false;
       }

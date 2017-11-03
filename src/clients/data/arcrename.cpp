@@ -151,9 +151,9 @@ static int runmain(int argc, char **argv) {
 
     std::cout << Arc::IString("Protocol plugins available:") << std::endl;
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
+         itMod != modules.end(); ++itMod) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
+           itPlug != itMod->plugins.end(); ++itPlug) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }

@@ -102,10 +102,10 @@ namespace Arc {
     RunPump(void);
     ~RunPump(void);
     static RunPump& Instance(void);
-    operator bool(void) {
+    operator bool(void) const {
       return (bool)context_;
     }
-    bool operator!(void) {
+    bool operator!(void) const {
       return !(bool)context_;
     }
     void Pump(void);

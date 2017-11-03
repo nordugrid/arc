@@ -99,7 +99,7 @@ PDPStatus PDPServiceInvoker::isPermitted(Message *msg) const {
   };
   if(cauth) {
     if(!cauth->Export(is_xacml? SecAttr::XACML : SecAttr::ARCAuth,requestxml)) {
-      delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to ARC request");
       return false;
     };

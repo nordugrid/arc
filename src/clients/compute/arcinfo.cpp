@@ -69,7 +69,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   if (opt.list_configured_services) {
     std::map<std::string, Arc::ConfigEndpoint> allServices = usercfg.GetAllConfiguredServices();
     std::cout << "Configured registries:" << std::endl;
-    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
+    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); ++it) {
       if (it->second.type == Arc::ConfigEndpoint::REGISTRY) {
         std::cout << "  " << it->first << ": " << it->second.URLString;
         if (!it->second.InterfaceName.empty()) {
@@ -79,7 +79,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       }
     }
     std::cout << "Configured computing elements:" << std::endl;
-    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); it++) {
+    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); ++it) {
       if (it->second.type == Arc::ConfigEndpoint::COMPUTINGINFO) {
         std::cout << "  " << it->first << ": " << it->second.URLString;
         if (!it->second.InterfaceName.empty() || !it->second.RequestedSubmissionInterfaceName.empty()) {

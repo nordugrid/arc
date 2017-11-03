@@ -65,7 +65,7 @@ int RUNMAIN(arcresume)(int argc, char **argv) {
     return 0;
   }
 
-  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
+  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); ++it) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }

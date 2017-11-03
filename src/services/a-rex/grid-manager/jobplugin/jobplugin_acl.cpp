@@ -29,7 +29,7 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
   GACLperm perm = AuthUserGACLTest(acl,user_a);
   if(spec) {
     if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
-    if(GACLhasRead(perm) | GACLhasWrite(perm)) res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
+    if(GACLhasRead(perm) || GACLhasWrite(perm)) res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
     if(GACLhasAdmin(perm)) res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
   } else {
     if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
@@ -114,7 +114,7 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
     EVALUATE_ACTION(request,allowed_to_admin,"admin");
     if(spec) {
       if(allowed_to_list) res|=IS_ALLOWED_LIST;
-      if(allowed_to_read | allowed_to_write) res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
+      if(allowed_to_read || allowed_to_write) res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
       if(allowed_to_admin) res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
     } else {
       if(allowed_to_list) res|=IS_ALLOWED_LIST;

@@ -175,7 +175,7 @@ bool arcregister(const Arc::URL& source_url,
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
-         source++, destination++) {
+         ++source, ++destination) {
       if (!arcregister(*source, *destination, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
@@ -190,7 +190,7 @@ bool arcregister(const Arc::URL& source_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
-         source != sources.end(); source++) {
+         source != sources.end(); ++source) {
       if (!arcregister(*source, destination_url, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
@@ -205,7 +205,7 @@ bool arcregister(const Arc::URL& source_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
-         destination != destinations.end(); destination++) {
+         destination != destinations.end(); ++destination) {
       if (!arcregister(source_url, *destination, usercfg, force_meta)) r = false;
       if (cancelled) return true;
     }
@@ -389,7 +389,7 @@ bool arccp(const Arc::URL& source_url_,
     for (std::list<Arc::URL>::iterator source = sources.begin(),
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
-         source++, destination++) {
+         ++source, ++destination) {
       if (!arccp(*source, *destination, locations, cache_dir, usercfg, secure, passive,
                  force_meta, recursion, tries, verbose, timeout)) r = false;
       if (cancelled) return true;
@@ -405,7 +405,7 @@ bool arccp(const Arc::URL& source_url_,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
-         source != sources.end(); source++) {
+         source != sources.end(); ++source) {
       if (!arccp(*source, destination_url, locations, cache_dir, usercfg, secure,
                  passive, force_meta, recursion, tries, verbose, timeout)) r = false;
       if (cancelled) return true;
@@ -421,7 +421,7 @@ bool arccp(const Arc::URL& source_url_,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
-         destination != destinations.end(); destination++) {
+         destination != destinations.end(); ++destination) {
       if (!arccp(source_url, *destination, locations, cache_dir, usercfg, secure,
                  passive, force_meta, recursion, tries, verbose, timeout)) r = false;
       if (cancelled) return true;
@@ -468,7 +468,7 @@ bool arccp(const Arc::URL& source_url_,
       bool failures = false;
       // Handle transfer of files first (treat unknown like files)
       for (std::list<Arc::FileInfo>::iterator i = files.begin();
-           i != files.end(); i++) {
+           i != files.end(); ++i) {
         if ((i->GetType() != Arc::FileInfo::file_type_unknown) &&
             (i->GetType() != Arc::FileInfo::file_type_file)) continue;
 
@@ -493,7 +493,7 @@ bool arccp(const Arc::URL& source_url_,
       if (recursion > 0)
         // Handle directories recursively
         for (std::list<Arc::FileInfo>::iterator i = files.begin();
-             i != files.end(); i++) {
+             i != files.end(); ++i) {
           if (i->GetType() != Arc::FileInfo::file_type_dir) continue;
           if (verbose) logger.msg(Arc::INFO, "Directory: %s", i->GetName());
           std::string s_url(source_url.str());
@@ -655,9 +655,9 @@ static int runmain(int argc, char **argv) {
 
     std::cout << Arc::IString("Protocol plugins available:") << std::endl;
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
+         itMod != modules.end(); ++itMod) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
+           itPlug != itMod->plugins.end(); ++itPlug) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }

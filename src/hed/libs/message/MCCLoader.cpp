@@ -489,8 +489,11 @@ namespace Arc {
       // Create 'next' references
 
       // Remove old element and all references
-      for(mccp = mccs_exposed_.begin();mccp != mccs_exposed_.end();++mccp) {
-        if(mccp->second == oldmcc) mccs_exposed_.erase(mccp);
+      for(mccp = mccs_exposed_.begin();mccp != mccs_exposed_.end();) {
+        if(mccp->second == oldmcc) {
+          mccs_exposed_.erase(mccp);
+          mccp = mccs_exposed_.begin();
+        } else ++mccp;
       }
       if(oldmcc) delete oldmcc;
       return true;

@@ -79,7 +79,7 @@ SecHandlerStatus DelegationCollector::Handle(Arc::Message* msg) const {
     PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(msg->Payload());
     // Currently only TLS payloads are supported
     if(!tstream) return false;
-    SecAttr* sattr_ = msg->Auth()->get("DELEGATION POLICY");
+    sattr_ = msg->Auth()->get("DELEGATION POLICY");
     if(sattr_) sattr = dynamic_cast<DelegationMultiSecAttr*>(sattr_);
     if(!sattr) {
       sattr_ = NULL;
@@ -104,6 +104,7 @@ SecHandlerStatus DelegationCollector::Handle(Arc::Message* msg) const {
       };
     };
     if(!sattr_) msg->Auth()->set("DELEGATION POLICY",sattr);
+    sattr = NULL;
     return true;
   } catch(std::exception&) { };
   if(!sattr_) delete sattr;

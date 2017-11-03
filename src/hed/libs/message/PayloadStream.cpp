@@ -160,7 +160,7 @@ bool PayloadStreamInterface::Get(PayloadStreamInterface& dest,int& size) {
   while(true) {
     if(size == 0) { r = true; break; };
     int l = size;
-    if((size == -1) || (l > sizeof(tbuf))) l = sizeof(tbuf);
+    if((size == -1) || (l > (int)sizeof(tbuf))) l = (int)sizeof(tbuf);
     if(!Get(tbuf,l)) break;
     if(l <= 0) { r = true; break; };
     size_ += l; if(size != -1) size -= l;
@@ -176,7 +176,7 @@ bool PayloadStreamInterface::Put(PayloadStreamInterface& source,Size_t size) {
   while(true) {
     if(size == 0) { r = true; break; };
     int l = size;
-    if((size == -1) || (l > sizeof(tbuf))) l = sizeof(tbuf);
+    if((size == -1) || (l > (int)sizeof(tbuf))) l = (int)sizeof(tbuf);
     if(!source.Get(tbuf,l)) break;
     if(l <= 0) { r = true; break; };
     if(!Put(tbuf,l)) break;

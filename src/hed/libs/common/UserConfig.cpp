@@ -499,8 +499,9 @@ namespace Arc {
         tried_paths += "'" + (*it) + "'";
       }
       if (it == search_paths.end() && !has_proxy) {
-        logger.msg(VERBOSE, "Certificate and key ('%s' and '%s') not found in any of the paths: %s", "usercert.pem", "userkey.pem", tried_paths);
-        logger.msg(!has_proxy?WARNING:VERBOSE,
+        logger.msg(WARNING,
+          "Certificate and key ('%s' and '%s') not found in any of the paths: %s", "usercert.pem", "userkey.pem", tried_paths);
+        logger.msg(WARNING,
           "If the proxy or certificate/key does exist, you can manually specify the locations via environment variables "
           "'%s'/'%s' or '%s', or the '%s'/'%s' or '%s' attributes in the client configuration file (e.g. '%s')",
           "X509_USER_CERT", "X509_USER_KEY", "X509_USER_PROXY", "certificatepath", "proxypath", "keypath", "~/.arc/client.conf");

@@ -2770,7 +2770,7 @@ loser:
     random_cn = rand();
     char* CN_name = NULL;
     CN_name = (char*)malloc(sizeof(long)*4 + 1);
-    snprintf(CN_name, sizeof(long)*4 + 1, "%ld", random_cn);
+    snprintf(CN_name, sizeof(long)*4 + 1, "%lu", random_cn);
     std::string str = "CN="; str.append(CN_name); str.append(",");
     subname_str.insert(0, str.c_str(), str.length());
     NSSUtilLogger.msg(DEBUG, "Proxy subject: %s", subname_str.c_str());

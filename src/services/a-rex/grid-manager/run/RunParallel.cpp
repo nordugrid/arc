@@ -65,9 +65,7 @@ void JobRefInList::kicker(void* arg) {
 
 bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
                       const std::string& args,Arc::Run** ere,bool su) {
-  RunPlugin* cred = NULL;
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
-  if((!cred) || (!(*cred))) { cred=NULL; };
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
   JobRefInList* ref = new JobRefInList(job, list);
@@ -85,7 +83,7 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job,
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
   bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
-             args, ere, proxy.c_str(), su, cred, &job_subst, &subs);
+             args, ere, proxy.c_str(), su, NULL, &job_subst, &subs);
   return result;
 }
 

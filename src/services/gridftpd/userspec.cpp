@@ -115,7 +115,8 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
       struct hostent he;
       struct hostent* he_p;
       struct in_addr a;
-      snprintf(abuf,sizeof(abuf)-1,"%u.%u.%u.%u",host[0],host[1],host[2],host[3]);
+      snprintf(abuf,sizeof(abuf)-1,"%u.%u.%u.%u",
+               (unsigned int)host[0],(unsigned int)host[1],(unsigned int)host[2],(unsigned int)host[3]);
       if(inet_aton(abuf,&a) != 0) {
         int h_errnop;
         char buf[1024];

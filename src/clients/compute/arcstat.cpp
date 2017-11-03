@@ -66,7 +66,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
 
-  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
+  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); ++it) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
@@ -93,7 +93,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   if (!opt.sort.empty() && orderings.find(opt.sort) == orderings.end()) {
     std::cerr << "Jobs cannot be sorted by \"" << opt.sort << "\", the following orderings are supported:" << std::endl;
     for (std::map<std::string, JobSorting>::const_iterator it = orderings.begin();
-         it != orderings.end(); it++)
+         it != orderings.end(); ++it)
       std::cerr << it->first << std::endl;
     return 1;
   }
@@ -158,7 +158,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   }
 
   for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
-       it != jobsSortable.end(); it++) {
+       it != jobsSortable.end(); ++it) {
     // Option 'long' (longlist) takes precedence over option 'print-jobids' (printids)
     if (opt.longlist || !opt.printids) {
       it->SaveToStream(std::cout, opt.longlist);

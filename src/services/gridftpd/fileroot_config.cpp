@@ -391,6 +391,12 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
 // Main configuration method applied after forking for new connection.
 int FileRoot::config(globus_ftp_control_auth_info_t *auth,
                      globus_ftp_control_handle_t *handle) {
+  gridftpd::GMEnvironment env;
+  if(!env) {
+    logger.msg(Arc::ERROR, "failed to initialize environment variables");
+    return 1;
+  };
+  
   /* open and read configuration file */
   Arc::ConfigFile cfile;
   Arc::ConfigIni* cf = NULL;
@@ -413,12 +419,6 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
     delete cf;
     return 1;
   };
-  gridftpd::GMEnvironment env;
-  if(!env) {
-    logger.msg(Arc::ERROR, "failed to initialize environment variables");
-    delete cf;
-    return 1;
-  };
   std::string pluginpath;
   std::list<std::string> pluginpaths = Arc::ArcLocation::GetPlugins();
   if(pluginpaths.empty()) {
@@ -431,6 +431,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   r = config(*cf,pluginpath);
   cfile.close();
   delete cf;
+  cf = NULL;
   if(r != 0) return r;
   if(!user.gridmap) {
     logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");

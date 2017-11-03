@@ -47,7 +47,7 @@ int main(void) {
   http_header+="POST /search/beta2 HTTP/1.1\r\n";
   http_header+="Host: api.google.com\r\n";
   http_header+="Connection: keep-alive\r\n";
-  snprintf(buf,256,"%u",xml.size());
+  snprintf(buf,256,"%u",(unsigned int)xml.size()); buf[255]='\0';
   http_header+="Content-Length: "; http_header+=buf; http_header+="\r\n";
   http_header+="\r\n";
 

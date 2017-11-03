@@ -159,7 +159,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
 
   int retval = 0;
   for (std::list<Arc::Job>::const_iterator it = jobs.begin();
-       it != jobs.end(); it++) {
+       it != jobs.end(); ++it) {
     if (!it->State || (!opt.status.empty() &&
         std::find(opt.status.begin(), opt.status.end(), it->State()) == opt.status.end() &&
         std::find(opt.status.begin(), opt.status.end(), it->State.GetGeneralState()) == opt.status.end())) {

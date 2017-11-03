@@ -27,7 +27,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
 void print_urls(const Arc::FileInfo& file) {
   for (std::list<Arc::URL>::const_iterator u = file.GetURLs().begin();
-       u != file.GetURLs().end(); u++)
+       u != file.GetURLs().end(); ++u)
     std::cout << "\t" << *u << std::endl;
 }
 
@@ -48,7 +48,7 @@ void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool s
 
   // find longest length of each field to align the output
   for (std::list<Arc::FileInfo>::const_iterator i = files.begin();
-      i != files.end(); i++) {
+      i != files.end(); ++i) {
     if (i->GetName().length() > namewidth) namewidth = i->GetName().length();
     if (i->CheckSize() && i->GetSize() > 0 && // log(0) not good!
         (unsigned int)(log10(i->GetSize()))+1 > sizewidth) sizewidth = (unsigned int)(log10(i->GetSize()))+1;
@@ -67,7 +67,7 @@ void print_details(const std::list<Arc::FileInfo>& files, bool show_urls, bool s
   if (sizewidth < 7) sizewidth = 7;
   if (csumwidth < 8) csumwidth = 8;
   for (std::list<Arc::FileInfo>::const_iterator i = files.begin();
-       i != files.end(); i++) {
+       i != files.end(); ++i) {
     std::cout << std::setw(namewidth) << std::left << i->GetName();
     switch (i->GetType()) {
       case Arc::FileInfo::file_type_file:
@@ -132,7 +132,7 @@ static bool arcls(const Arc::URL& dir_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
-         dir != dirs.end(); dir++) {
+         dir != dirs.end(); ++dir) {
       if(!arcls(*dir, usercfg, show_details, show_urls, show_meta,
                no_list, force_list, check_access, recursion, timeout)) r = false;
     }
@@ -233,7 +233,7 @@ static bool arcls(const Arc::URL& dir_url,
     print_details(files, show_urls, show_meta);
   } else {
     for (std::list<Arc::FileInfo>::iterator i = files.begin();
-       i != files.end(); i++) {
+       i != files.end(); ++i) {
       std::cout << i->GetName() << std::endl;
       if (show_urls) print_urls(*i);
       if (show_meta) print_meta(*i);
@@ -242,7 +242,7 @@ static bool arcls(const Arc::URL& dir_url,
   // Do recursion. Recursion has no sense if listing is forbidden.
   if ((recursion > 0) && (!no_list)) {
     for (std::list<Arc::FileInfo>::iterator i = files.begin();
-       i != files.end(); i++) {
+       i != files.end(); ++i) {
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
         Arc::URL suburl = dir_url;
         if(suburl.Protocol() != "file") {
@@ -361,9 +361,9 @@ static int runmain(int argc, char **argv) {
 
     std::cout << Arc::IString("Protocol plugins available:") << std::endl;
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
+         itMod != modules.end(); ++itMod) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
+           itPlug != itMod->plugins.end(); ++itPlug) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
