@@ -888,11 +888,11 @@ bool PayloadHTTPOut::make_header(bool to_stream) {
       };
       range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
     };
-    if(length > 0) {
+    if(length > 0 || !sbody_) {
       range_header+="Content-Length: "+tostring(length)+"\r\n";
     } else {
-      // If computed length is 0 that may also mean it is not known
-      // in advance. In this case either connection closing or 
+      // If computed length is 0 for stream source that may also mean it is
+      // not known in advance. In this case either connection closing or 
       // chunked encoding may be used. Chunked is better because it 
       // allows to avoid reconnection.
       // But chunked can only be used if writing to stream right now.
@@ -902,6 +902,8 @@ bool PayloadHTTPOut::make_header(bool to_stream) {
         range_header+="Transfer-Encoding: chunked\r\n";
         use_chunked_transfer_ = true;
       } else {
+        // As last resort try to force connection close.
+        // Although I have no idea how it shol dwork for PUT
         keep_alive_ = false;
       };
     };
@@ -1228,7 +1230,7 @@ PayloadRawInterface::Size_t PayloadHTTPOutStream::Size(void) const {
   // Here Size() of Stream and Raw are conflicting. Currently we just
   // hope that nothing will be interested in logical size of stream.
   // TODO: either separate Size()s or implement chunked for Raw. 
-  if(!((PayloadHTTPOutStream&)(*this)).remake_header(false)) return 0;
+  if(!((PayloadHTTPOutStream&)(*this)).remake_header(true)) return 0;
   return header_.length()+body_size();
 }
 
