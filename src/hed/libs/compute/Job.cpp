@@ -761,8 +761,21 @@ namespace Arc {
     for (std::list<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
+      if (Glib::file_test(dst.Path(), Glib::FILE_TEST_EXISTS)) {
+        if (!force) {
+          logger.msg(ERROR, "Failed downloading %s to %s, destination already exist", src.str(), dst.Path());
+          ok = false;
+          continue;
+        }
+
+        if (!FileDelete(dst.Path())) {
+          logger.msg(ERROR, "Failed downloading %s to %s, unable to remove existing destination", src.str(), dst.Path());
+          ok = false;
+          continue;
+        }
+      }
       if (!CopyJobFile(uc, src, dst)) {
-        logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
+        logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.Path());
         ok = false;
       }
     }
