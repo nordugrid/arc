@@ -421,7 +421,7 @@ Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg, const char* r
       fault->Reason(resp);
     };
   };
-  outmsg.Payload(outpayload);
+  delete outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -456,7 +456,7 @@ Arc::MCC_Status ARexService::extract_content(Arc::Message& inmsg,std::string& co
 
 Arc::MCC_Status ARexService::make_http_fault(Arc::Message& outmsg,int code,const char* resp) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
-  outmsg.Payload(outpayload);
+  delete outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(code));
   if(resp) outmsg.Attributes()->set("HTTP:REASON",resp);
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
@@ -469,7 +469,7 @@ Arc::MCC_Status ARexService::make_fault(Arc::Message& /*outmsg*/) {
 
 Arc::MCC_Status ARexService::make_empty_response(Arc::Message& outmsg) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
-  outmsg.Payload(outpayload);
+  delete outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

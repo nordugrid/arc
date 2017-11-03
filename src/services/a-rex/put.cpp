@@ -164,8 +164,7 @@ Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   } else {
     logger_.msg(Arc::ERROR, "%s: put file %s: %s", job.ID(), subpath, err);
   }
-  if(!r) return make_http_fault(outmsg, 500, err.c_str());
-  return make_empty_response(outmsg);
+  return r;
 } 
 
 } // namespace ARex
