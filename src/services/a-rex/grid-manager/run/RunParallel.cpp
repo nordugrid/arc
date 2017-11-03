@@ -70,7 +70,7 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
   JobRefInList* ref = new JobRefInList(job, list);
   bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
-             args, ere, proxy.c_str(), su, cred, &job_subst, &subs, &JobRefInList::kicker, ref);
+             args, ere, proxy.c_str(), su, NULL, &job_subst, &subs, &JobRefInList::kicker, ref);
   if(!result) delete ref;
   return result;
 }
