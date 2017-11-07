@@ -103,7 +103,7 @@ namespace Arc {
 
   /// Base class for simple object associated thread.
   class Thread {
-   friend ThreadArgument;
+   friend class ThreadArgument;
    public:
     /// Start thread 
     /** This method provides functionality similar to CreateThreadFunction

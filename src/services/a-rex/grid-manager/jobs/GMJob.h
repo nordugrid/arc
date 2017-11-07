@@ -212,7 +212,7 @@ public:
 
 
 class GMJobQueue {
- friend GMJob;
+ friend class GMJob;
  private:
   Glib::RecMutex lock_;
   int const priority_;
