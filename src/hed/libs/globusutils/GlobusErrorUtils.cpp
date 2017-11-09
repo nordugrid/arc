@@ -66,8 +66,6 @@ namespace Arc {
       else
 	o << "unknown error";
     }
-    if (err)
-      globus_object_free(err);
     return o;
   }
 
