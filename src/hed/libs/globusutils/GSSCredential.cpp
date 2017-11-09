@@ -66,7 +66,8 @@ namespace Arc {
 
     if(credbuf.empty()) return;
     //Convert to GSS credental only if find credential content
-    OM_uint32 majstat, minstat;
+    OM_uint32 majstat = 0;
+    OM_uint32 minstat = GLOBUS_SUCCESS;
     gss_buffer_desc gbuf;
 
     gbuf.value = (void*)credbuf.c_str();
@@ -74,22 +75,24 @@ namespace Arc {
 
     majstat = gss_import_cred(&minstat, &credential, NULL, 0,
           &gbuf, GSS_C_INDEFINITE, NULL);
+    GlobusResult gstat(minstat);
 
     if (GSS_ERROR(majstat)) {
       credential = GSS_C_NO_CREDENTIAL;
       logger.msg(ERROR, "Failed to convert GSI credential to "
-                  "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
+                  "GSS credential (major: %d, minor: %d)%s:%s", majstat, minstat, ErrorStr(majstat,0), gstat.str());
     }
   }
 
   GSSCredential::~GSSCredential() {
     if (credential != GSS_C_NO_CREDENTIAL) {
-      OM_uint32 majstat, minstat;
+      OM_uint32 majstat = 0;
+      OM_uint32 minstat = GLOBUS_SUCCESS;
       majstat = gss_release_cred(&minstat, &credential);
+      GlobusResult gstat(minstat);
       if (GSS_ERROR(majstat)) {
         logger.msg(DEBUG, "Failed to release GSS credential "
-          "(major: %d, minor: %d):%s", majstat, minstat, ErrorStr(majstat, minstat));
-        return;
+          "(major: %d, minor: %d):%s:%s", majstat, minstat, ErrorStr(majstat,0), gstat.str());
       }
     }
   }
