@@ -145,7 +145,7 @@ namespace ArcDMCFile {
         ll = ::read(fd, (*(buffer))[h], l);
       }
       if(fa) {
-        if(fa) p = fa->fa_lseek(0, SEEK_CUR);
+        p = fa->fa_lseek(0, SEEK_CUR);
         if (p == (unsigned long long int)(-1)) p = offset;
         ll = fa->fa_read((*(buffer))[h], l);
       }
@@ -199,12 +199,15 @@ namespace ArcDMCFile {
    public:
     write_file_chunks(void) {
     }
+    // which is file EOF according to collected information
     unsigned long long int eof(void) {
       if(chunks.empty()) return 0;
       return (--(chunks.end()))->end;
     }
+    // how far non-interruptive file chunk reaches
     unsigned long long int extends(void) {
       if(chunks.empty()) return 0;
+      if(chunks.begin()->start > 0) return 0;
       return chunks.begin()->end;
     }
     void add(unsigned long long int start, unsigned long long int end) {
@@ -256,6 +259,38 @@ namespace ArcDMCFile {
         buffer->eof_write(true);
         break;
       }
+      /* 2. write */
+      unsigned int l_ = 0;
+      int ll = -1;
+      if(fd != -1) {
+        off_t coff = lseek(fd, p, SEEK_SET);
+        if(coff == p) {
+          ll = 0;
+          while (l_ < l) {
+            ll = write(fd, (*(buffer))[h] + l_, l - l_);
+            if (ll == -1) break; // error
+            l_ += ll;
+          }
+        }
+      }
+      if(fa) {
+        off_t coff = fa->fa_lseek(p, SEEK_SET);
+        if(coff == p) {
+          ll = 0;
+          while (l_ < l) {
+            ll = fa->fa_write((*(buffer))[h] + l_, l - l_);
+            if (ll == -1) break; // error
+            l_ += ll;
+          }
+        }
+      }
+      if (ll == -1) { // error
+        buffer->is_written(h);
+        buffer->error_write(true);
+        buffer->eof_write(true);
+        break;
+      }
+      /* 2'. checksum */
       if(do_cksum) {
         cksum_chunks.add(p,p+l);
         if(p == cksum_p) {
@@ -289,31 +324,6 @@ namespace ArcDMCFile {
             delete[] tbuf;
           }
         }
-      }
-      /* 2. write */
-      unsigned int l_ = 0;
-      int ll = 0;
-      if(fd != -1) {
-        lseek(fd, p, SEEK_SET);
-        while (l_ < l) {
-          ll = write(fd, (*(buffer))[h] + l_, l - l_);
-          if (ll == -1) break; // error
-          l_ += ll;
-        }
-      }
-      if(fa) {
-        fa->fa_lseek(p, SEEK_SET);
-        while (l_ < l) {
-          ll = fa->fa_write((*(buffer))[h] + l_, l - l_);
-          if (ll == -1) break; // error
-          l_ += ll;
-        }
-      }
-      if (ll == -1) { // error
-        buffer->is_written(h);
-        buffer->error_write(true);
-        buffer->eof_write(true);
-        break;
       }
       /* 3. announce */
       buffer->is_written(h);
