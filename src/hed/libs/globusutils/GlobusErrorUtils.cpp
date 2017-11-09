@@ -8,13 +8,49 @@
 
 namespace Arc {
 
+static Logger logger(Logger::getRootLogger(), "GLOBUS");
+
+  // When Globus code fails it allocates error object, assigns it to cache
+  // and returns cache index as error code. If object is not retrived
+  // from cache it is effectiviely leaked. So each error code must be passed
+  // through though globus_error_get() (or even better GlobusResult class
+  // implemented here). Unfortunately Globus code itself does not always 
+  // follow this pattern and hence is effectively leaking memory. 
+  // Here we have adjust_last_processed() trying to pick up such lost 
+  // error object and free them.
+
+  static Glib::StaticMutex last_processed_lock = GLIBMM_STATIC_MUTEX_INIT;
+  static globus_result_t last_processed = GLOBUS_SUCCESS+1;
+  static const long int safety_gap = 10; // leave 10 last errors in cache in case something still needs them
+  static const long int processing_limit = 100; // process no more than 100 lost error object at once
+
+  static void adjust_last_processed(globus_result_t new_result) {
+    last_processed_lock.lock();
+    long int diff = (long int)(new_result-last_processed);
+    if(diff > processing_limit) diff = processing_limit;
+    while(diff > safety_gap) {
+      globus_object_t* o = globus_error_get(last_processed);
+      if((o != NULL) && (o != GLOBUS_ERROR_NO_INFO)) {
+        globus_object_free(o);
+      }
+      ++last_processed;
+      --diff;
+    }
+    last_processed_lock.unlock();
+  }
+
+  void GlobusResult::wipe() {
+    GlobusResult(globus_error_put(globus_error_construct_error(GLOBUS_COMMON_MODULE, GLOBUS_NULL, 0, "", "", 0, "")));
+  }
+
   GlobusResult::GlobusResult() : r(GLOBUS_SUCCESS), o(NULL) {
   }
 
   GlobusResult::GlobusResult(const globus_result_t result) : r(result), o(NULL) {
-    if(r != GLOBUS_SUCCESS) {
-      o = globus_error_get(result);
+    if((r != GLOBUS_SUCCESS) && (r != GLOBUS_FAILURE)) {
+      o = globus_error_get(r);
       if(o == GLOBUS_ERROR_NO_INFO) o = NULL;
+      adjust_last_processed(r);
     }
   }
   
@@ -28,9 +64,10 @@ namespace Arc {
       globus_object_free(o);
     o = NULL;
     r = result;
-    if(r != GLOBUS_SUCCESS) {
-      o = globus_error_get(result);
+    if((r != GLOBUS_SUCCESS) && (r != GLOBUS_FAILURE)) {
+      o = globus_error_get(r);
       if(o == GLOBUS_ERROR_NO_INFO) o = NULL;
+      adjust_last_processed(r);
     }
     return *this;
   }

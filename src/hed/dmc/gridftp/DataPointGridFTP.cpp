@@ -1275,6 +1275,8 @@ namespace ArcDMCGridFTP {
       // intermediate object.
       logger.msg(VERBOSE, "~DataPoint: failed to destroy ftp_handle - leaking");
     }
+    // Clean all Globus error objects which Globus forgot to properly process.
+    GlobusResult::wipe();
     // See activation for description
     //GlobusResult(globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE));
   }

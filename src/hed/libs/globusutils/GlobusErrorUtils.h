@@ -43,6 +43,7 @@ namespace Arc {
       return o;
     }
     std::string str() const;
+    static void wipe();
   private:
     globus_result_t r;
     globus_object_t* o;
