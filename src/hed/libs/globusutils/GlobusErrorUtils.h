@@ -20,14 +20,10 @@ namespace Arc {
 
   class GlobusResult {
   public:
-    GlobusResult()
-      : r(GLOBUS_SUCCESS) {}
-    GlobusResult(const globus_result_t result)
-      : r(result) {}
-    GlobusResult& operator=(const globus_result_t result) {
-      r = result;
-      return *this;
-    }
+    GlobusResult();
+    ~GlobusResult();
+    explicit GlobusResult(const globus_result_t result);
+    GlobusResult& operator=(const globus_result_t result);
     bool operator==(const GlobusResult& result) const {
       return (r == result.r);
     }
@@ -43,9 +39,15 @@ namespace Arc {
     operator globus_result_t() const {
       return r;
     }
+    operator globus_object_t*() const {
+      return o;
+    }
     std::string str() const;
   private:
     globus_result_t r;
+    globus_object_t* o;
+    GlobusResult(const GlobusResult&);
+    GlobusResult& operator=(const GlobusResult&);
   };
 
   std::ostream& operator<<(std::ostream& o, const GlobusResult& res);

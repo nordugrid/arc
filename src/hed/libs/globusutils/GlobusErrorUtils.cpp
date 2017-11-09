@@ -8,10 +8,52 @@
 
 namespace Arc {
 
+  GlobusResult::GlobusResult() : r(GLOBUS_SUCCESS), o(NULL) {
+  }
+
+  GlobusResult::GlobusResult(const globus_result_t result) : r(result), o(NULL) {
+    if(r != GLOBUS_SUCCESS)
+      o = globus_error_get(result);
+  }
+  
+  GlobusResult::~GlobusResult() {
+    if(o)
+      globus_object_free(o);
+  }
+ 
+  GlobusResult& GlobusResult::operator=(const globus_result_t result) {
+    if(o)
+      globus_object_free(o);
+    o = NULL;
+    r = result;
+    if(r != GLOBUS_SUCCESS)
+      o = globus_error_get(result);
+    return *this;
+  }
+
+  std::string GlobusResult::str() const {
+    if (r == GLOBUS_SUCCESS)
+      return "<success>";
+    std::string s;
+    for (globus_object_t *err_ = o; err_;
+	 err_ = globus_error_base_get_cause(err_)) {
+      if (err_ != o)
+	s += "/";
+      char *tmp = globus_object_printable_to_string(err_);
+      if (tmp) {
+	s += tmp;
+	free(tmp);
+      }
+      else
+	s += "unknown error";
+    }
+    return trim(s);
+  }
+
   std::ostream& operator<<(std::ostream& o, const GlobusResult& res) {
     if (res)
       return (o << "<success>");
-    globus_object_t *err = globus_error_get(res);
+    globus_object_t *err = static_cast<globus_object_t*>(res);
     for (globus_object_t *err_ = err; err_;
 	 err_ = globus_error_base_get_cause(err_)) {
       if (err_ != err)
@@ -27,28 +69,6 @@ namespace Arc {
     if (err)
       globus_object_free(err);
     return o;
-  }
-
-  std::string GlobusResult::str() const {
-    if (r == GLOBUS_SUCCESS)
-      return "<success>";
-    globus_object_t *err = globus_error_get(r);
-    std::string s;
-    for (globus_object_t *err_ = err; err_;
-	 err_ = globus_error_base_get_cause(err_)) {
-      if (err_ != err)
-	s += "/";
-      char *tmp = globus_object_printable_to_string(err_);
-      if (tmp) {
-	s += tmp;
-	free(tmp);
-      }
-      else
-	s += "unknown error";
-    }
-    if (err)
-      globus_object_free(err);
-    return trim(s);
   }
 
   std::ostream& operator<<(std::ostream& o, globus_object_t *err) {

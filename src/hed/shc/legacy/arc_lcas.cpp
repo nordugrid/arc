@@ -13,6 +13,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
+#include <arc/globusutils/GlobusErrorUtils.h>
 #include "cert_util.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCAS");
@@ -95,10 +96,10 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
   LoadKeyFile(filename, key);
 
   globus_gsi_cred_handle_t chandle;
-  globus_gsi_cred_handle_init(&chandle, NULL);
-  if(cert) globus_gsi_cred_set_cert(chandle, cert);
-  if(key) globus_gsi_cred_set_key(chandle, key);
-  if(cchain) globus_gsi_cred_set_cert_chain(chandle, cchain);
+  Arc::GlobusResult(globus_gsi_cred_handle_init(&chandle, NULL));
+  if(cert) Arc::GlobusResult(globus_gsi_cred_set_cert(chandle, cert));
+  if(key) Arc::GlobusResult(globus_gsi_cred_set_key(chandle, key));
+  if(cchain) Arc::GlobusResult(globus_gsi_cred_set_cert_chain(chandle, cchain));
 
   gss_cred_id_desc* ccred = (gss_cred_id_desc*)::malloc(sizeof(gss_cred_id_desc));
   if(ccred) {
@@ -109,19 +110,19 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
     X509* identity_cert = NULL;
     if(cert) {
       globus_gsi_cert_utils_cert_type_t ctype = GLOBUS_GSI_CERT_UTILS_TYPE_DEFAULT;
-      globus_gsi_cert_utils_get_cert_type(cert,&ctype);
+      Arc::GlobusResult(globus_gsi_cert_utils_get_cert_type(cert,&ctype));
       if(ctype == GLOBUS_GSI_CERT_UTILS_TYPE_EEC) {
         identity_cert = cert;
       };
     };
     if(!identity_cert && cchain) {
       // For compatibility with older globus not using
-      //globus_gsi_cert_utils_get_identity_cert(cchain,&identity_cert);
+      //Arc::GlobusResult(globus_gsi_cert_utils_get_identity_cert(cchain,&identity_cert));
       for(int n = 0; n < sk_X509_num(cchain); ++n) {
         X509* tmp_cert = sk_X509_value(cchain, n);
         if(tmp_cert) {
           globus_gsi_cert_utils_cert_type_t ctype = GLOBUS_GSI_CERT_UTILS_TYPE_DEFAULT;
-          globus_gsi_cert_utils_get_cert_type(tmp_cert,&ctype);
+          Arc::GlobusResult(globus_gsi_cert_utils_get_cert_type(tmp_cert,&ctype));
           if(ctype == GLOBUS_GSI_CERT_UTILS_TYPE_EEC) {
             identity_cert = tmp_cert;
             break;
@@ -152,7 +153,7 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
   if(cert) X509_free(cert);
   if(key) EVP_PKEY_free(key);
   if(cchain) sk_X509_pop_free(cchain, X509_free);
-  if(chandle) globus_gsi_cred_handle_destroy(chandle);
+  if(chandle) Arc::GlobusResult(globus_gsi_cred_handle_destroy(chandle));
   return ccred;
 }
 
@@ -219,9 +220,9 @@ int main(int argc,char* argv[]) {
     return -1;
   };
   // In case anything is not initialized yet
-  globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
-  globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE);
-  globus_module_activate(GLOBUS_GSI_CERT_UTILS_MODULE);
+  Arc::GlobusResult(globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE));
+  Arc::GlobusResult(globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE));
+  Arc::GlobusResult(globus_module_activate(GLOBUS_GSI_CERT_UTILS_MODULE));
   // User without credentials is useless for LCAS ?
   //Arc::GSSCredential cred(filename,"","");
   gss_cred_id_t cred = read_globus_credentials(filename);
@@ -237,8 +238,8 @@ int main(int argc,char* argv[]) {
     majstat = gss_release_cred(&minstat, &cred);
   };
   recover_lcas_env();
-  globus_module_deactivate(GLOBUS_GSI_CERT_UTILS_MODULE);
-  globus_module_deactivate(GLOBUS_GSI_CREDENTIAL_MODULE);
-  globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
+  Arc::GlobusResult(globus_module_deactivate(GLOBUS_GSI_CERT_UTILS_MODULE));
+  Arc::GlobusResult(globus_module_deactivate(GLOBUS_GSI_CREDENTIAL_MODULE));
+  Arc::GlobusResult(globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE));
   return res;
 }
