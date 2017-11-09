@@ -89,7 +89,8 @@ class GMJob {
   /// Inform job that GMJobRef intends to destroy job
   void DestroyReference(void);
 
-  /// Change queue to which job belongs
+  /// Change queue to which job belongs. Queue switch is subject to queue's priority and
+  /// happens atomically. Similar to GMJobQueue::Push(GMJobRef(this)).
   /// Returns true if queue was changed.
   bool SwitchQueue(GMJobQueue* new_queue, bool to_front = false);
 
@@ -220,15 +221,37 @@ class GMJobQueue {
   GMJobQueue();
   GMJobQueue(GMJobQueue const& it);
  public:
+  //! Construct jobs queue with specified priority.
   GMJobQueue(int priority);
+
+  //! Comparison function type definition.
   typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);
+
+  //! Insert job at end of the queue. Subject to queue priority.
   bool Push(GMJobRef& ref);
+
+  //! Insert job into queue at position defined by sorting. Subject to queue priority.
   bool PushSorted(GMJobRef& ref, comparator_t compare);
+
+  //! Returns reference to first job in the queue.
+  GMJobRef Front();
+
+  //! Removes first job n the queue and returns its reference.
   GMJobRef Pop();
+
+  //! Insert job at beginnign of the queue. Subject to queue priority.
   bool Unpop(GMJobRef& ref);
+
+  //! Removes job from the queue
   bool Erase(GMJobRef& ref);
+
+  //! Returns true if job is in queue
   bool Exists(const GMJobRef& ref) const;
+
+  //! Sort jobs in queue
   void Sort(comparator_t compare);
+
+  //! Removes job from queue identified by key
   template<typename KEY> bool Erase(KEY const& key) {
     Glib::RecMutex::Lock lock(lock_);
     for(std::list<GMJob*>::iterator i = queue_.begin();
@@ -240,6 +263,8 @@ class GMJobQueue {
     };
     return false;
   };
+
+  //! Gets reference to job identified by key and stored in this queue
   template<typename KEY> GMJobRef Find(KEY const& key) const {
     Glib::RecMutex::Lock lock(const_cast<Glib::RecMutex&>(lock_));
     for(std::list<GMJob*>::const_iterator i = queue_.begin();
