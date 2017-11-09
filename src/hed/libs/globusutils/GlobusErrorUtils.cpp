@@ -12,8 +12,10 @@ namespace Arc {
   }
 
   GlobusResult::GlobusResult(const globus_result_t result) : r(result), o(NULL) {
-    if(r != GLOBUS_SUCCESS)
+    if(r != GLOBUS_SUCCESS) {
       o = globus_error_get(result);
+      if(o == GLOBUS_ERROR_NO_INFO) o = NULL;
+    }
   }
   
   GlobusResult::~GlobusResult() {
@@ -26,8 +28,10 @@ namespace Arc {
       globus_object_free(o);
     o = NULL;
     r = result;
-    if(r != GLOBUS_SUCCESS)
+    if(r != GLOBUS_SUCCESS) {
       o = globus_error_get(result);
+      if(o == GLOBUS_ERROR_NO_INFO) o = NULL;
+    }
     return *this;
   }
 
