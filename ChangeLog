@@ -1,3 +1,9 @@
+2017-11-21  Florido Paganelli <florido.paganelli@hep.lu.se>
+  * Second patch for negative numbers in GLUE2 VO ComputingShares
+    (bug 3686)
+    Revs: {33316}
+    Type: bugfix
+
 2017-09-13 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Patch for negative numbers in GLUE2 VO ComputingShares
     Revs: {33017}
