@@ -278,6 +278,7 @@ namespace Arc {
         item->NewChild("esadl:DelegationID") = delegation_id;
       };
       if(!op["ActivityDescription"]["DataStaging"]["DelegationID"]) {
+        /*
         XMLNodeList outputs = op.Path("ActivityDescription/DataStaging/OutputFile");
         for(XMLNodeList::iterator item = outputs.begin();item!=outputs.end();++item) {
           if(!((*item)["Target"])) {
@@ -289,11 +290,15 @@ namespace Arc {
             };
           };
         };
+        */
+        // If delegation provided always pass it
+        if(!op["ActivityDescription"]["DataStaging"]) op["ActivityDescription"].NewChild("esadl:DataStaging");
+        op["ActivityDescription"]["DataStaging"].NewChild("nordugrid-adl:DelegationID") = delegation_id;
       };
     };
     {
       std::string s;
-      jobdesc.GetXML(s);
+      act_doc.GetXML(s);
       logger.msg(DEBUG, "Job description to be sent: %s", s);
     };
 

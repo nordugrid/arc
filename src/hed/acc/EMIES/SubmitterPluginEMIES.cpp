@@ -67,7 +67,7 @@ namespace Arc {
     URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443);
 
     SubmissionStatus retval;
-    bool need_delegation = false;
+    bool need_delegation = true; // false - Force delegation always for jobs which use during execution
     std::string delegation_id;
     std::list<bool> have_uploads;
     XMLNodeList products;
@@ -409,7 +409,7 @@ namespace Arc {
     }
 
     bool have_uploads = false;
-    bool need_delegation = false;
+    bool need_delegation = true; // false - Force delegation always for jobs which use during execution
     for(std::list<InputFileType>::const_iterator itIF =
           preparedjobdesc.DataStaging.InputFiles.begin();
           itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
