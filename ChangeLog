@@ -1,3 +1,8 @@
+2017-11-22 Florido Paganelli <florido.paganelli@hep.lu.se>
+  * port of ARC VO patch from trunk for bug 3686
+    Revs: {33318}
+    Type: bugfix
+
 2017-09-13 Florido Paganelli <florido.paganelli@hep.lu.se>
   * Patch for negative numbers in GLUE2 VO ComputingShares
     Revs: {33017}
