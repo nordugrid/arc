@@ -92,14 +92,15 @@ void DTRGenerator::thread() {
     // sort the list by job priority
     //jobs_received.Sort(compare_job_description);
     while (Arc::Time() < limit) {
-      GMJobRef job = jobs_received.Pop();
+      GMJobRef job = jobs_received.Front(); // get reference but keep job in queue
       if(!job) break;
       event_lock.unlock();
       bool jobAccepted = processReceivedJob(job);
       event_lock.lock();
       if(!jobAccepted) {
-logger.msg(Arc::ERROR, "%s: Requesting attention", job->get_id());
-        jobs.RequestAttention(job); // pass job back
+logger.msg(Arc::ERROR, "%s: Re-requesting attention", job->get_id());
+        jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
+        jobs.RequestAttention(job); // pass job back to states processing
       }
     }
     event_lock.unlock();
@@ -131,7 +132,7 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
     info(config),
     jobs(jobs),
     jobs_received(JobsList::ProcessingQueuePriority+1),
-    jobs_processing(JobsList::ProcessingQueuePriority+1) {
+    jobs_processing(JobsList::ProcessingQueuePriority+2) {
 
   if (!staging_conf) return;
   // Set log level for DTR in job.id.errors files
@@ -604,6 +605,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   dtrs_lock.unlock();
 
 logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
+  // Passing job to lower priority queue - hence must use Erase.
   jobs_processing.Erase(job);
   jobs.RequestAttention(job);
 
@@ -996,7 +998,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     dtrs_lock.unlock();
     return false;
   }
-  jobs_processing.Push(job); // take this job
+  jobs_processing.Push(job); // take this job (job should be in jobs_received till now)
   return true;
 }
 

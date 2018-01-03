@@ -260,6 +260,13 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
   return false;
 }
 
+GMJobRef GMJobQueue::Front() {
+  Glib::RecMutex::Lock qlock(lock_);
+  if(queue_.empty()) return GMJobRef();
+  GMJobRef ref(queue_.front());
+  return ref;
+}
+
 GMJobRef GMJobQueue::Pop() {
   Glib::RecMutex::Lock qlock(lock_);
   if(queue_.empty()) return GMJobRef();
