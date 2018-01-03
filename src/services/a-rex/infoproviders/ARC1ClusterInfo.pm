@@ -3029,10 +3029,6 @@ sub collect($) {
         } else {
 			my $siblings = $sconfig->{siblingshares} = [$qname];
         }
-
-	## duplicate line? 
-        ## get lrms stats from the actual queues, not share names as they might not match
-        #my $qinfo = $lrms_info->{queues}{$qname};
         
         my $csha = {};
 
@@ -3206,9 +3202,9 @@ sub collect($) {
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
         } else {
-	    # TODO: to be removed after patch testing. Uncomment to check values
-	    # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
-			# TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
+            # TODO: to be removed after patch testing. Uncomment to check values
+            # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
+            # TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
             $freeslots = $qinfo->{totalcpus} - $qinfo->{running} || 0;
         }
 
