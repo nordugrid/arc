@@ -405,7 +405,7 @@ include_std_streams () {
 # move files to node
 ##############################################################
 move_files_to_node () {
-  if [ "$joboption_count" -eq 1 ] || [ ! -z "$RUNTIME_ENABLE_MULTICORE_SCRATCH" ] ; then
+  if [ "$joboption_count" -eq 1 ] || [ ! -z "$RUNTIME_ENABLE_MULTICORE_SCRATCH" ] || [ "$joboption_count" -eq "$joboption_countpernode" ]; then
     echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-$RUNTIME_LOCAL_SCRATCH_DIR}" >> $LRMS_JOB_SCRIPT
   else
     echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-}" >> $LRMS_JOB_SCRIPT
