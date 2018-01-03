@@ -78,7 +78,11 @@ for control_dir in "$@" ; do
 
     # Bash specific, but this script will be rewritten in python soon...
     declare -A finished_jobs
-    finished=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -e "select name from workunit where assimilate_state=2")
+    appidclause=""
+    if [ ! -z "$CONFIG_boinc_app_id" ]; then
+        appidclause="and appid=$CONFIG_boinc_app_id"
+    fi
+    finished=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -e "select name from workunit where assimilate_state=2 $appidclause")
     
     for job in `echo $finished`; do
         finished_jobs[$job]=1
