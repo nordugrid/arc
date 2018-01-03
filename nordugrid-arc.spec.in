@@ -287,7 +287,6 @@ BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
 BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
-BuildRequires:	mktemp
 # Needed to run ACIX unit tests
 %if %{with_acix}
 %if %{?suse_version:1}%{!?suse_version:0}
@@ -600,7 +599,6 @@ Requires:	perl(XML::Simple)
 Requires:	perl(Inline)
 Requires:	perl(Inline::Python)
 %endif
-Requires:	mktemp
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
 %else

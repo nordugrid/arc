@@ -12,6 +12,7 @@
 #include <arc/Thread.h>
 #include <arc/Utils.h>
 
+#include "GlobusErrorUtils.h"
 #include "GlobusWorkarounds.h"
 
 namespace Arc {
@@ -75,14 +76,14 @@ namespace Arc {
   bool GlobusPrepareGSSAPI(void) {
     Glib::Mutex::Lock lock(lock_);
     int index = -1;
-    globus_gsi_callback_get_X509_STORE_callback_data_index(&index);
-    globus_gsi_callback_get_SSL_callback_data_index(&index);
+    GlobusResult(globus_gsi_callback_get_X509_STORE_callback_data_index(&index));
+    GlobusResult(globus_gsi_callback_get_SSL_callback_data_index(&index));
     return true;
   }
 
   bool GlobusModuleActivate(globus_module_descriptor_t* module) {
     Glib::Mutex::Lock lock(lock_);
-    return (globus_module_activate(module) == GLOBUS_SUCCESS);
+    return (GlobusResult(globus_module_activate(module)));
   }
 }
 

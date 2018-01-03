@@ -38,7 +38,7 @@ public:
   bool get_httpgetpartial() const { return httpgetpartial; };
   std::string get_preferred_pattern() const { return preferred_pattern; };
   std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
-  unsigned int get_remote_size_limit() const { return remote_size_limit; };
+  unsigned long long int get_remote_size_limit() const { return remote_size_limit; };
   std::string get_share_type() const { return share_type; };
   std::map<std::string, int> get_defined_shares() const { return defined_shares; };
   bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
