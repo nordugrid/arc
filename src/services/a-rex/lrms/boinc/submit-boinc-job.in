@@ -361,19 +361,17 @@ intmp="$intmp
         <copy_file/>
     </file_ref>"
 
+intmp_res=$(cat $WU_TEMPLATE)
 intmp="$intmp
-   <rsc_disk_bound>15000000000</rsc_disk_bound>
-   <min_quorum>1</min_quorum>
-   <target_nresults>1</target_nresults>
-   <rsc_fpops_bound>6000000000000000000</rsc_fpops_bound>
-   <max_error_results>8</max_error_results>
-   <max_success_results>4</max_success_results>
-   <max_total_results>12</max_total_results>
-   <delay_bound>86400</delay_bound>
-   </workunit>"
+$intmp_res
+"
 
-WU_TEMPLATE="/tmp/ATLAS_"$wu
-cat << EOF  > $WU_TEMPLATE
+intmp="$intmp
+   </workunit>
+"
+
+WU_TEMPLATE_tmp=$(mktemp /tmp/${BOINC_APP}_XXXXXX)
+cat << EOF  > $WU_TEMPLATE_tmp
 $intmp
 EOF
 
@@ -398,7 +396,7 @@ fi
 cmd="bin/create_work \
       --appname $BOINC_APP \
       --wu_name $wu \
-      --wu_template $WU_TEMPLATE \
+      --wu_template $WU_TEMPLATE_tmp \
       --result_template $RESULT_TEMPLATE \
       --rsc_memory_bound $memreq \
       --rsc_fpops_est $maxcputime \
@@ -432,7 +430,7 @@ if [ $rc -eq 0 ];then
 fi
 echo "----- removing intermediate files ----" 1>&2
 if [ $DEBUG -ne 1 ];then
-  rm -fr $WU_TEMPLATE
+  rm -fr $WU_TEMPLATE_tmp
   rm -fr $LRMS_JOB_BOINC $LRMS_JOB_ERR $LRMS_JOB_OUT $LRMS_JOB_SCRIPT
   rm -fr $JobInput
 fi
