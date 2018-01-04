@@ -215,14 +215,23 @@ namespace Arc {
     /// Set format for this log destination.
     void setFormat(const LogFormat& newformat);
 
+    /// Returns currently assigned format
+    LogFormat getFormat() const;
+
     /// Set format for any new log destination.
     static void setDefaultFormat(const LogFormat& newformat);
+
+    /// Returns currently assigned default format
+    static LogFormat getDefaultFormat();
 
     /// Set a prefix for this log destination to be logged before messages.
     /** The prefix is prepended to messages in all formats except EmptyFormat.
      * \since Added in 4.0.0.
      */
     void setPrefix(const std::string& prefix);
+
+    /// Returns currently assignd prefix
+    std::string getPrefix() const;
 
   protected:
 

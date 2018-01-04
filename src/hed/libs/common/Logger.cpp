@@ -236,12 +236,24 @@ namespace Arc {
     format = newformat;
   }
 
+  LogFormat LogDestination::getFormat() const {
+    return format;
+  }
+
   void LogDestination::setDefaultFormat(const LogFormat& newformat) {
     DefaultLogFormat = newformat;
   }
 
+  LogFormat LogDestination::getDefaultFormat() {
+    return DefaultLogFormat;
+  }
+
   void LogDestination::setPrefix(const std::string& pre) {
     prefix = pre;
+  }
+
+  std::string LogDestination::getPrefix() const {
+    return prefix;
   }
 
   LogStream::LogStream(std::ostream& destination)
