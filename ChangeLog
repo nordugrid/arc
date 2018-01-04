@@ -1,3 +1,8 @@
+2017-12-08 Christian Ulrik Søttrup <soettrup@nbi.dk>
+  * Turned on multicore single node scratch by default
+    Revs: {33327}  
+    Type: bugfix
+
 2017-11-22 Florido Paganelli <florido.paganelli@hep.lu.se>
   * port of ARC VO patch from trunk for bug 3686
     Revs: {33318}
