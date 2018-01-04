@@ -443,9 +443,11 @@ rm -rf $RPM_BUILD_ROOT
 %files -n mingw32-%{mingw_pkg_name}-plugins-globus
 %defattr(-,root,root,-)
 %{mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
+%{mingw32_libdir}/%{pkgdir}/libdmcgridftpdeleg.dll*
 %{mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 %{mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
 %{mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe
+%{mingw32_libdir}/%{pkgdir}/arc-dmcgridftp.exe
 %endif
 
 %files -n mingw32-%{mingw_pkg_name}-misc-utils
@@ -614,9 +616,11 @@ rm -rf $RPM_BUILD_ROOT
 %files -n mingw64-%{mingw_pkg_name}-plugins-globus
 %defattr(-,root,root,-)
 %{mingw64_libdir}/%{pkgdir}/libdmcgridftp.dll*
+%{mingw64_libdir}/%{pkgdir}/libdmcgridftpdeleg.dll*
 %{mingw64_libdir}/%{pkgdir}/libaccARC0.dll*
 %{mingw64_libexecdir}/%{pkgdir}/arc-lcas.exe
 %{mingw64_libexecdir}/%{pkgdir}/arc-lcmaps.exe
+%{mingw64_libdir}/%{pkgdir}/arc-dmcgridftp.exe
 %endif
 
 %files -n mingw64-%{mingw_pkg_name}-misc-utils
