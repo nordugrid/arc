@@ -300,7 +300,7 @@ sub confchecktripel($$$) {
 		# If available, second dir is on workernode
 		my $d = $dirs[0];
 		if (! -d $d)  {
-			e("cachedir: not existing at '$d'\n");
+			w("cachedir: not existing at '$d'\n");
 		}
 	}
 
@@ -309,7 +309,7 @@ sub confchecktripel($$$) {
 		my @dirs=split(/\s+/,$value);
 		my $dpath = $dirs[0];
 		if (! -d $dpath)  {
-			e("sessiondir: not existing at '$dpath'\n");
+			w("sessiondir: not existing at '$dpath'\n");
 		} else {
 			v("$name exists.");
 		}
@@ -324,10 +324,17 @@ sub confchecktripel($$$) {
                 }
 	}
 
+	# check the runtime directory
+	elsif ($block eq "arex/cache" and $name eq "runtimedir") {
+		if (! -d $value)  {
+			e("runtimedir: not existing at '$value'\n");
+		}
+	}
+
 	# check the controldir
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
-			e("$value: control directory ($name) does not exist\n");
+			w("$value: control directory ($name) does not exist\n");
 		} elsif (!permcheck($value,0755,0777)) {
 			e("$value: directory ($name) should be 755\n");
 		}
@@ -336,7 +343,7 @@ sub confchecktripel($$$) {
 	# check all remaining directory entries of the arex block for existence
 	elsif ($block eq "arex" and $name =~ m/dir$/) {
 		if (! -d $value)  {
-			e("$value: directory ($name) does not exist\n");
+			w("$value: directory ($name) does not exist\n");
 		}
 		else {
 			v("$name exists.");
@@ -377,8 +384,8 @@ sub confchecktripel($$$) {
     # check compliance of AdminDomain name as a LDAP DNs
     # TODO: add to startup script the capability of escaping special
     # chars.
-    if ($block eq "infosys/admindomain") {
-        if ($name eq "name") {
+    if ($block eq "infosys/glue2") {
+        if ($name eq "admindomain_name") {
         w("Warning: $block $name not configured. Default AdminDomain name is UNDEFINEDVALUE.\n") if $value eq '';
         # bad symbols from RFC 4514
         my @syntaxerrors;
