@@ -184,7 +184,7 @@ sub timecheck($$$) {
 		return;
 	}
 
-	unless (open(NTPDATE, "$ntpdate -q $timeserver |")) {
+	unless (open(NTPDATE, "$ntpdate -p 1 -q $timeserver |")) {
 		w("Could not properly invoke 'ntpdate'.\n");
 		return;
 	}
