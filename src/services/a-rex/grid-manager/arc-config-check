@@ -26,6 +26,18 @@ ULTIMATE TRUTH.
 
 =over 4
 
+=item --quiet
+
+Do not print any output
+
+=item --verbose
+
+Print detailed output
+
+=item --debug
+
+Print very detailed output
+
 =item --config <string>
 
 Specifies the location of the config file, by default it is /etc/arc.conf
@@ -88,6 +100,7 @@ my $CApath;
 my $opensslpath;
 my $verbose=0;
 my $debug=0;
+my $quiet=0;
 
 GetOptions(
 	"config:s" => \$conffile,
@@ -97,6 +110,7 @@ GetOptions(
 	"openssl-path:s" => \$opensslpath,
 	"verbose" => \$verbose,
 	"debug" => \$debug,
+    "quiet" => \$quiet,
 	"help" => \$help,
 	"man" => \$man
 	) or die "Could not parse options.\n";
@@ -143,7 +157,7 @@ $opensslpath=`which openssl | tr -d '\n'` unless defined($opensslpath);
 sub w($) {
 	my $s = shift;
 	if (!$skip_warnings) {
-		print STDERR "W: $s";
+		print STDERR "W: $s" if !$quiet;
 		$warnings++;
 	}
 }
@@ -151,14 +165,14 @@ sub w($) {
 # prints and counts an error
 sub e($) {
 	my $s = shift;
-	print STDERR "E: $s";
+	print STDERR "E: $s" if !$quiet;
 	$errors++;
 }
 
 sub v($) {
 	return unless $verbose or $debug;
 	my $s = shift;
-	print STDERR "$s";
+	print STDERR "$s" if !$quiet;
 }
 
 ####################### C H E C K S  #######################################
@@ -821,7 +835,7 @@ sub check_certificates() {
 		$hostcert="/etc/grid-security/hostcert.pem";
 	}
 	if ( -f $hostcert) {
-		if (system("$opensslpath verify -CApath $CApath $hostcert | grep 'OK'")) {
+		if (system("$opensslpath verify -CApath $CApath $hostcert | grep 'OK' >/dev/null 2>&1")) {
 			e("Verification of host cert at $hostcert with $opensslpath failed.\n");
 		}
 		if (!system("$opensslpath verify -CApath $CApath $hostcert | grep 'expired'")) {
@@ -843,15 +857,17 @@ check_applications();
 check_libraries();
 check_certificates();
 
-if (0 == $errors) {
-	print "Found no apparent failures.\n";
-} else {
-	printf "Found %d failure%s.\n", $errors, ($errors > 1) ? "s" : "";
-}
-if ($warnings) {
-	printf "Found %d non-critical issue%s%s.\n",
-		$warnings, ($warnings > 1) ? "s" : "",
-		($skip_warnings?" (not shown)":"");
+if (!$quiet) {
+    if (0 == $errors) {
+        print "Found no apparent failures.\n";
+    } else {
+        printf "Found %d failure%s.\n", $errors, ($errors > 1) ? "s" : "";
+    }
+    if ($warnings) {
+        printf "Found %d non-critical issue%s%s.\n",
+            $warnings, ($warnings > 1) ? "s" : "",
+            ($skip_warnings?" (not shown)":"");
+    }
 }
 
 exit $errors;
