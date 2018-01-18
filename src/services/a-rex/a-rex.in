@@ -817,7 +817,7 @@ validate() {
         log_failure_msg "Could not find or execute arc-config-check tool"
         return 1
     fi
-    eval "$CHECK_CMD --config $ARC_CONFIG"
+    eval "$CHECK_CMD --config $ARC_CONFIG $@"
     RETVAL=$?
     return $RETVAL
 }
@@ -845,6 +845,13 @@ start() {
     fi
 
     prepare
+
+    validate --quiet
+    RETVAL=$?
+    if [ $RETVAL != 0 ]; then
+        log_failure_msg "Configuration validation failed: $RETVAL errors"
+        return 1
+    fi
 
     # If specified in configuration mount remote session directory using SSHFS.
     REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
