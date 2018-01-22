@@ -302,15 +302,3 @@ Description: ARC grid middleware - Misc tools
  This package contains utilities for various tasks including testing. The
  package is usually not required by users or sysadmins but is mainly for
  developers.
-
-Package: nordugrid-arc-dbg
-Architecture: any
-Section: debug
-Priority: extra
-Depends: ${misc:Depends}, libarccommon3 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-needed (= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-candypond (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
-Description: ARC grid middleware - Debug Symbols
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package provides debug symbols for the ARC Grid middleware.
