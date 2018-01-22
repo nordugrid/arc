@@ -1252,7 +1252,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
 %{_datadir}/%{pkgdir}/PerfData.pl
-%{_datadir}/%{pkgdir}/ConfigParser.pm
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
 
 %files ldap-monitor

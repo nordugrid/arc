@@ -14,8 +14,6 @@ endif
 
 units_DATA = $(GRID_INFOSYS_UNIT)
 
-pkgdata_DATA = ConfigParser.pm
-
 pkgdata_SCRIPTS = create-bdii-config create-inforeg-config create-slapd-config
 
-EXTRA_DIST = ConfigParser.pm nordugrid-arc-aris.service nordugrid-arc-inforeg.service nordugrid-arc-slapd.service
+EXTRA_DIST = nordugrid-arc-aris.service nordugrid-arc-inforeg.service nordugrid-arc-slapd.service
