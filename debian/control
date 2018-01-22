@@ -9,7 +9,7 @@ Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
 Replaces: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
-Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~)
+Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~), nordugrid-arc-egiis (<< 6.0.0~)
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
@@ -103,24 +103,28 @@ Description: ARC data delivery service
  .
  This package contains the ARC data delivery service.
 
-Package: nordugrid-arc-ldap-infosys
-Replaces: nordugrid-arc-aris (<< 3.0.0~)
+Package: nordugrid-arc-inforeg
+Replaces: nordugrid-arc-aris (<< 3.0.0~), nordugrid-arc-ldap-infosys (<< 6.0.0~)
+Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~)
 Breaks: nordugrid-arc-aris (<< 3.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, slapd, glue-schema (>= 2.0.10), bdii, lsb-base (>= 3.0-6)
-Description: ARC LDAP infosys service
+Depends: ${misc:Depends}, lsb-base (>= 3.0-6)
+Description: ARC information system registration
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the LDAP based information system for ARC.
- This package is not self-contained. it should be pulled in by either
- nordugrid-arc-aris to be a part of a local information system or by
- nordugrid-arc-egiis to be a part of a EGIIS service.
+ This package allows to register the ARC local information system
+ (ARIS) or storage element in an information index server (EGIIS). This
+ technology is in the process of being phased out. Consider migrating
+ to registering your resource in an ARCHERY server instead.
 
 Package: nordugrid-arc-aris
+Provides: nordugrid-arc-ldap-infosys
+Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, ${perl:Depends}, nordugrid-arc-ldap-infosys (= ${binary:Version}), bdii, lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${perl:Depends}, slapd, bdii, lsb-base (>= 3.0-6)
 Description: ARC local information system
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -129,18 +133,6 @@ Description: ARC local information system
  This package contains the local information system for ARC.
  This package is not self-contained but is closely connected to
  nordugrid-arc-arex.
-
-Package: nordugrid-arc-egiis
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys (= ${source:Version}), lsb-base (>= 3.0-6)
-Description: ARC EGIIS service
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC). 
- .
- The EGIIS is the Information Index Service used by ARC, This service is
- used to set up a LDAP-based server that local information systems (ARIS)
- register to.
 
 Package: nordugrid-arc-ldap-monitor
 Architecture: all
@@ -193,7 +185,8 @@ Description: ARC base plugins
  and Data Management Components (DMCs).
 
 Package: nordugrid-arc-plugins-globus
-Conflicts: nordugrid-arc-plugins-needed (<< 1.0.1-2~)
+Replaces: nordugrid-arc-plugins-needed (<< 1.0.1-2~)
+Breaks: nordugrid-arc-plugins-needed (<< 1.0.1-2~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC Globus plugins

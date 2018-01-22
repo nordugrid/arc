@@ -6,15 +6,15 @@
 # description: NorduGrid/ARC local resource information system
 #
 # config: /etc/sysconfig/nordugrid
-# config: /etc/sysconfig/nordugrid-arc-bdii
+# config: /etc/sysconfig/nordugrid-arc-aris
 # config: /etc/arc.conf
 #
 ######################################################################
 
 ### BEGIN INIT INFO
-# Provides:          nordugrid-arc-bdii
-# Required-Start:    $remote_fs $syslog nordugrid-arc-slapd
-# Required-Stop:     $remote_fs $syslog nordugrid-arc-slapd
+# Provides:          nordugrid-arc-aris
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: NorduGrid/ARC local resource information system
@@ -47,7 +47,7 @@ else
 fi
 
 RETVAL=0
-prog=nordugrid-arc-bdii
+prog=nordugrid-arc-aris
 RUN=yes
 
 # sysconfig files
@@ -150,33 +150,65 @@ if [ ! -x $bdii_update_cmd ]; then
 fi
 
 bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+slapd_pid_file=${bdii_run_dir}/db/slapd.pid
 update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
 
 if [ `id -u` = 0 ]; then
     # Debian does not have /var/lock/subsys
     if [ -d /var/lock/subsys ]; then
-	update_lock_file=${update_lock_file:-/var/lock/subsys/$prog}
+	slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog-slapd}
+	update_lock_file=${update_lock_file:-/var/lock/subsys/$prog-bdii}
     else
-	update_lock_file=${update_lock_file:-/var/lock/$prog}
+	slapd_lock_file=${slapd_lock_file:-/var/lock/$prog-slapd}
+	update_lock_file=${update_lock_file:-/var/lock/$prog-bdii}
     fi
 else
-    update_lock_file=$HOME/$prog
+    slapd_lock_file=$HOME/$prog-slapd
+    update_lock_file=$HOME/$prog-bdii
 fi
 
 infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 BDII_CONF=${CONFIG_bdii_conf:-${infosys_ldap_run_dir}/bdii.conf}
 
 start () {
-    if [ -r "${update_lock_file}" ]; then
-	log_success_msg "$prog already started"
-	RETVAL=0
+    if [ -r "${slapd_lock_file}" ] || [ -r "${update_lock_file}" ]; then
+	result=$($0 status)
+	if [ $? -gt 0 ]; then
+	    echo ${result} 1>&2
+	    RETVAL=1
+	else
+	    log_success_msg "$prog already started"
+	    RETVAL=0
+	fi
 	return ${RETVAL}
+    fi
+
+    ${ARC_LOCATION}/@pkgdatasubdir@/create-slapd-config
+    if [ ! $? = 0 ]; then
+	log_failure_msg "Failed to create configuration for $prog slapd"
+	exit 1
     fi
 
     ${ARC_LOCATION}/@pkgdatasubdir@/create-bdii-config
     if [ ! $? = 0 ]; then
-	log_failure_msg "Failed to create configuration for $prog"
+	log_failure_msg "Failed to create configuration for $prog bdii"
 	exit 1
+    fi
+
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
+    touch ${slapd_lock_file}
+
+    iterlimit=30
+    while [ $iterlimit -ge 0 ] && ! [ -r ${slapd_pid_file} ]; do
+	sleep 1
+	iterlimit=$(expr $iterlimit - 1)
+    done
+
+    if ! [ -r "${slapd_pid_file}" ]; then
+	log_failure_msg "$prog slapd failed to start"
+	rm -f ${slapd_lock_file}
+	RETVAL=1
+	return ${RETVAL}
     fi
 
     if [ `id -u` = 0 ]; then
@@ -193,7 +225,7 @@ start () {
     done
 
     if [ ! -r ${update_pid_file} ]; then
-	log_failure_msg "$prog failed to start"
+	log_failure_msg "$prog bdii failed to start"
 	rm -f ${update_lock_file}
 	RETVAL=1
 	return ${RETVAL}
@@ -203,7 +235,7 @@ start () {
 }
 
 stop () {
-    if [ ! -r "${update_lock_file}" ]; then
+    if [ ! -r "${slapd_lock_file}" ] && [ ! -r "${update_lock_file}" ]; then
 	log_success_msg "$prog already stopped"
 	RETVAL=0
 	return ${RETVAL}
@@ -213,14 +245,10 @@ stop () {
 	update_pid=$(cat ${update_pid_file})
 	ps ${update_pid} >/dev/null 2>&1
 	if [ ! $? = 0 ]; then
-	    log_failure_msg "$prog pid file exists but the process died"
+	    log_failure_msg "$prog bdii pid file exists but the process died"
 	    RETVAL=1
 	    return ${RETVAL}
 	fi
-    else
-	log_failure_msg "$prog process has no pid file"
-	RETVAL=1
-	return ${RETVAL}
     fi
 
     killall -u ${bdii_user} -15 arc-nordugrid-bdii-ldif 2>/dev/null
@@ -236,7 +264,9 @@ stop () {
 		sleep 2
 		ps ${update_pid} >/dev/null 2>&1
 		if [ $? = 0 ]; then
+		    log_failure_msg "Could not kill $prog bdii with pid ${update_pid}"
 		    RETVAL=1
+		    return ${RETVAL}
 		fi
 	    fi
 	fi
@@ -245,40 +275,79 @@ stop () {
     # Clean up
     rm -f ${infosys_ldap_run_dir}/arc-glue-bdii-ldif
 
-    if [ ${RETVAL} = 0 ];  then
-	rm -f ${update_pid_file}
-	rm -f ${update_lock_file}
-	log_success_msg "$prog stopped"
-    else
-	log_failure_msg "Could not kill $prog with pid ${update_pid}"
+    rm -f ${update_pid_file}
+    rm -f ${update_lock_file}
+    log_success_msg "$prog bdii stopped"
+
+    if [ -r "${slapd_pid_file}" ]; then
+	slapd_pid=$(cat ${slapd_pid_file})
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "$prog slapd pid file exists but the process died"
+	    RETVAL=1
+	    return ${RETVAL}
+	fi
     fi
+
+    if [ -n "${slapd_pid}" ]; then
+	kill -15 ${slapd_pid} 2>/dev/null
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ $? = 0 ]; then
+	    sleep 2
+	    ps ${slapd_pid} >/dev/null 2>&1
+	    if [ $? = 0 ]; then
+		kill -9 ${slapd_pid} 2>/dev/null
+		sleep 2
+		ps ${slapd_pid} >/dev/null 2>&1
+		if [ $? = 0 ]; then
+		    log_failure_msg "Could not stop $prog slapd with pid: $slapd_pid"
+		    RETVAL=1
+		    return ${RETVAL}
+		fi
+	    fi
+	fi
+    fi
+
+    rm -f ${slapd_pid_file}
+    rm -f ${slapd_lock_file}
+    log_success_msg "$prog slapd stopped"
 
     return ${RETVAL}
 }
 
 status ()  {
-    if [ ! -f "${update_lock_file}" ]; then
+    if [ ! -r "${slapd_lock_file}" ] && [ ! -r "${update_lock_file}" ]; then
 	log_success_msg "$prog is stopped"
 	RETVAL=3
 	return ${RETVAL}
     fi
 
+    if [ -r ${slapd_pid_file} ]; then
+	ps $(cat ${slapd_pid_file}) >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "ARIS slapd pid file exists but the process died"
+	    RETVAL=1
+	fi
+    else
+	log_failure_msg "ARIS slapd process has no pid file"
+	RETVAL=2
+    fi
+
     if [ -r ${update_pid_file} ]; then
 	ps $(cat ${update_pid_file}) >/dev/null 2>&1
 	if [ ! $? = 0 ]; then
-	    log_failure_msg "$prog pid file exists but the process died"
+	    log_failure_msg "ARIS bdii pid file exists but the process died"
 	    RETVAL=1
-	    return ${RETVAL}
 	fi
     else
-	log_failure_msg "$prog process has no pid file"
+	log_failure_msg "ARIS BDII process has no pid file"
 	RETVAL=2
-	return ${RETVAL}
     fi
 
-    log_success_msg "$prog is running"
+    if [ ${RETVAL} = 0 ]; then
+	log_success_msg "$prog is running"
+    fi
 
-    RETVAL=0
     return ${RETVAL}
 }
 
@@ -301,7 +370,7 @@ case "$1" in
 	status
 	;;
     condrestart | try-restart)
-	if [ -r ${update_lock_file} ]; then
+	if [ -r ${slapd_lock_file} ] || [ -r ${update_lock_file} ]; then
 	    stop
 	    # avoid race
 	    sleep 3

@@ -207,11 +207,15 @@ Source:		http://download.nordugrid.org/packages/%{name}/releases/%{version}@prev
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #		Packages dropped without replacements
-Obsoletes:	nordugrid-arc-chelonia < 2.0.0
-Obsoletes:	nordugrid-arc-hopi < 2.0.0
-Obsoletes:	nordugrid-arc-isis < 2.0.0
-Obsoletes:	nordugrid-arc-janitor < 2.0.0
-Obsoletes:	nordugrid-arc-doxygen < 4.0.0
+Obsoletes:	%{name}-chelonia < 2.0.0
+Obsoletes:	%{name}-hopi < 2.0.0
+Obsoletes:	%{name}-isis < 2.0.0
+Obsoletes:	%{name}-janitor < 2.0.0
+Obsoletes:	%{name}-doxygen < 4.0.0
+%if ! %{with_canl}
+Obsoletes:	%{name}-arcproxyalt < %{version}-%{release}
+%endif
+Obsoletes:	%{name}-egiis < 6.0.0
 
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
@@ -303,11 +307,6 @@ BuildRequires:	pyOpenSSL
 %if %{?rhel}%{!?rhel:0} == 5
 BuildRequires:	python-hashlib
 %endif
-%endif
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-# The compilation of the selinux module fails on Fedora 5
-BuildRequires:	selinux-policy-devel
-BuildRequires:	checkpolicy
 %endif
 BuildRequires:	swig
 %if %{?suse_version:1}%{!?suse_version:0}
@@ -444,44 +443,27 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
-%package ldap-infosys
-Summary:	ARC LDAP information service
+%package inforeg
+Summary:	ARC information system registration
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
-Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.10
-Requires:	bdii
+Obsoletes:	%{name}-ldap-infosys < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 8
-Requires(post):		policycoreutils-python-utils
-Requires(postun):	policycoreutils-python-utils
-%else
-%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
-Requires(post):		policycoreutils-python
-Requires(postun):	policycoreutils-python
-%else
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
-%endif
-%endif
-%endif
-
-%description ldap-infosys
+%description inforeg
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the LDAP based information system for ARC.
-This package is not self-contained. it should be pulled in by either
-nordugrid-arc-arex to be a part of a local information system or by
-nordugrid-arc-egiis to be a part of a EGIIS service.
+This package allows to register the ARC local information system
+(ARIS) or storage element in an information index server (EGIIS). This
+technology is in the process of being phased out. Consider migrating
+to registering your resource in an ARCHERY server instead.
 
 %package aris
 Summary:	ARC local information system
@@ -489,10 +471,11 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
-Requires:	%{name}-ldap-infosys = %{version}-%{release}
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 Requires:	bdii
+Provides:	%{name}-ldap-infosys = %{version}-%{release}
+Obsoletes:	%{name}-ldap-infosys < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -521,31 +504,6 @@ Connector (ARC).
 This package contains the LDAP based information system for ARC.
 This package is not self-contained but is closely connected to
 nordugrid-arc-arex.
-
-%package egiis
-Summary:	ARC EGIIS service
-Group:		System Environment/Libraries
-Requires:	%{name}-ldap-infosys = %{version}-%{release}
-Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.10
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
-%endif
-
-%description egiis
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The EGIIS is the Information Index Service used by ARC, This service is
-used to set up a ldap-based server that local information systems register
-to.
 
 %package ldap-monitor
 Summary:	ARC LDAP monitor service
@@ -912,13 +870,6 @@ developers.
 %prep
 %setup @fedorasetupopts@
 
-%if %{?fedora}%{!?fedora:0} <= 9 && %{?rhel}%{!?rhel:0} <= 5
-# Older versions of SELinux does not have policy for open
-cd selinux
-sed -e 's/ open / /' -e /open/d -i %{name}-egiis.te
-cd -
-%endif
-
 %build
 if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
   if [ `echo __GNUC__ | gcc -E - | tail -1` -lt 6 ] ; then
@@ -969,12 +920,6 @@ fi
 
 make %{?_smp_mflags}
 
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-cd selinux
-make -f /usr/share/selinux/devel/Makefile
-cd -
-%endif
-
 %check
 make check
 
@@ -1013,14 +958,6 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
 
 %find_lang %{name}
-
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-cd selinux
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
-install -p -m 644 %{name}-egiis.pp \
-    $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
-cd -
-%endif
 
 %if %{?rhel}%{!?rhel:0} == 5
 %{__python}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
@@ -1103,45 +1040,35 @@ rm -rf $RPM_BUILD_ROOT
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
 
-%post ldap-infosys
-%enable_service nordugrid-arc-slapd nordugrid-arc-inforeg
+%post inforeg
+%enable_service nordugrid-arc-inforeg
+
+%preun inforeg
+%stop_on_removal nordugrid-arc-inforeg
+
+%postun inforeg
+%condrestart_on_update nordugrid-arc-inforeg
+
+%post aris
+%enable_service nordugrid-arc-aris
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
 semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
+semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
+semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 %endif
 
-%preun ldap-infosys
-%stop_on_removal nordugrid-arc-slapd nordugrid-arc-inforeg
+%preun aris
+%stop_on_removal nordugrid-arc-aris
 
-%postun ldap-infosys
-%condrestart_on_update nordugrid-arc-slapd nordugrid-arc-inforeg
+%postun aris
+%condrestart_on_update nordugrid-arc-aris
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
   semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
   semanage fcontext -d -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
-fi
-%endif
-
-%post aris
-%enable_service nordugrid-arc-bdii
-
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
-semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
-# Remove selinux labels for old arc bdii var dir
-semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
-%endif
-
-%preun aris
-%stop_on_removal nordugrid-arc-bdii
-
-%postun aris
-%condrestart_on_update nordugrid-arc-bdii
-
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-if [ $1 -eq 0 ]; then
   semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
   semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 fi
@@ -1150,29 +1077,9 @@ fi
 %triggerun aris -- bdii
 %if %{?suse_version:1}%{!?suse_version:0}
 FIRST_ARG=1
-%restart_on_update nordugrid-arc-bdii
+%restart_on_update nordugrid-arc-aris
 %else
-service nordugrid-arc-bdii condrestart > /dev/null 2>&1 || :
-%endif
-
-%post egiis
-%enable_service nordugrid-arc-egiis
-
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-/usr/sbin/semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-egiis.pp > /dev/null 2>&1 || :
-/sbin/restorecon %{_sbindir}/arc-infoindex-relay
-%endif
-
-%preun egiis
-%stop_on_removal nordugrid-arc-egiis
-
-%postun egiis
-%condrestart_on_update nordugrid-arc-egiis
-
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-if [ $1 -eq 0 ] ; then
-  /usr/sbin/semodule -r %{name}-egiis > /dev/null 2>&1 || :
-fi
+service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %endif
 
 %if %{with_acix}
@@ -1321,49 +1228,32 @@ service fetch-crl-cron start > /dev/null 2>&1
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
-%files ldap-infosys
+%files inforeg
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/nordugrid-arc-slapd.service
 %{_unitdir}/nordugrid-arc-inforeg.service
 %else
-%{_initrddir}/nordugrid-arc-ldap-infosys
-%{_initrddir}/nordugrid-arc-slapd
 %{_initrddir}/nordugrid-arc-inforeg
 %endif
-%{_datadir}/%{pkgdir}/create-slapd-config
 %{_datadir}/%{pkgdir}/create-inforeg-config
 %{_datadir}/%{pkgdir}/grid-info-soft-register
-%{_datadir}/%{pkgdir}/ldap-schema
 
 %files aris
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/nordugrid-arc-bdii.service
+%{_unitdir}/nordugrid-arc-aris.service
+%{_unitdir}/nordugrid-arc-slapd.service
 %else
-%{_initrddir}/nordugrid-arc-bdii
+%{_initrddir}/nordugrid-arc-aris
 %endif
 %{_datadir}/%{pkgdir}/create-bdii-config
+%{_datadir}/%{pkgdir}/create-slapd-config
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
+%{_datadir}/%{pkgdir}/ldap-schema
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/ConfigParser.pm
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
-
-%files egiis
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/nordugrid-arc-egiis.service
-%else
-%{_initrddir}/nordugrid-arc-egiis
-%endif
-%{_sbindir}/arc-infoindex-relay
-%{_sbindir}/arc-infoindex-server
-%{_mandir}/man8/arc-infoindex-relay.8*
-%{_mandir}/man8/arc-infoindex-server.8*
-%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
-%{_datadir}/selinux/packages/%{name}
-%endif
 
 %files ldap-monitor
 %defattr(-,root,root,-)

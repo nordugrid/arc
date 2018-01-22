@@ -1,6 +1,0 @@
-debian/tmp/usr/share/arc/ldap-schema/nordugrid.schema
-
-debian/tmp/usr/share/arc/grid-info-soft-register
-
-debian/tmp/usr/share/arc/create-slapd-config
-debian/tmp/usr/share/arc/create-inforeg-config

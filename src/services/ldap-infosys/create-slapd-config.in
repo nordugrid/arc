@@ -66,9 +66,6 @@ infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-giis_location=${ARC_LOCATION}
-giis_fifo=${infosys_ldap_run_dir}/giis-fifo
-
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
 bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 
@@ -243,25 +240,6 @@ cat <<-EOF >> $bdii_slapd_conf
 	sizelimit       unlimited
 	timelimit       $timelimit
 	EOF
-
-for vo in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index -s); do
-    (
-	eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo} -e bash)
-	grep -q /registration <<< ${CONFIG___block_name} && continue
-	indexname=${CONFIG___block_name}
-
-	cat <<-EOF >> $bdii_slapd_conf
-
-		# Index Service: $vo
-		database        shell
-		suffix          "Mds-Vo-name=$indexname,o=grid"
-		bind            $giis_location/sbin/arc-infoindex-relay $giis_fifo
-		add             $giis_location/sbin/arc-infoindex-relay $giis_fifo
-		search          $giis_location/sbin/arc-infoindex-relay $giis_fifo
-		access to * by * write
-		EOF
-    )
-done
 
 if [ -n "${moduleload_rwm}" ]; then 
     admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)

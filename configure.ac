@@ -189,7 +189,6 @@ enables_hed=yes
 enables_a_rex_service=yes
 enables_gridftpd_service=yes
 enables_ldap_service=yes
-enables_giis_service=yes
 enables_candypond=yes
 enables_datadelivery_service=yes
 enables_ldap_monitor=yes
@@ -216,7 +215,6 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
-enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_ws_monitor=$enableval
 enables_candypond=$enableval
@@ -273,7 +271,6 @@ AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables a
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
-enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
@@ -1704,12 +1701,6 @@ if test "$enables_hed" = "yes"; then
   enables_srm_dmc=yes
 fi
 
-if test "$enables_giis_service" = "yes"; then
-  if test "$enables_ldap_service" = "no"; then
-    enables_ldap_service="yes"
-  fi
-fi
-
 AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 
 # Setup defines
@@ -2083,26 +2074,6 @@ fi
 
 AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
 AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
-
-# GIIS service
-AC_ARG_ENABLE(giis_service, AC_HELP_STRING([--disable-giis-service], [disable building GIIS Service]),
-  [enables_giis_service=$enableval],[])
-if test "$enables_giis_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([GIIS can't be built for WIN32 environment - disabling])
-    enables_giis_service="no"
-  fi
-  AC_CHECK_HEADERS(lber.h, [],[enables_giis_service=no])
-  AC_CHECK_HEADERS(ldap_features.h, [],[enables_giis_service=no])
-fi
-if test "$enables_ldap_service" = "no"; then
-  if test "$enables_giis_service" = "yes"; then
-    enables_giis_service="no"
-    AC_MSG_NOTICE([WARNING: GIIS service can't be enabled without LDAP Infosys, disabling GIIS])
-  fi
-fi
-AC_MSG_NOTICE([GIIS service enabled: $enables_giis_service])
-AM_CONDITIONAL([GIIS_SERVICE_ENABLED],[test "x$enables_giis_service" = "xyes"])
 
 # LDAP monitor
 AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--disable-ldap-monitor], [disable building LDAP Monitor]),
@@ -2536,14 +2507,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/create-bdii-config
                  src/services/ldap-infosys/create-inforeg-config
                  src/services/ldap-infosys/create-slapd-config
-                 src/services/ldap-infosys/nordugrid-arc-bdii
-                 src/services/ldap-infosys/nordugrid-arc-egiis
+                 src/services/ldap-infosys/nordugrid-arc-aris
                  src/services/ldap-infosys/nordugrid-arc-inforeg
-                 src/services/ldap-infosys/nordugrid-arc-ldap-infosys
-                 src/services/ldap-infosys/nordugrid-arc-slapd
-                 src/services/ldap-infosys/giis/Makefile
-                 src/services/ldap-infosys/giis/arc-infoindex-relay.8
-                 src/services/ldap-infosys/giis/arc-infoindex-server.8
                  src/services/ldap-monitor/Makefile
                  src/services/ldap-monitor/ldap-monitor
                  src/services/ldap-monitor/README
@@ -2682,7 +2647,6 @@ HED:                ${enables_hed}
 A-REX service:      ${enables_a_rex_service}
 GRIDFTPD service:   ${enables_gridftpd_service}
 LDAP Info service:  ${enables_ldap_service}
-GIIS service:       ${enables_giis_service}
 CANDYPOND service:  ${enables_candypond}
 DATADELIVERY service: ${enables_datadelivery_service}
 ACIX service:       ${enables_acix}

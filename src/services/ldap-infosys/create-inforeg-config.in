@@ -135,36 +135,6 @@ echo >> $registrationconf
 	    done
 	)
     done
-
-    # Registrations of the Index Services
-    for vo in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index -s); do
-	(
-	    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo} -e bash)
-	    grep -q /registration <<< ${CONFIG___block_name} && continue
-	    indexname=${CONFIG___block_name}
-
-	    for p in $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${vo}/registration -s); do
-		(
-		    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${p} -e bash)
-
-		    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=grid"}
-		    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
-		    regport=${CONFIG_targetport:-2135}
-		    hn=${CONFIG_registranthostname:-$CONFIG_hostname}
-		    port=${CONFIG_registrantport:-${CONFIG_port:-2135}}
-		    rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=grid"}
-		    regperiod=${CONFIG_regperiod:-120}
-		    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
-		    timeout=${CONFIG_timeout:-120}
-		    cachettl=${CONFIG_cachettl:-0}
-		    sizelimit=${CONFIG_sizelimit:-0}
-		    bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
-
-		    printregldif >> $registrationconf
-		)
-	    done
-	)
-    done
 )
 
 exit 0
