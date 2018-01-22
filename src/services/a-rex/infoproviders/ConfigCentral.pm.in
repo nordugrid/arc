@@ -36,7 +36,7 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 #######################################################################
 
 my $confdefaults = {
-	common => {
+       common => {
        arcversion => '@VERSION@',
        # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
        infosys_glue2_service_qualitylevel   => 'production',
@@ -62,7 +62,7 @@ my $confdefaults = {
 	glue2 => {},
 	# default values
 	validity_ttl =>  10800,
-	loglevel => '1',
+	loglevel => '3',
 	logfile => '/var/log/arc/infoprovider.log'
    },
    'infosys/ldap' => {
