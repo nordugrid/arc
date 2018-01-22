@@ -8,9 +8,8 @@ Standards-Version: 4.0.0
 Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
-Provides: nordugrid-arc-libs, nordugrid-arc1, nordugrid-arc-nox
-Replaces: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
-Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-httpsd (<< 0.8.2~), nordugrid-arc-logger-server (<< 0.8.2~), nordugrid-arc-nox-charon (<< 1.3.0~), nordugrid-arc-nox-chelonia (<< 1.3.0~), nordugrid-arc-nox-compiler (<< 1.3.0~), nordugrid-arc-nox-delegation (<< 1.3.0~), nordugrid-arc-nox-hopi (<< 1.3.0~), nordugrid-arc-nox-isis (<< 1.3.0~), nordugrid-arc-nox-janitor (<< 1.3.0~), nordugrid-arc-nox-paul (<< 1.3.0~), nordugrid-arc-nox-saml2sp (<< 1.3.0~), nordugrid-arc-nox-slcs (<< 1.3.0~), nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~)
+Replaces: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
+Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~)
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
@@ -34,9 +33,6 @@ Description: ARC Grid middleware
  maintains backward compatibility.
 
 Package: nordugrid-arc-client
-Provides: nordugrid-arc1-client, nordugrid-arc-nox-client
-Replaces: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
-Conflicts: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line interface
@@ -51,10 +47,8 @@ Description: ARC command line interface
  also offered.
 
 Package: nordugrid-arc-hed
-Provides: nordugrid-arc1-server, nordugrid-arc-nox-hed
-Replaces: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~), nordugrid-arc-nox-client (<< 1.3.0~), nordugrid-arc-client (<< 1.0.1~rc2~)
-Conflicts: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~)
-Breaks: nordugrid-arc-nox-client (<< 1.3.0~), nordugrid-arc-client (<< 1.0.1~rc2~)
+Replaces: nordugrid-arc-client (<< 1.0.1~rc2~)
+Breaks: nordugrid-arc-client (<< 1.0.1~rc2~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), lsb-base (>= 3.0-6)
 Recommends: nordugrid-arc-python
@@ -67,9 +61,6 @@ Description: ARC Hosting Environment Daemon
  ARC services.
 
 Package: nordugrid-arc-gridftpd
-Provides: nordugrid-arc-nox-gridftp-server
-Replaces: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC GridFTP server
@@ -87,9 +78,9 @@ Description: ARC GridFTP server
    jobsplugin : Classical ARC job submission interface
 
 Package: nordugrid-arc-candypond
-Provides: nordugrid-arc-nox-cache-service, nordugrid-arc-cache-service
-Replaces: nordugrid-arc-nox-cache-service (<< 1.3.0~), nordugrid-arc-cache-service (<< 6.0.0~)
-Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~), nordugrid-arc-nox-cache-service (<< 6.0.0~)
+Provides: nordugrid-arc-cache-service
+Replaces: nordugrid-arc-cache-service (<< 6.0.0~)
+Conflicts: nordugrid-arc-cache-service (<< 6.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC CandyPond service
@@ -103,7 +94,6 @@ Description: ARC CandyPond service
  frameworks.
 
 Package: nordugrid-arc-datadelivery-service
-Provides: nordugrid-arc-nox-datadelivery-service
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC data delivery service
@@ -114,9 +104,8 @@ Description: ARC data delivery service
  This package contains the ARC data delivery service.
 
 Package: nordugrid-arc-ldap-infosys
-Provides: nordugrid-arc-infosys-ldap, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-infoindex
-Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~), nordugrid-arc-aris (<< 3.0.0~)
-Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~), nordugrid-arc-aris (<< 3.0.0~)
+Replaces: nordugrid-arc-aris (<< 3.0.0~)
+Breaks: nordugrid-arc-aris (<< 3.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, slapd, glue-schema (>= 2.0.10), bdii, lsb-base (>= 3.0-6)
 Description: ARC LDAP infosys service
@@ -130,8 +119,6 @@ Description: ARC LDAP infosys service
  nordugrid-arc-egiis to be a part of a EGIIS service.
 
 Package: nordugrid-arc-aris
-Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
-Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)
 Architecture: all
 Depends: ${misc:Depends}, ${perl:Depends}, nordugrid-arc-ldap-infosys (= ${binary:Version}), bdii, lsb-base (>= 3.0-6)
 Description: ARC local information system
@@ -144,9 +131,6 @@ Description: ARC local information system
  nordugrid-arc-arex.
 
 Package: nordugrid-arc-egiis
-Provides: nordugrid-arc-nox-giis
-Replaces: nordugrid-arc-nox-giis (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-giis (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys (= ${source:Version}), lsb-base (>= 3.0-6)
 Description: ARC EGIIS service
@@ -159,9 +143,6 @@ Description: ARC EGIIS service
  register to.
 
 Package: nordugrid-arc-ldap-monitor
-Provides: nordugrid-arc-monitor
-Replaces: nordugrid-arc-monitor (<< 1.0.0~)
-Conflicts: nordugrid-arc-monitor (<< 1.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, php-common | php5-common, php-ldap | php5-ldap, php-gd | php5-gd
 Description: ARC LDAP monitor service
@@ -188,9 +169,6 @@ Description: ARC WS monitor service
  manner.
 
 Package: nordugrid-arc-arex
-Provides: nordugrid-arc-grid-manager, nordugrid-arc-server, nordugrid-arc1-arex, nordugrid-arc-nox-arex
-Replaces: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
-Conflicts: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, lsb-base (>= 3.0-6)
 Description: ARC Remote EXecution service
@@ -204,9 +182,6 @@ Description: ARC Remote EXecution service
  input data caching to minimise data traffic.
 
 Package: nordugrid-arc-plugins-needed
-Provides: nordugrid-arc1-plugins-base, nordugrid-arc-nox-plugins-base, nordugrid-arc-plugins-base
-Replaces: nordugrid-arc1-plugins-base (<< 1.0.0~), nordugrid-arc-nox-plugins-base (<< 1.3.0~), nordugrid-arc-plugins-base (<< 1.0.0~b2~)
-Conflicts: nordugrid-arc1-plugins-base (<< 1.0.0~), nordugrid-arc-nox-plugins-base (<< 1.3.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~), nordugrid-arc-plugins-base (<< 1.0.0~b2~), nordugrid-arc-plugins-globus (<< 1.0.0~b3~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC base plugins
@@ -218,9 +193,7 @@ Description: ARC base plugins
  and Data Management Components (DMCs).
 
 Package: nordugrid-arc-plugins-globus
-Provides: nordugrid-arc1-plugins-globus, nordugrid-arc-nox-plugins-globus
-Replaces: nordugrid-arc1-plugins-globus (<< 1.0.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~)
-Conflicts: nordugrid-arc1-plugins-globus (<< 1.0.0~), nordugrid-arc-nox-plugins-globus (<< 1.3.0~), nordugrid-arc-plugins-needed (<< 1.0.1-2~)
+Conflicts: nordugrid-arc-plugins-needed (<< 1.0.1-2~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
 Description: ARC Globus plugins
@@ -271,9 +244,6 @@ Description: ARC cache index - index server
  files.
 
 Package: nordugrid-arc-dev
-Provides: nordugrid-arc-libs-devel, nordugrid-arc1-dev, nordugrid-arc-nox-dev
-Replaces: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
-Conflicts: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
 Architecture: any
 Section: libdevel
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev
@@ -285,9 +255,6 @@ Description: ARC development files
  Header files and libraries needed to develop applications using ARC.
 
 Package: nordugrid-arc-python
-Provides: nordugrid-arc1-python, nordugrid-arc-nox-python
-Replaces: nordugrid-arc1-python (<< 1.0.0~), nordugrid-arc-nox-python (<< 1.3.0~)
-Conflicts: nordugrid-arc1-python (<< 1.0.0~), nordugrid-arc-nox-python (<< 1.3.0~)
 Architecture: any
 Section: python
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version})
@@ -337,9 +304,6 @@ Description: ARC grid middleware - Misc tools
  developers.
 
 Package: nordugrid-arc-dbg
-Provides: nordugrid-arc-nox-dbg
-Replaces: nordugrid-arc-nox-dbg (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-dbg (<< 1.3.0~)
 Architecture: any
 Section: debug
 Priority: extra
