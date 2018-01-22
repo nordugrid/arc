@@ -1038,9 +1038,11 @@ sub set_defaults {
     
     # force gridftpd defaults if only gridftpd/jobs is found in config
     if (defined $config->{'gridftpd/jobs'}) {
-		$log->warning("[gridftpd] block not found but subblocks defined. Using [gridftpd] defaults");
-		$config->{gridftpd} ||= {}
-	}
+          unless (defined $config->{'gridftpd'}) {
+               $log->warning("[gridftpd] block not found but subblocks defined. Using [gridftpd] defaults");
+               $config->{gridftpd} ||= {}
+          }
+    }
 
     # Force NorduGRID publishing if glue1 is enabled
     if (defined $config->{'infosys/glue1'}) {
