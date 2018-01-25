@@ -100,7 +100,9 @@ namespace Arc {
   std::pair<EndpointStatusMap::const_iterator, EndpointStatusMap::const_iterator> Endpoint::getServiceEndpoints(const Endpoint& e, const EndpointStatusMap& m) {
     Endpoint _e(e);
     EndpointStatusMap::const_iterator first  = m.lower_bound(_e);
-    _e.ServiceID[_e.ServiceID.size()-1]++;
+    if (_e.ServiceID.size()) {
+      _e.ServiceID[_e.ServiceID.size()-1]++;
+    }
     EndpointStatusMap::const_iterator second = m.upper_bound(_e);
     return make_pair(first, second);
   }
