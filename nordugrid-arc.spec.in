@@ -3,19 +3,8 @@
 
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
-%if %{?rhel}%{!?rhel:0} == 5
-%global __python26 %{_bindir}/python2.6
-%{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
-%{!?python26_sitelib: %global python26_sitelib %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
-# Disable the default python byte compilation
-%global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
-%endif
-
 %if %{?filter_setup:1}%{!?filter_setup:0}
 %filter_provides_in %{python_sitearch}.*\.so$
-%if %{?rhel}%{!?rhel:0} == 5
-%filter_provides_in %{python26_sitearch}.*\.so$
-%endif
 %if %{?fedora}%{!?fedora:0} >= 13
 %filter_provides_in %{python3_sitearch}.*\.so$
 %endif
@@ -226,9 +215,6 @@ BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
 BuildRequires:	python-devel
-%if %{?rhel}%{!?rhel:0} == 5
-BuildRequires:	python26-devel
-%endif
 %if %{?fedora}%{!?fedora:0} >= 13
 BuildRequires:	python3-devel
 %endif
@@ -303,9 +289,6 @@ BuildRequires:	python-twisted-web
 BuildRequires:	python-openssl
 %else
 BuildRequires:	pyOpenSSL
-%endif
-%if %{?rhel}%{!?rhel:0} == 5
-BuildRequires:	python-hashlib
 %endif
 %endif
 BuildRequires:	swig
@@ -676,9 +659,6 @@ BuildArch:	noarch
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-%if %{?rhel}%{!?rhel:0} == 5
-Requires:	python-hashlib
-%endif
 
 %description acix-core
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -696,9 +676,6 @@ BuildArch:	noarch
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-%if %{?rhel}%{!?rhel:0} == 5
-Requires:	python-hashlib
-%endif
 Requires:	%{name}-acix-core = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
@@ -723,9 +700,6 @@ BuildArch:	noarch
 Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
-%if %{?rhel}%{!?rhel:0} == 5
-Requires:	python-hashlib
-%endif
 Requires:	%{name}-acix-core = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
@@ -769,24 +743,6 @@ Obsoletes:	%{name}-python < 5.3.3
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python2-%{name}
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-Python bindings for ARC.
-%endif
-
-%if %{?rhel}%{!?rhel:0} == 5
-%package -n python26-%{name}
-Summary:	ARC Python wrapper
-Group:		Development/Libraries
-%{?python_provide:%python_provide python26-%{name}}
-Provides:	%{name}-python26 = %{version}-%{release}
-Obsoletes:	%{name}-python26 < 5.3.3
-Requires:	%{name} = %{version}-%{release}
-Requires:	python(abi) = 2.6
-
-%description -n python26-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -891,9 +847,6 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
-%if %{?rhel}%{!?rhel:0} == 5
-     --with-altpython=python26 \
-%endif
 %if %{?fedora}%{!?fedora:0} >= 13
      --with-altpython=python3 \
 %endif
@@ -958,13 +911,6 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
 
 %find_lang %{name}
-
-%if %{?rhel}%{!?rhel:0} == 5
-%{__python}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
-%{__python} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
-%{__python26}	 -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
-%{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
-%endif
 
 # Remove examples and let RPM package them under /usr/share/doc using the doc macro
 rm -rf $RPM_BUILD_ROOT%{_datadir}/%{pkgdir}/examples
@@ -1520,13 +1466,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
-%endif
-
-%if %{?rhel}%{!?rhel:0} == 5
-%files -n python26-%{name}
-%defattr(-,root,root,-)
-%{python26_sitearch}/_arc.@ALTPYTHON_SOABI@*so
-%{python26_sitearch}/%{pkgdir}
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13
