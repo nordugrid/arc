@@ -1,10 +1,7 @@
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
-
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 %if %{?filter_setup:1}%{!?filter_setup:0}
-%filter_provides_in %{python_sitearch}.*\.so$
+%filter_provides_in %{python2_sitearch}.*\.so$
 %if %{?fedora}%{!?fedora:0} >= 13
 %filter_provides_in %{python3_sitearch}.*\.so$
 %endif
@@ -1323,7 +1320,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
 %if %{with_pythonlrms}
 %{_libexecdir}/%{pkgdir}/arc-sshfs-mount
-%{python_sitearch}/%{pkgdir}/lrms
+%{python2_sitearch}/%{pkgdir}/lrms
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
@@ -1332,13 +1329,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{with_acix}
 %files acix-core
 %defattr(-,root,root,-)
-%dir %{python_sitelib}/acix
-%{python_sitelib}/acix/__init__.py*
-%{python_sitelib}/acix/core
+%dir %{python2_sitelib}/acix
+%{python2_sitelib}/acix/__init__.py*
+%{python2_sitelib}/acix/core
 
 %files acix-cache
 %defattr(-,root,root,-)
-%{python_sitelib}/acix/cacheserver
+%{python2_sitelib}/acix/cacheserver
 %if %{use_systemd}
 %{_unitdir}/acix-cache.service
 %{_datadir}/%{pkgdir}/acix-cache-start
@@ -1348,7 +1345,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files acix-index
 %defattr(-,root,root,-)
-%{python_sitelib}/acix/indexserver
+%{python2_sitelib}/acix/indexserver
 %if %{use_systemd}
 %{_unitdir}/acix-index.service
 %{_datadir}/%{pkgdir}/acix-index-start
@@ -1459,9 +1456,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
-%dir %{python_sitearch}/%{pkgdir}
-%{python_sitearch}/_arc.@PYTHON_SOABI@*so
-%{python_sitearch}/%{pkgdir}/[^_]*.py*
+%dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/_arc.@PYTHON_SOABI@*so
+%{python2_sitearch}/%{pkgdir}/[^_]*.py*
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
