@@ -11,9 +11,9 @@ namespace Arc {
 static std::string strip_spaces(const std::string& s) {
   std::string::size_type start = 0;
   for(;start<s.length();++start) if(!isspace(s[start])) break;
-  std::string::size_type end = s.length()-1;
-  for(;end>=start;--end) if(!isspace(s[end])) break;
-  return s.substr(start,end-start+1);
+  std::string::size_type end = s.length();
+  for(;end>start;--end) if(!isspace(s[end-1])) break;
+  return s.substr(start,end-start);
 }
 
 static void remove_empty_nodes(XMLNode& parent,const char* name) {
