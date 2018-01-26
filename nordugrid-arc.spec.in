@@ -1084,11 +1084,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
-%dir %{python_sitearch}/%{pkgdir}
-%{python_sitearch}/%{pkgdir}/__init__.py*
-%dir %{python_sitearch}/%{pkgdir}/utils
-%{python_sitearch}/%{pkgdir}/utils/__init__.py*
-%{python_sitearch}/%{pkgdir}/utils/config.py*
+%dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/%{pkgdir}/__init__.py*
+%dir %{python2_sitearch}/%{pkgdir}/utils
+%{python2_sitearch}/%{pkgdir}/utils/__init__.py*
+%{python2_sitearch}/%{pkgdir}/utils/config.py*
 %dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
