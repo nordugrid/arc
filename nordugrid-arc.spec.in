@@ -1,3 +1,7 @@
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 %if %{?rhel}%{!?rhel:0} == 6
@@ -210,7 +214,7 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
-BuildRequires:	python-devel
+BuildRequires:	python2-devel
 %if %{?fedora}%{!?fedora:0} >= 13
 BuildRequires:	python3-devel
 %endif
