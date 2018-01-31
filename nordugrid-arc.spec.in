@@ -488,7 +488,7 @@ This package contains the LDAP based information system for ARC.
 This package is not self-contained but is closely connected to
 nordugrid-arc-arex.
 
-%package ldap-monitor
+%package monitor
 Summary:	ARC LDAP monitor service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
@@ -499,7 +499,7 @@ Requires:	php-ldap
 BuildArch:	noarch
 %endif
 
-%description ldap-monitor
+%description monitor
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1183,10 +1183,10 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/PerfData.pl
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
 
-%files ldap-monitor
+%files monitor
 %defattr(-,root,root,-)
-%{_datadir}/%{pkgdir}/ldap-monitor
-%doc %{_mandir}/man7/ldap-monitor.7*
+%{_datadir}/%{pkgdir}/monitor
+%doc %{_mandir}/man7/monitor.7*
 
 %files candypond
 %defattr(-,root,root,-)

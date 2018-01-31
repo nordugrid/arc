@@ -1,6 +1,6 @@
 SUBDIRS = man mon-icons lang includes
 
-monitordir    = @ldap_monitor_prefix@
+monitordir    = @monitor_prefix@
 dist_monitor_DATA = $(srcdir)/*.php $(srcdir)/*.js
 monitor_DATA = README
 

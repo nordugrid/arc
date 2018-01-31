@@ -59,7 +59,7 @@ array("schema" => "https",
  * Convert client certificate from *.pfx (pkcs12) into *.pem with openssl (if needed):
  * > openssl pkcs12 -in keys.pfx -out keys.pem
  */
-$cert = "/var/www/ldap-monitor-svn/includes/test.pem";
+$cert = "/var/www/monitor-svn/includes/test.pem";
 $cert_pass = 'emi';
 
 // base DNs for searches: local (GRIS), global (GIIS), VO

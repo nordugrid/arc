@@ -191,7 +191,7 @@ enables_gridftpd_service=yes
 enables_ldap_service=yes
 enables_candypond=yes
 enables_datadelivery_service=yes
-enables_ldap_monitor=yes
+enables_monitor=yes
 #  Clients
 enables_compute_client=yes
 enables_credentials_client=yes
@@ -214,7 +214,7 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
-enables_ldap_monitor=$enableval
+enables_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
 enables_compute_client=$enableval
@@ -269,7 +269,7 @@ AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables a
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
-enables_ldap_monitor=$enableval
+enables_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
 enables_acix=$enableval
@@ -1085,18 +1085,18 @@ AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
 fi
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
-# Check ldap-monitor
-AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--enable-ldap-monitor], [enable use of the ldap monitor]),[enables_ldap_monitor="$enableval"],[])
-if test "x$enables_ldap_monitor" = "xyes"; then
-  AC_ARG_WITH(ldap_monitor, [  --with-ldap-monitor=(PATH) where to install the monitor, eg /var/www/ldap-monitor or /usr/share/arc/ldap-monitor])
-  AC_MSG_CHECKING(for ldap-monitor installation path)
-  if test "x$with_ldap_monitor" != "x" ; then
-      ldap_monitor_prefix=$with_ldap_monitor
+# Check monitor
+AC_ARG_ENABLE(monitor, AC_HELP_STRING([--enable-monitor], [enable use of the monitor]),[enables_monitor="$enableval"],[])
+if test "x$enables_monitor" = "xyes"; then
+  AC_ARG_WITH(monitor, [  --with-monitor=(PATH) where to install the monitor, eg /var/www/monitor or /usr/share/arc/monitor])
+  AC_MSG_CHECKING(for monitor installation path)
+  if test "x$with_monitor" != "x" ; then
+      monitor_prefix=$with_monitor
   else
-      ldap_monitor_prefix=${datadir}/arc/ldap-monitor
+      monitor_prefix=${datadir}/arc/monitor
   fi
-  AC_MSG_RESULT([$ldap_monitor_prefix])
-  AC_SUBST(ldap_monitor_prefix)
+  AC_MSG_RESULT([$monitor_prefix])
+  AC_SUBST(monitor_prefix)
 fi
 
 # check zlib
@@ -2060,11 +2060,11 @@ AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
 AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
 
 # LDAP monitor
-AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--disable-ldap-monitor], [disable building LDAP Monitor]),
-  [enables_ldap_monitor=$enableval],[])
+AC_ARG_ENABLE(monitor, AC_HELP_STRING([--disable-monitor], [disable building LDAP Monitor]),
+  [enables_monitor=$enableval],[])
 
-AC_MSG_NOTICE([LDAP Monitor enabled: $enables_ldap_monitor])
-AM_CONDITIONAL([LDAP_MONITOR_ENABLED],[test "x$enables_ldap_monitor" = "xyes"])
+AC_MSG_NOTICE([LDAP Monitor enabled: $enables_monitor])
+AM_CONDITIONAL([MONITOR_ENABLED],[test "x$enables_monitor" = "xyes"])
 
 # Cache service
 AC_ARG_ENABLE(candypond, AC_HELP_STRING([--disable-candypond], [disable building candypond]),
@@ -2486,14 +2486,14 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/create-slapd-config
                  src/services/ldap-infosys/nordugrid-arc-aris
                  src/services/ldap-infosys/nordugrid-arc-inforeg
-                 src/services/ldap-monitor/Makefile
-                 src/services/ldap-monitor/ldap-monitor
-                 src/services/ldap-monitor/README
-                 src/services/ldap-monitor/man/Makefile
-                 src/services/ldap-monitor/man/ldap-monitor.7
-                 src/services/ldap-monitor/includes/Makefile
-                 src/services/ldap-monitor/mon-icons/Makefile
-                 src/services/ldap-monitor/lang/Makefile
+                 src/services/monitor/Makefile
+                 src/services/monitor/monitor
+                 src/services/monitor/README
+                 src/services/monitor/man/Makefile
+                 src/services/monitor/man/monitor.7
+                 src/services/monitor/includes/Makefile
+                 src/services/monitor/mon-icons/Makefile
+                 src/services/monitor/lang/Makefile
                  src/services/examples/Makefile
                  src/services/examples/echo_python/Makefile
                  src/services/wrappers/Makefile
@@ -2636,6 +2636,6 @@ SRM client (DMC):   ${enables_srm_dmc}
 Documentation:      ${enables_doc}
 
 Monitoring:
-LDAP Monitor        ${enables_ldap_monitor}
+LDAP Monitor        ${enables_monitor}
 ])
 

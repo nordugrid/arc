@@ -23,7 +23,7 @@ allusers.php    - list grid users
 attlist.php     - show values of selected attributes on the grid
 clusdes.php     - show cluster or storage information
 discover.php    - list attributes specific for an object for consecutive search
-ldap-monitor.in - lynx call for the monitor (template)
+monitor.in - lynx call for the monitor (template)
 help.php        - print help
 jobstat.php     - show running/other jobs in a queue
 loadmon.php     - main grid monitor script

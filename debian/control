@@ -135,7 +135,7 @@ Description: ARC local information system
  This package is not self-contained but is closely connected to
  nordugrid-arc-arex.
 
-Package: nordugrid-arc-ldap-monitor
+Package: nordugrid-arc-monitor
 Architecture: all
 Depends: ${misc:Depends}, php-common | php5-common, php-ldap | php5-ldap, php-gd | php5-gd
 Description: ARC LDAP monitor service

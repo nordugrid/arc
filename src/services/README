@@ -8,5 +8,5 @@ echo_java       - Demonstration services: how to write Java service
 echo_python     - Simple test service to demonstrate how Python based services should work
 gridftpd        - GridFTP server
 ldap-infosys    - LDAP based grid information system
-ldap-monitor    - LDAP based grid monitor
+monitor         - LDAP based grid monitor
 wrappers        - Collection of language bindings

@@ -291,7 +291,7 @@ Python wrapper for ARC
   --enable-canlxx \
   --disable-java \
   --disable-doc \
-  --disable-ldap-monitor \
+  --disable-monitor \
   --disable-acix \
   --disable-static LDFLAGS=-Wl,--enable-auto-import
 
