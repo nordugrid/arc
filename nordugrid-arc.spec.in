@@ -508,23 +508,6 @@ This package contains the LDAP monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
 which pulls information from a EGIIS and shows it graphically.
 
-%package ws-monitor
-Summary:	ARC WS monitor service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-
-%description ws-monitor
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the WS monitor system for ARC.
-This package is self-contained. It is used to set up a web-based monitor
-which pulls information from ISIS and shows it graphically.
-
 %package arex
 Summary:	ARC Remote EXecution service
 Group:		System Environment/Libraries
@@ -1204,11 +1187,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/ldap-monitor
 %doc %{_mandir}/man7/ldap-monitor.7*
-
-%files ws-monitor
-%defattr(-,root,root,-)
-%{_datadir}/%{pkgdir}/ws-monitor
-%doc %{_mandir}/man7/ws-monitor.7*
 
 %files candypond
 %defattr(-,root,root,-)

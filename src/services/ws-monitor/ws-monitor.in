@@ -1,3 +1,0 @@
-#!/bin/sh
-
-lynx http://localhost/@monitor_local_prefix@/loadmon.php

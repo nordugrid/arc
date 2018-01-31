@@ -148,19 +148,6 @@ Description: ARC LDAP monitor service
  which pulls information from ARIS and displays it in a readable
  manner.
 
-Package: nordugrid-arc-ws-monitor
-Architecture: all
-Depends: ${misc:Depends}
-Description: ARC WS monitor service
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package contains the WS monitor system for ARC.
- This package is self-contained. It is used to set up a Web-based monitor
- which pulls information from ISIS and displays it in a readable
- manner.
-
 Package: nordugrid-arc-arex
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, lsb-base (>= 3.0-6)

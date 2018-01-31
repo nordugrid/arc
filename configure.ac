@@ -192,7 +192,6 @@ enables_ldap_service=yes
 enables_candypond=yes
 enables_datadelivery_service=yes
 enables_ldap_monitor=yes
-enables_ws_monitor=yes
 #  Clients
 enables_compute_client=yes
 enables_credentials_client=yes
@@ -216,7 +215,6 @@ enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
 enables_ldap_monitor=$enableval
-enables_ws_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
 enables_compute_client=$enableval
@@ -1099,20 +1097,6 @@ if test "x$enables_ldap_monitor" = "xyes"; then
   fi
   AC_MSG_RESULT([$ldap_monitor_prefix])
   AC_SUBST(ldap_monitor_prefix)
-fi
-
-# Check ws-monitor
-AC_ARG_ENABLE(ws_monitor, AC_HELP_STRING([--enable-ws-monitor], [enable use of the ws monitor]),[enables_ws_monitor="$enableval"],[])
-if test "x$enables_ws_monitor" = "xyes"; then
-  AC_ARG_WITH(ws_monitor, [  --with-ws-monitor=(PATH) where to install the monitor, eg /var/www/ws-monitor or /usr/share/arc/ws-monitor])
-  AC_MSG_CHECKING(for ws-monitor installation path)
-  if test "x$with_ws_monitor" != "x" ; then
-      ws_monitor_prefix=$with_ws_monitor
-  else
-      ws_monitor_prefix=${datadir}/arc/ws-monitor
-  fi
-  AC_MSG_RESULT([$ws_monitor_prefix])
-  AC_SUBST(ws_monitor_prefix)
 fi
 
 # check zlib
@@ -2082,13 +2066,6 @@ AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--disable-ldap-monitor], [disable bu
 AC_MSG_NOTICE([LDAP Monitor enabled: $enables_ldap_monitor])
 AM_CONDITIONAL([LDAP_MONITOR_ENABLED],[test "x$enables_ldap_monitor" = "xyes"])
 
-# WS monitor
-AC_ARG_ENABLE(ws_monitor, AC_HELP_STRING([--disable-ws-monitor], [disable building WS Monitor]),
-  [enables_ws_monitor=$enableval],[])
-
-AC_MSG_NOTICE([WS Monitor enabled: $enables_ws_monitor])
-AM_CONDITIONAL([WS_MONITOR_ENABLED],[test "x$enables_ws_monitor" = "xyes"])
-
 # Cache service
 AC_ARG_ENABLE(candypond, AC_HELP_STRING([--disable-candypond], [disable building candypond]),
   [enables_candypond=$enableval],[])
@@ -2517,14 +2494,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-monitor/includes/Makefile
                  src/services/ldap-monitor/mon-icons/Makefile
                  src/services/ldap-monitor/lang/Makefile
-                 src/services/ws-monitor/Makefile
-                 src/services/ws-monitor/ws-monitor
-                 src/services/ws-monitor/README
-                 src/services/ws-monitor/man/Makefile
-                 src/services/ws-monitor/man/ws-monitor.7
-                 src/services/ws-monitor/includes/Makefile
-                 src/services/ws-monitor/mon-icons/Makefile
-                 src/services/ws-monitor/lang/Makefile
                  src/services/examples/Makefile
                  src/services/examples/echo_python/Makefile
                  src/services/wrappers/Makefile
@@ -2668,6 +2637,5 @@ Documentation:      ${enables_doc}
 
 Monitoring:
 LDAP Monitor        ${enables_ldap_monitor}
-WS Monitor          ${enables_ws_monitor}
 ])
 

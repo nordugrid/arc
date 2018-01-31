@@ -22,12 +22,6 @@ else
 LDAP_MONITOR =
 endif
 
-if WS_MONITOR_ENABLED
-WS_MONITOR = ws-monitor
-else
-WS_MONITOR =
-endif
-
 if CANDYPOND_ENABLED
 CANDYPOND_SERVICE = candypond
 else
@@ -53,6 +47,6 @@ SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
 	$(ACIX) \
 	wrappers examples
 DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
-	ldap-monitor ws-monitor \
+	ldap-monitor \
 	candypond \
 	data-staging wrappers examples acix

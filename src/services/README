@@ -10,4 +10,3 @@ gridftpd        - GridFTP server
 ldap-infosys    - LDAP based grid information system
 ldap-monitor    - LDAP based grid monitor
 wrappers        - Collection of language bindings
-ws-monitor      - Webservice based grid monitor
