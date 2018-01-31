@@ -243,7 +243,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 if [ -n "${moduleload_rwm}" ]; then 
     admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)
-    admindomain="urn:ad:${$admindomain:-UNDEFINEDVALUE}"
+    admindomain="urn:ad:${admindomain:-UNDEFINEDVALUE}"
 
     cat <<-EOF >> $bdii_slapd_conf
 
