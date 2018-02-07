@@ -42,6 +42,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
   CPPUNIT_TEST(TestDisjunctRSL);
+  CPPUNIT_TEST(TestRTE);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -70,6 +71,7 @@ public:
   void TestAdditionalAttributes();
   void TestMultiRSL();
   void TestDisjunctRSL();
+  void TestRTE();
 
 private:
   Arc::JobDescription INJOB;
@@ -1045,6 +1047,25 @@ void XRSLParserTest::TestDisjunctRSL() {
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
   CPPUNIT_ASSERT_EQUAL((std::string)"q1.1", OUTJOBS.front().Resources.QueueName);
+}
+
+void XRSLParserTest::TestRTE() {
+  xrsl = "&(executable=/bin/true)"
+         "(runTimeEnvironment=\"RTE-1.2.3\" \"option1\" \"option2\")";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:xrsl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.RunTimeEnvironment.getSoftwareList().size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Resources.RunTimeEnvironment.getSoftwareList().front().getOptions().size());
+  CPPUNIT_ASSERT_EQUAL(std::string(""), OUTJOBS.front().Resources.RunTimeEnvironment.getSoftwareList().front().getFamily());
+  CPPUNIT_ASSERT_EQUAL(std::string("RTE"), OUTJOBS.front().Resources.RunTimeEnvironment.getSoftwareList().front().getName());
+  CPPUNIT_ASSERT_EQUAL(std::string("option1"), OUTJOBS.front().Resources.RunTimeEnvironment.getSoftwareList().front().getOptions().front());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);

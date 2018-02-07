@@ -916,20 +916,24 @@ namespace Arc {
         return;
       }
 
-      // TODO: Maybe add support for RTE options.
       /// \mapattr runtimeenvironment -> RunTimeEnvironment
       if (c->Attr() == "runtimeenvironment") {
-        std::string runtime;
-        SingleValue(c, runtime, result);
-
-        j.Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
-        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
-             it != j.GetAlternatives().end(); it++) {
-          it->Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
+        std::list<std::string> runtime_options;
+        ListValue(c, runtime_options, result);
+        if (runtime_options.size() < 1) {  
+          result.AddError(IString("Value of attribute '%s' expected not to be empty", c->Attr()), c->AttrLocation());
+        } else {
+          Software runtime(runtime_options.front());
+          runtime_options.pop_front();  
+          runtime.addOptions(runtime_options);
+          j.Resources.RunTimeEnvironment.add(runtime, convertOperator(c->Op()));
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.RunTimeEnvironment.add(runtime, convertOperator(c->Op()));
+          }
         }
-
         return;
-       }
+      }
 
       /// \mapattr middleware -> CEType
       // This attribute should be passed to the broker and should not be stored.
@@ -1656,6 +1660,9 @@ namespace Arc {
       for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
+        std::list<std::string>::const_iterator itOpt = itSW->getOptions().begin();
+        for (; itOpt != itSW->getOptions().end(); ++itOpt)
+          l->Add(new RSLLiteral(*itOpt));
         r.Add(new RSLCondition("runtimeenvironment", convertOperator(*itCO), l));
       }
     }
