@@ -98,7 +98,7 @@ void DTRGenerator::thread() {
       bool jobAccepted = processReceivedJob(job);
       event_lock.lock();
       if(!jobAccepted) {
-logger.msg(Arc::ERROR, "%s: Re-requesting attention", job->get_id());
+        logger.msg(Arc::DEBUG, "%s: Re-requesting attention from DTR generator", job->get_id());
         jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
         jobs.RequestAttention(job); // pass job back to states processing
       }
@@ -604,7 +604,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
                           dtr->get_source()->Local() ? "uploads":"downloads");
   dtrs_lock.unlock();
 
-logger.msg(Arc::ERROR, "%s: Requesting attention", jobid);
+  logger.msg(Arc::DEBUG, "%s: Requesting attention from DTR generator", jobid);
   // Passing job to lower priority queue - hence must use Erase.
   jobs_processing.Erase(job);
   jobs.RequestAttention(job);

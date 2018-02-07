@@ -200,13 +200,7 @@ bool JobsList::RequestAttention(const JobId& id) {
 
 bool JobsList::RequestAttention(GMJobRef i) {
   if(i) {
-    /*
-    Glib::Mutex::Lock lock_(jobs_attention_lock);
-    logger.msg(Arc::ERROR, "--> job for attention(%u): %s", jobs_attention.size(), i->job_id);
-    jobs_attention.remove(i);
-    jobs_attention.push_back(i);
-    */
-    logger.msg(Arc::ERROR, "--> job for attention: %s", i->job_id);
+    logger.msg(Arc::DEBUG, "%s: job for attention", i->job_id);
     jobs_attention.Push(i);
     jobs_attention_cond.signal();
     return true;
@@ -215,7 +209,7 @@ bool JobsList::RequestAttention(GMJobRef i) {
 }
 
 void JobsList::RequestAttention(void) {
-  logger.msg(Arc::ERROR, "--> all for attention");
+  logger.msg(Arc::DEBUG, "all for attention");
   jobs_attention_cond.signal();
 }
 
@@ -232,7 +226,7 @@ bool JobsList::ScanOldJobs(void) {
     int l=file.length();
     if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
       JobId id(file.substr(4, l-7-4));
-      logger.msg(Arc::ERROR, "++++ ScanOldJobs: new job: %s", id);
+      logger.msg(Arc::DEBUG, "%s: job found while scanning", id);
       RequestAttention(id);
     };
   } else {
@@ -260,13 +254,7 @@ void JobsList::WaitAttention(void) {
 
 bool JobsList::RequestWaitForRunning(GMJobRef i) {
   if(i) {
-    /*
-    Glib::Mutex::Lock lock_(jobs_wait_for_running_lock);
-    logger.msg(Arc::ERROR, "--> job wait for running(%u): %s", jobs_wait_for_running.size(), i->job_id);
-    jobs_wait_for_running.remove(i);
-    jobs_wait_for_running.push_back(i);
-    */
-    logger.msg(Arc::ERROR, "--> job wait for running: %s", i->job_id);
+    logger.msg(Arc::DEBUG, "%s: job will wait for external process", i->job_id);
     jobs_wait_for_running.Push(i);
     return true;
   };
@@ -275,12 +263,6 @@ bool JobsList::RequestWaitForRunning(GMJobRef i) {
 
 bool JobsList::RequestPolling(GMJobRef i) {
   if(i) {
-    /*
-    Glib::Mutex::Lock lock_(jobs_polling_lock);
-    logger.msg(Arc::ERROR, "--> job for polling(%u): %s", jobs_polling.size(), i->job_id);
-    jobs_polling.remove(i);
-    jobs_polling.push_back(i);
-    */
     jobs_polling.Push(i);
     return true;
   };
@@ -289,7 +271,7 @@ bool JobsList::RequestPolling(GMJobRef i) {
 
 bool JobsList::RequestSlowPolling(GMJobRef i) {
   if(i) {
-    logger.msg(Arc::ERROR, "--> job for slow polling: %s", i->job_id);
+    logger.msg(Arc::DEBUG, "%s: job assigned for slow polling", i->job_id);
     return true;
   };
   return false;
@@ -297,11 +279,6 @@ bool JobsList::RequestSlowPolling(GMJobRef i) {
 
 bool JobsList::RequestReprocess(GMJobRef i) {
   if(i) {
-    /*
-    Glib::Mutex::Lock lock_(jobs_processing_lock);
-    logger.msg(Arc::ERROR, "--> job for reprocess(%u): %s", jobs_processing.size(), i->job_id);
-    jobs_processing.push_front(i);
-    */
     jobs_processing.Unpop(i);
     return true;
   };
@@ -309,34 +286,14 @@ bool JobsList::RequestReprocess(GMJobRef i) {
 }
 
 bool JobsList::ActJobsProcessing(void) {
-  /*
-  Glib::Mutex::Lock lock_(jobs_processing_lock);
-  while(!jobs_processing.empty()) {
-    GMJobRef i = *(jobs_processing.begin());
-    logger.msg(Arc::ERROR, "<-- job in processing(%u): %s", jobs_processing.size(), i->job_id);
-    jobs_processing.pop_front();
-    lock_.release();
-    ActJob(i);
-    lock_.acquire();
-    logger.msg(Arc::ERROR, "<-- jobs from processing(%u)", jobs_processing.size());
-  };
-  */
   while(true) {
     GMJobRef i = jobs_processing.Pop();
     if(!i) break;
-    logger.msg(Arc::ERROR, "<-- job in processing: %s", i->job_id);
+    logger.msg(Arc::DEBUG, "%s: job being processed", i->job_id);
     ActJob(i);
   };
   // Check limit on number of running jobs and activate some of them if possible
   if(!RunningJobsLimitReached()) {
-    /*
-    Glib::Mutex::Lock lock_wait_for_running_(jobs_wait_for_running_lock);
-    if(jobs_wait_for_running.size() > 0) {
-      // Processing one by one because some jobs may go to running and some may fail
-      RequestAttention(*jobs_wait_for_running.begin());
-      jobs_wait_for_running.pop_front();
-    };
-    */
     GMJobRef i = jobs_wait_for_running.Pop();
     if(i) RequestAttention(i);
   };
@@ -344,13 +301,6 @@ bool JobsList::ActJobsProcessing(void) {
 
 bool JobsList::ActJobsAttention(void) {
   {
-    /*
-    Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
-    Glib::Mutex::Lock lock_attention_(jobs_attention_lock);
-    logger.msg(Arc::ERROR, "<-- jobs in attention(%u)", jobs_attention.size());
-    jobs_processing.splice(jobs_processing.end(), jobs_attention);
-    logger.msg(Arc::ERROR, "<-- jobs from attention(%u)", jobs_attention.size());
-    */
     while(true) {
       GMJobRef i = jobs_attention.Pop();
       if(!i) break;
@@ -363,13 +313,6 @@ bool JobsList::ActJobsAttention(void) {
 
 bool JobsList::ActJobsPolling(void) {
   {
-    /*
-    Glib::Mutex::Lock lock_processing_(jobs_processing_lock);
-    Glib::Mutex::Lock lock_polling_(jobs_polling_lock);
-    logger.msg(Arc::ERROR, "<-- jobs in polling(%u)", jobs_polling.size());
-    jobs_processing.splice(jobs_processing.end(), jobs_polling);
-    logger.msg(Arc::ERROR, "<-- jobs from polling(%u)", jobs_polling.size());
-    */
     while(true) {
       GMJobRef i = jobs_polling.Pop();
       if(!i) break;
@@ -384,91 +327,6 @@ bool JobsList::ActJobsPolling(void) {
   return true;
 }
 
-
-/*
-bool JobsList::ActJobs(void) {
-
-//  JOB_STATE_ACCEPTED
-//  JOB_STATE_PREPARING  A+P
-//  JOB_STATE_SUBMITTING A
-//  JOB_STATE_INLRMS
-//  JOB_STATE_FINISHING  A
-//  JOB_STATE_FINISHED
-//  JOB_STATE_DELETED
-//  JOB_STATE_CANCELING
-//  JOB_STATE_UNDEFINED
-
-  bool res = true;
-  bool once_more = false;
-
-  // first pass
-  for(iterator i=jobs.begin();i!=jobs.end();) {
-    if(i->job_state == JOB_STATE_UNDEFINED) { once_more=true; }
-    if(i->job_state == JOB_STATE_SUBMITTING) { ++i; continue; } // temporary workaround
-    if(i->job_state == JOB_STATE_PREPARING) { ++i; continue; } // temporary workaround
-    if(i->job_state == JOB_STATE_FINISHING) { ++i; continue; } // temporary workaround
-    res &= ActJob(i);
-  }
-
-  // second pass - process new jobs again
-  if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
-    if(i->job_state == JOB_STATE_SUBMITTING) { ++i; continue; } // temporary workaround
-    if(i->job_state == JOB_STATE_PREPARING) { ++i; continue; } // temporary workaround
-    if(i->job_state == JOB_STATE_FINISHING) { ++i; continue; } // temporary workaround
-    res &= ActJob(i);
-  }
-
-  // debug info on jobs per DN
-  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
-  for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
-    logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
-
-  return res;
-}
-*/
-
-/*
-bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
-  logger.msg(Arc::INFO,"%s: Destroying",i->job_id);
-  job_state_t new_state=i->job_state;
-  if(new_state == JOB_STATE_UNDEFINED) {
-    // Try to obtain real job state
-    if((new_state=job_state_read_file(i->job_id,config))==JOB_STATE_UNDEFINED) {
-      logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
-      UnlockDelegation(i);
-      job_clean_final(*i,config);
-      i=jobs.erase(i);
-      return true;
-    }
-    i->job_state = new_state;
-  }
-  if((new_state == JOB_STATE_FINISHED) && (!finished)) { ++i; return true; }
-  if(!active) { ++i; return true; }
-  if((new_state != JOB_STATE_INLRMS) ||
-     (job_lrms_mark_check(i->job_id,config))) {
-    logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
-    UnlockDelegation(i);
-    job_clean_final(*i,config);
-    i=jobs.erase(i);
-    return true;
-  }
-  logger.msg(Arc::INFO,"%s: This job may be still running - canceling",i->job_id);
-  bool state_changed = false;
-  if(!state_canceling(i,state_changed)) {
-    logger.msg(Arc::WARNING,"%s: Cancellation failed (probably job finished) - cleaning anyway",i->job_id);
-    UnlockDelegation(i);
-    job_clean_final(*i,config);
-    i=jobs.erase(i);
-    return true;
-  }
-  if(!state_changed) { ++i; return false; } // child still running
-  logger.msg(Arc::INFO,"%s: Cancellation probably succeeded - cleaning",i->job_id);
-  UnlockDelegation(i);
-  job_clean_final(*i,config);
-  i=jobs.erase(i);
-  return true;
-}
-*/
 
 bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   bool r = true;
@@ -953,11 +811,11 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       i->AddFailure("Failed reading status of the job");
       return JobFailed;
     }
-          // By keeping once_more==false job does not cycle here but
-          // goes out and registers its state in counters. This allows
-          // to maintain limits properly after restart. Except FINISHED
-          // jobs because they are not kept in memory and should be
-          // processed immediately.
+    // By keeping once_more==false job does not cycle here but
+    // goes out and registers its state in counters. This allows
+    // to maintain limits properly after restart. Except FINISHED
+    // jobs because they are not kept in memory and should be
+    // processed immediately.
     SetJobState(i, new_state, "(Re)Accepting new job"); // this can be any state, after A-REX restart
     job_result = JobSuccess;
     if(new_state == JOB_STATE_ACCEPTED) {
@@ -973,7 +831,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       // This call is not needed here because at higher level WriteJobRecord()
       // is called for every state change
       //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
-logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
+      logger.msg(Arc::DEBUG, "%s: new job is accepted", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
       RequestReprocess(i); // process immediately to fall off
@@ -986,7 +844,7 @@ logger.msg(Arc::ERROR, "++++ ActJobUndefined: new job: %s", i->job_id);
       // Make it clean state after restart
       job_state_write_file(*i,config,i->job_state); // makes sure job state is stored in proper subdir
       i->Start();
-logger.msg(Arc::ERROR, "++++ ActJobUndefined: old job: %s", i->job_id);
+      logger.msg(Arc::DEBUG, "%s: old job is accepted", i->job_id);
       RequestAttention(i); // process ASAP TODO: consider Reprocess for some states
     }
   } // Not doing JobPending here because that job kind of does not exist.
@@ -1145,9 +1003,9 @@ JobsList::ActJobResult JobsList::ActJobInlrms(GMJobRef i) {
     i->AddFailure("Failed reading local job information");
     return JobFailed; // go to next job
   }
-logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for pending(%u) and mark",i->job_id, (unsigned int)(i->job_pending));
+  logger.msg(Arc::DEBUG,"%s: State: INLRMS - checking for pending(%u) and mark",i->job_id, (unsigned int)(i->job_pending));
   if(i->job_pending || job_lrms_mark_check(i->job_id,config)) {
-logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for not pending",i->job_id);
+    logger.msg(Arc::DEBUG,"%s: State: INLRMS - checking for not pending",i->job_id);
     if(!i->job_pending) {
       logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
       job_diagnostics_mark_move(*i,config);
@@ -1166,7 +1024,7 @@ logger.msg(Arc::ERROR,"%s: State: INLRMS - checking for not pending",i->job_id);
     RequestReprocess(i);
     return JobSuccess;
   } else {
-logger.msg(Arc::ERROR,"%s: State: INLRMS - no mark found",i->job_id);
+    logger.msg(Arc::DEBUG,"%s: State: INLRMS - no mark found",i->job_id);
     // Job state scanner will report job for attention.
     // But in case signal or job information in batch system is
     // lost do polling as backup solution.
@@ -1215,7 +1073,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
         job_failed_mark_remove(i->job_id,config);
         SetJobState(i, JOB_STATE_ACCEPTED, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
-logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job: %s", i->job_id);
+        logger.msg(Arc::DEBUG, "%s: restarted PREPARING job", i->job_id);
         RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
@@ -1231,7 +1089,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job: %s", i->job_id);
         }
         JobPending(i); // make it go to end of state immediately
         // TODO: check for order of processing
-logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job2: %s", i->job_id);
+        logger.msg(Arc::DEBUG, "%s: restarted INLRMS job", i->job_id);
         RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
@@ -1240,7 +1098,7 @@ logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job2: %s", i->job_id);
         job_failed_mark_remove(i->job_id,config);
         SetJobState(i, JOB_STATE_INLRMS, "Request to restart failed job");
         JobPending(i); // make it go to end of state immediately
-logger.msg(Arc::ERROR, "++++ ActJobFinished: restarted job3: %s", i->job_id);
+        logger.msg(Arc::DEBUG, "%s: restarted FINISHING job", i->job_id);
         RequestAttention(i); // make it start ASAP
         return JobSuccess;
       }
@@ -1397,7 +1255,6 @@ bool JobsList::NextJob(GMJobRef i, job_state_t old_state, bool old_pending) {
   }
   if(at_limit && !RunningJobsLimitReached()) {
     // Report about change in conditions
-logger.msg(Arc::ERROR, "++++ NextJob: changed: %s", i->job_id);
     //RequestAttention();
   };
   return i;
@@ -1413,8 +1270,7 @@ bool JobsList::DropJob(GMJobRef& i, job_state_t old_state, bool old_pending) {
   }
   if(at_limit && !RunningJobsLimitReached()) {
     // Report about change in conditions
-logger.msg(Arc::ERROR, "++++ DropJob: changed: %s", i->job_id);
-    RequestAttention();
+    RequestAttention(); // TODO: Check if really needed
   };
   jobs.erase(i->job_id);
   i.Destroy();
