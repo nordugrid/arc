@@ -35,6 +35,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
   cf=new Arc::ConfigIni(cfile);
   cf->AddSection("common");    // 0 
   cf->AddSection("gridftpd");  // 1
+  cf->SetSectionIndicator(".");
   for(;;) {
     std::string rest;
     std::string command;
@@ -413,6 +414,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   cf->AddSection("authgroup");
   cf->AddSection("gridftpd");
   cf->AddSection("userlist");
+  cf->SetSectionIndicator(".");
   /* keep information about user */
   if(!user.fill(auth,handle,config_file.c_str())) {
     logger.msg(Arc::ERROR, "failed to process client identification");
