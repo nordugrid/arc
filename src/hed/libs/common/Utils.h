@@ -94,21 +94,23 @@ namespace Arc {
   class AutoPointer {
   private:
     T *object;
+    void (*deleter)(T*);
     void operator=(const AutoPointer<T>&) {}
     AutoPointer(const AutoPointer&) : object(NULL) {}
+    static void DefaultDeleter(T* o) { delete o; }
   public:
     /// NULL pointer constructor
-    AutoPointer(void)
-      : object(NULL) {}
-    /// Constructor which wraps pointer
-    AutoPointer(T *o)
-      : object(o) {}
-    /// Destructor destroys wrapped object using delete()
+    AutoPointer(void (*d)(T*) = &DefaultDeleter)
+      : object(NULL), deleter(d) {}
+    /// Constructor which wraps pointer and optionally defines deletion function
+    AutoPointer(T *o, void (*d)(T*) = &DefaultDeleter)
+      : object(o), deleter(d) {}
+    /// Destructor destroys wrapped object using assigned deleter
     ~AutoPointer(void) {
-      if (object) delete object;
+      if (object) if(deleter) (*deleter)(object);
     }
     void operator=(T* o) {
-      if (object) delete object;
+      if (object) if(deleter) (*deleter)(object);
       object = o; 
     }
     /// For referring wrapped object
