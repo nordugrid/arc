@@ -12,7 +12,7 @@ if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; 
 blocks="-b lrms -b arex -b infosys -b common"
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
+eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 
 dgbridge_stage_dir=$CONFIG_dgbridge_stage_dir
 dgbridge_stage_prepend=$CONFIG_dgbridge_stage_prepend

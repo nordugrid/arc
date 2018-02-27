@@ -19,7 +19,7 @@ if [ ! -z "$joboption_queue" ]; then
 fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
+eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 
 # performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
 unset perflogdir

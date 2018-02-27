@@ -79,7 +79,7 @@ read_arc_conf () {
       blocks="-b queue:$joboption_queue $blocks"
    fi
 
-   eval $( $pkgdatadir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
+   eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
 }
 
 
