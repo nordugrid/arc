@@ -203,6 +203,8 @@ else
     fi
 fi
 
+LOGFILE=
+
 prepare() {
 
     CMD="$ARC_LOCATION/sbin/$prog"
@@ -846,7 +848,9 @@ start() {
 
     prepare
 
-    validate --quiet
+    echo "Validating A-REX setup..." >> $LOGFILE
+    validate >> $LOGFILE 2>&1
+
     RETVAL=$?
     if [ $RETVAL != 0 ]; then
         log_failure_msg "Configuration validation failed: $RETVAL errors"
