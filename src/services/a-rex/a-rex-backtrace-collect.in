@@ -64,7 +64,7 @@ if [ ! -f "${ARCHED}" ]; then
 fi
 
 LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
-LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
+LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
 COREDIR=`dirname "${LOGFILE}"`/arccore
 if [ ! -d "${COREDIR}" ]; then
     echo "Can't find core collection folder at ${COREDIR}."

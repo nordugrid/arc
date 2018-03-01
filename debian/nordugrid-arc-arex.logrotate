@@ -1,4 +1,4 @@
-/var/log/arc/grid-manager.log {
+/var/log/arc/arex.log {
   missingok
   compress
   delaycompress

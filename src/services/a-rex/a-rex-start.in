@@ -534,7 +534,7 @@ prepare() {
         GROUPNAME=""
     fi
 
-    LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
+    LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
     if [ ! -d `dirname $LOGFILE` ]; then
         mkdir -p `dirname $LOGFILE`
     fi

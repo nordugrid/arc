@@ -1013,11 +1013,11 @@ debug="2"
 .B logfile
 logfile path - Specify log file location. If using an external log rotation
 tool be careful to make sure it matches the path specified here. Default log
-file is "/var/log/arc/grid-manager.log"
+file is "/var/log/arc/arex.log"
 
 .IR Example:
 .br
-logfile="/var/log/arc/grid-manager.log"
+logfile="/var/log/arc/arex.log"
 
 .TP
 .B wslogfile
