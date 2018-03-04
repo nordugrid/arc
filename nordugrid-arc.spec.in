@@ -806,6 +806,21 @@ This package contains utilities for various tasks including testing. The
 package is usually not required by users or sysadmins but is mainly for
 developers.
 
+%package archery-manage
+Summary:	Archery administration
+Group:		Applications/Internet
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description archery-manage
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the archery-manage utility for administration of
+an archery information system.
+
 %prep
 %setup @fedorasetupopts@
 
@@ -1477,6 +1492,10 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcemiestest.1*
 %doc %{_mandir}/man1/arcwsrf.1*
 %doc %{_mandir}/man1/arcperftest.1*
+
+%files archery-manage
+%defattr(-,root,root,-)
+%{_sbindir}/archery-manage
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@

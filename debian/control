@@ -283,3 +283,14 @@ Description: ARC grid middleware - Misc tools
  This package contains utilities for various tasks including testing. The
  package is usually not required by users or sysadmins but is mainly for
  developers.
+
+Package: nordugrid-arc-archery-manage
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Archery administration
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the archery-manage utility for administration of
+ an archery information system.

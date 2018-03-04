@@ -5,10 +5,10 @@ GRIDMAP = gridmap
 endif
 
 if HED_ENABLED
-BUILD_SOURCES = hed $(GRIDMAP)
+HED = hed
 else
-BUILD_SOURCES = $(GRIDMAP)
+HED =
 endif
 
-SUBDIRS = $(BUILD_SOURCES) configparser
-DIST_SUBDIRS = hed gridmap configparser
+SUBDIRS = $(HED) $(GRIDMAP) configparser archery
+DIST_SUBDIRS = hed gridmap configparser archery
