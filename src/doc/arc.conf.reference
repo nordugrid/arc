@@ -39,7 +39,6 @@
 ##  [infosys/glue1]
 ##  [infosys/glue1/site:name]
 ##  [cluster]
-##  [cluster/registration:indexname]
 ##  [queue:gridlong]
 ##  [datadelivery-service]
 ##  [acix-scanner]
@@ -2811,90 +2810,6 @@
 ### end of the [cluster] block #####################
 
 
-### The [cluster/registration:indexname] block
-## This block enables the infosys registration functionality of ARC:
-## Registration is a process which periodically sends some limited information
-## (mostly contact data) about a CE to a specified information index service (EGIIS).
-## Comment out this block if you don't want to run the registration process.
-##
-## Please note that the entire infosys registration subsystem is considered as an
-## obsolete technology in ARC, there are plans to phase out these components!
-#[cluster/registration]
-## CHANGE149: NEW block. use this block in the infosys startup scripts!
-
-## registrationlog = path - specifies the logfile for the registration processes
-## initiated by your machine.
-## default: /var/log/arc/inforegistration.log
-#registrationlog=/var/log/arc/inforegistration.log
-
-## sizelimit = number - sizelimit affects registration to egiis
-## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
-## Default is zero, i.e. no limits are set.
-## default: 0
-#sizelimit=10
-
-## *targetgiis = name - the name of the index service to which the registration to be sent. 
-## default: none
-#targetgiis=ATLASGIIS
-## CHANGE212: NEW parameter
-
-## *targethostname = hostname - the hostname of the machine running the registration target
-## Index Service
-## default: none
-#targethostname=index.myinstitute.org
-## CHANGE204: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## targetport = number - the port on which the target Index Service is running.
-## The default is the 2135 Infosys port.
-## default: 2135
-#targetport=2135
-## CHANGE205: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## targetsuffix = string - the LDAP suffix of the target Index Service
-## default: ???
-#targetsuffix=mds-vo-name=BigIndex,o=grid
-## CHANGE206: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## regperiod = seconds - The registration period in seconds, the registration messages are
-## continously sent according to the regperiod. Default is 120 sec.
-## default: 120
-#regperiod=300
-## CHANGE207: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## registranthostname = hostname - the hostname of the machine sending the registrations.
-## This attribute inherits its value from the [common] and [infosys] blocks,
-## most cases no need to set.
-## default: inhereted from [common block]
-#registranthostname=myhost.org
-## CHANGE208: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## registrantport = port - the port of the slapd service hosting the
-## registrant Index Service. The attribute inherits its value from the
-## [infosys] block (and therefore defaults to 2135)
-## default: 2135
-#registrantport=2135
-## CHANGE209: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## registrantsuffix = string - the LDAP suffix of the registrant cluster resource
-## It is automatically determined from the [infosys] block and the
-## registration blockname. In this case the default registrantsuffix will be:
-##    "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
-## please mind uppercase/lowercase characters above if defining
-## allowreg in an index!
-## Don't set it unless you want to overwrite the default.
-#registrantsuffix=nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid
-## CHANGE210: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-
-## ttl = seconds - The suggested TTL to be included in the registration.  The default
-## is twice the registration period.
-## default: 2 x regperiod
-#ttl=600
-## CHANGE211: MOVED here from the obsoleted [infosys/cluster/registration/NAME] block
-##
-##
-### end of the [cluster/registration:indexname] block ###########
-
-
 ### The [queue:name] blocks #######################################
 ## Each grid-enabled queue on the cluster should be represented and described
 ## by a separate queue block. The queue_name should be used as a label in the block name.
@@ -3426,12 +3341,49 @@
 
 
 ### The [infosys/cluster/registration/NAME] blocks ############
-## WARNING: the ldap-based registration is OBSOLETE technology,
-## there are plans to phase it out.
-## This part of the configuration was not reviewed and modified
-## CHANGE213: DELETED block, all the config options are moved to the new [cluster/registration:name] block
+## WARNING: the ldap-based registration is OBSOLETE technology
+## 
+## CHANGE213: DELETED block, all the config options are OBSOLETED and DELETED in this block
+
+
+## registrationlog = path - specifies the logfile for the registration processes
+## initiated by your machine.
+## CHANGE212: DELETED
+
+## sizelimit = number - sizelimit affects registration to egiis
+## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
+#sizelimit=10
+## CHANGE212: DELETED
+
+## *targetgiis = name - the name of the index service to which the registration to be sent. 
+## CHANGE212: DELETED
+
+## *targethostname = hostname - the hostname of the machine running the registration target
+## CHANGE204: DELETED
+
+## targetport = number - the port on which the target Index Service is running.
+## CHANGE205: DELETED
+
+## targetsuffix = string - the LDAP suffix of the target Index Service
+## CHANGE206: DELETED
+
+## regperiod = seconds - The registration period in seconds, the registration messages are
+## CHANGE207: DELETED
+
+## registranthostname = hostname - the hostname of the machine sending the registrations.
+## CHANGE208: DELETED
+
+## registrantport = port - the port of the slapd service hosting the
+## registrant Index Service. The attribute inherits its value from the
+## CHANGE209: DELETED
+
+## registrantsuffix = string - the LDAP suffix of the registrant cluster resource
+## It is automatically determined from the [infosys] block and the
+## CHANGE210: DELETED
+
+## ttl = seconds - The suggested TTL to be included in the registration.  The default
+## CHANGE211: DELETED
 ##
 ##
 ### end of the [infosys/cluster/registration/NAME] blocks ###########
 
- 
