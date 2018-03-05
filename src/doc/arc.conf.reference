@@ -44,8 +44,6 @@
 ##  [datadelivery-service]
 ##  [acix-scanner]
 ##  [acix-index]
-##  [monitoring]
-##  [monitoring/perflog]
 ##  [nordugridmap]
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
@@ -3220,39 +3218,6 @@
 ## CHANGE84: renamed
 ##
 ### end of the [acix-index] block ############################
-
-
-### The [monitoring] block  ###############################
-##
-## This block enables the monitoring capabilities of ARC services. At the moment two subsystems are 
-## available: the performance metric collection [monitoring/perflog] and the ganglia monitoring 
-## [monitoring/ganglia]. 
-## CHANGE191: new block
-#[monitoring]
-
-##
-##
-### end of the [monitoring] block ###########################
-
-
-### The [monitoring/perflog] block ##############################################
-## This block enables the server-side performance logging of various ARC components.
-## Having this block uncommented turns on the performance metrics collection
-## and reporting. Only switch on if you specifically need it, and are aware of
-## the possible local root exploit due to permissive directory.
-#[monitoring/perflog]
-## CHANGE2: NEW block
-
-## perflogdir = path - The directory containing the performance metric files.
-## default: /var/log/arc/perfdata
-#perflogdir=/var/log/arc/perfdata
-## CHANGE3: new parameter
-##
-##
-### end of the [monitoring/perflog] block #######################################
-
-
-
 
 
 
