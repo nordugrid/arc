@@ -349,6 +349,8 @@ namespace Arc {
       if (protocol == "gsiftp") port = GSIFTP_DEFAULT_PORT;
       if (protocol == "lfc") port = LFC_DEFAULT_PORT;
       if (protocol == "root") port = XROOTD_DEFAULT_PORT;
+      if (protocol == "s3") port = S3_DEFAULT_PORT;
+      if (protocol == "s3+https") port = S3_HTTPS_DEFAULT_PORT;
     }
 
     if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0) {

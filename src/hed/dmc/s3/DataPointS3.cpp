@@ -212,7 +212,7 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
                          PluginArgument *parg)
     : DataPointDirect(url, usercfg, parg), fd(-1), reading(false),
       writing(false) {
-  hostname = url.Host();
+  hostname = std::string(url.Host() + ":" + tostring(url.Port()));
   access_key = Arc::GetEnv("S3_ACCESS_KEY");
   secret_key = Arc::GetEnv("S3_SECRET_KEY");
 #if defined(S3_DEFAULT_REGION)
@@ -251,18 +251,6 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   }
 
   uri_style = S3UriStylePath;
-
-  S3BucketContext bucket_context = { 0,                  bucket_name.c_str(),
-                                     protocol,           uri_style,
-                                     access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                     NULL, auth_region.c_str() };
-#else                                
-                                     0 };
-#endif
-
-  // ToDo: Port support printf ("Port: %d", url.Port());
-
   S3_initialize("s3", S3_INIT_ALL, hostname.c_str());
 
   bufsize = 16384;
@@ -429,15 +417,6 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
 
   } else {
 
-    S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
-                                      protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                      NULL, auth_region.c_str() };
-#else
-                                      0 };
-#endif
-
     S3ListServiceHandler listServiceHandler = { { &responsePropertiesCallback,
                                                   &responseCompleteCallback },
                                                 &listServiceCallback };
@@ -599,11 +578,6 @@ DataStatus DataPointS3::StopReading() {
   return DataStatus::Success;
 }
 
-static bool file_allocate(int fd, FileAccess *fa,
-                          unsigned long long int &fsize) {
-  return false;
-}
-
 void DataPointS3::write_file_start(void *arg) {
   ((DataPointS3 *)arg)->write_file();
 }
@@ -623,7 +597,6 @@ void DataPointS3::write_file() {
                                             &putCompleteCallback },
                                           &putObjectDataCallback };
 
-  uint64_t contentLength = 0;
   const char *cacheControl = 0, *contentType = 0, *md5 = 0;
   const char *contentDispositionFilename = 0, *contentEncoding = 0;
   int64_t expires = -1;
