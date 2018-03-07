@@ -1,9 +1,31 @@
 package ARC0mod;
 
+######################################################################
+# DISCLAIMER
+######################################################################
+# This module is obsolete and deprecated starting from ARC 6.0 
+# and all the modules depending on it are candidates for deprecation.
+# Please DO NOT build new LRMS modules based on this one but follow
+# the indications in
+#                       LRMSInfo.pm
+# instead.
+######################################################################
+
 #
 # Loads ARC0.6 LRMS modules for use with ARC1
 #
 
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!! WARNING: DO *NOT* DEVELOP NEW MODULES BASED ON WHAT FOLLOWS !!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# THIS MODULE IS MAINTANED TO RUN LEGACY CODE.
+# THE INFORMATION BELOW IS KEPT FOR MAINTENANCE REFERENCE. 
+# THIS MODULE WILL BE DEPRECATED.
+# ALL THE MODULES BASED ON THIS WILL BE REMOVED IN THE FUTURE.
+# IF YOU PLAN TO DEVELOP A NEW PERL LRMS MODULE, 
+# READ THE DISCLAIMER ABOVE.
+#
+# !!! LEAGACY DO NOT USE  FOR FUTURE DEVELOPMENTS - SEE DISCLAIMER !!!!
 # To include a new (ARC 0.6) LRMS plugin:
 #
 # 1. Each LRMS specific module needs to provide subroutines
@@ -12,9 +34,10 @@ package ARC0mod;
 # 2. References to subroutines defined in new LRMS modules are added
 #    to the select_lrms subroutine in this module, and the module reference
 #    itself, naturally.
-
+#
 # NB: ARC0 modules use minutes for time units. ARC1 modules use seconds.
-
+#
+# !!! LEAGACY DO NOT USE  FOR FUTURE DEVELOPMENTS - SEE DISCLAIMER !!!!
 
 
 require Exporter;

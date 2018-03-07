@@ -1,5 +1,16 @@
 package LSF;
 
+######################################################################
+# DISCLAIMER
+######################################################################
+# This module depends on ARC0mod.pm which is obsolete and deprecated 
+# starting from ARC 6.0 
+# Please DO NOT build new LRMS modules based on this one but follow
+# the indications in
+#                       LRMSInfo.pm
+# instead.
+######################################################################
+
 use strict;
 our @ISA = ('Exporter');
 our @EXPORT_OK = ('cluster_info',
