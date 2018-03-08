@@ -379,6 +379,9 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
         else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
           jobdesclang = "emies:adl";
         }
+        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.local") {
+          jobdesclang = "emies:adl";
+        }
         std::string jobdesc;
         if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
           logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString);
