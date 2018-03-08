@@ -308,6 +308,11 @@ namespace Arc {
      */
     bool Retryable() const;
 
+    /// Get error status code.
+    DataStatusType GetStatus() const {
+      return status;
+    }
+
     /// Set the error number.
     void SetErrno(int error_no) {
       Errno = error_no;
