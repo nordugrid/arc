@@ -5,8 +5,18 @@ sub new {
     my $class = ref($this) || $this;
     binmode $handle, ':encoding(utf8)';
     #print $handle '<?xml version="1.0" encoding="UTF-8"?>'."\n";
-    my $self = {fh => $handle, indent => ''};
+    my $self = {fh => $handle, indent => '', disablecnt => 0};
     return bless $self, $class;
+}
+
+sub disableOut {
+    my ($self) = @_;
+    $self->{disablecnt} = $self->{disablecnt} + 1;
+}
+
+sub enableOut {
+    my ($self) = @_;
+    $self->{disablecnt} = $self->{disablecnt} - 1;
 }
 
 sub escape {
@@ -19,17 +29,19 @@ sub escape {
 
 sub begin {
     my ($self, $name, $data, @attributes) = @_;
-    my $fh = $self->{fh};
-    if (not @attributes) {
-        print $fh $self->{indent}."<$name>\n";
-    } else {
-        die "$name: Not a HASH reference" unless ref $data eq 'HASH';
-        print $fh $self->{indent}."<$name";
-        for my $attr (@attributes) {
-            my $val = $data->{$attr};
-            print $fh " $attr=\"$val\"" if defined $val;
+    if ($self->{disablecnt} == 0) {
+        my $fh = $self->{fh};
+        if (not @attributes) {
+            print $fh $self->{indent}."<$name>\n";
+        } else {
+            die "$name: Not a HASH reference" unless ref $data eq 'HASH';
+            print $fh $self->{indent}."<$name";
+            for my $attr (@attributes) {
+                my $val = $data->{$attr};
+                print $fh " $attr=\"$val\"" if defined $val;
+            }
+            print $fh ">\n";
         }
-        print $fh ">\n";
     }
     $self->{indent} .= '  ';
 }
@@ -38,37 +50,43 @@ sub end {
     my ($self, $name) = @_;
     chop $self->{indent};
     chop $self->{indent};
-    my $fh = $self->{fh};
-    print $fh $self->{indent}."</$name>\n";
+    if ($self->{disablecnt} == 0) {
+        my $fh = $self->{fh};
+        print $fh $self->{indent}."</$name>\n";
+    }
 }
 
 sub property {
     my ($self, $prop, $val) = @_;
-    my $indent = $self->{indent};
-    my $fh = $self->{fh};
-    return unless defined $val;
-    if (not ref $val) {
-        print $fh "$indent<$prop>".escape($val)."</$prop>\n";
-    } elsif (ref $val eq 'ARRAY') {
-        print $fh "$indent<$prop>".escape($_)."</$prop>\n" for @$val;
-    } else {
-        die "$prop: Not an ARRAY reference";
-    }
-}
-
-sub properties {
-    my ($self, $data, @props) = @_;
-    my $indent = $self->{indent};
-    my $fh = $self->{fh};
-    for my $prop (@props) {
-        my $val = $data->{$prop};
-        next unless defined $val;
+    if ($self->{disablecnt} == 0) {
+        my $indent = $self->{indent};
+        my $fh = $self->{fh};
+        return unless defined $val;
         if (not ref $val) {
             print $fh "$indent<$prop>".escape($val)."</$prop>\n";
         } elsif (ref $val eq 'ARRAY') {
             print $fh "$indent<$prop>".escape($_)."</$prop>\n" for @$val;
         } else {
             die "$prop: Not an ARRAY reference";
+        }
+    }
+}
+
+sub properties {
+    my ($self, $data, @props) = @_;
+    if ($self->{disablecnt} == 0) {
+        my $indent = $self->{indent};
+        my $fh = $self->{fh};
+        for my $prop (@props) {
+            my $val = $data->{$prop};
+            next unless defined $val;
+            if (not ref $val) {
+                print $fh "$indent<$prop>".escape($val)."</$prop>\n";
+            } elsif (ref $val eq 'ARRAY') {
+                print $fh "$indent<$prop>".escape($_)."</$prop>\n" for @$val;
+            } else {
+                die "$prop: Not an ARRAY reference";
+            }
         }
     }
 }

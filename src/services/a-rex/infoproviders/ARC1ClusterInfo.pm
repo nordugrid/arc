@@ -35,6 +35,109 @@ sub glue2bool {
     return $bool ? "true" : "false";
 }
 
+sub local_state {
+    ## Maps the gm_state added with detailed info of the lrms_state to local-state
+    ## Added the local state terminal to gm_state KILLED - this will allow the job to be cleaned when calling arcclean
+    #require Data::Dumper; import Data::Dumper qw(Dumper);
+
+    # TODO: probably add $failure_state taken from somewhere
+    my ($gm_state,$lrms_state,$failure_state) = @_;
+    my $loc_state = {
+	'State' => ''
+    };
+    if ($gm_state eq "ACCEPTED") {
+        $loc_state->{State} = [ "accepted" ];
+        return $loc_state;
+    } elsif ($gm_state eq "PREPARING") {
+        $loc_state->{State} = [ "preparing" ];
+        return $loc_state;
+    } elsif ($gm_state eq "SUBMIT") {
+        $loc_state->{State} = [ "submit" ];
+        return $loc_state;
+    } elsif ($gm_state eq "INLRMS") {
+        # TODO: check hot to map these!
+        if (not defined $lrms_state) {
+            $loc_state->{State} = [ "inlrms" ];
+            return $loc_state;
+        } elsif ($lrms_state eq 'Q') {
+            $loc_state->{State} = [ "inlrms","q" ];
+            return $loc_state;
+        } elsif ($lrms_state eq 'R') {
+            $loc_state->{State} = [ "inlrms","r" ];
+            return $loc_state;
+        } elsif ($lrms_state eq 'EXECUTED'
+              or $lrms_state eq '') {
+            $loc_state->{State} = [ "inlrms","e" ];
+            return $loc_state;
+        } elsif ($lrms_state eq 'S') {
+            $loc_state->{State} = [ "inlrms","s" ];
+            return $loc_state;
+        } else {
+            $loc_state->{State} = [ "running" ];
+            return $loc_state;
+        }
+    } elsif ($gm_state eq "FINISHING") {
+            $loc_state->{State} = [ "finishing" ];
+            return $loc_state;
+    } elsif ($gm_state eq "CANCELING") {
+            $loc_state->{State} = [ "canceling" ];
+            return $loc_state;
+    } elsif ($gm_state eq "KILLED") {
+	$loc_state->{State} = [ "killed" ];
+        return $loc_state;
+    } elsif ($gm_state eq "FAILED") {
+	$loc_state->{State} = [ "failed" ];
+	if (! defined($failure_state)) {
+	    return $loc_state;
+	} else {
+            ## Not sure how these will be rendered - to-fix/to-check
+	    if ($failure_state eq "ACCEPTED")  {                
+		$loc_state->{State} = [ "accepted","validation-failure" ];
+		return $loc_state;
+	    } elsif ($failure_state eq "PREPARING") {
+		$loc_state->{State} = [ "preparing","cancel","failure" ];
+		return $loc_state;
+	    } elsif ($failure_state eq "SUBMIT") {
+		$loc_state->{State} = [ "submit","cancel","failure" ];
+		return $loc_state;
+	    } elsif ($failure_state eq "INLRMS") {
+		if ( $lrms_state eq "R" ) {
+		    $loc_state->{State} = [ "inlrms","cancel","app-failure" ];
+		    return $loc_state;
+		} else {
+		    $loc_state->{State} = [ "inlrms","cancel","processing-failure" ];
+		    return $loc_state;
+		}                
+	    } elsif ($failure_state eq "FINISHING") {
+		$loc_state->{State} = [ "finishing","cancel","failure" ];
+		return $loc_state;
+	    } elsif ($failure_state eq "FINISHED") {
+		$loc_state->{State} = [ "finished","failure"];
+		return $loc_state;
+	    } elsif ($failure_state eq "DELETED") {
+		$loc_state->{State} = [ "deleted","failure" ];
+		return $loc_state;
+	    } elsif ($failure_state eq "CANCELING") {
+		$loc_state->{State} = ["canceling","failure"];
+		return $loc_state;
+	    } else {
+		return $loc_state;
+	    }
+	}
+    } elsif ($gm_state eq "FINISHED") {
+	$loc_state->{State} = [ "finished" ];
+	return $loc_state;
+    } elsif ($gm_state eq "DELETED") {
+	$loc_state->{State} = [ "deleted" ];
+	return $loc_state;
+    } elsif ($gm_state) { # this is the "pending" case
+        $loc_state->{State} = ["hold"];
+        return $loc_state;
+    } else {
+        return $loc_state;
+    }
+}
+
 # TODO: Stage-in and Stage-out are substates of what?
 sub bes_state {
     my ($gm_state,$lrms_state) = @_;
@@ -212,6 +315,8 @@ sub glueState {
     my @ng_status = @_;
     return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
     my $status = [ "nordugrid:".join(':',@ng_status) ];
+    my $local_state = local_state(@ng_status);
+    push @$status, "local:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
     my $bes_state = bes_state(@ng_status);
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
     my $emies_state = emies_state(@ng_status);
@@ -978,9 +1083,13 @@ sub collect($) {
     # for the org.nordugrid.local submission endpoint (files created directly in the controldir)
     $csvendpointsnum = $csvendpointsnum + 1;
     $epscapabilities->{'org.nordugrid.local'} = [
+                                  'executionmanagement.jobcreation',
                                   'executionmanagement.jobexecution',
-                                  'executionmanagement.jobmanager',
-                                  'executionmanagement.jobdescription',
+                                  'executionmanagement.jobmanagement',
+	                          'executionmanagement.jobdescription',
+	                          'information.discovery.resource',
+	                          'information.discovery.job',
+	                          'information.lookup.job',
                                   'security.delegation'
                                   ];  
     $epscapabilities->{'common'} = [
@@ -2435,15 +2544,18 @@ sub collect($) {
         # don't publish if no EMIES endpoint configured
         $arexceps->{ARCRESTComputingEndpoint} = $getARCRESTComputingEndpoint if ($config->{enable_emies_interface});
 
-        # NorduGrid local submission
-
-        my $getNorguGridLocalSubmissionEndpoint = sub {
+	#
+        ## NorduGrid local submission
+        #
+        my $getNorduGridLocalSubmissionEndpoint = sub {
 
             # don't publish if no endpoint URL
             #return undef unless $emiesenabled;
-
+            # To-decide: should really the local submission plugin be present in info.xml? It is not useful for the outside world.  
             my $cep = {};
 
+            # Collected information not to be published
+            $cep->{NOPUBLISH} = 1;
             $cep->{CreationTime} = $creation_time;
             $cep->{Validity} = $validity_ttl;
 
@@ -2455,36 +2567,19 @@ sub collect($) {
             $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             # $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
-            $cep->{Technology} = 'localfiles';
+            $cep->{Technology} = 'direct';
             $cep->{InterfaceName} = 'org.nordugrid.local';
             $cep->{InterfaceVersion} = [ '1.0' ];
-            #$cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            # What is profile for EMIES?
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            #$cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            $cep->{Implementor} = "NorduGrid";
+	    $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.local'}}, @{$epscapabilities->{'common'}} ]; 	    
+	    $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "testing";
 
+                       
             my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }
-
+            # Host certificate not required for LOCAL submission interface.
             if ( $host_info->{gm_alive} ne 'all' ) {
             if ($host_info->{gm_alive} eq 'some') {
                 push @{$healthissues{warning}}, 'One or more grid managers are down';
@@ -2532,7 +2627,6 @@ sub collect($) {
 
             $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
-            #$cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
             # ComputingActivities
             if ($nojobs) {
@@ -2552,8 +2646,7 @@ sub collect($) {
             return $cep;
         };
 
-        # In principle this one should be always published
-        $arexceps->{NorguGridLocalSubmissionEndpoint} = $getNorguGridLocalSubmissionEndpoint;
+        $arexceps->{NorduGridLocalSubmissionEndpoint} = $getNorduGridLocalSubmissionEndpoint;
 
 
         #### Other A-REX ComputingEndpoints. these are currently disabled as I don't know how to handle them.
