@@ -15,6 +15,8 @@
 #include "JobStateBES.h"
 #include "AREXClient.h"
 
+
+
 #ifdef CPPUNITTEST
 #include "../../libs/communication/test/SimulatorClasses.h"
 #define DelegationProviderSOAP DelegationProviderSOAPTest

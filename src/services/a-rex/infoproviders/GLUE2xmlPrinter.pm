@@ -23,9 +23,11 @@ sub beginEntity {
 sub Element {
     my ($self, $collector, $name, $basetype, $filler) = @_;
     return unless $collector and my $data = &$collector();
+    if ($data->{NOPUBLISH}) { $self->disableOut(); }
     $self->beginEntity($data, $name, $basetype);
     &$filler($self, $data) if $filler;
     $self->end($name);
+    if ($data->{NOPUBLISH}) { $self->enableOut(); }
 }
 
 # This function creates an open element.
@@ -40,9 +42,11 @@ sub ElementNoClose {
 sub Elements {
     my ($self, $collector, $name, $basetype, $filler) = @_;
     while ($collector and my $data = &$collector()) {
+        if ($data->{NOPUBLISH}) { $self->disableOut(); }
         $self->beginEntity($data, $name, $basetype);
         &$filler($self, $data) if $filler;
         $self->end($name);
+        if ($data->{NOPUBLISH}) { $self->enableOut(); }
     }
 }
 

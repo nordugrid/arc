@@ -67,6 +67,12 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  else{
+    //TO-DO: Fix for local plugin - to check!
+    std::string cred = usercfg.CredentialString();
+    std::string proxypath = usercfg.ProxyPath();
+    std::string certpath = usercfg.CertificatePath();
+  }
 
   if (opt.show_plugins) {
     std::list<std::string> types;
@@ -250,6 +256,7 @@ private:
 static int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission) {
   int retval = 0;
 
+
   HandleSubmittedJobs hsj(jobidfile, usercfg);
   Arc::Submitter s(usercfg);
   s.addConsumer(hsj);
@@ -320,6 +327,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
     preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+    //preferredInterfaceNames.insert("org.nordugrid.local");
   } else {
     preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
@@ -377,6 +385,9 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
           jobdesclang = "egee:jdl";
         }
         else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
+          jobdesclang = "emies:adl";
+        }
+        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.local") {
           jobdesclang = "emies:adl";
         }
         std::string jobdesc;

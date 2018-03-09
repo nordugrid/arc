@@ -278,5 +278,40 @@ namespace ARex {
   }
 
 
+
+  JobIDGeneratorLOCAL::JobIDGeneratorLOCAL(const std::string& endpoint):endpoint_(endpoint) {
+  }
+  
+  void JobIDGeneratorLOCAL::SetLocalID(const std::string& id) {
+    id_ = id;
+  }
+
+  Arc::XMLNode JobIDGeneratorLOCAL::GetGlobalID(Arc::XMLNode& pnode) {
+    //To-do make something more sensible for LOCAL plugin case
+    Arc::XMLNode node;
+    if(!pnode) {
+      Arc::NS ns;
+      ns["estypes"]="http://www.eu-emi.eu/es/2010/12/types";
+      Arc::XMLNode(ns,"estypes:ActivityID").Exchange(pnode);
+      node = pnode;
+    } else {
+      node = pnode.NewChild("estypes:ActivityID");
+    };
+    node = id_;
+    return node;
+  }
+  
+  std::string JobIDGeneratorLOCAL::GetGlobalID(void) {
+    return id_;
+  }
+  
+  std::string JobIDGeneratorLOCAL::GetManager(void) {
+    return endpoint_;
+  }
+  
+  std::string JobIDGeneratorLOCAL::GetInterface(void) {
+    return "org.nordugrid.local";
+  }
+
 }
 

@@ -76,6 +76,7 @@ static bool match_groups(std::list<std::string> const & groups, ARexGMConfig& co
 
 ARexGMConfig::ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
     config_(config),user_(uname),readonly_(false),grid_name_(grid_name),service_endpoint_(service_endpoint) {
+
   //if(!InitEnvironment(configfile)) return;
   // const char* uname = user_s.get_uname();
   //if((bool)job_map) uname=job_map.unix_name();

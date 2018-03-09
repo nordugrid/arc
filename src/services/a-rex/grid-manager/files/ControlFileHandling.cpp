@@ -454,6 +454,7 @@ static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
   } else {
     pending=false;
   };
+
   return GMJob::get_state(data.c_str());
 }
 

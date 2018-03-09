@@ -18,9 +18,10 @@ namespace Arc {
         // We take the first one which has the same ID
         if ((*it)->ID == service->ID) {
           std::map<std::string, int> priority;
-          priority["org.nordugrid.ldapglue2"] = 3;
-          priority["org.ogf.glue.emies.resourceinfo"] = 2;
-          priority["org.nordugrid.wsrfglue2"] = 1;
+          priority["org.nordugrid.ldapglue2"] = 4;
+          priority["org.ogf.glue.emies.resourceinfo"] = 3;
+          priority["org.nordugrid.wsrfglue2"] = 2;
+          priority["org.nordugrid.local"] = 1;
           // If the new service has higher priority, we replace the previous one with the same ID, otherwise we ignore it
           if (priority[service->InformationOriginEndpoint.InterfaceName] > priority[(*it)->InformationOriginEndpoint.InterfaceName]) {
             logger.msg(DEBUG, "Uniq is replacing service coming from %s with service coming from %s", (*it)->InformationOriginEndpoint.str(), service->InformationOriginEndpoint.str());

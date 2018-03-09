@@ -4,8 +4,8 @@ else
 JURA_CLIENT =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema
-DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema
+SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema localjobplugin
+DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema localjobplugin
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check
@@ -41,6 +41,7 @@ man_MANS = a-rex-backtrace-collect.8
 EXTRA_DIST = arc-sshfs-mount
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
+#LOCALJOBPLUGIN_LIBS = localjobplugin/libaccLOCAL.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
 	create_activity.cpp get_activity_documents.cpp \
@@ -52,6 +53,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h tools.h
 libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD = \
 	ldif/libldif.la \
