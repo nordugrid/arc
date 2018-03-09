@@ -14,8 +14,8 @@ namespace ArcDMCS3 {
 using namespace Arc;
 
 /**
- * This class allows access to the regular local filesystem through the
- * same interface as is used for remote storage on the grid.
+ * This class allows access to object stores through the S3 protocol. It uses
+ * the environment variables S3_ACCESS_KEY and S3_SECRET_KEY for authentication.
  *
  * This class is a loadable module and cannot be used directly. The DataHandle
  * class loads modules at runtime and should be used instead of this.
@@ -57,8 +57,6 @@ private:
   S3Protocol protocol;
   S3UriStyle uri_style;
   S3BucketContext bucket_context;
-  int port;
-  bool is_secure;
   SimpleCounter transfers_started;
 
   static void read_file_start(void *arg);
