@@ -3191,11 +3191,14 @@ sub collect($) {
         if (defined $qinfo->{freeslots}) {
             $freeslots = $qinfo->{freeslots};
         } else {
-			# TODO: to be removed after patch testing. Uncomment to check values
-			# $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
-			# TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
-            $freeslots = $qinfo->{totalcpus} - $qinfo->{running} || 0;
+            # TODO: to be removed after patch testing. Uncomment to check values
+            # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
+            # TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
+            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
         }
+
+        # This should not be needed, but the above case may trigger it
+        $freeslots = 0 if $freeslots < 0;
 
         # Local users have individual restrictions
         # FreeSlots: find the maximum freecpus of any local user mapped in this
@@ -3204,8 +3207,11 @@ sub collect($) {
         # of any local user mapped in this share
         # TODO: is this the correct way to do it?
         # TODO: currently shows negative numbers, check why
-
+        # TODO: [negative] If more slots than the available are overbooked the number is negative
+        # for example fork with parallel multicore, so duration should be set to 0
+        # OBS: this should be a string. extract the numeric part(s) and compare. Prevent type conversion.
         my @durations;
+        # TODO: check the contents of this var
         my %timeslots = max_userfreeslots($qinfo->{users});
 
         if (%timeslots) {
@@ -3227,14 +3233,9 @@ sub collect($) {
             }
         }
 
-        $freeslots = 0 if $freeslots < 0;
-
         # This should be 0 if the queue is full, check the zeroing above?
         $csha->{FreeSlots} = $freeslots;
         my $freeslotswithduration = join(" ", @durations);
-        # TODO: [negative] If more slots than the available are overbooked the number is negative
-        # for example fork with parallel multicore, so we set to 0
-        $freeslotswithduration = 0 if $freeslotswithduration < 0;
         $csha->{FreeSlotsWithDuration} = $freeslotswithduration;
 
         $csha->{UsedSlots} = $inlrmsslots{$share}{running};
@@ -3296,8 +3297,8 @@ sub collect($) {
             my @queuenames = keys %{$lrms_info->{queues}};
             my $gridrunningslots = 0; 
             for my $qname (@queuenames) {
-			   $gridrunningslots += $inlrmsslots{$qname}{running};
-			}
+               $gridrunningslots += $inlrmsslots{$qname}{running} if defined $inlrmsslots{$qname}{running};
+            }
             my $localrunningslots = $cluster_info->{usedcpus} - $gridrunningslots;
             $cmgr->{SlotsUsedByLocalJobs} = ($localrunningslots < 0) ? 0 : $localrunningslots;
             $cmgr->{SlotsUsedByGridJobs} = $gridrunningslots;
