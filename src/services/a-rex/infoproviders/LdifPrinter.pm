@@ -14,18 +14,8 @@ sub new {
         or $log->error("binmode failed: $!");
     #print $handle "# extended LDIF\n#\n# LDAPv3\n"
     #    or $log->error("print failed: $!");
-    my $self = {fh => $handle, dn => undef, nick => undef, attrs => undef, disablecnt => 0};
+    my $self = {fh => $handle, dn => undef, nick => undef, attrs => undef};
     return bless $self, $class;
-}
-
-sub disableOut {
-    my ($self) = @_;
-    $self->{disablecnt} = $self->{disablecnt} + 1;
-}
-
-sub enableOut {
-    my ($self) = @_;
-    $self->{disablecnt} = $self->{disablecnt} - 1;
 }
 
 sub begin {
@@ -37,17 +27,13 @@ sub begin {
 
 sub attribute {
     my ($self, $attr, $value) = @_;
-    if ($self->{disablecnt} == 0) {
-        push @{$self->{attrs}}, [$attr, $value];
-    }
+    push @{$self->{attrs}}, [$attr, $value];
 }
 
 sub attributes {
     my ($self, $data, $prefix, @keys) = @_;
-    if ($self->{disablecnt} == 0) {
-        my $attrs = $self->{attrs} ||= [];
-        push @$attrs, ["$prefix$_", $data->{$_}] for @keys;
-    }
+    my $attrs = $self->{attrs} ||= [];
+    push @$attrs, ["$prefix$_", $data->{$_}] for @keys;
 }
 
 sub end {
@@ -160,12 +146,10 @@ sub fold78 {
 sub Entry {
     my ($self, $collector, $prefix, $idkey, $attributes, $subtree) = @_;
     return unless $collector and my $data = &$collector();
-    if ($data->{NOPUBLISH}) { $self->disableOut(); }
     $self->begin("$prefix$idkey", $data->{$idkey});
     &$attributes($self,$data);
     &$subtree($self, $data) if $subtree;
     $self->end();
-    if ($data->{NOPUBLISH}) { $self->enableOut(); }
 }
 
 # Prints entries for as long as $collector continues to evaluate to non-null
@@ -173,12 +157,10 @@ sub Entry {
 sub Entries {
     my ($self, $collector, $prefix, $idkey, $attributes, $subtree) = @_;
     while ($collector and my $data = &$collector()) {
-        if ($data->{NOPUBLISH}) { $self->disableOut(); }
         $self->begin("$prefix$idkey", $data->{$idkey});
         &$attributes($self,$data);
         &$subtree($self, $data) if $subtree;
         $self->end();
-        if ($data->{NOPUBLISH}) { $self->enableOut(); }
     }
 }
 

@@ -22,7 +22,3 @@ compile
 INSTALL
 ABOUT-NLS
 py-compile
-po/*.po
-*/po
-/po
-po

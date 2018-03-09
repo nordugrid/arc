@@ -324,11 +324,6 @@ namespace Arc {
         JobStatusInterfaceName          = "org.nordugrid.xbes";
         JobManagementInterfaceName      = "org.nordugrid.xbes";
       }
-      else if ((std::string)job["Flavour"] == "LOCAL") {
-        ServiceInformationInterfaceName = "org.nordugrid.local";
-        JobStatusInterfaceName          = "org.nordugrid.local";
-        JobManagementInterfaceName      = "org.nordugrid.local";
-      }
     }
     else {
       logger.msg(WARNING, "Unable to detect format of job record.");
@@ -842,6 +837,7 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Now copying (from -> to)");
     logger.msg(VERBOSE, " %s -> %s", src.str(), dst.str());
+
     URL src_(src);
     URL dst_(dst);
     src_.AddOption("checksum=no");

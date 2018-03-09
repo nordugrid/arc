@@ -49,26 +49,11 @@ class JobIDGeneratorES:public JobIDGenerator {
   std::string endpoint_;
   std::string id_;
 };
-class JobIDGeneratorLOCAL:public JobIDGenerator {
- public:
-  JobIDGeneratorLOCAL(const std::string& endpoint);
-  virtual ~JobIDGeneratorLOCAL() { };
-  virtual void SetLocalID(const std::string& id);
-  virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
-  virtual std::string GetGlobalID(void);
-  virtual std::string GetManager(void);
-  virtual std::string GetInterface(void);
- private:
-  std::string endpoint_;
-  std::string id_;
-};
 
 Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
 std::string makeJobID(const std::string& endpoint,const std::string& id);
 Arc::XMLNode addJobIDES(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
 std::string makeJobIDES(const std::string& endpoint,const std::string& id);
-Arc::XMLNode addJobIDLOCAL(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
-std::string makeJobIDLOCAL(const std::string& endpoint,const std::string& id);
  
 
 }

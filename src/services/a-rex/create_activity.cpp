@@ -236,7 +236,6 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-
 Arc::MCC_Status ARexService::PutNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   /*
     adl:ActivityDescription - http://www.eu-emi.eu/es/2010/12/adl

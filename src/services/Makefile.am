@@ -50,4 +50,3 @@ DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
 	monitor \
 	candypond \
 	data-staging wrappers examples acix
-
