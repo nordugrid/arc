@@ -17,16 +17,48 @@ namespace Arc {
     /// Constructor is not implemented. Use static methods instead.
     Base64();
     ~Base64();
+
     /// Encode a string to base 64
     /**
      * \since Added in 3.0.1.
      **/
     static std::string encode(const std::string& bufplain);
+
+    /// Encode a string to base 64
+    static std::string encode(const char* bufplain);
+
+    /// Encode a string to base 64
+    static std::string encode(const char* bufplain, int size);
+
+    /// Encode a string to base 64 using URL-safe character set
+    static std::string encodeURLSafe(const std::string& bufplain);
+
+    /// Encode a string to base 64 using URL-safe character set
+    static std::string encodeURLSafe(const char* bufplain);
+
+    /// Encode a string to base 64 using URL-safe character set
+    static std::string encodeURLSafe(const char* bufplain, int size);
+
     /// Decode a string from base 64
     /**
      * \since Added in 3.0.1.
      **/
     static std::string decode(const std::string& bufcoded);
+
+    /// Decode a string from base 64
+    static std::string decode(const char* bufcoded);
+
+    /// Decode a string from base 64
+    static std::string decode(const char* bufcoded, int size);
+
+    /// Decode a string from base 64 with URL-safe character set
+    static std::string decodeURLSafe(const std::string& bufcoded);
+
+    /// Decode a string from base 64
+    static std::string decodeURLSafe(const char* bufcoded);
+
+    /// Decode a string from base 64
+    static std::string decodeURLSafe(const char* bufcoded, int size);
 
     // The next 4 methods are legacy API kept for backwards compatibility. They
     // can be removed in the next major version.

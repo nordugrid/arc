@@ -2284,6 +2284,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/ws/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
+                 src/hed/libs/scitokens/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
