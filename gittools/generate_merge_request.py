@@ -22,7 +22,7 @@ private_token = xxxxxxxx
 """
 
 
-target_project_id = '164'
+target_project_id = '188'
 gl = gitlab.Gitlab.from_config('coderefinery')
 
 
