@@ -85,3 +85,4 @@ src/tests/echo/test_client
 src/tests/echo/test_service
 *.pyc
 Makefile.in
+gittools
