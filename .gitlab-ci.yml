@@ -1,0 +1,87 @@
+stages:
+  - rpms
+  - deploy
+  - test
+  
+
+make_rpms:
+  image: maikenp/centosarc2
+  stage: rpms
+  script: 
+  - yum install perl-Inline perl-Inline-Python -y
+  - git clone https://source.coderefinery.org/nordugrid/arc.git
+  - cd arc
+  - ./autogen.sh
+  - ./configure
+  - yum-builddep -y nordugrid-arc.spec
+  - echo "Preparing and running mock build"
+  - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+  - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
+  - export VERSION=`cat VERSION`
+  - make dist
+  - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
+  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  - cd $CI_PROJECT_DIR
+  only:
+  - master@nordugrid/arc
+  tags:
+    - centos-arc
+  artifacts:
+    when: always
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: true
+ 
+deploy_staging:
+  stage: deploy
+  script:
+    - echo "Deploy to staging server"
+    - yum install -y time
+    #- wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/482/artifacts/download'  -O artifacts.zip
+    #- unzip artifacts.zip
+    - ls -lhrt
+    - mkdir allrpms
+    - cp rpmbuild/RPMS/noarch/* allrpms
+    - cp rpmbuild/RPMS/x86_64/* allrpms
+    - cd allrpms
+    - yum localinstall *.rpm -y
+    - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
+    - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
+    - ls -lhrt
+    - mv host* /etc/grid-security/
+    - mv autocertif* /etc/grid-security/certificates
+    - mv *.0 /etc/grid-security/certificates
+    - ls -lhrt /etc/rc.d/init.d
+    - /etc/rc.d/init.d/a-rex validate
+    - /etc/rc.d/init.d/a-rex start
+    - /etc/rc.d/init.d/gridftpd start
+    - echo 'Now run some tests - like submitting jobs'
+    - sleep 10m
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - /var/www/html/arc-logs/
+     - /var/www/html/arc-tests/
+  dependencies:
+    - make_rpms
+  only:
+  - master@nordugrid/arc
+  tags:
+    - arc
+    - centos6
+    - deploy
+  allow_failure: true
+
+test:
+  stage: test
+  script: echo "Running tests (empty job at the moment)"
+  tags:
+    - centos-arc
+  only:
+  - master@nordugrid/arc
+
+##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
