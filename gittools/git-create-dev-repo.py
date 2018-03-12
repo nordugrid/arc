@@ -45,7 +45,7 @@ issue_list = [
 
 
 
-parent_project_id = '164'
+parent_project_id = '188'
 arc = gl.projects.get(parent_project_id)
 
 
