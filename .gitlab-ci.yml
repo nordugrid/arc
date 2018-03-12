@@ -9,8 +9,6 @@ make_rpms:
   stage: rpms
   script: 
   - yum install perl-Inline perl-Inline-Python -y
-  - git clone https://source.coderefinery.org/nordugrid/arc.git
-  - cd arc
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
@@ -39,8 +37,6 @@ deploy_staging:
   script:
     - echo "Deploy to staging server"
     - yum install -y time
-    #- wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/482/artifacts/download'  -O artifacts.zip
-    #- unzip artifacts.zip
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
