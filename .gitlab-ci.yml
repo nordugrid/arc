@@ -20,8 +20,6 @@ make_rpms:
   - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
-  only:
-  - master@nordugrid/arc
   tags:
     - centos-arc
   artifacts:
@@ -64,8 +62,6 @@ deploy_staging:
      - /var/www/html/arc-tests/
   dependencies:
     - make_rpms
-  only:
-  - master@nordugrid/arc
   tags:
     - arc
     - centos6
@@ -77,7 +73,6 @@ test:
   script: echo "Running tests (empty job at the moment)"
   tags:
     - centos-arc
-  only:
-  - master@nordugrid/arc
+ 
 
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
