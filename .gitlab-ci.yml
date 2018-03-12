@@ -32,7 +32,7 @@ make_rpms:
     - $CI_PROJECT_DIR/rpmbuild/SRPMS/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: true
+  allow_failure: false
  
 deploy_staging:
   stage: deploy
@@ -74,7 +74,7 @@ deploy_staging:
     - arc
     - centos6
     - deploy
-  allow_failure: true
+  allow_failure: false
 
 test:
   stage: test
