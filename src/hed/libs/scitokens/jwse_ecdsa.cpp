@@ -24,7 +24,8 @@ namespace Arc {
     if(rc != 1) return false;
     rc = EVP_DigestVerifyUpdate(ctx.Ptr(), message, messageSize);
     if(rc != 1) return false;
-    rc = EVP_DigestVerifyFinal(ctx.Ptr(), reinterpret_cast<unsigned char const*>(signature), signatureSize);
+    // const_cast is only for older openssl
+    rc = EVP_DigestVerifyFinal(ctx.Ptr(), const_cast<unsigned char*>(reinterpret_cast<unsigned char const*>(signature)), signatureSize);
     if(rc != 1) return false;
     return true;
   }
