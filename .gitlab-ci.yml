@@ -5,14 +5,19 @@ stages:
   
 
 make_rpms:
-  image: maikenp/centosarc2
   stage: rpms
+  image: maikenp/centosarc2
   script: 
-  - yum install perl-Inline perl-Inline-Python -y
+  - yum update -y
+  - yum install -y wget epel-release gcc-c++ make cppunit perl-Inline perl-Inline-Python
+  - yum install -y yum-utils --enablerepo=extras
+  - yum groupinstall -y 'Development tools'
+  - wget https://downloads.globus.org/toolkit/gt6/stable/installers/repo/rpm/globus-toolkit-repo-latest.noarch.rpm
+  - yum localinstall -y globus-toolkit-repo-latest.noarch.rpm
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
-  - echo "Preparing and running mock build"
+  - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
   - export VERSION=`cat VERSION`
@@ -23,9 +28,11 @@ make_rpms:
   only:
   - master@nordugrid/arc
   tags:
-    - centos-arc
+    - general-shared 
+    #- centos-shared
+    #- build-rpms
   artifacts:
-    when: always
+    when: on_success
     paths:
     - $CI_PROJECT_DIR/rpmbuild/SRPMS/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
@@ -67,8 +74,6 @@ deploy_staging:
   only:
   - master@nordugrid/arc
   tags:
-    - arc
-    - centos6
     - deploy
   allow_failure: false
 
