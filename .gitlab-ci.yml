@@ -28,7 +28,7 @@ make_rpms:
   - master@nordugrid/arc
   tags:
     #- centos-shared
-    - centos-arc
+    - build-rpms
   artifacts:
     when: on_success
     paths:
