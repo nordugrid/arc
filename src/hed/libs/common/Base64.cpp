@@ -104,7 +104,7 @@ namespace Arc {
     std::string bufplain;
     char quantum[3];
     char encoded[4];
-    std::string::size_type p = 0;
+    int p = 0;
     int ecnt = 0;
     for(;p < size;++p) {
       if(base64_character_decode(bufcoded[p], urlSafe) == (char)0xff) continue; // ignore eol and garbage
@@ -129,12 +129,12 @@ namespace Arc {
   }
 
   std::string Base64::decode(const char* bufcoded) {
-    if(bufcoded == nullptr) return "";
+    if(bufcoded == NULL) return "";
     return decodeInternal(bufcoded, std::strlen(bufcoded), false);
   }
 
   std::string Base64::decode(const char* bufcoded, int size) {
-    if((bufcoded == nullptr) || (size <= 0)) return "";
+    if((bufcoded == NULL) || (size <= 0)) return "";
     return decodeInternal(bufcoded, size, false);
   }
 
@@ -143,12 +143,12 @@ namespace Arc {
   }
 
   std::string Base64::decodeURLSafe(const char* bufcoded) {
-    if(bufcoded == nullptr) return "";
+    if(bufcoded == NULL) return "";
     return decodeInternal(bufcoded, std::strlen(bufcoded), true);
   }
 
   std::string Base64::decodeURLSafe(const char* bufcoded, int size) {
-    if((bufcoded == nullptr) || (size <= 0)) return "";
+    if((bufcoded == NULL) || (size <= 0)) return "";
     return decodeInternal(bufcoded, size, true);
   }
 
@@ -156,7 +156,7 @@ namespace Arc {
     std::string bufcoded;
     char quantum[3];
     char encoded[4];
-    std::string::size_type p = 0;
+    int p = 0;
     int qcnt = 0;
     for(;p < size;++p) {
       quantum[qcnt] = bufplain[p];
