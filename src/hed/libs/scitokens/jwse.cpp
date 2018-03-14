@@ -10,7 +10,7 @@
 
 
 namespace Arc {
-  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL), publicKey_(NULL)  {
+  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(nullptr), publicKey_(nullptr)  {
     char const* pos = jwseCompact.c_str();
     while(std::isspace(*pos) != 0) {
       if(*pos == '\0') return;
@@ -27,13 +27,13 @@ namespace Arc {
     // Decode header so we know if we have JWS or JWE
     std::string joseStr = Base64::decodeURLSafe(joseStart, joseEnd-joseStart);
     header_ = cJSON_Parse(joseStr.c_str());
-    if(header_ == NULL) return;
+    if(header_ == nullptr) return;
     cJSON* algObject = cJSON_GetObjectItem(header_, "alg");
-    if(algObject == NULL) return; // Neither JWS nor JWE
+    if(algObject == nullptr) return; // Neither JWS nor JWE
     if(algObject->type != cJSON_String) return;
-    if(algObject->string == NULL) return;
+    if(algObject->string == nullptr) return;
     cJSON* encObject = cJSON_GetObjectItem(header_, "enc");
-    if (encObject == NULL) {
+    if (encObject == nullptr) {
       // JWS
       char const* payloadStart = pos;
       while(*pos != '.') {
@@ -87,7 +87,7 @@ namespace Arc {
     } else {
       // JWE - not yet
       cJSON_Delete(header_);
-      header_ = NULL;
+      header_ = nullptr;
       return;
     }      
     valid_ = true;
@@ -95,9 +95,9 @@ namespace Arc {
 
 
   JWSE::~JWSE() {
-    if(header_ != NULL)
+    if(header_ != nullptr)
       cJSON_Delete(header_);
-    if(publicKey_ != NULL)
+    if(publicKey_ != nullptr)
       EVP_PKEY_free(publicKey_);
   }
 
@@ -106,11 +106,11 @@ namespace Arc {
   }
 
   cJSON const* JWSE::HeaderParameter(char const* name) const {
-    if(header_ == NULL)
-      return NULL;
+    if(header_ == nullptr)
+      return nullptr;
     cJSON const* param = cJSON_GetObjectItem(const_cast<cJSON*>(header_), name);
-    if(param == NULL)
-      return NULL;
+    if(param == nullptr)
+      return nullptr;
     return param;
   }
 
