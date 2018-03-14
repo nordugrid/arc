@@ -24,45 +24,45 @@ namespace Arc {
   }
 
   static EVP_PKEY* jwkECParse(cJSON* jwkObject) {
-    return nullptr;
+    return NULL;
   }
 
   static EVP_PKEY* jwkRSAParse(cJSON* jwkObject) {
     cJSON* modulusObject = cJSON_GetObjectItem(jwkObject, "n");
     cJSON* exponentObject = cJSON_GetObjectItem(jwkObject, "e");
-    if((modulusObject == nullptr) || (exponentObject == nullptr)) return nullptr;
-    if((modulusObject->type != cJSON_String) || (exponentObject->type != cJSON_String)) return nullptr;
+    if((modulusObject == NULL) || (exponentObject == NULL)) return NULL;
+    if((modulusObject->type != cJSON_String) || (exponentObject->type != cJSON_String)) return NULL;
     std::string modulus = Base64::decodeURLSafe(modulusObject->string);
     std::string exponent = Base64::decodeURLSafe(exponentObject->string);
     AutoPointer<RSA> rsaKey(RSA_new(),&RSA_free);
-    if(!rsaKey) return nullptr;
+    if(!rsaKey) return NULL;
     BIGNUM* tmpBn(NULL);
-    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), rsaKey->n)) == NULL) return nullptr;
+    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), rsaKey->n)) == NULL) return NULL;
     rsaKey->n = tmpBn;
-    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), rsaKey->e)) == NULL) return nullptr;
+    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), rsaKey->e)) == NULL) return NULL;
     rsaKey->e = tmpBn;
     AutoPointer<EVP_PKEY> evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
-    if(!evpKey) return nullptr;
-    if(EVP_PKEY_set1_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return nullptr;
+    if(!evpKey) return NULL;
+    if(EVP_PKEY_set1_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return NULL;
     return evpKey.Release();
   }
 
   static EVP_PKEY* jwkOctParse(cJSON* jwkObject) {
     cJSON* keyObject = cJSON_GetObjectItem(jwkObject, "k");
     cJSON* algObject = cJSON_GetObjectItem(jwkObject, "alg");
-    if((keyObject == nullptr) || (algObject == nullptr)) return nullptr;
-    if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) return nullptr;
+    if((keyObject == NULL) || (algObject == NULL)) return NULL;
+    if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) return NULL;
     std::string key = Base64::decodeURLSafe(keyObject->string);
     // It looks like RFC does not define any "alg" values with "JWK" usage.
-    return nullptr;
+    return NULL;
   }
 
   static EVP_PKEY* jwkParse(cJSON* jwkObject) {
-    if(jwkObject->type != cJSON_Object) return nullptr;
+    if(jwkObject->type != cJSON_Object) return NULL;
 
     cJSON* ktyObject = cJSON_GetObjectItem(jwkObject, "kty");
-    if(ktyObject == nullptr) return nullptr;
-    if(ktyObject->type != cJSON_String) return nullptr;
+    if(ktyObject == NULL) return NULL;
+    if(ktyObject->type != cJSON_String) return NULL;
     if(strcmp(ktyObject->string, "EC") == 0) {    
       return jwkECParse(jwkObject);
     } else if(strcmp(ktyObject->string, "RSA") == 0) {    
@@ -70,46 +70,46 @@ namespace Arc {
     } else if(strcmp(ktyObject->string, "oct") == 0) {    
       return jwkOctParse(jwkObject);
     }
-    return nullptr;
+    return NULL;
   }
 
   static EVP_PKEY* x5cParse(cJSON* x5cObject) {
-    if(x5cObject->type != cJSON_Array) return nullptr;
+    if(x5cObject->type != cJSON_Array) return NULL;
     // Collect the chain
     AutoPointer<STACK_OF(X509)> certchain(sk_X509_new_null(), &sk_x509_deallocate);
     int certN = 0;
     while(true) {
       cJSON* certObject = cJSON_GetArrayItem(x5cObject, certN);
-      if(certObject == nullptr) break;
-      if(certObject->type != cJSON_String) return nullptr;
+      if(certObject == NULL) break;
+      if(certObject->type != cJSON_String) return NULL;
       // It should be PEM encoded certificate in single string and without header/footer           
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
-      if(!mem) return nullptr;
+      if(!mem) return NULL;
       BIO_puts(mem.Ptr(), "-----BEGIN CERTIFICATE-----\n");
       BIO_puts(mem.Ptr(), certObject->string);
       BIO_puts(mem.Ptr(), "-----END CERTIFICATE-----\n");
       AutoPointer<X509> cert(PEM_read_bio_X509(mem.Ptr(), NULL, NULL, NULL), *X509_free);
-      if(!cert) return nullptr;
-      if(sk_X509_insert(certchain.Ptr(), cert.Ptr(), certN) == 0) return nullptr;
+      if(!cert) return NULL;
+      if(sk_X509_insert(certchain.Ptr(), cert.Ptr(), certN) == 0) return NULL;
       (void)cert.Release();
     }
     // Verify the chain
 
     // Remember and return public key of first certificate
     X509* mainCert = sk_X509_value(certchain.Ptr(), 0);
-    if(mainCert == nullptr) return nullptr;
+    if(mainCert == NULL) return NULL;
     // Note: following call increases reference count
     return X509_PUBKEY_get(X509_get_X509_PUBKEY(mainCert));
   }
 
   evp_pkey_st* JWSE::GetPublicKey() const {
-    if (publicKey_ != nullptr) return publicKey_;
+    if (publicKey_ != NULL) return publicKey_;
     // So far we are going to support only embedded keys - jwk and x5c
     cJSON* x5cObject = cJSON_GetObjectItem(header_, "x5c");
     cJSON* jwkObject = cJSON_GetObjectItem(header_, "jwk");
-    if(x5cObject != nullptr) {
+    if(x5cObject != NULL) {
       publicKey_ = x5cParse(x5cObject);
-    } else if(jwkObject != nullptr) {
+    } else if(jwkObject != NULL) {
       publicKey_ = jwkParse(jwkObject);
     }
     return publicKey_;
