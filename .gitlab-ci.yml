@@ -6,6 +6,7 @@ stages:
 
 make_rpms:
   stage: rpms
+  image: maikenp/centosarc2
   script: 
   - yum update -y
   - yum install -y wget epel-release gcc-c++ make cppunit perl-Inline perl-Inline-Python
@@ -27,8 +28,9 @@ make_rpms:
   only:
   - master@nordugrid/arc
   tags:
+    - general-shared 
     #- centos-shared
-    - build-rpms
+    #- build-rpms
   artifacts:
     when: on_success
     paths:
