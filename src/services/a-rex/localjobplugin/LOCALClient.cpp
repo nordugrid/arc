@@ -302,7 +302,7 @@ namespace ARexLOCAL {
       }
       ARex::job_input_status_add_file(gmjob,*config,fn);
     }
-    ARex::SignalFIFO(config->ControlDir()); // When moving to even driven a-rex add job id here
+    (void)ARex::CommFIFO::Signal(config->ControlDir(), localjob.id);
     return true;
   }
 
