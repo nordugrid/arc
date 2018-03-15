@@ -30,11 +30,10 @@ make_rpms:
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
   only:
-  - master@nordugrid/arc
+    when: $CI_PROJECT_URL == 'https://source.coderefinery.org/nordugrid/arc/'
+    - master@nordugrid/arc
   tags:
     - general-shared 
-    #- centos-shared
-    #- build-rpms
   artifacts:
     when: on_success
     paths:
@@ -76,7 +75,8 @@ deploy_staging:
   dependencies:
     - make_rpms
   only:
-  - master@nordugrid/arc
+    when: $CI_PROJECT_URL == 'https://source.coderefinery.org/nordugrid/arc/'
+    - master@nordugrid/arc
   tags:
     - deploy
   allow_failure: false
@@ -87,6 +87,7 @@ test:
   tags:
     - centos-arc
   only:
-  - master@nordugrid/arc
+    when: $CI_PROJECT_URL == 'https://source.coderefinery.org/nordugrid/arc/'
+    - master@nordugrid/arc
 
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
