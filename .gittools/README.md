@@ -1,4 +1,4 @@
-Please do not change anything in these files. If you want to modify the tools, copy the folder outside of your git repo, and work from there. 
+The tools live in https://source.coderefinery.org/nordugrid/arc.git
 
 See instructions for installation and use of python gitlab: http://python-gitlab.readthedocs.io/en/stable/index.html
 
