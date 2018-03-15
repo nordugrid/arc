@@ -1,7 +1,6 @@
-## To enable the gitlab CI on your fork, comment out the "only:" section from the make_rpms job
-## Do not comment out the same lines in the deploy_staging or test jobs
-## since at the moment we only want the automatic build for the forks, not the autodeploy or testing
-## Check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
+## Please do not change this file. 
+## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file. 
+## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
   - rpms
