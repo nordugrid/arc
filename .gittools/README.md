@@ -1,3 +1,5 @@
+Please do not change anything in these files. If you want to modify the tools, copy the folder outside of your git repo, and work from there. 
+
 See instructions for installation and use of python gitlab: http://python-gitlab.readthedocs.io/en/stable/index.html
 
 You must make your private access token, see instructions: https://docs.gitlab.com/ce/user/profile/personal_access_tokens.html
