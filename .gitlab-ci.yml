@@ -19,11 +19,9 @@ make_rpms:
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
   - export VERSION=`cat VERSION`
-  - make
-  - make install
   - make dist
   - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
-  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec --nocheck
   - cd $CI_PROJECT_DIR
   tags:
     - general-shared 
