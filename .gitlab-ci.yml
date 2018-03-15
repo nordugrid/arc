@@ -12,11 +12,6 @@ make_rpms:
   image: maikenp/centosarc2
   script: 
   - yum update -y
-  - yum install -y wget epel-release gcc-c++ make cppunit perl-Inline perl-Inline-Python
-  - yum install -y yum-utils --enablerepo=extras
-  - yum groupinstall -y 'Development tools'
-  - wget https://downloads.globus.org/toolkit/gt6/stable/installers/repo/rpm/globus-toolkit-repo-latest.noarch.rpm
-  - yum localinstall -y globus-toolkit-repo-latest.noarch.rpm
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
