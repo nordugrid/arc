@@ -70,23 +70,33 @@ my $confdefaults = {
       infosys_ldap_run_dir => '/var/run/arc/infosys/'
    },
    'infosys/ldap/bdii' => {
-	   # TODO: remove values unused by providers.
-	   # check InfosysHelper code
-       bdii_debug_level => 'ERROR',
-       provider_timeout => '10800',
-       bdii_location => '/usr',
+
+	   # TODO: check InfosysHelper code. Eventually move things here.
+
+	   # TODO: remove values unused by providers.       
+       ## not used in infoproviders: 
+       # bdii_debug_level => 'ERROR',
+       # provider_timeout => '10800',
+       # bdii_location => '/usr',
+       # bdii_conf => '/var/run/arc/infosys/bdii.conf',
+       # bdii_update_cmd => '/usr/sbin/bdii-update',
+       # bdii_db_config => '/etc/bdii/DB_CONFIG',
+       # bdii_archive_size => 0,
+       # bdii_breathe_time => '10',
+       # bdii_delete_delay => 0,
+       
+       # used in InfosysHelper, these depend on BDII, but we have some
+       # control on them:
        bdii_run_dir => '/var/run/arc/bdii',
        bdii_log_dir => '/var/log/arc/bdii',
        bdii_tmp_dir => '/var/tmp/arc/bdii',
        bdii_var_dir => '/var/lib/arc/bdii',
-       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid',
-       bdii_conf => '/var/run/arc/infosys/bdii.conf',
-       bdii_update_cmd => '/usr/sbin/bdii-update',
-       bdii_db_config => '/etc/bdii/DB_CONFIG',
-       bdii_archive_size => 0,
-       bdii_breathe_time => '10',
-       bdii_delete_delay => 0,
+       # this one depends on bdii_run_dir
+       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
+       
        ## TODO: fix this elsewere, the value should be set according to the formula below
+       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
+       ## startup scripts is called max_cycle
        ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
        ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
        #bdii_read_timeout=300
@@ -217,23 +227,18 @@ my $sshcommon_options = {
 
 # C 147
 my $bdii_options = {
-    # TODO: remove values unused by providers.
-    # check InfosysHelper code
-    bdii_debug_level => '*',
-    provider_timeout => '*',
-    bdii_location => '*',
+    # These values have been checked to be used by infoproviders.
     bdii_run_dir => '*',
     bdii_log_dir => '*',
     bdii_tmp_dir => '*',
     bdii_var_dir => '*',
-    bdii_update_pid_file => '*',
-    bdii_conf => '*',
-    bdii_update_cmd => '*',
-    bdii_db_config => '*',
-    bdii_archive_size => '*',
-    bdii_breathe_time => '*',
-    bdii_delete_delay => '*',
-    bdii_read_timeout => '*'
+    bdii_update_pid_file => '*'
+    ## TODO: fix this elsewere, the value should be set according to the formula below
+    ## not used directly by infoproviders, maybe by bdii config?
+    ## this is probably done in the startup script, is called max_cycle
+    ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
+    ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+    #bdii_read_timeout=300
 };
 
 # C 141
@@ -382,9 +387,9 @@ my $config_schema = {
 		validity_ttl => '*',
 		user => '*',
 		ldap => { # C141
-			%$ldap_infosys_options, # C 141
-			%$bdii_options # C 147
-		},
+            %$ldap_infosys_options, # C 141
+            bdii => { %$bdii_options } # C 147 
+        },
 		glue1 => {}, # C 161
 	    glue2 => { # C 156
 	       %$glue2_options,
@@ -506,8 +511,10 @@ sub rename_keys {
 # usage: merge_hash_values(hash1,hash2)
 sub merge_hash_values {
 	my ($hash1,$hash2) = @_;
-    for (keys %{$hash2}) {
-        $hash1->{$_} = $hash2->{$_} if ((not defined $hash1->{$_}) || ($hash1->{$_} eq ''));
+    for my $key (keys %{$hash2}) {
+        $hash1->{$key} = $hash2->{$key} if ((not defined $hash1->{$key}) || ($hash1->{$key} eq ''));
+        # attempt to merge recursively
+        # merge_hash_values($hash1->{$key},$hash2->{$key}) if (ref $key eq ref {});
     }
 }
 
@@ -741,16 +748,14 @@ sub build_config_from_json {
     # LDAP config
     if (defined $jsonconf->{'infosys/ldap'}) {
 		$config->{infosys}{ldap} ||= {};
+        # bdii is required by LDAP
+        $config->{infosys}{ldap}{bdii} ||= {};
 		my $ldapconf = $jsonconf->{'infosys/ldap'};
 	    move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$ldap_infosys_options];
 	    
 	    # BDII config
-        if (defined $jsonconf->{'infosys/ldap/bdii'}) {
-		   my $ldapconf = $jsonconf->{'infosys/ldap/bdii'};
-	       move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$bdii_options];
-        } else {
-	       $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values")	
-	    }
+        my $bdiiconf = $jsonconf->{'infosys/ldap/bdii'};
+	    move_keys $bdiiconf, $config->{infosys}{ldap}{bdii}, [keys %$bdii_options];
     } else {
 	    $log->verbose("[infosys/ldap] block not found in arc.conf Disabling LDAP/LDIF information generation.")	
 	}
@@ -1055,11 +1060,16 @@ sub set_defaults {
     # force ldap defaults if ldap renderings are enabled in config
     if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
 		unless (defined $config->{'infosys/ldap'}) {
-		    $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure blocks [infosys/ldap] and [infosys/ldap/bdii] to remove this message.");
+		    $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure at least the [infosys/ldap] block to remove this message.");
 		    $config->{'infosys/ldap'} ||= {};
-		    $config->{'infosys/ldap/bdii'} ||= {};
 		}
 	}
+    
+    # force BDII defaults if LDAP configured    
+    if (defined $config->{'infosys/ldap'}) {
+        $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
+        $config->{'infosys/ldap/bdii'} ||= {};
+    }
     
     ## end of default blocks creation
        
@@ -1069,7 +1079,7 @@ sub set_defaults {
 			$config->{$_} ||= {};
 			merge_hash_values($config->{$_},$confdefaults->{$_});
 		} else {
-		  $log->debug("$_ block missing");
+		  $log->debug("$_ block missing in input config while applying defaults. This should not happen, developers should check config dependencies");
 	    }
 	}
 }
