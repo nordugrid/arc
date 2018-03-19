@@ -36,8 +36,7 @@ deploy_staging:
   stage: deploy_test
   script:
     - echo "Deploy to staging server"
-    - yum install -y ntpdate time
-    - service ntp stop; ntpdate -s europe.pool.ntp.org; service ntp start;
+    - yum install -y time
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
