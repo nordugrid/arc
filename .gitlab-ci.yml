@@ -74,6 +74,8 @@ deploy_staging:
     - make_rpms
   tags:
     - deploy
+  only: 
+    - master@nordugrid/arc
   allow_failure: true
 
 
