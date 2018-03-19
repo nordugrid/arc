@@ -85,7 +85,7 @@ controldir=\"`pwd`/controldir\"" ${test}.arc.conf
   # Use test GM-kick and arcconfig-parser script
   mkdir -p "$(pwd)/@pkglibexecsubdir@/"
   ln -s $(pwd)/../gm-kick $(pwd)/@pkglibexecsubdir@/gm-kick
-  ln -s $(pwd)/../@pkglibexecsubdir@/arcconfig-parser $(pwd)/@pkglibexecsubdir@/arcconfig-parser
+  ln -s $(pwd)/../arcconfig-parser $(pwd)/@pkglibexecsubdir@/arcconfig-parser
   export ARC_LOCATION=$(pwd)
   
   
