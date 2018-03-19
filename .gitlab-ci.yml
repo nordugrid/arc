@@ -50,6 +50,8 @@ deploy_staging:
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
     - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
+    - cat /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
     - /etc/rc.d/init.d/gridftpd start
@@ -57,6 +59,8 @@ deploy_staging:
     - sleep 10m
     - /etc/rc.d/init.d/a-rex stop
     - /etc/rc.d/init.d/gridftpd stop
+    - ls -lhrt /var/www/html/arc-logs
+    - ls -lhrt /var/www/html/arc-tests
     - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
     - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
     - sleep 10m
@@ -71,7 +75,7 @@ deploy_staging:
     - make_rpms
   tags:
     - deploy
-  allow_failure: false
+  allow_failure: true
 
 
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
