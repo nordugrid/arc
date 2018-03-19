@@ -51,14 +51,13 @@ deploy_staging:
     - mv *.0 /etc/grid-security/certificates
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
-    - cat /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
-    - /etc/rc.d/init.d/gridftpd start
+    #- /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
     - sleep 10m
     - /etc/rc.d/init.d/a-rex stop
-    - /etc/rc.d/init.d/gridftpd stop
+    #- /etc/rc.d/init.d/gridftpd stop
     - ls -lhrt /var/www/html/arc-logs
     - ls -lhrt /var/www/html/arc-tests
     - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
