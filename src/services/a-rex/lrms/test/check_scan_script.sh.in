@@ -82,9 +82,10 @@ controldir=\"`pwd`/controldir\"" ${test}.arc.conf
     export SIMULATOR_OUTCOME_FILE=$(pwd)/simulator_output
     export SIMULATOR_ERRORS_FILE=$(pwd)/simulator_errors
   fi
-  # Use test GM-kick script
+  # Use test GM-kick and arcconfig-parser script
   mkdir -p "$(pwd)/@pkglibexecsubdir@/"
   ln -s $(pwd)/../gm-kick $(pwd)/@pkglibexecsubdir@/gm-kick
+  ln -s $(pwd)/../arcconfig-parser $(pwd)/@pkglibexecsubdir@/arcconfig-parser
   export ARC_LOCATION=$(pwd)
   
   
