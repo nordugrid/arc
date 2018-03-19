@@ -28,7 +28,7 @@ fi
 function goToParentAndRemoveDir() {
   export PATH=${ORIG_PATH}
   cd ..
-  #rm -rf ${1}
+  rm -rf ${1}
   if test "${lrms_script_name}x" != "x"; then
     rm -f ${lrms_script_name} ${lrms_script_name}.out ${lrms_script_name}.err
   fi
