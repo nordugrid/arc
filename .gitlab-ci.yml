@@ -36,7 +36,8 @@ deploy_staging:
   stage: deploy_test
   script:
     - echo "Deploy to staging server"
-    - yum install -y ntpdate
+    - yum install -y ntpdate time
+    - service ntp stop; ntpdate -s europe.pool.ntp.org; service ntp start;
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
@@ -54,11 +55,12 @@ deploy_staging:
     - /etc/rc.d/init.d/a-rex start
     - /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
-    - sleep 5m
+    - sleep 10m
     - /etc/rc.d/init.d/a-rex stop
     - /etc/rc.d/init.d/gridftpd stop
     - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
     - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
+    - sleep 10m
   environment:
     name: staging
   artifacts:
