@@ -4,8 +4,7 @@
 
 stages:
   - rpms
-  - deploy
-  - test
+  - deploy_test
   
 make_rpms:
   stage: rpms
@@ -34,10 +33,10 @@ make_rpms:
   allow_failure: false
  
 deploy_staging:
-  stage: deploy
+  stage: deploy_test
   script:
     - echo "Deploy to staging server"
-    - yum install -y time
+    - yum install -y ntpdate
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
@@ -55,25 +54,23 @@ deploy_staging:
     - /etc/rc.d/init.d/a-rex start
     - /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
-    - sleep 10m
+    - sleep 5m
+    - /etc/rc.d/init.d/a-rex stop
+    - /etc/rc.d/init.d/gridftpd stop
+    - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
+    - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - /var/www/html/arc-logs/
-     - /var/www/html/arc-tests/
+     - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - make_rpms
   tags:
     - deploy
   allow_failure: false
-
-test:
-  stage: test
-  script: echo "Running tests (empty job at the moment)"
-  tags:
-    - centos-arc
 
 
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
