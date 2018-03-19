@@ -5,13 +5,14 @@ TESTS = basic-test memory-test count-test queue-test job-name-test \
 TESTS_ENVIRONMENT = \
 	PYTHONPATH=$(abs_top_srcdir)/src/utils/configparser/ \
 	ARC_PLUGIN_PATH=$(abs_top_builddir)/src/hed/acc/JobDescriptionParser/.libs \
+	ARC_LOCATION=$(abs_builddir) \
 	TEST_WRITE_GRAMI_FILE=$(top_builddir)/src/services/a-rex/grid-manager/test_write_grami_file \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_submit_script.sh submit-SLURM-job
 
 SCRIPTSNEEDED = basic-script.sh check_submit_script.sh \
 	submit-SLURM-job configure-SLURM-env.sh \
-	submit_common.sh arcconfig-parser command-simulator.sh
+	submit_common.sh $(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
 
 check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
 
@@ -30,8 +31,9 @@ configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
 submit_common.sh: $(builddir)/../../../submit_common.sh
 	cp $< $@
 
-arcconfig-parser: $(top_srcdir)/src/utils/configparser/arcconfig-parser
-	cp $< $@
+$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/configparser/arcconfig-parser
+	mkdir -p $(pkglibexecsubdir)
+	cp $< $(pkglibexecsubdir)/.
 
 command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
 	cp $< $@
