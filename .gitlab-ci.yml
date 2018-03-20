@@ -55,14 +55,14 @@ deploy_staging:
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
-    - sleep 10m
+    - sleep 2m
     - /etc/rc.d/init.d/a-rex stop
     #- /etc/rc.d/init.d/gridftpd stop
     - ls -lhrt /var/www/html/arc-logs
-    - ls -lhrt /var/www/html/arc-tests
+    #- ls -lhrt /var/www/html/arc-tests
     - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
-    - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
-    - sleep 10m
+    #- cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
+    - sleep 2m
   environment:
     name: staging
   artifacts:
@@ -79,5 +79,5 @@ deploy_staging:
     - tags@nordugrid/arc
   allow_failure: true
 
-
+##for some reason get /var/www/html/arc-tests no such file or directory, while it is created and looks exactly like the /var/www/html/arc-logs folder
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
