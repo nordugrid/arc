@@ -37,26 +37,38 @@ deploy_staging:
   script:
     - echo "Deploy to staging server"
     - yum install -y time
+    - echo "Preparing rpms for localinstall"
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
     - yum localinstall *.rpm -y
+    - echo "Generating test host certificate"
     - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
     - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
     - ls -lhrt
     - mv host* /etc/grid-security/
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
+    - echo "Cleaning up old arc log files"
+    - rm /var/www/html/arc-logs/*
+    - echo "validating arc.config and starting services"
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
+    - echo 'Test-submit through local plugin'
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc-test/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc-test/hello_inputfile.xrls
+    - echo 'test-submit through emies plugin'
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc-test/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc-test/hello_inputfile.xrls
     - sleep 2m
     - /etc/rc.d/init.d/a-rex stop
+    - echo "Copy logs to project folder for artifact uploads"
     #- /etc/rc.d/init.d/gridftpd stop
     - ls -lhrt /var/www/html/arc-logs
     #- ls -lhrt /var/www/html/arc-tests
@@ -69,7 +81,7 @@ deploy_staging:
     when: always
     paths:
      - $CI_PROJECT_DIR/arc-logs/
-     - $CI_PROJECT_DIR/arc-tests/
+     #- $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - make_rpms
   tags:
