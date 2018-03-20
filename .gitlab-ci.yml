@@ -52,7 +52,6 @@ deploy_staging:
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
     - echo "Cleaning up old arc log files"
-    - rm /var/www/html/arc-logs/*
     - echo "validating arc.config and starting services"
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
