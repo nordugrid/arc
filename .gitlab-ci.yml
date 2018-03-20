@@ -75,7 +75,8 @@ deploy_staging:
   tags:
     - deploy
   only: 
-    - master@nordugrid/arc
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   allow_failure: true
 
 
