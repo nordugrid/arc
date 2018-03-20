@@ -1,24 +1,16 @@
-## To enable the gitlab CI on your fork, comment out the "only:" section from the make_rpms job
-## Do not comment out the same lines in the deploy_staging or test jobs
-## since at the moment we only want the automatic build for the forks, not the autodeploy or testing
-## Check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
+## Please do not change this file. 
+## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file. 
+## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
   - rpms
-  - deploy
-  - test
+  - deploy_test
   
-
 make_rpms:
   stage: rpms
   image: maikenp/centosarc2
   script: 
   - yum update -y
-  - yum install -y wget epel-release gcc-c++ make cppunit perl-Inline perl-Inline-Python
-  - yum install -y yum-utils --enablerepo=extras
-  - yum groupinstall -y 'Development tools'
-  - wget https://downloads.globus.org/toolkit/gt6/stable/installers/repo/rpm/globus-toolkit-repo-latest.noarch.rpm
-  - yum localinstall -y globus-toolkit-repo-latest.noarch.rpm
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
@@ -30,12 +22,8 @@ make_rpms:
   - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
-  only:
-  - master@nordugrid/arc
   tags:
     - general-shared 
-    #- centos-shared
-    #- build-rpms
   artifacts:
     when: on_success
     paths:
@@ -45,7 +33,7 @@ make_rpms:
   allow_failure: false
  
 deploy_staging:
-  stage: deploy
+  stage: deploy_test
   script:
     - echo "Deploy to staging server"
     - yum install -y time
@@ -62,32 +50,34 @@ deploy_staging:
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
     - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
-    - /etc/rc.d/init.d/gridftpd start
+    #- /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
+    - sleep 10m
+    - /etc/rc.d/init.d/a-rex stop
+    #- /etc/rc.d/init.d/gridftpd stop
+    - ls -lhrt /var/www/html/arc-logs
+    - ls -lhrt /var/www/html/arc-tests
+    - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
+    - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
     - sleep 10m
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - /var/www/html/arc-logs/
-     - /var/www/html/arc-tests/
+     - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - make_rpms
-  only:
-  - master@nordugrid/arc
   tags:
     - deploy
-  allow_failure: false
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: true
 
-test:
-  stage: test
-  script: echo "Running tests (empty job at the moment)"
-  tags:
-    - centos-arc
-  only:
-  - master@nordugrid/arc
 
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
