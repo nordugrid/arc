@@ -38,7 +38,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsList::ExternalHelpers::ExternalHelpers(const std::list<std::string>& commands, JobsList const& jobs):
                                                   Arc::Thread(), jobs_list(jobs), stop_request(false) {
-  for (std::list<std::string>::const_iterator command = commands.cbegin(); command != commands.cend(); ++command) {
+  for (std::list<std::string>::const_iterator command = commands.begin(); command != commands.end(); ++command) {
     helpers.push_back(*command);
   }
 }
