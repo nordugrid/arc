@@ -216,7 +216,6 @@ prepare() {
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
     WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex wslogfile`
-    PERFLOGDIR=`readconfigvar "$ARC_CONFIG" common perflogdir`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" arex logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" arex logreopen`
@@ -542,12 +541,6 @@ prepare() {
     if [ ! -d `dirname $WSLOGFILE` ]; then
         mkdir -p `dirname $WSLOGFILE`
     fi
-    PERFLOGDIR=${PERFLOGDIR:-/var/log/arc/perfdata}
-    if [ ! -d $PERFLOGDIR ]; then
-        mkdir -p $PERFLOGDIR
-    fi
-    # Set permissions suitable for logs written under user accounts
-    chmod a+rwx $PERFLOGDIR
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`

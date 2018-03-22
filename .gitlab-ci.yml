@@ -4,8 +4,7 @@
 
 stages:
   - rpms
-  - deploy
-  - test
+  - deploy_test
   
 make_rpms:
   stage: rpms
@@ -34,46 +33,62 @@ make_rpms:
   allow_failure: false
  
 deploy_staging:
-  stage: deploy
+  stage: deploy_test
   script:
     - echo "Deploy to staging server"
     - yum install -y time
+    - echo "Preparing rpms for localinstall"
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
     - yum localinstall *.rpm -y
+    - echo "Generating test host certificate"
     - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
     - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
     - ls -lhrt
     - mv host* /etc/grid-security/
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
+    - echo "Cleaning up old arc log files"
+    - echo "validating arc.config and starting services"
     - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
-    - /etc/rc.d/init.d/gridftpd start
+    #- /etc/rc.d/init.d/gridftpd start
     - echo 'Now run some tests - like submitting jobs'
-    - sleep 10m
+    - echo 'Test-submit through local plugin'
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc-test/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc-test/hello_inputfile.xrls
+    - echo 'test-submit through emies plugin'
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc-test/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc-test/hello_inputfile.xrls
+    - sleep 2m
+    - /etc/rc.d/init.d/a-rex stop
+    - echo "Copy logs to project folder for artifact uploads"
+    #- /etc/rc.d/init.d/gridftpd stop
+    - ls -lhrt /var/www/html/arc-logs
+    #- ls -lhrt /var/www/html/arc-tests
+    - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
+    #- cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
+    - sleep 2m
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - /var/www/html/arc-logs/
-     - /var/www/html/arc-tests/
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - make_rpms
   tags:
     - deploy
-  allow_failure: false
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: true
 
-test:
-  stage: test
-  script: echo "Running tests (empty job at the moment)"
-  tags:
-    - centos-arc
-
-
+##for some reason get /var/www/html/arc-tests no such file or directory, while it is created and looks exactly like the /var/www/html/arc-logs folder
 ##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
