@@ -5,6 +5,8 @@
 #include <list>
 #include <glib.h>
 
+#include <arc/Thread.h>
+
 #include "../conf/StagingConfig.h"
 
 #include "GMJob.h"
@@ -227,15 +229,30 @@ class JobsList {
     ExternalHelper(const std::string &cmd);
     ~ExternalHelper();
     /// Start process if it is not running yet
-    bool run(JobsList& list);
+    bool run(JobsList const& list);
     /// Stop process if it is running
     void stop();
   };
 
-  friend class ExternalHelper;
+  /// Class for handling multiple external threads
+  class ExternalHelpers: protected Arc::Thread {
+   public:
+    /// Construct instance from commands attached to jobs.
+    ExternalHelpers(std::list<std::string> const& commands, JobsList const& jobs);
+    /// Kill thread handling helpers and destroy this instance.
+    ~ExternalHelpers();
+    /// Start handling by spawning dedicated thread.
+    void start();
+   private:
+    virtual void thread(void);
+    std::list<ExternalHelper> helpers;
+    JobsList const& jobs_list;
+    Arc::SimpleCounter stop_cond;
+    bool stop_request;
+  };
 
-  /// List of associated external processes
-  std::list<ExternalHelper> helpers;
+  /// Associated external processes
+  ExternalHelpers helpers;
 
  public:
   static const int ProcessingQueuePriority = 3;
@@ -318,9 +335,6 @@ class JobsList {
   // Wait for attention request or polling time
   // While waiting may also perform slow scanning of old jobs
   void WaitAttention();
-
-  /// Start/restart all helper processes
-  bool RunHelpers();
 
 };
 
