@@ -37,18 +37,22 @@ deploy_staging:
   script:
     - echo "Deploy to staging server"
     - yum install -y time
+    - echo "Preparing rpms for localinstall"
     - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
     - yum localinstall *.rpm -y
+    - echo "Generating test host certificate"
     - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
     - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
     - ls -lhrt
     - mv host* /etc/grid-security/
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
+    - echo "Cleaning up old arc log files"
+    - echo "validating arc.config and starting services"
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
     - /etc/rc.d/init.d/a-rex validate

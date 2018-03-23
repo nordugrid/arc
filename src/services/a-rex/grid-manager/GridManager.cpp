@@ -301,7 +301,6 @@ bool GridManager::thread() {
       }
     }
     // TODO: check conditions for following calls
-    jobs.RunHelpers();
     JobLog* joblog = config_.GetJobLog();
     if(joblog) joblog->RunReporter(config_);
     JobsMetrics* metrics = config_.GetJobsMetrics();
