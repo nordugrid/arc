@@ -10,7 +10,7 @@ Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
 Replaces: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
-Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~), nordugrid-arc-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~), nordugrid-arc-java (<< 6.0.0~), nordugrid-arc-egiis (<< 6.0.0~)
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
@@ -136,6 +136,8 @@ Description: ARC local information system
  nordugrid-arc-arex.
 
 Package: nordugrid-arc-monitor
+Replaces: nordugrid-arc-ldap-monitor (<< 6.0.0~), nordugrid-arc-ws-monitor (<< 6.0.0~)
+Conflicts: nordugrid-arc-ldap-monitor (<< 6.0.0~), nordugrid-arc-ws-monitor (<< 6.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, php-common | php5-common, php-ldap | php5-ldap, php-gd | php5-gd
 Description: ARC LDAP monitor service
