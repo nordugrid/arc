@@ -204,6 +204,7 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 %if ! %{with_canl}
 Obsoletes:	%{name}-arcproxyalt < %{version}-%{release}
 %endif
+Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
 
 BuildRequires:	cppunit-devel
@@ -498,6 +499,8 @@ Requires:	php-ldap
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Obsoletes:	%{name}-ldap-monitor < 6.0.0
+Obsoletes:	%{name}-ws-monitor < 6.0.0
 
 %description monitor
 NorduGrid is a collaboration aiming at development, maintenance and
