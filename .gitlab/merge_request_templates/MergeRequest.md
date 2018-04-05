@@ -21,12 +21,17 @@ Short description of work (#10, Fixes #1, Fixes #4).
 ## Labels
 #### Target branch labels
 Select branch-labels instructing the arcbot to create merge request to additional target branch(es).
+
 See [Rule table](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-cheat-sheet-2#rule-table) for reference. 
 
 #### ARC component labels - when no issue
-Select the right ARC component labels. [About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+Select the right ARC component labels. 
+
+[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
 #### Type of fix labels - when no issue
-Select the right type labels. [About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+Select the right type labels. 
+
+[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
 
 
 ## Description
