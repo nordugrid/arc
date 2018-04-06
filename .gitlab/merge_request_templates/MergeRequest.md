@@ -1,6 +1,9 @@
 **Remove the instructions below for your actual merge request.**
 
 ==================== INSTRUCTIONS BEGIN ========================
+
+[GitLab action keywords that could be useful to fill this merge request](https://source.coderefinery.org/help/user/project/quick_actions)
+
 ## Title 
 
 ####  If WIP merge request
@@ -19,6 +22,9 @@ Or a combination of these, example with several issues:
 Short description of work (#10, Fixes #1, Fixes #4).
 ```
 ## Labels
+If you don't have labels available from the drop-down menu, you can specify the labels using syntax in bottom of the description:
+/label ~foo ~"bar baz"
+
 #### Target branch labels
 Select branch-labels instructing the arcbot to create merge request to additional target branch(es).
 
