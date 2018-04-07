@@ -42,9 +42,10 @@ deploy_staging:
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
+    - echo "Doing localinstall"
     - yum localinstall *.rpm -y
+     - echo "Installing CAs"
     - wget http://repository.egi.eu/sw/production/cas/1/current/repo-files/EGI-trustanchors.repo
-    - echo "Installing CAs"
     - mv EGI-trustanchors.repo /etc/yum.repos.d/
     - yum install ca_policy_igtf-classic ca_policy_igtf-misc ca_policy_igtf-slcs -y
     - echo "Generating test host certificate"
