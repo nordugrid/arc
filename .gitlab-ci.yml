@@ -11,6 +11,8 @@ make_rpms:
   image: maikenp/centosarc2
   script: 
   - yum update -y
+  - wget https://downloads.globus.org/toolkit/gt6/stable/installers/repo/rpm/globus-toolkit-repo-latest.noarch.rpm
+  - rpm -hUv globus-toolkit-repo-latest.noarch.rpm
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
