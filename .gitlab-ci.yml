@@ -13,6 +13,7 @@ make_rpms:
   - yum update -y
   - ./autogen.sh
   - ./configure
+  - yum-builddep nordugrid-arc.spec -y
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
