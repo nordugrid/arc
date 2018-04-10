@@ -8,7 +8,7 @@ stages:
   
 make_rpms:
   stage: rpms
-  image: maikenp/centos6-build
+  image: maikenp/arc-build-centos6
   script: 
   - yum update -y
   - ./autogen.sh
