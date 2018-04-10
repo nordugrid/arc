@@ -11,11 +11,11 @@ make_rpms:
   image: maikenp/centosarc2
   script: 
   - yum update -y
-  - wget https://downloads.globus.org/toolkit/gt6/stable/installers/repo/rpm/globus-toolkit-repo-latest.noarch.rpm
-  - rpm -hUv globus-toolkit-repo-latest.noarch.rpm
   - ./autogen.sh
   - ./configure
   - yum-builddep -y nordugrid-arc.spec
+  - ./autogen.sh
+  - ./configure
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
