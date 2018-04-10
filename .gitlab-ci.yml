@@ -8,12 +8,9 @@ stages:
   
 make_rpms:
   stage: rpms
-  image: maikenp/centosarc2
+  image: maikenp/centos6-build
   script: 
   - yum update -y
-  - ./autogen.sh
-  - ./configure
-  - yum-builddep -y nordugrid-arc.spec
   - ./autogen.sh
   - ./configure
   - echo "Preparing and running rpmbuild"
