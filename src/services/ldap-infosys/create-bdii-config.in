@@ -30,12 +30,6 @@ if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
     exit 1
 fi
 
-# Check for infosys/ldap/bdii block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii; then
-    echo "Missing [infosys/ldap/bdii] configuration block"
-    exit 1
-fi
-
 eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
 
 # These options need to come from the infosys block, not from common
