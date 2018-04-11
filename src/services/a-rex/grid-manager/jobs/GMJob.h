@@ -171,6 +171,7 @@ public:
     if (job_) job_->RemoveReference();
     job_ = other.job_;
     if(job_) job_->AddReference();
+    return *this;
   }
 
   bool operator==(GMJobRef const& other) const {

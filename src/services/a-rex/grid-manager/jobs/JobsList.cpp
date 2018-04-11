@@ -36,6 +36,37 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+JobsList::ExternalHelpers::ExternalHelpers(const std::list<std::string>& commands, JobsList const& jobs):
+                                                  Arc::Thread(), jobs_list(jobs), stop_request(false) {
+  for (std::list<std::string>::const_iterator command = commands.begin(); command != commands.end(); ++command) {
+    helpers.push_back(*command);
+  }
+}
+
+void JobsList::ExternalHelpers::start() {
+  if(!helpers.empty())
+    Arc::Thread::start(&stop_cond);
+}
+
+JobsList::ExternalHelpers::~ExternalHelpers() {
+  stop_request = true;
+  stop_cond.wait();
+}
+
+void JobsList::ExternalHelpers::thread(void) {
+  while(!stop_request) {
+    for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
+      i->run(jobs_list);
+      // Wait enough to avoid failing helper consume 100% CPU
+      sleep(10); // This will delay destructor. And it is not very nice that value is hardcoded.
+    }
+  }
+  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
+    i->stop();
+  }
+}
+
+
 JobsList::JobsList(const GMConfig& gmconfig) :
     valid(false),
     config(gmconfig), staging_config(gmconfig),
@@ -44,7 +75,8 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     jobs_polling(0),
     jobs_wait_for_running(WaitQueuePriority),
     jobs_attention(AttentionQueuePriority),
-    jobs_processing(ProcessingQueuePriority) {
+    jobs_processing(ProcessingQueuePriority),
+    helpers(config.Helpers(), *this) {
 
   job_slow_polling_last = time(NULL);
   job_slow_polling_dir = NULL;
@@ -53,14 +85,12 @@ JobsList::JobsList(const GMConfig& gmconfig) :
   jobs_scripts = 0;
   jobs.clear();
 
-  for (std::list<std::string>::const_iterator helper = config.Helpers().begin(); helper != config.Helpers().end(); ++helper) {
-    helpers.push_back(*helper);
-  }
-
   if(!dtr_generator) {
     logger.msg(Arc::ERROR, "Failed to start data staging threads");
     return;
   };
+
+  helpers.start();
 
   valid = true;
 }
@@ -178,9 +208,6 @@ int JobsList::FinishingJobs() const {
 
 
 void JobsList::PrepareToDestroy(void) {
-  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
-    i->stop();
-  }
   for(std::map<JobId,GMJobRef>::iterator i=jobs.begin();i!=jobs.end();++i) {
     i->second->PrepareToDestroy();
   }
@@ -1825,7 +1852,7 @@ static void ExternalHelperKicker(void* arg) {
   // if(jobs) jobs->RequestAttention();
 }
 
-bool JobsList::ExternalHelper::run(JobsList& jobs) {
+bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   if (proc != NULL) {
     if (proc->Running()) {
       return true; // it is already/still running
@@ -1842,7 +1869,7 @@ bool JobsList::ExternalHelper::run(JobsList& jobs) {
   proc->KeepStdout(true);
   proc->KeepStderr(true);
   proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()));
-  proc->AssignKicker(&ExternalHelperKicker, &jobs);
+  proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
   if (proc->Start()) return true;
   delete proc;
   proc = NULL;
@@ -1856,14 +1883,6 @@ void JobsList::ExternalHelper::stop() {
     logger.msg(Arc::VERBOSE, "Stopping helper process %s", command);
     proc->Kill(1);
   }
-}
-
-bool JobsList::RunHelpers() {
-  bool started = true;
-  for (std::list<ExternalHelper>::iterator i = helpers.begin(); i != helpers.end(); ++i) {
-    started &= i->run(*this);
-  }
-  return started;
 }
 
 
