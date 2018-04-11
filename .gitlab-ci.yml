@@ -4,16 +4,16 @@
 
 stages:
   - rpms
-  - deploy_test
+  - deploy_and_test
   
 make_rpms:
   stage: rpms
-  image: maikenp/centosarc2
+  image: maikenp/arc-build-centos6
   script: 
   - yum update -y
   - ./autogen.sh
   - ./configure
-  - yum-builddep -y nordugrid-arc.spec
+  - yum-builddep nordugrid-arc.spec -y
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
@@ -33,40 +33,54 @@ make_rpms:
   allow_failure: false
  
 deploy_staging:
-  stage: deploy_test
+  stage: deploy_and_test
   script:
-    - echo "Deploy to staging server"
+    - echo "Deploying to staging server"
     - yum install -y time
     - echo "Preparing rpms for localinstall"
-    - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
+    - echo "Doing localinstall"
     - yum localinstall *.rpm -y
+     - echo "Installing CAs"
+    - wget http://repository.egi.eu/sw/production/cas/1/current/repo-files/EGI-trustanchors.repo
+    - mv EGI-trustanchors.repo /etc/yum.repos.d/
+    - yum install ca_policy_igtf-classic ca_policy_igtf-misc ca_policy_igtf-slcs -y
     - echo "Generating test host certificate"
     - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
     - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
+    - pwd
     - ls -lhrt
     - mv host* /etc/grid-security/
     - mv autocertif* /etc/grid-security/certificates
     - mv *.0 /etc/grid-security/certificates
-    - echo "Cleaning up old arc log files"
-    - echo "validating arc.config and starting services"
+    - ls -lhrt /etc/grid-security/
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
+    - sestatus
+    - echo "validating arc.config and starting services"
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
-    - echo 'Now run some tests - like submitting jobs'
-    - sleep 2m
+    - echo 'Test-submit through local plugin '
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey.pem
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcstat --all --long
+    - arcinfo -c 158.39.75.5 -S org.nordugrid.local
+    - echo "Skipping emies submission - not working yet."
+    #- echo 'test-submit through emies plugin'
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
+    #- sleep 5m
     - /etc/rc.d/init.d/a-rex stop
     #- /etc/rc.d/init.d/gridftpd stop
     - ls -lhrt /var/www/html/arc-logs
-    #- ls -lhrt /var/www/html/arc-tests
+    - ls -lhrt /var/www/html/arc-tests
     - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
-    #- cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
-    - sleep 2m
+    - cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
   environment:
     name: staging
   artifacts:
@@ -82,6 +96,6 @@ deploy_staging:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: true
+ 
 
-##for some reason get /var/www/html/arc-tests no such file or directory, while it is created and looks exactly like the /var/www/html/arc-logs folder
-##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
+##note-to-self: can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
