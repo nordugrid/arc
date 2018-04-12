@@ -34,6 +34,12 @@ struct voms_t {
   std::vector<voms_fqan_t> fqans; /*!< Processed FQANs of user */
 };
 
+struct scitokens_t {
+  std::string subject;
+  std::string issuer;
+  std::string audience;
+};
+
 class AuthUser {
  private:
   typedef AuthResult (AuthUser:: * match_func_t)(const char* line);
@@ -46,16 +52,20 @@ class AuthUser {
     std::string name;             //
     const char* vo;               // local VO which caused authorization of this group
     struct voms_t voms;           // VOMS attributes which caused authorization of this group
-    group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_):name(name_),vo(vo_?vo_:""),voms(voms_) { };
+    struct scitokens_t scitokens; // SciTokens attributes which caused authorization of this group
+    group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_,const struct scitokens_t& scitokens_):
+                                  name(name_),vo(vo_?vo_:""),voms(voms_),scitokens(scitokens_) { };
   };
 
   struct voms_t default_voms_;
+  struct scitokens_t default_scitokens_;
   const char* default_vo_;
   const char* default_group_;
 
   // Attributes of user
   std::string subject_;   // DN of certificate
   std::vector<struct voms_t> voms_data_; // VOMS information extracted from message
+  std::vector<struct scitokens_t> scitokens_data_; // SciTokens information extracted from message
 
   // Old attributes - remove or convert
   std::string from;      // Remote hostname
@@ -71,6 +81,7 @@ class AuthUser {
   AuthResult match_file(const char* line);
   AuthResult match_ldap(const char* line);
   AuthResult match_voms(const char* line);
+  AuthResult match_scitokens(const char* line);
   AuthResult match_vo(const char* line);
   AuthResult match_lcas(const char *);
   AuthResult match_plugin(const char* line);
@@ -142,6 +153,7 @@ class AuthUser {
     return false;
   };
   const std::vector<struct voms_t>& voms(void);
+  const std::vector<struct scitokens_t>& scitokens(void);
   const std::list<std::string>& VOs(void);
   const struct voms_t* get_group_voms(const std::string& grp) const {
     const group_t* group = find_group(grp);
@@ -150,6 +162,10 @@ class AuthUser {
   const char* get_group_vo(const std::string& grp) const {
     const group_t* group = find_group(grp);
     return (group == NULL)?NULL:group->vo;
+  };
+  const struct scitokens_t* get_group_scitokens(const std::string& grp) const {
+    const group_t* group = find_group(grp);
+    return (group == NULL)?NULL:&(group->scitokens);
   };
 
 

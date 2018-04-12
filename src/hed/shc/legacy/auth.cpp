@@ -22,6 +22,7 @@ void voms_fqan_t::str(std::string& str) const {
 
 AuthResult AuthUser::match_all(const char* /* line */) {
   default_voms_=voms_t();
+  default_scitokens_=scitokens_t();
   default_vo_=NULL;
   default_group_=NULL;
   return AAA_POSITIVE_MATCH;
@@ -37,6 +38,7 @@ AuthResult AuthUser::match_group(const char* line) {
     for(std::list<group_t>::iterator i = groups_.begin();i!=groups_.end();++i) {
       if(s == i->name) {
         default_voms_=voms_t();
+        default_scitokens_=scitokens_t();
         default_vo_=i->vo;
         default_group_=i->name.c_str();
         return AAA_POSITIVE_MATCH;
@@ -56,6 +58,7 @@ AuthResult AuthUser::match_vo(const char* line) {
     for(std::list<std::string>::iterator i = vos_.begin();i!=vos_.end();++i) {
       if(s == *i) {
         default_voms_=voms_t();
+        default_scitokens_=scitokens_t();
         default_vo_=i->c_str();
         default_group_=NULL;
         return AAA_POSITIVE_MATCH;
@@ -71,6 +74,7 @@ AuthUser::source_t AuthUser::sources[] = {
   { "subject", &AuthUser::match_subject },
   { "file", &AuthUser::match_file },
   { "voms", &AuthUser::match_voms },
+  { "scitokens", &AuthUser::match_scitokens },
   { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
@@ -79,6 +83,7 @@ AuthUser::source_t AuthUser::sources[] = {
 AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   subject_ = a.subject_;
   voms_data_ = a.voms_data_;
+  scitokens_data_ = a.scitokens_data_;
   from = a.from;
 
   filename=a.filename;
@@ -86,6 +91,7 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   proxy_file_was_created=false;
 //  process_voms();
   default_voms_=voms_t();
+  default_scitokens_=scitokens_t();
   default_vo_=NULL;
   default_group_=NULL;
 
@@ -94,12 +100,14 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 }
 
 AuthUser::AuthUser(Arc::Message& message):
-    default_voms_(), default_vo_(NULL), default_group_(NULL),
+    default_voms_(), default_scitokens_(), default_vo_(NULL), default_group_(NULL),
     proxy_file_was_created(false), has_delegation(false), message_(message) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
+
+  Arc::SecAttr* sattr = NULL;
+
   // Fetch VOMS attributes
   std::list<std::string> voms_attrs;
-  Arc::SecAttr* sattr = NULL;
   sattr = message_.Auth()->get("TLS");
   if(sattr) {
     std::list<std::string> vomses = sattr->getAll("VOMS");
@@ -112,6 +120,23 @@ AuthUser::AuthUser(Arc::Message& message):
   };
   voms_data_ = arc_to_voms(voms_attrs);
 
+  // Fetch SciTokens attributes
+  sattr = message_.Auth()->get("SCITOKENS");
+  if(sattr) {
+    scitokens_t scitokens;
+    scitokens.subject  = sattr->get("SUBJECT");
+    scitokens.issuer   = sattr->get("ISSUER");
+    scitokens.audience = sattr->get("AUDIENCE");
+    scitokens_data_.push_back(scitokens);
+  };
+  sattr = message_.AuthContext()->get("SCITOKENS");
+  if(sattr) {
+    scitokens_t scitokens;
+    scitokens.subject  = sattr->get("SUBJECT");
+    scitokens.issuer   = sattr->get("ISSUER");
+    scitokens.audience = sattr->get("AUDIENCE");
+    scitokens_data_.push_back(scitokens);
+  };
 }
 
 // The attributes passed to this method are of "extended fqan" kind with every field 
@@ -296,7 +321,7 @@ bool AuthUser::store_credentials(void) {
 }
 
 void AuthUser::add_group(const std::string& grp) {
-  groups_.push_back(group_t(grp,default_vo_,default_voms_));
+  groups_.push_back(group_t(grp,default_vo_,default_voms_,default_scitokens_));
   logger.msg(Arc::VERBOSE,"Assigned to authorization group %s",grp);
 };
 
