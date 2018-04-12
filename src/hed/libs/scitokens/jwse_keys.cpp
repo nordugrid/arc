@@ -8,9 +8,41 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
 
 #include "jwse.h"
 
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+{
+  /* If the fields n and e in r are NULL, the corresponding input
+   * parameters MUST be non-NULL for n and e.  d may be
+   * left NULL (in case only the public key is used).
+   */
+  if ((r->n == NULL && n == NULL)
+      || (r->e == NULL && e == NULL))
+    return 0;
+
+  if (n != NULL) {
+    BN_free(r->n);
+    r->n = n;
+  }
+  if (e != NULL) {
+    BN_free(r->e);
+    r->e = e;
+  }
+  if (d != NULL) {
+    BN_free(r->d);
+    r->d = d;
+  }
+
+  return 1;
+}
+
+#endif
 
 
 namespace Arc {
@@ -36,11 +68,11 @@ namespace Arc {
     std::string exponent = Base64::decodeURLSafe(exponentObject->string);
     AutoPointer<RSA> rsaKey(RSA_new(),&RSA_free);
     if(!rsaKey) return NULL;
-    BIGNUM* tmpBn(NULL);
-    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), rsaKey->n)) == NULL) return NULL;
-    rsaKey->n = tmpBn;
-    if((tmpBn = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), rsaKey->e)) == NULL) return NULL;
-    rsaKey->e = tmpBn;
+    BIGNUM* n(NULL);
+    BIGNUM* e(NULL);
+    if((n = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), NULL)) == NULL) return NULL;
+    if((e = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), NULL)) == NULL) return NULL;
+    RSA_set0_key(rsaKey.Ptr(), n, e, NULL);
     AutoPointer<EVP_PKEY> evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
     if(!evpKey) return NULL;
     if(EVP_PKEY_set1_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return NULL;
