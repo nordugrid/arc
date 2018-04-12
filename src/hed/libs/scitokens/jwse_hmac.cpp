@@ -8,12 +8,16 @@
 
 #include "jwse.h"
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
+#endif
 
 namespace Arc {
 
   bool JWSE::VerifyHMAC(char const* digestName, void const* message, unsigned int messageSize,
                                                 void const* signature, unsigned int signatureSize) {
-    AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_create(),&EVP_MD_CTX_destroy);
+    AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
     if(!ctx) return false;
     // EVP_sha256
     const EVP_MD* md = EVP_get_digestbyname(digestName);
