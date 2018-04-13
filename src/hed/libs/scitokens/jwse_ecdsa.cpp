@@ -8,6 +8,11 @@
 
 #include "jwse.h"
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
+#endif
+
 // EVP_PKEY_get0_EC_KEY
 
 namespace Arc {
@@ -16,7 +21,7 @@ namespace Arc {
                                                  void const* signature, unsigned int signatureSize) {
     AutoPointer<EVP_PKEY> pkey(GetPublicKey(), &EVP_PKEY_free);
     if(!pkey) return false;
-    AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_create(),&EVP_MD_CTX_destroy);
+    AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
     if(!ctx) return false;
     const EVP_MD* md = EVP_get_digestbyname(digestName);
     if(!md) return false;
