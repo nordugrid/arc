@@ -396,7 +396,9 @@ fi
 batchid=
 if [ ! -z "$joboption_arg_2" ]; then
   taskid=$(echo $joboption_arg_2|grep -m1 -o taskID=........|cut -d = -f 2 )
-  batchid="--batch $taskid"
+  if [ ! -z "$taskid" ]; then
+    batchid="--batch $taskid"
+  fi
 fi
 
 cmd="bin/create_work \
