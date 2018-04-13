@@ -61,7 +61,7 @@
 %endif
 
 %if %{with_python}
-%if %{?fedora}%{!?fedora:0} || %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
@@ -207,6 +207,7 @@ Obsoletes:	%{name}-arcproxyalt < %{version}-%{release}
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
 
+BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
