@@ -3,9 +3,30 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
+  - build
   - rpms
   - deploy_and_test
   
+build_forks_el6:
+  stage: build
+  image: maikenp/arc-build-centos6
+  script: 
+  - yum update -y
+  - ./autogen.sh
+  - ./configure
+  - yum-builddep nordugrid-arc.spec -y
+  - echo "Run make"
+  - make
+  - echo "Run make check"
+  - make check
+  tags:
+    - general-shared 
+  except: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: false
+
+
 make_rpms_el6:
   stage: rpms
   image: maikenp/arc-build-centos6
@@ -24,8 +45,12 @@ make_rpms_el6:
   - cd $CI_PROJECT_DIR
   tags:
     - general-shared 
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   artifacts:
     when: on_success
+    expire_in: 30 days
     paths:
     - $CI_PROJECT_DIR/rpmbuild/SRPMS/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
@@ -50,14 +75,20 @@ make_rpms_el7:
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
   tags:
-    - general-shared 
+    - general-shared
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   artifacts:
     when: on_success
+    expire_in: 30 days
     paths:
     - $CI_PROJECT_DIR/rpmbuild/SRPMS/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
+  
+
  
 deploy_staging_el6:
   stage: deploy_and_test
@@ -126,8 +157,6 @@ deploy_staging_el6:
     - tags@nordugrid/arc
   allow_failure: true
  
-
-
 
 deploy_staging_el7:
   stage: deploy_and_test
