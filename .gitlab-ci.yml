@@ -4,8 +4,8 @@
 
 stages:
   - build
-  - rpms
   - debs
+  - rpms
   - deploy_and_test
   
 build_forks_el6:
@@ -27,11 +27,11 @@ build_forks_el6:
     - tags@nordugrid/arc
   allow_failure: false
   
-  build_forks_deb9:
+build_forks_deb9:
   stage: build
   image: maikenp/arc-build-debian9
   script: 
-  - yum update -y
+  - apt-get update -y
   - ./autogen.sh
   - ./configure
   - apt build-dep nordugrid-arc -y
@@ -49,7 +49,33 @@ build_forks_el6:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: false
+  
 
+make_debs_deb9:
+  stage: debs
+  image: maikenp/arc-build-debian9
+  script: 
+  - apt-get update -y
+  - ./autogen.sh
+  - ./configure
+  - apt-get build-dep nordugrid-arc -y
+  - echo "Preparing and running dpkg-buildpackage"
+  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
+  - echo "6.0.0">VERSION
+  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
+  - dpkg-buildpackage -b -us -uc
+  tags:
+    - general-shared
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - ../$CI_PROJECT_DIR
+  allow_failure: true
+  
 
 make_rpms_el6:
   stage: rpms
@@ -112,31 +138,6 @@ make_rpms_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
   
-  
- make_debs_deb9:
-  stage: debs
-  image: maikenp/arc-build-debian9
-  script: 
-  - apt-get update -y
-  - ./autogen.sh
-  - ./configure
-  - apt-get build-dep nordugrid-arc -y
-  - echo "Preparing and running dpkg-buildpackage"
-  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
-  - echo "6.0.0">VERSION
-  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
-  - dpkg-buildpackage -b -us -uc
-  tags:
-    - general-shared
-  only: 
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - ../$CI_PROJECT_DIR
-  allow_failure: true
 
  
 deploy_staging_el6:
