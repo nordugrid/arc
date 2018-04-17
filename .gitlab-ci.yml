@@ -142,7 +142,9 @@ make_rpms_el7:
  
 deploy_staging_el6:
   stage: deploy_and_test
+  image: maikenp/arc-deploy-centos6
   script:
+    - uname -a
     - echo "Deploying to staging server"
     - yum install -y time
     - echo "Preparing rpms for localinstall"
@@ -208,7 +210,9 @@ deploy_staging_el6:
 
 deploy_staging_el7:
   stage: deploy_and_test
+  image: maikenp/arc-deploy-centos7
   script:
+    - uname -a
     - echo "Deploying to staging server"
     - yum install -y time
     - echo "Preparing rpms for localinstall"
