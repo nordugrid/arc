@@ -201,7 +201,7 @@ deploy_staging_el6:
     - make_rpms_el6
   tags:
     - deploy
-    - centos6
+    - rhel
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -269,7 +269,7 @@ deploy_staging_el7:
     - make_rpms_el7
   tags:
     - deploy
-    - centos7
+    - rhel
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
