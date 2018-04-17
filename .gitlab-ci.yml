@@ -4,8 +4,7 @@
 
 stages:
   - build
-  - debs
-  - rpms
+  - packages
   - deploy_and_test
   
 build_forks_el6:
@@ -52,7 +51,7 @@ build_forks_deb9:
   
 
 make_debs_deb9:
-  stage: debs
+  stage: packages
   image: maikenp/arc-build-debian9
   script: 
   - apt-get update -y
@@ -78,7 +77,7 @@ make_debs_deb9:
   
 
 make_rpms_el6:
-  stage: rpms
+  stage: packages
   image: maikenp/arc-build-centos6
   script: 
   - yum update -y
@@ -109,7 +108,7 @@ make_rpms_el6:
   
   
 make_rpms_el7:
-  stage: rpms
+  stage: packages
   image: maikenp/arc-build-centos7
   script: 
   - yum update -y
@@ -139,6 +138,110 @@ make_rpms_el7:
   allow_failure: false
   
 
+
+deploy_staging_el6:
+  stage: deploy_and_test
+  image: maikenp/arc-deploy-centos6
+  script:
+    - uname -a
+    - echo "Deploying to staging server"
+    - yum install -y time
+    - echo "Preparing rpms for localinstall"
+    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms_el6' -O artifacts.zip
+    - unzip artifacts.zip
+    - mkdir allrpms
+    - cp rpmbuild/RPMS/noarch/* allrpms
+    - cp rpmbuild/RPMS/x86_64/* allrpms
+    - cd allrpms
+    - echo "Doing localinstall"
+    - yum localinstall *.rpm -y
+    - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
+    - sestatus
+    - echo "Preparing folders for arc logs"
+    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
+    - echo "validating arc.config and starting services"
+    - /etc/rc.d/init.d/a-rex validate
+    - /etc/rc.d/init.d/a-rex start
+    #- /etc/rc.d/init.d/gridftpd start
+    - echo 'Test-submit through local plugin '
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcstat --all --long
+    #arcinfo sometimes fails, dont know why
+    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
+    - echo "Skipping emies submission - not working yet."
+    #- echo 'test-submit through emies plugin'
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
+    #- sleep 5m
+    - /etc/rc.d/init.d/a-rex stop
+    #- /etc/rc.d/init.d/gridftpd stop
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-tests/
+  tags:
+    - deploy
+    - el6
+  allow_failure: true
+ 
+
+deploy_staging_el7:
+  stage: deploy_and_test
+  image: maikenp/arc-deploy-centos7
+  script:
+    - uname -a
+    - yum install -y wget
+    - echo "Deploying to staging server"
+    - yum install -y time
+    - echo "Preparing rpms for localinstall"
+    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms_el7' -O artifacts.zip
+    - unzip artifacts.zip
+    - mkdir allrpms
+    - cp rpmbuild/RPMS/noarch/* allrpms
+    - cp rpmbuild/RPMS/x86_64/* allrpms
+    - cd allrpms
+    - echo "Doing localinstall"
+    - yum localinstall *.rpm -y
+    - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
+    - sestatus
+    - echo "Preparing folders for arc logs"
+    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
+    - echo "validating arc.config and starting services"
+    - /etc/rc.d/init.d/a-rex validate
+    - /etc/rc.d/init.d/a-rex start
+    #- /etc/rc.d/init.d/gridftpd start
+    - echo 'Test-submit through local plugin '
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcstat --all --long
+    # arcinfo sometimes fails, not sure why
+    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
+    - echo "Skipping emies submission - not working yet."
+    #- echo 'test-submit through emies plugin'
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
+    #- sleep 5m
+    - /etc/rc.d/init.d/a-rex stop
+    #- /etc/rc.d/init.d/gridftpd stop   
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-tests/
+  tags:
+    - deploy
+    - el7
+  allow_failure: true
  
 deploy_staging_el6:
   stage: deploy_and_test
@@ -154,19 +257,6 @@ deploy_staging_el6:
     - cd allrpms
     - echo "Doing localinstall"
     - yum localinstall *.rpm -y
-     - echo "Installing CAs"
-    - wget http://repository.egi.eu/sw/production/cas/1/current/repo-files/EGI-trustanchors.repo
-    - mv EGI-trustanchors.repo /etc/yum.repos.d/
-    - yum install ca_policy_igtf-classic ca_policy_igtf-misc ca_policy_igtf-slcs -y
-    - echo "Generating test host certificate"
-    - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
-    - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
-    - pwd
-    - ls -lhrt
-    - mv host* /etc/grid-security/
-    - mv autocertif* /etc/grid-security/certificates
-    - mv *.0 /etc/grid-security/certificates
-    - ls -lhrt /etc/grid-security/
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
     - sestatus
@@ -177,7 +267,7 @@ deploy_staging_el6:
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Test-submit through local plugin '
-    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey.pem
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
     - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
     - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
     - arcstat --all --long
@@ -201,7 +291,7 @@ deploy_staging_el6:
     - make_rpms_el6
   tags:
     - deploy
-    - rhel
+    - el6
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -222,19 +312,6 @@ deploy_staging_el7:
     - cd allrpms
     - echo "Doing localinstall"
     - yum localinstall *.rpm -y
-     - echo "Installing CAs"
-    - wget http://repository.egi.eu/sw/production/cas/1/current/repo-files/EGI-trustanchors.repo
-    - mv EGI-trustanchors.repo /etc/yum.repos.d/
-    - yum install ca_policy_igtf-classic ca_policy_igtf-misc ca_policy_igtf-slcs -y
-    - echo "Generating test host certificate"
-    - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
-    - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
-    - pwd
-    - ls -lhrt
-    - mv host* /etc/grid-security/
-    - mv autocertif* /etc/grid-security/certificates
-    - mv *.0 /etc/grid-security/certificates
-    - ls -lhrt /etc/grid-security/
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
     - sestatus
@@ -245,9 +322,9 @@ deploy_staging_el7:
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Test-submit through local plugin '
-    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey.pem
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
     - arcstat --all --long
     # arcinfo sometimes fails, not sure why
     #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
@@ -269,7 +346,7 @@ deploy_staging_el7:
     - make_rpms_el7
   tags:
     - deploy
-    - rhel
+    - el7
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
