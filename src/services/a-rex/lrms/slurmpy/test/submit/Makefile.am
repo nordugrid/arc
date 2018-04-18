@@ -10,12 +10,12 @@ TESTS_ENVIRONMENT = \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_submit_script.sh submit-SLURMPY-job
 
-SCRIPTSNEEDED = basic-script.sh check_submit_script.sh \
+SCRIPTSNEEDED = check_submit_script.sh \
 	submit-SLURMPY-job $(builddir)/share/arc/job_script.stubs
 
-check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
+check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
 
-EXTRA_DIST = $(check_SCRIPTS)
+EXTRA_DIST = $(TESTS) basic-script.sh
 
 check_submit_script.sh: $(srcdir)/../../../test/check_submit_script.sh
 	cp $< $@
