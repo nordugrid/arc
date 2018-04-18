@@ -591,7 +591,6 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
           // TODO: Destroy job (at least try to)
         } else {
           ritem.NewChild("esmanag:Acknowledgement");
-logger.msg(Arc::ERROR, "GetActivityStatuses: request attention %s", job.ID());
           gm_->RequestJobAttention(job.ID()); // Tell GM to resume this job
         };
       } else {
