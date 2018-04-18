@@ -119,6 +119,8 @@ namespace ArcDMCGridFTP {
     void SetStreams(int streams) { ftp_threads = streams; };
     void SetRange(unsigned long long int start, unsigned long long int end) { range_start = start; range_end = end; };
     void SetAllowOutOfOrder(bool out_of_order) { allow_out_of_order = out_of_order; };
+    void SetSecure(bool secure) { force_secure = secure; };
+    void SetPassive(bool passive) { force_passive = passive; };
     DataStatus Read();
     DataStatus Write();
     DataStatus Check();
