@@ -1,19 +1,18 @@
-nodist_TESTSCRIPTS = basic-test
+TESTS = basic-test
 
 TESTS_ENVIRONMENT = \
 	PYTHONPATH=$(abs_top_srcdir)/src/utils/configparser/ \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_scan_script.sh scan-SLURM-job
-TESTS = $(nodist_TESTSCRIPTS)
 
 SCRIPTSNEEDED = check_scan_script.sh \
 	scan-SLURM-job configure-SLURM-env.sh \
 	scan_common.sh arcconfig-parser \
 	command-simulator.sh gm-kick
 
-check_SCRIPTS = $(nodist_TESTSCRIPTS) $(SCRIPTSNEEDED)
+check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
 
-EXTRA_DIST = $(check_SCRIPTS)
+EXTRA_DIST = $(TESTS)
 
 check_scan_script.sh: $(builddir)/../../../test/check_scan_script.sh
 	cp $< $@

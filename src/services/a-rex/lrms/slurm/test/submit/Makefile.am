@@ -10,13 +10,13 @@ TESTS_ENVIRONMENT = \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_submit_script.sh submit-SLURM-job
 
-SCRIPTSNEEDED = basic-script.sh check_submit_script.sh \
+SCRIPTSNEEDED = check_submit_script.sh \
 	submit-SLURM-job configure-SLURM-env.sh \
 	submit_common.sh $(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
 
-check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
+check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
 
-EXTRA_DIST = $(check_SCRIPTS)
+EXTRA_DIST = $(TESTS) basic-script.sh
 
 check_submit_script.sh: $(srcdir)/../../../test/check_submit_script.sh
 	cp $< $@
