@@ -579,7 +579,7 @@ prepare() {
         3) LOGLEVEL="INFO" ;;
         4) LOGLEVEL="VERBOSE" ;;
         5) LOGLEVEL="DEBUG" ;;
-        *) LOGLEVEL="WARNING" ;;
+        *) LOGLEVEL="INFO" ;;
     esac
 
     LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
