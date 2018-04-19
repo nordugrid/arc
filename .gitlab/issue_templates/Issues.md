@@ -6,14 +6,15 @@
 
 ## Labels
 
-#### ARC component labels 
+#### ARC component labels - when no issue
 Select the right ARC component labels. 
 
-[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
-#### Type of fix labels 
+[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#component-labels)
+
+#### Type of fix labels - when no issue
 Select the right type labels. 
 
-[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#type-labels)
 
 
 ## Description
