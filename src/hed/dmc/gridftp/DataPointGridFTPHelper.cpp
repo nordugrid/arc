@@ -842,8 +842,8 @@ namespace ArcDMCGridFTP {
       instream(instream),
       outstream(outstream),
       cbarg(new CBArg(this)),
-      force_secure(true), //??
-      force_passive(true), //??
+      force_secure(true),
+      force_passive(true),
       ftp_threads(1),
       range_start(0),
       range_end(0),
@@ -1127,6 +1127,8 @@ int main(int argc, char* argv[]) {
   int range_end = 0;
   std::string logger_verbosity;
   int logger_format = -1;
+  int secure = 1;
+  int passive = 1;
 
   try {
     /* Create options parser */
@@ -1138,6 +1140,8 @@ int main(int argc, char* argv[]) {
     options.AddOption('E', "rangeend", "range end", "end", range_end);
     options.AddOption('V', "verbosity", "logger verbosity level", "level", logger_verbosity);
     options.AddOption('F', "format", "logger output format", "format", logger_format);
+    options.AddOption('s', "secure", "force secure data connection", "boolean", secure);
+    options.AddOption('p', "passive", "force passive data connection", "boolean", passive);
 
     params = options.Parse(argc, argv);
     if (params.empty()) {
@@ -1182,6 +1186,8 @@ int main(int argc, char* argv[]) {
     handler->SetBufferSize(bufsize);
     // handler->SetStreams(streams); - use URL instead
     handler->SetRange(range_start, range_end);
+    handler->SetSecure(secure);
+    handler->SetPassive(passive);
     Arc::DataStatus result(Arc::DataStatus::Success);
     if(command == "rename") {
       if(params.empty()) {
