@@ -708,7 +708,6 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   deleg_ids.unique();
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
-logger_.msg(Arc::WARNING, "=== New job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return;
 }
@@ -727,7 +726,6 @@ bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
   GMJob job(id_,Arc::User(config_.User().get_uid()));
   if(!job_cancel_mark_put(job,config_.GmConfig())) return false;
-logger_.msg(Arc::WARNING, "=== Cancel job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -736,7 +734,6 @@ bool ARexJob::Clean(void) {
   if(id_.empty()) return false;
   GMJob job(id_,Arc::User(config_.User().get_uid()));
   if(!job_clean_mark_put(job,config_.GmConfig())) return false;
-logger_.msg(Arc::WARNING, "=== Clean job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -755,7 +752,6 @@ bool ARexJob::Resume(void) {
     // Failed to report restart request.
     return false;
   };
-logger_.msg(Arc::WARNING, "=== Resume job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -1075,7 +1071,6 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
   if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname)) return false;
-logger_.msg(Arc::WARNING, "=== New file request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -1083,7 +1078,6 @@ logger_.msg(Arc::WARNING, "=== New file request for attention: %s", id_);
 bool ARexJob::ReportFilesComplete(void) {
   if(id_.empty()) return false;
   if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/")) return false;
-logger_.msg(Arc::WARNING, "=== New files request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
