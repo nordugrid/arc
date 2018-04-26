@@ -2454,7 +2454,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
             if (     $host_info->{hostcert_expired}
                   or $host_info->{issuerca_expired}) {
                 push @{$healthissues{critical}}, "Host credentials expired";
