@@ -119,8 +119,8 @@ attributes depending on how the mapping should be done.
           <location initype="attribute" inisections="common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
         </PDP>
       </SecHandler>
-      <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-      <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+      <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+      <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       <tls:VOMSCertTrustDNChain>
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
@@ -235,8 +235,8 @@ attributes depending on how the mapping should be done.
         </arex:mapURL>
         <arex:Globus>
           <arex:gridmapfile inisections="arex common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
-          <arex:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <arex:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <arex:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <arex:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <arex:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
           <arex:TCPPortRange inisections="arex" initag="tcpportrange"/>
           <arex:UDPPortRange inisections="arex" initag="udpportrange"/>
@@ -543,8 +543,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -591,8 +591,8 @@ attributes depending on how the mapping should be done.
     </Service>
 
     <Service name="isis" id="isis" initokenenables="isis">
-      <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-      <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+      <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+      <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       <!-- The URL where the service can be accessed from outside. -->
       <isis:Endpoint inisections="isis" initag="endpoint"/>
@@ -631,8 +631,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -692,8 +692,8 @@ attributes depending on how the mapping should be done.
           <infosys:ServiceID inisections="register" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service (at least 2 minutes). In xsd:duration format. -->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -758,8 +758,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -825,8 +825,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -886,8 +886,8 @@ attributes depending on how the mapping should be done.
       <!-- CLIENTSSL: This section provides the location of key and cert files and the CA dir or path
           for the service to be able to make HTTPS connections to other services. -->
       <ClientSSLConfig>
-        <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-        <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+        <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+        <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
         <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </ClientSSLConfig>
 
@@ -917,8 +917,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -979,8 +979,8 @@ attributes depending on how the mapping should be done.
       </ahash:StoreCfg>
 
       <ClientSSLConfig initokenenables="ahash#type=replicated">
-        <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-        <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+        <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+        <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
         <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </ClientSSLConfig>
 
@@ -1007,8 +1007,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -1057,8 +1057,8 @@ attributes depending on how the mapping should be done.
       <lib:CheckPeriod inisections="librarian" initag="checkperiod" inidefaultvalue="20"/>
 
       <ClientSSLConfig>
-        <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-        <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+        <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+        <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
         <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </ClientSSLConfig>
 
@@ -1088,8 +1088,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -1167,8 +1167,8 @@ attributes depending on how the mapping should be done.
       <shep:ISISCheckingPeriod inisections="shepherd" initag="isischeckingperiod"/>
 
       <ClientSSLConfig>
-        <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-        <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+        <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+        <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
         <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </ClientSSLConfig>
 
@@ -1198,8 +1198,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
@@ -1274,8 +1274,8 @@ attributes depending on how the mapping should be done.
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
           <infosys:Period inisections="register" initag="period" inidefaultvalue="PT3M"/>
-          <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-          <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+          <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+          <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
           <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
         </infosys:Registrar>
       </infosys:InfoRegister>
