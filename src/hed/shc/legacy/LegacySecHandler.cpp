@@ -146,8 +146,11 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
     for(std::list<std::string>::const_iterator grp = groups.begin(); grp != groups.end(); ++grp) {
       const char* vo = auth.get_group_vo(*grp);
       const voms_t* voms = auth.get_group_voms(*grp);
+      const scitokens_t* scitokens = auth.get_group_scitokens(*grp);
+      //std::string glid = auth.get_group_globalid(*grp);
       std::list<std::string> vos;
       std::list<std::string> vomss;
+      std::list<std::string> scitokenss;
       if((vo != NULL) && (*vo != '\0')) vos.push_back(vo);
       if(voms != NULL) {
         for(std::vector<voms_fqan_t>::const_iterator f = voms->fqans.begin();
@@ -157,7 +160,8 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
           vomss.push_back(fqan);
         };
       };
-      sattr->AddGroup(*grp, vos, vomss);
+      if((scitokens != NULL) &&(!scitokens->subject.empty())) scitokenss.push_back(scitokens->subject);
+      sattr->AddGroup(*grp, vos, vomss, scitokenss);
     };
   };
 
