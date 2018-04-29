@@ -754,6 +754,8 @@ prepare() {
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_CONFIG</ConfigFile>
       </SecHandler>
+      <SecHandler name=\"scitokens.handler\" event=\"incoming\">
+      </SecHandler>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
