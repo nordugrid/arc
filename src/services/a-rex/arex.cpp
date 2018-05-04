@@ -512,18 +512,23 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
 logger_.msg(Arc::ERROR, "TLS provides no identity, going for SciTokens");
     // Try SciTokens if TLS has no information about user identity
     // TODO: merge identities at processing levels
-    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
-      if(*a) {
-        Arc::SecAttr* sattr = (*a)->get("ARCLEGACYPDP");
-        if(sattr) {
-          std::string scitokens_identity = sattr->get("SCITOKENS");
-logger_.msg(Arc::ERROR, "SciTokens identity: %s", scitokens_identity);
-          if (!scitokens_identity.empty()) {
-            grid_name = scitokens_identity;
-            break;
-          };
-        };
-      };
+    Arc::SecAttr* sattr = inmsg.Auth()->get("ARCLEGACYPDP");
+    grid_name = sattr ? sattr->get("SCITOKENS") : "";
+logger_.msg(Arc::ERROR, "SciTokens identity: %s", grid_name);
+    if(grid_name.empty()) {
+      Arc::SecAttr* sattr = inmsg.AuthContext()->get("ARCLEGACYPDP");
+      grid_name = sattr ? sattr->get("SCITOKENS") : "";
+logger_.msg(Arc::ERROR, "SciTokens identity: %s", grid_name);
+    };
+    if(grid_name.empty()) {
+      Arc::SecAttr* sattr = inmsg.Auth()->get("SCITOKENS");
+      grid_name = sattr ? sattr->get("SUBJECT") : "";
+logger_.msg(Arc::ERROR, "SciTokens identity: %s", grid_name);
+    };
+    if(grid_name.empty()) {
+      Arc::SecAttr* sattr = inmsg.AuthContext()->get("SCITOKENS");
+      grid_name = sattr ? sattr->get("SUBJECT") : "";
+logger_.msg(Arc::ERROR, "SciTokens identity: %s", grid_name);
     };
   };
   std::string endpoint = endpoint_;
