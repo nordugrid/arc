@@ -10,6 +10,13 @@
 
 
 namespace Arc {
+
+  char const* JWSE::HeaderNameSubject = "sub";
+  char const* JWSE::HeaderNameIssuer = "iss";
+  char const* JWSE::HeaderNameAudience = "aud";
+
+  static char const* HeaderNameAlgorithm = "alg";
+
   JWSE::JWSE(): valid_(false), header_(NULL), publicKey_(NULL)  {
     header_ = cJSON_CreateObject();
     if(header_ == NULL)
@@ -19,7 +26,7 @@ namespace Arc {
       Cleanup();
       return;
     }
-    cJSON_AddItemToObject(header_, "alg", algStr);
+    cJSON_AddItemToObject(header_, HeaderNameAlgorithm, algStr);
     valid_ = true;
   }
 
@@ -47,10 +54,10 @@ namespace Arc {
     std::string joseStr = Base64::decodeURLSafe(joseStart, joseEnd-joseStart);
     header_ = cJSON_Parse(joseStr.c_str());
     if(header_ == NULL) return false;
-    cJSON* algObject = cJSON_GetObjectItem(header_, "alg");
+    cJSON* algObject = cJSON_GetObjectItem(header_, HeaderNameAlgorithm);
     if(algObject == NULL) return false; // Neither JWS nor JWE
     if(algObject->type != cJSON_String) return false;
-    if(algObject->string == NULL) return false;
+    if(algObject->valuestring == NULL) return false;
     cJSON* encObject = cJSON_GetObjectItem(header_, "enc");
     if (encObject == NULL) {
       // JWS
@@ -66,24 +73,24 @@ namespace Arc {
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
       bool verifyResult = false;
-      if(strcmp(algObject->string, "none") == 0) {
+      if(strcmp(algObject->valuestring, "none") == 0) {
         verifyResult = signature.empty(); // expecting empty signature if no protection is requested
-      } else if(strcmp(algObject->string, "HS256") == 0) {
+      } else if(strcmp(algObject->valuestring, "HS256") == 0) {
         verifyResult = VerifyHMAC("SHA256", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
-      } else if(strcmp(algObject->string, "HS384") == 0) {
+      } else if(strcmp(algObject->valuestring, "HS384") == 0) {
         verifyResult = VerifyHMAC("SHA384", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
-      } else if(strcmp(algObject->string, "HS512") == 0) {
+      } else if(strcmp(algObject->valuestring, "HS512") == 0) {
         verifyResult = VerifyHMAC("SHA512", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
-      } else if(strcmp(algObject->string, "ES256") == 0) {
+      } else if(strcmp(algObject->valuestring, "ES256") == 0) {
         verifyResult = VerifyECDSA("SHA256", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
-      } else if(strcmp(algObject->string, "ES384") == 0) {
+      } else if(strcmp(algObject->valuestring, "ES384") == 0) {
         verifyResult = VerifyECDSA("SHA384", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
-      } else if(strcmp(algObject->string, "ES512") == 0) {
+      } else if(strcmp(algObject->valuestring, "ES512") == 0) {
         verifyResult = VerifyECDSA("SHA512", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
       }
@@ -127,7 +134,7 @@ namespace Arc {
     jwseCompact += Base64::encodeURLSafe(content_.c_str());
     jwseCompact += '.';
     // No signature
-    return false;
+    return true;
   }
 
   void JWSE::Cleanup() {
@@ -156,6 +163,30 @@ namespace Arc {
     return param;
   }
 
+
+  void JWSE::HeaderParameter(char const* name, cJSON const* value) {
+    if(header_ == NULL)
+      return;
+    if(name == NULL)
+      return;
+    if(value == NULL) {
+      cJSON_AddItemToObject(header_, name, cJSON_CreateNull());
+      return;
+    }
+    cJSON_AddItemToObject(header_, name, cJSON_Duplicate(const_cast<cJSON*>(value), 1));
+  }
+
+  void JWSE::HeaderParameter(char const* name, char const* value) {
+    if(header_ == NULL)
+      return;
+    if(name == NULL)
+      return;
+    if(value == NULL) {
+      cJSON_AddItemToObject(header_, name, cJSON_CreateNull());
+      return;
+    }
+    cJSON_AddItemToObject(header_, name, cJSON_CreateString(value));
+  }
 
 /*
 

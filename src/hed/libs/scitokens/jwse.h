@@ -13,6 +13,11 @@ namespace Arc {
   //! from SciTokens (JWS or JWE encoded).
   class JWSE {
    public:
+    static char const* HeaderNameSubject;
+    static char const* HeaderNameIssuer;
+    static char const* HeaderNameAudience;
+
+
     //! Parse scitoken available as simple string.
     //! Mostly to be used for scitokens embedded into something
     //! like HTTP header.
@@ -42,6 +47,9 @@ namespace Arc {
 
     //! Set specified header parameter to new value.
     void HeaderParameter(char const* name, cJSON const* value);
+
+    //! Set specified header parameter to new value.
+    void HeaderParameter(char const* name, char const* value);
 
     //! Parses passed SciToken and stores collected information in this object.
     bool Input(std::string const& jwseCompact);

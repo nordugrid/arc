@@ -64,8 +64,8 @@ namespace Arc {
     cJSON* exponentObject = cJSON_GetObjectItem(jwkObject, "e");
     if((modulusObject == NULL) || (exponentObject == NULL)) return NULL;
     if((modulusObject->type != cJSON_String) || (exponentObject->type != cJSON_String)) return NULL;
-    std::string modulus = Base64::decodeURLSafe(modulusObject->string);
-    std::string exponent = Base64::decodeURLSafe(exponentObject->string);
+    std::string modulus = Base64::decodeURLSafe(modulusObject->valuestring);
+    std::string exponent = Base64::decodeURLSafe(exponentObject->valuestring);
     AutoPointer<RSA> rsaKey(RSA_new(),&RSA_free);
     if(!rsaKey) return NULL;
     BIGNUM* n(NULL);
@@ -84,7 +84,7 @@ namespace Arc {
     cJSON* algObject = cJSON_GetObjectItem(jwkObject, "alg");
     if((keyObject == NULL) || (algObject == NULL)) return NULL;
     if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) return NULL;
-    std::string key = Base64::decodeURLSafe(keyObject->string);
+    std::string key = Base64::decodeURLSafe(keyObject->valuestring);
     // It looks like RFC does not define any "alg" values with "JWK" usage.
     return NULL;
   }
@@ -95,11 +95,11 @@ namespace Arc {
     cJSON* ktyObject = cJSON_GetObjectItem(jwkObject, "kty");
     if(ktyObject == NULL) return NULL;
     if(ktyObject->type != cJSON_String) return NULL;
-    if(strcmp(ktyObject->string, "EC") == 0) {    
+    if(strcmp(ktyObject->valuestring, "EC") == 0) {    
       return jwkECParse(jwkObject);
-    } else if(strcmp(ktyObject->string, "RSA") == 0) {    
+    } else if(strcmp(ktyObject->valuestring, "RSA") == 0) {    
       return jwkRSAParse(jwkObject);
-    } else if(strcmp(ktyObject->string, "oct") == 0) {    
+    } else if(strcmp(ktyObject->valuestring, "oct") == 0) {    
       return jwkOctParse(jwkObject);
     }
     return NULL;
@@ -118,7 +118,7 @@ namespace Arc {
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
       if(!mem) return NULL;
       BIO_puts(mem.Ptr(), "-----BEGIN CERTIFICATE-----\n");
-      BIO_puts(mem.Ptr(), certObject->string);
+      BIO_puts(mem.Ptr(), certObject->valuestring);
       BIO_puts(mem.Ptr(), "-----END CERTIFICATE-----\n");
       AutoPointer<X509> cert(PEM_read_bio_X509(mem.Ptr(), NULL, NULL, NULL), *X509_free);
       if(!cert) return NULL;
