@@ -46,23 +46,34 @@ class SciTokensSecAttr: public SecAttr {
   bool valid_;
 };
 
+int strnicmp(char const* left, char const* right, size_t len) {
+  while(len > 0) {
+    if(std::tolower(*left) != std::tolower(*right)) return *left - *right;
+    if(*left == '\0') return 0;
+    --len;
+    ++left;
+    ++right;
+  };
+  return 0;
+}
+
 SciTokensSecAttr::SciTokensSecAttr(Arc::Message* msg):valid_(false) {
   static const char tokenid[] = "bearer ";
   if(msg) {
     MessageAttributes* attrs = msg->Attributes();
     if(attrs) {
-      std::string token = Arc::lower(attrs->get("HTTP:authorization"));
-      if(std::strncmp(token.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
+      std::string token = attrs->get("HTTP:authorization");
+      if(strnicmp(token.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
         token.erase(0, sizeof(tokenid)-1);
         Arc::JWSE jwse(token);
         if(jwse) {
           cJSON const* obj(NULL);
-          obj = jwse.HeaderParameter("sub");
-          if(obj && (obj->type == cJSON_String) && (obj->string)) subject_ = obj->string;
-          obj = jwse.HeaderParameter("iss");
-          if(obj && (obj->type == cJSON_String) && (obj->string)) issuer_ = obj->string;
-          obj = jwse.HeaderParameter("aud");
-          if(obj && (obj->type == cJSON_String) && (obj->string)) audience_ = obj->string;
+          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameSubject);
+          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) subject_ = obj->valuestring;
+          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameIssuer);
+          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) issuer_ = obj->valuestring;
+          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameAudience);
+          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) audience_ = obj->valuestring;
           valid_ = true;
         };
       };

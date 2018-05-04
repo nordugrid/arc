@@ -726,6 +726,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  <Plugins><Name>arcshcscitokens</Name></Plugins>
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -745,6 +746,8 @@ prepare() {
       <next id=\"plexer\">GET</next>
       <next id=\"plexer\">PUT</next>
       <next id=\"plexer\">HEAD</next>
+      <!-- Collect SciTokens information -->
+      <SecHandler name=\"scitokens.handler\" event=\"incoming\"/>
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
@@ -754,8 +757,6 @@ prepare() {
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_CONFIG</ConfigFile>
-      </SecHandler>
-      <SecHandler name=\"scitokens.handler\" event=\"incoming\">
       </SecHandler>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
