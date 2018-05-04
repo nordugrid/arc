@@ -222,7 +222,8 @@ AuthResult AuthUser::evaluate(const char* line) {
   bool no_match = false;
   const char* command = "subject";
   size_t command_len = 7;
-  if(subject_.empty()) return AAA_NO_MATCH; // ??
+  // There can be rules not based on subject
+  // if(subject_.empty()) return AAA_NO_MATCH; // ??
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;

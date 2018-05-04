@@ -16,8 +16,8 @@ namespace ArcSHCLegacy {
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserSciTokens");
 
 AuthResult AuthUser::match_scitokens(const char* line) {
-  // No need to process anything if no VOMS extensions are present
-  if(voms_data_.empty()) return AAA_NO_MATCH;
+  // No need to process anything if no SciTokens is present
+  if(scitokens_data_.empty()) return AAA_NO_MATCH;
   // parse line
   std::string subject("");
   std::string issuer("");
@@ -39,7 +39,6 @@ AuthResult AuthUser::match_scitokens(const char* line) {
     logger.msg(Arc::ERROR, "Missing audience in configuration");
     return AAA_FAILURE;
   };
-  //n=Arc::get_token(auto_c,line,n," ","\"","\"");
   logger.msg(Arc::VERBOSE, "Rule: subject: %s", subject);
   logger.msg(Arc::VERBOSE, "Rule: issuer: %s", issuer);
   logger.msg(Arc::VERBOSE, "Rule: audience: %s", audience);
