@@ -246,8 +246,13 @@ namespace Arc {
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+    /** Send SOAP request + additional HTTP header attributes and receive response. */
+    MCC_Status process(const std::multimap<std::string, std::string> &http_attr, PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
+                       PayloadSOAP **response);
+    /** Send SOAP request with specified SOAP action + additional HTTP header attributes and receive response. */
+    MCC_Status process(const std::multimap<std::string, std::string> &http_attr, const std::string& action, PayloadSOAP *request,
                        PayloadSOAP **response);
     /** Returns entry point to SOAP MCC in configured chain.
        To initialize entry point Load() method must be called. */
