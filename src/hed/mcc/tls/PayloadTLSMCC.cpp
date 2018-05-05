@@ -357,7 +357,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    else {
-     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     //SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     // Ask for client certificate but do not fail if not provided
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    if(!config_.Set(sslctx_)) {
       SetFailure(config_.Failure());
