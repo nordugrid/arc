@@ -10,7 +10,11 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/compute/Job.h>
 #include <arc/StringConv.h>
+#include <arc/scitokens/jwse.h>
+#include <arc/credential/Credential.h>
 #include "JobStateEMIES.h"
+
+#define USE_SCITOKENS 1
 
 #include "EMIESClient.h"
 
@@ -53,6 +57,23 @@ namespace Arc {
 
   Logger EMIESClient::logger(Logger::rootLogger, "EMI ES Client");
 
+#ifdef USE_SCITOKENS
+  static std::string create_scitoken(const MCCConfig& cfg, const URL& url) {
+    bool is_file = cfg.credential.empty();
+    Arc::Credential cert(is_file ? ((!cfg.proxy.empty())?cfg.proxy:cfg.cert): cfg.credential, "", "", "", "", is_file);
+    if(cert.GetIdentityName().empty())
+      return "";
+    Arc::JWSE scitoken;
+    scitoken.HeaderParameter(Arc::JWSE::HeaderNameIssuer, cert.GetCAName().c_str());
+    scitoken.HeaderParameter(Arc::JWSE::HeaderNameSubject, cert.GetIdentityName().c_str());
+    scitoken.HeaderParameter(Arc::JWSE::HeaderNameAudience, url.str().c_str());
+    std::string scitokenStr;
+    if(!scitoken.Output(scitokenStr))
+      return "";
+    return scitokenStr;
+  }
+#endif
+
   static void set_namespaces(NS& ns) {
     ns[ES_TYPES_NPREFIX]  = ES_TYPES_NAMESPACE;
     ns[ES_CREATE_NPREFIX] = ES_CREATE_NAMESPACE;
@@ -77,7 +98,19 @@ namespace Arc {
       soapfault(false) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
-    client = new ClientSOAP(cfg, url, timeout);
+
+#ifdef USE_SCITOKENS
+    // TEST: removing credentials from HTTPS layer
+    MCCConfig temp_cfg(cfg);
+    temp_cfg.proxy.clear();
+    temp_cfg.cert.clear();
+    temp_cfg.key.clear();
+    temp_cfg.credential.clear();
+#else
+    MCCConfig const& temp_cfg(cfg);
+#endif
+
+    client = new ClientSOAP(temp_cfg, url, timeout);
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
     set_namespaces(ns);
@@ -98,7 +131,7 @@ namespace Arc {
   }
 
   std::string EMIESClient::dodelegation(const std::string& renew_id) {
-    DelegationProviderSOAP* deleg;
+    DelegationProviderSOAP* deleg(NULL);
     if (!cfg.credential.empty()) {
       deleg = new DelegationProviderSOAP(cfg.credential);
     }
@@ -131,6 +164,14 @@ namespace Arc {
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
+
+#ifdef USE_SCITOKENS
+    // Turn user credentials into scitoken and add it to request
+    std::string scitokenStr = create_scitoken(cfg, rurl);
+    if(!scitokenStr.empty())
+      attrout.set("HTTP:authorization", "bearer "+scitokenStr);
+#endif
+
     if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
       lfailure = "Failed to initiate delegation credentials";
@@ -176,7 +217,16 @@ namespace Arc {
     std::string action = req.Child(0).Name();
 
     PayloadSOAP* resp = NULL;
-    if (!client->process(&req, &resp)) {
+  
+    std::multimap<std::string,std::string> http_attr;
+#ifdef USE_SCITOKENS
+    // Turn user credentials into scitoken and add it to request
+    std::string scitokenStr = create_scitoken(cfg, rurl);
+    if(!scitokenStr.empty())
+      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+scitokenStr));
+#endif
+
+    if (!client->process(http_attr, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
       lfailure = "Failed processing request";
       delete client; client = NULL;
