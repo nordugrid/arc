@@ -217,8 +217,11 @@ BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
 BuildRequires:	python2-devel
-%if %{?fedora}%{!?fedora:0} >= 13
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 8
 BuildRequires:	python3-devel
+%endif
+%if %{?rhel}%{!?rhel:0} == 7
+BuildRequires:	python34-devel
 %endif
 %if %{with_pylint}
 BuildRequires:	pylint
@@ -722,7 +725,7 @@ Header files and libraries needed to develop applications using ARC.
 
 %if %{with_python}
 %package -n python2-%{name}
-Summary:	ARC Python wrapper
+Summary:	ARC Python 2 wrapper
 Group:		Development/Libraries
 %{?python_provide:%python_provide python2-%{name}}
 Provides:	%{name}-python = %{version}-%{release}
@@ -734,24 +737,24 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-Python bindings for ARC.
+Python 2 bindings for ARC.
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13
-%package -n python3-%{name}
-Summary:	ARC Python wrapper
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%package -n python%{python3_pkgversion}-%{name}
+Summary:	ARC Python 3 wrapper
 Group:		Development/Libraries
-%{?python_provide:%python_provide python3-%{name}}
-Provides:	%{name}-python3 = %{version}-%{release}
-Obsoletes:	%{name}-python3 < 5.3.3
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
+Provides:	%{name}-python%{python3_pkgversion} = %{version}-%{release}
+Obsoletes:	%{name}-python%{python3_pkgversion} < 5.3.3
 Requires:	%{name} = %{version}-%{release}
 
-%description -n python3-%{name}
+%description -n python%{python3_pkgversion}-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-Python bindings for ARC.
+Python 3 bindings for ARC.
 %endif
 
 %package gridmap-utils
@@ -849,7 +852,7 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
-%if %{?fedora}%{!?fedora:0} >= 13
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
      --with-altpython=python3 \
 %endif
 %if %{with_canl}
@@ -1471,8 +1474,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libpythonservice.apd
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13
-%files -n python3-%{name}
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.@ALTPYTHON_SOABI@*so
 %{python3_sitearch}/%{pkgdir}
