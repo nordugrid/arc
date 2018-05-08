@@ -1,13 +1,12 @@
 #include <string>
+#include <arc/Utils.h>
 
 
 struct cJSON;
 
-struct evp_pkey_st;
-
-struct ec_pkey_st;
-
 namespace Arc {
+
+  class JWSEKeyHolder;
 
   //! Class for parsing, verifying and extracting information
   //! from SciTokens (JWS or JWE encoded).
@@ -58,20 +57,18 @@ namespace Arc {
     bool Output(std::string& jwseCompact) const;
 
    private:    
+
     bool valid_;
 
-    mutable cJSON* header_; 
+    mutable AutoPointer<cJSON> header_; 
+
+    mutable AutoPointer<JWSEKeyHolder> key_;
 
     std::string content_;
 
-    mutable evp_pkey_st* publicKey_;
-
     void Cleanup();
 
-    // Not implemented yet.
-    evp_pkey_st* GetSharedKey() const { return NULL; };
-
-    evp_pkey_st* GetPublicKey() const;
+    bool ExtractPublicKey() const;
   
     bool VerifyHMAC(char const* digestName, void const* message, unsigned int messageSize,
                                             void const* signature, unsigned int signatureSize);

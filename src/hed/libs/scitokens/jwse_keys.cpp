@@ -12,6 +12,7 @@
 #include <openssl/bn.h>
 
 #include "jwse.h"
+#include "jwse_private.h"
 
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -89,28 +90,35 @@ namespace Arc {
     return NULL;
   }
 
-  static EVP_PKEY* jwkParse(cJSON* jwkObject) {
-    if(jwkObject->type != cJSON_Object) return NULL;
+  static bool jwkParse(cJSON* jwkObject, JWSEKeyHolder& keyHolder) {
+    if(jwkObject->type != cJSON_Object) return false;
 
     cJSON* ktyObject = cJSON_GetObjectItem(jwkObject, "kty");
-    if(ktyObject == NULL) return NULL;
-    if(ktyObject->type != cJSON_String) return NULL;
+    if(ktyObject == NULL) return false;
+    if(ktyObject->type != cJSON_String) return false;
+
+    EVP_PKEY* publicKey(NULL);
     if(strcmp(ktyObject->valuestring, "EC") == 0) {    
-      return jwkECParse(jwkObject);
+      publicKey = jwkECParse(jwkObject);
     } else if(strcmp(ktyObject->valuestring, "RSA") == 0) {    
-      return jwkRSAParse(jwkObject);
+      publicKey = jwkRSAParse(jwkObject);
     } else if(strcmp(ktyObject->valuestring, "oct") == 0) {    
-      return jwkOctParse(jwkObject);
+      publicKey = jwkOctParse(jwkObject);
     }
-    return NULL;
+    if(publicKey == NULL)
+      return false;
+
+    keyHolder.PublicKey(publicKey);
+
+    return true;
   }
 
-  static EVP_PKEY* x5cParse(cJSON* x5cObject) {
-    if(x5cObject->type != cJSON_Array) return NULL;
+  static bool x5cParse(cJSON* x5cObject, JWSEKeyHolder& keyHolder) {
+    if(x5cObject->type != cJSON_Array) return false;
     // Collect the chain
+    AutoPointer<X509> maincert(NULL, *X509_free);
     AutoPointer<STACK_OF(X509)> certchain(sk_X509_new_null(), &sk_x509_deallocate);
-    int certN = 0;
-    while(true) {
+    for(int certN = 0; ; ++certN) {
       cJSON* certObject = cJSON_GetArrayItem(x5cObject, certN);
       if(certObject == NULL) break;
       if(certObject->type != cJSON_String) return NULL;
@@ -121,30 +129,91 @@ namespace Arc {
       BIO_puts(mem.Ptr(), certObject->valuestring);
       BIO_puts(mem.Ptr(), "-----END CERTIFICATE-----\n");
       AutoPointer<X509> cert(PEM_read_bio_X509(mem.Ptr(), NULL, NULL, NULL), *X509_free);
-      if(!cert) return NULL;
-      if(sk_X509_insert(certchain.Ptr(), cert.Ptr(), certN) == 0) return NULL;
-      (void)cert.Release();
+      if(!cert) return false;
+      if(certN == 0) {
+        maincert = cert.Release();
+      } else {
+        if(sk_X509_insert(certchain.Ptr(), cert.Release(), certN) == 0) return false; // does sk_X509_insert increase reference?
+        (void)cert.Release();
+      }
     }
     // Verify the chain
 
-    // Remember and return public key of first certificate
-    X509* mainCert = sk_X509_value(certchain.Ptr(), 0);
-    if(mainCert == NULL) return NULL;
-    // Note: following call increases reference count
-    return X509_PUBKEY_get(X509_get_X509_PUBKEY(mainCert));
+
+
+
+
+    // Remember collected information
+    keyHolder.PublicKey(X509_PUBKEY_get(X509_get_X509_PUBKEY(maincert.Ptr()))); // call increases reference count
+    keyHolder.Certificate(maincert.Release());
+    keyHolder.CertificateChain(certchain.Release());
+
+    return true;
   }
 
-  evp_pkey_st* JWSE::GetPublicKey() const {
-    if (publicKey_ != NULL) return publicKey_;
+  bool JWSE::ExtractPublicKey() const {
+    key_.Release();
+    AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
+
     // So far we are going to support only embedded keys - jwk and x5c
-    cJSON* x5cObject = cJSON_GetObjectItem(header_, "x5c");
-    cJSON* jwkObject = cJSON_GetObjectItem(header_, "jwk");
+    cJSON* x5cObject = cJSON_GetObjectItem(header_.Ptr(), "x5c");
+    cJSON* jwkObject = cJSON_GetObjectItem(header_.Ptr(), "jwk");
     if(x5cObject != NULL) {
-      publicKey_ = x5cParse(x5cObject);
+      if(x5cParse(x5cObject, *key)) {
+        key_ = key.Release();
+        return true;
+      }
     } else if(jwkObject != NULL) {
-      publicKey_ = jwkParse(jwkObject);
-    }
-    return publicKey_;
+      if(jwkParse(jwkObject, *key)) {
+        key_ = key.Release();
+        return true;
+      }
+    } else {
+      return true; // No key - no processing
+    };
+
+    return false;
   }
   
+
+  JWSEKeyHolder::JWSEKeyHolder(): certificate_(NULL), certificateChain_(NULL), publicKey_(NULL) {
+  }
+
+  JWSEKeyHolder::~JWSEKeyHolder() {
+    if(publicKey_) EVP_PKEY_free(publicKey_);
+    publicKey_ = NULL;
+    if(certificate_) X509_free(certificate_);
+    certificate_ = NULL;
+    if(certificateChain_) sk_x509_deallocate(certificateChain_);
+    certificateChain_ = NULL;
+  }
+
+  EVP_PKEY* JWSEKeyHolder::PublicKey() {
+    return publicKey_;
+  }
+
+  void JWSEKeyHolder::PublicKey(EVP_PKEY* publicKey) {
+    if(publicKey_) EVP_PKEY_free(publicKey_);
+    publicKey_ = publicKey;
+  }
+
+  X509* JWSEKeyHolder::Certificate() {
+    return certificate_;
+  }
+
+  void JWSEKeyHolder::Certificate(X509* certificate) {
+    if(certificate_) X509_free(certificate_);
+    certificate_ = certificate;
+  }
+
+  STACK_OF(X509)* JWSEKeyHolder::CertificateChain() {
+    return certificateChain_;
+  }
+
+  void JWSEKeyHolder::CertificateChain(STACK_OF(X509)* certificateChain) {
+    if(certificateChain_) sk_x509_deallocate(certificateChain_);
+    certificateChain_ = certificateChain;
+  }
+
+
 } // namespace Arc

@@ -7,6 +7,7 @@
 #include <openssl/evp.h>
 
 #include "jwse.h"
+#include "jwse_private.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define EVP_MD_CTX_new EVP_MD_CTX_create
@@ -19,13 +20,12 @@ namespace Arc {
 
   bool JWSE::VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
                                                  void const* signature, unsigned int signatureSize) {
-    AutoPointer<EVP_PKEY> pkey(GetPublicKey(), &EVP_PKEY_free);
-    if(!pkey) return false;
+    if(!key_) return false;
     AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
     if(!ctx) return false;
     const EVP_MD* md = EVP_get_digestbyname(digestName);
     if(!md) return false;
-    int rc = EVP_DigestVerifyInit(ctx.Ptr(), NULL, md, NULL, pkey.Ptr());
+    int rc = EVP_DigestVerifyInit(ctx.Ptr(), NULL, md, NULL, key_->PublicKey());
     if(rc != 1) return false;
     rc = EVP_DigestVerifyUpdate(ctx.Ptr(), message, messageSize);
     if(rc != 1) return false;

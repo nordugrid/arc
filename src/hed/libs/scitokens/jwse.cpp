@@ -7,6 +7,7 @@
 #include <arc/external/cJSON/cJSON.h>
 
 #include "jwse.h"
+#include "jwse_private.h"
 
 
 namespace Arc {
@@ -17,20 +18,20 @@ namespace Arc {
 
   static char const* HeaderNameAlgorithm = "alg";
 
-  JWSE::JWSE(): valid_(false), header_(NULL), publicKey_(NULL)  {
+  JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete) {
     header_ = cJSON_CreateObject();
-    if(header_ == NULL)
+    if(!header_)
       return;
     cJSON* algStr = cJSON_CreateString("none");
     if(algStr == NULL) {
       Cleanup();
       return;
     }
-    cJSON_AddItemToObject(header_, HeaderNameAlgorithm, algStr);
+    cJSON_AddItemToObject(header_.Ptr(), HeaderNameAlgorithm, algStr);
     valid_ = true;
   }
 
-  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL), publicKey_(NULL)  {
+  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL, &cJSON_Delete) {
     (void)Input(jwseCompact);
   }
 
@@ -53,14 +54,15 @@ namespace Arc {
     // Decode header so we know if we have JWS or JWE
     std::string joseStr = Base64::decodeURLSafe(joseStart, joseEnd-joseStart);
     header_ = cJSON_Parse(joseStr.c_str());
-    if(header_ == NULL) return false;
-    cJSON* algObject = cJSON_GetObjectItem(header_, HeaderNameAlgorithm);
+    if(!header_) return false;
+    cJSON* algObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameAlgorithm);
     if(algObject == NULL) return false; // Neither JWS nor JWE
     if(algObject->type != cJSON_String) return false;
     if(algObject->valuestring == NULL) return false;
-    cJSON* encObject = cJSON_GetObjectItem(header_, "enc");
+    cJSON* encObject = cJSON_GetObjectItem(header_.Ptr(), "enc");
     if (encObject == NULL) {
       // JWS
+      if(!ExtractPublicKey()) return false;
       char const* payloadStart = pos;
       while(*pos != '.') {
         if(*pos == '\0') return false;
@@ -112,7 +114,6 @@ namespace Arc {
       if(!verifyResult) return false;
     } else {
       // JWE - not yet
-      cJSON_Delete(header_);
       header_ = NULL;
       return false;
     }      
@@ -125,7 +126,7 @@ namespace Arc {
     if(!valid_)
       return false;
 
-    char* joseStr = cJSON_PrintUnformatted(header_);
+    char* joseStr = cJSON_PrintUnformatted(header_.Ptr());
     if(joseStr == NULL)
       return false;
     jwseCompact += Base64::encodeURLSafe(joseStr);
@@ -138,12 +139,8 @@ namespace Arc {
   }
 
   void JWSE::Cleanup() {
-    if(header_ != NULL)
-      cJSON_Delete(header_);
     header_ = NULL;
-    if(publicKey_ != NULL)
-      EVP_PKEY_free(publicKey_);
-    publicKey_ = NULL;
+    key_ = NULL;
   }
 
   JWSE::~JWSE() {
@@ -155,9 +152,9 @@ namespace Arc {
   }
 
   cJSON const* JWSE::HeaderParameter(char const* name) const {
-    if(header_ == NULL)
+    if(!header_)
       return NULL;
-    cJSON const* param = cJSON_GetObjectItem(const_cast<cJSON*>(header_), name);
+    cJSON const* param = cJSON_GetObjectItem(const_cast<cJSON*>(header_.Ptr()), name);
     if(param == NULL)
       return NULL;
     return param;
@@ -165,27 +162,27 @@ namespace Arc {
 
 
   void JWSE::HeaderParameter(char const* name, cJSON const* value) {
-    if(header_ == NULL)
+    if(!header_)
       return;
     if(name == NULL)
       return;
     if(value == NULL) {
-      cJSON_AddItemToObject(header_, name, cJSON_CreateNull());
+      cJSON_AddItemToObject(header_.Ptr(), name, cJSON_CreateNull());
       return;
     }
-    cJSON_AddItemToObject(header_, name, cJSON_Duplicate(const_cast<cJSON*>(value), 1));
+    cJSON_AddItemToObject(header_.Ptr(), name, cJSON_Duplicate(const_cast<cJSON*>(value), 1));
   }
 
   void JWSE::HeaderParameter(char const* name, char const* value) {
-    if(header_ == NULL)
+    if(!header_)
       return;
     if(name == NULL)
       return;
     if(value == NULL) {
-      cJSON_AddItemToObject(header_, name, cJSON_CreateNull());
+      cJSON_AddItemToObject(header_.Ptr(), name, cJSON_CreateNull());
       return;
     }
-    cJSON_AddItemToObject(header_, name, cJSON_CreateString(value));
+    cJSON_AddItemToObject(header_.Ptr(), name, cJSON_CreateString(value));
   }
 
 /*
