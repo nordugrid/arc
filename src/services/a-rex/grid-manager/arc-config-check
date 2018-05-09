@@ -851,7 +851,7 @@ sub check_certificates() {
 }
 
 
-timecheck($timeserver, 0.2, 0.01);
+timecheck($timeserver, 60, 0.01);
 confcheck($conffile);
 check_applications();
 check_libraries();
