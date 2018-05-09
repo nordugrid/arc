@@ -12,9 +12,11 @@ namespace Arc {
   //! from SciTokens (JWS or JWE encoded).
   class JWSE {
    public:
-    static char const* HeaderNameSubject;
-    static char const* HeaderNameIssuer;
-    static char const* HeaderNameAudience;
+    static char const * const HeaderNameSubject;
+    static char const * const HeaderNameIssuer;
+    static char const * const HeaderNameAudience;
+    static char const * const HeaderNameX509CertChain;
+    static char const * const HeaderNameJSONWebKey;
 
 
     //! Parse scitoken available as simple string.
@@ -68,13 +70,21 @@ namespace Arc {
 
     void Cleanup();
 
+    // Propagate information in header_ into key_
     bool ExtractPublicKey() const;
+
+    // Copy content of key_ into header_
+    bool InsertPublicKey() const;
   
     bool VerifyHMAC(char const* digestName, void const* message, unsigned int messageSize,
                                             void const* signature, unsigned int signatureSize);
 
     bool VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
                                              void const* signature, unsigned int signatureSize);
+
+    bool SignHMAC(char const* digestName, void const* message, unsigned int messageSize, std::string& signature);
+
+    bool SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature);
 
   }; // class JWSE
 

@@ -11,6 +11,9 @@ namespace Arc {
     EVP_PKEY* PublicKey();
     void PublicKey(EVP_PKEY* publicKey);
 
+    EVP_PKEY* PrivateKey();
+    void PrivateKey(EVP_PKEY* privateKey);
+
     X509* Certificate();
     void Certificate(X509* certificate);
 
@@ -21,6 +24,7 @@ namespace Arc {
     X509* certificate_;
     STACK_OF(X509)* certificateChain_;
     EVP_PKEY* publicKey_;
+    EVP_PKEY* privateKey_;
   };
 
 }

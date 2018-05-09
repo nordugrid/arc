@@ -35,4 +35,23 @@ namespace Arc {
     return true;
   }
   
+  bool JWSE::SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) {
+    if(!key_) return false;
+    AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
+    if(!ctx) return false;
+    const EVP_MD* md = EVP_get_digestbyname(digestName);
+    if(!md) return false;
+    int rc = EVP_DigestSignInit(ctx.Ptr(), NULL, md, NULL, key_->PrivateKey());
+    if(rc != 1) return false;
+    rc = EVP_DigestSignUpdate(ctx.Ptr(), message, messageSize);
+    if(rc != 1) return false;
+    size_t signatureSize = 0;
+    rc = EVP_DigestSignFinal(ctx.Ptr(), NULL, &signatureSize);
+    if((rc != 1) || (signatureSize <= 0)) return false;
+    signature.resize(signatureSize);
+    rc = EVP_DigestSignFinal(ctx.Ptr(), const_cast<unsigned char*>(reinterpret_cast<unsigned char const*>(signature.c_str())), &signatureSize);
+    if((rc != 1) || (signatureSize <= 0)) return false;
+    return true;
+  }
+
 } // namespace Arc

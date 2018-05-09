@@ -12,9 +12,9 @@
 
 namespace Arc {
 
-  char const* JWSE::HeaderNameSubject = "sub";
-  char const* JWSE::HeaderNameIssuer = "iss";
-  char const* JWSE::HeaderNameAudience = "aud";
+  char const * const JWSE::HeaderNameSubject = "sub";
+  char const * const JWSE::HeaderNameIssuer = "iss";
+  char const * const JWSE::HeaderNameAudience = "aud";
 
   static char const* HeaderNameAlgorithm = "alg";
 
