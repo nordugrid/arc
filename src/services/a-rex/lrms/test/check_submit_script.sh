@@ -119,6 +119,7 @@ controldir=\"$(pwd)/controldir\"" ${test}.arc.conf
   # If defined, write RTEs to disk
   if test "x${rtes}" != "x"; then
     mkdir rtes
+    mkdir -p "$(pwd)/controldir/rte/enabled"
     # Add runtimedir attribute to arc.conf. If 'arex' section does not exist, add it as well.
     if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
       sed -i "/^[[]arex][[:space:]]*$/ a\
@@ -129,6 +130,8 @@ runtimedir=$(pwd)/rtes" ${test}.arc.conf
     for rte in ${rtes}; do
       echo "${!rte}" > rtes/${rte}
       chmod +x rtes/${rte}
+      # 'enable' RTE
+      ln -s "$(pwd)/rtes/${rte}" "$(pwd)/controldir/rte/enabled/${rte}"
     done
   fi
 
