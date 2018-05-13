@@ -1,7 +1,8 @@
 INSTALLING AND TESTING
 
-In practice you need autoconf to substitute proper paths, and than packaging (not yet available).
-But for now you can try arcctl on existing system just copying content of 'src/utils/configparser' to the target ARC CE.
+To properly install arcctl you need to build ARC with autoconf to substitute proper paths, build packages and install it along with whole ARC CE.
+
+But you can also try to use arcctl on existing system built earlier just copying content of 'src/utils/configparser' to the target ARC CE.
 
 The arcctl uses python configuration parser and rely havily on config to get the values of control directory, runtime directry, logs paths, etc.
 
