@@ -1,14 +1,13 @@
 if [ "$1" = "0" ] ; then
-    runtimeenv_sys_location="/usr/share/arc/rte"
     runtimeenv_idx=0
     runtimeenv_var="joboption_runtime_${runtimeenv_idx}"
     eval "runtimeenv_name=\"\${${runtimeenv_var}}\""
     while [ -n "${runtimeenv_name}" ]; do
-        # find RTE location
-        if [ -f "${CONFIG_runtimedir}/${runtimeenv_name}" ]; then
-            arcce_runtimeenv_path="${CONFIG_runtimedir}/${runtimeenv_name}"
+        # find RTE location (enabled vs default)
+        if [ -e "${CONFIG_controldir}/rte/enabled/${runtimeenv_name}" ]; then
+            arcce_runtimeenv_path="${joboption_controldir}/rte/enabled/${runtimeenv_name}"
         else
-            arcce_runtimeenv_path="${runtimeenv_sys_location}/${runtimeenv_name}"
+            arcce_runtimeenv_path="${joboption_controldir}/rte/default/${runtimeenv_name}"
         fi
         # copy RTE script to session directory
         sessiondir_runtimeenv_path="${joboption_directory}/rte/${runtimeenv_name}"
@@ -19,7 +18,7 @@ if [ "$1" = "0" ] ; then
         runtimeenv_var="joboption_runtime_${runtimeenv_idx}"
         eval "runtimeenv_name=\"\${${runtimeenv_var}}\""
     done
-    unset runtimeenv_idx runtimeenv_var sessiondir_runtimeenv_path arcce_runtimeenv_path runtimeenv_sys_location
+    unset runtimeenv_idx runtimeenv_var sessiondir_runtimeenv_path arcce_runtimeenv_path
 fi
 true
 
