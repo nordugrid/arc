@@ -45,7 +45,6 @@ class JobsControl(ComponentControl):
     @staticmethod
     def __run_gmjobs(args):
         __GMJOBS = [ARC_LIBEXEC_DIR + 'gm-jobs']
-        __GMJOBS = ['ssh', 'arc.imbg.org.ua'] + __GMJOBS
         # TODO: Submit bug to control debug level of gm-jobs and pass-through stderr
         return subprocess.Popen(__GMJOBS + [args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
