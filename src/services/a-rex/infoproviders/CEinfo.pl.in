@@ -409,10 +409,7 @@ sub get_rte_info($) {
     my ($config) = @_;
 
     my $rte_opts;
-    $rte_opts->{configfile} = $configfile;
-    $rte_opts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
-    $rte_opts->{use_janitor} = $config->{use_janitor} if $config->{use_janitor};
-    $rte_opts->{pkgdatadir} = dirname($0);
+    $rte_opts->{controldir} = $config->{control} if $config->{control};
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }
