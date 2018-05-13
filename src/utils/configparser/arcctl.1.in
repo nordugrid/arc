@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH ARCCTL 8 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.TH ARCCTL 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
 .SH NAME
 arcctl \- Nordugrid ARC Computing Element Control Tool
 .SH SYNOPSIS
