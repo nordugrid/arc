@@ -2545,9 +2545,11 @@ AC_CONFIG_FILES([Makefile
                  src/tests/lrms/Makefile
                  src/utils/archery/Makefile
                  src/utils/configparser/Makefile
+                 src/utils/configparser/arcctl.1
                  src/utils/configparser/arc/Makefile
                  src/utils/configparser/arc/utils/Makefile
                  src/utils/configparser/arc/control/Makefile
+                 src/utils/configparser/arc/control/ControlPaths.py
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile
