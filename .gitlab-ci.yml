@@ -26,6 +26,26 @@ build_forks_el6:
     - tags@nordugrid/arc
   allow_failure: false
   
+  
+build_forks_el7:
+  stage: build
+  image: maikenp/arc-build-centos7
+  script: 
+  - yum update -y
+  - ./autogen.sh
+  - ./configure
+  - yum-builddep nordugrid-arc.spec -y
+  - echo "Run make"
+  - make
+  - echo "Run make check"
+  - make check
+  tags:
+    - general-shared 
+  except: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: false
+  
 build_forks_deb9:
   stage: build
   image: maikenp/arc-build-debian9
