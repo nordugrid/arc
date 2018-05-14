@@ -1,0 +1,71 @@
+.\" -*- nroff -*-
+.TH ARCCTL 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+.SH NAME
+arcctl \- Nordugrid ARC Computing Element Control Tool
+.SH SYNOPSIS
+.B arcctl
+[\fB-d\fR, \fB--debug\fR \fILEVEL\fR] [\fB-c\fR, \fB--config\fR \fICONFIG\fR] [\fB-h\fR, \fB--help\fR] \fICOMPONENT\fR \fIACTION\fR [...]
+.SH DESCRIPTION
+.PP
+The arcctl utility is aimed to automate ARC CE operations, like controlling Jobs,
+RunTime Environments, etc.
+.PP
+The main goal is to provide a single point of control for different ARC CE subsystems
+to the system administrator.
+.PP 
+Arcctl designed with bash-completion in mind, so make sure you have completion installed
+and activated to use all features.
+
+.SH OPTIONS
+.TP
+\fB\-d\fR, \fB\-\-debug\fR \fILEVEL\fR
+Choose the verbosity level from CRITICAL, ERROR, WARNING, INFO, DEBUG (default is ERROR).
+.TP
+\fB\-c\fR, \fB\-\-config \fIFILE\fR
+Specifies the configuration file to be used. By default the \fBarc.conf\fP(5) is used. 
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help message
+
+.SH COMPONENTS
+The following components can be controlled by arcctl now:
+.TP
+.B rte
+Enable/Disable/Default RunTime Envronents available on the ARC CE
+.TP
+.B job
+A-REX Jobs control (actions and logs)
+.PP
+Use \fB--help\fR argument to list all available actions for each component.
+
+.SH EXAMPLES
+Enable ENV/PROXY RunTime Environment
+.IP
+\f(CW# arcctl rte enable ENV/PROXY\fR
+.PP
+Use ENV/RTE RunTime Environment by default for every job (even if not explicitely 
+requested in job description)
+.IP
+\f(CW# arcctl rte default ENV/RTE\fR
+.PP
+Clean all jobs in DELETED state
+.IP
+\f(CW# arcctl job cleanall -s DELETED\fR
+.PP
+Get job submission interface
+.IP
+\f(CW# arcctl job attr 21PKDmF0Aasnfk581mkC9sunABFKDmABFKDmDgFKDmUzFKDmqfGG0n interface\fR
+
+.SH REPORTING BUGS
+Report bugs to http://bugzilla.nordugrid.org/
+
+.SH COPYRIGHT
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+ARC software is developed by the NorduGrid Collaboration  
+(http://www.nordugrid.org), please consult the AUTHORS file distributed with  
+ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org 
+
+.SH SEE ALSO
+.BR arc.conf (5)

@@ -1099,6 +1099,11 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python2_sitearch}/%{pkgdir}/utils/config.py*
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlPaths.py*
+%{python2_sitearch}/%{pkgdir}/control/Jobs.py*
+%{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
 %dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
@@ -1302,11 +1307,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/scan_common.sh
 %{_datadir}/%{pkgdir}/perferator
+%doc %{_mandir}/man1/arcctl.1*
+%doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
 %doc %{_mandir}/man8/gm-jobs.8*
-%doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*
@@ -1329,6 +1335,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
 %{_sbindir}/a-rex-backtrace-collect
+%{_sbindir}/arcctl
 
 %if %{with_acix}
 %files acix-core

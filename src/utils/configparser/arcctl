@@ -1,0 +1,62 @@
+#!/usr/bin/python2
+# PYTHON_ARGCOMPLETE_OK
+
+# Initialize logging
+import logging
+import argparse
+import errno
+
+logger = logging.getLogger('ARCCTL')
+logger.setLevel(logging.INFO)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
+
+# Import modules
+from arc.control import *
+from arc.utils import config
+
+# Define root parser for arcctl
+parser = argparse.ArgumentParser(description='Nordugrid ARC Computing Element Control Tool')
+parser.add_argument('-c', '--config', action='store',
+                    help='config file location (default is %(default)s)', default='/etc/arc.conf')
+parser.add_argument('-d', '--debug', action='store',
+                    help='verbosity level (default is %(default)s)', default='ERROR',
+                    choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+
+# Register subparsers for defined arc.control components
+subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT', help='DESCRIPTION')
+for c in CTL_COMPONENTS:
+    c.register_parser(subparsers)
+
+# Try to import and use argcomplete if available
+try:
+    import argcomplete
+    argcomplete.autocomplete(parser)
+except ImportError:
+    argcomplete = None
+    logger.debug('Cannot import argcomplete module. '
+                 'Consider to install python-argcomplete to take advantage of arcctl tab-completion')
+
+# Parse command line arguments
+cmd_args = parser.parse_args()
+logger.setLevel(cmd_args.debug)
+ctl_class = cmd_args.handler_class
+
+# Parse arc.conf
+try:
+    logger.debug('Parsing ARC CE configuration file %s', cmd_args.config)
+    config.parse_arc_conf(cmd_args.config)
+    arcconfig = config
+except IOError:
+    logger.error('Failed to open ARC configuration file %s', cmd_args.config)
+    arcconfig = None
+
+# Invoke ARC control action
+try:
+    ctl_class(arcconfig).control(cmd_args)
+except IOError as e:
+    # handle SIGPIPE termination
+    if e.errno == errno.EPIPE:
+        pass
