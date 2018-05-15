@@ -117,12 +117,10 @@ def set_req_mem(jd):
 
 def get_rte_path(sw):
     rte_path = None
-    if os.path.exists('%s/%s' % (Config.runtimedir, sw)):
-        rte_path = '%s/%s' % (Config.runtimedir, sw)
-    elif os.path.exists('%s/rte/%s' % (arc.common.ArcLocation_GetDataDir(), sw)):
-        rte_path = '%s/rte/%s' % (arc.common.ArcLocation_GetDataDir(), sw)
+    if os.path.exists('%s/rte/enabled/%s' % (Config.controldir, sw)):
+        rte_path = '%s/rte/enabled/%s' % (Config.controldir, sw)
     else:
-        warn('Requested RunTimeEnvironment %s is missing in the both user-defined and system locations.' % (sw), 'common.submit')
+        warn('Requested RunTimeEnvironment %s is missing or not enabled.' % (sw), 'common.submit')
 
     return rte_path
 

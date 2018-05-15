@@ -62,6 +62,7 @@ debian/tmp/usr/share/arc/submit_common.sh
 debian/tmp/usr/share/arc/scan_common.sh
 
 debian/tmp/usr/share/man/man1/arc-config-check.1
+debian/tmp/usr/share/man/man1/arcctl.1
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1
 debian/tmp/usr/share/man/man1/jura.1
@@ -76,4 +77,5 @@ debian/tmp/usr/share/arc/ssm/ssm2.py*
 debian/tmp/usr/share/arc/ssm/brokers.py*
 debian/tmp/usr/share/arc/ssm/sender.cfg
 
+debian/tmp/usr/sbin/arcctl
 debian/tmp/usr/sbin/a-rex-backtrace-collect
