@@ -3,21 +3,21 @@ import logging
 
 logger = logging.getLogger('ARCCTL.Common')
 
-# Define system paths
-arc_location = '/usr'
-if 'ARC_LOCATION' in os.environ:
-    arc_location = os.environ['ARC_LOCATION']
-
-ARC_LIBEXEC_DIR = arc_location + '/libexec/arc/'
-ARC_DATA_DIR = arc_location + '/share/arc/'
-
 try:
     import ControlPaths
-    ARC_LIBEXEC_DIR = ControlPaths.libexecdir
-    ARC_DATA_DIR = ControlPaths.datadir
+    ARC_LIBEXEC_DIR = ControlPaths.ARC_LIBEXEC_DIR
+    ARC_DATA_DIR = ControlPaths.ARC_DATA_DIR
 except ImportError:
+    ControlPaths = None
     logger.error('There are no installation specific paths defined. '
                  'It seams you are running arcctl without autoconf - hardcoded defaults will be used.')
+
+    ARC_LOCATION = '/usr'
+    if 'ARC_LOCATION' in os.environ:
+        ARC_LOCATION = os.environ['ARC_LOCATION']
+
+    ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc/'
+    ARC_DATA_DIR = ARC_LOCATION + '/share/arc/'
 
 
 class ComponentControl(object):
