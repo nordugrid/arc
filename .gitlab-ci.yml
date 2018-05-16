@@ -24,6 +24,10 @@ build_forks_el6:
   except: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
   allow_failure: false
   
   
@@ -44,6 +48,10 @@ build_forks_el7:
   except: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
   allow_failure: false
   
 build_forks_deb9:
@@ -67,6 +75,10 @@ build_forks_deb9:
   except: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
   allow_failure: false
   
 
