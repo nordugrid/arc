@@ -22,12 +22,12 @@ build_forks_el6:
   tags:
     - general-shared 
   except: 
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
     refs:
       - master
       - next-major
       - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
   allow_failure: false
   
   
@@ -46,12 +46,12 @@ build_forks_el7:
   tags:
     - general-shared 
   except: 
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
     refs:
       - master
       - next-major
       - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
   allow_failure: false
   
 build_forks_deb9:
@@ -73,12 +73,12 @@ build_forks_deb9:
   tags:
     - general-shared 
   except: 
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
     refs:
       - master
       - next-major
       - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
   allow_failure: false
   
 
