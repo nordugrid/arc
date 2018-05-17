@@ -256,6 +256,7 @@ ClientOptions::ClientOptions(Client_t c,
     keep(false),
     forcesync(false),
     truncate(false),
+    convert(false),
     longlist(false),
     printids(false),
     same(false),
@@ -318,6 +319,10 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('T', "truncate",
               istring("truncate the joblist before synchronizing"),
               truncate);
+
+    AddOption('C', "convert",
+              istring("do not collect information, only convert jobs storage format"),
+              convert);
   }
 
   if (c == CO_INFO || c == CO_STAT) {
