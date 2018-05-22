@@ -133,17 +133,17 @@ prepare() {
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_host_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
     GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
     if [ -z "$X509_USER_CERT" ] ; then
-	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-	X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+	X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
 	X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`

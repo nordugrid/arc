@@ -36,6 +36,10 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTPDelegate::StartCommand(Arc::CountedPointer<Arc::Run>& run, std::list<std::string>& argv, DataStatus::DataStatusType errCode) {
+    argv.push_front(Arc::tostring(force_passive));
+    argv.push_front("-p");
+    argv.push_front(Arc::tostring(force_secure));
+    argv.push_front("-s");
     argv.push_front(Arc::level_to_string(logger.getThreshold()));
     argv.push_front("-V");
     LogFormat format = LogDestination::getDefaultFormat();

@@ -3,17 +3,119 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
-  - rpms
-  - deploy_test
+  - build
+  - packages
+  - deploy_and_test
   
-make_rpms:
-  stage: rpms
-  image: maikenp/centosarc2
+build_forks_el6:
+  stage: build
+  image: maikenp/arc-build-centos6
   script: 
   - yum update -y
   - ./autogen.sh
   - ./configure
-  - yum-builddep -y nordugrid-arc.spec
+  - yum-builddep nordugrid-arc.spec -y
+  - echo "Run make"
+  - make
+  - echo "Run make check"
+  - make check
+  tags:
+    - general-shared 
+  except: 
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
+  
+  
+build_forks_el7:
+  stage: build
+  image: maikenp/arc-build-centos7
+  script: 
+  - yum update -y
+  - ./autogen.sh
+  - CXXFLAGS=-std=c++11 ./configure
+  - yum-builddep nordugrid-arc.spec -y
+  - echo "Run make"
+  - make
+  - echo "Run make check"
+  - make check
+  tags:
+    - general-shared 
+  except: 
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
+  
+build_forks_deb9:
+  stage: build
+  image: maikenp/arc-build-debian9
+  script: 
+  - apt-get update -y
+  - ./autogen.sh
+  - ./configure
+  - apt build-dep nordugrid-arc -y
+  - echo "6.0.0">VERSION
+  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
+  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
+  - dpkg-buildpackage -b -us -uc
+  - echo "Run make"
+  - make
+  - echo "Run make check"
+  - make check
+  tags:
+    - general-shared 
+  except: 
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
+  
+
+make_debs_deb9:
+  stage: packages
+  image: maikenp/arc-build-debian9
+  script: 
+  - apt-get update -y
+  - ./autogen.sh
+  - ./configure
+  - apt-get build-dep nordugrid-arc -y
+  - echo "Preparing and running dpkg-buildpackage"
+  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
+  - echo "6.0.0">VERSION
+  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
+  - dpkg-buildpackage -b -us -uc
+  tags:
+    - general-shared
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - ../$CI_PROJECT_DIR
+  allow_failure: true
+  
+
+make_rpms_el6:
+  stage: packages
+  image: maikenp/arc-build-centos6
+  script: 
+  - yum update -y
+  - ./autogen.sh
+  - ./configure
+  - yum-builddep nordugrid-arc.spec -y
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
@@ -24,49 +126,89 @@ make_rpms:
   - cd $CI_PROJECT_DIR
   tags:
     - general-shared 
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   artifacts:
     when: on_success
+    expire_in: 30 days
     paths:
     - $CI_PROJECT_DIR/rpmbuild/SRPMS/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
- 
-deploy_staging:
-  stage: deploy_test
+  
+  
+make_rpms_el7:
+  stage: packages
+  image: maikenp/arc-build-centos7
+  script: 
+  - yum update -y
+  - ./autogen.sh
+  - ./configure
+  - yum-builddep nordugrid-arc.spec -y
+  - echo "Preparing and running rpmbuild"
+  - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+  - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
+  - export VERSION=`cat VERSION`
+  - make dist
+  - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
+  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  - cd $CI_PROJECT_DIR
+  tags:
+    - general-shared
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+  
+
+deploy_staging_el6:
+  stage: deploy_and_test
+  image: maikenp/arc-deploy-centos6
   script:
-    - echo "Deploy to staging server"
+    - uname -a
+    - echo "Deploying to staging server"
     - yum install -y time
     - echo "Preparing rpms for localinstall"
-    - ls -lhrt
     - mkdir allrpms
     - cp rpmbuild/RPMS/noarch/* allrpms
     - cp rpmbuild/RPMS/x86_64/* allrpms
     - cd allrpms
+    - echo "Doing localinstall"
     - yum localinstall *.rpm -y
-    - echo "Generating test host certificate"
-    - wget http://svn.nordugrid.org/trac/nordugrid/export/32500/contrib/certificate_generator/CertificateGenerator.py
-    - python CertificateGenerator.py --CA autocertif --host 158.39.75.5 --validity 365
-    - ls -lhrt
-    - mv host* /etc/grid-security/
-    - mv autocertif* /etc/grid-security/certificates
-    - mv *.0 /etc/grid-security/certificates
-    - echo "Cleaning up old arc log files"
-    - echo "validating arc.config and starting services"
     - ls -lhrt /etc/rc.d/init.d
     - ls -lhrt /etc/arc.conf
+    - sestatus
+    - echo "Preparing folders for arc logs"
+    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
+    - echo "validating arc.config and starting services"
     - /etc/rc.d/init.d/a-rex validate
     - /etc/rc.d/init.d/a-rex start
     #- /etc/rc.d/init.d/gridftpd start
-    - echo 'Now run some tests - like submitting jobs'
-    - sleep 2m
+    - echo 'Test-submit through local plugin '
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcstat --all --long
+    #arcinfo sometimes fails, dont know why
+    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
+    - echo "Skipping emies submission - not working yet."
+    #- echo 'test-submit through emies plugin'
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
+    #- sleep 5m
     - /etc/rc.d/init.d/a-rex stop
     #- /etc/rc.d/init.d/gridftpd stop
-    - ls -lhrt /var/www/html/arc-logs
-    #- ls -lhrt /var/www/html/arc-tests
-    - cp -r /var/www/html/arc-logs $CI_PROJECT_DIR
-    #- cp -r /var/www/html/arc-tests $CI_PROJECT_DIR
-    - sleep 2m
+    - cp -r /docker/arc-logs $CI_PROJECT_DIR
+    - cp -r /docker/arc-tests $CI_PROJECT_DIR
   environment:
     name: staging
   artifacts:
@@ -75,13 +217,70 @@ deploy_staging:
      - $CI_PROJECT_DIR/arc-logs/
      - $CI_PROJECT_DIR/arc-tests/
   dependencies:
-    - make_rpms
+    - make_rpms_el6
   tags:
     - deploy
+    - el6
+  only: 
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: true
+ 
+
+deploy_staging_el7:
+  stage: deploy_and_test
+  image: maikenp/arc-deploy-centos7
+  script:
+    - uname -a
+    - echo "Deploying to staging server"
+    - yum install -y time
+    - echo "Preparing rpms for localinstall"
+    - mkdir allrpms
+    - cp rpmbuild/RPMS/noarch/* allrpms
+    - cp rpmbuild/RPMS/x86_64/* allrpms
+    - cd allrpms
+    - echo "Doing localinstall"
+    - yum localinstall *.rpm -y
+    - ls -lhrt /etc/rc.d/init.d
+    - ls -lhrt /etc/arc.conf
+    - sestatus
+    - echo "Preparing folders for arc logs"
+    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
+    - echo "validating arc.config and starting services"
+    - /etc/rc.d/init.d/a-rex validate
+    - /etc/rc.d/init.d/a-rex start
+    #- /etc/rc.d/init.d/gridftpd start
+    - echo 'Test-submit through local plugin '
+    - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcstat --all --long
+    # arcinfo sometimes fails, not sure why
+    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
+    - echo "Skipping emies submission - not working yet."
+    #- echo 'test-submit through emies plugin'
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
+    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
+    #- sleep 5m
+    - /etc/rc.d/init.d/a-rex stop
+    #- /etc/rc.d/init.d/gridftpd stop
+    - cp -r /docker/arc-logs $CI_PROJECT_DIR
+    - cp -r /docker/arc-tests $CI_PROJECT_DIR
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-tests/
+  dependencies:
+    - make_rpms_el7
+  tags:
+    - deploy
+    - el7
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: true
 
-##for some reason get /var/www/html/arc-tests no such file or directory, while it is created and looks exactly like the /var/www/html/arc-logs folder
-##can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
+##note-to-self: can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip

@@ -223,8 +223,8 @@ prepare() {
     USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" arex x509_user_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" arex x509_user_key`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" arex x509_host_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" arex x509_host_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" arex x509_cert_dir`
     GRIDMAP=`readconfigvar "$ARC_CONFIG" arex gridmap`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex globus_tcp_port_range`
@@ -238,10 +238,10 @@ prepare() {
     USERMAP_BLOCK='common/mapping'
     USERAUTH_BLOCK='arex/ws/emies'
     if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`

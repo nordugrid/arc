@@ -13,7 +13,6 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
 pkgdatadir="$basedir"
 
 . ${pkgdatadir}/submit_common.sh || exit $?
@@ -64,7 +63,7 @@ done
 
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
 
-echo "#job script built by arex and input file for BOINC job" >> $LRMS_JOB_SCRIPT
+echo "#job script built by grid-manager and input file for BOINC job" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 set -x 
@@ -207,7 +206,7 @@ done
 fi
 EOF
 
-echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
+echo 'tar cvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
 
 chmod a+r $LRMS_JOB_SCRIPT
 
@@ -286,7 +285,7 @@ echo "chmod a+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_J
 echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod a+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
-[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
+[ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
 
 ## process the root files as remote files
 cd $PROJECT_ROOT
@@ -298,20 +297,21 @@ i=0
 while [ $i -lt ${#RootFile[@]} ]
 do
   [ -L ${RootFile[$i]} ] && RootFile[$i]=`ls -l ${RootFile[$i]}|awk '{print $11}'`
-  echo "ln  ${RootFile[$i]} "'`bin/dir_hier_path' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
-  echo "chmod a+r "'`bin/dir_hier_path ' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
-  download_dir=`bin/dir_hier_path ${Root_basename[$i]} | awk -F/ '{print $(NF-1)}'`
-  remote_url[$i]="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename[$i]}"
-  fsize[$i]=`stat -c %s ${RootFile[$i]}`
-  md5[$i]=`md5sum ${RootFile[$i]} | awk '{print $1}'`
-  echo "Using remote file ${remote_url[$i]} ${fsize[$i]} ${md5[$i]}" 1>&2
+  echo "ln -s ${RootFile[$i]} "'`bin/dir_hier_path' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
+  if [ -n "$PROJECT_DOWNLOAD_ROOT" ]; then
+    download_dir=`bin/dir_hier_path ${Root_basename[$i]} | awk -F/ '{print $(NF-1)}'`
+    remote_url[$i]="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename[$i]}"
+    fsize[$i]=`stat -c %s ${RootFile[$i]}`
+    md5[$i]=`md5sum ${RootFile[$i]} | awk '{print $1}'`
+    echo "Using remote file ${remote_url[$i]} ${fsize[$i]} ${md5[$i]}" 1>&2
+  fi
   let i=$i+1
 done
 
-[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
+[ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
 
 ## generate the input template file
-let ifileno=3+${#remote_url[@]}
+let ifileno=3+${#RootFile[@]}
 i=0
 intmp=""
 while [ $i -lt $ifileno ]
@@ -326,7 +326,7 @@ done
 intmp="$intmp
 <workunit>"
 i=0
-while [ $i -lt ${#remote_url[@]} ]
+while [ $i -lt ${#RootFile[@]} ]
 do
   intmp="$intmp
  <file_ref>
@@ -393,6 +393,14 @@ if [ ! -z "$joboption_priority" ]; then
   priority="--priority $joboption_priority"
 fi
 
+batchid=
+if [ ! -z "$joboption_arg_2" ]; then
+  taskid=$(echo $joboption_arg_2|grep -m1 -o taskID=........|cut -d = -f 2 )
+  if [ ! -z "$taskid" ]; then
+    batchid="--batch $taskid"
+  fi
+fi
+
 cmd="bin/create_work \
       --appname $BOINC_APP \
       --wu_name $wu \
@@ -400,12 +408,18 @@ cmd="bin/create_work \
       --result_template $RESULT_TEMPLATE \
       --rsc_memory_bound $memreq \
       --rsc_fpops_est $maxcputime \
+      $batchid \
       $priority"
 j=0
-while [ $j -lt ${#remote_url[@]} ] 
-do
-  cmd="$cmd \
-  --remote_file ${remote_url[$j]} ${fsize[$j]} ${md5[$j]}"
+while [ $j -lt ${#RootFile[@]} ] 
+  do
+  if [ -n "$PROJECT_DOWNLOAD_ROOT" ]; then
+    cmd="$cmd \
+    --remote_file ${remote_url[$j]} ${fsize[$j]} ${md5[$j]}"
+  else
+    cmd="$cmd \
+    ${Root_basename[$j]}"
+  fi
   let j=$j+1
 done
 
