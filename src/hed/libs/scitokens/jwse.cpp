@@ -17,17 +17,13 @@ namespace Arc {
   char const * const JWSE::HeaderNameAudience = "aud";
 
   static char const* HeaderNameAlgorithm = "alg";
+  static char const* HeaderNameEncryption = "enc";
 
   JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete) {
     header_ = cJSON_CreateObject();
     if(!header_)
       return;
-    cJSON* algStr = cJSON_CreateString("none");
-    if(algStr == NULL) {
-      Cleanup();
-      return;
-    }
-    cJSON_AddItemToObject(header_.Ptr(), HeaderNameAlgorithm, algStr);
+    cJSON_AddStringToObject(header_.Ptr(), HeaderNameAlgorithm, "none");
     valid_ = true;
   }
 
@@ -59,7 +55,7 @@ namespace Arc {
     if(algObject == NULL) return false; // Neither JWS nor JWE
     if(algObject->type != cJSON_String) return false;
     if(algObject->valuestring == NULL) return false;
-    cJSON* encObject = cJSON_GetObjectItem(header_.Ptr(), "enc");
+    cJSON* encObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameEncryption);
     if (encObject == NULL) {
       // JWS
       if(!ExtractPublicKey()) return false;
@@ -73,7 +69,7 @@ namespace Arc {
       content_ = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
       char const* signatureStart = pos;
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
-      std::string signature = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
+      std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);
       bool verifyResult = false;
       if(strcmp(algObject->valuestring, "none") == 0) {
         verifyResult = signature.empty(); // expecting empty signature if no protection is requested
@@ -126,15 +122,33 @@ namespace Arc {
     if(!valid_)
       return false;
 
+    bool keyAdded(true);
+    if(!InsertPublicKey(keyAdded))
+      return false;
+    cJSON_DeleteItemFromObject(header_.Ptr(), HeaderNameAlgorithm);
+    if(keyAdded) {
+      cJSON_AddStringToObject(header_.Ptr(), HeaderNameAlgorithm, "ES512");
+    } else {     
+      cJSON_AddStringToObject(header_.Ptr(), HeaderNameAlgorithm, "none");
+    }
+
     char* joseStr = cJSON_PrintUnformatted(header_.Ptr());
     if(joseStr == NULL)
       return false;
     jwseCompact += Base64::encodeURLSafe(joseStr);
     std::free(joseStr); 
     jwseCompact += '.';
-    jwseCompact += Base64::encodeURLSafe(content_.c_str());
+    jwseCompact += Base64::encodeURLSafe(content_.c_str(), content_.length());
+
+    std::string signature;
+    if(keyAdded) {
+      if(!SignECDSA("SHA512", jwseCompact.c_str(), jwseCompact.length(), signature))
+        return false;
+    }
+
     jwseCompact += '.';
-    // No signature
+    jwseCompact += Base64::encodeURLSafe(signature.c_str(), signature.length());
+
     return true;
   }
 

@@ -35,7 +35,7 @@ namespace Arc {
     return true;
   }
   
-  bool JWSE::SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) {
+  bool JWSE::SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const {
     if(!key_) return false;
     AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
     if(!ctx) return false;

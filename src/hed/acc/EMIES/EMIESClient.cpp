@@ -64,12 +64,18 @@ namespace Arc {
     if(cert.GetIdentityName().empty())
       return "";
     Arc::JWSE scitoken;
+    std::string certificateStr;
+    cert.OutputCertificate(certificateStr);
+    cert.OutputPrivatekey(certificateStr);
+    cert.OutputCertificateChain(certificateStr);
+    scitoken.Certificate(certificateStr.c_str());
     scitoken.HeaderParameter(Arc::JWSE::HeaderNameIssuer, cert.GetCAName().c_str());
     scitoken.HeaderParameter(Arc::JWSE::HeaderNameSubject, cert.GetIdentityName().c_str());
     scitoken.HeaderParameter(Arc::JWSE::HeaderNameAudience, url.str().c_str());
     std::string scitokenStr;
     if(!scitoken.Output(scitokenStr))
       return "";
+std::cerr<<"SCITOKEN: "<<scitokenStr<<std::endl;
     return scitokenStr;
   }
 #endif

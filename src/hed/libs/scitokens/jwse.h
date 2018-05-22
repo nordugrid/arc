@@ -58,6 +58,9 @@ namespace Arc {
     //! Serializes stored SciToken into string container.
     bool Output(std::string& jwseCompact) const;
 
+    //! Assigns certificate to use for signing
+    void Certificate(char const* certificate = NULL);
+
    private:    
 
     bool valid_;
@@ -74,7 +77,7 @@ namespace Arc {
     bool ExtractPublicKey() const;
 
     // Copy content of key_ into header_
-    bool InsertPublicKey() const;
+    bool InsertPublicKey(bool& keyAdded) const;
   
     bool VerifyHMAC(char const* digestName, void const* message, unsigned int messageSize,
                                             void const* signature, unsigned int signatureSize);
@@ -82,9 +85,9 @@ namespace Arc {
     bool VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
                                              void const* signature, unsigned int signatureSize);
 
-    bool SignHMAC(char const* digestName, void const* message, unsigned int messageSize, std::string& signature);
+    bool SignHMAC(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
 
-    bool SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature);
+    bool SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
 
   }; // class JWSE
 

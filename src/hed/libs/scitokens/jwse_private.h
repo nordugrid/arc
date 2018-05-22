@@ -6,6 +6,7 @@ namespace Arc {
   class JWSEKeyHolder {
    public:
     JWSEKeyHolder();
+    JWSEKeyHolder(char const* certificate);
     ~JWSEKeyHolder();
 
     EVP_PKEY* PublicKey();

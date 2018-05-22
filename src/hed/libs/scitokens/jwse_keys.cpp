@@ -246,6 +246,7 @@ namespace Arc {
       if(certN >= sk_X509_num(chain)) break;
       cert = sk_X509_value(keyHolder.CertificateChain(), certN);
       if(!cert) break;
+      ++certN;
     };
 
     return x5cObject.Release();
@@ -275,19 +276,22 @@ namespace Arc {
     return false;
   }
   
-  bool JWSE::InsertPublicKey() const {
+  bool JWSE::InsertPublicKey(bool& keyAdded) const {
+    keyAdded = false;
     cJSON_DeleteItemFromObject(header_.Ptr(), HeaderNameX509CertChain);
     cJSON_DeleteItemFromObject(header_.Ptr(), HeaderNameJSONWebKey);
     if(key_ && key_->Certificate()) {
       cJSON* x5cObject = x5cSerialize(*key_);
       if(x5cObject) {
         cJSON_AddItemToObject(header_.Ptr(), HeaderNameX509CertChain, x5cObject);
+        keyAdded = true;
         return true;
       }
     } else if(key_ && key_->PublicKey()) {
       cJSON* jwkObject = jwkSerialize(*key_);
       if(jwkObject) {
         cJSON_AddItemToObject(header_.Ptr(), HeaderNameJSONWebKey, jwkObject);
+        keyAdded = true;
         return true;
       }
     } else {
@@ -297,9 +301,40 @@ namespace Arc {
     return false;
   }
 
+  void JWSE::Certificate(char const* certificate) {
+    key_.Release();
+    key_ = new JWSEKeyHolder(certificate);
+    if(!key_->PublicKey()) // Expect at least public key
+      key_.Release();
+  }
+
+
   // ---------------------------------------------------------------------------------------------
 
-  JWSEKeyHolder::JWSEKeyHolder(): certificate_(NULL), certificateChain_(NULL), publicKey_(NULL) {
+  JWSEKeyHolder::JWSEKeyHolder(): certificate_(NULL), certificateChain_(NULL), publicKey_(NULL), privateKey_(NULL) {
+  }
+
+  JWSEKeyHolder::JWSEKeyHolder(char const* certificate): certificate_(NULL), certificateChain_(NULL), publicKey_(NULL), privateKey_(NULL) {
+    if(certificate != NULL) {
+      AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
+      BIO_puts(mem.Ptr(), certificate);
+      certificate_ = PEM_read_bio_X509(mem.Ptr(), NULL, NULL, NULL);
+      if(certificate_ == NULL) return;
+      publicKey_ = X509_get_pubkey(certificate_);
+      privateKey_ = PEM_read_bio_PrivateKey(mem.Ptr(), NULL, NULL, NULL);
+      if(privateKey_ == NULL) return;
+      // Optional chain
+      AutoPointer<STACK_OF(X509)> certchain(sk_X509_new_null(), &sk_x509_deallocate);
+      int certN(0);
+      while(!BIO_eof(mem.Ptr())) {
+        AutoPointer<X509> cert(PEM_read_bio_X509(mem.Ptr(), NULL, NULL, NULL), *X509_free);
+        if(sk_X509_insert(certchain.Ptr(), cert.Ptr(), certN) == 0) break;
+        (void)cert.Release();
+        ++certN;
+      }
+      if(certN > 0) certificateChain_ = certchain.Release();
+    }
+
   }
 
   JWSEKeyHolder::~JWSEKeyHolder() {
@@ -343,7 +378,7 @@ namespace Arc {
     publicKey_ = certificate ? X509_get_pubkey(certificate) : NULL;
     if(privateKey_) EVP_PKEY_free(privateKey_);
     // call increases reference count
-    publicKey_ = certificate ? X509_get_privkey(certificate) : NULL;
+    privateKey_ = certificate ? X509_get_privkey(certificate) : NULL;
     if(certificate_) X509_free(certificate_);
     certificate_ = certificate;
   }
