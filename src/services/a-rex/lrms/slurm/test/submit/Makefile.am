@@ -3,7 +3,7 @@ TESTS = basic-test memory-test count-test queue-test job-name-test \
 	files-io-test
 
 TESTS_ENVIRONMENT = \
-	PYTHONPATH=$(abs_top_srcdir)/src/utils/configparser/ \
+	PYTHONPATH=$(abs_top_srcdir)/src/utils/python/ \
 	ARC_PLUGIN_PATH=$(abs_top_builddir)/src/hed/acc/JobDescriptionParser/.libs \
 	ARC_LOCATION=$(abs_builddir) \
 	TEST_WRITE_GRAMI_FILE=$(top_builddir)/src/services/a-rex/grid-manager/test_write_grami_file \
@@ -31,7 +31,7 @@ configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
 submit_common.sh: $(builddir)/../../../submit_common.sh
 	cp $< $@
 
-$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/configparser/arcconfig-parser
+$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
 	mkdir -p $(pkglibexecsubdir)
 	cp $< $(pkglibexecsubdir)/.
 

@@ -1,7 +1,7 @@
 TESTSCRIPTS = test_system.py
 
 if ACIX_TESTS_ENABLED
-TESTS_ENVIRONMENT = PYTHONPATH=$(top_srcdir)/src/services:${top_srcdir}/src/utils/configparser $(TRIAL)
+TESTS_ENVIRONMENT = PYTHONPATH=$(top_srcdir)/src/services:${top_srcdir}/src/utils/python $(TRIAL)
 TESTS = $(TESTSCRIPTS)
 else
 TESTS =
