@@ -10,5 +10,5 @@ else
 HED =
 endif
 
-SUBDIRS = $(HED) $(GRIDMAP) configparser archery
-DIST_SUBDIRS = hed gridmap configparser archery
+SUBDIRS = $(HED) $(GRIDMAP) python archery
+DIST_SUBDIRS = hed gridmap python archery

@@ -1,7 +1,7 @@
 TESTS = basic-test
 
 TESTS_ENVIRONMENT = \
-	PYTHONPATH=$(abs_top_srcdir)/src/utils/configparser/ \
+	PYTHONPATH=$(abs_top_srcdir)/src/utils/python/ \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_scan_script.sh scan-SLURM-job
 
@@ -27,7 +27,7 @@ configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
 scan_common.sh: $(builddir)/../../../scan_common.sh
 	cp $< $@
 
-arcconfig-parser: $(top_srcdir)/src/utils/configparser/arcconfig-parser
+arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
 	cp $< $@
 
 command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
