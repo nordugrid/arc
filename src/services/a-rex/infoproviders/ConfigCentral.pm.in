@@ -36,13 +36,17 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 #######################################################################
 
 my $confdefaults = {
-       common => {
+   common => {
        arcversion => '@VERSION@',
        # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
+       # TODO: move these two to proper places
+       # TODO: this should be in glue2
        infosys_glue2_service_qualitylevel   => 'production',
+       # TODO: this should be in LRMS
        shared_filesystem => 1,
-       enable_arc_interface => 1,
-       enable_emies_interface => 0
+       x509_host_key => '/etc/grid-security/hostkey.pem',
+       x509_host_cert => '/etc/grid-security/hostcert.pem',
+       x509_cert_dir => '/etc/grid-security/certificates'
     },
    arex => {
 	   defaultttl  => '604800 2629744',
