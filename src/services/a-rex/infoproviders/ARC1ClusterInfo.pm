@@ -3113,7 +3113,7 @@ sub collect($) {
                push @$siblings, $sn if (($qn eq $qname) && ($sn ne $qname));
             }
         } else {
-			my $siblings = $sconfig->{siblingshares} = [$qname];
+            my $siblings = $sconfig->{siblingshares} = [$qname];
         }
         
         my $csha = {};
@@ -3291,7 +3291,11 @@ sub collect($) {
             # TODO: to be removed after patch testing. Uncomment to check values
             # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
             # TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
-            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
+            
+            # in order, override with config values for queue or cluster or lrms module
+            my $queuetotalcpus = $config->{shares}{$qname}{totalcpus} if (defined $config->{shares}{$qname}{totalcpus});
+            $queuetotalcpus ||= (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $qinfo->{totalcpus};
+            $freeslots = $queuetotalcpus - $qinfo->{running};
         }
 
         # This should not be needed, but the above case may trigger it
