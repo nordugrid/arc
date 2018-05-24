@@ -770,6 +770,10 @@ sub collect($) {
         unless (exists $xeinfo->{ntotal} and $xeinfo->{lcpus}) { $totallcpus = 0; last }
         $totallcpus += $xeinfo->{ntotal}  *  $xeinfo->{lcpus};
     }
+    
+    # Override totallcpus if defined in the cluster block
+    $totallcpus = $config->{service}{totalcpus} if (defined $config->{service}{totalcpus});
+    
     #$log->debug("Cannot determine total number of physical CPUs in all ExecutionEnvironments") unless $totalpcpus;
     $log->debug("Cannot determine total number of logical CPUs in all ExecutionEnvironments") unless $totallcpus;
 
@@ -3383,7 +3387,7 @@ sub collect($) {
 
             # OBS: Assuming 1 slot per CPU
             # TODO: slots should be cores?
-            $cmgr->{TotalSlots} = $cluster_info->{totalcpus};
+            $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
