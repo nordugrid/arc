@@ -68,11 +68,11 @@ SciTokensSecAttr::SciTokensSecAttr(Arc::Message* msg):valid_(false) {
         Arc::JWSE jwse(token);
         if(jwse) {
           cJSON const* obj(NULL);
-          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameSubject);
+          obj = jwse.Claim(Arc::JWSE::ClaimNameSubject);
           if(obj && (obj->type == cJSON_String) && (obj->valuestring)) subject_ = obj->valuestring;
-          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameIssuer);
+          obj = jwse.Claim(Arc::JWSE::ClaimNameIssuer);
           if(obj && (obj->type == cJSON_String) && (obj->valuestring)) issuer_ = obj->valuestring;
-          obj = jwse.HeaderParameter(Arc::JWSE::HeaderNameAudience);
+          obj = jwse.Claim(Arc::JWSE::ClaimNameAudience);
           if(obj && (obj->type == cJSON_String) && (obj->valuestring)) audience_ = obj->valuestring;
           valid_ = true;
         };

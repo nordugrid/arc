@@ -1,6 +1,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <time.h>
 #include <openssl/evp.h>
 
 #include <arc/Base64.h>
@@ -12,18 +13,27 @@
 
 namespace Arc {
 
-  char const * const JWSE::HeaderNameSubject = "sub";
-  char const * const JWSE::HeaderNameIssuer = "iss";
-  char const * const JWSE::HeaderNameAudience = "aud";
+  char const * const JWSE::ClaimNameSubject = "sub";
+  char const * const JWSE::ClaimNameIssuer = "iss";
+  char const * const JWSE::ClaimNameAudience = "aud";
+  char const * const JWSE::ClaimNameNotAfter = "exp";
+  char const * const JWSE::ClaimNameNotBefore = "nbf";
 
-  static char const* HeaderNameAlgorithm = "alg";
-  static char const* HeaderNameEncryption = "enc";
+  char const * const JWSE::ClaimNameActivities = "scp";
+
+  char const* const JWSE::HeaderNameAlgorithm = "alg";
+  char const* const JWSE::HeaderNameEncryption = "enc";
 
   JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete) {
     header_ = cJSON_CreateObject();
     if(!header_)
       return;
+    content_ = cJSON_CreateObject();
+    if(!content_)
+      return;
+    // Required items
     cJSON_AddStringToObject(header_.Ptr(), HeaderNameAlgorithm, "none");
+    cJSON_AddItemToObject(content_.Ptr(), ClaimNameActivities, cJSON_CreateArray());
     valid_ = true;
   }
 
@@ -57,8 +67,7 @@ namespace Arc {
     if(algObject->valuestring == NULL) return false;
     cJSON* encObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameEncryption);
     if (encObject == NULL) {
-      // JWS
-      if(!ExtractPublicKey()) return false;
+      //      JWS
       char const* payloadStart = pos;
       while(*pos != '.') {
         if(*pos == '\0') return false;
@@ -66,7 +75,29 @@ namespace Arc {
       }
       char const* payloadEnd = pos;
       ++pos;
-      content_ = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
+      std::string payload = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
+      if(!payload.empty()) {
+        content_ = cJSON_Parse(payload.c_str());
+      } else {
+        content_ = cJSON_CreateObject();
+      }
+      if(!content_) return false;
+
+      // Time
+      cJSON* notBefore = cJSON_GetObjectItem(content_.Ptr(), ClaimNameNotBefore);
+      if(notBefore) {
+        if(notBefore->type != cJSON_Number) return false;
+        time_t notBeforeTime = static_cast<time_t>(notBefore->valueint);
+        if(static_cast<int>(time(NULL)-notBeforeTime) < 0) return false;
+      }
+      cJSON* notAfter = cJSON_GetObjectItem(content_.Ptr(), ClaimNameNotAfter);
+      if(notAfter) {
+        if(notAfter->type != cJSON_Number) return false;
+        time_t notAfterTime = static_cast<time_t>(notAfter->valueint);
+        if(static_cast<int>(notAfterTime - time(NULL)) < 0) return false;
+      }
+      // Signature
+      if(!ExtractPublicKey()) return false;
       char const* signatureStart = pos;
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);
@@ -138,7 +169,11 @@ namespace Arc {
     jwseCompact += Base64::encodeURLSafe(joseStr);
     std::free(joseStr); 
     jwseCompact += '.';
-    jwseCompact += Base64::encodeURLSafe(content_.c_str(), content_.length());
+    char* payloadStr = cJSON_PrintUnformatted(content_.Ptr());
+    if(payloadStr == NULL)
+      return false;
+    jwseCompact += Base64::encodeURLSafe(payloadStr);
+    std::free(payloadStr); 
 
     std::string signature;
     if(keyAdded) {
@@ -154,6 +189,7 @@ namespace Arc {
 
   void JWSE::Cleanup() {
     header_ = NULL;
+    content_ = NULL;
     key_ = NULL;
   }
 
@@ -161,8 +197,83 @@ namespace Arc {
     Cleanup();
   }
 
-  char const* JWSE::Content() const {
-    return content_.c_str();
+  //char const* JWSE::Content() const {
+  //  return content_.c_str();
+  //}
+
+  int JWSE::ActivitiesNum() const {
+    if(!content_)
+      return 0;
+    cJSON const* activities = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), ClaimNameActivities);
+    if(!activities)
+      return 0;
+    if(activities->type != cJSON_Array)
+      return 0;
+    return cJSON_GetArraySize(const_cast<cJSON*>(activities));
+  }
+
+  std::pair<std::string,std::string> JWSE::Activity(int index) {
+    std::pair<std::string,std::string> activity;
+    if(index < 0)
+      return activity;
+    if(!content_)
+      return activity;
+    cJSON const* activities = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), ClaimNameActivities);
+    if(!activities)
+      return activity;
+    if(activities->type != cJSON_Array)
+      return activity;
+    cJSON* activityObj = cJSON_GetArrayItem(const_cast<cJSON*>(activities), index);
+    if(!activityObj)
+      return activity;
+    if(activityObj->type != cJSON_String)
+      return activity;
+    activity.first.assign(activityObj->valuestring);
+    std::string::size_type sep = activity.first.find(':');
+    if(sep != std::string::npos) {
+      activity.second.assign(activity.first.c_str()+sep+1);
+      activity.first.resize(sep);
+    };
+    return activity;
+  }
+
+  void JWSE::RemoveActivity(int index) {
+    if(index < 0)
+      return;
+    if(!content_)
+      return;
+    cJSON* activities = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), ClaimNameActivities);
+    if(!activities)
+      return;
+    if(activities->type != cJSON_Array)
+      return;
+    cJSON_DeleteItemFromArray(activities, index);
+  }
+
+
+  void JWSE::AddActivity(std::pair<std::string,std::string> const& activity, int index) {
+    if(!content_)
+      return;
+    cJSON* activities = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), ClaimNameActivities);
+    if(!activities) {
+      activities = cJSON_CreateArray();
+      cJSON_AddItemToObject(content_.Ptr(), ClaimNameActivities, activities);
+    }
+    if(index > cJSON_GetArraySize(activities)) index = -1;
+    std::string activityStr = activity.first;
+    if(!activity.second.empty()) {
+      activityStr += ":";
+      activityStr += activity.second;
+    };
+    if(index < 0) {
+      cJSON_AddItemToArray(activities, cJSON_CreateString(activityStr.c_str()));
+    } else {
+
+    };
+  }
+
+  void JWSE::AddActivity(std::string const& activity, int index) {
+    AddActivity(std::pair<std::string,std::string>(activity,""), index);
   }
 
   cJSON const* JWSE::HeaderParameter(char const* name) const {
@@ -197,6 +308,40 @@ namespace Arc {
       return;
     }
     cJSON_AddItemToObject(header_.Ptr(), name, cJSON_CreateString(value));
+  }
+
+  cJSON const* JWSE::Claim(char const* name) const {
+    if(!content_)
+      return NULL;
+    cJSON const* param = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), name);
+    if(param == NULL)
+      return NULL;
+    return param;
+  }
+
+
+  void JWSE::Claim(char const* name, cJSON const* value) {
+    if(!content_)
+      return;
+    if(name == NULL)
+      return;
+    if(value == NULL) {
+      cJSON_AddItemToObject(content_.Ptr(), name, cJSON_CreateNull());
+      return;
+    }
+    cJSON_AddItemToObject(content_.Ptr(), name, cJSON_Duplicate(const_cast<cJSON*>(value), 1));
+  }
+
+  void JWSE::Claim(char const* name, char const* value) {
+    if(!content_)
+      return;
+    if(name == NULL)
+      return;
+    if(value == NULL) {
+      cJSON_AddItemToObject(content_.Ptr(), name, cJSON_CreateNull());
+      return;
+    }
+    cJSON_AddItemToObject(content_.Ptr(), name, cJSON_CreateString(value));
   }
 
 /*

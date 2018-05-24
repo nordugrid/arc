@@ -12,11 +12,16 @@ namespace Arc {
   //! from SciTokens (JWS or JWE encoded).
   class JWSE {
    public:
-    static char const * const HeaderNameSubject;
-    static char const * const HeaderNameIssuer;
-    static char const * const HeaderNameAudience;
+    static char const * const ClaimNameSubject;
+    static char const * const ClaimNameIssuer;
+    static char const * const ClaimNameAudience;
+    static char const * const ClaimNameNotAfter;
+    static char const * const ClaimNameNotBefore;
+    static char const * const ClaimNameActivities;
     static char const * const HeaderNameX509CertChain;
     static char const * const HeaderNameJSONWebKey;
+    static char const * const HeaderNameAlgorithm;
+    static char const * const HeaderNameEncryption;
 
 
     //! Parse scitoken available as simple string.
@@ -37,11 +42,20 @@ namespace Arc {
     //! Returns true if object does not represents valid SciToken
     bool operator!() const { return !valid_; }
 
-    //! Content extracted from SciToken
-    char const* Content() const;
+    //! Returns number of authorized activities
+    int ActivitiesNum() const;
 
-    //! Sets content to new value
-    void Content(char const* content);
+    //! Access authorized activity (name,path) at specified index
+    std::pair<std::string,std::string> Activity(int index);
+
+    //! Removes authorized activity at specified index
+    void RemoveActivity(int index);
+
+    //! Adds authorized activity at specified index (-1 adds at end)
+    void AddActivity(std::pair<std::string,std::string> const& activity, int index = -1);
+
+    //! Adds authorized activity at specified index (-1 adds at end)
+    void AddActivity(std::string const& activity, int index = -1);
 
     //! Access to header parameters by their name.
     cJSON const* HeaderParameter(char const* name) const;
@@ -52,6 +66,15 @@ namespace Arc {
     //! Set specified header parameter to new value.
     void HeaderParameter(char const* name, char const* value);
 
+    //! Access to claim by its name.
+    cJSON const* Claim(char const* name) const;
+
+    //! Set specified claim to new value.
+    void Claim(char const* name, cJSON const* value);
+
+    //! Set specified claim to new value.
+    void Claim(char const* name, char const* value);
+
     //! Parses passed SciToken and stores collected information in this object.
     bool Input(std::string const& jwseCompact);
 
@@ -60,7 +83,7 @@ namespace Arc {
 
     //! Assigns certificate to use for signing
     void Certificate(char const* certificate = NULL);
-
+ 
    private:    
 
     bool valid_;
@@ -69,7 +92,7 @@ namespace Arc {
 
     mutable AutoPointer<JWSEKeyHolder> key_;
 
-    std::string content_;
+    mutable AutoPointer<cJSON> content_;
 
     void Cleanup();
 
