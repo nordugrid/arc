@@ -19,6 +19,9 @@ our $host_options_schema = {
         x509_cert_dir  => '*',
         wakeupperiod   => '*',
         processes      => [ '' ],
+        ports => {
+           '*' => [ '*' ] #process name, ports
+        },
         localusers     => [ '' ],
         control => {
             '*' => {
@@ -60,6 +63,11 @@ our $host_info_schema = {
         cache_total   => '', # unit: MB
         globusversion => '*',
         processes  => { '*' => '' },
+        ports      => {
+             '*' => {  # process name
+                 '*' => ''    # port, port status
+             }
+        },
         gm_alive      => '',
         localusers => {
             '*' => {
@@ -67,7 +75,7 @@ our $host_info_schema = {
                 diskfree => '' # unit: MB
             }
         },
-	EMIversion => [ '' ] # taken from /etc/emi-version if exists
+   EMIversion => [ '' ] # taken from /etc/emi-version if exists
 };
 
 our $log = LogUtils->getLogger(__PACKAGE__);
@@ -107,7 +115,7 @@ sub enddate {
     # assuming here that the file exists and is a well-formed certificate.
     my $stdout =`$openssl x509 -noout -enddate -in '$certfile' 2>&1`;
     if ($?) {
-	   $log->info("openssl error: $stdout");
+       $log->info("openssl error: $stdout");
        return undef;
     }
     chomp ($stdout);
@@ -122,6 +130,51 @@ sub enddate {
     }
 }
 
+sub get_ports_info {
+    my (@processes, $ports) = @_;
+    
+    # check if to use either netstat or ss
+    my $netcommand = '';
+    for my $path (split ':', "$ENV{PATH}") {
+        $netcommand = "$path/netstat" and last if -x "$path/netstat";
+        $netcommand = "$path/ss" and last if -x "$path/ss";
+    }
+    
+    unless (defined $netcommand) {
+    $log->verbose("Could not find neither netstat nor ss command, assuming services are up");
+    # TODO: code for fake services up here, create fake stdout
+    }
+    
+    # run net command
+    my $stdout ||= `$netcommand -antup 2>&1`;
+    if ($?) {
+       $log->info("$netcommand error: $stdout");
+       return undef;
+    }
+    chomp ($stdout);
+
+    foreach my $process (@processes) {
+       # TODO: scan ports
+       #foreach my $port
+    }
+    #if ($> == 0) {
+        #my $netstat=`netstat -antup`;
+        #if ( $? != 0 ) {
+        ## push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+        #$log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
+        #} else {
+             ## searches if arched is listed in netstat output
+             ## best way would be ask arched if its service is up...?
+             #if( $netstat !~ m/arched/ ) {
+                 #push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
+              #}
+        #}
+    #} else {
+        ## push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
+        #$log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
+    #}
+
+}
 
 # Hostcert, issuer CA, trustedca, issuercahash, enddate ...
 sub get_cert_info {
@@ -317,7 +370,7 @@ sub get_host_info {
                 # Opting to publish the least free space on any of the cache
                 # disks -- at least this has a simple meaning and is useful to
                 # diagnose if a disk gets full.
-				$host_info->{cache_free} = $res{freemin};
+                $host_info->{cache_free} = $res{freemin};
                 # Only accurate if caches are on filesystems of their own
                 $host_info->{cache_total} = $res{totalsum};
             }
