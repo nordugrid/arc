@@ -10,7 +10,7 @@ if [ "x$1" = "x0" ]; then
     if [ $? != 0 ]; then
         cat "{joboption_controldir}/job.${joboption_gridid}.proxy" > "$joboption_directory/user.proxy"
     fi
-    chmod 640 "$joboption_directory/user.proxy"
+    chmod 600 "$joboption_directory/user.proxy"
 elif [ "x$1" = "x1" ]; then
     export X509_USER_PROXY="$RUNTIME_JOB_DIR/user.proxy"
     export X509_USER_CERT="$RUNTIME_JOB_DIR/user.proxy"
