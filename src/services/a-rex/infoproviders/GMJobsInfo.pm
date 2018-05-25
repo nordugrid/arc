@@ -149,7 +149,7 @@ sub get_gmjobs {
         my $gmjob_diag        = $controldir."/job.".$ID.".diag";
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
-            $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );
+            $log->debug( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );
             delete $gmjobs{$ID};
             $jobsskipped++;
             next;
@@ -199,18 +199,18 @@ sub get_gmjobs {
             $job->{share} = $job->{queue};
             delete $job->{queue};
         } else {
-            $log->warning("Job $ID: 'queue' missing from .local file");
+            $log->debug("Job $ID: 'queue' missing from .local file");
         }
 
         # check for interface field
         if (! $job->{interface}) {
-            $log->warning("Job $ID: 'interface' missing from .local file, reverting to org.nordugrid.gridftpjob");
+            $log->debug("Job $ID: 'interface' missing from .local file, reverting to org.nordugrid.gridftpjob");
             $job->{interface} = 'org.nordugrid.gridftpjob';
         }
         
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
-            $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");
+            $log->debug("Job $ID: Can't open status file $gmjob_status, skipping job");
             delete $gmjobs{$ID};
             $jobsskipped++;
             next;
@@ -220,7 +220,7 @@ sub get_gmjobs {
             close GMJOB_STATUS;
 
             unless ($first_line) {
-                $log->warning("Job $ID: Failed to read status from file $gmjob_status, skipping job");
+                $log->debug("Job $ID: Failed to read status from file $gmjob_status, skipping job");
                 delete $gmjobs{$ID};
                 $jobsskipped++;
                 next;
@@ -236,7 +236,7 @@ sub get_gmjobs {
                 if ($user) {
                     $job->{localowner} = $user;
                 } else {
-                    $log->warning("Job $ID: Cannot determine user name for owner (uid $uid)");
+                    $log->debug("Job $ID: Cannot determine user name for owner (uid $uid)");
                 }
 
                 $job->{"statusmodified"} = $file_stat[9];
@@ -249,14 +249,14 @@ sub get_gmjobs {
                 }
 
             } else {
-                $log->warning("Job $ID: Cannot stat status file: $!");
+                $log->debug("Job $ID: Cannot stat status file: $!");
             }
         }
         
         # check for localid
         if (! $job->{localid}) {
             if ($job->{status} eq 'INLRMS') {
-               $log->warning("Job $ID: has no local ID but is in INLRMS state, this should not happen");
+               $log->debug("Job $ID: has no local ID but is in INLRMS state, this should not happen");
             } 
             $job->{localid} = 'UNDEFINEDVALUE';
         }
@@ -266,7 +266,7 @@ sub get_gmjobs {
 
         if (-e $gmjob_failed) {
             unless (open (GMJOB_FAILED, "<$gmjob_failed")) {
-                $log->warning("Job $ID: Can't open $gmjob_failed");
+                $log->debug("Job $ID: Can't open $gmjob_failed");
             } else {
                 my $chars;
                 read GMJOB_FAILED, $chars, 1024;
@@ -295,77 +295,82 @@ sub get_gmjobs {
 
         # read the job.ID.grami file
 
-        unless ( open (GMJOB_GRAMI, "<$gmjob_grami") ) {
-            # this file is is kept by A-REX during the hole existence of the
-            # job. grid-manager from arc0, however, deletes it after the job
-            # has finished.
-            $log->debug("Job $ID: Can't open $gmjob_grami");
-        } else {
-            my $sessiondir = $job->{sessiondir} || '';
-
-            while (my $line = <GMJOB_GRAMI>) {
-
-                if ($line =~ m/^joboption_(\w+)='(.*)'$/) {
-                    my ($param, $value) = ($1, $2);
-                    $param =~ s/'\\''/'/g; # unescape quotes
-
-                    # These parameters are quoted by A-REX
-                    if ($param eq "stdin") {
-                        $job->{stdin} = $value;
-                        $job->{stdin} =~ s/^\Q$sessiondir\E\/*//;
-                    } elsif ($param eq "stdout") {
-                        $job->{stdout} = $value;
-                        $job->{stdout} =~ s/^\Q$sessiondir\E\/*//;
-                    } elsif ($param eq "stderr") {
-                        $job->{stderr} = $value;
-                        $job->{stderr} =~ s/^\Q$sessiondir\E\/*//;
-                    } elsif ($param =~ m/^runtime_/) {
-                        push @{$job->{runtimeenvironments}}, $value;
-                    }
-
-                } elsif ($line =~ m/^joboption_(\w+)=(\w+)$/) {
-                    my ($param, $value) = ($1, $2);
-
-                    # These parameters are not quoted by A-REX
-                    if ($param eq "count") {
-                        $job->{count} = int($value);
-                    } elsif ($param eq "walltime") {
-                        $job->{reqwalltime} = int($value);
-                    } elsif ($param eq "cputime") {
-                        $job->{reqcputime} = int($value);
-                    } elsif ($param eq "starttime") {
-                        $job->{starttime} = $value;
+        unless ($job->{status} eq 'DELETED') {
+            unless ( open (GMJOB_GRAMI, "<$gmjob_grami") ) {
+                # this file is is kept by A-REX during the hole existence of the
+                # job. grid-manager from arc0, however, deletes it after the job
+                # has finished.
+                $log->debug("Job $ID: Can't open $gmjob_grami");
+            } else {
+                my $sessiondir = $job->{sessiondir} || '';
+    
+                while (my $line = <GMJOB_GRAMI>) {
+    
+                    if ($line =~ m/^joboption_(\w+)='(.*)'$/) {
+                        my ($param, $value) = ($1, $2);
+                        $param =~ s/'\\''/'/g; # unescape quotes
+    
+                        # These parameters are quoted by A-REX
+                        if ($param eq "stdin") {
+                            $job->{stdin} = $value;
+                            $job->{stdin} =~ s/^\Q$sessiondir\E\/*//;
+                        } elsif ($param eq "stdout") {
+                            $job->{stdout} = $value;
+                            $job->{stdout} =~ s/^\Q$sessiondir\E\/*//;
+                        } elsif ($param eq "stderr") {
+                            $job->{stderr} = $value;
+                            $job->{stderr} =~ s/^\Q$sessiondir\E\/*//;
+                        } elsif ($param =~ m/^runtime_/) {
+                            push @{$job->{runtimeenvironments}}, $value;
+                        }
+    
+                    } elsif ($line =~ m/^joboption_(\w+)=(\w+)$/) {
+                        my ($param, $value) = ($1, $2);
+    
+                        # These parameters are not quoted by A-REX
+                        if ($param eq "count") {
+                            $job->{count} = int($value);
+                        } elsif ($param eq "walltime") {
+                            $job->{reqwalltime} = int($value);
+                        } elsif ($param eq "cputime") {
+                            $job->{reqcputime} = int($value);
+                        } elsif ($param eq "starttime") {
+                            $job->{starttime} = $value;
+                        }
                     }
                 }
+                close GMJOB_GRAMI;
             }
-            close GMJOB_GRAMI;
         }
 
         #read the job.ID.description file
 
-        unless ( open (GMJOB_DESCRIPTION, "<$gmjob_description") ) {
-            $log->warning("Job $ID: Can't open $gmjob_description");
-        } else {
-            while (my $line = <GMJOB_DESCRIPTION>) {
-                chomp $line;
-                next unless $line;
-                if ($line =~ m/^\s*[&+|(]/) { $job->{description} = 'rsl'; last }
-                if ($line =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
-                if ($line =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
-                my $nextline = <GMJOB_DESCRIPTION>;
-                if ($nextline =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
-                if ($nextline =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
-                $log->warning("Job $ID: Can't identify job description language");
-                last;
+        unless ($job->{status} eq 'DELETED') {
+            unless ( open (GMJOB_DESCRIPTION, "<$gmjob_description") ) {
+                $log->debug("Job $ID: Can't open $gmjob_description");
+            } else {
+                while (my $line = <GMJOB_DESCRIPTION>) {
+                    chomp $line;
+                    next unless $line;
+                    if ($line =~ m/^\s*[&+|(]/) { $job->{description} = 'rsl'; last }
+                    if ($line =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
+                    if ($line =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
+                    my $nextline = <GMJOB_DESCRIPTION>;
+                    if ($nextline =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
+                    if ($nextline =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
+                    $log->debug("Job $ID: Can't identify job description language");
+                    last;
+                }
+                close GMJOB_DESCRIPTION;
             }
-            close GMJOB_DESCRIPTION;
         }
 
         #read the job.ID.diag file
 
+
         if (-s $gmjob_diag) {
             unless ( open (GMJOB_DIAG, "<$gmjob_diag") ) {
-                $log->warning("Job $ID: Can't open $gmjob_diag");
+                $log->debug("Job $ID: Can't open $gmjob_diag");
             } else {
                 my %nodenames;
                 my ($kerneltime, $usertime);
