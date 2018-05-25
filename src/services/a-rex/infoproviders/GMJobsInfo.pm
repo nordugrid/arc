@@ -161,16 +161,16 @@ sub get_gmjobs {
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
             if ($line=~m/^(\w+)=(.+)$/) {
-				# TODO: multiple activityid support.
-				# is this still used? if not, remove the code.
-				# looking at trunk it doesn't seem to exist anymore.
+                # TODO: multiple activityid support. 
+                # is this still used? if not, remove the code.
+                # looking at trunk it doesn't seem to exist anymore.
                 if ($1 eq "activityid") {
                     push @{$job->{activityid}}, $2;
                 } else {
-					# a job can belong to a user that has multiple voms roles
+                    # a job can belong to a user that has multiple voms roles
                     # for completeness all added to the datastructure 
                     # in an array
-					if ($1 eq "voms") {
+                    if ($1 eq "voms") {
                        push @{$job->{voms}}, $2;
                        # vomsvo to hold the selected vo, I assume is the first in the list.
                        # will be used to calculate vo statistics
@@ -182,7 +182,7 @@ sub get_gmjobs {
                        }
                     } else {
                        $job->{$1}=$2;
-				    }
+                    }
                 }
             }
         }
