@@ -770,6 +770,10 @@ sub collect($) {
         unless (exists $xeinfo->{ntotal} and $xeinfo->{lcpus}) { $totallcpus = 0; last }
         $totallcpus += $xeinfo->{ntotal}  *  $xeinfo->{lcpus};
     }
+    
+    # Override totallcpus if defined in the cluster block
+    $totallcpus = $config->{service}{totalcpus} if (defined $config->{service}{totalcpus});
+    
     #$log->debug("Cannot determine total number of physical CPUs in all ExecutionEnvironments") unless $totalpcpus;
     $log->debug("Cannot determine total number of logical CPUs in all ExecutionEnvironments") unless $totallcpus;
 
@@ -3109,7 +3113,7 @@ sub collect($) {
                push @$siblings, $sn if (($qn eq $qname) && ($sn ne $qname));
             }
         } else {
-			my $siblings = $sconfig->{siblingshares} = [$qname];
+            my $siblings = $sconfig->{siblingshares} = [$qname];
         }
         
         my $csha = {};
@@ -3287,7 +3291,11 @@ sub collect($) {
             # TODO: to be removed after patch testing. Uncomment to check values
             # $log->debug("share name: $share, qname: $qname, totalcpus is $qinfo->{totalcpus}, running is $qinfo->{running}, ".Dumper($qinfo));
             # TODO: still problems with this one, can be negative! Cpus are not enough. Cores must be counted, or logical cpus
-            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
+            
+            # in order, override with config values for queue or cluster or lrms module
+            my $queuetotalcpus = $config->{shares}{$qname}{totalcpus} if (defined $config->{shares}{$qname}{totalcpus});
+            $queuetotalcpus ||= (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $qinfo->{totalcpus};
+            $freeslots = $queuetotalcpus - $qinfo->{running};
         }
 
         # This should not be needed, but the above case may trigger it
@@ -3383,7 +3391,7 @@ sub collect($) {
 
             # OBS: Assuming 1 slot per CPU
             # TODO: slots should be cores?
-            $cmgr->{TotalSlots} = $cluster_info->{totalcpus};
+            $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
