@@ -138,6 +138,7 @@ public:
   bool keep;
   bool forcesync;
   bool truncate;
+  bool convert;
   bool longlist;
   bool printids;
   bool same;
