@@ -28,11 +28,23 @@ def complete_job_id(prefix, parsed_args, **kwargs):
 class JobsControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.Jobs')
+        self.control_dir = None
         self.arcconfig = arcconfig
         if arcconfig is None:
-            # TODO: fallback to gm-jobs provided value for controldir?
-            pass
-        self.control_dir = self.arcconfig.get_value('controldir', 'arex').rstrip('/')
+            self.logger.warning('Failed to get parsed arc.conf. Falling back to gm-jobs provided controldir value.')
+            _CONTROLDIR_RE = re.compile(r'Control dir\s+:\s+(.*)\s*$')
+            gmjobs_out = self.__run_gmjobs('--notshowstates --notshowjobs -x INFO', stderr=True)
+            for line in iter(gmjobs_out.stdout.readline, ''):
+                controldir = _CONTROLDIR_RE.search(line)
+                if controldir:
+                    self.control_dir = controldir.group(1)
+                    break
+        else:
+            self.control_dir = self.arcconfig.get_value('controldir', 'arex').rstrip('/')
+        if self.control_dir is None:
+            self.logger.critical('Jobs control cannot work without controldir.')
+            sys.exit(1)
+        self.logger.debug('Using controldir location: %s', self.control_dir)
         self.cache_ttl = 60
         self.jobs = {}
 
@@ -43,10 +55,13 @@ class JobsControl(ComponentControl):
         return value
 
     @staticmethod
-    def __run_gmjobs(args):
+    def __run_gmjobs(args, stderr=False):
         __GMJOBS = [ARC_LIBEXEC_DIR + 'gm-jobs']
-        # TODO: Submit bug to control debug level of gm-jobs and pass-through stderr
-        return subprocess.Popen(__GMJOBS + [args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        loglevel = logging.getLogger('ARCCTL').getEffectiveLevel()
+        __GMJOBS += ['-x', {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]]
+        if stderr:
+            return subprocess.Popen(__GMJOBS + args.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        return subprocess.Popen(__GMJOBS + args.split(), stdout=subprocess.PIPE)
 
     @staticmethod
     def __xargs_jobs(joblist, cmdarg):
