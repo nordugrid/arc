@@ -349,7 +349,7 @@ sub confchecktripel($$$) {
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
 			w("$value: control directory ($name) does not exist\n");
-		} elsif (!permcheck($value,0700,0777)) {
+		} elsif (!permcheck($value,0755,0777)) {
 			e("$value: directory ($name) should be 755\n");
 		}
 	}
