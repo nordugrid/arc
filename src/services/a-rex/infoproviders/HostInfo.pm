@@ -65,7 +65,7 @@ our $host_info_schema = {
         processes  => { '*' => '' },
         ports      => {
              '*' => {  # process name
-                 '*' => ''    # port, port status
+                 '*' => ''    # port -> port status
              }
         },
         gm_alive      => '',
@@ -141,7 +141,7 @@ sub get_ports_info {
     }
     
     unless (defined $netcommand) {
-    $log->verbose("Could not find neither netstat nor ss command, assuming services are up");
+    $log->verbose("Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up");
     # TODO: code for fake services up here, create fake stdout
     }
     
@@ -397,6 +397,8 @@ sub get_host_info {
     $host_info->{globusversion} = $globusversion if $globusversion;
 
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
+
+    $host_info->{ports} = get_ports_info(@{$options->{ports}});
 
     # gets EMI version from /etc/emi-version if any.
     my $EMIversion;
