@@ -686,7 +686,7 @@ sub check_completeness() {
 		}
 	}
 	else {
-		e("The entry hostname must not be missed.\n");
+		w("No hostname defined, the default $hn will be used.\n");
 	}
 
 }
