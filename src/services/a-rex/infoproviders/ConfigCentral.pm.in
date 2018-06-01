@@ -11,6 +11,7 @@ package ConfigCentral;
 use strict;
 use warnings;
 use File::Basename;
+use Sys::Hostname;
 
 # added to parse JSON stuff
 binmode STDOUT, ":utf8";
