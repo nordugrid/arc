@@ -1334,6 +1334,10 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
+%dir %{_datadir}/%{pkgdir}/rte
+%dir %{_datadir}/%{pkgdir}/rte/ENV
+%{_datadir}/%{pkgdir}/rte/ENV/PROXY
+%{_datadir}/%{pkgdir}/rte/ENV/RTE
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 

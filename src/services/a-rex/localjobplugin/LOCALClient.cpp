@@ -65,7 +65,6 @@ namespace ARexLOCAL {
     user = Arc::User();
     PrepareARexConfig();
 
-    logger.msg(Arc::DEBUG,"Creating a LOCAL client - type 1");
   };
 
 
@@ -88,7 +87,6 @@ namespace ARexLOCAL {
     user = Arc::User();
     PrepareARexConfig();
 
-    logger.msg(Arc::DEBUG,"Creating a LOCAL client type 2");
   };
 
 
@@ -261,7 +259,7 @@ namespace ARexLOCAL {
         ARex::ARexJob arexjob(jsdl,*arexconfig,delegation_id,dummy,logger,idgenerator);
         
         if(!arexjob){
-          logger.msg(Arc::ERROR, "Creation of job failed");
+          logger.msg(Arc::ERROR, "%s",arexjob.Failure());
           return false;
         }
         else{
