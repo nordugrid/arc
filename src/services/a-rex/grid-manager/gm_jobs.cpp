@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
   // stderr destination for error messages
   Arc::LogStream logcerr(std::cerr);
-  logcerr.setFormat(Arc::EmptyFormat);
+  logcerr.setFormat(Arc::LongFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
   

@@ -1,3 +1,5 @@
+# description: copy RunTimeEnvironment scripts to the job session directory
+
 if [ "$1" = "0" ] ; then
     runtimeenv_idx=0
     runtimeenv_var="joboption_runtime_${runtimeenv_idx}"
