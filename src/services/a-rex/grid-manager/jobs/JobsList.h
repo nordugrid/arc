@@ -113,6 +113,15 @@ class JobsList {
   bool RecreateTransferLists(GMJobRef i);
   // Read into ids all jobs in the given dir except those already handled
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const;
+
+  class JobFilter {
+  public:
+    JobFilter() {};
+    virtual ~JobFilter() {};
+    virtual bool accept(const JobId &id) const = 0;
+  };
+
+  static bool ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, JobFilter const& filter);
   // Check and read into id information about job in the given dir 
   // (id has job id filled on entry) unless job is already handled
   bool ScanJob(const std::string& cdir,JobFDesc& id);
@@ -315,16 +324,16 @@ class JobsList {
 
   // Collect all jobs in all states
   // TODO: Only used in gm-jobs - remove.
-  bool GetAllJobs(std::list<GMJobRef>& alljobs) const;
+  static bool GetAllJobs(const GMConfig& config, std::list<GMJobRef>& alljobs);
 
-  bool GetAllJobIds(std::list<JobId>& alljobs) const;
+  static bool GetAllJobIds(const GMConfig& config, std::list<JobId>& alljobs);
 
   // Add job with specified id. 
   // Returns valid reference if job was found and added.
   // TODO: Only used in gm-jobs - remove.
-  GMJobRef GetJob(const JobId& id) const;
+  static GMJobRef GetJob(const GMConfig& config, const JobId& id);
 
-  int CountAllJobs() const;
+  static int CountAllJobs(const GMConfig& config);
 
   // Rearrange status files on service restart
   bool RestartJobs(void);
