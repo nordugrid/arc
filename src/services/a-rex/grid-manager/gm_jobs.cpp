@@ -458,5 +458,7 @@ int main(int argc, char* argv[]) {
       }
     }
   }
+  // Cleanly destroy refrences to avoid error messags
+  for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) ji->Destroy();
   return 0;
 }
