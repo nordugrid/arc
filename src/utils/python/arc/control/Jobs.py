@@ -56,7 +56,7 @@ class JobsControl(ComponentControl):
 
     @staticmethod
     def __run_gmjobs(args, stderr=False):
-        __GMJOBS = [ARC_LIBEXEC_DIR + 'gm-jobs']
+        __GMJOBS = [ARC_LIBEXEC_DIR + '/gm-jobs']
         loglevel = logging.getLogger('ARCCTL').getEffectiveLevel()
         __GMJOBS += ['-x', {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]]
         if stderr:
@@ -156,12 +156,14 @@ class JobsControl(ComponentControl):
 
     def __filtered_jobs(self, args):
         for job_d in self.jobs.values():
-            if args.state:
-                if job_d['state'] not in args.state:
-                    continue
-            if args.owner:
-                if job_d['userdn'] not in args.owner:
-                    continue
+            if hasattr(args, 'state'):
+                if args.state:
+                    if job_d['state'] not in args.state:
+                        continue
+            if hasattr(args, 'owner'):
+                if args.owner:
+                    if job_d['userdn'] not in args.owner:
+                        continue
             yield job_d
 
     def list(self, args):
