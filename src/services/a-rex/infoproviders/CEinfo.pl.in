@@ -14,7 +14,6 @@ package CEInfo;
 
 use File::Basename;
 use Getopt::Long;
-use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
 
@@ -409,7 +408,7 @@ sub get_rte_info($) {
     my ($config) = @_;
 
     my $rte_opts;
-    $rte_opts->{controldir} = $config->{control} if $config->{control};
+    $rte_opts->{controldir} = $config->{control}{'.'}{controldir} if $config->{control}{'.'}{controldir};
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }

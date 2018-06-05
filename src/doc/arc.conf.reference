@@ -120,8 +120,8 @@
 ## are available for all the other blocks thus shared by the different components of ARC.
 #[common]
 
-## *hostname = string - The FQDN of the frontend on which the ARC services are deployed.
-## default: as a safety fallback solution, the return value of the shell command hostname -f is used
+## hostname = string - The FQDN of the frontend on which the ARC services are deployed.
+## default: the return value of the shell command hostname -f
 #hostname=myhost.org
 ## CHANGE1: modified semantics
 
