@@ -56,7 +56,7 @@ class JobsControl(ComponentControl):
 
     @staticmethod
     def __run_gmjobs(args, stderr=False):
-        __GMJOBS = [ARC_LIBEXEC_DIR + 'gm-jobs']
+        __GMJOBS = [ARC_LIBEXEC_DIR + '/gm-jobs']
         loglevel = logging.getLogger('ARCCTL').getEffectiveLevel()
         __GMJOBS += ['-x', {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]]
         if stderr:
