@@ -269,7 +269,7 @@ RTE_include_default () {
             done
             # Add default RTEs to the list
             for rte_name in $default_rtes; do
-                eval "joboption_runtime_${rte_idx}=$rte"
+                eval "joboption_runtime_${rte_idx}=$rte_name"
                 rte_idx=$(( rte_idx + 1 ))
             done
         fi
