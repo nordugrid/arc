@@ -117,7 +117,7 @@ void GMJob::RemoveReference(void) {
 void GMJob::DestroyReference(void) {
   Glib::RecMutex::Lock lock(ref_lock);
   if(--ref_count == 0) {
-    logger.msg(Arc::ERROR,"%s: Job monitoring stop success",job_id);
+    logger.msg(Arc::VERBOSE,"%s: Job monitoring stop success",job_id);
     lock.release();
     delete this;
   } else {
