@@ -131,7 +131,7 @@ sub enddate {
 }
 
 sub get_ports_info {
-    my (@processes, $ports) = @_;
+    my (@processes, %ports) = @_;
     
     # check if to use either netstat or ss
     my $netcommand = '';
@@ -140,9 +140,9 @@ sub get_ports_info {
         $netcommand = "$path/ss" and last if -x "$path/ss";
     }
     
-    unless (defined $netcommand) {
-    $log->verbose("Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up");
-    # TODO: code for fake services up here, create fake stdout
+    if ($netcommand eq '') {
+       $log->verbose("Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up");
+       # TODO: set all port statuses to ok and return
     }
     
     # run net command
@@ -153,6 +153,8 @@ sub get_ports_info {
     }
     chomp ($stdout);
 
+    $log->debug("$stdout");
+    
     foreach my $process (@processes) {
        # TODO: scan ports
        #foreach my $port
@@ -398,7 +400,7 @@ sub get_host_info {
 
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
-    $host_info->{ports} = get_ports_info(@{$options->{ports}});
+    $host_info->{ports} = get_ports_info(@{$options->{processes}},%{$options->{ports}});
 
     # gets EMI version from /etc/emi-version if any.
     my $EMIversion;
@@ -433,6 +435,11 @@ sub test {
                     libexecdir => '/usr/libexec/arc',
                     runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
+                    ports => {
+                        ssh => ['22'],
+                        gridftpd => ['3811'],
+                        slapd => ['2135']
+                    },
                     localusers => [ qw(root bin daemon) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils::level('DEBUG');
