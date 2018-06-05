@@ -156,12 +156,14 @@ class JobsControl(ComponentControl):
 
     def __filtered_jobs(self, args):
         for job_d in self.jobs.values():
-            if args.state:
-                if job_d['state'] not in args.state:
-                    continue
-            if args.owner:
-                if job_d['userdn'] not in args.owner:
-                    continue
+            if hasattr(args, 'state'):
+                if args.state:
+                    if job_d['state'] not in args.state:
+                        continue
+            if hasattr(args, 'owner'):
+                if args.owner:
+                    if job_d['userdn'] not in args.owner:
+                        continue
             yield job_d
 
     def list(self, args):
