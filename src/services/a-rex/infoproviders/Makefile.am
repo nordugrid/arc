@@ -7,8 +7,7 @@ else
 endif
 
 pkgdata_SCRIPTS = CEinfo.pl PerfData.pl
-dist_pkgdata_SCRIPTS = glue-generator.pl \
-	grid-info-soft-register glite-info-provider-ldap
+dist_pkgdata_SCRIPTS = glue-generator.pl glite-info-provider-ldap
 
 dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 	LL.pm LSF.pm Condor.pm condor_env.pm SLURM.pm SLURMmod.pm Boinc.pm \
