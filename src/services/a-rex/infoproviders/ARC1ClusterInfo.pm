@@ -2479,10 +2479,8 @@ sub collect($) {
             if ($> == 0) {
               my $netstat=`netstat -antup`;
               if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume th
-e service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running prope
-rly");
+                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
               } else {
                   # searches if arched is listed in netstat output
                   # best way would be ask arched if its service is up...?
@@ -2492,8 +2490,7 @@ rly");
               }
             } else {
               # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES i
-s running properly");
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
             }
 
             if (%healthissues) {
