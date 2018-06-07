@@ -431,28 +431,6 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
-%package inforeg
-Summary:	ARC information system registration
-Group:		System Environment/Libraries
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-Obsoletes:	%{name}-ldap-infosys < 6.0.0
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description inforeg
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package allows to register the ARC local information system
-(ARIS) or storage element in an information index server (EGIIS). This
-technology is in the process of being phased out. Consider migrating
-to registering your resource in an ARCHERY server instead.
-
 %package aris
 Summary:	ARC local information system
 Group:		System Environment/Libraries
@@ -991,15 +969,6 @@ rm -rf $RPM_BUILD_ROOT
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
 
-%post inforeg
-%enable_service nordugrid-arc-inforeg
-
-%preun inforeg
-%stop_on_removal nordugrid-arc-inforeg
-
-%postun inforeg
-%condrestart_on_update nordugrid-arc-inforeg
-
 %post aris
 %enable_service nordugrid-arc-aris
 
@@ -1184,16 +1153,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/fileplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
-
-%files inforeg
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/nordugrid-arc-inforeg.service
-%else
-%{_initrddir}/nordugrid-arc-inforeg
-%endif
-%{_datadir}/%{pkgdir}/create-inforeg-config
-%{_datadir}/%{pkgdir}/grid-info-soft-register
 
 %files aris
 %defattr(-,root,root,-)
