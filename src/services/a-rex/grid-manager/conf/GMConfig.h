@@ -7,7 +7,6 @@
 #include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/User.h>
-#include <arc/XMLNode.h>
 
 #include "CacheConfig.h"
 
@@ -68,10 +67,8 @@ public:
    * @param conffile Path to configuration file, will be guessed if empty
    */
   GMConfig(const std::string& conffile="");
-  /// Use the given XMLNode as a source of information instead of a file.
-  GMConfig(const Arc::XMLNode& node);
 
-  /// Load configuration from file or XML node into members of this object.
+  /// Load configuration from file into members of this object.
   /// Returns false if errors are found during parsing.
   bool Load();
   /// Print a summary of configuration to stderr
@@ -85,8 +82,6 @@ public:
   bool ConfigIsTemp() const { return conffile_is_temp; }
   /// Sets whether configuration file is temporary
   void SetConfigIsTemp(bool temp) { conffile_is_temp = temp; }
-  /// Set XML node with configuration (corresponding to <Service name="a-rex">)
-  void SetXMLNode(const Arc::XMLNode& node) { xml_cfg = node; }
 
   /// Create control structure with permissions depending on fixdir_t value.
   /// Typically called at A-REX service creation.
@@ -246,8 +241,6 @@ private:
   std::string conffile;
   /// Whether configuration file is temporary
   bool conffile_is_temp;
-  /// Configuration passed as an XMLNode
-  Arc::XMLNode xml_cfg;
   /// For logging job information to external logging service
   JobLog* job_log;
   /// For reporting jobs metric to ganglia
