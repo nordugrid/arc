@@ -65,7 +65,7 @@ our $host_info_schema = {
         processes  => { '*' => '' },
         ports      => {
              '*' => {  # process name
-                 '*' => ''    # port -> port status
+                 '*' => [ '' ]    # port -> [port status, error message ]
              }
         },
         gm_alive      => '',
@@ -131,51 +131,59 @@ sub enddate {
 }
 
 sub get_ports_info {
-    my (@processes, %ports) = @_;
+    my ($processes, $ports) = @_;
+
+    my $portsstatus = {};
+
+    my $errormessage = '';
+    
+    # Assume user is root
+    my $userisroot = 1;    
+    if ($> != 0) {
+        $userisroot = 0;
+        $errormessage = "Checking if ARC ports are open: user ".getpwuid($>)." cannot access process names. Infosys will assume AREX interfaces are running properly;";
+        $log->verbose($errormessage);
+    }
+    
+    my $netcommand = '';
+    my $stdout = '';
     
     # check if to use either netstat or ss
-    my $netcommand = '';
-    for my $path (split ':', "$ENV{PATH}") {
-        $netcommand = "$path/netstat" and last if -x "$path/netstat";
-        $netcommand = "$path/ss" and last if -x "$path/ss";
+    if ($userisroot) {
+        for my $path (split ':', "$ENV{PATH}") {
+            $netcommand = "$path/netstat" and last if -x "$path/netstat";
+            $netcommand = "$path/ss" and last if -x "$path/ss";
+        }
+        
+        
+        if ($netcommand eq '') {
+           $errormessage = $errormessage." Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up;";
+           $log->verbose("Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up");
+        } else {
+            # run net command
+            $stdout = `$netcommand -antup 2>&1`;
+            if ($?) {
+               $errormessage = $errormessage." $netcommand error: $stdout";
+               $log->info("$netcommand error: $stdout");
+               return undef;
+            }
+        }
+        chomp ($stdout);
     }
     
-    if ($netcommand eq '') {
-       $log->verbose("Could not find neither netstat nor ss command, cannot probe open ports, assuming services are up");
-       # TODO: set all port statuses to ok and return
-    }
-    
-    # run net command
-    my $stdout ||= `$netcommand -antup 2>&1`;
-    if ($?) {
-       $log->info("$netcommand error: $stdout");
-       return undef;
-    }
-    chomp ($stdout);
-
-    $log->debug("$stdout");
-    
-    foreach my $process (@processes) {
-       # TODO: scan ports
-       #foreach my $port
-    }
-    #if ($> == 0) {
-        #my $netstat=`netstat -antup`;
-        #if ( $? != 0 ) {
-        ## push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-        #$log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
-        #} else {
-             ## searches if arched is listed in netstat output
-             ## best way would be ask arched if its service is up...?
-             #if( $netstat !~ m/arched/ ) {
-                 #push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
-              #}
-        #}
-    #} else {
-        ## push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
-        #$log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
-    #}
-
+    foreach my $process (@$processes) {
+       my $procports = $ports->{$process};
+       foreach my $port (@$procports) {
+           if ( $stdout =~ m/$port.*$process/ or $netcommand eq '' or $userisroot == 0 ) {
+                $portsstatus->{$process}{$port} = ['ok', $errormessage ]; 
+           } else {
+                my $porterrormessage = $errormessage. " $netcommand: process $process is not listening on port $port;";
+                $portsstatus->{$process}{$port} = ['critical', $porterrormessage ]; 
+           }
+              
+        }
+    } 
+    return $portsstatus;
 }
 
 # Hostcert, issuer CA, trustedca, issuercahash, enddate ...
@@ -400,7 +408,7 @@ sub get_host_info {
 
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
-    $host_info->{ports} = get_ports_info(@{$options->{processes}},%{$options->{ports}});
+    $host_info->{ports} = get_ports_info($options->{processes},$options->{ports});
 
     # gets EMI version from /etc/emi-version if any.
     my $EMIversion;
@@ -417,8 +425,8 @@ sub get_host_info {
 #### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 sub test {
-    my $options = { x509_host_cert => '/etc/grid-security/hostcert.pem',
-                    x509_cert_dir => '/etc/grid-security/certificates',
+    my $options = { x509_host_cert => '/home/pflorido/build/certs/hostcert.pem',
+                    x509_cert_dir => '/home/pflorido/build/certs',
                     control => {
                         '.' => {
                             sessiondir => [ '/home', '/boot' ],
@@ -434,11 +442,11 @@ sub test {
                                       '/dummy/control /boot' ],
                     libexecdir => '/usr/libexec/arc',
                     runtimedir => '/home/grid/runtime',
-                    processes => [ qw(bash ps init grid-manager bogous) ],
+                    processes => [ qw(bash ps init grid-manager bogous cupsd slapd) ],
                     ports => {
-                        ssh => ['22'],
+                        cupsd => ['631'],
                         gridftpd => ['3811'],
-                        slapd => ['2135']
+                        slapd => ['133','389','2135']
                     },
                     localusers => [ qw(root bin daemon) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
