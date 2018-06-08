@@ -185,7 +185,7 @@ for ctr_dir in $control_dir ; do
 		# job finished and exit code is known
                 save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${GMKICK} "$jobfile"
+		${GMKICK} -j "${gridid}" "$jobfile"
 		continue
 	    fi
 	fi
@@ -203,7 +203,7 @@ for ctr_dir in $control_dir ; do
 	    rm -f "$countfile"
             save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${GMKICK} "$jobfile"
+	    ${GMKICK} -j "${gridid}" "$jobfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi
