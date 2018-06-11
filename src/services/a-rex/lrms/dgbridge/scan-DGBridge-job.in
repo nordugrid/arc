@@ -248,9 +248,10 @@ done
 
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
-    for ind in "${kicklist[@]}";do
-        "${pkglibexecdir}/gm-kick" -j "${gridids[$ind]}" "${basenames[$ind]}.status"
-    done
+    "${pkglibexecdir}/gm-kick" \
+	$(for ind in "${kicklist[@]}";do
+	    echo "${basenames[$ind]}.status"
+	    done | xargs)
 fi
 
 exit 0
