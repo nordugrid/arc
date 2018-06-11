@@ -4,10 +4,6 @@
 #include <arc/Logger.h>
 #include <arc/ArcConfigFile.h>
 
-namespace Arc {
-  class XMLNode;
-}
-
 namespace ARex {
 
 class GMConfig;
@@ -15,13 +11,11 @@ class GMConfig;
 /// Parses configuration and fills GMConfig with information
 class CoreConfig {
 public:
-  /// Parse config, either ini-style or XML
+  /// Parse config
   static bool ParseConf(GMConfig& config);
 private:
   /// Parse ini-style config from stream cfile
   static bool ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile);
-  /// Parse config from XML node
-  static bool ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg);
   /// Function to check that LRMS scripts are available
   static void CheckLRMSBackends(const std::string& default_lrms);
   /// Function handle yes/no config commands

@@ -2486,10 +2486,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/fileplugin/Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/create-bdii-config
-                 src/services/ldap-infosys/create-inforeg-config
                  src/services/ldap-infosys/create-slapd-config
                  src/services/ldap-infosys/nordugrid-arc-aris
-                 src/services/ldap-infosys/nordugrid-arc-inforeg
                  src/services/monitor/Makefile
                  src/services/monitor/monitor
                  src/services/monitor/README
