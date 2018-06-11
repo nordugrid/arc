@@ -99,6 +99,7 @@ namespace Arc {
     };
     job["DataStaging"].NewChild("nordugrid-adl:DelegationID") = delegationId;
     job.GetXML(product);
+    return true;
   }
 
   SubmissionStatus SubmitterPluginREST::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
