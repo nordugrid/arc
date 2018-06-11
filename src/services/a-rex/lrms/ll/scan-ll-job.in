@@ -211,19 +211,19 @@ do
 
       job_write_diag
 
-      ${GMKICK} -j "${jobid}" "$jobfile"
+      ${GMKICK} "$jobfile"
       continue
     fi
     # job finished and exit code is known
     save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
     echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"
-    ${GMKICK} -j "${jobid}" "$jobfile"
+    ${GMKICK} "$jobfile"
     continue
   fi
   exitcode=-1
   save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
-  ${GMKICK} -j "${jobid}" "$jobfile"
+  ${GMKICK} "$jobfile"
 done
 
 if [ ! -z "$perflogdir" ]; then
