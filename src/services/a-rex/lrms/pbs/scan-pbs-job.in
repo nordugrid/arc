@@ -168,6 +168,7 @@ process_log_file () {
 
     base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
     if [ -z "${base_name}" ] ; then continue ; fi
+    gridid=`echo "$base_name" 2>/dev/null | sed -n 's/.*\.\([^\.]*\)$/\1/'`
 
     # check if job already reported
     if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
@@ -281,7 +282,7 @@ process_log_file () {
       fi
     fi
     # wake up GM
-    ${GMKICK} "${base_name}.local"
+    ${GMKICK} -j "${gridid}" "${base_name}.local"
   done
   IFS=$old_IFS
 }
@@ -414,7 +415,7 @@ for ctr_dir in "$@" ; do
         # job finished and exit code is known
         save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-        ${GMKICK} "$jobfile"
+        ${GMKICK} -j "$gridid" "$jobfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
@@ -431,7 +432,7 @@ for ctr_dir in "$@" ; do
       rm -f "$countfile"
       save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${GMKICK} "$jobfile"
+      ${GMKICK} -j "$gridid" "$jobfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"
