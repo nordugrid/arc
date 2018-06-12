@@ -1,5 +1,4 @@
 from ControlCommon import *
-from arc.utils import config
 import subprocess
 import sys
 import re
@@ -8,20 +7,12 @@ import time
 
 
 def complete_job_owner(prefix, parsed_args, **kwargs):
-    try:
-        config.parse_arc_conf(parsed_args.config)
-        arcconf = config
-    except IOError:
-        arcconf = None
+    arcconf = get_parsed_arcconf(parsed_args.config)
     return JobsControl(arcconf).complete_owner(parsed_args)
 
 
 def complete_job_id(prefix, parsed_args, **kwargs):
-    try:
-        config.parse_arc_conf(parsed_args.config)
-        arcconf = config
-    except IOError:
-        arcconf = None
+    arcconf = get_parsed_arcconf(parsed_args.config)
     return JobsControl(arcconf).complete_job(parsed_args)
 
 
