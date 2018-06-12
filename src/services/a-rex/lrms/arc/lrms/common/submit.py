@@ -119,21 +119,37 @@ def get_rte_path(sw):
     rte_path = None
     if os.path.exists('%s/rte/enabled/%s' % (Config.controldir, sw)):
         rte_path = '%s/rte/enabled/%s' % (Config.controldir, sw)
+    elif os.path.exists('%s/rte/default/%s' % (Config.controldir, sw)):
+        rte_path = '%s/rte/default/%s' % (Config.controldir, sw)
     else:
         warn('Requested RunTimeEnvironment %s is missing or not enabled.' % (sw), 'common.submit')
-
     return rte_path
 
 
+def get_rte_params_path(sw):
+    rte_params_path = None
+    if os.path.exists('%s/rte/params/%s' % (Config.controldir, sw)):
+        rte_params_path = '%s/rte/params/%s' % (Config.controldir, sw)
+    return rte_params_path
+
+
+# include optional params file to the RTE file content
 def get_rte_content(sw):
     rte_path = get_rte_path(sw)
-    if not rte_path:
-        return ""
+    rte_params_path = get_rte_params_path(sw)
+    rte_content = ''
+    if rte_params_path:
+        try:
+            with open(rte_params_path, 'r') as f:
+                rte_content += f.read()
+        except IOError:
+            pass
     try:
         with open(rte_path, 'r') as f:
-            return f.read()
-    except:
-        return ""
+            rte_content += f.read()
+    except IOError:
+        pass
+    return rte_content
 
 
 # Limitation: In RTE stage 0, scripts MUST use the 'export' command if any
@@ -304,9 +320,7 @@ class JobscriptAssembler(object):
           """
           return self._stubs.get(stub, '')
 
-
      def __init__(self, jobdesc):
-
           self.jobdesc = jobdesc
           self._stubs = {}
           self._ignore = []
@@ -359,13 +373,11 @@ class JobscriptAssembler(object):
                self._setup_runtime_env()
           self._parse()
 
-
      def __getitem__(self, item):
           return self.map.get(item, '')
 
      def __setitem__(self, item, value):
           self.map[item] = value
-
 
      def _parse(self):
 
