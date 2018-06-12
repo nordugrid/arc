@@ -164,9 +164,10 @@ class JobsControl(ComponentControl):
 
     def kill_or_clean(self, args, action='-k'):
         self.__get_jobs()
-        self.__job_exists(args.jobid)
+        for jobid in args.jobid:
+            self.__job_exists(jobid)
         __JOB_RE = re.compile(r'^Job:\s*')
-        gmjobs_out = self.__run_gmjobs('-J -S ' + action + ' ' + args.jobid)
+        gmjobs_out = self.__run_gmjobs('-J -S ' + action + ' ' + ' '.join(args.jobid))
         for line in iter(gmjobs_out.stdout.readline, ''):
             if __JOB_RE.match(line):
                 sys.stdout.write(line)
@@ -301,9 +302,6 @@ class JobsControl(ComponentControl):
         jobs_log.add_argument('-s', '--service', help='Show ARC CE logs containing the jobID instead of job log',
                               action='store_true')
 
-        jobs_kill = jobs_actions.add_parser('kill', help='Cancel job')
-        jobs_kill.add_argument('jobid', help='Job ID').completer = complete_job_id
-
         jobs_info = jobs_actions.add_parser('info', help='Show job main info')
         jobs_info.add_argument('jobid', help='Job ID').completer = complete_job_id
 
@@ -311,12 +309,15 @@ class JobsControl(ComponentControl):
         jobs_attr.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_attr.add_argument('attr', help='Attribute name', nargs='?')
 
+        jobs_kill = jobs_actions.add_parser('kill', help='Cancel job')
+        jobs_kill.add_argument('jobid', nargs='*', help='Job ID').completer = complete_job_id
+
         jobs_killall = jobs_actions.add_parser('killall', help='Cancel all jobs')
         jobs_killall.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)
         jobs_killall.add_argument('-o', '--owner', help='Filter jobs by owner').completer = complete_job_owner
 
         jobs_clean = jobs_actions.add_parser('clean', help='Clean job')
-        jobs_clean.add_argument('jobid', help='Job ID').completer = complete_job_id
+        jobs_clean.add_argument('jobid', nargs='*', help='Job ID').completer = complete_job_id
 
         jobs_cleanall = jobs_actions.add_parser('cleanall', help='Clean all jobs')
         jobs_cleanall.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)
