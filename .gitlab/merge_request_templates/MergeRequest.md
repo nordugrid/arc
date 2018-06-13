@@ -21,7 +21,11 @@ Or a combination of these, example with several issues:
 ```
 Short description of work (#10, Fixes #1, Fixes #4).
 ```
-This only works for GitLab issues. For Bugzilla tickets, please add url to bugzilla ticket. 
+
+## Link to Bugzilla ticket
+BUGZ-<ticket-id>
+Closing, Fixing keywords do not work.
+
 
 ## Labels
 If you don't have labels available from the drop-down menu, you can specify the labels using syntax in bottom of the description:
