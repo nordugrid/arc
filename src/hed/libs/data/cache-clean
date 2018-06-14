@@ -19,16 +19,10 @@ use Getopt::Std;
 use Fcntl ':mode';
 use DirHandle;
 use File::Basename;
+use POSIX;
 
 use strict;
 use warnings;
-
-
-BEGIN {
-    unshift @INC, dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
-}
-
-use ConfigCentral;
 
 # Set the variable $File::Find::dont_use_nlink if you're using AFS,
 # since AFS cheats.
@@ -46,7 +40,7 @@ sub diskspace;
 
 my(%opts);
 
-my $configfile;
+my $configfile = '/etc/arc.conf';
 
 # max/min used percentage
 my $maxusedpercent = 0;
@@ -60,10 +54,6 @@ my $totlocksize = 0;
 my $totlockfiles = 0;
 
 my $debuglevel = 'INFO';
-LogUtils::level($debuglevel);
-LogUtils::timestamps(1);
-my $log = LogUtils->getLogger('cache-clean');
-
 my $currenttime = time();
 
 getopts('hsSc:m:M:E:f:D:', \%opts);
@@ -79,11 +69,9 @@ if(defined($opts{m})) {
 }
 if(defined($opts{D})) {
     $debuglevel = $opts{D};
-    LogUtils::level($debuglevel);
 }
 if(defined($opts{s})) {
     $debuglevel = 'ERROR';
-    LogUtils::level($debuglevel);
 }
 
 if($maxusedpercent < 0 || $maxusedpercent > 100) {
@@ -135,7 +123,7 @@ sub usage {
                  Default is INFO
 
    Caches are given by dir1, dir2.. or taken from the config file specified
-   by -c or ARC_CONFIG
+   by -c, ARC_CONFIG or the default /etc/arc.conf.
 
 EOH
     exit 1;
@@ -147,30 +135,69 @@ if (!$configfile && $ENV{'ARC_CONFIG'} && -e $ENV{'ARC_CONFIG'}) {
     $configfile = $ENV{'ARC_CONFIG'};
 }
 
-$log->info('Cache cleaning started');
+my %loglevels = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5);
+die "Bad debug level $debuglevel\n" unless $loglevels{$debuglevel};
+my $loglevel = $loglevels{$debuglevel};
+
+# Prints message with required format
+sub p($) {
+    my $s = shift;
+    my $t = strftime "%F %T", localtime;
+    print STDERR "[$t] [cache-clean] $s\n";
+}
+
+# logging functions
+sub error($) {
+    if ($loglevel >= 1) {
+        my $s = shift;
+        p("[ERROR] $s");
+    }
+}
+
+sub warning($) {
+    if ($loglevel >= 2) {
+        my $s = shift;
+        p("[WARNING] $s");
+    }
+}
+
+sub info($) {
+    if ($loglevel >= 3) {
+        my $s = shift;
+        p("[INFO] $s");
+    }
+}
+
+sub verbose($) {
+    if ($loglevel >= 4) {
+        my $s = shift;
+        p("[VERBOSE] $s");
+    }
+}
+
+info('Cache cleaning started');
 
 my @caches = @ARGV;
 
 if (!@caches) {
     die "No config file found and no caches specified\n" unless $configfile;
-    my $config = ConfigCentral::parseConfig($configfile);
-    die "Failed parsing A-REX config file '$configfile'\n" unless $config;
-    die "No users set up in config file '$configfile'\n"
-        unless $config->{control} and ref $config->{control} eq 'HASH';
-    for my $control (values %{$config->{control}}) {
-        next unless ref $control eq 'HASH';
-        next unless $control->{cachedir} and ref $control->{cachedir} eq 'ARRAY';
-        for (@{$control->{cachedir}}) {
-            $log->warning("\n Warning: cache-clean cannot deal with substitutions - $_") and next if /%/;
-            $log->warning("\n Warning: ignoring malformed cache location - $_\n") and next unless m{^(/\S+)};
-            push @caches, $1;
+    die "No such configuration file $configfile\n" unless -e $configfile;
+
+    open CONFIG, $configfile;
+    my $cacheblock = 0;
+    while (my $line = <CONFIG>) {
+        if ($line =~ /^\[/) { $cacheblock = 0; }
+        if ($line =~ /^\[arex\/cache\]/) { $cacheblock = 1; }
+        next unless $cacheblock;
+        if ($line =~ /^cachedir/) {
+            $line =~ /\S+\s*=\s*([^\s]+)/;
+            my $cache = $1;
+            push @caches, $cache;
         }
     }
+    close CONFIG;
     die "No caches found in config file '$configfile'\n" unless @caches;
 }
-
-# ConfigCentral sets debug level to level in conf file, so we have to reset it here
-LogUtils::level($debuglevel);
 
 foreach my $filesystem (@caches) {
 
@@ -178,12 +205,12 @@ foreach my $filesystem (@caches) {
     next if $filesystem eq "";
 
     if ($filesystem =~ /%/) {
-        $log->warning("$filesystem: Warning: cache-clean cannot deal with substitutions");
+        warning("$filesystem: Warning: cache-clean cannot deal with substitutions");
         next;
     }
 
     if (! -d $filesystem || ! -d $filesystem."/data") {
-        $log->info("$filesystem: Cache is empty");
+        info("$filesystem: Cache is empty");
         next;
     }
 
@@ -198,7 +225,7 @@ foreach my $filesystem (@caches) {
     my $fsvalues = diskspace($filesystem);
 
     if(!($fsvalues)) {
-        $log->warning("Unable to stat $filesystem");
+        warning("Unable to stat $filesystem");
         next;
     }
 
@@ -206,14 +233,14 @@ foreach my $filesystem (@caches) {
     my $fsused = $fsvalues->{used};
 
     my $maxfbytes=$fssize*$maxusedpercent/100;
-    $log->info(join("", "$filesystem: used space ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize), "%)"));
+    info(join("", "$filesystem: used space ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize), "%)"));
     if ($expirytime == 0 && $fsused < $maxfbytes && !$opts{'s'}) {
-        $log->info(join("", "Used space is lower than upper limit (", $maxusedpercent, "%)"));
+        info(join("", "Used space is lower than upper limit (", $maxusedpercent, "%)"));
         next;
     }
 
     my $minfbytes=$fssize*$minusedpercent/100;
-    
+
     %files = ();
     %expiredfiles = ();
     $totsize = 0;
@@ -284,13 +311,13 @@ foreach my $filesystem (@caches) {
                     my @lines = <FILE>;
                     close FILE;
                     my @values = split(' ', $lines[0]);
-                    $log->verbose(join("", "Deleting expired file: $fil  atime: ", scalar localtime($expiredfiles{$fil}{atime}), "  size: $expiredfiles{$fil}{size}  url: $values[0]"));
+                    verbose(join("", "Deleting expired file: $fil  atime: ", scalar localtime($expiredfiles{$fil}{atime}), "  size: $expiredfiles{$fil}{size}  url: $values[0]"));
                 }
                 else {
-                    $log->verbose(join("", "Deleting expired file: $fil  atime: ", scalar localtime($expiredfiles{$fil}{atime}), "  size: $expiredfiles{$fil}{size}"));
+                    verbose(join("", "Deleting expired file: $fil  atime: ", scalar localtime($expiredfiles{$fil}{atime}), "  size: $expiredfiles{$fil}{size}"));
                 }
             } else {
-                $log->warning("Error deleting file '$fil': $!");
+                warning("Error deleting file '$fil': $!");
             }
 
             # not critical if this fails
@@ -298,14 +325,14 @@ foreach my $filesystem (@caches) {
             if ( unlink "$fil.meta" ) {
                 my $lastslash = rindex($fil, "/");
                 if ( rmdir(substr($fil, 0, $lastslash))) {
-                     $log->verbose("Deleting directory ".substr($fil, 0, $lastslash));
+                     verbose("Deleting directory ".substr($fil, 0, $lastslash));
                 }
             } else {
-                $log->warning("Error deleting file '$fil.meta': $!");
+                warning("Error deleting file '$fil.meta': $!");
             } 
         }
     }
-	#Are we still exceding limit after deleting expired files.
+    #Are we still exceding limit after deleting expired files.
     if ($fsused > $maxfbytes) {
         # delete in order of access
         foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
@@ -324,27 +351,27 @@ foreach my $filesystem (@caches) {
                     my $line = <FILE>;
                     close FILE;
                     chomp($line);
-                    $log->verbose(join("", "Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}  url: $line"));
+                    verbose(join("", "Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}  url: $line"));
                 }
                 else {
-                    $log->verbose(join("","Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}"));
+                    verbose(join("","Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}"));
                 }
             } else {
-                $log->warning("Error deleting file '$fil': $!");
+                warning("Error deleting file '$fil': $!");
             }
             next if (! -e "$fil.meta");
             # not critical if this fails
             if ( unlink "$fil.meta" ) {
                 my $lastslash = rindex($fil, "/");
                 if ( rmdir(substr($fil, 0, $lastslash))) {
-                    $log->verbose("Deleting directory ".substr($fil, 0, $lastslash));
+                    verbose("Deleting directory ".substr($fil, 0, $lastslash));
                 }
             } else {
-                $log->warning("Error deleting file '$fil.meta': $!");
+                warning("Error deleting file '$fil.meta': $!");
             } 
         }
     }
-    $log->info(join("", "Cleaning finished, used space now ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize),"%)"));
+    info(join("", "Cleaning finished, used space now ", printsize($fsused), " / ", printsize($fssize), " (", sprintf("%.2f",100*$fsused/$fssize),"%)"));
 }
 exit 0;
 
@@ -360,13 +387,13 @@ sub wanted {
     return unless defined $atime;
 
     return unless !(-d _) || -f _;
-       
+
     if ($links != 1) {
         $totlocksize += 512 * $blocks;
         $totlockfiles++;
         return;
     }
-    
+
     if (-e "$name.lock") {
         # check if lock is still valid
         my $lockatime = (stat("$name.lock"))[8];
@@ -428,30 +455,30 @@ sub diskspace ($) {
             my $spacecmd = $opts{f};
             my @output= `$spacecmd $path`;
             if ($? != 0) {
-                $log->warning("Failed running $spacecmd");
+                warning("Failed running $spacecmd");
             } elsif ($output[0] =~ m/(\d+) (\d+)/) {
                 $disktotal = $1;
                 $diskused  = $2;
             } else {
-                $log->warning("Bad output from $spacecmd: @output");
+                warning("Bad output from $spacecmd: @output");
             }
-        }   
+        }
         # check if on afs
         elsif ($path =~ m#/afs/#) {
             my @dfstring =`fs listquota $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed running: fs listquota $path");
+                warning("Failed running: fs listquota $path");
             } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
                 $disktotal = $1*1024;
                 $diskused  = $2*1024;
             } else {
-                $log->warning("Failed interpreting output of: fs listquota $path");
+                warning("Failed interpreting output of: fs listquota $path");
             }
         # "ordinary" disk
         } else {
             my @dfstring =`df -k $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed running: df -k $path");
+                warning("Failed running: df -k $path");
 
             # The first column may be printed on a separate line.
             # The relevant numbers are always on the last line.
@@ -459,7 +486,7 @@ sub diskspace ($) {
                 $disktotal = $1*1024;
                 $diskused  = $2*1024;
             } else {
-                $log->warning("Failed interpreting output of: df -k $path");
+                warning("Failed interpreting output of: df -k $path");
             }
         }
         # get actual used disk for caches on shared partitions if configured
@@ -467,15 +494,15 @@ sub diskspace ($) {
             $diskused = undef;
             my @dustring =`du -ks $path 2>/dev/null`;
             if ($? != 0) {
-                $log->warning("Failed running: du -ks $path");
+                warning("Failed running: du -ks $path");
             } elsif ($dustring[-1] =~ /(\d+)\s+[\w\/]+/) {
                 $diskused = $1*1024;
             } else {
-                $log->warning("Failed interpreting output of: du -ks $path");
+                warning("Failed interpreting output of: du -ks $path");
             }
         }
     } else {
-        $log->warning("Not a directory: $path");
+        warning("Not a directory: $path");
     }
 
     return undef unless defined($disktotal) and defined($diskused);

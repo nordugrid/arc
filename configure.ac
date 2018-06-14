@@ -2253,9 +2253,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/crypto/Makefile
                  src/hed/libs/cryptomod/Makefile
                  src/hed/libs/data/Makefile
-                 src/hed/libs/data/cache-clean
                  src/hed/libs/data/cache-clean.1
-                 src/hed/libs/data/cache-list
                  src/hed/libs/data/cache-list.1
                  src/hed/libs/data/test/Makefile
                  src/hed/libs/data/examples/Makefile
