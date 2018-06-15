@@ -28,12 +28,19 @@ RunTime Environments Actions:
     list      List RunTime Environments
     default   Transparently use RTE for every A-REX job
     undefault Remove RTE from transparent A-REX usage
+    cat       Print the content of RTE file
+    params-get
+              List configurable RTE parameters
+    params-set
+              Set configurable RTE parameters
 
 To increase the log-level verbosity or change path to arc.conf pass the global arguments before component name.
 
 BASH-COMPLETION
 
-The arcctl can work smoothly without completion, however tool is designed with bash-completion in mind to be admin-friendly. Arcctl relies on python-argcomplete to implement bash-completion. To get the completion power make sure you have installed and enabled python-argcomplete as described in https://pypi.org/project/argcomplete/
+The arcctl can work smoothly without completion, however tool is designed with bash-completion in mind to be admin-friendly.
+Arcctl relies on python-argcomplete to implement bash-completion.
+To get the completion power make sure you have installed and enabled python-argcomplete as described in https://pypi.org/project/argcomplete/
 
 The easiest way is to enable python completion globally:
   yum install python-argcomplete
@@ -43,10 +50,10 @@ P.S. We can investigate packages availability and maybe add 'Requires' to packag
 
 DEVELOP COMPONENT FOR ARCCTL
 
-arcctl designed to be modular and each component implemented as dedicated python modules in 'arc.control'. Inside the module there should be control class inherited from ComponentControl that:
+arcctl designed to be modular and each component implemented as dedicated python module in 'arc.control'.
+Inside the module there should be control class inherited from ComponentControl that:
   - have arcconfig as the only parameter in constructor
-  - implements static 'register_parser' method that extends arcparse with proper subparser
+  - implements static 'register_parser' method that extends argparse with proper subparser
   - implements 'control' method that get argparse.parse argument and performs requested action
 
-Just look into already implemented classes for Jobs and RunTimeEnvironments control.
-
+Just look into already implemented classes for Jobs, RunTimeEnvironments control, etc.
