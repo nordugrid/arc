@@ -219,12 +219,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc = deploy_actions.add_parser('voms-lsc', help='Deploy VOMS list-of-certificates files')
         deploy_voms_lsc.add_argument('vo', help='VO Name')
         deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
-        deploy_voms_sources.add_argument_group('voms-admin', 'voms-admin certificate query')
         deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
         deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fecth information from EGI VOs database',
                                          action='store_true')
         deploy_voms_lsc.add_argument('-o', '--openssl', action='store_true',
-                                     help='Use external OpenSSL command instead of native python SSL')
+                                     help='Use external OpenSSL command instead of python SSL')
 
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',

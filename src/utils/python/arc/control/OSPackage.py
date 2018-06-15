@@ -2,12 +2,14 @@ import subprocess
 import logging
 import requests
 import sys
+import os
 
 
 class OSPackageManagement(object):
     """This class aimed to handle both yum (RedHat) and apt (Debian) cases"""
     def __init__(self):
         self.command_base = []  # placeholder to include command's prefix, like ssh to host
+        # self.command_base = ['ssh', 'arc6.grid.org.ua']
         self.logger = logging.getLogger('ARCCTL.OSPackageManagement')
         # detect yum (will also works with dnf wrapper)
         try:
@@ -16,6 +18,7 @@ class OSPackageManagement(object):
             stdout = yum_output.communicate()
             if yum_output.returncode == 0:
                 self.pm = 'yum'
+                self.pm_is_installed = 'rpm -q {}'
                 self.pm_cmd = 'yum'
                 self.pm_repodir = '/etc/yum.repos.d/'
                 self.pm_version = stdout[0].split('\n')[0]
@@ -29,6 +32,7 @@ class OSPackageManagement(object):
             stdout = apt_output.communicate()
             if apt_output.returncode == 0:
                 self.pm = 'apt'
+                self.pm_is_installed = 'dpkg -s {}'
                 self.pm_cmd = 'apt-get'
                 self.pm_repodir = '/etc/apt/sources.list.d/'
                 self.pm_version = stdout[0].split('\n')[0].replace('apt ', '')
@@ -101,5 +105,11 @@ class OSPackageManagement(object):
         command = self.command_base + [self.pm_cmd, '-y', 'install'] + packages
         self.logger.info('Running the following command to install packages: %s', ' '.join(command))
         return subprocess.call(command)
+
+    def is_installed(self, package):
+        __DEVNULL = open(os.devnull, 'w')
+        command = self.command_base + self.pm_is_installed.format(package).split()
+        self.logger.debug('Running the following command to check package is installed: %s', ' '.join(command))
+        return subprocess.call(command, stdout=__DEVNULL, stderr=subprocess.STDOUT) == 0
 
 

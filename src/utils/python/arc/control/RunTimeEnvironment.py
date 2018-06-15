@@ -482,9 +482,9 @@ class RTEControl(ComponentControl):
 
         rte_params_get = rte_actions.add_parser('params-get', help='List configurable RTE parameters')
         rte_params_get.add_argument('rte', help='RTE name').completer = complete_rte_name
-        rte_params_get.add_argument('-l', '--long', help='Detailed listing of RTEs', action='store_true')
+        rte_params_get.add_argument('-l', '--long', help='Detailed listing of parameters', action='store_true')
 
-        rte_params_set = rte_actions.add_parser('params-set', help='List configurable RTE parameters')
+        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameters')
         rte_params_set.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_set.add_argument('parameter', help='RTE parameter to configure').completer = complete_rte_params
         rte_params_set.add_argument('value', help='RTE parameter value to set').completer = complete_rte_params_values
