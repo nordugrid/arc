@@ -1,5 +1,6 @@
 import os
 import logging
+from arc.utils import config
 
 logger = logging.getLogger('ARCCTL.Common')
 
@@ -18,6 +19,15 @@ except ImportError:
 
     ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc/'
     ARC_DATA_DIR = ARC_LOCATION + '/share/arc/'
+
+
+def get_parsed_arcconf(config_file):
+    try:
+        config.parse_arc_conf(config_file)
+        arcconf = config
+    except IOError:
+        arcconf = None
+    return arcconf
 
 
 class ComponentControl(object):

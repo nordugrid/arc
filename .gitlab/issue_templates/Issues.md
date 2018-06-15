@@ -4,6 +4,9 @@
 
 [GitLab quick-action keywords that could be useful to fill this merge request](https://source.coderefinery.org/help/user/project/quick_actions)
 
+## Link to Bugzilla ticket
+BUGZ-<ticket-id>
+
 ## Labels
 
 #### ARC component labels - when no issue
