@@ -149,22 +149,61 @@ class ThirdPartyControl(ComponentControl):
                 self.logger.info('Creating LSC file: %s', lsc_file)
                 lsc_f.write('{dn}\n{ca}'.format(**creds))
 
-    def enable_cacerts_repo(self, repotype):
-        # Detect apt vs yum
-        # TODO: http://repository.egi.eu/sw/production/cas/1/current/repo-files/
-        # TODO: https://dist.igtf.net/distribution/igtf/
-        # TODO: Nordugrid-Repo (suggest to follow URL, thus there is to much versioning)
-        pass
+    def install_cacerts_repo(self, pmobj, repo):
+        if repo == 'igtf':
+            # https:/dist.igtf.net/distribution/igtf/
+            repoconf = {
+                'yum-conf': '''[eugridpma]
+name=EUGridPMA
+baseurl=http://dist.eugridpma.info/distribution/igtf/current/
+gpgcheck=1
+gpgkey=https://dist.eugridpma.info/distribution/igtf/current/GPG-KEY-EUGridPMA-RPM-3
+''',
+                'yum-name': 'eugridpma.repo',
+                'apt-conf': '''#### IGTF Trust Anchor Distribution ####
+deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
+''',
+                'apt-key-url': 'https://dist.eugridpma.info/distribution/igtf/current/GPG-KEY-EUGridPMA-RPM-3',
+                'apt-name': 'eugridpma.list'
+            }
+            pmobj.deploy_repository(repoconf)
+        elif repo == 'egi-trustanchors':
+            # https://wiki.egi.eu/wiki/EGI_IGTF_Release
+            repoconf = {
+                'apt-url': 'http://repository.egi.eu/sw/production/cas/1/current/repo-files/egi-trustanchors.list',
+                'apt-key-url': 'https://dist.eugridpma.info/distribution/igtf/current/GPG-KEY-EUGridPMA-RPM-3',
+                'yum-url': 'http://repository.egi.eu/sw/production/cas/1/current/repo-files/egi-trustanchors.repo'
+            }
+            pmobj.deploy_repository(repoconf)
+        elif repo == 'nordugrid':
+            print 'Nordugrid repository is the general purpose repo that contains binary packages of Nordugid ARC ' \
+                  'and as a bonus includes third-party packages like IGTF CA certitificates.\n' \
+                  'Repositories installation depends on which version of Nordugrid ARC you want to use.\n' \
+                  'Please follow the http://download.nordugrid.org/repos.html and install \'nordugrid-release\' ' \
+                  'package for chosen version.\n' \
+                  'If you do not want to install Nordugrid ARC packages from the nordugrid repos ' \
+                  'consider the other sources of IGTF CA certificates.'
+            sys.exit(0)
+        else:
+            self.logger.error('Unsupported CA certificates repository %s', repo)
+            sys.exit(1)
 
-    def igtf_deploy(self, bundle):
+    def igtf_deploy(self, bundle, installrepo):
         pm = OSPackageManagement()
-        pm.version()
+        if installrepo:
+            self.install_cacerts_repo(pm, installrepo)
+            pm.update_cache()
+        exitcode = pm.install(list(map(lambda p: 'ca_policy_igtf-' + p, bundle)))
+        if exitcode:
+            self.logger.error('Can not install IGTF CA Certificate packages. '
+                              'Make sure you have repositories installed (see --help for options).')
+            sys.exit(exitcode)
 
     def control(self, args):
         if args.action == 'voms-lsc':
             self.lsc_deploy(args)
         elif args.action == 'igtf-ca':
-            self.igtf_deploy(args.bundle)
+            self.igtf_deploy(args.bundle, args.installrepo)
         else:
             self.logger.critical('Unsupported third party deployment action %s', args.action)
             sys.exit(1)
@@ -187,7 +226,8 @@ class ThirdPartyControl(ComponentControl):
         deploy_voms_lsc.add_argument('-o', '--openssl', action='store_true',
                                      help='Use external OpenSSL command instead of native python SSL')
 
-
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',
                              choices=['classic', 'iota', 'mics', 'slcs'])
+        igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
+                             choices=['igtf', 'egi-trustanchors', 'nordugrid'])
