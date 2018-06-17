@@ -17,6 +17,7 @@ build_forks_el6:
   - yum-builddep nordugrid-arc.spec -y
   - ./configure 
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
@@ -42,6 +43,7 @@ build_forks_el7:
   - yum-builddep nordugrid-arc.spec -y
   - CXXFLAGS=-std=c++11 ./configure
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
@@ -70,6 +72,7 @@ build_forks_deb9:
   - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
   - dpkg-buildpackage -b -us -uc
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
