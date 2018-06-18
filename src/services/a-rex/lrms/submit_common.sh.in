@@ -375,6 +375,7 @@ RTE_stage0 () {
         # run RTE stage 0
         # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
         #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
+        [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
         sourcewithargs "$rte_path" $args_value 1>&2
         rte0_exitcode=$?
         if [ $rte0_exitcode -ne 0 ] ; then

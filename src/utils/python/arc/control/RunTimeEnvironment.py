@@ -455,11 +455,11 @@ class RTEControl(ComponentControl):
         rte_actions = rte_ctl.add_subparsers(title='RunTime Environments Actions', dest='action',
                                              metavar='ACTION', help='DESCRIPTION')
         rte_enable = rte_actions.add_parser('enable', help='Enable RTE to be used by A-REX')
-        rte_enable.add_argument('rte', nargs='*', help='RTE name').completer = complete_rte_name
+        rte_enable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
         rte_enable.add_argument('-f', '--force', help='Force RTE enabling', action='store_true')
 
         rte_disable = rte_actions.add_parser('disable', help='Disable RTE to be used by A-REX')
-        rte_disable.add_argument('rte', nargs='*', help='RTE name').completer = complete_rte_name
+        rte_disable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
 
         rte_list = rte_actions.add_parser('list', help='List RunTime Environments')
         rte_list.add_argument('-l', '--long', help='Detailed listing of RTEs', action='store_true')
@@ -471,20 +471,20 @@ class RTEControl(ComponentControl):
         rte_list_types.add_argument('-u', '--user', help='List available user-defined RTEs', action='store_true')
 
         rte_default = rte_actions.add_parser('default', help='Transparently use RTE for every A-REX job')
-        rte_default.add_argument('rte', nargs='*', help='RTE name').completer = complete_rte_name
+        rte_default.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
         rte_default.add_argument('-f', '--force', help='Force RTE enabling', action='store_true')
 
         rte_undefault = rte_actions.add_parser('undefault', help='Remove RTE from transparent A-REX usage')
-        rte_undefault.add_argument('rte', nargs='*', help='RTE name').completer = complete_rte_name
+        rte_undefault.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
 
         rte_cat = rte_actions.add_parser('cat', help='Print the content of RTE file')
         rte_cat.add_argument('rte', help='RTE name').completer = complete_rte_name
 
         rte_params_get = rte_actions.add_parser('params-get', help='List configurable RTE parameters')
         rte_params_get.add_argument('rte', help='RTE name').completer = complete_rte_name
-        rte_params_get.add_argument('-l', '--long', help='Detailed listing of RTEs', action='store_true')
+        rte_params_get.add_argument('-l', '--long', help='Detailed listing of parameters', action='store_true')
 
-        rte_params_set = rte_actions.add_parser('params-set', help='List configurable RTE parameters')
+        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameters')
         rte_params_set.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_set.add_argument('parameter', help='RTE parameter to configure').completer = complete_rte_params
         rte_params_set.add_argument('value', help='RTE parameter value to set').completer = complete_rte_params_values
