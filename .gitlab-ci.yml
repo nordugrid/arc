@@ -15,7 +15,9 @@ build_forks_el6:
   - ./autogen.sh
   - ./configure
   - yum-builddep nordugrid-arc.spec -y
+  - ./configure 
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
@@ -39,7 +41,9 @@ build_forks_el7:
   - ./autogen.sh
   - CXXFLAGS=-std=c++11 ./configure
   - yum-builddep nordugrid-arc.spec -y
+  - CXXFLAGS=-std=c++11 ./configure
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
@@ -62,11 +66,13 @@ build_forks_deb9:
   - ./autogen.sh
   - ./configure
   - apt build-dep nordugrid-arc -y
+  - ./configure
   - echo "6.0.0">VERSION
   - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
   - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
   - dpkg-buildpackage -b -us -uc
   - echo "Run make"
+  - make clean
   - make
   - echo "Run make check"
   - make check
@@ -90,6 +96,7 @@ make_debs_deb9:
   - ./autogen.sh
   - ./configure
   - apt-get build-dep nordugrid-arc -y
+  - ./configure
   - echo "Preparing and running dpkg-buildpackage"
   - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
   - echo "6.0.0">VERSION
@@ -116,6 +123,7 @@ make_rpms_el6:
   - ./autogen.sh
   - ./configure
   - yum-builddep nordugrid-arc.spec -y
+  - ./configure
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
@@ -147,6 +155,7 @@ make_rpms_el7:
   - ./autogen.sh
   - ./configure
   - yum-builddep nordugrid-arc.spec -y
+  - ./configure
   - echo "Preparing and running rpmbuild"
   - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
   - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros

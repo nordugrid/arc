@@ -357,8 +357,8 @@ sub confchecktripel($$$) {
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
 			w("$value: control directory ($name) does not exist\n");
-		} elsif (!permcheck($value,0755,0777)) {
-			e("$value: directory ($name) should be 755\n");
+		} elsif (!permcheck($value,0755,0777) and !permcheck($value,0700,0777)) {
+			e("$value: directory ($name) should be 755 or 700\n");
 		}
 	}
 
@@ -638,7 +638,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "arex", "cluster", "lrms");
+	my @required=("arex", "cluster", "lrms");
 
 	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
