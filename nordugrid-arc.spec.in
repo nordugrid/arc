@@ -515,6 +515,7 @@ Requires:	stomppy
 %endif
 Requires:	python-ldap
 Requires:	python-dirq
+Requires:   python-isodate
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -1058,7 +1059,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
 %{_libdir}/%{pkgdir}/arc-file-access
-
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
@@ -1068,11 +1068,17 @@ service fetch-crl-cron start > /dev/null 2>&1
 %dir %{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python2_sitearch}/%{pkgdir}/utils/config.py*
+%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlPaths.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
+%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
 %{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
+%{python2_sitearch}/%{pkgdir}/control/Services.py*
+%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %dir %{_datadir}/%{pkgdir}
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
