@@ -165,7 +165,7 @@ make_rpms_el7:
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
   tags:
-    - general-shared
+    - Computerome
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
