@@ -136,7 +136,7 @@ Description: ARC LDAP monitor service
 
 Package: nordugrid-arc-arex
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
 Description: ARC Remote EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
