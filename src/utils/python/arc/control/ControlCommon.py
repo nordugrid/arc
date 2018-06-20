@@ -17,8 +17,8 @@ except ImportError:
     if 'ARC_LOCATION' in os.environ:
         ARC_LOCATION = os.environ['ARC_LOCATION']
 
-    ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc/'
-    ARC_DATA_DIR = ARC_LOCATION + '/share/arc/'
+    ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc'
+    ARC_DATA_DIR = ARC_LOCATION + '/share/arc'
 
 
 def get_parsed_arcconf(config_file):
