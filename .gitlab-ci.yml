@@ -48,7 +48,7 @@ build_forks_el7:
   - echo "Run make check"
   - make check
   tags:
-    - Computerrome
+    - Computerome
   except: 
     refs:
       - master
