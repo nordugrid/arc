@@ -13,6 +13,7 @@ class ThirdPartyControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.ThirdParty.Deploy')
         self.x509_cert_dir = '/etc/grid-security/certificates'
+        self.arcconfig = arcconfig
         if arcconfig is None:
             self.logger.info('Failed to parse arc.conf, using default CA certificates path')
         else:
@@ -199,11 +200,123 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                               'Make sure you have repositories installed (see --help for options).')
             sys.exit(exitcode)
 
+    def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
+        if ports is None:
+            self.logger.warning('Globus %s port range for %s is not configured! '
+                                'Random port will be used which results problems with firewall.', proto, subsys)
+        else:
+            ports = ports.replace(',', ':').replace(' ', '')
+            if conf:
+                if conf['port'] == ports:
+                    conf['descr'] += ' and {}'.format(subsys)
+                else:
+                    iptables_config.append({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                                            'port': ports, 'proto': proto.lower()})
+            else:
+                conf.update({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                        'port': ports, 'proto': proto.lower()})
+                iptables_config.append(conf)
+
+    def iptables_config(self, multiport=False, anystate=False):
+        if self.arcconfig is None:
+            self.logger.error('Cannot generate iptables configuration without parsed arc.conf')
+            sys.exit(1)
+        iptables_config = []
+        # a-rex
+        if self.arcconfig.check_blocks('arex/ws'):
+            wsurl = self.arcconfig.get_value('wsurl', 'arex/ws')
+            port = None
+            if wsurl is not None:
+                __uri_re = re.compile(r'^https?://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/')
+                url_match = __uri_re.match(wsurl)
+                if url_match:
+                    port = url_match.groupdict()['port']
+                else:
+                    self.logger.error('Failed to parse \'wsurl\' in [arex/ws] block. Please check the URL syntax.')
+            if port is None:
+                port = 443
+            iptables_config.append({'descr': 'A-REX WS Interface', 'port': port})
+        # a-rex data-staging
+        data_staging_globus_tcp_ports = {}
+        data_staging_globus_udp_ports = {}
+        if self.arcconfig.check_blocks('arex/data-staging'):
+            globus_tcp_ports = self.arcconfig.get_value('globus_tcp_port_range', ['arex/data-staging', 'common'])
+            globus_udp_ports = self.arcconfig.get_value('globus_udp_port_range', ['arex/data-staging', 'common'])
+            self.__globus_port_range(globus_tcp_ports, 'TCP', data_staging_globus_tcp_ports, iptables_config)
+            self.__globus_port_range(globus_udp_ports, 'UDP', data_staging_globus_udp_ports, iptables_config)
+        # gridftpd
+        if self.arcconfig.check_blocks('gridftpd'):
+            port = self.arcconfig.get_value('port', 'gridftpd')
+            if port is None:
+                port = 2811
+            iptables_config.append({'descr': 'Gridftpd Interface', 'port': port})
+            # globus port-ranges for gridftp
+            globus_tcp_ports = self.arcconfig.get_value('globus_tcp_port_range', ['gridftpd', 'common'])
+            globus_udp_ports = self.arcconfig.get_value('globus_udp_port_range', ['gridftpd', 'common'])
+            self.__globus_port_range(globus_tcp_ports, 'TCP', data_staging_globus_tcp_ports, iptables_config,
+                                     'gridftpd')
+            self.__globus_port_range(globus_udp_ports, 'UDP', data_staging_globus_udp_ports, iptables_config,
+                                     'gridftpd')
+        # infosys LDAP service
+        if self.arcconfig.check_blocks('infosys/ldap'):
+            port = self.arcconfig.get_value('port', 'infosys/ldap')
+            if port is None:
+                port = 2135
+            iptables_config.append({'descr': 'Infosys LDAP Service', 'port': port})
+        # data-delivery service
+        if self.arcconfig.check_blocks('datadelivery-service'):
+            port = self.arcconfig.get_value('port', 'datadelivery-service')
+            if port is None:
+                port = 443
+            iptables_config.append({'descr': 'Data Delivery Service', 'port': port})
+        # acix-index
+        if self.arcconfig.check_blocks('acix-index'):
+            port = 6443  # hardcoded
+            iptables_config.append({'descr': 'ACIX Index', 'port': port})
+        # acix-scanner
+        if self.arcconfig.check_blocks('acix-scanner'):
+            port = self.arcconfig.get_value('port', 'acix-scanner')
+            if port is None:
+                port = 5443
+            iptables_config.append({'descr': 'ACIX Scanner', 'port': port})
+        # generate iptables config based on the configured services
+        statestr = ' -m state --state NEW'
+        if anystate:
+            statestr = ''
+
+        if multiport:
+            tcp_ports = []
+            udp_ports = []
+            for iptc in iptables_config:
+                if 'proto' not in iptc:
+                    tcp_ports.append(str(iptc['port']))
+                elif iptc['proto'] == 'tcp':
+                    tcp_ports.append(str(iptc['port']))
+                elif iptc['proto'] == 'udp':
+                    udp_ports.append(str(iptc['port']))
+            iptstr = '# ARC CE allowed TCP ports\n' \
+                     '-A INPUT -p tcp {statestr} -m tcp -m multiport --dports {tcpports} -j ACCEPT\n' \
+                     '# ARC CE allowed UDP ports\n' \
+                     '-A INPUT -p udp {statestr} -m udp -m multiport --dports {udpports} -j ACCEPT'
+            print iptstr.format(statestr=statestr,
+                                tcpports=','.join(tcp_ports),
+                                udpports=','.join(udp_ports))
+            return
+
+        iptstr = '# ARC CE {descr}\n-A INPUT -p {proto}' + statestr + ' -m {proto} --dport {port} -j ACCEPT'
+        for iptc in iptables_config:
+            if 'proto' not in iptc:
+                iptc['proto'] = 'TCP'
+            iptc['proto'] = iptc['proto'].lower()
+            print iptstr.format(**iptc)
+
     def control(self, args):
         if args.action == 'voms-lsc':
             self.lsc_deploy(args)
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
+        elif args.action == 'iptables-config':
+            self.iptables_config(args.multiport, args.any_state)
         else:
             self.logger.critical('Unsupported third party deployment action %s', args.action)
             sys.exit(1)
@@ -230,3 +343,10 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                              choices=['classic', 'iota', 'mics', 'slcs'])
         igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
                              choices=['igtf', 'egi-trustanchors', 'nordugrid'])
+
+        iptables = deploy_actions.add_parser('iptables-config',
+                                             help='Generate iptables config to allow ARC CE configured services')
+        iptables.add_argument('--any-state', action='store_true',
+                              help='Do not add \'--state NEW\' to filter configuration')
+        iptables.add_argument('--multiport', action='store_true',
+                              help='Use one-line multiport filter instead of per-service entries')
