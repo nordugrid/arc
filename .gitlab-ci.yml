@@ -22,7 +22,7 @@ build_forks_el6:
   - echo "Run make check"
   - make check
   tags:
-    - general-shared 
+    - Computerome
   except: 
     refs:
       - master
@@ -48,7 +48,7 @@ build_forks_el7:
   - echo "Run make check"
   - make check
   tags:
-    - general-shared 
+    - Computerome
   except: 
     refs:
       - master
@@ -77,7 +77,7 @@ build_forks_deb9:
   - echo "Run make check"
   - make check
   tags:
-    - general-shared 
+    - Computerome
   except: 
     refs:
       - master
@@ -103,7 +103,7 @@ make_debs_deb9:
   - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
   - dpkg-buildpackage -b -us -uc
   tags:
-    - general-shared
+    - Computerome
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -133,7 +133,7 @@ make_rpms_el6:
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
   tags:
-    - general-shared 
+    - Computerome
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -165,7 +165,7 @@ make_rpms_el7:
   - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   - cd $CI_PROJECT_DIR
   tags:
-    - general-shared
+    - Computerome
   only: 
     - branches@nordugrid/arc
     - tags@nordugrid/arc
