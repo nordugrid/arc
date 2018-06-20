@@ -845,7 +845,7 @@ start() {
     fi
 
     # If specified in configuration mount remote session directory using SSHFS.
-    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
     if test "x$REMOTE_HOST" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -915,7 +915,7 @@ stop() {
 
     # If specified in configuration and if mounted,
     # unmount remote session, runtime and cache directories.
-    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
     if test "x${REMOTE_HOST}" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -978,7 +978,7 @@ case "$1" in
         validate
         ;;
     mount-sshfs)
-        REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
+        REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
         if test "x$REMOTE_HOST" != "x"; then
             if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
                 log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
