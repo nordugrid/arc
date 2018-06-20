@@ -1603,7 +1603,7 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
@@ -1756,7 +1756,7 @@ sub collect($) {
 
             # check health status by using port probe in hostinfo
             my $gridftpdport = $config->{gridftpd}{port};
-            if (defined $host_info->{ports}{gridftpd}{$gridftpdport} and $host_info->{ports}{gridftpd}{$gridftpdport} ne 'ok') {
+            if (defined $host_info->{ports}{gridftpd}{$gridftpdport} and @{$host_info->{ports}{gridftpd}{$gridftpdport}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{gridftpd}{$gridftpdport}}[0]}} , @{$host_info->{ports}{gridftpd}{$gridftpdport}}[1];
             }
 
@@ -1888,7 +1888,7 @@ sub collect($) {
             }
             
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
@@ -2019,7 +2019,7 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
@@ -2137,7 +2137,7 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
@@ -2240,7 +2240,7 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
@@ -2353,7 +2353,7 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
@@ -2441,30 +2441,8 @@ sub collect($) {
             }
             }
 
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only checks if it's root
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
-                }
-              }
-            } else {
-              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
-            }
-
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and $host_info->{ports}{arched}{'443'} ne 'ok') {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
@@ -2784,7 +2762,7 @@ sub collect($) {
 
             # check health status by using port probe in hostinfo
             my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
-            if (defined $host_info->{ports}{slapd}{$ldapport} and $host_info->{ports}{slapd}{$ldapport} ne 'ok') {
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}} , @{$host_info->{ports}{slapd}{$ldapport}}[1];
             }
 
@@ -2854,7 +2832,7 @@ sub collect($) {
 
             # check health status by using port probe in hostinfo
             my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
-            if (defined $host_info->{ports}{slapd}{$ldapport} and $host_info->{ports}{slapd}{$ldapport} ne 'ok') {
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}} , @{$host_info->{ports}{slapd}{$ldapport}}[1];
             }
 
@@ -2925,7 +2903,7 @@ sub collect($) {
 
             # check health status by using port probe in hostinfo
             my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
-            if (defined $host_info->{ports}{slapd}{$ldapport} and $host_info->{ports}{slapd}{$ldapport} ne 'ok') {
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}}, @{$host_info->{ports}{slapd}{$ldapport}}[1];
             }
 
@@ -2961,6 +2939,7 @@ sub collect($) {
         
         $arexceps->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
 
+        ## TODO: remove this endpoint
         my $getArisWSRFGlue2Endpoint = sub {
 
             my $ep = {};
@@ -3719,6 +3698,7 @@ sub collect($) {
 
 	#EndPoint here
 
+    ## TODO: remove this endpoint
 	my $getCacheIndexEndpoint = sub {
 
 	    return undef;
@@ -3850,6 +3830,7 @@ sub collect($) {
 
 	#EndPoint here
 
+    ## TODO: remove this endpoint
 	my $getHEDControlEndpoint = sub {
 
 	    #return undef unless ( -e $config->{bdii_update_pid_file});
