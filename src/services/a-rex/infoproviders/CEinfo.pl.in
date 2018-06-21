@@ -395,8 +395,8 @@ sub get_host_info($$) {
     $host_opts->{localusers} = $localusers;
     $host_opts->{processes} = ['arched', 'gridftpd','slapd'];
     $host_opts->{ports}{'arched'} = ['443'];
-    $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}];
-    $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}];
+    $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}] if $config->{gridftpd}{enabled};
+    $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if defined $config->{infosys}{ldap};
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
