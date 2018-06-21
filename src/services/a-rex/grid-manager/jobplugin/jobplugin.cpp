@@ -435,6 +435,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     error_description="Job submission is still in progress.";
     return 1; 
   };
+  store_job_id = "";
   /* check if acl request */
   if((strncmp(name,".gacl-",6) == 0) && (strchr(name,'/') == NULL)) {
     std::string newname(name+6);
