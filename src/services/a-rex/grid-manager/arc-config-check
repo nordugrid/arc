@@ -77,6 +77,7 @@ Path to openssl binary, determined with 'which openssl' if not set.
 use strict;
 use warnings;
 use Getopt::Long;
+use POSIX;
 
 my ($conffile,$printall,$skip_warnings,$help,$man)=("/etc/arc.conf",0,0,0,0);
 
@@ -153,11 +154,18 @@ print STDERR "The following sections have configurable subgroups: "
 
 $opensslpath=`which openssl | tr -d '\n'` unless defined($opensslpath);
 
+# Prints message with required format
+sub p($) {
+	my $s = shift;
+	my $t = strftime "%F %T", localtime;
+	print STDERR "[$t] [Arc.validator] $s" if !$quiet;
+}
+
 # prints and counts a warning
 sub w($) {
 	my $s = shift;
 	if (!$skip_warnings) {
-		print STDERR "W: $s" if !$quiet;
+		p("[WARNING] $s");
 		$warnings++;
 	}
 }
@@ -165,14 +173,14 @@ sub w($) {
 # prints and counts an error
 sub e($) {
 	my $s = shift;
-	print STDERR "E: $s" if !$quiet;
+	p("[ERROR] $s");
 	$errors++;
 }
 
 sub v($) {
 	return unless $verbose or $debug;
 	my $s = shift;
-	print STDERR "$s" if !$quiet;
+	p("[VERBOSE] $s");
 }
 
 ####################### C H E C K S  #######################################
@@ -349,8 +357,8 @@ sub confchecktripel($$$) {
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
 			w("$value: control directory ($name) does not exist\n");
-		} elsif (!permcheck($value,0755,0777)) {
-			e("$value: directory ($name) should be 755\n");
+		} elsif (!permcheck($value,0755,0777) and !permcheck($value,0700,0777)) {
+			e("$value: directory ($name) should be 755 or 700\n");
 		}
 	}
 
@@ -630,7 +638,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "arex", "cluster", "lrms");
+	my @required=("arex", "cluster", "lrms");
 
 	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
@@ -859,14 +867,14 @@ check_certificates();
 
 if (!$quiet) {
     if (0 == $errors) {
-        print "Found no apparent failures.\n";
+        p("Found no apparent failures.\n");
     } else {
-        printf "Found %d failure%s.\n", $errors, ($errors > 1) ? "s" : "";
+        p(sprintf("Found %d failure%s.\n", $errors, ($errors > 1) ? "s" : ""));
     }
     if ($warnings) {
-        printf "Found %d non-critical issue%s%s.\n",
+        p(sprintf("Found %d non-critical issue%s%s.\n",
             $warnings, ($warnings > 1) ? "s" : "",
-            ($skip_warnings?" (not shown)":"");
+            ($skip_warnings?" (not shown)":"")));
     }
 }
 

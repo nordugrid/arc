@@ -1,0 +1,132 @@
+#!/usr/bin/perl -w
+
+# Make a list of URLs in the cache and their corresponding
+# cache filenames
+
+use File::Find ();
+use File::Basename;
+use Digest::SHA1 qw/sha1_hex/;
+
+use strict;
+use warnings;
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+sub wanted;
+
+sub usage {
+    print <<EOH;
+    usage: $0 [-c arex_config_file] [url1 [url2 [...]]]
+    ARC_CONFIG can also be used to specify a config file. Default is /etc/arc.conf
+EOH
+    exit 1;
+}
+
+# GM can store without ports, A-REX always uses ports
+# so check with default port no if none given
+my %ports = (
+    'rc'    => '389',
+    'http'  => '80',
+    'https' => '443',
+    'httpg' => '8443',
+    'srm'   => '8443',
+    'ldap'  => '389',
+    'ftp'   => '21',
+    'gsiftp'=> '2811',
+    );
+
+my @files;
+my $conffile = "/etc/arc.conf";
+
+if (@ARGV > 0) {
+    my $file = $ARGV[0];
+    if ($file eq '-h') {
+        usage();
+    }
+    if ($file eq '-c') {
+        shift (@ARGV);
+        $conffile = shift (@ARGV);
+    }
+    # for each file add default port if necessary
+    foreach my $f (@ARGV) {
+        push (@files, $f);
+        next if $f !~ m|(\w+)://(\S+?)/\S*|;
+        next if ! defined( $ports{$1} );
+        my $protocol = $1;
+        my $host = $2;
+        next if index($host, ':') != -1;
+        # no port so try the default
+        $f =~ s|$host|$host:$ports{$protocol}|;
+        push (@files, $f);
+    }
+}
+
+if (!$conffile && $ENV{"ARC_CONFIG"} && -e $ENV{"ARC_CONFIG"}) {
+    $conffile = $ENV{"ARC_CONFIG"};
+}
+
+usage() unless $conffile;
+
+# parse to find cache dirs
+my @caches;
+
+die "No config file found and no caches specified\n" unless $conffile;
+die "No such configuration file $conffile\n" unless -e $conffile;
+
+open CONFIG, $conffile;
+my $cacheblock = 0;
+while (my $line = <CONFIG>) {
+    if ($line =~ /^\[/) { $cacheblock = 0; }
+    if ($line =~ /^\[arex\/cache\]/) { $cacheblock = 1; }
+    next unless $cacheblock;
+    if ($line =~ /^cachedir/) {
+        $line =~ /\S+\s*=\s*([^\s]+)/;
+        my $cache = $1;
+        push @caches, $cache;
+    }
+}
+close CONFIG;
+die "No caches found in config file '$conffile'\n" unless @caches;
+
+# list all files
+if (@files == 0) {
+    foreach my $cache (@caches) {
+    print "Cache: $cache\n";
+    if (! -d $cache || ! -d $cache."/data") { print " Cache is empty\n"; }
+        else { File::Find::find({wanted => \&wanted}, $cache."/data"); }
+    }
+}
+# list files given as arguments
+else {
+    foreach my $file (@files) {
+        my $hash = sha1_hex($file);
+        if (length($hash) != 40) {
+            print "Error in hash calculation for file $file\n";
+            next;
+        }
+        # look for this file in the caches
+        foreach my $cache (@caches) {
+            my $cachefile = $cache.'/data/'.substr($hash, 0, 2).'/'.substr($hash, 2);
+            if (-e $cachefile) {
+                print " $file $cachefile";
+                print ' (locked)' if -e "$cachefile.lock";
+                print "\n";
+            }
+        }
+    }
+}
+
+sub wanted {
+    return if $name !~ m|\.meta$|;
+    return if ! -e substr($name, 0, -5);
+    open FILE, $name or die "$name $!";
+    my $line = <FILE>;
+    close FILE;
+    chomp($line);
+    my $fname = substr($name, 0, rindex($name, ".meta"));
+    print " $line $fname\n";
+}

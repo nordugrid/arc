@@ -866,15 +866,13 @@ bool ARexJob::delete_job_id(void) {
 }
 
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
-  JobsList jobs(config.GmConfig());
-  return jobs.CountAllJobs();
+  return JobsList::CountAllJobs(config.GmConfig());
 }
 
 // TODO: optimize
 std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
-  JobsList jobs(config.GmConfig());
-  jobs.GetAllJobIds(jlist);
+  JobsList::GetAllJobIds(config.GmConfig(),jlist);
   std::list<std::string>::iterator i = jlist.begin();
   while(i!=jlist.end()) {
     ARexJob job(*i,config,logger,true);

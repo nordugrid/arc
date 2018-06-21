@@ -104,22 +104,6 @@ Description: ARC data delivery service
  .
  This package contains the ARC data delivery service.
 
-Package: nordugrid-arc-inforeg
-Replaces: nordugrid-arc-aris (<< 3.0.0~), nordugrid-arc-ldap-infosys (<< 6.0.0~)
-Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~)
-Breaks: nordugrid-arc-aris (<< 3.0.0~)
-Architecture: all
-Depends: ${misc:Depends}, lsb-base (>= 3.0-6)
-Description: ARC information system registration
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package allows to register the ARC local information system
- (ARIS) or storage element in an information index server (EGIIS). This
- technology is in the process of being phased out. Consider migrating
- to registering your resource in an ARCHERY server instead.
-
 Package: nordugrid-arc-aris
 Provides: nordugrid-arc-ldap-infosys
 Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
@@ -152,7 +136,7 @@ Description: ARC LDAP monitor service
 
 Package: nordugrid-arc-arex
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
 Description: ARC Remote EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource

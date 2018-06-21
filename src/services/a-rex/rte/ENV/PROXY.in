@@ -1,18 +1,24 @@
 # description: copy proxy certificate to the job session directory
+# param:COPY_CACERT_DIR:Yes,No:Yes:If set to Yes, CA certificate dir will be copied to the session directory along with proxy certificate
 
-X509_CERT_DIR=${X509_CERT_DIR:-/etc/grid-security/certificates}"
+COPY_CACERT_DIR="${COPY_CACERT_DIR:-Yes}"
+X509_CERT_DIR="${X509_CERT_DIR:-/etc/grid-security/certificates}"
 
 if [ "x$1" = "x0" ]; then
-    mkdir -pv ${joboption_directory}/arc/certificates/
-    cp -rv ${X509_CERT_DIR}/* ${joboption_directory}/arc/certificates/
-    GM_JOBS="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/gm-jobs"
-    $GM_JOBS -J -S -D ${joboption_gridid} -o "$joboption_directory/user.proxy"
-    if [ $? != 0 ]; then
-        cat "{joboption_controldir}/job.${joboption_gridid}.proxy" > "$joboption_directory/user.proxy"
+    if [ "x$COPY_CACERT_DIR" = "xYes" ]; then
+        mkdir -pv ${joboption_directory}/arc/certificates/
+        cp -rv ${X509_CERT_DIR}/* ${joboption_directory}/arc/certificates/
     fi
-    chmod 600 "$joboption_directory/user.proxy"
+    GM_JOBS="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/gm-jobs"
+    $GM_JOBS -J -S -D ${joboption_gridid} -o "${joboption_directory}/user.proxy"
+    if [ $? != 0 ]; then
+        cat "${joboption_controldir}/job.${joboption_gridid}.proxy" > "${joboption_directory}/user.proxy"
+    fi
+    chmod 600 "${joboption_directory}/user.proxy"
 elif [ "x$1" = "x1" ]; then
-    export X509_USER_PROXY="$RUNTIME_JOB_DIR/user.proxy"
-    export X509_USER_CERT="$RUNTIME_JOB_DIR/user.proxy"
-    export X509_CERT_DIR="$RUNTIME_JOB_DIR/arc/certificates"
+    export X509_USER_PROXY="${RUNTIME_JOB_DIR}/user.proxy"
+    export X509_USER_CERT="${RUNTIME_JOB_DIR}/user.proxy"
+    if [ "x$COPY_CACERT_DIR" = "xYes" ]; then
+        export X509_CERT_DIR="${RUNTIME_JOB_DIR}/arc/certificates"
+    fi
 fi

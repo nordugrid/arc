@@ -10,7 +10,6 @@
 #include <arc/JobPerfLog.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
-#include <arc/XMLNode.h>
 #include <arc/ArcConfigIni.h>
 #include "../jobs/ContinuationPlugins.h"
 #include "../run/RunPlugin.h"
@@ -62,9 +61,6 @@ bool CoreConfig::CheckYesNoCommand(bool& config_param, const std::string& name, 
 
 bool CoreConfig::ParseConf(GMConfig& config) {
 
-  if (config.xml_cfg) {
-    return ParseConfXML(config, config.xml_cfg);
-  }
   if (!config.conffile.empty()) {
     Arc::ConfigFile cfile;
     if (!cfile.open(config.conffile)) {
@@ -73,43 +69,6 @@ bool CoreConfig::ParseConf(GMConfig& config) {
     }
     // detect type of file
     Arc::ConfigFile::file_type type = cfile.detect();
-    if (type == Arc::ConfigFile::file_XML) {
-      Arc::XMLNode xml_cfg;
-      if (!xml_cfg.ReadFromStream(cfile)) {
-        cfile.close();
-        logger.msg(Arc::ERROR, "Can't interpret configuration file %s as XML", config.conffile);
-        return false;
-      }
-      cfile.close();
-      // Pick out the A-REX service node
-      Arc::XMLNode arex;
-      Arc::Config cfg(xml_cfg);
-      if (!cfg) return false;
-
-      if (cfg.Name() == "Service") {
-        if (cfg.Attribute("name") == "a-rex") {
-          cfg.New(arex);
-          return ParseConfXML(config, arex);
-        }
-        return false; // not a-rex service
-      }
-      if (cfg.Name() == "ArcConfig") {
-        // In the case of multiple A-REX services defined, we parse the first one
-        for (int i=0;; i++) {
-          Arc::XMLNode node = cfg["Chain"];
-          node = node["Service"][i];
-          if (!node) return false; // no a-rex node found
-          if (node.Attribute("name") == "a-rex") {
-            node.New(arex);
-            break;
-          }
-        }
-        if (!arex) return false;
-        return ParseConfXML(config, arex);
-      }
-      // malformed xml
-      return false;
-    }
     if (type == Arc::ConfigFile::file_INI) {
       bool result = ParseConfINI(config, cfile);
       cfile.close();
@@ -449,15 +408,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         ws_enabled = true;
         config.enable_emies_interface = true;
         config.enable_arc_interface =  true; // so far
-        if (command == "allownew") { // Note: not available in xml
+        if (command == "allownew") {
           bool enable = false;
           if (!CheckYesNoCommand(enable, command, rest)) return false;
           config.allow_new = enable;
         }
-        else if (command == "allownew_override") { // Note: not available in xml
+        else if (command == "allownew_override") {
           config.allow_submit.push_back(Arc::ConfigIni::NextArg(rest));
         }
-        else if (command == "maxjobdesc") { // Note: not available in xml
+        else if (command == "maxjobdesc") {
           std::string maxjobdesc_s = Arc::ConfigIni::NextArg(rest);
           if (!Arc::stringto(maxjobdesc_s, config.maxjobdesc)) {
             logger.msg(Arc::ERROR, "Wrong number in maxjobdesc command"); return false;
@@ -624,319 +583,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
     return false;
   }
-
-  return true;
-}
-
-bool CoreConfig::ParseConfXML(GMConfig& config, const Arc::XMLNode& cfg) {
-
-  // Currently we have everything running inside same arched.
-  // So we do not need any special treatment for infosys.
-  // std::string infosys_user("");
-
-  bool helper_log_is_set = false;
-  Arc::XMLNode tmp_node = cfg["endpoint"];
-  if (tmp_node) config.headnode = (std::string)tmp_node;
-  /*
-  jobLogPath
-
-  jobReport
-    destination
-    expiration
-    type
-    parameters
-    KeyPath
-    CertificatePath
-    CACertificatesDir
-    logfile
-  */
-  tmp_node = cfg["enableARCInterface"];
-  if (tmp_node) {
-    if (Arc::lower((std::string)tmp_node) == "yes") {
-      config.enable_arc_interface = true;
-    } else {
-      config.enable_arc_interface = false;
-    }
-  }
-  tmp_node = cfg["enableEMIESInterface"];
-  if (tmp_node) {
-    if (Arc::lower((std::string)tmp_node) == "yes") {
-      config.enable_emies_interface = true;
-    } else {
-      config.enable_emies_interface = false;
-    }
-  }
-  tmp_node = cfg["jobLogPath"];
-  if (tmp_node && config.job_log) {
-    std::string fname = tmp_node;
-    config.job_log->SetOutput(fname.c_str());
-  }
-  /*
-  loadLimits
-    maxJobsTracked
-    maxJobsRun
-    maxJobsTotal
-    maxJobsPerDN
-    wakeupPeriod
-  */
-  tmp_node = cfg["loadLimits"];
-  if (tmp_node) {
-    if (!Arc::Config::elementtoint(tmp_node, "maxJobsTracked", config.max_jobs)) {
-      logger.msg(Arc::ERROR, "Value for maxJobsTracked is incorrect number");
-      return false;
-    };
-    if (!Arc::Config::elementtoint(tmp_node, "maxJobsRun", config.max_jobs_running)) {
-      logger.msg(Arc::ERROR, "Value for maxJobsRun is incorrect number");
-      return false;
-    };
-    if (!Arc::Config::elementtoint(tmp_node, "maxJobsTotal", config.max_jobs_total)) {
-      logger.msg(Arc::ERROR, "Value for maxJobsTotal is incorrect number");
-      return false;
-    };
-    if (!Arc::Config::elementtoint(tmp_node, "maxJobsPerDN", config.max_jobs_per_dn)) {
-      logger.msg(Arc::ERROR, "Value for maxJobsPerDN is incorrect number");
-      return false;
-    };
-    if (!Arc::Config::elementtoint(tmp_node, "wakeupPeriod", config.wakeup_period)) {
-      logger.msg(Arc::ERROR, "Value for wakeupPeriod is incorrect number");
-      return false;
-    };
-    if (!Arc::Config::elementtoint(tmp_node, "maxScripts", config.max_scripts)) {
-      logger.msg(Arc::ERROR, "Value for maxScripts is incorrect number");
-      return false;
-    };
-  }
-
-  /*
-  serviceMail
-  */
-  tmp_node = cfg["serviceMail"];
-  if(tmp_node) {
-    config.support_email_address = (std::string)tmp_node;
-    if (config.support_email_address.empty()) {
-      logger.msg(Arc::ERROR, "serviceMail is empty");
-      return false;
-    }
-  }
-
-  /*
-  LRMS
-    type
-    defaultShare
-  */
-  tmp_node = cfg["LRMS"];
-  if (tmp_node) {
-    config.default_lrms = (std::string)(tmp_node["type"]);
-    if(config.default_lrms.empty()) {
-      logger.msg(Arc::ERROR,"Type in LRMS is missing");
-      return false;
-    }
-    config.default_queue = (std::string)(tmp_node["defaultShare"]);
-    CheckLRMSBackends(config.default_lrms);
-    config.rte_dir = (std::string)(tmp_node["runtimeDir"]);
-    // We only want the scratch path as seen on the front-end
-    if (tmp_node["sharedScratch"]) {
-      config.scratch_dir = (std::string)(tmp_node["sharedScratch"]);
-    } else if (tmp_node["scratchDir"]) {
-      config.scratch_dir = (std::string)(tmp_node["scratchDir"]);
-    }
-  } else {
-    logger.msg(Arc::ERROR, "LRMS is missing");
-    return false;
-  }
-
-  /*
-  authPlugin (timeout,onSuccess=PASS,FAIL,LOG,onFailure=FAIL,PASS,LOG,onTimeout=FAIL,PASS,LOG)
-    state
-    command
-  */
-  tmp_node = cfg["authPlugin"];
-  if (config.cont_plugins) for (; tmp_node; ++tmp_node) {
-    std::string state_name = tmp_node["state"];
-    if (state_name.empty()) {
-      logger.msg(Arc::ERROR, "State name for authPlugin is missing");
-      return false;
-    }
-    std::string command = tmp_node["command"];
-    if (state_name.empty()) {
-      logger.msg(Arc::ERROR, "Command for authPlugin is missing");
-      return false;
-    }
-    std::string options;
-    Arc::XMLNode onode;
-    onode = tmp_node.Attribute("timeout");
-    if (onode) options += "timeout="+(std::string)onode+',';
-    onode = tmp_node.Attribute("onSuccess");
-    if (onode) options += "onsuccess="+Arc::lower((std::string)onode)+',';
-    onode = tmp_node.Attribute("onFailure");
-    if (onode) options += "onfailure="+Arc::lower((std::string)onode)+',';
-    onode = tmp_node.Attribute("onTimeout");
-    if (onode) options += "ontimeout="+Arc::lower((std::string)onode)+',';
-    if (!options.empty()) options = options.substr(0, options.length()-1);
-    logger.msg(Arc::DEBUG, "Registering plugin for state %s; options: %s; command: %s",
-        state_name, options, command);
-    if (!config.cont_plugins->add(state_name.c_str(), options.c_str(), command.c_str())) {
-      logger.msg(Arc::ERROR, "Failed to register plugin for state %s", state_name);
-      return false;
-    }
-  }
-
-  /*
-  control
-    username <- not used any more
-    controlDir
-    sessionRootDir
-    ssh
-      remoteHost
-    cache
-      location
-        path
-        link
-      highWatermark
-      lowWatermark
-    defaultTTL
-    defaultTTR
-    maxReruns
-    noRootPower
-    fixDirectories
-    diskSpace <- not used any more
-  */
-
-  tmp_node = cfg["control"];
-  if (!tmp_node) {
-    logger.msg (Arc::ERROR, "Control element must be present");
-    return false;
-  }
-  config.control_dir = (std::string)(tmp_node["controlDir"]);
-  if (config.control_dir.empty()) {
-    logger.msg(Arc::ERROR, "controlDir is missing");
-    return false;
-  }
-  Arc::XMLNode session_node = tmp_node["sessionRootDir"];
-  for (;session_node; ++session_node) {
-    std::string session_root = std::string(session_node);
-    if (session_root.empty()) {
-      logger.msg(Arc::ERROR,"sessionRootDir is missing");
-      return false;
-    }
-    if (session_root == "*") {
-      // special value which uses each user's home area
-      session_root = "%H/.jobs";
-    }
-    config.session_roots.push_back(session_root);
-    bool session_drain = false;
-    if(!Arc::Config::elementtobool(session_node.Attribute("drain"), NULL, session_drain)) {
-      logger.msg(Arc::ERROR, "Attribute drain for sessionRootDir is incorrect boolean");
-      return false;
-    };
-    if(!session_drain) config.session_roots_non_draining.push_back(session_root);
-  }
-  GMConfig::fixdir_t fixdir = GMConfig::fixdir_always;
-  const char* fixdir_opts[] = { "yes", "missing", "no", NULL };
-  int n;
-  if (!Arc::Config::elementtoenum(tmp_node, "fixDirectories", n=(int)fixdir, fixdir_opts)) {
-    logger.msg(Arc::ERROR, "The fixDirectories element is incorrect value");
-    return false;
-  };
-  config.fixdir = (GMConfig::fixdir_t)n;
-  GMConfig::deleg_db_t deleg_db = GMConfig::deleg_db_sqlite;
-  const char* deleg_db_opts[] = { "bdb", "sqlite", NULL };
-  if (!Arc::Config::elementtoenum(tmp_node, "delegationDB", n=(int)deleg_db, deleg_db_opts)) {
-    logger.msg(Arc::ERROR, "The delegationDB element is incorrect value");
-    return false;
-  };
-  config.deleg_db = (GMConfig::deleg_db_t)n;
-  if (!Arc::Config::elementtoint(tmp_node, "maxReruns", config.reruns)) {
-    logger.msg(Arc::ERROR, "The maxReruns element is incorrect number");
-    return false;
-  };
-  if (!Arc::Config::elementtobool(tmp_node, "noRootPower", config.strict_session)) {
-    logger.msg(Arc::ERROR, "The noRootPower element is incorrect number");
-    return false;
-  };
-  if (!Arc::Config::elementtoint(tmp_node, "defaultTTL", config.keep_finished)) {
-    logger.msg(Arc::ERROR, "The defaultTTL element is incorrect number");
-    return false;
-  };
-  if (!Arc::Config::elementtoint(tmp_node, "defaultTTR", config.keep_deleted)) {
-    logger.msg(Arc::ERROR, "The defaultTTR element is incorrect number");
-    return false;
-  };
-
-  // Get cache parameters
-  try {
-    CacheConfig cache_config(tmp_node);
-    config.cache_params = cache_config;
-  }
-  catch (CacheConfigException& e) {
-    logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
-    return false;
-  }
-
-  // Get ssh parameters
-  Arc::XMLNode to_node  = tmp_node["ssh"];
-  if (to_node) {
-    std::string remote_host = (std::string)to_node["remoteHost"];
-    if (remote_host.empty()) {
-      logger.msg(Arc::ERROR, "The 'remoteHost' element value is empty - a host name was expected");
-      return false;
-    }
-    config.sshfs_mounts_enabled = true;
-  }
-
-  /*
-  helperLog
-  */
-  tmp_node = cfg["helperLog"];
-  if(tmp_node) {
-    config.helper_log = (std::string)tmp_node;
-    helper_log_is_set = true;
-  };
-
-  /*
-  helperUtility
-    username
-    command
-  */
-  std::list<std::string> helpers;
-  tmp_node = cfg["helperUtility"];
-  for(; tmp_node; ++tmp_node) {
-    std::string command = tmp_node["command"];
-    if (command.empty()) {
-      logger.msg(Arc::ERROR, "Command in helperUtility is missing");
-      return false;
-    }
-    std::string username = tmp_node["username"];
-    if (username.empty()) {
-      logger.msg(Arc::ERROR, "Username in helperUtility is empty");
-      return false;
-    }
-    if (username != ".") {
-      logger.msg(Arc::ERROR, "Only user '.' for helper program is supported");
-      return false;
-    }
-    helpers.push_back(command);
-  }
-  // End of parsing XML node
-
-  if(!helper_log_is_set) {
-    // Set default
-    config.helper_log = config.control_dir + "/job.helper.errors";
-  }
-  // Do substitution of control dir and helpers here now we have all the
-  // configuration. These are special because they do not change per-user
-  config.Substitute(config.control_dir);
-  for (std::list<std::string>::iterator helper = helpers.begin(); helper != helpers.end(); ++helper) {
-    config.Substitute(*helper);
-    config.helpers.push_back(*helper);
-  }
-
-  // Add helper to poll for finished LRMS jobs
-  std::string cmd = Arc::ArcLocation::GetDataDir() + "/scan-"+config.default_lrms+"-job";
-  cmd = Arc::escape_chars(cmd, " \\", '\\', false);
-  if (!config.conffile.empty()) cmd += " --config " + config.conffile;
-  cmd += " " + config.control_dir;
-  config.helpers.push_back(cmd);
 
   return true;
 }

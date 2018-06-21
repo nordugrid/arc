@@ -1553,8 +1553,22 @@ bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
 }
 
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const {
-  Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
+  class JobFilterSkipExisting: public JobFilter {
+  public:
+    JobFilterSkipExisting(JobsList const& jobs): jobs_(jobs) {};
+    virtual ~JobFilterSkipExisting() {};
+    virtual bool accept(JobId const& id) const { return !jobs_.HasJob(id); };
+  private:
+    JobsList const& jobs_;
+  };
 
+  Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
+  bool result = ScanAllJobs(cdir, ids, JobFilterSkipExisting(*this));
+  perfrecord.End("SCAN-JOBS");
+  return result;
+}
+
+bool JobsList::ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, JobFilter const& filter) {
   try {
     Glib::Dir dir(cdir);
     for(;;) {
@@ -1564,7 +1578,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const 
       // job id contains at least 1 character
       if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
         JobFDesc id(file.substr(4,l-7-4));
-        if(!HasJob(id.id)) {
+        if(filter.accept(id.id)) {
           std::string fname=cdir+'/'+file.c_str();
           uid_t uid;
           gid_t gid;
@@ -1578,11 +1592,10 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const 
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.ControlDir(), e.what());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s", cdir, e.what());
     return false;
   }
 
-  perfrecord.End("SCAN-JOBS");
   return true;
 }
 
@@ -1721,7 +1734,14 @@ bool JobsList::ScanNewMarks(void) {
 }
 
 // For simply collecting all jobs. Only used by gm-jobs.
-bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
+bool JobsList::GetAllJobs(const GMConfig& config, std::list<GMJobRef>& alljobs) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1732,12 +1752,12 @@ bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanAllJobs(odir,ids,JobFilterNoSkip())) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       GMJobRef i(new GMJob(id->id,Arc::User(id->uid)));
-      if (GetLocalDescription(i)) {
+      if (i->GetLocalDescription(config)) {
         i->session_dir = i->local->sessiondir;
         if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id->id)+'/'+id->id;
         alljobs.push_back(i);
@@ -1748,7 +1768,14 @@ bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
 }
 
 // For simply collecting all job ids.
-bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
+bool JobsList::GetAllJobIds(const GMConfig& config, std::list<JobId>& alljobs) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1759,7 +1786,7 @@ bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanAllJobs(odir,ids,JobFilterNoSkip())) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
@@ -1768,8 +1795,9 @@ bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
   }
   return true;
 }
+
 // Only used by gm-jobs
-GMJobRef JobsList::GetJob(const JobId& id) const {
+GMJobRef JobsList::GetJob(const GMConfig& config, const JobId& id) {
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1785,7 +1813,7 @@ GMJobRef JobsList::GetJob(const JobId& id) const {
     time_t t;
     if(check_file_owner(fname,uid,gid,t)) {
       GMJobRef i(new GMJob(id,Arc::User(uid)));
-      if (GetLocalDescription(i)) {
+      if (i->GetLocalDescription(config)) {
         i->session_dir = i->local->sessiondir;
         if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
         return i;
@@ -1796,7 +1824,14 @@ GMJobRef JobsList::GetJob(const JobId& id) const {
 }
 
 // For simply counting all jobs.
-int JobsList::CountAllJobs() const {
+int JobsList::CountAllJobs(const GMConfig& config) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
   int count;
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
@@ -1808,7 +1843,7 @@ int JobsList::CountAllJobs() const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(ScanJobs(odir,ids)) {
+    if(ScanAllJobs(odir,ids,JobFilterNoSkip())) {
       count += ids.size();
     };
   };

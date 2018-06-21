@@ -393,7 +393,10 @@ sub get_host_info($$) {
 
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{processes} = ['arched', 'gridftpd'];
+    $host_opts->{processes} = ['arched', 'gridftpd','slapd'];
+    $host_opts->{ports}{'arched'} = ['443'];
+    $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}];
+    $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}];
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
@@ -408,7 +411,7 @@ sub get_rte_info($) {
     my ($config) = @_;
 
     my $rte_opts;
-    $rte_opts->{controldir} = $config->{control} if $config->{control};
+    $rte_opts->{controldir} = $config->{control}{'.'}{controldir} if $config->{control}{'.'}{controldir};
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }

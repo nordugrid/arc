@@ -60,3 +60,5 @@ except IOError as e:
     # handle SIGPIPE termination
     if e.errno == errno.EPIPE:
         pass
+    else:
+        raise

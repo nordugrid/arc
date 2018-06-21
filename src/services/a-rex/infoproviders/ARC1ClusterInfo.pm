@@ -1170,7 +1170,7 @@ sub collect($) {
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{enable_emies_interface}; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
@@ -1602,28 +1602,11 @@ sub collect($) {
             }
             }
 
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only if root is running arex.
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
-                }
-              }
-            } else {
-              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
-
+            
             if (%healthissues) {
             my @infos;
             for my $level (qw(critical warning other unknown)) {
@@ -1771,6 +1754,12 @@ sub collect($) {
             # check if gridftpd is running, by checking pidfile existence
             push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{gridftpd}{pidfile});
 
+            # check health status by using port probe in hostinfo
+            my $gridftpdport = $config->{gridftpd}{port};
+            if (defined $host_info->{ports}{gridftpd}{$gridftpdport} and @{$host_info->{ports}{gridftpd}{$gridftpdport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{gridftpd}{$gridftpdport}}[0]}} , @{$host_info->{ports}{gridftpd}{$gridftpdport}}[1];
+            }
+
             if (%healthissues) {
             my @infos;
             for my $level (qw(critical warning other)) {
@@ -1896,6 +1885,11 @@ sub collect($) {
                   $config->{remotegmdirs} ? 'All grid managers are down'
                               : 'Grid manager is down';
             }
+            }
+            
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
             if (%healthissues) {
@@ -2024,6 +2018,11 @@ sub collect($) {
             }
             }
 
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            }
+
             if (%healthissues) {
             my @infos;
             for my $level (qw(critical warning other)) {
@@ -2137,26 +2136,9 @@ sub collect($) {
             }
             }            
 
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only checks if it's root
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
-                }
-              }
-            } else {
-              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
             if (%healthissues) {
@@ -2255,6 +2237,11 @@ sub collect($) {
                   $config->{remotegmdirs} ? 'All grid managers are down'
                               : 'Grid manager is down';
             }
+            }
+
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
             if (%healthissues) {
@@ -2365,26 +2352,9 @@ sub collect($) {
             }
             }            
 
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only checks if it's root
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat. EMIES cannot be enabled." ;
-                }
-              }
-            } else {
-              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
             if (%healthissues) {
@@ -2427,7 +2397,7 @@ sub collect($) {
         my $getARCRESTComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $config->{enable_emies_interface};
+            return undef unless $emiesenabled;
 
             my $cep = {};
 
@@ -2440,7 +2410,7 @@ sub collect($) {
             $cep->{Name} = "ARC REST";
 
             # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
+            $cep->{URL} = $wsendpoint;
             # TODO: define a strategy to add data capabilites
             $cep->{Capability} = $epscapabilities->{'org.nordugrid.arcrest'};
             $cep->{Technology} = 'rest';
@@ -2471,19 +2441,14 @@ sub collect($) {
             }
             }
 
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
+            # check health status by using port probe in hostinfo
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
 
             if (%healthissues) {
             my @infos;
-            for my $level (qw(critical warning other)) {
+            for my $level (qw(critical warning other unknown)) {
                 next unless $healthissues{$level};
                 $cep->{HealthState} ||= $level;
                 push @infos, @{$healthissues{$level}};
@@ -2493,13 +2458,6 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
             $cep->{ServingState} = $servingstate;
 
             # StartTime: get it from hed
@@ -2546,9 +2504,9 @@ sub collect($) {
         };
 
         # don't publish if no EMIES endpoint configured
-        $arexceps->{ARCRESTComputingEndpoint} = $getARCRESTComputingEndpoint if ($config->{enable_emies_interface});
+        $arexceps->{ARCRESTComputingEndpoint} = $getARCRESTComputingEndpoint if ($emiesenabled);
 
-	#
+        #
         ## NorduGrid local submission
         #
         my $getNorduGridLocalSubmissionEndpoint = sub {
@@ -2574,8 +2532,8 @@ sub collect($) {
             $cep->{Technology} = 'direct';
             $cep->{InterfaceName} = 'org.nordugrid.local';
             $cep->{InterfaceVersion} = [ '1.0' ];
-	    $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.local'}}, @{$epscapabilities->{'common'}} ]; 	    
-	    $cep->{Implementor} = "NorduGrid";
+            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.local'}}, @{$epscapabilities->{'common'}} ]; 	    
+            $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
@@ -2800,8 +2758,13 @@ sub collect($) {
 
             $ep->{QualityLevel} = "production";
 
-            # How to calculate health for this interface?
             my %healthissues;
+
+            # check health status by using port probe in hostinfo
+            my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}} , @{$host_info->{ports}{slapd}{$ldapport}}[1];
+            }
 
             if (%healthissues) {
             my @infos;
@@ -2865,8 +2828,13 @@ sub collect($) {
 
             $ep->{QualityLevel} = "production";
 
-            # How to calculate health for this interface?
             my %healthissues;
+
+            # check health status by using port probe in hostinfo
+            my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}} , @{$host_info->{ports}{slapd}{$ldapport}}[1];
+            }
 
             if (%healthissues) {
             my @infos;
@@ -2933,6 +2901,12 @@ sub collect($) {
             # How to calculate health for this interface?
             my %healthissues;
 
+            # check health status by using port probe in hostinfo
+            my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
+            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}}, @{$host_info->{ports}{slapd}{$ldapport}}[1];
+            }
+
             if (%healthissues) {
             my @infos;
             for my $level (qw(critical warning other)) {
@@ -2965,6 +2939,7 @@ sub collect($) {
         
         $arexceps->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
 
+        ## TODO: remove this endpoint
         my $getArisWSRFGlue2Endpoint = sub {
 
             my $ep = {};
@@ -3014,27 +2989,12 @@ sub collect($) {
             }
             }            
 
-            # check if WS interface is actually running
-            # done with netstat but I'd like to be smarter
-            # this only works if the effective user is root
-            # TODO: find a better way to do this. Ask A-REX?
-            # changed by request of aleksandr. Only if root is running arex.
-            if ($> == 0) {
-              my $netstat=`netstat -antup`;
-              if ( $? != 0 ) {
-                # push @{$healthissues{ok}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume ARIS WSRFGLUE2 is running properly");
-              } else {
-                  # searches if arched is listed in netstat output
-                  # best way would be ask arched if its service is up...?
-                if( $netstat !~ m/arched/ ) {
-                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
-                }
-              }
-            } else {
-              # push @{$healthissues{ok}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
-              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume ARIS WSRFGLUE2 is is running properly");
+            # check health status by using port probe in hostinfo
+            # a-rex port hardcoded in ARC6
+            if (defined $host_info->{ports}{arched}{'443'}) {
+                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
+            
             
             if (%healthissues) {
             my @infos;
@@ -3738,6 +3698,7 @@ sub collect($) {
 
 	#EndPoint here
 
+    ## TODO: remove this endpoint
 	my $getCacheIndexEndpoint = sub {
 
 	    return undef;
@@ -3869,6 +3830,7 @@ sub collect($) {
 
 	#EndPoint here
 
+    ## TODO: remove this endpoint
 	my $getHEDControlEndpoint = sub {
 
 	    #return undef unless ( -e $config->{bdii_update_pid_file});

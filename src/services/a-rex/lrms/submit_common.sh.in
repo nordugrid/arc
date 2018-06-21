@@ -1,3 +1,4 @@
+#@IgnoreInspection BashAddShebang
 ######################################################
 #Common functions for submit scripts
 ######################################################
@@ -269,7 +270,7 @@ RTE_include_default () {
             done
             # Add default RTEs to the list
             for rte_name in $default_rtes; do
-                eval "joboption_runtime_${rte_idx}=$rte"
+                eval "joboption_runtime_${rte_idx}=$rte_name"
                 rte_idx=$(( rte_idx + 1 ))
             done
         fi
@@ -278,10 +279,17 @@ RTE_include_default () {
 }
 
 RTE_path_set () {
+    rte_params_path="${CONFIG_controldir}/rte/params/${rte_name}"
+    if [ ! -f "$rte_params_path" ]; then
+        rte_params_path=""
+    fi
     rte_path="${CONFIG_controldir}/rte/enabled/${rte_name}"
     if [ ! -f "$rte_path" ]; then
-        echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing or not enabled." 1>&2
-        exit 1
+        rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
+        if [ ! -f "$rte_path" ]; then
+            echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing or not enabled." 1>&2
+            exit 1
+        fi
     fi
 }
 
@@ -310,6 +318,7 @@ RTE_to_jobscript () {
         # add RTE script content as a function into the job script
         echo "# RunTimeEnvironment function for ${rte_name}:" >> $LRMS_JOB_SCRIPT
         echo "RTE_function_${rte_idx} () {" >> $LRMS_JOB_SCRIPT
+        [ -n "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
         cat "${rte_path}" >> $LRMS_JOB_SCRIPT
         echo "}" >> $LRMS_JOB_SCRIPT
         # next RTE
@@ -366,6 +375,7 @@ RTE_stage0 () {
         # run RTE stage 0
         # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
         #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
+        [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
         sourcewithargs "$rte_path" $args_value 1>&2
         rte0_exitcode=$?
         if [ $rte0_exitcode -ne 0 ] ; then

@@ -1179,32 +1179,10 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     publishstaticinfo_=false;
   }
   config_.SetDelegations(&delegation_stores_);
-  if(gmconfig.empty()) {
-    // No external configuration file means configuration is
-    // directly embedded into this configuration node.
-    config_.SetXMLNode(*cfg);
-    // Create temporary file with this <Service> node. This is mainly for
-    // external GM processes such as infoproviders and LRMS scripts so that in
-    // the case of multiple A-REXes in one HED they know which one to serve. In
-    // future hopefully this can be replaced by passing the service id to those
-    // scripts instead. The temporary file is deleted in this destructor.
-    Arc::TmpFileCreate(gmconfig, "", getuid(), getgid(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    logger.msg(Arc::DEBUG, "Storing configuration in temporary file %s", gmconfig);
-    cfg->SaveToFile(gmconfig);
-    config_.SetConfigFile(gmconfig);
-    config_.SetConfigIsTemp(true);
-    if (!config_.Load()) {
-      logger_.msg(Arc::ERROR, "Failed to process service configuration");
-      return;
-    }
-  }
-  else {
-    // External configuration file
-    config_.SetConfigFile(gmconfig);
-    if (!config_.Load()) {
-      logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
-      return;
-    }
+	config_.SetConfigFile(gmconfig);
+  if (!config_.Load()) {
+    logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
+    return;
   }
   // Check for mandatory commands in configuration
   if (config_.ControlDir().empty()) {

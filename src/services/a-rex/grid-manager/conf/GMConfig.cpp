@@ -19,7 +19,6 @@
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
-#include <arc/XMLNode.h>
 
 #include "CoreConfig.h"
 #include "../run/RunParallel.h"
@@ -67,10 +66,6 @@ GMConfig::GMConfig(const std::string& conf): conffile(conf) {
       return;
     }
   }
-}
-
-GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
-  SetDefaults();
 }
 
 void GMConfig::SetDefaults() {

@@ -247,7 +247,6 @@ int main(int argc, char* argv[]) {
     counters_pending[i] = 0;
   }
 
-  JobsList jobs(config);
   unsigned int jobs_total = 0;
   std::list<GMJob*> cancel_jobs_list;
   std::list<GMJob*> clean_jobs_list;
@@ -258,11 +257,11 @@ int main(int argc, char* argv[]) {
      (cancel_jobs.size() > 0) || (clean_jobs.size() > 0)) {
     if(filter_jobs.size() > 0) {
       for(std::list<std::string>::iterator id = filter_jobs.begin(); id != filter_jobs.end(); ++id) {
-        GMJobRef jref = jobs.GetJob(*id);
+        GMJobRef jref = JobsList::GetJob(config,*id);
         if(jref) alljobs.push_back(jref);
       }
     } else {
-      jobs.GetAllJobs(alljobs);
+      JobsList::GetAllJobs(config,alljobs);
     }
     for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) {
       // Collecting information
@@ -459,5 +458,7 @@ int main(int argc, char* argv[]) {
       }
     }
   }
+  // Cleanly destroy refrences to avoid error messags
+  for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) ji->Destroy();
   return 0;
 }

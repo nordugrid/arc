@@ -29,6 +29,8 @@ pkgdatadir="$basedir"
 
 if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
 
+GMKICK=${pkglibexecdir}/gm-kick
+
 # Prints the uid of the owner of the file given as argument
 # Perl is used because it's more portable than using the stat command
 printuid () {
@@ -142,6 +144,7 @@ for control_dir in "$@" ; do
         debug "got exitcode=$exitcode"
         save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
         echo "$exitcode $comment" > "${control_dir}/job.${job}.lrms_done"
+        "${GMKICK}" -j "${job}" "${control_dir}/job.${job}.local"
     done
 
 done

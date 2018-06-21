@@ -266,7 +266,7 @@ add_accounting_to_diag () {
     handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
 	
     # wake up GM
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
     rm -f "$countfile"
     rm -f "$diagfile_tmp" "$diagfile_acct"
@@ -307,7 +307,7 @@ handle_missing_accounting () {
       echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
     fi
 
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
     return
   fi
@@ -342,7 +342,7 @@ handle_missing_accounting () {
     rm -f "$countfile"
 
     # wake up GM
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
   else
     # test again for job existence, only count if not known

@@ -265,7 +265,9 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       case conf_state_none: // not our sub-section
         break;
       case conf_state_single: { // ordinary section
-        if(cf.SectionNum() == cfgsec_gridftpd_n) { // [gridftpd]
+        if((command == ".") && (rest.empty())) {
+          // separator
+        } else if(cf.SectionNum() == cfgsec_gridftpd_n) { // [gridftpd]
           if(command == "encryption") {  /* is encryption allowed ? */
             std::string value=Arc::ConfigIni::NextArg(rest);
             if(value == "yes") {
@@ -343,7 +345,9 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       }; break;
       case conf_state_group: {
         /* definition of authorization group */
-        if(command == "name") {
+        if((command == ".") && (rest.empty())) {
+          // separator
+        } else if(command == "name") {
           group_name=rest;
         } else {
           if(group_decision == AAA_NO_MATCH) { // not decided yet
@@ -359,7 +363,9 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       }; break;
       case conf_state_plugin: {
         // plugin configuration processing
-        if(command == "allowaccess") {
+        if((command == ".") && (rest.empty())) {
+          // separator
+        } else if(command == "allowaccess") {
           user.user.select_group(NULL);
           if(rest.find_first_not_of(" \t") == std::string::npos) {
             logger.msg(Arc::ERROR, "Missing authgroup name in allowaccess");
