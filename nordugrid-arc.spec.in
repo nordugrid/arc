@@ -102,15 +102,6 @@
 %global with_pythonlrms 0
 %endif
 
-#
-# CA utils
-#
-%if %{?suse_version:1}%{!?suse_version:0}
-%global with_cautils 0
-%else
-%global with_cautils 1
-%endif
-
 # SQLite
 %if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
 %global with_sqlite 1
@@ -756,27 +747,6 @@ This package contains the ARC authorization machinery.
 A prominent tool distributed in this package is the nordugridmap
 script to collect user information from the virtual organizations.
 
-%if %{with_cautils}
-%package ca-utils
-Summary:	NorduGrid authentication tools
-Group:		Applications/Internet
-Requires:	fetch-crl
-Requires(post):	fetch-crl
-Requires(post):	chkconfig
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-
-%description ca-utils
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The nordugrid-arc-ca-utils packages has been obsoleted.
-The functionality of the grid-update-crls tool is provided by the
-fetch-crl tool in the fetch-crl package.
-%endif
-
 %package misc-utils
 Summary:	NorduGrid misc tools
 Group:		Applications/Internet
@@ -1021,13 +991,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 
 %postun acix-index
 %condrestart_on_update acix-index
-%endif
-
-%if %{with_cautils}
-%post ca-utils
-# Enable and start CRL updates via cron for backward compatibility
-/sbin/chkconfig fetch-crl-cron on
-service fetch-crl-cron start > /dev/null 2>&1
 %endif
 
 %files -f %{name}.lang
@@ -1463,11 +1426,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
 %doc src/utils/gridmap/nordugridmap.conf
 %doc %{_mandir}/man8/nordugridmap.8*
-
-%if %{with_cautils}
-%files ca-utils
-%defattr(-,root,root,-)
-%endif
 
 %files misc-utils
 %defattr(-,root,root,-)
