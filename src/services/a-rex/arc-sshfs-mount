@@ -7,11 +7,11 @@
 
 mount_sshfs() {
     # Read from arc.conf
-    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" ssh remote_host`
-    REMOTE_USER=`readconfigvar "$ARC_CONFIG" ssh remote_user`
-    SSH_TIMEOUT=`readconfigvar "$ARC_CONFIG" ssh ssh_timeout`
-    IDENTITY_FILE=`readconfigvar "$ARC_CONFIG" ssh private_key`
-    GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
+    REMOTE_USER=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_user`
+    SSH_TIMEOUT=`readconfigvar "$ARC_CONFIG" lrms/ssh ssh_timeout`
+    IDENTITY_FILE=`readconfigvar "$ARC_CONFIG" lrms/ssh private_key`
+    GRIDMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     # Get user and group id and save to mapfiles
     user=`head -1 $GRIDMAP | sed 's/^"[^"]*" //'`
     IDMAPDIR=`mktemp -d`
@@ -21,8 +21,8 @@ mount_sshfs() {
     printf "%s:%s\n" "`id -g -n ${user}`" "`ssh -i ${IDENTITY_FILE} ${REMOTE_USER}@${REMOTE_HOST} "id -g"`" > ${GIDF}
     
     for MOUNTDIR in sessiondir runtimedir cachedir; do
-        LOCALDIR=`readconfigvar "$ARC_CONFIG" grid-manager ${MOUNTDIR}`
-        REMOTEDIR=`readconfigvar "$ARC_CONFIG" ssh remote_${MOUNTDIR}`
+        LOCALDIR=`readconfigvar "$ARC_CONFIG" arex ${MOUNTDIR}`
+        REMOTEDIR=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_${MOUNTDIR}`
         if [ -z ${REMOTEDIR} ]; then
             log_failure_msg "Directory attribute remote_${MOUNTDIR} not set in ${ARC_CONFIG}"
             RETVAL=1
@@ -72,8 +72,8 @@ mount_sshfs() {
 
 unmount_sshfs() {
     for MOUNTDIR in sessiondir runtimedir cachedir; do
-        LOCALDIR=`readconfigvar "$ARC_CONFIG" grid-manager ${MOUNTDIR}`
-        REMOTEDIR=`readconfigvar "$ARC_CONFIG" ssh remote_${MOUNTDIR}`
+        LOCALDIR=`readconfigvar "$ARC_CONFIG" arex ${MOUNTDIR}`
+        REMOTEDIR=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_${MOUNTDIR}`
         if [ ! -z ${REMOTEDIR} ] && [ "$(mount | grep ${LOCALDIR})" ]; then
             timeout 10 fusermount -u ${LOCALDIR} > /dev/null
             if [ $? != 0 ]; then

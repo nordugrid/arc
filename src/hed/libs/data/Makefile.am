@@ -8,6 +8,7 @@ endif
 
 SUBDIRS = $(DIRS)
 DIST_SUBDIRS = test examples
+EXTRA_DIST = cache-clean cache-list
 
 if WIN32
 pkglibexec_SCRIPTS = 
