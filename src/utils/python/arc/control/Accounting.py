@@ -340,7 +340,7 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
 
-        accounting_republish = accounting_actions.add_parser('republish', help='Republish achieved usage records')
+        accounting_republish = accounting_actions.add_parser('republish', help='Republish archived usage records')
         add_timeframe_args(accounting_republish, required=True)
         accounting_url = accounting_republish.add_mutually_exclusive_group(required=True)
         accounting_url.add_argument('-a', '--apel-url',
@@ -355,7 +355,7 @@ class AccountingControl(ComponentControl):
         accounting_logs = accounting_actions.add_parser('logs', help='Show accounting logs')
         accounting_logs.add_argument('-s', '--ssm', help='Show SSM logs instead of Jura logs', action='store_true')
 
-        accounting_list = accounting_actions.add_parser('stats', help='Show achieved records statistics')
+        accounting_list = accounting_actions.add_parser('stats', help='Show archived records statistics')
         accounting_list.add_argument('-t', '--type', help='Accounting system type',
                                      choices=['apel', 'sgas'], action='append', required=True)
         add_timeframe_args(accounting_list)
