@@ -170,6 +170,17 @@ class AccountingControl(ComponentControl):
         return frecords
 
     @staticmethod
+    def __get_from_till(records):
+        min_from = records[0]['StartTime']
+        max_till = records[0]['EndTime']
+        for r in records:
+            if r['StartTime'] < min_from:
+                min_from = r['StartTime']
+            if r['EndTime'] > max_till:
+                max_till = r['EndTime']
+        return min_from, max_till
+
+    @staticmethod
     def __get_walltime(records):
         walltime = datetime.timedelta(0)
         cputime = datetime.timedelta(0)
@@ -194,6 +205,9 @@ class AccountingControl(ComponentControl):
 
     def __stats_show(self, records, args):
         frecords = self.__filter_records(records, args)
+        if not frecords:
+            self.logger.error('There are no records that match filters.')
+            sys.exit(0)
         if args.jobs:
             print len(frecords)
         elif args.walltime:
@@ -206,10 +220,13 @@ class AccountingControl(ComponentControl):
             print '\n'.join(self.__get_users(frecords))
         else:
             walltime, cputime = self.__get_walltime(frecords)
+            sfrom, etill = self.__get_from_till(frecords)
+            kind = 'APEL' if args.apel else 'SGAS'
             jobs = len(frecords)
-            print 'Number of jobs: {:>16}\n' \
-                  'Total WallTime: {:>16}\n' \
-                  'Total CPUTime:  {:>16}'.format(jobs, walltime, cputime)
+            print 'Statistics for {} jobs from {} till {}:\n' \
+                  '  Number of jobs: {:>16}\n' \
+                  '  Total WallTime: {:>16}\n' \
+                  '  Total CPUTime:  {:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime)
 
     def stats(self, args):
         self.__parse_records(args.apel, args.sgas)
@@ -256,6 +273,7 @@ class AccountingControl(ComponentControl):
             if args.ssl:
                 stype += '-ssl'
             # query GLUE2 LDAP
+            self.logger.debug('Running LDAP query over %s to find %s services', args.top_bdii, stype)
             services_list = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2ServiceID'], timeout=30,
                                                 filterstr='(&(objectClass=Glue2Service)(Glue2ServiceType={}))'.format(
                                                     stype))
@@ -264,8 +282,8 @@ class AccountingControl(ComponentControl):
                 if 'GLUE2ServiceID' in s:
                     s_ids += s['GLUE2ServiceID']
 
+            self.logger.debug('Running LDAP query over %s to find service endpoint URLs', args.top_bdii)
             s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={})'.format(y), s_ids, '')
-
             endpoints = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2EndpointURL'], timeout=30,
                                             filterstr='(&(objectClass=Glue2Endpoint)(|{}))'.format(s_filter))
             for (_, e) in endpoints:
