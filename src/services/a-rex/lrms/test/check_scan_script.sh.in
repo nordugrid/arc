@@ -179,12 +179,12 @@ controldir=\"`pwd`/controldir\"" ${test}.arc.conf
   fi
   jobs_not_kicked=""
   for job in ${expected_kicked_jobs}; do
-    if test $(grep -c "/job.${job}.local" gm_kick_test_file) == 0; then
+    if test $(grep -c "^${job}\$" gm_kick_test_file) == 0; then
       jobs_not_kicked="${jobs_not_kicked}"$'\n'"${job}"
       continue
     fi
     # Remove first occurance of job in kick list.
-    sed -i "0,/\/job.${job}.local/ {/\/job.${job}.local/ d}" gm_kick_test_file
+    sed -i "0,/^${job}\$/ {/^${job}\$/ d}" gm_kick_test_file
   done
   if test ! -z "${jobs_not_kicked}"; then
     echo -n "F"
@@ -198,7 +198,7 @@ controldir=\"`pwd`/controldir\"" ${test}.arc.conf
   if test "$(wc -w gm_kick_test_file | cut -f 1 -d ' ')" -gt 0; then
     echo -n "F"
     exitCode=$((exitCode + 1))
-    errorOutput="$errorOutput"$'\n\n'"Test fail in test_${test}:"$'\n'"The following jobs was unexpectedly kicked:"$'\n'"$(sed 's#.*/job.\(.*\).local$#  \1#' gm_kick_test_file)"
+    errorOutput="$errorOutput"$'\n\n'"Test fail in test_${test}:"$'\n'"The following jobs was unexpectedly kicked:"$'\n'"$(sed 's#^#  #' gm_kick_test_file)"
     goToParentAndRemoveDir ${testdir}
     continue
   fi
