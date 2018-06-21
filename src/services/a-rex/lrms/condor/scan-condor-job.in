@@ -611,30 +611,30 @@ condor_read_history() {
                   } 
     '
 
-    hostname=`hostname -f`
-    historydir=`$CONDOR_BIN_PATH/condor_config_val HISTORY`
+    # First try per-job history files (best performance)
     perjobhistorydir=`$CONDOR_BIN_PATH/condor_config_val PER_JOB_HISTORY_DIR`
-    historyfile=$perjobhistorydir/history.$lrmsid.0
+    perjobhistory_exists=$?
 
-    if ! expr match "$perjobhistorydir" '.*Not\sdefined.*' > /dev/null; then
-       # per-job history files are being used, so we can immediately find the right file
-       histstring=$( /usr/bin/perl -we "$condorscript" "$historyfile" )
+    histstring=""
+    if [ $perjobhistory_exists -eq 0 ]; then
+        # per-job history files are being used, so we can immediately find the right file
+        historyfile="$perjobhistorydir/history.$lrmsid.0"
+        [ -f "$historyfile" ] && histstring=$( /usr/bin/perl -we "$condorscript" "$historyfile" )
     fi
 
-    if expr match "$perjobhistorydir" '.*Not\sdefined.*' > /dev/null | test ! -f $historyfile; then
-      # find the appropriate history file
-      historyfile=`grep "$hostname#$lrmsid.0" -l $historydir*`
-
-      # try to get the full job classad
-      if expr match "$historyfile" '.*condor.*' > /dev/null; then
-         { histstring=$( $CONDOR_BIN_PATH/condor_history -l -file $historyfile -match 1 "$lrmsid" ); } 2>&1
-      else
-         histstring=""
-      fi
+    # If per-job history is not in place - use common history files (including rotated)
+    historydir=`$CONDOR_BIN_PATH/condor_config_val HISTORY`
+    if [ -z "$histstring" -a -n "$historydir" ]; then 
+        # find the appropriate history file
+        historyfile=`grep "$(hostname -s).*#$lrmsid.0" -l $historydir*`
+        if [ $? -eq 0 ]; then
+            # try to get the full job classad
+            { histstring=$( $CONDOR_BIN_PATH/condor_history -l -file $historyfile -match 1 "$lrmsid" ); } 2>&1
+        fi
     fi
 
     # the awk expression checks that the input is more than 1 line long
-    [ $? = 0 ] && echo "$histstring" | awk 'END{if(NR<2){exit 1}}' || return 1
+    echo "$histstring" | awk 'END{if(NR<2){exit 1}}' || return 1
 
     # Extract information from condor_history output
     __RemoteHost=$(echo "$histstring" | sed -n 's/^LastRemoteHost *= *"\(.*\)"[^"]*$/\1/p')
