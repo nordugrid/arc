@@ -4,6 +4,7 @@ import sys
 import re
 import pickle
 import time
+import pwd
 
 
 def complete_job_owner(prefix, parsed_args, **kwargs):
@@ -21,6 +22,10 @@ class JobsControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.Jobs')
         self.control_dir = None
         self.arcconfig = arcconfig
+        if not os.path.exists(ARC_LIBEXEC_DIR + '/gm-jobs'):
+            self.logger.error('A-REX gm-jobs is not found at %s. Please ensure you have A-REX installed.',
+                              ARC_LIBEXEC_DIR + '/gm-jobs')
+            sys.exit(1)
         if arcconfig is None:
             self.logger.warning('Failed to get parsed arc.conf. Falling back to gm-jobs provided controldir value.')
             _CONTROLDIR_RE = re.compile(r'Control dir\s+:\s+(.*)\s*$')
@@ -89,6 +94,7 @@ class JobsControl(ComponentControl):
                     kv = _KEYVALUE_RE.match(line)
                     if kv:
                         job_attrs[kv.group(1)] = kv.group(2)
+            job_attrs['mapped_account'] = pwd.getpwuid(os.stat(local_file).st_uid).pw_name
         else:
             self.__get_jobs()
             self.__job_exists(jobid)
@@ -227,6 +233,10 @@ class JobsControl(ComponentControl):
         if self.arcconfig.check_blocks('gridftpd'):
             gridftpd_log = self.__get_config_value('gridftpd', 'logfile', '/var/log/arc/gridftpd.log')
             self._service_log_print(gridftpd_log, args.jobid)
+        # A-REX jobs log
+        arexjob_log = self.__get_config_value('a-rex', 'joblog')
+        if arexjob_log is not None:
+            self._service_log_print(arexjob_log, args.jobid)
 
     def jobinfo(self, args):
         self.__get_jobs()
