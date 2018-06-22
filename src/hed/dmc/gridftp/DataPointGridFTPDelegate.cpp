@@ -88,6 +88,7 @@ namespace ArcDMCGridFTP {
     if(run->Result() != 0) {
       return DataStatus(errCode, run->Result(), "Failed helper process for "+url.plainstr());
     }
+    if(!result) failure_code = result;
     return result;
   }
 
