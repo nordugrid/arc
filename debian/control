@@ -246,18 +246,6 @@ Description: NorduGrid authorization tools
  A prominent tool distributed in this package is the nordugridmap
  script to map Grid user identities to local Linux accounts.
 
-Package: nordugrid-arc-ca-utils
-Architecture: all
-Depends: fetch-crl, ${misc:Depends}
-Description: NorduGrid authentication tools
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- The nordugrid-arc-ca-utils packages has been obsoleted.
- The functionality of the grid-update-crls tool is provided by the
- fetch-crl tool in the fetch-crl package.
-
 Package: nordugrid-arc-misc-utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
