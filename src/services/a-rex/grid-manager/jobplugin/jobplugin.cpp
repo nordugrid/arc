@@ -435,6 +435,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     error_description="Job submission is still in progress.";
     return 1; 
   };
+  store_job_id = "";
   /* check if acl request */
   if((strncmp(name,".gacl-",6) == 0) && (strchr(name,'/') == NULL)) {
     std::string newname(name+6);
@@ -533,6 +534,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     }
     config.SetControlDir(controldir);
     chosenFilePlugin = selectFilePlugin(id);
+    store_job_id = id;
     logger.msg(Arc::INFO, "Storing file %s", name);
     if(spec_dir) {
       // It is allowed to modify ACL
@@ -563,13 +565,16 @@ int JobPlugin::close(bool eof) {
   if(!initialized || chosenFilePlugin == NULL) return 1;
   if(!rsl_opened) {
     // file transfer finished
+    int r = 0;
     if((getuid()==0) && config.StrictSession()) {
       SET_USER_UID;
-      int r=chosenFilePlugin->close(eof);
+      r = chosenFilePlugin->close(eof);
       RESET_USER_UID;
-      return r;
-    };
-    return chosenFilePlugin->close(eof);
+    } else {
+      r = chosenFilePlugin->close(eof);
+    }
+    if(!store_job_id.empty()) CommFIFO::Signal(config.ControlDir(), store_job_id);
+    return r;
   };
   // Job description/action request transfer finished
   rsl_opened=false;
