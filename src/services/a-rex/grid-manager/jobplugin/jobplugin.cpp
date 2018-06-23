@@ -765,6 +765,20 @@ int JobPlugin::close(bool eof) {
       if(*q == job_desc.queue) break; 
     };
   };
+  std::list<std::string> const& allowed_groups = config.AllowedGroups(job_desc.queue.c_str());  
+  if(!allowed_groups.empty()) {
+    // here access limit defined for requested queue - check against user group(s)
+    bool allowed = false;
+    for(std::list<std::string>::const_iterator group = allowed_groups.begin(); group != allowed_groups.end(); ++group) {
+      if(user_a.check_group(*group)) { allowed = true; break; };
+    };
+    if(!allowed) {
+      error_description="Request for queue "+job_desc.queue+" is not allowed.";
+      logger.msg(Arc::ERROR, "%s", error_description);
+      delete_job_id(); 
+      return 1;
+    };
+  };
   /* ***********************************************
    * Collect delegation identifiers                *
    *********************************************** */
