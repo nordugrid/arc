@@ -107,38 +107,42 @@ fi
 export ARC_LOCATION
 
 readconfigvar() {
+    # subnames (after : ) are not supported
     fname=$1
     if [ ! -r "$fname" ]; then
-	return
+        return
     fi
     bname="[$2]"
     vname=$3
-    value=
-    cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
-	while true; do
-	    read line
-	    if [ ! $? = 0 ] ; then
-		return
-	    fi
-	    if [ "$line" = "$bname" ] ; then
-		while true ; do
-		    read line
-		    if [ ! $? = 0 ] ; then
-			return
-		    fi
-		    lstart=`echo "$line" | head -c 1`
-		    if [ "$lstart" = '[' ] ; then
-			return
-		    fi
-		    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-		    if [ "$vlname" = "$vname" ] ; then
-			val=`echo "$line" | sed 's/[^=]*=//'`
-			eval "echo $val"
-			return
-		    fi
-		done
-	    fi
-	done
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
+        while true; do
+            read line
+            if [ ! $? = 0 ] ; then
+                return
+            fi
+            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
+            if [ "$line" = "$bname" ] ; then
+                # requested block started
+                while true ; do
+                    read line
+                    if [ ! $? = 0 ] ; then
+                        return
+                    fi
+                    line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
+                    lstart=`echo "$line" | head -c 1`
+                    if [ "$lstart" = '[' ] ; then
+                        # next block started
+                        return
+                    fi
+                    vlname=`echo "$line" | sed -e 's/[[:space:]]*=.*//;t;s/.*//'`
+                    if [ "$vlname" = "$vname" ] ; then
+                        val=`echo "$line" | sed -e 's/[^=]*=[[:space:]]*//'`
+                        echo "$val"
+                        return
+                    fi
+                done
+            fi
+        done
     }
 }
 
