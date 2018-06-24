@@ -469,7 +469,7 @@ namespace ArcDMCGridFTP {
       logger.msg(INFO, "ftp_get_complete_callback: Failed to get ftp file");
       std::string err(trim(globus_object_to_string(error)));
       logger.msg(VERBOSE, "%s", err);
-      it->callback_status = DataStatus(DataStatus::GenericError, globus_error_to_errno(err, EARCOTHER), err);
+      it->callback_status = DataStatus(DataStatus::ReadStartError, globus_error_to_errno(err, EARCOTHER), err);
     } else {
       logger.msg(DEBUG, "ftp_get_complete_callback: success");
       it->callback_status = DataStatus::Success;
