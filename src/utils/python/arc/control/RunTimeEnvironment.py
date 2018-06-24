@@ -2,6 +2,7 @@ from ControlCommon import *
 import sys
 import re
 import fnmatch
+from itertools import chain
 
 
 def complete_rte_name(prefix, parsed_args, **kwargs):
@@ -135,34 +136,54 @@ class RTEControl(ComponentControl):
     def __get_rte_list(self, rtes):
         rte_list = []
         for r in rtes:
-            if r in self.all_rtes:
+            if r.startswith('/'):
+                # path instead of name
+                rte_found = False
+                for rname, rpath in chain(self.user_rtes.iteritems(), self.system_rtes.iteritems()):
+                    if rpath == r:
+                        self.logger.debug('RTE path %s match %s RTE name, adding to the list.', rpath, rname)
+                        rte_list.append({'name': rname, 'path': rpath})
+                        rte_found = True
+                        break
+                if not rte_found:
+                    self.logger.error('There is no RTE defined by %s path.', r)
+            elif r in self.all_rtes:
                 # filename match goes directly to list
-                rte_list.append(r)
+                rte_list.append({'name': r, 'path': self.all_rtes[r]})
             else:
                 # check for glob wildcards in rte name
+                rte_found = False
                 for irte in self.all_rtes.keys():
                     if fnmatch.fnmatch(irte, r):
                         self.logger.debug('Glob wildcard match for %s RTE, adding to the list.', irte)
-                        rte_list.append(irte)
-            if not rte_list:
-                self.logger.error('Failed to find requested RunTimeEnvironment(s). '
-                                  'No RTEs that match \'%s\' are available.', r)
-                sys.exit(1)
+                        rte_list.append({'name': irte, 'path': self.all_rtes[irte]})
+                        rte_found = True
+                if not rte_found:
+                    self.logger.error('There are no RTEs matched to %s found', r)
+        if not rte_list:
+            self.logger.error('Failed to find requested RunTimeEnvironment(s). '
+                              'No RTEs that matches \'%s\' are available.', ' '.join(rtes))
+            sys.exit(1)
         return rte_list
 
     def __list_brief(self):
         for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes)]:
             for rte, link in rte_dict.iteritems():
                 kind = [rte_type]
+                show_disabled = True
                 if rte_type == 'system':
                     if rte in self.user_rtes:
                         kind.append('masked')
                 if rte in self.enabled_rtes:
                     if link == self.enabled_rtes[rte]:
                         kind.append('enabled')
+                        show_disabled = False
                 if rte in self.default_rtes:
                     if link == self.default_rtes[rte]:
                         kind.append('default')
+                        show_disabled = False
+                if show_disabled:
+                    kind.append('disabled')
                 print '{:32} ({})'.format(rte, ', '.join(kind))
 
     def __list_long(self):
@@ -316,47 +337,48 @@ class RTEControl(ComponentControl):
         for rte in self.__get_rte_list(rtes_def):
             self.enable_rte(rte, force, rtetype)
 
-    def enable_rte(self, rte, force=False, rtetype='enabled'):
+    def enable_rte(self, rteinfo, force=False, rtetype='enabled'):
         """
-        Enables single RTE by name
+        Enables single RTE
         """
-        self.__fetch_rtes()
+        rtename = rteinfo['name']
+        rtepath = rteinfo['path']
 
         rte_enable_path = self.control_rte_dir + '/' + rtetype + '/'
         if not os.path.exists(rte_enable_path):
             self.logger.debug('Making control directory %s for %s RunTimeEnvironments', rte_enable_path, rtetype)
             os.makedirs(rte_enable_path, mode=0755)
 
-        rte_dir_path = rte_enable_path + '/'.join(rte.split('/')[:-1])
+        rte_dir_path = rte_enable_path + '/'.join(rtename.split('/')[:-1])
         if not os.path.exists(rte_dir_path):
             self.logger.debug('Making RunTimeEnvironment directory structure inside controldir %s', rte_dir_path)
             os.makedirs(rte_dir_path, mode=0755)
 
-        rte_path = rte_enable_path + rte
+        rte_path = rte_enable_path + rtename
         if os.path.exists(rte_path):
             if os.path.islink(rte_path):
                 linked_to = os.readlink(rte_path)
-                if linked_to != self.all_rtes[rte]:
+                if linked_to != rtepath:
                     if not force:
                         self.logger.error(
                             'RunTimeEnvironment %s is already enabled but linked to different location (%s). '
-                            'Use \'--force\' to relink', rte, linked_to)
+                            'Use \'--force\' to relink', rtename, linked_to)
                         sys.exit(1)
                     else:
                         self.logger.debug(
                             'RunTimeEnvironment %s is already enabled but linked to different location (%s). '
-                            'Removing previous link.', rte, linked_to)
+                            'Removing previous link.', rtename, linked_to)
                         os.unlink(rte_path)
                 else:
-                    self.logger.info('RunTimeEnvironment %s is already %s. Nothing to do.', rte, rtetype)
-                    sys.exit(0)
+                    self.logger.info('RunTimeEnvironment %s is already %s. Nothing to do.', rtename, rtetype)
+                    return
             else:
                 self.logger.error('RunTimeEnvironment file %s is already exists but it is not symlink as expected. '
                                   'Have you manually perform modifications of controldir content?', rte_path)
                 sys.exit(1)
 
-        self.logger.debug('Linking RunTimeEnvironment file %s to %s', self.all_rtes[rte], rte_enable_path)
-        os.symlink(self.all_rtes[rte], rte_enable_path + rte)
+        self.logger.debug('Linking RunTimeEnvironment file %s to %s', rtepath, rte_enable_path)
+        os.symlink(rtepath, rte_enable_path + rtename)
 
     def disable(self, rte_def, rtetype='enabled'):
         """
@@ -367,11 +389,12 @@ class RTEControl(ComponentControl):
         for rte in self.__get_rte_list(rte_def):
             self.disable_rte(rte, rtetype)
 
-    def disable_rte(self, rte, rtetype='enabled'):
+    def disable_rte(self, rteinfo, rtetype='enabled'):
         """
-        Disables single RTE by name
+        Disables single RTE
         """
-        self.__fetch_rtes()
+        rtename = rteinfo['name']
+        rtepath = rteinfo['path']
 
         enabled_rtes = {}
         if rtetype == 'enabled':
@@ -379,15 +402,21 @@ class RTEControl(ComponentControl):
         elif rtetype == 'default':
             enabled_rtes = self.default_rtes
 
-        if rte not in enabled_rtes:
-            self.logger.error('RunTimeEnvironment \'%s\' is not %s.', rte, rtetype)
-            sys.exit(0)
+        if rtename not in enabled_rtes:
+            self.logger.error('RunTimeEnvironment \'%s\' is not %s.', rtename, rtetype)
+            return
+
+        if enabled_rtes[rtename] != rtepath:
+            self.logger.error('RunTimeEnvironment \'%s\' is %s but linked to the %s instead of %s. '
+                              'Please use either RTE name or correct path.',
+                              rtename, rtetype, enabled_rtes[rtename], rtepath)
+            return
 
         rte_enable_path = self.control_rte_dir + '/' + rtetype + '/'
-        self.logger.debug('Removing RunTimeEnvironment link %s', rte_enable_path + rte)
-        os.unlink(rte_enable_path + rte)
+        self.logger.debug('Removing RunTimeEnvironment link %s', rte_enable_path + rtename)
+        os.unlink(rte_enable_path + rtename)
 
-        rte_split = rte.split('/')[:-1]
+        rte_split = rtename.split('/')[:-1]
         while rte_split:
             rte_dir = rte_enable_path + '/'.join(rte_split)
             if not os.listdir(rte_dir):

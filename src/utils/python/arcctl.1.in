@@ -7,14 +7,17 @@ arcctl \- Nordugrid ARC Computing Element Control Tool
 [\fB-d\fR, \fB--debug\fR \fILEVEL\fR] [\fB-c\fR, \fB--config\fR \fICONFIG\fR] [\fB-h\fR, \fB--help\fR] \fICOMPONENT\fR \fIACTION\fR [...]
 .SH DESCRIPTION
 .PP
-The arcctl utility is aimed to automate ARC CE operations, like controlling Jobs,
-RunTime Environments, etc.
+This man page is not the ultimate source of information about \fBarcctl\fR. 
+Please use \fB--help\fR to see all options available for each component!
+.PP
+The \fBarcctl\fR(1) utility is aimed to automate ARC CE operations, like controlling 
+Services, Jobs, RunTime Environments, Accounting, etc.
 .PP
 The main goal is to provide a single point of control for different ARC CE subsystems
 to the system administrator.
 .PP 
-Arcctl designed with bash-completion in mind, so make sure you have completion installed
-and activated to use all features.
+\fBarcctl\fR designed with bash-completion in mind, so make sure you have 
+\fBpython-argcomplete\fR installed and enabled to use all features.
 
 .SH OPTIONS
 .TP
@@ -25,16 +28,25 @@ Choose the verbosity level from CRITICAL, ERROR, WARNING, INFO, DEBUG (default i
 Specifies the configuration file to be used. By default the \fBarc.conf\fP(5) is used. 
 .TP
 \fB\-h\fR, \fB\-\-help\fR
-Show help message
+Show help messages
 
 .SH COMPONENTS
-The following components can be controlled by arcctl now:
+The following components can be controlled by arcctl at the time of writting:
+.TP
+.B services
+Controlling ARC CE services.
 .TP
 .B rte
-Enable/Disable/Default RunTime Envronents available on the ARC CE
+Controlling RunTime Envronents available on the ARC CE.
 .TP
 .B job
-A-REX Jobs control (actions and logs)
+A-REX Jobs control (actions, information, logs).
+.TP
+.B accounting
+Accounting records operations (republishing, stats).
+.TP
+.B deploy
+Third party components deployment (IGTF CA, VOMS LSC).
 .PP
 Use \fB--help\fR argument to list all available actions for each component.
 
@@ -42,6 +54,10 @@ Use \fB--help\fR argument to list all available actions for each component.
 Enable ENV/PROXY RunTime Environment
 .IP
 \f(CW# arcctl rte enable ENV/PROXY\fR
+.PP
+Configure ENV/PROXY RunTime Environment to disable CA certificates copying
+.IP
+\f(CW# arcctl rte params-set ENV/PROXY COPY_CACERT_DIR No\fR
 .PP
 Use ENV/RTE RunTime Environment by default for every job (even if not explicitely 
 requested in job description)
@@ -55,6 +71,18 @@ Clean all jobs in DELETED state
 Get job submission interface
 .IP
 \f(CW# arcctl job attr 21PKDmF0Aasnfk581mkC9sunABFKDmABFKDmDgFKDmUzFKDmqfGG0n interface\fR
+.PP
+Enable and start all ARC CE services as configured in \fBarc.conf\fR(5)
+.IP
+\f(CW# arcctl service enable --as-configured --now \fR
+.PP
+Deploy VOMS LSC files for atlas VO from EGI VO Database
+.IP
+\f(CW# arcctl deploy voms-lsc atlas --egi-vo\fR
+.PP
+Show archived accounting records statistics for APEL
+.IP
+\f(CW# arcctl accounting stats -t apel\fR
 
 .SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org/
