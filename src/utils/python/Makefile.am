@@ -1,4 +1,4 @@
-dist_pkglibexec_SCRIPTS = arcconfig-parser
+dist_pkglibexec_SCRIPTS = arcconfig-parser arcconfig-reference
 dist_sbin_SCRIPTS = arcctl
 
 man_MANS = arcctl.1
