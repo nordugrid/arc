@@ -124,7 +124,7 @@
 #[common]
 
 ## hostname = string - The FQDN of the frontend on which the ARC services are deployed.
-## default: the return value of the shell command hostname -f
+## default: $EXEC{hostname -f}
 #hostname=myhost.org
 ## CHANGE1: modified semantics, not mandatory any longer
 
@@ -241,15 +241,13 @@
 
 ## vo vo_name - This optional parameter specifies the name of the userlist.
 ## This must be the same as the one in the [userlist/name] block name. 
-## default: not set
-#vo=biousers
 ## CHANGE19: DELETED. use the name from the block header instead!
 
 ## outfile = path - (previously file) The full path of the GENERATED file that contains the
 ## userlist (with optional mapping info).
 ## If the same file specified as output for different [userlist/name] blocks
 ## then nordugridmap will automatically merge entries following the order of the blocks.
-## default: the value of the gridmap parameter from [common] or /etc/grid-security/grid-mapfile
+## default: $VAR{[common/mapping]gridmap}
 #outfile=/etc/grid-security/lists/atlas-users
 ## CHANGE20: renamed from "file"
 
@@ -317,7 +315,7 @@
 ##                         defined mapping information)
 ##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information
 ##						(if no mapping information provided by sources)
-## default: ""
+## default: 
 #mapped_unixid
 #mapped_unixid=gridtest
 ## CHANGE22: Modified. The empty value should work the same way as missing parameter. set the default to ""
@@ -399,8 +397,6 @@
 ## name authgroup_name - This optional parameter specifies the name of the authgroup.
 ## This must be the same as the one in the [authgroup:name] block name.
 ## If this parameter not set then the name of the subblock is used instead, for example [authgroup:allowedusers]
-## default: not set
-#name=allowedusers
 ## CHANGE186: DELETED. use the name from the block header instead!
 
 ## subject = certificate_subject - Rule to match specific subject of user's
@@ -851,7 +847,7 @@
 ## directory will survive after job execution has finished. If not specified
 ## the default is 1 week. The ttr parameter sets how long information about a job will be kept
 ## after the session directory is deleted. If not specified, the ttr default is one month.
-## default:  604800 2592000
+## default: 604800 2592000
 #defaultttl=2592000
 
 ## shared_filesystem = yes/no - Specifies if computing nodes can access folders mounted
@@ -959,7 +955,7 @@
 #pidfile=/var/run/arched-arex.pid
 
 ## mail = email_address - Specifies the email address from where the notification mails are sent
-## default: <username>@<hostname>
+## default: $VAR{user}@$VAR{[common]hostname}
 #mail=grid.support@somewhere.org
 ## CHANGE43: modified. implement a default! in the format of root@localhost. 
 
@@ -981,7 +977,6 @@
 
 ## helperlog = path - Configuration option to specify the location of log for helpers.
 ## default: /var/log/arc/job.helper.errors
-## default: ???
 #helperlog=/var/log/arc/job.helper.errors
 ## CHANGE44: new parameter
 
@@ -1107,13 +1102,13 @@
 ## between 0 (FATAL) and 5 (DEBUG). Default is to use value set by loglevel option in
 ## [arex] section.
 ## allowedvalues: 0 1 2 3 4 5
-## default: loglevel in [arex]
+## default: $VAR{[arex]loglevel}
 #loglevel=4
 ## CHANGE56: renamed as loglevel.
 
 ## statefile = path - (previously dtrlog) A file in which data staging state information
 ## (for monitoring and recovery purposes) is periodically dumped.
-## default: controldir/dtr.state
+## default: $VAR{[arex]controldir}/dtr.state
 #statefile=/tmp/dtr.state
 ## CHANGE57: renamed, modified: new default value
 
@@ -1306,7 +1301,7 @@
 ## the web service intrefaces will be available. The URL argument must be a
 ## full URL consisting of protocol+host+port+path: e.g. https://<hostname>:<port>/<path>
 ## Make sure the chosen port is not blocked by firewall or other security rules.
-## default: https://hostname:443/arex,  where hostname is taken from the [common] block
+## default: https://$VAR{[common]hostname}:443/arex
 #wsurl=https://piff.hep.lu.se:443/arex
 ## CHANGE67: renamed. modified: set default as https://hostname:443/arex
 
@@ -1581,14 +1576,17 @@
 
 ### conf parameters to specify alternative credentials for JURA.
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE97: new parameter in this block
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE98: new parameter in this block
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE99: new parameter in this block
 
@@ -1627,7 +1625,7 @@
 ## in this directory with the following file naming convention used: 
 ## "usagerecord[Type].<jobid>.<random>".
 ## Here Type is one of the supported record formats such as OGFUR or CAR.
-## default:  /var/log/arc/jura/archive
+## default: /var/log/arc/jura/archive
 #archivedir=/var/log/arc/jura/archive
 ## CHANGE172: NEW
 ##
@@ -1859,6 +1857,7 @@
 
 ## allowactivedata = yes/no - if no, only passive data transfer is allowed.
 ## By default both passive and active data transfers are allowed.
+## default: yes
 #allowactivedata=yes
 
 ## maxconnections = number - The maximum number of connections accepted by a gridftpd server.
@@ -1903,14 +1902,17 @@
 
 ### X509 related parameters
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE122: renamed
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE123: renamed
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
 
 ## pluginpath - directory where the plugin libraries are installed, default is
@@ -2116,7 +2118,7 @@
 
 ## *hostname = FQDN - the hostname of the machine running the slapd service
 ## will be the bind for slapd. If not present, will be taken from the [common]
-## default: taken from [common]
+## default: $VAR{[common]hostname}
 #hostname=my.testbox
 
 ## slapd_hostnamebind = string - May be used to set the hostname part of the
@@ -2162,7 +2164,7 @@
 ## seconds the slapd server will wait before forcibly closing idle client
 ## connections. It's value must be larger than the value of "timelimit" option.
 ## If not set, it defaults to timelimit + 1.
-## default: timelimit + 1
+## default: $EVAL{$VAR{timelimit} + 1}
 #idletimeout=1800
 
 ## giis_location - If giis_location is not set, ARC_LOCATION will be used instead.
@@ -2254,11 +2256,10 @@
 
 ## bdii_update_pid_file = path  - Allows to change bdii-update
 ## pidfiles filename and location
-## default: $bdii_run_dir/bdii-update.pid
+## default: $VAR{bdii_run_dir}/bdii-update.pid
 #bdii_update_pid_file=/var/run/arc/bdii/bdii-update.pid
 
 ## slapd_pid_file path - Allows to change slapd pidfiles filename and location
-## default: $bdii_run_dir/db/slapd.pid
 ## This does not exist - scripts uses $bdii_run_dir/db/slapd.pid always
 ## CHANGE148: DELETED
 
@@ -2267,11 +2268,11 @@
 #bdii_database=hdb
 
 ## bdii_conf = path - Location of the bdii config file generated by ARC.
-## default: $infosys_ldap_run_dir/bdii.conf
+## default: $VAR{[infosys/ldap]infosys_ldap_run_dir}/bdii.conf
 #bdii_conf=/var/run/arc/infosys/bdii.conf
 
 ## bdii_update_cmd = path - path to bdii-update script
-## default: ${bdii_location}/sbin/bdii-update
+## default: $VAR{bdii_location}/sbin/bdii-update
 #bdii_update_cmd=/usr/sbin/bdii-update
 
 ## bdii_db_config = path - path to slapd database configuration file
@@ -2291,7 +2292,7 @@
 #bdii_delete_delay=0
 
 ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+## default: $EVAL{$VAR{provider_timeout} + $VAR{[arex]infoproviders_timelimit} + $VAR{[arex]wakeupperiod}}
 #bdii_read_timeout=300
 
 ## bindmethod = value - Information about how to authenticate to the registered information server
@@ -2498,7 +2499,7 @@
 #cluster_alias=Big Blue Cluster in Nowhere
 
 ## hostname = fqdn - Set the FQDN of the frontend.
-## default: uses the value of the [common] block
+## default: $VAR{[common]hostname}
 #hostname=myhost.org
 
 ## interactive_contactstring = url - the contact URL for interactive logins, set this
@@ -2668,8 +2669,6 @@
 
 ## name  string - Sets the name of the grid-enabled queue. It MUST match the name
 ## label from the queue block header.
-## default: not set
-#name=gridlong
 ## CHANGE187: DELETED. use the name in the block header instead!
 
 ## homogeneity = True/False - determines whether the queue consists of identical NODES with
@@ -2678,7 +2677,7 @@
 ## groups and assigned them to a queue.
 ## Possible values: True,False, the default is True.
 ## allowedvalues: True False
-## default: True
+## default: $VAR{[cluster]homogeneity}
 #homogeneity=True
 
 ## scheduling_policy = MAUI/FIFO - This optional parameter tells the scheduling policy of
@@ -2997,14 +2996,17 @@
 
 ### X509 related parameters
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
 ## CHANGE24: renamed
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
 ## CHANGE25: renamed
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
+## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
 
 ## gridmap_owner = username - The owner of the generated mapfiles.
@@ -3058,7 +3060,7 @@
 ## parameter usage. Valid values are 'overwrite' and 'keep'.
 ## Please see 'mapped_unixid' description in [userlist/name] block for details.
 ## allowedvalues: keep overwrite
-## default: "keep"
+## default: keep
 #mapuser_processing=keep
 
 ## allow_empty_unixid = yes/no - Controls whether empty (or unspecified)
@@ -3202,7 +3204,6 @@
 
 ## sizelimit = number - sizelimit affects registration to egiis
 ## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
-#sizelimit=10
 ## CHANGE212: DELETED
 
 ## *targetgiis = name - the name of the index service to which the registration to be sent. 

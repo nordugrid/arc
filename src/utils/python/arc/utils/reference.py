@@ -32,7 +32,14 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
         block_id = None
         default_value = None
         default_line = None
+        header = True
         for ln, confline in enumerate(referecnce):
+            if header:
+                if print_reference:
+                    sys.stdout.write(confline)
+                if confline.startswith('#config_option_name=56'):
+                    header = False
+                continue
             # block name
             block_match = re.match(__regexes['block'], confline)
             if block_match:
