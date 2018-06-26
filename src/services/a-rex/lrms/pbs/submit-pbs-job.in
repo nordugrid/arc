@@ -1,10 +1,10 @@
 #!@posix_shell@
 # set -x
 #
-#  Based on globus submission script for pbs
+#  Originally based on globus submission script for pbs
 #
 #  Submits job to PBS.
-#  Input: path to grami file (same as Globus).
+#  Input: path to grami file
 #
 # The temporary job script is created for the submission and then removed 
 # at the end of this script. 
@@ -16,28 +16,30 @@ joboption_lrms=pbs
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. ${basedir}/lrms_common.sh
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# parse grami file
+parse_grami_file $1
 
+# parse configuration
+parse_arc_conf
+
+# read pbs-specific environment
 . ${pkgdatadir}/configure-pbs-env.sh || exit $?
+
+# include common submit functions
 . ${pkgdatadir}/submit_common.sh || exit $?
 
-perflogfilesub="${perflogdir}/submission.perflog"
+# init common LRMS environmental variables
+init_lrms_env
 
+# perflog submission start time 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
-
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-
-init $1
-
-read_arc_conf
 
 failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 
@@ -196,9 +198,11 @@ set_req_mem
 #Moreover according to the PBS manuals, setting vmem is supported on the sufficiently 
 #bigger ammount of operating systems then pvmem.
 
-memreq="${joboption_memory}"
-if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
+if [ ! -z "$joboption_memory" ] ; then
+  memreq="${joboption_memory}"
+  if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
      memreq=$(( $joboption_count * $memreq ))
+  fi
 fi
 
 #requested memory is used to simulate exclusive execution
@@ -206,7 +210,11 @@ if [ "$joboption_exclusivenode" = "true" ]; then
  # using nodememory as maximum mem
   if [ -n "${CONFIG_nodememory}" ] ; then
    tempmem=`expr $CONFIG_nodememory / $joboption_countpernode `
-   if [ "${tempmem}" -gt "${joboption_memory}" ] ; then
+   if [ -n "$memreq" ]; then
+     if [ "${tempmem}" -gt "${memreq}" ] ; then
+       memreq="${tempmem}"
+     fi
+   else
      memreq="${tempmem}"
    fi
   else
@@ -214,7 +222,7 @@ if [ "$joboption_exclusivenode" = "true" ]; then
   fi 
 fi
 
-if [ ! -z "$joboption_memory" ] ; then
+if [ ! -z "$memreq" ] ; then
   echo "#PBS -l vmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
 fi
 
@@ -368,7 +376,7 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 #####################################################
 #  Upload output files

@@ -10,19 +10,30 @@
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# first control_dir is used for storing own files
 if [ -z "$1" ] ; then exit 1 ; fi
+control_dir=$1
+control_dirs=
+while [ $# -gt 0 ] ; do
+  control_dirs="${control_dirs} \"$1\""
+  shift
+done
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. ${basedir}/lrms_common.sh
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# parse configuration
+read_arc_conf
 
+# read pbs-specific environment
 . ${pkgdatadir}/configure-pbs-env.sh || exit $?
 
-# Assume that gm-kick and scan_common is installed in the same directory
+# Define gm-kick location
 GMKICK=${pkglibexecdir}/gm-kick
 
+# include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
 # Log system performance
@@ -30,30 +41,9 @@ if [ ! -z "$perflogdir" ]; then
    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
-# Where to store temporary files
-TMPDIR=${TMPDIR:-@tmp_dir@}
-
-# directory containing PBS server logs
-pbs_log_dir=${CONFIG_pbs_log_path:-@pbs_log_path@}
-
-RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
-
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
-# first control_dir is used for storing own files
-control_dir=$1
-control_dirs=
-while [ $# -gt 0 ] ; do
-  control_dirs="${control_dirs} \"$1\""
-  shift
-done
+# init common LRMS environmental variables
+init_lrms_env
+pbs_log_dir="${CONFIG_pbs_log_path:-/var/spool/pbs/server_logs}"
 
 my_id=`id -u`
 

@@ -4,7 +4,7 @@ progname=$(basename "$0")
 
 #
 # scan-*-jobs has STDOUT redirected to /dev/null and STDERR redirected to
-# job.helper..errors
+# helperlog
 #
 log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
 
