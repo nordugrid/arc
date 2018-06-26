@@ -39,7 +39,7 @@ namespace ARexLOCAL {
 
   bool JobControllerPluginLOCAL::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
-    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "local" ;
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "file" ;
   }
 
   void JobControllerPluginLOCAL::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
@@ -313,7 +313,7 @@ namespace ARexLOCAL {
     default:
       break;
     }
-    if(url && ((url.Protocol() == "local"))) {
+    if(url && ((url.Protocol() == "file"))) {
       //To-do - is this relevant for LOCAL plugin?
       url.AddOption("threads=2",false);
       url.AddOption("encryption=optional",false);
