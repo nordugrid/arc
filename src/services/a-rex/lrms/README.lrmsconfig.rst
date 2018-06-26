@@ -136,5 +136,5 @@ Analyzing what backends do with ``$joboption_memory``:
   * sge - if empty - no enforcement
   * slurm - if empty - no enforcement
 
-.. _[1] but exclusivenode is memory-based and code requires some adjustments to eliminate errors in log in case the joboption_memory is not set
+.. [1] but exclusivenode is memory-based and code requires some adjustments to eliminate errors in log in case the joboption_memory is not set
 
