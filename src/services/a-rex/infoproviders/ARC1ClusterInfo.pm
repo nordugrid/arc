@@ -316,7 +316,7 @@ sub glueState {
     return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
     my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $local_state = local_state(@ng_status);
-    push @$status, "local:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
+    push @$status, "file:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
     my $bes_state = bes_state(@ng_status);
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
     my $emies_state = emies_state(@ng_status);
