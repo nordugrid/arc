@@ -26,7 +26,7 @@ namespace ARexLOCAL {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
-      return ((proto != "local"));
+      return ((proto != "file"));
     }
     
     return false;
@@ -35,10 +35,10 @@ namespace ARexLOCAL {
   static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
-      service = "local://" + service;
+      service = "file://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if(proto != "local") return URL();
+      if(proto != "file") return URL();
     }
    
     return service;

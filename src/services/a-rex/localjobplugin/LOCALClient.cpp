@@ -106,6 +106,8 @@ namespace ARexLOCAL {
      controldir(config.ControlDir()),
      delegation_id(_deleg_id)
   {
+    stageout.push_back(_arexjob.SessionDir());
+    stagein.push_back(_arexjob.SessionDir());
   }
 
 
@@ -265,9 +267,6 @@ namespace ARexLOCAL {
         else{
           //make localjob for internal handling
           LOCALJob localjob(arexjob,*config,delegation_id);
-          /*Set the state of the local job */
-          localjob.state = (std::string)arexjob.State();
-
           localjobs.push_back(localjob);
         }
       }
@@ -495,7 +494,8 @@ namespace ARexLOCAL {
   void LOCALJob::toJob(LOCALClient* client, LOCALJob* localjob, Arc::Job& j) const {
     //fills an arcjob from localjob
 
-    j.JobID = (client->ce).str() + "/" + localjob->id;
+    //j.JobID = (client->ce).str() + "/" + localjob->id;
+    j.JobID = "file://"  + sessiondir;
     j.ServiceInformationURL = client->ce;
     j.ServiceInformationInterfaceName = "org.nordugrid.local";
     j.JobStatusURL = client->ce;
@@ -503,9 +503,13 @@ namespace ARexLOCAL {
     j.JobManagementURL = client->ce;
     j.JobManagementInterfaceName = "org.nordugrid.local";
     j.IDFromEndpoint = id;
-    if (!stagein.empty()) j.StageInDir = stagein.front();
-    if (!stageout.empty()) j.StageInDir = stageout.front();
-    if (!session.empty()) j.StageInDir = session.front();
+    if (!stagein.empty())j.StageInDir = stagein.front();
+    else j.StageInDir = sessiondir;
+    if (!stageout.empty())j.StageOutDir = stageout.front();
+    else  j.StageOutDir = sessiondir;
+    if (!session.empty()) j.SessionDir = session.front();
+    else j.SessionDir = sessiondir;
+
     j.DelegationID.clear();
     if(!(localjob->delegation_id).empty()) j.DelegationID.push_back(localjob->delegation_id);
     
@@ -528,10 +532,12 @@ namespace ARexLOCAL {
     std::string state = arexjob.State();
     arcjob.State = JobStateLOCAL(state);
 
-    if (!stagein.empty()) arcjob.StageInDir = stagein.front();
-    if (!stageout.empty()) arcjob.StageInDir = stageout.front();
+    if (!stagein.empty())arcjob.StageInDir = stagein.front();
+    else arcjob.StageInDir = sessiondir;
+    if (!stageout.empty()) arcjob.StageOutDir = stageout.front();
+    else  arcjob.StageOutDir = sessiondir;
     if (!session.empty()) arcjob.StageInDir = session.front();
-
+    else arcjob.SessionDir = sessiondir;
    
   }
 
