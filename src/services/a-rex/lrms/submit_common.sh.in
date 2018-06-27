@@ -22,6 +22,21 @@ is_number () {
 }
 
 #
+# Initial parsing and environemtn setub for submission scripts
+# THIS FUNCTION USES FUNCTIONS DEFINED IN LRMS_common.sh
+#
+common_init () {
+    # parse grami file
+    parse_grami_file $1
+    # parse configuration
+    parse_arc_conf
+    # read pbs-specific environment
+    . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+    # init common LRMS environmental variables
+    init_lrms_env
+}
+
+#
 # Sets a default memory limit for jobs that don't have one
 #
 set_req_mem () {
@@ -36,19 +51,9 @@ set_req_mem () {
             echo "         A default memory limit taken from 'defaultmemory' in        " 1>&2
             echo "         arc.conf will apply.                                        " 1>&2
             echo "         Limit is: $CONFIG_defaultmemory MB.                         " 1>&2
-        elif is_number "$CONFIG_nodememory"; then
-            joboption_memory=$CONFIG_nodememory
-
-            echo "         A default memory limit taken from 'nodememory' in arc.conf  " 1>&2
-            echo "         will apply. You may want to set 'defaultmemory' to something" 1>&2
-            echo "         else in arc.conf to better handle jobs with no memory       " 1>&2
-            echo "         specified.                                                  " 1>&2
-            echo "         Limit is: $CONFIG_nodememory MB.                            " 1>&2
         else
-            joboption_memory=1000
-
-            echo "         nodememory is not specified in arc.conf. A default      " 1>&2
-            echo "         memory limit of 1GB will apply.                             " 1>&2
+            echo "         No 'defaultmemory' enforcement in in arc.conf.              " 1>&2
+            echo "         JOB WILL BE PASSED TO BATCH SYSTEM WITHOUT MEMORY LIMIT !!! " 1>&2
         fi
         echo "---------------------------------------------------------------------" 1>&2
     fi
