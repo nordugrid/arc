@@ -32,7 +32,7 @@ namespace ARexLOCAL {
   
   bool SubmitterPluginLOCAL::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
-    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "local";
+    return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "file";
   }
   
 
@@ -71,7 +71,7 @@ namespace ARexLOCAL {
     // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
 
       
-    URL url((endpoint.find("://") == std::string::npos ? "local://" : "") + endpoint, false);
+    URL url((endpoint.find("://") == std::string::npos ? "file://" : "") + endpoint, false);
 
     /*for accessing jobs*/
     /*Preparation of jobdescription*/
