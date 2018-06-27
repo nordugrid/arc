@@ -25,7 +25,7 @@ class ServicesControl(ComponentControl):
         },
         'arex/ws/candypond': {
             'package': 'nordugrid-arc-candypond',
-            'service': 'a-rex'
+            'service': None
             # TODO: the fate of stand-alone service
         },
         'gridftpd': {
@@ -201,7 +201,11 @@ class ServicesControl(ComponentControl):
             sys.exit(1)
 
     def get_all_services(self):
-        return list(set(map(lambda s: s['service'], self.__blocks_map.values())) - {None})
+        services = set()
+        for s in self.__blocks_map.values():
+            if s['service'] is not None:
+                services.add(s['service'])
+        return list(services)
 
     @staticmethod
     def register_parser(root_parser):
