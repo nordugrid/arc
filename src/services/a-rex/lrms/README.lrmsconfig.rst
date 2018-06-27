@@ -104,6 +104,61 @@ lrms=slurm::
   $CONFIG_shared_filesystem		[arex]
   $CONFIG_slurm_bin_path		[lrms]
 
+
+Call graph
+----------
+
+.. graphviz::
+
+   digraph {
+       subgraph cluster_0 {
+          node [style=filled, shape=Rectangle];
+          label = "sumbit_LRMS_job.sh";
+          "define joboption_lrms" -> "source lrms_common.sh" -> "source submit_common.sh";
+          "source submit_common.sh" -> "common_init" -> "LRMS-specific submit";
+       }
+
+       subgraph cluster_1 {
+          label = "sumbit_common.sh";
+          style = "dashed";
+          node [style=filled];
+          "common_init()";
+          "RTEs()" -> "LRMS-specific submit";
+          "Moving files()" -> "LRMS-specific submit";
+          "I/O redicrection()" -> "LRMS-specific submit";
+          "Defining user ENV()" -> "LRMS-specific submit";
+          "Memory requirements()" -> "LRMS-specific submit";
+          "RTEs()" -> "Moving files()" -> "I/O redicrection()" -> "Defining user ENV()" -> "Memory requirements()" [style=invis];
+        }
+
+        subgraph cluster_2 {
+           label = "lrms_common.sh";
+           style = "dashed";
+           node [style=filled];
+          "packaging paths" -> "source lrms_common.sh";
+          "parse_arc_conf()" -> "common_init()";
+          "parse_grami()" -> "common_init()";
+          "init_lrms_env()" -> "common_init()";
+          "packaging paths" [shape=Rectangle]
+        }
+
+        subgraph cluster_3 {
+          label = "configure_LRMS_env.sh";
+          node [style=filled, shape=Rectangle];
+          "set LRMS-specific ENV/fucntions"  -> "common_init()";
+        }
+
+        "a-rex" -> "define joboption_lrms";
+        "common_init()" -> "common_init"
+
+        "arc.conf" -> "parse_arc_conf()";
+        "grami file" -> "parse_grami()";
+
+        "a-rex" [shape=Mdiamond];
+        "grami file" [shape=Msquare];
+        "arc.conf" [shape=Msquare];
+    }
+
 Memory limits processing:
 -------------------------
 
@@ -137,4 +192,5 @@ Analyzing what backends do with ``$joboption_memory``:
   * slurm - if empty - no enforcement
 
 .. [1] but exclusivenode is memory-based and code requires some adjustments to eliminate errors in log in case the joboption_memory is not set
+
 

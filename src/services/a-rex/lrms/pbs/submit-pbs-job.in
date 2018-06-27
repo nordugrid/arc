@@ -21,20 +21,15 @@ basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 . ${basedir}/lrms_common.sh
 
-# parse grami file
-parse_grami_file $1
-
-# parse configuration
-parse_arc_conf
-
-# read pbs-specific environment
-. ${pkgdatadir}/configure-pbs-env.sh || exit $?
-
 # include common submit functions
 . ${pkgdatadir}/submit_common.sh || exit $?
 
-# init common LRMS environmental variables
-init_lrms_env
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 # perflog submission start time 
 if [ ! -z "$perflogdir" ]; then
