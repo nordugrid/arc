@@ -100,6 +100,64 @@ With the ``--export`` option ``arcconfig-parser`` allows to export config in the
    If automatic subblocks expansion used with bash export, for every block in sequence - it's subblocks are processed
    first (in ``arc.conf`` defined order).
 
+Common configuration parsing sequence
++++++++++++++++++++++++++++++++++++++
+
+.. graphviz::
+
+  digraph {
+     node [shape=Rectangle];
+     forcelabels=true;
+     reference [label="arc.conf.reference", xlabel="Developers entry-point to put info"];
+     subst [label="Substitution syntax", style=filled];
+     reference -> subst [dir=back];
+     {rank = same; subst; reference;}
+     reference -> "arc.parser.defaults" [ label="buildtime", fontcolor=red ];
+
+     subgraph cluster_0 {
+        style = "dashed";
+        color = "red";
+        label = "Binary Distribution";
+        doc [ label="/usr/share/doc" ];
+        arcconf [ label="/etc/arc.conf"];
+        defconf [ label="/usr/share/arc/parser.defaults" ];
+        # hack rank
+        arcconf -> defconf [style=invis];
+     }
+
+     reference -> doc;
+     "arc.parser.defaults" -> defconf;
+    
+     subst -> "arc.parser.defaults"
+     subst -> defconf;
+
+     parser [ label="arcconfig-parser" ];
+     arcconf -> parser [label="1. parse, get defined blocks"]
+     defconf -> parser [label="2. add defaults for defined blocks"]
+
+     runconfig [ label="running configuration", shape=oval, color=red ]
+     parser -> runconfig [ label="3. evaluate substitutions" ]
+
+     json [label="export JSON"]
+     bash [label="export BASH"]
+     check [label="get value"]
+
+     runconfig -> json
+     runconfig -> bash
+     runconfig -> check
+
+     subgraph cluster_1 {
+       label = "Startup scripts"
+       runconf [ label="/var/run/arc/arc.conf" ];
+       define [ label="define ENV variables" ]
+       arex [ label="start a-rex" ]
+       runconf -> define -> arex
+     }
+
+     runconfig -> runconf [ label="dump config" ]
+  }
+
+
 Examples
 ********
 
