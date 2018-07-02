@@ -119,8 +119,8 @@ if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
   nodes_string="${nodes_string}:ppn=${joboption_countpernode}"
 fi
 
-if [ ! -z "$CONFIG_queue_node_string" ] ; then
-  nodes_string="${nodes_string}:${CONFIG_queue_node_string}"
+if [ ! -z "$CONFIG_pbs_queue_node" ] ; then
+  nodes_string="${nodes_string}:${CONFIG_pbs_queue_node}"
 fi
 
 i=0
