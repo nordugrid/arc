@@ -10,44 +10,38 @@
 # at the end of this script. 
 
 echo "----- starting submit_slurm_job -----" 1>&2
-joboption_lrms=SLURM
+joboption_lrms="SLURM"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-SLURM-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
+# perflog
 perflogfilesub="${perflogdir}/submission.perflog"
-
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
+# define path to wrote failures
+define_failures_file
 
-init $1
-
-read_arc_conf
-
-failures_file="$joboption_controldir/job.$joboption_gridid.failed"
-
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
-    echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-    echo "Submission: Configuration error.">>"$failures_file"
-    exit 1
-  fi
-fi
+# check remote or local scratch is configured
+check_any_scratch
 
 ##############################################################
 # Zero stage of runtime environments
@@ -309,7 +303,7 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 #####################################################
 #  Upload output files
