@@ -2398,8 +2398,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/arc/Makefile
                  src/services/a-rex/lrms/arc/lrms/Makefile
                  src/services/a-rex/lrms/arc/lrms/common/Makefile
-                 src/services/a-rex/lrms/submit_common.sh
-                 src/services/a-rex/lrms/scan_common.sh
+                 src/services/a-rex/lrms/lrms_common.sh
                  src/services/a-rex/lrms/condor/Makefile
                  src/services/a-rex/lrms/condor/scan-condor-job
                  src/services/a-rex/lrms/condor/cancel-condor-job
@@ -2420,7 +2419,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job
                  src/services/a-rex/lrms/pbs/scan-pbs-job
-                 src/services/a-rex/lrms/pbs/configure-pbs-env.sh
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
