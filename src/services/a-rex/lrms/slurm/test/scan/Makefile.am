@@ -22,10 +22,12 @@ scan-SLURM-job: $(builddir)/../../scan-SLURM-job
 	chmod +x $@
 
 configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
-	cp $< $@
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
 
 scan_common.sh: $(builddir)/../../../scan_common.sh
-	cp $< $@
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
 
 lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
