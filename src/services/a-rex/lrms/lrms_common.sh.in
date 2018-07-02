@@ -88,7 +88,7 @@ EOHELP
 }
 
 init_lrms_env () {
-   # Where runtime scripts can be found on computing nodes (empty if does not exist)
+   # User runtime scripts location (now relevant for unit tests only)
    RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
    export RUNTIME_CONFIG_DIR
    # Description of (cross-)mounted disc space on cluster

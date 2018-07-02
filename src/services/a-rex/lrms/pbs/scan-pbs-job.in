@@ -19,30 +19,30 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
+joboption_lrms="pbs"
+
 # define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
-. ${basedir}/lrms_common.sh
-
-# parse configuration
-read_arc_conf
-
-# read pbs-specific environment
-. ${pkgdatadir}/configure-pbs-env.sh || exit $?
-
-# Define gm-kick location
-GMKICK=${pkglibexecdir}/gm-kick
+. "${basedir}/lrms_common.sh"
 
 # include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# Define gm-kick location
+GMKICK=${pkglibexecdir}/gm-kick
 
 # Log system performance
 if [ ! -z "$perflogdir" ]; then
    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
-# init common LRMS environmental variables
-init_lrms_env
 pbs_log_dir="${CONFIG_pbs_log_path:-/var/spool/pbs/server_logs}"
 
 my_id=`id -u`
