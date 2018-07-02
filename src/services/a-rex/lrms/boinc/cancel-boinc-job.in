@@ -3,23 +3,28 @@
 # 
 #  Cancel job running in boinc.
 # 
-ProjectDir=/home/boinc/projects/ATLAS
 
 echo "----- starting cancel_boinc_job -----" 1>&2
 trap 'echo "----- exiting cancel_boinc_job -----" 1>&2; echo "" 1>&2' EXIT
 
-joboption_lrms=boinc
+joboption_lrms="boinc"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
 if [ -z "$joboption_controldir" ] ; then
   joboption_controldir=`dirname "$arg_file"`

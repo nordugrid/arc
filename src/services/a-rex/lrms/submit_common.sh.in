@@ -306,11 +306,6 @@ RTE_stage2 () {
     RTE_jobscript_call 2
 }
 
-#TODO: rename to RTE_stage2 in all LRMS backends
-configure_runtime () {
-    RTE_stage2
-}
-
 ##############################################################
 # Add std... to job arguments
 ##############################################################

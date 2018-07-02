@@ -6,18 +6,24 @@
 
 echo "----- starting cancel_DGBridge_job -----" 1>&2
 
-joboption_lrms=DGBridge
+joboption_lrms="DGBridge"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
 dgjobid=`echo "$joboption_jobid" |cut -f 2 -d \|`
 echo "executing wsclient delete with endpoint $joboption_wsendpoint and job id $dgjobid" 1>&2

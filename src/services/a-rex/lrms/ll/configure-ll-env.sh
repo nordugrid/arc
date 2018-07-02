@@ -3,21 +3,6 @@
 #   LL_BIN_PATH
 #
 
-##############################################################
-# Reading configuration from $ARC_CONFIG
-##############################################################
-
-if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
-
-# Order matters
-blocks="-b arex -b infosys -b common"
-if [ ! -z "$joboption_queue" ]; then
-  blocks="-b queue/$joboption_queue $blocks"
-fi
-
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
-
 # performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
 unset perflogdir
 unset perflogfile

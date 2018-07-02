@@ -6,19 +6,26 @@
 progname=$(basename "$0")
 echo "----- starting $progname -----" 1>&2
 
-joboption_lrms=condor
+joboption_lrms="condor"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
+# run condor_rm
 echo "$progname: canceling job $joboption_jobid with condor_rm..." 1>&2
 
 $CONDOR_BIN_PATH/condor_rm ${joboption_jobid%.`hostname -f`} 1>&2
