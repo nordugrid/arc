@@ -108,6 +108,9 @@ lrms=slurm::
 Call graph
 ----------
 
+Submitting jobs
+~~~~~~~~~~~~~~~
+
 .. graphviz::
 
    digraph {
@@ -115,7 +118,8 @@ Call graph
           node [style=filled, shape=Rectangle];
           label = "sumbit_LRMS_job.sh";
           "define joboption_lrms" -> "source lrms_common.sh" -> "source submit_common.sh";
-          "source submit_common.sh" -> "common_init" -> "LRMS-specific submit";
+          "source submit_common.sh" -> "common_init" -> lslogic;
+          lslogic [ label="LRMS-specific submit" ];
        }
 
        subgraph cluster_1 {
@@ -123,12 +127,18 @@ Call graph
           style = "dashed";
           node [style=filled];
           "common_init()";
-          "RTEs()" -> "LRMS-specific submit";
-          "Moving files()" -> "LRMS-specific submit";
-          "I/O redicrection()" -> "LRMS-specific submit";
-          "Defining user ENV()" -> "LRMS-specific submit";
-          "Memory requirements()" -> "LRMS-specific submit";
-          "RTEs()" -> "Moving files()" -> "I/O redicrection()" -> "Defining user ENV()" -> "Memory requirements()" [style=invis];
+          aux1 [ label="RTEs()" ];
+          aux2 [ label="Moving files()" ];
+          aux3 [ label="I/O redicrection()" ];
+          aux4 [ label="Defining user ENV()" ];
+          aux5 [ label="Memory requirements()" ];
+          aux1 -> lslogic;
+          aux2 -> lslogic;
+          aux3 -> lslogic;
+          aux4 -> lslogic;
+          aux5 -> lslogic;
+          # rank hack
+          aux1 -> aux2 -> aux3 -> aux4 -> aux5 [style=invis];
         }
 
         subgraph cluster_2 {
@@ -154,10 +164,134 @@ Call graph
         "arc.conf" -> "parse_arc_conf()";
         "grami file" -> "parse_grami()";
 
+        # rank hack
+        "packaging paths" -> "set LRMS-specific ENV/fucntions" [style=invis];
+
         "a-rex" [shape=Mdiamond];
         "grami file" [shape=Msquare];
         "arc.conf" [shape=Msquare];
+        lslogic -> "LRMS";
+        "LRMS" [shape=Mdiamond];
     }
+
+Scanning jobs
+~~~~~~~~~~~~~
+
+.. graphviz::
+
+   digraph {
+       subgraph cluster_0 {
+          node [style=filled, shape=Rectangle];
+          label = "scan_LRMS_job.sh";
+          lslogic [ label="LRMS-specific scan" ];
+          "define joboption_lrms" -> "source lrms_common.sh" -> "source scan_common.sh";
+          "source scan_common.sh" -> "common_init" -> lslogic;
+       }
+
+       subgraph cluster_1 {
+          label = "scan_common.sh";
+          style = "dashed";
+          node [style=filled];
+          "common_init()";
+          aux1 [ label="Timestamp convertion()" ];
+          aux2 [ label="Owner UID()" ];
+          aux3 [ label="Read/Write diag()" ];
+          aux4 [ label="Save commentfile()" ];
+          aux1 -> lslogic;
+          aux2 -> lslogic;
+          aux3 -> lslogic;
+          aux4 -> lslogic;
+          # rank hack
+          "common_init()" -> aux1 -> aux2 -> aux3 -> aux4 [style=invis];
+        }
+
+        subgraph cluster_2 {
+           label = "lrms_common.sh";
+           style = "dashed";
+           node [style=filled];
+          "packaging paths" -> "source lrms_common.sh";
+          "parse_arc_conf()" -> "common_init()";
+          "init_lrms_env()" -> "common_init()";
+          "parse_grami()";
+          "packaging paths" [shape=Rectangle]
+        }
+
+        subgraph cluster_3 {
+          label = "configure_LRMS_env.sh";
+          node [style=filled, shape=Rectangle];
+          "set LRMS-specific ENV/fucntions"  -> "common_init()";
+        }
+
+        "a-rex" -> "define joboption_lrms";
+        "common_init()" -> "common_init"
+
+        "arc.conf" -> "parse_arc_conf()";
+        "controldir" -> lslogic;
+        lslogic -> "LRMS";
+
+        # rank hack
+        "source lrms_common.sh" -> "set LRMS-specific ENV/fucntions" [style=invis];
+
+        "a-rex" [shape=Mdiamond];
+        "controldir" [shape=Msquare];
+        "arc.conf" [shape=Msquare];
+        "LRMS" [shape=Mdiamond];
+    }
+
+Canceling jobs
+~~~~~~~~~~~~~~
+
+.. graphviz::
+
+   digraph {
+       subgraph cluster_0 {
+          node [style=filled, shape=Rectangle];
+          label = "cancel_LRMS_job.sh";
+          lslogic [ label="LRMS-specific cancel" ];
+          "define joboption_lrms" -> "source lrms_common.sh" -> "source scan_common.sh";
+          "source scan_common.sh" -> "common_init" -> lslogic;
+       }
+
+       subgraph cluster_1 {
+          label = "cancel_common.sh";
+          style = "dashed";
+          node [style=filled];
+          "common_init()";
+        }
+
+        subgraph cluster_2 {
+           label = "lrms_common.sh";
+           style = "dashed";
+           node [style=filled];
+          "packaging paths" -> "source lrms_common.sh";
+          "parse_arc_conf()" -> "common_init()";
+          "init_lrms_env()" 
+          "parse_grami()" -> "common_init()";
+          "packaging paths" [shape=Rectangle]
+        }
+
+        subgraph cluster_3 {
+          label = "configure_LRMS_env.sh";
+          node [style=filled, shape=Rectangle];
+          "set LRMS-specific ENV/fucntions"  -> "common_init()";
+        }
+
+        "a-rex" -> "define joboption_lrms";
+        "common_init()" -> "common_init"
+
+        "arc.conf" -> "parse_arc_conf()";
+        "grami file" -> "parse_grami()";
+        lslogic -> "LRMS";
+
+        # rank hack
+        "source lrms_common.sh" -> "set LRMS-specific ENV/fucntions" [style=invis];
+
+        "a-rex" [shape=Mdiamond];
+        "grami file" [shape=Msquare];
+        "arc.conf" [shape=Msquare];
+        "LRMS" [shape=Mdiamond];
+    }
+
 
 Memory limits processing:
 -------------------------

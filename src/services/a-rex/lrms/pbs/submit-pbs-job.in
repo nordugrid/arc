@@ -19,10 +19,10 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 # define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
-. ${basedir}/lrms_common.sh
+. "${basedir}/lrms_common.sh"
 
 # include common submit functions
-. ${pkgdatadir}/submit_common.sh || exit $?
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
 # run common init 
 #  * parse grami

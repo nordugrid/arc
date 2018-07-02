@@ -6,7 +6,7 @@
 
 echo "----- starting cancel_pbs_job -----" 1>&2
 
-joboption_lrms=pbs
+joboption_lrms="pbs"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -14,20 +14,16 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 # define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
-. ${basedir}/lrms_common.sh
-
-# parse grami file
-no_grami_extra_processing=1
-parse_grami_file $1
-
-# parse configuration
-read_arc_conf
-
-# read pbs-specific environment
-. ${pkgdatadir}/configure-pbs-env.sh || exit $?
+. "${basedir}/lrms_common.sh"
 
 # load common cancel functions
-. ${pkgdatadir}/cancel_common.sh || exit $?
+. "${pkgdatadir}/cancel_common.sh" || exit $?
+
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
 # define and execute qdel
 PBS_QDEL='qdel'
