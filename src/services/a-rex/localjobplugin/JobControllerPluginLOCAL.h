@@ -28,7 +28,7 @@ namespace ARexLOCAL {
   class JobControllerPluginLOCAL : public Arc::JobControllerPlugin {
   public:
   JobControllerPluginLOCAL(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) {
-      supportedInterfaces.push_back("org.nordugrid.local");
+      supportedInterfaces.push_back("org.nordugrid.internal");
     }
     ~JobControllerPluginLOCAL() {}
 

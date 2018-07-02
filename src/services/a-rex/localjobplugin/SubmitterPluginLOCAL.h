@@ -23,7 +23,7 @@ namespace ARexLOCAL{
   class SubmitterPluginLOCAL : public SubmitterPlugin {
   public:
   SubmitterPluginLOCAL(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(usercfg) {
-      supportedInterfaces.push_back("org.nordugrid.local");
+      supportedInterfaces.push_back("org.nordugrid.internal");
     }
     ~SubmitterPluginLOCAL() { /*deleteAllClients();*/ }
 

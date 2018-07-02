@@ -33,7 +33,7 @@ namespace ARexLOCAL {
   public:
     TargetInformationRetrieverPluginLOCAL(PluginArgument* parg):
         TargetInformationRetrieverPlugin(parg) {
-        supportedInterfaces.push_back("org.nordugrid.local");
+        supportedInterfaces.push_back("org.nordugrid.internal");
     };
     ~TargetInformationRetrieverPluginLOCAL() {};
 
