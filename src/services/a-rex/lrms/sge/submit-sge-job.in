@@ -10,19 +10,25 @@
 
 echo "----- starting submit_sge_job -----" 1>&2
 
-joboption_lrms=sge
+joboption_lrms="sge"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-sge-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 #Log performance
 perflogfilesub="${perflogdir}/submission.perflog"
@@ -31,16 +37,6 @@ if [ ! -z "$perflogdir" ]; then
    #start time stamp
    start_ts=`date +%s.%N`
 fi
-
-
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-
-init $1
-cat $1 1>&2
-
-read_arc_conf
 
 ##############################################################
 # Zero stage of runtime environments
@@ -312,7 +308,7 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)

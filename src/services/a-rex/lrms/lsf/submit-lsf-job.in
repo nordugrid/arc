@@ -8,40 +8,32 @@
 # at the end of this script. 
 
 echo "----- starting submit_lsf_job -----" 1>&2
-joboption_lrms=lsf
+joboption_lrms="lsf"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-##############################################################
-# Set LSF specific environment. # relies on $joboption_queue #
-##############################################################
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-lsf-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
+# perflog
 perflogfilesub="${perflogdir}/submission.perflog"
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
-
-init $1
-
-read_arc_conf
-
-# enforce this 
-#RUNTIME_FRONTEND_SEES_NODE='yes'
-#RUNTIME_NODE_SEES_FRONTEND='yes'
-
 
 ##############################################################
 # Zero stage of runtime environments
@@ -312,7 +304,7 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
