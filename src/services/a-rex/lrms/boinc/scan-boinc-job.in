@@ -18,16 +18,23 @@ debug "options = $@"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+if [ -z "$1" ] ; then echo "Controldir argument missing" 1>&2 ; exit 1 ; fi
 
+joboption_lrms="boinc"
+
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
 
-. "${pkgdatadir}/configure-boinc-env.sh" || exit $?
-
-if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 GMKICK=${pkglibexecdir}/gm-kick
 

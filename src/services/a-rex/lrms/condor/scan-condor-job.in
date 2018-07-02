@@ -7,14 +7,21 @@ LRMS=Condor # for use in log messages
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+joboption_lrms="condor"
+
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-. "${pkgdatadir}/configure-condor-env.sh" || exit $?
+# include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 # Log system performance
 if [ ! -z "$perflogdir" ]; then

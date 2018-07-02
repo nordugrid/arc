@@ -10,7 +10,7 @@
 # at the end of this script. 
 
 echo "----- starting submit_condor_job -----" 1>&2
-joboption_lrms=condor
+joboption_lrms="condor"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

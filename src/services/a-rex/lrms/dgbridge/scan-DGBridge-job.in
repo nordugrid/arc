@@ -5,22 +5,37 @@
 #
 # usage: scan_DGBridge_job control_dir ...
 
-# Load arc.conf and set up environment
-joboption_lrms=DGBridge
-
 # ARC1 passes the config file first.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
+#Validate control directories supplied on command-line
+if [ -z "$1" ] ; then
+    echo "no control_dir specified" 1>&2; exit 1
+fi
+for ctr_dir in "$@"; do
+    if [ ! -d "$ctr_dir" ]; then
+	echo "called with erronous control dir: $ctr_dir" 1>&2
+	exit 1
+    fi
+done
+
+joboption_lrms="DGBridge"
+
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
-basewebdir="/var/www/3GBridge/"
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-. "${pkgdatadir}/configure-${joboption_lrms}-env.sh" || exit $?
-
+# include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+basewebdir="/var/www/3GBridge/"
 
 # Prevent multiple instances of scan job to run concurrently
 lockfile="${TMPDIR:-/tmp}/scan-DGBridge-job.lock"
@@ -51,21 +66,7 @@ trap 'rm $lockfile' EXIT KILL TERM
 #Default sleep-time is 30 seconds
 sleep ${CONFIG_scan_wakeupperiod:-30}
 
-
 ## There is no shared file system possible in the DGBridge, instead we must copy output files from upload to session dir
-
-
-#Validate control directories supplied on command-line
-if [ -z "$1" ] ; then
-    echo "no control_dir specified" 1>&2; exit 1
-fi
-for ctr_dir in "$@"; do
-    if [ ! -d "$ctr_dir" ]; then
-	echo "called with erronous control dir: $ctr_dir" 1>&2
-	exit 1
-    fi
-done
-
 
 # List of DGBridge jobids for grid-jobs with state INLRMS
 declare -a localids
