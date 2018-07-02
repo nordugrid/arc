@@ -119,3 +119,13 @@ init_lrms_env () {
    NODENAME=${CONFIG_nodename:-"@nodename@"}
 }
 
+# performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is "expert-debug-on".
+init_perflog () {
+   unset perflogdir
+   unset perflogfile
+   if [ "$CONFIG_enable_perflog_reporting" == "expert-debug-on" ]; then
+      perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
+      perflogfile="${perflogdir}/backends.perflog"
+      perflogfilesub="${perflogdir}/submission.perflog"
+   fi
+}
