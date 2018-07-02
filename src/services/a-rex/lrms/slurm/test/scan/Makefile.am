@@ -7,7 +7,7 @@ TESTS_ENVIRONMENT = \
 
 SCRIPTSNEEDED = check_scan_script.sh \
 	scan-SLURM-job configure-SLURM-env.sh \
-	scan_common.sh arcconfig-parser \
+	lrms_common.sh scan_common.sh arcconfig-parser \
 	command-simulator.sh gm-kick
 
 check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
@@ -25,6 +25,9 @@ configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
 	cp $< $@
 
 scan_common.sh: $(builddir)/../../../scan_common.sh
+	cp $< $@
+
+lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
 
 arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser

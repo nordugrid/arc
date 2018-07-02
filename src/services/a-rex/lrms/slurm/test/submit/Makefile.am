@@ -12,7 +12,7 @@ TESTS_ENVIRONMENT = \
 
 SCRIPTSNEEDED = check_submit_script.sh \
 	submit-SLURM-job configure-SLURM-env.sh \
-	submit_common.sh $(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
+	lrms_common.sh submit_common.sh $(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
 
 check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
 
@@ -29,6 +29,9 @@ configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
 	cp $< $@
 
 submit_common.sh: $(builddir)/../../../submit_common.sh
+	cp $< $@
+
+lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
 
 $(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
