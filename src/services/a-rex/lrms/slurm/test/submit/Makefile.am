@@ -26,10 +26,12 @@ submit-SLURM-job: $(builddir)/../../submit-SLURM-job
 	chmod +x $@
 
 configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
-	cp $< $@
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
 
 submit_common.sh: $(builddir)/../../../submit_common.sh
-	cp $< $@
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
 
 lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
