@@ -6,14 +6,8 @@
 #   SGE_EXECD_PORT
 #
 
-# performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is ON
-unset perflogdir
-unset perflogfile
-enable_perflog=${CONFIG_enable_perflog_reporting:-no}
-if [ "$CONFIG_enable_perflog_reporting" == "expert-debug-on" ]; then
-   perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
-   perflogfile="${perflogdir}/backends.perflog"
-fi
+# Conditionaly enable performance logging
+init_perflog
 
 ##############################################################
 # Initialize SGE environment variables
