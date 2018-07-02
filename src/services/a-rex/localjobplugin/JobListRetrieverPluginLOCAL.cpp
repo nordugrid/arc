@@ -77,7 +77,7 @@ namespace ARexLOCAL {
       ARex::job_local_read_file(jobid, *(ac.config), job_desc);
 
       std::string submittedVia = job_desc.interface;
-      if (submittedVia != "org.nordugrid.local") {
+      if (submittedVia != "org.nordugrid.internal") {
         logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + itID->id, submittedVia);
         continue;
       }

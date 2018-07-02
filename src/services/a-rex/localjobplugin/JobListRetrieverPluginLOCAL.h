@@ -24,7 +24,7 @@ namespace ARexLOCAL {
   class JobListRetrieverPluginLOCAL : public Arc::JobListRetrieverPlugin {
   public:
     JobListRetrieverPluginLOCAL(PluginArgument* parg): JobListRetrieverPlugin(parg) {
-      supportedInterfaces.push_back("org.nordugrid.local");
+      supportedInterfaces.push_back("org.nordugrid.internal");
     }
     virtual ~JobListRetrieverPluginLOCAL() {}
 

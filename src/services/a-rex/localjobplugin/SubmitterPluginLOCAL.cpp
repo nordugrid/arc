@@ -89,7 +89,7 @@ namespace ARexLOCAL {
         retval |= Arc::SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
-      
+
       bool need_delegation = false;
       std::list<std::string> upload_sources;
       std::list<std::string> upload_destinations;

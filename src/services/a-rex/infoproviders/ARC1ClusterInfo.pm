@@ -1084,9 +1084,9 @@ sub collect($) {
                                                 ];
     }
 
-    # for the org.nordugrid.local submission endpoint (files created directly in the controldir)
+    # for the org.nordugrid.internal submission endpoint (files created directly in the controldir)
     $csvendpointsnum = $csvendpointsnum + 1;
-    $epscapabilities->{'org.nordugrid.local'} = [
+    $epscapabilities->{'org.nordugrid.internal'} = [
                                   'executionmanagement.jobcreation',
                                   'executionmanagement.jobexecution',
                                   'executionmanagement.jobmanagement',
@@ -2530,9 +2530,9 @@ sub collect($) {
             # TODO: define a strategy to add data capabilites
             # $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'direct';
-            $cep->{InterfaceName} = 'org.nordugrid.local';
+            $cep->{InterfaceName} = 'org.nordugrid.internal';
             $cep->{InterfaceVersion} = [ '1.0' ];
-            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.local'}}, @{$epscapabilities->{'common'}} ]; 	    
+            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.internal'}}, @{$epscapabilities->{'common'}} ]; 	    
             $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
@@ -2597,7 +2597,7 @@ sub collect($) {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
               #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.local'); };
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.internal'); };
             }
 
             # Associations

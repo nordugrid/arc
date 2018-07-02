@@ -80,7 +80,7 @@ namespace ARexLOCAL {
       ComputingEndpointType newCe;
       newCe->ID = url.Host();
       newCe->URLString = url.str();
-      newCe->InterfaceName = "org.nordugrid.local";
+      newCe->InterfaceName = "org.nordugrid.internal";
       newCe->HealthState = "ok";
       newCe->QualityLevel = "testing";//testing for now, production when in production
       newCe->Technology = "direct";

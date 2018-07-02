@@ -379,7 +379,7 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
         else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
           jobdesclang = "emies:adl";
         }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.local") {
+        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.internal") {
           jobdesclang = "emies:adl";
         }
         std::string jobdesc;

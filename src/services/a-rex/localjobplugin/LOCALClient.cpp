@@ -497,11 +497,11 @@ namespace ARexLOCAL {
     //j.JobID = (client->ce).str() + "/" + localjob->id;
     j.JobID = "file://"  + sessiondir;
     j.ServiceInformationURL = client->ce;
-    j.ServiceInformationInterfaceName = "org.nordugrid.local";
+    j.ServiceInformationInterfaceName = "org.nordugrid.internal";
     j.JobStatusURL = client->ce;
-    j.JobStatusInterfaceName = "org.nordugrid.local";
+    j.JobStatusInterfaceName = "org.nordugrid.internal";
     j.JobManagementURL = client->ce;
-    j.JobManagementInterfaceName = "org.nordugrid.local";
+    j.JobManagementInterfaceName = "org.nordugrid.internal";
     j.IDFromEndpoint = id;
     if (!stagein.empty())j.StageInDir = stagein.front();
     else j.StageInDir = sessiondir;
@@ -517,7 +517,7 @@ namespace ARexLOCAL {
 
 
   void LOCALJob::toJob(LOCALClient* client, Arc::Job& arcjob, Arc::Logger& logger) const {
-     //called from UpdateJobs in JobControllerPluginLOCAL
+    //called from UpdateJobs in JobControllerPluginLOCAL
     //extract info from arexjob
   
     //extract jobid from arcjob, which is the full jobid url
