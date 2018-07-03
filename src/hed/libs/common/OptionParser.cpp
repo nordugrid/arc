@@ -260,7 +260,9 @@ namespace Arc {
     }
     if(h_value) {
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
-      std::cout << ctx.get_help() << std::endl;
+      // In some versions Glib's get_help returns text which fails in Glib's internal translator of operator<<.
+      // Hence using internal string without additional translation.
+      std::cout << ctx.get_help().c_str() << std::endl;
 #else
       std::cout << IString("Use -? to get usage description") << std::endl;
 #endif
