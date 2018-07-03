@@ -65,10 +65,10 @@ for test in ${TESTS}; do
   # Add sessiondir and controldir attributes to arc.conf configuration.
   if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
     sed -i "/^[[]arex][[:space:]]*$/ a\
-sessiondir=\"`pwd`\"\n\
-controldir=\"`pwd`/controldir\"" ${test}.arc.conf
+sessiondir=`pwd`\n\
+controldir=`pwd`/controldir" ${test}.arc.conf
   else 
-    echo $'\n'"[arex]"$'\n'"sessiondir=\"`pwd`\""$'\n'"controldir=\"`pwd`/controldir\"" >> ${test}.arc.conf
+    echo $'\n'"[arex]"$'\n'"sessiondir=`pwd`"$'\n'"controldir=`pwd`/controldir" >> ${test}.arc.conf
   fi
 
   # Setup command simulation
@@ -82,12 +82,6 @@ controldir=\"`pwd`/controldir\"" ${test}.arc.conf
     export SIMULATOR_OUTCOME_FILE=$(pwd)/simulator_output
     export SIMULATOR_ERRORS_FILE=$(pwd)/simulator_errors
   fi
-  # Use test GM-kick and arcconfig-parser script
-  mkdir -p "$(pwd)/@pkglibexecsubdir@/"
-  ln -s $(pwd)/../gm-kick $(pwd)/@pkglibexecsubdir@/gm-kick
-  ln -s $(pwd)/../arcconfig-parser $(pwd)/@pkglibexecsubdir@/arcconfig-parser
-  export ARC_LOCATION=$(pwd)
-  
   
   # Create session directory and .status, .local, and .diag files.
   oIFS="${IFS}"

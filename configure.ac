@@ -2394,7 +2394,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
-                 src/services/a-rex/lrms/test/check_scan_script.sh
                  src/services/a-rex/lrms/arc/Makefile
                  src/services/a-rex/lrms/arc/lrms/Makefile
                  src/services/a-rex/lrms/arc/lrms/common/Makefile
