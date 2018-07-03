@@ -9,10 +9,10 @@ progname=$(basename "$0")
 log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
 
 common_init () {
-#  parse configuration
-   read_arc_conf
+   # parse configuration
+   parse_arc_conf
    # read pbs-specific environment
-.  ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
    # set common LRMS environmental variables
    init_lrms_env
 }

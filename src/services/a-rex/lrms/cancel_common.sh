@@ -7,9 +7,9 @@ common_init () {
    # parse grami file
    no_grami_extra_processing=1
    parse_grami_file $GRAMI_FILE
-   #  parse configuration
-   read_arc_conf
+   # parse configuration
+   parse_arc_conf
    # read pbs-specific environment
-   .  ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
 }
 
