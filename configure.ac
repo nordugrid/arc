@@ -2385,7 +2385,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
-                 src/services/a-rex/localjobplugin/Makefile
+                 src/services/a-rex/internaljobplugin/Makefile
                  src/services/a-rex/grid-manager/arc-config-check.1
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl

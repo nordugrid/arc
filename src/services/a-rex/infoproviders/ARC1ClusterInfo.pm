@@ -2541,7 +2541,7 @@ sub collect($) {
 
                        
             my %healthissues;
-            # Host certificate not required for LOCAL submission interface.
+            # Host certificate not required for INTERNAL submission interface.
             if ( $host_info->{gm_alive} ne 'all' ) {
             if ($host_info->{gm_alive} eq 'some') {
                 push @{$healthissues{warning}}, 'One or more grid managers are down';

@@ -324,7 +324,7 @@ namespace Arc {
         JobStatusInterfaceName          = "org.nordugrid.xbes";
         JobManagementInterfaceName      = "org.nordugrid.xbes";
       }
-      else if ((std::string)job["Flavour"] == "LOCAL") {
+      else if ((std::string)job["Flavour"] == "INTERNAL") {
         ServiceInformationInterfaceName = "org.nordugrid.internal";
         JobStatusInterfaceName          = "org.nordugrid.internal";
         JobManagementInterfaceName      = "org.nordugrid.internal";
