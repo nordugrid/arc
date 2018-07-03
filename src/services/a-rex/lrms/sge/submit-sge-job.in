@@ -14,6 +14,7 @@ joboption_lrms="sge"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
 # define paths and config parser
 basedir=`dirname $0`

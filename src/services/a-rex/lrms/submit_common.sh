@@ -27,7 +27,7 @@ is_number () {
 #
 common_init () {
     # parse grami file
-    parse_grami_file $1
+    parse_grami_file $GRAMI_FILE
     # parse configuration
     parse_arc_conf
     # read pbs-specific environment
