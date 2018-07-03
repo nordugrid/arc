@@ -109,10 +109,10 @@ for test in ${TESTS}; do
   
   if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
     sed -i "/^[[]arex][[:space:]]*$/ a\
-sessiondir=\"$(pwd)\"\n\
-controldir=\"$(pwd)/controldir\"" ${test}.arc.conf
+sessiondir=$(pwd)\n\
+controldir=$(pwd)/controldir" ${test}.arc.conf
   else 
-    echo $'\n'"[arex]"$'\n'"sessiondir=\"$(pwd)\""$'\n'"controldir=\"$(pwd)/controldir\"" >> ${test}.arc.conf
+    echo $'\n'"[arex]"$'\n'"sessiondir=$(pwd)"$'\n'"controldir=$(pwd)/controldir" >> ${test}.arc.conf
   fi
 
 
