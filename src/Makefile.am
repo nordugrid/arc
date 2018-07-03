@@ -11,6 +11,12 @@ endif
 SUBDIRS = $(BUILD_SOURCES)
 DIST_SUBDIRS = external doc hed libs tests services clients utils doxygen
 
+pkgdata_DATA = arc.parser.defaults
+
+arc.parser.defaults: $(srcdir)/doc/arc.conf.reference
+   #if test ! -e "$(abs_top_builddir)/python/python/arc/utils"; then ln -s $(abs_top_srcdir)/src/utils/python/arc/utils $(abs_top_builddir)/python/python/arc/utils; fi
+   $(srcdir)/utils/python/arcconfig-reference --extract-defaults -d $@ -r $<
+
 # This won't work in case of cross-compilation. Please
 # some autotools experts fix it.
 if HED_ENABLED

@@ -20,7 +20,7 @@ output=""
 EOF
 
 read -r -d '' general_arc_test_configuration <<EOF
-[common]
+[lrms]
 slurm_bin_path="@PWD@/bin"
 EOF
 
@@ -40,11 +40,10 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -9,7 +9,7 @@
+@@ -9,6 +9,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=2000
  
  # Overide umask of execution node (sometime values are really strange)
@@ -114,7 +113,7 @@ read -r -d '' job_script_patch <<'EOF'
  #SBATCH -n 1
 -#SBATCH 
 +#SBATCH  TEST TESTING
- #SBATCH --mem-per-cpu=1000
+ 
  
  # Overide umask of execution node (sometime values are really strange)
 @@ -99,8 +99,22 @@
@@ -327,8 +326,8 @@ read -r -d '' job_script_patch <<'EOF'
 -#SBATCH -n 1
 +#SBATCH -n 6
  #SBATCH 
- #SBATCH --mem-per-cpu=1000
  
+
 @@ -99,8 +99,35 @@
  RESULT=0
  
@@ -579,13 +578,12 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -9,7 +9,7 @@
+@@ -9,6 +9,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=13500
- 
+
  # Overide umask of execution node (sometime values are really strange)
  umask 077
 @@ -99,8 +99,34 @@
