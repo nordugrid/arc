@@ -309,7 +309,7 @@ namespace ARex {
     return endpoint_;
   }
   
-  std::string JobIDGeneratorINTERNALL::GetInterface(void) {
+  std::string JobIDGeneratorINTERNAL::GetInterface(void) {
     return "org.nordugrid.internal";
   }
 
