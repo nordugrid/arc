@@ -43,7 +43,7 @@ command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
 
 $(pkglibexecsubdir)/gm-kick: $(srcdir)/../../../test/test-gm-kick.sh
 	mkdir -p $(pkglibexecsubdir)
-	cp $< $(pkglibexecsubdir)/.
+	cp $< $@
 	chmod +x $@
 
 CLEANFILES = $(SCRIPTSNEEDED)
