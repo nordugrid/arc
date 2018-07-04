@@ -849,8 +849,7 @@ fi
         # (SelectType=select/cons_res). Also see --mem. --mem and
         # --mem-per-cpu are mutually exclusive.
         ### \mapattr --mem-per-cpu <- IndividualPhysicalMemory
-        memPerCPU = j.Resources.IndividualPhysicalMemory.max if \
-            j.Resources.IndividualPhysicalMemory.max > 0 else 1000
-        product += "#SBATCH --mem-per-cpu=" + str(memPerCPU) + "\n";
+        if j.Resources.IndividualPhysicalMemory.max > 0:
+            product += "#SBATCH --mem-per-cpu=" + str(j.Resources.IndividualPhysicalMemory.max) + "\n";
         
         return product
