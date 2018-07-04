@@ -13,16 +13,16 @@
 #include "../grid-manager/files/ControlFileHandling.h"
 
 
-#include "JobStateLOCAL.h"
-#include "LOCALClient.h"
-#include "JobListRetrieverPluginLOCAL.h"
+#include "JobStateINTERNAL.h"
+#include "INTERNALClient.h"
+#include "JobListRetrieverPluginINTERNAL.h"
 
 using namespace Arc;
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
-  Logger JobListRetrieverPluginLOCAL::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.LOCAL");
+  Logger JobListRetrieverPluginINTERNAL::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.INTERNAL");
 
-  bool JobListRetrieverPluginLOCAL::isEndpointNotSupported(const Endpoint& endpoint) const {
+  bool JobListRetrieverPluginINTERNAL::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -44,7 +44,7 @@ namespace ARexLOCAL {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginLOCAL::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginINTERNAL::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
@@ -55,9 +55,9 @@ namespace ARexLOCAL {
     }
 
 
-    LOCALClient ac(uc);
+    INTERNALClient ac(uc);
 
-    std::list<LOCALJob> localjobs;
+    std::list<INTERNALJob> localjobs;
     if (!ac.list(localjobs)) {
       return s;
     }
@@ -65,10 +65,10 @@ namespace ARexLOCAL {
     logger.msg(DEBUG, "Listing localjobs succeeded, %d localjobs found", localjobs.size());
 
     //checks that the job is in state other than undefined
-    std::list<LOCALJob> jobids_found;
+    std::list<INTERNALJob> jobids_found;
     ac.info(localjobs,jobids_found);
     
-    std::list<LOCALJob>::iterator itID = jobids_found.begin();
+    std::list<INTERNALJob>::iterator itID = jobids_found.begin();
     for(; itID != jobids_found.end(); ++itID) {
 
       //read job description to get hold of submission-interface
@@ -77,13 +77,13 @@ namespace ARexLOCAL {
       ARex::job_local_read_file(jobid, *(ac.config), job_desc);
 
       std::string submittedVia = job_desc.interface;
-      if (submittedVia != "org.nordugrid.local") {
+      if (submittedVia != "org.nordugrid.internal") {
         logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + itID->id, submittedVia);
         continue;
       }
 
 
-      LOCALJob localjob;      
+      INTERNALJob localjob;      
       Job j;
       itID->toJob(&ac, &localjob, j);
       jobs.push_back(j);

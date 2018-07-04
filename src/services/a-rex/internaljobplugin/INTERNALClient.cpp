@@ -15,22 +15,22 @@
 #include "../grid-manager/conf/GMConfig.h"
 #include "../grid-manager/files/ControlFileHandling.h"
 
-#include "JobStateLOCAL.h"
-#include "LOCALClient.h"
+#include "JobStateINTERNAL.h"
+#include "INTERNALClient.h"
 
 //#include "../job.cpp"
 
 using namespace Arc;
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
 
-  Arc::Logger LOCALClient::logger(Arc::Logger::rootLogger, "LOCAL Client"); 
+  Arc::Logger INTERNALClient::logger(Arc::Logger::rootLogger, "INTERNAL Client"); 
 
 
-  LOCALClient::LOCALClient(void) : config(NULL), arexconfig(NULL) {
+  INTERNALClient::INTERNALClient(void) : config(NULL), arexconfig(NULL) {
 
-    logger.msg(Arc::DEBUG,"Default LOCAL client contructor");
+    logger.msg(Arc::DEBUG,"Default INTERNAL client contructor");
 
     if(!SetAndLoadConfig(config, cfgfile)){
       logger.msg(Arc::ERROR,"Failed to load grid-manager configfile");
@@ -38,7 +38,7 @@ namespace ARexLOCAL {
     }
 
     if(!SetEndPoint(config)){
-      logger.msg(Arc::ERROR,"Failed to set LOCAL endpoint");
+      logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
 
@@ -48,7 +48,7 @@ namespace ARexLOCAL {
   };
 
 
-  LOCALClient::LOCALClient(const Arc::UserConfig& usercfg)
+  INTERNALClient::INTERNALClient(const Arc::UserConfig& usercfg)
   :usercfg(usercfg),
    config(NULL), arexconfig(NULL) {
 
@@ -58,7 +58,7 @@ namespace ARexLOCAL {
     }
 
     if(!SetEndPoint(config)){
-      logger.msg(Arc::ERROR,"Failed to set LOCAL endpoint");
+      logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
 
@@ -69,7 +69,7 @@ namespace ARexLOCAL {
 
 
   //using this one from submitterpluginlocal
-  LOCALClient::LOCALClient(const Arc::URL& url, const Arc::UserConfig& usercfg)
+  INTERNALClient::INTERNALClient(const Arc::URL& url, const Arc::UserConfig& usercfg)
     :ce(url),
      usercfg(usercfg),
      config(NULL), arexconfig(NULL) {
@@ -80,7 +80,7 @@ namespace ARexLOCAL {
     }
 
     if(!SetEndPoint(config)){
-      logger.msg(Arc::ERROR,"Failed to set LOCAL endpoint");
+      logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
 
@@ -92,14 +92,14 @@ namespace ARexLOCAL {
 
   
 
-  LOCALClient::~LOCALClient() {
+  INTERNALClient::~INTERNALClient() {
    delete config;
    delete arexconfig;
   }
 
  
 
-  LOCALJob::LOCALJob(/*const */ARex::ARexJob& _arexjob, const ARex::GMConfig& config, std::string const& _deleg_id)
+  INTERNALJob::INTERNALJob(/*const */ARex::ARexJob& _arexjob, const ARex::GMConfig& config, std::string const& _deleg_id)
     :id(_arexjob.ID()),
      state((std::string)_arexjob.State()),
      sessiondir(_arexjob.SessionDir()),
@@ -113,7 +113,7 @@ namespace ARexLOCAL {
 
 
 
-  bool LOCALClient::SetEndPoint(ARex::GMConfig*& config){
+  bool INTERNALClient::SetEndPoint(ARex::GMConfig*& config){
 
     endpoint = config->ControlDir();
     return true;
@@ -121,7 +121,7 @@ namespace ARexLOCAL {
 
   
   
-  bool LOCALClient::SetAndLoadConfig(ARex::GMConfig*& config, std::string cfgfile){
+  bool INTERNALClient::SetAndLoadConfig(ARex::GMConfig*& config, std::string cfgfile){
 
     struct stat st;
     config = new ARex::GMConfig();
@@ -148,7 +148,7 @@ namespace ARexLOCAL {
   }
   
 
-  bool LOCALClient::PrepareARexConfig(){
+  bool INTERNALClient::PrepareARexConfig(){
 
     Arc::Credential cred(usercfg);
     std::string gridname = cred.GetIdentityName();
@@ -159,7 +159,7 @@ namespace ARexLOCAL {
   
 
 
-  bool LOCALClient::CreateDelegation(std::string& deleg_id){
+  bool INTERNALClient::CreateDelegation(std::string& deleg_id){
     // Create new delegation slot in delegation store and
     // generate or apply delegation id.
 
@@ -187,7 +187,7 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::RenewDelegation(std::string const& deleg_id) {
+  bool INTERNALClient::RenewDelegation(std::string const& deleg_id) {
     // Create new delegation in already assigned slot 
     if(deleg_id.empty()) return false;
 
@@ -222,13 +222,13 @@ namespace ARexLOCAL {
   }
 
 
-  std::string LOCALClient::get_error_description() const {
+  std::string INTERNALClient::get_error_description() const {
     if (!error_description.empty()) return error_description;
   }
  
   
-  bool LOCALClient::submit(const std::list<Arc::JobDescription>& jobdescs,std::list<LOCALJob>& localjobs, const std::string delegation_id) {
-    //called by SubmitterPluginLOCAL ac->submit(..)
+  bool INTERNALClient::submit(const std::list<Arc::JobDescription>& jobdescs,std::list<INTERNALJob>& localjobs, const std::string delegation_id) {
+    //called by SubmitterPluginINTERNAL ac->submit(..)
 
     logger.msg(Arc::VERBOSE, "Submitting job ");
 
@@ -241,7 +241,7 @@ namespace ARexLOCAL {
 
 
 
-        LOCALJob localjob;
+        INTERNALJob localjob;
         //set some additional parameters
         if(config->DefaultQueue().empty() && (config->Queues().size() == 1)) {
           config->SetDefaultQueue(*(config->Queues().begin()));
@@ -253,7 +253,7 @@ namespace ARexLOCAL {
         std::string jobdesc_str;
         Arc::JobDescriptionResult ures = (*itSubmit).UnParse(jobdesc_str,"emies:adl");
         Arc::XMLNode jsdl(jobdesc_str);
-        ARex::JobIDGeneratorLOCAL idgenerator(endpoint);
+        ARex::JobIDGeneratorINTERNAL idgenerator(endpoint);
         const std::string dummy = "";
 
 
@@ -266,7 +266,7 @@ namespace ARexLOCAL {
         }
         else{
           //make localjob for internal handling
-          LOCALJob localjob(arexjob,*config,delegation_id);
+          INTERNALJob localjob(arexjob,*config,delegation_id);
           localjobs.push_back(localjob);
         }
       }
@@ -277,7 +277,7 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::putFiles(LOCALJob const& localjob, std::list<std::string> const& sources, std::list<std::string> const& destinations) {
+  bool INTERNALClient::putFiles(INTERNALJob const& localjob, std::list<std::string> const& sources, std::list<std::string> const& destinations) {
     ARex::GMJob gmjob(localjob.id, user, localjob.sessiondir, ARex::JOB_STATE_ACCEPTED);
     //Fix-me removed cbegin and cend from sources and destination. Either fix compiler, or rewrite to be const. 
     for(std::list<std::string>::const_iterator source = sources.begin(), destination = destinations.begin();
@@ -304,10 +304,10 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::submit(const Arc::JobDescription& jobdesc, LOCALJob& localjob, const std::string delegation_id) {
+  bool INTERNALClient::submit(const Arc::JobDescription& jobdesc, INTERNALJob& localjob, const std::string delegation_id) {
 
     std::list<JobDescription> jobdescs;
-    std::list<LOCALJob> localjobs;
+    std::list<INTERNALJob> localjobs;
 
     jobdescs.push_back(jobdesc);
 
@@ -322,11 +322,11 @@ namespace ARexLOCAL {
 
 
 
-  bool LOCALClient::info(std::list<LOCALJob>& jobs, std::list<LOCALJob>& jobids_found){
+  bool INTERNALClient::info(std::list<INTERNALJob>& jobs, std::list<INTERNALJob>& jobids_found){
 
-    //at the moment called by JobListretrieverPluginLOCAL Query
+    //at the moment called by JobListretrieverPluginINTERNAL Query
 
-    for(std::list<LOCALJob>::iterator job = jobs.begin(); job!= jobs.end(); job++){
+    for(std::list<INTERNALJob>::iterator job = jobs.begin(); job!= jobs.end(); job++){
       ARex::ARexJob arexjob(job->id,*arexconfig,logger);
          std::string state = arexjob.State();
       if (state != "UNDEFINED") jobids_found.push_back(*job);
@@ -336,8 +336,8 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::info(LOCALJob& localjob, Arc::Job& arcjob){
-    //Called from (at least) JobControllerPluginLOCAL
+  bool INTERNALClient::info(INTERNALJob& localjob, Arc::Job& arcjob){
+    //Called from (at least) JobControllerPluginINTERNAL
     //Called for stagein/out/sessionodir if url of either is not known
     //Extracts information about current arcjob from arexjob and job.jobid.description file and updates/populates the localjob and arcjob with this info, and fills a localjob with the information
 
@@ -349,7 +349,7 @@ namespace ARexLOCAL {
 
 
     ARex::ARexJob arexjob(gm_job_id,*arexconfig,logger);
-    arcjob.State = JobStateLOCAL((std::string)arexjob.State());
+    arcjob.State = JobStateINTERNAL((std::string)arexjob.State());
 
 
     if(!localjob.delegation_id.empty())
@@ -364,7 +364,7 @@ namespace ARexLOCAL {
     };
 
     
-    //JobControllerPluginLOCAL needs this, so make sure it is set.
+    //JobControllerPluginINTERNAL needs this, so make sure it is set.
     if(localjob.session.empty()){
       localjob.session.push_back((std::string)job_desc.sessiondir);
     }
@@ -382,7 +382,7 @@ namespace ARexLOCAL {
 
 
 
-  bool LOCALClient::sstat(Arc::XMLNode& xmldoc) {
+  bool INTERNALClient::sstat(Arc::XMLNode& xmldoc) {
 
     //TO-DO Need to lock info.xml during reading?
     std::string fname = config->ControlDir() + "/" + "info.xml";
@@ -411,7 +411,7 @@ namespace ARexLOCAL {
 
 
 
-  bool LOCALClient::kill(const std::string& jobid){
+  bool INTERNALClient::kill(const std::string& jobid){
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
@@ -423,7 +423,7 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::clean(const std::string& jobid){
+  bool INTERNALClient::clean(const std::string& jobid){
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
@@ -435,7 +435,7 @@ namespace ARexLOCAL {
   }
 
   
-  bool LOCALClient::restart(const std::string& jobid){
+  bool INTERNALClient::restart(const std::string& jobid){
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
@@ -447,7 +447,7 @@ namespace ARexLOCAL {
   }
 
 
-  bool LOCALClient::list(std::list<LOCALJob>& jobs){
+  bool INTERNALClient::list(std::list<INTERNALJob>& jobs){
     //Populates localjobs containing only jobid
     //how do I want to search for jobs in system? 
 
@@ -458,7 +458,7 @@ namespace ARexLOCAL {
       std::vector<std::string> tokens;
       Arc::tokenize(file_name, tokens, "."); // look for job.id.local
       if (tokens.size() == 3 && tokens[0] == "job" && tokens[2] == "local") {
-        LOCALJob job;
+        INTERNALJob job;
         job.id = (std::string)tokens[1];
         jobs.push_back(job);
       };
@@ -470,7 +470,7 @@ namespace ARexLOCAL {
   
 
  
-  LOCALJob& LOCALJob::operator=(const Arc::Job& job) {
+  INTERNALJob& INTERNALJob::operator=(const Arc::Job& job) {
     //Set localjob attributes from the ARC job
     //Called from JobControllerPlugin
 
@@ -491,17 +491,17 @@ namespace ARexLOCAL {
   
 
 
-  void LOCALJob::toJob(LOCALClient* client, LOCALJob* localjob, Arc::Job& j) const {
+  void INTERNALJob::toJob(INTERNALClient* client, INTERNALJob* localjob, Arc::Job& j) const {
     //fills an arcjob from localjob
 
     //j.JobID = (client->ce).str() + "/" + localjob->id;
     j.JobID = "file://"  + sessiondir;
     j.ServiceInformationURL = client->ce;
-    j.ServiceInformationInterfaceName = "org.nordugrid.local";
+    j.ServiceInformationInterfaceName = "org.nordugrid.internal";
     j.JobStatusURL = client->ce;
-    j.JobStatusInterfaceName = "org.nordugrid.local";
+    j.JobStatusInterfaceName = "org.nordugrid.internal";
     j.JobManagementURL = client->ce;
-    j.JobManagementInterfaceName = "org.nordugrid.local";
+    j.JobManagementInterfaceName = "org.nordugrid.internal";
     j.IDFromEndpoint = id;
     if (!stagein.empty())j.StageInDir = stagein.front();
     else j.StageInDir = sessiondir;
@@ -516,8 +516,8 @@ namespace ARexLOCAL {
   }
 
 
-  void LOCALJob::toJob(LOCALClient* client, Arc::Job& arcjob, Arc::Logger& logger) const {
-     //called from UpdateJobs in JobControllerPluginLOCAL
+  void INTERNALJob::toJob(INTERNALClient* client, Arc::Job& arcjob, Arc::Logger& logger) const {
+    //called from UpdateJobs in JobControllerPluginINTERNAL
     //extract info from arexjob
   
     //extract jobid from arcjob, which is the full jobid url
@@ -530,7 +530,7 @@ namespace ARexLOCAL {
 
     ARex::ARexJob arexjob(gm_job_id,*(client->arexconfig),client->logger);
     std::string state = arexjob.State();
-    arcjob.State = JobStateLOCAL(state);
+    arcjob.State = JobStateINTERNAL(state);
 
     if (!stagein.empty())arcjob.StageInDir = stagein.front();
     else arcjob.StageInDir = sessiondir;
@@ -547,11 +547,11 @@ namespace ARexLOCAL {
 
   // TODO: does it need locking?
 
-  LOCALClients::LOCALClients(const Arc::UserConfig& usercfg):usercfg_(usercfg) {
+  INTERNALClients::INTERNALClients(const Arc::UserConfig& usercfg):usercfg_(usercfg) {
   }
 
-  LOCALClients::~LOCALClients(void) {
-    std::multimap<Arc::URL, LOCALClient*>::iterator it;
+  INTERNALClients::~INTERNALClients(void) {
+    std::multimap<Arc::URL, INTERNALClient*>::iterator it;
     for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
       delete it->second;
     }

@@ -4,8 +4,8 @@ else
 JURA_CLIENT =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema localjobplugin rte
-DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema localjobplugin rte
+SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema internaljobplugin rte
+DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check

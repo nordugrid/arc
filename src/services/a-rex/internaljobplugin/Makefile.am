@@ -1,18 +1,18 @@
-pkglib_LTLIBRARIES = libaccLOCAL.la
+pkglib_LTLIBRARIES = libaccINTERNAL.la
 
-libaccLOCAL_la_SOURCES  = LOCALClient.cpp LOCALClient.h \
-	JobStateLOCAL.cpp JobStateLOCAL.h \
-	SubmitterPluginLOCAL.cpp SubmitterPluginLOCAL.h \
-	JobControllerPluginLOCAL.cpp JobControllerPluginLOCAL.h \
-	JobListRetrieverPluginLOCAL.cpp JobListRetrieverPluginLOCAL.h \
-	TargetInformationRetrieverPluginLOCAL.cpp TargetInformationRetrieverPluginLOCAL.h \
-	DescriptorsLOCAL.cpp \
+libaccINTERNAL_la_SOURCES  = INTERNALClient.cpp INTERNALClient.h \
+	JobStateINTERNAL.cpp JobStateINTERNAL.h \
+	SubmitterPluginINTERNAL.cpp SubmitterPluginINTERNAL.h \
+	JobControllerPluginINTERNAL.cpp JobControllerPluginINTERNAL.h \
+	JobListRetrieverPluginINTERNAL.cpp JobListRetrieverPluginINTERNAL.h \
+	TargetInformationRetrieverPluginINTERNAL.cpp TargetInformationRetrieverPluginINTERNAL.h \
+	DescriptorsINTERNAL.cpp \
 	../job.cpp ../tools.cpp
-libaccLOCAL_la_CXXFLAGS = -I$(top_srcdir)/include \
+libaccINTERNAL_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 
 
-libaccLOCAL_la_LIBADD = \
+libaccINTERNAL_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
@@ -36,5 +36,5 @@ libaccLOCAL_la_LIBADD = \
 #	$(top_builddir)/src/services/a-rex/delegation/libdelegation.la \
 #	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_JOBPLUGIN_LIBS)
 
-libaccLOCAL_la_LDFLAGS = -no-undefined -avoid-version -module
+libaccINTERNAL_la_LDFLAGS = -no-undefined -avoid-version -module
 

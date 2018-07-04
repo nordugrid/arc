@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_TARGETINFORMATIONRETRIEVERLOCAL_H__
-#define __ARC_TARGETINFORMATIONRETRIEVERLOCAL_H__
+#ifndef __ARC_TARGETINFORMATIONRETRIEVERINTERNAL_H__
+#define __ARC_TARGETINFORMATIONRETRIEVERINTERNAL_H__
 
 #include <list>
 
@@ -22,22 +22,22 @@ namespace Arc{
 
 }
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
 
 
-  class LOCALClient;
-  class JobStateLOCAL;
+  class INTERNALClient;
+  class JobStateINTERNAL;
 
-  class TargetInformationRetrieverPluginLOCAL: public TargetInformationRetrieverPlugin {
+  class TargetInformationRetrieverPluginINTERNAL: public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginLOCAL(PluginArgument* parg):
+    TargetInformationRetrieverPluginINTERNAL(PluginArgument* parg):
         TargetInformationRetrieverPlugin(parg) {
-        supportedInterfaces.push_back("org.nordugrid.local");
+        supportedInterfaces.push_back("org.nordugrid.internal");
     };
-    ~TargetInformationRetrieverPluginLOCAL() {};
+    ~TargetInformationRetrieverPluginINTERNAL() {};
 
-    static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginLOCAL(arg); };
+    static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginINTERNAL(arg); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
     virtual bool isEndpointNotSupported(const Endpoint&) const;
 
@@ -47,4 +47,4 @@ namespace ARexLOCAL {
 
 } // namespace Arc
 
-#endif // __ARC_TARGETINFORMATIONRETRIEVERLOCAL_H__
+#endif // __ARC_TARGETINFORMATIONRETRIEVERINTERNAL_H__
