@@ -30,19 +30,23 @@ except ImportError:
 
 # module-wise data structures to store parsed configs
 __parsed_config = {}
+__parsed_config_admin_defined = {}
 __parsed_blocks = []
 __default_config = {}
 __default_blocks = []
 
 # processing constants and regexes
 __def_path_arcconf = ARC_CONF
-__def_path_defaults = ARC_DATA_DIR + '/arc.defaults.conf'
+__def_path_defaults = ARC_DATA_DIR + '/arc.parser.defaults'
 __def_path_runconf = ARC_RUN_DIR + '/arc.running.conf'
 
-__no_default = 'not set'
+# defaults parsing constants
+__no_default = 'undefined'
 _var_re = re.compile(r'\$VAR\{(?:\[(?P<block>[^\[\]]+)\])?(?P<option>[^{}[\]]+)\}')
 _exec_re = re.compile(r'\$EXEC\{(?P<command>[^{}]+)\}')
 _eval_re = re.compile(r'\$EVAL\{(?P<evalstr>[^{}]+)\}')
+
+# regexes to parse arc.conf structure
 __arcconf_re = {
     'block': re.compile(r'^\s*\[(?P<block>[^:\[\]]+(?P<block_name>:[^\[\]]+)?)\]\s*$'),
     'skip': re.compile(r'^(?:#.*|\s*)$'),
@@ -59,6 +63,9 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     """General entry point for parsing arc.conf (with defaults substitutions if defined)"""
     # parse /etc/arc.conf first
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
+    # save parsed dictionary keys that holds original arc.conf values
+    for block, options_dict in __parsed_config.iteritems():
+        __parsed_config_admin_defined.update({block: options_dict.keys()})
     if defaults_f is not None:
         if os.path.exists(defaults_f):
             # parse defaults
@@ -187,6 +194,7 @@ def _merge_defults():
             block = block.split(':')[0].strip()
         for opt, val in __default_config[block].iteritems():
             if opt not in optdict:
+                # add option from default file
                 if val != __no_default:
                     optdict.update({opt: val})
 
@@ -197,28 +205,44 @@ def _evaluate_values():
     # NOTICE: Substitution runs ONLY ONCE in the DEFINED ORDER!
     #         More complex substitutions (e.g. EXEC depends on EVAL value) is not supported
     #         and not needed to achieve current arc.conf needs.
+    # NOTICE: Substitutions are evaluated ONLY FOR the values that comes from DEFAULTS!
     #
     # Evaluate substitutions: EXEC
     # e.g. $EXEC{hostname -f}
     for block, optdict in __parsed_config.iteritems():
         for opt, val in __parsed_config[block].iteritems():
-            subst, subval = _conf_substitute_exec(val)
-            if subst:
-                __parsed_config[block][opt] = subval
+            # skip if option is defined in the /etc/arc.conf
+            if opt in __parsed_config_admin_defined[block]:
+                continue
+            if '$EXEC' in val:
+                # try to substitute (match regex and proceed on match)
+                subst, subval = _conf_substitute_exec(val)
+                if subst:
+                    __parsed_config[block][opt] = subval
     # Evaluate substitutions: VAR
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block, optdict in __parsed_config.iteritems():
         for opt, val in __parsed_config[block].iteritems():
-            subst, subval = _conf_substitute_var(val, block)
-            if subst:
-                __parsed_config[block][opt] = subval
+            # skip if option is defined in the /etc/arc.conf
+            if opt in __parsed_config_admin_defined[block]:
+                continue
+            if '$VAR' in val:
+                # try to substitute (match regex and proceed on match)
+                subst, subval = _conf_substitute_var(val, block)
+                if subst:
+                    __parsed_config[block][opt] = subval
     # Evaluate substitutions: EVAL
     # e.g. $EVAL{$VAR{provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
     for block, optdict in __parsed_config.iteritems():
         for opt, val in __parsed_config[block].iteritems():
-            subst, subval = _conf_substitute_eval(val)
-            if subst:
-                __parsed_config[block][opt] = subval
+            # skip if option is defined in the /etc/arc.conf
+            if opt in __parsed_config_admin_defined[block]:
+                continue
+            if '$EVAL' in val:
+                # try to substitute (match regex and proceed on match)
+                subst, subval = _conf_substitute_eval(val)
+                if subst:
+                    __parsed_config[block][opt] = subval
 
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
