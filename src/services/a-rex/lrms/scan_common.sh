@@ -131,7 +131,7 @@ do_as_uid () {
                     $UID = $uid };
                 print STDERR "Cannot switch to uid($UID): $@\n" if $@;
             }
-            system("@posix_shell@","-c",@args);
+            system("'$POSIX_SHELL'","-c",@args);
             exit 0 if $? eq 0;
             exit ($?>>8||128+($?&127));
     '
