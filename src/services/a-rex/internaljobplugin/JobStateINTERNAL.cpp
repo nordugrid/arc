@@ -4,19 +4,19 @@
 
 #include <arc/StringConv.h>
 
-#include "JobStateLOCAL.h"
+#include "JobStateINTERNAL.h"
 
 
 
 /*
-Maps/translates a LOCAL state - which is a state corresponding to the ARexJob state, hence
+Maps/translates a INTERNAL state - which is a state corresponding to the ARexJob state, hence
 GM-job state, to an ARC:JobState 
 */
 
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
-  Arc::JobState::StateType JobStateLOCAL::StateMap(const std::string& state) {
+  Arc::JobState::StateType JobStateINTERNAL::StateMap(const std::string& state) {
     std::string state_ = Arc::lower(state);
 /*
    Infosys states (mapped from GM states):

@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_JOBCONTROLLERLOCAL_H__
-#define __ARC_JOBCONTROLLERLOCAL_H__
+#ifndef __ARC_JOBCONTROLLERINTERNAL_H__
+#define __ARC_JOBCONTROLLERINTERNAL_H__
 
 #include <arc/compute/JobControllerPlugin.h>
 
@@ -18,23 +18,23 @@ namespace ARex {
   class GMConfig;
 }
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
 
-  class LOCALClient;
-  class LOCALClients;
-  class JobStateLOCAL;
+  class INTERNALClient;
+  class INTERNALClients;
+  class JobStateINTERNAL;
 
-  class JobControllerPluginLOCAL : public Arc::JobControllerPlugin {
+  class JobControllerPluginINTERNAL : public Arc::JobControllerPlugin {
   public:
-  JobControllerPluginLOCAL(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) {
-      supportedInterfaces.push_back("org.nordugrid.local");
+  JobControllerPluginINTERNAL(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg),clients(usercfg) {
+      supportedInterfaces.push_back("org.nordugrid.internal");
     }
-    ~JobControllerPluginLOCAL() {}
+    ~JobControllerPluginINTERNAL() {}
 
     static Plugin* Instance(PluginArgument *arg) {
       JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
-      return jcarg ? new JobControllerPluginLOCAL(*jcarg, arg) : NULL;
+      return jcarg ? new JobControllerPluginINTERNAL(*jcarg, arg) : NULL;
     }
 
     virtual bool isEndpointNotSupported(const std::string& endpoint) const;
@@ -51,10 +51,10 @@ namespace ARexLOCAL {
 
 
   private:
-    LOCALClients clients;
+    INTERNALClients clients;
     static Logger logger;
   };
 
 } // namespace Arc
 
-#endif // __ARC_JOBCONTROLLERLOCAL_H__
+#endif // __ARC_JOBCONTROLLERINTERNAL_H__

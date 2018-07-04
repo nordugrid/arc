@@ -18,31 +18,31 @@
 #include <arc/compute/SubmissionStatus.h>
 #include <arc/message/MCC.h>
 
-//#include "JobStateLOCAL.h"
+//#include "JobStateINTERNAL.h"
 
-#include "SubmitterPluginLOCAL.h"
+#include "SubmitterPluginINTERNAL.h"
 
 
 
 using namespace Arc;
 
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
   
-  bool SubmitterPluginLOCAL::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginINTERNAL::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "file";
   }
   
 
-  bool SubmitterPluginLOCAL::getDelegationID(const URL& durl, std::string& delegation_id) {
+  bool SubmitterPluginINTERNAL::getDelegationID(const URL& durl, std::string& delegation_id) {
     if(!durl) {
       logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
       return false;
     }
     
-    LOCALClient ac(durl,*usercfg);
+    INTERNALClient ac(durl,*usercfg);
     
     if(!ac.CreateDelegation(delegation_id)) {
       logger.msg(INFO, "Failed to delegate credentials to server - %s",ac.failure());
@@ -54,7 +54,7 @@ namespace ARexLOCAL {
 
 
 
-  Arc::SubmissionStatus SubmitterPluginLOCAL::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted){
+  Arc::SubmissionStatus SubmitterPluginINTERNAL::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted){
  
 
     Arc::SubmissionStatus retval; 
@@ -65,7 +65,7 @@ namespace ARexLOCAL {
   }
 
 
-  Arc::SubmissionStatus SubmitterPluginLOCAL::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  Arc::SubmissionStatus SubmitterPluginINTERNAL::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     //jobdescs as passed down from the client
     // TODO: this is multi step process. So having retries would be nice.
     // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
@@ -77,7 +77,7 @@ namespace ARexLOCAL {
     /*Preparation of jobdescription*/
     Arc::SubmissionStatus retval;
     std::string delegation_id;
-    LOCALClient ac(url,*usercfg);
+    INTERNALClient ac(url,*usercfg);
 
     for (std::list<JobDescription>::const_iterator itJ = jobdescs.begin(); itJ != jobdescs.end(); ++itJ) {
 
@@ -89,7 +89,7 @@ namespace ARexLOCAL {
         retval |= Arc::SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
-      
+
       bool need_delegation = false;
       std::list<std::string> upload_sources;
       std::list<std::string> upload_destinations;
@@ -123,7 +123,7 @@ namespace ARexLOCAL {
           continue;
         }
       }
-      std::list<LOCALJob> localjobs;   
+      std::list<INTERNALJob> localjobs;   
       std::list<JobDescription> preparedjobdescs;
       preparedjobdescs.push_back(preparedjobdesc);
       if((!ac.submit(preparedjobdescs, localjobs, delegation_id)) || (localjobs.empty())) {
@@ -153,4 +153,4 @@ namespace ARexLOCAL {
 
 
 
-} // namespace ARexLOCAL
+} // namespace ARexINTERNAL

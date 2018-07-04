@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTERPLUGINLOCAL_H__
-#define __ARC_SUBMITTERPLUGINLOCAL_H__
+#ifndef __ARC_SUBMITTERPLUGININTERNAL_H__
+#define __ARC_SUBMITTERPLUGININTERNAL_H__
 
 #include <arc/compute/SubmitterPlugin.h>
 #include <arc/XMLNode.h>
@@ -10,26 +10,26 @@
 #include <arc/communication/ClientInterface.h>
 
 
-#include "LOCALClient.h"
+#include "INTERNALClient.h"
 
 using namespace Arc;
 
-namespace ARexLOCAL{
+namespace ARexINTERNAL{
 
-  //class JobStateLOCAL;
+  //class JobStateINTERNAL;
   class SubmissionStatus;
 
 
-  class SubmitterPluginLOCAL : public SubmitterPlugin {
+  class SubmitterPluginINTERNAL : public SubmitterPlugin {
   public:
-  SubmitterPluginLOCAL(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(usercfg) {
-      supportedInterfaces.push_back("org.nordugrid.local");
+  SubmitterPluginINTERNAL(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg),clients(usercfg) {
+      supportedInterfaces.push_back("org.nordugrid.internal");
     }
-    ~SubmitterPluginLOCAL() { /*deleteAllClients();*/ }
+    ~SubmitterPluginINTERNAL() { /*deleteAllClients();*/ }
 
     static Plugin* Instance(PluginArgument *arg) {
       SubmitterPluginArgument *subarg = dynamic_cast<SubmitterPluginArgument*>(arg);
-      return subarg ? new SubmitterPluginLOCAL(*subarg, arg) : NULL;
+      return subarg ? new SubmitterPluginINTERNAL(*subarg, arg) : NULL;
     }
 
     virtual bool isEndpointNotSupported(const std::string& endpoint) const;
@@ -38,11 +38,11 @@ namespace ARexLOCAL{
     virtual Arc::SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
 
   private:
-    LOCALClients clients;
+    INTERNALClients clients;
 
     bool getDelegationID(const URL& durl, std::string& delegation_id);
   };
 
-} // namespace ARexLOCAL
+} // namespace ARexINTERNAL
 
-#endif // __ARC_SUBMITTERPLUGINLOCAL_H__
+#endif // __ARC_SUBMITTERPLUGININTERNAL_H__

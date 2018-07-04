@@ -279,15 +279,15 @@ namespace ARex {
 
 
 
-  JobIDGeneratorLOCAL::JobIDGeneratorLOCAL(const std::string& endpoint):endpoint_(endpoint) {
+  JobIDGeneratorINTERNAL::JobIDGeneratorINTERNAL(const std::string& endpoint):endpoint_(endpoint) {
   }
   
-  void JobIDGeneratorLOCAL::SetLocalID(const std::string& id) {
+  void JobIDGeneratorINTERNAL::SetLocalID(const std::string& id) {
     id_ = id;
   }
 
-  Arc::XMLNode JobIDGeneratorLOCAL::GetGlobalID(Arc::XMLNode& pnode) {
-    //To-do make something more sensible for LOCAL plugin case
+  Arc::XMLNode JobIDGeneratorINTERNAL::GetGlobalID(Arc::XMLNode& pnode) {
+    //To-do make something more sensible for INTERNAL plugin case
     Arc::XMLNode node;
     if(!pnode) {
       Arc::NS ns;
@@ -301,16 +301,16 @@ namespace ARex {
     return node;
   }
   
-  std::string JobIDGeneratorLOCAL::GetGlobalID(void) {
+  std::string JobIDGeneratorINTERNAL::GetGlobalID(void) {
     return id_;
   }
   
-  std::string JobIDGeneratorLOCAL::GetManager(void) {
+  std::string JobIDGeneratorINTERNAL::GetManager(void) {
     return endpoint_;
   }
   
-  std::string JobIDGeneratorLOCAL::GetInterface(void) {
-    return "org.nordugrid.local";
+  std::string JobIDGeneratorINTERNAL::GetInterface(void) {
+    return "org.nordugrid.internal";
   }
 
 }

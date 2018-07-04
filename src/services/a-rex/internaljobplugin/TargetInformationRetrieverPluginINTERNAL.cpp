@@ -14,19 +14,19 @@
 #include <arc/compute/GLUE2.h>
 #include <arc/message/MCC.h>
 
-#include "JobStateLOCAL.h"
-#include "LOCALClient.h"
-#include "TargetInformationRetrieverPluginLOCAL.h"
+#include "JobStateINTERNAL.h"
+#include "INTERNALClient.h"
+#include "TargetInformationRetrieverPluginINTERNAL.h"
 
 using namespace Arc;
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
   //used when the --direct option is not issued with arcsub 
 
-  Logger TargetInformationRetrieverPluginLOCAL::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.LOCAL");
+  Logger TargetInformationRetrieverPluginINTERNAL::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.INTERNAL");
 
-  bool TargetInformationRetrieverPluginLOCAL::isEndpointNotSupported(const Endpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginINTERNAL::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -48,12 +48,12 @@ namespace ARexLOCAL {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLOCAL::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginINTERNAL::Query(const UserConfig& uc, const Endpoint& cie, std::list<ComputingServiceType>& csList, const EndpointQueryOptions<ComputingServiceType>&) const {
 
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
-    //To-decide: should LOCAL plugin information be visible in info.xml? It can not be used outside, so does not seem to make sense to have it added in info.xml
+    //To-decide: should INTERNAL plugin information be visible in info.xml? It can not be used outside, so does not seem to make sense to have it added in info.xml
     URL url(CreateURL(cie.URLString));
     if (!url) {
       return s;
@@ -61,7 +61,7 @@ namespace ARexLOCAL {
 
 
     //To get hold of general service information
-    LOCALClient ac(url, uc);
+    INTERNALClient ac(url, uc);
     XMLNode servicesQueryResponse;
     if (!ac.sstat(servicesQueryResponse)) {
       return s;
@@ -76,11 +76,11 @@ namespace ARexLOCAL {
       csList.front()->InformationOriginEndpoint = cie;
 
 
-      //Add the LOCAL computingendpointtype
+      //Add the INTERNAL computingendpointtype
       ComputingEndpointType newCe;
       newCe->ID = url.Host();
       newCe->URLString = url.str();
-      newCe->InterfaceName = "org.nordugrid.local";
+      newCe->InterfaceName = "org.nordugrid.internal";
       newCe->HealthState = "ok";
       newCe->QualityLevel = "testing";//testing for now, production when in production
       newCe->Technology = "direct";

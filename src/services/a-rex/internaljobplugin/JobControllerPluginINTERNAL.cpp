@@ -24,28 +24,28 @@
 #include "../grid-manager/files/ControlFileHandling.h"
 
 
-#include "JobStateLOCAL.h"
-#include "LOCALClient.h"
+#include "JobStateINTERNAL.h"
+#include "INTERNALClient.h"
 
-#include "JobControllerPluginLOCAL.h"
+#include "JobControllerPluginINTERNAL.h"
 
 
 using namespace Arc;
 
 
-namespace ARexLOCAL {
+namespace ARexINTERNAL {
 
-  Logger JobControllerPluginLOCAL::logger(Logger::getRootLogger(), "JobControllerPlugin.LOCAL");
+  Logger JobControllerPluginINTERNAL::logger(Logger::getRootLogger(), "JobControllerPlugin.INTERNAL");
 
-  bool JobControllerPluginLOCAL::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginINTERNAL::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "file" ;
   }
 
-  void JobControllerPluginLOCAL::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginINTERNAL::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     if (jobs.empty()) return;
     
-    LOCALClient ac;
+    INTERNALClient ac;
     ARex::GMConfig *config;
     if(!ac.SetAndLoadConfig(config)){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -70,7 +70,7 @@ namespace ARexLOCAL {
 
 
       //the job exists, so add it
-      LOCALJob localjob;
+      INTERNALJob localjob;
       //toJob calls info(job) and populates the arcjob with basic information (id and state). 
       localjob.toJob(&ac,**itJ,logger);
 
@@ -84,9 +84,9 @@ namespace ARexLOCAL {
   }
   
 
-  bool JobControllerPluginLOCAL::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginINTERNAL::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
-    LOCALClient ac(*usercfg);
+    INTERNALClient ac(*usercfg);
     ARex::GMConfig *config;
     if(!ac.SetAndLoadConfig(config)){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -108,12 +108,12 @@ namespace ARexLOCAL {
     return ok;
   }
 
-  bool JobControllerPluginLOCAL::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginINTERNAL::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       
-      LOCALClient ac(*usercfg);
+      INTERNALClient ac(*usercfg);
       ARex::GMConfig *config;
       if(!ac.SetAndLoadConfig(config)){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -126,21 +126,21 @@ namespace ARexLOCAL {
         continue;
       }
 
-      (*it)->State = JobStateLOCAL((std::string)"killed");
+      (*it)->State = JobStateINTERNAL((std::string)"killed");
       IDsProcessed.push_back((*it)->JobID);
     }
 
     return ok;
   }
 
-  bool JobControllerPluginLOCAL::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginINTERNAL::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       // 1. Fetch/find delegation ids for each job
 
-      LOCALClient ac;
+      INTERNALClient ac;
       ARex::GMConfig *config;
       if(!ac.SetAndLoadConfig(config)){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -175,13 +175,13 @@ namespace ARexLOCAL {
     return false;
   }
 
-  bool JobControllerPluginLOCAL::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginINTERNAL::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
 
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
     
-      LOCALClient ac;
+      INTERNALClient ac;
       ARex::GMConfig *config;
       if(!ac.SetAndLoadConfig(config)){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -211,14 +211,14 @@ namespace ARexLOCAL {
   }
 
 
-  bool JobControllerPluginLOCAL::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginINTERNAL::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     
     if (resource == Job::JOBDESCRIPTION) {
       return false;
     }
 
     // Obtain information about staging urls
-    LOCALJob ljob;
+    INTERNALJob ljob;
     ljob = job;
     URL stagein;
     URL stageout;
@@ -243,7 +243,7 @@ namespace ARexLOCAL {
      
       Job tjob;
       tjob.JobID = job.JobID;
-      LOCALClient ac;
+      INTERNALClient ac;
       ARex::GMConfig *config;
       if(!ac.SetAndLoadConfig(config)){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
@@ -264,7 +264,7 @@ namespace ARexLOCAL {
         if(*s) { session = *s; break; }
       }
       // Choose url by state
-      // TODO: For LOCAL submission plugin the url is the same for all, although not reflected here
+      // TODO: For INTERNAL submission plugin the url is the same for all, although not reflected here
       // TODO: maybe this method should somehow know what is purpose of URL
       // TODO: state attributes would be more suitable
       // TODO: library need to be etended to allow for multiple URLs
@@ -314,7 +314,7 @@ namespace ARexLOCAL {
       break;
     }
     if(url && ((url.Protocol() == "file"))) {
-      //To-do - is this relevant for LOCAL plugin?
+      //To-do - is this relevant for INTERNAL plugin?
       url.AddOption("threads=2",false);
       url.AddOption("encryption=optional",false);
       // url.AddOption("httpputpartial=yes",false); - TODO: use for A-REX
@@ -323,8 +323,8 @@ namespace ARexLOCAL {
     return true;
   }
 
-  bool JobControllerPluginLOCAL::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
-    logger.msg(INFO, "Retrieving job description of LOCAL jobs is not supported");
+  bool JobControllerPluginINTERNAL::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
+    logger.msg(INFO, "Retrieving job description of INTERNAL jobs is not supported");
     return false;
   }
 
