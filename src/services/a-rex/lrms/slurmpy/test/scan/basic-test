@@ -2,8 +2,8 @@ TESTS="basic"
 
 function test_basic() {
 read -r -d '' arc_test_configuration <<EOF
-[common]
-slurm_bin_path="$(pwd)/bin"
+[lrms]
+slurm_bin_path=$(pwd)/bin
 EOF
 
 read -r -d '' test_jobs <<'EOF'

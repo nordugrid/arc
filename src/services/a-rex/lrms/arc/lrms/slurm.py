@@ -24,10 +24,10 @@ def set_slurm(cfg):
     :param cfg: parsed arc.conf
     :type cfg: :py:class:`ConfigParser.ConfigParser`
     """
-    Config.slurm_bin_path = str(cfg.get('common', 'slurm_bin_path')).strip('"') if \
-        cfg.has_option('common', 'slurm_bin_path') else '/usr/bin'
-    Config.slurm_wakeupperiod = int(cfg.get('common', 'slurm_wakeupperiod').strip('"')) if \
-        cfg.has_option('common', 'slurm_wakeupperiod') else 30
+    Config.slurm_bin_path = str(cfg.get('lrms', 'slurm_bin_path')).strip('"') if \
+        cfg.has_option('lrms', 'slurm_bin_path') else '/usr/bin'
+    Config.slurm_wakeupperiod = int(cfg.get('lrms', 'slurm_wakeupperiod').strip('"')) if \
+        cfg.has_option('lrms', 'slurm_wakeupperiod') else 30
 
             
 #---------------------

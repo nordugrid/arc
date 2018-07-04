@@ -7,7 +7,7 @@ EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
 [arex]
-scratchdir="/local/scratch"
+scratchdir=/local/scratch
 shared_filesystem=no
 EOF
 
@@ -58,7 +58,7 @@ EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
 [arex]
-scratchdir="/local/scratch"
+scratchdir=/local/scratch
 shared_filesystem=no
 EOF
 
@@ -133,14 +133,13 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
 +++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -7,7 +7,7 @@
+@@ -7,6 +7,6 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
 -#SBATCH -n 1
 +#SBATCH -n 8
  #SBATCH 
- #SBATCH --mem-per-cpu=1000
  
 @@ -23,22 +23,14 @@
  # Setting environment variables as specified by user
