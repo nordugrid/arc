@@ -5,6 +5,8 @@
 # packaging-dependent paths
 pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
 pkgdatadir="${ARC_LOCATION:-@prefix@}/@pkgdatasubdir@"
+# posix shell
+POSIX_SHELL="@posix_shell@"
 
 # arc.conf location
 if [ -z "$ARC_CONFIG" ]; then 
