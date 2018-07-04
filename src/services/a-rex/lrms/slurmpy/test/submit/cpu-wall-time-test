@@ -9,13 +9,12 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,8 @@
+@@ -8,5 +8,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
 +#SBATCH -t 1:0
 +#SBATCH -t 1:0
- #SBATCH --mem-per-cpu=1000
  
  # Overide umask of execution node (sometime values are really strange)
 EOF
@@ -31,12 +30,11 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,7 @@
+@@ -8,5 +8,6 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
 +#SBATCH -t 1:0
- #SBATCH --mem-per-cpu=1000
  
  # Overide umask of execution node (sometime values are really strange)
 EOF
@@ -53,13 +51,12 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,8 @@
+@@ -8,5 +8,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
 +#SBATCH -t 1:0
 +#SBATCH -t 5:0
- #SBATCH --mem-per-cpu=1000
  
  # Overide umask of execution node (sometime values are really strange)
 EOF
@@ -76,7 +73,7 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -7,8 +7,9 @@
+@@ -7,7 +7,8 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
@@ -84,7 +81,6 @@ read -r -d '' job_script_patch <<'EOF'
 +#SBATCH -n 6
  #SBATCH 
 +#SBATCH -t 7:0
- #SBATCH --mem-per-cpu=1000
  
  # Overide umask of execution node (sometime values are really strange)
 @@ -123,7 +124,7 @@
@@ -110,7 +106,7 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -7,8 +7,10 @@
+@@ -7,7 +7,9 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
@@ -119,7 +115,6 @@ read -r -d '' job_script_patch <<'EOF'
  #SBATCH 
 +#SBATCH -t 1:10
 +#SBATCH -t 1:10
- #SBATCH --mem-per-cpu=1000
  
  # Overide umask of execution node (sometime values are really strange)
 @@ -123,7 +125,7 @@

@@ -89,7 +89,7 @@ def set_req_mem(jd):
        if (jd.Resources.QueueName in Config.queue
            and hasattr(Config.queue[jd.Resources.QueueName], 'defaultmemory')):
             defaultmemory = Config.queue[jd.Resources.QueueName].defaultmemory
-       elif Config.defaultmemory <= 0:
+       if defaultmemory == 0 and Config.defaultmemory >= 0:
             defaultmemory = Config.defaultmemory
 
        debug('-'*69, 'common.submit')
