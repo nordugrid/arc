@@ -22,13 +22,15 @@ debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
+debian/tmp/usr/lib/arc/arcconfig-reference
 debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/config.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/utils/reference.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Accounting.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ControlCommon.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/ControlPaths.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Jobs.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSPackage.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSService.py*

@@ -1026,16 +1026,18 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/DataStagingDelivery
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
+%{_libexecdir}/%{pkgdir}/arcconfig-reference
 %dir %{python2_sitearch}/%{pkgdir}
 %{python2_sitearch}/%{pkgdir}/__init__.py*
+%{python2_sitearch}/%{pkgdir}/paths.py*
 %dir %{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/utils/__init__.py*
 %{python2_sitearch}/%{pkgdir}/utils/config.py*
+%{python2_sitearch}/%{pkgdir}/utils/reference.py*
 %dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/__init__.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/ControlPaths.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
 %{python2_sitearch}/%{pkgdir}/control/OSService.py*

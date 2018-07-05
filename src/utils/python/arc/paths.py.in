@@ -7,3 +7,6 @@ if 'ARC_LOCATION' in os.environ:
 
 ARC_LIBEXEC_DIR = ARC_LOCATION + '/@pkglibexecsubdir@'
 ARC_DATA_DIR = ARC_LOCATION + '/@pkgdatasubdir@'
+ARC_LIB_DIR = ARC_LOCATION + '/@pkglibsubdir@'
+ARC_RUN_DIR = '@localstatedir@/run/arc'.replace('${prefix}', '@prefix@')
+ARC_CONF = '@sysconfdir@/arc.conf'.replace('${prefix}', '@prefix@')
