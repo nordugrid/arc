@@ -1044,6 +1044,7 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
 %{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %dir %{_datadir}/%{pkgdir}
+%{_datadir}/%{pkgdir}/arc.parser.defaults
 %dir %{_datadir}/%{pkgdir}/examples
 %{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
