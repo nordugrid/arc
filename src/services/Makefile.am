@@ -51,4 +51,3 @@ DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
 	candypond \
 	data-staging wrappers examples acix
 
-dist_pkgdata_DATA = arc.defaults.conf

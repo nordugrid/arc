@@ -37,7 +37,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSService.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/RunTimeEnvironment.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Services.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ThirdPartyDeployment.py*
-debian/tmp/usr/share/arc/arc.defaults.conf
 debian/tmp/usr/share/arc/examples/arc.conf.reference
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo

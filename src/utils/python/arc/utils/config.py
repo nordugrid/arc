@@ -42,9 +42,9 @@ __def_path_runconf = ARC_RUN_DIR + '/arc.running.conf'
 
 # defaults parsing constants
 __no_default = 'undefined'
-_var_re = re.compile(r'\$VAR\{(?:\[(?P<block>[^\[\]]+)\])?(?P<option>[^{}[\]]+)\}')
-_exec_re = re.compile(r'\$EXEC\{(?P<command>[^{}]+)\}')
-_eval_re = re.compile(r'\$EVAL\{(?P<evalstr>[^{}]+)\}')
+__var_re = re.compile(r'\$VAR\{(?:\[(?P<block>[^\[\]]+)\])?(?P<option>[^{}[\]]+)\}')
+__exec_re = re.compile(r'\$EXEC\{(?P<command>[^{}]+)\}')
+__eval_re = re.compile(r'\$EVAL\{(?P<evalstr>[^{}]+)\}')
 
 # regexes to parse arc.conf structure
 __arcconf_re = {
@@ -125,7 +125,7 @@ def arcconf_defpath():
 def _conf_substitute_exec(optstr):
     """Search for $EXEC{} values in parsed config structure and returns substituted command output"""
     subst = False
-    execr = _exec_re.finditer(optstr)
+    execr = __exec_re.finditer(optstr)
     for ev in execr:
         try:
             exec_sp = subprocess.Popen(ev.groupdict()['command'].split(' '), stdout=subprocess.PIPE)
@@ -143,7 +143,7 @@ def _conf_substitute_exec(optstr):
 def _conf_substitute_var(optstr, current_block):
     """Search for $VAR{} values in parsed config structure and returns substituted variable value"""
     subst = False
-    valr = _var_re.finditer(optstr)
+    valr = __var_re.finditer(optstr)
     for v in valr:
         refvar = v.groupdict()['option']
         block = v.groupdict()['block']
@@ -173,7 +173,7 @@ def _conf_substitute_var(optstr, current_block):
 def _conf_substitute_eval(optstr):
     """Search for $EVAL{} values in parsed config structure and returns substituted evaluation value"""
     subst = False
-    evalr = _eval_re.finditer(optstr)
+    evalr = __eval_re.finditer(optstr)
     for ev in evalr:
         try:
             value = str(eval(ev.groupdict()['evalstr']))
@@ -209,7 +209,7 @@ def _evaluate_values():
     #
     # Evaluate substitutions: EXEC
     # e.g. $EXEC{hostname -f}
-    for block, optdict in __parsed_config.iteritems():
+    for block in __parsed_blocks:
         for opt, val in __parsed_config[block].iteritems():
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
@@ -221,7 +221,7 @@ def _evaluate_values():
                     __parsed_config[block][opt] = subval
     # Evaluate substitutions: VAR
     # e.g. $VAR{[common]globus_tcp_port_range}
-    for block, optdict in __parsed_config.iteritems():
+    for block in __parsed_blocks:
         for opt, val in __parsed_config[block].iteritems():
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
@@ -233,7 +233,7 @@ def _evaluate_values():
                     __parsed_config[block][opt] = subval
     # Evaluate substitutions: EVAL
     # e.g. $EVAL{$VAR{provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
-    for block, optdict in __parsed_config.iteritems():
+    for block in __parsed_blocks:
         for opt, val in __parsed_config[block].iteritems():
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
