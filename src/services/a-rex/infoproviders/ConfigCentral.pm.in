@@ -793,7 +793,7 @@ sub build_config_from_json {
     ############################ legacy ini config file structure #############################
 
 
-    my $cluster = $jsonconf->{'cluster'};
+    my $cluster = $jsonconf->{'infosys/cluster'};
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
         rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};

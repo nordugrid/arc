@@ -638,7 +638,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("arex", "cluster", "lrms");
+	my @required=("arex", "infosys", "lrms");
 
 	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
@@ -682,8 +682,8 @@ sub check_completeness() {
 	if (exists($config->{common}{hostname})) {
 		$hn_conf = $config->{common}{hostname};
 	}
-	elsif (exists($config->{cluster}{hostname})) {
-		$hn_conf = $config->{cluster}{hostname};
+	elsif (exists($config->{'infosys/cluster'}{hostname})) {
+		$hn_conf = $config->{'infosys/cluster'}{hostname};
 	}
 	if ($hn_conf) {
 		if ($hn_conf ne "$hn") {

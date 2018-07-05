@@ -723,7 +723,7 @@ sub collect($) {
                 $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => ''};
             }
         } else {
-       # create as many shares as the authorizedvo in the [cluster] block
+       # create as many shares as the authorizedvo in the [infosys/cluster] block
        # iff authorizedvo not defined in queue block
 			if (defined $config->{service}{AuthorizedVO}) { 
 				my ($clusterauthvos) = $config->{service}{AuthorizedVO};
