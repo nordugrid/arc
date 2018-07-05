@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 
 import argparse
+import sys
 from arc.utils import config
 from arc.utils import reference
 
@@ -14,7 +15,22 @@ ref_action.add_argument('--extract-defaults', action='store_true', help='dump de
 ref_action.add_argument('--include-defaults', action='store_true', help='include default values to arc.conf.reference')
 cmd_args = parser.parse_args()
 
+defaults_header = """\
+########################################################################
+##
+## ARC PARSER DEFAULTS defines the default values for arc.conf options.
+##
+## WARNING: this file will not work as a configuration template!
+## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
+## DO NOT MODIFY THIS FILE!
+##
+## Customizations are usually done in /etc/arc.conf
+##
+########################################################################
+"""
+
 if cmd_args.extract_defaults:
+    sys.stdout.write(defaults_header)
     reference.process_reference(cmd_args.reference, print_defaults=True)
 elif cmd_args.include_defaults:
     reference.process_reference(cmd_args.reference)
