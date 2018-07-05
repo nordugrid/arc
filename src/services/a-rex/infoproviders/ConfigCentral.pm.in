@@ -126,7 +126,6 @@ my $lrms_options = {
     pbs_bin_path => '*',
     pbs_log_path => '*',
     dedicated_node_string => '*',
-    maui_bin_path => '*',
     condor_bin_path => '*',
     condor_config => '*',
     condor_rank => '*',

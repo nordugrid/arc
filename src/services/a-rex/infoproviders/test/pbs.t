@@ -107,7 +107,6 @@ ENDF
 ENDSIMULATOROUTPUT
 
   my $cfg = {
-	           maui_bin_path => "<TESTDIR>/bin",
                pbs_bin_path => "<TESTDIR>/bin",
                pbs_log_path => "<TESTDIR>/bin",
                dedicated_node_string => '', # NB: it's set in order to avoid perl warnings 

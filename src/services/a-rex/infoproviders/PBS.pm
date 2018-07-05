@@ -392,12 +392,6 @@ sub cluster_info ($) {
     $lrms_cluster{lrms_glue_type}=lc($lrms_type);
     $lrms_cluster{lrms_version} = $lrms_version;
 
-    if ( $lrms_type eq "torque" and
-    exists $$config{scheduling_policy} and
-    lc($$config{scheduling_policy}) eq "maui") {
-        $lrms_cluster{lrms_glue_type}="torquemaui";
-    }
-
     # PBS treats cputime limit for parallel/multi-cpu jobs as job-total
     $lrms_cluster{has_total_cputime_limit} = 1;
 
@@ -797,29 +791,6 @@ sub jobs_info ($$@) {
     my ($rank) = 0;
     my %job_owner;
 
-    # better rank for maui
-    my %showqrank;
-    if (exists $$config{scheduling_policy} and
-	lc($$config{scheduling_policy}) eq "maui") {
-	my $showq = (defined $$config{maui_bin_path}) ? $$config{maui_bin_path}."/showq" : "showq";
-	unless (open SHOWQOUTPUT, " $showq |"){
-	    error("error in executing $showq ");
-	}
-	my $idle=-1;
-	while(my $line=<SHOWQOUTPUT>) {
-	    if($line=~/^IDLE.+/) {
-		$idle=0;
-		$line=<SHOWQOUTPUT>;$line=<SHOWQOUTPUT>;
-	    }
-	    next if $idle == -1;
-	    if ($line=~/^(\d+).+/) {
-		$idle++;
-		$showqrank{$1}=$idle;	
-	    } 
-	}
-	close SHOWQOUTPUT;
-    }
-
     my $handle_attr = sub {
 	my ($jid, $k, $v) = @_;
 
@@ -1080,36 +1051,6 @@ sub users_info($$@) {
     }
 
     foreach my $u ( @{$accts} ) {
-	if (exists $$config{scheduling_policy} and
-	    lc($$config{scheduling_policy}) eq "maui") {
-	    my $maui_freecpus;
-	    my $showbf = (defined $$config{maui_bin_path}) ? $$config{maui_bin_path}."/showbf" : "showbf";
-	    if (exists $$config{dedicated_node_string}) {
-	    	$showbf.=" -f ".$$config{dedicated_node_string};
-	    }
-	    unless (open SHOWBFOUTPUT, " $showbf -u $u |"){
-		error("error in executing $showbf -u $u ");
-	    }
-	    while (my $line= <SHOWBFOUTPUT>) {				    
-		if ($line =~ /^partition/) {  				    
-		    last;
-		}
-		if ($line =~ /no procs available/) {
-		    $maui_freecpus= " 0";
-		    last;
-		}
-		if ($line =~ /(\d+).+available for\s+([\w:]+)/) {
-		    $maui_freecpus .= " ".$1.":".&count_time($2);
-		}
-		if ($line =~ /(\d+).+available with no timelimit/) {  	    
-		    $maui_freecpus.= " ".$1;
-		    last; 
-		}
-	    }
-	    $lrms_users{$u}{freecpus} = $maui_freecpus;
-	    $lrms_users{$u}{queuelength} = $user_jobs_queued{$u} || 0;
-	}
-	else {
 	    $user_jobs_running{$u} = 0 unless $user_jobs_running{$u};
 	    if ($lrms_queue{maxuserrun} and ($lrms_queue{maxuserrun} - $user_jobs_running{$u}) < $lrms_queue{status} ) {
 		$lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
@@ -1124,7 +1065,6 @@ sub users_info($$@) {
 	    if ($lrms_queue{maxcputime} and $lrms_users{$u}{freecpus} > 0) {
 		$lrms_users{$u}{freecpus} .= ':'.$lrms_queue{maxcputime};
 	    }
-	}
     }
     return %lrms_users;
 }

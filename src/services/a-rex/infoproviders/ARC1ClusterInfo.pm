@@ -3163,7 +3163,6 @@ sub collect($) {
         my $schedpolicy = $lrms_info->{schedpolicy} || undef;
         if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
             $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
-            $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
         }
         $csha->{SchedulingPolicy} = $schedpolicy if $schedpolicy;
 
