@@ -10,10 +10,6 @@ debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
 debian/tmp/usr/lib/arc/ssmsend
 
-debian/tmp/usr/share/arc/DGAuthplug.py*
-debian/tmp/usr/share/arc/DGBridgeDataPlugin.py*
-debian/tmp/usr/share/arc/DGLog2XML.py*
-
 debian/tmp/usr/share/arc/cancel-*-job
 debian/tmp/usr/share/arc/scan-*-job
 debian/tmp/usr/share/arc/submit-*-job
@@ -34,7 +30,6 @@ debian/tmp/usr/share/arc/PBS.pm
 debian/tmp/usr/share/arc/Condor.pm
 debian/tmp/usr/share/arc/SLURMmod.pm
 debian/tmp/usr/share/arc/SLURM.pm
-debian/tmp/usr/share/arc/DGBridge.pm
 debian/tmp/usr/share/arc/Boinc.pm
 
 debian/tmp/usr/share/arc/XmlPrinter.pm

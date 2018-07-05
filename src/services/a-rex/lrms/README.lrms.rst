@@ -34,12 +34,6 @@ lrms=condor::
   $CONFIG_condor_bin_path		[lrms]
   $CONFIG_condor_config			[lrms]
 
-lrms=dgbridge::
-
-  $CONFIG_dgbridge_stage_dir		[lrms]
-  $CONFIG_dgbridge_stage_prepend	[lrms]
-  $CONFIG_scan_wakeupperiod		* not in reference [default: 30]
-
 lrms=fork::
 
   no variables
@@ -304,7 +298,6 @@ The ARC6 logic is *no enforcement = no limit* [1]_
 Backends behaviour with no memory enforcement limit:
   * boinc - set to hardcoded 2GB
   * condor - no enforcement
-  * dgbridge - no memory handling at all
   * form - no memory handling at all
   * ll - no enforcement
   * lsf - no enforcement

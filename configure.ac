@@ -2429,10 +2429,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
-                 src/services/a-rex/lrms/dgbridge/Makefile
-                 src/services/a-rex/lrms/dgbridge/submit-DGBridge-job
-                 src/services/a-rex/lrms/dgbridge/scan-DGBridge-job
-                 src/services/a-rex/lrms/dgbridge/cancel-DGBridge-job
                  src/services/a-rex/lrms/boinc/Makefile
                  src/services/a-rex/lrms/boinc/submit-boinc-job
                  src/services/a-rex/lrms/boinc/scan-boinc-job

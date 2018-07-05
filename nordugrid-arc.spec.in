@@ -1195,9 +1195,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
-%{_datadir}/%{pkgdir}/DGAuthplug.py*
-%{_datadir}/%{pkgdir}/DGBridgeDataPlugin.py*
-%{_datadir}/%{pkgdir}/DGLog2XML.py*
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
 %{_datadir}/%{pkgdir}/CEinfo.pl
@@ -1212,7 +1209,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/Condor.pm
 %{_datadir}/%{pkgdir}/SLURMmod.pm
 %{_datadir}/%{pkgdir}/SLURM.pm
-%{_datadir}/%{pkgdir}/DGBridge.pm
 %{_datadir}/%{pkgdir}/Boinc.pm
 %{_datadir}/%{pkgdir}/XmlPrinter.pm
 %{_datadir}/%{pkgdir}/InfosysHelper.pm
