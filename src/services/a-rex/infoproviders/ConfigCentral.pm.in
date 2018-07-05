@@ -72,7 +72,7 @@ my $confdefaults = {
    },
    'infosys/ldap' => {
       port => '2135',
-      infosys_ldap_run_dir => '/var/run/arc/infosys/'
+      infosys_ldap_run_dir => '/var/run/arc/infosys/',
 	  # TODO: check InfosysHelper code. Eventually move things here.
 
 	  # TODO: remove values unused by providers.       
@@ -233,7 +233,7 @@ my $ldap_infosys_options = {
     infosys_ldap_run_dir => '*',
     infosys_glue2_ldap_showactivities => '*',
     infosys_glue2_service_qualitylevel => '*',
-    validity_ttl => '*'
+    validity_ttl => '*',
     # These values have been checked to be used by infoproviders.
     bdii_run_dir => '*',
     bdii_log_dir => '*',
