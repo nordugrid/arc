@@ -140,18 +140,18 @@ sub waitForProvider {
     sub findInfosys {
         return @$cache if defined $cache;
         my ($config) = @_;
-        my ($bdii_run_dir) = $config->{bdii}{bdii_run_dir};
+        my ($bdii_run_dir) = $config->{infosys}{ldap}{bdii_run_dir};
         # remove trailing slashes
         $bdii_run_dir =~ s|/\z||;
         $log->debug("BDII run dir set to: $bdii_run_dir");
         
         # TODO: remove this legacy BDII4 location from here and from grid-infosys
-        my ($bdii_var_dir) = $config->{bdii}{bdii_var_dir};
+        my ($bdii_var_dir) = $config->{infosys}{ldap}{bdii_var_dir};
         # remove trailing slashes
         $bdii_var_dir =~ s|/\z||;
         $log->debug("BDII var dir set to: $bdii_var_dir");
         
-        my ($bdii_update_pid_file) = $config->{bdii}{bdii_update_pid_file};
+        my ($bdii_update_pid_file) = $config->{infosys}{ldap}{bdii_update_pid_file};
         $log->debug("BDII pid guessed location: $bdii_update_pid_file. Will search for it later");
         
         my ($infosys_uid, $infosys_gid);

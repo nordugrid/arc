@@ -73,38 +73,35 @@ my $confdefaults = {
    'infosys/ldap' => {
       port => '2135',
       infosys_ldap_run_dir => '/var/run/arc/infosys/'
-   },
-   'infosys/ldap/bdii' => {
+	  # TODO: check InfosysHelper code. Eventually move things here.
 
-	   # TODO: check InfosysHelper code. Eventually move things here.
-
-	   # TODO: remove values unused by providers.       
-       ## not used in infoproviders: 
-       # bdii_debug_level => 'ERROR',
-       # provider_timeout => '10800',
-       # bdii_location => '/usr',
-       # bdii_conf => '/var/run/arc/infosys/bdii.conf',
-       # bdii_update_cmd => '/usr/sbin/bdii-update',
-       # bdii_db_config => '/etc/bdii/DB_CONFIG',
-       # bdii_archive_size => 0,
-       # bdii_breathe_time => '10',
-       # bdii_delete_delay => 0,
+	  # TODO: remove values unused by providers.       
+      ## not used in infoproviders: 
+      # bdii_debug_level => 'ERROR',
+      # provider_timeout => '10800',
+      # bdii_location => '/usr',
+      # bdii_conf => '/var/run/arc/infosys/bdii.conf',
+      # bdii_update_cmd => '/usr/sbin/bdii-update',
+      # bdii_db_config => '/etc/bdii/DB_CONFIG',
+      # bdii_archive_size => 0,
+      # bdii_breathe_time => '10',
+      # bdii_delete_delay => 0,
        
-       # used in InfosysHelper, these depend on BDII, but we have some
-       # control on them:
-       bdii_run_dir => '/var/run/arc/bdii',
-       bdii_log_dir => '/var/log/arc/bdii',
-       bdii_tmp_dir => '/var/tmp/arc/bdii',
-       bdii_var_dir => '/var/lib/arc/bdii',
-       # this one depends on bdii_run_dir
-       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
+      # used in InfosysHelper, these depend on BDII, but we have some
+      # control on them:
+      bdii_run_dir => '/var/run/arc/bdii',
+      bdii_log_dir => '/var/log/arc/bdii',
+      bdii_tmp_dir => '/var/tmp/arc/bdii',
+      bdii_var_dir => '/var/lib/arc/bdii',
+      # this one depends on bdii_run_dir
+      bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
        
-       ## TODO: fix this elsewere, the value should be set according to the formula below
-       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
-       ## startup scripts is called max_cycle
-       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-       ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
-       #bdii_read_timeout=300
+      ## TODO: fix this elsewere, the value should be set according to the formula below
+      ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
+      ## startup scripts is called max_cycle
+      ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
+      ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+      #bdii_read_timeout=300
    },
    'infosys/glue2' => {
        admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
@@ -230,8 +227,13 @@ my $sshcommon_options = {
     private_key => '*',
 };
 
-# C 147
-my $bdii_options = {
+# C 141
+my $ldap_infosys_options = {
+    port => '*',
+    infosys_ldap_run_dir => '*',
+    infosys_glue2_ldap_showactivities => '*',
+    infosys_glue2_service_qualitylevel => '*',
+    validity_ttl => '*'
     # These values have been checked to be used by infoproviders.
     bdii_run_dir => '*',
     bdii_log_dir => '*',
@@ -244,15 +246,6 @@ my $bdii_options = {
     ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
     ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
     #bdii_read_timeout=300
-};
-
-# C 141
-my $ldap_infosys_options = {
-    port => '*',
-    infosys_ldap_run_dir => '*',
-    infosys_glue2_ldap_showactivities => '*',
-    infosys_glue2_service_qualitylevel => '*',
-    validity_ttl => '*'
 };
 
 # C 125-130 renaming these properly direcly in the gridftpd block
@@ -393,7 +386,6 @@ my $config_schema = {
 		user => '*',
 		ldap => { # C141
             %$ldap_infosys_options, # C 141
-            bdii => { %$bdii_options } # C 147 
         },
 		glue1 => {}, # C 161
 	    glue2 => { # C 156
@@ -753,14 +745,8 @@ sub build_config_from_json {
     # LDAP config
     if (defined $jsonconf->{'infosys/ldap'}) {
 		$config->{infosys}{ldap} ||= {};
-        # bdii is required by LDAP
-        $config->{infosys}{ldap}{bdii} ||= {};
 		my $ldapconf = $jsonconf->{'infosys/ldap'};
 	    move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$ldap_infosys_options];
-	    
-	    # BDII config
-        my $bdiiconf = $jsonconf->{'infosys/ldap/bdii'};
-	    move_keys $bdiiconf, $config->{infosys}{ldap}{bdii}, [keys %$bdii_options];
     } else {
 	    $log->verbose("[infosys/ldap] block not found in arc.conf Disabling LDAP/LDIF information generation.")	
 	}
@@ -1069,15 +1055,7 @@ sub set_defaults {
 		    $config->{'infosys/ldap'} ||= {};
 		}
 	}
-    
-    # force BDII defaults if LDAP configured    
-    if (defined $config->{'infosys/ldap'}) {
-        $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
-        $config->{'infosys/ldap/bdii'} ||= {};
-    }
-    
     ## end of default blocks creation
-       
        
     for (keys %$confdefaults) {
 		if (defined $config->{$_}) {

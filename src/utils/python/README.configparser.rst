@@ -221,7 +221,6 @@ List block subblocks::
   # arcconfig-parser --block infosys --subblocks
   infosys
   infosys/ldap
-  infosys/ldap/bdii
   infosys/nordugrid
   infosys/glue2
   infosys/glue2/ldap
