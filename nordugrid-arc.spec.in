@@ -1423,7 +1423,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_sbindir}/nordugridmap
 %config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
-%doc src/utils/gridmap/nordugridmap.conf
 %doc %{_mandir}/man8/nordugridmap.8*
 
 %files misc-utils

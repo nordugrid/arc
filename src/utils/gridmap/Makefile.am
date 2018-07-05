@@ -10,5 +10,3 @@ install-exec-local:
 	$(INSTALL_DATA) nordugridmap.cron $(DESTDIR)$(cronddir)/nordugridmap
 uninstall-local:
 	rm -f $(DESTDIR)$(cronddir)/nordugridmap
-
-EXTRA_DIST = nordugridmap.conf

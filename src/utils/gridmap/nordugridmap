@@ -98,7 +98,7 @@ while (my $line =<CONFIGFILE>) {
         if ( $blockname =~ /^(common$|nordugridmap$|userlist)/ ) {
             $parseoptions = 1;
             $parsedconfig{$blockname}{'configline'} = $lineindex;
-            if ($blockname =~ /^userlist:([^\[\]]+)$/ ) {
+            if ($blockname =~ /^userlist:\s*([^\[\]]+)$/ ) {
                 $parsedconfig{$blockname}{'name'} = $1
             } elsif ($blockname =~ /^userlist$/ ) {
                 &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist:NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
@@ -111,12 +111,23 @@ while (my $line =<CONFIGFILE>) {
     # skip parsing for not relevant blocks
     next unless $parseoptions;
     
-    # get variable = value OR variable = "value"
-    next unless ( $line =~/^(\w+)\s*=\s*(.*)\s*$/ );
-    my $variable_name=$1;
-    my $variable_value=$2;
+    # parse name/values
+    my $variable_name;
+    my $variable_value;
+
+    if ( $line =~/^(\w+)\s*=\s*(.*)\s*$/ ) {
+        $variable_name=$1;
+        $variable_value=$2;
+    } else {
+        if ($line =~ /^mapped_unixid$/ ) {
+            $variable_name="mapped_unixid";
+            $variable_value="";
+        } else {
+            next;
+        }
+    }
     
-    # trim optional double quotes (still the case for mapped_unixid="")
+    # trim optional double quotes (still valid case for mapped_unixid="")
     $variable_value =~ s/^"(.*)"$/$1/;
     
     if ( $blockname =~/^userlist:/ ) {
@@ -166,10 +177,9 @@ my $x509key         = $parsedconfig{'nordugridmap'}{'x509_host_key'} ||
                       $ENV{X509_HOST_KEY} || $ENV{X509_USER_KEY} ||
                       "/etc/grid-security/hostkey.pem";
 my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
-                      $parsedconfig{'common'}{'gridmap'} ||
+                      $parsedconfig{'mapping'}{'gridmap'} ||
                       "/etc/grid-security/grid-mapfile";
 my $mapfile_owner   = $parsedconfig{'nordugridmap'}{'gridmap_owner'} ||
-                      $parsedconfig{'grid-manager'}{'user'} ||
                       "root";
 my $mapfile_group   = $parsedconfig{'nordugridmap'}{'gridmap_group'} ||
                       "root";
@@ -178,7 +188,7 @@ my $mapfile_chmod   = $parsedconfig{'nordugridmap'}{'gridmap_permissions'} ||
 my $logfile         = $parsedconfig{'nordugridmap'}{'logfile'} ||
                       "/var/log/arc/nordugridmap.log";
 my $cachedir        = $parsedconfig{'nordugridmap'}{'cachedir'} ||
-                      "/var/spool/nordugrid/gridmapcache/";
+                      "/var/spool/arc/gridmapcache/";
 my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
                       3 * 24 * 60 * 60; # three days old
 
@@ -380,9 +390,9 @@ sub process_userlist_blocks {
             unless ( $undefined_cnt ) {
                 unless ( $dryrun ) {
                     # get [userlist] block parameters
-                    my $mapped_user = "";
+                    my $mapped_user = "nobody";
 
-                    if ( $parsedconfig{$block}{'mapped_unixid'} ) {
+                    if ( exists $parsedconfig{$block}{'mapped_unixid'} ) {
                         $mapped_user = $parsedconfig{$block}{'mapped_unixid'};
                     }
 
