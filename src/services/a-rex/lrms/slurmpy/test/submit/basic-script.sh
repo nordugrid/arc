@@ -9,7 +9,6 @@
 #SBATCH --get-user-env=10L
 #SBATCH -n 1
 #SBATCH 
-#SBATCH --mem-per-cpu=1000
 
 # Overide umask of execution node (sometime values are really strange)
 umask 077

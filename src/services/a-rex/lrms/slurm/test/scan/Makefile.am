@@ -2,13 +2,14 @@ TESTS = basic-test
 
 TESTS_ENVIRONMENT = \
 	PYTHONPATH=$(abs_top_srcdir)/src/utils/python/ \
+	ARC_LOCATION=$(abs_builddir) \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_scan_script.sh scan-SLURM-job
 
 SCRIPTSNEEDED = check_scan_script.sh \
 	scan-SLURM-job configure-SLURM-env.sh \
-	scan_common.sh arcconfig-parser \
-	command-simulator.sh gm-kick
+	lrms_common.sh scan_common.sh $(pkglibexecsubdir)/arcconfig-parser \
+	command-simulator.sh $(pkglibexecsubdir)/gm-kick
 
 check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
 
@@ -22,19 +23,26 @@ scan-SLURM-job: $(builddir)/../../scan-SLURM-job
 	chmod +x $@
 
 configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
-	cp $< $@
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
 
 scan_common.sh: $(builddir)/../../../scan_common.sh
+	mkdir -p $(pkgdatasubdir)
+	cp $< $(pkgdatasubdir)/.
+
+lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
 
-arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
-	cp $< $@
+$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
+	mkdir -p $(pkglibexecsubdir)
+	cp $< $(pkglibexecsubdir)/.
 
 command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
 	cp $< $@
 	chmod +x $@
 
-gm-kick: $(srcdir)/../../../test/test-gm-kick.sh
+$(pkglibexecsubdir)/gm-kick: $(srcdir)/../../../test/test-gm-kick.sh
+	mkdir -p $(pkglibexecsubdir)
 	cp $< $@
 	chmod +x $@
 

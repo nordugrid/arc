@@ -1,4 +1,3 @@
-#@IgnoreInspection BashAddShebang
 ######################################################
 #Common functions for submit scripts
 ######################################################
@@ -8,131 +7,11 @@
 # grid manager. Its purpose is to prepare the runtime environments,
 # which is almost the same procedure invariant of the backend
 # used.
-#
-# To test the functionality of this script, you may source
-# this script from the bourne command shell, i.e. 
-# 
-#	. /opt/nordugrid/libexec/submit_common.sh
-# 
-# and it should give no error. Then call the methods defined in
-# this script directly. Also, you can test the parse_arg_file
-# by executing
-#
-#	/opt/nordugrid/libexec/submit_common.sh <args>
-#
-# directly. More tests still require to be added.
 
-sourcewithargs ()
-{
-script=$1
-shift
-. $script
-}
-
-init () {
-
-   parse_arg_file $1
-
-   if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
-   if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
-   if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
-
-   # May use joboption_queue (set by parse_arg_file)
-   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh
-
-   # Where runtime scripts can be found on computing nodes (empty if does not exist)
-   RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
-   export RUNTIME_CONFIG_DIR
-   # Description of (cross-)mounted disc space on cluster
-   RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
-   RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
-   RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
-   
-   #default is NFS
-   if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-     RUNTIME_NODE_SEES_FRONTEND=yes
-   fi
-   # locally empty means no
-   if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-     RUNTIME_NODE_SEES_FRONTEND=
-   fi
-
-   # Only CPU time specified in job limits, rough limit for wall time
-   walltime_ratio='1'
-   # Use specified CPU time as soft limit, allow to run a bit longer before hard limit
-   time_hardlimit_ratio='1/1'
-   # Use specified memory requirement as soft limit, allow a bit more before hard limit
-   memory_hardlimit_ratio='1/1'
-   # Where to store temporary files on gatekeeper
-   TMPDIR=${TMPDIR:-@tmp_dir@}
-   # Where GNU time utility is located on computing nodes (empty if does not exist)
-   GNU_TIME=${CONFIG_gnu_time:-@gnu_time@}
-   # Command to get name of executing node
-   NODENAME=${CONFIG_nodename:-"@nodename@"}
-} 
-
-read_arc_conf () {
-   ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-
-   blocks="-b cluster -b common"
-   # Also read queue section
-   if [ ! -z "$joboption_queue" ]; then
-      blocks="-b queue:$joboption_queue $blocks"
-   fi
-
-   eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
-}
-
-
-usage="usage: `basename $0` (<arguments file>|-h|--help)"
-
-parse_arg_file () {
-   arg_file=$1
-   if [ -z "$arg_file" ] ; then
-      echo "Arguments file should be specified" 1>&2
-      echo "$usage" 1>&2
-      exit 1
-   fi
-   if [ "--help" = "$1" -o "-h" = "$1" ]; then
-      echo "$usage" 1>&2
-      cat <<EOHELP 1>&2
-
-This script should not be executed directly but it is
-called from the grid manager.
-EOHELP
-      exit 1
-   fi
-   if [ ! -f $arg_file ] ; then
-      echo "No such arguments file at '$arg_file'" 1>&2
-      echo "$usage" 1>&2
-      exit 1
-   fi
-   . $arg_file
-
-   if [ -z "$joboption_controldir" ] ; then
-     joboption_controldir=`dirname "$arg_file"`
-     if [ "$joboption_controldir" = '.' ] ; then
-        joboption_controldir="$PWD"
-     fi
-   fi
-   if [ -z "$joboption_gridid" ] ; then
-     joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
-   fi
-
-   ##############################################################
-   # combine arguments to command -  easier to use
-   ##############################################################
-   i=0
-   joboption_args=
-   eval "var_is_set=\${joboption_arg_$i+yes}"
-   while [ ! -z "${var_is_set}" ] ; do
-      eval "var_value=\${joboption_arg_$i}"
-      # Use -- to avoid echo eating arguments it understands
-      var_value=`echo -- "$var_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
-      joboption_args="$joboption_args \"${var_value}\""
-      i=$(( $i + 1 ))
-      eval "var_is_set=\${joboption_arg_$i+yes}"
-   done
+sourcewithargs () {
+  script=$1
+  shift
+  . $script
 }
 
 #
@@ -140,6 +19,38 @@ EOHELP
 #
 is_number () {
     /usr/bin/perl -e 'exit 1 if $ARGV[0] !~ m/^\d+$/' "$1"
+}
+
+#
+# Initial parsing and environemtn setub for submission scripts
+# THIS FUNCTION USES FUNCTIONS DEFINED IN LRMS_common.sh
+#
+common_init () {
+    # parse grami file
+    parse_grami_file $GRAMI_FILE
+    # parse configuration
+    parse_arc_conf
+    # read pbs-specific environment
+    . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+    # init common LRMS environmental variables
+    init_lrms_env
+}
+
+# defines failures_file
+define_failures_file () {
+    failures_file="$joboption_controldir/job.$joboption_gridid.failed"
+}
+
+
+# checks any scratch is defined (shared or local)
+check_any_scratch () {
+    if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+        if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
+            echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
+            echo "Submission: Configuration error.">>"$failures_file"
+            exit 1
+        fi
+    fi
 }
 
 #
@@ -156,20 +67,10 @@ set_req_mem () {
 
             echo "         A default memory limit taken from 'defaultmemory' in        " 1>&2
             echo "         arc.conf will apply.                                        " 1>&2
-            echo "         Limit is: $CONFIG_defaultmemory mb.                         " 1>&2
-        elif is_number "$CONFIG_nodememory"; then
-            joboption_memory=$CONFIG_nodememory
-
-            echo "         A default memory limit taken from 'nodememory' in arc.conf  " 1>&2
-            echo "         will apply. You may want to set 'defaultmemory' to something" 1>&2
-            echo "         else in arc.conf to better handle jobs with no memory       " 1>&2
-            echo "         specified.                                                  " 1>&2
-            echo "         Limit is: $CONFIG_nodememory mb.                            " 1>&2
+            echo "         Limit is: $CONFIG_defaultmemory MB.                         " 1>&2
         else
-            joboption_memory=1000
-
-            echo "         nodememory is not specified in arc.conf. A default      " 1>&2
-            echo "         memory limit of 1GB will apply.                             " 1>&2
+            echo "         No 'defaultmemory' enforcement in in arc.conf.              " 1>&2
+            echo "         JOB WILL BE PASSED TO BATCH SYSTEM WITHOUT MEMORY LIMIT !!! " 1>&2
         fi
         echo "---------------------------------------------------------------------" 1>&2
     fi
@@ -403,11 +304,6 @@ RTE_stage1 () {
 
 RTE_stage2 () {
     RTE_jobscript_call 2
-}
-
-#TODO: rename to RTE_stage2 in all LRMS backends
-configure_runtime () {
-    RTE_stage2
 }
 
 ##############################################################
@@ -645,6 +541,3 @@ RESULT=\$?
 EOSCR
 }
 
-if [ "submit_common.sh" = `basename $0` ]; then
-  parse_arg_file $*
-fi

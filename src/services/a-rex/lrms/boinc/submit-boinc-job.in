@@ -5,28 +5,31 @@
 #  This script creates a temporary job script and runs it
 DEBUG=0
 echo "----- starting submit_boinc_job -----" 1>&2
-joboption_lrms=boinc
+joboption_lrms="boinc"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-init $1
 joboption_directory_orig=$joboption_directory
 joboption_directory='`pwd`'
 joboption_stdout='`pwd`/'`basename $joboption_stdout`
 joboption_stderr='`pwd`/'`basename $joboption_stderr`
-
-read_arc_conf
 
 # make sure session is world-writable
 chmod 777 $joboption_directory_orig
@@ -142,7 +145,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 
 ##############################################################

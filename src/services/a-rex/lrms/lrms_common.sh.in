@@ -1,0 +1,133 @@
+#
+# Common LRMS functions
+# 
+
+# packaging-dependent paths
+pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
+pkgdatadir="${ARC_LOCATION:-@prefix@}/@pkgdatasubdir@"
+# posix shell
+POSIX_SHELL="@posix_shell@"
+
+# arc.conf location
+if [ -z "$ARC_CONFIG" ]; then 
+  prefix="@prefix@"
+  ARC_CONFIG="@sysconfdir@/arc.conf"
+  unset prefix
+fi
+
+# sanity checks (should be set always)
+if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
+if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
+
+parse_arc_conf () {
+  # [lrms] block for most of configuration
+  # [arex] block needed for directories setup
+  # [common] used for performance logging only
+  blocks="-b lrms -b arex -b common"
+
+  # [queue] section is relevant to fetch per-queue memory limits
+  if [ -n "$joboption_queue" ]; then
+    blocks="-b queue:$joboption_queue $blocks"
+  fi
+
+  # run config-parser
+  eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
+}
+
+
+parse_grami_file () {
+   arg_file=$1
+   # some lagacy sanity checks (TODO: consider to remove)
+   usage="usage: `basename $0` (<arguments file>|-h|--help)"
+   if [ -z "$arg_file" ] ; then
+      echo "Arguments file should be specified" 1>&2
+      echo "$usage" 1>&2
+      exit 1
+   fi
+   if [ "--help" = "$1" -o "-h" = "$1" ]; then
+      echo "$usage" 1>&2
+      cat <<EOHELP 1>&2
+
+This script should not be executed directly but it is
+called from the A-REX.
+EOHELP
+      exit 1
+   fi
+   # check grami file exists
+   if [ ! -f $arg_file ] ; then
+      echo "No such arguments file at '$arg_file'" 1>&2
+      echo "$usage" 1>&2
+      exit 1
+   fi
+   # source grami files 
+   . $arg_file
+
+   # exit if enough to source
+   [ -n "$no_grami_extra_processing" ] && return 0
+   # or do extra post-processing of grami file content (needed for submit)
+   if [ -z "$joboption_controldir" ] ; then
+     joboption_controldir=`dirname "$arg_file"`
+     if [ "$joboption_controldir" = '.' ] ; then
+        joboption_controldir="$PWD"
+     fi
+   fi
+   if [ -z "$joboption_gridid" ] ; then
+     joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+   fi
+   # combine arguments to command -  easier to use
+   arg_i=0
+   joboption_args=
+   eval "var_is_set=\${joboption_arg_$arg_i+yes}"
+   while [ ! -z "${var_is_set}" ] ; do
+      eval "var_value=\${joboption_arg_$arg_i}"
+      # Use -- to avoid echo eating arguments it understands
+      var_value=`echo -- "$var_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+      joboption_args="$joboption_args \"${var_value}\""
+      arg_i=$(( $arg_i + 1 ))
+      eval "var_is_set=\${joboption_arg_$arg_i+yes}"
+   done
+   unset arg_file usage arg_i var_is_set var_value
+}
+
+init_lrms_env () {
+   # User runtime scripts location (now relevant for unit tests only)
+   RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
+   export RUNTIME_CONFIG_DIR
+   # Description of (cross-)mounted disc space on cluster
+   RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
+   RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
+   RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
+
+   #default is NFS
+   if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+     RUNTIME_NODE_SEES_FRONTEND=yes
+   fi
+   # locally empty means no
+   if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
+     RUNTIME_NODE_SEES_FRONTEND=
+   fi
+
+   # Only CPU time specified in job limits, rough limit for wall time
+   walltime_ratio='1'
+   # Use specified CPU time as soft limit, allow to run a bit longer before hard limit
+   time_hardlimit_ratio='1/1'
+   # Use specified memory requirement as soft limit, allow a bit more before hard limit
+   memory_hardlimit_ratio='1/1'
+   # Where to store temporary files
+   TMPDIR=${TMPDIR:-@tmp_dir@}
+   # Where GNU time utility is located on computing nodes (empty if does not exist)
+   GNU_TIME=${CONFIG_gnu_time:-@gnu_time@}
+   # Command to get name of executing node
+   NODENAME=${CONFIG_nodename:-"@nodename@"}
+}
+
+# performance logging: if perflogdir or perflogfile is set, logging is turned on. So only set them when enable_perflog_reporting is "expert-debug-on".
+init_perflog () {
+   unset perflogdir
+   unset perflogfile
+   if [ "$CONFIG_enable_perflog_reporting" == "expert-debug-on" ]; then
+      perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
+      perflogfile="${perflogdir}/backends.perflog"
+      perflogfilesub="${perflogdir}/submission.perflog"
+   fi
+}

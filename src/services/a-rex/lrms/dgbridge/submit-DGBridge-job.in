@@ -9,38 +9,37 @@
 #opposed to other backends there is no jobscript
 
 echo "----- starting submit_DGBridge_job -----" 1>&2
-joboption_lrms=DGBridge
+joboption_lrms="DGBridge"
 
 # ARC1 passes the config file first.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/submit_common.sh || exit $?
-
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-#output the grami file
-init $1
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 #extract staging info:
 bdir=$dgbridge_stage_dir
 bweb=$dgbridge_stage_prepend
 
-failures_file="$joboption_controldir/job.$joboption_gridid.failed"
 
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
-    echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-    echo "Submission: Configuration error.">>"$failures_file"
-    exit 1
-  fi
-fi
+# define path to wrote failures
+define_failures_file
+
+# check remote or local scratch is configured
+check_any_scratch
 
 ##############################################################
 # Zero stage of runtime environments
