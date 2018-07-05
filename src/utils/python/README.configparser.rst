@@ -135,7 +135,7 @@ Common configuration parsing sequence
      arcconf -> parser [label="1. parse, get defined blocks"]
      defconf -> parser [label="2. add defaults for defined blocks"]
 
-     runconfig [ label="running configuration", shape=oval, color=red ]
+     runconfig [ label="runtime configuration", shape=oval, color=red ]
      parser -> runconfig [ label="3. evaluate substitutions" ]
 
      json [label="export JSON"]
