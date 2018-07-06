@@ -204,8 +204,8 @@ deploy_staging_el6:
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Test-submit through local plugin '
     - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello.xrls
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.internal /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.internal /arc/arc-testing/hello_inputfile.xrls
     - arcstat --all --long
     #arcinfo sometimes fails, dont know why
     #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
@@ -261,8 +261,8 @@ deploy_staging_el7:
     #- /etc/rc.d/init.d/gridftpd start
     - echo 'Test-submit through local plugin '
     - arcproxy -C /etc/.globus/usercert.pem -K /etc/.globus/userkey_nopass.pem
-    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello.xrls
-    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.local /arc/arc-testing/hello_inputfile.xrls
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.internal /arc/arc-testing/hello.xrls
+    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.internal /arc/arc-testing/hello_inputfile.xrls
     - arcstat --all --long
     # arcinfo sometimes fails, not sure why
     #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
