@@ -161,7 +161,7 @@ if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
     gluesiteweb=${CONFIG_glue_site_web}
     gluesiteuniqueid=${CONFIG_glue_site_unique_id}
 
-    if [ -z "$(${arcconfig_parser}  --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site -s)" ]; then
+    if ${arcconfig_parser}  --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii ; then
 	provide_glue_site_info="true"
     else
 	provide_glue_site_info="false"
@@ -354,20 +354,22 @@ chmod +x ${ldif_generator_file}
 
 # Site BDII
 
-for site_bdii in $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site -s); do
-    (
-	eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b ${site_bdii} -e bash)
-	unique_id=${CONFIG_unique_id:-${CONFIG___block_name}}
-	site_config="${bdii_tmp_dir}/${CONFIG___block_name}.conf"
-	site_provider="$bdii_provider_dir/site_${CONFIG___block_name}.sh"
+if [ "x$provide_glue_site_info" == "xtrue" ]; then
+	eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii -e bash)
+	unique_id=${CONFIG_unique_id}
 	url=${CONFIG_url}
+    if [ -z "$unique_id" -o -z "$url" ]; then
+        echo "Mandaroty options 'unique_id' and 'url' should be configured for Site-BDII."
+        exit 1
+    fi
+	site_config="${bdii_tmp_dir}/${unique_id}.conf"
+	site_provider="$bdii_provider_dir/site_${unique_id}.sh"
 	echo "$unique_id $url" > "$site_config"
 	# Create script and make glite provider use arc directories
 	cat <<-EOF > $site_provider
 		#!/bin/sh
 		export GLITE_LOCATION_VAR=${bdii_tmp_dir}
-		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$CONFIG___block_name" -c $site_config
+		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$unique_id" -c $site_config
 		EOF
 	chmod +x $site_provider
-    )
-done
+fi

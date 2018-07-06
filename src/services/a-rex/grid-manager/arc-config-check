@@ -144,7 +144,6 @@ my %introducedSections = (
 	"arex/jura/sgas" => [],
 	"arex/jura/apel" => [],
 	"queue" => [],
-	"infosys/glue1/site" => [],
 );
 
 print STDERR "The following sections have configurable subgroups: "

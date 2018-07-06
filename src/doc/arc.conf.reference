@@ -2491,8 +2491,7 @@
 #glue_site_unique_id=NDGF-T1
 
 ## provide_glue_site_info yes/no - This variable decides if the GlueSite should be published.
-## CHANGE163: DELETED.  disabled if one or more [infosys/glue1/site:name]
-##                      blocks exist, otherwise enabled.
+## CHANGE163: DELETED.  enabled if [infosys/glue1/site-bdii] block exists, otherwise disabled.
 ##
 ##
 ### end of the [infosys/glue1] schema block ###########################
