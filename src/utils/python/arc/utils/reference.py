@@ -37,7 +37,7 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
             if header:
                 if print_reference:
                     sys.stdout.write(confline)
-                if confline.startswith('#config_option_name=56'):
+                if confline.startswith('#example_config_option=56'):
                     header = False
                 continue
             # block name

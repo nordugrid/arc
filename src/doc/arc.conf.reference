@@ -3316,7 +3316,6 @@
 
 ## sizelimit = number - sizelimit affects registration to egiis
 ## The value is reported back by the index server as Mds-Service-Ldap-sizelimit
-#sizelimit=10
 ## CHANGE212: DELETED
 
 ## *targetgiis = name - the name of the index service to which the registration to be sent. 
