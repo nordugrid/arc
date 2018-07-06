@@ -1187,7 +1187,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/smtp-send
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/inputcheck
-%{_libexecdir}/%{pkgdir}/arc-vomsac-check
 %{_libexecdir}/%{pkgdir}/arc-config-check
 %{_libexecdir}/%{pkgdir}/arc-blahp-logger
 %{_datadir}/%{pkgdir}/cancel-*-job
@@ -1242,7 +1241,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
 %doc %{_mandir}/man8/gm-jobs.8*
-%doc %{_mandir}/man8/arc-vomsac-check.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
