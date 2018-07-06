@@ -5,33 +5,34 @@
 #  This script creates a temporary job script and runs it.
 
 echo "----- starting submit_fork_job -----" 1>&2
-joboption_lrms=fork
+joboption_lrms="fork"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-init $1
-
-read_arc_conf
-
+# always local
 RUNTIME_NODE_SEES_FRONTEND=yes
 
 ##############################################################
 # Zero stage of runtime environments
 ##############################################################
 RTE_stage0
-
 
 ##############################################################
 # create job script
@@ -50,9 +51,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 # non-parallel jobs
 ##############################################################
-
 set_count
-
 
 ##############################################################
 # Execution times (obtained in seconds)
@@ -98,7 +97,6 @@ if [ -z "${joboption_arg_0}" ] ; then
   exit 1
 fi
 
-
 setup_runtime_env
 
 ##############################################################
@@ -116,9 +114,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
-
 echo "" >> $LRMS_JOB_SCRIPT
-
 echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
@@ -146,14 +142,13 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 move_files_to_frontend
-
 
 #######################################
 # watcher process

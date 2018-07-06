@@ -1234,6 +1234,7 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/configure-*-env.sh
 %{_datadir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/scan_common.sh
+%{_datadir}/%{pkgdir}/lrms_common.sh
 %{_datadir}/%{pkgdir}/perferator
 %doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*

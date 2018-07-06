@@ -24,10 +24,10 @@ def set_slurm(cfg):
     :param cfg: parsed arc.conf
     :type cfg: :py:class:`ConfigParser.ConfigParser`
     """
-    Config.slurm_bin_path = str(cfg.get('common', 'slurm_bin_path')).strip('"') if \
-        cfg.has_option('common', 'slurm_bin_path') else '/usr/bin'
-    Config.slurm_wakeupperiod = int(cfg.get('common', 'slurm_wakeupperiod').strip('"')) if \
-        cfg.has_option('common', 'slurm_wakeupperiod') else 30
+    Config.slurm_bin_path = str(cfg.get('lrms', 'slurm_bin_path')).strip('"') if \
+        cfg.has_option('lrms', 'slurm_bin_path') else '/usr/bin'
+    Config.slurm_wakeupperiod = int(cfg.get('lrms', 'slurm_wakeupperiod').strip('"')) if \
+        cfg.has_option('lrms', 'slurm_wakeupperiod') else 30
 
             
 #---------------------
@@ -849,8 +849,7 @@ fi
         # (SelectType=select/cons_res). Also see --mem. --mem and
         # --mem-per-cpu are mutually exclusive.
         ### \mapattr --mem-per-cpu <- IndividualPhysicalMemory
-        memPerCPU = j.Resources.IndividualPhysicalMemory.max if \
-            j.Resources.IndividualPhysicalMemory.max > 0 else 1000
-        product += "#SBATCH --mem-per-cpu=" + str(memPerCPU) + "\n";
+        if j.Resources.IndividualPhysicalMemory.max > 0:
+            product += "#SBATCH --mem-per-cpu=" + str(j.Resources.IndividualPhysicalMemory.max) + "\n";
         
         return product

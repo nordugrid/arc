@@ -11,8 +11,8 @@ output=""
 EOF
 
 read -r -d '' general_arc_test_configuration <<EOF
-[common]
-slurm_bin_path="@PWD@/bin"
+[lrms]
+slurm_bin_path=@PWD@/bin
 EOF
 
 function test_job_name_basic()
@@ -34,7 +34,7 @@ read -r -d '' expected_lrms_job_script <<'EOF'
 #SBATCH --get-user-env=10L
 #SBATCH -n 1
 #SBATCH 
-#SBATCH --mem-per-cpu=1000
+
 EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100

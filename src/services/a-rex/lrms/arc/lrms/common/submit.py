@@ -85,33 +85,23 @@ def set_req_mem(jd):
    """
 
    if jd.Resources.IndividualPhysicalMemory.max <= 0:
-       nodememory = 0
-       if Config.defaultmemory <= 0:
-           if (jd.Resources.QueueName in Config.queue
-               and hasattr(Config.queue[jd.Resources.QueueName], 'nodememory')):
-                nodememory = Config.queue[jd.Resources.QueueName].nodememory
-           elif Config.nodememory > 0:
-                nodememory = Config.nodememory
+       defaultmemory = 0
+       if (jd.Resources.QueueName in Config.queue
+           and hasattr(Config.queue[jd.Resources.QueueName], 'defaultmemory')):
+            defaultmemory = Config.queue[jd.Resources.QueueName].defaultmemory
+       if defaultmemory == 0 and Config.defaultmemory >= 0:
+            defaultmemory = Config.defaultmemory
 
        debug('-'*69, 'common.submit')
        debug('WARNING: The job description contains no explicit memory requirement.', 'common.submit')
-       if Config.defaultmemory > 0:
-           jd.Resources.IndividualPhysicalMemory.max = Config.defaultmemory
+       if defaultmemory > 0:
+           jd.Resources.IndividualPhysicalMemory.max = defaultmemory
            debug('         A default memory limit taken from \'defaultmemory\' in', 'common.submit')
            debug('         arc.conf will apply.', 'common.submit')
-           debug('         Limit is: %s mb.' % (Config.defaultmemory), 'common.submit')
-       elif nodememory > 0:
-           jd.Resources.IndividualPhysicalMemory.max = nodememory
-           debug('         A default memory limit taken from \'nodememory\' in', 'common.submit')
-           debug('         arc.conf will apply.', 'common.submit')
-           debug('         You may want to set \'defaultmemory\' to something', 'common.submit')
-           debug('         else in arc.conf to better handle jobs with no memory', 'common.submit')
-           debug('         specified.', 'common.submit')
-           debug('         Limit is: %s mb.' % (nodememory), 'common.submit')
+           debug('         Limit is: %s mb.' % (defaultmemory), 'common.submit')
        else:
-           jd.Resources.IndividualPhysicalMemory.max = 1000
-           debug('         nodememory is not specified in arc.conf. A default', 'common.submit')
-           debug('         memory limit of 1GB will apply.', 'common.submit')
+           debug('         No \'defaultmemory\' enforcement in in arc.conf.', 'common.submit')
+           debug('         JOB WILL BE PASSED TO BATCH SYSTEM WITHOUT MEMORY LIMIT !!!', 'common.submit')
        debug('-'*69, 'common.submit')
 
 

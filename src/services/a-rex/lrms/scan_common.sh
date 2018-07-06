@@ -4,9 +4,18 @@ progname=$(basename "$0")
 
 #
 # scan-*-jobs has STDOUT redirected to /dev/null and STDERR redirected to
-# job.helper..errors
+# helperlog
 #
 log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
+
+common_init () {
+   # parse configuration
+   parse_arc_conf
+   # read pbs-specific environment
+   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+   # set common LRMS environmental variables
+   init_lrms_env
+}
 
 perflog_common () {
    perflog_dname=$1
@@ -122,7 +131,7 @@ do_as_uid () {
                     $UID = $uid };
                 print STDERR "Cannot switch to uid($UID): $@\n" if $@;
             }
-            system("@posix_shell@","-c",@args);
+            system("'$POSIX_SHELL'","-c",@args);
             exit 0 if $? eq 0;
             exit ($?>>8||128+($?&127));
     '

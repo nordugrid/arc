@@ -3,17 +3,55 @@
 # Helper script to flag done LoadLeveler jobs.
 # The script is called periodically by the arex.
 #
-
 # This function retrieve the jobs status and id in one shot
 # look for jobs which have a known status but are not completed (!=C)
-# and save the localid of these jobe in the string variable $outLocalIdsString
+# and save the localid of these jobs in the string variable
+# $outLocalIdsString.
+# 
 # The input variable is a string list of localid to check.
-# Example of usage
+# 
+# Example of usage:
 # get_bunch_jobs_status "$inLocalIdsString"
 
 outLocalIdsString=""
-get_bunch_jobs_status() {
 
+# ARC1 passes the config file first.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+# Does the control directory exist?
+control_dir="$1"
+test -d "$control_dir" || exit 1
+
+joboption_lrms="ll"
+
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
+
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${pkglibexecdir}/gm-kick
+
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
+my_id=`id -u`
+
+get_bunch_jobs_status() {
   #get the string list of jobs
   loop=`$LL_BIN_PATH/llq -r %st %id $1`
   if [ $? -eq 0 ]; then
@@ -27,41 +65,6 @@ get_bunch_jobs_status() {
     done
   fi
 }
-
-##################
-
-# ARC1 passes the config file first.
-if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
-
-basedir=`dirname $0`
-basedir=`cd $basedir > /dev/null && pwd` || exit $?
-
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-# Assume that gm-kick is installed in the same directory
-GMKICK=${pkglibexecdir}/gm-kick
-
-# Does the control directory exist?
-control_dir="$1"
-test -d "$control_dir" || exit 1
-
-# Get LoadLeveler environment
-. "${pkgdatadir}/configure-ll-env.sh" || exit $?
-
-. "${pkgdatadir}/scan_common.sh" || exit $?
-
-
-# Log system performance
-if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
-fi
-
-if [ ! -z "$perflogdir" ]; then
-   start_ts=`date +%s.%N`
-fi
-
-my_id=`id -u`
 
 # mergedlist: array where each element is made of
 # key:value, where key is the arc jobid and value is the 

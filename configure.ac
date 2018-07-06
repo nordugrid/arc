@@ -2189,8 +2189,6 @@ AM_CONDITIONAL([HED_ENABLED],[test "x$enables_hed" = "xyes"])
 
 # A-Rex specific hack for backend scripts
 
-pbs_bin_path=/usr/bin
-pbs_log_path=/var/spool/pbs/server_logs
 tmp_dir=/tmp
 gnu_time=/usr/bin/time
 
@@ -2205,8 +2203,6 @@ esac
 arc_location=$prefix
 
 AC_SUBST(arc_location)
-AC_SUBST(pbs_bin_path)
-AC_SUBST(pbs_log_path)
 AC_SUBST(tmp_dir)
 AC_SUBST(gnu_time)
 AC_SUBST(nodename)
@@ -2398,12 +2394,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
-                 src/services/a-rex/lrms/test/check_scan_script.sh
                  src/services/a-rex/lrms/arc/Makefile
                  src/services/a-rex/lrms/arc/lrms/Makefile
                  src/services/a-rex/lrms/arc/lrms/common/Makefile
-                 src/services/a-rex/lrms/submit_common.sh
-                 src/services/a-rex/lrms/scan_common.sh
+                 src/services/a-rex/lrms/lrms_common.sh
                  src/services/a-rex/lrms/condor/Makefile
                  src/services/a-rex/lrms/condor/scan-condor-job
                  src/services/a-rex/lrms/condor/cancel-condor-job
@@ -2424,7 +2418,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job
                  src/services/a-rex/lrms/pbs/scan-pbs-job
-                 src/services/a-rex/lrms/pbs/configure-pbs-env.sh
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job

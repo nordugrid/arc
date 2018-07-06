@@ -159,16 +159,16 @@ def set_cluster(cfg):
     """
 
     global Config
-    Config.gm_port = int(cfg.get('cluster', 'gm_port').strip('"')) \
-        if cfg.has_option('cluster', 'gm_port') else 2811
-    Config.gm_mount_point = cfg.get('cluster', 'gm_mount_point').strip('"') \
-        if cfg.has_option('cluster', 'gm_mount_point') else '/jobs'
-    Config.defaultmemory = int(cfg.get('cluster', 'defaultmemory').strip('"')) \
-        if cfg.has_option('cluster', 'defaultmemory') else 0
-    Config.nodememory = int(cfg.get('cluster', 'nodememory').strip('"')) \
-        if cfg.has_option('cluster', 'nodememory') else 0
-    Config.hostname = str(cfg.get('cluster', 'hostname')).strip('"') \
-        if cfg.has_option('cluster', 'hostname') else socket.gethostname()
+    Config.gm_port = int(cfg.get('arex', 'gm_port').strip('"')) \
+        if cfg.has_option('arex', 'gm_port') else 2811
+    Config.gm_mount_point = cfg.get('arex', 'gm_mount_point').strip('"') \
+        if cfg.has_option('arex', 'gm_mount_point') else '/jobs'
+    Config.defaultmemory = int(cfg.get('lrms', 'defaultmemory').strip('"')) \
+        if cfg.has_option('lrms', 'defaultmemory') else 0
+    Config.nodememory = int(cfg.get('infosys/cluster', 'nodememory').strip('"')) \
+        if cfg.has_option('infosys/cluster', 'nodememory') else 0
+    Config.hostname = str(cfg.get('arex', 'hostname')).strip('"') \
+        if cfg.has_option('arex', 'hostname') else socket.gethostname()
        
 
 def set_queue(cfg):
@@ -183,12 +183,12 @@ def set_queue(cfg):
     Config.queue = {}
 
     for section in cfg.sections():
-        if section[:6] != 'queue/' or not section[6:]:
+        if section[:6] != 'queue:' or not section[6:]:
             continue
-        name = section[6:]
+        name = section[6:].strip()
         if name not in Config.queue:
             Config.queue[name] = _object()
-            if cfg.has_option(section, 'nodememory'):
-                Config.queue[name].nodememory = \
-                    int(cfg.get(section, 'nodememory').strip('"'))
+            if cfg.has_option(section, 'defaultmemory'):
+                Config.queue[name].defaultmemory = \
+                    int(cfg.get(section, 'defaultmemory').strip('"'))
 

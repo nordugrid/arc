@@ -1,5 +1,5 @@
-dist_pkgdata_DATA = cancel_common.sh
-pkgdata_DATA = submit_common.sh scan_common.sh
+dist_pkgdata_DATA = cancel_common.sh submit_common.sh scan_common.sh
+pkgdata_DATA = lrms_common.sh
 
 if PYTHON_LRMS_ENABLED
 PYTHON_LRMS = slurmpy arc
