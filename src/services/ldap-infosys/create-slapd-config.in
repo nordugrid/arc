@@ -171,7 +171,7 @@ if [ -z "$overlay" ]; then
 fi
 moduleload_rwm="${ldapmodule}"
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/index; then
     database=shell
     find_ldap_database_module
     if [ -z "${database}" ]; then
@@ -245,7 +245,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	EOF
 
 if [ -n "${moduleload_rwm}" ]; then 
-    admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)
+    admindomain=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2 -o admindomain_name)
     admindomain="urn:ad:${admindomain:-UNDEFINEDVALUE}"
 
     cat <<-EOF >> $bdii_slapd_conf

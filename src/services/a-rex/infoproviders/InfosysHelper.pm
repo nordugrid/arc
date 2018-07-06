@@ -327,9 +327,9 @@ sub createLdifScript {
 # To be called by ldap-infosys
 #  * returns true if/when there is a fresh ldif
 #  max_cycle is a number calculated as such by the init scripts: 
-#     max_cycle=$(( $provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
+#     max_cycle=$(( $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
 #     where:
-#     - $provider_timeout:         max time for BDII infoproviders to run
+#     - $bdii_provider_timeout:    max time for BDII infoproviders to run
 #     - $infoproviders_timelimit:  max time for PERL infoproviders to run
 #     - $wakeupperiod:             interval used by A-REX to restart CEinfo.pl
 #  max_cycle is the time bdii-update will trust the content of any provider to be fresh enough

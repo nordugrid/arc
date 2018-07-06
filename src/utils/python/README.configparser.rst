@@ -82,7 +82,7 @@ For limited number of cases ``arc.conf`` default values relies on arithmetic ope
 
 For example::
 
-  bdii_read_timeout=$EVAL{$VAR{provider_timeout} + $VAR{[arex]infoproviders_timelimit} + $VAR{[arex]wakeupperiod}}
+  bdii_read_timeout=$EVAL{$VAR{bdii_provider_timeout} + $VAR{[arex]infoproviders_timelimit} + $VAR{[arex]wakeupperiod}}
 
 Getting the configuration values
 ++++++++++++++++++++++++++++++++

@@ -78,7 +78,7 @@ my $confdefaults = {
 	  # TODO: remove values unused by providers.       
       ## not used in infoproviders: 
       # bdii_debug_level => 'ERROR',
-      # provider_timeout => '10800',
+      # bdii_provider_timeout => '10800',
       # bdii_location => '/usr',
       # bdii_conf => '/var/run/arc/infosys/bdii.conf',
       # bdii_update_cmd => '/usr/sbin/bdii-update',
@@ -100,7 +100,7 @@ my $confdefaults = {
       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
       ## startup scripts is called max_cycle
       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-      ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+      ## default: $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod
       #bdii_read_timeout=300
    },
    'infosys/glue2' => {
@@ -241,7 +241,7 @@ my $ldap_infosys_options = {
     ## not used directly by infoproviders, maybe by bdii config?
     ## this is probably done in the startup script, is called max_cycle
     ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-    ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+    ## default: $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod
     #bdii_read_timeout=300
 };
 

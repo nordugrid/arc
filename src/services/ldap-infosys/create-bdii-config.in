@@ -90,13 +90,13 @@ bdii_port=${CONFIG_port:-2135}
 # Using uppercase characters in bdii_bind will break infosys.
 bdii_bind="o=grid"
 
-# $provider_timeout refers to the time bdii waits for the provider output to complete.
-provider_timeout=${CONFIG_provider_timeout:-10800}
+# $bdii_provider_timeout refers to the time bdii waits for the provider output to complete.
+bdii_provider_timeout=${CONFIG_bdii_provider_timeout:-10800}
 # $infoproviders_timelimit is a-rex's infoproviders timeout.
-infoproviders_timelimit=$(${arcconfig_parser} -c ${ARC_CONFIG} -b arex -o infoproviders_timelimit)
+infoproviders_timelimit=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b arex -o infoproviders_timelimit)
 infoproviders_timelimit=${infoproviders_timelimit:-10800}
 # $wakeupperiod is the time a-rex waits before running infoproviders again.
-wakeupperiod=$(${arcconfig_parser} -c ${ARC_CONFIG} -b arex -o wakeupperiod)
+wakeupperiod=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b arex -o wakeupperiod)
 wakeupperiod=${wakeupperiod:-120}
 bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 
@@ -106,7 +106,7 @@ bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
 
 # max_cycle is the time bdii will trust the content of any provider to be fresh enough
-max_cycle=$(( $provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
+max_cycle=$(( $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
 bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
 
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
@@ -128,9 +128,9 @@ chown ${bdii_user}: ${providerlog}
 mkdir -p $bdii_log_dir
 chown -R ${bdii_user}: ${bdii_log_dir}
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/nordugrid || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1 || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2/ldap; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2/ldap; then
    if [ ! -f "$ARC_LOCATION/@pkgdatasubdir@/InfosysHelper.pm" ]; then
 	  echo "InfosysHelper.pm not found. Is A-REX installed?"
 	  echo "For operation without A-REX, disable publishing of cluster information"
@@ -149,9 +149,9 @@ processorotherdescription=""
 gluesiteweb=""
 gluesiteuniqueid=""
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
 
-    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1 -e bash)
+    eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 -e bash)
 
     resource_location=${CONFIG_resource_location}
     resource_latitude=${CONFIG_resource_latitude}
@@ -161,7 +161,7 @@ if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
     gluesiteweb=${CONFIG_glue_site_web}
     gluesiteuniqueid=${CONFIG_glue_site_unique_id}
 
-    if [ -z "$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1/site -s)" ]; then
+    if [ -z "$(${arcconfig_parser}  --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site -s)" ]; then
 	provide_glue_site_info="true"
     else
 	provide_glue_site_info="false"
@@ -318,12 +318,12 @@ cat <<-EOF >> ${ldif_generator_file}
 	exit 1 unless InfosysHelper::ldifIsReady('$infosys_ldap_run_dir', '$max_cycle');
 	EOF
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/nordugrid || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2/ldap; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2/ldap; then
    echo "system('$ldif_script');" >> ${ldif_generator_file}
 fi
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
 	ldif_generator_file_ng=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
 	ldif_generator_file_glue=${bdii_tmp_dir}/provider/arc-glue-bdii-ldif
 
@@ -354,9 +354,9 @@ chmod +x ${ldif_generator_file}
 
 # Site BDII
 
-for site_bdii in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1/site -s); do
+for site_bdii in $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site -s); do
     (
-	eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${site_bdii} -e bash)
+	eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b ${site_bdii} -e bash)
 	unique_id=${CONFIG_unique_id:-${CONFIG___block_name}}
 	site_config="${bdii_tmp_dir}/${CONFIG___block_name}.conf"
 	site_provider="$bdii_provider_dir/site_${CONFIG___block_name}.sh"

@@ -2336,7 +2336,7 @@
 #bdii_delete_delay=0
 
 ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-## default: $EVAL{$VAR{provider_timeout} + $VAR{[arex]infoproviders_timelimit} + $VAR{[arex]wakeupperiod}}
+## default: $EVAL{$VAR{bdii_provider_timeout} + $VAR{[arex]infoproviders_timelimit} + $VAR{[arex]wakeupperiod}}
 #bdii_read_timeout=300
 
 ## cachettl = number - cachettl affects registration to egiis

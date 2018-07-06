@@ -232,7 +232,7 @@ def _evaluate_values():
                 if subst:
                     __parsed_config[block][opt] = subval
     # Evaluate substitutions: EVAL
-    # e.g. $EVAL{$VAR{provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
+    # e.g. $EVAL{$VAR{bdii_provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
     for block in __parsed_blocks:
         for opt, val in __parsed_config[block].iteritems():
             # skip if option is defined in the /etc/arc.conf
