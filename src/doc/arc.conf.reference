@@ -2561,11 +2561,11 @@
 
 ## advertisedvo  = vo_name - (previously authorizedvo) This attribute is used to advertise 
 ## which VOs are authorized on the cluster.
-## Add only one VO for each authorizedvo entry. Multiple VOs in the same line
+## Add only one VO for each advertisedvo entry. Multiple VOs in the same line
 ## will cause errors.
 ## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
-## Shares(currently queues).
+## Shares(currently queues). You can also add additional advertisedvos to queues.
 ## The information is also published in the NorduGrid schema.
 ## multivalued
 ## default: undefined

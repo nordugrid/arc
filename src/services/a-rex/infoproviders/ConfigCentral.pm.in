@@ -183,7 +183,7 @@ my $share_options = {
     Preemption => '*',
     totalcpus => '*',
     defaultmemory => '*',
-    authorizedvo =>  [ '*' ],
+    advertisedvo =>  [ '*' ],
 };
 my $gmuser_options = {
     controldir => '',
@@ -311,7 +311,7 @@ my $config_schema = {
         ClusterComment => '*',
         ClusterOwner => [ '*' ],
         Middleware => [ '*' ],
-        AuthorizedVO => [ '*' ],
+        AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
         %$xenv_options,
@@ -798,7 +798,7 @@ sub build_config_from_json {
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
                                  cluster_owner => 'ClusterOwner', localse => 'LocalSE',
-                                 authorizedvo => 'AuthorizedVO', homogeneity => 'Homogeneous',
+                                 advertisedvo => 'AdvertisedVO', homogeneity => 'Homogeneous',
                                  architecture => 'Platform', opsys => 'OpSys', benchmark => 'Benchmark',
                                  nodememory => 'MaxVirtualMemory', middleware => 'Middleware',
                                  cluster_alias => 'ClusterAlias', comment => 'ClusterComment'};
@@ -838,7 +838,10 @@ sub build_config_from_json {
         push @{$sconf->{ExecutionEnvironmentName}}, $name;
 
         rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
-                                     nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
+                                     nodememory => 'MaxVirtualMemory', 
+                                     comment => 'Description', 
+                                     advertisedvo => 'AdvertisedVO',
+                                     maxslotsperjob => 'MaxSlotsPerJob'};
         move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
 
         # TODO: change opsys here if needed
@@ -1000,13 +1003,13 @@ sub printLRMSConfigScript {
     # shared_filesystem: if not set, assume 'yes'
     $gmopts->{shared_filesystem} = $config->{shared_filesystem} if $config->{shared_filesystem};
 
-    _print_shell_section('grid-manager', $gmopts);
+    _print_shell_section('arex', $gmopts);
 
     my $cluster = {};
     rename_keys $config->{service}, $cluster, {MaxVirtualMemory => 'nodememory'};
     move_keys $config->{service}, $cluster, ['defaultmemory'];
 
-    _print_shell_section('cluster', $cluster) if %$cluster;
+    _print_shell_section('infosys/cluster', $cluster) if %$cluster;
 
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
@@ -1016,7 +1019,7 @@ sub printLRMSConfigScript {
         my $qname = $config->{shares}{$sname}{MappingQueue};
         $queue->{MappingQueue} = $qname if $qname;
 
-        _print_shell_section("queue/$sname", $queue);
+        _print_shell_section("queue:$sname", $queue);
     }
 
     _print_shell_end();
@@ -1139,8 +1142,8 @@ sub fix_config {
     
     my %queuenamesset = map { $_ => '1' } (keys %{$config->{shares}});
     
-    if (defined $config->{service}{AuthorizedVO}) {
-	    for my $policy (@{$config->{service}{AuthorizedVO}}) {
+    if (defined $config->{service}{AdvertisedVO}) {
+	    for my $policy (@{$config->{service}{AdvertisedVO}}) {
 			$config->{mappingpolicies}{$policy} ||= {};
 	        $config->{mappingpolicies}{$policy}{Scheme} = 'basic;';
 	        $config->{mappingpolicies}{$policy}{Rule} = [ "vo:$policy" ];
@@ -1154,8 +1157,8 @@ sub fix_config {
 	}
     
     for my $queue (keys %queuenamesset) {
-		if (defined $config->{shares}{$queue}{authorizedvo}) {
-	        for my $policy (@{$config->{shares}{$queue}{authorizedvo}}) {
+		if (defined $config->{shares}{$queue}{AdvertisedVO}) {
+	        for my $policy (@{$config->{shares}{$queue}{AdvertisedVO}}) {
 				#$log->debug("$policy".Dumper($config->{mappingpolicies}));
 				$config->{mappingpolicies}{$policy} ||= {};
 	            $config->{mappingpolicies}{$policy}{Scheme} = 'basic';

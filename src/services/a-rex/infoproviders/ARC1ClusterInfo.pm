@@ -690,11 +690,11 @@ sub collect($) {
     # GLUE2 shares differ from the configuration one.
     # the one to one mapping from a share to a queue is too strong.
     # the following datastructure reshuffles queues into proper
-    # GLUE2 shares based on authorizedvo
+    # GLUE2 shares based on advertisedvo
     # This may require rethinking of parsing the configuration...
     my $GLUE2shares = {};
     
-    # If authorizedvo is present in arc.conf defined, 
+    # If advertisedvo is present in arc.conf defined, 
     # generate one additional share for each VO.
     #
     # TODO: refactorize this to apply to cluster and queue VOs
@@ -705,43 +705,43 @@ sub collect($) {
        # always add a share with no mapping policy
        my $share_name = $currentshare;
        $GLUE2shares->{$share_name} = Storable::dclone($config->{shares}{$currentshare});
-       # Create as many shares as the number of authorizedvo entries
-       # in the [queue/queuename] block
+       # Create as many shares as the number of advertisedvo entries
+       # in the [queue:queuename] block
        # if there is any VO generate new names
-       if (defined $config->{shares}{$currentshare}{authorizedvo}) {
-            my ($queueauthvos) = $config->{shares}{$currentshare}{authorizedvo};
-            for my $queueauthvo (@{$queueauthvos}) {
-                # generate an additional share with such authorizedVO
-                my $share_vo = $currentshare.'_'.$queueauthvo;
+       if (defined $config->{shares}{$currentshare}{AdvertisedVO}) {
+            my ($queueadvertvos) = $config->{shares}{$currentshare}{AdvertisedVO};
+            for my $queueadvertvo (@{$queueadvertvos}) {
+                # generate an additional share with such advertisedVO
+                my $share_vo = $currentshare.'_'.$queueadvertvo;
                 $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
                 # add the queue from configuration as MappingQueue
                 $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
                 # remove VOs from that share, substitute with default VO
-                $GLUE2shares->{$share_vo}{authorizedvo} = $queueauthvo;
+                $GLUE2shares->{$share_vo}{AdvertisedVO} = $queueadvertvo;
                 # Add supported policies 
                 # TODO: use config elements for this
                 $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => ''};
             }
         } else {
-       # create as many shares as the authorizedvo in the [infosys/cluster] block
-       # iff authorizedvo not defined in queue block
-			if (defined $config->{service}{AuthorizedVO}) { 
-				my ($clusterauthvos) = $config->{service}{AuthorizedVO};
-				for my $clusterauthvo (@{$clusterauthvos}) {
-					# generate an additional share with such authorizedVO
-					my $share_vo = $currentshare.'_'.$clusterauthvo;
+       # create as many shares as the advertisedvo in the [infosys/cluster] block
+       # iff advertisedvo not defined in queue block
+			if (defined $config->{service}{AdvertisedVO}) { 
+				my ($clusteradvertvos) = $config->{service}{AdvertisedVO};
+				for my $clusteradvertvo (@{$clusteradvertvos}) {
+					# generate an additional share with such advertisedVO
+					my $share_vo = $currentshare.'_'.$clusteradvertvo;
 					$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
 					# add the queue from configuration as MappingQueue
 					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
 					# remove VOs from that share, substitute with default VO
-					$GLUE2shares->{$share_vo}{authorizedvo} = $clusterauthvo; 
+					$GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
 					# TODO: use config elements for this
 					$GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
 				}    
 			}
 	    }
         # remove VO array from the datastructure of the share with the same name of the queue
-        delete $GLUE2shares->{$share_name}{authorizedvo};
+        delete $GLUE2shares->{$share_name}{AdvertisedVO};
         undef $share_name;
     }
  
@@ -782,11 +782,11 @@ sub collect($) {
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
-#    my @authorizedvos = (); 
-#    if ($config->{service}{AuthorizedVO}) {
-#        @authorizedvos = @{$config->{service}{AuthorizedVO}};
-#        # add VO: suffix to each authorized VO
-#        @authorizedvos = map { "vo:".$_ } @authorizedvos;
+#    my @advertisedvos = (); 
+#    if ($config->{service}{AdvertisedVO}) {
+#        @advertisedvos = @{$config->{service}{AdvertisedVO}};
+#        # add VO: suffix to each advertised VO
+#        @advertisedvos = map { "vo:".$_ } @advertisedvos;
 #    }
 
     # # # # # # # # # # # # # # # # # # #
@@ -1243,46 +1243,46 @@ sub collect($) {
 
     ### Authorized VOs: Policy stuff
     
-    # calculate union of the authorizedvos in shares - a hash is used as a set
-    # and add it to the cluster accepted authorizedvos
+    # calculate union of the advertisedvos in shares - a hash is used as a set
+    # and add it to the cluster accepted advertisedvos
     
-    my @clusterauthorizedvos;
-    if ($config->{service}{AuthorizedVO}) { @clusterauthorizedvos = @{$config->{service}{AuthorizedVO}}; }
-    my $unionauthorizedvos;
-    if (@clusterauthorizedvos) {
-		foreach my $vo (@clusterauthorizedvos) {
-			$unionauthorizedvos->{$vo}='';
+    my @clusteradvertisedvos;
+    if ($config->{service}{AdvertisedVO}) { @clusteradvertisedvos = @{$config->{service}{AdvertisedVO}}; }
+    my $unionadvertisedvos;
+    if (@clusteradvertisedvos) {
+		foreach my $vo (@clusteradvertisedvos) {
+			$unionadvertisedvos->{$vo}='';
 		}
 	}
-	# add the per-queue authorizedvo if any
+	# add the per-queue advertisedvo if any
 	my $shares = Storable::dclone($GLUE2shares);
 	for my $share ( keys %$shares ) {
-		if ($GLUE2shares->{$share}{authorizedvo}) {
-			my (@tempvos) = $GLUE2shares->{$share}{authorizedvo} if ($GLUE2shares->{$share}{authorizedvo});
+		if ($GLUE2shares->{$share}{AdvertisedVO}) {
+			my (@tempvos) = $GLUE2shares->{$share}{AdvertisedVO} if ($GLUE2shares->{$share}{AdvertisedVO});
 			foreach my $vo (@tempvos) {
-				$unionauthorizedvos->{$vo}='';
+				$unionadvertisedvos->{$vo}='';
 			}
 		}
 	}   
     
     
-    my @unionauthorizedvos;
-    if ($unionauthorizedvos) {
-		@unionauthorizedvos =  keys %$unionauthorizedvos ;
-		@unionauthorizedvos = addprefix('vo:',@unionauthorizedvos);
-		undef $unionauthorizedvos;
+    my @unionadvertisedvos;
+    if ($unionadvertisedvos) {
+		@unionadvertisedvos =  keys %$unionadvertisedvos ;
+		@unionadvertisedvos = addprefix('vo:',@unionadvertisedvos);
+		undef $unionadvertisedvos;
 	}
     
     
     # AccessPolicies implementation. Can be called for each endpoint.
-    # the basic policy value is taken from the service AuthorizedVO.
+    # the basic policy value is taken from the service AdvertisedVO.
     # The logic is similar to the endpoints: first
     # all the policies subroutines are created, then stored in $accesspolicies,
     # then every endpoint passes custom values to the getAccessPolicies sub.
     
     my $accesspolicies = {};
        
-    # Basic access policy: union of authorizedvos   
+    # Basic access policy: union of advertisedvos   
     my $getBasicAccessPolicy = sub {
          my $apol = {};
          my ($epID) = @_;
@@ -1290,13 +1290,13 @@ sub collect($) {
          $apol->{CreationTime} = $creation_time;
          $apol->{Validity} = $validity_ttl;
          $apol->{Scheme} = "basic";
-         if (@unionauthorizedvos) { $apol->{Rule} = [ @unionauthorizedvos ]; };
+         if (@unionadvertisedvos) { $apol->{Rule} = [ @unionadvertisedvos ]; };
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
          $apol->{EndpointID} = $epID;
          return $apol;
     };
     
-    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if (@unionauthorizedvos);
+    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if (@unionadvertisedvos);
     
     ## more accesspolicies can go here.
     
@@ -1310,7 +1310,7 @@ sub collect($) {
      };
 
     # MappingPolicies implementation. Can be called for each ShareID.
-    # the basic policy value is taken from the service AuthorizedVO.
+    # the basic policy value is taken from the service AdvertisedVO.
     # The logic is similar to the endpoints: first
     # all the policies subroutines are created, stored in mappingpolicies,
     # then every endpoint passes custom values to the getMappingPolicies sub.
@@ -1324,9 +1324,9 @@ sub collect($) {
         my $mpol = {};
         $mpol->{CreationTime} = $creation_time;
         $mpol->{Validity} = $validity_ttl;
-        $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{authorizedvo}";
+        $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{AdvertisedVO}";
         $mpol->{Scheme} = "basic";
-	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{authorizedvo}" ];
+	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
         $mpol->{ShareID} = $shareID;
         return $mpol;
