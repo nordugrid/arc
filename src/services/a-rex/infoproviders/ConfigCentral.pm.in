@@ -232,6 +232,7 @@ my $ldap_infosys_options = {
     infosys_glue2_service_qualitylevel => '*',
     validity_ttl => '*',
     # These values have been checked to be used by infoproviders.
+    user => '*',
     bdii_run_dir => '*',
     bdii_log_dir => '*',
     bdii_tmp_dir => '*',
@@ -380,7 +381,6 @@ my $config_schema = {
 		logfile => '*',  #C 133
 		loglevel => '*', #C 134, replaces ProviderLog
 		validity_ttl => '*',
-		user => '*',
 		ldap => { # C141
             %$ldap_infosys_options, # C 141
         },

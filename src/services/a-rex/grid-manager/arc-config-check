@@ -346,13 +346,6 @@ sub confchecktripel($$$) {
                 }
 	}
 
-	# check the runtime directory
-	elsif ($block eq "arex/cache" and $name eq "runtimedir") {
-		if (! -d $value)  {
-			e("runtimedir: not existing at '$value'\n");
-		}
-	}
-
 	# check the controldir
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
@@ -379,7 +372,7 @@ sub confchecktripel($$$) {
 	}
 	
 	# Check for logrotate paths
-	if ($block =~ /common|arex|gridftp/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
+	if ($block =~ /common|arex|gridftp|infosys/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
 
 	# check for any mount dirs
 	if ($name eq "mount") {
@@ -392,15 +385,13 @@ sub confchecktripel($$$) {
 	}
     
     # check few infosys commands
-    if ($block eq "infosys") {
+    if ($block eq "infosys/ldap") {
         if ($name eq "slapd_loglevel" and $value gt 0) {
             w("slapd_loglevel > 0 should only be used for development. DO NOT USE for production and testing.\nConfigure bdii_debug_level=\"DEBUG\" instead.\n");
         }
         if ($name ne "bdii_debug_level" and $name =~ /^bdii/ ) {
             e("Starting from release 13.02, BDII configuration commands are strongly deprecated. Use only for Development.\nThe only allowed command is bdii_debug_level\n");
         }
-        # check logs locations for logrotation
-	    if ($name =~ /providerlog|registrationlog/) {check_logrotate($block,$name,$value)};
     }
     
     # check compliance of AdminDomain name as a LDAP DNs

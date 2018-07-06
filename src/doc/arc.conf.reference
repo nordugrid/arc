@@ -2182,22 +2182,20 @@
 ## default: 2135
 #port=2135
 
-## user = unix_user - overwrites the system defined unix user running the slapd.
-## By default the system ldap-user is used.
+## user = unix_user - overwrites the unix user running the slapd.
+## By default the startup scripts search for well-known ldap-users like "ldap" or "openldap"
+## than fall-back to "root" if not found.
 ## default: undefined
-## TODO: check the startup script 
 #user=slapd
 ## CHANGE: moved here from [infosys]
 
-## slapd = path - Configure where the slapd command is located.
-## default: /usr/sbin/slapd
-## TODO: check the path finding logic in the startup script. 
+## slapd = path - explicitly define the path to slapd command.
+## By default the startup scripts search for "slapd" binary in the system PATH.
+## default: undefined
 #slapd=/usr/sbin/slapd
 
 ## slapadd = path - Configure where the slapadd command is located.
-## default: /usr/sbin/slapdd
-#slapadd=/usr/sbin/slapadd
-## TODO: check if this can be removed now. Candidate for DELETION
+## CHANGE: DELETED (not used in the code)
 
 ## slapd_loglevel = number - Sets the native slapd loglevel (see man slapd).
 ## Slapd logs via syslog. The default is set to no-logging (0) and it is
