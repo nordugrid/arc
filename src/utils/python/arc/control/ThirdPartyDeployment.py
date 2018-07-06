@@ -24,7 +24,7 @@ class ThirdPartyControl(ComponentControl):
     def __egi_get_voms(self, vo):
         vomslsc = {}
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
-        r = requests.get('http://operations-portal.egi.eu/xml/voIDCard/public/voname/{}'.format(vo))
+        r = requests.get('http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo))
         if not r.content.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database')
             sys.exit(1)
@@ -55,7 +55,7 @@ class ThirdPartyControl(ComponentControl):
         (hostname, port) = self.__get_socket_from_url(url)
         # try to connect using openssl
         try:
-            s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{}:{}'.format(hostname, port)],
+            s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in iter(s_client.stdout.readline, ''):
                 if line.startswith('subject='):
@@ -119,9 +119,9 @@ class ThirdPartyControl(ComponentControl):
         dn = ''
         ca = ''
         for (k, v), in cert['subject']:
-            dn += '/{}={}'.format(self.__x500_to_DN(k), v)
+            dn += '/{0}={1}'.format(self.__x500_to_DN(k), v)
         for (k, v), in cert['issuer']:
-            ca += '/{}={}'.format(self.__x500_to_DN(k), v)
+            ca += '/{0}={1}'.format(self.__x500_to_DN(k), v)
         return {hostname: {'dn': dn, 'ca': ca}}
 
     def lsc_deploy(self, args):
@@ -140,12 +140,12 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('There are no VOMS server credentials found. Will not create LSC file.')
             sys.exit(1)
         # create vomsdir for LSC
-        vomses_dir = '/etc/grid-security/vomsdir/{}'.format(args.vo)
+        vomses_dir = '/etc/grid-security/vomsdir/{0}'.format(args.vo)
         if not os.path.exists(vomses_dir):
             self.logger.debug('Making vomses directory %s to hold LSC file(s)', vomses_dir)
             os.makedirs(vomses_dir, mode=0755)
         for host, creds in voms_creds.iteritems():
-            lsc_file = '{}/{}.lsc'.format(vomses_dir, host)
+            lsc_file = '{0}/{1}.lsc'.format(vomses_dir, host)
             with open(lsc_file, 'w') as lsc_f:
                 self.logger.info('Creating LSC file: %s', lsc_file)
                 lsc_f.write('{dn}\n{ca}'.format(**creds))
@@ -208,12 +208,12 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             ports = ports.replace(',', ':').replace(' ', '')
             if conf:
                 if conf['port'] == ports:
-                    conf['descr'] += ' and {}'.format(subsys)
+                    conf['descr'] += ' and {0}'.format(subsys)
                 else:
-                    iptables_config.append({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                    iptables_config.append({'descr': 'Globus {0} port range for {1}'.format(proto, subsys),
                                             'port': ports, 'proto': proto.lower()})
             else:
-                conf.update({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                conf.update({'descr': 'Globus {0} port range for {1}'.format(proto, subsys),
                         'port': ports, 'proto': proto.lower()})
                 iptables_config.append(conf)
 

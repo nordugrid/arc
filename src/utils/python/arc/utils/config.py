@@ -82,11 +82,11 @@ def dump_arc_conf(conf_f=__def_path_runconf):
     """Dump stored config dict to file"""
     with open(conf_f, 'wb') as arcconf:
         for b in __parsed_blocks:
-            arcconf.write('[{}]\n'.format(b))
+            arcconf.write('[{0}]\n'.format(b))
             for opt, val in __parsed_config[b].iteritems():
                 if opt == '__block_name':
                     continue
-                arcconf.write('{} = {}\n'.format(opt, val))
+                arcconf.write('{0}={1}\n'.format(opt, val))
             arcconf.write('\n')
 
 
@@ -340,7 +340,7 @@ def export_bash(blocks=None, subsections=False):
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
                 for i, vi in enumerate(v):
-                    bash_config['CONFIG_{}_{}'.format(k, i)] = vi
+                    bash_config['CONFIG_{0}_{1}'.format(k, i)] = vi
             else:
                 bash_config['CONFIG_' + k] = v
     eval_str = ''

@@ -50,7 +50,7 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
                 _reference_config[block_id] = {}
                 logger.info('Found [%s] configuration block definition', block_id)
                 if print_defaults:
-                    sys.stdout.write('\n[{}]\n'.format(block_id))
+                    sys.stdout.write('\n[{0}]\n'.format(block_id))
                 if print_reference:
                     sys.stdout.write(confline)
                 continue
@@ -71,7 +71,7 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
                                      ln + 1, confline.strip('\n'))
                         sys.stdout.write('## default: not defined\n')
                     else:
-                        sys.stdout.write('## default: {}\n'.format(
+                        sys.stdout.write('## default: {0}\n'.format(
                             __default_config[block_id][_reference_default_lines[ln]]))
                         continue
             # option in .reference
@@ -92,7 +92,7 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
                     _reference_config[block_id].update({option: default_value})
                     _reference_default_lines.update({default_line: option})
                     if print_defaults:
-                        sys.stdout.write('{}={}\n'.format(option, default_value))
+                        sys.stdout.write('{0}={1}\n'.format(option, default_value))
                     default_value = None
                     default_line = None
             if print_reference:

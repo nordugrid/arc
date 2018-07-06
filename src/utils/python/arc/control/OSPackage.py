@@ -18,7 +18,7 @@ class OSPackageManagement(object):
             stdout = yum_output.communicate()
             if yum_output.returncode == 0:
                 self.pm = 'yum'
-                self.pm_is_installed = 'rpm -q {}'
+                self.pm_is_installed = 'rpm -q {0}'
                 self.pm_cmd = 'yum'
                 self.pm_repodir = '/etc/yum.repos.d/'
                 self.pm_version = stdout[0].split('\n')[0]
@@ -32,7 +32,7 @@ class OSPackageManagement(object):
             stdout = apt_output.communicate()
             if apt_output.returncode == 0:
                 self.pm = 'apt'
-                self.pm_is_installed = 'dpkg -s {}'
+                self.pm_is_installed = 'dpkg -s {0}'
                 self.pm_cmd = 'apt-get'
                 self.pm_repodir = '/etc/apt/sources.list.d/'
                 self.pm_version = stdout[0].split('\n')[0].replace('apt ', '')
@@ -43,7 +43,7 @@ class OSPackageManagement(object):
         sys.exit(1)
 
     def version(self):
-        print '{} version {}'.format(self.pm, self.pm_version)
+        print '{0} version {1}'.format(self.pm, self.pm_version)
 
     def __get_url_content(self, url):
         try:
