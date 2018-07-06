@@ -680,6 +680,10 @@ sub build_config_from_json {
     my $common = $jsonconf->{'common'};    
     ## TODO: remove everything that should not be in $config
     move_keys $common, $config, [keys %$gmcommon_options];
+
+    # new mapping block (just move to the top config as it was before)
+    my $mapping = $jsonconf->{'mapping'};
+    move_keys $mapping, $config, [keys %$gmcommon_options];
     
     # C 10 new lrms block
     my $lrms = $jsonconf->{'lrms'};
