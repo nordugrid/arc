@@ -661,8 +661,10 @@
 ## default: /usr/bin
 #lsf_bin_path=/usr/local/lsf/bin/
 
-## lsf_profile_path = path - The PATH to profile.lsf file.
-## CHANGE: DELETED  not used any longer
+## lsf_profile_path = path - Path to the profile.lsf file. Infoprovider scripts
+## will source profile.lsf to setup LSF utilites environment.
+## default: /usr/share/lsf/conf/profile.lsf
+#lsf_profile_path=/usr/local/share/lsf/conf/profile.lsf
 
 ## lsf_architecture = string - CPU architecture to request when submitting jobs to LSF.
 ## Use only if you know what you are doing.
