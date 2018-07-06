@@ -835,9 +835,6 @@ sub jobs_info ($$@) {
 		$rank++;
 		$lrms_jobs{$jid}{rank} = $rank;
 		$jid=~/^(\d+).+/;
-		if (defined $showqrank{$1}) {
-		    $lrms_jobs{$jid}{rank} = $showqrank{$1};
-		}
 	    }
 	    if ($v eq 'R' or 'E'){
 		++$user_jobs_running{$job_owner{$jid}};
