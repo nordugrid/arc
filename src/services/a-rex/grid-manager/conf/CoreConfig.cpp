@@ -143,7 +143,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         if(config.job_perf_log) config.job_perf_log->SetEnabled(true);
         if (command == "perflogdir") { // 
           if (!config.job_perf_log) continue;
-          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+          std::string fname = rest;  // empty is allowed too
           if(!fname.empty()) fname += "/arex.perflog";
           config.job_perf_log->SetOutput(fname.c_str());
         }
@@ -236,7 +236,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "mail") { // internal address from which to send mail
-          config.support_email_address = Arc::ConfigIni::NextArg(rest);
+          config.support_email_address = rest;
           if (config.support_email_address.empty()) {
             logger.msg(Arc::ERROR, "mail parameter is empty"); return false;
           }
@@ -272,7 +272,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "sessiondir") {  // set session root directory
-          std::string session_root = Arc::ConfigIni::NextArg(rest);
+          std::string session_root = rest;
           if (session_root.empty()) {
             logger.msg(Arc::ERROR, "Session root directory is missing"); return false;
           }
@@ -287,7 +287,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           if (rest != "drain") config.session_roots_non_draining.push_back(session_root);
         }
         else if (command == "controldir") {
-          std::string control_dir = Arc::ConfigIni::NextArg(rest);
+          std::string control_dir = rest;
           if (control_dir.empty()) {
             logger.msg(Arc::ERROR, "Missing directory in control command"); return false;
           }
@@ -310,7 +310,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           helpers.push_back(rest);
         }
         else if (command == "helperlog") {
-          config.helper_log = Arc::ConfigIni::NextArg(rest);
+          config.helper_log = rest;
           // empty is allowed
           helper_log_is_set = true;
         }
@@ -330,17 +330,17 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "scratchdir") {
-          std::string scratch = Arc::ConfigIni::NextArg(rest);
+          std::string scratch = rest;
           // don't set if already set by shared_scratch
           if (config.scratch_dir.empty()) config.scratch_dir = scratch;
         }
         else if (command == "shared_scratch") {
-          std::string scratch = Arc::ConfigIni::NextArg(rest);
+          std::string scratch = rest;
           config.scratch_dir = scratch;
         }
         else if (command == "joblog") { // where to write job information
           if (!config.job_log) continue;
-          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+          std::string fname = rest;  // empty is allowed too
           config.job_log->SetOutput(fname.c_str());
         }
         else if (command == "delegationdb") {
@@ -355,8 +355,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             logger.msg(Arc::ERROR, "Wrong option in delegationdb"); return false;
           };
         }
-        else if (command == "forcedefaultvoms") {
-          std::string str = Arc::ConfigIni::NextArg(rest);
+        else if (command == "orcedefaultvoms") {
+          std::string str = rest;
           if (str.empty()) {
             logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
           }
@@ -375,7 +375,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if (cf.SubSection()[0] == '\0') {
         if (!config.jobs_metrics) continue;
         if (command == "gmetric_bin_path") {
-          std::string fname = Arc::ConfigIni::NextArg(rest);  // empty is allowed too
+          std::string fname = rest;  // empty is allowed too
           config.jobs_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
@@ -397,7 +397,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         if(command == "wsurl") {
-           config.arex_endpoint = Arc::ConfigIni::NextArg(rest);
+           config.arex_endpoint = rest;
         };
       };
       continue;
@@ -414,7 +414,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           config.allow_new = enable;
         }
         else if (command == "allownew_override") {
-          config.allow_submit.push_back(Arc::ConfigIni::NextArg(rest));
+          while(!rest.empty()) {
+            std::string str = Arc::ConfigIni::NextArg(rest);
+            if(!str.empty()) {
+              config.allow_submit.push_back(str);
+            };
+          };
         }
         else if (command == "maxjobdesc") {
           std::string maxjobdesc_s = Arc::ConfigIni::NextArg(rest);
@@ -438,7 +443,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         jobreport_publisher = "jura";
         if (command == "logfile") {
           if (config.job_log) {
-            std::string logfile = Arc::ConfigIni::NextArg(rest);
+            std::string logfile = rest;
             if (logfile.empty()) {
               logger.msg(Arc::ERROR, "Missing file name in jobreport_logfile"); return false;
             };
@@ -457,15 +462,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "x509_host_key") {
-          std::string jobreport_key = Arc::ConfigIni::NextArg(rest);
+          std::string jobreport_key = rest;
           config.job_log->SetCredentials(jobreport_key, "", "");
         }
         else if (command == "x509_host_cert") {
-          std::string jobreport_cert = Arc::ConfigIni::NextArg(rest);
+          std::string jobreport_cert = rest;
           config.job_log->SetCredentials("", jobreport_cert, "");
         }
         else if (command == "x509_cert_dir") {
-          std::string jobreport_cadir = Arc::ConfigIni::NextArg(rest);
+          std::string jobreport_cadir = rest;
           config.job_log->SetCredentials("", "", jobreport_cadir);
         }
       };
@@ -491,7 +496,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           config.queues.push_back(name);
         }
         if (command == "forcedefaultvoms") {
-          std::string str = Arc::ConfigIni::NextArg(rest);
+          std::string str = rest;
           if (str.empty()) {
             logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
           }
@@ -500,7 +505,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             config.forced_voms[queue_name] = str;
           }
         } else if (command == "authorizedvo") {
-          std::string str = Arc::ConfigIni::NextArg(rest);
+          std::string str = rest;
           if (str.empty()) {
             logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
           }
@@ -525,7 +530,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     if (cf.SectionNum() == cluster_secnum) { // cluster
       if (cf.SubSection()[0] == '\0') {
         if (command == "authorizedvo") {
-          std::string str = Arc::ConfigIni::NextArg(rest);
+          std::string str = rest;
           if (str.empty()) {
             logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
           }

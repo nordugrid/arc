@@ -120,9 +120,10 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     std::string command = Arc::ConfigIni::NextArg(rest);
     if(command.length() == 0) { break; } /* end of file - should not be here */
     if(command == "allownew") {
-      std::string value = Arc::ConfigIni::NextArg(rest);
+      std::string value = rest;
       if(strcasecmp(value.c_str(),"no") == 0) { readonly=true; }
       else if(strcasecmp(value.c_str(),"yes") == 0) { readonly=false; };
+      else { logger.msg(Arc::WARNING, "Unsupported value for allownew: %s", value); };
     } else if(command == "allownew_override") {
       for(;;) {
         std::string value = Arc::ConfigIni::NextArg(rest);
@@ -143,7 +144,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
         initialized=false;
       };
     } else if(command == "endpoint") {
-      endpoint = Arc::ConfigIni::NextArg(rest);
+      endpoint = rest;
     } else if(command == "end") {
       break; /* end of section */
     } else {
