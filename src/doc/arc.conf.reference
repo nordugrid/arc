@@ -77,6 +77,14 @@
 ## Note that quotes around the configuration value(s) must NOT be used any longer.
 ## Note that the arc.conf is CASE-SENSITIVE!
 ##
+## Space handling syntax in arc.conf: 
+## a) Extra space at the begining and at the end of a configuration option line 
+## and also around the "=" sign are stripped out and ignored: 
+## (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
+## b) Space is not allowed in [keyword:identifier] block headers with the exception of the 
+## identifier string: [keyword:(stripped space)"this is allowed name"(stripped space)].
+## Any extra space after the ":" and before the terminating "]" is stripped and ignored 
+##
 ## Mandatory configuration options are indicated by an asterix prefix to the
 ## option name e.g:  *mandatory_configoption. Mandatory options with undefined values 
 ## will result in service stop during the startup process. 
@@ -86,7 +94,6 @@
 ## "undefined". Configuration options within an enabled block take their default values in case 
 ## they are missing (or commented out). Configuration parameters with undefined defaults takes 
 ## no values. Furthermore, configuration options within disabled blocks takes no values either.   
-##
 ##
 ## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
 ## [authgroup:name] MUST be defined before used in the blocks such as [mapping], [arex] or 
