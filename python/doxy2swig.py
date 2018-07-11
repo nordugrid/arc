@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 """Doxygen XML to SWIG docstring converter.
 
 Usage:

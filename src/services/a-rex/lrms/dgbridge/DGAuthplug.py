@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 """Usage: DGAuthplug.py <status> <control dir> <runtime dir> <jobid> [username]
 

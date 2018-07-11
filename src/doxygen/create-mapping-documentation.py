@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # TODO: Document how to use.
 # TODO: Add list of the plugins which provides the mappings.
 # TODO: Deal with multiple values.
