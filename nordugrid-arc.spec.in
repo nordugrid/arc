@@ -275,12 +275,12 @@ BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
 # Needed to run ACIX unit tests
 %if %{with_acix}
-%if %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	python-twisted
 %else
 BuildRequires:	python-twisted-core
-%endif
 BuildRequires:	python-twisted-web
+%endif
 %if %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	python-openssl
 %else
@@ -616,8 +616,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 
 %description acix-core
@@ -633,8 +637,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
 
@@ -657,8 +665,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
 
