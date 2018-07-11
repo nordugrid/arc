@@ -272,7 +272,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "sessiondir") {  // set session root directory
-          std::string session_root = rest;
+          std::string session_root = Arc::ConfigIni::NextArg(rest);
           if (session_root.empty()) {
             logger.msg(Arc::ERROR, "Session root directory is missing"); return false;
           }
