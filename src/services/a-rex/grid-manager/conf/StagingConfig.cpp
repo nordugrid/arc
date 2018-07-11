@@ -68,7 +68,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       if (cf.SubSection()[0] == '\0') {
         perf_log.SetEnabled(true);
         if (command == "perflogdir") {
-          perf_log.SetOutput(Arc::ConfigIni::NextArg(rest) + "/data.perflog");
+          perf_log.SetOutput(rest + "/data.perflog");
         }
       }
       continue;
@@ -127,7 +127,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       defined_shares[share] = priority;
     }
     else if (command == "deliveryservice") {
-      std::string url = Arc::ConfigIni::NextArg(rest);
+      std::string url = rest;
       Arc::URL u(url);
       if (!u) {
         logger.msg(Arc::ERROR, "Bad URL in deliveryservice: %s", url);
@@ -158,7 +158,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       if (partial == "no") httpgetpartial = false;
     }
     else if (command == "preferredpattern") {
-      preferred_pattern = Arc::ConfigIni::NextArg(rest);
+      preferred_pattern = rest;
     }
     else if (command == "usehostcert") {
       std::string use_host_cert = Arc::ConfigIni::NextArg(rest);
@@ -173,13 +173,13 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       log_level = Arc::old_level_to_level(level);
     }
     else if (command == "statefile") {
-      dtr_log = Arc::ConfigIni::NextArg(rest);
+      dtr_log = rest;
     }
     else if (command == "central_logfile") {
-      dtr_central_log = Arc::ConfigIni::NextArg(rest);
+      dtr_central_log = rest;
     }
     else if (command == "use_remote_acix")  {
-      std::string endpoint(Arc::ConfigIni::NextArg(rest));
+      std::string endpoint(rest));
       if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
         logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
         return false;

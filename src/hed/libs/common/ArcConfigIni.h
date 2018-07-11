@@ -108,17 +108,15 @@ class ConfigIni {
   const char* SectionIdentifier(void) const { return current_identifier.c_str(); }
 
   /// Helper method which reads keyword from string at 'line' separated by 'separator'
-  /// and stores it in 'str'. Each couple of characters starting from \ is
-  /// replaced by second character. \x## is replaced by code corresponding
-  /// to hexadecimal number ##.
+  /// and stores it in 'str'. 
   /// If separator is set to \0 then whole line is consumed.
   /// If quotes are not \0 keyword may be enclosed in specified character.
   /// Returns position of first character in 'line', which is not in read keyword.
-  static int NextArg(const char* line,std::string &str,char separator = ' ',char quotes = '"');
+  static int NextArg(const char* line,std::string &str,char separator = ' ',char quotes = '\0');
 
   /// Reads keyword from string at 'rest' and reduces 'rest' by removing keyword from it.
   /// The way it processes keyword is similar to static NextArg method.
-  static std::string NextArg(std::string &rest,char separator = ' ',char quotes = '"');
+  static std::string NextArg(std::string &rest,char separator = ' ',char quotes = '\0');
 
 };
 

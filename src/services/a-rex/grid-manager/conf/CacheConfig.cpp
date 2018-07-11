@@ -113,7 +113,7 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
           _cache_min = min_i;
         }
         else if(command == "logfile") {
-          std::string logfile = Arc::ConfigIni::NextArg(rest);
+          std::string logfile = rest;
           if (logfile.length() < 2 || logfile[0] != '/' || logfile[logfile.length()-1] == '/')
             throw CacheConfigException("Bad filename in cachelogfile parameter");
           _log_file = logfile;

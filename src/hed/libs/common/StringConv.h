@@ -219,6 +219,9 @@ namespace Arc {
   /// Unescape or unencode characters in str escaped with esc.
   std::string unescape_chars(const std::string& str, char esc, escape_type type = escape_char);
 
+  /// Extract first charcters from input till separator taking into account escape rules
+  std::string extract_escaped_token(std::string& input, char sep, char esc, escape_type type = escape_char);
+
   /** @} */
 } // namespace Arc
 
