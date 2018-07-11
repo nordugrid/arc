@@ -77,13 +77,23 @@
 ## Note that quotes around the configuration value(s) must NOT be used any longer.
 ## Note that the arc.conf is CASE-SENSITIVE!
 ##
-## Space handling syntax in arc.conf: 
-## a) Extra space at the begining and at the end of a configuration option line 
-## and also around the "=" sign are stripped out and ignored: 
+## Space handling syntax in arc.conf
+## for configuration lines:
 ## (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
-## b) Space is not allowed in [keyword:identifier] block headers with the exception of the 
-## identifier string: [keyword:(stripped space)"this is allowed name"(stripped space)].
-## Any extra space after the ":" and before the terminating "]" is stripped and ignored 
+##  and for block headers: 
+## [keyword:(stripped space)space is allowed within identifier(stripped space)]
+## detailed textual definition:
+## a) All trailing and leading spaces on each confiuration line are stripped and ignored.
+##    This aplies both to block headers and block content.
+## b) All spaces around the "=" sign in "option=value" kind of string (after 'a' is applied)
+##    are stripped and ignored. For example line "hostname = myhost.info" is treated as
+##    identical to "hostname=myhost.info".
+## c) In block headers of "[keyword]" kind (after 'a' is applied) no additional spaces are allowed
+##    around "keyword" and inside "keyword".
+## d) In block headers of "[keyword:identifier]" kind (after 'a' is applied) no additional spaces
+##    are allowed around "keyword" and inside "keyword". The spaces ARE allowed around and inside
+##    "identifier" part. Those around "identifier" are stripped and ignored. Those inside
+##    "identifier" are treated as its integral part and are preserved.
 ##
 ## Mandatory configuration options are indicated by an asterix prefix to the
 ## option name e.g:  *mandatory_configoption. Mandatory options with undefined values 
