@@ -274,10 +274,10 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
     if((*p) == '#') continue;
     if((*p) == 0) continue;
     std::string val;
-    int n = Arc::ConfigIni::NextArg(p,val);
+    int n = Arc::ConfigIni::NextArg(p,val,' ','"');
     if(strcmp(val.c_str(),user.DN()) != 0) continue;
     p+=n;
-    Arc::ConfigIni::NextArg(p,unix_user.name);
+    Arc::ConfigIni::NextArg(p,unix_user.name,' ','"');
     f.close();
     return AAA_POSITIVE_MATCH;
   };

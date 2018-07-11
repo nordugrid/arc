@@ -83,7 +83,7 @@ namespace ArcJura
                 return;
             }
           } else if (command == "vomsless_vo") {
-            vomsless_vo = Arc::ConfigIni::NextArg(rest);
+            vomsless_vo = Arc::ConfigIni::NextArg(rest,'#');
             vomsless_issuer = rest;
           } else if (command == "vo_group") {
             vo_group = rest;

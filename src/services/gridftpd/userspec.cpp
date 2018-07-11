@@ -57,11 +57,11 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
     if((*p) == '#') continue;
     if((*p) == 0) continue;
     std::string val;
-    int n = Arc::ConfigIni::NextArg(p,val);
+    int n = Arc::ConfigIni::NextArg(p,val,' ','"');
     if(strcmp(val.c_str(),dn) != 0) continue;
     p+=n;
     if(user) {
-      n=Arc::ConfigIni::NextArg(p,val);
+      n=Arc::ConfigIni::NextArg(p,val,' ','"');
       *user=strdup(val.c_str());
     };
     f.close();

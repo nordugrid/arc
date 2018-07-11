@@ -12,6 +12,7 @@
 
 namespace gridftpd {
 
+  /*
   bool file_user_list(const std::string& path,std::string &ulist) {
     std::ifstream f(path.c_str());
     if(! f.is_open() ) return false;
@@ -21,7 +22,7 @@ namespace gridftpd {
       Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
-        name=Arc::ConfigIni::NextArg(rest);
+        name=Arc::ConfigIni::NextArg(rest,' ','"');
       };
       if(name.length() == 0) continue;
       std::string::size_type pos;
@@ -47,7 +48,7 @@ namespace gridftpd {
       Arc::trim(rest," \t\r\n");
       std::string name = "";
       for(;rest.length() != 0;) {
-        name=Arc::ConfigIni::NextArg(rest);
+        name=Arc::ConfigIni::NextArg(rest,' ','"');
       };
       if(name.length() == 0) continue;
       for(std::list<std::string>::iterator u = ulist.begin();
@@ -60,5 +61,6 @@ namespace gridftpd {
     f.close();
     return true;
   }
+  */
 
 } // namespace gridftpd
