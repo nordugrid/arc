@@ -2,6 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 
 # Initialize logging
+import os
 import logging
 import argparse
 import errno
@@ -22,7 +23,7 @@ from arc.utils import config
 def get_parser():
     parser = argparse.ArgumentParser(description='Nordugrid ARC Computing Element Control Tool')
     parser.add_argument('-c', '--config', action='store',
-                        help='config file location (default is %(default)s)', default='/etc/arc.conf')
+                        help='config file location (default is %(default)s)', default=config.arcconf_defpath())
     parser.add_argument('-d', '--debug', action='store',
                         help='verbosity level (default is %(default)s)', default='WARNING',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
@@ -33,6 +34,33 @@ def get_parser():
         c.register_parser(subparsers)
 
     return parser
+
+
+# Return parsed arc.conf (conditionally dump and load config with included defaults)
+def get_arcconfig(conf_f):
+    __runconfig = '/tmp/.arcctl.arc.run.conf'
+    runconf_load = os.path.exists(__runconfig)
+    try:
+        logger.debug('Getting ARC configuration (config file: %s)', conf_f)
+        if runconf_load:
+            arcconf_mtime = os.path.getmtime(conf_f)
+            default_mtime = os.path.getmtime(config.defaults_defpath())
+            runconf_mtime = os.path.getmtime(__runconfig)
+            if runconf_mtime < arcconf_mtime or runconf_mtime < default_mtime:
+                runconf_load = False
+        if runconf_load:
+            logger.debug('Loading cached parsed configuration from %s', __runconfig)
+            config.load_run_config(__runconfig)
+        else:
+            logger.debug('Parsing configuration options from %s (with defaults in %s)',
+                         conf_f, config.defaults_defpath())
+            config.parse_arc_conf(conf_f)
+            config.save_run_config(__runconfig)
+        arcconfig = config
+    except IOError:
+        logger.error('Failed to open ARC configuration file %s', conf_f)
+        arcconfig = None
+    return arcconfig
 
 if __name__ == '__main__':
     parser = get_parser()
@@ -48,21 +76,15 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     cmd_args = parser.parse_args()
+    # Set log level for both arcctl and config loggers
     logger.setLevel(cmd_args.debug)
+    config.logger.setLevel(cmd_args.debug)
+    # Define handler class
     ctl_class = cmd_args.handler_class
-
-    # Parse arc.conf
-    try:
-        logger.debug('Parsing ARC CE configuration file %s', cmd_args.config)
-        config.parse_arc_conf(cmd_args.config)
-        arcconfig = config
-    except IOError:
-        logger.error('Failed to open ARC configuration file %s', cmd_args.config)
-        arcconfig = None
 
     # Invoke ARC control action
     try:
-        ctl_class(arcconfig).control(cmd_args)
+        ctl_class(get_arcconfig(cmd_args.config)).control(cmd_args)
     except IOError as e:
         # handle SIGPIPE termination
         if e.errno == errno.EPIPE:

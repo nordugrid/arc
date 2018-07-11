@@ -7,8 +7,7 @@ import subprocess
 
 # init module logger
 logger = logging.getLogger('ARC.ConfigParserPy')
-# logger.setLevel(logging.WARNING)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
@@ -78,16 +77,26 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     _evaluate_values()
 
 
+def yield_arc_conf():
+    """Yield stored config dict line by line"""
+    for b in __parsed_blocks:
+        yield '[{0}]\n'.format(b)
+        for opt, val in __parsed_config[b].iteritems():
+            if opt == '__block_name':
+                continue
+            if isinstance(val, list):
+                for v in val:
+                    yield '{0}={1}\n'.format(opt, v)
+            else:
+                yield '{0}={1}\n'.format(opt, val)
+        yield '\n'
+
+
 def dump_arc_conf(conf_f=__def_path_runconf):
     """Dump stored config dict to file"""
     with open(conf_f, 'wb') as arcconf:
-        for b in __parsed_blocks:
-            arcconf.write('[{0}]\n'.format(b))
-            for opt, val in __parsed_config[b].iteritems():
-                if opt == '__block_name':
-                    continue
-                arcconf.write('{0}={1}\n'.format(opt, val))
-            arcconf.write('\n')
+        for confline in yield_arc_conf():
+            arcconf.write(confline)
 
 
 def save_run_config(runconf_f=__def_path_runconf):
@@ -159,14 +168,16 @@ def _conf_substitute_var(optstr, current_block):
             # check default - references to not-defined block in arc.conf with warning
             if block in __default_blocks:
                 if refvar in __default_config[block]:
-                    value = __default_config[block][refvar]
+                    if __default_config[block][refvar] != __no_default:
+                        value = __default_config[block][refvar]
                     logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
         if value is None:
-            logger.error('Failed to find reference variable value for %s', v.group(0))
+            logger.warning('Failed to find reference variable value for %s. Skipping.', v.group(0))
+            optstr = None
         else:
             logger.debug('Substituting variable %s value: %s', v.group(0), value)
             optstr = optstr.replace(v.group(0), value)
-            subst = True
+        subst = True
     return subst, optstr
 
 
@@ -222,7 +233,8 @@ def _evaluate_values():
     # Evaluate substitutions: VAR
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block in __parsed_blocks:
-        for opt, val in __parsed_config[block].iteritems():
+        for opt in __parsed_config[block].keys():
+            val = __parsed_config[block][opt]
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
@@ -230,7 +242,10 @@ def _evaluate_values():
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_var(val, block)
                 if subst:
-                    __parsed_config[block][opt] = subval
+                    if subval is None:
+                        del __parsed_config[block][opt]
+                    else:
+                        __parsed_config[block][opt] = subval
     # Evaluate substitutions: EVAL
     # e.g. $EVAL{$VAR{bdii_provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
     for block in __parsed_blocks:
@@ -250,9 +265,9 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
     with open(conf_f, 'rb') as arcconf:
         block_id = None
         for ln, confline in enumerate(arcconf):
-            if re.match(__arcconf_re['skip'], confline):
+            if __arcconf_re['skip'].match(confline):
                 continue
-            block_match = re.match(__arcconf_re['block'], confline)
+            block_match = __arcconf_re['block'].match(confline)
             if block_match:
                 block_dict = block_match.groupdict()
                 block_id = block_dict['block']
@@ -261,7 +276,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                 if block_dict['block_name'] is not None:
                     parsed_confdict_ref[block_id]['__block_name'] = block_dict['block_name'][1:].strip()
                 continue
-            option_match = re.match(__arcconf_re['option'], confline)
+            option_match = __arcconf_re['option'].match(confline)
             if option_match:
                 if block_id is None:
                     logger.error('Option definition comes before block definition and will be ignored - line #%s: %s',
@@ -370,6 +385,8 @@ def get_value(option, blocks=None, force_list=False, bool_yesno=False):
                 if force_list and not isinstance(value, list):
                     value = [value]
                 return value
+    if force_list:
+        return []
     return None
 
 
@@ -423,3 +440,27 @@ def check_blocks(blocks=None, and_logic=True):
         else:
             result = (b in __parsed_config) or result
     return result
+
+
+def yield_modified_conf(refblock, refoption, newvalue, conf_f=__def_path_arcconf):
+    sferblock = '[{0}]'.format(refblock)
+    with open(conf_f, 'rb') as refconf:
+        in_correct_block = False
+        inserted = False
+        for confline in refconf:
+            sconfline = confline.strip()
+            if not in_correct_block:
+                if sconfline == sferblock:
+                    in_correct_block = True
+            else:
+                is_nextblock = sconfline.startswith('[')
+                if sconfline.startswith(refoption) or is_nextblock:
+                    if not inserted:
+                        for v in newvalue:
+                            yield '{0}={1}\n'.format(refoption, v)
+                        if is_nextblock:
+                            yield '\n'
+                        inserted = True
+                    if not is_nextblock:
+                        continue
+            yield confline
