@@ -120,7 +120,7 @@ namespace gridftpd {
     } else if(section == "gridftpd") {
       // [gridftpd] section
       if(cmd == "logfile") {
-        if(logfile_.length() == 0) logfile_=Arc::ConfigIni::NextArg(rest);
+        if(logfile_.length() == 0) logfile_=rest;
       } else if(cmd == "logreopen") {
         std::string arg = Arc::ConfigIni::NextArg(rest);
         if(arg=="") {
@@ -132,7 +132,7 @@ namespace gridftpd {
         else { logger.msg(Arc::ERROR, "Wrong option in logreopen"); return -1; };
       } else if(cmd == "user") {
         if(uid_ == (uid_t)(-1)) {
-          std::string username = Arc::ConfigIni::NextArg(rest);
+          std::string username = rest;
           std::string groupname("");
           std::string::size_type n = username.find(':');
           if(n != std::string::npos) { groupname=username.c_str()+n+1; username.resize(n); };
@@ -161,7 +161,7 @@ namespace gridftpd {
           };
         };
       } else if(cmd == "pidfile") {
-        if(pidfile_.length() == 0) pidfile_=Arc::ConfigIni::NextArg(rest);
+        if(pidfile_.length() == 0) pidfile_=rest;
       } else if(cmd == "loglevel") {
         if(debug_ == -1) {
           char* p;

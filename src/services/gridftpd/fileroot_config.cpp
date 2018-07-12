@@ -87,7 +87,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         };
       } else if(command == "firewall") {
         if(params) {
-          std::string value=Arc::ConfigIni::NextArg(rest);
+          std::string value=rest;
           int    errcode;
           struct hostent* host;
           struct hostent  hostbuf;
@@ -297,7 +297,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
               return 1;
             };
           } else if(command == "port") {
-            port=Arc::ConfigIni::NextArg(rest);
+            port=rest;
           } else if(command == "allowactivedata") {
             std::string value=Arc::ConfigIni::NextArg(rest);
             if(value == "yes") {
@@ -313,7 +313,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
           };
         } else if(cf.SectionNum() == cfgsec_common_n) { // [common]
           if(command == "hostname") { // should be in [common]
-            hostname=Arc::ConfigIni::NextArg(rest);
+            hostname=rest;
           };
         } else if(cf.SectionNum() == cfgsec_common_mapping_n) {
           if(command == "unixmap") {  /* map to local unix user */

@@ -179,7 +179,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       dtr_central_log = rest;
     }
     else if (command == "use_remote_acix")  {
-      std::string endpoint(rest));
+      std::string endpoint(rest);
       if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
         logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
         return false;
