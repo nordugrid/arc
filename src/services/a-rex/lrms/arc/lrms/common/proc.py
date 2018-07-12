@@ -17,7 +17,7 @@ def sliceargs(args, MAX = 4000):
         yield subargs
 
 
-def execute_local(args, env = None):
+def execute_local(args, env = None, zerobyte = False):
     """
     Execute a command locally. This method is a wrapper for
     :py:class:`subprocess.Popen` with stdout and stderr piped to
@@ -38,7 +38,11 @@ def execute_local(args, env = None):
     handle = type('Handle', (object,), {'stdout' : [], 'stderr' : [], 'returncode' : 0})()
     p = Popen(args, stdout = stdout, stderr = stderr, env = env, shell = True)
     p.wait()
-    handle.stdout = stdout.seek(0) or stdout.readlines()
+    if zerobyte:
+        strstdout = stdout.seek(0) or stdout.read()
+        handle.stdout = strstdout.split('\0')
+    else:
+        handle.stdout = stdout.seek(0) or stdout.readlines()
     handle.stderr = stderr.seek(0) or stderr.readlines()
     handle.returncode = p.returncode
     return handle
