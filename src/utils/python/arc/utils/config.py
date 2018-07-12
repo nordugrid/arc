@@ -207,11 +207,14 @@ def _merge_defults():
     for block, optdict in __parsed_config.iteritems():
         if ':' in block:
             block = block.split(':')[0].strip()
-        for opt, val in __default_config[block].iteritems():
-            if opt not in optdict:
-                # add option from default file
-                if val != __no_default:
-                    optdict.update({opt: val})
+        if block in __default_config:
+            for opt, val in __default_config[block].iteritems():
+                if opt not in optdict:
+                    # add option from default file
+                    if val != __no_default:
+                        optdict.update({opt: val})
+        else:
+            logger.warning('Configuration block [%s] is not in the defaults file.', block)
 
 
 def _evaluate_values():
