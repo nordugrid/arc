@@ -1,6 +1,5 @@
 debian/tmp/usr/lib/arc/arc-blahp-logger
 debian/tmp/usr/lib/arc/arc-config-check
-debian/tmp/usr/lib/arc/arc-vomsac-check
 debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/gm-*
@@ -64,7 +63,6 @@ debian/tmp/usr/share/man/man1/cache-list.1
 debian/tmp/usr/share/man/man1/jura.1
 debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
-debian/tmp/usr/share/man/man8/arc-vomsac-check.8
 debian/tmp/usr/share/man/man8/gm-*.8
 
 debian/tmp/usr/share/arc/ssm/__init__.py*

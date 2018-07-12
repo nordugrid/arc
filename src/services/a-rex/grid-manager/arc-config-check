@@ -65,7 +65,7 @@ Detailed man page.
 
 =item --openssl-path <filename>
 
-Path to openssl binary, determined with 'which openssl' if not set.
+Path to openssl binary, will be found from PATH if not set.
 
 =back
 
@@ -150,8 +150,6 @@ print STDERR "The following sections have configurable subgroups: "
 		. join(", ",keys %introducedSections)."\n" if $verbose;
 
 ################ U T I L  R O U T I N E S #################################
-
-$opensslpath=`which openssl | tr -d '\n'` unless defined($opensslpath);
 
 # Prints message with required format
 sub p($) {
@@ -817,6 +815,16 @@ sub check_certificates() {
 		e("CA directory does not exist at '$CApath");
 		return;
 	}
+	
+    # Find openssl command if not set in options
+    unless (defined($opensslpath)) {
+        foreach my $p (split /:/, $ENV{PATH}) {
+            if (-x "$p/openssl") {
+                $opensslpath = "$p/openssl";
+                last;
+            }
+        }
+    }
 
 	unless (defined($opensslpath) and "" ne "$opensslpath") {
 		w("openssl application not in path and not specified.\n");
