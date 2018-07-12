@@ -37,4 +37,3 @@ elif cmd_args.include_defaults:
     reference.parse_defaults(cmd_args.defaults)
     reference.process_reference(cmd_args.reference, print_reference=True)
 
-# DISCUSSION: Convert reference to man page somehow or man page that instruct admin to read the reference?

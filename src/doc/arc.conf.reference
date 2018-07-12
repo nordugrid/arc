@@ -303,7 +303,6 @@
 ## This block defines the grid-identity to local unix identity mapping rules used by
 ## various ARC components.
 #[mapping]
-## TODO: Florido to update his code for the new block name 
 ## CHANGE8: This is a new block
 
 ## gridmap = path - The gridmap file location. gridmap-based mapping is not recommended any longer.
@@ -1462,7 +1461,7 @@
 ## For example, if the remote file gsiftp://remotehost/file1 is stored in the cache
 ## and the WS interfaces (configured above) are available via wsurl of https://hostname:443/arex/,
 ## then the cached copy of the file can be access via the following special URL:
-## https://hostname:344/arex/cache/gsiftp://remotehost/file1
+## https://hostname:443/arex/cache/gsiftp://remotehost/file1
 ## Comment out this block if you don't want to expose the cache content via WS-interface.
 #[arex/ws/cache]
 ## CHANGE76: new block
@@ -1607,7 +1606,6 @@
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## CHANGE: DELETED from this block because it should be set either in APEL or SGAS subblocks
-## TODO: remove from the code
 
 ## vomsless_vo = voname[#voissuer] - This parameter allows the sysadmin to manually assign
 ## VOs to jobs that were submitted with "VOMS-less grid proxies" . 
@@ -2758,9 +2756,9 @@
 #pbs_queue_node=ppn=4:ib
 ## CHANGE152: renamed
 
-## sge_jobopts = string - Additional SGE options to be used when submitting jobs to SGE
-## from this queue.
-## default: $VAR{[lrms]/sge_jobopts}
+## sge_jobopts = string - Per-queue override of additional SGE options to be used when 
+## submitting jobs to SGE to this queue
+## default: undefined
 #sge_jobopts=-P atlas -r yes
 
 ## condor_requirements = string - It needs to be defined for each Condor queue.
@@ -2824,7 +2822,6 @@
 ## opsys = formatted_string - see description at [infosys/cluster] block
 ## multivalued
 ## default: $VAR{[infosys/cluster]opsys}
-## TODO: figure out howto handle multivalued parameters
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 

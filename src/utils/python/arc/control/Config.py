@@ -73,7 +73,7 @@ class ConfigControl(ComponentControl):
             sys.stdout.write(confline)
         sys.stdout.flush()
 
-    def varget(self, args):
+    def var_get(self, args):
         for opt in self.arcconfig.get_value(args.option, args.block, force_list=True):
             sys.stdout.write(opt + '\n')
         sys.stdout.flush()
@@ -100,10 +100,11 @@ class ConfigControl(ComponentControl):
                 self.__write_brief_options(binfo, textshift='    ')
 
     def describe(self, args):
+        self.logger.debug('Fetching option description from reference file %s', args.reference)
         for line in reference.get_option_description(args.reference, args.block, args.option):
             sys.stdout.write(line)
 
-    def varset(self, args):
+    def var_set(self, args):
         # filter allowed values
         allowed_values = reference.allowed_values(args.reference, args.block, args.option)
         if allowed_values:
@@ -144,11 +145,11 @@ class ConfigControl(ComponentControl):
         if args.action == 'dump':
             self.dump()
         elif args.action == 'get':
-            self.varget(args)
+            self.var_get(args)
         elif args.action == 'describe':
             self.describe(args)
         elif args.action == 'set':
-            self.varset(args)
+            self.var_set(args)
         elif args.action == 'brief':
             self.brief(args)
         else:

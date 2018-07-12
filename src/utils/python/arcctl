@@ -1,12 +1,14 @@
 #!/usr/bin/python2
 # PYTHON_ARGCOMPLETE_OK
 
-# Initialize logging
 import os
 import logging
 import argparse
 import errno
+from arc.control import *
+from arc.utils import config
 
+# Initialize logging
 logger = logging.getLogger('ARCCTL')
 logger.setLevel(logging.INFO)
 log_handler_stderr = logging.StreamHandler()
@@ -14,9 +16,8 @@ log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
 
-# Import modules
-from arc.control import *
-from arc.utils import config
+# Runconfig location
+__runconfig = '/tmp/.arcctl.arc.run.conf'
 
 
 # Define root parser for arcctl
@@ -29,16 +30,14 @@ def get_parser():
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 
     # Register subparsers for defined arc.control components
-    subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT')  #, help='DESCRIPTION')
+    subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT', help='DESCRIPTION')
     for c in CTL_COMPONENTS:
         c.register_parser(subparsers)
-
     return parser
 
 
 # Return parsed arc.conf (conditionally dump and load config with included defaults)
 def get_arcconfig(conf_f):
-    __runconfig = '/tmp/.arcctl.arc.run.conf'
     runconf_load = os.path.exists(__runconfig)
     try:
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
@@ -63,19 +62,19 @@ def get_arcconfig(conf_f):
     return arcconfig
 
 if __name__ == '__main__':
-    parser = get_parser()
+    args_parser = get_parser()
 
     # Try to import and use argcomplete if available
     try:
         import argcomplete
-        argcomplete.autocomplete(parser)
+        argcomplete.autocomplete(args_parser)
     except ImportError:
         argcomplete = None
         logger.debug('Cannot import argcomplete module. '
                      'Consider to install python-argcomplete to take advantage of arcctl tab-completion')
 
     # Parse command line arguments
-    cmd_args = parser.parse_args()
+    cmd_args = args_parser.parse_args()
     # Set log level for both arcctl and config loggers
     logger.setLevel(cmd_args.debug)
     config.logger.setLevel(cmd_args.debug)
@@ -90,4 +89,7 @@ if __name__ == '__main__':
         if e.errno == errno.EPIPE:
             pass
         else:
+            # Remove runconfig on any failures
+            if os.path.exists(__runconfig):
+                os.unlink(__runconfig)
             raise

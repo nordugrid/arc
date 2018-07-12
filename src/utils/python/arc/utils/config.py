@@ -176,7 +176,11 @@ def _conf_substitute_var(optstr, current_block):
             optstr = None
         else:
             logger.debug('Substituting variable %s value: %s', v.group(0), value)
-            optstr = optstr.replace(v.group(0), value)
+            # for multivalued parameters substitution replaces the value with the whole list
+            if isinstance(value, list):
+                optstr = value
+            else:
+                optstr = optstr.replace(v.group(0), value)
         subst = True
     return subst, optstr
 

@@ -7,5 +7,11 @@ from Config import ConfigControl
 from TestCA import TestCAControl
 
 CTL_COMPONENTS = [
-    RTEControl, JobsControl, ServicesControl, ThirdPartyControl, AccountingControl, ConfigControl, TestCAControl
+    RTEControl,
+    JobsControl,
+    ServicesControl,
+    ThirdPartyControl,
+    AccountingControl,
+    ConfigControl,
+    TestCAControl
 ]
