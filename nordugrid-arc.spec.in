@@ -97,7 +97,8 @@
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
-%global with_pythonlrms 1
+# Disabled due to BZ #3712 and other issues
+%global with_pythonlrms 0
 %else
 %global with_pythonlrms 0
 %endif
