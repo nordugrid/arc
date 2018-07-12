@@ -153,7 +153,9 @@
 ## CHANGE1: modified semantics, not mandatory any longer
 
 ## http_proxy = url - The http proxy server.
-## TODO: clarify which ARC services can use this proxy.
+## This setting affects all client HTTP(s) requests that initiated by ARC core services,
+## including data staging, SAML communications, and pushing SGAS accounting records.
+## This variable is similar to setting the ARC_HTTP_PROXY environmental variable.
 ## default: undefined
 #http_proxy=proxy.mydomain.org:3128
 ## CHANGE4: moved here from the old [grid-manager] block
