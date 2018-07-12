@@ -118,11 +118,11 @@ def set_gridmanager(cfg):
        if cfg.has_option('arex', 'logfile') \
        else '/var/log/arc/arex.log'
    Config.gnu_time = \
-       str(cfg.get('arex', 'gnu_time')).strip('"') \
-       if cfg.has_option('arex', 'gnu_time') else '/usr/bin/time'
+       str(cfg.get('lrms', 'gnu_time')).strip('"') \
+       if cfg.has_option('lrms', 'gnu_time') else '/usr/bin/time'
    Config.nodename = \
-       str(cfg.get('arex', 'nodename')).strip('"') \
-       if cfg.has_option('arex', 'nodename') else '/bin/hostname -f'
+       str(cfg.get('lrms', 'nodename')).strip('"') \
+       if cfg.has_option('lrms', 'nodename') else '/bin/hostname -f'
    # SSH
    from pwd import getpwuid
    Config.remote_host = \

@@ -562,6 +562,12 @@
 #nodename=/bin/hostname -s
 ## CHANGE: moved here from the [arex] block
 
+## gnu_time = path - Path to the GNU time command on the LRMS worker nodes.
+## If time command exists on the node, jobscript will write additional diagnostic information.
+## default: /usr/bin/time
+#gnu_time=/usr/bin/time
+## CHANGE: moved here from the [arex] block
+
 ### PBS options: set these only in case of lrms=pbs
 ## pbs_bin_path = path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
 ## no need to set if PBS is not used
@@ -1010,11 +1016,10 @@
 ## CHANGE43: modified. implement a default! in the format of root@localhost. 
 
 ## gnu_time = path - The gnu time command
-## default: /usr/bin/time
-#gnu_time=/usr/bin/time
+## CHANGE: moved to [lrms] 
 
 ## nodename = path - The command to obtain hostname of computing node.
-## CHANGE: moved to LRMS as it is only subsystem using this
+## CHANGE: moved to [lrms]
 
 
 ## helper = user executable arguments - By enabling this parameter A-REX will

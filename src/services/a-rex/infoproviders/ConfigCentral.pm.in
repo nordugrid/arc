@@ -210,7 +210,6 @@ my $gmcommon_options = {
     x509_host_cert => '*',  # C 6
     x509_cert_dir => '*',
     runtimedir => '*',
-    gnu_time => '*',
     shared_filesystem => '*',
     shared_scratch => '*',
     scratchdir => '*',
@@ -1001,7 +1000,6 @@ sub printLRMSConfigScript {
 
     my $gmopts = {};
     $gmopts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
-    $gmopts->{gnu_time} = $config->{gnu_time} if $config->{gnu_time};
     $gmopts->{scratchdir} = $config->{scratchdir} if $config->{scratchdir};
     $gmopts->{shared_scratch} = $config->{shared_scratch} if $config->{shared_scratch};
     # shared_filesystem: if not set, assume 'yes'
