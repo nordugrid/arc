@@ -175,7 +175,16 @@ def RTE_stage0(jobdesc, lrms, **mapping):
             stdout = handle.stdout
             if handle.returncode != 0:
                  raise ArcError('Runtime script %s failed' % sw, 'common.submit')
-            new_env = dict((k,v.rstrip('\n')) for k,v in (l.split('=', 1) for l in stdout if l != '\n'))
+            # construct new env dictionary
+            new_env = {}
+            prev = ''
+            for l in stdout:
+                if '=' not in l:
+                    l = prev + l
+                k, v = l.split('=', 1)
+                new_env.update({k: v.rstrip('\n')})
+                prev = l
+            # update environment
             stage0_environ.update(new_env)
 
         # Source RTE scripts from the software list
