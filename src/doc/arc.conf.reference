@@ -555,6 +555,13 @@
 #defaultmemory=512
 ## CHANGE13: moved here from the [cluster] block
 
+## nodename = path - Redefine the command to obtain hostname of LRMS worker node.
+## By default the value is defined on buildtime and depend on the OS. 
+## In most cases /bin/hostname -f will be used.
+## default: undefined
+#nodename=/bin/hostname -s
+## CHANGE: moved here from the [arex] block
+
 ### PBS options: set these only in case of lrms=pbs
 ## pbs_bin_path = path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
 ## no need to set if PBS is not used
@@ -1007,9 +1014,8 @@
 #gnu_time=/usr/bin/time
 
 ## nodename = path - The command to obtain hostname of computing node.
-## TODO: check what uses this parameter
-## default: /bin/hostname
-#nodename=/bin/hostname
+## CHANGE: moved to LRMS as it is only subsystem using this
+
 
 ## helper = user executable arguments - By enabling this parameter A-REX will
 ## run an external "helper" program under the user useraccount. The program will be
