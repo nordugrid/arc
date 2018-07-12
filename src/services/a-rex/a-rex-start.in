@@ -63,12 +63,13 @@ testconfigblock() {
         return
     fi
     bname="[$2]"
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' | {
+    cat "$fname" | sed -e 's/\e$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
                 return
             fi
+            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
             if [ "$line" = "$bname" ] ; then
                 echo 'true'
                 return
@@ -79,97 +80,43 @@ testconfigblock() {
 }
 
 readconfigvar() {
+    # subnames (after : ) are not supported
     fname=$1
     if [ ! -r "$fname" ]; then
         return
     fi
     bname="[$2]"
     vname=$3
-    value=
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
+    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
                 return
             fi
+            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
             if [ "$line" = "$bname" ] ; then
+                # requested block started
                 while true ; do
                     read line
                     if [ ! $? = 0 ] ; then
                         return
                     fi
+                    line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
                     lstart=`echo "$line" | head -c 1`
                     if [ "$lstart" = '[' ] ; then
+                        # next block started
                         return
                     fi
-                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+                    vlname=`echo "$line" | sed -e 's/[[:space:]]*=.*//;t;s/.*//'`
                     if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed 's/[^=]*=//'`
-                        eval "echo $val"
-                        return
-                    fi
-                done
-            fi
-        done
-    }
-}
-
-readconfigvars() {
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
-    fi
-    bname="[$2]"
-    vname=$3
-    value=
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^\[' -e "^${vname}=" | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            if [ "$line" = "$bname" ] ; then
-                while true ; do
-                    read line
-                    if [ ! $? = 0 ] ; then
-                        return
-                    fi
-                    lstart=`echo "$line" | head -c 1`
-                    if [ "$lstart" = '[' ] ; then
-                        return
-                    fi
-                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-                    if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed 's/[^=]*=//'`
+                        val=`echo "$line" | sed -e 's/[^=]*=[[:space:]]*//'`
                         echo "$val"
+                        return
                     fi
                 done
             fi
         done
     }
-}
-
-tokenize() {
-    line="$1"
-    prefix="$2"
-    suffix="$3"
-    while true; do
-        if [ -z "$line" ]; then break; fi
-        token=`echo "$line" | sed 's/^"\([^"]*\)" *.*/\1/;t exit;s/^\([^ ]*\)  *.*/\1/;:exit'`
-        line=`echo "$line" | sed 's/^"[^"]*" *\(.*\)/\1/;t exit;s/^[^ ]*  *\(.*\)/\1/;t exit;s/.*//;:exit'`
-        echo "${prefix}${token}${suffix}"
-    done
-}
-
-voms_trust_to_xml() {
-    xml=""
-    while true; do
-        read line
-        if [ $? -ne '0' ]; then break; fi
-        if [ -z "$line" ]; then continue; fi
-        xmlchain=`tokenize "$line" "<VOMSCertTrustDN>" "</VOMSCertTrustDN>"`
-        echo "<VOMSCertTrustDNChain>${xmlchain}</VOMSCertTrustDNChain>"
-    done
 }
 
 # ARC_CONFIG
@@ -215,28 +162,24 @@ prepare() {
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
-    WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex wslogfile`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex debug`
-    LOGSIZE=`readconfigvar "$ARC_CONFIG" arex logsize`
-    LOGREOPEN=`readconfigvar "$ARC_CONFIG" arex logreopen`
+    LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
     WATCHDOG=`readconfigvar "$ARC_CONFIG" arex watchdog`
     USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
+    GRIDTMPDIR=`readconfigvar "$ARC_CONFIG" arex tmpdir`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
     X509_USER_CERT=`readconfigvar "$ARC_CONFIG" arex x509_host_cert`
     X509_USER_KEY=`readconfigvar "$ARC_CONFIG" arex x509_host_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" arex x509_cert_dir`
-    GRIDMAP=`readconfigvar "$ARC_CONFIG" arex gridmap`
-    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex globus_tcp_port_range`
-    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex globus_udp_port_range`
-    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" arex voms_processing`
-    VOMS_TRUST_CHAINS=`readconfigvars "$ARC_CONFIG" arex voms_trust_chain | voms_trust_to_xml`
-    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex max_job_control_requests`
-    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex max_infosys_requests`
-    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_tcp_port_range`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_udp_port_range`
+    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
+    GRIDMAPAUTH=`readconfigvar "$ARC_CONFIG" common gridmap`
+    GRIDMAPMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
-    USERAUTH_BLOCK='arex/ws/emies'
+    GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
+    ARC_HTTP_PROXY=`readconfigvar "$ARC_CONFIG" common http_proxy`
+    SERVICEMAIL=`readconfigvar "$ARC_CONFIG" arex mail`
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
     fi
@@ -246,31 +189,51 @@ prepare() {
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
     fi
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+    if [ -z "$GRIDMAPMAP" ] ; then
+      GRIDMAPMAP="$GRIDMAPAUTH"
     fi
-    if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
-        GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
+    if [ -z "$GRIDHOSTNAME" ] ; then
+      GRIDHOSTNAME="$HOSTNAME"
     fi
-    if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
-        GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+    if [ -z "$GRIDHOSTNAME" ] ; then
+      GRIDHOSTNAME=`hostname -f`
     fi
-    if [ -z "$VOMS_PROCESSING" ] ; then
-        VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
+    if [ -z "$GRIDHOSTNAME" ] ; then
+        echo "Failed to determine host name for this computer"
+        exit 1
     fi
-    VOMS_TRUST_CHAINS="$VOMS_TRUST_CHAINS"`readconfigvars "$ARC_CONFIG" common voms_trust_chain | voms_trust_to_xml`
+    if [ "$USERNAME" = "root" ] ; then
+        USERNAME=""
+    fi
+    if [ "$GROUPNAME" = "root" ] ; then
+        GROUPNAME=""
+    fi
+    if [ -z "$SERVICEMAIL" ] ; then
+      if [ ! -z "$USERNAME" ] ; then
+        SERVICEMAIL="$USERNAME@$GRIDHOSTNAME"
+      else
+        SERVICEMAIL="root@$GRIDHOSTNAME"
+      fi
+    fi
 
     # Exporting collected variables
     if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
     if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
     if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-    if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
+    if [ ! -z "$GRIDMAPMAP" ] ; then export GRIDMAP="$GRIDMAPMAP"
+    elif [ ! -z "$GRIDMAPAUTH" ] ; then export GRIDMAP="$GRIDMAPAUTH" ; fi
     if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
     if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+    if [ ! -z "$GRIDTMPDIR" ] ; then export TMPDIR="$GRIDTMPDIR" ; fi
+    if [ ! -z "$GRIDHOSTNAME" ] ; then export HOSTNAME="$GRIDHOSTNAME" ; fi
+    if [ ! -z "$ARC_HTTP_PROXY" ] ; then export ARC_HTTP_PROXY ; fi
 
     # Required defaults
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=/etc/grid-security/grid-mapfile
+    if [ -z "$GRIDMAPAUTH" ] ; then
+        GRIDMAPAUTH=/etc/grid-security/grid-mapfile
+    fi
+    if [ -z "$GRIDMAPMAP" ] ; then
+        GRIDMAPMAP=/etc/grid-security/grid-mapfile
     fi
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=/etc/grid-security/hostcert.pem
@@ -281,36 +244,73 @@ prepare() {
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=/etc/grid-security/certificates
     fi
-    if [ "$ALLOWUNKNOWN" != "yes" ] ; then
-        ALLOWUNKNOWN=""
-    fi
 
     # Web Service configuration
     arex_endpoint=""
-    arex_mount_point=`readconfigvar "$ARC_CONFIG" arex arex_mount_point`
-    arex_mount_point=${arex_mount_point:-`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`}
-    if [ ! -z "$arex_mount_point" ] ; then
-        arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
-        arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
-        arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
-        arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-        if [ -z "$arex_port" ] ; then
+    arex_mount_point=""
+    arex_proto=""
+    arex_host=""
+    arex_port=""
+    arex_path=""
+    arex_service_plexer=""
+    ws_present=`testconfigblock "$ARC_CONFIG" arex/ws`
+    arex_present=`testconfigblock "$ARC_CONFIG" arex/ws/emies`
+    if [ "$ws_present" = 'true' ] ; then
+        WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
+        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_job_control_requests`
+        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_infosys_requests`
+        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
+        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
+        USERAUTH_BLOCK='arex/ws/emies'
+        arex_mount_point=`readconfigvar "$ARC_CONFIG" arex/ws wsurl`
+        if [ ! -z "$arex_mount_point" ] ; then
+            arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
+            arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
+            arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
+            arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
             if [ "$arex_proto" = "https" ] ; then
-                arex_port="443"
+                if [ -z "$arex_port" ] ; then
+                    arex_port="443"
+                fi
+            elif [ "$arex_proto" = "http" ] ; then
+                if [ -z "$arex_port" ] ; then
+                    arex_port="80"
+                fi
             else
-                arex_port="80"
+                echo "Unsupported protocol '$arex_proto' for WS interface"
+                exit 1
             fi
+        else
+            arex_proto='https'
+            arex_host="$GRIDHOSTNAME"
+            arex_port='443'
+            arex_path='arex'
+            arex_mount_point=${arex_proto}://${arex_host}:${arex_port}/${arex_path}
         fi
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
-    fi
+        arex_path="/$arex_path"
 
-    enable_emies_interface=`readconfigvar "$ARC_CONFIG" arex enable_emies_interface`
-    if [ ! -z "$enable_emies_interface" ] ; then
-        enable_emies_interface="<arex:enableEMIESInterface>$enable_emies_interface</arex:enableEMIESInterface>"
+        WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
+        if [ ! -d `dirname $WSLOGFILE` ]; then
+            mkdir -p `dirname $WSLOGFILE`
+        fi
+        MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
+        MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
+        MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
+        if [ "$ALLOWUNKNOWN" != "yes" ] ; then
+            ALLOWUNKNOWN=""
+        fi
+    fi
+    if [ "$arex_present" = 'true' ] ; then
+        if [ "$ws_present" != 'true' ] ; then
+            echo "WS interface must be turned on to use A-REX/EMIES WS service"
+            exit 1
+        fi
+        arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
 
     emir_registration=""
-#    if [ ! -z "$arex_mount_point" ]; then
+#    if [ "$arex_present" = 'true' ]; then
 #        emir_urls=`readconfigvar "$ARC_CONFIG" "registration/emir" emirurls`
 #        if [ ! -z "$emir_urls" ]; then
 #            emir_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
@@ -343,7 +343,7 @@ prepare() {
 #    fi
 
     isis_registration=""
-    if [ ! -z "$arex_mount_point" ]; then
+    if [ "$arex_present" = 'true' ]; then
         isis_urls=`readconfigvar "$ARC_CONFIG" "registration/isis" isisurls`
         if [ ! -z "$isis_urls" ]; then
             isis_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
@@ -375,20 +375,10 @@ prepare() {
         fi
     fi
 
-    infoproviders_timeout=`readconfigvar "$ARC_CONFIG" infosys infoproviders_timeout`
-    if [ -z "$infoproviders_timeout" ]; then
-        infoproviders_wakeup="\
-<arex:InfoproviderWakeupPeriod>600</arex:InfoproviderWakeupPeriod>"
-    else
-        infoproviders_wakeup="\
-<arex:InfoproviderWakeupPeriod>$infoproviders_timeout</arex:InfoproviderWakeupPeriod>"
-    fi
-
-
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" arex arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -396,9 +386,9 @@ prepare() {
         echo "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_CONFIG" arex arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_CONFIG" arex arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -414,7 +404,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" arex arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_endpoint`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -422,13 +412,13 @@ prepare() {
         echo "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_CONFIG" arex arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" arex arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_usermap`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" arex arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_acceptnotapplicable`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -445,7 +435,113 @@ prepare() {
 </SecHandler>"
     fi
 
-    legacy_shc="
+    # candypond
+    candypond_plexer=""
+    candypond=""
+    use_candypond=`testconfigblock "$ARC_CONFIG" arex/ws/candypond`
+    if [ "$use_candypond" = "true" ]; then
+        if [ "$ws_present" != 'true' ] ; then
+            echo "WS interface must be turned on to use candypond"
+            exit 1
+        fi
+        candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
+        candypond="\
+    <Service name=\"candypond\" id=\"candypond\">\
+      <!-- Beware of hardcoded block name -->
+      <SecHandler name=\"arc.authz\" event=\"incoming\">
+        <PDP name=\"arclegacy.pdp\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>arex/ws/candypond</BlockName>
+          </ConfigBlock>
+        </PDP>
+      </SecHandler>
+      <!-- Perform client mapping -->
+      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
+        <ConfigBlock>
+          <ConfigFile>$ARC_CONFIG</ConfigFile>
+          <BlockName>$USERMAP_BLOCK</BlockName>
+        </ConfigBlock>
+      </SecHandler>
+      <candypond:service>\
+        <candypond:config>$ARC_CONFIG</candypond:config>\
+        <candypond:witharex>true</candypond:witharex>\
+      </candypond:service>\
+    </Service>"
+    fi
+    
+    if [ -z "$ALLOWUNKNOWN" ]; then
+        gridmapmatch="\
+<!-- Do initial user filtering by gridmap file -->
+<SecHandler name=\"arc.authz\" event=\"incoming\">
+  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAPAUTH\">
+  </PDP>
+</SecHandler>"
+    fi
+
+    service_mail=""
+    if [ ! -z "$SERVICEMAIL" ] ; then
+        service_mail="<serviceMail>$SERVICEMAIL</serviceMail>"
+    fi
+
+    AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
+    if [ -z "$AREX_CONFIG" ] ; then
+        echo "Failed to create temporary file"
+        exit 1
+    fi
+
+    CMD="$CMD -c '$AREX_CONFIG'"
+
+    # VOMS_LOCATION
+    VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
+
+    add_library_path "$VOMS_LOCATION"
+    add_library_path "$GLOBUS_LOCATION"
+    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64
+    else
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64:$LD_LIBRARY_PATH
+    fi
+    export LD_LIBRARY_PATH
+
+    python_site_arch=`python -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0, "'${ARC_LOCATION}'"))'`
+    if [ "x$PYTHONPATH" = "x" ]; then
+        PYTHONPATH=${python_site_arch}
+    else
+        PYTHONPATH=${python_site_arch}:${PYTHONPATH}
+    fi
+    export PYTHONPATH
+
+    case "$LOGLEVEL" in 
+        0) LOGLEVEL="FATAL" ;;
+        1) LOGLEVEL="ERROR" ;;
+        2) LOGLEVEL="WARNING" ;;
+        3) LOGLEVEL="INFO" ;;
+        4) LOGLEVEL="VERBOSE" ;;
+        5) LOGLEVEL="DEBUG" ;;
+        *) LOGLEVEL="INFO" ;;
+    esac
+
+    LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
+    if [ ! -d `dirname $LOGFILE` ]; then
+        mkdir -p `dirname $LOGFILE`
+    fi
+    WATCHDOG=${WATCHDOG:-no}
+    if [ "$WATCHDOG" = "yes" ] ; then
+        WATCHDOG="true"
+    else
+        WATCHDOG="false"
+    fi
+    VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
+    if [ ! -z "$USERNAME" ] ; then
+        CMD="$CMD -u '$USERNAME'"
+    fi
+    if [ ! -z "$GROUPNAME" ] ; then
+        CMD="$CMD -g '$GROUPNAME'"
+    fi
+
+    # Authorization and user mapping for A-REX/EMIES
+    emies_legacy_shc="
 <!-- Do authorization in same way as jobs plugin of gridftpd does -->
 <!-- Beware of hardcoded block name -->
 <SecHandler name=\"arc.authz\" event=\"incoming\">
@@ -464,109 +560,6 @@ prepare() {
   </ConfigBlock>
 </SecHandler>"
 
-    # cache service
-    cache_service_plexer=""
-    cache_service=""
-    use_cache_service=`readconfigvar "$ARC_CONFIG" arex enable_cache_service`
-    if [ "$use_cache_service" = "yes" ]; then
-        
-        use_dtr=`readconfigvar "$ARC_CONFIG" arex enable_dtr`
-        if [ -z "$arex_mount_point" -o "$use_dtr" = "no" ]; then
-            echo "Both DTR and A-REX WS interface must be turned on to use cache service"
-            exit 1
-        fi
-        
-        cache_service_plexer="<next id=\"cacheservice\">^/cacheservice</next>"
-        cache_service="\
-    <Service name=\"cacheservice\" id=\"cacheservice\">\
-      $legacy_shc
-      <cacheservice:cache>\
-        <cacheservice:config>$ARC_CONFIG</cacheservice:config>\
-        <cacheservice:witharex>true</cacheservice:witharex>\
-      </cacheservice:cache>\
-    </Service>"
-    fi
-    
-    if [ -z "$ALLOWUNKNOWN" ]; then
-        gridmapmatch="\
-<!-- Do initial user filtering by gridmap file -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
-  </PDP>
-</SecHandler>"
-    fi
-
-    AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
-    if [ -z "$AREX_CONFIG" ] ; then
-        echo "Failed to create temporary file"
-        exit 1
-    fi
-
-    CMD="$CMD -c '$AREX_CONFIG'"
-
-    # VOMS_LOCATION
-    VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
-
-    add_library_path "$VOMS_LOCATION"
-    add_library_path "$GLOBUS_LOCATION"
-    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
-    else
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
-    fi
-    export LD_LIBRARY_PATH
-
-    case "$LOGLEVEL" in 
-        0) LOGLEVEL="FATAL" ;;
-        1) LOGLEVEL="ERROR" ;;
-        2) LOGLEVEL="WARNING" ;;
-        3) LOGLEVEL="INFO" ;;
-        4) LOGLEVEL="VERBOSE" ;;
-        5) LOGLEVEL="DEBUG" ;;
-        *) LOGLEVEL="WARNING" ;;
-    esac
-
-    if [ "$USERNAME" = "root" ] ; then
-        USERNAME=""
-    fi
-    if [ "$GROUPNAME" = "root" ] ; then
-        GROUPNAME=""
-    fi
-
-    LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
-    if [ ! -d `dirname $LOGFILE` ]; then
-        mkdir -p `dirname $LOGFILE`
-    fi
-    WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
-    if [ ! -d `dirname $WSLOGFILE` ]; then
-        mkdir -p `dirname $WSLOGFILE`
-    fi
-    LOGSIZE=${LOGSIZE:--1 -1}
-    LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
-    LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
-    LOGREOPEN=${LOGREOPEN:-no}
-    if [ "$LOGREOPEN" = "yes" ] ; then
-        LOGREOPEN="true"
-    else
-        LOGREOPEN="false"
-    fi
-    WATCHDOG=${WATCHDOG:-no}
-    if [ "$WATCHDOG" = "yes" ] ; then
-        WATCHDOG="true"
-    else
-        WATCHDOG="false"
-    fi
-    VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
-    MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
-    MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
-    MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
-    if [ ! -z "$USERNAME" ] ; then
-        CMD="$CMD -u '$USERNAME'"
-    fi
-    if [ ! -z "$GROUPNAME" ] ; then
-        CMD="$CMD -g '$GROUPNAME'"
-    fi
-
     # A-Rex without WS interface
     AREXCFG="\
 <?xml version=\"1.0\"?>
@@ -578,9 +571,6 @@ prepare() {
     <Logger>
       <File>$LOGFILE</File>
       <Level>$LOGLEVEL</Level>
-      <Backups>$LOGNUM</Backups>
-      <Maxsize>$LOGSIZE</Maxsize>
-      <Reopen>$LOGREOPEN</Reopen>
     </Logger>
     <Watchdog>$WATCHDOG</Watchdog>
   </Server>
@@ -590,29 +580,91 @@ prepare() {
   <Plugins><Name>arex</Name></Plugins>
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
+      $service_mail
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
-      $infoproviders_wakeup
     </Service>
   </Chain>
 </ArcConfig>
 "
 
-    # A-Rex with WS interface over HTTPS
-    AREXCFGWSS="\
+    # A-Rex with WS interface over HTTP
+    AREXCFGWS="\
 <?xml version=\"1.0\"?>
 <ArcConfig
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
   xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
+  xmlns:candypond=\"urn:candypond_config\">
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
       <File>$LOGFILE</File>
       <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
-      <Backups>$LOGNUM</Backups>
-      <Maxsize>$LOGSIZE</Maxsize>
-      <Reopen>$LOGREOPEN</Reopen>
+    </Logger>
+    <Watchdog>$WATCHDOG</Watchdog>
+  </Server>
+  <ModuleManager>
+    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+  <Plugins><Name>identitymap</Name></Plugins>
+  <Plugins><Name>arcshc</Name></Plugins>
+  <Plugins><Name>arcshclegacy</Name></Plugins>
+  $argus_plugin
+  <Chain>
+    <Component name=\"tcp.service\" id=\"tcp\">
+      <next id=\"http\"/>
+      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name=\"http.service\" id=\"http\">
+      <next id=\"soap\">POST</next>
+      <next id=\"plexer\">GET</next>
+      <next id=\"plexer\">PUT</next>
+      <next id=\"plexer\">HEAD</next>
+    </Component>
+    <Component name=\"soap.service\" id=\"soap\">
+      <next id=\"plexer\"/>
+    </Component>
+    <Plexer name=\"plexer.service\" id=\"plexer\">
+      $candypond_plexer
+      $arex_service_plexer
+    </Plexer>
+    <Service name=\"a-rex\" id=\"a-rex\">
+      $emies_legacy_shc
+      $argus_shc
+      $arex_endpoint
+      $emir_registration
+      $isis_registration
+      $service_mail
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
+      <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
+      <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
+    </Service>
+    $candypond
+  </Chain>
+</ArcConfig>
+"
+ 
+    # A-Rex with WS interface over HTTPS
+    AREXCFGWSS="\
+<?xml version=\"1.0\"?>
+<ArcConfig
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
+  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
+  xmlns:candypond=\"urn:candypond_config\">
+  <Server>
+    <PidFile>$PID_FILE</PidFile>
+    <Logger>
+      <File>$LOGFILE</File>
+      <File>$WSLOGFILE</File>
+      <Level>$LOGLEVEL</Level>
     </Logger>
     <Watchdog>$WATCHDOG</Watchdog>
   </Server>
@@ -637,13 +689,18 @@ prepare() {
       <next id=\"http\"/>
       <KeyPath>$X509_USER_KEY</KeyPath>
       <CertificatePath>$X509_USER_CERT</CertificatePath>
-      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-      $VOMS_TRUST_CHAINS
+      <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
+    </Component>
+    <Component name=\"http.service\" id=\"http\">
+      <next id=\"soap\">POST</next>
+      <next id=\"plexer\">GET</next>
+      <next id=\"plexer\">PUT</next>
+      <next id=\"plexer\">HEAD</next>
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
+        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAPMAP</LocalList></PDP>
         <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>
       </SecHandler>
       <!-- Match client to legacy authorization groups -->
@@ -651,44 +708,38 @@ prepare() {
         <ConfigFile>$ARC_CONFIG</ConfigFile>
       </SecHandler>
     </Component>
-    <Component name=\"http.service\" id=\"http\">
-      <next id=\"soap\">POST</next>
-      <next id=\"plexer\">GET</next>
-      <next id=\"plexer\">PUT</next>
-      <next id=\"plexer\">HEAD</next>
-    </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
-      <next id=\"a-rex\">^/$arex_path</next>
-      $cache_service_plexer
+      $candypond_plexer
+      $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
-      $legacy_shc
+      $service_mail
+      $emies_legacy_shc
       $argus_shc
       $arex_endpoint
-      $enable_emies_interface
       $emir_registration
       $isis_registration
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
-      $infoproviders_wakeup
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
-    $cache_service
+    $candypond
   </Chain>
 </ArcConfig>
 "
 
-    if [ -z "$arex_proto" ] ; then
+    if [ "$ws_present" != 'true' ] ; then
         echo "$AREXCFG" > "$AREX_CONFIG"
-    elif [ "$arex_proto" = "https" ] ; then
-        echo "$AREXCFGWSS" > "$AREX_CONFIG"
     else
-        echo "Unsupported protocol: $arex_proto"
-        exit 1
+        if [ "$arex_proto" = 'http' ] ; then
+            echo "$AREXCFGWS" > "$AREX_CONFIG"
+        else
+            echo "$AREXCFGWSS" > "$AREX_CONFIG"
+        fi
     fi
 
     if [ ! -z "$USERNAME" ] ; then

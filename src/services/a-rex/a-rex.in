@@ -226,7 +226,6 @@ prepare() {
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
-    WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
     WATCHDOG=`readconfigvar "$ARC_CONFIG" arex watchdog`
     USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
@@ -238,15 +237,10 @@ prepare() {
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" arex x509_cert_dir`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_udp_port_range`
-    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_job_control_requests`
-    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_infosys_requests`
-    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
-    ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     GRIDMAPAUTH=`readconfigvar "$ARC_CONFIG" common gridmap`
     GRIDMAPMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
-    USERAUTH_BLOCK='arex/ws/emies'
     GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
     ARC_HTTP_PROXY=`readconfigvar "$ARC_CONFIG" common http_proxy`
     SERVICEMAIL=`readconfigvar "$ARC_CONFIG" arex mail`
@@ -314,9 +308,6 @@ prepare() {
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=/etc/grid-security/certificates
     fi
-    if [ "$ALLOWUNKNOWN" != "yes" ] ; then
-        ALLOWUNKNOWN=""
-    fi
 
     # Web Service configuration
     arex_endpoint=""
@@ -329,6 +320,12 @@ prepare() {
     ws_present=`testconfigblock "$ARC_CONFIG" arex/ws`
     arex_present=`testconfigblock "$ARC_CONFIG" arex/ws/emies`
     if [ "$ws_present" = 'true' ] ; then
+        WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
+        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_job_control_requests`
+        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_infosys_requests`
+        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
+        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
+        USERAUTH_BLOCK='arex/ws/emies'
         arex_mount_point=`readconfigvar "$ARC_CONFIG" arex/ws wsurl`
         if [ ! -z "$arex_mount_point" ] ; then
             arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
@@ -356,6 +353,17 @@ prepare() {
         fi
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
         arex_path="/$arex_path"
+
+        WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
+        if [ ! -d `dirname $WSLOGFILE` ]; then
+            mkdir -p `dirname $WSLOGFILE`
+        fi
+        MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
+        MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
+        MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
+        if [ "$ALLOWUNKNOWN" != "yes" ] ; then
+            ALLOWUNKNOWN=""
+        fi
     fi
     if [ "$arex_present" = 'true' ] ; then
         if [ "$ws_present" != 'true' ] ; then
@@ -491,25 +499,6 @@ prepare() {
 </SecHandler>"
     fi
 
-    legacy_shc="
-<!-- Do authorization in same way as jobs plugin of gridftpd does -->
-<!-- Beware of hardcoded block name -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"arclegacy.pdp\">
-    <ConfigBlock>
-      <ConfigFile>$ARC_CONFIG</ConfigFile>
-      <BlockName>$USERAUTH_BLOCK</BlockName>
-    </ConfigBlock>
-  </PDP>
-</SecHandler>
-<!-- Perform client mapping according to rules of gridftpd -->
-<SecHandler name=\"arclegacy.map\" event=\"incoming\">
-  <ConfigBlock>
-    <ConfigFile>$ARC_CONFIG</ConfigFile>
-    <BlockName>$USERMAP_BLOCK</BlockName>
-  </ConfigBlock>
-</SecHandler>"
-
     # candypond
     candypond_plexer=""
     candypond=""
@@ -522,7 +511,22 @@ prepare() {
         candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
         candypond="\
     <Service name=\"candypond\" id=\"candypond\">\
-      $legacy_shc
+      <!-- Beware of hardcoded block name -->
+      <SecHandler name=\"arc.authz\" event=\"incoming\">
+        <PDP name=\"arclegacy.pdp\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>arex/ws/candypond</BlockName>
+          </ConfigBlock>
+        </PDP>
+      </SecHandler>
+      <!-- Perform client mapping -->
+      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
+        <ConfigBlock>
+          <ConfigFile>$ARC_CONFIG</ConfigFile>
+          <BlockName>$USERMAP_BLOCK</BlockName>
+        </ConfigBlock>
+      </SecHandler>
       <candypond:service>\
         <candypond:config>$ARC_CONFIG</candypond:config>\
         <candypond:witharex>true</candypond:witharex>\
@@ -586,10 +590,6 @@ prepare() {
     if [ ! -d `dirname $LOGFILE` ]; then
         mkdir -p `dirname $LOGFILE`
     fi
-    WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
-    if [ ! -d `dirname $WSLOGFILE` ]; then
-        mkdir -p `dirname $WSLOGFILE`
-    fi
     WATCHDOG=${WATCHDOG:-no}
     if [ "$WATCHDOG" = "yes" ] ; then
         WATCHDOG="true"
@@ -597,15 +597,32 @@ prepare() {
         WATCHDOG="false"
     fi
     VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
-    MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
-    MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
-    MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
     if [ ! -z "$USERNAME" ] ; then
         CMD="$CMD -u '$USERNAME'"
     fi
     if [ ! -z "$GROUPNAME" ] ; then
         CMD="$CMD -g '$GROUPNAME'"
     fi
+
+    # Authorization and user mapping for A-REX/EMIES
+    emies_legacy_shc="
+<!-- Do authorization in same way as jobs plugin of gridftpd does -->
+<!-- Beware of hardcoded block name -->
+<SecHandler name=\"arc.authz\" event=\"incoming\">
+  <PDP name=\"arclegacy.pdp\">
+    <ConfigBlock>
+      <ConfigFile>$ARC_CONFIG</ConfigFile>
+      <BlockName>$USERAUTH_BLOCK</BlockName>
+    </ConfigBlock>
+  </PDP>
+</SecHandler>
+<!-- Perform client mapping according to rules of gridftpd -->
+<SecHandler name=\"arclegacy.map\" event=\"incoming\">
+  <ConfigBlock>
+    <ConfigFile>$ARC_CONFIG</ConfigFile>
+    <BlockName>$USERMAP_BLOCK</BlockName>
+  </ConfigBlock>
+</SecHandler>"
 
     # A-Rex without WS interface
     AREXCFG="\
@@ -682,7 +699,7 @@ prepare() {
       $arex_service_plexer
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
-      $legacy_shc
+      $emies_legacy_shc
       $argus_shc
       $arex_endpoint
       $emir_registration
@@ -764,7 +781,7 @@ prepare() {
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
       $service_mail
-      $legacy_shc
+      $emies_legacy_shc
       $argus_shc
       $arex_endpoint
       $emir_registration
