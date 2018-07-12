@@ -32,26 +32,26 @@ Show help messages
 
 .SH COMPONENTS
 The following components can be controlled by arcctl at the time of writting:
-.TP
-.B services
+.TP 16
+.I services
 Controlling ARC CE services.
 .TP
-.B rte
+.I rte
 Controlling RunTime Envronents available on the ARC CE.
 .TP
-.B job
+.I job
 A-REX Jobs control (actions, information, logs).
 .TP
-.B accounting
+.I accounting
 Accounting records operations (republishing, stats).
 .TP
-.B config
+.I config
 ARC configuration control: get/set/dump configuration values, inline options help.
 .TP
-.B test-ca
+.I test-ca
 Self-signed CA for test certificates deployment for both hosts and users.
 .TP
-.B deploy
+.I deploy
 Third party components deployment (IGTF CA, VOMS LSC, Firewall configuration).
 .PP
 Use \fB--help\fR argument to list all available actions for each component.
