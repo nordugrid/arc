@@ -170,20 +170,13 @@ def RTE_stage0(jobdesc, lrms, **mapping):
             args = 'sourcewithargs () { script=$1; shift; . $script;}; sourcewithargs %s 0' % (rte_path)
             for opt in opts:
                 args += ' "%s"' % (opt.replace('"', '\\"'))
-            args += ' > /dev/null 2>&1 && env'
-            handle = execute_local(args, env = stage0_environ)
+            args += ' > /dev/null 2>&1 && env -0'
+            handle = execute_local(args, env = stage0_environ, zerobyte = True)
             stdout = handle.stdout
             if handle.returncode != 0:
                  raise ArcError('Runtime script %s failed' % sw, 'common.submit')
             # construct new env dictionary
-            new_env = {}
-            prev = ''
-            for l in stdout:
-                if '=' not in l:
-                    l = prev + l
-                k, v = l.split('=', 1)
-                new_env.update({k: v.rstrip('\n')})
-                prev = l
+            new_env = dict((k, v.rstrip('\n')) for k, v in (l.split('=', 1) for l in stdout if l and l != '\n'))
             # update environment
             stage0_environ.update(new_env)
 
