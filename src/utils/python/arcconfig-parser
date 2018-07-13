@@ -40,6 +40,8 @@ def get_parser():
                            help='match subblocks against supplied block name(s)')
     getvalues.add_argument('-e', '--export', action='store', choices=['bash', 'json'],
                            help='export configuration to the defined format')
+    getvalues.add_argument('-f', '--export-filter', action='append',
+                           help='limit bash export to specified options only')
     return parser
 
 
@@ -60,7 +62,7 @@ if __name__ == '__main__':
         if cmd_args.export == 'json':
             print export_json(cmd_args.block, cmd_args.subblocks)
         elif cmd_args.export == 'bash':
-            print export_bash(cmd_args.block, cmd_args.subblocks)
+            print export_bash(cmd_args.block, cmd_args.subblocks, cmd_args.export_filter)
     else:
         # get values
         if cmd_args.block:

@@ -350,11 +350,12 @@ def export_json(blocks=None, subsections=False):
     return json.dumps(__parsed_config)
 
 
-def export_bash(blocks=None, subsections=False):
+def export_bash(blocks=None, subsections=False, options_filter=None):
     """
     Returns CONFIG_key="value" strings ready to eval in shell
     :param blocks: List of blocks to export
     :param subsections: Export all subblocks
+    :param options_filter: Limit exported options only to the specified list
     :return: Eval-ready string
     """
     # it does not make sense to export entire configuration this way
@@ -371,6 +372,10 @@ def export_bash(blocks=None, subsections=False):
         if b not in blocks_dict:
             continue
         for k in blocks_dict[b]['__options_order']:
+            if options_filter:
+                if k not in options_filter:
+                    logger.debug('Option "%s" will not be exported (not in allowed list)', k)
+                    continue
             v = blocks_dict[b][k]
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
