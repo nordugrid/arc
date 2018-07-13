@@ -2458,9 +2458,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/data-staging/arc-datadelivery-service.service
                  src/services/data-staging/arc-datadelivery-service-start
                  src/services/gridftpd/Makefile
-                 src/services/gridftpd/gridftpd.init
-                 src/services/gridftpd/gridftpd.service
-                 src/services/gridftpd/gridftpd-start
+                 src/services/gridftpd/arc-gridftpd
+                 src/services/gridftpd/arc-gridftpd.service
+                 src/services/gridftpd/arc-gridftpd-start
                  src/services/gridftpd/gridftpd.8
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile

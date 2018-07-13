@@ -29,7 +29,7 @@ class ServicesControl(ComponentControl):
         },
         'gridftpd': {
             'package': 'nordugrid-arc-gridftpd',
-            'service': 'gridftpd'
+            'service': 'arc-gridftpd'
         },
         'infosys/ldap': {
             'package': 'nordugrid-arc-aris',

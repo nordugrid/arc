@@ -896,13 +896,13 @@ rm -rf $RPM_BUILD_ROOT
 %condrestart_on_update arc-arex
 
 %post gridftpd
-%enable_service gridftpd
+%enable_service arc-gridftpd
 
 %preun gridftpd
-%stop_on_removal gridftpd
+%stop_on_removal arc-gridftpd
 
 %postun gridftpd
-%condrestart_on_update gridftpd
+%condrestart_on_update arc-gridftpd
 
 %post datadelivery-service
 %enable_service arc-datadelivery-service
@@ -1087,10 +1087,10 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %files gridftpd
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/gridftpd.service
-%{_datadir}/%{pkgdir}/gridftpd-start
+%{_unitdir}/arc-gridftpd.service
+%{_datadir}/%{pkgdir}/arc-gridftpd-start
 %else
-%{_initrddir}/gridftpd
+%{_initrddir}/arc-gridftpd
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
