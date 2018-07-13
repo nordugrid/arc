@@ -24,9 +24,8 @@ class ServicesControl(ComponentControl):
             'service': 'arc-arex'
         },
         'arex/ws/candypond': {
-            'package': 'nordugrid-arc-candypond',
+            'package': 'nordugrid-arc-arex',
             'service': None
-            # TODO: the fate of stand-alone service
         },
         'gridftpd': {
             'package': 'nordugrid-arc-gridftpd',

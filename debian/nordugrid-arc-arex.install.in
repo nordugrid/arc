@@ -16,6 +16,8 @@ debian/tmp/usr/share/arc/perferator
 
 debian/tmp/usr/lib/arc/libarex.so
 debian/tmp/usr/lib/arc/libarex.apd
+debian/tmp/usr/lib/arc/libcandypond.so
+debian/tmp/usr/lib/arc/libcandypond.apd
 
 debian/tmp/usr/share/arc/CEinfo.pl
 debian/tmp/usr/share/arc/ARC0mod.pm

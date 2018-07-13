@@ -382,24 +382,6 @@ Current plugins include:
   fileplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
-%package candypond
-Summary:	ARC CandyPond service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Provides:	%{name}-cache-service = %{version}-%{release}
-Obsoletes:	%{name}-cache-service < 6.0.0
-
-%description candypond
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the ARC CandyPond service. It provides a way to perform
-some operations on the A-REX cache remotely. It can be especially helpful
-for data management within a pilot job framework.
-
 %package datadelivery-service
 Summary:	ARC data delivery service
 Group:		System Environment/Libraries
@@ -502,7 +484,11 @@ Requires:	stomppy
 %endif
 Requires:	python-ldap
 Requires:	python-dirq
-Requires:   python-isodate
+Requires:	python-isodate
+Provides:	%{name}-cache-service = %{version}-%{release}
+Obsoletes:	%{name}-cache-service < 6.0.0
+Provides:	%{name}-candypond = %{version}-%{release}
+Obsoletes:	%{name}-candypond < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -1133,11 +1119,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/monitor
 %doc %{_mandir}/man7/monitor.7*
 
-%files candypond
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libcandypond.so
-%{_libdir}/%{pkgdir}/libcandypond.apd
-
 %files datadelivery-service
 %defattr(-,root,root,-)
 %if %{use_systemd}
@@ -1177,6 +1158,8 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/submit-*-job
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
+%{_libdir}/%{pkgdir}/libcandypond.so
+%{_libdir}/%{pkgdir}/libcandypond.apd
 %{_datadir}/%{pkgdir}/CEinfo.pl
 %{_datadir}/%{pkgdir}/ARC0mod.pm
 %{_datadir}/%{pkgdir}/FORKmod.pm
