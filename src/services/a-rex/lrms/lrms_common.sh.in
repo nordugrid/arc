@@ -20,18 +20,62 @@ if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
 if [ -z "$pkglibexecdir" ]; then echo 'pkglibexecdir must be set' 1>&2; exit 1; fi
 
 parse_arc_conf () {
-  # [lrms] block for most of configuration
-  # [arex] block needed for directories setup
   # [common] used for performance logging only
-  blocks="-b lrms -b arex -b common"
+  common_options="enable_perflog_reporting perflogdir hostname"
+  # [arex] block needed for directories setup
+  arex_options="controldir scratchdir shared_filesystem shared_scratch runtimedir"
+  # [lrms] block for most of configuration
+  lrms_options="gnu_time nodename defaultmemory"
+  # [queue] section is relevant to fetch per-queue memory limits and tuning
+  queue_options="defaultmemory"
 
-  # [queue] section is relevant to fetch per-queue memory limits
+  # define lrms-specific options to parse
+  case "$joboption_lrms" in
+    boinc)
+      lrms_options="$lrms_options boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
+      ;;
+    condor)
+      lrms_options="$lrms_options condor_requirements condor_rank condor_bin_path condor_config"
+      queue_options="$queue_options condor_requirements"
+      ;;
+    ll)
+      lrms_options="$lrms_options ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
+      ;;
+    lsf)
+      lrms_options="$lrms_options lsf_architecture lsf_bin_path"
+      ;;
+    pbs)
+      lrms_options="$lrms_options pbs_bin_path pbs_log_path"
+      queue_options="$queue_options pbs_queue_node nodememory"
+      ;;
+    sge)
+      lrms_options="$lrms_options sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
+      queue_options="$queue_options sge_jobopts"
+      ;;
+    slurm)
+      lrms_options="$lrms_options slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+      ;;
+  esac
+
+  # define blocks to loop over
+  blocks="common arex lrms"
   if [ -n "$joboption_queue" ]; then
-    blocks="-b queue:$joboption_queue $blocks"
+    blocks="$blocks queue:$joboption_queue"
   fi
 
-  # run config-parser
-  eval $( $pkglibexecdir/arcconfig-parser ${blocks} -c ${ARC_CONFIG} --export bash )
+  for block in $blocks; do 
+    # construct options filter for block
+    eval "block_options=\${${block%%:*}_options}"
+    optfilter=""
+    for opt in $block_options; do
+      optfilter="$optfilter -f $opt"
+    done
+    # parse options (assumes runconfig comes from a-rex)
+    eval $( $pkglibexecdir/arcconfig-parser --load -r ${ARC_CONFIG} --export bash -b $block $optfilter )
+  done
+  
+  # cleanup env
+  unset opt optfilter block blocks queue_options lrms_options arex_options common_options
 }
 
 
