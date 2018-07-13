@@ -2453,9 +2453,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/acix/indexserver/acix-index.service
                  src/services/acix/indexserver/test/Makefile
                  src/services/candypond/Makefile
-                 src/services/candypond/arc-candypond
-                 src/services/candypond/arc-candypond.service
-                 src/services/candypond/arc-candypond-start
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/data-staging/arc-datadelivery-service.service

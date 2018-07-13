@@ -391,10 +391,6 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
 %description candypond
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
@@ -922,15 +918,6 @@ rm -rf $RPM_BUILD_ROOT
 %postun gridftpd
 %condrestart_on_update gridftpd
 
-%post candypond
-%enable_service arc-candypond
-
-%preun candypond
-%stop_on_removal arc-candypond
-
-%postun candypond
-%condrestart_on_update arc-candypond
-
 %post datadelivery-service
 %enable_service arc-datadelivery-service
 
@@ -1148,12 +1135,6 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 
 %files candypond
 %defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-candypond.service
-%{_datadir}/%{pkgdir}/arc-candypond-start
-%else
-%{_initrddir}/arc-candypond
-%endif
 %{_libdir}/%{pkgdir}/libcandypond.so
 %{_libdir}/%{pkgdir}/libcandypond.apd
 
