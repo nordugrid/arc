@@ -21,7 +21,7 @@ class ServicesControl(ComponentControl):
     __blocks_map = {
         'arex': {
             'package': 'nordugrid-arc-arex',
-            'service': 'a-rex'
+            'service': 'arc-arex'
         },
         'arex/ws/candypond': {
             'package': 'nordugrid-arc-candypond',

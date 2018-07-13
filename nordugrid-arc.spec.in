@@ -905,13 +905,13 @@ rm -rf $RPM_BUILD_ROOT
 %condrestart_on_update arched
 
 %post arex
-%enable_service a-rex
+%enable_service arc-arex
 
 %preun arex
-%stop_on_removal a-rex
+%stop_on_removal arc-arex
 
 %postun arex
-%condrestart_on_update a-rex
+%condrestart_on_update arc-arex
 
 %post gridftpd
 %enable_service gridftpd
@@ -1172,10 +1172,10 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %files arex
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/a-rex.service
-%{_datadir}/%{pkgdir}/a-rex-start
+%{_unitdir}/arc-arex.service
+%{_datadir}/%{pkgdir}/arc-arex-start
 %else
-%{_initrddir}/a-rex
+%{_initrddir}/arc-arex
 %endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list

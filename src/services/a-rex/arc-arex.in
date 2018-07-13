@@ -20,7 +20,7 @@
 #    wsurl="a_rex_url"
 
 ### BEGIN INIT INFO
-# Provides:          a-rex
+# Provides:          arc-arex
 # Required-Start:    $local_fs $remote_fs
 # Required-Stop:     $local_fs $remote_fs
 # Default-Start:     2 3 4 5
@@ -88,10 +88,10 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/a-rex ]; then
-    . /etc/sysconfig/a-rex
-elif [ -r /etc/default/a-rex ]; then
-    . /etc/default/a-rex
+if [ -r /etc/sysconfig/arc-arex ]; then
+    . /etc/sysconfig/arc-arex
+elif [ -r /etc/default/arc-arex ]; then
+    . /etc/default/arc-arex
 fi
 
 # GLOBUS_LOCATION
@@ -813,8 +813,8 @@ validate() {
 
 start() {
     if [ "$RUN" != "yes" ] ; then
-        echo "a-rex disabled, please adjust the configuration to your needs "
-        echo "and then set RUN to 'yes' in /etc/default/a-rex to enable it."
+        echo "arc-arex disabled, please adjust the configuration to your needs "
+        echo "and then set RUN to 'yes' in /etc/default/arc-arex to enable it."
         return 0
     fi
 

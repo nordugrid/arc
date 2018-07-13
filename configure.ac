@@ -2361,9 +2361,9 @@ AC_CONFIG_FILES([Makefile
                  src/libs/data-staging/examples/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
-                 src/services/a-rex/a-rex
-                 src/services/a-rex/a-rex.service
-                 src/services/a-rex/a-rex-start
+                 src/services/a-rex/arc-arex
+                 src/services/a-rex/arc-arex.service
+                 src/services/a-rex/arc-arex-start
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator

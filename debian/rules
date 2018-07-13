@@ -71,7 +71,7 @@ clean:
 	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
 
 	rm -f debian/nordugrid-arc-arex.install
-	rm -f debian/nordugrid-arc-arex.a-rex.init
+	rm -f debian/nordugrid-arc-arex.arc-arex.init
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-candypond.arc-candypond.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
@@ -104,8 +104,8 @@ install: build-stamp
 
 	rm -f $(CURDIR)/debian/tmp/usr/lib/libarcglobusutils.so
 
-	mv debian/tmp/etc/init.d/a-rex \
-	   debian/nordugrid-arc-arex.a-rex.init
+	mv debian/tmp/etc/init.d/arc-arex \
+	   debian/nordugrid-arc-arex.arc-arex.init
 	mv debian/tmp/etc/init.d/arched \
 	   debian/nordugrid-arc-hed.arched.init
 	mv debian/tmp/etc/init.d/arc-candypond \
@@ -134,7 +134,7 @@ binary-arch: install
 	dh_install -a --fail-missing
 	dh_installchangelogs -a
 	dh_installinit -p nordugrid-arc-hed --name arched
-	dh_installinit -p nordugrid-arc-arex --name a-rex
+	dh_installinit -p nordugrid-arc-arex --name arc-arex
 	dh_installinit -p nordugrid-arc-candypond --name arc-candypond
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
