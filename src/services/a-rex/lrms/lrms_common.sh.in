@@ -25,37 +25,9 @@ parse_arc_conf () {
   # [arex] block needed for directories setup
   arex_options="controldir scratchdir shared_filesystem shared_scratch runtimedir"
   # [lrms] block for most of configuration
-  lrms_options="gnu_time nodename defaultmemory"
+  lrms_options="gnu_time nodename defaultmemory $lrms_options"
   # [queue] section is relevant to fetch per-queue memory limits and tuning
-  queue_options="defaultmemory"
-
-  # define lrms-specific options to parse
-  case "$joboption_lrms" in
-    boinc)
-      lrms_options="$lrms_options boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
-      ;;
-    condor)
-      lrms_options="$lrms_options condor_requirements condor_rank condor_bin_path condor_config"
-      queue_options="$queue_options condor_requirements"
-      ;;
-    ll)
-      lrms_options="$lrms_options ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
-      ;;
-    lsf)
-      lrms_options="$lrms_options lsf_architecture lsf_bin_path"
-      ;;
-    pbs)
-      lrms_options="$lrms_options pbs_bin_path pbs_log_path"
-      queue_options="$queue_options pbs_queue_node nodememory"
-      ;;
-    sge)
-      lrms_options="$lrms_options sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
-      queue_options="$queue_options sge_jobopts"
-      ;;
-    slurm)
-      lrms_options="$lrms_options slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
-      ;;
-  esac
+  queue_options="defaultmemory $queue_options"
 
   # define blocks to loop over
   blocks="common arex lrms"
@@ -75,7 +47,7 @@ parse_arc_conf () {
   done
   
   # cleanup env
-  unset opt optfilter block blocks queue_options lrms_options arex_options common_options
+  unset opt optfilter block blocks arex_options common_options
 }
 
 

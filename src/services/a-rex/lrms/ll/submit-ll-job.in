@@ -10,6 +10,7 @@
 echo "----- starting submit_ll_job -----" 1>&2
 
 joboption_lrms="ll"
+lrms_options="ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

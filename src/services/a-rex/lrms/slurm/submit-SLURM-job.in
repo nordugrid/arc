@@ -11,6 +11,7 @@
 
 echo "----- starting submit_slurm_job -----" 1>&2
 joboption_lrms="SLURM"
+lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
