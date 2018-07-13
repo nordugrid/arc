@@ -114,4 +114,6 @@ ARC software is developed by the NorduGrid Collaboration
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
 .SH SEE ALSO
-.BR arcctl (1)
+.BR arcctl (1), 
+.BR arc-config-check (1)
+
