@@ -88,10 +88,10 @@ Description: ARC data delivery service
  .
  This package contains the ARC data delivery service.
 
-Package: nordugrid-arc-aris
-Provides: nordugrid-arc-ldap-infosys
-Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
-Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
+Package: nordugrid-arc-infosys-ldap
+Provides: nordugrid-arc-ldap-infosys, nordugrid-arc-aris
+Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, ${perl:Depends}, slapd, bdii, lsb-base (>= 3.0-6)
 Description: ARC local information system
@@ -115,8 +115,8 @@ Description: ARC LDAP monitor service
  .
  This package contains the LDAP monitor system for ARC.
  This package is self-contained. It is used to set up a Web-based monitor
- which pulls information from ARIS and displays it in a readable
- manner.
+ which pulls information from the information system and displays it in a
+ readable manner.
 
 Package: nordugrid-arc-arex
 Provides: nordugrid-arc-cache-service, nordugrid-arc-candypond

@@ -32,8 +32,8 @@ class ServicesControl(ComponentControl):
             'service': 'arc-gridftpd'
         },
         'infosys/ldap': {
-            'package': 'nordugrid-arc-aris',
-            'service': 'nordugrid-arc-aris'
+            'package': 'nordugrid-arc-infosys-ldap',
+            'service': 'arc-infosys-ldap'
         },
         'datadelivery-service': {
             'package': 'nordugrid-arc-datadelivery-service',

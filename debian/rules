@@ -75,7 +75,7 @@ clean:
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
-	rm -f debian/nordugrid-arc-aris.nordugrid-arc-aris.init
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
 	rm -f debian/nordugrid-arc-acix-cache.acix-cache.init
 	rm -f debian/nordugrid-arc-acix-index.acix-index.init
 
@@ -111,8 +111,8 @@ install: build-stamp
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	mv debian/tmp/etc/init.d/arc-gridftpd \
 	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
-	mv debian/tmp/etc/init.d/nordugrid-arc-aris \
-	   debian/nordugrid-arc-aris.nordugrid-arc-aris.init
+	mv debian/tmp/etc/init.d/arc-infosys-ldap \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
 	mv debian/tmp/etc/init.d/acix-cache \
 	   debian/nordugrid-arc-acix-cache.acix-cache.init
 	mv debian/tmp/etc/init.d/acix-index \
@@ -158,7 +158,7 @@ binary-indep: install
 	dh_installlogrotate -i
 	dh_install -i --fail-missing
 	dh_installchangelogs -i
-	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-aris
+	dh_installinit -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
 	dh_installinit -p nordugrid-arc-acix-index --name acix-index
 	dh_perl -i

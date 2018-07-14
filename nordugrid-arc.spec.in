@@ -400,7 +400,7 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
-%package aris
+%package infosys-ldap
 Summary:	ARC local information system
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
@@ -411,6 +411,8 @@ Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 Provides:	%{name}-ldap-infosys = %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
+Provides:	%{name}-aris = %{version}-%{release}
+Obsoletes:	%{name}-aris < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -431,7 +433,7 @@ Requires(postun):	policycoreutils
 %endif
 %endif
 
-%description aris
+%description infosys-ldap
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -460,7 +462,8 @@ Connector (ARC).
 
 This package contains the LDAP monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
-which pulls information from a EGIIS and shows it graphically.
+which pulls information from the information system and displays it in a
+readable manner.
 
 %package arex
 Summary:	ARC Remote EXecution service
@@ -823,8 +826,8 @@ install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
-install -p -m 644 debian/%{name}-aris.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-aris
+install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
+    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
@@ -913,8 +916,8 @@ rm -rf $RPM_BUILD_ROOT
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
 
-%post aris
-%enable_service nordugrid-arc-aris
+%post infosys-ldap
+%enable_service arc-infosys-ldap
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
@@ -923,11 +926,11 @@ semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 %endif
 
-%preun aris
-%stop_on_removal nordugrid-arc-aris
+%preun infosys-ldap
+%stop_on_removal arc-infosys-ldap
 
-%postun aris
-%condrestart_on_update nordugrid-arc-aris
+%postun infosys-ldap
+%condrestart_on_update arc-infosys-ldap
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
@@ -938,12 +941,12 @@ if [ $1 -eq 0 ]; then
 fi
 %endif
 
-%triggerun aris -- bdii
+%triggerun infosys-ldap -- bdii
 %if %{?suse_version:1}%{!?suse_version:0}
 FIRST_ARG=1
-%restart_on_update nordugrid-arc-aris
+%restart_on_update arc-infosys-ldap
 %else
-service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
+service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 
 %if %{with_acix}
@@ -1098,13 +1101,13 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
-%files aris
+%files infosys-ldap
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/nordugrid-arc-aris.service
-%{_unitdir}/nordugrid-arc-slapd.service
+%{_unitdir}/arc-infosys-ldap.service
+%{_unitdir}/arc-infosys-ldap-slapd.service
 %else
-%{_initrddir}/nordugrid-arc-aris
+%{_initrddir}/arc-infosys-ldap
 %endif
 %{_datadir}/%{pkgdir}/create-bdii-config
 %{_datadir}/%{pkgdir}/create-slapd-config
@@ -1112,7 +1115,7 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
 %{_datadir}/%{pkgdir}/PerfData.pl
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
 
 %files monitor
 %defattr(-,root,root,-)
