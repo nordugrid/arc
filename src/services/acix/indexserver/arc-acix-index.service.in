@@ -1,0 +1,11 @@
+[Unit]
+Description=ARC cache index - index server
+After=network.target local_fs.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/arc-acix-index.pid
+ExecStart=@pkgdatadir@/arc-acix-index-start
+
+[Install]
+WantedBy=multi-user.target

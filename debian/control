@@ -170,16 +170,19 @@ Description: ARC cache index - core components
  .
  Core components of the ARC Cache Index (ACIX).
 
-Package: nordugrid-arc-acix-cache
+Package: nordugrid-arc-acix-scanner
+Provides: nordugrid-arc-acix-cache
+Replaces: nordugrid-arc-acix-cache (<< 6.0.0~)
+Conflicts: nordugrid-arc-acix-cache (<< 6.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python, python-twisted-core, python-twisted-web, python-openssl, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
-Description: ARC cache index - cache server
+Description: ARC cache index - scanner server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Cache server component of the ARC Cache Index (ACIX), usually installed
+ Cache scanner component of the ARC Cache Index (ACIX), usually installed
  alongside A-REX. This component collects information on the content of
  an A-REX cache.
 

@@ -2441,16 +2441,16 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
-                 src/services/acix/cacheserver/acix-cache
-                 src/services/acix/cacheserver/acix-cache-start
-                 src/services/acix/cacheserver/acix-cache.service
+                 src/services/acix/cacheserver/arc-acix-scanner
+                 src/services/acix/cacheserver/arc-acix-scanner-start
+                 src/services/acix/cacheserver/arc-acix-scanner.service
                  src/services/acix/cacheserver/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile
-                 src/services/acix/indexserver/acix-index
-                 src/services/acix/indexserver/acix-index-start
-                 src/services/acix/indexserver/acix-index.service
+                 src/services/acix/indexserver/arc-acix-index
+                 src/services/acix/indexserver/arc-acix-index-start
+                 src/services/acix/indexserver/arc-acix-index.service
                  src/services/acix/indexserver/test/Makefile
                  src/services/candypond/Makefile
                  src/services/data-staging/Makefile

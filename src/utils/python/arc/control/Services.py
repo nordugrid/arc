@@ -40,12 +40,12 @@ class ServicesControl(ComponentControl):
             'service': 'arc-datadelivery-service'
         },
         'acix-scanner': {
-            'package': 'nordugrid-arc-acix-cache',
-            'service': 'acix-cache'
+            'package': 'nordugrid-arc-acix-scanner',
+            'service': 'arc-acix-scanner'
         },
         'acix-index': {
             'package': 'nordugrid-arc-acix-index',
-            'service': 'acix-index'
+            'service': 'arc-acix-index'
         },
         'nordugridmap': {
             'package': 'nordugrid-arc-gridmap-utils',

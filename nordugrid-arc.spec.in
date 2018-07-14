@@ -612,8 +612,8 @@ Connector (ARC).
 
 Core components of the ARC Cache Index (ACIX).
 
-%package acix-cache
-Summary:	ARC cache index - cache server
+%package acix-scanner
+Summary:	ARC cache index - scanner server
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
@@ -622,17 +622,18 @@ Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
+Obsoletes:	%{name}-acix-cache < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%description acix-cache
+%description acix-scanner
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-Cache server component of the ARC Cache Index (ACIX), usually installed
+Cache scanner component of the ARC Cache Index (ACIX), usually installed
 alongside A-REX. This component collects information on the content of
 an A-REX cache.
 
@@ -950,23 +951,23 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 
 %if %{with_acix}
-%post acix-cache
-%enable_service acix-cache
+%post acix-scanner
+%enable_service arc-acix-scanner
 
-%preun acix-cache
-%stop_on_removal acix-cache
+%preun acix-scanner
+%stop_on_removal arc-acix-scanner
 
-%postun acix-cache
-%condrestart_on_update acix-cache
+%postun acix-scanner
+%condrestart_on_update arc-acix-scanner
 
 %post acix-index
-%enable_service acix-index
+%enable_service arc-acix-index
 
 %preun acix-index
-%stop_on_removal acix-index
+%stop_on_removal arc-acix-index
 
 %postun acix-index
-%condrestart_on_update acix-index
+%condrestart_on_update arc-acix-index
 %endif
 
 %files -f %{name}.lang
@@ -1240,24 +1241,24 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitelib}/acix/__init__.py*
 %{python2_sitelib}/acix/core
 
-%files acix-cache
+%files acix-scanner
 %defattr(-,root,root,-)
 %{python2_sitelib}/acix/cacheserver
 %if %{use_systemd}
-%{_unitdir}/acix-cache.service
-%{_datadir}/%{pkgdir}/acix-cache-start
+%{_unitdir}/arc-acix-scanner.service
+%{_datadir}/%{pkgdir}/arc-acix-scanner-start
 %else
-%{_initrddir}/acix-cache
+%{_initrddir}/arc-acix-scanner
 %endif
 
 %files acix-index
 %defattr(-,root,root,-)
 %{python2_sitelib}/acix/indexserver
 %if %{use_systemd}
-%{_unitdir}/acix-index.service
-%{_datadir}/%{pkgdir}/acix-index-start
+%{_unitdir}/arc-acix-index.service
+%{_datadir}/%{pkgdir}/arc-acix-index-start
 %else
-%{_initrddir}/acix-index
+%{_initrddir}/arc-acix-index
 %endif
 %endif
 

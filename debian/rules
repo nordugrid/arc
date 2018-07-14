@@ -76,8 +76,8 @@ clean:
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-	rm -f debian/nordugrid-arc-acix-cache.acix-cache.init
-	rm -f debian/nordugrid-arc-acix-index.acix-index.init
+	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
+	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.init
 
 	if [ -f po/POTFILES.in.save ] ; then \
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
@@ -113,10 +113,10 @@ install: build-stamp
 	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	mv debian/tmp/etc/init.d/arc-infosys-ldap \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-	mv debian/tmp/etc/init.d/acix-cache \
-	   debian/nordugrid-arc-acix-cache.acix-cache.init
-	mv debian/tmp/etc/init.d/acix-index \
-	   debian/nordugrid-arc-acix-index.acix-index.init
+	mv debian/tmp/etc/init.d/arc-acix-scanner \
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
+	mv debian/tmp/etc/init.d/arc-acix-index \
+	   debian/nordugrid-arc-acix-index.arc-acix-index.init
 
 binary: binary-arch binary-indep
 
@@ -159,8 +159,8 @@ binary-indep: install
 	dh_install -i --fail-missing
 	dh_installchangelogs -i
 	dh_installinit -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
-	dh_installinit -p nordugrid-arc-acix-index --name acix-index
+	dh_installinit -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_installinit -p nordugrid-arc-acix-index --name arc-acix-index
 	dh_perl -i
 	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
 	dh_lintian -i
