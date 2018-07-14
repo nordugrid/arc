@@ -713,33 +713,34 @@ Connector (ARC).
 Python 3 bindings for ARC.
 %endif
 
-%package gridmap-utils
-Summary:	NorduGrid authorization tools
+%package nordugridmap
+Summary:	The nordugridmap authorization tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
 Requires:	perl(SOAP::Lite)
 Requires:	perl(Crypt::OpenSSL::X509)
+Obsoletes:	%{name}-gridmap-utils < 6.0.0
 Requires:	crontabs
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
 
-%description gridmap-utils
+%description nordugridmap
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the ARC authorization machinery.
 A prominent tool distributed in this package is the nordugridmap
 script to collect user information from the virtual organizations.
 
-%package misc-utils
-Summary:	NorduGrid misc tools
+%package test-utils
+Summary:	ARC test tools
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Obsoletes:	%{name}-misc-utils < 6.0.0
 
-%description misc-utils
+%description test-utils
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1385,13 +1386,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}
 %endif
 
-%files gridmap-utils
+%files nordugridmap
 %defattr(-,root,root,-)
 %{_sbindir}/nordugridmap
 %config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
 %doc %{_mandir}/man8/nordugridmap.8*
 
-%files misc-utils
+%files test-utils
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
 %{_bindir}/arcwsrf
