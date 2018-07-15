@@ -112,66 +112,50 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
+# VOMS_LOCATION
+VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
+
+# Prepare environment for executing various tools and main application
+
+add_library_path "$VOMS_LOCATION"
+add_library_path "$GLOBUS_LOCATION"
+if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+    LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64
+else
+    LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64:$LD_LIBRARY_PATH
+fi
+export LD_LIBRARY_PATH
+
+python_site_arch=`python -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0, "'${ARC_LOCATION}'"))'`
+if [ "x$PYTHONPATH" = "x" ]; then
+    PYTHONPATH=${python_site_arch}
+else
+    PYTHONPATH=${python_site_arch}:${PYTHONPATH}
+fi
+export PYTHONPATH
+
+
 testconfigblock() {
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
-    fi
-    bname="[$2]"
-    cat "$fname" | sed -e 's/\e$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
-            if [ "$line" = "$bname" ] ; then
-                echo 'true'
-                return
-            fi
-        done
+    $ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$1" --load -b "$2" 2>/dev/null 1>&2
+    if [ "$?" = '0' ] ; then
+        echo 'true'
+    else
         echo 'false'
-    }
+    fi
+}
+
+readorigconfigvar() {
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$2" -o "$3" 2>/dev/null`
+    if [ "$?" = '0' ] ; then
+        echo "$value"
+    fi
 }
 
 readconfigvar() {
-    # subnames (after : ) are not supported
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$1" --load -b "$2" -o "$3" 2>/dev/null`
+    if [ "$?" = '0' ] ; then
+        echo "$value"
     fi
-    bname="[$2]"
-    vname=$3
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
-            if [ "$line" = "$bname" ] ; then
-                # requested block started
-                while true ; do
-                    read line
-                    if [ ! $? = 0 ] ; then
-                        return
-                    fi
-                    line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
-                    lstart=`echo "$line" | head -c 1`
-                    if [ "$lstart" = '[' ] ; then
-                        # next block started
-                        return
-                    fi
-                    vlname=`echo "$line" | sed -e 's/[[:space:]]*=.*//;t;s/.*//'`
-                    if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed -e 's/[^=]*=[[:space:]]*//'`
-                        echo "$val"
-                        return
-                    fi
-                done
-            fi
-        done
-    }
 }
 
 # ARC_CONFIG
@@ -184,7 +168,9 @@ if [ "x$ARC_CONFIG" = "x" ]; then
 fi
 
 # PID and lock file
-PID_FILE=`readconfigvar "$ARC_CONFIG" arex pidfile`
+PID_FILE=`readorigconfigvar "$ARC_CONFIG" arex pidfile`
+ARC_RUNTIME_CONFIG=
+LOCKFILE=
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -196,11 +182,13 @@ if [ `id -u` = 0 ] ; then
     if [ "x$PID_FILE" = "x" ]; then
         PID_FILE=/var/run/$prog-arex.pid
     fi
+    ARC_RUNTIME_CONFIG=/var/run/$prog-arex.cfg
 else
     LOCKFILE=$HOME/$prog-arex.lock
     if [ "x$PID_FILE" = "x" ]; then
         PID_FILE=$HOME/$prog-arex.pid
     fi
+    ARC_RUNTIME_CONFIG=$HOME/$prog-arex.cfg
 fi
 
 LOGFILE=
@@ -218,40 +206,43 @@ prepare() {
         exit 1
     fi
 
+    # Pre-process configuration
+    $ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$ARC_CONFIG" --runconfig "$ARC_RUNTIME_CONFIG" --save 2>/dev/null
+
     # Creating configuration file of arched
     # Reading following information from config file:
     #  Log file
     #  Debug level
     #  User name
 
-    GRIDFTPD_PRESENT=`testconfigblock "$ARC_CONFIG" gridftpd/jobs`
-    LOGFILE=`readconfigvar "$ARC_CONFIG" arex logfile`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" arex loglevel`
-    WATCHDOG=`readconfigvar "$ARC_CONFIG" arex watchdog`
-    USERNAME=`readconfigvar "$ARC_CONFIG" arex user`
-    GRIDTMPDIR=`readconfigvar "$ARC_CONFIG" arex tmpdir`
+    GRIDFTPD_PRESENT=`testconfigblock "$ARC_RUNTIME_CONFIG" gridftpd/jobs`
+    LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex logfile`
+    LOGLEVEL=`readconfigvar "$ARC_RUNTIME_CONFIG" arex loglevel`
+    WATCHDOG=`readconfigvar "$ARC_RUNTIME_CONFIG" arex watchdog`
+    USERNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" arex user`
+    GRIDTMPDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" arex tmpdir`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" arex x509_host_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" arex x509_host_key`
-    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" arex x509_cert_dir`
-    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_tcp_port_range`
-    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" arex/data-staging globus_udp_port_range`
-    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
-    GRIDMAPAUTH=`readconfigvar "$ARC_CONFIG" common gridmap`
-    GRIDMAPMAP=`readconfigvar "$ARC_CONFIG" common/mapping gridmap`
+    X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_host_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_host_key`
+    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_cert_dir`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/data-staging globus_tcp_port_range`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/data-staging globus_udp_port_range`
+    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" common voms_processing`
+    GRIDMAPAUTH=`readconfigvar "$ARC_RUNTIME_CONFIG" common gridmap`
+    GRIDMAPMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" common/mapping gridmap`
     USERMAP_BLOCK='common/mapping'
-    GRIDHOSTNAME=`readconfigvar "$ARC_CONFIG" common hostname`
-    ARC_HTTP_PROXY=`readconfigvar "$ARC_CONFIG" common http_proxy`
-    SERVICEMAIL=`readconfigvar "$ARC_CONFIG" arex mail`
+    GRIDHOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" common hostname`
+    ARC_HTTP_PROXY=`readconfigvar "$ARC_RUNTIME_CONFIG" common http_proxy`
+    SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" arex mail`
     if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
+        X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_host_cert`
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
+        X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_host_key`
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
-        X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
+        X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_cert_dir`
     fi
     if [ -z "$GRIDMAPMAP" ] ; then
       GRIDMAPMAP="$GRIDMAPAUTH"
@@ -317,16 +308,16 @@ prepare() {
     arex_port=""
     arex_path=""
     arex_service_plexer=""
-    ws_present=`testconfigblock "$ARC_CONFIG" arex/ws`
-    arex_present=`testconfigblock "$ARC_CONFIG" arex/ws/emies`
+    ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
+    arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
     if [ "$ws_present" = 'true' ] ; then
-        WSLOGFILE=`readconfigvar "$ARC_CONFIG" arex/ws logfile`
-        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_job_control_requests`
-        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_infosys_requests`
-        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" arex/ws max_data_transfer_requests`
-        ALLOWUNKNOWN=`readconfigvar "$ARC_CONFIG" arex/ws/emies allowunknown`
+        WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws logfile`
+        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_job_control_requests`
+        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_infosys_requests`
+        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_data_transfer_requests`
+        ALLOWUNKNOWN=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/emies allowunknown`
         USERAUTH_BLOCK='arex/ws/emies'
-        arex_mount_point=`readconfigvar "$ARC_CONFIG" arex/ws wsurl`
+        arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws wsurl`
         if [ ! -z "$arex_mount_point" ] ; then
             arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
             arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
@@ -375,14 +366,14 @@ prepare() {
 
     emir_registration=""
 #    if [ "$arex_present" = 'true' ]; then
-#        emir_urls=`readconfigvar "$ARC_CONFIG" "registration/emir" emirurls`
+#        emir_urls=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" emirurls`
 #        if [ ! -z "$emir_urls" ]; then
-#            emir_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
-#            emir_no_emies=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_emies`
+#            emir_no_xbes=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" disablereg_xbes`
+#            emir_no_emies=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" disablereg_emies`
 #            if [ ! "$emir_no_xbes" = "yes" ]; then
-#                emir_validity=`readconfigvar "$ARC_CONFIG" "registration/emir" validity`
+#                emir_validity=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" validity`
 #                if [ -z "$emir_validity" ]; then emir_validity="600"; fi
-#                emir_period=`readconfigvar "$ARC_CONFIG" "registration/emir" period`
+#                emir_period=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" period`
 #                if [ -z "$emir_period" ]; then emir_period="60"; fi
 #                emir_urls=`echo "$emir_urls" | sed ':loop;s/, */<\/URL><URL>EMIREG:/;t loop'`
 #                emir_urls="<URL>EMIREG:$emir_urls</URL>"
@@ -408,14 +399,14 @@ prepare() {
 
     isis_registration=""
     if [ "$arex_present" = 'true' ]; then
-        isis_urls=`readconfigvar "$ARC_CONFIG" "registration/isis" isisurls`
+        isis_urls=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" isisurls`
         if [ ! -z "$isis_urls" ]; then
-            isis_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
-            isis_no_emies=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_emies`
+            isis_no_xbes=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" disablereg_xbes`
+            isis_no_emies=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" disablereg_emies`
             if [ ! "$isis_no_xbes" = "yes" ]; then
-                isis_validity=`readconfigvar "$ARC_CONFIG" "registration/isis" validity`
+                isis_validity=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" validity`
                 if [ -z "$isis_validity" ]; then isis_validity="600"; fi
-                isis_period=`readconfigvar "$ARC_CONFIG" "registration/isis" period`
+                isis_period=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" period`
                 if [ -z "$isis_period" ]; then isis_period="60"; fi
                 isis_urls=`echo "$isis_urls" | sed ':loop;s/, */<\/URL><URL>ISIS:/;t loop'`
                 isis_urls="<URL>ISIS:$isis_urls</URL>"
@@ -442,7 +433,7 @@ prepare() {
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_endpoint`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -450,9 +441,9 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_profile`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_usermap`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -468,7 +459,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_endpoint`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -476,13 +467,13 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_profile`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_usermap`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_CONFIG" arex/ws/argus arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_acceptnotapplicable`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -502,7 +493,7 @@ prepare() {
     # candypond
     candypond_plexer=""
     candypond=""
-    use_candypond=`testconfigblock "$ARC_CONFIG" arex/ws/candypond`
+    use_candypond=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/candypond`
     if [ "$use_candypond" = "true" ]; then
         if [ "$ws_present" != 'true' ] ; then
             log_failure_msg "WS interface must be turned on to use candypond"
@@ -515,7 +506,7 @@ prepare() {
       <SecHandler name=\"arc.authz\" event=\"incoming\">
         <PDP name=\"arclegacy.pdp\">
           <ConfigBlock>
-            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
             <BlockName>arex/ws/candypond</BlockName>
           </ConfigBlock>
         </PDP>
@@ -523,12 +514,12 @@ prepare() {
       <!-- Perform client mapping -->
       <SecHandler name=\"arclegacy.map\" event=\"incoming\">
         <ConfigBlock>
-          <ConfigFile>$ARC_CONFIG</ConfigFile>
+          <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
           <BlockName>$USERMAP_BLOCK</BlockName>
         </ConfigBlock>
       </SecHandler>
       <candypond:service>\
-        <candypond:config>$ARC_CONFIG</candypond:config>\
+        <candypond:config>$ARC_RUNTIME_CONFIG</candypond:config>\
         <candypond:witharex>true</candypond:witharex>\
       </candypond:service>\
     </Service>"
@@ -555,26 +546,6 @@ prepare() {
     fi
 
     CMD="$CMD -c '$AREX_CONFIG'"
-
-    # VOMS_LOCATION
-    VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
-
-    add_library_path "$VOMS_LOCATION"
-    add_library_path "$GLOBUS_LOCATION"
-    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64
-    else
-        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64:$LD_LIBRARY_PATH
-    fi
-    export LD_LIBRARY_PATH
-
-    python_site_arch=`python -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0, "'${ARC_LOCATION}'"))'`
-    if [ "x$PYTHONPATH" = "x" ]; then
-        PYTHONPATH=${python_site_arch}
-    else
-        PYTHONPATH=${python_site_arch}:${PYTHONPATH}
-    fi
-    export PYTHONPATH
 
     case "$LOGLEVEL" in 
         0) LOGLEVEL="FATAL" ;;
@@ -611,7 +582,7 @@ prepare() {
 <SecHandler name=\"arc.authz\" event=\"incoming\">
   <PDP name=\"arclegacy.pdp\">
     <ConfigBlock>
-      <ConfigFile>$ARC_CONFIG</ConfigFile>
+      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
       <BlockName>$USERAUTH_BLOCK</BlockName>
     </ConfigBlock>
   </PDP>
@@ -619,7 +590,7 @@ prepare() {
 <!-- Perform client mapping according to rules of gridftpd -->
 <SecHandler name=\"arclegacy.map\" event=\"incoming\">
   <ConfigBlock>
-    <ConfigFile>$ARC_CONFIG</ConfigFile>
+    <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
     <BlockName>$USERMAP_BLOCK</BlockName>
   </ConfigBlock>
 </SecHandler>"
@@ -645,7 +616,7 @@ prepare() {
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
       $service_mail
-      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
     </Service>
   </Chain>
 </ArcConfig>
@@ -705,7 +676,7 @@ prepare() {
       $emir_registration
       $isis_registration
       $service_mail
-      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
@@ -769,7 +740,7 @@ prepare() {
       </SecHandler>
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
-        <ConfigFile>$ARC_CONFIG</ConfigFile>
+        <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
       </SecHandler>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
@@ -786,7 +757,7 @@ prepare() {
       $arex_endpoint
       $emir_registration
       $isis_registration
-      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
@@ -854,7 +825,6 @@ start() {
 
     echo "Validating A-REX setup..." >> $LOGFILE
     validate >> $LOGFILE 2>&1
-
     RETVAL=$?
     if [ $RETVAL != 0 ]; then
         log_failure_msg "Configuration validation failed: $RETVAL errors"
@@ -862,7 +832,7 @@ start() {
     fi
 
     # If specified in configuration mount remote session directory using SSHFS.
-    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" lrms/ssh remote_host`
     if test "x$REMOTE_HOST" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -932,7 +902,7 @@ stop() {
 
     # If specified in configuration and if mounted,
     # unmount remote session, runtime and cache directories.
-    REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" lrms/ssh remote_host`
     if test "x${REMOTE_HOST}" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -941,6 +911,8 @@ stop() {
         . $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount
         unmount_sshfs
     fi
+    # Because runtime configuraiton was created by parser during prepare it would be nice to delete it.
+    rm -rf "$ARC_RUNTIME_CONFIG"
 
     return $RETVAL
 }
@@ -995,7 +967,7 @@ case "$1" in
         validate
         ;;
     mount-sshfs)
-        REMOTE_HOST=`readconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
+        REMOTE_HOST=`readorigconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
         if test "x$REMOTE_HOST" != "x"; then
             if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
                 log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
