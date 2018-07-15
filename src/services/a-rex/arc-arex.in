@@ -145,16 +145,26 @@ testconfigblock() {
 }
 
 readorigconfigvar() {
-    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$2" -o "$3" 2>/dev/null`
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$3" -o "$2" 2>/dev/null`
     if [ "$?" = '0' ] ; then
         echo "$value"
     fi
 }
 
 readconfigvar() {
-    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$1" --load -b "$2" -o "$3" 2>/dev/null`
+    fname="$1"
+    optname="$2"
+    blocks=""
+    while [ ! -z "$3" ] ; do
+        blocks="$blocks -b $3"
+        shift
+    done
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$fname" --load $blocks -o "$optname" 2>/dev/null`
     if [ "$?" = '0' ] ; then
         echo "$value"
+        exit 0
+    else
+        exit 1
     fi
 }
 
@@ -168,7 +178,7 @@ if [ "x$ARC_CONFIG" = "x" ]; then
 fi
 
 # PID and lock file
-PID_FILE=`readorigconfigvar "$ARC_CONFIG" arex pidfile`
+PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile arex`
 ARC_RUNTIME_CONFIG=
 LOCKFILE=
 
@@ -190,6 +200,8 @@ else
     fi
     ARC_RUNTIME_CONFIG=$HOME/$prog-arex.cfg
 fi
+ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
+ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
 
 LOGFILE=
 
@@ -216,89 +228,39 @@ prepare() {
     #  User name
 
     GRIDFTPD_PRESENT=`testconfigblock "$ARC_RUNTIME_CONFIG" gridftpd/jobs`
-    LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex logfile`
-    LOGLEVEL=`readconfigvar "$ARC_RUNTIME_CONFIG" arex loglevel`
-    WATCHDOG=`readconfigvar "$ARC_RUNTIME_CONFIG" arex watchdog`
-    USERNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" arex user`
-    GRIDTMPDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" arex tmpdir`
+    LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex`
+    LOGLEVEL=`readconfigvar "$ARC_RUNTIME_CONFIG" loglevel arex`
+    WATCHDOG=`readconfigvar "$ARC_RUNTIME_CONFIG" watchdog arex`
+    USERNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" user arex`
+    GRIDTMPDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" tmpdir arex`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_host_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_host_key`
-    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" arex x509_cert_dir`
-    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/data-staging globus_tcp_port_range`
-    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/data-staging globus_udp_port_range`
-    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" common voms_processing`
-    GRIDMAPAUTH=`readconfigvar "$ARC_RUNTIME_CONFIG" common gridmap`
-    GRIDMAPMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" common/mapping gridmap`
-    USERMAP_BLOCK='common/mapping'
-    GRIDHOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" common hostname`
-    ARC_HTTP_PROXY=`readconfigvar "$ARC_RUNTIME_CONFIG" common http_proxy`
-    SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" arex mail`
-    if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_host_cert`
-    fi
-    if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_host_key`
-    fi
-    if [ -z "$X509_CERT_DIR" ] ; then
-        X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" common x509_cert_dir`
-    fi
-    if [ -z "$GRIDMAPMAP" ] ; then
-      GRIDMAPMAP="$GRIDMAPAUTH"
-    fi
-    if [ -z "$GRIDHOSTNAME" ] ; then
-      GRIDHOSTNAME="$HOSTNAME"
-    fi
-    if [ -z "$GRIDHOSTNAME" ] ; then
-      GRIDHOSTNAME=`hostname -f`
-    fi
-    if [ -z "$GRIDHOSTNAME" ] ; then
-        log_failure_msg "Failed to determine host name for this computer"
-        exit 1
-    fi
+    X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_cert arex common`
+    X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_key arex common`
+    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir arex common`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
+    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
+    GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
+    USERMAP_BLOCK='mapping'
+    HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
+    SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
     if [ "$USERNAME" = "root" ] ; then
         USERNAME=""
     fi
     if [ "$GROUPNAME" = "root" ] ; then
         GROUPNAME=""
     fi
-    if [ -z "$SERVICEMAIL" ] ; then
-      if [ ! -z "$USERNAME" ] ; then
-        SERVICEMAIL="$USERNAME@$GRIDHOSTNAME"
-      else
-        SERVICEMAIL="root@$GRIDHOSTNAME"
-      fi
-    fi
 
     # Exporting collected variables
-    if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
-    if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
-    if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-    if [ ! -z "$GRIDMAPMAP" ] ; then export GRIDMAP="$GRIDMAPMAP"
-    elif [ ! -z "$GRIDMAPAUTH" ] ; then export GRIDMAP="$GRIDMAPAUTH" ; fi
-    if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
-    if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+    export X509_USER_CERT
+    export X509_USER_KEY
+    export X509_CERT_DIR
+    export GLOBUS_TCP_PORT_RANGE
+    export GLOBUS_UDP_PORT_RANGE
+    export GRIDMAP
+    export HOSTNAME
     if [ ! -z "$GRIDTMPDIR" ] ; then export TMPDIR="$GRIDTMPDIR" ; fi
-    if [ ! -z "$GRIDHOSTNAME" ] ; then export HOSTNAME="$GRIDHOSTNAME" ; fi
-    if [ ! -z "$ARC_HTTP_PROXY" ] ; then export ARC_HTTP_PROXY ; fi
-
-    # Required defaults
-    if [ -z "$GRIDMAPAUTH" ] ; then
-        GRIDMAPAUTH=/etc/grid-security/grid-mapfile
-    fi
-    if [ -z "$GRIDMAPMAP" ] ; then
-        GRIDMAPMAP=/etc/grid-security/grid-mapfile
-    fi
-    if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=/etc/grid-security/hostcert.pem
-    fi
-    if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=/etc/grid-security/hostkey.pem
-    fi
-    if [ -z "$X509_CERT_DIR" ] ; then
-        X509_CERT_DIR=/etc/grid-security/certificates
-    fi
 
     # Web Service configuration
     arex_endpoint=""
@@ -311,13 +273,13 @@ prepare() {
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
     arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
     if [ "$ws_present" = 'true' ] ; then
-        WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws logfile`
-        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_job_control_requests`
-        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_infosys_requests`
-        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws max_data_transfer_requests`
-        ALLOWUNKNOWN=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/emies allowunknown`
+        WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
+        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
+        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
+        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
+        ALLOWUNKNOWN=`readconfigvar "$ARC_RUNTIME_CONFIG" allowunknown arex/ws/emies`
         USERAUTH_BLOCK='arex/ws/emies'
-        arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws wsurl`
+        arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
         if [ ! -z "$arex_mount_point" ] ; then
             arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
             arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
@@ -337,7 +299,7 @@ prepare() {
             fi
         else
             arex_proto='https'
-            arex_host="$GRIDHOSTNAME"
+            arex_host="$HOSTNAME"
             arex_port='443'
             arex_path='arex'
             arex_mount_point=${arex_proto}://${arex_host}:${arex_port}/${arex_path}
@@ -364,76 +326,10 @@ prepare() {
         arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
 
-    emir_registration=""
-#    if [ "$arex_present" = 'true' ]; then
-#        emir_urls=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" emirurls`
-#        if [ ! -z "$emir_urls" ]; then
-#            emir_no_xbes=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" disablereg_xbes`
-#            emir_no_emies=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" disablereg_emies`
-#            if [ ! "$emir_no_xbes" = "yes" ]; then
-#                emir_validity=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" validity`
-#                if [ -z "$emir_validity" ]; then emir_validity="600"; fi
-#                emir_period=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/emir" period`
-#                if [ -z "$emir_period" ]; then emir_period="60"; fi
-#                emir_urls=`echo "$emir_urls" | sed ':loop;s/, */<\/URL><URL>EMIREG:/;t loop'`
-#                emir_urls="<URL>EMIREG:$emir_urls</URL>"
-#                emir_registration="\
-#<InfoRegister xmlns=\"http://www.nordugrid.org/schemas/InfoRegisterConfig/2008\">
-#  <Endpoint>$arex_mount_point</Endpoint>
-#  <Expiration>$emir_validity</Expiration>
-#  <Period>$emir_period</Period>
-#  <Registrar>
-#    $emir_urls
-#    <Retry>10</Retry>
-#    <Endpoint>$arex_mount_point</Endpoint>
-#    <Expiration>$emir_validity</Expiration>
-#    <Period>$emir_period</Period>
-#    <KeyPath>$X509_USER_KEY</KeyPath>
-#    <CertificatePath>$X509_USER_CERT</CertificatePath>
-#    <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-#  </Registrar>
-#</InfoRegister>"
-#            fi
-#        fi
-#    fi
-
-    isis_registration=""
-    if [ "$arex_present" = 'true' ]; then
-        isis_urls=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" isisurls`
-        if [ ! -z "$isis_urls" ]; then
-            isis_no_xbes=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" disablereg_xbes`
-            isis_no_emies=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" disablereg_emies`
-            if [ ! "$isis_no_xbes" = "yes" ]; then
-                isis_validity=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" validity`
-                if [ -z "$isis_validity" ]; then isis_validity="600"; fi
-                isis_period=`readconfigvar "$ARC_RUNTIME_CONFIG" "registration/isis" period`
-                if [ -z "$isis_period" ]; then isis_period="60"; fi
-                isis_urls=`echo "$isis_urls" | sed ':loop;s/, */<\/URL><URL>ISIS:/;t loop'`
-                isis_urls="<URL>ISIS:$isis_urls</URL>"
-                isis_registration="\
-<InfoRegister xmlns=\"http://www.nordugrid.org/schemas/InfoRegisterConfig/2008\">
-  <Endpoint>$arex_mount_point</Endpoint>
-  <Expiration>$isis_validity</Expiration>
-  <Period>$isis_period</Period>
-  <Registrar>
-    $isis_urls
-    <Retry>10</Retry>
-    <Endpoint>$arex_mount_point</Endpoint>
-    <Expiration>$isis_validity</Expiration>
-    <Period>$isis_period</Period>
-    <KeyPath>$X509_USER_KEY</KeyPath>
-    <CertificatePath>$X509_USER_CERT</CertificatePath>
-    <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-  </Registrar>
-</InfoRegister>"
-            fi
-        fi
-    fi
-
     argus_shc=""
     argus_plugin=""
 
-    arguspep_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_endpoint`
+    arguspep_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_endpoint arex/ws/argus`
     if [ ! -z "$arguspep_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
@@ -441,9 +337,9 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspep_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_profile`
+      arguspep_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_profile arex/ws/argus`
       if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspep_usermap`
+      arguspep_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_usermap arex/ws/argus`
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
@@ -459,7 +355,7 @@ prepare() {
 </SecHandler>"
     fi
 
-    arguspdp_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_endpoint`
+    arguspdp_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_endpoint arex/ws/argus`
     if [ ! -z "$arguspdp_endpoint" ]; then
       argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
       if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
@@ -467,13 +363,13 @@ prepare() {
         log_failure_msg "You may need to install corresponding package"
         exit 1
       fi
-      arguspdp_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_profile`
+      arguspdp_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_profile arex/ws/argus`
       if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_usermap`
+      arguspdp_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_usermap arex/ws/argus`
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arex/ws/argus arguspdp_acceptnotapplicable`
+      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_acceptnotapplicable arex/ws/argus`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
@@ -529,7 +425,7 @@ prepare() {
         gridmapmatch="\
 <!-- Do initial user filtering by gridmap file -->
 <SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAPAUTH\">
+  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
   </PDP>
 </SecHandler>"
     fi
@@ -673,8 +569,6 @@ prepare() {
       $emies_legacy_shc
       $argus_shc
       $arex_endpoint
-      $emir_registration
-      $isis_registration
       $service_mail
       <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
@@ -735,7 +629,7 @@ prepare() {
       $gridmapmatch
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAPMAP</LocalList></PDP>
+        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
         <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>
       </SecHandler>
       <!-- Match client to legacy authorization groups -->
@@ -755,8 +649,6 @@ prepare() {
       $emies_legacy_shc
       $argus_shc
       $arex_endpoint
-      $emir_registration
-      $isis_registration
       <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
@@ -832,7 +724,7 @@ start() {
     fi
 
     # If specified in configuration mount remote session directory using SSHFS.
-    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" lrms/ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" remote_host lrms/ssh`
     if test "x$REMOTE_HOST" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -902,7 +794,7 @@ stop() {
 
     # If specified in configuration and if mounted,
     # unmount remote session, runtime and cache directories.
-    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" lrms/ssh remote_host`
+    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" remote_host lrms/ssh`
     if test "x${REMOTE_HOST}" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
@@ -960,14 +852,14 @@ case "$1" in
     condrestart | try-restart)
         [ -f $LOCKFILE ] && restart || :
         ;;
-          force-kill)
+    force-kill)
         stop 1
         ;;
     validate)
         validate
         ;;
     mount-sshfs)
-        REMOTE_HOST=`readorigconfigvar "$ARC_CONFIG" lrms/ssh remote_host`
+        REMOTE_HOST=`readorigconfigvar "$ARC_CONFIG" remote_host lrms/ssh`
         if test "x$REMOTE_HOST" != "x"; then
             if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
                 log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
