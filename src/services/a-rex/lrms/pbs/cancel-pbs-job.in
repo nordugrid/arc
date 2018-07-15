@@ -7,6 +7,8 @@
 echo "----- starting cancel_pbs_job -----" 1>&2
 
 joboption_lrms="pbs"
+lrms_options="pbs_bin_path pbs_log_path"
+queue_options="pbs_queue_node nodememory"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

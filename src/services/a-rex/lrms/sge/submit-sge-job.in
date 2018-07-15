@@ -11,6 +11,8 @@
 echo "----- starting submit_sge_job -----" 1>&2
 
 joboption_lrms="sge"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
+queue_options="sge_jobopts"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

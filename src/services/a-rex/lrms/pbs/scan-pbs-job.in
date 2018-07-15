@@ -20,6 +20,8 @@ while [ $# -gt 0 ] ; do
 done
 
 joboption_lrms="pbs"
+lrms_options="pbs_bin_path pbs_log_path"
+queue_options="pbs_queue_node nodememory"
 
 # define paths and config parser
 basedir=`dirname $0`

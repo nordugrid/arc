@@ -17,6 +17,8 @@ while [ $# -gt 0 ] ; do
 done
 
 joboption_lrms="sge"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
+queue_options="sge_jobopts"
 
 # define paths and config parser
 basedir=`dirname $0`

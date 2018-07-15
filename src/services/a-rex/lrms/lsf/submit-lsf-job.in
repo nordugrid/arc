@@ -9,6 +9,7 @@
 
 echo "----- starting submit_lsf_job -----" 1>&2
 joboption_lrms="lsf"
+lrms_options="lsf_architecture lsf_bin_path"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi

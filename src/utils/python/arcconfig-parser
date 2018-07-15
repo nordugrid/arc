@@ -6,7 +6,7 @@ from arc.utils.config import *
 
 def process_config(args):
     if args.load:
-        # load running configuration is priority if requested
+        # load runtime configuration is priority if requested
         load_run_config(args.runconfig)
     else:
         # parse both arc.conf and defaults
@@ -15,12 +15,16 @@ def process_config(args):
 
 def get_parser():
     parser = argparse.ArgumentParser(description='Nordugrid ARC configuration parser')
-    runcfg = parser.add_argument_group('Running configuration',
-                                       'Work with running configuration that includes default values')
-    runcfg.add_argument('--load', action='store_true', help='load ARC running configuration')
-    runcfg.add_argument('--save', action='store_true', help='save ARC running configuration')
+    parser.add_argument('--debug', action='store',
+                        help='verbosity level (default is %(default)s)', default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+
+    runcfg = parser.add_argument_group('Runtime configuration',
+                                       'Work with runtime configuration that includes default values')
+    runcfg.add_argument('--load', action='store_true', help='load ARC runtime configuration')
+    runcfg.add_argument('--save', action='store_true', help='save ARC runtime configuration')
     runcfg.add_argument('-r', '--runconfig', action='store',
-                        help='running config file location (default is %(default)s)', default=runconf_defpath())
+                        help='runtime config file location (default is %(default)s)', default=runconf_defpath())
 
     initcfg = parser.add_argument_group('Configuration files', 'Initial ARC configuration files')
     initcfg.add_argument('-c', '--config', action='store',
@@ -36,6 +40,8 @@ def get_parser():
                            help='match subblocks against supplied block name(s)')
     getvalues.add_argument('-e', '--export', action='store', choices=['bash', 'json'],
                            help='export configuration to the defined format')
+    getvalues.add_argument('-f', '--export-filter', action='append',
+                           help='limit bash export to specified options only')
     return parser
 
 
@@ -43,6 +49,7 @@ if __name__ == '__main__':
     # command line arguments parsing
     args_parser = get_parser()
     cmd_args = args_parser.parse_args()
+    logger.setLevel(cmd_args.debug)
 
     # operations logic
     if cmd_args.save:
@@ -55,7 +62,7 @@ if __name__ == '__main__':
         if cmd_args.export == 'json':
             print export_json(cmd_args.block, cmd_args.subblocks)
         elif cmd_args.export == 'bash':
-            print export_bash(cmd_args.block, cmd_args.subblocks)
+            print export_bash(cmd_args.block, cmd_args.subblocks, cmd_args.export_filter)
     else:
         # get values
         if cmd_args.block:

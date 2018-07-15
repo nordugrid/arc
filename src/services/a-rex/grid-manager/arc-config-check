@@ -694,9 +694,11 @@ Some applications are required for the server to be functional.
 =cut
 
 sub check_applications() {
-	unless ( -x "/usr/bin/time" ) {
-		e("Could not find GNU time utility (or a substitute) at /usr/bin/time.");
-	}
+    # placeholder for binary files check, e.g. previously
+    #unless ( -x "/usr/bin/time" ) {
+    #    e("Could not find GNU time utility (or a substitute) at /usr/bin/time.");
+    #}
+    return;
 }
 
 

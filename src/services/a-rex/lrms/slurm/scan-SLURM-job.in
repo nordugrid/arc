@@ -19,6 +19,7 @@ for ctr_dir in "$@"; do
 done
 
 joboption_lrms="SLURM"
+lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
 
 # define paths and config parser
 basedir=`dirname $0`

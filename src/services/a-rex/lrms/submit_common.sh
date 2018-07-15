@@ -136,8 +136,9 @@ add_user_env () {
    if [ -z "$has_gridglobalid" ]; then
       hostname=`/usr/bin/perl -MSys::Hostname -we 'print hostname'`
       hostname=${CONFIG_hostname:-$hostname}
-      gm_port=${CONFIG_gm_port:-2811}
-      gm_mount_point=${CONFIG_gm_mount_point:-/jobs}
+      # not configurable any longer
+      gm_port=2811
+      gm_mount_point="/jobs"
       echo "export GRID_GLOBAL_JOBID='gsiftp://$hostname:$gm_port$gm_mount_point/$joboption_gridid'" >> $LRMS_JOB_SCRIPT
    fi
 

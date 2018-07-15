@@ -81,9 +81,8 @@ def yield_arc_conf():
     """Yield stored config dict line by line"""
     for b in __parsed_blocks:
         yield '[{0}]\n'.format(b)
-        for opt, val in __parsed_config[b].iteritems():
-            if opt == '__block_name':
-                continue
+        for opt in __parsed_config[b]['__options_order']:
+            val = __parsed_config[b][opt]
             if isinstance(val, list):
                 for v in val:
                     yield '{0}={1}\n'.format(opt, v)
@@ -204,14 +203,20 @@ def _conf_substitute_eval(optstr):
 
 def _merge_defults():
     """Add not specified config options from defaults file to parsed config dict (defined blocks only)"""
-    for block, optdict in __parsed_config.iteritems():
+    for block in __parsed_blocks:
+        optdict = __parsed_config[block]
         if ':' in block:
             block = block.split(':')[0].strip()
-        for opt, val in __default_config[block].iteritems():
-            if opt not in optdict:
-                # add option from default file
-                if val != __no_default:
-                    optdict.update({opt: val})
+        if block in __default_config:
+            for opt in __default_config[block]['__options_order']:
+                val = __default_config[block][opt]
+                if opt not in optdict:
+                    # add option from default file
+                    if val != __no_default:
+                        optdict['__options_order'].append(opt)
+                        optdict.update({opt: val})
+        else:
+            logger.warning('Configuration block [%s] is not in the defaults file.', block)
 
 
 def _evaluate_values():
@@ -225,10 +230,11 @@ def _evaluate_values():
     # Evaluate substitutions: EXEC
     # e.g. $EXEC{hostname -f}
     for block in __parsed_blocks:
-        for opt, val in __parsed_config[block].iteritems():
+        for opt in __parsed_config[block]['__options_order']:
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
+            val = __parsed_config[block][opt]
             if '$EXEC' in val:
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_exec(val)
@@ -237,26 +243,28 @@ def _evaluate_values():
     # Evaluate substitutions: VAR
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block in __parsed_blocks:
-        for opt in __parsed_config[block].keys():
-            val = __parsed_config[block][opt]
+        for opt in list(__parsed_config[block]['__options_order']):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
+            val = __parsed_config[block][opt]
             if '$VAR' in val:
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_var(val, block)
                 if subst:
                     if subval is None:
+                        __parsed_config[block]['__options_order'].remove(opt)
                         del __parsed_config[block][opt]
                     else:
                         __parsed_config[block][opt] = subval
     # Evaluate substitutions: EVAL
     # e.g. $EVAL{$VAR{bdii_provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
     for block in __parsed_blocks:
-        for opt, val in __parsed_config[block].iteritems():
+        for opt in __parsed_config[block]['__options_order']:
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
+            val = __parsed_config[block][opt]
             if '$EVAL' in val:
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_eval(val)
@@ -275,11 +283,12 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
             if block_match:
                 block_dict = block_match.groupdict()
                 block_id = block_dict['block']
-                parsed_confdict_ref[block_id] = {}
+                parsed_confdict_ref[block_id] = {'__options_order': []}
                 parsed_blockslist_ref.append(block_id)
                 if block_dict['block_name'] is not None:
                     parsed_confdict_ref[block_id]['__block_name'] = block_dict['block_name'][1:].strip()
                 continue
+            # match for option = value
             option_match = __arcconf_re['option'].match(confline)
             if option_match:
                 if block_id is None:
@@ -288,13 +297,19 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                     continue
                 option = option_match.groupdict()['option']
                 value = option_match.groupdict()['value']
+                # TODO: no quotes strip (check "" as default values first)
                 if value.startswith('"') and value.endswith('"'):
                     value = value[1:-1]
+                # values are lists when multivalued
                 if option in parsed_confdict_ref[block_id]:
                     if isinstance(parsed_confdict_ref[block_id][option], list):
                         value = parsed_confdict_ref[block_id][option] + [value]
                     else:
                         value = [parsed_confdict_ref[block_id][option], value]
+                # add option to the ordered list
+                if option not in parsed_confdict_ref[block_id]['__options_order']:
+                    parsed_confdict_ref[block_id]['__options_order'].append(option)
+                # add option to confdict
                 parsed_confdict_ref[block_id][option] = value
                 continue
             logger.warning("Failed to parse line #%s: %s", ln + 1, confline.strip('\n'))
@@ -335,11 +350,12 @@ def export_json(blocks=None, subsections=False):
     return json.dumps(__parsed_config)
 
 
-def export_bash(blocks=None, subsections=False):
+def export_bash(blocks=None, subsections=False, options_filter=None):
     """
     Returns CONFIG_key="value" strings ready to eval in shell
     :param blocks: List of blocks to export
     :param subsections: Export all subblocks
+    :param options_filter: Limit exported options only to the specified list
     :return: Eval-ready string
     """
     # it does not make sense to export entire configuration this way
@@ -355,7 +371,12 @@ def export_bash(blocks=None, subsections=False):
     for b in blocks:
         if b not in blocks_dict:
             continue
-        for k, v in blocks_dict[b].iteritems():
+        for k in blocks_dict[b]['__options_order']:
+            if options_filter:
+                if k not in options_filter:
+                    logger.debug('Option "%s" will not be exported (not in allowed list)', k)
+                    continue
+            v = blocks_dict[b][k]
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
                 for i, vi in enumerate(v):
