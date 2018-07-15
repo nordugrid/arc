@@ -18,15 +18,15 @@ endif
 pkglibexec_SCRIPTS = $(PYTHON_LRMS_PKGLIBEXEC_FILES)
 
 if SYSV_SCRIPTS_ENABLED
-AREX_SCRIPT = a-rex
+AREX_SCRIPT = arc-arex
 else
 AREX_SCRIPT =
 endif
 initd_SCRIPTS = $(AREX_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
-AREX_UNIT = a-rex.service
-AREX_UNIT_WRAPPER = a-rex-start
+AREX_UNIT = arc-arex.service
+AREX_UNIT_WRAPPER = arc-arex-start
 else
 AREX_UNIT =
 AREX_UNIT_WRAPPER =

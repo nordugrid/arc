@@ -74,6 +74,8 @@ if __name__ == '__main__':
                     for v in values:
                         print v
                 else:
+                    if values is None:
+                        sys.exit(1)
                     print values
             # work with blocks structure
             else:

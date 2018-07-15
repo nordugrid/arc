@@ -1,7 +1,7 @@
 #!/bin/sh
 
-PIDFILE=/var/run/acix-cache.pid
-DEFAULT_LOGFILE=/var/log/arc/acix-cache.log
+PIDFILE=/var/run/arc-acix-index.pid
+DEFAULT_LOGFILE=/var/log/arc/arc-acix-index.log
 prog=twistd
 
 RUN=yes
@@ -12,15 +12,15 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/acix-cache ]; then
-    . /etc/sysconfig/acix-cache
-elif [ -r /etc/default/acix-cache ]; then
-    . /etc/default/acix-cache
+if [ -r /etc/sysconfig/arc-acix-index ]; then
+    . /etc/sysconfig/arc-acix-index
+elif [ -r /etc/default/arc-acix-index ]; then
+    . /etc/default/arc-acix-index
 fi
 
 if [ "$RUN" != "yes" ] ; then
-    echo "acix-cache service is disabled, please adjust the configuration to your"
-    echo "needs and then set RUN to 'yes' in /etc/default/acix-cache to enable it."
+    echo "arc-acix-index service is disabled, please adjust the configuration to your"
+    echo "needs and then set RUN to 'yes' in /etc/default/arc-acix-index to enable it."
     return 0
 fi
 
@@ -35,27 +35,24 @@ fi
 
 # Check if service is defined in configuration
 libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
-$libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner > /dev/null 2>&1
+$libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index > /dev/null 2>&1
 if [ $? -eq 1 ]; then
-    log_failure_msg "Block [acix-scanner] not defined in configuration"
+    log_failure_msg "Block [acix-index] not defined in configuration"
     exit 1
 fi
 
-# Load configuration into env vars
-eval "$( $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner --export bash )"
-LOGFILE=${CONFIG_logfile:-$DEFAULT_LOGFILE}
-LOGD=`dirname $LOGFILE`
-LOGN=`basename $LOGFILE`
+LOGD=`dirname $DEFAULT_LOGFILE`
+LOGN=`basename $DEFAULT_LOGFILE`
 
 if [ ! -d $LOGD ]; then
     mkdir -p $LOGD
 fi
 
 APPSTART="
-from acix import cacheserver;
+from acix import indexserver;
 from twisted.python import log;
 from twisted.python.logfile import LogFile;
-application = cacheserver.createApplication();
+application = indexserver.createApplication();
 log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
 "
 

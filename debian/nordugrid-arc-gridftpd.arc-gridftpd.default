@@ -1,4 +1,4 @@
-# To enable acix-cache, i.e. to indicate that a readily usable
+# To enable arc-gridftpd, i.e. to indicate that a readily usable
 # configuration is in place, comment out or delete the
 # following line.
 RUN=no

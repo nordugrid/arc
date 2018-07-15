@@ -112,7 +112,7 @@ def load_run_config(runconf_f=__def_path_runconf):
     if not os.path.exists(runconf_f):
         logger.error('There is no running configuration in %s. Dump it first.', runconf_f)
         sys.exit(1)
-    parse_arc_conf(runconf_f)
+    _parse_config(runconf_f, __parsed_config, __parsed_blocks)
 
 
 def defaults_defpath():
