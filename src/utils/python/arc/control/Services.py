@@ -23,10 +23,6 @@ class ServicesControl(ComponentControl):
             'package': 'nordugrid-arc-arex',
             'service': 'arc-arex'
         },
-        'arex/ws/candypond': {
-            'package': 'nordugrid-arc-arex',
-            'service': None
-        },
         'gridftpd': {
             'package': 'nordugrid-arc-gridftpd',
             'service': 'arc-gridftpd'
@@ -48,7 +44,7 @@ class ServicesControl(ComponentControl):
             'service': 'arc-acix-index'
         },
         'nordugridmap': {
-            'package': 'nordugrid-arc-gridmap-utils',
+            'package': 'nordugrid-arc-nordugridmap',
             'service':  None
         }
     }
