@@ -148,6 +148,9 @@ readorigconfigvar() {
     value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$3" -o "$2" 2>/dev/null`
     if [ "$?" = '0' ] ; then
         echo "$value"
+        exit 0
+    else
+        exit 1
     fi
 }
 
@@ -185,20 +188,12 @@ LOCKFILE=
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if [ -d /var/lock/subsys ]; then
-        LOCKFILE=/var/lock/subsys/$prog-arex
+        LOCKFILE=/var/lock/subsys/arex
     else
-        LOCKFILE=/var/lock/$prog-arex
+        LOCKFILE=/var/lock/arex
     fi
-    if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=/var/run/$prog-arex.pid
-    fi
-    ARC_RUNTIME_CONFIG=/var/run/$prog-arex.cfg
 else
-    LOCKFILE=$HOME/$prog-arex.lock
-    if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=$HOME/$prog-arex.pid
-    fi
-    ARC_RUNTIME_CONFIG=$HOME/$prog-arex.cfg
+    LOCKFILE=$HOME/arex.lock
 fi
 ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
 ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
@@ -220,14 +215,18 @@ prepare() {
 
     # Pre-process configuration
     $ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$ARC_CONFIG" --runconfig "$ARC_RUNTIME_CONFIG" --save 2>/dev/null
+    if [ ! "$?" = '0' ] ; then
+        log_failure_msg "ARC configuration processing failed"
+        exit 1
+    fi
 
     # Creating configuration file of arched
     # Reading following information from config file:
     #  Log file
     #  Debug level
     #  User name
+    #  ...
 
-    GRIDFTPD_PRESENT=`testconfigblock "$ARC_RUNTIME_CONFIG" gridftpd/jobs`
     LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex`
     LOGLEVEL=`readconfigvar "$ARC_RUNTIME_CONFIG" loglevel arex`
     WATCHDOG=`readconfigvar "$ARC_RUNTIME_CONFIG" watchdog arex`
@@ -235,16 +234,19 @@ prepare() {
     GRIDTMPDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" tmpdir arex`
     GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'`
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
-    X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_cert arex common`
-    X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_key arex common`
-    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir arex common`
+    X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_cert common`
+    X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_key common`
+    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir common`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
-    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
+    # This options is gone. But it is needed in arched level configuration.
+    # VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
+    VOMS_PROCESSING=""
     GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
     USERMAP_BLOCK='mapping'
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
+    # It is easier to handle root user through empty value.
     if [ "$USERNAME" = "root" ] ; then
         USERNAME=""
     fi
@@ -272,50 +274,46 @@ prepare() {
     arex_service_plexer=""
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
     arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
+    gridmapmatch=""
     if [ "$ws_present" = 'true' ] ; then
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
         MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
         MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
         MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
-        ALLOWUNKNOWN=`readconfigvar "$ARC_RUNTIME_CONFIG" allowunknown arex/ws/emies`
+        REQUIREGRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" require_gridmapfile arex/ws/emies`
         USERAUTH_BLOCK='arex/ws/emies'
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
-        if [ ! -z "$arex_mount_point" ] ; then
-            arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
-            arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
-            arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
-            arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-            if [ "$arex_proto" = "https" ] ; then
-                if [ -z "$arex_port" ] ; then
-                    arex_port="443"
-                fi
-            elif [ "$arex_proto" = "http" ] ; then
-                if [ -z "$arex_port" ] ; then
-                    arex_port="80"
-                fi
-            else
-                log_failure_msg "Unsupported protocol '$arex_proto' for WS interface"
-                exit 1
+        arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
+        arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
+        arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
+        arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
+        if [ "$arex_proto" = "https" ] ; then
+            if [ -z "$arex_port" ] ; then
+                arex_port="443"
+            fi
+        elif [ "$arex_proto" = "http" ] ; then
+            if [ -z "$arex_port" ] ; then
+                arex_port="80"
             fi
         else
-            arex_proto='https'
-            arex_host="$HOSTNAME"
-            arex_port='443'
-            arex_path='arex'
-            arex_mount_point=${arex_proto}://${arex_host}:${arex_port}/${arex_path}
+            log_failure_msg "Unsupported protocol '$arex_proto' for WS interface"
+            exit 1
         fi
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
         arex_path="/$arex_path"
 
-        WSLOGFILE=${WSLOGFILE:-/var/log/arc/ws-interface.log}
         if [ ! -d `dirname $WSLOGFILE` ]; then
             mkdir -p `dirname $WSLOGFILE`
         fi
-        MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
-        MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
-        MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
-        if [ "$ALLOWUNKNOWN" != "yes" ] ; then
-            ALLOWUNKNOWN=""
+
+        if [ "$REQUIREGRIDMAP" = "yes" ] ; then
+            gridmapmatch="
+<!-- Do initial user filtering by gridmap file -->
+<SecHandler name=\"arc.authz\" event=\"incoming\">
+  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
+  </PDP>
+</SecHandler>
+"
         fi
     fi
     if [ "$arex_present" = 'true' ] ; then
@@ -396,40 +394,31 @@ prepare() {
             exit 1
         fi
         candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
-        candypond="\
-    <Service name=\"candypond\" id=\"candypond\">\
-      <!-- Beware of hardcoded block name -->
-      <SecHandler name=\"arc.authz\" event=\"incoming\">
-        <PDP name=\"arclegacy.pdp\">
-          <ConfigBlock>
-            <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-            <BlockName>arex/ws/candypond</BlockName>
-          </ConfigBlock>
-        </PDP>
-      </SecHandler>
-      <!-- Perform client mapping -->
-      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
-        <ConfigBlock>
-          <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-          <BlockName>$USERMAP_BLOCK</BlockName>
-        </ConfigBlock>
-      </SecHandler>
-      <candypond:service>\
-        <candypond:config>$ARC_RUNTIME_CONFIG</candypond:config>\
-        <candypond:witharex>true</candypond:witharex>\
-      </candypond:service>\
-    </Service>"
+        candypond="
+            <Service name=\"candypond\" id=\"candypond\">
+              <!-- Beware of hardcoded block name -->
+              <SecHandler name=\"arc.authz\" event=\"incoming\">
+                <PDP name=\"arclegacy.pdp\">
+                  <ConfigBlock>
+                    <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
+                    <BlockName>arex/ws/candypond</BlockName>
+                  </ConfigBlock>
+                </PDP>
+              </SecHandler>
+              <!-- Perform client mapping -->
+              <SecHandler name=\"arclegacy.map\" event=\"incoming\">
+                <ConfigBlock>
+                  <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
+                  <BlockName>$USERMAP_BLOCK</BlockName>
+                </ConfigBlock>
+              </SecHandler>
+              <candypond:service>
+                <candypond:config>$ARC_RUNTIME_CONFIG</candypond:config>
+                <candypond:witharex>true</candypond:witharex>
+              </candypond:service>
+            </Service>"
     fi
     
-    if [ -z "$ALLOWUNKNOWN" ]; then
-        gridmapmatch="\
-<!-- Do initial user filtering by gridmap file -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
-  </PDP>
-</SecHandler>"
-    fi
-
     service_mail=""
     if [ ! -z "$SERVICEMAIL" ] ; then
         service_mail="<serviceMail>$SERVICEMAIL</serviceMail>"
@@ -453,11 +442,9 @@ prepare() {
         *) LOGLEVEL="INFO" ;;
     esac
 
-    LOGFILE=${LOGFILE:-/var/log/arc/arex.log}
-    if [ ! -d `dirname $LOGFILE` ]; then
-        mkdir -p `dirname $LOGFILE`
+    if [ ! -d `dirname "$LOGFILE"` ]; then
+        mkdir -p `dirname "$LOGFILE"`
     fi
-    WATCHDOG=${WATCHDOG:-no}
     if [ "$WATCHDOG" = "yes" ] ; then
         WATCHDOG="true"
     else
@@ -674,9 +661,9 @@ prepare() {
     fi
 
     # prepare to collect crash information
-    COREDIR=`dirname ${LOGFILE}`/arccore
-    mkdir -p ${COREDIR}
-    cd ${COREDIR}
+    COREDIR=`dirname "${LOGFILE}"`/arccore
+    mkdir -p "${COREDIR}"
+    cd "${COREDIR}"
     ulimit -c unlimited
 }
 
@@ -701,8 +688,8 @@ start() {
     echo -n "Starting $prog: "
 
     # Check if we are already running
-    if [ -f $PID_FILE ]; then
-        read pid < $PID_FILE
+    if [ -f "$PID_FILE" ]; then
+        read pid < "$PID_FILE"
         if [ "x$pid" != "x" ]; then
             ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
             if [ $? -eq 0 ] ; then
@@ -715,8 +702,8 @@ start() {
 
     prepare
 
-    echo "Validating A-REX setup..." >> $LOGFILE
-    validate >> $LOGFILE 2>&1
+    echo "Validating A-REX setup..." >> "$LOGFILE"
+    validate >> "$LOGFILE" 2>&1
     RETVAL=$?
     if [ $RETVAL != 0 ]; then
         log_failure_msg "Configuration validation failed: $RETVAL errors"
@@ -794,7 +781,7 @@ stop() {
 
     # If specified in configuration and if mounted,
     # unmount remote session, runtime and cache directories.
-    REMOTE_HOST=`readconfigvar "$ARC_RUNTIME_CONFIG" remote_host lrms/ssh`
+    REMOTE_HOST=`readorigconfigvar "$ARC_CONFIG" remote_host lrms/ssh`
     if test "x${REMOTE_HOST}" != "x"; then
         if test ! -f $ARC_LOCATION/@pkglibexecsubdir@/arc-sshfs-mount; then
             log_failure_msg "Unable to locate SSHFS mount script. Is the nordugrid-arc-arex-ssh package installed?"
