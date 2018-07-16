@@ -68,10 +68,10 @@ read -r -d '' job_description_input <<'EOF'
 EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
-[common]
-slurm_bin_path="@PWD@/bin"
+[lrms]
+slurm_bin_path=@PWD@/bin
 [arex]
-scratchdir="/local/scratch"
+scratchdir=/local/scratch
 shared_filesystem=no
 EOF
 
@@ -132,10 +132,10 @@ read -r -d '' job_description_input <<'EOF'
 EOF
 
 read -r -d '' arc_test_configuration <<'EOF'
-[common]
-slurm_bin_path="@PWD@/bin"
+[lrms]
+slurm_bin_path=@PWD@/bin
 [arex]
-scratchdir="/local/scratch"
+scratchdir=/local/scratch
 shared_filesystem=no
 EOF
 
