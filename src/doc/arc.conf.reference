@@ -22,7 +22,7 @@
 ##  [arex/ws/cache]
 ##  [arex/ws/candypond]
 ##  [arex/ws/argus]
-## TODO: add a new block for [arex/rest] 
+##  [arex/rest] 
 ##  [arex/jura]
 ##  [arex/jura/archiving]
 ##  [arex/jura/sgas:neic_sgas]
@@ -45,6 +45,8 @@
 ##  [acix-index]
 ##  [userlist:biousers]
 ##  [nordugridmap]
+##
+##TODO: add a new block for [arex/rest]
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## Enabling (turning on) a functionality, a service or an interface requires the presence of the
@@ -79,21 +81,22 @@
 ##
 ## Space handling syntax in arc.conf
 ## for configuration lines:
-## (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
-##  and for block headers: 
-## [keyword:(stripped space)space is allowed within identifier(stripped space)]
-## detailed textual definition:
-## a) All trailing and leading spaces on each confiuration line are stripped and ignored.
-##    This aplies both to block headers and block content.
-## b) All spaces around the "=" sign in "option=value" kind of string (after 'a' is applied)
-##    are stripped and ignored. For example line "hostname = myhost.info" is treated as
-##    identical to "hostname=myhost.info".
-## c) In block headers of "[keyword]" kind (after 'a' is applied) no additional spaces are allowed
-##    around "keyword" and inside "keyword".
-## d) In block headers of "[keyword:identifier]" kind (after 'a' is applied) no additional spaces
-##    are allowed around "keyword" and inside "keyword". The spaces ARE allowed around and inside
-##    "identifier" part. Those around "identifier" are stripped and ignored. Those inside
-##    "identifier" are treated as its integral part and are preserved.
+##   (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
+## and for block headers:
+##   [keyword:(stripped space)space is allowed within identifier(stripped space)]
+##
+## Detailed textual definition:
+##   a) All trailing and leading spaces on each confiuration line are stripped and ignored.
+##      This aplies both to block headers and block content.
+##   b) All spaces around the "=" sign in "option=value" kind of string (after 'a' is applied)
+##      are stripped and ignored. For example line "hostname = myhost.info" is treated as
+##      identical to "hostname=myhost.info".
+##   c) In block headers of [keyword] kind (after 'a' is applied) no additional spaces are allowed
+##      around "keyword" and inside "keyword".
+##   d) In block headers of [keyword:identifier] kind (after 'a' is applied) no additional spaces
+##      are allowed around "keyword" and inside "keyword". The spaces ARE allowed around and inside
+##      "identifier" part. Those around "identifier" are stripped and ignored. Those inside
+##      "identifier" are treated as its integral part and are preserved.
 ##
 ## Mandatory configuration options are indicated by an asterix prefix to the
 ## option name e.g:  *mandatory_configoption. Mandatory options with undefined values 
@@ -163,7 +166,7 @@
 ### X509 related parameters
 ## x509_host_key = path - (previously x509_user_key) Server credential location. 
 ## Sets the full path to the host private key.
-## These variables are similar to the GSI enviroment variable X509_USER_KEY
+## These variables are similar to the GSI enviroment variable "X509_USER_KEY"
 ## If indicated, the variable can be set individually for each service/component in the
 ## corresponding block.
 ## default: /etc/grid-security/hostkey.pem
@@ -172,7 +175,7 @@
 
 ## x509_host_cert = path - (previously x509_user_cert) Server credential location. Sets the full
 ## path to the host public certificate.
-## These variables are similar to the GSI environment variable X509_USER_CERT
+## These variables are similar to the GSI environment variable "X509_USER_CERT"
 ## If indicated, the variable can be set individually for each service/component in the
 ## corresponding block.
 ## default: /etc/grid-security/hostcert.pem
@@ -180,7 +183,7 @@
 ## CHANGE6: renamed
 
 ## x509_cert_dir = path  - Location of trusted CA certificates.
-## This variable is similar to the GSI enviroment variable X509_CERT_DIR
+## This variable is similar to the GSI enviroment variable "X509_CERT_DIR"
 ## If indicated, the variable can be set individually for each service/component in the
 ## corresponding block.
 ## default: /etc/grid-security/certificates
@@ -217,10 +220,10 @@
 ## into the respective group and further processing is stopped. Upon a
 ## negative match the user would be rejected for that group - processing
 ## stops too. The sign of rule is determined by prepending the rule with
-## '+' (for positive) or '-' (for negative) signs. '+' is default and can
-## be omitted. A rule may also be prepended with '!' to invert result of rule,
+## "+" (for positive) or "-" (for negative) signs. "+" is default and can
+## be omitted. A rule may also be prepended with "!" to invert result of rule,
 ## which will let the rule match the complement of users. That complement
-## operator ('!') may be combined with the operator for positive or negative
+## operator ("!") may be combined with the operator for positive or negative
 ## matching.
 ##
 ## TODO: consider implementing Roger's suggestion and introduce a "rule" variable 
@@ -251,7 +254,7 @@
 ## CHANGE32: Modified semantics. The external file should only contain DNs, no complex rules. No need to change the code.
 
 ## voms = vo group role capabilities - Match VOMS attribute in user's credential.
-##  Use '*' to match any value.
+## Use "*" to match any value.
 ## multivalued
 ## default: undefined
 #voms=nordugrid Guests * *
@@ -276,8 +279,8 @@
 ## CHANGE34: renamed
 
 ## plugin = timeout path [argument ...] - Run external executable or
-##  function from shared library. Rule is matched if plugin returns 0.
-##  In arguments following substitutions are supported:
+## function from shared library. Rule is matched if plugin returns 0.
+## In arguments following substitutions are supported:
 ##   %D - subject of certicate
 ##   %P - path to proxy
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
@@ -312,24 +315,24 @@
 #gridmap=/etc/grid-security/grid-mapfile
 
 ## unixmap = [unixname][:unixgroup] rule - A more sophisticated way to map
-##  Grid identity of client to local account. If client matches 'rule'
-##  it's assigned specified unix identity or one generated by rule.
-##  Mapping commands are processed sequentially and processing stops
-##  at first successful one (like in [authgroup] section). For possible rules
-##  read "ARC Computing Element. System Administrator guide" manual. All
-##  rules defined in [authgroup] section can be used. There are also additional
-##  rules which produce not only yes/no result but also give back user and
-##  group names to which mapping should happen. The way it works is quite
-##  complex so it is better to read full documentation.
-##  For safety reasons if sophisticated mapping is used it is better to
-##  finish mapping sequence with default mapping to nonexistent or safe
-##  account.
+## Grid identity of client to local account. If client matches 'rule'
+## it's assigned specified unix identity or one generated by rule.
+## Mapping commands are processed sequentially and processing stops
+## at first successful one (like in [authgroup] section). For possible rules
+## read "ARC Computing Element. System Administrator guide" manual. All
+## rules defined in [authgroup] section can be used. There are also additional
+## rules which produce not only yes/no result but also give back user and
+## group names to which mapping should happen. The way it works is quite
+## complex so it is better to read full documentation.
+## For safety reasons if sophisticated mapping is used it is better to
+## finish mapping sequence with default mapping to nonexistent or safe
+## account.
+## ARC ships with LCMAPS plugin that can be enabled with following "unixmap" 
+## configuration. For more information about configuring LCMAPS itself see 
+## section 'Using LCAS/LCMAPS' in the full documentation.
 ## multivalued
 ## default: undefined
 #unixmap=nobody:nobody all
-## ARC ships with LCMAPS plugin that can be enabled with following unixmap configuration.
-## For more information about configuring LCMAPS itself see section 'Using LCAS/LCMAPS' in the ARC
-## Computing Element System Administrator Guide).
 #unixmap=* mapplugin 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 
 ## unixgroupmap = authgroup rule - (previously unixgroup) Mapping rule only for users belonging to
@@ -360,6 +363,7 @@
 
 ### The [userlist:name] (previously [vo]) blocks ################################
 ## TODO: move to the end just before the [nordugridmap]
+##
 ## The [userlist:name] blocks are used to define userlists and configure how those are
 ## generated by the nordugridmap utility, including the optional user mapping information.
 ## The userlist is identified with the generated file that is stored in the "outfile".
@@ -398,30 +402,37 @@
 ## The source URLs are processed in the given order.
 ##
 ## Currently supported URL types are:
-##    http(s)://  - URL to plain text file. File should contain a list
-##                 of DNs with optional issuer certificate authority DN
-##                 (see require_issuerdn): "user DN" ["issuer DN"]
-##    voms(s)://  - URL to VOMS-Admin interface
-##    file://     - local file (stand-alone or dynamicaly generated by
-##                 nordugridmap). File should contain a list of DNs with
-##                 optional mapped unixid: "user DN" [mapped user ID]
-##                 Result of optional mapped unixid processing depend
-##                 on mapuser_processing option settings.
-##    userlist:// - reference to another [userlist/name] configuration block
-##    nordugrid   - add NorduGrid VO members
+##    "http(s)://"
+##        URL to plain text file. File should contain a list of DNs.
+##    "voms(s)://"
+##        URL to VOMS-Admin interface
+##    "file://"
+##        local file (stand-alone or dynamicaly generated by
+##        "nordugridmap"). File should contain a list of DNs with
+##        optional mapped unixid: "user DN" [mapped user ID]
+##        Result of optional mapped unixid processing depend
+##        on "mapuser_processing" option settings.
+##    "userlist://"
+##        reference to another [userlist/name] configuration block
+##    "nordugrid"
+##        add NorduGrid VO members
 ##
-## You can use either userlist:// or file:// entries to specify dependencies
-## between [userlist/name] blocks, but using userlist:// is a recommended way.
+## You can use either "userlist://" or "file://" entries to specify dependencies
+## between [userlist/name] blocks, but using "userlist://" is a recommended way.
 ##
 ## For each separate source URL it is possible to override some parameters
 ## value. You can use the following syntax to perform this:
-##    source=URL < parameter1=value1 parameter2=value2
+##    "source=URL < parameter1=value1 parameter2=value2"
 ## You can override the following parameters:
-##    mapped_unixid       for http(s),voms(s),ldap and file URLs
-##    cache_enable        for http(s),voms(s),ldap and file URLs
-##    voms_method         for voms(s) URLs
-##    mapuser_processing  for file URLs with mapped_unixid='<unixid>' overrided
-##                        (control mapped_unixid overriding behaviour for URL)
+##    "mapped_unixid"       
+##        for http(s),voms(s),ldap and file URLs
+##    "cache_enable"
+##        for http(s),voms(s),ldap and file URLs
+##    "voms_method"
+##        for voms(s) URLs
+##    "mapuser_processing"
+##        for file URLs with "mapped_unixid='<unixid>'" overrided
+##        (control "mapped_unixid" overriding behaviour for URL)
 ## multivalued
 ## default: undefined
 #source=vomss://voms.ndgf.org:8443/voms/nordugrid.org
@@ -438,21 +449,25 @@
 ##
 ## If any of the sources have already provided mapping information (file://
 ## or userlist://) behavior depends on 'mapuser_processing' from the [nordugridmap] block:
-##    mapuser_processing = 'overwrite': ignore already provided mapping and
-##                         apply mapped_unixid for all sources
-##    mapuser_processing = 'keep': apply mapped_unixid only for sources that
-##                         does not already has mapping information
+##    "mapuser_processing = overwrite"
+##         ignore already provided mapping and
+##         apply "mapped_unixid" for all sources
+##    "mapuser_processing = keep"
+##         apply mapped_unixid only for sources that
+##         does not already has mapping information
 ##
-## If the 'mapped_unixid' config parameter is not specified or has empty value,
-## then behavior depends on the value of 'allow_empty_unixid' from the [nordugridmap] block:
-##   If the allow_empty_unixid = 'yes': then empty value will be used for mapped_unixid
-##                         which means that nordugridmap will generate only
-##                         the list of DNs without mapping (consider using
-##                         mapuser_processing='overwrite' along with this
-##                         option or sources that does not provide previously
-##                         defined mapping information)
-##   If the allow_empty_unixid = 'no': then nordugridmap will skip users without mapping information
-##						(if no mapping information provided by sources)
+## If the "mapped_unixid" config parameter is not specified or has empty value,
+## then behavior depends on the value of "allow_empty_unixid" from the 
+## [nordugridmap] block:
+##    "allow_empty_unixid = yes"
+##         empty value will be used for "mapped_unixid" which means that 
+##         nordugridmap will generate only the list of DNs without mapping 
+##         (consider using "mapuser_processing = overwrite" along with this
+##         option or sources that does not provide previously defined mapping 
+##         information)
+##    "allow_empty_unixid = no"
+##         then nordugridmap will skip users without mapping information
+##		   (if no mapping information provided by sources)
 ## default: nobody
 #mapped_unixid
 #mapped_unixid=gridtest
@@ -793,8 +808,8 @@
 
 ## *remote_cachedir = path - Cache directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
-## TODO: why is it mandatory and why the remote_sessiondir is not mandatory?
 ## attribute in the [arex] block.
+## TODO: why is it mandatory and why the remote_sessiondir is not mandatory?
 ## default: undefined
 #remote_cachedir=/scratch/cache
 
@@ -972,15 +987,16 @@
 ## arc-blahp-logger: a statecallout plugin shipped with ARC: it's purpose is to write
 ## accounting log for every finished job in BLAH format.
 #statecallout=FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy
-## TODO cleanup the obsolete arc-vomsac-check
+## CHANGE41: renamed from authplugin
+
 ## arc-vomsac-check: another statecallout plugin shipped with ARC: it's purpose is to enforce
 ## per-queue access policies based on VOMS attributes present in user's
 ## proxy-certificate. Plugin should be run before job enters the cluster.
 ## It requires 2 arguments: path to job .local file and path to credentials file.
 ## Enforced per-queue access policies are configured with 'ac_policy' option
 ## in the [queue/name] configuration block.
-#statecallout=ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy
-## CHANGE41: renamed from authplugin
+## statecallout=ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy
+## TODO cleanup the obsolete arc-vomsac-check
 
 ## wakeupperiod = time - Specifies how often A-REX checks for new jobs
 ## arrived, job state change requests, etc. That is responsiveness of
@@ -1007,8 +1023,8 @@
 
 ## pidfile = path - Specify location of file containing PID of daemon process.
 ## default: /var/run/arc/arex.pid
-## TODO: modified pid file location and name
 #pidfile=/var/run/run/arex.pid
+## TODO: modified pid file location and name
 
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
@@ -1452,9 +1468,9 @@
 ## groups that are allowed to access the WS EMIES - based jobsubmission interface.
 ## If this parameter is not set, then no additional restrictions are applied for authorizing
 ## user access.
-## TODO: check who is authorized in case of no gridmapfile and empty allowaccess
 ## The matching group is also used for evaluating VOMS attributes representing the user.
 ## default: undefined
+## TODO: check who is authorized in case of no gridmapfile and empty allowaccess
 #allowaccess=biousers atlasusers
 ## CHANGE74: new parameter in the EMIES block
 
@@ -2090,37 +2106,46 @@
 #allowaccess=biousers atlasusers
 ## CHANGE132: renamed
 
-## dir = path options - Specifies access rules for accessing files in 'path'
-##           (relative to virtual and real path) and all the files and directories below.
-## 'options' are:
-##       nouser  - do not use local file system rights, only use those
-##                 specifies in this line
-##       owner   - check only file owner access rights
-##       group   - check only group access rights
-##       other   - check only "others" access rights
-## if none of the above specified usual unix access rights are applied.
-##       read    - allow reading files
-##       delete  - allow deleting files
-##       append  - allow appending files (does not allow creation)
-##       overwrite - allow overwriting already existing files (does not
-##                 allow creation, file attributes are not changed)
-##       dirlist - allow obtaining list of the files
-##       cd      - allow to make this directory current
-##       create owner:group permissions_or:permissions_and  - allow creating
-##                 new files. File will be owned by 'owner' and owning group
-##                 will be 'group'. If '*' is used, the user/group to which
-##                 connected user is mapped will be used. The permissions
-##                 will be set to permissions_or & permissions_and. (second
-##                 number is reserved for the future usage).
-##
-##       mkdir owner:group permissions_or:permissions_and  - allow creating new directories.
+## dir = path options - Specifies access rules for accessing files in "path"
+## (relative to virtual and real path) and all the files and directories below.
+## Available permisisons check "options" are:
+##       nouser
+##          do not use local file system rights, only use those specifies in this line
+##       owner
+##          check only file owner access rights
+##       group
+##          check only group access rights
+##       other
+##          check only "others" access rights
+## If none of the above specified usual unix access rights are applied.
+## Avaiable permissions enforecement "options" are:
+##       read      
+##          allow reading files
+##       delete
+##          allow deleting files
+##       append
+##          allow appending files (does not allow creation)
+##       overwrite
+##          allow overwriting already existing files (does not
+##          allow creation, file attributes are not changed)
+##       dirlist
+##          allow obtaining list of the files
+##       cd
+##          allow to make this directory current
+##       create owner:group permissions_or:permissions_and 
+##          allow creating new files. File will be owned by "owner" and owning group
+##          will be "group". If "*" is used, the user/group to which connected user 
+##          is mapped will be used. The permissions will be set to 
+##          "permissions_or & permissions_and". (second number is reserved for 
+##          the future usage).
+##       mkdir owner:group permissions_or:permissions_and
+##          allow creating new directories.
+## Example shows setting permissions on mounted "/" directory and adjusting permissions
+## on "/section1" and "/section2" subdirectories.
 ## multivalued
 ## default: undefined
 ## TODO: check behaviour when this option is missing and user is mapped to root. (what is the default user mapping for file-plugin?)
-## some examples:
-## Set permissions on mounted directory
 #dir=/ nouser read cd dirlist delete create *:* 664:664 mkdir *:* 775:775
-## Adjust permissions on some subdirectories
 #dir=/section1 nouser read mkdir *:* 700:700 cd dirlist
 #dir=/section2 nouser read mkdir *:* 700:700 cd dirlist
 ##
