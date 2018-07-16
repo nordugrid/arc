@@ -1,22 +1,5 @@
 pkglib_LTLIBRARIES = libcandypond.la
 
-if SYSV_SCRIPTS_ENABLED
-CANDYPOND_SCRIPT = arc-candypond
-else
-CANDYPOND_SCRIPT =
-endif
-initd_SCRIPTS = $(CANDYPOND_SCRIPT)
-
-if SYSTEMD_UNITS_ENABLED
-CANDYPOND_UNIT = arc-candypond.service
-CANDYPOND_UNIT_WRAPPER = arc-candypond-start
-else
-CANDYPOND_UNIT =
-CANDYPOND_UNIT_WRAPPER =
-endif
-units_DATA = $(CANDYPOND_UNIT)
-pkgdata_SCRIPTS = $(CANDYPOND_UNIT_WRAPPER)
-
 libcandypond_la_SOURCES = CandyPond.h CandyPond.cpp \
                              CandyPondGenerator.h CandyPondGenerator.cpp
 libcandypond_la_CXXFLAGS = -I$(top_srcdir)/include \

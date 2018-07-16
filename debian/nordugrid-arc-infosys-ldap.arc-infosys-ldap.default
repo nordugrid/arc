@@ -1,4 +1,4 @@
-# To enable acix-index, i.e. to indicate that a readily usable
+# To enable arc-infosys-ldap, i.e. to indicate that a readily usable
 # configuration is in place, comment out or delete the
 # following line.
 RUN=no

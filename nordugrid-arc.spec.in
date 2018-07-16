@@ -382,28 +382,6 @@ Current plugins include:
   fileplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
-%package candypond
-Summary:	ARC CandyPond service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
-Provides:	%{name}-cache-service = %{version}-%{release}
-Obsoletes:	%{name}-cache-service < 6.0.0
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description candypond
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the ARC CandyPond service. It provides a way to perform
-some operations on the A-REX cache remotely. It can be especially helpful
-for data management within a pilot job framework.
-
 %package datadelivery-service
 Summary:	ARC data delivery service
 Group:		System Environment/Libraries
@@ -422,7 +400,7 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
-%package aris
+%package infosys-ldap
 Summary:	ARC local information system
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
@@ -433,6 +411,8 @@ Requires:	glue-schema >= 2.0.10
 Requires:	bdii
 Provides:	%{name}-ldap-infosys = %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
+Provides:	%{name}-aris = %{version}-%{release}
+Obsoletes:	%{name}-aris < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -453,7 +433,7 @@ Requires(postun):	policycoreutils
 %endif
 %endif
 
-%description aris
+%description infosys-ldap
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -482,7 +462,8 @@ Connector (ARC).
 
 This package contains the LDAP monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
-which pulls information from a EGIIS and shows it graphically.
+which pulls information from the information system and displays it in a
+readable manner.
 
 %package arex
 Summary:	ARC Remote EXecution service
@@ -506,7 +487,11 @@ Requires:	stomppy
 %endif
 Requires:	python-ldap
 Requires:	python-dirq
-Requires:   python-isodate
+Requires:	python-isodate
+Provides:	%{name}-cache-service = %{version}-%{release}
+Obsoletes:	%{name}-cache-service < 6.0.0
+Provides:	%{name}-candypond = %{version}-%{release}
+Obsoletes:	%{name}-candypond < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -627,8 +612,8 @@ Connector (ARC).
 
 Core components of the ARC Cache Index (ACIX).
 
-%package acix-cache
-Summary:	ARC cache index - cache server
+%package acix-scanner
+Summary:	ARC cache index - scanner server
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
@@ -637,17 +622,18 @@ Requires:	python-twisted-core
 Requires:	python-twisted-web
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
+Obsoletes:	%{name}-acix-cache < 6.0.0
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
 
-%description acix-cache
+%description acix-scanner
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-Cache server component of the ARC Cache Index (ACIX), usually installed
+Cache scanner component of the ARC Cache Index (ACIX), usually installed
 alongside A-REX. This component collects information on the content of
 an A-REX cache.
 
@@ -727,33 +713,34 @@ Connector (ARC).
 Python 3 bindings for ARC.
 %endif
 
-%package gridmap-utils
-Summary:	NorduGrid authorization tools
+%package nordugridmap
+Summary:	The nordugridmap authorization tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
 Requires:	perl(SOAP::Lite)
 Requires:	perl(Crypt::OpenSSL::X509)
+Obsoletes:	%{name}-gridmap-utils < 6.0.0
 Requires:	crontabs
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
 
-%description gridmap-utils
+%description nordugridmap
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the ARC authorization machinery.
 A prominent tool distributed in this package is the nordugridmap
 script to collect user information from the virtual organizations.
 
-%package misc-utils
-Summary:	NorduGrid misc tools
+%package test-utils
+Summary:	ARC test tools
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Obsoletes:	%{name}-misc-utils < 6.0.0
 
-%description misc-utils
+%description test-utils
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -841,8 +828,8 @@ install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
-install -p -m 644 debian/%{name}-aris.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-aris
+install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
+    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
@@ -905,31 +892,22 @@ rm -rf $RPM_BUILD_ROOT
 %condrestart_on_update arched
 
 %post arex
-%enable_service a-rex
+%enable_service arc-arex
 
 %preun arex
-%stop_on_removal a-rex
+%stop_on_removal arc-arex
 
 %postun arex
-%condrestart_on_update a-rex
+%condrestart_on_update arc-arex
 
 %post gridftpd
-%enable_service gridftpd
+%enable_service arc-gridftpd
 
 %preun gridftpd
-%stop_on_removal gridftpd
+%stop_on_removal arc-gridftpd
 
 %postun gridftpd
-%condrestart_on_update gridftpd
-
-%post candypond
-%enable_service arc-candypond
-
-%preun candypond
-%stop_on_removal arc-candypond
-
-%postun candypond
-%condrestart_on_update arc-candypond
+%condrestart_on_update arc-gridftpd
 
 %post datadelivery-service
 %enable_service arc-datadelivery-service
@@ -940,8 +918,8 @@ rm -rf $RPM_BUILD_ROOT
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
 
-%post aris
-%enable_service nordugrid-arc-aris
+%post infosys-ldap
+%enable_service arc-infosys-ldap
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
@@ -950,11 +928,11 @@ semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
 semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 %endif
 
-%preun aris
-%stop_on_removal nordugrid-arc-aris
+%preun infosys-ldap
+%stop_on_removal arc-infosys-ldap
 
-%postun aris
-%condrestart_on_update nordugrid-arc-aris
+%postun infosys-ldap
+%condrestart_on_update arc-infosys-ldap
 
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
@@ -965,32 +943,32 @@ if [ $1 -eq 0 ]; then
 fi
 %endif
 
-%triggerun aris -- bdii
+%triggerun infosys-ldap -- bdii
 %if %{?suse_version:1}%{!?suse_version:0}
 FIRST_ARG=1
-%restart_on_update nordugrid-arc-aris
+%restart_on_update arc-infosys-ldap
 %else
-service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
+service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 
 %if %{with_acix}
-%post acix-cache
-%enable_service acix-cache
+%post acix-scanner
+%enable_service arc-acix-scanner
 
-%preun acix-cache
-%stop_on_removal acix-cache
+%preun acix-scanner
+%stop_on_removal arc-acix-scanner
 
-%postun acix-cache
-%condrestart_on_update acix-cache
+%postun acix-scanner
+%condrestart_on_update arc-acix-scanner
 
 %post acix-index
-%enable_service acix-index
+%enable_service arc-acix-index
 
 %preun acix-index
-%stop_on_removal acix-index
+%stop_on_removal arc-acix-index
 
 %postun acix-index
-%condrestart_on_update acix-index
+%condrestart_on_update arc-acix-index
 %endif
 
 %files -f %{name}.lang
@@ -1114,10 +1092,10 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %files gridftpd
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/gridftpd.service
-%{_datadir}/%{pkgdir}/gridftpd-start
+%{_unitdir}/arc-gridftpd.service
+%{_datadir}/%{pkgdir}/arc-gridftpd-start
 %else
-%{_initrddir}/gridftpd
+%{_initrddir}/arc-gridftpd
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
@@ -1125,13 +1103,13 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
-%files aris
+%files infosys-ldap
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/nordugrid-arc-aris.service
-%{_unitdir}/nordugrid-arc-slapd.service
+%{_unitdir}/arc-infosys-ldap.service
+%{_unitdir}/arc-infosys-ldap-slapd.service
 %else
-%{_initrddir}/nordugrid-arc-aris
+%{_initrddir}/arc-infosys-ldap
 %endif
 %{_datadir}/%{pkgdir}/create-bdii-config
 %{_datadir}/%{pkgdir}/create-slapd-config
@@ -1139,23 +1117,12 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
 %{_datadir}/%{pkgdir}/PerfData.pl
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
 
 %files monitor
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/monitor
 %doc %{_mandir}/man7/monitor.7*
-
-%files candypond
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-candypond.service
-%{_datadir}/%{pkgdir}/arc-candypond-start
-%else
-%{_initrddir}/arc-candypond
-%endif
-%{_libdir}/%{pkgdir}/libcandypond.so
-%{_libdir}/%{pkgdir}/libcandypond.apd
 
 %files datadelivery-service
 %defattr(-,root,root,-)
@@ -1172,10 +1139,10 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %files arex
 %defattr(-,root,root,-)
 %if %{use_systemd}
-%{_unitdir}/a-rex.service
-%{_datadir}/%{pkgdir}/a-rex-start
+%{_unitdir}/arc-arex.service
+%{_datadir}/%{pkgdir}/arc-arex-start
 %else
-%{_initrddir}/a-rex
+%{_initrddir}/arc-arex
 %endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
@@ -1196,6 +1163,8 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/submit-*-job
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
+%{_libdir}/%{pkgdir}/libcandypond.so
+%{_libdir}/%{pkgdir}/libcandypond.apd
 %{_datadir}/%{pkgdir}/CEinfo.pl
 %{_datadir}/%{pkgdir}/ARC0mod.pm
 %{_datadir}/%{pkgdir}/FORKmod.pm
@@ -1273,24 +1242,24 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{python2_sitelib}/acix/__init__.py*
 %{python2_sitelib}/acix/core
 
-%files acix-cache
+%files acix-scanner
 %defattr(-,root,root,-)
 %{python2_sitelib}/acix/cacheserver
 %if %{use_systemd}
-%{_unitdir}/acix-cache.service
-%{_datadir}/%{pkgdir}/acix-cache-start
+%{_unitdir}/arc-acix-scanner.service
+%{_datadir}/%{pkgdir}/arc-acix-scanner-start
 %else
-%{_initrddir}/acix-cache
+%{_initrddir}/arc-acix-scanner
 %endif
 
 %files acix-index
 %defattr(-,root,root,-)
 %{python2_sitelib}/acix/indexserver
 %if %{use_systemd}
-%{_unitdir}/acix-index.service
-%{_datadir}/%{pkgdir}/acix-index-start
+%{_unitdir}/arc-acix-index.service
+%{_datadir}/%{pkgdir}/arc-acix-index-start
 %else
-%{_initrddir}/acix-index
+%{_initrddir}/arc-acix-index
 %endif
 %endif
 
@@ -1417,13 +1386,13 @@ service nordugrid-arc-aris condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}
 %endif
 
-%files gridmap-utils
+%files nordugridmap
 %defattr(-,root,root,-)
 %{_sbindir}/nordugridmap
 %config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
 %doc %{_mandir}/man8/nordugridmap.8*
 
-%files misc-utils
+%files test-utils
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
 %{_bindir}/arcwsrf

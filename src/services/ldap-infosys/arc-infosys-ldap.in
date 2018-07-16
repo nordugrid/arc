@@ -6,13 +6,13 @@
 # description: NorduGrid/ARC local resource information system
 #
 # config: /etc/sysconfig/nordugrid
-# config: /etc/sysconfig/nordugrid-arc-aris
+# config: /etc/sysconfig/arc-infosys-ldap
 # config: /etc/arc.conf
 #
 ######################################################################
 
 ### BEGIN INIT INFO
-# Provides:          nordugrid-arc-aris
+# Provides:          arc-infosys-ldap
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -47,7 +47,7 @@ else
 fi
 
 RETVAL=0
-prog=nordugrid-arc-aris
+prog=arc-infosys-ldap
 RUN=yes
 
 # sysconfig files

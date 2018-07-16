@@ -2361,9 +2361,9 @@ AC_CONFIG_FILES([Makefile
                  src/libs/data-staging/examples/Makefile
                  src/services/Makefile
                  src/services/a-rex/Makefile
-                 src/services/a-rex/a-rex
-                 src/services/a-rex/a-rex.service
-                 src/services/a-rex/a-rex-start
+                 src/services/a-rex/arc-arex
+                 src/services/a-rex/arc-arex.service
+                 src/services/a-rex/arc-arex-start
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator
@@ -2441,29 +2441,26 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
-                 src/services/acix/cacheserver/acix-cache
-                 src/services/acix/cacheserver/acix-cache-start
-                 src/services/acix/cacheserver/acix-cache.service
+                 src/services/acix/cacheserver/arc-acix-scanner
+                 src/services/acix/cacheserver/arc-acix-scanner-start
+                 src/services/acix/cacheserver/arc-acix-scanner.service
                  src/services/acix/cacheserver/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile
-                 src/services/acix/indexserver/acix-index
-                 src/services/acix/indexserver/acix-index-start
-                 src/services/acix/indexserver/acix-index.service
+                 src/services/acix/indexserver/arc-acix-index
+                 src/services/acix/indexserver/arc-acix-index-start
+                 src/services/acix/indexserver/arc-acix-index.service
                  src/services/acix/indexserver/test/Makefile
                  src/services/candypond/Makefile
-                 src/services/candypond/arc-candypond
-                 src/services/candypond/arc-candypond.service
-                 src/services/candypond/arc-candypond-start
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/data-staging/arc-datadelivery-service.service
                  src/services/data-staging/arc-datadelivery-service-start
                  src/services/gridftpd/Makefile
-                 src/services/gridftpd/gridftpd.init
-                 src/services/gridftpd/gridftpd.service
-                 src/services/gridftpd/gridftpd-start
+                 src/services/gridftpd/arc-gridftpd
+                 src/services/gridftpd/arc-gridftpd.service
+                 src/services/gridftpd/arc-gridftpd-start
                  src/services/gridftpd/gridftpd.8
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
@@ -2473,7 +2470,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/create-bdii-config
                  src/services/ldap-infosys/create-slapd-config
-                 src/services/ldap-infosys/nordugrid-arc-aris
+                 src/services/ldap-infosys/arc-infosys-ldap
                  src/services/monitor/Makefile
                  src/services/monitor/monitor
                  src/services/monitor/README

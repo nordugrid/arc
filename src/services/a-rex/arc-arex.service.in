@@ -5,7 +5,7 @@ After=local_fs.target remote_fs.target
 [Service]
 Type=forking
 PIDFile=/var/run/arched-arex.pid
-ExecStart=@pkgdatadir@/a-rex-start
+ExecStart=@pkgdatadir@/arc-arex-start
 
 [Install]
 WantedBy=multi-user.target
