@@ -54,15 +54,14 @@ class RTEControl(ComponentControl):
     @staticmethod
     def __get_dir_rtes(rtedir):
         rtes = {}
-        for path, dirs, files in os.walk(rtedir):
-            if not dirs:
-                rtebase = path.lstrip(rtedir + '/')
-                for f in files:
-                    rtename = rtebase + '/' + f
-                    rtepath = path + '/' + f
-                    if os.path.islink(rtepath):
-                        rtepath = os.readlink(rtepath)
-                    rtes[rtename] = rtepath
+        for path, _, files in os.walk(rtedir):
+            rtebase = path.lstrip(rtedir + '/')
+            for f in files:
+                rtename = rtebase + '/' + f
+                rtepath = path + '/' + f
+                if os.path.islink(rtepath):
+                    rtepath = os.readlink(rtepath)
+                rtes[rtename] = rtepath
         return rtes
 
     @staticmethod

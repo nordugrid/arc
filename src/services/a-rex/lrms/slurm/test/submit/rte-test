@@ -21,7 +21,7 @@ EOF
 
 read -r -d '' general_arc_test_configuration <<EOF
 [lrms]
-slurm_bin_path="@PWD@/bin"
+slurm_bin_path=@PWD@/bin
 EOF
 
 function test_rte0_change_memory() {

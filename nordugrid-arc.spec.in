@@ -893,6 +893,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %post arex
 %enable_service arc-arex
+if [ $1 -eq 1 ]; then
+  arcctl test-ca init
+  arcctl test-ca hostcert
+fi
 
 %preun arex
 %stop_on_removal arc-arex

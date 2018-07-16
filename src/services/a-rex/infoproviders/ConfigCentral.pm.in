@@ -524,7 +524,7 @@ sub read_json_config {
 	my $jsonconfig='';
 	{ 
       local $/; # slurp mode
-	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json -c $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
 	  $jsonconfig = <$jsonout>;
 	  close $jsonout;
 	}
