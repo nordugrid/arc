@@ -102,17 +102,28 @@ class Ssm2(stomp.ConnectionListener):
         # check that the cert and key match
         if not crypto.check_cert_key(self._cert, self._key):
             raise Ssm2Exception('Cert and key don\'t match.')
+
+        # Check that the certificate has not expired.
+        if not crypto.verify_cert_date(self._cert):
+            raise Ssm2Exception('Certificate %s has expired.' % self._cert)
+
         # check the server certificate provided
         if enc_cert is not None:
             log.info('Messages will be encrypted using %s', enc_cert)
             if not os.path.isfile(self._enc_cert):
                 raise Ssm2Exception('Specified certificate file does not exist: %s.' % self._enc_cert)
+            # Check that the encyption certificate has not expired.
+            if not crypto.verify_cert_date(enc_cert):
+                raise Ssm2Exception(
+                    'Encryption certificate %s has expired. Please obtain the '
+                    'new one from the final server receiving your messages.' %
+                    enc_cert
+                )
             if verify_enc_cert:
                 if not crypto.verify_cert_path(self._enc_cert, self._capath, self._check_crls):
-                    raise Ssm2Exception('Failed to verify server certificate %s against CA path %s.' 
-                                         % (self._enc_cert, self._capath))
-            
-    
+                    raise Ssm2Exception('Failed to verify server certificate %s against CA path %s.'
+                                        % (self._enc_cert, self._capath))
+
     def set_dns(self, dn_list):
         '''
         Set the list of DNs which are allowed to sign incoming messages.
@@ -127,8 +138,8 @@ class Ssm2(stomp.ConnectionListener):
         '''
         Called by stomppy when a message is sent.
         '''
-        log.debug('Sent message: ' + headers['empa-id'])
-        
+        log.debug('Sent message: %s', headers['empa-id'])
+
     def on_message(self, headers, body):
         '''
         Called by stomppy when a message is received.
@@ -142,30 +153,37 @@ class Ssm2(stomp.ConnectionListener):
                 return
         except KeyError:
             empaid = 'noid'
-            
-        log.info('Received message: ' + empaid)
-        raw_msg, signer = self._handle_msg(body)
-        
+
+        log.info("Received message. ID = %s", empaid)
+        extracted_msg, signer, err_msg = self._handle_msg(body)
+
         try:
-            if raw_msg is None: # the message has been rejected
-                log.warn('Message rejected.')
-                if signer is None: # crypto failed
-                    err_msg = 'Could not extract message.'
-                    log.warn(err_msg)
+            # If the message is empty or the error message is not empty
+            # then reject the message.
+            if extracted_msg is None or err_msg is not None:
+                if signer is None:  # crypto failed
                     signer = 'Not available.'
-                else: # crypto ok but signer not verified
-                    err_msg = 'Signer not in valid DNs list.'
-                    log.warn(err_msg)
-                    
-                self._rejectq.add({'body': body,
-                                   'signer': signer,
-                                   'empaid': empaid,
-                                   'error': err_msg})
-            else: # message verified ok
-                self._inq.add({'body': raw_msg, 
-                               'signer':signer, 
-                               'empaid': headers['empa-id']})
-        except OSError, e:
+                elif extracted_msg is not None:
+                    # If there is a signer then it was rejected for not being
+                    # in the DNs list, so we can use the extracted msg, which
+                    # allows the msg to be reloaded if needed.
+                    body = extracted_msg
+
+                log.warn("Message rejected: %s", err_msg)
+
+                name = self._rejectq.add({'body': body,
+                                          'signer': signer,
+                                          'empaid': empaid,
+                                          'error': err_msg})
+                log.info("Message saved to reject queue as %s", name)
+
+            else:  # message verified ok
+                name = self._inq.add({'body': extracted_msg,
+                                      'signer': signer,
+                                      'empaid': empaid})
+                log.info("Message saved to incoming queue as %s", name)
+
+        except (IOError, OSError) as e:
             log.error('Failed to read or write file: %s', e)
         
     def on_error(self, unused_headers, body):
@@ -195,7 +213,7 @@ class Ssm2(stomp.ConnectionListener):
         '''
         Called by stomppy when the broker acknowledges receipt of a message.
         '''
-        log.info('Broker received message: ' + headers['receipt-id'])
+        log.info('Broker received message: %s', headers['receipt-id'])
         self._last_msg = headers['receipt-id']
         
     ##########################################################################
@@ -207,10 +225,12 @@ class Ssm2(stomp.ConnectionListener):
         Deal with the raw message contents appropriately:
         - decrypt if necessary
         - verify signature
-        Return plain-text message and signer's DN.
+        Return plain-text message, signer's DN and an error/None.
         '''
         if text is None or text == '':
-            return None, None
+            warning = 'Empty text passed to _handle_msg.'
+            log.warn(warning)
+            return None, None, warning
 #        if not text.startswith('MIME-Version: 1.0'):
 #            raise Ssm2Exception('Not a valid message.')
         
@@ -219,23 +239,26 @@ class Ssm2(stomp.ConnectionListener):
             try:
                 text = crypto.decrypt(text, self._cert, self._key)
             except crypto.CryptoException, e:
-                log.error('Failed to decrypt message: %s', e)
-                return None, None
+                error = 'Failed to decrypt message: %s' % e
+                log.error(error)
+                return None, None, error
         
         # always signed
         try:
             message, signer = crypto.verify(text, self._capath, self._check_crls)
         except crypto.CryptoException, e:
-            log.error('Failed to verify message: %s', e)
-            return None, None
+            error = 'Failed to verify message: %s' % e
+            log.error(error)
+            return None, None, error
         
         if signer not in self._valid_dns:
-            log.error('Message signer not in the valid DNs list: %s', signer)
-            return None, signer
+            warning = 'Signer not in valid DNs list: %s' % signer
+            log.warn(warning)
+            return None, signer, warning
         else:
             log.info('Valid signer: %s', signer)
             
-        return message, signer
+        return message, signer, None
         
     def _send_msg(self, message, msgid):
         '''
@@ -243,7 +266,7 @@ class Ssm2(stomp.ConnectionListener):
         the host cert and key.  If an encryption certificate
         has been supplied, the message will also be encrypted.
         '''
-        log.info('Sending message: ' + msgid)
+        log.info('Sending message: %s', msgid)
         headers = {'destination': self._dest, 'receipt': msgid,
                    'empa-id': msgid}
         
