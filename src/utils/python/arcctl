@@ -5,8 +5,6 @@ import os
 import logging
 import argparse
 import errno
-from arc.control import *
-from arc.utils import config
 
 # Initialize logging
 logger = logging.getLogger('ARCCTL')
@@ -15,6 +13,10 @@ log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
+
+# Import ARC control and config modules
+from arc.control import *
+from arc.utils import config
 
 # Runconfig location
 __runconfig = '/tmp/.arcctl.arc.run.conf'
