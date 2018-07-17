@@ -6,7 +6,7 @@
 ## WARNING: this file will not work as a configuration template!
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
-## The arc.conf configuration file consists of the following blocks
+## The arc.conf configuration file consists of the following blocks: 
 ##
 ##  [common]
 ##  [authgroup:allowedusers]
@@ -74,15 +74,17 @@
 ## sub-blocks (e.g. [arex/ws]). When a sub-block is enabled then the corresponding parent block must
 ## also appear in the arc.conf file.
 ##
-## Configuration blocks contain (config option, config value) pairs following the syntax:
-## config_option=value element [optional value element] in single line.  
-## Note that quotes around the configuration value(s) must NOT be used any longer.
-## Note that the arc.conf is CASE-SENSITIVE!
+## Configuration blocks contain (config option, config value) pairs following 
+## the syntax in single line: 
+##    config_option=value element [optional value element]  
+## NOTE that quotes around the configuration value(s) must NOT be used any longer.
+## NOTE that the arc.conf is CASE-SENSITIVE!
 ##
 ## Space handling syntax in arc.conf
-## for configuration lines:
+## for configuration lines: 
 ##   (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
-## and for block headers:
+## 
+## and for block headers: 
 ##   [keyword:(stripped space)space is allowed within identifier(stripped space)]
 ##
 ## Detailed textual definition:
@@ -99,7 +101,7 @@
 ##      "identifier" are treated as its integral part and are preserved.
 ##
 ## Mandatory configuration options are indicated by an asterix prefix to the
-## option name e.g:  *mandatory_configoption. Mandatory options with undefined values 
+## option name e.g: "*mandatory_configoption". Mandatory options with undefined values 
 ## will result in service stop during the startup process. 
 ##
 ## Each of the configuration options have well-defined default that is specified in this reference
@@ -122,7 +124,7 @@
 ## option please add explanatory text with two ## followed by a space at the
 ## beginning of the line and then an example with a single # and no spaces at
 ## the beginning of the line. These examples are used as reference parameters
-## for the block and configuration option names!:
+## for the block and configuration option names!
 ##
 ## example_config_option = value [optional values] - Here comes the explanation
 ## of the config option. Mandatory configuration options are indicated by an asterix prefix to the
@@ -194,8 +196,21 @@
 ## needed for verification of VOMS service signature in the proxy-certificate.
 ## default: /etc/grid-security/vomsdir
 #x509_voms_dir=/etc/grid-security/vomsdir
-##
-##
+
+## voms_processing = keyword - Defines how to behave if errors in VOMS AC processing detected.
+## The following keywords are supported:
+##   "relaxed"
+##       use everything that passed validation.
+##   "standard" 
+##       same as relaxed but fail if parsing errors took place and
+##       VOMS extension is marked as critical. This is a default.
+##   "strict"
+##       fail if any parsing error was discovered
+##   "noerrors"
+##       fail if any parsing or validation error happened.
+## allowedvalues: relaxed standard strict noerrors
+## default: standard
+#voms_processing=strict
 ### end of the [common] block ##############################################
 
 
@@ -281,8 +296,8 @@
 ## plugin = timeout path [argument ...] - Run external executable or
 ## function from shared library. Rule is matched if plugin returns 0.
 ## In arguments following substitutions are supported:
-##   %D - subject of certicate
-##   %P - path to proxy
+##   "%D" - subject of certicate
+##   "%P" - path to proxy
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
 ## For more information about configuring LCAS itself see section 'Using LCAS/LCMAPS' in the ARC
 ## Computing Element System Administrator Guide.
@@ -421,7 +436,7 @@
 ## between [userlist/name] blocks, but using "userlist://" is a recommended way.
 ##
 ## For each separate source URL it is possible to override some parameters
-## value. You can use the following syntax to perform this:
+## value. You can use the following syntax to perform this: 
 ##    "source=URL < parameter1=value1 parameter2=value2"
 ## You can override the following parameters:
 ##    "mapped_unixid"       
@@ -498,7 +513,7 @@
 ## allow/deny statements are possible. The fetched DNs are filtered against
 ## the specified rules before they are added to the generated outfile.
 ##
-## * can be used as a wildcard. You may run the nordugridmap with the --test
+## "*" can be used as a wildcard. You may run the nordugridmap with the "--test"
 ## command line option to see how the filters you specified work.
 ##
 ## If at least one allow filter is specified implicit deny is used at the end
@@ -530,15 +545,16 @@
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
 ## For lrmstype, the following values can be chosen:
-##    fork    - simple forking of jobs to the same node as the server
-##    sge     - (Sun/Oracle) Grid Engine
-##    condor  - Condor
-##    pbs     - PBS (covers all the PBS flavours e.g. OpenPBS, PBSPro, ScalablePBS, Torque)
-##    lsf     - LSF
-##    ll      - LoadLeveler
-##    slurm   - SLURM
-##    boinc   - Boinc
-##    slurmpy - new generation SLURM scripts (provide access to slurm via ssh too)
+##   - fork    - simple forking of jobs to the same node as the server
+##   - sge     - (Sun/Oracle) Grid Engine
+##   - condor  - Condor
+##   - pbs     - PBS (covers all the PBS flavours e.g. OpenPBS, PBSPro, ScalablePBS, Torque)
+##   - lsf     - LSF
+##   - ll      - LoadLeveler
+##   - slurm   - SLURM
+##   - boinc   - Boinc
+##   - slurmpy - new generation SLURM scripts (provide access to slurm via ssh too)
+##
 ## PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
 ## and Torque (the official name for ScalablePBS). There is no need to specify
 ## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
@@ -637,16 +653,16 @@
 
 ## condor_requirements = string - It needs to be defined for each Condor queue.
 ## Use this option to determine which nodes belong to the current queue.
-## The value of 'condor_requirements' must be a valid constraints string
-## which is recognized by a condor_status -constraint '....' command. It can
+## The value of "condor_requirements" must be a valid constraints string
+## which is recognized by a "condor_status -constraint ..." command. It can
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
-## condor node, just add two lines like the ones below in the `hostname`.local
-## config file on the node:
+## condor node, just add two lines like the ones below in the "$(hostname).local"
+## config file on the node: 
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this queue is allowed to run on any node which satisfies
-## the 'condor_requirements' constraint.  If 'condor_requirements' is not set,
+## the "condor_requirements" constraint.  If "condor_requirements" is not set,
 ## jobs will be allowed to run on any of the nodes in the pool. When configuring
 ## multiple queues, you can differentiate them based on memory size or disk
 ## space, for example.
@@ -824,7 +840,7 @@
 
 ### The [arex] block - previously [grid-manager] #####################
 ## The [arex] block, together with its various subblocks,
-## configures the A-REX service hosted in *arched*. A-REX takes care of
+## configures the A-REX service hosted in "arched". A-REX takes care of
 ## various middleware tasks on the frontend such as job creation and management,
 ## stagein/stageout, LRMS job submission, data caching, etc...
 #[arex]
@@ -900,8 +916,8 @@
 ## sessiondir = path [drain] - the directory which holds the sessiondirs of the grid jobs.
 ## Multiple session directories may be specified.
 ## In this case jobs are spread evenly over the session directories.
-## If sessiondir=* is set, the session directory will be spread over the
-## ${HOME}/.jobs directories of every locally mapped unix user. It is preferred
+## If "sessiondir=*" is set, the session directory will be spread over the
+## "${HOME}/.jobs" directories of every locally mapped unix user. It is preferred
 ## to use common session directories. The path may be followed by "drain", in
 ## which case no new jobs will be assigned to that sessiondir, but current jobs
 ## will still be processed and accessible.
@@ -973,15 +989,20 @@
 #maxrerun=5
 
 ## statecallout = state options plugin_path - (previously authplugin) This parameter
-## enables a callout feature of A-REX: every time job goes to 'state' A-REX
-## will run 'plugin_path' executable. Options consist of key=value pairs separated
-## by ','. Possible keys are:
-##    timeout - wait for result no longer that 'value' seconds, (timeout= can be omitted).
-##    onsuccess,onfailure,ontimeout - what to do if plugin exited with exit
-## code 0, not 0, timeout achieved. Possible actions are:
-## pass - continue executing job,
-## fail - cancel job,
-## log - write to log fail about problem and continue executing job.
+## enables a callout feature of A-REX: every time job goes to "state" A-REX
+## will run "plugin_path" executable. 
+## Options consist of "key=value" pairs separated by ",". Possible keys are:
+##   timeout
+##     wait for result no longer that 'value' seconds, (timeout= can be omitted).
+##   onsuccess, onfailure, ontimeout
+##     what to do if plugin exited with exit code 0, not 0, timeout achieved. 
+## Possible actions are:
+##   pass
+##     continue executing job,
+##   fail
+##     cancel job,
+##   log
+##     write to log fail about problem and continue executing job.
 ## multivalued
 ## default: undefined
 ## arc-blahp-logger: a statecallout plugin shipped with ARC: it's purpose is to write
@@ -1000,11 +1021,11 @@
 
 ## wakeupperiod = time - Specifies how often A-REX checks for new jobs
 ## arrived, job state change requests, etc. That is responsiveness of
-## A-REX. 'time' is time period in seconds. Default is 3 minutes.
+## A-REX. "time" is time period in seconds. Default is 3 minutes.
 ## Usually no need to change this parameter because important state changes
 ## are also triggering out-of-schedule checks.
 ## NOTE: This parameter does not affect responsiveness of backend scripts -
-## especially scan-*-job. That means that upper estimation of time for
+## especially "scan-<LRMS>-job". That means that upper estimation of time for
 ## detecting job finished executing is sum of responsiveness of backend
 ## script + wakeupperiod.
 ## default: 180
@@ -1097,17 +1118,16 @@
 ## *cachedir = cache_path [link_path] - Specifies a directory to store cached
 ## data. Multiple cache directories may be specified. Cached data will be distributed
 ## evenly over the caches.
-## Optional link_path specifies the path at which the cache_path is accessible on
+## Optional "link_path" specifies the path at which the "cache_path" is accessible on
 ## computing nodes, if it is different from the path on the A-REX host.
-## Example: cache=/shared/cache /frontend/jobcache
-## If "link-path" is set to '.' files are not soft-linked, but copied to session
+## If "link_path" is set to "." files are not soft-linked, but copied to session
 ## directory. 
-## If a cache directory needs to be drained, then cachedir
-## should specify "drain" as the link path, in which case no new files will be
-## added to the cache. Restart of arex also needed.
+## If a cache directory needs to be drained, then "link_path" should specify "drain",
+## in which case no new files will be added to the cache. Restart of arex also needed.
 ## multivalued
 ## default: undefined
 #cachedir=/scratch/cache
+#cachedir=/shared/cache /frontend/jobcache
 #cachedir=/fs1/cache drain
 ##
 ##
@@ -1178,7 +1198,7 @@
 
 
 ### The [arex/data-staging] (previously [data-staging]) block ###########
-## This subblock enables and configures the data staging capabilities of A-REX:
+## This subblock enables and configures the data staging capabilities of A-REX.
 ## A subsystem called DTR (Data Transfer Reloaded) is responsible for collecting input data
 ## for a job before submission to the LRMS, and for staging out data
 ## after the job has finished. Automagic data staging of A-REX is a very powerful feature,
@@ -1236,8 +1256,8 @@
 ## globus_tcp_port_range = port_range - In a firewalled environment
 ## the software which uses GSI needs to know what ports are available.
 ## This parameter is only needed if "passivetransfer=no" was set.
-## These variable are similar to the Globus enviroment variables:
-## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+## These variable are similar to the Globus enviroment variables
+## "GLOBUS_TCP_PORT_RANGE" and "GLOBUS_UDP_PORT_RANGE".
 ## default: 9000,9300
 ## TODO: test if a space such as "9000, 9300" brakes gridftp in ARC? 
 #globus_tcp_port_range=9000,12000
@@ -1246,8 +1266,8 @@
 ## globus_udp_port_range = port_range - In a firewalled environment
 ## the software which uses GSI needs to know what ports are available.
 ## This parameter is only needed if "passivetransfer=no" was set.
-## These variable are similar to the Globus enviroment variables:
-## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+## These variable are similar to the Globus enviroment variables
+## "GLOBUS_TCP_PORT_RANGE" and "GLOBUS_UDP_PORT_RANGE".
 ## default: 9000,9300
 #globus_udp_port_range=9000,12000
 ## CHANGE 60: moved here
@@ -1268,7 +1288,7 @@
 ## default: 0 300 0 300
 #speedcontrol=0 300 100 300
 #speedcontrol=""
-## CHANGE62: modified: missing parameter (speedcontrol="") should also turn the feature off, not just zero value.
+## CHANGE62: modified: missing parameter "speedcontrol=" should also turn the feature off, not just zero value.
 
 ## maxdelivery = number - Maximum number of concurrent file transfers, i.e. active
 ## transfers using network bandwidth. This is the total number for the whole
@@ -1297,12 +1317,16 @@
 ## grouping of the job transfers. DTR assigns the transfers to shares, so that those shares 
 ## can be assigned to different priorities.
 ## Possible values for "grouping" are dn, voms:vo, voms:role and voms:group:
-##   dn - each job is assigned to a share based on the DN of the user sumbitting the job.
-##   voms:vo - each job is assigned to a share based on the VO specified in the proxy.
-##   voms:role - each job is assigned to a share based on the role specified in the first
-## attribute found in the proxy.
-##   voms:group - each job is assigned to a share based on the group specified in the
-## first attribute found in the proxy.
+##   dn
+##     each job is assigned to a share based on the DN of the user sumbitting the job.
+##   voms:vo
+##     each job is assigned to a share based on the VO specified in the proxy.
+##   voms:role
+##     each job is assigned to a share based on the role specified in the first attribute 
+##     found in the proxy.
+##   voms:group 
+##     each job is assigned to a share based on the group specified in the first attribute 
+##     found in the proxy.
 ## In case of the voms schemes, if the proxy is not a VOMS proxy, then a default share is used.
 ## If sharepolicy is not set then the client-defined priority is applied.
 ## default: undefined
@@ -1486,7 +1510,7 @@
 
 ### The [arex/ws/cache] block ################################
 ## The content of the A-REX cache can be accessed via a WS-interface.
-## Configuring this block will allow reading cache files through a special URL:
+## Configuring this block will allow reading cache files through a special URL.
 ## For example, if the remote file gsiftp://remotehost/file1 is stored in the cache
 ## and the WS interfaces (configured above) are available via wsurl of https://hostname:443/arex/,
 ## then the cached copy of the file can be access via the following special URL:
@@ -1499,10 +1523,10 @@
 ## the rules for allowing access to files in the cache remotely through the A-REX web interface.
 ## If not set, then noone can access anything. The default is not set that means complete denial.
 ## A rule has three parts:
-## 1. Regular expression defining a URL pattern
-## 2. Credential attribute to match against a client's credential
-## 3. Regular expression defining a credential value to match against a client's
-##    credential
+##  1. Regular expression defining a URL pattern
+##  2. Credential attribute to match against a client's credential
+##  3. Regular expression defining a credential value to match against a client's
+##     credential
 ## A client is allowed to access the cached file if a URL pattern matches the
 ## cached file URL and the client's credential has the attribute and matches the
 ## value required for that pattern. Possible values for credential attribute are
@@ -1542,7 +1566,7 @@
 ## (https://twiki.cern.ch/twiki/bin/view/EGEE/AuthorizationFramework)
 ## for requesting authorization decisions and performing client mapping
 ## to a local user account.
-## This block turns on and configures the A-REX WS - Argus integration:
+## This block turns on and configures the A-REX WS - Argus integration.
 ## When this block is enabled, A-REX will communicate to Argus PEP or PDP service
 ## for every WS interface operation!
 ## Comment out this block if you don't intend to use any external Argus service with A-REX WS interfaces.
@@ -1555,7 +1579,7 @@
 ## It is worth to mention that "requireClientCertAuthentication" (default is false)
 ## item of pepd.ini (configuration of Argus PEPD service) is set to be 'true', then
 ## https should be used, otherwise http is proper.
-## Note that Argus will be contacted for every WS interface operation requested!
+## NOTE that Argus will be contacted for every WS interface operation requested!
 ## default: undefined
 #arguspep_endpoint=https://somehost.somedomain:8154/authz
 
@@ -1582,7 +1606,7 @@
 ## It is worth to mention that "requireClientCertAuthentication" (default is false)
 ## item of pdp.ini (configuration of Argus PDP service) is set to be 'true', then
 ## https should be used, otherwise http is proper.
-## Note that Argus will be contacted for every WS interface operation requested!
+## NOTE that Argus will be contacted for every WS interface operation requested!
 ## default: undefined
 #arguspdp_endpoint=https://somehost.somedomain:8152/authz
 
@@ -1696,11 +1720,11 @@
 ### end of the [arex/jura] block ########################################
 
 
-## The [arex/jura/archiving] block ##############################
+### The [arex/jura/archiving] block ##############################
 ## This block enables the archiving functionality of JURA.
 ## If archiving is enabled then the generated usage records are stored
 ## in a the specified archivedir directory on the disk with the following
-## file naming convention used: "usagerecord[Type].<jobid>.<random>".
+## file naming convention used: "usagerecord<Type>.<jobid>.<random>".
 ## Here Type is one of the supported record formats such as OGFUR or CAR.
 ## By default the archiving is turned off.
 #[arex/jura/archiving]
@@ -1716,7 +1740,7 @@
 ## archivedir = path - Sets the directory path for the archived usage records.
 ## If archiving is turned on, then the generated usage records are stored
 ## in this directory with the following file naming convention used: 
-## "usagerecord[Type].<jobid>.<random>".
+## "usagerecord<Type>.<jobid>.<random>".
 ## Here Type is one of the supported record formats such as OGFUR or CAR.
 ## default: /var/spool/arc/jura/archive
 ## TODO: create the directory
@@ -2019,7 +2043,7 @@
 ### end of the [gridftpd] block ###############################
 
 
-### [gridftpd/jobs] subblock ###############################
+### The [gridftpd/jobs] block ##############################
 ## The jobplugin of the gridftp server implements a custom
 ## job management and submission interface of ARC CE.
 ## This subblock enables and configures that interface.
@@ -2077,7 +2101,7 @@
 ### end of [gridftpd/jobs] block #####################################
 
 
-### [gridftpd/filedir] block #########################################
+### The [gridftpd/filedir] block #########################################
 ## The fileplugin module of the gridftp server can be used to set up a
 ## simplistic grid storage element (SE). This subblock enables and configures
 ## such an SE by "exporting" a directory using the gridftpd's fileplugin.
@@ -2088,7 +2112,7 @@
 ## CHANGE131: DELETED. hide it from sysadmin. make the plugin loading/configuration automatic. if a gridftpd/filedir block is enabled, load the right plugin automatically.
 
 ## *path = virtdir - The name of the virtual directory served by the gridftp server.
-## The exported storage area is accessible as gsiftp://my_server/virtdir.
+## The exported storage area is accessible as "gsiftp://my_server/virtdir".
 ## Even "/" is a valid choice.
 ## default: undefined
 #path=/topdir
@@ -2199,8 +2223,8 @@
 
 ## validity_ttl = seconds - The published infosys records advertise their
 ## validity e.g. how long the info should be considered up-to-date by the clients.
-## Use this parameter to set the published validity value. Note that different schemas may render
-## this information differently.
+## Use this parameter to set the published validity value. 
+## NOTE that different schemas may render this information differently.
 ## default: 10800
 #validity_ttl=10800
 ##
@@ -2620,6 +2644,8 @@
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
 ## Shares(currently queues). You can also add additional advertisedvos to queues.
 ## The information is also published in the NorduGrid schema.
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
+##    it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas
@@ -2731,11 +2757,11 @@
 ## CHANGE151: DELETED. hardcode 2811 in the infoproviders.
 
 ## cpudistribution = formatted_string - This is the CPU distribution over nodes
-## given in the form: ncpu:m where
-##   n is the number of CPUs per machine
-##   m is the number of such computers
-## Example: 1cpu:3,2cpu:4,4cpu:1 represents a cluster with
-## 3 single CPU machines, 4 dual CPU machines, one machine with 4 CPUs.
+## given in the form "ncpu:m" where:
+##   "n" is the number of CPUs per machine
+##   "m" is the number of such machines
+## Example: "1cpu:3,2cpu:4,4cpu:1" represents a cluster with
+## 3 single CPU machines, 4 dual CPU machines and one machine with 4 CPUs.
 ## default: undefined
 #cpudistribution=1cpu:3,2cpu:4,4cpu:1
 ##
@@ -2776,14 +2802,14 @@
 ## pbs_queue_node = string - (previously queue_node_string) In PBS you can assign nodes
 ## to a queue (or a queue to nodes) by using the "node property" mark in PBS config.
 ##
-## Essentially, pbs_queue_node value is used to construct nodes= string in
-## PBS script, such as nodes=count:pbs_queue_node where count is taken from
+## Essentially, "pbs_queue_node" value is used to construct "nodes=" string in
+## PBS script, such as "nodes=count:pbs_queue_node" where "count" is taken from
 ## the job description (1 if not specified). 
 ##
-## This corresponds to setting the following parameter in PBS for this queue:
+## This corresponds to setting the following parameter in PBS for this queue: 
 ##   resources_default.neednodes = cpu_topology[:pbs_queue_node]
 ##
-## Setting the pbs_queue_node changes how the queue-totalcpus, user freecpus are
+## Setting the "pbs_queue_node" changes how the queue-totalcpus, user freecpus are
 ## determined for this queue.
 ##
 ## You shouldn't use this option unless you are sure that your PBS configuration makes 
@@ -2801,16 +2827,16 @@
 
 ## condor_requirements = string - It needs to be defined for each Condor queue.
 ## Use this option to determine which nodes belong to the current queue.
-## The value of 'condor_requirements' must be a valid constraints string
-## which is recognized by a condor_status -constraint '....' command. It can
+## The value of "condor_requirements" must be a valid constraints string
+## which is recognized by a "condor_status -constraint ..." command. It can
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
-## condor node, just add two lines like the ones below in the `hostname`.local
-## config file on the node:
+## condor node, just add two lines like the ones below in the "$(hostname).local"
+## config file on the node: 
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this queue is allowed to run on any node which satisfies
-## the 'condor_requirements' constraint.  If 'condor_requirements' is not set,
+## the "condor_requirements" constraint.  If "condor_requirements" is not set,
 ## jobs will be allowed to run on any of the nodes in the pool. When configuring
 ## multiple queues, you can differentiate them based on memory size or disk
 ## space, for example.
@@ -2899,12 +2925,12 @@
 ## will cause errors.
 ## These entries will be shown in the MappingPolicy objects, that is,
 ## they will apply for the Shares that corresponds to the queue.
-## NOTE: if you have also configured advertisedvo in the [infosys/cluster] block,
-## the result advertised VOs per queue is the union set of what is
-## contained in the [infosys/cluster] and in this [queue:name] block.
-## IMPORTANT: This parameter is NOT enforcing any access control, it is just for
-## information publishing!
 ## The information is also published in the NorduGrid schema.
+## NOTE that if you have also configured "advertisedvo" in the [infosys/cluster] block,
+##   the result advertised VOs per queue is the union set of what is contained in the
+##   [infosys/cluster] and in this [queue:name] block!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
+##   it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas
@@ -3115,7 +3141,7 @@
 ## The acix-index server is deployed separately and can be queried for the location of cached files.
 ## The service endpoint is https://hostname:6443/data/index and a query is
 ## performed via giving the URLs to check as comma-separated values to the "url" option, e.g.:
-## index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1
+## "index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1"
 #[acix-index]
 
 ## *cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information

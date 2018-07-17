@@ -167,12 +167,11 @@ __rst_skiplist = [
 ]
 
 __rst_replacelist = [
-    ('configuration file consists of the following blocks', 'configuration file consists of the following blocks::\n'),
-    ('for configuration lines:', 'for configuration lines::\n'),
-    ('and for block headers:', '\nand for block headers::\n'),
+    (': \n', '::\n'),
     ('arc.conf', '``arc.conf``'),
     ('CHANGE', '\n\n.. warning::\n\n  CHANGE'),
-    ('TODO', '\n\n.. warning::\n\n  TODO')
+    ('TODO', '\n\n.. warning::\n\n  TODO'),
+    ('NOTE that', '\n\n.. note::\n\n ')
 ]
 
 
@@ -192,6 +191,10 @@ def reference2rst(reference_f):
         new_option = False
         sys.stdout.write(__rst_top_header)
         for confline in ref_f:
+            # replace lines
+            for repline, repval in __rst_replacelist:
+                if repline in confline:
+                    confline = confline.replace(repline, repval)
             # skip lines
             sline = confline.strip()
             for skipline in __rst_skiplist:
@@ -205,10 +208,6 @@ def reference2rst(reference_f):
                     sys.stdout.write(__rst_blocks_header)
                     in_skip = False
                 continue
-            # replace lines
-            for repline, repval in __rst_replacelist:
-                if repline in sline:
-                    sline = sline.replace(repline, repval)
 
             # block name
             block_match = block_head_re.match(confline)
@@ -277,24 +276,25 @@ def reference2rst(reference_f):
             if sline.startswith('## '):
                 shhline = sline[3:]
                 # if not shhline.startswith(' '):
-                if not in_codeblock:
-                    shhline = shhline.replace('[', '``[')\
-                        .replace(']', ']``')\
-                        .replace('*', '\*')\
-                        .replace('"', '``')\
-                        .replace('``[#]``', '[#]')
                 if not shhline.startswith(' '):
                     if in_codeblock:
                         in_codeblock = False
                     if in_list:
                         in_list = False
                         sys.stdout.write('\n')
-                else:
+                if shhline.startswith(' ') or shhline.startswith('\n\n.. '):
                     if not in_list:
                         in_list = True
                         sys.stdout.write('\n')
 
+                if not in_codeblock:
+                    shhline = shhline.replace('[', '``[')\
+                        .replace(']', ']``')\
+                        .replace('"', '``')\
+                        .replace('``[#]``', '[#]')\
+                        .replace(' *', ' \*')
+
                 sys.stdout.write(shhline + '\n')
 
-                if shhline.endswith('::\n'):
+                if shhline.endswith('::'):
                     in_codeblock = True
