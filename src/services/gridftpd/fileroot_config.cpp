@@ -139,7 +139,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
 }
 
 
-static int const cfgsec_common_mapping_n = 0;
+static int const cfgsec_mapping_n = 0;
 static int const cfgsec_common_n = 1;
 static int const cfgsec_group_n = 2;
 static int const cfgsec_gridftpd_n = 3;
@@ -268,7 +268,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
         if((command == ".") && (rest.empty())) {
           // separator
         } else if(cf.SectionNum() == cfgsec_gridftpd_n) { // [gridftpd]
-          if(command == "encryption") {  /* is encryption allowed ? */
+          if(command == "allowencryption") {  /* is encryption allowed ? */
             std::string value=Arc::ConfigIni::NextArg(rest);
             if(value == "yes") {
               heavy_encryption=true;
@@ -277,15 +277,15 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             } else {
               user.user.clear_groups();
               nodes.clear();
-              logger.msg(Arc::ERROR, "improper attribute for encryption command: %s", value);
+              logger.msg(Arc::ERROR, "improper attribute for allowencryption command: %s", value);
               return 1;
             };
-          } else if(command == "allowunknown") {
+          } else if(command == "require_gridmapfile") {
             /* should user be present in grid-mapfile ? */
             std::string value=Arc::ConfigIni::NextArg(rest);
-            if(value == "yes") {
+            if(value == "no") {
               user.gridmap=true;
-            } else if(value == "no") {
+            } else if(value == "yes") {
               if(!user.gridmap) {
                 logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
                 return 1;
@@ -293,7 +293,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             } else {
               user.user.clear_groups();
               nodes.clear();
-              logger.msg(Arc::ERROR, "improper attribute for allowunknown command: %s", value);
+              logger.msg(Arc::ERROR, "improper attribute for require_gridmapfile command: %s", value);
               return 1;
             };
           } else if(command == "port") {
@@ -315,7 +315,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
           if(command == "hostname") { // should be in [common]
             hostname=rest;
           };
-        } else if(cf.SectionNum() == cfgsec_common_mapping_n) {
+        } else if(cf.SectionNum() == cfgsec_mapping_n) {
           if(command == "unixmap") {  /* map to local unix user */
             if(!user.mapped()) {
               if(user.mapname(rest.c_str()) == AAA_FAILURE) {
@@ -415,7 +415,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   };
   cf=new Arc::ConfigIni(cfile);
   // keep in sync with cfgsec_* constants
-  cf->AddSection("common/mapping");
+  cf->AddSection("mapping");
   cf->AddSection("common");
   cf->AddSection("authgroup");
   cf->AddSection("gridftpd");
