@@ -893,6 +893,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post arex
 %enable_service arc-arex
+# out-of-package testing host certificate
 if [ $1 -eq 1 ]; then
   arcctl test-ca init
   arcctl test-ca hostcert
@@ -1018,12 +1019,15 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/__init__.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
+%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
+%{python2_sitearch}/%{pkgdir}/control/Config.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
 %{python2_sitearch}/%{pkgdir}/control/OSService.py*
 %{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
+%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
 %{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
@@ -1234,6 +1238,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
+%{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
 %{_sbindir}/a-rex-backtrace-collect

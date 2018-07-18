@@ -1,0 +1,9 @@
+# description: enables the usage of local to WN scratch directory defined by LRMS
+# param:SCRATCH_VAR:string:WORKDIR:Variable name that holds the path to job-specific WN scratch directory
+
+SCRATCH_VAR="${SCRATCH_VAR:-WORKDIR}"
+
+if [ "x$1" = "x0" ]; then
+    RUNTIME_LOCAL_SCRATCH_DIR="\${${SCRATCH_VAR}}"
+fi
+

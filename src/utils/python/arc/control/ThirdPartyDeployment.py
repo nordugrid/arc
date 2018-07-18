@@ -1,6 +1,6 @@
 from ControlCommon import *
 import sys
-import requests
+import urllib2
 import socket
 import ssl
 import re
@@ -24,11 +24,25 @@ class ThirdPartyControl(ComponentControl):
     def __egi_get_voms(self, vo):
         vomslsc = {}
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
-        r = requests.get('http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo))
-        if not r.content.startswith('<?xml'):
+        dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
+        # query database
+        req = urllib2.Request(dburl)
+        try:
+            self.logger.debug('Contacting EGI VO Database at %s', dburl)
+            response = urllib2.urlopen(req)
+        except urllib2.URLError as e:
+            if hasattr(e, 'reason'):
+                self.logger.error('Failed to reach EGI VO Database server. Error: %s', e.reason)
+            else:
+                self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
+            sys.exit(1)
+        # get response
+        rcontent = response.read()
+        if not rcontent.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database')
             sys.exit(1)
-        xml = ET.fromstring(r.content)
+        xml = ET.fromstring(rcontent)
+        # parse XML
         for voms in xml.iter('VOMS_Server'):
             host = voms.find('hostname').text
             dn = voms.find('X509Cert/DN').text
