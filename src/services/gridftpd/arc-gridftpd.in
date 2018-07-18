@@ -106,61 +106,36 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
-readconfigvar() {
-    # subnames (after : ) are not supported
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
+readorigconfigvar() {
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$3" -o "$2" 2>/dev/null`
+    if [ "$?" = '0' ] ; then
+        echo "$value"
+        exit 0
+    else
+        exit 1
     fi
-    bname="[$2]"
-    vname=$3
-    cat "$fname" | sed -e 's/\r$//' -e 's/^\r//' | grep -e '^[[:space:]]*\[' -e "^[[:space:]]*${vname}[[:space:]]*=" | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
-            if [ "$line" = "$bname" ] ; then
-                # requested block started
-                while true ; do
-                    read line
-                    if [ ! $? = 0 ] ; then
-                        return
-                    fi
-                    line=`echo "$line" | sed -e 's/^[[:space:]]*//' | sed -e 's/[[:space:]]*$//'`
-                    lstart=`echo "$line" | head -c 1`
-                    if [ "$lstart" = '[' ] ; then
-                        # next block started
-                        return
-                    fi
-                    vlname=`echo "$line" | sed -e 's/[[:space:]]*=.*//;t;s/.*//'`
-                    if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed -e 's/[^=]*=[[:space:]]*//'`
-                        echo "$val"
-                        return
-                    fi
-                done
-            fi
-        done
-    }
+}
+
+readconfigvar() {
+    fname="$1"
+    optname="$2"
+    blocks=""
+    while [ ! -z "$3" ] ; do
+        blocks="$blocks -b $3"
+        shift
+    done
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$fname" --load $blocks -o "$optname" 2>/dev/null`
+    if [ "$?" = '0' ] ; then
+        echo "$value"
+        exit 0
+    else
+        exit 1
+    fi
 }
 
 check_cert() {
-  X509_USER_CERT=`readconfigvar "$ARC_CONFIG" gridftpd x509_host_cert`
-  X509_USER_KEY=`readconfigvar "$ARC_CONFIG" gridftpd x509_host_key`
-  if [ -z "$X509_USER_CERT" ] ; then
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_host_cert`
-  fi
-  if [ -z "$X509_USER_KEY" ] ; then
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_host_key`
-  fi
-  if [ -z "$X509_USER_CERT" ] ; then
-    X509_USER_CERT=/etc/grid-security/hostcert.pem
-  fi
-  if [ -z "$X509_USER_KEY" ] ; then
-    X509_USER_KEY=/etc/grid-security/hostkey.pem
-  fi
+  X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_cert gridftpd common`
+  X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_key gridftpd common`
   if [ ! -f "$X509_USER_CERT" ] ; then
     log_failure_msg "Host certificate not found"
     exit 1
@@ -177,12 +152,6 @@ check_cert() {
   fi
 }
 
-CMD="$ARC_LOCATION/sbin/$prog"
-if [ ! -x "$CMD" ]; then
-    log_failure_msg "Missing executable"
-    exit 1
-fi
-
 # ARC_CONFIG
 if [ "x$ARC_CONFIG" = "x" ]; then
     if [ -r $ARC_LOCATION/etc/arc.conf ]; then
@@ -197,8 +166,6 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
-CMD="$CMD -c '$ARC_CONFIG'"
-
 # VOMS_LOCATION
 VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
 
@@ -211,7 +178,10 @@ else
 fi
 export LD_LIBRARY_PATH
 
-PID_FILE=`readconfigvar "$ARC_CONFIG" gridftpd pidfile`
+# PID and lock file
+PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile gridftpd`
+ARC_RUNTIME_CONFIG=
+LOCKFILE=
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -220,27 +190,35 @@ if [ `id -u` = 0 ] ; then
     else
 	LOCKFILE=/var/lock/$prog
     fi
-    if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=/var/run/$prog.pid
-    fi
 else
     LOCKFILE=$HOME/$prog.lock
-    if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=$HOME/$prog.pid
-    fi
 fi
+ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
+ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
 
-logfile=`readconfigvar "$ARC_CONFIG" gridftpd logfile`
-if [ "x$logfile" = "x" ]; then
-    logfile=/var/log/arc/gridftpd.log
-fi
-if [ ! -d `dirname $logfile` ]; then
-    mkdir -p `dirname $logfile`
-fi
-
-CMD="$CMD -P '$PID_FILE'"
 
 start() {
+    CMD="$ARC_LOCATION/sbin/$prog"
+    if [ ! -x "$CMD" ]; then
+        log_failure_msg "Missing executable"
+        exit 1
+    fi
+
+    # Pre-process configuration
+    $ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$ARC_CONFIG" --runconfig "$ARC_RUNTIME_CONFIG" --save 2>/dev/null
+    if [ ! "$?" = '0' ] ; then
+        log_failure_msg "ARC configuration processing failed"
+        exit 1
+    fi
+
+    CMD="$CMD -c '$ARC_RUNTIME_CONFIG'"
+    CMD="$CMD -P '$PID_FILE'"
+
+    LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile gridftpd`
+    if [ ! -d `dirname "$LOGFILE"` ]; then
+        mkdir -p `dirname "$LOGFILE"`
+    fi
+
     check_cert
 
     echo -n "Starting $prog: "

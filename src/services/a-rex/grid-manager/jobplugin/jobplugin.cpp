@@ -95,7 +95,6 @@ static void job_subst(std::string& str,void* arg) {
 JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     cont_plugins(new ContinuationPlugins),
     user_a(user_s.user),
-    job_map(user_s.user),
     matched_vo(NULL),
     matched_voms(NULL) {
 
@@ -130,12 +129,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
         if(value.empty()) break;
         readonly_override.push_back(value);
       };
-    } else if(command == "unixmap") {  /* map to local unix user */
-      if(!job_map) job_map.mapname(rest.c_str());
-    } else if(command == "unixgroupmap") {  /* map to local unix user */
-      if(!job_map) job_map.mapgroup(rest.c_str());
-    } else if(command == "unixlistmap") {  /* map to local unix user */
-      if(!job_map) job_map.mapvo(rest.c_str());
     } else if(command == "maxjobdesc") {
       if(rest.empty()) {
         job_rsl_max_size = 0;
@@ -155,10 +148,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   config.SetContPlugins(cont_plugins);
   std::string uname = user_s.get_uname();
   std::string ugroup = user_s.get_gname();
-  if((bool)job_map) {
-    uname=job_map.unix_name();
-    ugroup=job_map.unix_group();
-  };
   user = Arc::User(uname, ugroup);
   if (!user) {
     logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
@@ -251,9 +240,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
         file_plugins.push_back(direct_fs);
       }
     }
-    if((bool)job_map) {
-      logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user.get_uid(), user.get_gid());
-    };
+    logger.msg(Arc::INFO, "Job submission user: %s (%i:%i)", uname, user.get_uid(), user.get_gid());
   }
   if(!initialized) {
     logger.msg(Arc::ERROR, "Job plugin was not initialised");
