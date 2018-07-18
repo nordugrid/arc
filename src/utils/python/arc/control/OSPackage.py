@@ -1,6 +1,6 @@
 import subprocess
 import logging
-import requests
+import urllib2
 import sys
 import os
 
@@ -46,12 +46,17 @@ class OSPackageManagement(object):
         print '{0} version {1}'.format(self.pm, self.pm_version)
 
     def __get_url_content(self, url):
+        req = urllib2.Request(url)
         try:
-            r = requests.get(url)
-        except requests.exceptions.RequestException as e:
-            self.logger.error('Failed to fetch content from URL: %s. Error: %s', url, e.strerror)
+            self.logger.debug('Fetching the content of URL: %s', url)
+            response = urllib2.urlopen(req)
+        except urllib2.URLError as e:
+            if hasattr(e, 'reason'):
+                self.logger.error('Failed to reach the content server for %s. Error: %s', url, e.reason)
+            else:
+                self.logger.error('Server failed to process the request for %s. Error code: %s', url, e.code)
             sys.exit(1)
-        return r.content
+        return response.read()
 
     def deploy_apt_key(self, keyurl):
         self.logger.info('Installing PGP key for apt from %s', keyurl)
