@@ -105,7 +105,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       }
     }
     else if (command == "speedcontrol") {
-      if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed)) {
+      if (rest.empty()) {
         min_speed = min_speed_time = min_average_speed = max_inactivity_time = 0;
       } else if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
                  !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_average_speed) ||
@@ -148,14 +148,16 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "passivetransfer") {
       std::string pasv = Arc::ConfigIni::NextArg(rest);
       if (pasv == "yes") passive = true;
+      else passive = false;
     }
-    else if (command == "securetransfer") {
-      std::string sec = Arc::ConfigIni::NextArg(rest);
-      if (sec == "yes") secure = true;
-    }
+    //else if (command == "securetransfer") {
+    //  std::string sec = Arc::ConfigIni::NextArg(rest);
+    //  if (sec == "yes") secure = true;
+    //}
     else if (command == "httpgetpartial") {
       std::string partial = Arc::ConfigIni::NextArg(rest);
-      if (partial == "no") httpgetpartial = false;
+      if (partial == "yes") httpgetpartial = true;
+      else httpgetpartial = false;
     }
     else if (command == "preferredpattern") {
       preferred_pattern = rest;
@@ -163,6 +165,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "usehostcert") {
       std::string use_host_cert = Arc::ConfigIni::NextArg(rest);
       if (use_host_cert == "yes") use_host_cert_for_remote_delivery = true;
+      else use_host_cert_for_remote_delivery = false;
     }
     else if (command == "loglevel") {
       unsigned int level;
@@ -175,12 +178,12 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "statefile") {
       dtr_log = rest;
     }
-    else if (command == "central_logfile") {
+    else if (command == "logfile") {
       dtr_central_log = rest;
     }
     else if (command == "use_remote_acix")  {
       std::string endpoint(rest);
-      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+      if (!Arc::URL(endpoint) || (endpoint.find("://") == std::string::npos)) {
         logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
         return false;
       }

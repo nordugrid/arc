@@ -110,11 +110,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int lrms_secnum = 8;
   cf.AddSection("lrms");
   static const int cluster_secnum = 9;
-  cf.AddSection("cluster");
+  cf.AddSection("infosys/cluster");
   static const int perflog_secnum = 10;
   cf.AddSection("common/perflog");
   static const int ganglia_secnum = 11;
-  cf.AddSection("monitoring/ganglia");
+  cf.AddSection("arex/ganglia");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/arex.perflog");
@@ -339,9 +339,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           config.scratch_dir = scratch;
         }
         else if (command == "joblog") { // where to write job information
-          if (!config.job_log) continue;
-          std::string fname = rest;  // empty is allowed too
-          config.job_log->SetOutput(fname.c_str());
+          if (config.job_log) {
+            std::string fname = rest;  // empty is allowed too
+            config.job_log->SetOutput(fname.c_str());
+          }
         }
         else if (command == "delegationdb") {
           std::string s = Arc::ConfigIni::NextArg(rest);
@@ -355,7 +356,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             logger.msg(Arc::ERROR, "Wrong option in delegationdb"); return false;
           };
         }
-        else if (command == "orcedefaultvoms") {
+        else if (command == "forcedefaultvoms") {
           std::string str = rest;
           if (str.empty()) {
             logger.msg(Arc::ERROR, "forcedefaultvoms parameter is empty"); return false;
@@ -462,27 +463,35 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "x509_host_key") {
-          std::string jobreport_key = rest;
-          config.job_log->SetCredentials(jobreport_key, "", "");
+          if (config.job_log) {
+            std::string jobreport_key = rest;
+            config.job_log->SetCredentials(jobreport_key, "", "");
+          }
         }
         else if (command == "x509_host_cert") {
-          std::string jobreport_cert = rest;
-          config.job_log->SetCredentials("", jobreport_cert, "");
+          if (config.job_log) {
+            std::string jobreport_cert = rest;
+            config.job_log->SetCredentials("", jobreport_cert, "");
+          }
         }
         else if (command == "x509_cert_dir") {
-          std::string jobreport_cadir = rest;
-          config.job_log->SetCredentials("", "", jobreport_cadir);
+          if (config.job_log) {
+            std::string jobreport_cadir = rest;
+            config.job_log->SetCredentials("", "", jobreport_cadir);
+          }
         }
       };
       continue;
     };
 
     if (cf.SectionNum() == infosys_secnum) { // infosys - looking for user name to get share uid
+      /*
       if (cf.SubSection()[0] == '\0') {
         if (command == "user") {
           config.SetShareID(Arc::User(rest));
         };
       };
+      */
       continue;
     }
 
@@ -504,10 +513,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             std::string queue_name = *(--config.queues.end());
             config.forced_voms[queue_name] = str;
           }
-        } else if (command == "authorizedvo") {
+        } else if (command == "advertisedvo") {
           std::string str = rest;
           if (str.empty()) {
-            logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+            logger.msg(Arc::ERROR, "advertisedvo parameter is empty"); return false;
           }
           if (!config.queues.empty()) {
             std::string queue_name = *(--config.queues.end());
@@ -529,10 +538,10 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     }
     if (cf.SectionNum() == cluster_secnum) { // cluster
       if (cf.SubSection()[0] == '\0') {
-        if (command == "authorizedvo") {
+        if (command == "advertisedvo") {
           std::string str = rest;
           if (str.empty()) {
-            logger.msg(Arc::ERROR, "authorizedvo parameter is empty"); return false;
+            logger.msg(Arc::ERROR, "advertisedvo parameter is empty"); return false;
           }
           config.authorized_vos[""].push_back(str);
         };
