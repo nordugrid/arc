@@ -893,6 +893,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post arex
 %enable_service arc-arex
+
 # out-of-package testing host certificate
 if [ $1 -eq 1 ]; then
   arcctl test-ca init
