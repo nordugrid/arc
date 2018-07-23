@@ -30,7 +30,7 @@ use warnings;
 # <username> reffers to the user that is initiated by a 'control' command. The
 # 'controldir' command initiates user '.'. Each pseudo-section has it's own
 # 'controldir' option. Other user-specific options are: 'sessiondir', 'cachedir',
-# 'remotecachedir', 'cachesize', 'cachelifetime', 'norootpower', 'maxrerun',
+# 'cachesize', 'cachelifetime', 'norootpower', 'maxrerun',
 # 'maxtransferfiles' and 'defaultttl'. No substituions are made and user names
 # '.' and '*' are not handled specially.
 #
@@ -248,7 +248,6 @@ sub _substitute {
         &$substitute_opt('controldir');
         &$substitute_opt('sessiondir');
         &$substitute_opt('cachedir');
-        &$substitute_opt('remotecachedir');
     }
 
     # authplugin, localcred, helper: not substituted
@@ -305,7 +304,7 @@ sub new($) {
     my ($this) = @_;
     my $self = $this->SUPER::new('grid-manager');
     # OBS sessiondir is not treated
-    $self->{muopts} = [qw(sessiondir cachedir remotecachedir)];
+    $self->{muopts} = [qw(sessiondir cachedir)];
     $self->{suopts} = [qw(cachesize cachelifetime norootpower maxrerun maxtransferfiles defaultttl)];
     $self->{thisuser} = {};
     $self->{allusers} = {};

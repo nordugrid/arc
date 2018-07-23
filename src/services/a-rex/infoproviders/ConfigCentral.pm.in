@@ -190,7 +190,6 @@ my $gmuser_options = {
     sessiondir => [ '' ],
     cachedir => [ '*' ],
     cachesize => '*',
-    remotecachedir => [ '*' ],
     defaultttl => '*',
 };
 my $gmcommon_options = {
@@ -625,9 +624,6 @@ sub _substitute {
         }
         if ($opts->{cachedir}) {
             $opts->{cachedir} = [ map {&$subst_opt($_)} @{$opts->{cachedir}} ];
-        }
-        if ($opts->{remotecachedir}) {
-            $opts->{remotecachedir} = [ map {&$subst_opt($_)} @{$opts->{remotecachedir}} ];
         }
     }
 
