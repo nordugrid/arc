@@ -15,8 +15,6 @@
 #include <arc/Utils.h>
 #include <arc/ArcConfigIni.h>
 
-#include "environment.h"
-
 #include "daemon.h"
 
 
@@ -94,9 +92,7 @@ namespace gridftpd {
 
   int Daemon::config(const std::string& section, const std::string& cmd,std::string& rest) {
     if(section == "common") {
-      if(cmd == "gridmap") {
-        Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
-      } else if(cmd == "hostname") {
+      if(cmd == "hostname") {
         Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
       } else if(cmd == "x509_host_key") {
         Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
@@ -113,7 +109,7 @@ namespace gridftpd {
       } else {
         return 1; // not processed command
       };
-    } else if(section == "common/mapping") {
+    } else if(section == "mapping") {
       if(cmd == "gridmap") {
         Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
       };
