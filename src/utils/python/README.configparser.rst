@@ -183,12 +183,12 @@ Export entire configuration to JSON [2]_::
 Export ``[infosys]`` block options to JSON (for Perl)::
 
   # arcconfig-parser --block infosys --export json
-  {"infosys": {"registrationlog": "/var.....
+  {"infosys": {"loglevel": "5"},...
 
 Export ``[infosys]`` block and all their subblocks options to JSON::
 
   # arcconfig-parser --block infosys --subblocks --export json
-  {"infosys/admindomain": {"www": "http://e....
+  {"infosys/glue2/ldap": {"showactivities": "no"},...
 
 Export for BASH (compatible with current config representation in shell-based LRMS backends)::
 
