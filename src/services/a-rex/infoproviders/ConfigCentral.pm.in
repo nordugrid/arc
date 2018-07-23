@@ -836,8 +836,7 @@ sub build_config_from_json {
         my $xeconf = $config->{xenvs}{$name} ||= {};
         push @{$sconf->{ExecutionEnvironmentName}}, $name;
 
-        rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
-                                     nodememory => 'MaxVirtualMemory', 
+        rename_keys $queue, $sconf, {nodememory => 'MaxVirtualMemory', 
                                      comment => 'Description', 
                                      advertisedvo => 'AdvertisedVO',
                                      maxslotsperjob => 'MaxSlotsPerJob'};

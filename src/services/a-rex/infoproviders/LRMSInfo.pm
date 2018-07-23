@@ -153,7 +153,6 @@ sub collect($) {
     #my ($lrms_name, $share) = split / /, $lrmsstring; # C 10 new lrms block
     my $lrms_name = $options->{lrms};
     my $share = $options->{defaultqueue};
-    $options->{scheduling_policy} = $options->{SchedulingPolicy} if $options->{SchedulingPolicy};
     $log->error('lrms option is missing') unless $lrms_name;
     load_lrms($lrms_name);
 
