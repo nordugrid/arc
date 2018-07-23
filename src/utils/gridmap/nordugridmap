@@ -93,13 +93,15 @@ while (my $line =<CONFIGFILE>) {
     next if $line =~/^\s+$/;
 
     # parse block name
-    if ($line =~/\[([^\] ]+)\]/ ) {
+    if ($line =~/\[([^\]]+)\]/ ) {
         $blockname = $1;
         if ( $blockname =~ /^(common$|nordugridmap$|userlist)/ ) {
             $parseoptions = 1;
-            $parsedconfig{$blockname}{'configline'} = $lineindex;
-            if ($blockname =~ /^userlist:\s*([^\[\]]+)$/ ) {
-                $parsedconfig{$blockname}{'name'} = $1
+            if ($blockname =~ /^userlist:\s*([^\[\]]+)\s*$/ ) {
+                my $name = $1;
+                $name =~ s/^\s+|\s+$//g;
+                $blockname = "userlist:$name";
+                $parsedconfig{$blockname}{'name'} = $name;
             } elsif ($blockname =~ /^userlist$/ ) {
                 &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist:NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
             }
@@ -115,11 +117,11 @@ while (my $line =<CONFIGFILE>) {
     my $variable_name;
     my $variable_value;
 
-    if ( $line =~/^(\w+)\s*=\s*(.*)\s*$/ ) {
+    if ( $line =~/^\s*(\w+)\s*=\s*(.*)\s*$/ ) {
         $variable_name=$1;
         $variable_value=$2;
     } else {
-        if ($line =~ /^mapped_unixid$/ ) {
+        if ($line =~ /^\s*mapped_unixid\s*$/ ) {
             $variable_name="mapped_unixid";
             $variable_value="";
         } else {
@@ -127,16 +129,12 @@ while (my $line =<CONFIGFILE>) {
         }
     }
     
-    # trim optional double quotes (still valid case for mapped_unixid="")
-    $variable_value =~ s/^"(.*)"$/$1/;
+    # "" is the empty string (valid case for mapped_unixid="")
+    if ( $variable_value =~ /^\s*""\s*$/ ) {
+        $variable_value = "";
+    }
     
     if ( $blockname =~/^userlist:/ ) {
-        # special parsing for the local grid-mapfile
-        if ($variable_name eq "localmapfile") {
-            $variable_name = "source";
-            $variable_value = "file://" . $variable_value;
-        }
-
         # special parsing for the nordugrid VO members: source="nordugrid"
         if (($variable_name eq "source") && ($variable_value eq "nordugrid")) {
             $variable_value = "vomss://voms.ndgf.org:8443/voms/nordugrid.org";
@@ -280,7 +278,7 @@ sub get_userlist_name {
     if ( $parsedconfig{$block}{'name'} ) {
         return $parsedconfig{$block}{'name'};
     } else {
-        &Logger("Userlist name is missing for block defined in $fileopt line $parsedconfig{$block}{'configline'})", FATAL, "ConfigParser");
+        &Logger("Malformed userlist block [$block] found in in $fileopt: failed to get block name", FATAL, "ConfigParser");
     }
 }
 
