@@ -98,7 +98,9 @@ With the ``--export`` option ``arcconfig-parser`` allows to export config in the
  * ``bash`` - for ``[common]`` block or specified configuration subset returns ``CONFIG_option_name=value`` pairs to stdout.
    Block names ARE NOT included in the exports and option values precedence will be used in the order of passed blocks.
    If automatic subblocks expansion used with bash export, for every block in sequence - it's subblocks are processed
-   first (in ``arc.conf`` defined order).
+   first (in ``arc.conf`` defined order). It is possible to filter the options that will be exported with additional 
+   ``--filter`` option that can be specified several times.
+
 
 Common configuration parsing sequence
 +++++++++++++++++++++++++++++++++++++
@@ -190,13 +192,13 @@ Export ``[infosys]`` block and all their subblocks options to JSON::
   # arcconfig-parser --block infosys --subblocks --export json
   {"infosys/glue2/ldap": {"showactivities": "no"},...
 
-Export for BASH (compatible with current config representation in shell-based LRMS backends)::
+Export for BASH (compatible with config representation in shell-based LRMS backends)::
 
   # arcconfig-parser --block infosys --block arex --block common --export bash
   CONFIG_controldir="/var/spool/arc/jobstatus"
   CONFIG_defaultttl="1210000"
   CONFIG_delegationdb="sqlite"
-  CONFIG_hostname="sample1.nordugrid.org"
+  CONFIG_hostname="ce01.example.org"
   CONFIG_maaxrerun="5"
   CONFIG_maxjobs="10000 -1"
   CONFIG_runtimedir="/home/grid/arc/runtime"
@@ -204,6 +206,12 @@ Export for BASH (compatible with current config representation in shell-based LR
   CONFIG_sessiondir_0="/mnt/scratch/grid/arc/session"
   CONFIG_sessiondir_1="/home/grid/arc/session drain"
   ...
+
+Export for BASH with exported options filtering::
+  
+  # arcconfig-parser -b common -f hostname -f x509_cert_dir -e bash
+  CONFIG_hostname="ce01.example.org"
+  CONFIG_x509_cert_dir="/etc/grid-security/certificates"
 
 Using BASH export::
 
