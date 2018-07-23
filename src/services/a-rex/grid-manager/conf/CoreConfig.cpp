@@ -446,7 +446,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           if (config.job_log) {
             std::string logfile = rest;
             if (logfile.empty()) {
-              logger.msg(Arc::ERROR, "Missing file name in jobreport_logfile"); return false;
+              logger.msg(Arc::ERROR, "Missing file name in [arex/jura] logfile"); return false;
             };
             job_log_log_is_set = true;
             config.job_log->SetLogFile(logfile.c_str());
