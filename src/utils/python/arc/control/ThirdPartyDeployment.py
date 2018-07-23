@@ -39,7 +39,7 @@ class ThirdPartyControl(ComponentControl):
         # get response
         rcontent = response.read()
         if not rcontent.startswith('<?xml'):
-            self.logger.error('VO %s is not found in EGI database')
+            self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
         xml = ET.fromstring(rcontent)
         # parse XML
