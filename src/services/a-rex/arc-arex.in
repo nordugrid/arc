@@ -239,9 +239,7 @@ prepare() {
     X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir common`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
-    # This options is gone. But it is needed in arched level configuration.
-    # VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
-    VOMS_PROCESSING=""
+    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
     USERMAP_BLOCK='mapping'
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
