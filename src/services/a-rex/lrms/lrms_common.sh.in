@@ -102,7 +102,7 @@ EOHELP
       arg_i=$(( $arg_i + 1 ))
       eval "var_is_set=\${joboption_arg_$arg_i+yes}"
    done
-   unset arg_file usage arg_i var_is_set var_value
+   unset usage arg_i var_is_set var_value
 }
 
 init_lrms_env () {
