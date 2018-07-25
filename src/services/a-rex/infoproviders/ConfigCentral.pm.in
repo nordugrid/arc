@@ -1240,7 +1240,7 @@ sub getValueOf ($$$){
 	my $value='';
 	{ 
       local $/; # slurp mode
-	  open (my $parserout, "$libexecpath/arcconfig-parser -c $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+	  open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
 	  $value = <$parserout>;
 	  close $parserout;
 	}
