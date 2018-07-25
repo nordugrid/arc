@@ -68,9 +68,9 @@ class RTEControl(ComponentControl):
 
     @staticmethod
     def __list_rte(rte_dict, long_list, prefix=''):
-        for rte, link in rte_dict.iteritems():
+        for rte in sorted(rte_dict.keys()):
             if long_list:
-                print '{0}{1:32} -> {2}'.format(prefix, rte, link)
+                print '{0}{1:32} -> {2}'.format(prefix, rte, rte_dict[rte])
             else:
                 print rte
 
@@ -179,7 +179,8 @@ class RTEControl(ComponentControl):
 
     def __list_brief(self):
         for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes), ('dummy', self.dummy_rtes)]:
-            for rte, link in rte_dict.iteritems():
+            for rte in sorted(rte_dict.keys()):
+                link = rte_dict[rte]
                 kind = [rte_type]
                 show_disabled = True
                 if rte_type == 'system':
@@ -203,8 +204,8 @@ class RTEControl(ComponentControl):
             print 'There are no system pre-defined RTEs in {0}'.format(self.system_rte_dir)
         else:
             print 'System pre-defined RTEs in {0}:'.format(self.system_rte_dir)
-            for rte, rte_file in self.system_rtes.iteritems():
-                print '\t{0:32} # {1}'.format(rte, self.__get_rte_description(rte_file))
+            for rte in sorted(self.system_rtes.keys()):
+                print '\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.system_rtes[rte]))
         # user-defined
         if not self.user_rte_dirs:
             print 'User-defined RTEs are not configured in arc.conf'
@@ -212,8 +213,8 @@ class RTEControl(ComponentControl):
             print 'There are no user-defined RTEs in {0}'.format(', '.join(self.user_rte_dirs))
         else:
             print 'User-defined RTEs in {0}:'.format(', '.join(self.user_rte_dirs))
-            for rte, rte_file in self.user_rtes.iteritems():
-                print '\t{0:32} # {1}'.format(rte, self.__get_rte_description(rte_file))
+            for rte in sorted(self.user_rtes.keys()):
+                print '\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.user_rtes[rte]))
         # enabled
         if not self.enabled_rtes:
             print 'There are no enabled RTEs'
