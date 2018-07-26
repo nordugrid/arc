@@ -1375,7 +1375,7 @@ sub collect($) {
 
         # OBS: Service QualityLevel used to state the purpose of the service. Can be set by sysadmins.
         # One of: development, testing, pre-production, production
-        $csv->{QualityLevel} = $config->{infosys_glue2_service_qualitylevel};
+        $csv->{QualityLevel} = $config->{service}{QualityLevel};
 
         $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
 
