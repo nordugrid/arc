@@ -353,7 +353,7 @@ if [ $LSF_RESULT -eq '0' ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the jobid for the job!" 1>&2
    else
-      echo "joboption_jobid=$job_id" >> $arg_file
+      echo "joboption_jobid=$job_id" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary job script file      

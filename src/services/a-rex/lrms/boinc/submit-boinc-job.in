@@ -444,7 +444,7 @@ rc=$?
 
 if [ $rc -eq 0 ];then
   echo "job $wu submitted successfully!" 1>&2
-  echo "joboption_jobid=$wu" >> $arg_file
+  echo "joboption_jobid=$wu" >> $GRAMI_FILE
 fi
 echo "----- removing intermediate files ----" 1>&2
 if [ $DEBUG -ne 1 ];then

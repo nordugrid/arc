@@ -485,7 +485,7 @@ if [ $PBS_RESULT -eq '0' ] ; then
       echo "badly formatted pbs jobid for the job: $job_id !" 1>&2
       echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
    else
-      echo "joboption_jobid=$job_id" >> $arg_file
+      echo "joboption_jobid=$job_id" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary job script file

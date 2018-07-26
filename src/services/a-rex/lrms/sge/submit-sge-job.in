@@ -358,7 +358,7 @@ fi
     echo "job *NOT* submitted successfully!"
     exitcode=1
   else
-    echo "joboption_jobid=$job_id" >> $arg_file
+    echo "joboption_jobid=$job_id" >> $GRAMI_FILE
     echo "local job id: $job_id"
     echo "job submitted successfully!"
     exitcode=0
