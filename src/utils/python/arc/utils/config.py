@@ -162,16 +162,14 @@ def _conf_substitute_var(optstr, current_block):
         if block in __parsed_blocks:
             if refvar in __parsed_config[block]:
                 value = __parsed_config[block][refvar]
-        # if not - something goes wrong
+        # but there are cases with missing block
+        elif block in __default_blocks:
+            logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
+            if refvar in __default_config[block]:
+                if __default_config[block][refvar] != __no_default:
+                    value = __default_config[block][refvar]
         if value is None:
-            # check default - references to not-defined block in arc.conf with warning
-            if block in __default_blocks:
-                if refvar in __default_config[block]:
-                    if __default_config[block][refvar] != __no_default:
-                        value = __default_config[block][refvar]
-                    logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
-        if value is None:
-            logger.warning('Failed to find reference variable value for %s. Skipping.', v.group(0))
+            logger.debug('Failed to find reference variable value for %s. Skipping.', v.group(0))
             optstr = None
         else:
             logger.debug('Substituting variable %s value: %s', v.group(0), value)
