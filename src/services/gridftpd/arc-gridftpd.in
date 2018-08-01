@@ -178,6 +178,14 @@ else
 fi
 export LD_LIBRARY_PATH
 
+python_site_arch=`python -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0, "'${ARC_LOCATION}'"))'`
+if [ "x$PYTHONPATH" = "x" ]; then
+    PYTHONPATH=${python_site_arch}
+else
+    PYTHONPATH=${python_site_arch}:${PYTHONPATH}
+fi
+export PYTHONPATH
+
 # PID and lock file
 PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile gridftpd`
 ARC_RUNTIME_CONFIG=
