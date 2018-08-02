@@ -3018,6 +3018,13 @@
 #logfile=/tmp/delivery.log
 ## CHANGE179: NEW
 
+## loglevel = level - set loglevel of the data delivery service between 0
+## (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
+## allowedvalues: 0 1 2 3 4 5
+## default: /var/log/arc/datadelivery-service.log
+#logfile=/tmp/delivery.log
+## CHANGE179b: NEW
+
 ## user = username - Overwrites the user under which the service runs. The default is the user 
 ## starting the service. DDS is very limited if not run as root. 
 ## default: undefined
