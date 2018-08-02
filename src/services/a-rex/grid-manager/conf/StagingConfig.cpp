@@ -21,7 +21,6 @@ StagingConfig::StagingConfig(const GMConfig& config):
   max_inactivity_time(300),
   max_retries(10),
   passive(true),
-  secure(false),
   httpgetpartial(false),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
@@ -150,10 +149,6 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       if (pasv == "yes") passive = true;
       else passive = false;
     }
-    //else if (command == "securetransfer") {
-    //  std::string sec = Arc::ConfigIni::NextArg(rest);
-    //  if (sec == "yes") secure = true;
-    //}
     else if (command == "httpgetpartial") {
       std::string partial = Arc::ConfigIni::NextArg(rest);
       if (partial == "yes") httpgetpartial = true;
