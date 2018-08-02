@@ -1137,7 +1137,8 @@
 
 ### The [arex/cache/cleaner] block #########################################
 ## This subblock enables the cleaning functionality of the cache. If this block is not enabled
-## then the cache will not be cleaned by A-REX.
+## then the cache will not be cleaned by A-REX. Either cachesize or cachelifetime should also be
+## set to enable cleaning.
 #[arex/cache/cleaner]
 ## CHANGE: new block
 
@@ -1162,7 +1163,7 @@
 ## the cache directory is located. When the max is exceeded, files will
 ## be deleted to bring the used space down to the min level. It is a
 ## good idea to have the cache on its own separate file system.
-## default: 80 70 
+## default: 100 100
 #cachesize=50 20
 
 ## calculatesize = filesystem/cachedir - (previously cacheshared) specifies the way the space 
@@ -1173,10 +1174,9 @@
 #calculatesize=cachedir
 ## CHANGE: renamed parameter
 
-## cachelifetime = time - Turns on time-based file cleaning in addition to the size-based method. 
-## Files accessed less recently than the given time period will be deleted.
-## To use only time-based cache cleaning set the cachesize=100 100.
-## Example values of this option are 1800, 90s, 24h, 30d. When no suffix is given the unit is seconds.
+## cachelifetime = time - Turns on time-based file cleaning. Files accessed less recently than
+## the given time period will be deleted. Example values of this option are 1800, 90s, 24h, 30d.
+## When no suffix is given the unit is seconds.
 ## default: undefined
 #cachelifetime=30d
 
