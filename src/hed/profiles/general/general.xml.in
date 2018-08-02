@@ -83,7 +83,7 @@ attributes depending on how the mapping should be done.
       <next initokendisables="datadelivery-service#secure=no" id="tls"/>
       <next initokenenables="datadelivery-service#secure=no" id="http"/>
       <tcp:Listen>
-        <tcp:Interface inisections="datadelivery-service common" initag="interface" inidefaultvalue="localhost"/>
+        <tcp:Interface inisections="datadelivery-service common" initag="hostname" inidefaultvalue="localhost"/>
         <tcp:Port inisections="datadelivery-service common" initag="port" inidefaultvalue="443"/>
         <tcp:Version inisections="datadelivery-service common" initag="ipversion" inidefaultvalue="4"/>
       </tcp:Listen>
@@ -102,9 +102,9 @@ attributes depending on how the mapping should be done.
           <location initype="attribute" inisections="common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
         </PDP>
       </SecHandler>
-      <tls:KeyPath inisections="common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
-      <tls:CertificatePath inisections="common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
-      <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
+      <tls:KeyPath inisections="datadelivery-service common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
+      <tls:CertificatePath inisections="datadelivery-service common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
+      <tls:CACertificatesDir inisections="datadelivery-service common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       <tls:VOMSCertTrustDNChain>
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
       </tls:VOMSCertTrustDNChain>
@@ -145,7 +145,7 @@ attributes depending on how the mapping should be done.
     <Service name="datadeliveryservice" id="datadeliveryservice" initokenenables="datadelivery-service">
       <!-- Service-specific configuration here -->
       <!-- AllowedDir: File system paths the service is allowed to read/write files to/from -->
-      <AllowedDir initype="multi" inisections="datadelivery-service" initag="allowed_dir"/>
+      <AllowedDir initype="multi" inisections="datadelivery-service" initag="transfer_dir"/>
       <SecHandler name="arc.authz" id="pdp-datadelivery" event="incoming" initokenenables="datadelivery-service">
         <!-- The authorization policy allows only the specified IP address.
              Optionally for tighter controls allowed DNs can also be specified. -->

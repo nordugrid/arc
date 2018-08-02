@@ -576,7 +576,7 @@ namespace DataStaging {
       return;
     }
     if (!(*cfg)["AllowedDir"]) {
-      logger.msg(Arc::ERROR, "Invalid configuration - no allowed dirs specified");
+      logger.msg(Arc::ERROR, "Invalid configuration - no transfer dirs specified");
       return;
     }
     for (int n = 0;;++n) {
