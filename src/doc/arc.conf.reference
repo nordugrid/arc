@@ -3096,8 +3096,8 @@
 #cachedir=/fs1/cache drain
 
 ## logfile = path -  Log file location for the acix-scanner.
-## default: /var/log/arc/acix-scanner.log
-#logfile=/tmp/acix-scanner.log
+## default: /var/log/arc/arc-acix-scanner.log
+#logfile=/tmp/arc-acix-scanner.log
 ## CHANGE83: modified default for the logfile
 ## TODO: changed logfile name
 
@@ -3152,7 +3152,7 @@
 
 ## *cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information
 ## multivalued
-## default: unspecified
+## default: undefined
 #cachescanner=https://some.host:5443/data/cache
 #cachescanner=https://another.host:5443/data/cache
 ## CHANGE84: renamed
