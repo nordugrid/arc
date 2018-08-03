@@ -1221,7 +1221,6 @@
 ## /var/log/arc/datastaging.log.
 ## default: undefined
 #logfile=/var/log/arc/datastaging.log
-## TODO: add the suggested path to logrotate
 ## CHANGE: renamed
 
 ## statefile = path - (previously dtrlog) A file in which data staging state information

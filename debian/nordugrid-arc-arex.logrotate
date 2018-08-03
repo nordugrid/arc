@@ -40,6 +40,14 @@
   create
 }
 
+/var/log/arc/datastaging.log {
+  missingok
+  compress
+  daily
+  rotate 14
+  create
+}
+
 /var/log/arc/perfdata/arex.perflog {
   missingok
   compress
