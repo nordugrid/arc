@@ -115,6 +115,13 @@ do_start() {
         exit 1
     fi
 
+    # At least one cachescanner must be defined
+    eval "$( $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index --export bash )"
+    if [ -z "$CONFIG_cachescanner" ]; then
+        log_failure_msg "No cachescanners defined"
+        exit 1
+    fi
+
     echo -n "Starting ARC cache index..."
 
     # Check if we are already running
