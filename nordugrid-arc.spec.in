@@ -2,6 +2,8 @@
 %{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 %if %{?rhel}%{!?rhel:0} == 6
@@ -275,12 +277,12 @@ BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
 # Needed to run ACIX unit tests
 %if %{with_acix}
-%if %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	python-twisted
 %else
 BuildRequires:	python-twisted-core
-%endif
 BuildRequires:	python-twisted-web
+%endif
 %if %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	python-openssl
 %else
@@ -601,8 +603,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 
 %description acix-core
@@ -618,8 +624,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
 Obsoletes:	%{name}-acix-cache < 6.0.0
@@ -643,8 +653,12 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	python-twisted
+%else
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+%endif
 Requires:	pyOpenSSL
 Requires:	%{name}-acix-core = %{version}-%{release}
 
@@ -788,6 +802,7 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
+     --with-python=python2 \
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
      --with-altpython=python3 \
 %endif

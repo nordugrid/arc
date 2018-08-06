@@ -15,3 +15,6 @@ EXTRA_DIST = arcconfig-reference
 
 SUBDIRS = arc
 DIST_SUBDIRS = arc
+
+CLEANFILES = $(abs_top_builddir)/python/python/arc/utils \
+	$(abs_top_builddir)/python/python/arc/control
