@@ -1137,7 +1137,8 @@
 
 ### The [arex/cache/cleaner] block #########################################
 ## This subblock enables the cleaning functionality of the cache. If this block is not enabled
-## then the cache will not be cleaned by A-REX.
+## then the cache will not be cleaned by A-REX. Either cachesize or cachelifetime should also be
+## set to enable cleaning.
 #[arex/cache/cleaner]
 ## CHANGE: new block
 
@@ -1162,7 +1163,7 @@
 ## the cache directory is located. When the max is exceeded, files will
 ## be deleted to bring the used space down to the min level. It is a
 ## good idea to have the cache on its own separate file system.
-## default: 80 70 
+## default: 100 100
 #cachesize=50 20
 
 ## calculatesize = filesystem/cachedir - (previously cacheshared) specifies the way the space 
@@ -1173,10 +1174,9 @@
 #calculatesize=cachedir
 ## CHANGE: renamed parameter
 
-## cachelifetime = time - Turns on time-based file cleaning in addition to the size-based method. 
-## Files accessed less recently than the given time period will be deleted.
-## To use only time-based cache cleaning set the cachesize=100 100.
-## Example values of this option are 1800, 90s, 24h, 30d. When no suffix is given the unit is seconds.
+## cachelifetime = time - Turns on time-based file cleaning. Files accessed less recently than
+## the given time period will be deleted. Example values of this option are 1800, 90s, 24h, 30d.
+## When no suffix is given the unit is seconds.
 ## default: undefined
 #cachelifetime=30d
 
@@ -1221,7 +1221,6 @@
 ## /var/log/arc/datastaging.log.
 ## default: undefined
 #logfile=/var/log/arc/datastaging.log
-## TODO: add the suggested path to logrotate
 ## CHANGE: renamed
 
 ## statefile = path - (previously dtrlog) A file in which data staging state information
@@ -3018,6 +3017,13 @@
 #logfile=/tmp/delivery.log
 ## CHANGE179: NEW
 
+## loglevel = level - set loglevel of the data delivery service between 0
+## (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
+## allowedvalues: 0 1 2 3 4 5
+## default: /var/log/arc/datadelivery-service.log
+#logfile=/tmp/delivery.log
+## CHANGE179b: NEW
+
 ## user = username - Overwrites the user under which the service runs. The default is the user 
 ## starting the service. DDS is very limited if not run as root. 
 ## default: undefined
@@ -3090,8 +3096,8 @@
 #cachedir=/fs1/cache drain
 
 ## logfile = path -  Log file location for the acix-scanner.
-## default: /var/log/arc/acix-scanner.log
-#logfile=/tmp/acix-scanner.log
+## default: /var/log/arc/arc-acix-scanner.log
+#logfile=/tmp/arc-acix-scanner.log
 ## CHANGE83: modified default for the logfile
 ## TODO: changed logfile name
 
@@ -3146,7 +3152,7 @@
 
 ## *cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information
 ## multivalued
-## default: unspecified
+## default: undefined
 #cachescanner=https://some.host:5443/data/cache
 #cachescanner=https://another.host:5443/data/cache
 ## CHANGE84: renamed

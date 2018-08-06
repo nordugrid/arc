@@ -34,7 +34,6 @@ public:
   time_t get_max_inactivity_time() const { return max_inactivity_time; };
   int get_max_retries() const { return max_retries; };
   bool get_passive() const { return passive; };
-  bool get_secure() const { return secure; };
   bool get_httpgetpartial() const { return httpgetpartial; };
   std::string get_preferred_pattern() const { return preferred_pattern; };
   std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
@@ -69,8 +68,6 @@ private:
   int max_retries;
   /// Whether or not to use passive transfer
   bool passive;
-  /// Whether or not to use secure transfer
-  bool secure;
   /// Whether to use partial HTTP GET transfers
   bool httpgetpartial;
   /// Pattern for choosing preferred replicas
