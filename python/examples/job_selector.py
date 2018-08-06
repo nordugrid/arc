@@ -59,4 +59,3 @@ for j in js.GetSelectedJobs():
 
 # Make operation on selected jobs. E.g.:
 #js.Clean()
-
