@@ -801,6 +801,7 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
+     --with-python=python2 \
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
      --with-altpython=python3 \
 %endif
