@@ -60,7 +60,7 @@ attributes depending on how the mapping should be done.
     <base:Group inisections="common" initag="group"/>
     <base:Logger>
       <base:File inisections="datadelivery-service common" initag="logfile" inidefaultvalue="/var/log/arc/arched.log"/>
-      <base:Level inisections="datadelivery-service common" initag="loglevel" inidefaultvalue="WARNING"/>
+      <base:Level inisections="datadelivery-service common" initag="loglevel" inidefaultvalue="INFO"/>
       <!-- By default Logrotate is used. Configuring arc-logrotatation might cause problems.
       <Maxsize inisections="common" initag="logmaxsize">10000000</Maxsize>
       <Backups inisections="common" initag="logbackups">10</Backups>

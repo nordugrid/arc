@@ -3020,7 +3020,7 @@
 ## loglevel = level - set loglevel of the data delivery service between 0
 ## (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 ## allowedvalues: 0 1 2 3 4 5
-## default: /var/log/arc/datadelivery-service.log
+## default: 3
 #logfile=/tmp/delivery.log
 ## CHANGE179b: NEW
 
