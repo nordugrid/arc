@@ -3021,7 +3021,7 @@
 ## (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 ## allowedvalues: 0 1 2 3 4 5
 ## default: 3
-#logfile=/tmp/delivery.log
+#loglevel=4
 ## CHANGE179b: NEW
 
 ## user = username - Overwrites the user under which the service runs. The default is the user 
