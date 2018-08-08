@@ -1,31 +1,9 @@
-/var/log/arc/infoprovider.log {
-  missingok
-  compress
-  delaycompress
-  daily
-  rotate 14
-  create
-}
-/var/log/arc/inforegistration.log {
-  missingok
-  compress
-  delaycompress
-  daily
-  rotate 14
-  create
-}
-/var/log/arc/bdii/bdii-update.log {
-  missingok
-  compress
-  daily
-  rotate 30
-  copytruncate	
-}
-/var/log/arc/perfdata/infosys.perflog {
+/var/log/arc/bdii/bdii-update.log
+{
   missingok
   compress
   daily
   rotate 14
-  create
+  copytruncate
 }
 

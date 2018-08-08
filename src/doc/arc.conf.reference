@@ -1957,7 +1957,7 @@
 ## CHANGE120: DELETED. remove for simplification purposes.
 
 ## pidfile = path - Specify location of file containing PID of daemon process.
-## default: /var/run/gridftp.pid
+## default: /var/run/gridftpd.pid
 #pidfile=/var/run/gridftpd.pid
 
 ## port = bindport - Port to listen on. For gridftp-based job submission strongly adviced to use 
