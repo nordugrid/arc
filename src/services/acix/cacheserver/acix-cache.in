@@ -45,7 +45,7 @@ fi
 
 PIDFILE=/var/run/acix-cache.pid
 DEFAULT_LOGFILE=/var/log/arc/acix-cache.log
-prog=twistd
+prog=@TWISTD@
 
 RUN=yes
 
