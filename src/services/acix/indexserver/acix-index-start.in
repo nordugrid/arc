@@ -2,7 +2,7 @@
 
 PIDFILE=/var/run/acix-index.pid
 DEFAULT_LOGFILE=/var/log/arc/acix-index.log
-prog=twistd
+prog=@TWISTD@
 
 RUN=yes
 
