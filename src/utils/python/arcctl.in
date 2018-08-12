@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!@PYTHON@
 # PYTHON_ARGCOMPLETE_OK
 
 # Initialize logging

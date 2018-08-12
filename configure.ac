@@ -58,7 +58,7 @@ AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
-AC_CHECK_PROG(PERL, perl, perl, :)
+AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
 
 # EL-5 compatibility.  $(mkdir_p) is now obsolete.
 test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
@@ -315,7 +315,7 @@ AC_ARG_ENABLE(swig-python, AC_HELP_STRING([--disable-swig-python], [disable SWIG
 AC_ARG_ENABLE(swig, AC_HELP_STRING([--disable-swig], [disable all bindings through SWIG]),
 [enables_swig_python=$enableval],[])
 if test "$enables_swig_python" = "yes"; then
-  AC_CHECK_PROGS(SWIG, swig)
+  AC_PATH_PROGS(SWIG, swig)
   if test "x$SWIG" = "x"; then
     enables_swig="no"
   else
@@ -372,9 +372,9 @@ if test "$enables_python" = "yes"; then
   # We do not look for python binary when cross-compiling
   # but we need to make the variable non-empty
   if test "${build}" = "${host}"; then
-    AC_CHECK_PROGS(PYTHON, $with_python python)
+    AC_PATH_PROGS(PYTHON, $with_python python)
   else
-    PYTHON=python
+    PYTHON=/usr/bin/python
   fi
 
   if test "X$PYTHON" != "X"; then
@@ -500,7 +500,7 @@ if test "$enables_altpython" = "yes"; then
   AC_ARG_WITH(altpython, AC_HELP_STRING([--with-altpython=(PYTHON)],
     [specify alternative python program from PATH]))
 
-  AC_CHECK_PROGS(ALTPYTHON, $with_altpython)
+  AC_PATH_PROGS(ALTPYTHON, $with_altpython)
 
   if test "X$ALTPYTHON" != "X"; then
     ALTPYNAME=`basename $ALTPYTHON`
@@ -597,7 +597,7 @@ dnl Check if pylint is explicitly disabled.
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example checking using pylint]),
 [enables_pylint=$enableval],[])
-  AC_CHECK_PROGS(PYLINT, pylint)
+  AC_PATH_PROGS(PYLINT, pylint)
   if test "x$PYLINT" = "x"; then
     enables_pylint="no"
   else
@@ -1925,7 +1925,7 @@ case "${host}" in
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
     AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
-    AC_CHECK_PROGS(WINDRES, windres.exe ${host}-windres)
+    AC_PATH_PROGS(WINDRES, windres.exe ${host}-windres)
     ;;
   *solaris*)
     SOCKET_LIBS="-lsocket"
@@ -1955,9 +1955,9 @@ case " $LDFLAGS " in
         ;;
 esac
 
-AC_CHECK_PROGS(PDFLATEX, pdflatex)
-AC_CHECK_PROGS(DOXYGEN, doxygen)
-AC_CHECK_PROGS(DOT, dot)
+AC_PATH_PROGS(PDFLATEX, pdflatex)
+AC_PATH_PROGS(DOXYGEN, doxygen)
+AC_PATH_PROGS(DOT, dot)
 
 # Check if user asks to skip documentation build
 AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[enables_doc=$enableval],[])
@@ -2105,7 +2105,7 @@ AC_MSG_NOTICE([ACIX enabled: $enables_acix])
 AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
 
 # trial command (from python-twisted-core) is used for acix unittests
-AC_CHECK_PROGS(TRIAL, trial)
+AC_PATH_PROGS(TRIAL, trial)
 if test "x$TRIAL" = "x"; then
   AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
 fi
@@ -2390,6 +2390,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/jura/Makefile
                  src/services/a-rex/jura/jura.1
                  src/services/a-rex/jura/ssm/Makefile
+                 src/services/a-rex/jura/ssm/ssmsend
                  src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
@@ -2422,13 +2423,16 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
                  src/services/a-rex/lrms/slurm/Makefile
-                 src/services/a-rex/lrms/slurm/test/Makefile
-                 src/services/a-rex/lrms/slurm/test/scan/Makefile
-                 src/services/a-rex/lrms/slurm/test/submit/Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
                  src/services/a-rex/lrms/slurm/cancel-SLURM-job
+                 src/services/a-rex/lrms/slurm/test/Makefile
+                 src/services/a-rex/lrms/slurm/test/scan/Makefile
+                 src/services/a-rex/lrms/slurm/test/submit/Makefile
                  src/services/a-rex/lrms/dgbridge/Makefile
+                 src/services/a-rex/lrms/dgbridge/DGAuthplug.py
+                 src/services/a-rex/lrms/dgbridge/DGBridgeDataPlugin.py
+                 src/services/a-rex/lrms/dgbridge/DGLog2XML.py
                  src/services/a-rex/lrms/dgbridge/submit-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/scan-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/cancel-DGBridge-job
@@ -2437,6 +2441,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/boinc/scan-boinc-job
                  src/services/a-rex/lrms/boinc/cancel-boinc-job
                  src/services/a-rex/lrms/slurmpy/Makefile
+                 src/services/a-rex/lrms/slurmpy/submit-SLURMPY-job
+                 src/services/a-rex/lrms/slurmpy/scan-SLURMPY-job
+                 src/services/a-rex/lrms/slurmpy/cancel-SLURMPY-job
                  src/services/a-rex/lrms/slurmpy/test/Makefile
                  src/services/a-rex/lrms/slurmpy/test/submit/Makefile
                  src/services/a-rex/lrms/slurmpy/test/scan/Makefile
@@ -2534,7 +2541,9 @@ AC_CONFIG_FILES([Makefile
                  src/tests/client/Makefile
                  src/tests/lrms/Makefile
                  src/utils/archery/Makefile
+                 src/utils/archery/archery-manage
                  src/utils/python/Makefile
+                 src/utils/python/arcctl
                  src/utils/python/arcctl.1
                  src/utils/python/arc/Makefile
                  src/utils/python/arc/utils/Makefile
@@ -2575,6 +2584,8 @@ AC_CONFIG_FILES([Makefile
                  nsis/arc.nsis
                  src/doxygen/Makefile
 ])
+AC_CONFIG_FILES([src/utils/python/arcconfig-parser],
+       [chmod +x src/utils/python/arcconfig-parser])
 AC_OUTPUT
 
 AC_MSG_RESULT([

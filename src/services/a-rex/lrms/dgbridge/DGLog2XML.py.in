@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!@PYTHON@
 
 """Usage: DGLog2XML.py [-h] [-d|debug] [-c inifile|--config=inifile]
 
