@@ -2096,16 +2096,16 @@ AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_serv
 # ACIX service
 AC_ARG_ENABLE(acix, AC_HELP_STRING([--disable-acix], [disable building ACIX service]),
   [enables_acix=$enableval],[])
-dnl AM_PATH_PYTHON([2.4], [], [enables_acix="no"])
-if test "x$PYTHON_VERSION" = "x2.2" -o "x$PYTHON_VERSION" = "x2.3"
-then
+AC_PATH_PROGS(TWISTD, twistd-${PYTHON_MAJOR} twistd${PYTHON_MAJOR} twistd)
+if test "x$TWISTD" = "x"; then
+  AC_MSG_NOTICE([twistd not found - ACIX service disabled])
   enables_acix="no"
 fi
 AC_MSG_NOTICE([ACIX enabled: $enables_acix])
 AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
 
 # trial command (from python-twisted-core) is used for acix unittests
-AC_PATH_PROGS(TRIAL, trial)
+AC_PATH_PROGS(TRIAL, trial-${PYTHON_MAJOR} trial${PYTHON_MAJOR} trial)
 if test "x$TRIAL" = "x"; then
   AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
 fi
