@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 '''
 Create a JobSelector class in order to specify a custom selection to be used
 with the JobSupervisor class.

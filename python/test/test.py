@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 #import sys
 #sys.path=sys.path+['../', '../.libs/' ]
 import arc
