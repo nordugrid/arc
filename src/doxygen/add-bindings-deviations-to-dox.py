@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 #
 '''
 Script for parsing Swig interface files (.i) and extracting renames (%rename)
