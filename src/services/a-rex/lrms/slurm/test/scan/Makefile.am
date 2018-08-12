@@ -34,7 +34,7 @@ $(pkgdatasubdir)/scan_common.sh: $(builddir)/../../../scan_common.sh
 lrms_common.sh: $(builddir)/../../../lrms_common.sh
 	cp $< $@
 
-$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/python/arcconfig-parser
+$(pkglibexecsubdir)/arcconfig-parser: $(top_builddir)/src/utils/python/arcconfig-parser
 	mkdir -p $(pkglibexecsubdir)
 	cp $< $@
 
