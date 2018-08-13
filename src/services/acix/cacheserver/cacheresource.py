@@ -17,7 +17,11 @@ class CacheResource(resource.Resource):
 
 
     def render_GET(self, request):
-        client = request.getClient() + "/" + request.getClientIP()
+        try:
+            clienthost = request.getClientAddress() # twisted >= 18.4
+        except:
+            clienthost = request.getClient() # twisted < 18.4
+        client = clienthost + "/" + request.getClientIP()
         log.msg("GET request on cache from %s" % client)
 
         gen_time, hashes, cache, cache_url = self.cache_service.getCache()
