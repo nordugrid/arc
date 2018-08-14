@@ -4,16 +4,18 @@ SLURM batch system interface module.
 # TODO: Check if there are any bugfixes to the bash SLURM back-end scripts which has not ported to this SLURM python module.
 
 
+from __future__ import absolute_import
+
 import os, sys, time, re
 import arc
-from common.cancel import cancel
-from common.config import Config, configure, is_conf_setter
-from common.proc import execute_local, execute_remote
-from common.log import debug, verbose, info, warn, error, ArcError
-from common.lrmsinfo import LRMSInfo
-from common.scan import *
-from common.ssh import ssh_connect
-from common.submit import *
+from .common.cancel import cancel
+from .common.config import Config, configure, is_conf_setter
+from .common.proc import execute_local, execute_remote
+from .common.log import debug, verbose, info, warn, error, ArcError
+from .common.lrmsinfo import LRMSInfo
+from .common.scan import *
+from .common.ssh import ssh_connect
+from .common.submit import *
 
 
 @is_conf_setter
@@ -244,7 +246,7 @@ def Scan(config, ctr_dirs):
 
     execute = execute_local if not Config.remote_host else execute_remote
     args = Config.slurm_bin_path + '/squeue -a -h -o %i:%T -t all -j ' + ','.join(jobs.keys())
-    if os.environ.has_key('__SLURM_TEST'):
+    if '__SLURM_TEST' in os.environ:
         handle = execute(args, env=dict(os.environ))
     else:
         handle = execute(args)
@@ -319,8 +321,8 @@ def Scan(config, ctr_dirs):
         write_comments(job)
         update_diag(job)
 
-    kicklist = [job for job in jobs.itervalues() if job.state not in ['PENDING','RUNNING','SUSPENDED','COMPLETING']]
-    kicklist.extend([job for job in jobs.itervalues() if job.state == 'CANCELLED']) # kick twice
+    kicklist = [job for job in jobs.values() if job.state not in ['PENDING','RUNNING','SUSPENDED','COMPLETING']]
+    kicklist.extend([job for job in jobs.values() if job.state == 'CANCELLED']) # kick twice
     gm_kick(kicklist)
 
 
@@ -328,6 +330,22 @@ def get_lrms_options_schema():
     return LRMSInfo.get_lrms_options_schema(slurm_bin_path = '*')
 
 def get_lrms_info(options):
+
+    if sys.version_info[0] >= 3:
+        # Perl::Inline::Python passes text input as bytes objects in Python 3
+        # Convert them to str objects since this is what ARC is using
+
+        def convert(input):
+            if isinstance(input, dict):
+                return dict((convert(key), convert(value)) for key, value in input.items())
+            elif isinstance(input, list):
+                return [convert(element) for element in input]
+            elif isinstance(input, bytes):
+                return input.decode()
+            else:
+                return input
+
+        options = convert(options)
 
     si = SLURMInfo(options)
 
@@ -338,7 +356,7 @@ def get_lrms_info(options):
     si.read_cpuinfo()
 
     si.cluster_info()
-    for qkey, qval in options['queues'].iteritems():
+    for qkey, qval in options['queues'].items():
         if si.queue_info(qkey):
             si.users_info(qkey, qval['users'])
     si.jobs_info(options['jobs'])
@@ -351,7 +369,7 @@ class SLURMInfo(LRMSInfo, object):
 
     def __init__(self, options):
         super(SLURMInfo, self).__init__(options)
-        self._path = options['slurm_bin_path'] if options.has_key('slurm_bin_path') else '/usr/bin'
+        self._path = options['slurm_bin_path'] if 'slurm_bin_path' in options else '/usr/bin'
 
 
     def read_config(self):
@@ -399,9 +417,9 @@ class SLURMInfo(LRMSInfo, object):
         for line in handle.stdout:
             try:
                 job = dict(item.split('=', 1) for item in LRMSInfo.split(line.strip()))
-                if job.has_key('TimeUsed'):
+                if 'TimeUsed' in job:
                     job['TimeUsed'] = SLURMInfo.as_period(job['TimeUsed'])
-                if job.has_key('TimeLimit'):
+                if 'TimeLimit' in job:
                     job['TimeLimit'] = SLURMInfo.as_period(job['TimeLimit'])
                 self.jobs[job['JobId']] = job
             except ValueError: # Couldn't split: blank line, header etc ..
@@ -448,24 +466,24 @@ class SLURMInfo(LRMSInfo, object):
         cluster = {}
         cluster['lrms_type'] = 'SLURM'
         cluster['lrms_version'] = self.config['SLURM_VERSION']
-        cluster['totalcpus'] = sum(map(int, (node['CPUTot'] for node in self.nodes.itervalues())))
-        cluster['queuedcpus'] = sum(map(int, (job['ReqCPUs'] for job in self.jobs.itervalues()
+        cluster['totalcpus'] = sum(map(int, (node['CPUTot'] for node in self.nodes.values())))
+        cluster['queuedcpus'] = sum(map(int, (job['ReqCPUs'] for job in self.jobs.values()
                                               if job['JobState'] == 'PENDING')))
         cluster['usedcpus'] = self.cpuinfo['AllocatedCPUs']
         cluster['queuedjobs'], cluster['runningjobs'] = self.get_jobs()
 
         # NOTE: should be on the form '8cpu:800 2cpu:40'
         cpudist = {}
-        for node in self.nodes.itervalues():
+        for node in self.nodes.values():
             cpudist[node['CPUTot']] = cpudist[node['CPUTot']] + 1 if node['CPUTot'] in cpudist else 1
-        cluster['cpudistribution'] = ' '.join('%scpu:%i' % (key, val) for key, val in cpudist.iteritems())
+        cluster['cpudistribution'] = ' '.join('%scpu:%i' % (key, val) for key, val in cpudist.items())
 
         self.lrms_info['cluster'] = cluster
 
 
     def get_jobs(self, queue = ''):
         queuedjobs = runningjobs = 0
-        for job in self.jobs.itervalues():
+        for job in self.jobs.values():
             if queue and queue != job['Partition']:
                 continue
             if job['JobState'] == 'PENDING':
@@ -555,7 +573,7 @@ class SLURMInfo(LRMSInfo, object):
                         start, end = map(int, num.split('-'))
                         # TODO: Preserve leading zeroes in sequence,
                         # if needed #enodes += sprintf('%s%0*d,', name, l, i)
-                        nodes += [name + str(n) for n in xrange(start, end+1)]
+                        nodes += [name + str(n) for n in range(start, end+1)]
             except:
                 nodes.append(node_expr)
         return nodes
@@ -565,7 +583,7 @@ class SLURMInfo(LRMSInfo, object):
         unavailable = ('DOWN', 'DRAIN', 'FAIL', 'MAINT', 'UNK')
         free = ('IDLE', 'MIXED')
         nodes = {}
-        for key, _node in self.nodes.iteritems():
+        for key, _node in self.nodes.items():
             node = {'isfree'      : int(_node['State'] in free),
                     'isavailable' : int(_node['State'] not in unavailable)}
             node['lcpus'] = node['slots'] = int(_node['CPUTot'])
@@ -810,18 +828,18 @@ fi
         ### TODO: Expression: \mapattr --time <- TotalCPUTime/NumberOfSlots
         if j.Resources.TotalCPUTime.range.max >= 0:
             # TODO: Check for benchmark
-            individualCPUTime = j.Resources.TotalCPUTime.range.max/nslots
-            product += "#SBATCH -t {0}:{1}\n".format(str(individualCPUTime/60), str(individualCPUTime%60))
+            individualCPUTime = j.Resources.TotalCPUTime.range.max // nslots
+            product += "#SBATCH -t {0}:{1}\n".format(str(individualCPUTime//60), str(individualCPUTime%60))
             if j.Resources.IndividualWallTime.range.max >= 0:
-                n, m = (str(j.Resources.IndividualWallTime.range.max/60),
+                n, m = (str(j.Resources.IndividualWallTime.range.max//60),
                         str(j.Resources.IndividualWallTime.range.max%60))
                 product += "#SBATCH -t {0}:{1}\n".format(n,m)
             else:
-                product += "#SBATCH -t {0}:{1}\n".format(str(individualCPUTime/60), str(individualCPUTime%60))
+                product += "#SBATCH -t {0}:{1}\n".format(str(individualCPUTime//60), str(individualCPUTime%60))
         ### TODO: Note ordering
         ### \mapattr --time <- IndividualWallTime
         elif j.Resources.IndividualWallTime.range.max >= 0:
-            n, m = (str(j.Resources.IndividualWallTime.range.max/60),
+            n, m = (str(j.Resources.IndividualWallTime.range.max//60),
                     str(j.Resources.IndividualWallTime.range.max%60))
             product += \
                 "#SBATCH -t {0}:{1}\n".format(n,m)
@@ -829,7 +847,7 @@ fi
         elif j.Resources.IndividualCPUTime.range.max >= 0: 
             # TODO: Check for benchmark
             # IndividualWallTime not set, use IndividualCPUTime instead.
-            n, m = (str(j.Resources.IndividualCPUTime.range.max/60),
+            n, m = (str(j.Resources.IndividualCPUTime.range.max//60),
                     str(j.Resources.IndividualCPUTime.range.max%60))
             product += \
                 "#SBATCH -t {0}:{1}\n".format(n,m)

@@ -6,7 +6,7 @@ wsrf_rp_ns = "http://docs.oasis-open.org/wsrf/rp-2"
 echo_ns = "http://www.nordugrid.org/schemas/echo"
 import threading
 
-class EchoService:
+class EchoService(object):
 
     def __init__(self, cfg):
         logger.msg(arc.INFO, "EchoService (python) constructor called")
@@ -64,7 +64,7 @@ class EchoService:
                 resp, status = s.process(outpayload)
                 logger.msg(arc.INFO, "EchoService (python) thread test, iteration %(iteration)s %(status)s" % {'iteration': i, 'status': status})
                 time.sleep(3)
-            except Exception, e:
+            except Exception as e:
                 import traceback
                 logger.msg(arc.DEBUG, traceback.format_exc())
 
@@ -107,7 +107,7 @@ class EchoService:
                 outmsg.Payload(outpayload)
                 logger.msg(arc.DEBUG, "outpayload %s" % outpayload.GetXML())
                 return arc.MCC_Status(arc.STATUS_OK)
-            raise Exception, 'wrong namespace. expected: %s' % echo_ns
+            raise Exception('wrong namespace. expected: %s' % echo_ns)
         # get the name of the request without the namespace prefix
         # this is the name of the Body node's first child
         request_name = request_node.Name()
@@ -127,7 +127,7 @@ class EchoService:
             if self.ssl_config:
                 cfg.AddCertificate(self.ssl_config.get('cert_file', None))
                 cfg.AddPrivateKey(self.ssl_config.get('key_file', None))
-                if self.ssl_config.has_key('ca_file'):
+                if 'ca_file' in self.ssl_config:
                     cfg.AddCAFile(self.ssl_config.get('ca_file', None))
                 else:
                     cfg.AddCADir(self.ssl_config.get('ca_dir', None))
@@ -151,7 +151,10 @@ class EchoService:
         elif request_name == 'httplib':
             # if the name of the request is 'httplib'
             # we create a new echo message which we send to http://localhost:60000/echo using python's built-in http client
-            import httplib
+            try:
+                import http.client as httplib
+            except ImportError:
+                import httplib
             logger.msg(arc.DEBUG, 'Calling http://localhost:60000/Echo using httplib')
             # create the connection
             h = httplib.HTTPConnection('localhost', 60000)

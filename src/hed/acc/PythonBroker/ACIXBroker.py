@@ -35,7 +35,10 @@ The default level is WARNING.
 '''
 
 import random
-import httplib
+try:
+    import http.client as httplib
+except ImportError:
+    import httplib
 import re
 import logging
 
@@ -47,7 +50,7 @@ except ImportError:
 
 import arc
 
-class ACIXBroker:
+class ACIXBroker(object):
     def __init__(self, usercfg):
         '''
         Set up internal fields and get information from UserConfig.
@@ -181,13 +184,13 @@ class ACIXBroker:
         conn = httplib.HTTPSConnection(host, port)
         try:
             conn.request('GET', path)
-        except Exception, e:
+        except Exception as e:
             logging.error('Error connecting to service at %s: %s', host, str(e))
             return
         
         try:
             resp = conn.getresponse()
-        except httplib.HTTPException, e:
+        except httplib.HTTPException as e:
             logging.error('Bad response from ACIX: %s', str(e))
             return
         

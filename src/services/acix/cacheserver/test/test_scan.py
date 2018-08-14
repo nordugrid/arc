@@ -59,7 +59,7 @@ class ScanTestCase(unittest.TestCase):
         scanner = pscan.CacheScanner([self.tmpdir+'/cache'])
         l = []
 
-        yield scanner.scan(lambda url : l.append(url))
+        yield scanner.scan(lambda url : l.append(url.decode()))
 
         self.failUnlessIn('6b27f066ef9e22d2e3e40c668cae72e9e163fafd', l)
         self.failUnlessIn('a57c87cedbb464eb765a9fa8b8d506686cf0d0ee', l)
@@ -74,7 +74,7 @@ class ScanTestCase(unittest.TestCase):
         scanner = pscan.CacheScanner([self.tmpdir+'/cache', self.tmpdir2+'/cache'])
         l = []
 
-        yield scanner.scan(lambda url : l.append(url))
+        yield scanner.scan(lambda url : l.append(url.decode()))
 
         # from the first dir
         self.failUnlessIn('a57c87cedbb464eb765a9fa8b8d506686cf0d0ee', l)

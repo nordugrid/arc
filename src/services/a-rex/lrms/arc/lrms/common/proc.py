@@ -4,9 +4,11 @@ Execute bash commands locally or remotely (SSH).
 :todo: split long list of args so that we don't exceed kernel ARG_MAX
 """
 
-from log import warn, ArcError
-from config import Config
-from ssh import SSHSession
+from __future__ import absolute_import
+
+from .log import warn, ArcError
+from .config import Config
+from .ssh import SSHSession
 
 
 def sliceargs(args, MAX = 4000):
@@ -34,7 +36,7 @@ def execute_local(args, env = None, zerobyte = False):
     from subprocess import Popen
 
     # Note: PIPE will cause deadlock if output is larger than 65K
-    stdout, stderr = TemporaryFile(), TemporaryFile()
+    stdout, stderr = TemporaryFile("w+"), TemporaryFile("w+")
     handle = type('Handle', (object,), {'stdout' : [], 'stderr' : [], 'returncode' : 0})()
     p = Popen(args, stdout = stdout, stderr = stderr, env = env, shell = True)
     p.wait()
@@ -74,7 +76,7 @@ def execute_remote(args, host = None, timeout = 10):
         handle = type('Handle', (object,), {'stdout' : [], 'stderr' : [], 'returncode' : 0})()
         if not SSHSession:
             raise ArcError('There is no active SSH session! Run lrms.common.ssh.ssh_connect', 'common.proc')
-        session = SSHSession[host if host else SSHSession.keys()[-1]].open_session()
+        session = SSHSession[host if host else list(SSHSession.keys())[-1]].open_session()
         session.exec_command(args)
         if is_timeout(session.exit_status_ready):
             warn('Session timed out. Some output might not be received. Guessing exit code from stderr.', 'common.proc')

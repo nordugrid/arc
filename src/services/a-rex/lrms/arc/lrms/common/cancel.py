@@ -2,10 +2,12 @@
 Module for job cancelling.
 """
 
-from config import Config
-from log import debug, error
-from ssh import ssh_connect
-from proc import *
+from __future__ import absolute_import
+
+from .config import Config
+from .log import debug, error
+from .ssh import ssh_connect
+from .proc import *
 
 def cancel(cmd, jobid):
      """
