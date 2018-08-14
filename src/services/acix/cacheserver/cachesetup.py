@@ -55,8 +55,8 @@ def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
     siteroot = resource.Resource()
     dataroot = resource.Resource()
 
-    dataroot.putChild('cache', cr)
-    siteroot.putChild('data', dataroot)
+    dataroot.putChild(b'cache', cr)
+    siteroot.putChild(b'data', dataroot)
 
     site = server.Site(siteroot)
 

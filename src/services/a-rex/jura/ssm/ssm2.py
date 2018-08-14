@@ -16,6 +16,8 @@
    @author: Will Rogers
 '''
 
+from __future__ import absolute_import
+
 # It's possible for SSM to be used without SSL, and the ssl module isn't in the
 # standard library until 2.6, so this makes it safe for earlier Python versions.
 try:
@@ -24,7 +26,7 @@ except ImportError:
     # ImportError is raised later on if SSL is actually requested.
     ssl = None
 
-import crypto
+from . import crypto
 from dirq.QueueSimple import QueueSimple
 from dirq.queue import Queue
 
@@ -165,7 +167,7 @@ class Ssm2(stomp.ConnectionListener):
                 self._inq.add({'body': raw_msg, 
                                'signer':signer, 
                                'empaid': headers['empa-id']})
-        except OSError, e:
+        except OSError as e:
             log.error('Failed to read or write file: %s', e)
         
     def on_error(self, unused_headers, body):
@@ -218,14 +220,14 @@ class Ssm2(stomp.ConnectionListener):
         if 'application/pkcs7-mime' in text or 'application/x-pkcs7-mime' in text:
             try:
                 text = crypto.decrypt(text, self._cert, self._key)
-            except crypto.CryptoException, e:
+            except crypto.CryptoException as e:
                 log.error('Failed to decrypt message: %s', e)
                 return None, None
         
         # always signed
         try:
             message, signer = crypto.verify(text, self._capath, self._check_crls)
-        except crypto.CryptoException, e:
+        except crypto.CryptoException as e:
             log.error('Failed to verify message: %s', e)
             return None, None
         
@@ -303,7 +305,7 @@ class Ssm2(stomp.ConnectionListener):
         try:
             # Remove empty dirs and unlock msgs older than 5 min (default)
             self._outq.purge()
-        except OSError, e:
+        except OSError as e:
             log.warn('OSError raised while purging message queue: %s', e)
 
     ############################################################################
@@ -365,10 +367,10 @@ class Ssm2(stomp.ConnectionListener):
             try:
                 self.start_connection()
                 break
-            except ConnectFailedException, e:
+            except ConnectFailedException as e:
                 # ConnectFailedException doesn't provide a message.
                 log.warn('Failed to connect to %s:%s.', host, port)
-            except Ssm2Exception, e:
+            except Ssm2Exception as e:
                 log.warn('Failed to connect to %s:%s: %s', host, port, e)
 
         if not self.connected:
@@ -455,7 +457,7 @@ class Ssm2(stomp.ConnectionListener):
                 f.write(str(os.getpid()))
                 f.write('\n')
                 f.close()
-            except IOError, e:
+            except IOError as e:
                 log.warn('Failed to create pidfile %s: %s', self._pidfile, e)
 
         self.handle_connect()
@@ -471,7 +473,7 @@ class Ssm2(stomp.ConnectionListener):
                     os.remove(self._pidfile)
                 else:
                     log.warn('pidfile %s not found.', self._pidfile)
-            except IOError, e:
+            except IOError as e:
                 log.warn('Failed to remove pidfile %s: %e', self._pidfile, e)
                 log.warn('SSM may not start again until it is removed.')
         

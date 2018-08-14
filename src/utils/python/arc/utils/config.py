@@ -26,7 +26,7 @@ def parse_arc_conf(conf_f='/etc/arc.conf'):
         #   'option=' or 'option'
         'option': re.compile(r'^\s*(?P<option>[^=\[\]\n\s]+)\s*(?:=|(?=\s*$))\s*(?P<value>.*)\s*$')
     }
-    with open(conf_f, 'rb') as arcconf:
+    with open(conf_f, 'rt') as arcconf:
         block_id = None
         for ln, confline in enumerate(arcconf):
             if re.match(__regexes['skip'], confline):
@@ -64,7 +64,7 @@ def _config_subset(blocks=None):
     if blocks is None:
         blocks = []
     blocks_dict = {}
-    for cb in __parsed_config.keys():
+    for cb in __parsed_config:
         if cb in blocks:
             blocks_dict[cb] = __parsed_config[cb]
     return blocks_dict
@@ -74,7 +74,7 @@ def _blocks_list(blocks=None):
     if blocks is None:
         blocks = []
     # ability to pass single block name as a string
-    if isinstance(blocks, basestring):
+    if isinstance(blocks, (bytes, str)):
         blocks = [blocks]
     return blocks
 
@@ -101,7 +101,7 @@ def export_bash(blocks=None, subsections=False):
     for b in blocks:
         if b not in blocks_dict:
             continue
-        for k, v in blocks_dict[b].iteritems():
+        for k, v in blocks_dict[b].items():
             if isinstance(v, list):
                 bash_config['CONFIG_' + k] = '__array__'
                 for i, vi in enumerate(v):
@@ -109,7 +109,7 @@ def export_bash(blocks=None, subsections=False):
             else:
                 bash_config['CONFIG_' + k] = v
     eval_str = ''
-    for k, v in bash_config.iteritems():
+    for k, v in bash_config.items():
         eval_str += k + '="' + v.replace('"', '\\"') + '"\n'
     return eval_str
 

@@ -12,6 +12,8 @@ Limitations:
 * Unable to handle templates.
 '''
 
+from __future__ import print_function
+
 import sys, re
 from os.path import isfile
 
@@ -48,16 +50,16 @@ for line in f:
             namespaceName, className, _, templateParameters, _, methodName = regMatch.groups()
             if templateParameters:
                 #print "Found template: %s::%s<%s>::%s" % (namespaceName, className, templateParameters, methodName)
-                print "Error: Unable to handle template signatures %s" % ignoredName
+                print("Error: Unable to handle template signatures %s" % ignoredName)
                 continue
             #print " Ignoring method '%s' in class '%s' in Arc namespace." % (methodName, className)
             sdkFNOfIgnoredInstance = sdkDocumentationLocation + '/class' + namespaceName + '_1_1' + className + '.html'
-            if not expressionsFound.has_key(sdkFNOfIgnoredInstance):
+            if sdkFNOfIgnoredInstance not in expressionsFound:
                 expressionsFound[sdkFNOfIgnoredInstance] = []
             ignoreScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python"]
             expressionsFound[sdkFNOfIgnoredInstance].append({"text" : "Method is unavailable", "scope" : ignoreScope, "name" : methodName})
             continue
-        print "Error: Couldn't parse ignore signature %s" % ignoredName
+        print("Error: Couldn't parse ignore signature %s" % ignoredName)
         continue
         
     regMatch = re.match('%rename\(([^)]+)\)\s+([^;]+)', line)
@@ -69,24 +71,24 @@ for line in f:
             namespaceName, className, _, templateParameters, _, methodName = regMatch.groups()
             if templateParameters:
                 #print "Found template: %s::%s<%s>::%s" % (namespaceName, className, templateParameters, methodName)
-                print "Error: Unable to handle template signatures %s" % renameFullName
+                print("Error: Unable to handle template signatures %s" % renameFullName)
                 continue
             #print " Ignoring method '%s' in class '%s' in Arc namespace." % (methodName, className)
             sdkFNOfRenamedInstance = sdkDocumentationLocation + '/class' + namespaceName + '_1_1' + className + '.html'
-            if not expressionsFound.has_key(sdkFNOfRenamedInstance):
+            if sdkFNOfRenamedInstance not in expressionsFound:
                 expressionsFound[sdkFNOfRenamedInstance] = []
             renameScope = ["Python"] if "SWIGPYTHON" in inIfdef else ["Python"]
             expressionsFound[sdkFNOfRenamedInstance].append({"text" : "Renamed to <tt>" + toName + "</tt>", "scope" : renameScope, "name" : methodName})
             continue
-        print "Error: Couldn't parse rename signature %s" % renameFullName
+        print("Error: Couldn't parse rename signature %s" % renameFullName)
         continue
 f.close()
 
 #print expressionsFound
 
-for filename, v in expressionsFound.iteritems():
+for filename, v in expressionsFound.items():
     if not isfile(filename):
-        print "Error: No such file %s" % filename
+        print("Error: No such file %s" % filename)
         continue
     doxHTMLFile = open(filename, "r")
     doxHTMLFileLines = doxHTMLFile.readlines()
@@ -142,16 +144,16 @@ for filename, v in expressionsFound.iteritems():
                   
                   break
             else:
-              print "Error: Unable to parse method signature %s" % entry["name"]
+              print("Error: Unable to parse method signature %s" % entry["name"])
         i += 1
     
     doxHTMLFile.close()
     
     if v:
-        print "Error: The following methods was not found in the HTML file '%s':" % filename
+        print("Error: The following methods was not found in the HTML file '%s':" % filename)
         for entry in v:
-            print "       %s" % entry["name"]
-        print "??? => Is there a API description in the corresponding header file for these?"
+            print("       %s" % entry["name"])
+        print("??? => Is there a API description in the corresponding header file for these?")
     
     
 

@@ -11,7 +11,7 @@ TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.
                'gsiftp://grid.tsl.uu.se:2811/storage/sam/testfile']
 
 
-class TestScanner:
+class TestScanner(object):
 
     def __init__(self, urls):
         self.urls = urls
@@ -40,14 +40,14 @@ class CacheResourceTest(unittest.TestCase):
         cr = cacheresource.CacheResource(self.cs)
 
         siteroot = resource.Resource()
-        siteroot.putChild('cache', cr)
+        siteroot.putChild(b'cache', cr)
         site = server.Site(siteroot)
 
         yield self.cs.startService()
 
         self.iport = reactor.listenTCP(self.port, site)
 
-        self.cache_url = "http://localhost:%i/cache" % (self.port)
+        self.cache_url = 'http://localhost:%i/cache' % (self.port)
 
 
     @defer.inlineCallbacks
