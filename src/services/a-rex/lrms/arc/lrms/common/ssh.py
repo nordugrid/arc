@@ -3,7 +3,9 @@ Provides the ``SSHSession`` dictionary, which maps host
 to :py:class:`paramiko.transport.Transport`.
 """
 
-from log import ArcError
+from __future__ import absolute_import
+
+from .log import ArcError
 
 SSHSession = {}
 

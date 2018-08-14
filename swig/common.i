@@ -102,7 +102,8 @@ protected:
     // Call to PyGILState_Ensure ensures there is Python
     // thread state created/assigned.
     PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "c", c);
+    char s = c;
+    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", &s, 1);
     PyGILState_Release(gstate);
     return c;
   }

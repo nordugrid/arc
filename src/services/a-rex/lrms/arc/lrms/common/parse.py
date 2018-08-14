@@ -2,10 +2,12 @@
 Mapping between sh (and GRAMi files) and Python.
 """
 
+from __future__ import absolute_import
+
 import re, os
 
 import arc
-from log import ArcError
+from .log import ArcError
 
 class RTE0EnvCreator(object):
     """
@@ -53,7 +55,7 @@ class RTE0EnvCreator(object):
     def getShEnv(self):
 
         stage0_environ = os.environ
-        for shEnv, pyKey in RTE0EnvCreator._shToPy.iteritems():
+        for shEnv, pyKey in RTE0EnvCreator._shToPy.items():
             obj, key = self._getPyAttr(pyKey)
             if obj:
                 obj = getattr(obj, key, None)
@@ -108,7 +110,7 @@ class RTE0EnvCreator(object):
         old_outputfiles = \
            arc.compute.OutputFileTypeList(self.jobdesc.DataStaging.OutputFiles)
         self.jobdesc.DataStaging.OutputFiles.clear()
-        for shEnv, pyKey in RTE0EnvCreator._shToPy.iteritems():
+        for shEnv, pyKey in RTE0EnvCreator._shToPy.items():
             pObj, key = self._getPyAttr(pyKey)
             if pObj is None:
                 continue

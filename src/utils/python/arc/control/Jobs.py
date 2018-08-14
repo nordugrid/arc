@@ -1,4 +1,7 @@
-from ControlCommon import *
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
 import subprocess
 import sys
 import re
@@ -6,6 +9,10 @@ import pickle
 import time
 import pwd
 
+try:
+   input = raw_input # Redefine for Python 2
+except NameError:
+   pass
 
 def complete_job_owner(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
@@ -75,9 +82,9 @@ class JobsControl(ComponentControl):
     @staticmethod
     def __list_job(job_dict, list_long=False):
         if list_long:
-            print '{id} {state:>13}\t{name:<32}\t{userdn}'.format(**job_dict)
+            print('{id} {state:>13}\t{name:<32}\t{userdn}'.format(**job_dict))
         else:
-            print job_dict['id']
+            print(job_dict['id'])
 
     def __job_exists(self, jobid):
         if jobid not in self.jobs:
@@ -102,7 +109,7 @@ class JobsControl(ComponentControl):
         return job_attrs
 
     def _service_log_print(self, log_path, jobid):
-        print '### ' + log_path + ':'
+        print('### ' + log_path + ':')
         if os.path.exists(log_path):
             with open(log_path, 'r') as log_f:
                 for line in log_f:
@@ -138,18 +145,18 @@ class JobsControl(ComponentControl):
             jobre = __JOB_RE.match(line)
             if jobre:
                 if job_dict:
-                    for attr in __JOB_ATTRS.keys():
+                    for attr in __JOB_ATTRS:
                         if attr not in job_dict:
                             job_dict[attr] = 'N/A'
                     self.jobs[job_dict['id']] = job_dict
                 job_dict = {'id': jobre.group(1)}
                 continue
-            for attr, regex in __JOB_ATTRS.iteritems():
+            for attr, regex in __JOB_ATTRS.items():
                 attr_re = regex.match(line)
                 if attr_re:
                     job_dict[attr] = attr_re.group(1)
         if job_dict:
-            for attr in __JOB_ATTRS.keys():
+            for attr in __JOB_ATTRS:
                 if attr not in job_dict:
                     job_dict[attr] = 'N/A'
             self.jobs[job_dict['id']] = job_dict
@@ -188,7 +195,7 @@ class JobsControl(ComponentControl):
     def kill_or_clean_all(self, args, action='-k'):
         # safe check when killing/cleaning all jobs
         if not args.owner and not args.state:
-            reply = str(raw_input('You have not specified any filters and operation will continue for ALL A-REX jobs. '
+            reply = str(input('You have not specified any filters and operation will continue for ALL A-REX jobs. '
                                   'Please type "yes" if it is desired behaviour: '))
             if reply != 'yes':
                 sys.exit(0)
@@ -241,22 +248,22 @@ class JobsControl(ComponentControl):
     def jobinfo(self, args):
         self.__get_jobs()
         self.__job_exists(args.jobid)
-        print 'Name\t\t: {name}\n' \
+        print('Name\t\t: {name}\n' \
               'Owner\t\t: {userdn}\n' \
               'State\t\t: {state}\n' \
               'LRMS ID\t\t: {lrmsid}\n' \
-              'Modified\t: {modified}'.format(**self.jobs[args.jobid])
+              'Modified\t: {modified}'.format(**self.jobs[args.jobid]))
 
     def job_getattr(self, args):
         job_attrs = self.__parse_job_attrs(args.jobid)
         if args.attr:
             if args.attr in job_attrs:
-                print job_attrs[args.attr]
+                print(job_attrs[args.attr])
             else:
                 self.logger.error('There is no such attribute \'%s\' defined for job %s', args.attr, args.jobid)
         else:
-            for k, v in job_attrs.iteritems():
-                print '{:<32}: {}'.format(k, v)
+            for k, v in job_attrs.items():
+                print('{:<32}: {}'.format(k, v))
 
     def job_stats(self, args):
         __RE_JOBSTATES = re.compile(r'^\s*([A-Z]+):\s+([0-9]+)\s+\(([0-9]+)\)\s*$')
@@ -289,9 +296,9 @@ class JobsControl(ComponentControl):
         if not args.no_states:
             for s in jobstates:
                 if args.long:
-                    print '{state}\n  Processing: {processing:>10}\n  Waiting:    {waiting:>10}'.format(**s)
+                    print('{state}\n  Processing: {processing:>10}\n  Waiting:    {waiting:>10}'.format(**s))
                 else:
-                    print '{state:>11}: {processing:>8} ({waiting})'.format(**s)
+                    print('{state:>11}: {processing:>8} ({waiting})'.format(**s))
         # show total stats if requested
         if args.total:
             for t in totalstats:
@@ -302,16 +309,16 @@ class JobsControl(ComponentControl):
                         t['state'] = 'Total number of jobs running in LRMS backend'
                     elif t['state'] == 'Total':
                         t['state'] = 'Total number of jobs managed by A-REX (including completed)'
-                    print '{state}\n  Jobs:  {jobs:>15}\n  Limit: {limit:>15}'.format(**t)
+                    print('{state}\n  Jobs:  {jobs:>15}\n  Limit: {limit:>15}'.format(**t))
                 else:
-                    print '{state:>11}: {jobs:>8} of {limit}'.format(**t)
+                    print('{state:>11}: {jobs:>8} of {limit}'.format(**t))
         if args.data_staging:
             if args.long:
-                print 'Processing jobs in data-staging:'
-                print '  Downloading: {:>9}'.format(data_download)
-                print '  Uploading:   {:>9}'.format(data_upload)
+                print('Processing jobs in data-staging:')
+                print('  Downloading: {:>9}'.format(data_download))
+                print('  Uploading:   {:>9}'.format(data_upload))
             else:
-                print ' Processing: {:>8} + {}'.format(data_download, data_upload)
+                print(' Processing: {:>8} + {}'.format(data_download, data_upload))
 
     def control(self, args):
         self.cache_ttl = args.cachettl

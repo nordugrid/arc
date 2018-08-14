@@ -2,12 +2,14 @@
 Classes and functions to setup job submission.
 """
 
+from __future__ import absolute_import
+
 import os, re
 import arc
-from config import Config
-from proc import execute_local, execute_remote
-from files import write
-from log import *
+from .config import Config
+from .proc import execute_local, execute_remote
+from .files import write
+from .log import *
 
 
 def validate_attributes(jd):
@@ -156,7 +158,7 @@ def RTE_stage0(jobdesc, lrms, **mapping):
    """
 
    if not jobdesc.Resources.RunTimeEnvironment.empty():
-        from parse import RTE0EnvCreator
+        from .parse import RTE0EnvCreator
         envCreator = RTE0EnvCreator(jobdesc, Config, mapping)
         stage0_environ = envCreator.getShEnv()
         stage0_environ['joboption_lrms'] = lrms
@@ -189,7 +191,7 @@ def RTE_stage0(jobdesc, lrms, **mapping):
         # Source new RTE scripts set by the previous step (if any)
         rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
         rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+_\d+', k))
-        while len(rte_environ.keys()) > len(sw_list):
+        while len(rte_environ) > len(sw_list):
            for rte, sw in rte_environ.items():
               try:
                  i = re.match('joboption_runtime_(\d+)', rte).groups()[0]
@@ -206,7 +208,7 @@ def RTE_stage0(jobdesc, lrms, **mapping):
               except:
                  pass
            rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
-           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items()if re.match('joboption_runtime_\d+_\d+', k))
+           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+_\d+', k))
         # Update jobdesc
         envCreator.setPyEnv(stage0_environ)
         if "RUNTIME_ENABLE_MULTICORE_SCRATCH" in stage0_environ:

@@ -26,8 +26,8 @@ class IndexResource(resource.Resource):
         log.msg("Index get. Args:" + str(request.args))
 
         try:
-            urls = request.args['url'][0].split(',')
-        except KeyError, e:
+            urls = request.args[b'url'][0].decode().split(',')
+        except KeyError as e:
             log.msg("Couldn't get url argument from request")
             request.setResponseCode(400)
             return "Couldn't get url argument from request"
@@ -37,8 +37,8 @@ class IndexResource(resource.Resource):
 
         rv = json.dumps(result)
 
-        request.setHeader('Content-type', 'application/json')
-        request.setHeader('Content-length', str(len(rv)))
+        request.setHeader(b'Content-type', b'application/json')
+        request.setHeader(b'Content-length', str(len(rv)).encode())
 
-        return rv
+        return rv.encode()
 
