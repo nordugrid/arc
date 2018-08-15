@@ -732,7 +732,7 @@
 ## Use only if you know what you are doing.
 ## default: undefined
 #lsf_architecture=PowerPC
-## CHANGE15: moved here from [queue/name] block
+## CHANGE15: moved here from [queue:name] block
 
 ### LoadLeveler options: set these only in case of lrms=ll
 ## ll_bin_path = path - The PATH to the LoadLeveler bin folder
@@ -1011,15 +1011,6 @@
 ## accounting log for every finished job in BLAH format.
 #statecallout=FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy
 ## CHANGE41: renamed from authplugin
-
-## arc-vomsac-check: another statecallout plugin shipped with ARC: it's purpose is to enforce
-## per-queue access policies based on VOMS attributes present in user's
-## proxy-certificate. Plugin should be run before job enters the cluster.
-## It requires 2 arguments: path to job .local file and path to credentials file.
-## Enforced per-queue access policies are configured with 'ac_policy' option
-## in the [queue/name] configuration block.
-## statecallout=ACCEPTED 60 /usr/libexec/arc/arc-vomsac-check -L %C/job.%I.local -P %C/job.%I.proxy
-## TODO cleanup the obsolete arc-vomsac-check
 
 ## wakeupperiod = time - Specifies how often A-REX checks for new jobs
 ## arrived, job state change requests, etc. That is responsiveness of
