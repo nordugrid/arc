@@ -104,6 +104,8 @@ make_debs_deb9:
     - dpkg-buildpackage -S -us -uc -d
     - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
     - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
   tags:
     - Computerome
   only:
