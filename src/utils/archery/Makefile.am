@@ -1,1 +1,1 @@
-dist_sbin_SCRIPTS = archery-manage
+sbin_SCRIPTS = archery-manage

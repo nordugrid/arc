@@ -1,30 +1,30 @@
-## Please do not change this file. 
-## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file. 
+## Please do not change this file.
+## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file.
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
   - build
   - packages
   - deploy_and_test
-  
+
+
 build_forks_el6:
   stage: build
   image: maikenp/arc-build-centos6
-  script: 
+  script:
     - yum update -y
     - ./autogen.sh
     - ./configure
     - yum-builddep nordugrid-arc.spec -y
     - echo "Preparing and running rpmbuild"
-    - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
-    - export VERSION=`cat VERSION`
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
     - make dist
-    - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - Computerome
-  except: 
+  except:
     refs:
       - master
       - next-major
@@ -32,26 +32,25 @@ build_forks_el6:
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   allow_failure: false
-  
-  
+
+
 build_forks_el7:
   stage: build
   image: maikenp/arc-build-centos7
-  script: 
+  script:
     - yum update -y
     - ./autogen.sh
-    - CXXFLAGS=-std=c++11 ./configure
+    - ./configure
     - yum-builddep nordugrid-arc.spec -y
     - echo "Preparing and running rpmbuild"
-    - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
-    - export VERSION=`cat VERSION`
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
     - make dist
-    - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - Computerome
-  except: 
+  except:
     refs:
       - master
       - next-major
@@ -59,28 +58,27 @@ build_forks_el7:
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   allow_failure: false
-  
+
+
 build_forks_deb9:
   stage: build
   image: maikenp/arc-build-debian9
-  script: 
-  - apt-get update -y
-  - ./autogen.sh
-  - ./configure
-  - apt build-dep nordugrid-arc -y
-  - ./configure
-  - echo "6.0.0">VERSION
-  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
-  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
-  - dpkg-buildpackage -b -us -uc
-  - echo "Run make"
-  - make clean
-  - make
-  - echo "Run make check"
-  - make check
+  script:
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
+    - ./autogen.sh
+    - ./configure
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
   tags:
     - Computerome
-  except: 
+  except:
     refs:
       - master
       - next-major
@@ -88,55 +86,57 @@ build_forks_deb9:
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   allow_failure: false
-  
+
 
 make_debs_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
-  script: 
-  - apt-get update -y
-  - ./autogen.sh
-  - ./configure
-  - apt-get build-dep nordugrid-arc -y
-  - ./configure
-  - echo "Preparing and running dpkg-buildpackage"
-  - cp $CI_PROJECT_DIR/debian/changelog.deb $CI_PROJECT_DIR/debian/changelog
-  - echo "6.0.0">VERSION
-  - sed -i 's/trunk-1/6.0.0-1/g' $CI_PROJECT_DIR/debian/changelog
-  - dpkg-buildpackage -b -us -uc
+  script:
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
+    - ./autogen.sh
+    - ./configure
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
   tags:
     - Computerome
-  only: 
+  only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   artifacts:
     when: on_success
     expire_in: 30 days
     paths:
-    - ../$CI_PROJECT_DIR
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
   allow_failure: true
-  
+
 
 make_rpms_el6:
   stage: packages
   image: maikenp/arc-build-centos6
-  script: 
-  - yum update -y
-  - ./autogen.sh
-  - ./configure
-  - yum-builddep nordugrid-arc.spec -y
-  - ./configure
-  - echo "Preparing and running rpmbuild"
-  - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-  - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
-  - export VERSION=`cat VERSION`
-  - make dist
-  - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
-  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  - cd $CI_PROJECT_DIR
+  script:
+    - yum update -y
+    - ./autogen.sh
+    - ./configure
+    - yum-builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - Computerome
-  only: 
+  only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   artifacts:
@@ -147,28 +147,25 @@ make_rpms_el6:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
-  
-  
+
+
 make_rpms_el7:
   stage: packages
   image: maikenp/arc-build-centos7
-  script: 
-  - yum update -y
-  - ./autogen.sh
-  - ./configure
-  - yum-builddep nordugrid-arc.spec -y
-  - ./configure
-  - echo "Preparing and running rpmbuild"
-  - mkdir -p $CI_PROJECT_DIR/rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-  - echo "%_topdir $CI_PROJECT_DIR/rpmbuild" > ~/.rpmmacros
-  - export VERSION=`cat VERSION`
-  - make dist
-  - cp "nordugrid-arc-${VERSION}.tar.gz" $CI_PROJECT_DIR/rpmbuild/SOURCES
-  - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  - cd $CI_PROJECT_DIR
+  script:
+    - yum update -y
+    - ./autogen.sh
+    - ./configure
+    - yum-builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - Computerome
-  only: 
+  only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   artifacts:
@@ -179,7 +176,7 @@ make_rpms_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
-  
+
 
 deploy_staging_el6:
   stage: deploy_and_test
@@ -232,11 +229,11 @@ deploy_staging_el6:
   tags:
     - deploy
     - el6
-  only: 
+  only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: true
- 
+
 
 deploy_staging_el7:
   stage: deploy_and_test
@@ -289,7 +286,7 @@ deploy_staging_el7:
   tags:
     - deploy
     - el7
-  only: 
+  only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: true

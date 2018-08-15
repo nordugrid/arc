@@ -1,4 +1,6 @@
-#!/usr/bin/python2
+#!@PYTHON@
+
+from __future__ import print_function
 
 import sys
 import logging
@@ -29,20 +31,20 @@ _debug_levels = {
 def output_celist(endpoint_list, cmd_args):
     """Output the list of CE hostnames (JSON capable)"""
     celist = []
-    for ce, ep in endpoint_list.iteritems():
+    for ce, ep in endpoint_list.items():
         if len(ep) > 0 or cmd_args.output_all:
             celist.append(ce)
     if cmd_args.json:
-        print json.dumps(celist)
+        print(json.dumps(celist))
     else:
         for ce in celist:
-            print ce
+            print(ce)
 
 
 def output_endpoints(endpoint_list, cmd_args):
     """Output the list of endpoints and its type (JSON capable)"""
     elist = []
-    for _, ep in endpoint_list.iteritems():
+    for _, ep in endpoint_list.items():
         for e in ep:
             if 's' not in e:
                 elist.append(e)
@@ -50,10 +52,10 @@ def output_endpoints(endpoint_list, cmd_args):
                 elist.append(e)
 
     if cmd_args.json:
-        print json.dumps(elist)
+        print(json.dumps(elist))
     else:
         for e in elist:
-            print '{u:<60} : {t}'.format(**e)
+            print('{u:<60} : {t}'.format(**e))
 
 
 def output_zonefile(endpoint_list, cmd_args):
@@ -72,7 +74,7 @@ def output_zonefile(endpoint_list, cmd_args):
     a_pointers = []
     a_endpoints = []
     archery_selector = '_archery.{}.'.format(cmd_args.domain)
-    for hostname, endpoints in endpoint_list.iteritems():
+    for hostname, endpoints in endpoint_list.items():
         ce_selector = '{}._archery.{}'.format(hostname, cmd_args.domain)
         if len(endpoints) > 0:
             a_pointers.append(_archery_rr_template.format(selector=archery_selector,
@@ -85,12 +87,12 @@ def output_zonefile(endpoint_list, cmd_args):
                 a_endpoints.append(_archery_rr_template.format(selector=ce_selector, ttl=ttl,
                                                                url=e['u'], type=e['t'],
                                                                inactive=status))
-    print '; pointers to CE endpoints'
+    print('; pointers to CE endpoints')
     for p in a_pointers:
-        print p
-    print '; CE endpoints'
+        print(p)
+    print('; CE endpoints')
     for e in a_endpoints:
-        print e
+        print(e)
 
 _output_formatters = {
     'CEs': output_celist,
@@ -156,9 +158,9 @@ class EndpointFilterType(EndpointFilter):
         return False
 
     def help(self):
-        print 'Endpoint type filter: \'-f type:<endpoint type>[,<endpoint type>[...]]\''
-        print '\tThe following types are supported: {}'.format(
-            ','.join(self._all_endpoint_types))
+        print('Endpoint type filter: \'-f type:<endpoint type>[,<endpoint type>[...]]\'')
+        print('\tThe following types are supported: {}'.format(
+            ','.join(self._all_endpoint_types)))
 
 
 class EndpointFilterPortscan(EndpointFilter):
@@ -192,7 +194,7 @@ class EndpointFilterPortscan(EndpointFilter):
             return True
 
     def help(self):
-        print 'Endpoint port connectivity filter: \'-f portscan\''
+        print('Endpoint port connectivity filter: \'-f portscan\'')
 
 
 class EndpointFilterAllowedVO(EndpointFilter):
@@ -260,7 +262,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
         return False
 
     def help(self):
-        print 'Endpoint allowed VO filter: \'-f vo:<voname>[,<voname>[...]]\''
+        print('Endpoint allowed VO filter: \'-f vo:<voname>[,<voname>[...]]\'')
 
 
 _filters = {
@@ -435,7 +437,7 @@ def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
 
     # new endpoints according to provided list
     new_endpoints_set = set()
-    for hostname, endpoints in endpoint_list.iteritems():
+    for hostname, endpoints in endpoint_list.items():
         h_selector = '{}._archery.{}'.format(hostname, domain)
         if len(endpoints) > 0:
             new_endpoints_set.add('{} u=dns://{} t=org.nordugrid.archery'.format(main_selector, h_selector))
@@ -448,7 +450,7 @@ def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
     # old endpoints from querying the ARCHERY
     old_endpoints_set = set()
     archery_endpoints = get_archery_endpoints('dns://' + main_selector, nameserver=nameserver)
-    for selector, data in archery_endpoints.iteritems():
+    for selector, data in archery_endpoints.items():
         if domain not in selector:
             continue
         for txts in data['txt']:
@@ -471,7 +473,7 @@ def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
             ar = a.split(' ', 1)
             update.add(ar[0], ttl, 'txt', ar[1].replace(' ', r'\ '))
         logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
-                    nameserver, keyring_dict.keys()[0])
+                    nameserver, list(keyring_dict.keys())[0])
         dns.query.tcp(update, nameserver)
         # if exception is not raised we have succeeded with update
         logger.info('ARCHERY information has been updated for zone %s', domain)
@@ -492,12 +494,12 @@ logger.addHandler(log_handler_stderr)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
-parser.add_argument('-d', '--debug', action='store', choices=_debug_levels.keys(), default='INFO')
+parser.add_argument('-d', '--debug', action='store', choices=list(_debug_levels.keys()), default='INFO')
 parser.add_argument('-s', '--source', action='append', required=True,
                     help='Select CE list source (file: and egiis: sources are supported)')
 parser.add_argument('-f', '--filter', action='append', help='Add one or more filters to endpoint list. '
                                                             'Use \'-f help\' to show available filters')
-parser.add_argument('-o', '--output', choices=_output_formatters.keys(),
+parser.add_argument('-o', '--output', choices=list(_output_formatters.keys()),
                     help='Output the value to stdout according to specified type')
 parser.add_argument('--json', action='store_true',
                     help='Change output format from plaintext to JSON')
@@ -550,15 +552,15 @@ applied_filters = []
 if cmd_args.filter is not None:
     for f in cmd_args.filter:
         if f == 'help':
-            print 'Supported filters are:'
-            for _, fclass in _filters.iteritems():
+            print('Supported filters are:')
+            for _, fclass in _filters.items():
                 fci = fclass()
                 fci.help()
             sys.exit(0)
         fdef = f.split(':', 1)
         ftype = fdef[0]
         fargs = fdef[1] if len(fdef) > 1 else ''
-        if ftype not in _filters.keys():
+        if ftype not in list(_filters.keys()):
             logger.error('Ignoring bad filter definition: %s', f)
             continue
         fclass = _filters[ftype]
@@ -587,7 +589,7 @@ for ce in ce_list:
 # Invoke DDNS update if requested
 if cmd_args.ddns_update:
     logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
-                nameserver, keyring_dict.keys()[0])
+                nameserver, list(keyring_dict.keys())[0])
     ddns_update(domain, nameserver, keyring_dict, endpoints)
 
 # Output information if requested

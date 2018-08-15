@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import subprocess
 import logging
 import requests
@@ -43,7 +45,7 @@ class OSPackageManagement(object):
         sys.exit(1)
 
     def version(self):
-        print '{} version {}'.format(self.pm, self.pm_version)
+        print('{} version {}'.format(self.pm, self.pm_version))
 
     def __get_url_content(self, url):
         try:
@@ -100,7 +102,7 @@ class OSPackageManagement(object):
     def install(self, packages):
         # no underscores according to Debian naming policy: https://www.debian.org/doc/debian-policy/
         if self.pm == 'apt':
-            packages = list(map(lambda p: p.replace('_', '-'), packages))
+            packages = list([p.replace('_', '-') for p in packages])
         # install
         command = self.command_base + [self.pm_cmd, '-y', 'install'] + packages
         self.logger.info('Running the following command to install packages: %s', ' '.join(command))

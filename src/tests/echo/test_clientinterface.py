@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+
+from __future__ import print_function
+
 import arc
 
 import sys
@@ -28,5 +31,5 @@ if not status:
 elif not resp:
     logger.msg(arc.ERROR, "There was no SOAP response")
 else:
-    print "XML:", resp.GetXML()
-    print "Response:", str(resp.Get('echoResponse').Get('hear'))
+    print("XML:", resp.GetXML())
+    print("Response:", str(resp.Get('echoResponse').Get('hear')))

@@ -1,4 +1,7 @@
-from ControlCommon import *
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
 import sys
 import re
 import fnmatch
@@ -67,11 +70,11 @@ class RTEControl(ComponentControl):
 
     @staticmethod
     def __list_rte(rte_dict, long_list, prefix=''):
-        for rte, link in rte_dict.iteritems():
+        for rte, link in rte_dict.items():
             if long_list:
-                print '{}{:32} -> {}'.format(prefix, rte, link)
+                print('{}{:32} -> {}'.format(prefix, rte, link))
             else:
-                print rte
+                print(rte)
 
     @staticmethod
     def __get_rte_description(rte_path):
@@ -139,7 +142,7 @@ class RTEControl(ComponentControl):
             if r.startswith('/'):
                 # path instead of name
                 rte_found = False
-                for rname, rpath in chain(self.user_rtes.iteritems(), self.system_rtes.iteritems()):
+                for rname, rpath in chain(iter(self.user_rtes.items()), iter(self.system_rtes.items())):
                     if rpath == r:
                         self.logger.debug('RTE path %s match %s RTE name, adding to the list.', rpath, rname)
                         rte_list.append({'name': rname, 'path': rpath})
@@ -153,7 +156,7 @@ class RTEControl(ComponentControl):
             else:
                 # check for glob wildcards in rte name
                 rte_found = False
-                for irte in self.all_rtes.keys():
+                for irte in self.all_rtes:
                     if fnmatch.fnmatch(irte, r):
                         self.logger.debug('Glob wildcard match for %s RTE, adding to the list.', irte)
                         rte_list.append({'name': irte, 'path': self.all_rtes[irte]})
@@ -168,7 +171,7 @@ class RTEControl(ComponentControl):
 
     def __list_brief(self):
         for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes)]:
-            for rte, link in rte_dict.iteritems():
+            for rte, link in rte_dict.items():
                 kind = [rte_type]
                 show_disabled = True
                 if rte_type == 'system':
@@ -184,36 +187,36 @@ class RTEControl(ComponentControl):
                         show_disabled = False
                 if show_disabled:
                     kind.append('disabled')
-                print '{:32} ({})'.format(rte, ', '.join(kind))
+                print('{:32} ({})'.format(rte, ', '.join(kind)))
 
     def __list_long(self):
         # system
         if not self.system_rtes:
-            print 'There are no system pre-defined RTEs in {}'.format(self.system_rte_dir)
+            print('There are no system pre-defined RTEs in {}'.format(self.system_rte_dir))
         else:
-            print 'System pre-defined RTEs in {}:'.format(self.system_rte_dir)
-            for rte, rte_file in self.system_rtes.iteritems():
-                print '\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file))
+            print('System pre-defined RTEs in {}:'.format(self.system_rte_dir))
+            for rte, rte_file in self.system_rtes.items():
+                print('\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file)))
         # user-defined
         if not self.user_rte_dirs:
-            print 'User-defined RTEs are not configured in arc.conf'
+            print('User-defined RTEs are not configured in arc.conf')
         elif not self.user_rtes:
-            print 'There are no user-defined RTEs in {}'.format(', '.join(self.user_rte_dirs))
+            print('There are no user-defined RTEs in {}'.format(', '.join(self.user_rte_dirs)))
         else:
-            print 'User-defined RTEs in {}:'.format(', '.join(self.user_rte_dirs))
-            for rte, rte_file in self.user_rtes.iteritems():
-                print '\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file))
+            print('User-defined RTEs in {}:'.format(', '.join(self.user_rte_dirs)))
+            for rte, rte_file in self.user_rtes.items():
+                print('\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file)))
         # enabled
         if not self.enabled_rtes:
-            print 'There are no enabled RTEs'
+            print('There are no enabled RTEs')
         else:
-            print 'Enabled RTEs:'
+            print('Enabled RTEs:')
             self.__list_rte(self.enabled_rtes, True, prefix='\t')
         # default
         if not self.default_rtes:
-            print 'There are no default RTEs'
+            print('There are no default RTEs')
         else:
-            print 'Default RTEs:'
+            print('Default RTEs:')
             self.__list_rte(self.default_rtes, True, prefix='\t')
 
     def list(self, args):
@@ -276,12 +279,12 @@ class RTEControl(ComponentControl):
         rte_params_path = self.control_rte_dir + '/params/'
         if not os.path.exists(rte_params_path):
             self.logger.debug('Making control directory %s for RunTimeEnvironments parameters', rte_params_path)
-            os.makedirs(rte_params_path, mode=0755)
+            os.makedirs(rte_params_path, mode=0o755)
 
         rte_dir_path = rte_params_path + '/'.join(rte.split('/')[:-1])
         if not os.path.exists(rte_dir_path):
             self.logger.debug('Making RunTimeEnvironment directory structure inside controldir %s', rte_dir_path)
-            os.makedirs(rte_dir_path, mode=0755)
+            os.makedirs(rte_dir_path, mode=0o755)
 
         rte_params_file = rte_params_path + rte
         with open(rte_params_file, 'w') as rte_parm_f:
@@ -291,10 +294,10 @@ class RTEControl(ComponentControl):
     def params_get(self, rte, long=False):
         params = self.__params_parse(rte)
         for pdescr in params.values():
-            if long:
-                print '{name:>16} = {value:8} {description} (allowed values are: {allowed_string})'.format(**pdescr)
+            if int:
+                print('{name:>16} = {value:8} {description} (allowed values are: {allowed_string})'.format(**pdescr))
             else:
-                print '{name}={value}'.format(**pdescr)
+                print('{name}={value}'.format(**pdescr))
 
     def params_set(self, rte, parameter, value):
         params = self.__params_parse(rte)
@@ -347,12 +350,12 @@ class RTEControl(ComponentControl):
         rte_enable_path = self.control_rte_dir + '/' + rtetype + '/'
         if not os.path.exists(rte_enable_path):
             self.logger.debug('Making control directory %s for %s RunTimeEnvironments', rte_enable_path, rtetype)
-            os.makedirs(rte_enable_path, mode=0755)
+            os.makedirs(rte_enable_path, mode=0o755)
 
         rte_dir_path = rte_enable_path + '/'.join(rtename.split('/')[:-1])
         if not os.path.exists(rte_dir_path):
             self.logger.debug('Making RunTimeEnvironment directory structure inside controldir %s', rte_dir_path)
-            os.makedirs(rte_dir_path, mode=0755)
+            os.makedirs(rte_dir_path, mode=0o755)
 
         rte_path = rte_enable_path + rtename
         if os.path.exists(rte_path):
@@ -447,27 +450,27 @@ class RTEControl(ComponentControl):
 
     def complete_enable(self):
         self.__fetch_rtes()
-        return list(set(self.system_rtes.keys() + self.user_rtes.keys()) - set(self.enabled_rtes.keys()))
+        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys())) - set(self.enabled_rtes.keys()))
 
     def complete_default(self):
         self.__fetch_rtes()
-        return list(set(self.system_rtes.keys() + self.user_rtes.keys()) - set(self.default_rtes.keys()))
+        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys())) - set(self.default_rtes.keys()))
 
     def complete_disable(self):
         self.__fetch_rtes()
-        return self.enabled_rtes.keys()
+        return list(self.enabled_rtes.keys())
 
     def complete_undefault(self):
         self.__fetch_rtes()
-        return self.default_rtes.keys()
+        return list(self.default_rtes.keys())
 
     def complete_all(self):
         self.__fetch_rtes()
-        return self.all_rtes.keys()
+        return list(self.all_rtes.keys())
 
     def complete_params(self, rte):
         self.__fetch_rtes()
-        return self.__params_parse(rte).keys()
+        return list(self.__params_parse(rte).keys())
 
     def complete_params_values(self, rte, param):
         self.__fetch_rtes()

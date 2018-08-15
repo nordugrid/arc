@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 """Doxygen XML to SWIG docstring converter.
 
 Usage:
@@ -28,6 +28,8 @@ output will be written (the file will be clobbered).
 #
 ######################################################################
 
+from __future__ import print_function
+
 from xml.dom import minidom
 import re
 import textwrap
@@ -50,7 +52,7 @@ def my_open_write(dest):
         return open(dest, 'w')
 
 
-class Doxy2SWIG:
+class Doxy2SWIG(object):
     """Converts Doxygen generated XML files into a file containing
     docstrings that can be used by SWIG-1.3.x that have support for
     feature("docstring").  Once the data is parsed it is stored in

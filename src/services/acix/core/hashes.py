@@ -20,6 +20,11 @@
 #**************************************************************************
 #
 
+import sys
+
+if sys.version_info[0] >= 3:
+    long = int
+
 def RSHash(key):
     a    = 378551
     b    =  63689
@@ -39,8 +44,8 @@ def JSHash(key):
 
 def PJWHash(key):
    BitsInUnsignedInt = 4 * 8
-   ThreeQuarters     = long((BitsInUnsignedInt  * 3) / 4)
-   OneEighth         = long(BitsInUnsignedInt / 8)
+   ThreeQuarters     = long((BitsInUnsignedInt * 3) // 4)
+   OneEighth         = long(BitsInUnsignedInt // 8)
    HighBits          = (0xFFFFFFFF) << (BitsInUnsignedInt - OneEighth)
    hash              = 0
    test              = 0

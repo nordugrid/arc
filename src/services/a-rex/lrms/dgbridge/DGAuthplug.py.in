@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!@PYTHON@
 
 """Usage: DGAuthplug.py <status> <control dir> <runtime dir> <jobid> [username]
 
@@ -9,6 +9,8 @@ Example:
   authplugin="ACCEPTED timeout=60,onfailure=fail,onsuccess=log /usr/share/arc/DGAuthplug.py %S %C /var/spool/arc/runtime %I"
 
 """
+
+from __future__ import print_function
 
 def ExitError(msg,code):
     """Print error message and exit"""
@@ -164,9 +166,11 @@ def ParseRTE(runtime_dir,rte):
 
     """Parse RTE an return as dictionary"""
 
-    import ConfigParser
-#    import io
-    import StringIO
+    try:
+        import configparser as ConfigParser
+    except ImportError:
+        import ConfigParser
+    import io
     import sys
     from os.path import isfile
 
@@ -183,8 +187,7 @@ def ParseRTE(runtime_dir,rte):
     str = "[s]\n" + str
 
     config = ConfigParser.RawConfigParser()
-#    config.readfp(io.BytesIO(str))
-    strfp = StringIO.StringIO(str)
+    strfp = io.StringIO(str)
     config.readfp(strfp)
 
     d = {}

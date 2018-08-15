@@ -2,8 +2,13 @@
 Python client for the HED cache service.
 """
 
+from __future__ import print_function
+
 import sys
-import httplib
+try:
+    import http.client as httplib
+except ImportError:
+    import httplib
 import re
 import time
 import os
@@ -16,7 +21,7 @@ except ImportError:
         # python 2.4 version
         from elementtree import ElementTree as ET
     except ImportError:
-        print "Error importing ElementTree. Please install it or use python 2.5 or greater"
+        print("Error importing ElementTree. Please install it or use python 2.5 or greater")
         sys.exit(1)
 
 class CacheException(Exception):
@@ -88,7 +93,7 @@ def cacheCheck(service, proxy, urls):
     try:
         conn.request('POST', path, request)
         resp = conn.getresponse()
-    except Exception, e:
+    except Exception as e:
         raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
     # On SOAP fault 500 is returned - this is caught in checkSOAPFault
@@ -170,7 +175,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
     try:
         conn.request('POST', path, request)
         resp = conn.getresponse()
-    except Exception, e:
+    except Exception as e:
         raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
     # On SOAP fault 500 is returned - this is caught in checkSOAPFault
@@ -227,7 +232,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         try:
             conn.request('POST', path, request)
             resp = conn.getresponse()
-        except Exception, e:
+        except Exception as e:
             raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
         
         # On SOAP fault 500 is returned - this is caught in checkSOAPFault
@@ -249,7 +254,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         
         if link_result_code == '1':
             # still staging
-            print "still staging"
+            print("still staging")
             
             # poll for final link appearing in local dir, for one minute, then
             # check service again. It is assumed that files will appear in the
@@ -257,7 +262,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
             for i in range(60):
                 time.sleep(1)
                 for stagingfile in stagingfiles:
-                    print "Checking for", stagingfiles[stagingfile]
+                    print("Checking for", stagingfiles[stagingfile])
                     if not os.path.exists(stagingfiles[stagingfile]):
                         break
                 else:
@@ -295,7 +300,7 @@ def echo(service, proxy, say):
     conn = httplib.HTTPSConnection(host, port, proxy, proxy)
     try:
         conn.request('POST', path, request)
-    except Exception, e:
+    except Exception as e:
         raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     resp = conn.getresponse()
    
@@ -328,7 +333,7 @@ if __name__ == '__main__':
     
     try:
         cacheurls = cacheCheck(endpoint, proxy, urls_to_check)
-    except CacheException, e:
+    except CacheException as e:
         print('Error calling cacheCheck: ' + str(e))
         sys.exit(1)
         
@@ -339,7 +344,7 @@ if __name__ == '__main__':
     jobid = '1'
     try:
         cacheurls = cacheLink(endpoint, proxy, os.getlogin(), jobid, urls_to_link, True)
-    except CacheException, e:
+    except CacheException as e:
         print('Error calling cacheLink: ' + str(e))
         sys.exit(1)
     

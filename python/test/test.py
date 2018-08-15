@@ -1,6 +1,7 @@
-#!/usr/bin/python2
-#import sys
-#sys.path=sys.path+['../', '../.libs/' ]
+#!/usr/bin/env python
+
+from __future__ import print_function
+
 import arc
 #f = open('soap.xml').read()
 #e = arc.SOAPEnvelope(f)
@@ -12,7 +13,7 @@ import arc
 ns = arc.NS()
 ns['echo'] = 'urn:echo'
 outpayload = arc.PayloadSOAP(ns)
-print type(outpayload)
+print(type(outpayload))
 outpayload.NewChild('echo:echoResponse').NewChild('echo:hear').Set('foo')
 # n = outpayload.NewChild('echo:echoResponse')
 # print type(n)
@@ -20,5 +21,5 @@ outmsg = arc.SOAPMessage()
 outmsg.Payload(outpayload)
 s = 'a'
 ss = outpayload.GetXML()
-print s, ss
-print str(outmsg)
+print(s, ss)
+print(str(outmsg))
