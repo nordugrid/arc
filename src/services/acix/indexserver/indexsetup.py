@@ -36,8 +36,8 @@ def createIndexApplication(use_ssl=SSL_DEFAULT, port=None,
     siteroot = resource.Resource()
     dataroot = resource.Resource()
 
-    dataroot.putChild('index', indexresource.IndexResource(ci))
-    siteroot.putChild('data', dataroot)
+    dataroot.putChild(b'index', indexresource.IndexResource(ci))
+    siteroot.putChild(b'data', dataroot)
 
     site = server.Site(siteroot)
 

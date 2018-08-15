@@ -1,4 +1,7 @@
-#!/usr/bin/python2
+#!@PYTHON@
+
+from __future__ import print_function
+
 import sys
 import arc
 import time

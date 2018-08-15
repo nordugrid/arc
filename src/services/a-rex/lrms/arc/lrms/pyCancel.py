@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import sys, traceback
 
 try:

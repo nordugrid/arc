@@ -13,6 +13,8 @@ The hash library is from:
 http://www.partow.net/programming/hashfunctions/index.html
 """
 
+from __future__ import print_function
+
 import math
 
 from acix.core import bitvector, hashes
@@ -45,15 +47,15 @@ def calculateSize(capacity, error_rate=0.001):
     # the error_rate constraint assumes a fill rate of 1/2
     # so we double the capacity to simplify the API
     bits = math.ceil( (2 * capacity * abs(math.log(error_rate))) /
-                      (slices * (math.log(2) ** 2)))
+                      (slices * (math.log(2) ** 2)) )
 
     size = int(slices * bits)
 
     ROUND_TO = 32
     # make sure we return a multiple of 32 (otherwise bitvector serialization will explode)
     if size % ROUND_TO != 0:
-        mp = math.ceil(size / ROUND_TO)
-        size = int(mp * ROUND_TO)
+        mp = size // ROUND_TO + 1
+        size = mp * ROUND_TO
     return size
 
 
@@ -102,7 +104,7 @@ class BloomFilter(object):
 
 
     def serialize(self):
-        return str(self.bits)
+        return self.bits.tostring()
 
 
 
@@ -120,5 +122,5 @@ if __name__ == '__main__':
     t0 = time.time()
     scanner.scan(bf.add)
     td = time.time() - t0
-    print "Time taken for bloom filter build: %s" % td
+    print("Time taken for bloom filter build: %s" % td)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 # The nordugrid-arc-python package is required. As stated in the comments, the
 # main missing piece in Python when compared to C++ is the ability to get

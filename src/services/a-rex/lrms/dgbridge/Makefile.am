@@ -1,6 +1,6 @@
 dist_pkgdata_DATA = configure-DGBridge-env.sh
-dist_pkgdata_SCRIPTS = DGAuthplug.py DGBridgeDataPlugin.py DGLog2XML.py
-pkgdata_SCRIPTS = scan-DGBridge-job submit-DGBridge-job cancel-DGBridge-job
+pkgdata_SCRIPTS = DGAuthplug.py DGBridgeDataPlugin.py DGLog2XML.py \
+                  scan-DGBridge-job submit-DGBridge-job cancel-DGBridge-job
 
 profiledir = $(pkgdatadir)/profiles
 profile_DATA = dgbridge.xml

@@ -1,4 +1,6 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
+
+from __future__ import print_function
 
 from platform import node
 from sys import argv
@@ -14,11 +16,11 @@ def matlabRange(threads):
     elif len(limits)==3:
         return range(int(limits[0]),int(limits[2])+1,int(limits[1]))
     else:
-        print "Badly formed range expression!"
+        print("Badly formed range expression!")
         exit()
 
 if (len(argv)!=5):
-    print "Wrong number of arguments!"
+    print("Wrong number of arguments!")
     exit()
     
 host         = argv[1]
@@ -33,7 +35,7 @@ responseTimePattern = compile(r"Average response time for all requests: (\d+)")
 completedTimePattern = compile(r"Average response time for completed requests: (\d+)")
 failedTimePattern = compile(r"Average response time for failed requests: (\d+)")
 
-print """%% Output from prefengine.py running perftest
+print("""%% Output from prefengine.py running perftest
 %% Client host: %s
 %% Server host: %s
 %% Server port: %s
@@ -44,7 +46,7 @@ print """%% Output from prefengine.py running perftest
 %% Column 4: Number of failed requests
 %% Column 5: Average response time for all requests (ms)
 %% Column 6: Average response time for completed requests (ms)
-%% Column 7: Average response time for failed requests (ms) """ % (node(), host, port, duration)
+%% Column 7: Average response time for failed requests (ms) """ % (node(), host, port, duration))
 
 for numberOfThreads in threadRange:
     command = "perftest %s %i %i %i" % (host, port, numberOfThreads, duration)
@@ -66,11 +68,11 @@ for numberOfThreads in threadRange:
     else:
         failedTime = "NaN"
 
-    print "%i\t%s\t%s\t%s\t%s\t%s\t%s" % (numberOfThreads,
+    print("%i\t%s\t%s\t%s\t%s\t%s\t%s" % (numberOfThreads,
                                       numberOfRequests,
                                       completedRequests,
                                       failedRequests,
                                       responseTime,
                                       completedTime,
-                                      failedTime)
+                                      failedTime))
 
