@@ -885,7 +885,9 @@
 
 ## joblog = path - Specifies where to store specialized log about started
 ## and finished jobs. If path is empty log is NOT written.
-## This log is not used by any other part of ARC, so keep it disabled unless needed.
+## Controlled by logrotate if deafult name is kept.
+## This log is not used by any other part of ARC so can be safely disabled if you are
+## not interested in storing jobs log.
 ## default: /var/log/arc/arex-jobs.log
 #joblog=""
 
