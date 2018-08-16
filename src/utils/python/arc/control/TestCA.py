@@ -1,5 +1,8 @@
-from ControlCommon import *
-from CertificateGenerator import CertificateGenerator, CertificateKeyPair
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
+from .CertificateGenerator import CertificateGenerator, CertificateKeyPair
 import socket
 import sys
 import stat
@@ -39,7 +42,7 @@ class TestCAControl(ComponentControl):
         # CA certificates dir
         if not os.path.exists(self.x509_cert_dir):
             self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
-            os.makedirs(self.x509_cert_dir, mode=0755)
+            os.makedirs(self.x509_cert_dir, mode=0o755)
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
@@ -63,7 +66,7 @@ class TestCAControl(ComponentControl):
             os.chmod(os.path.join(workdir, keyfname), stat.S_IRUSR | stat.S_IWUSR)
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
             shutil.move(hostcertfiles.keyLocation, os.path.join(workdir, keyfname))
-            print 'Host certificate and key are saved to {0} and {1} respectively.'.format(certfname, keyfname)
+            print('Host certificate and key are saved to {0} and {1} respectively.'.format(certfname, keyfname))
         else:
             if not args.force:
                 if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
@@ -108,21 +111,21 @@ class TestCAControl(ComponentControl):
             # make a tarball
             with tarfile.open(os.path.join(workdir, tarball), 'w') as tarf:
                 tarf.add(export_dir)
-            print 'User certificate and key are exported to {0}.\n' \
+            print('User certificate and key are exported to {0}.\n' \
                   'To use test cert with arc* tools on the other machine, copy the tarball and run following:\n' \
                   '  tar xf {0}\n' \
-                  '  source {1}/usercerts.sh'.format(tarball, export_dir)
+                  '  source {1}/usercerts.sh'.format(tarball, export_dir))
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(tmpdir)
         else:
-            print 'User certificate and key are saved to {0} and {1} respectively.\n' \
+            print('User certificate and key are saved to {0} and {1} respectively.\n' \
                   'To use test cert with arc* tools export the following variables:\n' \
                   '  export X509_USER_CERT="{2}/{0}"\n' \
                   '  export X509_USER_KEY="{2}/{1}"'.format(
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
-                        os.getcwd())
+                        os.getcwd()))
 
     def control(self, args):
         if args.action == 'init':

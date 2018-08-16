@@ -1,6 +1,13 @@
+from __future__ import print_function
+
 import subprocess
 import logging
-import urllib2
+try:
+    from urllib.request import Request, urlopen
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import Request, urlopen
+    from urllib2 import URLError
 import sys
 import os
 
@@ -43,14 +50,14 @@ class OSPackageManagement(object):
         sys.exit(1)
 
     def version(self):
-        print '{0} version {1}'.format(self.pm, self.pm_version)
+        print('{0} version {1}'.format(self.pm, self.pm_version))
 
     def __get_url_content(self, url):
-        req = urllib2.Request(url)
+        req = Request(url)
         try:
             self.logger.debug('Fetching the content of URL: %s', url)
-            response = urllib2.urlopen(req)
-        except urllib2.URLError as e:
+            response = urlopen(req)
+        except URLError as e:
             if hasattr(e, 'reason'):
                 self.logger.error('Failed to reach the content server for %s. Error: %s', url, e.reason)
             else:
@@ -105,7 +112,7 @@ class OSPackageManagement(object):
     def install(self, packages):
         # no underscores according to Debian naming policy: https://www.debian.org/doc/debian-policy/
         if self.pm == 'apt':
-            packages = list(map(lambda p: p.replace('_', '-'), packages))
+            packages = list([p.replace('_', '-') for p in packages])
         # install
         command = self.command_base + [self.pm_cmd, '-y', 'install'] + packages
         self.logger.info('Running the following command to install packages: %s', ' '.join(command))

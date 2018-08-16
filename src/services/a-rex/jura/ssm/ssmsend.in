@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!@PYTHON@
 
 #   Copyright (C) 2012 STFC
 #
@@ -19,6 +19,8 @@ Script to run a sending SSM.
 @author: Will Rogers
 '''
 
+from __future__ import print_function
+
 import sys
 
 # Prepend module path
@@ -33,7 +35,10 @@ import logging.config
 import ldap
 import os
 from optparse import OptionParser
-import ConfigParser
+try:
+    import configparser as ConfigParser
+except ImportError:
+    import ConfigParser
 
 
 def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
@@ -60,9 +65,9 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
             set_up_logging(cp.get('logging', 'logfile'), 
                            cp.get('logging', 'level'),
                            cp.getboolean('logging', 'console'))
-    except (ConfigParser.Error, ValueError, IOError), err:
-        print 'Error configuring logging: %s' % str(err)
-        print 'The system will exit.'
+    except (ConfigParser.Error, ValueError, IOError) as err:
+        print('Error configuring logging: %s' % str(err))
+        print('The system will exit.')
         sys.exit(1)
     
     log = logging.getLogger('ssmsend')
@@ -81,7 +86,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
             service = STOMP_SERVICE
         brokers = bg.get_broker_hosts_and_ports(service, cp.get('broker','network'))
         log.info('Found %s brokers.', len(brokers))
-    except ConfigParser.NoOptionError, e:
+    except ConfigParser.NoOptionError as e:
         try:
             host = _host
             port = _port
@@ -91,13 +96,13 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
                     broker network.  Please check configuration')
             log.error('System will exit.')
             log.info(LOG_BREAK)
-            print 'SSM failed to start.  See log file for details.'
+            print('SSM failed to start.  See log file for details.')
             sys.exit(1)
-    except ldap.LDAPError, e:
+    except ldap.LDAPError as e:
         log.error('Could not connect to LDAP server: %s', e)
         log.error('System will exit.')
         log.info(LOG_BREAK)
-        print 'SSM failed to start.  See log file for details.'
+        print('SSM failed to start.  See log file for details.')
         sys.exit(1)
         
     if len(brokers) == 0:
@@ -122,7 +127,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
             destination = cp.get('messaging', 'destination')
             if destination == '':
                 raise Ssm2Exception('No destination queue is configured.')
-        except ConfigParser.NoOptionError, e:
+        except ConfigParser.NoOptionError as e:
             raise Ssm2Exception(e)
     
         sender = Ssm2(brokers, 
@@ -142,11 +147,11 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
         else:
             log.info('No messages found to send.')
         
-    except (Ssm2Exception, CryptoException), e:
-        print 'SSM failed to complete successfully.  See log file for details.'
+    except (Ssm2Exception, CryptoException) as e:
+        print('SSM failed to complete successfully.  See log file for details.')
         log.error('SSM failed to complete successfully: %s', e)
-    except Exception, e:
-        print 'SSM failed to complete successfully.  See log file for details.'
+    except Exception as e:
+        print('SSM failed to complete successfully.  See log file for details.')
         log.error('Unexpected exception in SSM: %s', e)
         log.error('Exception type: %s', e.__class__)
 
@@ -162,7 +167,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
     
 if __name__ == '__main__':
     if (len(sys.argv) != 9):
-        print "Usage: python ssmsend <hostname> <port> <topic> <key-path> <cert-path> <cadir-path> <path-to-messages-files> <use_ssl>"
+        print("Usage: python ssmsend <hostname> <port> <topic> <key-path> <cert-path> <cadir-path> <path-to-messages-files> <use_ssl>")
         sys.exit(1)
 
     main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8])

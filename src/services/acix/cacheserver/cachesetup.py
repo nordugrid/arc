@@ -1,4 +1,5 @@
 import os
+import socket
 
 from twisted.application import internet, service
 from twisted.web import resource, server
@@ -33,9 +34,7 @@ def getCacheConf():
         arex_url = config.get_value('wsurl', 'arex/ws')
         if not arex_url:
             # Use default endpoint, but first we need hostname
-            hostname = config.get_value('hostname', 'common') # mandatory parameter
-            if not hostname:
-                raise Exception("hostname is missing in [common] section of arc.conf")
+            hostname = config.get_value('hostname', 'common') or socket.gethostname()
             arex_url = DEFAULT_WS_INTERFACE.replace('hostname', hostname)
         cache_url = '%s/cache' % arex_url
 
@@ -63,8 +62,8 @@ def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
     siteroot = resource.Resource()
     dataroot = resource.Resource()
 
-    dataroot.putChild('cache', cr)
-    siteroot.putChild('data', dataroot)
+    dataroot.putChild(b'cache', cr)
+    siteroot.putChild(b'data', dataroot)
 
     site = server.Site(siteroot)
 

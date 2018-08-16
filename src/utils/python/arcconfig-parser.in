@@ -1,6 +1,9 @@
-#!/usr/bin/python2
+#!@PYTHON@
+
+from __future__ import print_function
 
 import argparse
+import sys
 from arc.utils.config import *
 
 
@@ -60,9 +63,9 @@ if __name__ == '__main__':
         process_config(cmd_args)
         # export data
         if cmd_args.export == 'json':
-            print export_json(cmd_args.block, cmd_args.subblocks)
+            print(export_json(cmd_args.block, cmd_args.subblocks))
         elif cmd_args.export == 'bash':
-            print export_bash(cmd_args.block, cmd_args.subblocks, cmd_args.export_filter)
+            print(export_bash(cmd_args.block, cmd_args.subblocks, cmd_args.export_filter))
     else:
         # get values
         if cmd_args.block:
@@ -72,16 +75,16 @@ if __name__ == '__main__':
                 values = get_value(cmd_args.option, cmd_args.block)
                 if isinstance(values, list):
                     for v in values:
-                        print v
+                        print(v)
                 else:
                     if values is None:
                         sys.exit(1)
-                    print values
+                    print(values)
             # work with blocks structure
             else:
                 if cmd_args.subblocks:
                     for sb in get_subblocks(cmd_args.block):
-                        print sb
+                        print(sb)
                 elif not check_blocks(cmd_args.block):
                     sys.exit(1)
         else:

@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import logging
 import re
 import sys
-from config import _parse_config
+from .config import _parse_config
 
 # init module logger
 logger = logging.getLogger('ARC.ConfigReference')
@@ -29,7 +31,7 @@ def parse_defaults(defaults_f):
 
 
 def process_reference(reference_f, print_defaults=False, print_reference=False):
-    with open(reference_f, 'rb') as ref_f:
+    with open(reference_f, 'rt') as ref_f:
         block_id = None
         default_value = None
         default_line = None
@@ -106,7 +108,7 @@ def get_option_description(reference_f, reqblock, reqoption):
 
     option_re_start = re.compile('^##\s+{0}\s+=\s+'.format(reqoption))
 
-    with open(reference_f, 'rb') as referecnce:
+    with open(reference_f, 'rt') as referecnce:
         in_correct_block = False
         is_option_descr = False
         for confline in referecnce:
@@ -183,7 +185,7 @@ def reference2rst(reference_f):
     new_option_re = re.compile(r'^##\s+\*?([a-zA-Z0-9_]+)\s+=\s+')
     block_head_re = re.compile(r'^### The \[([^\]]+)\]')
 
-    with open(reference_f, 'rb') as ref_f:
+    with open(reference_f, 'rt') as ref_f:
         in_example = False
         in_skip = False
         in_list = False

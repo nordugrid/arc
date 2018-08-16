@@ -1,5 +1,5 @@
-dist_pkglibexec_SCRIPTS = arcconfig-parser
-dist_sbin_SCRIPTS = arcctl
+pkglibexec_SCRIPTS = arcconfig-parser
+sbin_SCRIPTS = arcctl
 pkgdata_DATA = arc.parser.defaults
 
 man_MANS = arcctl.1
@@ -9,7 +9,7 @@ all-local:
 	if test ! -e "$(abs_top_builddir)/python/python/arc/control"; then ln -s $(abs_top_srcdir)/src/utils/python/arc/control $(abs_top_builddir)/python/python/arc/control; fi
 
 arc.parser.defaults: $(srcdir)/../../doc/arc.conf.reference
-	$(srcdir)/arcconfig-reference --extract-defaults -r $< > $@
+	$(PYTHON) $(srcdir)/arcconfig-reference --extract-defaults -r $< > $@
 
 EXTRA_DIST = arcconfig-reference
 

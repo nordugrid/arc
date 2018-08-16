@@ -2,9 +2,11 @@
 Wrapper methods for stating, reading and writing files.
 """
 
+from __future__ import absolute_import
+
 import os
-from ssh import SSHSession
-from log import warn, error
+from .ssh import SSHSession
+from .log import warn, error
 
 def read(path, do_tail = 0):
     """
@@ -64,7 +66,7 @@ def tail(path, n, BUFSIZ = 4096):
     return data.split('\n')[-n:]
 
 
-def write(path, buf, mode = 0644, append = False, remote_host = None):
+def write(path, buf, mode = 0o644, append = False, remote_host = None):
     """
     Write buffer to file.
 

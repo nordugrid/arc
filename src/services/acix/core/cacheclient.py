@@ -2,15 +2,18 @@
 Client for retrieving cache.
 """
 
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.web import client
 
-HEADER_HASHES = 'x-hashes'
-HEADER_CACHE_TIME = 'x-cache-time'
-HEADER_CACHE_URL = 'x-cache-url'
+HEADER_HASHES = b'x-hashes'
+HEADER_CACHE_TIME = b'x-cache-time'
+HEADER_CACHE_URL = b'x-cache-url'
 
 
 
@@ -25,7 +28,7 @@ def retrieveCache(url, contextFactory=None):
     consisting of a the hashes, generation-time, and the cache.
     """
     u = urlparse(url)
-    factory = client.HTTPClientFactory(url)
+    factory = client.HTTPClientFactory(url.encode())
     factory.noisy = False
 
     if u.scheme == 'https':
@@ -45,20 +48,20 @@ def _gotCache(result, factory, url):
     try:
         hashes = factory.response_headers[HEADER_HASHES]
         cache_time = factory.response_headers[HEADER_CACHE_TIME]
-    except KeyError, e:
+    except KeyError as e:
         raise InvalidCacheReplyError(str(e))
 
     try:
-        cache_url = factory.response_headers[HEADER_CACHE_URL][0]
-    except KeyError, e: # Site may not expose cache to outside
+        cache_url = factory.response_headers[HEADER_CACHE_URL][0].decode()
+    except KeyError as e: # Site may not expose cache to outside
         cache_url = ''
         
     #log.msg("Raw cache headers. Hashes: %s. Cache time: %s." % (hashes, cache_time))
     assert len(hashes) == 1, "Got more than one hash header"
     assert len(cache_time) == 1, "Got more than one cache time header"
 
-    hashes = hashes[0].split(',')
-    cache_time = float(cache_time[0])
+    hashes = hashes[0].decode().split(',')
+    cache_time = float(cache_time[0].decode())
 
     return hashes, cache_time, result, cache_url
 

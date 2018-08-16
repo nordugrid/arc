@@ -1,4 +1,6 @@
-from ControlCommon import *
+from __future__ import absolute_import
+
+from .ControlCommon import *
 from arc.utils import reference
 import sys
 import shutil

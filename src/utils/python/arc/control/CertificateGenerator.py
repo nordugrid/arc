@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import subprocess
 import tempfile
 import os
@@ -251,53 +253,53 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.list_digest:
-        print "Supported hash functions are: %s" % ", ".join(CertificateGenerator.supportedMessageDigests)
+        print("Supported hash functions are: %s" % ", ".join(CertificateGenerator.supportedMessageDigests))
         sys.exit(0)
 
     if args.CA is None and args.host is None and args.client is None:
         parser.print_help()
-        print "Error: At least one of the options '--CA', '--host', '--client' must be specified."
+        print("Error: At least one of the options '--CA', '--host', '--client' must be specified.")
         sys.exit(-1)
 
     if args.CA and (args.CA_key_path or args.CA_cert_path):
         parser.print_help()
-        print "Error: '--CA' may not be specified with either '--CA-key-path' or '--CA-cert-path'."
+        print("Error: '--CA' may not be specified with either '--CA-key-path' or '--CA-cert-path'.")
         sys.exit(-1)
 
     if args.CA_key_path and not args.CA_cert_path or not args.CA_key_path and args.CA_cert_path:
         parser.print_help()
-        print "Error: Both '--CA-key-path' and '--CA-cert-path' must be specified."
+        print("Error: Both '--CA-key-path' and '--CA-cert-path' must be specified.")
         sys.exit(-1)
 
     if (args.host or args.client) and not (args.CA or args.CA_key_path):
         parser.print_help()
-        print "Error: When generating host or client certificates. " \
-              "Either '--CA' or path to existing CA certificates must be specified."
+        print("Error: When generating host or client certificates. " \
+              "Either '--CA' or path to existing CA certificates must be specified.")
         sys.exit(-1)
 
     try:
         CertificateGenerator.checkMessageDigest(args.digest)
     except Exception as e:
-        print e
-        print "Supported hash functions are: %s" % ", ".join(CertificateGenerator.supportedMessageDigests)
+        print(e)
+        print("Supported hash functions are: %s" % ", ".join(CertificateGenerator.supportedMessageDigests))
         sys.exit(-1)
 
     cc = CertificateGenerator()
 
     ca = None
     if args.CA:
-        print "Generating CA certificate and key."
+        print("Generating CA certificate and key.")
         ca = cc.generateCA(args.CA, validityperiod=args.validity, messagedigest=args.digest)
     else:
-        print "Using specified CA certificate and key."
+        print("Using specified CA certificate and key.")
         ca = CertificateKeyPair(args.CA_key_path, args.CA_cert_path)
 
     if args.host:
-        print "Generating host certificate."
+        print("Generating host certificate.")
         cc.generateHostCertificate(args.host, ca=ca, validityperiod=args.validity, messagedigest=args.digest)
 
     if args.client:
-        print "Generating client certificate."
+        print("Generating client certificate.")
         cc.generateClientCertificate(args.client, ca=ca, validityperiod=args.validity, messagedigest=args.digest)
 
     sys.exit(0)

@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Mattias Ellert <mattias.ellert@physics.uu.se>
 Uploaders: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev, libinline-python-perl | dash, libldns-dev
+Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev, libinline-python-perl | dash, libldns-dev, python-twisted-core, python-twisted-web, python-openssl
 XS-Python-Version: current
 Standards-Version: 4.0.0
 Homepage: http://www.nordugrid.org
@@ -14,7 +14,8 @@ Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), n
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+XB-Python-Version: ${python:Versions}
 Description: ARC Grid middleware
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -175,7 +176,7 @@ Provides: nordugrid-arc-acix-cache
 Replaces: nordugrid-arc-acix-cache (<< 6.0.0~)
 Conflicts: nordugrid-arc-acix-cache (<< 6.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python, python-twisted-core, python-twisted-web, python-openssl, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - scanner server
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -188,7 +189,7 @@ Description: ARC cache index - scanner server
 
 Package: nordugrid-arc-acix-index
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python, python-twisted-core, python-twisted-web, python-openssl, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - index server
  NorduGrid is a collaboration aiming at development, maintenance and
