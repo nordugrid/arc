@@ -34,7 +34,7 @@ class LRMSInfo(object):
         if value[-1].isdigit():
             return int(value)
         try:
-            units = ['K', 'M', 'G',' T']
+            units = ['K', 'M', 'G', 'T']
             return int(value[:-1]) << 10*(1 + units.index(value[-1]))
         except:
             return 0
