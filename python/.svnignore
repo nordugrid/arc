@@ -1,6 +1,0 @@
-.libs
-.deps
-Makefile.in
-Makefile
-arc_wrap.*
-arc.py
