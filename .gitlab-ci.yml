@@ -257,9 +257,9 @@ deploy_staging_el7:
     - echo "Preparing folders for arc logs"
     - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
     - echo "validating arc.config and starting services"
-    - /etc/rc.d/init.d/a-rex validate
-    - /etc/rc.d/init.d/a-rex start
-    #- /etc/rc.d/init.d/gridftpd start
+    - /etc/rc.d/init.d/arc-arex validate
+    - /etc/rc.d/init.d/arc-arex start
+    - /etc/rc.d/init.d/arc-gridftpd start
     - echo 'Test-submit through local plugin '
     - arcproxy -C /arc/.globus/usercert.pem -K /arc/.globus/userkey_nopass.pem
     - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.internal /arc/arc-testing/hello.xrls
