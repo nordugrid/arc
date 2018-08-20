@@ -55,7 +55,7 @@ if [ ! -d $LOGD ]; then
     mkdir -p $LOGD
 fi
 
-prog=twistd
+prog=@TWISTD@
 
 RUN=yes
 

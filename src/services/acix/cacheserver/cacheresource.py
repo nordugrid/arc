@@ -2,6 +2,8 @@
 resource to fetch a bloom filter from
 """
 
+import socket
+
 from twisted.python import log
 from twisted.web import resource
 
@@ -17,7 +19,23 @@ class CacheResource(resource.Resource):
 
 
     def render_GET(self, request):
-        client = request.getClient() + "/" + request.getClientIP()
+        try:
+            clienthost = request.getClientAddress().host # twisted >= 18.4
+        except:
+            clienthost = request.getClientIP() # twisted < 18.4
+
+        def getClient(host):
+            try:
+                name, names, addresses = socket.gethostbyaddr(host)
+            except socket.error:
+                return host
+            names.insert(0, name)
+            for name in names:
+                if '.' in name:
+                    return name
+            return names[0]
+
+        client = getClient(clienthost) + "/" + clienthost
         log.msg("GET request on cache from %s" % client)
 
         gen_time, hashes, cache, cache_url = self.cache_service.getCache()

@@ -63,7 +63,7 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     # parse /etc/arc.conf first
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
     # save parsed dictionary keys that holds original arc.conf values
-    for block, options_dict in __parsed_config.iteritems():
+    for block, options_dict in __parsed_config.items():
         __parsed_config_admin_defined.update({block: options_dict.keys()})
     if defaults_f is not None:
         if os.path.exists(defaults_f):
@@ -93,7 +93,7 @@ def yield_arc_conf():
 
 def dump_arc_conf(conf_f=__def_path_runconf):
     """Dump stored config dict to file"""
-    with open(conf_f, 'wb') as arcconf:
+    with open(conf_f, 'wt') as arcconf:
         for confline in yield_arc_conf():
             arcconf.write(confline)
 
@@ -103,7 +103,7 @@ def save_run_config(runconf_f=__def_path_runconf):
     runconf_dir = '/'.join(runconf_f.split('/')[:-1])
     if not os.path.exists(runconf_dir):
         logger.debug('Making %s directory', runconf_dir)
-        os.makedirs(runconf_dir, mode=0755)
+        os.makedirs(runconf_dir, mode=0o755)
     dump_arc_conf(runconf_f)
 
 
@@ -272,7 +272,7 @@ def _evaluate_values():
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
     """Parse arc.conf-formatted configuration file to specified data structures"""
-    with open(conf_f, 'rb') as arcconf:
+    with open(conf_f, 'rt') as arcconf:
         block_id = None
         for ln, confline in enumerate(arcconf):
             if __arcconf_re['skip'].match(confline):
@@ -318,7 +318,7 @@ def _config_subset(blocks=None):
     if blocks is None:
         blocks = []
     blocks_dict = {}
-    for cb in __parsed_config.keys():
+    for cb in __parsed_config:
         if cb in blocks:
             blocks_dict[cb] = __parsed_config[cb]
     return blocks_dict
@@ -329,7 +329,7 @@ def _blocks_list(blocks=None):
     if blocks is None:
         blocks = []
     # ability to pass single block name as a string
-    if isinstance(blocks, basestring):
+    if isinstance(blocks, (bytes, str)):
         blocks = [blocks]
     return blocks
 
@@ -382,7 +382,7 @@ def export_bash(blocks=None, subsections=False, options_filter=None):
             else:
                 bash_config['CONFIG_' + k] = v
     eval_str = ''
-    for k, v in bash_config.iteritems():
+    for k, v in bash_config.items():
         eval_str += k + '="' + v.replace('"', '\\"') + '"\n'
     return eval_str
 
@@ -467,7 +467,7 @@ def check_blocks(blocks=None, and_logic=True):
 
 def yield_modified_conf(refblock, refoption, newvalue, conf_f=__def_path_arcconf):
     sferblock = '[{0}]'.format(refblock)
-    with open(conf_f, 'rb') as refconf:
+    with open(conf_f, 'rt') as refconf:
         in_correct_block = False
         inserted = False
         for confline in refconf:

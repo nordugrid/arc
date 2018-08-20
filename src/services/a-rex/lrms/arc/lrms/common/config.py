@@ -2,10 +2,13 @@
 Provides the ``Config`` object, with each arc.conf option as an attribute.
 """
 
+from __future__ import absolute_import
+
 import sys, os, socket
 
 import arc
-from log import debug
+from .log import debug
+from .files import getmtime
 
 class _object(object): pass # Pickle can't serialize inline classes
 
@@ -44,9 +47,13 @@ def configure(configfile, *func):
     try:
         assert(getmtime(pickle_conf) > getmtime(configfile))
         debug('Loading pickled config from ' + pickle_conf, 'common.config')
-        Config = pickle.loads(pickle_conf)
+        with open(pickle_conf, 'rb') as f:
+            Config = pickle.load(f)
     except:
-        import ConfigParser
+        try:
+            import configparser as ConfigParser
+        except ImportError:
+            import ConfigParser
         cfg = ConfigParser.ConfigParser()
         cfg.read(configfile)
 
@@ -57,8 +64,8 @@ def configure(configfile, *func):
         for fun in func:
             getattr(fun, 'is_conf_setter', False) and fun(cfg)
         try:
-            with open(pickle_conf, 'w') as f:
-                f.write(pickle.dumps(Config))
+            with open(pickle_conf, 'wb') as f:
+                pickle.dump(Config, f)
         except IOError:
             pass
 

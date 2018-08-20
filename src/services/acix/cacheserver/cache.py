@@ -15,7 +15,7 @@ CAPACITY_CHUNK = 10000  # 10k entries is the least we bother with
 WATERMARK_LOW = 10000  # 10k entries -> 35k memory, no reason to go lower
 
 
-class _Counter:
+class _Counter(object):
 
     def __init__(self):
         self.n = 0
@@ -87,7 +87,7 @@ class Cache(service.Service):
 
         if n_files > self.capacity:
             log.msg("Filter capacity exceeded. Capacity: %i. Files: %i" % (self.capacity, n_files))
-            self.capacity = (round(n_files/float(CAPACITY_CHUNK))+1) * CAPACITY_CHUNK
+            self.capacity = (round(n_files / float(CAPACITY_CHUNK)) + 1) * CAPACITY_CHUNK
             log.msg("Filter capacity expanded to %i (will take effect on next cache run)" % self.capacity)
             return
 

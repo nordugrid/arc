@@ -2,7 +2,7 @@
 
 PIDFILE=/var/run/arc-acix-scanner.pid
 DEFAULT_LOGFILE=/var/log/arc/arc-acix-scanner.log
-prog=twistd
+prog=@TWISTD@
 
 RUN=yes
 

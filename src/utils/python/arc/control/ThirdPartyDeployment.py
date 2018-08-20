@@ -1,12 +1,20 @@
-from ControlCommon import *
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
 import sys
-import urllib2
+try:
+    from urllib.request import Request, urlopen
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import Request, urlopen
+    from urllib2 import URLError
 import socket
 import ssl
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-from OSPackage import OSPackageManagement
+from .OSPackage import OSPackageManagement
 
 
 class ThirdPartyControl(ComponentControl):
@@ -26,11 +34,11 @@ class ThirdPartyControl(ComponentControl):
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
         dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
         # query database
-        req = urllib2.Request(dburl)
+        req = Request(dburl)
         try:
             self.logger.debug('Contacting EGI VO Database at %s', dburl)
-            response = urllib2.urlopen(req)
-        except urllib2.URLError as e:
+            response = urlopen(req)
+        except URLError as e:
             if hasattr(e, 'reason'):
                 self.logger.error('Failed to reach EGI VO Database server. Error: %s', e.reason)
             else:
@@ -157,8 +165,8 @@ class ThirdPartyControl(ComponentControl):
         vomses_dir = '/etc/grid-security/vomsdir/{0}'.format(args.vo)
         if not os.path.exists(vomses_dir):
             self.logger.debug('Making vomses directory %s to hold LSC file(s)', vomses_dir)
-            os.makedirs(vomses_dir, mode=0755)
-        for host, creds in voms_creds.iteritems():
+            os.makedirs(vomses_dir, mode=0o755)
+        for host, creds in voms_creds.items():
             lsc_file = '{0}/{1}.lsc'.format(vomses_dir, host)
             with open(lsc_file, 'w') as lsc_f:
                 self.logger.info('Creating LSC file: %s', lsc_file)
@@ -191,13 +199,13 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             }
             pmobj.deploy_repository(repoconf)
         elif repo == 'nordugrid':
-            print 'Nordugrid repository is the general purpose repo that contains binary packages of Nordugid ARC ' \
+            print('Nordugrid repository is the general purpose repo that contains binary packages of Nordugid ARC ' \
                   'and as a bonus includes third-party packages like IGTF CA certitificates.\n' \
                   'Repositories installation depends on which version of Nordugrid ARC you want to use.\n' \
                   'Please follow the http://download.nordugrid.org/repos.html and install \'nordugrid-release\' ' \
                   'package for chosen version.\n' \
                   'If you do not want to install Nordugrid ARC packages from the nordugrid repos ' \
-                  'consider the other sources of IGTF CA certificates.'
+                  'consider the other sources of IGTF CA certificates.')
             sys.exit(0)
         else:
             self.logger.error('Unsupported CA certificates repository %s', repo)
@@ -208,7 +216,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         if installrepo:
             self.install_cacerts_repo(pm, installrepo)
             pm.update_cache()
-        exitcode = pm.install(list(map(lambda p: 'ca_policy_igtf-' + p, bundle)))
+        exitcode = pm.install(list(['ca_policy_igtf-' + p for p in bundle]))
         if exitcode:
             self.logger.error('Can not install IGTF CA Certificate packages. '
                               'Make sure you have repositories installed (see --help for options).')
@@ -312,9 +320,9 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                      '-A INPUT -p tcp {statestr} -m tcp -m multiport --dports {tcpports} -j ACCEPT\n' \
                      '# ARC CE allowed UDP ports\n' \
                      '-A INPUT -p udp {statestr} -m udp -m multiport --dports {udpports} -j ACCEPT'
-            print iptstr.format(statestr=statestr,
+            print(iptstr.format(statestr=statestr,
                                 tcpports=','.join(tcp_ports),
-                                udpports=','.join(udp_ports))
+                                udpports=','.join(udp_ports)))
             return
 
         iptstr = '# ARC CE {descr}\n-A INPUT -p {proto}' + statestr + ' -m {proto} --dport {port} -j ACCEPT'
@@ -322,7 +330,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             if 'proto' not in iptc:
                 iptc['proto'] = 'TCP'
             iptc['proto'] = iptc['proto'].lower()
-            print iptstr.format(**iptc)
+            print(iptstr.format(**iptc))
 
     def control(self, args):
         if args.action == 'voms-lsc':

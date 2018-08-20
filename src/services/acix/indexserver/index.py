@@ -3,7 +3,10 @@ resource to fetch a bloom filter from
 """
 
 import hashlib
-import urlparse
+try:
+    import urllib.parse as urlparse
+except ImportError:
+    import urlparse
 
 from twisted.python import log
 from twisted.internet import defer, task
@@ -63,7 +66,7 @@ class CacheIndex(service.Service):
         try:
             size = len(cache) * 8
             self.filters[cache_url] = bloomfilter.BloomFilter(size=size, bits=cache, hashes=hashes)
-        except Exception, e:
+        except Exception as e:
             log.err(e)
         log.msg("New cache added for " + cache_url)
 
@@ -76,7 +79,7 @@ class CacheIndex(service.Service):
         results = {}
         for host, filter_ in self.filters.items():
             for key in keys:
-                khash = hashlib.sha1(key).hexdigest()
+                khash = hashlib.sha1(key.encode()).hexdigest()
                 hosts = results.setdefault(key, [])
                 log.msg("Query: %s for %s" % (khash, host))
                 if khash in filter_:

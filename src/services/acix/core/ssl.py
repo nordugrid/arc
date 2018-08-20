@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 from OpenSSL import SSL
@@ -8,7 +10,7 @@ DEFAULT_HOST_CERT = '/etc/grid-security/hostcert.pem'
 DEFAULT_CERTIFICATES = '/etc/grid-security/certificates'
 
 
-class ContextFactory:
+class ContextFactory(object):
 
     def __init__(self, key_path=DEFAULT_HOST_KEY, cert_path=DEFAULT_HOST_CERT,
                  verify=False, ca_dir=None):
@@ -57,5 +59,5 @@ class ContextFactory:
 if __name__ == '__main__':
     cf = ContextFactory()
     ctx = cf.getContext()
-    print ctx
+    print(ctx)
 

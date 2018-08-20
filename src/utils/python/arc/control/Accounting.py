@@ -1,4 +1,7 @@
-from ControlCommon import *
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
 import sys
 import os
 import datetime
@@ -7,6 +10,7 @@ import isodate  # extra dependency on python-isodate package
 import ldap
 import xml.etree.ElementTree as ElementTree
 import argparse
+from functools import reduce
 
 
 def valid_datetime_type(arg_datetime_str):
@@ -67,7 +71,7 @@ class AccountingControl(ComponentControl):
         if childs:
             d = {t.tag: {}}
             for cd in map(self.__xml_to_dict, list(t)):
-                for k, v in cd.iteritems():
+                for k, v in cd.items():
                     if k in d[t.tag]:
                         d[t.tag][k].append(v)
                     else:
@@ -164,9 +168,9 @@ class AccountingControl(ComponentControl):
         else:
             frecords = records
         if args.start_from:
-            frecords = filter(lambda x: (x['StartTime'] > args.start_from), frecords)
+            frecords = [x for x in frecords if (x['StartTime'] > args.start_from)]
         if args.end_till:
-            frecords = filter(lambda x: (x['EndTime'] < args.end_till), frecords)
+            frecords = [x for x in frecords if (x['EndTime'] < args.end_till)]
         return frecords
 
     @staticmethod
@@ -209,24 +213,24 @@ class AccountingControl(ComponentControl):
             self.logger.error('There are no records that match filters.')
             sys.exit(0)
         if args.jobs:
-            print len(frecords)
+            print(len(frecords))
         elif args.walltime:
-            print self.__get_walltime(frecords)[0]
+            print(self.__get_walltime(frecords)[0])
         elif args.cputime:
-            print self.__get_walltime(frecords)[1]
+            print(self.__get_walltime(frecords)[1])
         elif args.vos:
-            print '\n'.join(self.__get_vos(frecords))
+            print('\n'.join(self.__get_vos(frecords)))
         elif args.users:
-            print '\n'.join(self.__get_users(frecords))
+            print('\n'.join(self.__get_users(frecords)))
         else:
             walltime, cputime = self.__get_walltime(frecords)
             sfrom, etill = self.__get_from_till(frecords)
             kind = 'APEL' if args.apel else 'SGAS'
             jobs = len(frecords)
-            print 'Statistics for {0} jobs from {1} till {2}:\n' \
+            print('Statistics for {0} jobs from {1} till {2}:\n' \
                   '  Number of jobs: {3:>16}\n' \
                   '  Total WallTime: {4:>16}\n' \
-                  '  Total CPUTime:  {5:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime)
+                  '  Total CPUTime:  {5:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime))
 
     def stats(self, args):
         self.__parse_records(args.apel, args.sgas)
@@ -289,7 +293,7 @@ class AccountingControl(ComponentControl):
             for (_, e) in endpoints:
                 if 'GLUE2EndpointURL' in e:
                     for url in e['GLUE2EndpointURL']:
-                        print url.replace('stomp+ssl://', 'https://').replace('stomp://', 'http://')
+                        print(url.replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
             ldap_conn.unbind()
         except ldap.LDAPError as err:
             self.logger.error('Failed to query Top-BDII %s. Error: %s.', args.top_bdii, err.message['desc'])

@@ -1,7 +1,10 @@
-from ControlCommon import *
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
 import sys
-from OSService import OSServiceManagement
-from OSPackage import OSPackageManagement
+from .OSService import OSServiceManagement
+from .OSPackage import OSPackageManagement
 
 
 def complete_service_name(prefix, parsed_args, **kwargs):
@@ -60,7 +63,7 @@ class ServicesControl(ComponentControl):
         packages_needed = set()
         services_needed = set()
         services_all = set()
-        for block in self.__blocks_map.keys():
+        for block in self.__blocks_map:
             bservice = self.__blocks_map[block]['service']
             if bservice is not None:
                 services_all.add(bservice)
@@ -157,14 +160,14 @@ class ServicesControl(ComponentControl):
                 'enabled_str': 'Enabled' if enabled else 'Disabled'
             }
         if args.installed:
-            print ' '.join(sorted(map(lambda s: s['name'], filter(lambda s: s['installed'], services.values()))))
+            print(' '.join(sorted([s['name'] for s in [s for s in services.values() if s['installed']]])))
         elif args.enabled:
-            print ' '.join(sorted(map(lambda s: s['name'], filter(lambda s: s['enabled'], services.values()))))
+            print(' '.join(sorted([s['name'] for s in [s for s in services.values() if s['enabled']]])))
         elif args.active:
-            print ' '.join(sorted(map(lambda s: s['name'], filter(lambda s: s['active'], services.values()))))
+            print(' '.join(sorted([s['name'] for s in [s for s in services.values() if s['active']]])))
         else:
-            for ss in sorted(services.values(), key=lambda k: k['name']):
-                print '{name:32} ({installed_str}, {enabled_str}, {active_str})'.format(**ss)
+            for ss in sorted(list(services.values()), key=lambda k: k['name']):
+                print('{name:32} ({installed_str}, {enabled_str}, {active_str})'.format(**ss))
 
     def control(self, args):
         if args.action == 'enable':
