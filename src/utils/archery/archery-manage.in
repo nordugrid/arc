@@ -127,6 +127,7 @@ class EndpointFilterType(EndpointFilter):
         'org.ogf.glue.emies.activitymanagement',
         'org.ogf.glue.emies.delegation',
         'org.ogf.glue.emies.resourceinfo',
+        'org.nordugrid.arcrest',
         'resourceinfo'
     ]
     _resourseinfo_endpoint_types = [
@@ -135,7 +136,7 @@ class EndpointFilterType(EndpointFilter):
         'org.ogf.glue.emies.resourceinfo'
     ]
 
-    def __init__(self, args):
+    def __init__(self, args='resourceinfo'):
         self._allowed_endpoint_types = args.split(',')
         # handle resourceinfo alias for all information endpoint types
         if 'resourceinfo' in self._allowed_endpoint_types:
@@ -159,15 +160,15 @@ class EndpointFilterType(EndpointFilter):
 
     def help(self):
         print('Endpoint type filter: \'-f type:<endpoint type>[,<endpoint type>[...]]\'')
-        print('\tThe following types are supported: {}'.format(
-            ','.join(self._all_endpoint_types)))
+        print('\tThe following types are supported:\n\t\t{}'.format(
+            ',\n\t\t'.join(self._all_endpoint_types)))
 
 
 class EndpointFilterPortscan(EndpointFilter):
     """Filter endpoints by port connectivity check"""
     __uri_re = re.compile(r'^(?P<uri>(?:ldap|gsiftp|https)://(?P<host>[^:/]+):(?P<port>[0-9]+))/*.*')
 
-    def __init__(self, args):
+    def __init__(self, args=None):
         self.__args = args
 
     def filter(self, endpoint_dict):
@@ -202,7 +203,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
     __uri_re = re.compile(r'^(?P<uri>(?P<protocol>ldap|https)://(?P<host>[^:/]+)(?P<port>:[0-9]+))/*.*')
     __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
 
-    def __init__(self, args):
+    def __init__(self, args=''):
         self._allowed_vos = args.split(',')
 
     def filter(self, endpoint_dict):
