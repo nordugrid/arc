@@ -98,21 +98,26 @@ class CertificateGenerator(object):
             os.symlink(certFilename, ca.subject_hash + ".0")
             logger.info('Linking %s to %s.0', certFilename, ca.subject_hash_old)
             os.symlink(certFilename, ca.subject_hash_old + ".0")
+            # Signing policy is critical for Globus
+            logger.info('Writing signing_policy file for CA')
+            ca.signingPolicyLocation = os.path.join(self.work_dir, name.replace(" ", "-") + ".signing_policy")
+            signing_policy = '''# EACL ARC Test CA
+access_id_CA  X509   '{subject}'
+pos_rights    globus CA:sign
+cond_subjects globus '"{cond_subject}/*"'
+'''.format(subject=subject, cond_subject=subject[:subject.rfind('/')])
+            with open(ca.signingPolicyLocation, "w") as f_signing:
+                f_signing.write(signing_policy)
+            logger.info('Linking %s to %s.signing_policy', ca.signingPolicyLocation, ca.subject_hash)
+            os.symlink(ca.signingPolicyLocation, ca.subject_hash + ".signing_policy")
+            logger.info('Linking %s to %s.signing_policy', ca.signingPolicyLocation, ca.subject_hash_old)
+            os.symlink(ca.signingPolicyLocation, ca.subject_hash_old + ".signing_policy")
         else:
             logger.error('Failed to calculate certificate hash values. Cleaning up generated files.')
             os.unlink(keyLocation)
             os.unlink(certLocation)
             sys.exit(1)
 
-        logger.info('Writing signing_policy file for CA')
-        ca.signingPolicyLocation = os.path.join(self.work_dir, name.replace(" ", "-") + ".signing_policy")
-        signing_policy = '''# EACL ARC Test Utility
-access_id_CA  X509   '{subject}'
-pos_rights    globus CA:sign
-cond_subjects globus '"{cond_subject}/*"'
-'''.format(subject=subject, cond_subject=subject[:subject.rfind('/')])
-        with open(ca.signingPolicyLocation, "w") as f_signing:
-            f_signing.write(signing_policy)
         return ca
 
     def generateHostCertificate(self, hostname, prefix="host", ca=None,
