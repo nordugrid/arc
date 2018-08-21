@@ -189,6 +189,47 @@ namespace ArcJura
     return count;
   }
 
+  int JobLogFile::write(const std::string& filename_)
+  {
+    int count=0;  //number of saved values
+
+    // save inherited filename for archiving!
+    if ( !filename.empty() && !(*this)["jobreport_option_archiving"].empty() )
+      {
+        std::string base_fn;
+        size_type seppos=filename.rfind('/');
+        if (seppos==std::string::npos)
+          base_fn=filename;
+        else
+          base_fn=filename.substr(seppos+1,std::string::npos);
+        (*this)["archiving_basefilename"] = base_fn;
+      }
+    //filename=_filename;
+
+    std::ofstream logfile(filename_.c_str());
+
+    std::map<std::string,std::string>::iterator it;
+    for(it=begin(); it!=end(); it++)
+      {
+        if ( it->first != "inputfile" && it->first != "outputfile" && it->second != "" )
+          {
+            logfile << it->first << "=" << it->second << std::endl;
+            count++;
+          }
+      }
+    for (int i=0; i<(int)inputfiles.size(); i++) {
+      logfile << "inputfile=" << inputfiles[i] << std::endl;
+      count++;
+    }
+    for (int i=0; i<(int)outputfiles.size(); i++) {
+      logfile << "outputfile=" << inputfiles[i] << std::endl;
+      count++;
+    }
+
+    logfile.close();
+    return count;
+  }
+
   void JobLogFile::createUsageRecord(Arc::XMLNode &usagerecord,
                                      const char *recordid_prefix)
   {
@@ -1332,12 +1373,15 @@ namespace ArcJura
     if ((*this)["jobreport_option_archiving"].empty()) return std::string();
 
     //if set, archive file name corresponds to original job log file
-    std::string base_fn;
-    size_type seppos=filename.rfind('/');
-    if (seppos==std::string::npos)
-      base_fn=filename;
-    else
-      base_fn=filename.substr(seppos+1,std::string::npos);
+    std::string base_fn = (*this)["archiving_basefilename"];
+    if (base_fn.empty())
+      {
+        size_type seppos=filename.rfind('/');
+        if (seppos==std::string::npos)
+          base_fn=filename;
+        else
+          base_fn=filename.substr(seppos+1,std::string::npos);
+      }
 
     if (car) {
       return (*this)["jobreport_option_archiving"]+"/usagerecordCAR."+base_fn;

@@ -29,6 +29,8 @@ namespace ArcJura
     JobLogFile(const std::string& _filename):allow_remove(true) { parse(_filename); } 
     /** Reloads and parses A-REX job log. */
     int parse(const std::string& _filename);
+    /** Write job log to another file */
+    int write(const std::string& _filename);
     /** Creates an OGF Job Usage Record from parsed log files. 
      *  - Missing UR properties:
      *    -# ProcessID: Local PID(s) of job. Extraction is LRMS-specific and \n

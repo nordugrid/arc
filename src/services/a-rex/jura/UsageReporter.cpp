@@ -13,6 +13,8 @@
 #include <time.h>
 #include <sstream>
 
+#include <glibmm.h>
+
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
 
@@ -60,6 +62,7 @@ namespace ArcJura
     std::map<std::string,std::string> dest_to_duplicate;
     //Collect job log file names from job log dir
     //(to know where to get usage data from)
+    bool rescan = false;
     DIR *dirp = NULL;
     dirent *entp = NULL;
     errno=0;
@@ -92,8 +95,14 @@ namespace ArcJura
     // Seek "<jobnumber>.<randomstring>" files.
     Arc::RegularExpression logfilepattern("^[0-9A-Za-z]+\\.[^.]+$");
     errno = 0;
-    while ((entp = readdir(dirp)) != NULL)
+    while ((entp = readdir(dirp)) != NULL || rescan)
       {
+        if (entp == NULL) // rescan
+          {
+            rewinddir(dirp);
+            rescan = false;
+            continue;
+          }
         if (logfilepattern.match(entp->d_name))
           {
             //Parse log file
@@ -146,14 +155,18 @@ namespace ArcJura
                   { 
                     //TODO: handle logfile removing problem by multiple destination
                     //      it is not remove jet only when expired
+                  // if it is virgin logfile from a-rex
+                  if ( (*logfile)["loggerurl"].empty() )
+                  {
 
-                    
                     //Create SGAS reports
                     std::vector<Config::SGAS> const & sgases = config.getSGAS();
                     for (int i=0; i<(int)sgases.size(); i++) {
                       JobLogFile *dupl_logfile=
                         new JobLogFile(*logfile);
-                      dupl_logfile->allowRemove(false);
+                      std::string tmpfilename = fname + "_XXXXXX";
+                      Glib::mkstemp(tmpfilename);
+                      //dupl_logfile->allowRemove(false);
 
                       // Set only loggerurl option
                       (*dupl_logfile)["loggerurl"] = sgases[i].targeturl.fullstr();
@@ -170,9 +183,11 @@ namespace ArcJura
                       {
                           (*dupl_logfile)["vo_filters"] = vo_filters;
                       }
+                      //Write
+                      dupl_logfile->write(tmpfilename);
                       //Pass job log file content to the appropriate 
                       //logging destination
-                      dests->report(*dupl_logfile,sgases[i]);
+                      //dests->report(*dupl_logfile,sgases[i]);
                       //(deep copy performed)
                       delete dupl_logfile;
                     }
@@ -182,7 +197,9 @@ namespace ArcJura
                     for (int i=0; i<(int)apels.size(); i++) {
                       JobLogFile *dupl_logfile=
                         new JobLogFile(*logfile);
-                      dupl_logfile->allowRemove(false);
+                      std::string tmpfilename = fname + "_XXXXXX";
+                      Glib::mkstemp(tmpfilename);
+                      //dupl_logfile->allowRemove(false);
                       // Set loggerurl and topic option
                       (*dupl_logfile)["loggerurl"] = "APEL:" + apels[i].targeturl.fullstr();
                       (*dupl_logfile)["topic"] = apels[i].topic;
@@ -198,13 +215,57 @@ namespace ArcJura
                       if (!apels[i].benchmark_description.empty()) {
                         (*dupl_logfile)["jobreport_option_benchmark_description"] = apels[i].benchmark_description;
                       }
-                      //Pass job log file content to the appropriate 
-                      //logging destination
-                      dests->report(*dupl_logfile,apels[i]);
-                      //(deep copy performed)
+                      //Write
+                      dupl_logfile->write(tmpfilename);
+
                       delete dupl_logfile;
                     }
+
+                    // delete a-rex log file after all child logfiles were created
+                    logfile->remove();
+                    // new files need to be processed
+                    rescan = true;
                   }
+                  else // if it is our remade one for specific source
+                  {
+                    std::string loggerurl = (*logfile)["loggerurl"];
+                    const Config::ACCOUNTING *aconf = NULL;
+                    if ( !(*logfile)["topic"].empty() || loggerurl.substr(0,4) == "APEL")
+                    { //Search APEL configs
+                      loggerurl.erase(0, 5); // cut "APEL:"
+                      std::vector<Config::APEL> const & apels = config.getAPEL();
+                      for (int i=0; i<(int)apels.size(); i++) {
+                        if (apels[i].targeturl == loggerurl) {
+                          aconf = new Config::APEL(apels[i]);
+                          break;
+                        }
+                      }
+                    }
+                    else //Search SGAS configs
+                    {
+                      std::vector<Config::SGAS> const & sgases = config.getSGAS();
+                      for (int i=0; i<(int)sgases.size(); i++) {
+                        if (sgases[i].targeturl == loggerurl) {
+                          aconf = new Config::SGAS(sgases[i]);
+                          break;
+                        }
+                      }
+                    }
+
+                    if (aconf != NULL) {
+                      //Pass job log file content to the appropriate 
+                      //logging destination
+                      dests->report(*logfile, *aconf);
+                      //(deep copy performed)
+                      delete aconf;
+                    }
+                    else
+                    {
+                      // remove logfile because it has no reporter configuration
+                      logfile->remove();
+                    }
+                  }
+                }
               }
 
             //B. Interactive mode: submit only to services specified by
