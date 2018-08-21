@@ -63,9 +63,9 @@ class TestCAControl(ComponentControl):
                     logger.error('Host certificate for %s is already exists.', hostname)
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
-            os.chmod(os.path.join(workdir, keyfname), stat.S_IRUSR | stat.S_IWUSR)
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
             shutil.move(hostcertfiles.keyLocation, os.path.join(workdir, keyfname))
+            os.chmod(os.path.join(workdir, keyfname), stat.S_IRUSR | stat.S_IWUSR)
             print('Host certificate and key are saved to {0} and {1} respectively.'.format(certfname, keyfname))
         else:
             if not args.force:
