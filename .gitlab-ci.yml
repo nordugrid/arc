@@ -182,55 +182,20 @@ make_rpms_el7:
 
 deploy_staging_el6:
   stage: deploy_and_test
-  image: maikenp/arc-deploy-centos6
+  image: docker:stable
   script:
-    - uname -a
-    - echo "Deploying to staging server"
-    - yum install -y time
-    - echo "Preparing rpms for localinstall"
-    - mkdir allrpms
-    - cp rpmbuild/RPMS/noarch/* allrpms
-    - cp rpmbuild/RPMS/x86_64/* allrpms
-    - cd allrpms
-    - echo "Doing localinstall"
-    - yum localinstall *.rpm -y
-    - ls -lhrt /etc/rc.d/init.d
-    - ls -lhrt /etc/arc.conf
-    - sestatus
-    - echo "Preparing folders for arc logs"
-    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
-    - echo "validating arc.config and starting services"
-    - /etc/rc.d/init.d/a-rex validate
-    - /etc/rc.d/init.d/a-rex start
-    #- /etc/rc.d/init.d/gridftpd start
-    - echo 'Test-submit through local plugin '
-    - arcproxy -C /arc/.globus/usercert.pem -K /arc/.globus/userkey_nopass.pem
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.internal /arc/arc-testing/hello.xrls
-    - arcsub -d 5 --direct -c 158.39.75.5 -S org.nordugrid.internal /arc/arc-testing/hello_inputfile.xrls
-    - arcstat --all --long
-    #arcinfo sometimes fails, dont know why
-    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
-    - echo "Skipping emies submission - not working yet."
-    #- echo 'test-submit through emies plugin'
-    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
-    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
-    #- sleep 5m
-    - /etc/rc.d/init.d/a-rex stop
-    #- /etc/rc.d/init.d/gridftpd stop
-    - cp -r /docker/arc-logs $CI_PROJECT_DIR
-    - cp -r /docker/arc-tests $CI_PROJECT_DIR
+    - source /dockerrun.sh
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     - $CI_PROJECT_DIR/arc-tests/
+     - /arc/arc-logs/
+     - /arc/arc-tests/
   dependencies:
     - make_rpms_el6
   tags:
-    - deploy
-    - el6
+    - docker-socket-runner2
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -239,55 +204,20 @@ deploy_staging_el6:
 
 deploy_staging_el7:
   stage: deploy_and_test
-  image: maikenp/arc-deploy-centos7
+  image: docker:stable
   script:
-    - uname -a
-    - echo "Deploying to staging server"
-    - yum install -y time
-    - echo "Preparing rpms for localinstall"
-    - mkdir allrpms
-    - cp rpmbuild/RPMS/noarch/* allrpms
-    - cp rpmbuild/RPMS/x86_64/* allrpms
-    - cd allrpms
-    - echo "Doing localinstall"
-    - yum localinstall *.rpm -y
-    - ls -lhrt /etc/rc.d/init.d
-    - ls -lhrt /etc/arc.conf
-    - sestatus
-    - echo "Preparing folders for arc logs"
-    - mkdir $CI_PROJECT_DIR/arc-logs $CI_PROJECT_DIR/arc-tests
-    - echo "validating arc.config and starting services"
-    - /etc/rc.d/init.d/arc-arex validate
-    - /etc/rc.d/init.d/arc-arex start
-    - /etc/rc.d/init.d/arc-gridftpd start
-    - echo 'Test-submit through local plugin '
-    - arcproxy -C /arc/.globus/usercert.pem -K /arc/.globus/userkey_nopass.pem
-    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.internal /arc/arc-testing/hello.xrls
-    - arcsub -d 5 --direct -c 158.37.63.83 -S org.nordugrid.internal /arc/arc-testing/hello_inputfile.xrls
-    - arcstat --all --long
-    # arcinfo sometimes fails, not sure why
-    #- arcinfo -c 158.39.75.5 -S org.nordugrid.local
-    - echo "Skipping emies submission - not working yet."
-    #- echo 'test-submit through emies plugin'
-    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello.xrls
-    #- arcsub -d 5 --direct -c 158.39.75.5 -S org.ogf.glue.emies.activitycreation /arc/arc-testing/hello_inputfile.xrls
-    #- sleep 5m
-    - /etc/rc.d/init.d/a-rex stop
-    #- /etc/rc.d/init.d/gridftpd stop
-    - cp -r /docker/arc-logs $CI_PROJECT_DIR
-    - cp -r /docker/arc-tests $CI_PROJECT_DIR
+    - source /dockerrun.sh
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     - $CI_PROJECT_DIR/arc-tests/
+     - /arc/arc-logs/
+     - /arc/arc-tests/
   dependencies:
     - make_rpms_el7
   tags:
-    - deploy
-    - el7
+    - docker-socket-runner1
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
