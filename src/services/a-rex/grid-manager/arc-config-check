@@ -278,8 +278,8 @@ sub confchecktripel($$$) {
 			e("The host key '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
 			e("The host key '$value' is not owned by this user.\n");
-		} elsif (!permcheck($value,0400,0777)) {
-			e("Permission of '$value' must be 'r--------'\n");
+		} elsif (!permcheck($value,0400,0777) and !permcheck($value,0600,0777)) {
+			e("Permission of '$value' must be 'r--------' or 'rw-------'\n");
 		}
 	}
 
