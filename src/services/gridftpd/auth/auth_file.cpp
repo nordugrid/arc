@@ -14,11 +14,8 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
 
 AuthResult AuthUser::match_file(const char* line) {
-  for(;;) {
-    std::string s("");
-    int n = Arc::ConfigIni::NextArg(line,s,' ','"');
-    if(n == 0) break;
-    line+=n;
+  std::string s(line);
+  if(!s.empty()) {
     std::ifstream f(s.c_str());
     if(!f.is_open()) {
       logger.msg(Arc::ERROR, "Failed to read file %s", s);

@@ -11,6 +11,9 @@
 
 echo "----- starting submit_condor_job -----" 1>&2
 joboption_lrms="condor"
+lrms_options="condor_requirements condor_rank condor_bin_path condor_config"
+queue_options="condor_requirements"
+
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -470,8 +473,8 @@ if [ $CONDOR_RESULT -eq '0' ] ; then
    else
       job_id=`echo $job_out | grep cluster | awk '{print $8}' | sed 's/[\.]//g'`
       hostname=`hostname -f`
-      echo "joboption_jobid=${job_id}.${hostname}" >> $arg_file
-      echo "condor_log=${joboption_directory}/log" >> $arg_file
+      echo "joboption_jobid=${job_id}.${hostname}" >> $GRAMI_FILE
+      echo "condor_log=${joboption_directory}/log" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary files

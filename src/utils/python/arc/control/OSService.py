@@ -18,14 +18,14 @@ class OSServiceManagement(object):
             if systemctl_output.returncode == 0:
                 self.sm = 'systemd'
                 self.sm_ctl = {
-                    'start': 'systemctl start {}',
-                    'stop': 'systemctl stop {}',
-                    'enable': 'systemctl enable {}',
-                    'disable': 'systemctl disable {}'
+                    'start': 'systemctl start {0}',
+                    'stop': 'systemctl stop {0}',
+                    'enable': 'systemctl enable {0}',
+                    'disable': 'systemctl disable {0}'
                 }
                 self.sm_check = {
-                    'enabled': 'systemctl -q is-enabled {}',
-                    'active': 'systemctl -q is-active {}'
+                    'enabled': 'systemctl -q is-enabled {0}',
+                    'active': 'systemctl -q is-active {0}'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
                 return
@@ -39,14 +39,14 @@ class OSServiceManagement(object):
             if service_output.returncode == 0:
                 self.sm = 'sysV'
                 self.sm_ctl = {
-                    'start': 'service {} start',
-                    'stop': 'service {} stop',
-                    'enable': 'chkconfig {} on',
-                    'disable': 'chkconfig {} off'
+                    'start': 'service {0} start',
+                    'stop': 'service {0} stop',
+                    'enable': 'chkconfig {0} on',
+                    'disable': 'chkconfig {0} off'
                 }
                 self.sm_check = {
-                    'enabled': 'chkconfig {}',
-                    'active': 'service {} status'
+                    'enabled': 'chkconfig {0}',
+                    'active': 'service {0} status'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
                 return

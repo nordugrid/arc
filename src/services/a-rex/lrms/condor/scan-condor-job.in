@@ -8,6 +8,8 @@ LRMS=Condor # for use in log messages
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
 joboption_lrms="condor"
+lrms_options="condor_requirements condor_rank condor_bin_path condor_config"
+queue_options="condor_requirements"
 
 # define paths and config parser
 basedir=`dirname $0`

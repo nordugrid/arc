@@ -144,7 +144,6 @@ my %introducedSections = (
 	"arex/jura/sgas" => [],
 	"arex/jura/apel" => [],
 	"queue" => [],
-	"infosys/glue1/site" => [],
 );
 
 print STDERR "The following sections have configurable subgroups: "
@@ -279,8 +278,8 @@ sub confchecktripel($$$) {
 			e("The host key '$value' does not exist or is unreadable.\n");
 		} elsif (! -O $value) {
 			e("The host key '$value' is not owned by this user.\n");
-		} elsif (!permcheck($value,0400,0777)) {
-			e("Permission of '$value' must be 'r--------'\n");
+		} elsif (!permcheck($value,0400,0777) and !permcheck($value,0600,0777)) {
+			e("Permission of '$value' must be 'r--------' or 'rw-------'\n");
 		}
 	}
 
@@ -344,13 +343,6 @@ sub confchecktripel($$$) {
                 }
 	}
 
-	# check the runtime directory
-	elsif ($block eq "arex/cache" and $name eq "runtimedir") {
-		if (! -d $value)  {
-			e("runtimedir: not existing at '$value'\n");
-		}
-	}
-
 	# check the controldir
 	elsif ($block eq "arex" and $name eq "controldir") {
 		if (! -d $value)  {
@@ -377,7 +369,7 @@ sub confchecktripel($$$) {
 	}
 	
 	# Check for logrotate paths
-	if ($block =~ /common|arex|gridftp/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
+	if ($block =~ /^(common|arex|gridftp|infosys)$/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
 
 	# check for any mount dirs
 	if ($name eq "mount") {
@@ -390,15 +382,13 @@ sub confchecktripel($$$) {
 	}
     
     # check few infosys commands
-    if ($block eq "infosys") {
+    if ($block eq "infosys/ldap") {
         if ($name eq "slapd_loglevel" and $value gt 0) {
             w("slapd_loglevel > 0 should only be used for development. DO NOT USE for production and testing.\nConfigure bdii_debug_level=\"DEBUG\" instead.\n");
         }
         if ($name ne "bdii_debug_level" and $name =~ /^bdii/ ) {
-            e("Starting from release 13.02, BDII configuration commands are strongly deprecated. Use only for Development.\nThe only allowed command is bdii_debug_level\n");
+            w("Starting from release 13.02, BDII configuration commands are strongly deprecated. Use only for Development.\nThe only allowed command is bdii_debug_level\n");
         }
-        # check logs locations for logrotation
-	    if ($name =~ /providerlog|registrationlog/) {check_logrotate($block,$name,$value)};
     }
     
     # check compliance of AdminDomain name as a LDAP DNs
@@ -429,14 +419,10 @@ sub check_logrotate($$$$) {
 							'arexlogfile' => $defaultpath.'arex.log',
 							'gridftpdlogfile' => $defaultpath.'gridftpd.log',
 							'infosysproviderlog' => $defaultpath.'infoprovider.log',
-							'infosysregistrationlog' => $defaultpath.'inforegistration.log'
 						   };
 	$defaultlocation = $defaultlocations->{$block.$name} || $defaultpath;
 	if ($value ne $defaultlocation ) {
 		w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
-		if ( $block =~ /common|arex|gridftp/ ) {
-			w("[$block] supports independent logrotation. Check ARC CE System Administrator manual to configure. Disable system logrotate configuration for it if you do this!\n");
-		}
 	}	
 } 
 
@@ -636,7 +622,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("arex", "cluster", "lrms");
+	my @required=("arex", "infosys", "lrms");
 
 	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
@@ -649,7 +635,7 @@ sub check_completeness() {
 
 		if (0 == @secs) {
 			unless ($skip_warnings) {
-				w("Unknown group identifier '$k'\n");
+				e("Unknown block identifier '[$k]'\n");
 			}
 			next;
 		}
@@ -680,8 +666,8 @@ sub check_completeness() {
 	if (exists($config->{common}{hostname})) {
 		$hn_conf = $config->{common}{hostname};
 	}
-	elsif (exists($config->{cluster}{hostname})) {
-		$hn_conf = $config->{cluster}{hostname};
+	elsif (exists($config->{'infosys/cluster'}{hostname})) {
+		$hn_conf = $config->{'infosys/cluster'}{hostname};
 	}
 	if ($hn_conf) {
 		if ($hn_conf ne "$hn") {
@@ -704,9 +690,11 @@ Some applications are required for the server to be functional.
 =cut
 
 sub check_applications() {
-	unless ( -x "/usr/bin/time" ) {
-		e("Could not find GNU time utility (or a substitute) at /usr/bin/time.");
-	}
+    # placeholder for binary files check, e.g. previously
+    #unless ( -x "/usr/bin/time" ) {
+    #    e("Could not find GNU time utility (or a substitute) at /usr/bin/time.");
+    #}
+    return;
 }
 
 

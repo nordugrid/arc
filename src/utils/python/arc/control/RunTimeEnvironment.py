@@ -52,35 +52,38 @@ class RTEControl(ComponentControl):
         self.all_rtes = {}
         self.system_rtes = {}
         self.user_rtes = {}
-
+        self.enabled_rtes = {}
+        self.default_rtes = {}
+        self.dummy_rtes = {}
 
     @staticmethod
     def __get_dir_rtes(rtedir):
         rtes = {}
-        for path, dirs, files in os.walk(rtedir):
-            if not dirs:
-                rtebase = path.lstrip(rtedir + '/')
-                for f in files:
-                    rtename = rtebase + '/' + f
-                    rtepath = path + '/' + f
-                    if os.path.islink(rtepath):
-                        rtepath = os.readlink(rtepath)
-                    rtes[rtename] = rtepath
+        for path, _, files in os.walk(rtedir):
+            rtebase = path.lstrip(rtedir + '/')
+            for f in files:
+                rtename = rtebase + '/' + f
+                rtepath = path + '/' + f
+                if os.path.islink(rtepath):
+                    rtepath = os.readlink(rtepath)
+                rtes[rtename] = rtepath
         return rtes
 
     @staticmethod
     def __list_rte(rte_dict, long_list, prefix=''):
-        for rte, link in rte_dict.items():
+        for rte in sorted(rte_dict):
             if long_list:
-                print('{}{:32} -> {}'.format(prefix, rte, link))
+                print('{0}{1:32} -> {2}'.format(prefix, rte, rte_dict[rte]))
             else:
                 print(rte)
 
     @staticmethod
     def __get_rte_description(rte_path):
+        if rte_path == '/dev/null':
+            return 'Dummy RTE for information publishing'
         with open(rte_path) as rte_f:
             max_lines = 10
-            description = 'RTE Description is Not Available'
+            description = 'RTE description is Not Available'
             for line in rte_f:
                 descr_re = re.match(r'^#+\s*description:\s*(.*)\s*$', line, flags=re.IGNORECASE)
                 if descr_re:
@@ -116,6 +119,10 @@ class RTEControl(ComponentControl):
         # enabled RTEs (linked to controldir)
         self.logger.debug('Indexing enabled RTEs in %s', self.control_rte_dir + '/enabled')
         self.enabled_rtes = self.__get_dir_rtes(self.control_rte_dir + '/enabled')
+        # handle dummy enabled RTEs
+        for rte, rtepath in self.enabled_rtes.items():
+            if rtepath == '/dev/null':
+                self.dummy_rtes[rte] = '/dev/null'
 
         # default RTEs (linked to default)
         self.logger.debug('Indexing default RTEs in %s', self.control_rte_dir + '/default')
@@ -124,10 +131,12 @@ class RTEControl(ComponentControl):
     def __get_rte_file(self, rte):
         self.__fetch_rtes()
         if rte not in self.all_rtes:
-            self.logger.error('There is no %s RunTimeEnvironment found', rte)
-            sys.exit(1)
-        rte_file = self.all_rtes[rte]
-        return rte_file
+            if rte not in self.dummy_rtes:
+                self.logger.error('There is no %s RunTimeEnvironment found', rte)
+                sys.exit(1)
+            else:
+                return '/dev/null'
+        return self.all_rtes[rte]
 
     def __get_rte_params_file(self, rte):
         rte_params_path = self.control_rte_dir + '/params/'
@@ -136,11 +145,13 @@ class RTEControl(ComponentControl):
             return rte_params_file
         return None
 
-    def __get_rte_list(self, rtes):
+    def __get_rte_list(self, rtes, check_dict=None):
         rte_list = []
+        if check_dict is None:
+            check_dict = self.all_rtes
         for r in rtes:
             if r.startswith('/'):
-                # path instead of name
+                # path instead of name (comes from filesystem paths in user and system RTE dirs)
                 rte_found = False
                 for rname, rpath in chain(iter(self.user_rtes.items()), iter(self.system_rtes.items())):
                     if rpath == r:
@@ -150,16 +161,16 @@ class RTEControl(ComponentControl):
                         break
                 if not rte_found:
                     self.logger.error('There is no RTE defined by %s path.', r)
-            elif r in self.all_rtes:
+            elif r in check_dict:
                 # filename match goes directly to list
-                rte_list.append({'name': r, 'path': self.all_rtes[r]})
+                rte_list.append({'name': r, 'path': check_dict[r]})
             else:
                 # check for glob wildcards in rte name
                 rte_found = False
-                for irte in self.all_rtes:
+                for irte in check_dict:
                     if fnmatch.fnmatch(irte, r):
                         self.logger.debug('Glob wildcard match for %s RTE, adding to the list.', irte)
-                        rte_list.append({'name': irte, 'path': self.all_rtes[irte]})
+                        rte_list.append({'name': irte, 'path': check_dict[irte]})
                         rte_found = True
                 if not rte_found:
                     self.logger.error('There are no RTEs matched to %s found', r)
@@ -170,12 +181,13 @@ class RTEControl(ComponentControl):
         return rte_list
 
     def __list_brief(self):
-        for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes)]:
-            for rte, link in rte_dict.items():
+        for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes), ('dummy', self.dummy_rtes)]:
+            for rte in sorted(rte_dict):
+                link = rte_dict[rte]
                 kind = [rte_type]
                 show_disabled = True
                 if rte_type == 'system':
-                    if rte in self.user_rtes:
+                    if rte in self.user_rtes or rte in self.dummy_rtes:
                         kind.append('masked')
                 if rte in self.enabled_rtes:
                     if link == self.enabled_rtes[rte]:
@@ -187,25 +199,25 @@ class RTEControl(ComponentControl):
                         show_disabled = False
                 if show_disabled:
                     kind.append('disabled')
-                print('{:32} ({})'.format(rte, ', '.join(kind)))
+                print('{0:32} ({1})'.format(rte, ', '.join(kind)))
 
     def __list_long(self):
         # system
         if not self.system_rtes:
-            print('There are no system pre-defined RTEs in {}'.format(self.system_rte_dir))
+            print('There are no system pre-defined RTEs in {0}'.format(self.system_rte_dir))
         else:
-            print('System pre-defined RTEs in {}:'.format(self.system_rte_dir))
-            for rte, rte_file in self.system_rtes.items():
-                print('\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file)))
+            print('System pre-defined RTEs in {0}:'.format(self.system_rte_dir))
+            for rte in sorted(self.system_rtes):
+                print('\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.system_rtes[rte])))
         # user-defined
         if not self.user_rte_dirs:
             print('User-defined RTEs are not configured in arc.conf')
         elif not self.user_rtes:
-            print('There are no user-defined RTEs in {}'.format(', '.join(self.user_rte_dirs)))
+            print('There are no user-defined RTEs in {0}'.format(', '.join(self.user_rte_dirs)))
         else:
-            print('User-defined RTEs in {}:'.format(', '.join(self.user_rte_dirs)))
-            for rte, rte_file in self.user_rtes.items():
-                print('\t{:32} # {}'.format(rte, self.__get_rte_description(rte_file)))
+            print('User-defined RTEs in {0}:'.format(', '.join(self.user_rte_dirs)))
+            for rte in sorted(self.user_rtes):
+                print('\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.user_rtes[rte])))
         # enabled
         if not self.enabled_rtes:
             print('There are no enabled RTEs')
@@ -232,6 +244,8 @@ class RTEControl(ComponentControl):
         elif args.available:
             self.system_rtes.update(self.user_rtes)
             self.__list_rte(self.system_rtes, args.long)
+        elif args.dummy:
+            self.__list_rte(self.dummy_rtes, args.long)
         elif args.long:
             self.__list_long()
         else:
@@ -331,14 +345,20 @@ class RTEControl(ComponentControl):
                 sys.stdout.write(line)
         sys.stdout.flush()
 
-    def enable(self, rtes_def, force=False, rtetype='enabled'):
+    def enable(self, rtes_def, force=False, rtetype='enabled', dummy=False):
         """
         Entry point for enable operation.
         RTE definition can be glob wildcarded RTE name.
         """
-        self.__fetch_rtes()
-        for rte in self.__get_rte_list(rtes_def):
-            self.enable_rte(rte, force, rtetype)
+        if dummy:
+            # enable dummy rtes (linked to /dev/null) for provided names
+            for rte in rtes_def:
+                self.enable_rte({'name': rte, 'path': '/dev/null'}, force, rtetype)
+        else:
+            # find RTEs by name (including wildcards substitutions) and enable
+            self.__fetch_rtes()
+            for rte in self.__get_rte_list(rtes_def):
+                self.enable_rte(rte, force, rtetype)
 
     def enable_rte(self, rteinfo, force=False, rtetype='enabled'):
         """
@@ -389,7 +409,8 @@ class RTEControl(ComponentControl):
         RTE definition can be glob wildcarded RTE name.
         """
         self.__fetch_rtes()
-        for rte in self.__get_rte_list(rte_def):
+        check_dict = getattr(self, rtetype + '_rtes', None)
+        for rte in self.__get_rte_list(rte_def, check_dict):
             self.disable_rte(rte, rtetype)
 
     def disable_rte(self, rteinfo, rtetype='enabled'):
@@ -399,11 +420,7 @@ class RTEControl(ComponentControl):
         rtename = rteinfo['name']
         rtepath = rteinfo['path']
 
-        enabled_rtes = {}
-        if rtetype == 'enabled':
-            enabled_rtes = self.enabled_rtes
-        elif rtetype == 'default':
-            enabled_rtes = self.default_rtes
+        enabled_rtes = getattr(self, rtetype + '_rtes', {})
 
         if rtename not in enabled_rtes:
             self.logger.error('RunTimeEnvironment \'%s\' is not %s.', rtename, rtetype)
@@ -431,7 +448,7 @@ class RTEControl(ComponentControl):
         if args.action == 'list':
             self.list(args)
         elif args.action == 'enable':
-            self.enable(args.rte, args.force)
+            self.enable(args.rte, args.force, dummy=args.dummy)
         elif args.action == 'default':
             self.enable(args.rte, args.force, 'default')
         elif args.action == 'disable':
@@ -489,6 +506,8 @@ class RTEControl(ComponentControl):
         rte_enable = rte_actions.add_parser('enable', help='Enable RTE to be used by A-REX')
         rte_enable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
         rte_enable.add_argument('-f', '--force', help='Force RTE enabling', action='store_true')
+        rte_enable.add_argument('-d', '--dummy', action='store_true',
+                                help='Enable dummy RTE that do nothing but published in the infosys')
 
         rte_disable = rte_actions.add_parser('disable', help='Disable RTE to be used by A-REX')
         rte_disable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
@@ -501,6 +520,7 @@ class RTEControl(ComponentControl):
         rte_list_types.add_argument('-a', '--available', help='List available RTEs', action='store_true')
         rte_list_types.add_argument('-s', '--system', help='List available system RTEs', action='store_true')
         rte_list_types.add_argument('-u', '--user', help='List available user-defined RTEs', action='store_true')
+        rte_list_types.add_argument('-n', '--dummy', help='List dummy enabled RTEs', action='store_true')
 
         rte_default = rte_actions.add_parser('default', help='Transparently use RTE for every A-REX job')
         rte_default.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name

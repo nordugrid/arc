@@ -24,35 +24,30 @@ class ServicesControl(ComponentControl):
     __blocks_map = {
         'arex': {
             'package': 'nordugrid-arc-arex',
-            'service': 'a-rex'
-        },
-        'arex/ws/candypond': {
-            'package': 'nordugrid-arc-candypond',
-            'service': None
-            # TODO: the fate of stand-alone service
+            'service': 'arc-arex'
         },
         'gridftpd': {
             'package': 'nordugrid-arc-gridftpd',
-            'service': 'gridftpd'
+            'service': 'arc-gridftpd'
         },
         'infosys/ldap': {
-            'package': 'nordugrid-arc-aris',
-            'service': 'nordugrid-arc-aris'
+            'package': 'nordugrid-arc-infosys-ldap',
+            'service': 'arc-infosys-ldap'
         },
         'datadelivery-service': {
             'package': 'nordugrid-arc-datadelivery-service',
             'service': 'arc-datadelivery-service'
         },
         'acix-scanner': {
-            'package': 'nordugrid-arc-acix-cache',
-            'service': 'acix-cache'
+            'package': 'nordugrid-arc-acix-scanner',
+            'service': 'arc-acix-scanner'
         },
         'acix-index': {
             'package': 'nordugrid-arc-acix-index',
-            'service': 'acix-index'
+            'service': 'arc-acix-index'
         },
         'nordugridmap': {
-            'package': 'nordugrid-arc-gridmap-utils',
+            'package': 'nordugrid-arc-nordugridmap',
             'service':  None
         }
     }

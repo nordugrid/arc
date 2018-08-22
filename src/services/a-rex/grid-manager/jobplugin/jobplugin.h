@@ -55,7 +55,6 @@ class JobPlugin: public FilePlugin {
   GMConfig config;
   DelegationStore::DbType deleg_db_type;
   AuthUser& user_a;
-  UnixMap job_map;
   std::list<std::string> avail_queues;
   std::string subject;
   unsigned short int port; // port client used for data channel

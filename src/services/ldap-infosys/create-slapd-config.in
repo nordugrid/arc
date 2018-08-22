@@ -8,8 +8,6 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
-
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
     echo "ARC configuration file ($ARC_CONFIG) not found"
@@ -18,28 +16,33 @@ if [ ! -r "$ARC_CONFIG" ]; then
     exit 1
 fi
 
+# Define runtime config location for infosys LDAP
+prefix=@prefix@
+runtime_config_dir=@localstatedir@/run/arc
+if [ ! -d "$runtime_config_dir" ]; then
+    mkdir -p "$runtime_config_dir"
+fi
+export ARC_RUNCONFIG="$runtime_config_dir/arc.infosys-ldap.conf"
+unset runtime_config_dir
+unset prefix
+
+# Define arcconfig-parser and dump running configuration
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
+${arcconfig_parser} -c ${ARC_CONFIG} --save -r ${ARC_RUNCONFIG}
+
 # Check for infosys block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys; then
     echo "Missing [infosys] configuration block"
     exit 1
 fi
 
 # Check for infosys/ldap block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap; then
     echo "Missing [infosys/ldap] configuration block"
     exit 1
 fi
 
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
-
-# These options need to come from the infosys block, not from common
-unset CONFIG_logfile
-unset CONFIG_user
-unset CONFIG_port
-
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii -e bash)
+eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap -b infosys -b common -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -168,7 +171,7 @@ if [ -z "$overlay" ]; then
 fi
 moduleload_rwm="${ldapmodule}"
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/index; then
     database=shell
     find_ldap_database_module
     if [ -z "${database}" ]; then
@@ -242,7 +245,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	EOF
 
 if [ -n "${moduleload_rwm}" ]; then 
-    admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)
+    admindomain=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2 -o admindomain_name)
     admindomain="urn:ad:${admindomain:-UNDEFINEDVALUE}"
 
     cat <<-EOF >> $bdii_slapd_conf

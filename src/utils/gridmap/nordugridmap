@@ -93,13 +93,15 @@ while (my $line =<CONFIGFILE>) {
     next if $line =~/^\s+$/;
 
     # parse block name
-    if ($line =~/\[([^\] ]+)\]/ ) {
+    if ($line =~/\[([^\]]+)\]/ ) {
         $blockname = $1;
         if ( $blockname =~ /^(common$|nordugridmap$|userlist)/ ) {
             $parseoptions = 1;
-            $parsedconfig{$blockname}{'configline'} = $lineindex;
-            if ($blockname =~ /^userlist:([^\[\]]+)$/ ) {
-                $parsedconfig{$blockname}{'name'} = $1
+            if ($blockname =~ /^userlist:\s*([^\[\]]+)\s*$/ ) {
+                my $name = $1;
+                $name =~ s/^\s+|\s+$//g;
+                $blockname = "userlist:$name";
+                $parsedconfig{$blockname}{'name'} = $name;
             } elsif ($blockname =~ /^userlist$/ ) {
                 &Logger("Legacy [userlist] block found in $fileopt line $lineindex. Should be [userlist:NAME]. Execution halted to prevent unnoticed errors.", FATAL, "ConfigParser");
             }
@@ -111,21 +113,28 @@ while (my $line =<CONFIGFILE>) {
     # skip parsing for not relevant blocks
     next unless $parseoptions;
     
-    # get variable = value OR variable = "value"
-    next unless ( $line =~/^(\w+)\s*=\s*(.*)\s*$/ );
-    my $variable_name=$1;
-    my $variable_value=$2;
+    # parse name/values
+    my $variable_name;
+    my $variable_value;
+
+    if ( $line =~/^\s*(\w+)\s*=\s*(.*)\s*$/ ) {
+        $variable_name=$1;
+        $variable_value=$2;
+    } else {
+        if ($line =~ /^\s*mapped_unixid\s*$/ ) {
+            $variable_name="mapped_unixid";
+            $variable_value="";
+        } else {
+            next;
+        }
+    }
     
-    # trim optional double quotes (still the case for mapped_unixid="")
-    $variable_value =~ s/^"(.*)"$/$1/;
+    # "" is the empty string (valid case for mapped_unixid="")
+    if ( $variable_value =~ /^\s*""\s*$/ ) {
+        $variable_value = "";
+    }
     
     if ( $blockname =~/^userlist:/ ) {
-        # special parsing for the local grid-mapfile
-        if ($variable_name eq "localmapfile") {
-            $variable_name = "source";
-            $variable_value = "file://" . $variable_value;
-        }
-
         # special parsing for the nordugrid VO members: source="nordugrid"
         if (($variable_name eq "source") && ($variable_value eq "nordugrid")) {
             $variable_value = "vomss://voms.ndgf.org:8443/voms/nordugrid.org";
@@ -166,10 +175,9 @@ my $x509key         = $parsedconfig{'nordugridmap'}{'x509_host_key'} ||
                       $ENV{X509_HOST_KEY} || $ENV{X509_USER_KEY} ||
                       "/etc/grid-security/hostkey.pem";
 my $default_mapfile = $parsedconfig{'nordugridmap'}{'gridmap'} ||
-                      $parsedconfig{'common'}{'gridmap'} ||
+                      $parsedconfig{'mapping'}{'gridmap'} ||
                       "/etc/grid-security/grid-mapfile";
 my $mapfile_owner   = $parsedconfig{'nordugridmap'}{'gridmap_owner'} ||
-                      $parsedconfig{'grid-manager'}{'user'} ||
                       "root";
 my $mapfile_group   = $parsedconfig{'nordugridmap'}{'gridmap_group'} ||
                       "root";
@@ -178,7 +186,7 @@ my $mapfile_chmod   = $parsedconfig{'nordugridmap'}{'gridmap_permissions'} ||
 my $logfile         = $parsedconfig{'nordugridmap'}{'logfile'} ||
                       "/var/log/arc/nordugridmap.log";
 my $cachedir        = $parsedconfig{'nordugridmap'}{'cachedir'} ||
-                      "/var/spool/nordugrid/gridmapcache/";
+                      "/var/spool/arc/gridmapcache/";
 my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
                       3 * 24 * 60 * 60; # three days old
 
@@ -270,7 +278,7 @@ sub get_userlist_name {
     if ( $parsedconfig{$block}{'name'} ) {
         return $parsedconfig{$block}{'name'};
     } else {
-        &Logger("Userlist name is missing for block defined in $fileopt line $parsedconfig{$block}{'configline'})", FATAL, "ConfigParser");
+        &Logger("Malformed userlist block [$block] found in in $fileopt: failed to get block name", FATAL, "ConfigParser");
     }
 }
 
@@ -380,9 +388,9 @@ sub process_userlist_blocks {
             unless ( $undefined_cnt ) {
                 unless ( $dryrun ) {
                     # get [userlist] block parameters
-                    my $mapped_user = "";
+                    my $mapped_user = "nobody";
 
-                    if ( $parsedconfig{$block}{'mapped_unixid'} ) {
+                    if ( exists $parsedconfig{$block}{'mapped_unixid'} ) {
                         $mapped_user = $parsedconfig{$block}{'mapped_unixid'};
                     }
 

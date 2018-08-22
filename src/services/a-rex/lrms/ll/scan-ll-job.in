@@ -22,6 +22,7 @@ control_dir="$1"
 test -d "$control_dir" || exit 1
 
 joboption_lrms="ll"
+lrms_options="ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
 
 # define paths and config parser
 basedir=`dirname $0`

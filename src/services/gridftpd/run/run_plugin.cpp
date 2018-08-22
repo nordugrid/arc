@@ -9,7 +9,6 @@
 #include <arc/Run.h>
 #include <arc/ArcConfigIni.h>
 
-#include "../conf/environment.h"
 #include "run_plugin.h"
 
 namespace gridftpd {

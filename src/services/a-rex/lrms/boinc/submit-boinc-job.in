@@ -6,6 +6,7 @@
 DEBUG=0
 echo "----- starting submit_boinc_job -----" 1>&2
 joboption_lrms="boinc"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -443,7 +444,7 @@ rc=$?
 
 if [ $rc -eq 0 ];then
   echo "job $wu submitted successfully!" 1>&2
-  echo "joboption_jobid=$wu" >> $arg_file
+  echo "joboption_jobid=$wu" >> $GRAMI_FILE
 fi
 echo "----- removing intermediate files ----" 1>&2
 if [ $DEBUG -ne 1 ];then

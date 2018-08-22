@@ -12,9 +12,9 @@ EOF
 function test_queue_name()
 {
 read -r -d '' arc_test_configuration <<'EOF'
-[common]
-slurm_bin_path="@PWD@/bin"
-[queue/nordugrid]
+[lrms]
+slurm_bin_path=@PWD@/bin
+[queue:nordugrid]
 EOF
 
 read -r -d '' job_description_input <<'EOF'

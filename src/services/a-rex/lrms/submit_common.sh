@@ -136,8 +136,9 @@ add_user_env () {
    if [ -z "$has_gridglobalid" ]; then
       hostname=`/usr/bin/perl -MSys::Hostname -we 'print hostname'`
       hostname=${CONFIG_hostname:-$hostname}
-      gm_port=${CONFIG_gm_port:-2811}
-      gm_mount_point=${CONFIG_gm_mount_point:-/jobs}
+      # not configurable any longer
+      gm_port=2811
+      gm_mount_point="/jobs"
       echo "export GRID_GLOBAL_JOBID='gsiftp://$hostname:$gm_port$gm_mount_point/$joboption_gridid'" >> $LRMS_JOB_SCRIPT
    fi
 
@@ -192,6 +193,8 @@ RTE_path_set () {
             exit 1
         fi
     fi
+    # check RTE is empty
+    [ -s "$rte_path" ] || rte_empty=1
 }
 
 RTE_add_optional_args () {
@@ -216,17 +219,23 @@ RTE_to_jobscript () {
         eval "rte_name=\"\${joboption_runtime_${rte_idx}}\""
         # define rte_path
         RTE_path_set
-        # add RTE script content as a function into the job script
-        echo "# RunTimeEnvironment function for ${rte_name}:" >> $LRMS_JOB_SCRIPT
-        echo "RTE_function_${rte_idx} () {" >> $LRMS_JOB_SCRIPT
-        [ -n "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
-        cat "${rte_path}" >> $LRMS_JOB_SCRIPT
-        echo "}" >> $LRMS_JOB_SCRIPT
+        # skip empty RTEs
+        if [ -z "$rte_empty" ]; then
+            # add RTE script content as a function into the job script
+            echo "# RunTimeEnvironment function for ${rte_name}:" >> $LRMS_JOB_SCRIPT
+            echo "RTE_function_${rte_idx} () {" >> $LRMS_JOB_SCRIPT
+            [ -n "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
+            cat "${rte_path}" >> $LRMS_JOB_SCRIPT
+            echo "}" >> $LRMS_JOB_SCRIPT
+        else
+            # mark RTE as empty to skip further processing
+            eval "joboption_runtime_${rte_idx}_empty=1"
+        fi
         # next RTE
         rte_idx=$(( rte_idx + 1 ))
         eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
     done
-    unset is_rte rte_idx rte_name rte_path
+    unset is_rte rte_idx rte_name rte_path rte_empty
 }
 
 RTE_jobscript_call () {
@@ -243,23 +252,27 @@ RTE_jobscript_call () {
         # RTE name is for admin-friendly logging only
         eval "rte_name=\"\${joboption_runtime_${rte_idx}}\""
         echo "runtimeenvironments=\"\${runtimeenvironments}${rte_name};\"" >> $LRMS_JOB_SCRIPT
-        # compose arguments value for RTE function call
-        args_value="${rte_stage} "
-        RTE_add_optional_args
-        # add function call to job script
-        echo "# Calling ${rte_name} function: " >> $LRMS_JOB_SCRIPT
-        # Use printf in order to handle backslashes correctly (bash vs dash)
-        printf "RTE_function_${rte_idx} ${args_value}\n" >> $LRMS_JOB_SCRIPT
-        echo "if [ \$? -ne 0 ]; then" >> $LRMS_JOB_SCRIPT
-        echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>&2" >> $LRMS_JOB_SCRIPT
-        echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>\"\${RUNTIME_JOB_DIAG}\"" >> $LRMS_JOB_SCRIPT
-        echo "    exit 1" >> $LRMS_JOB_SCRIPT
-        echo "fi" >> $LRMS_JOB_SCRIPT
-        echo "" >> $LRMS_JOB_SCRIPT
+        # add call if RTE is not empty
+        eval "is_empty=\${joboption_runtime_${rte_idx}_empty+yes}"
+        if [ -z "${is_empty}" ]; then 
+            # compose arguments value for RTE function call
+            args_value="${rte_stage} "
+            RTE_add_optional_args
+            # add function call to job script
+            echo "# Calling ${rte_name} function: " >> $LRMS_JOB_SCRIPT
+            # Use printf in order to handle backslashes correctly (bash vs dash)
+            printf "RTE_function_${rte_idx} ${args_value}\n" >> $LRMS_JOB_SCRIPT
+            echo "if [ \$? -ne 0 ]; then" >> $LRMS_JOB_SCRIPT
+            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>&2" >> $LRMS_JOB_SCRIPT
+            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>\"\${RUNTIME_JOB_DIAG}\"" >> $LRMS_JOB_SCRIPT
+            echo "    exit 1" >> $LRMS_JOB_SCRIPT
+            echo "fi" >> $LRMS_JOB_SCRIPT
+            echo "" >> $LRMS_JOB_SCRIPT
+        fi
         rte_idx=$(( rte_idx + 1 ))
         eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
     done
-    unset rte_idx is_rte rte_name args_value rte_stage
+    unset rte_idx is_rte is_empty rte_name args_value rte_stage
 }
 
 RTE_stage0 () {
@@ -270,18 +283,21 @@ RTE_stage0 () {
         eval "rte_name=\"\${joboption_runtime_${rte_idx}}\""
         # define rte_path
         RTE_path_set
-        # define arguments
-        args_value="0 "
-        RTE_add_optional_args
-        # run RTE stage 0
-        # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
-        #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
-        [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
-        sourcewithargs "$rte_path" $args_value 1>&2
-        rte0_exitcode=$?
-        if [ $rte0_exitcode -ne 0 ] ; then
-            echo "ERROR: Runtime script ${rte_name} stage 0 execution failed with exit code ${rte0_exitcode}" 1>&2
-            exit 1
+        # skip empty RTEs
+        if [ -z "$rte_empty" ]; then
+            # define arguments
+            args_value="0 "
+            RTE_add_optional_args
+            # run RTE stage 0
+            # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
+            #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
+            [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            sourcewithargs "$rte_path" $args_value 1>&2
+            rte0_exitcode=$?
+            if [ $rte0_exitcode -ne 0 ] ; then
+                echo "ERROR: Runtime script ${rte_name} stage 0 execution failed with exit code ${rte0_exitcode}" 1>&2
+                exit 1
+            fi
         fi
         rte_idx=$(( rte_idx + 1 ))
         eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
@@ -295,7 +311,7 @@ RTE_stage0 () {
             echo "Nodecount=$joboption_numnodes" >> "$diagfile"
         fi
     fi
-    unset rte_idx is_rte rte_name rte_path rte0_exitcode
+    unset rte_idx is_rte rte_name rte_path rte_empty rte0_exitcode
 }
 
 RTE_stage1 () {

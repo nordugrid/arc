@@ -4,14 +4,22 @@ LRMS shell-backends overview for developers
 CONFIG variables used in LRMS shell-backend:
 --------------------------------------------
 
-submit_common.sh::
+lrms_common.sh::
 
   $CONFIG_runtimedir		[arex]
   $CONFIG_shared_scratch	[arex]
   $CONFIG_shared_filesystem	[arex]
   $CONFIG_scratchdir		[arex]
+  $CONFIG_gnu_time          [lrms]
+  $CONFIG_nodename          [lrms]
+  $CONFIG_enable_perflog_reporting [common]
+  $CONFIG_perflogdir        [common]
+
+submit_common.sh::
+
   $CONFIG_defaultmemory		[queue] [lrms]
-  $CONFIG_nodememory		[queue] [infosys/cluster]
+  $CONFIG_hostname          [common]
+  $CONFIG_controldir        [arex]
 
 lrms=boinc::
 
@@ -22,23 +30,19 @@ lrms=boinc::
   $CONFIG_boinc_db_pass  [lrms]
   $CONFIG_boinc_db_name  [lrms]
 
-lrms=condor::
+lrms=condor [#]_::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
   
   $CONFIG_condor_requirements 	[queue] [lrms]
   $CONFIG_condor_rank			[lrms]
-  $CONFIG_shared_filesystem		[arex]
+  # $CONFIG_shared_filesystem	[arex]
   $CONFIG_condor_bin_path		[lrms]
   $CONFIG_condor_config			[lrms]
 
-lrms=dgbridge::
-
-  $CONFIG_dgbridge_stage_dir		[lrms]
-  $CONFIG_dgbridge_stage_prepend	[lrms]
-  $CONFIG_scan_wakeupperiod		* not in reference [default: 30]
+.. [#] Here and following ``#`` prefix is for options and are used in ``*_common`` scripts and not unique to particular backend
 
 lrms=fork::
 
@@ -46,59 +50,60 @@ lrms=fork::
 
 lrms=ll::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
 
   $CONFIG_ll_bin_path			[lrms]
   $CONFIG_ll_consumable_resources	[lrms]
   $CONFIG_ll_parallel_single_jobs	*not in reference
-  $CONFIG_scratchdir			[arex]
+  # $CONFIG_scratchdir			[arex]
 
 lrms=lsf::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
 
   $CONFIG_lsf_architecture		[lrms]
   $CONFIG_lsf_bin_path			[lrms]
 
 lrms=pbs::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
 
   $CONFIG_pbs_queue_node        [queue]
   $CONFIG_pbs_bin_path			[lrms]
-  $CONFIG_nodememory			[queue] [infosys/cluster]
+  $CONFIG_nodememory			[queue] ([infosys/cluster] parser substitution fallback only)
   $CONFIG_pbs_log_path			[lrms]
-  $CONFIG_shared_filesystem		[arex]
+  # $CONFIG_shared_filesystem		[arex]
 
 lrms=sge::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
+
   $CONFIG_sge_root			    [lrms]
   $CONFIG_sge_cell			    [lrms]
   $CONFIG_sge_qmaster_port		[lrms]
   $CONFIG_sge_execd_port		[lrms]
   $CONFIG_sge_bin_path			[lrms]
   $CONFIG_sge_jobopts			[queue] [lrms]
-  $CONFIG_scratchdir			[arex]
+  # $CONFIG_scratchdir			[arex]
 
 lrms=slurm::
 
-  $CONFIG_enable_perflog_reporting	[common] not in reference
-  $CONFIG_perflogdir			[common] not in reference
-  $CONFIG_controldir			[arex] (for perflog)
+  # $CONFIG_enable_perflog_reporting	[common] not in reference
+  # $CONFIG_perflogdir			[common] not in reference
+  # $CONFIG_controldir			[arex] (for perflog)
 
   $CONFIG_slurm_wakeupperiod	[lrms]
   $CONFIG_slurm_use_sacct		[lrms]
-  $CONFIG_shared_filesystem		[arex]
   $CONFIG_slurm_bin_path		[lrms]
+  # $CONFIG_shared_filesystem		[arex]
 
 
 Call graph
@@ -304,7 +309,6 @@ The ARC6 logic is *no enforcement = no limit* [1]_
 Backends behaviour with no memory enforcement limit:
   * boinc - set to hardcoded 2GB
   * condor - no enforcement
-  * dgbridge - no memory handling at all
   * form - no memory handling at all
   * ll - no enforcement
   * lsf - no enforcement

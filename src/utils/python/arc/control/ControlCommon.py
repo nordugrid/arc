@@ -5,11 +5,11 @@ from arc.utils import config
 logger = logging.getLogger('ARCCTL.Common')
 
 try:
-    import ControlPaths
-    ARC_LIBEXEC_DIR = ControlPaths.ARC_LIBEXEC_DIR
-    ARC_DATA_DIR = ControlPaths.ARC_DATA_DIR
+    from arc import paths
+    ARC_LIBEXEC_DIR = paths.ARC_LIBEXEC_DIR
+    ARC_DATA_DIR = paths.ARC_DATA_DIR
 except ImportError:
-    ControlPaths = None
+    paths = None
     logger.error('There are no installation specific paths defined. '
                  'It seams you are running arcctl without autoconf - hardcoded defaults will be used.')
 
