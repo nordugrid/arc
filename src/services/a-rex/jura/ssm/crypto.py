@@ -160,7 +160,10 @@ def verify(signed_text, capath, check_crl):
     
     # SMIME header and message body are separated by a blank line
     lines = message.strip().splitlines()
-    blankline = lines.index('')
+    try:
+        blankline = lines.index('')
+    except ValueError:
+        raise CryptoException('No blank line between message header and body')
     headers = '\n'.join(lines[:blankline])
     body = '\n'.join(lines[blankline + 1:])
     # two possible encodings
@@ -169,11 +172,14 @@ def verify(signed_text, capath, check_crl):
     elif 'base64' in headers:
         body = base64.decodestring(body)
     # otherwise, plain text
-    
-    # Interesting problem here - we get a message 'Verification successful'
-    # to standard error.  We don't want to log this as an error each time,
-    # but we do want to see if there's a genuine error...
-    log.info(str(error).strip())
+
+    # 'openssl smime' returns "Verification successful" to standard error. We
+    # don't want to log this as an error each time, but we do want to see if
+    # there's a genuine error.
+    if "Verification successful" in error:
+        log.debug(error)
+    else:
+        log.warn(error)
 
     subj = get_certificate_subject(signer)
     return body, subj
@@ -207,6 +213,27 @@ def decrypt(encrypted_text, certpath, keypath):
     return enc_txt
 
 
+def verify_cert_date(certpath):
+    """Return True if certifcate is 'in date', otherwise return False."""
+    if certpath is None:
+        raise CryptoException('Invalid None argument to verify_cert_date().')
+
+    args = ['openssl', 'x509', '-checkend', '-noout', '-in', certpath]
+
+    p1 = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    message, error = p1.communicate(certpath)
+
+    # This should be unlikely to happen, but if it does log the error
+    # and do not verify the cert's expiraiton date.
+    if error != '':
+        log.error(error)
+        return False
+
+    # If the returncode is zero the certificate has not expired.
+    return p1.returncode == 0
+
+
 def verify_cert(certstring, capath, check_crls=True):
     '''
     Verify that the certificate is signed by a CA whose certificate is stored in
@@ -232,17 +259,21 @@ def verify_cert(certstring, capath, check_crls=True):
     # I think this is unlikely ever to happen
     if (error != ''):
         log.error(error)
-        
-    # There was a tricky problem here.  
-    # 'openssl verify' returns 0 whatever happens, so we can't 
-    # use the return code to determine whether the verification was 
-    # successful.  
+
+    # 'openssl verify' returns 0 whatever happens, so we can't use the return
+    # code to determine whether the verification was successful.
     # If it is successful, openssl prints 'OK'
     # If it fails, openssl prints 'error'
-    # So:
-    log.info('Certificate verification: ' + str(message).strip())
+    return_bool = 'OK' in message and 'error' not in message
 
-    return ('OK' in message and 'error' not in message)
+    if return_bool:
+        # We're not interested in the ouput if successful.
+        level = logging.DEBUG
+    else:
+        level = logging.WARNING
+    log.log(level, 'Certificate verification: %s', message)
+
+    return return_bool
 
 
 def verify_cert_path(certpath, capath, check_crls=True):

@@ -41,8 +41,6 @@ my $confdefaults = {
        arcversion => '@VERSION@',
        # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
        # TODO: move these two to proper places
-       # TODO: this should be in glue2
-       infosys_glue2_service_qualitylevel   => 'production',
        # TODO: this should be in LRMS
        shared_filesystem => 1,
        x509_host_key => '/etc/grid-security/hostkey.pem',
@@ -72,39 +70,36 @@ my $confdefaults = {
    },
    'infosys/ldap' => {
       port => '2135',
-      infosys_ldap_run_dir => '/var/run/arc/infosys/'
-   },
-   'infosys/ldap/bdii' => {
+      infosys_ldap_run_dir => '/var/run/arc/infosys/',
+	  # TODO: check InfosysHelper code. Eventually move things here.
 
-	   # TODO: check InfosysHelper code. Eventually move things here.
-
-	   # TODO: remove values unused by providers.       
-       ## not used in infoproviders: 
-       # bdii_debug_level => 'ERROR',
-       # provider_timeout => '10800',
-       # bdii_location => '/usr',
-       # bdii_conf => '/var/run/arc/infosys/bdii.conf',
-       # bdii_update_cmd => '/usr/sbin/bdii-update',
-       # bdii_db_config => '/etc/bdii/DB_CONFIG',
-       # bdii_archive_size => 0,
-       # bdii_breathe_time => '10',
-       # bdii_delete_delay => 0,
+	  # TODO: remove values unused by providers.       
+      ## not used in infoproviders: 
+      # bdii_debug_level => 'ERROR',
+      # bdii_provider_timeout => '10800',
+      # bdii_location => '/usr',
+      # bdii_conf => '/var/run/arc/infosys/bdii.conf',
+      # bdii_update_cmd => '/usr/sbin/bdii-update',
+      # bdii_db_config => '/etc/bdii/DB_CONFIG',
+      # bdii_archive_size => 0,
+      # bdii_breathe_time => '10',
+      # bdii_delete_delay => 0,
        
-       # used in InfosysHelper, these depend on BDII, but we have some
-       # control on them:
-       bdii_run_dir => '/var/run/arc/bdii',
-       bdii_log_dir => '/var/log/arc/bdii',
-       bdii_tmp_dir => '/var/tmp/arc/bdii',
-       bdii_var_dir => '/var/lib/arc/bdii',
-       # this one depends on bdii_run_dir
-       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
+      # used in InfosysHelper, these depend on BDII, but we have some
+      # control on them:
+      bdii_run_dir => '/var/run/arc/bdii',
+      bdii_log_dir => '/var/log/arc/bdii',
+      bdii_tmp_dir => '/var/tmp/arc/bdii',
+      bdii_var_dir => '/var/lib/arc/bdii',
+      # this one depends on bdii_run_dir
+      bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
        
-       ## TODO: fix this elsewere, the value should be set according to the formula below
-       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
-       ## startup scripts is called max_cycle
-       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-       ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
-       #bdii_read_timeout=300
+      ## TODO: fix this elsewere, the value should be set according to the formula below
+      ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
+      ## startup scripts is called max_cycle
+      ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
+      ## default: $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod
+      #bdii_read_timeout=300
    },
    'infosys/glue2' => {
        admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
@@ -129,7 +124,6 @@ my $lrms_options = {
     pbs_bin_path => '*',
     pbs_log_path => '*',
     dedicated_node_string => '*',
-    maui_bin_path => '*',
     condor_bin_path => '*',
     condor_config => '*',
     condor_rank => '*',
@@ -143,8 +137,6 @@ my $lrms_options = {
     ll_bin_path => '*',
     slurm_bin_path => '*',
     slurm_wakeupperiod => '*',
-    dgbridge_stage_dir => '*',
-    dgbridge_stage_prepend => '*',
     boinc_db_host => '*',
     boinc_db_port => '*',
     boinc_db_name => '*',
@@ -189,14 +181,13 @@ my $share_options = {
     Preemption => '*',
     totalcpus => '*',
     defaultmemory => '*',
-    authorizedvo =>  [ '*' ],
+    advertisedvo =>  [ '*' ],
 };
 my $gmuser_options = {
     controldir => '',
     sessiondir => [ '' ],
     cachedir => [ '*' ],
     cachesize => '*',
-    remotecachedir => [ '*' ],
     defaultttl => '*',
 };
 my $gmcommon_options = {
@@ -216,7 +207,6 @@ my $gmcommon_options = {
     x509_host_cert => '*',  # C 6
     x509_cert_dir => '*',
     runtimedir => '*',
-    gnu_time => '*',
     shared_filesystem => '*',
     shared_scratch => '*',
     scratchdir => '*',
@@ -230,9 +220,13 @@ my $sshcommon_options = {
     private_key => '*',
 };
 
-# C 147
-my $bdii_options = {
+# C 141
+my $ldap_infosys_options = {
+    port => '*',
+    infosys_ldap_run_dir => '*',
+    validity_ttl => '*',
     # These values have been checked to be used by infoproviders.
+    user => '*',
     bdii_run_dir => '*',
     bdii_log_dir => '*',
     bdii_tmp_dir => '*',
@@ -242,17 +236,8 @@ my $bdii_options = {
     ## not used directly by infoproviders, maybe by bdii config?
     ## this is probably done in the startup script, is called max_cycle
     ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-    ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+    ## default: $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod
     #bdii_read_timeout=300
-};
-
-# C 141
-my $ldap_infosys_options = {
-    port => '*',
-    infosys_ldap_run_dir => '*',
-    infosys_glue2_ldap_showactivities => '*',
-    infosys_glue2_service_qualitylevel => '*',
-    validity_ttl => '*'
 };
 
 # C 125-130 renaming these properly direcly in the gridftpd block
@@ -320,7 +305,7 @@ my $config_schema = {
         ClusterComment => '*',
         ClusterOwner => [ '*' ],
         Middleware => [ '*' ],
-        AuthorizedVO => [ '*' ],
+        AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
         %$xenv_options,
@@ -390,10 +375,8 @@ my $config_schema = {
 		logfile => '*',  #C 133
 		loglevel => '*', #C 134, replaces ProviderLog
 		validity_ttl => '*',
-		user => '*',
 		ldap => { # C141
             %$ldap_infosys_options, # C 141
-            bdii => { %$bdii_options } # C 147 
         },
 		glue1 => {}, # C 161
 	    glue2 => { # C 156
@@ -536,7 +519,7 @@ sub read_json_config {
 	my $jsonconfig='';
 	{ 
       local $/; # slurp mode
-	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json -c $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
 	  $jsonconfig = <$jsonout>;
 	  close $jsonout;
 	}
@@ -638,9 +621,6 @@ sub _substitute {
         if ($opts->{cachedir}) {
             $opts->{cachedir} = [ map {&$subst_opt($_)} @{$opts->{cachedir}} ];
         }
-        if ($opts->{remotecachedir}) {
-            $opts->{remotecachedir} = [ map {&$subst_opt($_)} @{$opts->{remotecachedir}} ];
-        }
     }
 
     # authplugin, localcred, helper: not substituted
@@ -691,6 +671,10 @@ sub build_config_from_json {
     my $common = $jsonconf->{'common'};    
     ## TODO: remove everything that should not be in $config
     move_keys $common, $config, [keys %$gmcommon_options];
+
+    # new mapping block (just move to the top config as it was before)
+    my $mapping = $jsonconf->{'mapping'};
+    move_keys $mapping, $config, [keys %$gmcommon_options];
     
     # C 10 new lrms block
     my $lrms = $jsonconf->{'lrms'};
@@ -753,14 +737,8 @@ sub build_config_from_json {
     # LDAP config
     if (defined $jsonconf->{'infosys/ldap'}) {
 		$config->{infosys}{ldap} ||= {};
-        # bdii is required by LDAP
-        $config->{infosys}{ldap}{bdii} ||= {};
 		my $ldapconf = $jsonconf->{'infosys/ldap'};
 	    move_keys $ldapconf, $config->{infosys}{ldap}, [keys %$ldap_infosys_options];
-	    
-	    # BDII config
-        my $bdiiconf = $jsonconf->{'infosys/ldap/bdii'};
-	    move_keys $bdiiconf, $config->{infosys}{ldap}{bdii}, [keys %$bdii_options];
     } else {
 	    $log->verbose("[infosys/ldap] block not found in arc.conf Disabling LDAP/LDIF information generation.")	
 	}
@@ -807,7 +785,7 @@ sub build_config_from_json {
     ############################ legacy ini config file structure #############################
 
 
-    my $cluster = $jsonconf->{'cluster'};
+    my $cluster = $jsonconf->{'infosys/cluster'};
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
         rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
@@ -815,7 +793,7 @@ sub build_config_from_json {
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
                                  cluster_owner => 'ClusterOwner', localse => 'LocalSE',
-                                 authorizedvo => 'AuthorizedVO', homogeneity => 'Homogeneous',
+                                 advertisedvo => 'AdvertisedVO', homogeneity => 'Homogeneous',
                                  architecture => 'Platform', opsys => 'OpSys', benchmark => 'Benchmark',
                                  nodememory => 'MaxVirtualMemory', middleware => 'Middleware',
                                  cluster_alias => 'ClusterAlias', comment => 'ClusterComment'};
@@ -854,8 +832,10 @@ sub build_config_from_json {
         my $xeconf = $config->{xenvs}{$name} ||= {};
         push @{$sconf->{ExecutionEnvironmentName}}, $name;
 
-        rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
-                                     nodememory => 'MaxVirtualMemory', comment => 'Description', maxslotsperjob => 'MaxSlotsPerJob'};
+        rename_keys $queue, $sconf, {nodememory => 'MaxVirtualMemory', 
+                                     comment => 'Description', 
+                                     advertisedvo => 'AdvertisedVO',
+                                     maxslotsperjob => 'MaxSlotsPerJob'};
         move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
 
         # TODO: change opsys here if needed
@@ -1011,19 +991,18 @@ sub printLRMSConfigScript {
 
     my $gmopts = {};
     $gmopts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
-    $gmopts->{gnu_time} = $config->{gnu_time} if $config->{gnu_time};
     $gmopts->{scratchdir} = $config->{scratchdir} if $config->{scratchdir};
     $gmopts->{shared_scratch} = $config->{shared_scratch} if $config->{shared_scratch};
     # shared_filesystem: if not set, assume 'yes'
     $gmopts->{shared_filesystem} = $config->{shared_filesystem} if $config->{shared_filesystem};
 
-    _print_shell_section('grid-manager', $gmopts);
+    _print_shell_section('arex', $gmopts);
 
     my $cluster = {};
     rename_keys $config->{service}, $cluster, {MaxVirtualMemory => 'nodememory'};
     move_keys $config->{service}, $cluster, ['defaultmemory'];
 
-    _print_shell_section('cluster', $cluster) if %$cluster;
+    _print_shell_section('infosys/cluster', $cluster) if %$cluster;
 
     for my $sname (keys %{$config->{shares}}) {
         my $queue = {};
@@ -1033,7 +1012,7 @@ sub printLRMSConfigScript {
         my $qname = $config->{shares}{$sname}{MappingQueue};
         $queue->{MappingQueue} = $qname if $qname;
 
-        _print_shell_section("queue/$sname", $queue);
+        _print_shell_section("queue:$sname", $queue);
     }
 
     _print_shell_end();
@@ -1069,15 +1048,7 @@ sub set_defaults {
 		    $config->{'infosys/ldap'} ||= {};
 		}
 	}
-    
-    # force BDII defaults if LDAP configured    
-    if (defined $config->{'infosys/ldap'}) {
-        $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
-        $config->{'infosys/ldap/bdii'} ||= {};
-    }
-    
     ## end of default blocks creation
-       
        
     for (keys %$confdefaults) {
 		if (defined $config->{$_}) {
@@ -1164,8 +1135,8 @@ sub fix_config {
     
     my %queuenamesset = map { $_ => '1' } (keys %{$config->{shares}});
     
-    if (defined $config->{service}{AuthorizedVO}) {
-	    for my $policy (@{$config->{service}{AuthorizedVO}}) {
+    if (defined $config->{service}{AdvertisedVO}) {
+	    for my $policy (@{$config->{service}{AdvertisedVO}}) {
 			$config->{mappingpolicies}{$policy} ||= {};
 	        $config->{mappingpolicies}{$policy}{Scheme} = 'basic;';
 	        $config->{mappingpolicies}{$policy}{Rule} = [ "vo:$policy" ];
@@ -1179,8 +1150,8 @@ sub fix_config {
 	}
     
     for my $queue (keys %queuenamesset) {
-		if (defined $config->{shares}{$queue}{authorizedvo}) {
-	        for my $policy (@{$config->{shares}{$queue}{authorizedvo}}) {
+		if (defined $config->{shares}{$queue}{AdvertisedVO}) {
+	        for my $policy (@{$config->{shares}{$queue}{AdvertisedVO}}) {
 				#$log->debug("$policy".Dumper($config->{mappingpolicies}));
 				$config->{mappingpolicies}{$policy} ||= {};
 	            $config->{mappingpolicies}{$policy}{Scheme} = 'basic';
@@ -1265,7 +1236,7 @@ sub getValueOf ($$$){
 	my $value='';
 	{ 
       local $/; # slurp mode
-	  open (my $parserout, "$libexecpath/arcconfig-parser -c $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+	  open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
 	  $value = <$parserout>;
 	  close $parserout;
 	}

@@ -10,8 +10,8 @@ output=""
 EOF
 
 read -r -d '' general_arc_test_configuration <<EOF
-[common]
-slurm_bin_path="@PWD@/bin"
+[lrms]
+slurm_bin_path=@PWD@/bin
 EOF
 
 function test_user_env() {

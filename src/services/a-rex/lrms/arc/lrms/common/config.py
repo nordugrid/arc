@@ -125,11 +125,11 @@ def set_gridmanager(cfg):
        if cfg.has_option('arex', 'logfile') \
        else '/var/log/arc/arex.log'
    Config.gnu_time = \
-       str(cfg.get('arex', 'gnu_time')).strip('"') \
-       if cfg.has_option('arex', 'gnu_time') else '/usr/bin/time'
+       str(cfg.get('lrms', 'gnu_time')).strip('"') \
+       if cfg.has_option('lrms', 'gnu_time') else '/usr/bin/time'
    Config.nodename = \
-       str(cfg.get('arex', 'nodename')).strip('"') \
-       if cfg.has_option('arex', 'nodename') else '/bin/hostname -f'
+       str(cfg.get('lrms', 'nodename')).strip('"') \
+       if cfg.has_option('lrms', 'nodename') else '/bin/hostname -f'
    # SSH
    from pwd import getpwuid
    Config.remote_host = \
@@ -166,16 +166,14 @@ def set_cluster(cfg):
     """
 
     global Config
-    Config.gm_port = int(cfg.get('arex', 'gm_port').strip('"')) \
-        if cfg.has_option('arex', 'gm_port') else 2811
-    Config.gm_mount_point = cfg.get('arex', 'gm_mount_point').strip('"') \
-        if cfg.has_option('arex', 'gm_mount_point') else '/jobs'
+    Config.gm_port = 2811
+    Config.gm_mount_point = '/jobs'
     Config.defaultmemory = int(cfg.get('lrms', 'defaultmemory').strip('"')) \
         if cfg.has_option('lrms', 'defaultmemory') else 0
     Config.nodememory = int(cfg.get('infosys/cluster', 'nodememory').strip('"')) \
         if cfg.has_option('infosys/cluster', 'nodememory') else 0
-    Config.hostname = str(cfg.get('arex', 'hostname')).strip('"') \
-        if cfg.has_option('arex', 'hostname') else socket.gethostname()
+    Config.hostname = str(cfg.get('common', 'hostname')).strip('"') \
+        if cfg.has_option('common', 'hostname') else socket.gethostname()
        
 
 def set_queue(cfg):

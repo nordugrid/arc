@@ -197,7 +197,7 @@ case "$result" in
     OK)
         echo "job submitted successfully!" 1>&2
         echo "local job id: $job_id" 1>&2
-        echo "joboption_jobid=$job_id" >> $arg_file
+        echo "joboption_jobid=$job_id" >> $GRAMI_FILE
         rc=0
         ;;
     *)

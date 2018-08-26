@@ -79,22 +79,6 @@ Description: ARC GridFTP server
    fileplugin : Standard GridFTP server based on Globus globus-ftp-control
    jobsplugin : Classical ARC job submission interface
 
-Package: nordugrid-arc-candypond
-Provides: nordugrid-arc-cache-service
-Replaces: nordugrid-arc-cache-service (<< 6.0.0~)
-Conflicts: nordugrid-arc-cache-service (<< 6.0.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
-Description: ARC CandyPond service
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package contains the ARC CandyPond service. It provides a way to perform
- some operations on the ARC Compute Element cache remotely. It can be
- especially helpful for data-driven job scheduling within pilot job
- frameworks.
-
 Package: nordugrid-arc-datadelivery-service
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
@@ -105,10 +89,10 @@ Description: ARC data delivery service
  .
  This package contains the ARC data delivery service.
 
-Package: nordugrid-arc-aris
-Provides: nordugrid-arc-ldap-infosys
-Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
-Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
+Package: nordugrid-arc-infosys-ldap
+Provides: nordugrid-arc-ldap-infosys, nordugrid-arc-aris
+Replaces: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-ldap-infosys (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-ldap-egiis (<< 6.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, ${perl:Depends}, slapd, bdii, lsb-base (>= 3.0-6)
 Description: ARC local information system
@@ -132,10 +116,13 @@ Description: ARC LDAP monitor service
  .
  This package contains the LDAP monitor system for ARC.
  This package is self-contained. It is used to set up a Web-based monitor
- which pulls information from ARIS and displays it in a readable
- manner.
+ which pulls information from the information system and displays it in a
+ readable manner.
 
 Package: nordugrid-arc-arex
+Provides: nordugrid-arc-cache-service, nordugrid-arc-candypond
+Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
+Conflicts: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
 Description: ARC Remote EXecution service
@@ -184,16 +171,19 @@ Description: ARC cache index - core components
  .
  Core components of the ARC Cache Index (ACIX).
 
-Package: nordugrid-arc-acix-cache
+Package: nordugrid-arc-acix-scanner
+Provides: nordugrid-arc-acix-cache
+Replaces: nordugrid-arc-acix-cache (<< 6.0.0~)
+Conflicts: nordugrid-arc-acix-cache (<< 6.0.0~)
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
-Description: ARC cache index - cache server
+Description: ARC cache index - scanner server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Cache server component of the ARC Cache Index (ACIX), usually installed
+ Cache scanner component of the ARC Cache Index (ACIX), usually installed
  alongside A-REX. This component collects information on the content of
  an A-REX cache.
 
@@ -234,23 +224,28 @@ Description: ARC Python wrapper
  .
  Python bindings for ARC.
 
-Package: nordugrid-arc-gridmap-utils
+Package: nordugrid-arc-nordugridmap
+Provides: nordugrid-arc-gridmap-utils
+Replaces: nordugrid-arc-gridmap-utils (<< 6.0.0~)
+Conflicts: nordugrid-arc-gridmap-utils (<< 6.0.0~)
 Architecture: all
 Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, libsoap-lite-perl, libcrypt-openssl-x509-perl, ${perl:Depends}, ${misc:Depends}
 Recommends: cron
-Description: NorduGrid authorization tools
+Description: The nordugridmap authorization tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC authorization machinery.
  A prominent tool distributed in this package is the nordugridmap
  script to map Grid user identities to local Linux accounts.
 
-Package: nordugrid-arc-misc-utils
+Package: nordugrid-arc-test-utils
+Provides: nordugrid-arc-misc-utils
+Replaces: nordugrid-arc-misc-utils (<< 6.0.0~)
+Conflicts: nordugrid-arc-misc-utils (<< 6.0.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
-Description: ARC grid middleware - Misc tools
+Description: ARC test tools
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).

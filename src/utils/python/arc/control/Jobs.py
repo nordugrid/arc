@@ -93,7 +93,7 @@ class JobsControl(ComponentControl):
 
     def __parse_job_attrs(self, jobid):
         _KEYVALUE_RE = re.compile(r'^([^=]+)=(.*)$')
-        local_file = '{}/job.{}.local'.format(self.control_dir, jobid)
+        local_file = '{0}/job.{1}.local'.format(self.control_dir, jobid)
         job_attrs = {}
         if os.path.exists(local_file):
             with open(local_file, 'r') as local_f:
@@ -209,7 +209,7 @@ class JobsControl(ComponentControl):
             sys.stdout.flush()
 
     def job_log(self, args):
-        error_log = '{}/job.{}.errors'.format(self.control_dir, args.jobid)
+        error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
         if os.path.exists(error_log):
             print_line = True
             with open(error_log, 'r') as el_f:
@@ -263,7 +263,7 @@ class JobsControl(ComponentControl):
                 self.logger.error('There is no such attribute \'%s\' defined for job %s', args.attr, args.jobid)
         else:
             for k, v in job_attrs.items():
-                print('{:<32}: {}'.format(k, v))
+                print('{0:<32}: {1}'.format(k, v))
 
     def job_stats(self, args):
         __RE_JOBSTATES = re.compile(r'^\s*([A-Z]+):\s+([0-9]+)\s+\(([0-9]+)\)\s*$')
@@ -315,10 +315,10 @@ class JobsControl(ComponentControl):
         if args.data_staging:
             if args.long:
                 print('Processing jobs in data-staging:')
-                print('  Downloading: {:>9}'.format(data_download))
-                print('  Uploading:   {:>9}'.format(data_upload))
+                print('  Downloading: {0:>9}'.format(data_download))
+                print('  Uploading:   {0:>9}'.format(data_upload))
             else:
-                print(' Processing: {:>8} + {}'.format(data_download, data_upload))
+                print(' Processing: {0:>8} + {1}'.format(data_download, data_upload))
 
     def control(self, args):
         self.cache_ttl = args.cachettl

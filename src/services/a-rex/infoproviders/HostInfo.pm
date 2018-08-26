@@ -27,7 +27,6 @@ our $host_options_schema = {
             '*' => {
                 sessiondir => [ '' ],
                 cachedir => [ '*' ],
-                remotecachedir => [ '*' ],
                 cachesize => '*'
             }
         },
@@ -368,8 +367,7 @@ sub get_host_info {
     # Considering only common cache disk space (not including per-user caches)
     if ($control->{'.'}) {
         my $cachedirs = $control->{'.'}{cachedir} || [];
-        my $remotecachedirs = $control->{'.'}{remotecachedir} || [];
-        my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs, @$remotecachedirs;
+        my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
             my %res = Sysinfo::diskspaces(@paths);
             if ($res{errors}) {
@@ -431,7 +429,6 @@ sub test {
                         '.' => {
                             sessiondir => [ '/home', '/boot' ],
                             cachedir => [ '/home' ],
-                            remotecachedir => [ '/boot' ],
                             cachesize => '60 80',
                         },
                         'daemon' => {

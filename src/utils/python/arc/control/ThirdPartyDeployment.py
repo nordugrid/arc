@@ -3,7 +3,12 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 import sys
-import requests
+try:
+    from urllib.request import Request, urlopen
+    from urllib.error import URLError
+except ImportError:
+    from urllib2 import Request, urlopen
+    from urllib2 import URLError
 import socket
 import ssl
 import re
@@ -27,11 +32,25 @@ class ThirdPartyControl(ComponentControl):
     def __egi_get_voms(self, vo):
         vomslsc = {}
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
-        r = requests.get('http://operations-portal.egi.eu/xml/voIDCard/public/voname/{}'.format(vo))
-        if not r.content.startswith('<?xml'):
-            self.logger.error('VO %s is not found in EGI database')
+        dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
+        # query database
+        req = Request(dburl)
+        try:
+            self.logger.debug('Contacting EGI VO Database at %s', dburl)
+            response = urlopen(req)
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                self.logger.error('Failed to reach EGI VO Database server. Error: %s', e.reason)
+            else:
+                self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
             sys.exit(1)
-        xml = ET.fromstring(r.content)
+        # get response
+        rcontent = response.read()
+        if not rcontent.startswith('<?xml'):
+            self.logger.error('VO %s is not found in EGI database', vo)
+            sys.exit(1)
+        xml = ET.fromstring(rcontent)
+        # parse XML
         for voms in xml.iter('VOMS_Server'):
             host = voms.find('hostname').text
             dn = voms.find('X509Cert/DN').text
@@ -58,7 +77,7 @@ class ThirdPartyControl(ComponentControl):
         (hostname, port) = self.__get_socket_from_url(url)
         # try to connect using openssl
         try:
-            s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{}:{}'.format(hostname, port)],
+            s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in iter(s_client.stdout.readline, ''):
                 if line.startswith('subject='):
@@ -122,9 +141,9 @@ class ThirdPartyControl(ComponentControl):
         dn = ''
         ca = ''
         for (k, v), in cert['subject']:
-            dn += '/{}={}'.format(self.__x500_to_DN(k), v)
+            dn += '/{0}={1}'.format(self.__x500_to_DN(k), v)
         for (k, v), in cert['issuer']:
-            ca += '/{}={}'.format(self.__x500_to_DN(k), v)
+            ca += '/{0}={1}'.format(self.__x500_to_DN(k), v)
         return {hostname: {'dn': dn, 'ca': ca}}
 
     def lsc_deploy(self, args):
@@ -143,12 +162,12 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('There are no VOMS server credentials found. Will not create LSC file.')
             sys.exit(1)
         # create vomsdir for LSC
-        vomses_dir = '/etc/grid-security/vomsdir/{}'.format(args.vo)
+        vomses_dir = '/etc/grid-security/vomsdir/{0}'.format(args.vo)
         if not os.path.exists(vomses_dir):
             self.logger.debug('Making vomses directory %s to hold LSC file(s)', vomses_dir)
             os.makedirs(vomses_dir, mode=0o755)
         for host, creds in voms_creds.items():
-            lsc_file = '{}/{}.lsc'.format(vomses_dir, host)
+            lsc_file = '{0}/{1}.lsc'.format(vomses_dir, host)
             with open(lsc_file, 'w') as lsc_f:
                 self.logger.info('Creating LSC file: %s', lsc_file)
                 lsc_f.write('{dn}\n{ca}'.format(**creds))
@@ -211,12 +230,12 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             ports = ports.replace(',', ':').replace(' ', '')
             if conf:
                 if conf['port'] == ports:
-                    conf['descr'] += ' and {}'.format(subsys)
+                    conf['descr'] += ' and {0}'.format(subsys)
                 else:
-                    iptables_config.append({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                    iptables_config.append({'descr': 'Globus {0} port range for {1}'.format(proto, subsys),
                                             'port': ports, 'proto': proto.lower()})
             else:
-                conf.update({'descr': 'Globus {} port range for {}'.format(proto, subsys),
+                conf.update({'descr': 'Globus {0} port range for {1}'.format(proto, subsys),
                         'port': ports, 'proto': proto.lower()})
                 iptables_config.append(conf)
 

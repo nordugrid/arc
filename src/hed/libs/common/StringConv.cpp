@@ -333,6 +333,25 @@ namespace Arc {
     return out;
   }
 
+  std::string extract_escaped_token(std::string& input, char sep, char esc, escape_type type) {
+    std::string::size_type p = 0;
+    for(;p<input.length();++p) {
+      if(input[p] != sep) break;
+    }
+    for(;p<input.length();++p) {
+      if((type == escape_char) && (input[p] == esc)) {
+        ++p; // skip escaped char
+      } else if(input[p] == sep) {
+        break;
+      }
+    }
+    if(p > input.length()) p = input.length(); // protect against escape at eol
+    std::string result(input.c_str(), p);
+    if(p < input.length()) ++p; // skip separator
+    input.erase(0,p);
+    return result;
+  }
+
   static bool strtoint(const std::string& s, unsigned long long&t, bool& sign, int base) {
     if(base < 2) return false;
     if(base > 36) return false;

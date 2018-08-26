@@ -23,7 +23,7 @@ def valid_datetime_type(arg_datetime_str):
             try:
                 return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M:%S")
             except ValueError:
-                msg = "Timestamp format ({}) is not valid! " \
+                msg = "Timestamp format ({0}) is not valid! " \
                       "Expected format: YYYY-MM-DD [HH:mm[:ss]]".format(arg_datetime_str)
                 raise argparse.ArgumentTypeError(msg)
 
@@ -227,10 +227,10 @@ class AccountingControl(ComponentControl):
             sfrom, etill = self.__get_from_till(frecords)
             kind = 'APEL' if args.apel else 'SGAS'
             jobs = len(frecords)
-            print('Statistics for {} jobs from {} till {}:\n' \
-                  '  Number of jobs: {:>16}\n' \
-                  '  Total WallTime: {:>16}\n' \
-                  '  Total CPUTime:  {:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime))
+            print('Statistics for {0} jobs from {1} till {2}:\n' \
+                  '  Number of jobs: {3:>16}\n' \
+                  '  Total WallTime: {4:>16}\n' \
+                  '  Total CPUTime:  {5:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime))
 
     def stats(self, args):
         self.__parse_records(args.apel, args.sgas)
@@ -252,7 +252,7 @@ class AccountingControl(ComponentControl):
         endtill = args.end_till.strftime('%Y.%m.%d').replace('.0', '.')
         command = ''
         if args.apel_url:
-            command = '{} -u {} -t {} -r {}-{} {}'.format(
+            command = '{0} -u {1} -t {2} -r {3}-{4} {5}'.format(
                 self.jura_bin,
                 args.apel_url,
                 args.apel_topic,
@@ -260,7 +260,7 @@ class AccountingControl(ComponentControl):
                 self.archivedir
             )
         elif args.sgas_url:
-            command = '{} -u {} -r {}-{} {}'.format(
+            command = '{0} -u {1} -r {2}-{3} {4}'.format(
                 self.jura_bin,
                 args.sgas_url,
                 startfrom, endtill,
@@ -279,7 +279,7 @@ class AccountingControl(ComponentControl):
             # query GLUE2 LDAP
             self.logger.debug('Running LDAP query over %s to find %s services', args.top_bdii, stype)
             services_list = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2ServiceID'], timeout=30,
-                                                filterstr='(&(objectClass=Glue2Service)(Glue2ServiceType={}))'.format(
+                                                filterstr='(&(objectClass=Glue2Service)(Glue2ServiceType={0}))'.format(
                                                     stype))
             s_ids = []
             for (_, s) in services_list:
@@ -287,9 +287,9 @@ class AccountingControl(ComponentControl):
                     s_ids += s['GLUE2ServiceID']
 
             self.logger.debug('Running LDAP query over %s to find service endpoint URLs', args.top_bdii)
-            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={})'.format(y), s_ids, '')
+            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y), s_ids, '')
             endpoints = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2EndpointURL'], timeout=30,
-                                            filterstr='(&(objectClass=Glue2Endpoint)(|{}))'.format(s_filter))
+                                            filterstr='(&(objectClass=Glue2Endpoint)(|{0}))'.format(s_filter))
             for (_, e) in endpoints:
                 if 'GLUE2EndpointURL' in e:
                     for url in e['GLUE2EndpointURL']:

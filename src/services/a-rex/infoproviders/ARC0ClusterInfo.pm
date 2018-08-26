@@ -169,11 +169,11 @@ sub collect($) {
         }
     }
 
-    my @authorizedvos = (); 
-    if ($config->{service}{AuthorizedVO}) {
-        @authorizedvos = @{$config->{service}{AuthorizedVO}};
-        # add VO: suffix to each authorized VO
-        @authorizedvos = map { "VO:".$_ } @authorizedvos;
+    my @advertisedvos = (); 
+    if ($config->{service}{AdvertisedVO}) {
+        @advertisedvos = @{$config->{service}{AdvertisedVO}};
+        # add VO: suffix to each advertised VO
+        @advertisedvos = map { "VO:".$_ } @advertisedvos;
     }
 
 	# Assume no connectivity unles explicitly configured otherwise on each
@@ -211,7 +211,7 @@ sub collect($) {
         # added to help client to match GLUE2 services on the same machine
         $c->{comment} = $c->{comment} ? $c->{comment}."; GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex" : "GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex"; # GLUE2ComputingService ID
         $c->{owner} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
-        $c->{acl} = [ @authorizedvos ] if @authorizedvos;
+        $c->{acl} = [ @advertisedvos ] if @advertisedvos;
         $c->{location} = $config->{location}{PostCode} if $config->{location}{PostCode};
         $c->{issuerca} = $host_info->{issuerca} if $host_info->{issuerca};
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};

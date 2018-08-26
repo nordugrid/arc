@@ -174,7 +174,7 @@ sub get_gmjobs {
                        push @{$job->{voms}}, $2;
                        # vomsvo to hold the selected vo, I assume is the first in the list.
                        # will be used to calculate vo statistics
-                       # must match authorizedvo (i.e. slashes are removed)
+                       # must match advertised (i.e. slashes are removed)
                        unless (defined $job->{vomsvo}) {
                            my $vostring = $2;
                            if ($vostring =~ /^\/+(\w+)/) { $vostring = $1;  };

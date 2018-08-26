@@ -24,6 +24,7 @@ while [ $# -gt 0 ] ; do
 done
 
 joboption_lrms="lsf"
+lrms_options="lsf_architecture lsf_bin_path"
 
 # define paths and config parser
 basedir=`dirname $0`

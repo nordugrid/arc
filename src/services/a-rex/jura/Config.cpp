@@ -10,18 +10,14 @@ namespace ArcJura
   Arc::LogLevel const Config::default_loglevel = Arc::WARNING;
   char const * const Config::default_archivedir = "/var/log/arc/jura/archive";
   unsigned int const Config::default_archivettl = 0; // forever
-  unsigned int const Config::default_urbatchsize = 50;
   unsigned int const Config::default_urdelivery_keepfailed = 30;
   unsigned int const Config::default_urdelivery_frequency = 3600;
   unsigned int const Config::SGAS::default_urbatchsize = 50;
   unsigned int const Config::APEL::default_urbatchsize = 1000;
 
-
-
   Config::Config(char const * configFile): processed(false),
         logfile(default_logfile), loglevel(default_loglevel),
         archiving(false), archivedir(default_archivedir), archivettl(default_archivettl),
-        urbatchsize(default_urbatchsize),
         urdelivery_keepfailed(default_urdelivery_keepfailed),
         urdelivery_frequency(default_urdelivery_frequency)
   {
@@ -86,13 +82,8 @@ namespace ArcJura
                 std::cerr<<"Wrong loglevel ("<< rest << ") attributum value given!"<<std::endl;
                 return;
             }
-          } else if (command == "urbatchsize") {
-            if (!Arc::stringto(rest, urbatchsize)) {
-              std::cerr<<"Wrong urbatchsize ("<< rest << ") attributum value given!"<<std::endl;
-              return;
-            }
           } else if (command == "vomsless_vo") {
-            vomsless_vo = Arc::ConfigIni::NextArg(rest);
+            vomsless_vo = Arc::ConfigIni::NextArg(rest,'#');
             vomsless_issuer = rest;
           } else if (command == "vo_group") {
             vo_group = rest;

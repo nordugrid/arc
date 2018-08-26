@@ -1,28 +1,31 @@
-/var/log/arc/arex.log {
+#
+# Logs written by A-REX
+#
+/var/log/arc/arex.log
+/var/log/arc/arex-jobs.log
+/var/log/arc/job.helper.errors
+/var/log/arc/ws-interface.log
+/var/log/arc/datastaging.log
+{
   missingok
   compress
   delaycompress
   daily
   rotate 14
   create
+  sharedscripts
   postrotate
-	kill -HUP `cat /var/run/arched-arex.pid 2> /dev/null` 2> /dev/null || true
+	kill -HUP `cat /var/run/arc/arex.pid 2> /dev/null` 2> /dev/null || true
   endscript
 }
 
-/var/log/arc/ws-interface.log {
-  missingok
-  compress
-  delaycompress
-  daily
-  rotate 14
-  postrotate
-    kill -HUP `cat /var/run/arched-arex.pid 2> /dev/null` 2> /dev/null || true
-  endscript
-  create
-}
-
-/var/log/arc/cache-clean.log {
+#
+# External processes spawned by A-REX
+#
+/var/log/arc/infoprovider.log
+/var/log/arc/cache-cleaner.log
+/var/log/arc/jura.log
+{
   missingok
   compress
   delaycompress
@@ -31,7 +34,13 @@
   create
 }
 
-/var/log/arc/accounting-jura.log {
+
+#
+# Extra services coupled with A-REX
+#
+/var/log/arc/arc-acix-scanner.log
+/var/log/arc/nordugridmap.log
+{
   missingok
   compress
   delaycompress
@@ -40,7 +49,11 @@
   create
 }
 
-/var/log/arc/perfdata/arex.perflog {
+#
+# Developer-enabled performance logging
+#
+/var/log/arc/perfdata/*.perflog 
+{
   missingok
   compress
   daily
@@ -48,42 +61,3 @@
   create
 }
 
-/var/log/arc/perfdata/data.perflog {
-  missingok
-  compress
-  daily
-  rotate 14
-  create
-}
-
-/var/log/arc/perfdata/system.perflog {
-  missingok
-  compress
-  daily
-  rotate 14
-  create
-}
-
-/var/log/arc/perfdata/backends.perflog {
-  missingok
-  compress
-  daily
-  rotate 14
-  create
-}
-
-/var/log/arc/perfdata/sysinfo.perflog {
-  missingok
-  compress
-  daily
-  rotate 14
-  create
-}
-
-/var/log/arc/perfdata/submission.perflog {
-  missingok
-  compress
-  daily
-  rotate 14
-  create
-}

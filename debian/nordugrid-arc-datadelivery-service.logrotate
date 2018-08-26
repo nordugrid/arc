@@ -1,4 +1,5 @@
-/var/log/arc/datadelivery-service.log {
+/var/log/arc/datadelivery-service.log
+{
   missingok
   compress
   delaycompress
@@ -6,6 +7,6 @@
   rotate 14
   create
   postrotate
-  kill -HUP `cat /var/run/arched-datadelivery-service.pid 2> /dev/null` 2> /dev/null || true
+  kill -HUP `cat /var/run/arc/datadelivery-service.pid 2> /dev/null` 2> /dev/null || true
   endscript
 }
