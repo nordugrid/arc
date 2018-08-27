@@ -54,7 +54,7 @@ class AccountingControl(ComponentControl):
         self.jura_bin = ARC_LIBEXEC_DIR + '/jura'
         self.archivedir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
         if self.archivedir is None:
-            self.logger.warning('Accounting records achieving is not enabled! '
+            self.logger.warning('Accounting records archiving is not enabled! '
                                 'It is not possible to operate with accounting information or doing re-publishing.')
             sys.exit(1)
         if not self.archivedir.endswith('/'):
