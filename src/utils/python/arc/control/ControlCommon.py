@@ -6,6 +6,7 @@ logger = logging.getLogger('ARCCTL.Common')
 
 try:
     from arc import paths
+    ARC_LOCATION = paths.ARC_LOCATION
     ARC_LIBEXEC_DIR = paths.ARC_LIBEXEC_DIR
     ARC_DATA_DIR = paths.ARC_DATA_DIR
 except ImportError:

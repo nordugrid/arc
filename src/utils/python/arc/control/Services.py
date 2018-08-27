@@ -58,6 +58,19 @@ class ServicesControl(ComponentControl):
             self.logger.info('Controlling ARC CE Services is not possible without arc.conf.')
             sys.exit(1)
         self.arcconfig = arcconfig
+        self.sm = None
+        self.pm = None
+
+    def __get_pm_sm(self):
+        if self.sm is None:
+            self.pm = OSPackageManagement()
+            # check arex package that contains arcctl
+            if self.pm.is_installed(self.__blocks_map['arex']['package']):
+                self.sm = OSServiceManagement()
+            else:
+                self.pm = None
+                self.sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
+        return self.pm, self.sm
 
     def __get_configured(self):
         packages_needed = set()
@@ -74,7 +87,10 @@ class ServicesControl(ComponentControl):
         return packages_needed, services_all, services_needed
 
     def __packages_install(self, packages_needed):
-        pm = OSPackageManagement()
+        pm, _ = self.__get_pm_sm()
+        if pm is None:
+            self.logger.info('ARC is installed from sources. Skipping OS packages management.')
+            return
         install_list = []
         for p in packages_needed:
             if not pm.is_installed(p):
@@ -118,7 +134,7 @@ class ServicesControl(ComponentControl):
             self.__services_stop(services, sm)
 
     def start_as_configured(self):
-        sm = OSServiceManagement()
+        pm, sm = self.__get_pm_sm()
         packages_needed, services_all, services_needed = self.__get_configured()
         # ensure packages are installed
         self.__packages_install(packages_needed)
@@ -128,7 +144,7 @@ class ServicesControl(ComponentControl):
         self.__services_start(services_needed, sm)
 
     def enable_as_configured(self, now=False):
-        sm = OSServiceManagement()
+        pm, sm = self.__get_pm_sm()
         packages_needed, services_all, services_needed = self.__get_configured()
         # ensure packages are installed
         self.__packages_install(packages_needed)
@@ -138,8 +154,7 @@ class ServicesControl(ComponentControl):
         self.__services_enable(services_needed, sm, now)
 
     def list_services(self, args):
-        pm = OSPackageManagement()
-        sm = OSServiceManagement()
+        pm, sm = self.__get_pm_sm()
         services = {}
         for s in self.__blocks_map.values():
             sname = s['service']
@@ -147,13 +162,18 @@ class ServicesControl(ComponentControl):
                 continue
             if sname in services:
                 continue
-            installed = pm.is_installed(s['package'])
+            if pm is None:
+                installed = sm.is_installed(s['service'])
+                installed_str = 'Built from source' if installed else 'Not built'
+            else:
+                installed = pm.is_installed(s['package'])
+                installed_str = 'Installed' if installed else 'Not installed'
             active = sm.is_active(s['service'])
             enabled = sm.is_enabled(s['service'])
             services[sname] = {
                 'name': sname,
                 'installed': installed,
-                'installed_str': 'Installed' if installed else 'Not installed',
+                'installed_str': installed_str,
                 'active': active,
                 'active_str': 'Running' if active else 'Stopped',
                 'enabled': enabled,
@@ -170,28 +190,29 @@ class ServicesControl(ComponentControl):
                 print('{name:32} ({installed_str}, {enabled_str}, {active_str})'.format(**ss))
 
     def control(self, args):
+        _, sm = self.__get_pm_sm()
         if args.action == 'enable':
             if args.as_configured:
                 self.enable_as_configured(args.now)
             else:
-                self.__services_enable(args.service, OSServiceManagement(), args.now)
+                self.__services_enable(args.service, sm, args.now)
         elif args.action == 'disable':
             if args.as_configured:
                 services = self.get_all_services()
             else:
                 services = args.service
-            self.__services_disable(services, OSServiceManagement(), args.now)
+            self.__services_disable(services, sm, args.now)
         elif args.action == 'start':
             if args.as_configured:
                 self.start_as_configured()
             else:
-                self.__services_start(args.service, OSServiceManagement())
+                self.__services_start(args.service, sm)
         elif args.action == 'stop':
             if args.as_configured:
                 services = self.get_all_services()
             else:
                 services = args.service
-            self.__services_stop(services, OSServiceManagement())
+            self.__services_stop(services, sm)
         elif args.action == 'list':
             self.list_services(args)
         else:
