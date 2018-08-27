@@ -10,9 +10,10 @@ import time
 import pwd
 
 try:
-   input = raw_input # Redefine for Python 2
+   input = raw_input  # Redefine for Python 2
 except NameError:
    pass
+
 
 def complete_job_owner(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
@@ -48,6 +49,7 @@ class JobsControl(ComponentControl):
             self.logger.critical('Jobs control cannot work without controldir.')
             sys.exit(1)
         self.logger.debug('Using controldir location: %s', self.control_dir)
+        self.cache_min_jobs = 1000
         self.cache_ttl = 30
         self.jobs = {}
 
@@ -160,9 +162,10 @@ class JobsControl(ComponentControl):
                 if attr not in job_dict:
                     job_dict[attr] = 'N/A'
             self.jobs[job_dict['id']] = job_dict
-        # dump jobs dictionary to cache
-        with open(__cache_file, 'wb') as cfd:
-            pickle.dump(self.jobs, cfd)
+        # dump jobs dictionary to cache in case there are many jobs
+        if len(self.jobs) > self.cache_min_jobs:
+            with open(__cache_file, 'wb') as cfd:
+                pickle.dump(self.jobs, cfd)
 
     def __filtered_jobs(self, args):
         for job_d in self.jobs.values():
