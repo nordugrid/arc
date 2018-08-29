@@ -1274,6 +1274,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
+%config(noreplace) %{_sysconfdir}/arc.conf
 
 %if %{with_acix}
 %files acix-core
