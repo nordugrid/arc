@@ -93,6 +93,6 @@ test_cache_check_LDADD = \
 arcsysconfdir = $(sysconfdir)
 arcsysconf_DATA = arc.conf
 
-arc.conf: $(srcdir)/arc.zero.conf
+arc.conf: arc.zero.conf
 	cp $< $@
 
