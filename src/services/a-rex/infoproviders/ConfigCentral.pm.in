@@ -323,12 +323,12 @@ my $config_schema = {
     } ],
     accesspolicies => {
         '*' => {
-			Rule => [ '' ],
+            Rule => [ '' ],
             UserDomainID => [ '' ]
-		}
+        }
     },
     mappingpolicies => {
-		'*' => {
+        '*' => {
            ShareName => [ '' ],
            Rule => [ '' ],
            UserDomainID => [ '' ],
@@ -358,12 +358,12 @@ my $config_schema = {
     # start of newly added items for arcconf restructuring
     # C 10
     lrms => {
-	    lrms => '',
-	    defaultqueue => '*',
-	    lrmsconfig => '*',
-	    %$lrms_options,
-	    %$lrms_share_options
-	},
+        lrms => '',
+        defaultqueue => '*',
+        lrmsconfig => '*',
+        %$lrms_options,
+        %$lrms_share_options
+    },
     infosys => {
 		nordugrid => {}, # C 155
 		logfile => '*',  #C 133
@@ -372,13 +372,13 @@ my $config_schema = {
 		ldap => { # C141
             %$ldap_infosys_options, # C 141
         },
-		glue1 => {}, # C 161
-	    glue2 => { # C 156
-	       %$glue2_options,
-	       ldap => { # C158
-		       showactivities => '*'
-	       }
-	    }
+        glue1 => {}, # C 161
+        glue2 => { # C 156
+           %$glue2_options,
+           ldap => { # C158
+               showactivities => '*'
+           }
+        }
     },
     arex => {
         defaultttl => '*',
@@ -1029,8 +1029,8 @@ sub getValueOf ($$$){
 
     # get defaults
     if ( !(defined $value) || $value eq 'None') {
-        $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});	
-	}
+        $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
+    }
   
     return $value;
 
@@ -1038,11 +1038,11 @@ sub getValueOf ($$$){
 
 ## isBlockPresent: returns true if block exists in config
 sub isBlockPresent ($$) {
-    my ($arcconf,$block) = @_;	
+    my ($arcconf,$block) = @_;
 
     my $jsonconf = read_json_config($arcconf);
-	
-	if (defined $jsonconf->{$block}) { return 1 } else { return 0 } ;
+
+    if (defined $jsonconf->{$block}) { return 1 } else { return 0 } ;
 }
 
 sub dumpInternalDatastructure ($){
