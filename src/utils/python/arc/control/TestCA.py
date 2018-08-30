@@ -125,7 +125,7 @@ class TestCAControl(ComponentControl):
                              'export X509_USER_KEY="$basedir/userkey.pem"\n' \
                              'export X509_USER_PROXY="$basedir/userproxy.pem"\n' \
                              'export X509_CERT_DIR="$basedir/certificates"'
-            with open(export_dir + '/usecerts.sh', 'w') as sf:
+            with open(export_dir + '/usercerts.sh', 'w') as sf:
                 sf.write(script_content)
             # make a tarball
             with tarfile.open(os.path.join(workdir, tarball), 'w') as tarf:
