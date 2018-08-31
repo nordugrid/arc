@@ -90,9 +90,9 @@ test_cache_check_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
-arcsysconfdir = $(sysconfdir)
-arcsysconf_DATA = arc.conf
+install-data-local:
+	$(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf
 
-arc.conf: arc.zero.conf
-	cp $< $@
+uninstall-local:
+	rm -f $(DESTDIR)$(sysconfdir)/arc.conf
 
