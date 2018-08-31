@@ -70,7 +70,7 @@ infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-bdii_debug_level=${CONFIG_bdii_debug_level:-ERROR}
+bdii_debug_level=${CONFIG_bdii_debug_level:-WARNING}
 
 bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
