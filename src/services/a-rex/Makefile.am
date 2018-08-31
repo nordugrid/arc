@@ -38,7 +38,7 @@ sbin_SCRIPTS = a-rex-backtrace-collect
 
 man_MANS = a-rex-backtrace-collect.8
 
-EXTRA_DIST = arc-sshfs-mount
+EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
