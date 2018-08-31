@@ -91,6 +91,7 @@ test_cache_check_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 install-data-local:
+	$(MKDIR_P) "$(DESTDIR)$(sysconfdir)"
 	$(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf
 
 uninstall-local:
