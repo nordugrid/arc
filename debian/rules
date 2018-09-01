@@ -21,6 +21,12 @@ else
 CANL_CONFIGURE_OPTION =
 endif
 
+ifeq ($(shell perl -mInline::Python < /dev/null 2>/dev/null && echo 1),1)
+N =
+else
+N = -Nnordugrid-arc-arex-python-lrms
+endif
+
 configure: configure-stamp
 
 configure-stamp:
@@ -70,7 +76,6 @@ clean:
 
 	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
 
-	rm -f debian/nordugrid-arc-arex.install
 	rm -f debian/nordugrid-arc-arex.arc-arex.init
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
@@ -85,6 +90,8 @@ clean:
 
 	find python src -name *.pyc -exec rm {} ';'
 	rm -rf src/services/acix/*/test/_trial_temp
+	rm -rf ./src/services/a-rex/infoproviders/_Inline
+	rm -rf ./src/services/a-rex/infoproviders/test/_Inline
 
 	dh_autoreconf_clean
 
@@ -123,30 +130,30 @@ binary: binary-arch binary-indep
 binary-arch: install
 	dh_testdir
 	dh_testroot
-	dh_installdirs -a
-	dh_installdocs -a
-	dh_installexamples -a
-	dh_installman -a
-	dh_installlogrotate -a
-	dh_install -a --fail-missing
-	dh_installchangelogs -a
+	dh_installdirs -a $(N)
+	dh_installdocs -a $(N)
+	dh_installexamples -a $(N)
+	dh_installman -a $(N)
+	dh_installlogrotate -a $(N)
+	dh_install -a $(N) --fail-missing
+	dh_installchangelogs -a $(N)
 	dh_installinit -p nordugrid-arc-hed --name arched
 	dh_installinit -p nordugrid-arc-arex --name arc-arex
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit -p nordugrid-arc-gridftpd --name arc-gridftpd
-	dh_perl -a
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
-	dh_lintian -a
-	dh_link -a
-	dh_strip -a
-	dh_compress -a -X .pdf
-	dh_fixperms -a
-	dh_makeshlibs -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_perl -a $(N)
+	[ -x /usr/bin/dh_python2 ] && dh_python2 -a $(N) || dh_pysupport -a $(N)
+	dh_lintian -a $(N)
+	dh_link -a $(N)
+	dh_strip -a $(N)
+	dh_compress -a $(N) -X .pdf
+	dh_fixperms -a $(N)
+	dh_makeshlibs -a $(N)
+	dh_installdeb -a $(N)
+	dh_shlibdeps -a $(N)
+	dh_gencontrol -a $(N)
+	dh_md5sums -a $(N)
+	dh_builddeb -a $(N)
 
 binary-indep: install
 	dh_testdir
