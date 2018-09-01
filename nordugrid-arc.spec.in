@@ -491,10 +491,6 @@ Requires:	python2-%{name} = %{version}-%{release}
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
-%if %{with_pythonlrms}
-Requires:	perl(Inline)
-Requires:	perl(Inline::Python)
-%endif
 %if %{py3default}
 Requires:	python3-stomppy
 Requires:	python3-ldap
@@ -526,6 +522,24 @@ Connector (ARC).
 
 The ARC Remote EXecution service (AREX) provides a service for the
 execution of compute jobs and the transfer of input or output data.
+
+%if %{with_pythonlrms}
+%package arex-python-lrms
+Summary:	ARC Remote EXecution service - Python LRMS backends
+Group:		System Environment/Libraries
+Requires:	%{name}-arex = %{version}-%{release}
+Requires:	perl(Inline)
+Requires:	perl(Inline::Python)
+
+%description arex-python-lrms
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+The Python LRMS backends are a new implementation of the AREX LRMS
+backend scripts written in Python as an alternative to the traditional
+Perl implementation. It is released as a technology preview.
+%endif
 
 %package plugins-needed
 Summary:	ARC base plugins
@@ -1257,7 +1271,17 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/ssm/ssm2.py*
 %{_datadir}/%{pkgdir}/ssm/brokers.py*
 %{_datadir}/%{pkgdir}/ssm/sender.cfg
+%dir %{_datadir}/%{pkgdir}/rte
+%dir %{_datadir}/%{pkgdir}/rte/ENV
+%{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
+%{_datadir}/%{pkgdir}/rte/ENV/PROXY
+%{_datadir}/%{pkgdir}/rte/ENV/RTE
+%{_sbindir}/a-rex-backtrace-collect
+%{_sbindir}/arcctl
+%config(noreplace) %{_sysconfdir}/arc.conf
+
 %if %{with_pythonlrms}
+%files arex-python-lrms
 %{_libexecdir}/%{pkgdir}/arc-sshfs-mount
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/lrms
@@ -1267,14 +1291,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
-%dir %{_datadir}/%{pkgdir}/rte
-%dir %{_datadir}/%{pkgdir}/rte/ENV
-%{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
-%{_datadir}/%{pkgdir}/rte/ENV/PROXY
-%{_datadir}/%{pkgdir}/rte/ENV/RTE
-%{_sbindir}/a-rex-backtrace-collect
-%{_sbindir}/arcctl
-%config(noreplace) %{_sysconfdir}/arc.conf
 
 %if %{with_acix}
 %files acix-core
@@ -1426,7 +1442,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
-%dir %{python2_sitearch}/%{pkgdir}
 %{python2_sitearch}/_arc.*so
 %if %{py3default}
 %{python2_sitearch}/%{pkgdir}
