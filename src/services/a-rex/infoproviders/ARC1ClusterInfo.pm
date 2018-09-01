@@ -3296,6 +3296,10 @@ sub collect($) {
         # This should be 0 if the queue is full, check the zeroing above?
         $csha->{FreeSlots} = $freeslots;
         my $freeslotswithduration = join(" ", @durations);
+        # fallback to same freeslots if @durations is empty
+        if ( $freeslotswithduration eq "") {
+            $freeslotswithduration = $freeslots;
+        }
         $csha->{FreeSlotsWithDuration} = $freeslotswithduration;
 
         $csha->{UsedSlots} = $inlrmsslots{$share}{running};
