@@ -38,7 +38,7 @@ sbin_SCRIPTS = a-rex-backtrace-collect
 
 man_MANS = a-rex-backtrace-collect.8
 
-EXTRA_DIST = arc-sshfs-mount
+EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
@@ -89,3 +89,11 @@ test_cache_check_LDADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+install-data-local:
+	$(MKDIR_P) "$(DESTDIR)$(sysconfdir)"
+	$(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf
+
+uninstall-local:
+	rm -f $(DESTDIR)$(sysconfdir)/arc.conf
+
