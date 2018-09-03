@@ -222,7 +222,7 @@ namespace ArcJura
       count++;
     }
     for (int i=0; i<(int)outputfiles.size(); i++) {
-      logfile << "outputfile=" << inputfiles[i] << std::endl;
+      logfile << "outputfile=" << outputfiles[i] << std::endl;
       count++;
     }
 
