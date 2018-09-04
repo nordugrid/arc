@@ -8,7 +8,10 @@
 #include <sys/stat.h>
 
 #include <arc/credential/Credential.h>
+#include <arc/credential/VOMSUtil.h>
 #include <arc/FileUtils.h>
+#include <arc/ArcLocation.h>
+#include <arc/message/MCCLoader.h>
 
 #include "../grid-manager/jobs/CommFIFO.h"
 #include "../grid-manager/jobs/JobDescriptionHandler.h"
@@ -42,7 +45,7 @@ namespace ARexINTERNAL {
       return;
     }
 
-    user = Arc::User();
+    MapLocalUser();
     PrepareARexConfig();
 
   };
@@ -62,7 +65,7 @@ namespace ARexINTERNAL {
       return;
     }
 
-    user = Arc::User();
+    MapLocalUser();
     PrepareARexConfig();
 
   };
@@ -84,7 +87,7 @@ namespace ARexINTERNAL {
       return;
     }
 
-    user = Arc::User();
+    MapLocalUser();
     PrepareARexConfig();
 
   };
@@ -147,6 +150,158 @@ namespace ARexINTERNAL {
     return true;
   }
   
+
+  // Security attribute simulating information pulled from TLS layer.
+  class TLSSecAttr: public SecAttr {
+  public:
+    TLSSecAttr(Arc::UserConfig& usercfg) {
+      Arc::Credential cred(usercfg);
+      identity_ = cred.GetIdentityName();
+
+      Arc::VOMSTrustList trust_list;
+      trust_list.AddRegex("^.*$");
+      std::vector<VOMSACInfo> voms;
+      if(parseVOMSAC(cred, usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.VOMSESPath()/*?*/, trust_list, voms, true, true)) {
+        for(std::vector<VOMSACInfo>::const_iterator v = voms.begin(); v != voms.end();++v) { 
+          if(!(v->status & VOMSACInfo::Error)) {
+            for(std::vector<std::string>::const_iterator a = v->attributes.begin(); a != v->attributes.end();++a) {
+              voms_.push_back(VOMSFQANToFull(v->voname,*a));
+            };
+          };
+        };
+      };
+    }
+
+    virtual ~TLSSecAttr(void) {
+    }
+
+    virtual operator bool(void) const {
+      return true;
+    }
+
+    virtual bool Export(SecAttrFormat format,XMLNode &val) const {
+      return false;
+    }
+
+    virtual std::string get(const std::string& id) const {
+      if(id == "IDENTITY") return identity_;
+      std::list<std::string> items = getAll(id);
+      if(!items.empty()) return *items.begin();
+      return "";
+    }
+
+    virtual std::list<std::string> getAll(const std::string& id) const {
+      if(id == "VOMS") {
+        return voms_;
+      };
+      return SecAttr::getAll(id);
+    }
+
+    std::string const& Identity() const {
+      return identity_;
+    }
+
+  protected:
+    std::string identity_; // Subject of last non-proxy certificate
+    std::list<std::string> voms_; // VOMS attributes from the VOMS extension of proxy
+
+    virtual bool equal(const SecAttr &b) const {
+      return false;
+    }
+
+  };
+
+
+
+  bool INTERNALClient::MapLocalUser(){
+    Arc::Credential cred(usercfg);
+
+    // Here we need to simulate message going though chain of plugins.
+    // Luckily we only need these SecHandler plugins: legacy.handler and legacy.map.
+    // And as source of information "TLS" Security Attribute must be supplied following
+    // information items: IDENTITY (user subject) and VOMS (VOMS FQANs).
+
+
+    // Load plugins
+
+    Config factory_cfg; //("<ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"/>");
+    MCCLoader loader(factory_cfg);
+    //factory_cfg.NewChild("ModuleManager").NewChild("Path") = Arc::ArcLocation::Get()+"/lib/arc";
+    //factory_cfg.NewChild("Plugins").NewChild("Name") = "arcshclegacy";
+    //PluginsFactory factory(factory_cfg);
+    ChainContext& context(*static_cast<ChainContext*>(loader));
+    PluginsFactory& factory(*static_cast<PluginsFactory*>(context));
+    factory.load("arcshc");
+    factory.load("arcshclegacy");
+    factory.load("identitymap");
+    
+    //Arc::ChainContext context(MCCLoader& loader);
+    ArcSec::SecHandler* gridmapper(NULL);
+    ArcSec::SecHandler* handler(NULL);
+    ArcSec::SecHandler* mapper(NULL);
+
+    {
+      ArcSec::SecHandlerConfig xcfg("identity.map", "incoming");
+      Config cfg(xcfg /*, cfg.getFileName()*/);
+      XMLNode pdp1 = cfg.NewChild("PDP");
+      pdp1.NewAttribute("name") = "allow.pdp";
+      pdp1.NewChild("LocalList") = "/etc/grid-security/grid-mapfile";
+      //XMLNode pdp2 = cfg.NewChild("PDP");
+      //pdp2.NewAttribute("allow.pdp");
+      //pdp2.NewChild("LocalName") = "nobody";
+      ArcSec::SecHandlerPluginArgument arg(&cfg, &context);
+      Plugin* plugin = factory.get_instance(SecHandlerPluginKind, "identity.map", &arg);
+      gridmapper = plugin?dynamic_cast<ArcSec::SecHandler*>(plugin):NULL;
+    }
+
+    {
+      ArcSec::SecHandlerConfig xcfg("arclegacy.handler", "incoming");
+      Config cfg(xcfg /*, cfg.getFileName()*/);
+      cfg.NewChild("ConfigFile") = config->ConfigFile();
+      ArcSec::SecHandlerPluginArgument arg(&cfg, &context);
+      Plugin* plugin = factory.get_instance(SecHandlerPluginKind, "arclegacy.handler", &arg);
+      handler = plugin?dynamic_cast<ArcSec::SecHandler*>(plugin):NULL;
+    };
+
+    {
+      ArcSec::SecHandlerConfig xcfg("arclegacy.map", "incoming");
+      Config cfg(xcfg /*, cfg.getFileName()*/);
+      XMLNode block = cfg.NewChild("ConfigBlock");
+      block.NewChild("ConfigFile") = config->ConfigFile();
+      block.NewChild("BlockName")  = "mapping";
+      ArcSec::SecHandlerPluginArgument arg(&cfg, &context);
+      Plugin* plugin = factory.get_instance(SecHandlerPluginKind, "arclegacy.map", &arg);
+      mapper = plugin?dynamic_cast<ArcSec::SecHandler*>(plugin):NULL;
+    };
+
+    bool result = false;
+    if(gridmapper && handler && mapper) {
+      // Prepare information source
+      TLSSecAttr* sec_attr = new TLSSecAttr(usercfg);
+
+      // Setup fake mesage to be used as container for information being processed
+      Arc::Message msg;
+      msg.Auth()->set("TLS", sec_attr);
+      // Some plugins fetch user DN from message attributes
+      msg.Attributes()->set("TLS:IDENTITYDN", sec_attr->Identity());
+
+      // Process collected information
+      if((gridmapper->Handle(&msg)) && (handler->Handle(&msg)) && (mapper->Handle(&msg))) {
+        // Result of mapping is stored in message attribute - fetch it
+        std::string uname = msg.Attributes()->get("SEC:LOCALID");
+        if(!uname.empty()) {
+          user = Arc::User(uname);
+          result = true;
+        }
+      }
+    }
+
+    delete gridmapper;
+    delete handler;
+    delete mapper;
+    return result;
+  }
+
 
   bool INTERNALClient::PrepareARexConfig(){
 
