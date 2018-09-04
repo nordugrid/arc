@@ -305,10 +305,10 @@ class RTEControl(ComponentControl):
             for p in params.values():
                 rte_parm_f.write('{name}="{value}"\n'.format(**p))
 
-    def params_get(self, rte, long=False):
+    def params_get(self, rte, is_long=False):
         params = self.__params_parse(rte)
         for pdescr in params.values():
-            if int:
+            if is_long:
                 print('{name:>16} = {value:8} {description} (allowed values are: {allowed_string})'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))

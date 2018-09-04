@@ -90,7 +90,8 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('Failed to get DN and CA with OpenSSL SSL/TLS bind to %s:%s.', hostname, port)
             sys.exit(1)
         except OSError:
-            self.logger.error('Failed to find "openssl" command. OpenSSL installation is required to use this feature.')
+            self.logger.error('Failed to find \'openssl\' command. If OpenSSL is not installed try \'--pythonssl\' '
+                              'option to fallback to native Python library.')
             sys.exit(1)
 
     @staticmethod
@@ -152,12 +153,12 @@ class ThirdPartyControl(ComponentControl):
         if args.egi_vo:
             voms_creds.update(self.__egi_get_voms(args.vo))
         elif args.voms:
-            if args.openssl:
-                for vomsurl in args.voms:
-                    voms_creds.update(self.__get_ssl_cert_openssl(vomsurl))
-            else:
+            if args.pythonssl:
                 for vomsurl in args.voms:
                     voms_creds.update(self.__get_ssl_cert(vomsurl))
+            else:
+                for vomsurl in args.voms:
+                    voms_creds.update(self.__get_ssl_cert_openssl(vomsurl))
         if not voms_creds:
             self.logger.error('There are no VOMS server credentials found. Will not create LSC file.')
             sys.exit(1)
@@ -357,8 +358,9 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
         deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fecth information from EGI VOs database',
                                          action='store_true')
-        deploy_voms_lsc.add_argument('-o', '--openssl', action='store_true',
-                                     help='Use external OpenSSL command instead of python SSL')
+        deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
+                                     help='Use Python SSL module to establish TLS connection '
+                                          '(default is to call external OpenSSL binary)')
 
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',
