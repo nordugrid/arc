@@ -40,6 +40,8 @@ def configure(configfile, *func):
     :type func: :py:obj:`list` [ :py:obj:`function` ... ]
     """
 
+    os.environ["ARC_CONFIG"] = configfile
+
     import pickle
     pickle_conf = '/tmp/python_lrms_arc.conf'
     global Config
