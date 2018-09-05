@@ -111,7 +111,10 @@ class AccountingControl(ComponentControl):
     def __parse_records(self, apel=True, sgas=True):
         __ns_sgas_vo = '{http://www.sgas.se/namespaces/2009/05/ur/vo}VO'
         __ns_sgas_voname = '{http://www.sgas.se/namespaces/2009/05/ur/vo}Name'
-        for ar in os.listdir(self.archivedir):
+        archive_files = os.listdir(self.archivedir)
+        if len(archive_files) > 1000:
+            self.logger.warning('There are lot of accounting records in the archive. Processing can take a long time.')
+        for ar in archive_files:
             if apel and ar.startswith('usagerecordCAR.'):
                 # APEL CAR records
                 self.logger.debug('Processing the %s APEL accounting record', ar)
@@ -248,6 +251,9 @@ class AccountingControl(ComponentControl):
                 self.logger.info('There are no SGAS archived records available')
 
     def republish(self, args):
+        if args.start_from > args.end_till:
+            self.logger.error('Records start time should be before the end time.')
+            sys.exit(1)
         startfrom = args.start_from.strftime('%Y.%m.%d').replace('.0', '.')
         endtill = args.end_till.strftime('%Y.%m.%d').replace('.0', '.')
         command = ''
