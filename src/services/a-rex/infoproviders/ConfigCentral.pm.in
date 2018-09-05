@@ -174,7 +174,7 @@ my $share_options = {
     Preemption => '*',
     totalcpus => '*',
     defaultmemory => '*',
-    advertisedvo =>  [ '*' ],
+    AdvertisedVO =>  [ '*' ],
 };
 my $gmuser_options = {
     controldir => '',
