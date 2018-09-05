@@ -245,8 +245,9 @@ my $ldap_infosys_options = {
 
 # [arex] subblocks
 my $wsemies_options = { # C 71
-	 allownew => '*'	    # C 72
-	}; 
+    allownew => '*',     # C 72
+    enabled => ''
+}; 
 
 # C 66
 my $ws_options = {
@@ -638,11 +639,15 @@ sub build_config_from_json {
         $config->{arexhostport} = "$host:$port";
     } 
     
+    $config->{arex}{ws}{emies} ||= {};
     if (defined $jsonconf->{'arex/ws/emies'}) {
         my $arexwsemies = $jsonconf->{'arex/ws/emies'};
-        $config->{arex}{ws}{emies} ||= {};
         move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
-    } 
+        $config->{arex}{ws}{emies}{enabled} = 1;
+    } else {
+        ## TODO: find a better strategy for the "enabled" defaults, blocks/hashes can't be used.
+        $config->{arex}{ws}{emies}{enabled} = 0;
+    }
 
 
     # gridftpd config
