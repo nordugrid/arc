@@ -213,6 +213,14 @@ class ServicesControl(ComponentControl):
             else:
                 services = args.service
             self.__services_stop(services, sm)
+        elif args.action == 'restart':
+            if args.as_configured:
+                self.__services_stop(self.get_all_services(), sm)
+                self.start_as_configured()
+            else:
+                self.__services_stop(args.service, sm)
+                self.__services_start(args.service, sm)
+            pass
         elif args.action == 'list':
             self.list_services(args)
         else:
@@ -245,7 +253,10 @@ class ServicesControl(ComponentControl):
         services_start = services_actions.add_parser('start', help='Start ARC CE services')
         add_services_to_parser(services_start)
 
-        services_stop = services_actions.add_parser('stop', help='Start ARC CE services')
+        services_restart = services_actions.add_parser('restart', help='Restart ARC CE services')
+        add_services_to_parser(services_restart)
+
+        services_stop = services_actions.add_parser('stop', help='Stop ARC CE services')
         add_services_to_parser(services_stop)
 
         services_list = services_actions.add_parser('list', help='List ARC CE services and their states')
