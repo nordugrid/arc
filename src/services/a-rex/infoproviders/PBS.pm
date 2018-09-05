@@ -643,8 +643,22 @@ sub queue_info ($$) {
 	}
 
 	# qstat does not return number of cpus, use pbsnodes instead.
-	my ($torque_freecpus,$torque_totalcpus)=(0,0);
+	my ($torque_freecpus,$torque_totalcpus,$nodes_totalcpus,$nodes_freecpus)=(0,0,0,0);
 	foreach my $node (keys %hoh_pbsnodes){
+	    my $cpus;
+	    next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
+	    next if $hoh_pbsnodes{$node}{'state'} =~ m/down/;
+
+	    if ($hoh_pbsnodes{$node}{'np'}) {
+	        $cpus = $hoh_pbsnodes{$node}{'np'};
+	    } elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
+	        $cpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
+	    }
+	    $nodes_totalcpus+=$cpus;
+	    if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
+	        $nodes_freecpus+=$cpus;
+	    }
+
 	    # If pbsnodes have properties assigned to them
 	    # check if queuename or dedicated_node_string matches.
 	    # $singledqueue check has been added for routing queue support,
@@ -657,34 +671,31 @@ sub queue_info ($$) {
 		    defined $qname &&
 		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/
 	        ) || (
-		    defined $$config{dedicated_node_string} &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/
+		    defined $$config{pbs_dedicated_node_string} &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_dedicated_node_string}(,[^,]+)*$/
 	        ) || (
-		    defined $$config{queue_node_string} &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{queue_node_string}(,[^,]+)*$/
+		    defined $$config{pbs_queue_node} &&
+		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_queue_node}(,[^,]+)*$/
 	        ) || (
 		    defined $singledqueue &&
 		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$singledqueue(,[^,]+)*$/
 	        )
 	      )
 	    ) {
-		my $cpus;
-
-		next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
-		next if $hoh_pbsnodes{$node}{'state'} =~ m/down/;
-
-		if ($hoh_pbsnodes{$node}{'np'}) {
-		    $cpus = $hoh_pbsnodes{$node}{'np'};
-		} elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
-		    $cpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
-		}
-		$torque_totalcpus+=$cpus;
-		if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
-		    $torque_freecpus+=$cpus;
-		}
+            $torque_totalcpus+=$cpus;
+            if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
+                $torque_freecpus+=$cpus;
+            }
 	    }
 	}
-	$lrms_queue{totalcpus} = $torque_totalcpus;
+
+    if ($torque_totalcpus eq 0) {
+        warning("Node properties are defined in PBS but nothing match the queue filters. Assigning counters for all nodes.");
+        $torque_totalcpus = $nodes_totalcpus;
+        $torque_freecpus = $nodes_freecpus;
+    }
+
+    $lrms_queue{totalcpus} = $torque_totalcpus;
 
 	debug("Totalcpus for all queues are: $lrms_queue{totalcpus}");
 

@@ -135,6 +135,21 @@ Description: ARC Remote EXecution service
  A-REX also handles transfer of input and output data, as well as
  input data caching to minimise data traffic.
 
+Package: nordugrid-arc-arex-python-lrms
+Replaces: nordugrid-arc-arex (<< 6.0.0~)
+Breaks: nordugrid-arc-arex (<< 6.0.0~)
+Architecture: any
+Depends: ${misc:Depends}, ${python:Depends}, libinline-python-perl, nordugrid-arc-arex (= ${binary:Version})
+XB-Python-Version: ${python:Versions}
+Description: ARC Remote EXecution service - Python LRMS backends
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The Python LRMS backends are a new implementation of the AREX LRMS
+ backend scripts written in Python as an alternative to the traditional
+ Perl implementation. It is released as a technology preview.
+
 Package: nordugrid-arc-plugins-needed
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
@@ -162,7 +177,7 @@ Description: ARC Globus plugins
 
 Package: nordugrid-arc-acix-core
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python, python-twisted-core, python-twisted-web, python-openssl
+Depends: ${misc:Depends}, ${python:Depends}, python-twisted-core, python-twisted-web, python-openssl
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - core components
  NorduGrid is a collaboration aiming at development, maintenance and
