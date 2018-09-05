@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import argparse
 import sys
+sys.path.append('@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@'))
 from arc.utils.config import *
 
 
