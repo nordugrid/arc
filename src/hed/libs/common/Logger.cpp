@@ -441,11 +441,13 @@ namespace Arc {
 
   void Logger::addDestination(LogDestination& destination) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.push_back(&destination);
   }
 
   void Logger::addDestinations(const std::list<LogDestination*>& destinations) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
       getContext().destinations.push_back(*dest);
@@ -454,6 +456,7 @@ namespace Arc {
 
   void Logger::setDestinations(const std::list<LogDestination*>& destinations) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.clear();
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
@@ -468,11 +471,13 @@ namespace Arc {
 
   void Logger::removeDestinations(void) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.clear();
   }
 
   void Logger::deleteDestinations(LogDestination* exclude) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     std::list<LogDestination*>& destinations = getContext().destinations;
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
@@ -555,11 +560,15 @@ namespace Arc {
   void Logger::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
     LoggerContext& ctx = getContext();
-    std::list<LogDestination*>::iterator dest;
-    std::list<LogDestination*>::iterator begin = ctx.destinations.begin();
-    std::list<LogDestination*>::iterator end = ctx.destinations.end();
-    for (dest = begin; dest != end; ++dest)
-      (*dest)->log(message);
+    {
+      Glib::Mutex::Lock dlock(ctx.mutex);
+      std::list<LogDestination*>::iterator dest;
+      std::list<LogDestination*>::iterator begin = ctx.destinations.begin();
+      std::list<LogDestination*>::iterator end = ctx.destinations.end();
+      for (dest = begin; dest != end; ++dest)
+        if(*dest)
+          (*dest)->log(message);
+    };
     if (parent)
       parent->log(message);
   }
