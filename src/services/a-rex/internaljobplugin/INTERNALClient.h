@@ -137,6 +137,7 @@ namespace ARexINTERNAL {
     bool SetAndLoadConfig(ARex::GMConfig*& _config, std::string cfgfile = "");
     bool SetEndPoint(ARex::GMConfig*& _config);
     //bool SetGMDirs();
+    bool MapLocalUser();
     bool PrepareARexConfig();
     //bool PreProcessJob(ARex::JobDescriptionHandler& job_desc_handler, ARex::JobLocalDescription& job_desc);
     bool CreateDelegation(std::string& deleg_id);
