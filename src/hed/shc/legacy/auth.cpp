@@ -96,17 +96,19 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 AuthUser::AuthUser(Arc::Message& message):
     default_voms_(), default_vo_(NULL), default_group_(NULL),
     proxy_file_was_created(false), has_delegation(false), message_(message) {
-  subject_ = message.Attributes()->get("TLS:IDENTITYDN");
-  // Fetch VOMS attributes
+  // Fetch X.509 and VOMS attributes
   std::list<std::string> voms_attrs;
   Arc::SecAttr* sattr = NULL;
   sattr = message_.Auth()->get("TLS");
   if(sattr) {
+    subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
   sattr = message_.AuthContext()->get("TLS");
   if(sattr) {
+    if(subject_.empty())
+      subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };

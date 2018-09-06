@@ -109,6 +109,10 @@ namespace Arc {
     const std::string& failure(void) { return error_description_; };
 
     bool ReloadElement(Config& cfg);
+
+    /** Returns associated ChainsContext object */
+    operator ChainContext*() { return context_; };
+
  };
 
   /// Interface to chain specific functionality
