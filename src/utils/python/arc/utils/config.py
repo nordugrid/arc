@@ -101,10 +101,14 @@ def dump_arc_conf(conf_f=__def_path_runconf):
 def save_run_config(runconf_f=__def_path_runconf):
     """Ensure directory exists and dump stored config"""
     runconf_dir = '/'.join(runconf_f.split('/')[:-1])
-    if not os.path.exists(runconf_dir):
-        logger.debug('Making %s directory', runconf_dir)
-        os.makedirs(runconf_dir, mode=0o755)
-    dump_arc_conf(runconf_f)
+    try:
+        if not os.path.exists(runconf_dir):
+            logger.debug('Making %s directory', runconf_dir)
+            os.makedirs(runconf_dir, mode=0o755)
+        dump_arc_conf(runconf_f)
+    except IOError as e:
+        logger.error('Failed to save runtime confguration to %s. Error: %s', runconf_f, e.strerror)
+        sys.exit(1)
 
 
 def load_run_config(runconf_f=__def_path_runconf):

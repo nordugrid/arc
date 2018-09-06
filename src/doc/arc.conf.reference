@@ -2331,7 +2331,7 @@
 
 ## bdii_debug_level = level - Set this parameter to DEBUG to check bdii errors in bdii-update.log
 ## At the same time don't enable slapd logs this way reducing performance issues.
-## default: ERROR
+## default: WARNING
 #bdii_debug_level=ERROR
 
 ## bdii_provider_timeout = seconds - (previously provider_timeout in bdii block) 

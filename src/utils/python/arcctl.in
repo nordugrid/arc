@@ -2,6 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import os
+import sys
 import logging
 import argparse
 import errno
@@ -15,6 +16,7 @@ log_handler_stderr.setFormatter(
 logger.addHandler(log_handler_stderr)
 
 # Import ARC control and config modules
+sys.path.append('@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@'))
 from arc.control import *
 from arc.utils import config
 

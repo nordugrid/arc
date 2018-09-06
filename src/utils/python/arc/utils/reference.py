@@ -217,7 +217,9 @@ def reference2rst(reference_f):
             if block_match:
                 block_name = block_match.group(1)
                 block_headstr = '[{0}] block'.format(block_name)
-                sys.stdout.write('\n' + block_headstr + '\n')
+                block_label = '\n.. _reference_{0}:\n\n'.format(block_name.split(':')[0])
+                sys.stdout.write(block_label.replace('/', '_'))
+                sys.stdout.write(block_headstr + '\n')
                 sys.stdout.write('-' * len(block_headstr) + '\n\n')
                 continue
 
@@ -237,8 +239,8 @@ def reference2rst(reference_f):
                 nopt = new_option_re.match(sline)
                 if nopt:
                     optname = nopt.group(1)
-                    block_label = '\n.. _reference_{0}_{1}:\n\n'.format(block_name.split(':')[0],optname)
-                    sys.stdout.write(block_label.replace('/','_'))
+                    opt_label = '\n.. _reference_{0}_{1}:\n\n'.format(block_name.split(':')[0], optname)
+                    sys.stdout.write(opt_label.replace('/', '_'))
                     sys.stdout.write(optname + '\n')
                     sys.stdout.write('~' * len(optname) + '\n\n')
                     # synopsis and string separated by dash

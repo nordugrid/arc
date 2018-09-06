@@ -140,6 +140,7 @@ class JobsControl(ComponentControl):
             time_allowed = time.time() - self.cache_ttl
             if os.stat(__cache_file).st_mtime > time_allowed:
                 with open(__cache_file, 'rb') as cfd:
+                    self.logger.debug('Using cached jobs information (cache valid for %s seconds)', self.cache_ttl)
                     self.jobs = pickle.load(cfd)
                     return
         # invoke gm-jobs and parse the list of jobs
@@ -177,6 +178,7 @@ class JobsControl(ComponentControl):
         # dump jobs dictionary to cache in case there are many jobs
         if len(self.jobs) > self.cache_min_jobs:
             with open(__cache_file, 'wb') as cfd:
+                self.logger.debug('Dumping jobs information to cache')
                 pickle.dump(self.jobs, cfd)
 
     def __filtered_jobs(self, args):
@@ -211,7 +213,7 @@ class JobsControl(ComponentControl):
         # safe check when killing/cleaning all jobs
         if not args.owner and not args.state:
             reply = str(input('You have not specified any filters and operation will continue for ALL A-REX jobs. '
-                                  'Please type "yes" if it is desired behaviour: '))
+                              'Please type "yes" if it is desired behaviour: '))
             if reply != 'yes':
                 sys.exit(0)
         self.__get_jobs()
