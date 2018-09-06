@@ -23,13 +23,13 @@ from __future__ import print_function
 
 import sys
 
-# Prepend module path
-sys.path.insert(0,SSMDIR)
+# add arc location to PYTHONPATH
+sys.path.append('@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@'))
 
-from __init__ import __version__, set_up_logging, LOG_BREAK
-from ssm2 import Ssm2, Ssm2Exception
-from crypto import CryptoException
-from brokers import StompBrokerGetter, STOMP_SERVICE, STOMP_SSL_SERVICE
+from arc.ssm import __version__, set_up_logging, LOG_BREAK
+from arc.ssm.ssm2 import Ssm2, Ssm2Exception
+from arc.ssm.crypto import CryptoException
+from arc.ssm.brokers import StompBrokerGetter, STOMP_SERVICE, STOMP_SSL_SERVICE
 
 import logging.config
 import ldap
