@@ -30,25 +30,36 @@ class JobsControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.Jobs')
         self.control_dir = None
         self.arcconfig = arcconfig
-        if not os.path.exists(ARC_LIBEXEC_DIR + '/gm-jobs'):
-            self.logger.error('A-REX gm-jobs is not found at %s. Please ensure you have A-REX installed.',
-                              ARC_LIBEXEC_DIR + '/gm-jobs')
+        # arcctl is inside arex package as well as gm-jobs
+        self.gm_jobs = ARC_LIBEXEC_DIR + '/gm-jobs'
+        if not os.path.exists(self.gm_jobs):
+            self.logger.error('A-REX gm-jobs is not found at %s. It seams you A-REX install is broken.', self.gm_jobs)
             sys.exit(1)
+        # config is mandatory
         if arcconfig is None:
-            self.logger.warning('Failed to get parsed arc.conf. Falling back to gm-jobs provided controldir value.')
-            _CONTROLDIR_RE = re.compile(r'Control dir\s+:\s+(.*)\s*$')
-            gmjobs_out = self.__run_gmjobs('--notshowstates --notshowjobs -x INFO', stderr=True)
-            for line in iter(gmjobs_out.stdout.readline, ''):
-                controldir = _CONTROLDIR_RE.search(line)
-                if controldir:
-                    self.control_dir = controldir.group(1)
-                    break
-        else:
-            self.control_dir = self.arcconfig.get_value('controldir', 'arex').rstrip('/')
+            self.logger.error('Failed to get parsed arc.conf. Jobs control is not possible.')
+            sys.exit(1)
+        # controldir is mandatory
+        self.control_dir = self.arcconfig.get_value('controldir', 'arex').rstrip('/')
         if self.control_dir is None:
-            self.logger.critical('Jobs control cannot work without controldir.')
+            self.logger.critical('Jobs control is not possible without controldir.')
             sys.exit(1)
         self.logger.debug('Using controldir location: %s', self.control_dir)
+        # construct the path to A-REX runtime configuration
+        # using configuration other that A-REX has is not consistent
+        arex_pidfile = self.arcconfig.get_value('pidfile', 'arex')
+        controldir_fallback = True
+        if arex_pidfile is not None:
+            arex_runconf = arex_pidfile.rsplit('.', 1)[0] + '.cfg'
+            if os.path.exists(arex_runconf):
+                self.logger.debug('Using A-REX runtime configuration (%s) for managing jobs.', arex_runconf)
+                controldir_fallback = False
+                self.gm_jobs += '-c {0}'.format(arex_runconf)
+        if controldir_fallback:
+            self.logger.warning('A-REX runtime configuration is not found. Falling back to directly using '
+                                'configured controldir at %s', self.control_dir)
+            self.gm_jobs += '-d {0}'.format(self.control_dir)
+
         self.cache_min_jobs = 1000
         self.cache_ttl = 30
         self.jobs = {}
@@ -60,7 +71,7 @@ class JobsControl(ComponentControl):
         return value
 
     def __run_gmjobs(self, args, stderr=False):
-        __GMJOBS = [ARC_LIBEXEC_DIR + '/gm-jobs']
+        __GMJOBS = self.gm_jobs.split()
         loglevel = logging.getLogger('ARCCTL').getEffectiveLevel()
         __GMJOBS += ['-x', {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]]
         __GMJOBS += args.split()
