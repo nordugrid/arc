@@ -152,6 +152,9 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
   if (!user) {
     logger.msg(Arc::ERROR, "Mapped user:group (%s:%s) not found", uname, ugroup);
     initialized = false;
+  } else if((user.get_uid() == 0) && (getuid() == 0)) {
+    logger.msg(Arc::INFO, "Job submission user can't be root");
+    initialized = false;
   } else if(!config.Load()) { // read configuration
     logger.msg(Arc::ERROR, "Failed processing A-REX configuration");
     initialized=false;
