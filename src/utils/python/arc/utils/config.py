@@ -37,7 +37,7 @@ __default_blocks = []
 # processing constants and regexes
 __def_path_arcconf = ARC_CONF
 __def_path_defaults = ARC_DATA_DIR + '/arc.parser.defaults'
-__def_path_runconf = ARC_RUN_DIR + '/arc.running.conf'
+__def_path_runconf = ARC_RUN_DIR + '/arc.runtime.conf'
 
 # defaults parsing constants
 __no_default = 'undefined'

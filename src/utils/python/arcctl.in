@@ -20,8 +20,10 @@ sys.path.append('@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@'))
 from arc.control import *
 from arc.utils import config
 
-# Runconfig location
-__runconfig = '/tmp/.arcctl.arc.run.conf'
+# Runtime configuration (used for root only)
+arcctl_runtime_config = '@localstatedir@/run/arc/arcctl.runtime.conf'.replace('${prefix}', '@prefix@')
+if not os.geteuid():
+    arcctl_runtime_config = None
 
 
 # Define root parser for arcctl
@@ -44,6 +46,7 @@ def get_parser():
 def get_arcconfig(conf_f):
     # handle default
     def_conf_f = config.arcconf_defpath()
+    runconf_load = False
     if conf_f is None:
         if os.path.exists(def_conf_f):
             conf_f = def_conf_f
@@ -54,27 +57,27 @@ def get_arcconfig(conf_f):
         else:
             logger.error('Cannot find ARC configuration file in the default location.')
             return None
-        runconf_load = os.path.exists(__runconfig)
+        if arcctl_runtime_config is not None:
+            runconf_load = os.path.exists(arcctl_runtime_config)
     else:
-        logger.debug('Custom ARC configuration file location used. Cached running configuration will not be used.')
-        runconf_load = False
+        logger.debug('Custom ARC configuration file location used. Runtime configuration will not be used.')
 
     try:
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
         if runconf_load:
             arcconf_mtime = os.path.getmtime(conf_f)
             default_mtime = os.path.getmtime(config.defaults_defpath())
-            runconf_mtime = os.path.getmtime(__runconfig)
+            runconf_mtime = os.path.getmtime(arcctl_runtime_config)
             if runconf_mtime < arcconf_mtime or runconf_mtime < default_mtime:
                 runconf_load = False
         if runconf_load:
-            logger.debug('Loading cached parsed configuration from %s', __runconfig)
-            config.load_run_config(__runconfig)
+            logger.debug('Loading cached parsed configuration from %s', arcctl_runtime_config)
+            config.load_run_config(arcctl_runtime_config)
         else:
             logger.debug('Parsing configuration options from %s (with defaults in %s)',
                          conf_f, config.defaults_defpath())
             config.parse_arc_conf(conf_f)
-            config.save_run_config(__runconfig)
+            config.save_run_config(arcctl_runtime_config)
         arcconfig = config
     except IOError:
         logger.error('Failed to open ARC configuration file %s', conf_f)
@@ -109,7 +112,8 @@ if __name__ == '__main__':
         if e.errno == errno.EPIPE:
             pass
         else:
-            # Remove runconfig on any failures
-            if os.path.exists(__runconfig):
-                os.unlink(__runconfig)
+            # Remove runtime config on any failures
+            if arcctl_runtime_config is not None:
+                if os.path.exists(arcctl_runtime_config):
+                    os.unlink(arcctl_runtime_config)
             raise
