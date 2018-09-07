@@ -34,6 +34,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
   cf=new Arc::ConfigIni(cfile);
   cf->AddSection("common");    // 0 
   cf->AddSection("gridftpd");  // 1
+  cf->AddSection("mapping");   // 2
   cf->SetSectionIndicator(".");
   for(;;) {
     std::string rest;
