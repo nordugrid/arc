@@ -21,6 +21,9 @@ namespace ArcDMCGridFTP {
   static char const itemSep = ',';
   static char const elemSep = '.';
 
+  static char const escapeTag = '~';
+  static char const * const escapeChars = "~\n\r,.";
+
   class EntryFinished: public std::exception {
    public:
     EntryFinished() {};
@@ -46,11 +49,11 @@ namespace ArcDMCGridFTP {
   }
 
   static std::string encode(std::string const& str) {
-    return str;
+    return Arc::escape_chars(str, escapeChars, escapeTag, false, Arc::escape_hex);
   }
 
   static std::string decode(std::string const& str) {
-    return str;
+    return unescape_chars(str, escapeTag, Arc::escape_hex);
   }
 
 //  std::string itemIn(std::istream& instream, char sep = itemSep) {
