@@ -23,8 +23,6 @@
 #include "arex.h"
 
 
-#define HTTP_ERR_NOT_SUPPORTED (501)
-
 #define MAX_CHUNK_SIZE (10*1024*1024)
 
 namespace ARex {

@@ -650,8 +650,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(!sret) {
       logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
       std::string fault_str = "Not authorized: " + std::string(sret);
-      // TODO: HTTP response for non-POST requests
-      return make_soap_fault(outmsg, fault_str.c_str());
+      return (method == "POST") ?
+        make_soap_fault(outmsg, fault_str.c_str()) :
+        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault_str.c_str());
     };
   };
 
@@ -660,7 +661,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   if(!config) {
     logger_.msg(Arc::ERROR, "Can't obtain configuration");
     // Service is not operational
-    return Arc::MCC_Status();
+    char const* fault = "User can't be assigned configuration";
+    return (method == "POST") ?
+      make_soap_fault(outmsg, fault) :
+      make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
   };
   config->ClearAuths();
   config->AddAuth(inmsg.Auth());

@@ -214,5 +214,8 @@ class ARexService: public Arc::Service {
 
 } // namespace ARex
 
+#define HTTP_ERR_NOT_SUPPORTED (501)
+#define HTTP_ERR_FORBIDDEN (403)
+
 #endif
 
