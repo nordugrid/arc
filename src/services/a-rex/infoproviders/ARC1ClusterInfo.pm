@@ -680,7 +680,7 @@ sub collect($) {
     my $hostname = $config->{hostname} || $host_info->{hostname};
     
     my $wsenabled =  (defined $config->{arex}{ws}) ? 1 : 0;
-    my $emiesenabled = (defined $config->{arex}{ws}{emies}) ? 1 : 0;
+    my $emiesenabled = $config->{arex}{ws}{emies}{enabled};
     
     my $wsendpoint = $config->{arex}{ws}{wsurl};
 
