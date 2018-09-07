@@ -67,11 +67,12 @@ debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
 debian/tmp/usr/share/man/man8/gm-*.8
 
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/__init__.py*
 debian/tmp/usr/share/arc/ssm/__init__.py*
-debian/tmp/usr/share/arc/ssm/crypto.py*
-debian/tmp/usr/share/arc/ssm/ssm2.py*
-debian/tmp/usr/share/arc/ssm/brokers.py*
-debian/tmp/usr/share/arc/ssm/sender.cfg
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/crypto.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/ssm2.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/brokers.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/sender.cfg
 
 debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
 debian/tmp/usr/share/arc/rte/ENV/PROXY
