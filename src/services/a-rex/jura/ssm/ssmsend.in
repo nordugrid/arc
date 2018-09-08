@@ -22,6 +22,7 @@ Script to run a sending SSM.
 from __future__ import print_function
 
 import sys
+import os
 
 # ARC-prefix path in PYTHONPATH
 arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
@@ -36,7 +37,6 @@ from arc.ssm.brokers import StompBrokerGetter, STOMP_SERVICE, STOMP_SSL_SERVICE
 
 import logging.config
 import ldap
-import os
 from optparse import OptionParser
 try:
     import configparser as ConfigParser
