@@ -1,7 +1,21 @@
-
 This modified Python codes are part of the SSM that developed by APEL.
 
+Prepare selected files from original SSM distribution:
+  brokers.py
+  crypto.py
+  __init__.py
+  sender.cfg
+  ssm2.py
+  sender.py -> ssmsend.in
+
+Apply arc-ssm.patch to add ARC modifications and update files.
+
+NOTE: ARC patch includes futurize for Python3 compatibility. Run futurize to make sure new SSM code that not covered by arc-ssm.patch also updated.
+
 Changelog:
+*Sun Sep 9 2018 Andrii Salnikov <manf@grid.org.ua>
+ -update to ssm2 2.3.0
+
 *Mon Jul 16 2018 Andrii Salnikov <manf@grid.org.ua>
  -update to ssm2 2.2.1
 
