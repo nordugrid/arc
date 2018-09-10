@@ -894,6 +894,7 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/jura/archive
 
 %find_lang %{name}
 
@@ -1264,13 +1265,14 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
+%dir %{_localstatedir}/spool/arc/jura
+%dir %{_localstatedir}/spool/arc/jura/archive
 %{_libexecdir}/%{pkgdir}/ssmsend
-%dir %{_datadir}/%{pkgdir}/ssm
-%{_datadir}/%{pkgdir}/ssm/__init__.py*
-%{_datadir}/%{pkgdir}/ssm/crypto.py*
-%{_datadir}/%{pkgdir}/ssm/ssm2.py*
-%{_datadir}/%{pkgdir}/ssm/brokers.py*
-%{_datadir}/%{pkgdir}/ssm/sender.cfg
+%if %{py3default}
+%{python3_sitearch}/%{pkgdir}/ssm
+%else
+%{python2_sitearch}/%{pkgdir}/ssm
+%endif
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH

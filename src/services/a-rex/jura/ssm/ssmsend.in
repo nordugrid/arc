@@ -22,18 +22,21 @@ Script to run a sending SSM.
 from __future__ import print_function
 
 import sys
+import os
 
-# Prepend module path
-sys.path.insert(0,SSMDIR)
+# ARC-prefix path in PYTHONPATH
+arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
+if os.path.isdir(arc_prefix_pythonpath):
+    if arc_prefix_pythonpath not in sys.path:
+        sys.path.insert(1, arc_prefix_pythonpath)
 
-from __init__ import __version__, set_up_logging, LOG_BREAK
-from ssm2 import Ssm2, Ssm2Exception
-from crypto import CryptoException
-from brokers import StompBrokerGetter, STOMP_SERVICE, STOMP_SSL_SERVICE
+from arc.ssm import __version__, set_up_logging, LOG_BREAK
+from arc.ssm.ssm2 import Ssm2, Ssm2Exception
+from arc.ssm.crypto import CryptoException
+from arc.ssm.brokers import StompBrokerGetter, STOMP_SERVICE, STOMP_SSL_SERVICE
 
 import logging.config
 import ldap
-import os
 from optparse import OptionParser
 try:
     import configparser as ConfigParser
@@ -48,7 +51,7 @@ def main(_host, _port, _topic, _key, _cert, _cadir, _message_path, _use_ssl):
     ver = "SSM %s.%s.%s" % __version__
     op = OptionParser(description=__doc__, version=ver)
     op.add_option('-c', '--config', help='location of config file', 
-                          default="%s/sender.cfg" % SSMDIR)
+                          default="%s/arc/ssm/sender.cfg" % arc_prefix_pythonpath)
     op.add_option('-l', '--log_config', 
                         help='location of logging config file (optional)', 
                         default='/etc/apel/logging.cfg')
