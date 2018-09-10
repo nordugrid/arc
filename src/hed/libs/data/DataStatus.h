@@ -278,10 +278,18 @@ namespace Arc {
     /**
      * Sets status type to s and errno to EARCOTHER if s is an error state.
      */
-    DataStatus operator=(const DataStatusType& s) {
+    DataStatus& operator=(const DataStatusType& s) {
       status = s;
       Errno = 0;
       if (!Passed()) Errno = EARCOTHER;
+      desc.clear();
+      return *this;
+    }
+
+    DataStatus& operator=(const DataStatus& s) {
+      status = s.status;
+      Errno = s.Errno;
+      desc = s.desc;
       return *this;
     }
 
