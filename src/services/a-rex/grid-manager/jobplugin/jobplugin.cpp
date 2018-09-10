@@ -764,7 +764,7 @@ int JobPlugin::close(bool eof) {
       if(user_a.check_group(*group)) { allowed = true; break; };
     };
     if(!allowed) {
-      error_description="Request for queue "+job_desc.queue+" is not allowed.";
+      error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
       logger.msg(Arc::ERROR, "%s", error_description);
       delete_job_id(); 
       return 1;
