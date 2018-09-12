@@ -92,7 +92,7 @@ test_cache_check_LDADD = \
 
 install-data-local:
 	$(MKDIR_P) "$(DESTDIR)$(sysconfdir)"
-	$(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf
+	if test ! -e $(DESTDIR)$(sysconfdir)/arc.conf; then $(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf; fi
 
 uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/arc.conf
