@@ -54,11 +54,11 @@ class JobsControl(ComponentControl):
             if os.path.exists(arex_runconf):
                 self.logger.debug('Using A-REX runtime configuration (%s) for managing jobs.', arex_runconf)
                 controldir_fallback = False
-                self.gm_jobs += '-c {0}'.format(arex_runconf)
+                self.gm_jobs += ' -c {0}'.format(arex_runconf)
         if controldir_fallback:
             self.logger.warning('A-REX runtime configuration is not found. Falling back to directly using '
                                 'configured controldir at %s', self.control_dir)
-            self.gm_jobs += '-d {0}'.format(self.control_dir)
+            self.gm_jobs += ' -d {0}'.format(self.control_dir)
 
         self.cache_min_jobs = 1000
         self.cache_ttl = 30
