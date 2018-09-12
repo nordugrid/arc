@@ -704,7 +704,9 @@ start() {
     validate >> "$LOGFILE" 2>&1
     RETVAL=$?
     if [ $RETVAL != 0 ]; then
-        log_failure_msg "Configuration validation failed: $RETVAL errors"
+        # Run validator again to print errors to screen
+        validate --skip-warnings
+        log_failure_msg "Configuration validation failed"
         return 1
     fi
 
