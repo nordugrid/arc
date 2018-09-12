@@ -27,7 +27,7 @@ from arc.utils import config
 
 # Runtime configuration (used for root only)
 arcctl_runtime_config = '@localstatedir@/run/arc/arcctl.runtime.conf'.replace('${prefix}', '@prefix@')
-if not os.geteuid():
+if os.geteuid() != 0:
     arcctl_runtime_config = None
 
 
@@ -82,7 +82,8 @@ def get_arcconfig(conf_f):
             logger.debug('Parsing configuration options from %s (with defaults in %s)',
                          conf_f, config.defaults_defpath())
             config.parse_arc_conf(conf_f)
-            config.save_run_config(arcctl_runtime_config)
+            if arcctl_runtime_config is not None:
+                config.save_run_config(arcctl_runtime_config)
         arcconfig = config
     except IOError:
         logger.error('Failed to open ARC configuration file %s', conf_f)
