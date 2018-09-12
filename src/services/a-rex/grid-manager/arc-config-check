@@ -290,8 +290,7 @@ sub confchecktripel($$$) {
 		} else {
 			my @r0s=glob($value."/*.r0");
 			if ($#r0s == -1) {
-				w("$name: There are no certificate revocation lists.\n")
-							unless $skip_warnings;
+				w("$name: There are no certificate revocation lists.\n");
 			} else {
 				require File::stat;
 				my $t=time();
@@ -515,11 +514,9 @@ sub confcheck($) {
 				$blockname .= "|" . ++$vo_counter;
 			}
 			if (defined $config->{$blockname}) {
-				if (!$skip_warnings) {
-					w("$arcconf:$c: Block '"
-					  . $blockname
-					  ."' is defined multiple times\n");
-				}
+				w("$arcconf:$c: Block '"
+				  . $blockname
+				  ."' is defined multiple times\n");
 				$warnings++;
 			}
 
@@ -634,9 +631,7 @@ sub check_completeness() {
 		print STDERR "$k -> " . join(":",@secs)."\n" if $debug;
 
 		if (0 == @secs) {
-			unless ($skip_warnings) {
-				e("Unknown block identifier '[$k]'\n");
-			}
+			e("Unknown block identifier '[$k]'\n");
 			next;
 		}
 		elsif (1 < @secs) {
@@ -795,9 +790,7 @@ sub check_libraries() {
 			}
 			close LDD;
 		} else {
-			if (!$skip_warnings) {
-				w("Cannot check used libraries of $file.\n");
-			}
+			w("Cannot check used libraries of $file.\n");
 		}
 	}
 }
@@ -847,9 +840,7 @@ sub check_certificates() {
 		}
 	}
 	else {
-		if (!$skip_warnings) {
-			w("Not verifying host cert which is not present at $hostcert (should already be reported).\n");
-		}
+		w("Not verifying host cert which is not present at $hostcert (should already be reported).\n");
 	}
 
 }
