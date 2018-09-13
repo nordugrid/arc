@@ -10,6 +10,7 @@ import isodate  # extra dependency on python-isodate package
 import ldap
 import xml.etree.ElementTree as ElementTree
 import argparse
+import tempfile
 from functools import reduce
 
 
@@ -51,7 +52,10 @@ class AccountingControl(ComponentControl):
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
             sys.exit(1)
-        self.jura_bin = ARC_LIBEXEC_DIR + '/jura'
+        _, self.runconfig = tempfile.mkstemp(suffix='.conf', prefix='arcctl.jura.')
+        self.logger.debug('Dumping runtime configuration for Jura to %s', self.runconfig)
+        arcconfig.save_run_config(self.runconfig)
+        self.jura_bin = ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
         self.archivedir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
         if self.archivedir is None:
             self.logger.warning('Accounting records archiving is not enabled! '
@@ -65,6 +69,9 @@ class AccountingControl(ComponentControl):
         self.ssmlog = '/var/spool/arc/ssm/ssmsend.log'  # hardcoded in JURA_DEFAULT_DIR_PREFIX and ssm/sender.cfg
         self.sgas_records = []
         self.apel_records = []
+
+    def __del__(self):
+        os.unlink(self.runconfig)
 
     def __xml_to_dict(self, t):
         childs = list(t)
