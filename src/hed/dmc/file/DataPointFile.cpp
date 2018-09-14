@@ -264,7 +264,7 @@ namespace ArcDMCFile {
       int ll = -1;
       if(fd != -1) {
         off_t coff = lseek(fd, p, SEEK_SET);
-        if(coff == p) {
+        if((coff == p) || is_channel) {
           ll = 0;
           while (l_ < l) {
             ll = write(fd, (*(buffer))[h] + l_, l - l_);
@@ -275,7 +275,7 @@ namespace ArcDMCFile {
       }
       if(fa) {
         off_t coff = fa->fa_lseek(p, SEEK_SET);
-        if(coff == p) {
+        if((coff == p) || is_channel) {
           ll = 0;
           while (l_ < l) {
             ll = fa->fa_write((*(buffer))[h] + l_, l - l_);
