@@ -12,6 +12,7 @@ import shutil
 import datetime
 import tarfile
 import pwd
+from contextlib import closing
 
 
 def add_parser_digest_validity(parser, defvalidity=90):
@@ -151,7 +152,7 @@ class TestCAControl(ComponentControl):
                   .format(usercertsdir, args.install_user))
         elif args.export_tar:
             workdir = os.getcwd()
-            tarball = 'testcert-{0}.tar'.format(timeidx)
+            tarball = 'testcert-{0}.tar.gz'.format(timeidx)
             tmpdir = tempfile.mkdtemp()
             os.chdir(tmpdir)
             export_dir = 'arc-test-certs'
@@ -164,27 +165,27 @@ class TestCAControl(ComponentControl):
             # remove private key
             os.unlink(export_dir + '/certificates/' + self.caName.replace(' ', '-') + '-key.pem')
             # create script to source
-            script_content = 'basedir=$(dirname `readlink -f -- $_`)\n' \
+            script_content = 'basedir=$(dirname `readlink -f -- ${BASH_SOURCE:-$_}`)\n' \
                              'export X509_USER_CERT="$basedir/usercert.pem"\n' \
                              'export X509_USER_KEY="$basedir/userkey.pem"\n' \
                              'export X509_USER_PROXY="$basedir/userproxy.pem"\n' \
                              'export X509_CERT_DIR="$basedir/certificates"'
-            with open(export_dir + '/usercerts.sh', 'w') as sf:
+            with open(export_dir + '/setenv.sh', 'w') as sf:
                 sf.write(script_content)
             # make a tarball
-            with tarfile.open(os.path.join(workdir, tarball), 'w') as tarf:
+            with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add(export_dir)
-            print('User certificate and key are exported to {0}.\n' \
-                  'To use test cert with arc* tools on the other machine, copy the tarball and run following:\n' \
-                  '  tar xf {0}\n' \
-                  '  source {1}/usercerts.sh'.format(tarball, export_dir))
+            print('User certificate and key are exported to {0}.\n'
+                  'To use it with arc* tools on the other machine, copy the tarball and run the following commands:\n'
+                  '  tar xzf {0}\n'
+                  '  source {1}/setenv.sh'.format(tarball, export_dir))
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(tmpdir)
         else:
-            print('User certificate and key are saved to {0} and {1} respectively.\n' \
-                  'To use test cert with arc* tools export the following variables:\n' \
-                  '  export X509_USER_CERT="{2}/{0}"\n' \
+            print('User certificate and key are saved to {0} and {1} respectively.\n'
+                  'To use test cert with arc* tools export the following variables:\n'
+                  '  export X509_USER_CERT="{2}/{0}"\n'
                   '  export X509_USER_KEY="{2}/{1}"'.format(
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
