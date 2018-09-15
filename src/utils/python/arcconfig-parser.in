@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # command line arguments parsing
     args_parser = get_parser()
     cmd_args = args_parser.parse_args()
-    logger.setLevel(cmd_args.debug)
+    logger.setLevel(getattr(logging, cmd_args.debug, 30))
 
     # operations logic
     if cmd_args.save:
