@@ -105,8 +105,9 @@ if __name__ == '__main__':
     # Parse command line arguments
     cmd_args = args_parser.parse_args()
     # Set log level for both arcctl and config loggers
-    logger.setLevel(cmd_args.debug)
-    config.logger.setLevel(cmd_args.debug)
+    loglevel = getattr(logger, cmd_args.debug, 30)
+    logger.setLevel(loglevel)
+    config.logger.setLevel(loglevel)
     # Define handler class
     ctl_class = cmd_args.handler_class
 
