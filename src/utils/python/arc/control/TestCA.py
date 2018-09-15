@@ -11,6 +11,8 @@ import tempfile
 import shutil
 import datetime
 import tarfile
+import pwd
+from contextlib import closing
 
 
 def add_parser_digest_validity(parser, defvalidity=90):
@@ -79,7 +81,7 @@ class TestCAControl(ComponentControl):
             keyfname = hostcertfiles.keyLocation.split('/')[-1]
             if not args.force:
                 if os.path.exists(os.path.join(workdir, certfname)) or os.path.exists(os.path.join(workdir, keyfname)):
-                    logger.error('Host certificate for %s is already exists.', hostname)
+                    self.logger.error('Host certificate for %s is already exists.', hostname)
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
@@ -98,16 +100,59 @@ class TestCAControl(ComponentControl):
             shutil.move(hostcertfiles.keyLocation, self.__test_hostkey)
         shutil.rmtree(tmpdir)
 
+    @staticmethod
+    def _remove_certs_and_exit(certfiles, exit_code=1):
+        try:
+            os.unlink(certfiles.certLocation)
+            os.unlink(certfiles.keyLocation)
+        except OSError:
+            pass
+        sys.exit(exit_code)
+
     def signusercert(self, args):
         ca = CertificateKeyPair(self.caKey, self.caCert)
         cg = CertificateGenerator('')
         timeidx = datetime.datetime.today().strftime('%m%d%H%M')
-        username = 'Test Cert {}'.format(timeidx) if args.username is None else args.username
+        username = 'Test Cert {0}'.format(timeidx) if args.username is None else args.username
         usercertfiles = cg.generateClientCertificate(username, ca=ca,
                                                      validityperiod=args.validity, messagedigest=args.digest)
-        if args.export_tar:
+        if args.install_user is not None:
+            try:
+                pw = pwd.getpwnam(args.install_user)
+            except KeyError:
+                self.logger.error('Specified user %s is not exist.', args.install_user)
+                self._remove_certs_and_exit(usercertfiles)
+            # get homedir
+            homedir = pw.pw_dir
+            if not os.path.isdir(homedir):
+                self.logger.error('Home directory %s is not exists for user %s', homedir, args.install_user)
+                self._remove_certs_and_exit(usercertfiles)
+            # .globus usercerts location
+            usercertsdir = homedir + '/.globus'
+            if os.path.exists(usercertsdir + '/usercert.pem') or os.path.exists(usercertsdir + '/userkey.pem'):
+                if not args.force:
+                    self.logger.error('User credentials are already exists in %s. Use \'--force\' to overwrite.',
+                                      usercertsdir)
+                    self._remove_certs_and_exit(usercertfiles)
+            if not os.path.isdir(usercertsdir):
+                self.logger.debug('Creating %s directory to store user\'s credentials', usercertsdir)
+                os.mkdir(usercertsdir)
+                os.chmod(usercertsdir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+                         | stat.S_IRGRP | stat.S_IXGRP
+                         | stat.S_IROTH | stat.S_IXOTH)
+                os.chown(usercertsdir, pw.pw_uid, pw.pw_gid)
+            # move cert/key
+            shutil.move(usercertfiles.certLocation, usercertsdir + '/usercert.pem')
+            shutil.move(usercertfiles.keyLocation, usercertsdir + '/userkey.pem')
+            # chown cert/key
+            self.logger.debug('Installing user certificate and key')
+            os.chown(usercertsdir + '/usercert.pem', pw.pw_uid, pw.pw_gid)
+            os.chown(usercertsdir + '/userkey.pem', pw.pw_uid, pw.pw_gid)
+            print('User certificate and key are installed to default {0} location for user {1}.'
+                  .format(usercertsdir, args.install_user))
+        elif args.export_tar:
             workdir = os.getcwd()
-            tarball = 'testcert-{0}.tar'.format(timeidx)
+            tarball = 'testcert-{0}.tar.gz'.format(timeidx)
             tmpdir = tempfile.mkdtemp()
             os.chdir(tmpdir)
             export_dir = 'arc-test-certs'
@@ -120,27 +165,27 @@ class TestCAControl(ComponentControl):
             # remove private key
             os.unlink(export_dir + '/certificates/' + self.caName.replace(' ', '-') + '-key.pem')
             # create script to source
-            script_content = 'basedir=$(dirname `readlink -f -- $_`)\n' \
+            script_content = 'basedir=$(dirname `readlink -f -- ${BASH_SOURCE:-$_}`)\n' \
                              'export X509_USER_CERT="$basedir/usercert.pem"\n' \
                              'export X509_USER_KEY="$basedir/userkey.pem"\n' \
                              'export X509_USER_PROXY="$basedir/userproxy.pem"\n' \
                              'export X509_CERT_DIR="$basedir/certificates"'
-            with open(export_dir + '/usercerts.sh', 'w') as sf:
+            with open(export_dir + '/setenv.sh', 'w') as sf:
                 sf.write(script_content)
             # make a tarball
-            with tarfile.open(os.path.join(workdir, tarball), 'w') as tarf:
+            with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add(export_dir)
-            print('User certificate and key are exported to {0}.\n' \
-                  'To use test cert with arc* tools on the other machine, copy the tarball and run following:\n' \
-                  '  tar xf {0}\n' \
-                  '  source {1}/usercerts.sh'.format(tarball, export_dir))
+            print('User certificate and key are exported to {0}.\n'
+                  'To use it with arc* tools on the other machine, copy the tarball and run the following commands:\n'
+                  '  tar xzf {0}\n'
+                  '  source {1}/setenv.sh'.format(tarball, export_dir))
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(tmpdir)
         else:
-            print('User certificate and key are saved to {0} and {1} respectively.\n' \
-                  'To use test cert with arc* tools export the following variables:\n' \
-                  '  export X509_USER_CERT="{2}/{0}"\n' \
+            print('User certificate and key are saved to {0} and {1} respectively.\n'
+                  'To use test cert with arc* tools export the following variables:\n'
+                  '  export X509_USER_CERT="{2}/{0}"\n'
                   '  export X509_USER_KEY="{2}/{1}"'.format(
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
@@ -179,5 +224,8 @@ class TestCAControl(ComponentControl):
         add_parser_digest_validity(testca_user, 30)
         testca_user.add_argument('-n', '--username', action='store',
                                  help='Use specified username instead of automatically generated')
+        testca_user.add_argument('-i', '--install-user', action='store',
+                                 help='Install certificates to $HOME/.globus for specified user instead of workdir')
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
+        testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
