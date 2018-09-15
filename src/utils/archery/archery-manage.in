@@ -506,7 +506,7 @@ parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS
 cmd_args = parser.parse_args()
 
 # Set requested logging level
-logger.setLevel(getattr(logger, cmd_args.debug, 20))
+logger.setLevel(getattr(logging, cmd_args.debug, 20))
 
 # Check DDNS update required options before doing anything
 if cmd_args.ddns_update:
