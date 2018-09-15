@@ -15,15 +15,6 @@ import dns.query
 import dns.tsigkeyring
 from dns.exception import DNSException
 
-# Definitions
-_debug_levels = {
-    'CRITICAL': logging.CRITICAL,
-    'ERROR': logging.ERROR,
-    'WARNING': logging.WARNING,
-    'INFO': logging.INFO,
-    'DEBUG': logging.DEBUG
-}
-
 
 #
 # OUTPUT FORMATTING FUNCTIONS
@@ -495,7 +486,8 @@ logger.addHandler(log_handler_stderr)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
-parser.add_argument('-d', '--debug', action='store', choices=list(_debug_levels.keys()), default='INFO')
+parser.add_argument('-d', '--debug', action='store', default='INFO',
+                    choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 parser.add_argument('-s', '--source', action='append', required=True,
                     help='Select CE list source (file: and egiis: sources are supported)')
 parser.add_argument('-f', '--filter', action='append', help='Add one or more filters to endpoint list. '
@@ -514,7 +506,7 @@ parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS
 cmd_args = parser.parse_args()
 
 # Set requested logging level
-logger.setLevel(_debug_levels[cmd_args.debug])
+logger.setLevel(getattr(logger, cmd_args.debug, 20))
 
 # Check DDNS update required options before doing anything
 if cmd_args.ddns_update:
