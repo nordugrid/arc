@@ -1356,6 +1356,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
+%{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccSER.so
@@ -1379,6 +1380,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
+%{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %{_libdir}/%{pkgdir}/libaccINTERNAL.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
