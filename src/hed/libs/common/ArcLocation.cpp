@@ -52,25 +52,29 @@ namespace Arc {
     return true;
   }
 
+  static void array_deleter(char* array) {
+    delete[] array;
+  }
+
   static bool resolve_link(std::string& path) {
     struct stat linkst;
     ssize_t r;
     if(lstat(path.c_str(), &linkst) == -1) return false;
     if(!S_ISLNK(linkst.st_mode)) return false;
-    std::unique_ptr<char[]> linkname{new char[linkst.st_size]};
+    AutoPointer<char> linkname(new char[linkst.st_size], &array_deleter);
     if(!linkname) return false;
-    ssize_t linksize = readlink(path.c_str(), linkname.get(), linkst.st_size);
+    ssize_t linksize = readlink(path.c_str(), linkname.Ptr(), linkst.st_size);
     if(linksize > linkst.st_size) return false;
     if(linksize < 0) return false;
-    if((linksize > 0) && (linkname[0] == G_DIR_SEPARATOR)) {
+    if((linksize > 0) && (linkname.Ptr()[0] == G_DIR_SEPARATOR)) {
       // absolute link
-      path.assign(linkname.get(),linksize);
+      path.assign(linkname.Ptr(),linksize);
     } else {
       std::string::size_type sep = path.rfind(G_DIR_SEPARATOR);
       if(sep == std::string::npos)
-        path.assign(linkname.get(),linksize);
+        path.assign(linkname.Ptr(),linksize);
       else
-        path.replace(sep+1,std::string::npos,linkname.get(),linksize);
+        path.replace(sep+1,std::string::npos,linkname.Ptr(),linksize);
     }
     canonic_path(path);
     return true;
