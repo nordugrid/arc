@@ -291,6 +291,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   };
   // Call next MCC
   MCCInterface* next = Next(nextpayload.Method());
+  if(!next) next = Next(); // try default target
   if(!next) {
     logger.msg(WARNING, "No next element in the chain");
     // Here selection is on method name. So failure result is "not supported"
