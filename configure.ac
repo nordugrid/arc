@@ -198,7 +198,7 @@ enables_saml_client=yes
 enables_wsrf_client=yes
 enables_unicore_client=no
 enables_emies_client=yes
-enables_arcrest_client=no
+enables_arcrest_client=yes
 #  Documentation
 enables_doc=yes
 # ACIX cache index
@@ -221,6 +221,7 @@ enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
 enables_emies_client=$enableval
+enables_arcrest_client=$enableval
 enables_hed=$enableval
 enables_python=$enableval
 enables_altpython=$enableval
@@ -250,6 +251,7 @@ enables_jura_client=$enableval
 enables_saml_client=$enableval
 enables_wsrf_client=$enableval
 enables_emies_client=$enableval
+enables_arcrest_client=$enableval
 enables_doc=$enableval
 ],
 [])
@@ -2160,7 +2162,7 @@ AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables b
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
 AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
 
-AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--enable-arcrest-client], [enables building ARC REST interface client plugins (not affected by --enable-all).]),
+AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--disable-arcrest-client], [disables building ARC REST interface client plugins.]),
   [enables_arcrest_client=$enableval],[])
 AC_MSG_NOTICE([ARC REST plugin(s) enabled: $enables_arcrest_client])
 AM_CONDITIONAL([ARCREST_ENABLED],[test "x$enables_arcrest_client" = "xyes"])
