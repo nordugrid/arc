@@ -155,7 +155,7 @@ static int runmain(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
+  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
   usercfg.Timeout(timeout);
 
   if (debug.empty() && !usercfg.Verbosity().empty())

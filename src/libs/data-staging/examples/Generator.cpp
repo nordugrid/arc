@@ -47,7 +47,7 @@ void Generator::run(const std::string& source, const std::string& destination) {
     return;
   }
 
-  cfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
+  cfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
 
   DataStaging::DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
   Arc::LogDestination * dest = new Arc::LogStream(std::cout);

@@ -1194,20 +1194,20 @@ namespace Arc {
      * User::Home() method.
      * @see User::Home()
      **/
-    static const std::string ARCUSERDIRECTORY;
+    static std::string ARCUSERDIRECTORY();
     /// Path to system configuration
     /**
      * The \a SYSCONFIG variable is the path to the system configuration
      * file. This variable is only equal to SYSCONFIGARCLOC if ARC is installed
      * in the root (highly unlikely).
      **/
-    static const std::string SYSCONFIG;
+    static std::string SYSCONFIG();
     /// Path to system configuration at ARC location.
     /**
      * The \a SYSCONFIGARCLOC variable is the path to the system configuration
      * file which reside at the ARC installation location.
      **/
-    static const std::string SYSCONFIGARCLOC;
+    static std::string SYSCONFIGARCLOC();
     /// Path to default configuration file
     /**
      * The \a DEFAULTCONFIG variable is the path to the default
@@ -1215,13 +1215,13 @@ namespace Arc {
      * specified. The path is created from the
      * ARCUSERDIRECTORY object.
      **/
-    static const std::string DEFAULTCONFIG;
+    static std::string DEFAULTCONFIG();
     /// Path to example configuration
     /**
      * The \a EXAMPLECONFIG variable is the path to the example
      * configuration file.
      **/
-    static const std::string EXAMPLECONFIG;
+    static std::string EXAMPLECONFIG();
     /// Path to default job list file
     /**
      * The \a JOBLISTFILE variable specifies the default path to the job list
@@ -1231,7 +1231,7 @@ namespace Arc {
      * @see ARCUSERDIRECTORY
      * \since Added in 4.0.0.
      **/
-    static const std::string JOBLISTFILE;
+    static std::string JOBLISTFILE();
 
     /// Default timeout in seconds
     /**
@@ -1252,7 +1252,7 @@ namespace Arc {
      * @see Broker(const std::string&, const std::string&)
      * @see Broker() const
      **/
-    static const std::string DEFAULT_BROKER;
+    static std::string DEFAULT_BROKER();
 
   private:
 
