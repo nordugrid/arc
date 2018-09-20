@@ -210,7 +210,7 @@ namespace Arc {
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
   
-      if (!preparedjobdesc.Prepare()) {
+      if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
