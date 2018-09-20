@@ -619,7 +619,10 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("arex", "infosys", "lrms");
+	my @required=("common", "arex", "infosys", "lrms");
+
+	# mapping block is required if running as root
+	push @required, "mapping" if getpwnam(getpwuid($<)) == 0;
 
 	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
 
