@@ -280,22 +280,6 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
               logger.msg(Arc::ERROR, "improper attribute for allowencryption command: %s", value);
               return 1;
             };
-          } else if(command == "require_gridmapfile") {
-            /* should user be present in grid-mapfile ? */
-            std::string value=Arc::ConfigIni::NextArg(rest);
-            if(value == "no") {
-              user.gridmap=true;
-            } else if(value == "yes") {
-              if(!user.gridmap) {
-                logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
-                return 1;
-              };
-            } else {
-              user.user.clear_groups();
-              nodes.clear();
-              logger.msg(Arc::ERROR, "improper attribute for require_gridmapfile command: %s", value);
-              return 1;
-            };
           } else if(command == "port") {
             port=rest;
           } else if(command == "allowactivedata") {
