@@ -22,7 +22,6 @@ void userspec_t::free(void) const {
   // Keep authentication info to preserve proxy (just in case)
 }
 
-//userspec_t::userspec_t(void):user(),map(user),default_map(user),name(NULL),group(NULL),home(NULL),gridmap(false) {
 userspec_t::userspec_t(void):user(),uid(-1),gid(-1),port(0),map(user),default_map(user),gridmap(false) {
   host[0] = 0;
 }
@@ -38,36 +37,34 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
   }
   else {
     char* tmp=getenv("GRIDMAP");
-    if((tmp == NULL) || (tmp[0] == 0)) {
-      globus_gridmap="/etc/grid-security/grid-mapfile";
-    }
-    else { globus_gridmap=tmp; };
+    globus_gridmap=tmp?tmp:"";
   };
-  std::ifstream f(globus_gridmap.c_str());
-  if(!f.is_open() ) {
-    logger.msg(Arc::ERROR, "Mapfile is missing at %s", globus_gridmap);
-    return false;
-  };
-  for(;f.good();) {
-    std::string buf;//char buf[512]; // must be enough for DN + name
-    getline(f,buf);
-    //buf[511]=0;
-    char* p = &buf[0];
-    for(;*p;p++) if(((*p) != ' ') && ((*p) != '\t')) break;
-    if((*p) == '#') continue;
-    if((*p) == 0) continue;
-    std::string val;
-    int n = Arc::ConfigIni::NextArg(p,val,' ','"');
-    if(strcmp(val.c_str(),dn) != 0) continue;
-    p+=n;
-    if(user) {
-      n=Arc::ConfigIni::NextArg(p,val,' ','"');
-      *user=strdup(val.c_str());
+  if(!globus_gridmap.empty()) {
+    std::ifstream f(globus_gridmap.c_str());
+    if(!f.is_open() ) {
+      logger.msg(Arc::ERROR, "Mapfile is missing at %s", globus_gridmap);
+      return false;
+    };
+    for(;f.good();) {
+      std::string buf;
+      getline(f,buf);
+      char* p = &buf[0];
+      for(;*p;p++) if(((*p) != ' ') && ((*p) != '\t')) break;
+      if((*p) == '#') continue;
+      if((*p) == 0) continue;
+      std::string val;
+      int n = Arc::ConfigIni::NextArg(p,val,' ','"');
+      if(strcmp(val.c_str(),dn) != 0) continue;
+      p+=n;
+      if(user) {
+        n=Arc::ConfigIni::NextArg(p,val,' ','"');
+        *user=strdup(val.c_str());
+      };
+      f.close();
+      return true;
     };
     f.close();
-    return true;
   };
-  f.close();
   return false;
 }
 
