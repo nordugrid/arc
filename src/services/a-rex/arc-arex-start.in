@@ -173,8 +173,13 @@ prepare() {
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
-    GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
-    USERMAP_BLOCK='mapping'
+    mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
+    GRIDMAP=''
+    USERMAP_BLOCK=''
+    if [ "$mapping_present" = 'true' ] ; then
+      USERMAP_BLOCK='mapping'
+      GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
+    fi
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
     # It is easier to handle root user through empty value.
@@ -205,13 +210,11 @@ prepare() {
     arex_service_plexer=""
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
     arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
-    gridmapmatch=""
     if [ "$ws_present" = 'true' ] ; then
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
         MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
         MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
         MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
-        REQUIREGRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" require_gridmapfile arex/ws/emies`
         USERAUTH_BLOCK='arex/ws/emies'
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
         arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
@@ -236,21 +239,16 @@ prepare() {
         if [ ! -d `dirname $WSLOGFILE` ]; then
             mkdir -p `dirname $WSLOGFILE`
         fi
-
-        if [ "$REQUIREGRIDMAP" = "yes" ] ; then
-            gridmapmatch="
-<!-- Do initial user filtering by gridmap file -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\">
-  </PDP>
-</SecHandler>
-"
-        fi
     fi
     if [ "$arex_present" = 'true' ] ; then
         if [ "$ws_present" != 'true' ] ; then
             echo  "WS interface must be turned on to use A-REX/EMIES WS service"
             exit 1
+        else
+            if [ "$mapping_present" != 'true' ] ; then
+                echo "For A-REX/EMIES WS interface to work mapping must be enabled"
+                exit 1
+            fi
         fi
         arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
@@ -272,6 +270,12 @@ prepare() {
       if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
       if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
       if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
+      if [ "$mapping_present" != 'true' ]; then
+        if [ "$arguspep_usermap" = 'true' ]; then
+          echo "Can't map user identity through Argus PEP because mapping is disabled for the service."
+          exit 1
+        fi
+      fi
       argus_shc="${argus_shc}
 <!-- Perform client authorization and mapping according to Argus through PEP service -->
 <SecHandler name=\"arguspepclient.map\" id=\"arguspep\" event=\"incoming\">
@@ -298,12 +302,18 @@ prepare() {
       if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
       if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
       if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
+      if [ "$mapping_present" != 'true' ]; then
+        if [ "$arguspdp_usermap" = 'true' ]; then
+          echo "Can't map user identity through Argus PDP because mapping is disabled for the service."
+          exit 1
+        fi
+      fi
       arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_acceptnotapplicable arex/ws/argus`
       if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
       if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
       if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
       argus_shc="${argus_shc}
-<!-- Perform client authorization and mapping according to Argus through PDP service -->
+<!-- Perform echoclient authorization and mapping according to Argus through PDP service -->
 <SecHandler name=\"arguspdpclient.map\" id=\"arguspdp\" event=\"incoming\">
   <PDPD>$arguspdp_endpoint</PDPD>
   <Conversion>$arguspdp_profile</Conversion>
@@ -325,8 +335,7 @@ prepare() {
             exit 1
         fi
         candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
-        candypond="
-            <Service name=\"candypond\" id=\"candypond\">
+        candypond_shc="
               <!-- Beware of hardcoded block name -->
               <SecHandler name=\"arc.authz\" event=\"incoming\">
                 <PDP name=\"arclegacy.pdp\">
@@ -336,6 +345,9 @@ prepare() {
                   </ConfigBlock>
                 </PDP>
               </SecHandler>
+            "
+        if [ "$mapping_present" = 'true' ]; then
+            candypond_shc="$candypond_shc
               <!-- Perform client mapping -->
               <SecHandler name=\"arclegacy.map\" event=\"incoming\">
                 <ConfigBlock>
@@ -347,6 +359,11 @@ prepare() {
                 <candypond:config>$ARC_RUNTIME_CONFIG</candypond:config>
                 <candypond:witharex>true</candypond:witharex>
               </candypond:service>
+            "
+        fi
+        candypond="
+            <Service name=\"candypond\" id=\"candypond\">
+            $candypond_shc
             </Service>"
     fi
     
@@ -401,6 +418,9 @@ prepare() {
     </ConfigBlock>
   </PDP>
 </SecHandler>
+"
+    if [ "$mapping_present" = 'true' ]; then
+      emies_legacy_shc="$emies_legacy_shc
 <!-- Perform client mapping according to rules of gridftpd -->
 <SecHandler name=\"arclegacy.map\" event=\"incoming\">
   <ConfigBlock>
@@ -408,6 +428,7 @@ prepare() {
     <BlockName>$USERMAP_BLOCK</BlockName>
   </ConfigBlock>
 </SecHandler>"
+    fi
 
     # A-Rex without WS interface
     AREXCFG="\
@@ -472,9 +493,7 @@ prepare() {
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
-      <next id=\"plexer\">GET</next>
-      <next id=\"plexer\">PUT</next>
-      <next id=\"plexer\">HEAD</next>
+      <next id=\"plexer\"/>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
@@ -499,6 +518,17 @@ prepare() {
 "
  
     # A-Rex with WS interface over HTTPS
+    gridmap_mapping=''
+    if [ "$mapping_present" = 'true' ]; then
+      if [ ! -z "$GRIDMAP" ]; then
+        gridmap_mapping="
+          <!-- Do initial identity mappping by gridmap file -->
+          <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
+            <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
+          </SecHandler>
+        "
+      fi
+    fi
     AREXCFGWSS="\
 <?xml version=\"1.0\"?>
 <ArcConfig
@@ -541,15 +571,8 @@ prepare() {
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
-      <next id=\"plexer\">GET</next>
-      <next id=\"plexer\">PUT</next>
-      <next id=\"plexer\">HEAD</next>
-      $gridmapmatch
-      <!-- Do initial identity mappping by gridmap file -->
-      <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
-        <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>
-      </SecHandler>
+      <next id=\"plexer\"/>
+      $gridmap_mapping
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
