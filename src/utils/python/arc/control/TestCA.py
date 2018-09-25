@@ -12,6 +12,7 @@ import shutil
 import datetime
 import tarfile
 import pwd
+import zlib
 from contextlib import closing
 
 
@@ -55,7 +56,14 @@ class TestCAControl(ComponentControl):
                 self.logger.warning('Cannot get hostname from \'hostname -f\'. '
                                     'Using {0} that comes from name services.', self.hostname)
 
-        self.caName = 'ARC {0} TestCA'.format(self.hostname)
+        # check hostname X509 constraint
+        if len(str(self.hostname)) > 64:
+            self.logger.error('Hostname %s is longer that 64 characters and does not fit to X509 subject limit.')
+            sys.exit(1)
+
+        # define CA name and location
+        crc32_ca_id = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
+        self.caName = 'ARC TestCA {0}'.format(crc32_ca_id)
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
 
