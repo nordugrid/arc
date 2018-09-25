@@ -49,13 +49,16 @@ def complete_owner(prefix, parsed_args, **kwargs):
 class AccountingControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.Accounting')
+        # runtime config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
             sys.exit(1)
         _, self.runconfig = tempfile.mkstemp(suffix='.conf', prefix='arcctl.jura.')
         self.logger.debug('Dumping runtime configuration for Jura to %s', self.runconfig)
         arcconfig.save_run_config(self.runconfig)
+        # binary path include runtime config
         self.jura_bin = ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
+        # archive
         self.archivedir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
         if self.archivedir is None:
             self.logger.warning('Accounting records archiving is not enabled! '
@@ -63,10 +66,22 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
         if not self.archivedir.endswith('/'):
             self.archivedir += '/'
+        # logs
         self.logfile = arcconfig.get_value('logfile', 'arex/jura')
         if self.logfile is None:
             self.logfile = '/var/log/arc/jura.log'
         self.ssmlog = '/var/spool/arc/ssm/ssmsend.log'  # hardcoded in JURA_DEFAULT_DIR_PREFIX and ssm/sender.cfg
+        # certificates
+        x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
+        x509_host_cert = arcconfig.get_value('x509_host_cert', 'common')
+        x509_host_key = arcconfig.get_value('x509_host_key', 'common')
+        if x509_cert_dir is not None:
+            os.environ['X509_CERT_DIR'] = x509_cert_dir
+        if x509_host_cert is not None:
+            os.environ['X509_USER_CERT'] = x509_host_cert
+        if x509_host_key is not None:
+            os.environ['X509_USER_KEY'] = x509_host_key
+        # records
         self.sgas_records = []
         self.apel_records = []
 
