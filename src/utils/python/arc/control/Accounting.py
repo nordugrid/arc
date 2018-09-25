@@ -117,7 +117,7 @@ class AccountingControl(ComponentControl):
             'StartTime': isodate.parse_datetime(ardict['StartTime'][0]).replace(tzinfo=None),
             'EndTime': isodate.parse_datetime(ardict['EndTime'][0]).replace(tzinfo=None),
             'WallTime': isodate.parse_duration('PT0S'),
-            'CPUTime': isodate.parse_duration('PT0S'),
+            'CpuTime': isodate.parse_duration('PT0S'),
             'Processors': 0,
         }
         # extract optional common info (possibly missing)
@@ -125,9 +125,9 @@ class AccountingControl(ComponentControl):
             arinfo['Processors'] = ardict['Processors'][0]
         if 'WallDuration' in ardict:
             arinfo['WallTime'] = isodate.parse_duration(ardict['WallDuration'][0])
-        if 'CPUDuration' in ardict:
-            for ct in ardict['WallDuration']:
-                arinfo['CPUTime'] += isodate.parse_duration(ct)
+        if 'CpuDuration' in ardict:
+            for ct in ardict['CpuDuration']:
+                arinfo['CpuTime'] += isodate.parse_duration(ct)
         return arinfo
 
     def __parse_records(self, apel=True, sgas=True):
@@ -215,7 +215,7 @@ class AccountingControl(ComponentControl):
         cputime = datetime.timedelta(0)
         for r in records:
             walltime += r['WallTime']
-            cputime += r['CPUTime']
+            cputime += r['CpuTime']
         return walltime, cputime
 
     @staticmethod
