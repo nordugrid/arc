@@ -100,6 +100,10 @@ class AccountingControl(ComponentControl):
                         d[t.tag][k] = [v]
         else:
             d = {t.tag: t.text}
+            # add extra tags with attribute values in name
+            for a, av in t.attrib.items():
+                a_tag = t.tag + '_' + a.split('}')[-1] + '_' + av
+                d[a_tag] = t.text
         return d
 
     def __usagerecord_to_dict(self, xml_f):
@@ -125,7 +129,9 @@ class AccountingControl(ComponentControl):
             arinfo['Processors'] = ardict['Processors'][0]
         if 'WallDuration' in ardict:
             arinfo['WallTime'] = isodate.parse_duration(ardict['WallDuration'][0])
-        if 'CpuDuration' in ardict:
+        if 'CpuDuration_usageType_all' in ardict:
+            arinfo['CpuTime'] = isodate.parse_duration(ardict['CpuDuration_usageType_all'][0])
+        elif 'CpuDuration' in ardict:
             for ct in ardict['CpuDuration']:
                 arinfo['CpuTime'] += isodate.parse_duration(ct)
         return arinfo
