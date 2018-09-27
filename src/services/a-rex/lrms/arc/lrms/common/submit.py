@@ -109,12 +109,13 @@ def set_req_mem(jd):
 
 def get_rte_path(sw):
     rte_path = None
+    # os.path.exists return False for broken symlinks (handled automatically)
     if os.path.exists('%s/rte/enabled/%s' % (Config.controldir, sw)):
         rte_path = '%s/rte/enabled/%s' % (Config.controldir, sw)
     elif os.path.exists('%s/rte/default/%s' % (Config.controldir, sw)):
         rte_path = '%s/rte/default/%s' % (Config.controldir, sw)
     else:
-        warn('Requested RunTimeEnvironment %s is missing or not enabled.' % (sw), 'common.submit')
+        warn('Requested RunTimeEnvironment %s is missing, broken or not enabled.' % (sw), 'common.submit')
     return rte_path
 
 
