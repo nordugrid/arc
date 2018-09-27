@@ -37,7 +37,7 @@ sub add_static_rtes {
        return;
     }
     closedir DIR;
-    my $cmd = "find '$runtimedir' ! -type d ! -name '.*' ! -name '*~'";
+    my $cmd = "find '$runtimedir' ! -type d ! -name '.*' ! -name '*~' -exec test -e {} \\; -print";
     unless (open RTE, "$cmd |") {
        $log->warning("Failed to run: $cmd");
        return;

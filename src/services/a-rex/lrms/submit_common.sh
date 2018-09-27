@@ -161,7 +161,7 @@ RTE_include_default () {
     default_rte_dir="${CONFIG_controldir}/rte/default/"
     if [ -d "$default_rte_dir" ]; then
         # get default RTEs
-        default_rtes=` find "$default_rte_dir" ! -type d | sed "s#^$default_rte_dir##" `
+        default_rtes=` find "$default_rte_dir" ! -type d -exec test -e {} \; -print | sed "s#^$default_rte_dir##" `
         if [ -n "$default_rtes" ]; then
             # Find last RTE index defined
             rte_idx=0
@@ -189,7 +189,7 @@ RTE_path_set () {
     if [ ! -f "$rte_path" ]; then
         rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
         if [ ! -f "$rte_path" ]; then
-            echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing or not enabled." 1>&2
+            echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing, broken or not enabled." 1>&2
             exit 1
         fi
     fi
