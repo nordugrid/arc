@@ -1387,6 +1387,7 @@ bool JobsList::ActJob(GMJobRef& i) {
       // Processing to be done on relatively successful state changes
       JobLog* joblog = config.GetJobLog();
       if(joblog) joblog->WriteJobRecord(*i,config);
+      // TODO: Consider moving following code into ActJob* methods
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
         if(joblog) joblog->WriteFinishInfo(*i,config);
@@ -1444,7 +1445,6 @@ bool JobsList::ActJob(GMJobRef& i) {
 
   // Job in special state or specifically requested to be removed (TODO: remove check for job state)
   if((job_result == JobDropped) ||
-     (i->job_state == JOB_STATE_FINISHED) ||
      (i->job_state == JOB_STATE_DELETED) ||
      (i->job_state == JOB_STATE_UNDEFINED)) {
     // Such jobs are not kept in memory
