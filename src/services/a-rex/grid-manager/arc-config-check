@@ -425,38 +425,26 @@ sub check_logrotate($$$$) {
 	}	
 } 
 
-# Get all valid configuration parameters and blocks from arc.conf.reference.
+# Get all valid configuration parameters and blocks from arc.parser.defaults.
 # Dynamic blocks which match those in %introducedSections are not included.
 
 sub validconfparams() {
 
 	my @validparams;
 	my @validblocks;
-	my @multiparams;
-	my @novalueparams;
-	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
-		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
-		return ( \@validparams, \@validblocks );
+	# parameters allowed to have no value
+	my @novalueparams = ("all", "mapped_unixid");
+	unless (open (ARCREF, "<$arcloc/share/arc/arc.parser.defaults")) {
+		e("Could not open arc.parser.defaults so cannot check arc.conf consistency\n");
+		return ( \@validparams, \@validblocks, \@novalueparams );
 	}
-	my $multivalued = 0;
 	while (my $line = <ARCREF>) {
-		if ($line =~ m/^#(\w*)\s*(=.*)?$/) { # match #parameter[=value]
+		if ($line =~ m/^(\w*)=.*$/) { # match parameter=value
 			my $name = $1;
-			my $value = $2;
-			# take out spaces
-			$name =~ s/^\s*//;
-			$name =~ s/\s*$//;
 			if (!grep(/^$name$/, @validparams)) {
 				push(@validparams, $name);
-				if ($multivalued) {
-				  push(@multiparams, $name);
-				  $multivalued = 0;
-				}
-				if (!defined $value) {
-				    push(@novalueparams, $name);
-				}
 			}
-		} elsif ($line =~ m|^#\[(.*)\]$|) { # match #[section]
+		} elsif ($line =~ m|^\[(.*)\]$|) { # match [section]
 			my $blockname = $1;
 			my $dynamic = 0;
 			foreach my $k (keys %introducedSections) {
@@ -465,11 +453,9 @@ sub validconfparams() {
 				}
 			}
 			push(@validblocks, $blockname) if !$dynamic;
-		} elsif ($line =~ m/^## multivalued$/) {
-		  $multivalued = 1; # the next option can be multivalued
 		}
 	}
-	return ( \@validparams, \@validblocks, \@multiparams, \@novalueparams );
+	return ( \@validparams, \@validblocks, \@novalueparams );
 }
 	
 =item configuration check
@@ -488,14 +474,14 @@ sub confcheck($) {
 	}
 
 	# valid parameter names and blocks
-	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
+	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
 	my $vo_counter = 0;
 	while (my $line = <CONFIGFILE>) {
 		if ($line =~ m/^<\?xml version=.*\?>$/) {
-			w("XML configuration can not yet be validated\n");
+			w("XML configuration cannot be validated\n");
 			return;
 		}
 		$c++;
@@ -566,7 +552,7 @@ sub confcheck($) {
 
 		# check we have a valid parameter name
 		if (@$validparams != 0 and !grep(/^$name$/, @$validparams)) {
-			w("$arcconf:$c: found unknown parameter $name\n");
+			e("$arcconf:$c: found unknown parameter $name\n");
 			next;
 		}
 
@@ -577,11 +563,7 @@ sub confcheck($) {
 		$blockcontents++;
 
 		if ($config->{$blockname}{$name}) {
-			if (grep(/^$name$/, @$multiple)) {
-				$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
-			} else {
-				w("$arcconf:$c: duplicate parameter: ".$name."\n");
-			}
+			$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
 		} else {
 			$config->{$blockname}{$name} = $value;
 		}
@@ -624,11 +606,11 @@ sub check_completeness() {
 	# mapping block is required if running as root
 	push @required, "mapping" if getpwnam(getpwuid($<)) == 0;
 
-	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
+	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 
 	# testing for unknown
 	foreach my $k (keys %$config) {
-		next if grep(/^$k$/,@$validblocks);
+		next if grep(/^$k$/,@$validblocks) || !@$validblocks;
 		my @secs;
 		map { push(@secs,$_) if $k=~/^$_/;} keys %introducedSections;
 		print STDERR "$k -> " . join(":",@secs)."\n" if $debug;
