@@ -30,82 +30,81 @@ use LogUtils;
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 #######################################################################
-## Block defaults. Will be removed once the python parser returns 
+## Block defaults removed since the python parser returns 
 ## defaults.
-## The defaults below are taken from arc.defaults.conf and
-## for default enabled blocks this is not yet decided.
+## The defaults below are for block enablement.
 #######################################################################
 
-my $confdefaults = {
-    common => {
-       arcversion => '@VERSION@',
-       # hostname => hostname(),  # this is set by set_defaults
-       # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
-       x509_host_key => '/etc/grid-security/hostkey.pem',
-       x509_host_cert => '/etc/grid-security/hostcert.pem',
-       x509_cert_dir => '/etc/grid-security/certificates'
-    },
-    lrms => { # TODO: add lrms defaults
-    },
-    arex => {
-        defaultttl  => '604800 2629744',
-        infoproviders_timelimit => 10800, # C 42
-        shared_filesystem => 'yes'
-    },
-    gridftpd => {
-        port => '2811',    
-        pidfile => '/var/run/gridftpd.pid',
-        allownew => 'yes'
-    },
-   'gridftpd/jobs' => {
-        mountpoint => '/jobs'
-    },
-    infosys => {
-        # default blocks, not in arc.conf but for convenience here
-        # this can be changed using defined but kept here for the moment
-        glue2 => {},
-        # default values
-        validity_ttl =>  10800,
-        loglevel => '3',
-        logfile => '/var/log/arc/infoprovider.log'
-    },
-    'infosys/ldap' => {
-        # hostname => hostname(),  # this is set by set_defaults
-        port => '2135',
-        infosys_ldap_run_dir => '/var/run/arc/infosys/'
-    },
-    'infosys/ldap/bdii' => {
+#my $confdefaults = {
+    #common => {
+       #arcversion => '@VERSION@',
+       ## hostname => hostname(),  # this is set by set_defaults
+       ## gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
+       #x509_host_key => '/etc/grid-security/hostkey.pem',
+       #x509_host_cert => '/etc/grid-security/hostcert.pem',
+       #x509_cert_dir => '/etc/grid-security/certificates'
+    #},
+    #lrms => { # TODO: add lrms defaults
+    #},
+    #arex => {
+        #defaultttl  => '604800 2629744',
+        #infoproviders_timelimit => 10800, # C 42
+        #shared_filesystem => 'yes'
+    #},
+    #gridftpd => {
+        #port => '2811',    
+        #pidfile => '/var/run/gridftpd.pid',
+        #allownew => 'yes'
+    #},
+   #'gridftpd/jobs' => {
+        #mountpoint => '/jobs'
+    #},
+    #infosys => {
+        ## default blocks, not in arc.conf but for convenience here
+        ## this can be changed using defined but kept here for the moment
+        #glue2 => {},
+        ## default values
+        #validity_ttl =>  10800,
+        #loglevel => '3',
+        #logfile => '/var/log/arc/infoprovider.log'
+    #},
+    #'infosys/ldap' => {
+        ## hostname => hostname(),  # this is set by set_defaults
+        #port => '2135',
+        #infosys_ldap_run_dir => '/var/run/arc/infosys/'
+    #},
+    #'infosys/ldap/bdii' => {
 
-    # TODO: merge ldap and bdii options again. Update InfosysHelper accordingly
+    ## TODO: merge ldap and bdii options again. Update InfosysHelper accordingly
 
-       # used in InfosysHelper, these depend on BDII, but we have some
-       # control on them:
-       bdii_run_dir => '/var/run/arc/bdii',
-       bdii_log_dir => '/var/log/arc/bdii',
-       bdii_tmp_dir => '/var/tmp/arc/bdii',
-       bdii_var_dir => '/var/lib/arc/bdii',
-       # this one depends on bdii_run_dir
-       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
+       ## used in InfosysHelper, these depend on BDII, but we have some
+       ## control on them:
+       #bdii_run_dir => '/var/run/arc/bdii',
+       #bdii_log_dir => '/var/log/arc/bdii',
+       #bdii_tmp_dir => '/var/tmp/arc/bdii',
+       #bdii_var_dir => '/var/lib/arc/bdii',
+       ## this one depends on bdii_run_dir
+       #bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
        
-       ## TODO: fix this elsewere, the value should be set according to the formula below
-       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
-       ## startup scripts is called max_cycle
-       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-       ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
-       #bdii_read_timeout=300
-    },
-    'infosys/glue2' => {
-       admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
-       admindomain_distributed => 'no',
-       computingservice_qualitylevel => 'production'
-    },
-    'infosys/glue2/ldap' => {
-        showactivities => 'no'
-    },
-    'monitoring/perflog' => {
-        perflogdir => '/var/log/arc/perfdata'
-    }
-};
+       ### TODO: fix this elsewere, the value should be set according to the formula below
+       ### not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
+       ### startup scripts is called max_cycle
+       ### bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
+       ### default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
+       ##bdii_read_timeout=300
+    #},
+    #'infosys/glue2' => {
+       #admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
+       #admindomain_distributed => 'no',
+       #computingservice_qualitylevel => 'production'
+    #},
+    #'infosys/glue2/ldap' => {
+        #showactivities => 'no'
+    #},
+    #'monitoring/perflog' => {
+        #perflogdir => '/var/log/arc/perfdata'
+    #}
+#};
 
 
 
@@ -516,12 +515,12 @@ sub read_json_config {
     my $jsonconfig='';
     { 
       local $/; # slurp mode
-	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
-	  $jsonconfig = <$jsonout>;
-	  close $jsonout;
-	}
-	my $config = decode_json($jsonconfig);
-	#print Dumper($config);
+       open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+       $jsonconfig = <$jsonout>;
+       close $jsonout;
+    }
+    my $config = decode_json($jsonconfig);
+    #print Dumper($config);
     
     return $config;
 }
@@ -535,14 +534,6 @@ sub build_config_from_json {
     
     my $jsonconf = read_json_config($file);
 
-    ## TODO: check defaults.
-    ## maybe add the default checker in InfoChecker.pm?
-    ## this is required for the mandatory values. Program should exit with 
-    ## errors or solve the issue automatically if the mandatory value
-    ## is not set.
-    ## $jsonconf = InfoChecker::setDefaults($jsonconf);
-    ## ALTERNATIVE: defaults are produced by the python parser. The the above step is not needed.
-    ## I am quite sure some subsystem-dependent logic will be needed.
     set_defaults($jsonconf);
     
     # Those values that are the same as in arc.conf will 
@@ -947,28 +938,46 @@ sub parseConfig {
     return $config;
 }
 
+## subblock_check_required(jsonconfig, block, requiredblock)
+# Checks if the parent block is enabled and sets the enable flags accordingly
 
+sub subblock_check_required {
+    my ($config, $block, $requiredblock) = @_;
+    if (defined $config->{$block}) {
+          unless (defined $config->{$requiredblock}{enabled}) {
+               $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
+          } else {
+          $config->{$block}{enabled} = 1;
+            } 
+    } else {
+        $config->{$block}{enabled} = 0;
+    }
+}
+
+## The defaults come from the parser, but due to a PERL side effect in scanning
+# hashes here we add information about enable/disable blocks.
 sub set_defaults {
     my ($config) = @_;
     
     $log->debug("Applying defaults");
     
-    ## TODO: create default blocks here. Ongoing    
-    
-    # force gridftpd defaults if only gridftpd/jobs is found in config
-    if (defined $config->{'gridftpd/jobs'}) {
-          unless (defined $config->{'gridftpd'}) {
-               $log->warning("[gridftpd] block not found but subblocks defined. Using [gridftpd] defaults");
-               $config->{gridftpd} ||= {}
-          }
-    }
+    ## TODO: create default blocks here. Simple hashes have no problems
+    # can be checked directly
 
-    # Force NorduGRID publishing if glue1 is enabled
-    if (defined $config->{'infosys/glue1'}) {
-       unless (defined $config->{'infosys/nordugrid'}) {
-           $log->warning("Glue1 information is based on NorduGRID schema. Automatically enabling [infosys/nordugrid]. Manually add such block to arc.conf to remove this message");
-           $config->{'infosys/nordugrid'} ||= {};
-       }
+    ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks
+    ## Better done with an hash of dependencies on the fly, rewrite all!
+
+    $config->{gridftpd}{enabled} = (defined $config->{'gridftpd'}) ? 1 : 0;
+    $config->{infosys/nordugrid}{enabled} = (defined $config->{'gridftpd'}) ? 1 : 0;
+    
+    # Check for dependencies
+    my @dependencies = (
+       ['gridftpd/jobs','gridftpd'],
+       ['infosys/glue1','infosys/nordugrid']
+    );
+    
+    for my $blocks (@dependencies) {
+        subblock_check_required($config,@$blocks[0],@$blocks[1]);
     }
     
     # force ldap defaults if ldap renderings are enabled in config
@@ -979,35 +988,35 @@ sub set_defaults {
         }
     }
     
-    # TODO after Andrii changes, might be removed
-    # force BDII defaults if LDAP configured    
-    if (defined $config->{'infosys/ldap'}) {
-        $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
-        $config->{'infosys/ldap/bdii'} ||= {};
-    }
+    ## TODO after Andrii changes, might be removed
+    ## force BDII defaults if LDAP configured    
+    #if (defined $config->{'infosys/ldap'}) {
+        #$log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
+        #$config->{'infosys/ldap/bdii'} ||= {};
+    #}
     
-    # Set default hostname
-    $confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
-    $confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
+    ## Set default hostname
+    #$confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
+    #$confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
     
-    # Define a-rex endpoint. Hardcoded after ARC6.
-    if (defined $config->{'arex/ws'}) {
-        $confdefaults->{'arex/ws'}{wsurl} = 'https://'.$confdefaults->{common}{hostname}.':443/arex';
-    } else {
-        $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
-    }
+    ## Define a-rex endpoint. Hardcoded after ARC6.
+    #if (defined $config->{'arex/ws'}) {
+        #$confdefaults->{'arex/ws'}{wsurl} = 'https://'.$confdefaults->{common}{hostname}.':443/arex';
+    #} else {
+        #$log->verbose("WS interface disabled. Add [arex/ws] block to enable");
+    #}
     
-    ## end of default blocks creation
+    ### end of default blocks creation
     
     
-    for (keys %$confdefaults) {
-        if (defined $config->{$_}) {
-            $config->{$_} ||= {};
-            merge_hash_values($config->{$_},$confdefaults->{$_});
-        } else {
-          $log->debug("\[$_\] block missing, defaults not applied.");
-        }
-    }
+    #for (keys %$confdefaults) {
+        #if (defined $config->{$_}) {
+            #$config->{$_} ||= {};
+            #merge_hash_values($config->{$_},$confdefaults->{$_});
+        #} else {
+          #$log->debug("\[$_\] block missing, defaults not applied.");
+        #}
+    #}
 }
 
 ## getValueOf: Cherry picks arc.conf values
@@ -1032,10 +1041,11 @@ sub getValueOf ($$$){
     # strip trailing newline
     chomp $value;
 
+    # TODO: this should be removed after Andrii's default in place
     # get defaults
-    if ( !(defined $value) || $value eq 'None') {
-        $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
-    }
+    #if ( !(defined $value) || $value eq 'None') {
+    #    $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
+    #}
   
     return $value;
 
