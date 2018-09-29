@@ -263,5 +263,5 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
         deployauthgroup = testca_user.add_argument_group('Allow access to certificate subject '
                                                          'adding record to [authgroup] in arc.conf')
-        deployauthgroup.add_argument('-a', '--authgroup', nargs='?', const='default',
-                                     help='Authgroup name (default authgroup is %(const)s)')
+        deployauthgroup.add_argument('-a', '--authgroup', nargs='?', const='zero',
+                                     help='Add subject to the authgroup (default authgroup is %(const)s)')
