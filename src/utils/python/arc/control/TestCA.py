@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .CertificateGenerator import CertificateGenerator, CertificateKeyPair
+from .OSService import OSServiceManagement
 import subprocess
 import socket
 import sys
@@ -222,6 +223,12 @@ class TestCAControl(ComponentControl):
             except IOError as err:
                 self.logger.error('Failed to modify %s. Error: %s', arc_conf, str(err))
                 sys.exit(1)
+            # restart a-rex to apply new config
+            self.logger.info('Restarting A-REX service to apply new configuration')
+            sm = OSServiceManagement()
+            if sm.sm_version == '':  # installation from sources
+                sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
+            sm.restart('arc-arex')
 
     def control(self, args):
         if args.action == 'init':
