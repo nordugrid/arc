@@ -250,12 +250,13 @@ my $wsemies_options = { # C 71
 
 # C 66
 my $ws_options = {
+    enabled => '*',
     wsurl => '*',
     emies => { %$wsemies_options } # C 71
 };
 
 my $admindomain_options = {
-	Name => '*',
+    Name => '*',
     Description => '*',
     WWW => '*',
     Distributed => '*',
@@ -265,6 +266,7 @@ my $admindomain_options = {
 
 # C 156
 my $glue2_options = {
+    enabled => '*',
     computingservice_qualitylevel => '*' # 157
 };
 
@@ -365,22 +367,28 @@ my $config_schema = {
         %$lrms_share_options
     },
     infosys => {
-		nordugrid => {}, # C 155
-		logfile => '*',  #C 133
-		loglevel => '*', #C 134, replaces ProviderLog
-		validity_ttl => '*',
-		ldap => { # C141
+        nordugrid => {
+            enabled => '*'
+        }, # C 155
+        logfile => '*',  #C 133
+        loglevel => '*', #C 134, replaces ProviderLog
+        validity_ttl => '*',
+        ldap => { # C141
             %$ldap_infosys_options, # C 141
         },
-        glue1 => {}, # C 161
+        glue1 => {
+            enabled => '*'
+            }, # C 161
         glue2 => { # C 156
            %$glue2_options,
            ldap => { # C158
-               showactivities => '*'
+                enabled => '*',
+                showactivities => '*'
            }
         }
     },
     arex => {
+        enabled => '*',
         defaultttl => '*',
         logfile => '*',
         loglevel => '*', # replaces $config_schema->{debugLevel}, C 37
@@ -961,19 +969,22 @@ sub set_defaults {
     
     $log->debug("Applying defaults");
     
-    ## TODO: create default blocks here. Simple hashes have no problems
-    # can be checked directly
+    # blocknames that are relevant for infosys and should be set to enable
+    my @blocknames = ('common','gridftpd','infosys/glue1','infosys/nordugrid','infosys/glue2','infosys/ldap','arex','arex/ws');
 
     ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks
-    ## Better done with an hash of dependencies on the fly, rewrite all!
+    for my $block (@blocknames) {
+        $config->{$block}{enabled} = (defined $config->{$block}) ? 1 : 0;
+    };
 
-    $config->{gridftpd}{enabled} = (defined $config->{'gridftpd'}) ? 1 : 0;
-    $config->{infosys/nordugrid}{enabled} = (defined $config->{'gridftpd'}) ? 1 : 0;
-    
+    $log->debug(Dumper($config));
+
+    ## TODO: Better done with an hash of dependencies on the fly, rewrite all!
     # Check for dependencies
     my @dependencies = (
        ['gridftpd/jobs','gridftpd'],
-       ['infosys/glue1','infosys/nordugrid']
+       ['infosys/glue1','infosys/nordugrid'],
+       ['infosys/nordugrid','infosys/ldap']
     );
     
     for my $blocks (@dependencies) {
@@ -981,12 +992,12 @@ sub set_defaults {
     }
     
     # force ldap defaults if ldap renderings are enabled in config
-    if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
-        unless (defined $config->{'infosys/ldap'}) {
-            $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure at least the [infosys/ldap] block to remove this message.");
-            $config->{'infosys/ldap'} ||= {};
-        }
-    }
+    #if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
+    #    unless (defined $config->{'infosys/ldap'}) {
+    #        $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure at least the [infosys/ldap] block to remove this message.");
+    #        $config->{'infosys/ldap'} ||= {};
+    #    }
+    #}
     
     ## TODO after Andrii changes, might be removed
     ## force BDII defaults if LDAP configured    
@@ -1033,10 +1044,10 @@ sub getValueOf ($$$){
     my $value='';
     { 
       local $/; # slurp mode
-	  open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
-	  $value = <$parserout>;
-	  close $parserout;
-	}
+      open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+      $value = <$parserout>;
+      close $parserout;
+    }
 
     # strip trailing newline
     chomp $value;
