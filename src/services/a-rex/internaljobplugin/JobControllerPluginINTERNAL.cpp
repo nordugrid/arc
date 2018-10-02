@@ -46,8 +46,8 @@ namespace ARexINTERNAL {
     if (jobs.empty()) return;
     
     INTERNALClient ac;
-    ARex::GMConfig *config;
-    if(!ac.SetAndLoadConfig(config)){
+    ARex::GMConfig const *config = ac.GetConfig();
+    if(!config){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
       return;
     }
@@ -87,8 +87,8 @@ namespace ARexINTERNAL {
   bool JobControllerPluginINTERNAL::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
     INTERNALClient ac(*usercfg);
-    ARex::GMConfig *config;
-    if(!ac.SetAndLoadConfig(config)){
+    ARex::GMConfig const * config = ac.GetConfig();
+    if(!config){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
       return false;
     }
@@ -114,8 +114,8 @@ namespace ARexINTERNAL {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       
       INTERNALClient ac(*usercfg);
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -141,8 +141,8 @@ namespace ARexINTERNAL {
       // 1. Fetch/find delegation ids for each job
 
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -182,8 +182,8 @@ namespace ARexINTERNAL {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
     
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -244,8 +244,8 @@ namespace ARexINTERNAL {
       Job tjob;
       tjob.JobID = job.JobID;
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }

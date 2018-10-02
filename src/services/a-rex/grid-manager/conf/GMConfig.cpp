@@ -44,27 +44,29 @@ Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
 static std::list<std::string> empty_string_list;
 
+std::string GMConfig::GuessConfigFile() {
+  struct stat st;
+  std::string file = Arc::GetEnv("ARC_CONFIG");
+  if(!file.empty()) {
+    return file; // enforced location
+  }
+  file = Arc::ArcLocation::Get() + "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  file = "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  return "";
+}
+
 GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
   // If no config file was given, guess it. The order to try is
   // $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf, /etc/arc.conf
-  struct stat st;
   if (conffile.empty()) {
-    std::string file = Arc::GetEnv("ARC_CONFIG");
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = Arc::ArcLocation::Get() + "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
+    conffile = GuessConfigFile();
   }
 }
 
