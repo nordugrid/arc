@@ -108,6 +108,12 @@ class OSServiceManagement(object):
     def stop(self, service):
         return self.__exec_service_cmd(service, 'stop')
 
+    def restart(self, service):
+        stop_status = self.__exec_service_cmd(service, 'stop')
+        if stop_status != 0:
+            return stop_status
+        return self.__exec_service_cmd(service, 'start')
+
     def is_enabled(self, service):
         return self.__check_service(service, 'enabled')
 
