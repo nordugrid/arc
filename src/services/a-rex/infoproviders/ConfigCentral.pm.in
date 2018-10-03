@@ -673,8 +673,9 @@ sub build_config_from_json {
 
     # information schemas
     # NorduGRID
-    if (defined $jsonconf->{'infosys/nordugrid'}) {
+    if ($jsonconf->{'infosys/nordugrid'}{enabled}) {
         $config->{infosys}{nordugrid} ||= {};
+        move_keys $jsonconf->{'infosys/nordugrid'}, $config->{infosys}{nordugrid}, [keys %{$config_schema->{infosys}{nordugrid}}];
     }
 
     # Glue 1.2/1.3
