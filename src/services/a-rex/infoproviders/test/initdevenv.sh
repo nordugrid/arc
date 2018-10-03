@@ -115,6 +115,14 @@ echo ""
 echo "adding __init__.py to $SRCABSOLUTEPATH/utils/python/arc/utils/ ..."
 touch $SRCABSOLUTEPATH/utils/python/arc/utils/__init__.py
 
+# create defaults file
+echo "Creating defaults file $ARC_LOCATION/parser.defaults"
+$SRCABSOLUTEPATH/utils/python/arcconfig-reference --extract-defaults -r  $SRCABSOLUTEPATH/doc/arc.conf.reference > $ARC_LOCATION/parser.defaults
+
+echo "To generate runtime conf, run:"
+echo "../../../utils/python/arcconfig-parser --save -d /tmp/parser.defaults -c test/test-arc.conf -r /tmp/arc.runtime.conf"
+echo
+
 echo "modify test/test-arc.conf and pass it to CEinfo.pl"
 echo "AREX call: ./CEinfo.pl --splitjobs --config test/test-arc.conf"
 echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config test/test-arc.conf" 
