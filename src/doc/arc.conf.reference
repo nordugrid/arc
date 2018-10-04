@@ -311,9 +311,11 @@
 ## remote URL ... - Check user's credentials against remote service. Only
 ## CHANGE36: DELETED.  Feature is not used for ages. Code simplification.
 
-## all - Matches any user identity. This variable requires no arguments or values.
+## all = yess|no - Matches any or none user identity. For 'yes' argument this rule
+## always returns positive match. For 'no' it is always no match.
 ## default: undefined
-#all=
+#all=yes
+## CHANGE215: MODIFIED options
 ##
 ##
 ### end of the [authgroup:name] blocks ###############################
