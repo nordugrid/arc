@@ -588,13 +588,12 @@ sub build_config_from_json {
 
 
     # gridftpd config
-    if (defined $jsonconf->{'gridftpd/jobs'}) {
+    if ((defined $jsonconf->{'gridftpd/jobs'}) || (defined $jsonconf->{'gridftpd'})) {
         $config->{gridftpd} ||= {};
         my $gconf = $jsonconf->{'gridftpd'};
         my $gjconf = $jsonconf->{'gridftpd/jobs'};
         move_keys $gconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
         move_keys $gjconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
-        $config->{gridftpd}{enabled} = 1;
     } else {
         $log->verbose("[gridftpd/jobs] block not found in arc.conf. Disabling gridftpd job interface information generation.");
     }
@@ -938,6 +937,11 @@ sub set_defaults {
         subblock_check_required($config,$block);
     }
     
+    ## Other defaults not covered by arcconfig-parser
+    
+    # gridftpd mountpoint
+    $config->{gridftpd}{mountpoint}='/jobs' if ((defined $config->{'gridftpd'}) || (defined $config->{'gridftpd/jobs'}));
+    
     # force ldap defaults if ldap renderings are enabled in config
     #if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
     #    unless (defined $config->{'infosys/ldap'}) {
@@ -953,16 +957,16 @@ sub set_defaults {
         #$config->{'infosys/ldap/bdii'} ||= {};
     #}
     
-    ## Set default hostname
+    # Set default hostname
     #$confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
     #$confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
     
-    ## Define a-rex endpoint. Hardcoded after ARC6.
-    #if (defined $config->{'arex/ws'}) {
-        #$confdefaults->{'arex/ws'}{wsurl} = 'https://'.$confdefaults->{common}{hostname}.':443/arex';
-    #} else {
-        #$log->verbose("WS interface disabled. Add [arex/ws] block to enable");
-    #}
+    # Define a-rex endpoint. Hardcoded after ARC6.
+    if (defined $config->{'arex/ws'}) {
+        $config->{'arex/ws'}{wsurl} = 'https://'.$config->{common}{hostname}.':443/arex';
+    } else {
+        $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
+    }
     
     ### end of default blocks creation
     
