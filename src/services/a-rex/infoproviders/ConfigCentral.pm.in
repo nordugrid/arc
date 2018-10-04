@@ -30,81 +30,18 @@ use LogUtils;
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 #######################################################################
-## Block defaults removed since the python parser returns 
-## defaults.
-## The defaults below are for block enablement.
+## Block dependencies
 #######################################################################
 
-#my $confdefaults = {
-    #common => {
-       #arcversion => '@VERSION@',
-       ## hostname => hostname(),  # this is set by set_defaults
-       ## gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
-       #x509_host_key => '/etc/grid-security/hostkey.pem',
-       #x509_host_cert => '/etc/grid-security/hostcert.pem',
-       #x509_cert_dir => '/etc/grid-security/certificates'
-    #},
-    #lrms => { # TODO: add lrms defaults
-    #},
-    #arex => {
-        #defaultttl  => '604800 2629744',
-        #infoproviders_timelimit => 10800, # C 42
-        #shared_filesystem => 'yes'
-    #},
-    #gridftpd => {
-        #port => '2811',    
-        #pidfile => '/var/run/gridftpd.pid',
-        #allownew => 'yes'
-    #},
-   #'gridftpd/jobs' => {
-        #mountpoint => '/jobs'
-    #},
-    #infosys => {
-        ## default blocks, not in arc.conf but for convenience here
-        ## this can be changed using defined but kept here for the moment
-        #glue2 => {},
-        ## default values
-        #validity_ttl =>  10800,
-        #loglevel => '3',
-        #logfile => '/var/log/arc/infoprovider.log'
-    #},
-    #'infosys/ldap' => {
-        ## hostname => hostname(),  # this is set by set_defaults
-        #port => '2135',
-        #infosys_ldap_run_dir => '/var/run/arc/infosys/'
-    #},
-    #'infosys/ldap/bdii' => {
-
-    ## TODO: merge ldap and bdii options again. Update InfosysHelper accordingly
-
-       ## used in InfosysHelper, these depend on BDII, but we have some
-       ## control on them:
-       #bdii_run_dir => '/var/run/arc/bdii',
-       #bdii_log_dir => '/var/log/arc/bdii',
-       #bdii_tmp_dir => '/var/tmp/arc/bdii',
-       #bdii_var_dir => '/var/lib/arc/bdii',
-       ## this one depends on bdii_run_dir
-       #bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
-       
-       ### TODO: fix this elsewere, the value should be set according to the formula below
-       ### not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
-       ### startup scripts is called max_cycle
-       ### bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-       ### default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
-       ##bdii_read_timeout=300
-    #},
-    #'infosys/glue2' => {
-       #admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
-       #admindomain_distributed => 'no',
-       #computingservice_qualitylevel => 'production'
-    #},
-    #'infosys/glue2/ldap' => {
-        #showactivities => 'no'
-    #},
-    #'monitoring/perflog' => {
-        #perflogdir => '/var/log/arc/perfdata'
-    #}
-#};
+my $blockdependencies = {
+    'gridftpd/jobs' => ['gridftpd'],
+    'infosys/cluster' => ['infosys'],
+    'infosys/ldap' => ['infosys'],
+    'infosys/nordugrid' => ['infosys/ldap'],
+    'infosys/glue1' => ['infosys/nordugrid'],
+    'infosys/glue2' => ['infosys'],
+    'infosys/glue2/ldap' => ['infosys/glue2','infosys/ldap'],
+};
 
 
 
@@ -367,6 +304,7 @@ my $config_schema = {
         %$lrms_share_options
     },
     infosys => {
+        enabled => 1,
         nordugrid => {
             enabled => '*'
         }, # C 155
@@ -951,15 +889,17 @@ sub parseConfig {
 # Checks if the parent block is enabled and sets the enable flags accordingly
 
 sub subblock_check_required {
-    my ($config, $block, $requiredblock) = @_;
+    my ($config, $block) = @_;
+    my @dependencyarray = @{$blockdependencies->{$block}};
     if (defined $config->{$block}) {
-          unless (defined $config->{$requiredblock}{enabled}) {
-               $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
-          } else {
-          $config->{$block}{enabled} = 1;
-            } 
-    } else {
         $config->{$block}{enabled} = 0;
+        for my $requiredblock (@dependencyarray) {
+            unless (defined $config->{$requiredblock}{enabled}) {
+                $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
+            } else {
+            $config->{$block}{enabled} = 1;
+            } 
+        }
     }
 }
 
@@ -971,7 +911,18 @@ sub set_defaults {
     $log->debug("Applying defaults");
     
     # blocknames that are relevant for infosys and should be set to enable
-    my @blocknames = ('common','gridftpd','infosys/glue1','infosys/nordugrid','infosys/glue2','infosys/ldap','arex','arex/ws');
+    my @blocknames = ('arex',
+                      'arex/ws',
+                      'arex/ws/emies',
+                      'gridftpd',
+                      'infosys',
+                      'infosys/cluster',
+                      'infosys/glue1',
+                      'infosys/glue2',
+                      'infosys/glue2/ldap',
+                      'infosys/ldap',
+                      'infosys/nordugrid'
+                      );
 
     ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks
     for my $block (@blocknames) {
@@ -982,14 +933,9 @@ sub set_defaults {
 
     ## TODO: Better done with an hash of dependencies on the fly, rewrite all!
     # Check for dependencies
-    my @dependencies = (
-       ['gridftpd/jobs','gridftpd'],
-       ['infosys/glue1','infosys/nordugrid'],
-       ['infosys/nordugrid','infosys/ldap']
-    );
     
-    for my $blocks (@dependencies) {
-        subblock_check_required($config,@$blocks[0],@$blocks[1]);
+    for my $block (keys %$blockdependencies) {
+        subblock_check_required($config,$block);
     }
     
     # force ldap defaults if ldap renderings are enabled in config
