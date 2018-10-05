@@ -99,6 +99,7 @@ BEGIN {
 
         # C134
         my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
+        $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
         #C 134
         LogUtils::level($infosysloglevel);
 
@@ -212,6 +213,7 @@ sub main {
 
     # C134
     my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
+    $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
     # Change level for root logger (affects all loggers from now on)
     #C 134
     LogUtils::level($infosysloglevel);

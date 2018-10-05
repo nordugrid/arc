@@ -893,7 +893,7 @@ sub subblock_check_required {
     if (defined $config->{$block}) {
         $config->{$block}{enabled} = 0;
         for my $requiredblock (@dependencyarray) {
-            unless (defined $config->{$requiredblock}{enabled}) {
+            unless ($config->{$requiredblock}{enabled}) {
                 $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
             } else {
             $config->{$block}{enabled} = 1;
@@ -939,7 +939,8 @@ sub set_defaults {
     
     ## Other defaults not covered by arcconfig-parser
     
-    # gridftpd mountpoint
+    # gridftpd 
+    #$config->{gridftpd}{mountpoint}='/jobs' if ((defined $config->{'gridftpd'}) || (defined $config->{'gridftpd/jobs'}));
     $config->{gridftpd}{mountpoint}='/jobs' if ((defined $config->{'gridftpd'}) || (defined $config->{'gridftpd/jobs'}));
     
     # force ldap defaults if ldap renderings are enabled in config
