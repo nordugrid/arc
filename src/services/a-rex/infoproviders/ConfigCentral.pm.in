@@ -623,13 +623,13 @@ sub build_config_from_json {
     }    
 
     ####### GLUE2
-    if (defined $jsonconf->{'infosys/glue2'}) {
+    if ( $jsonconf->{'infosys/glue2'}{enabled} ) {
         $config->{infosys}{glue2} ||= {};
         my $glue2conf = $jsonconf->{'infosys/glue2'};
         move_keys $glue2conf, $config->{infosys}{glue2}, [keys %$glue2_options];
         rename_keys $config->{infosys}{glue2}, $config->{service}, {computingservice_qualitylevel => 'QualityLevel'};
         # GLUE2 ldap
-        if (defined $jsonconf->{'infosys/glue2/ldap'}) {
+        if ( $jsonconf->{'infosys/glue2/ldap'}{enabled} ) {
            $config->{infosys}{glue2}{ldap} ||= {};
            my $glue2ldapconf = $jsonconf->{'infosys/glue2/ldap'};
            move_keys $glue2ldapconf, $config->{infosys}{glue2}{ldap}, [keys %{$config_schema->{infosys}{glue2}{ldap}}];
@@ -647,6 +647,8 @@ sub build_config_from_json {
                 admindomain_owner => 'Owner',
                 admindomain_otherinfo => 'OtherInfo'
         }
+    } else {
+        $log->error('Infoproviders cannot continue without the [infosys/glue2] block. Please add it. Exiting...')
     }
     ############################ legacy ini config file structure #############################
 

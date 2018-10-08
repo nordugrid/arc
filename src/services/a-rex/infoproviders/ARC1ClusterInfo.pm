@@ -977,7 +977,7 @@ sub collect($) {
     my $epscapabilities = {};
 
     # defaults now set in ConfigCentral
-    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/";
+    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/" if ($config->{infosys}{ldap}{enabled});
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -1112,21 +1112,21 @@ sub collect($) {
     # ARIS LDAP endpoints
     
     # ldapng
-    if ( defined $config->{infosys}{nordugrid} ) {
+    if ( $config->{infosys}{nordugrid}{enabled} ) {
         $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue1
-    if ( defined $config->{infosys}{glue1} ) {
+    if ( $config->{infosys}{glue1}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
         $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue2
-    if ( defined $config->{infosys}{glue2}{ldap} ) {
+    if ( $config->{infosys}{glue2}{ldap}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue2endpoint = $ldaphostport."o=glue";
         $epscapabilities->{'org.nordugrid.ldapglue2'} = [ 'information.discovery.resource' ];
@@ -1145,12 +1145,12 @@ sub collect($) {
     my $servingstate = 'draining';
     my ($sessiondirs) = ($config->{control}{'.'}{sessiondir});
     foreach my $sd (@$sessiondirs) {
-		my @hasdrain = split(' ',$sd);
-		if ($hasdrain[-1] ne 'drain') {
-			$servingstate = 'production';
-		}
-	}
-	
+        my @hasdrain = split(' ',$sd);
+        if ($hasdrain[-1] ne 'drain') {
+            $servingstate = 'production';
+        }
+    }
+
     # TODO: userdomain
     my $userdomain='';
 
@@ -1170,7 +1170,7 @@ sub collect($) {
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $emiesenabled; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
@@ -1319,14 +1319,14 @@ sub collect($) {
     
     # Basic mapping policy: it can only contain one vo.     
     
-    my $getBasicMappingPolicy = sub {	
-	    my ($shareID, $sharename) = @_;
+    my $getBasicMappingPolicy = sub {
+        my ($shareID, $sharename) = @_;
         my $mpol = {};
         $mpol->{CreationTime} = $creation_time;
         $mpol->{Validity} = $validity_ttl;
         $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{AdvertisedVO}";
         $mpol->{Scheme} = "basic";
-	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
+        $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
         $mpol->{ShareID} = $shareID;
         return $mpol;
