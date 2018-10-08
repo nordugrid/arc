@@ -890,9 +890,10 @@ sub parseConfig {
 sub subblock_check_required {
     my ($config, $block) = @_;
     my @dependencyarray = @{$blockdependencies->{$block}};
-    if (defined $config->{$block}) {
+    if ($config->{$block}{enabled}) {
         $config->{$block}{enabled} = 0;
         for my $requiredblock (@dependencyarray) {
+            $log->debug("Checking $block, enabled=$config->{$block}{enabled}, $requiredblock, enabled=$config->{$requiredblock}{enabled}");
             unless ($config->{$requiredblock}{enabled}) {
                 $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
             } else {
@@ -939,17 +940,13 @@ sub set_defaults {
     
     ## Other defaults not covered by arcconfig-parser
     
-    # gridftpd 
-    #$config->{gridftpd}{mountpoint}='/jobs' if ((defined $config->{'gridftpd'}) || (defined $config->{'gridftpd/jobs'}));
-    $config->{gridftpd}{mountpoint}='/jobs' if ((defined $config->{'gridftpd'}) || (defined $config->{'gridftpd/jobs'}));
+    # gridftpd hardcoded defaults
+    $config->{gridftpd}{port} = '2811' if ($config->{'gridftpd'}{enabled});
+    $config->{gridftpd}{mountpoint} = '/jobs' if ($config->{'gridftpd'}{enabled});
+
     
     # force ldap defaults if ldap renderings are enabled in config
-    #if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
-    #    unless (defined $config->{'infosys/ldap'}) {
-    #        $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure at least the [infosys/ldap] block to remove this message.");
-    #        $config->{'infosys/ldap'} ||= {};
-    #    }
-    #}
+    $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
     
     ## TODO after Andrii changes, might be removed
     ## force BDII defaults if LDAP configured    
