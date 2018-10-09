@@ -35,12 +35,12 @@ namespace ARexINTERNAL {
 
     logger.msg(Arc::DEBUG,"Default INTERNAL client contructor");
 
-    if(!SetAndLoadConfig(config, cfgfile)){
+    if(!SetAndLoadConfig()){
       logger.msg(Arc::ERROR,"Failed to load grid-manager configfile");
       return;
     }
 
-    if(!SetEndPoint(config)){
+    if(!SetEndPoint()){
       logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
@@ -55,12 +55,12 @@ namespace ARexINTERNAL {
   :usercfg(usercfg),
    config(NULL), arexconfig(NULL) {
 
-    if(!SetAndLoadConfig(config, cfgfile)){
+    if(!SetAndLoadConfig()){
       logger.msg(Arc::ERROR,"Failed to load grid-manager configfile");
       return;
     }
 
-    if(!SetEndPoint(config)){
+    if(!SetEndPoint()){
       logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
@@ -77,12 +77,12 @@ namespace ARexINTERNAL {
      usercfg(usercfg),
      config(NULL), arexconfig(NULL) {
 
-    if(!SetAndLoadConfig(config, cfgfile)){
+    if(!SetAndLoadConfig()){
       logger.msg(Arc::ERROR,"Failed to load grid-manager configfile");
       return;
     }
 
-    if(!SetEndPoint(config)){
+    if(!SetEndPoint()){
       logger.msg(Arc::ERROR,"Failed to set INTERNAL endpoint");
       return;
     }
@@ -116,22 +116,64 @@ namespace ARexINTERNAL {
 
 
 
-  bool INTERNALClient::SetEndPoint(ARex::GMConfig*& config){
-
+  bool INTERNALClient::SetEndPoint(){
     endpoint = config->ControlDir();
     return true;
   }
 
   
   
-  bool INTERNALClient::SetAndLoadConfig(ARex::GMConfig*& config, std::string cfgfile){
+  bool INTERNALClient::SetAndLoadConfig(){
+    cfgfile = ARex::GMConfig::GuessConfigFile();
+std::cerr << "Original config file: "<<cfgfile<<std::endl;
+    if (cfgfile.empty()) {
+      logger.msg(Arc::ERROR,"Failed to identify grid-manager config file");
+      return false;
+    }
 
+    // Push configuration through pre-parser in order to setup default values.
+    // We are only interested in pidfile location because this is where 
+    // fully pre-processed configuration file resides.
+    std::list<std::string> parser_args;
+    parser_args.push_back(Arc::ArcLocation::GetToolsDir() + "/arcconfig-parser");
+    parser_args.push_back("--config");
+    parser_args.push_back(cfgfile);
+    parser_args.push_back("-b");
+    parser_args.push_back("arex");
+    parser_args.push_back("-o");
+    parser_args.push_back("pidfile");
+    Arc::Run parser(parser_args);
+    std::string pidfile;
+    parser.AssignStdout(pidfile);
+    if((!parser.Start()) || (!parser.Wait())) {
+      logger.msg(Arc::ERROR,"Failed to run configuration parser at %s.", parser_args.front());
+      return false;
+    }
+    if(parser.Result() != 0) {
+      logger.msg(Arc::ERROR,"Parser failed with error code %i.", (int)parser.Result());
+      return false;
+    }
+    pidfile = Arc::trim(pidfile, "\r\n"); // parser adds EOLs
+std::cerr << "PID file: "<<pidfile<<std::endl;
     struct stat st;
-    config = new ARex::GMConfig();
+    if(!FileStat(pidfile, &st, true)) {
+      logger.msg(Arc::ERROR,"No pid file is found at '%s'. Probably A-REX is not running.", pidfile);
+      return false;
+    }
+
+    // Actual config file location
+    cfgfile = pidfile;
+    std::string::size_type dot_pos = cfgfile.find_last_of("./");
+    if((dot_pos != std::string::npos) && (cfgfile[dot_pos] == '.'))
+      cfgfile.resize(dot_pos);
+    cfgfile += ".cfg";
+std::cerr << "Final config file: "<<cfgfile<<std::endl;
+
+    config = new ARex::GMConfig(cfgfile);
     config->SetDelegations(&deleg_stores);
     
     if(!config->Load()){
-      logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
+      logger.msg(Arc::ERROR,"Failed to load grid-manager config file from %s", cfgfile);
       return false;
     }
 

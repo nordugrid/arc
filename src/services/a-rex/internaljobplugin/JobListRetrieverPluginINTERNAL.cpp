@@ -56,6 +56,9 @@ namespace ARexINTERNAL {
 
 
     INTERNALClient ac(uc);
+    if (!ac.GetConfig()) {
+      return s;
+    }
 
     std::list<INTERNALJob> localjobs;
     if (!ac.list(localjobs)) {
@@ -74,7 +77,7 @@ namespace ARexINTERNAL {
       //read job description to get hold of submission-interface
       ARex::JobLocalDescription job_desc;
       ARex::JobId jobid((*itID).id);
-      ARex::job_local_read_file(jobid, *(ac.config), job_desc);
+      ARex::job_local_read_file(jobid, *ac.GetConfig(), job_desc);
 
       std::string submittedVia = job_desc.interface;
       if (submittedVia != "org.nordugrid.internal") {
