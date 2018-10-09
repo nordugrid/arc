@@ -59,10 +59,16 @@ public:
     deleg_db_sqlite
   };
 
-  /// Use given (or guessed if not given) configuration file.
+  /// Returns configuration file as guessed.
   /**
    * Guessing uses $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf or the default
-   * location /etc/arc.conf. Load() should then be used to parse the
+   * location /etc/arc.conf.
+   */
+  static std::string GuessConfigFile();
+
+  /// Use given (or guessed if not given) configuration file.
+  /**
+   * Load() should then be used to parse the
    * configuration and fill member variables.
    * @param conffile Path to configuration file, will be guessed if empty
    */
