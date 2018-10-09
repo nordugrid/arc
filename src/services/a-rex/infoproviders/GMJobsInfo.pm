@@ -281,7 +281,7 @@ sub get_gmjobs {
             #terminal job state mapping
 
             if ( $job->{errors} ) {
-                if (grep /User requested to cancel the job/, @{$job->{errors}}) {
+                if (grep /Job is canceled by external request/, @{$job->{errors}}) {
                     $job->{status} = "KILLED";
                 } elsif ( defined $job->{errors} ) {
                     $job->{status} = "FAILED";
