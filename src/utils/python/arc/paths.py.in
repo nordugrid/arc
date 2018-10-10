@@ -4,6 +4,8 @@ ARC_LOCATION = '@prefix@'
 
 if 'ARC_LOCATION' in os.environ:
     arc_location = os.environ['ARC_LOCATION']
+else:
+    os.environ['ARC_LOCATION'] = ARC_LOCATION
 
 ARC_LIBEXEC_DIR = ARC_LOCATION + '/@pkglibexecsubdir@'
 ARC_DATA_DIR = ARC_LOCATION + '/@pkgdatasubdir@'
