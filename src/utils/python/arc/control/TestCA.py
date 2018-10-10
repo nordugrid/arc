@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .CertificateGenerator import CertificateGenerator, CertificateKeyPair
+from .OSService import OSServiceManagement
 import subprocess
 import socket
 import sys
@@ -13,6 +14,7 @@ import datetime
 import tarfile
 import pwd
 import zlib
+import re
 from contextlib import closing
 
 
@@ -198,6 +200,35 @@ class TestCAControl(ComponentControl):
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
                         os.getcwd()))
+        # add subject to arc.conf authgroup
+        if args.authgroup is not None:
+            self.logger.info('Adding certificate subject name (%s) to [authgroup: %s]',
+                              usercertfiles.dn, args.authgroup)
+            # check authgourp is in the arc.conf
+            authgroups = [a[10:].strip() for a in self.arcconfig.get_subblocks('authgroup')]
+            if args.authgroup not in authgroups:
+                self.logger.error('Cannot find [authgroup: %s] to add usercert subject.', args.authgroup)
+                sys.exit(1)
+            # insert subject line
+            arc_conf = self.arcconfig.conf_f
+            try:
+                with open(arc_conf, 'r') as arc_conf_f:
+                    conflines = arc_conf_f.readlines()
+                for i, line in enumerate(conflines):
+                    if re.search(r'^\[authgroup:\s*' + args.authgroup + r'\s*\]', line):
+                        conflines.insert(i+1, 'subject = ' + usercertfiles.dn + '\n')
+                        break
+                with open(arc_conf, 'w') as arc_conf_f:
+                    arc_conf_f.write(''.join(conflines))
+            except IOError as err:
+                self.logger.error('Failed to modify %s. Error: %s', arc_conf, str(err))
+                sys.exit(1)
+            # restart a-rex to apply new config
+            self.logger.info('Restarting A-REX service to apply new configuration')
+            sm = OSServiceManagement()
+            if sm.sm_version == '':  # installation from sources
+                sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
+            sm.restart('arc-arex')
 
     def control(self, args):
         if args.action == 'init':
@@ -237,3 +268,7 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        deployauthgroup = testca_user.add_argument_group('Allow access to certificate subject '
+                                                         'adding record to [authgroup] in arc.conf')
+        deployauthgroup.add_argument('-a', '--authgroup', nargs='?', const='zero',
+                                     help='Add subject to the authgroup (default authgroup is %(const)s)')

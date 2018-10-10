@@ -85,6 +85,7 @@ def get_arcconfig(conf_f):
             if arcctl_runtime_config is not None:
                 config.save_run_config(arcctl_runtime_config)
         arcconfig = config
+        arcconfig.conf_f = conf_f
     except IOError:
         logger.error('Failed to open ARC configuration file %s', conf_f)
         arcconfig = None

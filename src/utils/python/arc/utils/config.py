@@ -432,7 +432,7 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
     if blocks is None:
         blocks = []
     subblocks = []
-    for b in blocks:
+    for b in _blocks_list(blocks):
         bsb = []
         for cb in __parsed_blocks:
             if re.search(r'^' + b + r'[/:]', cb):
