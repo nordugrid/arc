@@ -152,6 +152,7 @@ my $sshcommon_options = {
 
 # C 141
 my $ldap_infosys_options = {
+    enabled => '',
     port => '*',
     infosys_ldap_run_dir => '*',
     validity_ttl => '*',
@@ -650,6 +651,7 @@ sub build_config_from_json {
     } else {
         $log->error('Infoproviders cannot continue without the [infosys/glue2] block. Please add it. Exiting...')
     }
+
     ############################ legacy ini config file structure #############################
 
 
@@ -685,7 +687,7 @@ sub build_config_from_json {
         move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
     }
 
-        ## use hostname as cluster name if not defined
+    ## use hostname as cluster name if not defined
     my $hostname = $config->{hostname};
     {  
         my @dns = split /\./, $hostname;
@@ -931,17 +933,19 @@ sub set_defaults {
         $config->{$block}{enabled} = (defined $config->{$block}) ? 1 : 0;
     };
 
-    $log->debug(Dumper($config));
+    #$log->debug(Dumper($config));
 
-    ## TODO: Better done with an hash of dependencies on the fly, rewrite all!
     # Check for dependencies
     
     for my $block (keys %$blockdependencies) {
         subblock_check_required($config,$block);
     }
     
-    ## Other defaults not covered by arcconfig-parser
-    
+    ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point
+
+    #default ARC version taken from build. Artificiously placed in common
+    $config->{common}{arcversion}='@VERSION@';
+
     # gridftpd hardcoded defaults
     $config->{gridftpd}{port} = '2811' if ($config->{'gridftpd'}{enabled});
     $config->{gridftpd}{mountpoint} = '/jobs' if ($config->{'gridftpd'}{enabled});

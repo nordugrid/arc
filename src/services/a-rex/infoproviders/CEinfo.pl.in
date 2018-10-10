@@ -304,7 +304,7 @@ sub main {
 
     # only notifiy ldap infosys if ldap is enabled!
     # C 141 use block to check if ldap is enabled
-    if ( defined $config->{infosys}{ldap} ) {
+    if ( $config->{infosys}{ldap}{enabled} ) {
         # check that fifo is working and notify if so.
         if (InfosysHelper::createLdifScript($config->{infosys}{ldap}, $print_ldif)) {
             if (InfosysHelper::notifyInfosys($config->{infosys}{ldap})) {
@@ -316,7 +316,7 @@ sub main {
            $log->warning("Failed to create ldif generator script for LDAP information system");
         }
     } else {
-        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
+        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable [infosys/ldap] AND one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
     }
 
     $log->info("############## A-REX infoprovider finished ##############");
