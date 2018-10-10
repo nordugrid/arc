@@ -29,9 +29,6 @@ Enabling (turning on) a functionality, a service or an interface requires the pr
 appropriate configuration block. To disable a service or an interface, simply delete or
 comment out the related arc.conf block (you may need to rerun the corresponding startup script).
 .PP
-As an example, in order to set up a minimalistic ARC CE offering no external interfaces
-you need to configure at least the \fI[common], [mapping], [arex], [lrms], [infosys]\fR and \fI[queue:name]\fR blocks.
-.PP
 A block is identified by its block header. A block header may consist of
 keywords and optionally block identifiers. Keywords may be separated by "/" 
 and used to label subblocks (e.g. \fI[arex/jura]\fR), while block identifiers
@@ -58,8 +55,7 @@ they are missing (or commented out). Configuration parameters with undefined def
 no values. Furthermore, configuration options within disabled blocks takes no values either.
 .PP
 Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
-\fI[authgroup:name]\fR MUST be defined before used in the blocks such as \fI[mapping], [arex]\fR or 
-\fI[gridftp/jobs]\fR. The same rule applies to defining legacy \fI[userlist:name]\fR blocks.
+\fI[authgroup:name]\fR MUST be defined before used in the other blocks. 
 Furthermore, the order of the authorization blocks itself may have influence over 
 authorization decisions!
 .PP
@@ -67,35 +63,6 @@ Note that quotes around the configuration value(s) must NOT be used any longer.
 .PP
 Note that the arc.conf is CASE-SENSITIVE!
 
-.SH SPACES HANDLING
-Space handling syntax in \fBarc.conf\fR for configuration lines:
-.PP
-(stripped space)\fIoption\fR(stripped space)\fI=\fR(stripped space)\fIvalue\fR(saved space)\fI(value)\fR(stripped space)
-.PP
-Space handling syntax in \fBarc.conf\fR for block headers:
-.PP
-.I \fI[keyword:\fR(stripped space)\fIspace is allowed within identifier\fR(stripped space)\fI]\fR
-.PP
-Detailed textual definition:
-.TP 4
-.I a) 
-All trailing and leading spaces on each confiuration line are stripped and ignored.
-This aplies both to block headers and block content.
-.TP
-.I b) 
-All spaces around the "=" sign in "option=value" kind of string (after 'a' is applied)
-are stripped and ignored. For example line "hostname = myhost.info" is treated as
-identical to "hostname=myhost.info".
-.TP
-.I c) 
-In block headers of "[keyword]" kind (after 'a' is applied) no additional spaces are allowed
-around "keyword" and inside "keyword".
-.TP
-.I d) 
-In block headers of "[keyword:identifier]" kind (after 'a' is applied) no additional spaces
-are allowed around "keyword" and inside "keyword". The spaces ARE allowed around and inside
-"identifier" part. Those around "identifier" are stripped and ignored. Those inside
-"identifier" are treated as its integral part and are preserved.
 
 .SH FILES
 .I /etc/arc.conf, 
