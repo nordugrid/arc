@@ -889,7 +889,7 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   if(i->local->dryrun) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
-    i->AddFailure("User requested dryrun. Job skipped.");
+    i->AddFailure("Job has dryrun requested. Job skipped.");
     return JobFailed; // go to next job
   }
   // check per-DN limit on processing jobs
@@ -1210,7 +1210,7 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
         CleanChildProcess(i);
       }
       // put some explanation
-      i->AddFailure("User requested to cancel the job");
+      i->AddFailure("Job is canceled by external request");
       JobFailStateRemember(i,i->job_state,false);
       // behave like if job failed
       if(!FailedJob(i,true)) {
