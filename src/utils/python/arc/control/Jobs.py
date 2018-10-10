@@ -8,6 +8,7 @@ import re
 import pickle
 import time
 import pwd
+import signal
 
 try:
    input = raw_input  # Redefine for Python 2
@@ -63,6 +64,7 @@ class JobsControl(ComponentControl):
         self.cache_min_jobs = 1000
         self.cache_ttl = 30
         self.jobs = {}
+        self.process_job_log_file = False   # dummy assignment for job_log follow
 
     def __get_config_value(self, block, option, default_value=None):
         value = self.arcconfig.get_value(option, block)
@@ -225,11 +227,20 @@ class JobsControl(ComponentControl):
                     sys.stdout.write(line)
             sys.stdout.flush()
 
+    def job_log_signal_handler(self, signum, frame):
+        self.process_job_log_file = False
+
     def job_log(self, args):
         error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
+        self.process_job_log_file = True
         if os.path.exists(error_log):
+            el_f = open(error_log, 'r')
             print_line = True
-            with open(error_log, 'r') as el_f:
+            pos = 0
+            if args.follow:
+                signal.signal(signal.SIGINT, self.job_log_signal_handler)
+            while self.process_job_log_file:
+                el_f.seek(pos)
                 for line in el_f:
                     if line.startswith('----- starting submit'):
                         print_line = args.lrms
@@ -239,7 +250,13 @@ class JobsControl(ComponentControl):
                             continue
                     if print_line:
                         sys.stdout.write(line)
-            sys.stdout.flush()
+                sys.stdout.flush()
+                pos = el_f.tell()
+                if not args.follow:
+                    self.process_job_log_file = False
+                else:
+                    time.sleep(0.1)
+            el_f.close()
         else:
             self.__get_jobs()
             self.__job_exists(args.jobid)
@@ -396,6 +413,7 @@ class JobsControl(ComponentControl):
         jobs_log.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_log.add_argument('-l', '--lrms', help='Include LRMS job submission script into the output',
                               action='store_true')
+        jobs_log.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
         jobs_log.add_argument('-s', '--service', help='Show ARC CE logs containing the jobID instead of job log',
                               action='store_true')
 
