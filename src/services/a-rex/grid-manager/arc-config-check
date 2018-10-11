@@ -601,10 +601,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "arex", "infosys", "lrms");
-
-	# mapping block is required if running as root
-	push @required, "mapping" if getpwnam(getpwuid($<)) == 0;
+	my @required=("common", "mapping", "arex", "infosys", "lrms");
 
 	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 
@@ -659,6 +656,11 @@ sub check_completeness() {
 	}
 	else {
 		w("No hostname defined, the default $hn will be used.\n");
+	}
+
+	# Mapping cannot be empty if running as root
+	if (getpwnam(getpwuid($<)) == 0 && keys %{ $config->{"mapping"} } == 1) {
+		e("[mapping] block cannot be empty if running as root\n");
 	}
 
 }
