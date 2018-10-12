@@ -32,8 +32,8 @@ namespace ARexINTERNAL {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
       return (proto != "file");
     }
-
-    return false;
+    return (endpoint.URLString != "localhost"); 
+    // TODO: consider more strict way to allow only file://localhost
   }
 
   static URL CreateURL(std::string service) {
