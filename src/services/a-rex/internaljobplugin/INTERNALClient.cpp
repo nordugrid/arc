@@ -125,7 +125,6 @@ namespace ARexINTERNAL {
   
   bool INTERNALClient::SetAndLoadConfig(){
     cfgfile = ARex::GMConfig::GuessConfigFile();
-std::cerr << "Original config file: "<<cfgfile<<std::endl;
     if (cfgfile.empty()) {
       logger.msg(Arc::ERROR,"Failed to identify grid-manager config file");
       return false;
@@ -154,7 +153,6 @@ std::cerr << "Original config file: "<<cfgfile<<std::endl;
       return false;
     }
     pidfile = Arc::trim(pidfile, "\r\n"); // parser adds EOLs
-std::cerr << "PID file: "<<pidfile<<std::endl;
     struct stat st;
     if(!FileStat(pidfile, &st, true)) {
       logger.msg(Arc::ERROR,"No pid file is found at '%s'. Probably A-REX is not running.", pidfile);
@@ -167,7 +165,6 @@ std::cerr << "PID file: "<<pidfile<<std::endl;
     if((dot_pos != std::string::npos) && (cfgfile[dot_pos] == '.'))
       cfgfile.resize(dot_pos);
     cfgfile += ".cfg";
-std::cerr << "Final config file: "<<cfgfile<<std::endl;
 
     config = new ARex::GMConfig(cfgfile);
     config->SetDelegations(&deleg_stores);
