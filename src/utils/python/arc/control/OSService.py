@@ -46,7 +46,7 @@ class OSServiceManagement(object):
                     'active': 'systemctl -q is-active {0}'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
-                self.logger.debug('Managing OS services using {0} version {1}', self.sm, self.sm_version)
+                self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:
             pass
@@ -69,7 +69,7 @@ class OSServiceManagement(object):
                     'active': 'service {0} status'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
-                self.logger.debug('Managing OS services using {0} version {1}', self.sm, self.sm_version)
+                self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:
             pass

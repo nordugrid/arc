@@ -43,7 +43,7 @@ class TestCAControl(ComponentControl):
             if x509_cert_dir:
                 self.x509_cert_dir = x509_cert_dir
             self.hostname = arcconfig.get_value('hostname', 'common')
-            self.logger.debug('Using hostname from arc.conf: {0}', self.hostname)
+            self.logger.debug('Using hostname from arc.conf: %s', self.hostname)
 
         # if hostname is not defined via arc.conf
         if self.hostname is None:
@@ -51,12 +51,12 @@ class TestCAControl(ComponentControl):
                 # try to get it from hostname -f
                 hostname_f = subprocess.Popen(['hostname', '-f'], stdout=subprocess.PIPE)
                 self.hostname = hostname_f.stdout.readline().strip()
-                self.logger.debug('Using hostname from \'hostname -f\': {0}', self.hostname)
+                self.logger.debug('Using hostname from \'hostname -f\': %s', self.hostname)
             except OSError:
                 # fallback
                 self.hostname = socket.gethostname()
                 self.logger.warning('Cannot get hostname from \'hostname -f\'. '
-                                    'Using {0} that comes from name services.', self.hostname)
+                                    'Using %s that comes from name services.', self.hostname)
 
         # check hostname X509 constraint
         if len(str(self.hostname)) > 64:
