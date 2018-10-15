@@ -217,7 +217,7 @@ sub condor_grep_nodes {
 #   2 (Suspended)  --> S (an already running job in a suspended state)
 #   3 (Removed)    --> E (finishing in the LRMS)
 #   4 (Completed)  --> E (finishing in the LRMS)
-#   5 (Held)       --> O (other)
+#   5 (Held)       --> S (moved to suspended, was once O other)
 #   6 (Transfer)   --> O (other, almost finished. Transferring output.)
 #   7 (Suspended)  --> S (newer condor version support suspended)
 #
@@ -225,7 +225,7 @@ sub condor_grep_nodes {
 #
 sub condor_get_job_status($) {
     my $id = shift;
-    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 O 6 O 7 S);
+    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 S 6 O 7 S);
     return 'E' unless $alljobdata{$id};
     my $s = $alljobdata{$id}{jobstatus};
     return 'E' if !defined $s;
@@ -260,8 +260,9 @@ sub condor_queue_get_queued() {
     }
     for (values %alljobdata) {
         my %job = %$_;
-        # only include jobs which are idle or held
-        next unless $job{jobstatus} == 1 || $job{jobstatus} == 5;
+        # only include jobs which are idle. 
+        # TODO: Held jobs (ID=5) removed upon WLCG request, maybe they need to be counted elsewhere
+        next unless $job{jobstatus} == 1;
         my $clusterid = "$job{clusterid}.$job{procid}";
         if (grep { $_ eq $clusterid } @jobids_thisqueue) {
             $gridqueued += 1;
@@ -279,22 +280,32 @@ sub condor_queue_get_queued() {
 }
 
 #
-# Counts all queued cpus (idle and held) in the cluster.
+# Counts all queued cpus (idle) in the cluster.
 # TODO: this counts jobs, not cpus.
+# TODO: Held jobs (ID=5) removed upon WLCG request, maybe they need to be counted elsewhere
 sub condor_cluster_get_queued_cpus() {
     my $sum = 0;
-    do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    do {$sum++ if $$_{jobstatus} == 1} for values %alljobdata;
     debug "===condor_cluster_get_queued_cpus: $sum";
     return $sum;
 }
 
 #
-# Counts all queued jobs (idle and held) in the cluster.
+# Counts all queued jobs (idle) in the cluster.
 #
 sub condor_cluster_get_queued_jobs() {
     my $sum = 0;
-    do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    do {$sum++ if $$_{jobstatus} == 1} for values %alljobdata;
     debug "===condor_cluster_get_queued_jobs: $sum";
+    return $sum;
+}
+
+# Counts all held jobs (ID=5) in the cluster.
+#
+sub condor_cluster_get_held_jobs() {
+    my $sum = 0;
+    do {$sum++ if $$_{jobstatus} == 5} for values %alljobdata;
+    debug "===condor_cluster_get_held_jobs: $sum";
     return $sum;
 }
 
@@ -610,8 +621,8 @@ sub users_info($$@) {
     foreach my $u ( @{$accts} ) {
         # all users are treated as equals
         # there is no maximum walltime/cputime limit in Condor
-	$lrms_users{$u}{freecpus} = $lrms_queue{freecpus};
-	$lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+    $lrms_users{$u}{freecpus} = $lrms_queue{freecpus};
+    $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
     }
     return %lrms_users;
 }
