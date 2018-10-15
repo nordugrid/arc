@@ -22,7 +22,7 @@ void userspec_t::free(void) const {
   // Keep authentication info to preserve proxy (just in case)
 }
 
-userspec_t::userspec_t(void):user(),uid(-1),gid(-1),port(0),map(user),default_map(user),gridmap(false) {
+userspec_t::userspec_t(void):user(),uid(-1),gid(-1),port(0),map(user),default_map(user) {
   host[0] = 0;
 }
 
@@ -83,13 +83,12 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   char* name=NULL;
   char* gname=NULL;
   if(!check_gridmap(subject.c_str(),&name)) {
-    logger.msg(Arc::WARNING, "There is no local mapping for user");
+    logger.msg(Arc::INFO, "There is no local initial mapping for user");
   } else {
     if((name == NULL) || (name[0] == 0)) {
-      logger.msg(Arc::WARNING, "There is no local name for user");
+      logger.msg(Arc::INFO, "There is no local initial name for user");
       if(name) { std::free(name); name=NULL; };
     } else {
-      gridmap=true;
       gname = strchr(name,':');
       if(gname) {
         *gname = 0;
@@ -209,14 +208,13 @@ bool userspec_t::fill(AuthUser& u, const char* cfg) {
   char* gname=NULL;
   if(cfg) config_file = cfg;
   if(!check_gridmap(subject.c_str(),&name)) {
-    logger.msg(Arc::WARNING, "There is no local mapping for user");
+    logger.msg(Arc::INFO, "There is no local initial mapping for user");
     name=NULL;
   } else {
     if((name == NULL) || (name[0] == 0)) {
-      logger.msg(Arc::WARNING, "There is no local name for user");
+      logger.msg(Arc::INFO, "There is no local initial name for user");
       if(name) { std::free(name); name=NULL; };
     } else {
-      gridmap=true;
       gname = strchr(name,':');
       if(gname) {
         *gname = 0;

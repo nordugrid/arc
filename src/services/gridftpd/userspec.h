@@ -22,7 +22,6 @@ class userspec_t {
   UnixMap map;
   UnixMap default_map;
  public:
-  bool  gridmap;
   void free(void) const;
   userspec_t(void);
   ~userspec_t(void);
