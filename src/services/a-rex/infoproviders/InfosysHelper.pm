@@ -67,8 +67,8 @@ sub switchEffectiveUser {
                $EUID = $uid;
         };
     # Switch back to original UID/GID
-	} else {
-		eval { $EGID = $GID;
+    } else {
+        eval { $EGID = $GID;
                $EUID = $UID;
         };
     };
