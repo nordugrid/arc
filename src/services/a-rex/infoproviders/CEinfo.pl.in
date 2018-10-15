@@ -99,6 +99,7 @@ BEGIN {
 
         # C134
         my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
+        $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
         #C 134
         LogUtils::level($infosysloglevel);
 
@@ -212,6 +213,7 @@ sub main {
 
     # C134
     my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
+    $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
     # Change level for root logger (affects all loggers from now on)
     #C 134
     LogUtils::level($infosysloglevel);
@@ -302,7 +304,7 @@ sub main {
 
     # only notifiy ldap infosys if ldap is enabled!
     # C 141 use block to check if ldap is enabled
-    if ( defined $config->{infosys}{ldap} ) {
+    if ( $config->{infosys}{ldap}{enabled} ) {
         # check that fifo is working and notify if so.
         if (InfosysHelper::createLdifScript($config->{infosys}{ldap}, $print_ldif)) {
             if (InfosysHelper::notifyInfosys($config->{infosys}{ldap})) {
@@ -314,7 +316,7 @@ sub main {
            $log->warning("Failed to create ldif generator script for LDAP information system");
         }
     } else {
-        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
+        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable [infosys/ldap] AND one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
     }
 
     $log->info("############## A-REX infoprovider finished ##############");
@@ -396,7 +398,7 @@ sub get_host_info($$) {
     $host_opts->{processes} = ['arched', 'gridftpd','slapd'];
     $host_opts->{ports}{'arched'} = ['443'];
     $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}] if $config->{gridftpd}{enabled};
-    $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if defined $config->{infosys}{ldap};
+    $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if $config->{infosys}{ldap}{enabled};
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};

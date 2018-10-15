@@ -725,21 +725,21 @@ sub collect($) {
         } else {
        # create as many shares as the advertisedvo in the [infosys/cluster] block
        # iff advertisedvo not defined in queue block
-			if (defined $config->{service}{AdvertisedVO}) { 
-				my ($clusteradvertvos) = $config->{service}{AdvertisedVO};
-				for my $clusteradvertvo (@{$clusteradvertvos}) {
-					# generate an additional share with such advertisedVO
-					my $share_vo = $currentshare.'_'.$clusteradvertvo;
-					$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
-					# add the queue from configuration as MappingQueue
-					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
-					# remove VOs from that share, substitute with default VO
-					$GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
-					# TODO: use config elements for this
-					$GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
-				}    
-			}
-	    }
+            if (defined $config->{service}{AdvertisedVO}) { 
+                my ($clusteradvertvos) = $config->{service}{AdvertisedVO};
+                for my $clusteradvertvo (@{$clusteradvertvos}) {
+                    # generate an additional share with such advertisedVO
+                    my $share_vo = $currentshare.'_'.$clusteradvertvo;
+                    $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+                    # add the queue from configuration as MappingQueue
+                    $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+                    # remove VOs from that share, substitute with default VO
+                    $GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
+                    # TODO: use config elements for this
+                    $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
+                }    
+            }
+        }
         # remove VO array from the datastructure of the share with the same name of the queue
         delete $GLUE2shares->{$share_name}{AdvertisedVO};
         undef $share_name;
@@ -895,9 +895,9 @@ sub collect($) {
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
             if (defined $vomsvo) {
-				$requestedslots{$sharevomsvo} += $job->{count} || 1;
-				$share_prepping{$sharevomsvo}++;
-			}
+                $requestedslots{$sharevomsvo} += $job->{count} || 1;
+                $share_prepping{$sharevomsvo}++;
+            }
             # TODO: is this used anywhere?
             $user_prepping{$gridowner}++ if $gridowner;
         }
@@ -920,36 +920,36 @@ sub collect($) {
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
                     if (defined $vomsvo) {
-						$inlrmsslots{$sharevomsvo}{running} ||= 0; 
-						$inlrmsslots{$sharevomsvo}{suspended} ||= 0;
-						$inlrmsslots{$sharevomsvo}{queued} ||= 0;
-					}
+                        $inlrmsslots{$sharevomsvo}{running} ||= 0; 
+                        $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
+                        $inlrmsslots{$sharevomsvo}{queued} ||= 0;
+                    }
                     if ($lrmsjob->{status} eq 'R') {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
                         if (defined $vomsvo) {
-							$inlrmsjobs{$sharevomsvo}{running}++;
-							$inlrmsslots{$sharevomsvo}{running} += $slots;
-						}
+                            $inlrmsjobs{$sharevomsvo}{running}++;
+                            $inlrmsslots{$sharevomsvo}{running} += $slots;
+                        }
                     } elsif ($lrmsjob->{status} eq 'S') {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
                         if (defined $vomsvo) {
-							$inlrmsjobs{$sharevomsvo}{suspended}++;
+                            $inlrmsjobs{$sharevomsvo}{suspended}++;
                             $inlrmsslots{$sharevomsvo}{suspended} += $slots;
-						}
+                        }
                     } else {  # Consider other states 'queued'
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
                         if (defined $vomsvo) {
-						    $inlrmsjobs{$sharevomsvo}{queued}++;
-							$inlrmsslots{$sharevomsvo}{queued} += $slots;
-							$requestedslots{$sharevomsvo} += $slots;
-						}
+                            $inlrmsjobs{$sharevomsvo}{queued}++;
+                            $inlrmsslots{$sharevomsvo}{queued} += $slots;
+                            $requestedslots{$sharevomsvo} += $slots;
+                        }
                     }
                 }
             } else {
@@ -977,7 +977,7 @@ sub collect($) {
     my $epscapabilities = {};
 
     # defaults now set in ConfigCentral
-    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/";
+    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/" if ($config->{infosys}{ldap}{enabled});
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -1010,9 +1010,9 @@ sub collect($) {
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
         
     # for org.nordugrid.gridftpjob
-    if ( $config->{gridftpd}{enabled} == 1 ) { 
-	$gridftphostport = "$hostname:$config->{gridftpd}{port}";
-	$csvendpointsnum++;
+    if ($config->{gridftpd}{enabled}) { 
+    $gridftphostport = "$hostname:$config->{gridftpd}{port}";
+    $csvendpointsnum++;
     $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
                 'executionmanagement.jobexecution',
                 'executionmanagement.jobmanager', 
@@ -1112,21 +1112,21 @@ sub collect($) {
     # ARIS LDAP endpoints
     
     # ldapng
-    if ( defined $config->{infosys}{nordugrid} ) {
+    if ( $config->{infosys}{nordugrid}{enabled} ) {
         $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue1
-    if ( defined $config->{infosys}{glue1} ) {
+    if ( $config->{infosys}{glue1}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
         $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue2
-    if ( defined $config->{infosys}{glue2}{ldap} ) {
+    if ( $config->{infosys}{glue2}{ldap}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue2endpoint = $ldaphostport."o=glue";
         $epscapabilities->{'org.nordugrid.ldapglue2'} = [ 'information.discovery.resource' ];
@@ -1145,12 +1145,12 @@ sub collect($) {
     my $servingstate = 'draining';
     my ($sessiondirs) = ($config->{control}{'.'}{sessiondir});
     foreach my $sd (@$sessiondirs) {
-		my @hasdrain = split(' ',$sd);
-		if ($hasdrain[-1] ne 'drain') {
-			$servingstate = 'production';
-		}
-	}
-	
+        my @hasdrain = split(' ',$sd);
+        if ($hasdrain[-1] ne 'drain') {
+            $servingstate = 'production';
+        }
+    }
+
     # TODO: userdomain
     my $userdomain='';
 
@@ -1170,13 +1170,13 @@ sub collect($) {
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $emiesenabled; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
-    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled} == 1);
+    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
     push(@cepIDs,$ARCWScepID) if ($wsenabled);
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     
@@ -1319,14 +1319,14 @@ sub collect($) {
     
     # Basic mapping policy: it can only contain one vo.     
     
-    my $getBasicMappingPolicy = sub {	
-	    my ($shareID, $sharename) = @_;
+    my $getBasicMappingPolicy = sub {
+        my ($shareID, $sharename) = @_;
         my $mpol = {};
         $mpol->{CreationTime} = $creation_time;
         $mpol->{Validity} = $validity_ttl;
         $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{AdvertisedVO}";
         $mpol->{Scheme} = "basic";
-	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
+        $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
         $mpol->{ShareID} = $shareID;
         return $mpol;
