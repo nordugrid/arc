@@ -320,7 +320,7 @@ namespace ARexINTERNAL {
 
       // Setup fake mesage to be used as container for information being processed
       Arc::Message msg;
-      msg.Auth()->set("TLS", sec_attr);
+      msg.Auth()->set("TLS", sec_attr); // Message takes ownership of the sec_attr
       // Some plugins fetch user DN from message attributes
       msg.Attributes()->set("TLS:IDENTITYDN", sec_attr->Identity());
 
@@ -346,8 +346,8 @@ namespace ARexINTERNAL {
 
     Arc::Credential cred(usercfg);
     std::string gridname = cred.GetIdentityName();
-     arexconfig = new ARex::ARexGMConfig(*config,user.Name(),gridname,endpoint);
-     return true;
+    arexconfig = new ARex::ARexGMConfig(*config,user.Name(),gridname,endpoint);
+    return true;
   }
 
   
@@ -422,6 +422,10 @@ namespace ARexINTERNAL {
  
   
   bool INTERNALClient::submit(const std::list<Arc::JobDescription>& jobdescs,std::list<INTERNALJob>& localjobs, const std::string delegation_id) {
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
     //called by SubmitterPluginINTERNAL ac->submit(..)
 
     logger.msg(Arc::VERBOSE, "Submitting job ");
@@ -507,6 +511,8 @@ namespace ARexINTERNAL {
 
     if(!submit(jobdescs, localjobs, delegation_id))
       return false;
+    if(localjobs.empty())
+      return false;
 
     localjob = localjobs.back();
 
@@ -517,6 +523,10 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::info(std::list<INTERNALJob>& jobs, std::list<INTERNALJob>& jobids_found){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
 
     //at the moment called by JobListretrieverPluginINTERNAL Query
 
@@ -531,14 +541,20 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::info(INTERNALJob& localjob, Arc::Job& arcjob){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
     //Called from (at least) JobControllerPluginINTERNAL
     //Called for stagein/out/sessionodir if url of either is not known
     //Extracts information about current arcjob from arexjob and job.jobid.description file and updates/populates the localjob and arcjob with this info, and fills a localjob with the information
 
     std::vector<std::string> tokens;
     Arc::tokenize(arcjob.JobID, tokens, "/"); 
+    if(tokens.empty())
+      return false;
     //NB! Add control that the arcjob.jobID is in correct format
-    localjob.id = (std::string)tokens.back();
+    localjob.id = tokens.back();
     ARex::JobId gm_job_id = localjob.id;
 
 
@@ -574,9 +590,11 @@ namespace ARexINTERNAL {
   }
 
 
-
-
   bool INTERNALClient::sstat(Arc::XMLNode& xmldoc) {
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
 
     //TO-DO Need to lock info.xml during reading?
     std::string fname = config->ControlDir() + "/" + "info.xml";
@@ -602,14 +620,17 @@ namespace ARexINTERNAL {
   }
 
 
-
-
-
   bool INTERNALClient::kill(const std::string& jobid){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
-    std::string thisid = (std::string)tokens.back();
+    if(tokens.empty())
+      return false;
+    std::string thisid = tokens.back();
 
     ARex::ARexJob arexjob(thisid,*arexconfig,logger);
     arexjob.Cancel();
@@ -618,10 +639,16 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::clean(const std::string& jobid){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
-    std::string thisid = (std::string)tokens.back();
+    if(tokens.empty())
+      return false;
+    std::string thisid = tokens.back();
 
     ARex::ARexJob arexjob(thisid,*arexconfig,logger);
     arexjob.Clean();
@@ -630,10 +657,16 @@ namespace ARexINTERNAL {
 
   
   bool INTERNALClient::restart(const std::string& jobid){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
     //jobid is full url
     std::vector<std::string> tokens;
     Arc::tokenize(jobid, tokens, "/"); 
-    std::string thisid = (std::string)tokens.back();
+    if(tokens.empty())
+      return false;
+    std::string thisid = tokens.back();
 
     ARex::ARexJob arexjob(thisid,*arexconfig,logger);
     arexjob.Resume();
@@ -646,9 +679,9 @@ namespace ARexINTERNAL {
     //how do I want to search for jobs in system? 
 
     std::string cdir=config->ControlDir();
-    Glib::Dir *dir=new Glib::Dir(cdir);
+    Glib::Dir dir(cdir);
     std::string file_name;
-    while ((file_name = dir->read_name()) != "") {
+    while ((file_name = dir.read_name()) != "") {
       std::vector<std::string> tokens;
       Arc::tokenize(file_name, tokens, "."); // look for job.id.local
       if (tokens.size() == 3 && tokens[0] == "job" && tokens[2] == "local") {
@@ -656,9 +689,8 @@ namespace ARexINTERNAL {
         job.id = (std::string)tokens[1];
         jobs.push_back(job);
       };
-      dir->close();
-      delete dir;
     }
+    dir.close();
     return true;
   }
   
@@ -712,20 +744,6 @@ namespace ARexINTERNAL {
 
   void INTERNALJob::toJob(INTERNALClient* client, Arc::Job& arcjob, Arc::Logger& logger) const {
     //called from UpdateJobs in JobControllerPluginINTERNAL
-    //extract info from arexjob
-  
-    //extract jobid from arcjob, which is the full jobid url
-    std::vector<std::string> tokens;
-    ARex::JobId arcjobid = arcjob.JobID;
-    Arc::tokenize(arcjob.JobID, tokens, "/"); 
-    //NB! Add control that the arcjob.jobID is in correct format
-    ARex::JobId gm_job_id = (std::string)tokens.back();
-
-
-    ARex::ARexJob arexjob(gm_job_id,*(client->arexconfig),client->logger);
-    std::string state = arexjob.State();
-    arcjob.State = JobStateINTERNAL(state);
-
     if (!stagein.empty())arcjob.StageInDir = stagein.front();
     else arcjob.StageInDir = sessiondir;
     if (!stageout.empty()) arcjob.StageOutDir = stageout.front();
@@ -733,6 +751,19 @@ namespace ARexINTERNAL {
     if (!session.empty()) arcjob.StageInDir = session.front();
     else arcjob.SessionDir = sessiondir;
    
+    //extract info from arexjob
+    //extract jobid from arcjob, which is the full jobid url
+    std::vector<std::string> tokens;
+    Arc::tokenize(arcjob.JobID, tokens, "/"); 
+    if(!tokens.empty()) {
+      //NB! Add control that the arcjob.jobID is in correct format
+      ARex::JobId gm_job_id = tokens.back();
+      if(client && client->arexconfig) {
+        ARex::ARexJob arexjob(gm_job_id,*(client->arexconfig),client->logger);
+        std::string state = arexjob.State();
+        arcjob.State = JobStateINTERNAL(state);
+      }
+    }
   }
 
  
