@@ -419,10 +419,6 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   delete cf;
   cf = NULL;
   if(r != 0) return r;
-  if(!user.gridmap) {
-    logger.msg(Arc::ERROR, "unknown (non-gridmap) user is not allowed");
-    return 1;
-  };
   /* must be sorted to make sure we can always find right directory */
   nodes.sort(FileNode::compare);
   /* create dummy directories */
