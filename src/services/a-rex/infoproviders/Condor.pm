@@ -103,7 +103,7 @@ sub collect_job_data() {
     return if $alljobdata_initialized;
     $alljobdata_initialized = 1;
     $ENV{_condor_CONDOR_Q_ONLY_MY_JOBS}='false';
-    my ($out, $err, $ret) = condor_run('condor_q -constraint "NiceUser == False" -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n\n" JobCpuLimit');
+    my ($out, $err, $ret) = condor_run('condor_q -constraint "NiceUser == False" -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n" JobCpuLimit -format "HoldReasonCode = %V\n\n" HoldReasonCode');
     return if $out =~ m/All queues are empty/;
     error("Failed collecting job information.") if $ret;
     for (split /\n\n+/, $out) {
@@ -217,7 +217,8 @@ sub condor_grep_nodes {
 #   2 (Suspended)  --> S (an already running job in a suspended state)
 #   3 (Removed)    --> E (finishing in the LRMS)
 #   4 (Completed)  --> E (finishing in the LRMS)
-#   5 (Held)       --> S (moved to suspended, was once O other)
+#   5 (Held) (HoldReasonCode == 16) --> H --> O (Jobs in staging are put in the HOLD state)
+#   5 (Held)       --> H --> E (Hold jobs to be discarded as they will not progress)
 #   6 (Transfer)   --> O (other, almost finished. Transferring output.)
 #   7 (Suspended)  --> S (newer condor version support suspended)
 #
@@ -225,7 +226,7 @@ sub condor_grep_nodes {
 #
 sub condor_get_job_status($) {
     my $id = shift;
-    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 S 6 O 7 S);
+    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 H 6 O 7 S);
     return 'E' unless $alljobdata{$id};
     my $s = $alljobdata{$id}{jobstatus};
     return 'E' if !defined $s;
@@ -233,6 +234,9 @@ sub condor_get_job_status($) {
     if ($s eq 'R') {
         $s = 'S' if condor_job_suspended($id);
     }
+    # Takes care of HOLD jobs
+    $s = condor_job_hold_substate($id) if ($s eq 'H');
+
     debug "===condor_get_job_status $id: $s";
     return $s;
 }
@@ -416,6 +420,27 @@ sub condor_job_suspended($) {
     }
     close LOGFILE;
     return $suspended;
+}
+
+#
+# This function parses the condor log to see if a job in HOLD state
+# has been kept in HOLD because HoldReasonCode == 16.
+# In this case the job is staging so it should not be discarded.
+#
+# Argument: the condor job id
+# Returns: E if the job is in a terminal state, O if not.
+#
+
+sub condor_job_hold_substate($) {
+    my $id = shift;
+    return 'E' unless $alljobdata{$id};
+    
+    # E state means the job will not exit the HOLD state.
+    # O state means the job can be out of the HOLD state.
+    # If HoldReasonCode == 16 --> staging --> O
+    my $substate = 'E';
+    $substate = 'O' if $alljobdata{$id}{lc 'HoldReasonCode'} == '16';
+    return $substate;
 }
 
 #
