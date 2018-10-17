@@ -8,13 +8,14 @@
 
 #include <arc/Logger.h>
 #include <arc/ArcConfigIni.h>
+#include <arc/StringConv.h>
 
 #include "auth.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
 
 AuthResult AuthUser::match_file(const char* line) {
-  std::string s(line);
+  std::string s = Arc::trim(line);
   if(!s.empty()) {
     std::ifstream f(s.c_str());
     if(!f.is_open()) {
@@ -24,7 +25,9 @@ AuthResult AuthUser::match_file(const char* line) {
     for(;f.good();) {
       std::string buf;
       getline(f,buf);
-      AuthResult res = evaluate(buf.c_str());
+      buf = Arc::trim(buf);
+      if(buf.empty()) continue;
+      AuthResult res = match_subject(buf.c_str());
       if(res != AAA_NO_MATCH) {
         f.close();
         return res;
