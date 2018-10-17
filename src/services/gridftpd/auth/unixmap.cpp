@@ -16,11 +16,11 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
 
 UnixMap::source_t UnixMap::sources[] = {
-  { "mapfile", &UnixMap::map_mapfile },
-  { "simplepool", &UnixMap::map_simplepool },
-  { "unixuser", &UnixMap::map_unixuser },
+  { "map_with_file", &UnixMap::map_mapfile },
+  { "map_to_pool", &UnixMap::map_simplepool },
+  { "map_to_user", &UnixMap::map_unixuser },
   { "lcmaps", &UnixMap::map_lcmaps },
-  { "mapplugin", &UnixMap::map_mapplugin },
+  { "map_with_plugin", &UnixMap::map_mapplugin },
   { NULL, NULL }
 };
 
@@ -41,7 +41,8 @@ void split_unixname(std::string& unixname,std::string& unixgroup) {
   if(unixgroup[0] == '*') unixgroup.resize(0);
 }
 
-AuthResult UnixMap::mapgroup(const char* line) {
+AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
+  // rule = authgroup args
   mapped_=false;
   if(!line) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
@@ -63,17 +64,12 @@ AuthResult UnixMap::mapgroup(const char* line) {
   unix_user_.name.resize(0);
   unix_user_.group.resize(0);
   for(;*line;line++) if(!isspace(*line)) break;
-  const char* command = line;
-  for(;*line;line++) if(isspace(*line)) break;
-  size_t command_len = line-command;
-  if(command_len == 0) {
-    logger.msg(Arc::ERROR,"User name mapping has empty command: %s", command);
+  if(!rule || (*rule == 0)) {
+    logger.msg(Arc::ERROR,"User name mapping has empty command");
     return AAA_FAILURE;
   };
-  for(;*line;line++) if(!isspace(*line)) break;
   for(source_t* s = sources;s->cmd;s++) {
-    if((strncmp(s->cmd,command,command_len) == 0) &&
-       (strlen(s->cmd) == command_len)) {
+    if(strcmp(s->cmd,rule) == 0) {
       AuthResult res=(this->*(s->map))(user_,unix_user_,line);
       if(res == AAA_POSITIVE_MATCH) {
         mapped_=true;
@@ -90,112 +86,17 @@ AuthResult UnixMap::mapgroup(const char* line) {
   return AAA_FAILURE;
 }
 
-AuthResult UnixMap::mapvo(const char* line) {
+AuthResult UnixMap::setunixuser(const char* unixname, const char* unixgroup) {
   mapped_=false;
-  if(!line) {
-    logger.msg(Arc::ERROR,"User name mapping command is empty");
-    return AAA_FAILURE;
-  };
-  for(;*line;line++) if(!isspace(*line)) break;
-  if(*line == 0) {
-    logger.msg(Arc::ERROR,"User name mapping command is empty");
-    return AAA_FAILURE;
-  };
-  const char* voname = line;
-  for(;*line;line++) if(isspace(*line)) break;
-  int voname_len = line-voname;
-  if(voname_len == 0) {
-    logger.msg(Arc::ERROR,"User name mapping has empty VO: %s", voname);
-    return AAA_FAILURE;
-  };
-  if(!user_.check_vo(std::string(voname,voname_len))) return AAA_NO_MATCH;
-  unix_user_.name.resize(0);
-  unix_user_.group.resize(0);
-  for(;*line;line++) if(!isspace(*line)) break;
-  const char* command = line;
-  for(;*line;line++) if(isspace(*line)) break;
-  size_t command_len = line-command;
-  if(command_len == 0) {
-    logger.msg(Arc::ERROR,"User name mapping has empty command: %s", command);
-    return AAA_FAILURE;
-  };
-  for(;*line;line++) if(!isspace(*line)) break;
-  for(source_t* s = sources;s->cmd;s++) {
-    if((strncmp(s->cmd,command,command_len) == 0) &&
-       (strlen(s->cmd) == command_len)) {
-      AuthResult res=(this->*(s->map))(user_,unix_user_,line);
-      if(res == AAA_POSITIVE_MATCH) {
-        mapped_=true;
-        return AAA_POSITIVE_MATCH;
-      };
-      if(res == AAA_FAILURE) {
-        // Processing failure cause immediate error
-        return AAA_FAILURE;
-      };
-      // Paranoid about negative match
-      return AAA_NO_MATCH;
-    };
-  };
-  return AAA_FAILURE;
-}
-
-AuthResult UnixMap::mapname(const char* line) {
-  mapped_=false;
-  if(!line) {
-    logger.msg(Arc::ERROR,"User name mapping command is empty");
-    return AAA_FAILURE;
-  };
-  for(;*line;line++) if(!isspace(*line)) break;
-  if(*line == 0) {
-    logger.msg(Arc::ERROR,"User name mapping command is empty");
-    return AAA_FAILURE;
-  };
-  const char* unixname = line;
-  for(;*line;line++) if(isspace(*line)) break;
-  int unixname_len = line-unixname;
-  if(unixname_len == 0) {
+  if((!unixname) || (*unixname == 0)) {
     logger.msg(Arc::ERROR,"User name mapping has empty name: %s", unixname);
     return AAA_FAILURE;
   };
-  unix_user_.name.assign(unixname,unixname_len);
-  split_unixname(unix_user_.name,unix_user_.group);
-  for(;*line;line++) if(!isspace(*line)) break;
-  const char* command = line;
-  for(;*line;line++) if(isspace(*line)) break;
-  size_t command_len = line-command;
-  if(command_len == 0) {
-    logger.msg(Arc::ERROR,"User name mapping has empty command: %s", command);
-    return AAA_FAILURE;
-  }
-  for(;*line;line++) if(!isspace(*line)) break;
-  for(source_t* s = sources;s->cmd;s++) {
-    if((strncmp(s->cmd,command,command_len) == 0) &&
-       (strlen(s->cmd) == command_len)) {
-      AuthResult res=(this->*(s->map))(user_,unix_user_,line);
-      if(res == AAA_POSITIVE_MATCH) {
-        mapped_=true;
-        return AAA_POSITIVE_MATCH;
-      };
-      if(res == AAA_FAILURE) {
-        // Processing failure cause immediate error
-        return AAA_FAILURE;
-      };
-      // Paranoid about negative match
-      return AAA_NO_MATCH;
-    };
-  };
-  if(unix_user_.name.length() != 0) {
-    // Try authorization rules if username is predefined
-    AuthResult decision = user_.evaluate(command);
-    if(decision == AAA_POSITIVE_MATCH) {
-      mapped_=true;
-      return AAA_POSITIVE_MATCH;
-    };
-    return decision; // propagate failure information
-  };
-  // If user name is not defined then it was supposed to be 
-  // mapping rule. And if not then we failed.
-  return AAA_FAILURE;
+  unix_user_.name.assign(unixname);
+  if(unixgroup)
+    unix_user_.group.assign(unixgroup);
+  mapped_=true;
+  return AAA_POSITIVE_MATCH;
 }
 
 // -----------------------------------------------------------
@@ -207,7 +108,7 @@ static void subst_arg(std::string& str,void* arg) {
 }
 
 AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,const char* line) {
-  // timeout path arg ...
+  // ... timeout path arg ...
   if(!line) {
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
     return AAA_FAILURE;
@@ -259,6 +160,7 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
 }
 
 AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line) {
+  // ... file
   // This is just grid-mapfile
   std::ifstream f(line);
   if(user.DN()[0] == 0) return AAA_FAILURE;
@@ -286,6 +188,7 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
 }
 
 AuthResult UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line) {
+  // ... dir
   if(user.DN()[0] == 0) {
     logger.msg(Arc::ERROR, "User pool call is missing user subject.");
     return AAA_NO_MATCH;
@@ -305,6 +208,7 @@ AuthResult UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,c
 }
 
 AuthResult UnixMap::map_unixuser(const AuthUser& /* user */,unix_user_t& unix_user,const char* line) {
+  // ... unixname[:unixgroup]
   // Maping is always positive - just fill specified username
   std::string unixname(line);
   std::string unixgroup;

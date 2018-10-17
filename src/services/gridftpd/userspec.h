@@ -36,9 +36,9 @@ class userspec_t {
   short unsigned int get_port(void) const { return port; };
   const int* get_host(void) const { return host; };
   const AuthUser& get_user(void) const { return user; };
-  AuthResult mapname(const char* line);
-  AuthResult mapgroup(const char* line);
-  AuthResult mapvo(const char* line);
+  //AuthResult mapname(const char* line);
+  AuthResult mapgroup(const char* rule, const char* line);
+  //AuthResult mapvo(const char* line);
   bool mapped(void) const { return (bool)map; };
 };
 

@@ -43,9 +43,8 @@ class UnixMap {
   const char* unix_group(void) const { return unix_user_.group.c_str(); };
   AuthUser& user(void) { return user_; };
   // Map
-  AuthResult mapname(const char* line);
-  AuthResult mapgroup(const char* line);
-  AuthResult mapvo(const char* line);
+  AuthResult mapgroup(const char* rule, const char* line);
+  AuthResult setunixuser(const char* name, const char* group);
 };
 
 #endif // __GM_UNIXMAP_H__

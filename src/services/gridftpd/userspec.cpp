@@ -181,12 +181,7 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
         logger.msg(Arc::ERROR, "No group %i for mapped user", gid);
       };
     };
-    std::string mapstr;
-    if(name) mapstr+=name;
-    mapstr+=":";
-    if(gr) mapstr+=gr->gr_name;
-    mapstr+=" all";
-    default_map.mapname(mapstr.c_str());
+    default_map.setunixuser(name?name:"", gr?gr->gr_name:"");
     logger.msg(Arc::INFO, "Mapped to local group id: %i", gid);
     if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::VERBOSE, "Mapped user's home: %s", home);
@@ -271,12 +266,7 @@ bool userspec_t::fill(AuthUser& u, const char* cfg) {
         logger.msg(Arc::INFO, "No group %i for mapped user", gid);
       };
     };
-    std::string mapstr;
-    if(name) mapstr+=name;
-    mapstr+=":";
-    if(gr) mapstr+=gr->gr_name;
-    mapstr+=" all";
-    default_map.mapname(mapstr.c_str());
+    default_map.setunixuser(name?name:"", gr?gr->gr_name:"");
     logger.msg(Arc::INFO, "Mapped to local group id: %i", pw->pw_gid);
     if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::INFO, "Mapped user's home: %s", home);
@@ -354,23 +344,23 @@ bool userspec_t::refresh(void) {
   return true;
 }
 
-AuthResult userspec_t::mapname(const char* line) {
-  AuthResult res = map.mapname(line);
+//AuthResult userspec_t::mapname(const char* line) {
+//  AuthResult res = map.mapname(line);
+//  if(res == AAA_POSITIVE_MATCH) refresh();
+//  return res;
+//}
+
+AuthResult userspec_t::mapgroup(const char* rule, const char* line) {
+  AuthResult res = map.mapgroup(rule, line);
   if(res == AAA_POSITIVE_MATCH) refresh();
   return res;
 }
 
-AuthResult userspec_t::mapgroup(const char* line) {
-  AuthResult res = map.mapgroup(line);
-  if(res == AAA_POSITIVE_MATCH) refresh();
-  return res;
-}
-
-AuthResult userspec_t::mapvo(const char* line) {
-  AuthResult res = map.mapvo(line);
-  if(res == AAA_POSITIVE_MATCH) refresh();
-  return res;
-}
+//AuthResult userspec_t::mapvo(const char* line) {
+//  AuthResult res = map.mapvo(line);
+//  if(res == AAA_POSITIVE_MATCH) refresh();
+//  return res;
+//}
 
 const char* userspec_t::get_uname(void) {
   const char* name = NULL;
