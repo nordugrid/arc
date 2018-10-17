@@ -66,7 +66,7 @@ class LegacyPDPCP: public ConfigParser {
       if(block->name == bname) {
         block->limited = true;
         std::list<std::string> groups;
-        Arc::tokenize(line,groups," \t","\"","\"");
+        Arc::tokenize(line,groups," ");
         block->groups.insert(block->groups.end(),groups.begin(),groups.end());
       };
     };

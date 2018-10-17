@@ -21,11 +21,19 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-AuthResult AuthUser::match_all(const char* /* line */) {
-  default_voms_=voms_t();
-  default_vo_=NULL;
-  default_group_=NULL;
-  return AAA_POSITIVE_MATCH;
+AuthResult AuthUser::match_all(const char* line) {
+  std::string token = Arc::trim(line);
+  if(token == "yes") {
+    default_voms_=voms_t();
+    default_vo_=NULL;
+    default_group_=NULL;
+    return AAA_POSITIVE_MATCH;
+  }
+  if(token == "no") {
+    return AAA_NO_MATCH;
+  }
+  logger.msg(Arc::ERROR,"Unexpected argument for 'all' rule - %s",token);
+  return AAA_FAILURE;
 }
 
 AuthResult AuthUser::match_group(const char* line) {

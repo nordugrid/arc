@@ -44,6 +44,7 @@ void split_unixname(std::string& unixname,std::string& unixgroup) {
 }
 
 AuthResult UnixMap::mapgroup(const char* line) {
+  // unixgroupmap = authgroup rule
   mapped_=false;
   if(!line) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
@@ -93,6 +94,7 @@ AuthResult UnixMap::mapgroup(const char* line) {
 }
 
 AuthResult UnixMap::mapvo(const char* line) {
+  // unixlistmap = authgroup rule
   mapped_=false;
   if(!line) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
@@ -142,6 +144,7 @@ AuthResult UnixMap::mapvo(const char* line) {
 }
 
 AuthResult UnixMap::mapname(const char* line) {
+  // unixmap = [unixname][:unixgroup] rule
   mapped_=false;
   if(!line) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
@@ -230,7 +233,7 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
     return AAA_FAILURE;
   };
   std::list<std::string> args;
-  Arc::tokenize(line,args," ","\"","\"");
+  Arc::tokenize(line,args," ");
   if(args.size() <= 0) {
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
     return AAA_FAILURE;
