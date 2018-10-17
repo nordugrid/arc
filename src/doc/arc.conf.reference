@@ -306,9 +306,17 @@
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
-## all - Matches any user identity. This variable requires no arguments or values.
+## lcas library directory database - Call LCAS functions to check rule.
+## CHANGE35: DELETED. The same can be done with the "plugin" parameter
+
+## remote URL ... - Check user's credentials against remote service. Only
+## CHANGE36: DELETED.  Feature is not used for ages. Code simplification.
+
+## all = yess|no - Matches any or none user identity. For 'yes' argument this rule
+## always returns positive match. For 'no' it is always no match.
 ## default: undefined
-#all=
+#all=yes
+## CHANGE215: MODIFIED options
 ##
 ##
 ### end of the [authgroup:name] blocks ###############################
