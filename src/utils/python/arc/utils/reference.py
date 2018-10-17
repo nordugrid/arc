@@ -300,8 +300,6 @@ def reference2rst(reference_f):
                         .replace(']', ']``')\
                         .replace('"', '``')\
                         .replace('``[#]``', '[#]')\
-                        .replace('``[:', '[:')\
-                        .replace('``[arg', '[arg')\
                         .replace('``]', ']')\
                         .replace('````', '``')\
                         .replace(' *', ' \*')

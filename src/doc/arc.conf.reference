@@ -300,8 +300,7 @@
 ##   - "%D" - subject of certicate
 ##   - "%P" - path to proxy
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
-## For more information about configuring LCAS itself see section 'Using LCAS/LCMAPS' in the ARC
-## Computing Element System Administrator Guide.
+## For more information about configuring LCAS refer to 'Using LCAS/LCMAPS' document.
 ## multivalued
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
@@ -315,50 +314,54 @@
 
 
 ### The [mapping] block ##############################################
-## This block defines the grid-identity to local unix identity mapping rules 
+## This block defines the grid-identity to local UNIX identity mapping rules 
 ## used by various ARC components.
 ## Mapping rules are processed sequentially and processing stops at first 
 ## successful one. 
 #[mapping]
 ## CHANGE: This is a new block
 
-## maprule = authgroup rule [ruleargs...] - define the mapping rule for users
-## belonging to specified "authgroup". 
-## 
-## The currently supported rules are:
-##   "unixid unixname[:unixgroup]"
-##       the user is assigned specified UNIX account name that may be optionally 
-##       followed by a UNIX group
-##   "mapfile file"
-##       the user’s subject is matched against a list of subjects stored in the 
-##       specified file, one per line followed by a local UNIX name.
-##       This mapping rule can be used to accomplish legacy gridmap-based aproach.
-##   "simplepool directory"
-##       the user is assigned one of the local UNIX names stored line-by-line in 
-##       the file "directory/pool". Used names are stored in other files placed 
-##       in the same directory. If a UNIX name was not used for 10 days, it may be 
-##       reassigned to another user.
-##   "mapplugin timeout plugin [arg1 [arg2 [arg3...]]]"
-##       run external plugin executable with specified arguments. A rule matches 
-##       if the exit code is 0 and there is a UNIX name printed on stdout. A name 
-##       may be optionally followed by a UNIX group separated by colon. Execution 
-##       of plugin may not last longer than timeout seconds. In the arguments the 
-##       following substitutions are applied before the plugin is started:
-##          - "%D" – subject of user’s certificate,
-##          - "%P" – path to credentials’ proxy file.
-##       ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
-##       configuration. For more information about configuring LCMAPS refer to 
-##       'Using LCAS/LCMAPS' document.
-## For safety reasons it is advised to finish mapping sequence with default 
-## mapping rule to nonexistent or safe account if dynamic mapping sources are used.
-## 
+## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
+## specified authgroup are mapped to "unixname" local UNIX account that may be 
+## optionally followed by a "unixgroup" UNIX group.
 ## multivalued
 ## default: undefined
-#maprule=all unixid nobody:nobody
-#maprule=all mapfile /etc/grid-security/gridmapfile 
-#maprule=atlas simplepool /etc/grid-security/pool/atlas
-#maprule=altas mapplugin 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
-##
+#map_to_user=any nobody:nobody
+
+## map_to_pool = authgroup_name directory - the user that belong to specified 
+## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
+## are part of this pool are stored line-by-line in the file "directory/pool". 
+## Used accont names are stored in other files placed in the same directory. 
+## If a UNIX account name was not used for 10 days, it may be reassigned to another user.
+## multivalued
+## default: undefined
+#map_to_pool = atlas /etc/grid-security/pool/atlas
+
+## map_with_file = authgroup_name file - for users that belongs to specified
+## authgroup the subject of certificate is matched against a list of subjects 
+## stored in the specified "file", one per line followed by a local UNIX account 
+## name. This rule can be used to implement legacy grid-mapfile aproach.
+## multivalued
+## default: undefined
+#map_with_file = any /etc/grid-security/grid-mapfile
+
+## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
+## external "plugin" executable with specified arguments to find the UNIX account 
+## name to which users that belogns to specified authgroup will be mapped to.
+## A rule matches if the exit code is "0" and there is a UNIX account name 
+## printed on stdout (optionally followed by a UNIX group name separated by colon).
+## Plugin execution time is limited to "timeout" seconds. In the arguments 
+## the following substitutions are applied before the plugin is started:
+##   - "%D" – subject of user’s certificate,
+##   - "%P" – path to credentials’ proxy file.
+## ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
+## configuration. For more information about configuring LCMAPS refer to 
+## 'Using LCAS/LCMAPS' document.
+## For safety reasons it is also advised to finish mapping sequence with default 
+## mapping rule to nonexistent or safe account if dynamic mapping sources are used.
+## multivalued
+## default: undefined
+#map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 ##
 ### end of the [mapping] block ##############################################
 

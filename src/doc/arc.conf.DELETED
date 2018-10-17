@@ -41,7 +41,7 @@
 
 ## gridmap = path - The gridmap file location. gridmap-based mapping is not recommended any longer.
 ## CHANGE: MOVED to this block from [common]
-## CHANGE: DELETED. use maprule=all mapfile path instead.
+## CHANGE: DELETED. Use map_with_file instead.
 
 ## unixmap = [unixname][:unixgroup] rule - A more sophisticated way to map
 ## Grid identity of client to local account. If client matches 'rule'
@@ -56,7 +56,15 @@
 ## For safety reasons if sophisticated mapping is used it is better to
 ## finish mapping sequence with default mapping to nonexistent or safe
 ## account.
-## CHANGE: DELETED. use maprule=all unixid unixname[:unixgroup] instead
+## CHANGE: DELETED. Use map_to_user instaed.
+
+## unixgroupmap = authgroup rule - (previously unixgroup) Mapping rule only for users belonging to
+## specified authorization 'authgroup'. It is similar to an additional filter
+## for unixmap command which filters out all users not belonging to specified
+## authorization group. Only rules which generate unix user and group names
+## may be used in this command. Please read "ARC Computing Element System
+## Administrator Guide" for more information.
+## CHANGE: DELETED. Use map_ options that provides the same 'rule' functionality instead.
 
 ## unixlistmap = userlist_name rule - (previously unixvo) Mapping rule only for users belonging to
 ## specified userlist defined via the [userlist:name] block. 
@@ -64,7 +72,7 @@
 ## Please read "ARC Computing Element. System Administrator Guide" for more
 ## information. This command is similar to 'unixgroupmap' described above and
 ## exists for convenience for setups which base mapping on userlists.
-## CHANGE: DELETED. define authgroup with userlist and use maprule instead
+## CHANGE: DELETED. Define the authgroup with userlist and use map_ options instead.
 
 
 ### The [lrms] block ##############################################
