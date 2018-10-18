@@ -355,6 +355,20 @@ this client package contains (or depends on) all packages
 that are needed to submit jobs, query their status and
 retrieve results.
 
+%if %{with_canl}
+%package arcproxyalt
+Summary:	ARC proxy client based on canl
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+
+%description arcproxyalt
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package includes a preview of the arcproxy command based on canl.
+%endif
+
 %package hed
 Summary:	ARC Hosting Environment Daemon
 Group:		System Environment/Libraries
@@ -572,20 +586,6 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
-%if %{with_canl}
-%package arcproxyalt
-Summary:	ARC proxy client based on canl
-Group:		Applications/Internet
-Requires:	%{name} = %{version}-%{release}
-
-%description arcproxyalt
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package includes a preview of the arcproxy command based on canl.
-%endif
-
 %if %{with_xrootd}
 %package plugins-xrootd
 Summary:	ARC xrootd plugins
@@ -629,6 +629,19 @@ Connector (ARC).
 
 ARC plugins for S3. These allow access to data through the S3 protocol.
 %endif
+
+%package plugins-internal
+Summary:	ARC internal plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arex = %{version}-%{release}
+
+%description plugins-internal
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+The ARC internal plugin.
 
 %if %{with_acix}
 %package acix-core
@@ -1123,6 +1136,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 
+%if %{with_canl}
+%files arcproxyalt
+%defattr(-,root,root,-)
+%{_bindir}/arcproxyalt
+%endif
+
 %files hed
 %defattr(-,root,root,-)
 %doc docdir/hed/*
@@ -1358,7 +1377,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
-%{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccldap.so
 %{_libdir}/%{pkgdir}/libarcshc.so
@@ -1382,7 +1400,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
-%{_libdir}/%{pkgdir}/libaccINTERNAL.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
 %{_libdir}/%{pkgdir}/libaccldap.apd
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
@@ -1415,12 +1432,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
 
-%if %{with_canl}
-%files arcproxyalt
-%defattr(-,root,root,-)
-%{_bindir}/arcproxyalt
-%endif
-
 %if %{with_xrootd}
 %files plugins-xrootd
 %defattr(-,root,root,-)
@@ -1441,6 +1452,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libdmcs3.so
 %{_libdir}/%{pkgdir}/libdmcs3.apd
 %endif
+
+%files plugins-internal
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccINTERNAL.so
+%{_libdir}/%{pkgdir}/libaccINTERNAL.apd
 
 %if %{with_python}
 %files -n python2-%{name}

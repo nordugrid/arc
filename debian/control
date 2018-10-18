@@ -175,6 +175,16 @@ Description: ARC Globus plugins
  Management Components (DMCs). These plugins are needed for most
  traditional Grid infrastructures.
 
+Package: nordugrid-arc-plugins-internal
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-arex (= ${binary:Version})
+Description: ARC internal plugin
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The ARC internal plugin.
+
 Package: nordugrid-arc-acix-core
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-twisted-core, python-twisted-web, python-openssl
