@@ -300,29 +300,12 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             hostname=rest;
           };
         } else if(cf.SectionNum() == cfgsec_mapping_n) {
-          if(command == "unixmap") {  /* map to local unix user */
-            if(!user.mapped()) {
-              if(user.mapname(rest.c_str()) == AAA_FAILURE) {
-                user.user.clear_groups(); nodes.clear();
-                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-                return 1;
-              };
-            };
-          } else if(command == "unixgroupmap") {  /* map to local unix user */
-            if(!user.mapped()) {
-              if(user.mapgroup(rest.c_str()) == AAA_FAILURE) {
-                user.user.clear_groups(); nodes.clear();
-                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-                return 1;
-              };
-            };
-          } else if(command == "unixlistmap") {  /* map to local unix user */
-            if(!user.mapped()) {
-              if(user.mapvo(rest.c_str()) == AAA_FAILURE) {
-                user.user.clear_groups(); nodes.clear();
-                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-                return 1;
-              };
+          // Only mapping functionality left is "unixgroupmap". And it is not indicated explicitely.
+          if(!user.mapped()) {
+            if(user.mapgroup(command.c_str(), rest.c_str()) == AAA_FAILURE) {
+              user.user.clear_groups(); nodes.clear();
+              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+              return 1;
             };
           };
         };

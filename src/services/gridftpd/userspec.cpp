@@ -30,44 +30,6 @@ userspec_t::~userspec_t(void) {
   userspec_t::free();
 }
 
-bool check_gridmap(const char* dn,char** user,const char* mapfile) {
-  std::string globus_gridmap;
-  if(mapfile) {
-    globus_gridmap=mapfile;
-  }
-  else {
-    char* tmp=getenv("GRIDMAP");
-    globus_gridmap=tmp?tmp:"";
-  };
-  if(!globus_gridmap.empty()) {
-    std::ifstream f(globus_gridmap.c_str());
-    if(!f.is_open() ) {
-      logger.msg(Arc::ERROR, "Mapfile is missing at %s", globus_gridmap);
-      return false;
-    };
-    for(;f.good();) {
-      std::string buf;
-      getline(f,buf);
-      char* p = &buf[0];
-      for(;*p;p++) if(((*p) != ' ') && ((*p) != '\t')) break;
-      if((*p) == '#') continue;
-      if((*p) == 0) continue;
-      std::string val;
-      int n = Arc::ConfigIni::NextArg(p,val,' ','"');
-      if(strcmp(val.c_str(),dn) != 0) continue;
-      p+=n;
-      if(user) {
-        n=Arc::ConfigIni::NextArg(p,val,' ','"');
-        *user=strdup(val.c_str());
-      };
-      f.close();
-      return true;
-    };
-    f.close();
-  };
-  return false;
-}
-
 bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle, const char* cfg) {
   struct passwd pw_;
   struct group gr_;
@@ -80,23 +42,6 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   if(auth->auth_gssapi_subject == NULL) return false;
   std::string subject;
   Arc::ConfigIni::NextArg(auth->auth_gssapi_subject,subject,'\0','\0');
-  char* name=NULL;
-  char* gname=NULL;
-  if(!check_gridmap(subject.c_str(),&name)) {
-    logger.msg(Arc::INFO, "There is no local initial mapping for user");
-  } else {
-    if((name == NULL) || (name[0] == 0)) {
-      logger.msg(Arc::INFO, "There is no local initial name for user");
-      if(name) { std::free(name); name=NULL; };
-    } else {
-      gname = strchr(name,':');
-      if(gname) {
-        *gname = 0;
-        ++gname;
-        if(gname[0] == 0) gname = NULL;
-      };
-    };
-  };
   // fill host info
   if(handle) {
     //int host[4] = {0,0,0,0};
@@ -139,33 +84,16 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   } else {
     logger.msg(Arc::VERBOSE, "Proxy/credentials stored at %s", user.proxy());
   };
-  if((getuid() == 0) && name) {
-    logger.msg(Arc::INFO, "Initially mapped to local user: %s", name);
-    getpwnam_r(name,&pw_,bufp,BUFSIZ,&pw);
-    if(pw == NULL) {
-      logger.msg(Arc::ERROR, "Local user %s does not exist",name);
-      std::free(name); name=NULL;
-      return false;
-    };
-    if(gname) {
-      logger.msg(Arc::INFO, "Initially mapped to local group: %s", gname);
-      getgrnam_r(gname,&gr_,bufg,BUFSIZ,&gr);
-      if(gr == NULL) {
-        logger.msg(Arc::ERROR, "Local group %s does not exist",gname);
-        std::free(name); name=NULL;
-        return false;
-      };
-    };
+  
+  char* name=NULL;
+  getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
+  if(pw == NULL) {
+    logger.msg(Arc::WARNING, "Running user has no name");
   } else {
-    if(name) std::free(name); name=NULL; gname=NULL;
-    getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
-    if(pw == NULL) {
-      logger.msg(Arc::WARNING, "Running user has no name");
-    } else {
-      name=strdup(pw->pw_name);
-      logger.msg(Arc::INFO, "Mapped to running user: %s", name);
-    };
+    name=strdup(pw->pw_name);
+    logger.msg(Arc::INFO, "Mapped to running user: %s", name);
   };
+ 
   if(pw) {
     uid=pw->pw_uid;
     if(gr) {
@@ -181,12 +109,7 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
         logger.msg(Arc::ERROR, "No group %i for mapped user", gid);
       };
     };
-    std::string mapstr;
-    if(name) mapstr+=name;
-    mapstr+=":";
-    if(gr) mapstr+=gr->gr_name;
-    mapstr+=" all";
-    default_map.mapname(mapstr.c_str());
+    default_map.setunixuser(name?name:"", gr?gr->gr_name:"");
     logger.msg(Arc::INFO, "Mapped to local group id: %i", gid);
     if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::VERBOSE, "Mapped user's home: %s", home);
@@ -204,58 +127,23 @@ bool userspec_t::fill(AuthUser& u, const char* cfg) {
   char bufp[BUFSIZ];
   char bufg[BUFSIZ];
   std::string subject = u.DN();
-  char* name=NULL;
-  char* gname=NULL;
   if(cfg) config_file = cfg;
-  if(!check_gridmap(subject.c_str(),&name)) {
-    logger.msg(Arc::INFO, "There is no local initial mapping for user");
-    name=NULL;
-  } else {
-    if((name == NULL) || (name[0] == 0)) {
-      logger.msg(Arc::INFO, "There is no local initial name for user");
-      if(name) { std::free(name); name=NULL; };
-    } else {
-      gname = strchr(name,':');
-      if(gname) {
-        *gname = 0;
-        ++gname;
-        if(gname[0] == 0) gname = NULL;
-      };
-    };
-  };
   user=u;
   if((!user.is_proxy()) || (user.proxy() == NULL) || (user.proxy()[0] == 0)) {
     logger.msg(Arc::INFO, "No proxy provided");
   } else {
     logger.msg(Arc::INFO, "Proxy stored at %s", user.proxy());
   };
-  if((getuid() == 0) && name) {
-    logger.msg(Arc::INFO, "Initially mapped to local user: %s", name);
-    getpwnam_r(name,&pw_,bufp,BUFSIZ,&pw);
-    if(pw == NULL) {
-      logger.msg(Arc::ERROR, "Local user does not exist");
-      std::free(name); name=NULL;
-      return false;
-    };
-    if(gname) {
-      logger.msg(Arc::INFO, "Initially mapped to local group: %s", gname);
-      getgrnam_r(gname,&gr_,bufg,BUFSIZ,&gr);
-      if(gr == NULL) {
-        logger.msg(Arc::ERROR, "Local group %s does not exist",gname);
-        std::free(name); name=NULL;
-        return false;
-      };
-    };
+  
+  char* name=NULL;
+  getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
+  if(pw == NULL) {
+    logger.msg(Arc::WARNING, "Running user has no name");
   } else {
-    if(name) std::free(name); name=NULL; gname=NULL;
-    getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
-    if(pw == NULL) {
-      logger.msg(Arc::WARNING, "Running user has no name");
-    } else {
-      name=strdup(pw->pw_name);
-      logger.msg(Arc::INFO, "Mapped to running user: %s", name);
-    };
+    name=strdup(pw->pw_name);
+    logger.msg(Arc::INFO, "Mapped to running user: %s", name);
   };
+  
   if(pw) {
     uid=pw->pw_uid;
     if(gr) {
@@ -271,12 +159,7 @@ bool userspec_t::fill(AuthUser& u, const char* cfg) {
         logger.msg(Arc::INFO, "No group %i for mapped user", gid);
       };
     };
-    std::string mapstr;
-    if(name) mapstr+=name;
-    mapstr+=":";
-    if(gr) mapstr+=gr->gr_name;
-    mapstr+=" all";
-    default_map.mapname(mapstr.c_str());
+    default_map.setunixuser(name?name:"", gr?gr->gr_name:"");
     logger.msg(Arc::INFO, "Mapped to local group id: %i", pw->pw_gid);
     if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::INFO, "Mapped user's home: %s", home);
@@ -354,23 +237,23 @@ bool userspec_t::refresh(void) {
   return true;
 }
 
-AuthResult userspec_t::mapname(const char* line) {
-  AuthResult res = map.mapname(line);
+//AuthResult userspec_t::mapname(const char* line) {
+//  AuthResult res = map.mapname(line);
+//  if(res == AAA_POSITIVE_MATCH) refresh();
+//  return res;
+//}
+
+AuthResult userspec_t::mapgroup(const char* rule, const char* line) {
+  AuthResult res = map.mapgroup(rule, line);
   if(res == AAA_POSITIVE_MATCH) refresh();
   return res;
 }
 
-AuthResult userspec_t::mapgroup(const char* line) {
-  AuthResult res = map.mapgroup(line);
-  if(res == AAA_POSITIVE_MATCH) refresh();
-  return res;
-}
-
-AuthResult userspec_t::mapvo(const char* line) {
-  AuthResult res = map.mapvo(line);
-  if(res == AAA_POSITIVE_MATCH) refresh();
-  return res;
-}
+//AuthResult userspec_t::mapvo(const char* line) {
+//  AuthResult res = map.mapvo(line);
+//  if(res == AAA_POSITIVE_MATCH) refresh();
+//  return res;
+//}
 
 const char* userspec_t::get_uname(void) {
   const char* name = NULL;
