@@ -35,7 +35,7 @@ namespace Arc {
   static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
-      service = "https://" + service;
+      service = "https://" + service + "/arex";
     } else {
       std::string proto = lower(service.substr(0,pos1));
       if((proto != "http") && (proto != "https")) return URL();
