@@ -16,11 +16,6 @@ namespace Arc {
 
   Logger JobListRetrieverPluginWSRFCREAM::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFCREAM");
 
-  bool JobListRetrieverPluginWSRFCREAM::isEndpointNotSupported(const Endpoint& endpoint) const {
-    const std::string::size_type pos = endpoint.URLString.find("://");
-    return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "http" && lower(endpoint.URLString.substr(0, pos)) != "https";
-  }
-
   EndpointQueryingStatus JobListRetrieverPluginWSRFCREAM::Query(const UserConfig& uc, const Endpoint& e, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
     URL url((e.URLString.find("://") == std::string::npos ? "https://" : "") + e.URLString, false, 8443);

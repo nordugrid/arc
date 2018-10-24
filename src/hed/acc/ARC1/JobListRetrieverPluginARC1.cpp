@@ -14,30 +14,6 @@ namespace Arc {
 
   Logger JobListRetrieverPluginARC1::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
 
-  bool JobListRetrieverPluginARC1::isEndpointNotSupported(const Endpoint& endpoint) const {
-    const std::string::size_type pos = endpoint.URLString.find("://");
-    if (pos != std::string::npos) {
-      const std::string proto = lower(endpoint.URLString.substr(0, pos));
-      return ((proto != "http") && (proto != "https"));
-    }
-    
-    return false;
-  }
-
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "https://" + service + "/arex";
-    } else {
-      std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
-    }
-    // Default port other than 443?
-    // Default path?
-    
-    return service;
-  }
-
   EndpointQueryingStatus JobListRetrieverPluginARC1::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
