@@ -343,7 +343,7 @@
 ## If a UNIX account name was not used for 10 days, it may be reassigned to another user.
 ## multivalued
 ## default: undefined
-#map_to_pool = atlas /etc/grid-security/pool/atlas
+#map_to_pool=atlas /etc/grid-security/pool/atlas
 
 ## map_with_file = authgroup_name file - for users that belongs to specified
 ## authgroup the subject of certificate is matched against a list of subjects 
@@ -351,7 +351,7 @@
 ## name. This rule can be used to implement legacy grid-mapfile aproach.
 ## multivalued
 ## default: undefined
-#map_with_file = any /etc/grid-security/grid-mapfile
+#map_with_file=any /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
 ## external "plugin" executable with specified arguments to find the UNIX account 
@@ -868,7 +868,6 @@
 ## pidfile = path - Specify location of file containing PID of daemon process.
 ## default: /var/run/arc/arex.pid
 #pidfile=/var/run/run/arex.pid
-## TODO: modified pid file location and name
 
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
@@ -890,7 +889,6 @@
 #helper=. /usr/local/bin/myutility
 
 ## helperlog = path - Configuration option to specify the location of log for helpers.
-## TODO: check if not in controldir
 ## default: /var/log/arc/job.helper.errors
 #helperlog=/var/log/arc/job.helper.errors
 ## CHANGE: new parameter
@@ -1053,7 +1051,6 @@
 ## These variable are similar to the Globus enviroment variables
 ## "GLOBUS_TCP_PORT_RANGE" and "GLOBUS_UDP_PORT_RANGE".
 ## default: 9000,9300
-## TODO: test if a space such as "9000, 9300" brakes gridftp in ARC? 
 #globus_tcp_port_range=9000,12000
 ## CHANGE: moved here
 
@@ -1275,7 +1272,6 @@
 ## user access.
 ## The matching group is also used for evaluating VOMS attributes representing the user.
 ## default: undefined
-## TODO: check who is authorized in case of no gridmapfile and empty allowaccess
 #allowaccess=biousers atlasusers
 ## CHANGE: new parameter in the EMIES block
 
@@ -1331,7 +1327,6 @@
 ## The CandyPond service is available via the wsurl/candypond URL
 ## (e.g. https://hostname:443/arex/candypond)
 ##
-## TODO: revise packaging now that it is NOT a separate, independent service.
 #[arex/ws/candypond]
 ## CHANGE: NEW block, renamed service
 ##
@@ -1506,7 +1501,6 @@
 ## "usagerecord<Type>.<jobid>.<random>".
 ## Here Type is one of the supported record formats such as OGFUR or CAR.
 ## default: /var/spool/arc/jura/archive
-## TODO: create the directory
 #archivedir=/var/spool/arc/jura/archive
 ## CHANGE: NEW
 ##
@@ -1813,7 +1807,6 @@
 ## If this parameter is not set, then no additional restrictions are applied for authorizing
 ## user access.
 ## The matching group is also used for evaluating VOMS attributes representing the user.
-## TODO: check what happens if no gridmapfile used with empty value
 ## default: undefined
 #allowaccess=biousers atlasusers
 ## CHANGE: renamed
@@ -2295,7 +2288,7 @@
 #cluster_owner=World Grid Project
 #cluster_owner=University of NeverLand
 
-## advertisedvo  = vo_name - (previously authorizedvo) This attribute is used to advertise 
+## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise 
 ## which VOs are authorized on the cluster.
 ## Add only one VO for each advertisedvo entry. Multiple VOs in the same line
 ## will cause errors.
@@ -2565,7 +2558,7 @@
 #allowaccess=biousers atlasusers
 ## CHANGE: NEW parameter in the [queue:name] block
 
-## advertisedvo  = vo_name - (previously authorizedvo) This attribute is used to advertise 
+## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise 
 ## which VOs are authorized on the [queue:name] of the cluster.
 ## Add only one VO for each advertiseddvo entry. Multiple VOs in the same line
 ## will cause errors.
@@ -2628,7 +2621,6 @@
 #transfer_dir=/shared/arc/cache
 #transfer_dir=/shared/arc/session
 ## CHANGE: NEW, also renamed from allowed_dir to work_dir 
-## TODO renamed
 
 ## hostname = FQDN - The hostname of the machine on which DDS service runs.
 ## default: $EXEC{hostname -f}
@@ -3014,7 +3006,6 @@
 ## cachedir = path - Specifies the path where cached sources will be stored.
 ## default: /var/spool/arc/gridmapcache/
 #cachedir=/var/spool/arc/gridmapcache/
-## TODO changed file location
 
 ## cachetime = seconds - Controls how long (in seconds) the cached information
 ## remains valid. Default is 259200 (3 days).
@@ -3062,7 +3053,6 @@
 ## default: 2
 #loglevel=4
 ## CHANGE: renamed as loglevel
-## TODO set default to 2
 
 ## fetch_timeout = seconds - Controls how many time (in seconds) nordugridmap will
 ## wait for external sources retrieval.
