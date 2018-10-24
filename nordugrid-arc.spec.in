@@ -922,13 +922,6 @@ make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
-# arc.conf.reference needs special handling
-make -C src/doc DESTDIR=$RPM_BUILD_ROOT install-exampleDATA
-
-# Link to arc.conf.reference from doc
-rm -f $PWD/docdir/arc.conf.reference
-ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -1037,7 +1030,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc docdir/arc.conf.reference README AUTHORS LICENSE NOTICE ChangeLog
+%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
+%doc README AUTHORS LICENSE NOTICE ChangeLog
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1086,8 +1080,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
-%dir %{_datadir}/%{pkgdir}/examples
-%{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
