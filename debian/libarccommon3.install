@@ -41,7 +41,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/control/TestCA.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ThirdPartyDeployment.py*
 
 debian/tmp/usr/share/arc/arc.parser.defaults
-debian/tmp/usr/share/arc/examples/arc.conf.reference
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo
 debian/tmp/usr/share/arc/test-jobs/test-job-*

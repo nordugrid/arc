@@ -146,7 +146,7 @@ binary-arch: install
 	dh_lintian -a $(N)
 	dh_link -a $(N)
 	dh_strip -a $(N)
-	dh_compress -a $(N) -X .pdf
+	dh_compress -a $(N) -X .pdf -X arc.conf
 	dh_fixperms -a $(N)
 	dh_makeshlibs -a $(N)
 	dh_installdeb -a $(N)
