@@ -8,16 +8,15 @@
 #include <arc/UserConfig.h>
 
 #include <arc/compute/EntityRetriever.h>
-#include <arc/compute/WSCommonPlugin.h>
 
 namespace Arc {
 
 class EndpointQueryingStatus;
 class Logger;
 
-class ServiceEndpointRetrieverPluginEMIR : public WSCommonPlugin<ServiceEndpointRetrieverPlugin> {
+class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin {
 public:
-  ServiceEndpointRetrieverPluginEMIR(PluginArgument* parg): WSCommonPlugin<ServiceEndpointRetrieverPlugin>(parg) {
+  ServiceEndpointRetrieverPluginEMIR(PluginArgument* parg): ServiceEndpointRetrieverPlugin(parg) {
     supportedInterfaces.push_back("org.nordugrid.emir");
     maxEntries = 5000;
   }
@@ -28,6 +27,7 @@ public:
                                        const Endpoint& rEndpoint,
                                        std::list<Endpoint>&,
                                        const EndpointQueryOptions<Endpoint>&) const;
+  virtual bool isEndpointNotSupported(const Endpoint&) const;
 
 private:
   static Logger logger;
