@@ -24,6 +24,7 @@ debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
 debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/paths_dist.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/config.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils/reference.py*
