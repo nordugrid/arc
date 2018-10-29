@@ -1,25 +1,9 @@
 import os
 import logging
 from arc.utils import config
+from arc.paths import *
 
 logger = logging.getLogger('ARCCTL.Common')
-
-try:
-    from arc import paths
-    ARC_LOCATION = paths.ARC_LOCATION
-    ARC_LIBEXEC_DIR = paths.ARC_LIBEXEC_DIR
-    ARC_DATA_DIR = paths.ARC_DATA_DIR
-except ImportError:
-    paths = None
-    logger.error('There are no installation specific paths defined. '
-                 'It seams you are running arcctl without autoconf - hardcoded defaults will be used.')
-
-    ARC_LOCATION = '/usr'
-    if 'ARC_LOCATION' in os.environ:
-        ARC_LOCATION = os.environ['ARC_LOCATION']
-
-    ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc'
-    ARC_DATA_DIR = ARC_LOCATION + '/share/arc'
 
 
 def get_parsed_arcconf(config_file):

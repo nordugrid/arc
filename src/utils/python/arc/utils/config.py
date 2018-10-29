@@ -4,6 +4,7 @@ import re
 import sys
 import os
 import subprocess
+from arc.paths import *
 
 # init module logger
 logger = logging.getLogger('ARC.ConfigParserPy')
@@ -12,20 +13,6 @@ log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
-
-# set relevant paths
-try:
-    from arc import paths
-    ARC_CONF = paths.ARC_CONF
-    ARC_DATA_DIR = paths.ARC_DATA_DIR
-    ARC_RUN_DIR = paths.ARC_RUN_DIR
-except ImportError:
-    paths = None
-    logger.error('There are no installation specific paths defined. '
-                 'It seams you are running config parser without autoconf - hardcoded defaults will be used.')
-    ARC_CONF = '/etc/arc.conf'
-    ARC_DATA_DIR = '/usr/share/arc'
-    ARC_RUN_DIR = '/var/run/arc'
 
 # module-wise data structures to store parsed configs
 __parsed_config = {}

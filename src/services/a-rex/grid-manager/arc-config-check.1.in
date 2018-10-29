@@ -15,7 +15,7 @@ arc-config-check [--config CONFIG] [--timeserver NTPHOST] [--skip-warnings] [--p
 The \fBarc-config-check\fR utility is included into \fBarc-arex\fR
 startup process or can be run separately.
 
-It checks \fBarc.conf (5)\fR compies to \fBarc.conf.reference\fR 
+It checks \fBarc.conf (5)\fR complies to \fBarc.conf.reference\fR 
 syntax, indicates directories that are not present, checks host certificates, 
 CA certificates and CRLs, validates the sanity of ARC configuration,
 tests for clock skew, etc.
@@ -52,8 +52,7 @@ Detailed man page.
 APACHE LICENSE Version 2.0
 
 .SH FILES
-.I /etc/arc.conf,
-.I @pkgdatadir@/examples/arc.conf.reference
+.I /etc/arc.conf
 
 .SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org/
