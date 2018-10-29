@@ -6,6 +6,7 @@
 #include <list>
 
 #include <arc/compute/EntityRetriever.h>
+#include <arc/compute/WSCommonPlugin.h>
 
 namespace Arc {
 
@@ -13,17 +14,16 @@ namespace Arc {
   class Logger;
   class UserConfig;
 
-  class TargetInformationRetrieverPluginBES : public TargetInformationRetrieverPlugin {
+  class TargetInformationRetrieverPluginBES : public WSCommonPlugin<TargetInformationRetrieverPlugin> {
   public:
     TargetInformationRetrieverPluginBES(PluginArgument *parg):
-        TargetInformationRetrieverPlugin(parg) {
+        WSCommonPlugin<TargetInformationRetrieverPlugin>(parg) {
       supportedInterfaces.push_back("org.ogf.bes");
     };
     ~TargetInformationRetrieverPluginBES() {};
 
     static Plugin* Instance(PluginArgument *arg) { return new TargetInformationRetrieverPluginBES(arg); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<ComputingServiceType>&, const EndpointQueryOptions<ComputingServiceType>&) const;
-    virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:
     static Logger logger;
