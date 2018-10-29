@@ -15,9 +15,9 @@ use strict;
 use POSIX;
 our @ISA = ('Exporter');
 our @EXPORT_OK = ('cluster_info',
-	      'queue_info',
-	      'jobs_info',
-	      'users_info');
+            'queue_info',
+            'jobs_info',
+            'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use condor_env;
 
@@ -217,8 +217,8 @@ sub condor_grep_nodes {
 #   2 (Suspended)  --> S (an already running job in a suspended state)
 #   3 (Removed)    --> E (finishing in the LRMS)
 #   4 (Completed)  --> E (finishing in the LRMS)
-#   5 (Held) (HoldReasonCode == 16) --> H --> O (Jobs in staging are put in the HOLD state)
-#   5 (Held)       --> H --> E (Hold jobs to be discarded as they will not progress)
+#   5 (Held)       --> H --> S ( some jobs are stuck in the queue)
+#                  --> H --> O if HoldReasonCode == 16  jobs are datastaging
 #   6 (Transfer)   --> O (other, almost finished. Transferring output.)
 #   7 (Suspended)  --> S (newer condor version support suspended)
 #
@@ -235,7 +235,9 @@ sub condor_get_job_status($) {
         $s = 'S' if condor_job_suspended($id);
     }
     # Takes care of HOLD jobs
-    $s = condor_job_hold_substate($id) if ($s eq 'H');
+    if ($s eq 'H') {
+        $s = condor_job_hold_isstaging($id) ? 'O' : 'S';
+    }
 
     debug "===condor_get_job_status $id: $s";
     return $s;
@@ -431,9 +433,10 @@ sub condor_job_suspended($) {
 # Returns: E if the job is in a terminal state, O if not.
 #
 
-sub condor_job_hold_substate($) {
+sub condor_job_hold_isstaging($) {
     my $id = shift;
-    return 'E' unless $alljobdata{$id};
+    return 0 unless $alljobdata{$id};
+    return 1 if ($alljobdata{$id}{lc 'HoldReasonCode'} == '16');
     
     # E state means the job will not exit the HOLD state.
     # O state means the job can be out of the HOLD state.
