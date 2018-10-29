@@ -2534,7 +2534,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/python/arcctl
                  src/utils/python/arcctl.1
                  src/utils/python/arc/Makefile
-                 src/utils/python/arc/paths.py
+                 src/utils/python/arc/gen_paths_dist.sh
                  src/utils/python/arc/utils/Makefile
                  src/utils/python/arc/control/Makefile
                  src/utils/hed/wsdl2hed.1

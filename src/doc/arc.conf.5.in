@@ -12,7 +12,7 @@ http://www.nordugrid.org/documents/arc-ui.pdf
 .PP
 This man page IS NOT the ultimate source of information about \fBarc.conf\fR.
 The reference documentation containing all configuration option description is 
-\fBarc.conf.reference\fR file that can be found in \fB@pkgdatadir@/examples\fR.
+\fBarc.conf.reference\fR file that can be found in \fB@prefix@/@pkgdatasubdir@/doc\fR.
 .PP
 To get inline help about particular configuration option use \fBarcctl (1)\fR
 tool.
@@ -67,7 +67,6 @@ Note that the arc.conf is CASE-SENSITIVE!
 .SH FILES
 .I /etc/arc.conf, 
 .I ${ARC_LOCATION}/etc/arc.conf, 
-.I @pkgdatadir@/examples/arc.conf.reference
 
 .SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org/

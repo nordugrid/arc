@@ -173,7 +173,7 @@ class ConfigControl(ComponentControl):
 
         config_describe = config_actions.add_parser('describe', help='Describe configuration option')
         add_block_and_option_to_parser(config_describe)
-        config_describe.add_argument('-r', '--reference', default=ARC_DATA_DIR+'/examples/arc.conf.reference',
+        config_describe.add_argument('-r', '--reference', default=ARC_DOC_DIR+'/arc.conf.reference',
                                      help='Redefine arc.conf.reference location (default is %(default)s)')
 
         config_set = config_actions.add_parser('set', help='Change configuration option value')
@@ -181,7 +181,7 @@ class ConfigControl(ComponentControl):
         config_set.add_argument('value', nargs='+', help='Configuration option value')
         config_set.add_argument('-o', '--override', action='store_true',
                                 help='For multivalued options override config values (default is add another one)')
-        config_set.add_argument('-r', '--reference', default=ARC_DATA_DIR + '/examples/arc.conf.reference',
+        config_set.add_argument('-r', '--reference', default=ARC_DOC_DIR + '/arc.conf.reference',
                                 help='Redefine arc.conf.reference location (default is %(default)s)')
         config_set.add_argument('--dry-run', action='store_true',
                                 help='Write the modified config to stdout instead of changing the file')

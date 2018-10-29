@@ -245,8 +245,8 @@ ARC Server Setup & Configuration
 The configuration of the ARC server is specified in a file which by default
 is at /etc/arc.conf. A different location can be specified by the ARC_CONFIG
 environment variable. For configuration details and examples please refer to
-the reference in share/arc/arc.conf.reference or the service manual of the
-particular services you wish to run.
+the reference in share/doc/nordugrid-arc/arc.conf.reference or the service 
+manual of the particular services you wish to run.
 
 
 
