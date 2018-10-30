@@ -1,4 +1,4 @@
-EXTRA_DIST = __init__.py gen_paths_dist.sh
+EXTRA_DIST = __init__.py gen_paths_dist.sh.in
 
 pkgpythondir = $(PYTHON_SITE_ARCH)/arc
 pkgpython_PYTHON = paths.py paths_dist.py
