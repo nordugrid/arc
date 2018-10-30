@@ -31,6 +31,13 @@ build_forks_el6:
       - dev-ARC6
       - branches@nordugrid/arc
       - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
 
 
@@ -50,6 +57,14 @@ build_forks_el7:
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - Computerome
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
   except:
     refs:
       - master
@@ -85,6 +100,14 @@ build_forks_deb9:
       - dev-ARC6
       - branches@nordugrid/arc
       - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
   allow_failure: false
 
 
