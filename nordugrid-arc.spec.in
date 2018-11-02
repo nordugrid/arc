@@ -1070,6 +1070,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{python3_sitearch}/%{pkgdir}/__pycache__
 %{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths.*
+%{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
 %{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/control
 %else
