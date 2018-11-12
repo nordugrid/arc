@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .CertificateGenerator import CertificateGenerator, CertificateKeyPair
-from .OSService import OSServiceManagement
 import subprocess
 import socket
 import sys
@@ -14,7 +13,6 @@ import datetime
 import tarfile
 import pwd
 import zlib
-import re
 from contextlib import closing
 
 
@@ -78,6 +76,20 @@ class TestCAControl(ComponentControl):
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
+
+    def cleanup_files(self):
+        # CA certificates dir
+        if not os.path.exists(self.x509_cert_dir):
+            self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
+            os.makedirs(self.x509_cert_dir, mode=0o755)
+        # CA files cleanup
+        cg = CertificateGenerator(self.x509_cert_dir)
+        cg.cleanupCAfiles(self.caName)
+        # hostcert/key and auth files cleanup
+        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile):
+            if os.path.exists(f):
+                self.logger.debug('Removing the file: %s', f)
+                os.unlink(f)
 
     def signhostcert(self, args):
         ca = CertificateKeyPair(self.caKey, self.caCert)
@@ -215,6 +227,8 @@ class TestCAControl(ComponentControl):
     def control(self, args):
         if args.action == 'init':
             self.createca(args)
+        elif args.action == 'cleanup':
+            self.cleanup_files()
         elif args.action == 'hostcert':
             self.signhostcert(args)
         elif args.action == 'usercert':
@@ -234,6 +248,8 @@ class TestCAControl(ComponentControl):
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
         testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+
+        testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
 
         testca_host = testca_actions.add_parser('hostcert', help='Generate and sign testing host certificate')
         add_parser_digest_validity(testca_host, 30)
