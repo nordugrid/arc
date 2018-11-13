@@ -821,25 +821,35 @@
 ## default: 5
 #maxrerun=5
 
-## statecallout = state options plugin_path - (previously authplugin) This parameter
-## enables a callout feature of A-REX: every time job goes to "state" A-REX
-## will run "plugin_path" executable. 
-## Options consist of "key=value" pairs separated by ",". Possible keys are:
-##   timeout
-##     wait for result no longer that 'value' seconds, (timeout= can be omitted).
-##   onsuccess, onfailure, ontimeout
-##     what to do if plugin exited with exit code 0, not 0, timeout achieved. 
-## Possible actions are:
-##   pass
-##     continue executing job,
-##   fail
-##     cancel job,
-##   log
-##     write to log fail about problem and continue executing job.
+## statecallout = state options plugin_path [plugin_arguments] - (previously authplugin) 
+## Enables a callout feature of A-REX: every time job goes to "state" A-REX
+## will run "plugin_path" executable.
+## Options consist of "key=value" pairs separated by comma. Possible keys are:
+##   "timeout"
+##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
+##   "onsuccess", "onfailure", "ontimeout"
+##      defines the action that A-REX should take on succesfull execution (exit code 0), 
+##      failed execution (exit code is not 0) or execution timeout respectively:
+##        - "pass" - continue executing job,
+##        - "fail" - cancel job,
+##        - "log" - write to log about the failure and continue executing job.
+## It is possible to use following sugstitutions to construct plugin command line:
+##   - "%R" - session root (value of sessiondir in [arex] block)
+##   - "%C" - controldir path
+##   - "%U" - username of mapped UNIX account
+##   - "%u" - numeric UID of mapped UNIX account
+##   - "%g" - numeric GID of mapped UNIX account
+##   - "%H" - home directory of mapped UNIX account as specified in "/etc/passwd"
+##   - "%Q" - default queue (see "lrms" configuration option in [lrms] block)
+##   - "%L" - LRMS name (see "lrms" configuration option in [lrms] block)
+##   - "%W" – ARC installation path (corresponds to the "ARC_LOCATION" environmental variable)
+##   - "%F" - path to configuration file for this instance
+##   - "%I" - job ID (substituted in runtime)
+##   - "%S" - job state (substituted in runtime)
+## Plugins included into ARC distribution:
+##   - "arc-blahp-logger" - write accounting log for every finished job in BLAH format
 ## multivalued
 ## default: undefined
-## arc-blahp-logger: a statecallout plugin shipped with ARC: it's purpose is to write
-## accounting log for every finished job in BLAH format.
 #statecallout=FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy
 ## CHANGE: renamed from authplugin
 
