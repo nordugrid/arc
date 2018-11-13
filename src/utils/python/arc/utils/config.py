@@ -49,9 +49,12 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     """General entry point for parsing arc.conf (with defaults substitutions if defined)"""
     # parse /etc/arc.conf first
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
-    # save parsed dictionary keys that holds original arc.conf values
+    # pre-processing of values
+    _process_config()
+    # save parsed dictionary keys that holds arc.conf values without defaults
     for block, options_dict in __parsed_config.items():
         __parsed_config_admin_defined.update({block: options_dict.keys()})
+    # defaults processing
     if defaults_f is not None:
         if os.path.exists(defaults_f):
             # parse defaults
@@ -192,6 +195,21 @@ def _conf_substitute_eval(optstr):
         except NameError as err:
             logger.error('Wrong identifiers to evaluate %s: %s', ev.group(0), str(err))
     return subst, optstr
+
+
+def _process_config():
+    """Process configuration options and conditionally modify values"""
+    # Allow to specify name-based loglevel values in arc.conf and replace them by numeric to be used by ARC services
+    str_loglevels = {'DEBUG': 5, 'VERBOSE': 4, 'INFO': 3, 'WARNING': 2, 'ERROR': 1, 'FATAL': 0}
+    for block in __parsed_blocks:
+        optdict = __parsed_config[block]
+        if 'loglevel' in optdict:
+            loglevel_value = optdict['loglevel']
+            if loglevel_value in str_loglevels.keys():
+                loglevel_num_value = str_loglevels[loglevel_value]
+                logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
+                             loglevel_value, loglevel_num_value, block)
+                optdict['loglevel'] = loglevel_num_value
 
 
 def _merge_defults():

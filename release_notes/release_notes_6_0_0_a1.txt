@@ -17,16 +17,32 @@ Next step is to deploy this first test release on other sites, more sites deploy
 
 Improvements and new features
 -----------------------------
-* Major configuration changes
-    * Configuration has been cleaned up, regrouped and made more streamlined. 
-* ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup. Automatically installed with ARC, including test-CA and test host certificate for immediate test submission. 
-* A new control tool: arcctl has been developed. With this tool you can handle the configuration, the runtime environment, the jobs, and many other things related to running an ARC CE.
-* ARC now operates with a so-called running configuration which is based on arc.conf (which is to be manually edited by the system administrator) but in addition includes any unchanged default values present in ARC. You can get a dump of the running configuration using the arcctl tool. 
-* Default values have had a big tidy up and are now handled consistently throughout ARC. 
+
+* Major server-side configuration changes
+** Configuration has been cleaned up, regrouped and made more streamlined.
+** ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup. Automatically installed with ARC, including test-CA and test host certificate for immediate test submission.
+
+** ARC now operates with a so-called running configuration which is based on arc.conf (which is to be manually edited by the system administrator) but in addition includes any unchanged default values present in ARC. You can get a dump of the running configuration using the arcctl tool.
+** Default values have had a big tidy up and are now handled consistently throughout ARC.
+
+* The RTE framework has got a redesigned architecture and largely extended functionality (default, installed, enabled RTEs, introduction of RTE prameters)
+
+* A new server-side control tool: arcctl has been developed. With this tool you can handle the configuration, the RTEs, the jobs, and many other things related to running an ARC CE.
+
+* Two new submission interfaces have been included:
+ ** The REST interface - enabled together with the A-Rex Web-Service.
+ ** The INTERNAL interface - a special interface aimed for restrictive HPC sites, to be used with a local installation of the ARC Control Tower.
+
+
+* ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS
+
 * Packaging has been restructured:
-   * Streamlined package name scheme
-   * ldap services have been separated out, as for instance WS and INTERNAL submission do not need ldap.
-   * The new INTERNAL submission plugin is separately packaged. This plugin is for use together with the ARC Control Tower in a special ARC mode. 
+** Streamlined package name scheme
+** ldap services have been separated out, as for instance WS and INTERNAL submission do not need ldap.
+** The INTERNAL submission plugin is separately packaged.
+
+
+
 
 
 Documentation
@@ -46,7 +62,7 @@ We are working on cleaning up the documentation.
 Availability
 ------------
 
-For the alpha-release the nordugrid repo is not yet available. Please download from source or use the nightly packages:
+Please download from source or use the nightly packages:
 
 = Source
   * https://source.coderefinery.org/nordugrid/arc/tree/v6.0.0a1
@@ -62,6 +78,9 @@ For the alpha-release the nordugrid repo is not yet available. Please download f
   * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
   * Ubuntu: 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
     15.10, 16.04, 16.10, 17.04, 17.10, 18.04 and 18.10 (i386 and amd64)
+
+= Nordugrid repository
+  * Not yet available
     
 Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.
