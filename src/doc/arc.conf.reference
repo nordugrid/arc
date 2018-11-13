@@ -386,7 +386,7 @@
 #[lrms]
 ## CHANGE: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
-## lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
+## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
 ## default queue name.
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
@@ -412,7 +412,8 @@
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
 ## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy
-## default: fork
+## default: undefined
+## mandatory
 #lrms=pbs gridlong
 #lrms=slurm
 ## CHANGE: new lrmstype values added (slurmpy).
