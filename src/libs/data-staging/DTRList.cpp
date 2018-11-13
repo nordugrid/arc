@@ -163,7 +163,7 @@ namespace DataStaging {
 
   void DTRList::caching_started(DTR_ptr request) {
     CachingLock.lock();
-    CachingSources.insert(request->get_source_str());
+    CachingSources[request->get_source_str()] = request->get_priority();
     CachingLock.unlock();
   }
 
@@ -176,7 +176,22 @@ namespace DataStaging {
   bool DTRList::is_being_cached(DTR_ptr DTRToCheck) {
 
     CachingLock.lock();
-    bool caching = (CachingSources.find(DTRToCheck->get_source_str()) != CachingSources.end());
+    std::map<std::string, int>::iterator i = CachingSources.find(DTRToCheck->get_source_str());
+    bool caching = (i != CachingSources.end());
+    // If already caching, find the DTR and increase its priority if necessary
+    if (caching && i->second < DTRToCheck->get_priority()) {
+      Lock.lock();
+      for(std::list<DTR_ptr>::iterator it = DTRs.begin();it != DTRs.end(); ++it) {
+        if ((*it)->get_source_str() == DTRToCheck->get_source_str() &&
+            (*it)->is_destined_for_delivery()) {
+          (*it)->get_logger()->msg(Arc::INFO, "Boosting priority from %i to %i due to incoming higher priority DTR",
+                                   (*it)->get_priority(), DTRToCheck->get_priority());
+          (*it)->set_priority(DTRToCheck->get_priority());
+          CachingSources[DTRToCheck->get_source_str()] = DTRToCheck->get_priority();
+        }
+      }
+      Lock.unlock();
+    }
     CachingLock.unlock();
     return caching;
   }

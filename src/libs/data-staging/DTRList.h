@@ -24,8 +24,12 @@ namespace DataStaging {
       /// Lock to protect list during modification
       Arc::SimpleCondition Lock;
 
-      /// Internal set of sources that are currently being cached
-      std::set<std::string> CachingSources;
+      /// Internal set of sources that are currently being cached.
+      /**
+       * The source is mapped to the highest priority among all the DTRs with
+       * that source.
+       */
+      std::map<std::string, int> CachingSources;
 
       /// Lock to protect caching sources set during modification
       Arc::SimpleCondition CachingLock;
