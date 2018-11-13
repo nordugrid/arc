@@ -43,6 +43,25 @@ class CertificateGenerator(object):
             logger.error("The message digest \"%s\" is not supported", messagedigest)
             sys.exit(1)
 
+    def cleanupCAfiles(self, name="Test CA"):
+        namelen = len(name)
+        dashname = name.replace(" ", "-")
+        # remove the links first
+        for fname in os.listdir(self.work_dir):
+            fpath = os.path.join(self.work_dir, fname)
+            if os.path.islink(fpath):
+                linkto = os.readlink(fpath).replace(self.work_dir.rstrip('/') + '/', '')
+                if linkto[0:namelen] == dashname:
+                    logger.debug('Removing the CA link: %s -> %s', fname, linkto)
+                    os.unlink(fpath)
+        # remove the files itself
+        for fname in os.listdir(self.work_dir):
+            fpath = os.path.join(self.work_dir, fname)
+            if os.path.isfile(fpath):
+                if fname[0:namelen] == dashname:
+                    logger.debug('Removing the CA file: %s', fname)
+                    os.unlink(fpath)
+
     def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):
         if not isinstance(validityperiod, (int, long)):
             logger.error("The 'validityperiod' argument must be an integer")
@@ -54,24 +73,17 @@ class CertificateGenerator(object):
         certLocation = os.path.join(self.work_dir, name.replace(" ", "-") + ".pem")
         if os.path.isfile(keyLocation):
             if force:
-                logger.info("Key file '%s' already exist. Removing. ", keyLocation)
-                os.unlink(keyLocation)
+                logger.info("Key file '%s' already exist. Cleaning up previous Test-CA files.", keyLocation)
+                self.cleanupCAfiles(name)
             else:
-                logger.error("Error generating CA certificate and key: file '%s' already exist", keyLocation)
+                logger.error("Error generating CA certificate and key: file '%s' is already exist", keyLocation)
                 sys.exit(1)
         if os.path.isfile(certLocation):
             if force:
-                logger.info("Certificate file '%s' already exist. Removing. ", certLocation)
-                # remove the links
-                for fname in os.listdir(self.work_dir):
-                    if fname.endswith('.0'):
-                        fpath = os.path.join(self.work_dir, fname)
-                        if os.readlink(fpath) == name.replace(" ", "-") + ".pem":
-                            os.unlink(fpath)
-                # clean the cert itself
-                os.unlink(certLocation)
+                logger.info("Certificate file '%s' already exist. Cleaning up previous Test-CA files.", certLocation)
+                self.cleanupCAfiles(name)
             else:
-                logger.error("Error generating CA certificate and key: file '%s' already exist", certLocation)
+                logger.error("Error generating CA certificate and key: file '%s' is already exist", certLocation)
                 sys.exit(1)
 
         subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=" + name

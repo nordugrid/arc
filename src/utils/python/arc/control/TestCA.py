@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .CertificateGenerator import CertificateGenerator, CertificateKeyPair
-from .OSService import OSServiceManagement
 import subprocess
 import socket
 import sys
@@ -14,7 +13,6 @@ import datetime
 import tarfile
 import pwd
 import zlib
-import re
 from contextlib import closing
 
 
@@ -28,6 +26,7 @@ def add_parser_digest_validity(parser, defvalidity=90):
 class TestCAControl(ComponentControl):
     __test_hostcert = '/etc/grid-security/testCA-hostcert.pem'
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
+    __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
@@ -77,6 +76,20 @@ class TestCAControl(ComponentControl):
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
+
+    def cleanup_files(self):
+        # CA certificates dir
+        if not os.path.exists(self.x509_cert_dir):
+            self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
+            os.makedirs(self.x509_cert_dir, mode=0o755)
+        # CA files cleanup
+        cg = CertificateGenerator(self.x509_cert_dir)
+        cg.cleanupCAfiles(self.caName)
+        # hostcert/key and auth files cleanup
+        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile):
+            if os.path.exists(f):
+                self.logger.debug('Removing the file: %s', f)
+                os.unlink(f)
 
     def signhostcert(self, args):
         ca = CertificateKeyPair(self.caKey, self.caCert)
@@ -200,39 +213,22 @@ class TestCAControl(ComponentControl):
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
                         os.getcwd()))
-        # add subject to arc.conf authgroup
-        if args.authgroup is not None:
-            self.logger.info('Adding certificate subject name (%s) to [authgroup: %s]',
-                              usercertfiles.dn, args.authgroup)
-            # check authgourp is in the arc.conf
-            authgroups = [a[10:].strip() for a in self.arcconfig.get_subblocks('authgroup')]
-            if args.authgroup not in authgroups:
-                self.logger.error('Cannot find [authgroup: %s] to add usercert subject.', args.authgroup)
-                sys.exit(1)
-            # insert subject line
-            arc_conf = self.arcconfig.conf_f
+        # add subject to allowed list
+        if not args.no_auth:
             try:
-                with open(arc_conf, 'r') as arc_conf_f:
-                    conflines = arc_conf_f.readlines()
-                for i, line in enumerate(conflines):
-                    if re.search(r'^\[authgroup:\s*' + args.authgroup + r'\s*\]', line):
-                        conflines.insert(i+1, 'subject = ' + usercertfiles.dn + '\n')
-                        break
-                with open(arc_conf, 'w') as arc_conf_f:
-                    arc_conf_f.write(''.join(conflines))
+                self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
+                                 usercertfiles.dn, self.__test_authfile)
+                with open(self.__test_authfile, 'a') as a_file:
+                    a_file.write(usercertfiles.dn + '\n')
             except IOError as err:
-                self.logger.error('Failed to modify %s. Error: %s', arc_conf, str(err))
+                self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
                 sys.exit(1)
-            # restart a-rex to apply new config
-            self.logger.info('Restarting A-REX service to apply new configuration')
-            sm = OSServiceManagement()
-            if sm.sm_version == '':  # installation from sources
-                sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
-            sm.restart('arc-arex')
 
     def control(self, args):
         if args.action == 'init':
             self.createca(args)
+        elif args.action == 'cleanup':
+            self.cleanup_files()
         elif args.action == 'hostcert':
             self.signhostcert(args)
         elif args.action == 'usercert':
@@ -253,6 +249,8 @@ class TestCAControl(ComponentControl):
         add_parser_digest_validity(testca_init)
         testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
 
+        testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
+
         testca_host = testca_actions.add_parser('hostcert', help='Generate and sign testing host certificate')
         add_parser_digest_validity(testca_host, 30)
         testca_host.add_argument('-n', '--hostname', action='store',
@@ -268,7 +266,4 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
-        deployauthgroup = testca_user.add_argument_group('Allow access to certificate subject '
-                                                         'adding record to [authgroup] in arc.conf')
-        deployauthgroup.add_argument('-a', '--authgroup', nargs='?', const='zero',
-                                     help='Add subject to the authgroup (default authgroup is %(const)s)')
+        testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

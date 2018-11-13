@@ -8,7 +8,7 @@ stages:
   - deploy_and_test
 
 
-build_forks_el6:
+fork_packages_el6:
   stage: build
   image: maikenp/arc-build-centos6
   script:
@@ -23,7 +23,7 @@ build_forks_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - Computerome
+    - build_el6
   except:
     refs:
       - master
@@ -41,7 +41,7 @@ build_forks_el6:
   allow_failure: false
 
 
-build_forks_el7:
+fork_packages_el7:
   stage: build
   image: maikenp/arc-build-centos7
   script:
@@ -56,7 +56,7 @@ build_forks_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - Computerome
+    - build_el7
   artifacts:
     when: on_success
     expire_in: 3 days
@@ -75,7 +75,7 @@ build_forks_el7:
   allow_failure: false
 
 
-build_forks_deb9:
+fork_packages_deb9:
   stage: build
   image: maikenp/arc-build-debian9
   script:
@@ -91,8 +91,10 @@ build_forks_deb9:
     - dpkg-buildpackage -S -us -uc -d
     - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
     - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
   tags:
-    - Computerome
+    - build-deb9
   except:
     refs:
       - master
@@ -111,7 +113,7 @@ build_forks_deb9:
   allow_failure: false
 
 
-make_debs_deb9:
+packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
@@ -130,7 +132,7 @@ make_debs_deb9:
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
   tags:
-    - Computerome
+    - build-deb9
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -145,7 +147,7 @@ make_debs_deb9:
   allow_failure: true
 
 
-make_rpms_el6:
+packages_el6:
   stage: packages
   image: maikenp/arc-build-centos6
   script:
@@ -160,7 +162,7 @@ make_rpms_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - Computerome
+    - build-el6
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -174,7 +176,7 @@ make_rpms_el6:
   allow_failure: false
 
 
-make_rpms_el7:
+packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
   script:
@@ -189,7 +191,7 @@ make_rpms_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - Computerome
+    - build-el7
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -216,7 +218,7 @@ deploy_staging_el6:
      - /arc/arc-logs/
      - /arc/arc-tests/
   dependencies:
-    - make_rpms_el6
+    - packages_el6
   tags:
     - docker-socket-runner2
   only:
@@ -238,7 +240,7 @@ deploy_staging_el7:
      - /arc/arc-logs/
      - /arc/arc-tests/
   dependencies:
-    - make_rpms_el7
+    - packages_el7
   tags:
     - docker-socket-runner1
   only:
@@ -246,4 +248,5 @@ deploy_staging_el7:
     - tags@nordugrid/arc
   allow_failure: true
 
-##note-to-self: can also downlaod the rpms from latest job with wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=make_rpms' -O artifacts.zip
+## note-to-self: can also download the rpms from latest job with (example for el7):
+## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
