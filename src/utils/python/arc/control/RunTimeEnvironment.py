@@ -290,6 +290,7 @@ class RTEControl(ComponentControl):
                         'name': pname,
                         'allowed_string': param_re.group(2),
                         'allowed_values': param_re.group(2).split(','),
+                        'default_value': param_re.group(3),
                         'value': param_re.group(3),
                         'description': param_re.group(4)
                     }
@@ -334,15 +335,23 @@ class RTEControl(ComponentControl):
         params = self.__params_parse(rte)
         for pdescr in params.values():
             if is_long:
-                print('{name:>16} = {value:8} {description} (allowed values are: {allowed_string})'.format(**pdescr))
+                print('{name:>16} = {value:8} {description} (default is {default_value}) '
+                      '(allowed values are: {allowed_string})'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))
 
-    def params_set(self, rte, parameter, value):
+    def params_unset(self, rte, parameter):
+        self.params_set(rte, parameter, None, use_default=True)
+
+    def params_set(self, rte, parameter, value, use_default=False):
         params = self.__params_parse(rte)
         if parameter not in params:
             self.logger.error('There is no such parameter %s for RunTimeEnvironment %s', parameter, rte)
             sys.exit(1)
+        # use default value if requested
+        if use_default:
+            value = params[parameter]['default_value']
+        # check type and allowed values
         if params[parameter]['allowed_string'] == 'string':
             pass
         elif params[parameter]['allowed_string'] == 'int':
@@ -353,6 +362,7 @@ class RTEControl(ComponentControl):
             self.logger.error('Parameter %s for RunTimeEnvironment %s should be one of %s',
                               parameter, rte, params[parameter]['allowed_string'])
             sys.exit(1)
+        # assign new value
         params[parameter]['value'] = value
         self.__params_write(rte, params)
 
@@ -498,6 +508,8 @@ class RTEControl(ComponentControl):
             self.params_get(args.rte, args.long)
         elif args.action == 'params-set':
             self.params_set(args.rte, args.parameter, args.value)
+        elif args.action == 'params-unset':
+            self.params_unset(args.rte, args.parameter)
         else:
             self.logger.critical('Unsupported RunTimeEnvironment control action %s', args.action)
             sys.exit(1)
@@ -573,7 +585,11 @@ class RTEControl(ComponentControl):
         rte_params_get.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_get.add_argument('-l', '--long', help='Detailed listing of parameters', action='store_true')
 
-        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameters')
+        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameter')
         rte_params_set.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_set.add_argument('parameter', help='RTE parameter to configure').completer = complete_rte_params
         rte_params_set.add_argument('value', help='RTE parameter value to set').completer = complete_rte_params_values
+
+        rte_params_unset = rte_actions.add_parser('params-unset', help='Use default value for RTE parameter')
+        rte_params_unset.add_argument('rte', help='RTE name').completer = complete_rte_name
+        rte_params_unset.add_argument('parameter', help='RTE parameter to unset').completer = complete_rte_params

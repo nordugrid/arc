@@ -386,7 +386,7 @@
 #[lrms]
 ## CHANGE: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
-## lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
+## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
 ## default queue name.
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
@@ -412,7 +412,8 @@
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
 ## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy
-## default: fork
+## default: undefined
+## mandatory
 #lrms=pbs gridlong
 #lrms=slurm
 ## CHANGE: new lrmstype values added (slurmpy).
@@ -708,7 +709,7 @@
 
 ## loglevel = level - (previously debug) Set loglevel of the arched daemon hosting A-REX service
 ## between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=3
 ## CHANGE: renamed
@@ -951,7 +952,7 @@
 
 ## loglevel = level - (previously cacheloglevel) specifies the level of logging by the cache-clean
 ## tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=4
 ## CHANGE: renamed as loglevel
@@ -1007,7 +1008,7 @@
 ## loglevel = number - (previously debug) Sets the log level for transfer logging in job.id.errors files,
 ## between 0 (FATAL) and 5 (DEBUG). Default is to use value set by loglevel option in
 ## [arex] section.
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: $VAR{[arex]loglevel}
 #loglevel=4
 ## CHANGE: renamed as loglevel.
@@ -1425,7 +1426,7 @@
 ## CHANGE: renamed.
 
 ## loglevel = number - Log level for the JURA accounting module.
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=3
 ## CHANGE: new parameter!  implement it in the code
@@ -1689,7 +1690,7 @@
 
 ## loglevel = level - (previously debug) Set log level of the gridftpd daemon, between
 ## 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=2
 ## CHANGE: renamed
@@ -1909,7 +1910,7 @@
 ## The infosys default is 1 (critical errors are logged)
 ## Each value corresponds to the following verbosity levels:
 ## FATAL => 0, ERROR => 1 , WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5
-## allowedvalues: 0 1 2 3 4 5
+## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 1
 #loglevel=3
 ## CHANGE: renamed
