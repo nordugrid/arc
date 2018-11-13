@@ -170,14 +170,25 @@ RTE_include_default () {
                 rte_idx=$(( rte_idx + 1 ))
                 eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
             done
+            req_idx=$rte_idx
             # Add default RTEs to the list
             for rte_name in $default_rtes; do
+                # check if already included into the list of requested RTEs
+                check_idx=0
+                while [ $check_idx -lt $req_idx ]; do
+                    eval "check_rte=\${joboption_runtime_${check_idx}}"
+                    if [ "$rte_name" = "$check_rte" ]; then
+                        echo "$rte_name RTE is already requested: skipping the same default RTE injection." 1>&2
+                        continue 2
+                    fi
+                    check_idx=$(( check_idx + 1 ))
+                done
                 eval "joboption_runtime_${rte_idx}=$rte_name"
                 rte_idx=$(( rte_idx + 1 ))
             done
         fi
     fi
-    unset default_rte_dir default_rtes is_rte rte_idx rte_name
+    unset default_rte_dir default_rtes is_rte rte_idx rte_name req_idx check_idx check_rte
 }
 
 RTE_path_set () {
