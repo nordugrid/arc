@@ -183,7 +183,7 @@ namespace DataStaging {
       Lock.lock();
       for(std::list<DTR_ptr>::iterator it = DTRs.begin();it != DTRs.end(); ++it) {
         if ((*it)->get_source_str() == DTRToCheck->get_source_str() &&
-            (*it)->is_destined_for_delivery()) {
+            ((*it)->get_status() != DTRStatus::CACHE_WAIT && (*it)->get_status() != DTRStatus::CHECK_CACHE)) {
           (*it)->get_logger()->msg(Arc::INFO, "Boosting priority from %i to %i due to incoming higher priority DTR",
                                    (*it)->get_priority(), DTRToCheck->get_priority());
           (*it)->set_priority(DTRToCheck->get_priority());
