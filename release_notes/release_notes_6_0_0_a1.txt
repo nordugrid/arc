@@ -6,13 +6,27 @@ Release Notes for NorduGrid ARC 6.0.0a1     12 November 2018
 -----------------------------------------------------------
 After a long ARC 6 preparation period, we are finally ready to announce the very first test release of ARC 6: the alpha release (6.0.0a1)
 
-ARC 6 version is a major BACKWARD INCOMPATIBLE release in the ARC development roadmap with lots of major internal re-engineering in the code base (see below).
+ARC 6 contains major improvements in the deployment, configuration and maintenance of ARC CE. It also comes with new features and services while some legacy features have been removed.
+
+Although there has been some major re-engineering in the code base (see below), the interfaces are unchanged - ARC 5 clients are compatible with an ARC 6 CE and vice versa.
 
 As of the 6.0.0a1 test release most of the planned development is completed, only smaller adjustments and some code cleanup is missing.
 Since July University of Oslo has been running ARC 6 with regular nightly updates.
 
 Next step is to deploy this first test release on other sites, more sites deploying ARC 6 will mean more deployment, configuration and usage pattern are to be covered, more bugs discovered and fixed. So please volunteer to give it a try!
 
+
+Important Changes
+-----------------
+
+The most important things to bear in mind if you are used to ARC 5:
+
+* Complete overhaul of configuration
+* Runtime environments (RTEs) must be explicitly enabled through the arcctl tool
+* The NorduGrid schema is no longer published by default - it must be enabled via the [infosys/nordugrid] block
+* Gridmap files (although still supported) are no longer recommended. VO-based authorisation should be configured as described in [ref to arc6 doc]
+* Validation of the ARC configuration is enforced by A-REX startup scripts. If you have configuration errors then A-REX will not start.
+* Renaming of startup scripts and default log files
 
 
 Improvements and new features
