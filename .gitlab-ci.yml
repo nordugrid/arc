@@ -191,7 +191,7 @@ packages_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - 158.39.75.235
+    - 158.39.77.235
     - bgo-runner
   only:
     - branches@nordugrid/arc
