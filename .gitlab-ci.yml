@@ -130,7 +130,8 @@ packages_deb9:
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
   tags:
-    - build-deb9
+    - 158.39.77.8
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -160,7 +161,8 @@ packages_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build-el6
+    - 158.39.77.164
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -189,7 +191,8 @@ packages_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build-el7
+    - 158.39.75.235
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
