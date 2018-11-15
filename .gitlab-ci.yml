@@ -68,8 +68,7 @@ fork_packages_el7:
   except:
     refs:
       - master
-      - next-major
-      - dev-ARC6
+      - next
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   allow_failure: false
@@ -98,8 +97,7 @@ fork_packages_deb9:
   except:
     refs:
       - master
-      - next-major
-      - dev-ARC6
+      - next
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   artifacts:
