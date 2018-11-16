@@ -106,7 +106,8 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "speedcontrol") {
       if (rest.empty()) {
         min_speed = min_speed_time = min_average_speed = max_inactivity_time = 0;
-      } else if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
+      } else if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed) ||
+                 !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
                  !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_average_speed) ||
                  !Arc::stringto(Arc::ConfigIni::NextArg(rest), max_inactivity_time)) {
         logger.msg(Arc::ERROR, "Bad number in speedcontrol");
