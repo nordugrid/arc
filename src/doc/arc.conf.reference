@@ -609,6 +609,10 @@
 ## boinc_db_pass = pwd - Connection strings for the boinc database: pwd
 ## default: undefined
 #boinc_db_pass=password
+
+## boinc_app_id - ID of the app handled by this CE. Setting this option
+## makes database queries much faster in large projects with many apps.
+#boinc_app_id=1
 ##
 ##
 ### end of [lrms] block #####################################################
