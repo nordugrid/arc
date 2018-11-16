@@ -23,7 +23,7 @@ fork_packages_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build_el6
+    - build-el6
   except:
     refs:
       - master
@@ -56,7 +56,7 @@ fork_packages_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build_el7
+    - build-el7
   artifacts:
     when: on_success
     expire_in: 3 days
@@ -68,8 +68,7 @@ fork_packages_el7:
   except:
     refs:
       - master
-      - next-major
-      - dev-ARC6
+      - next
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   allow_failure: false
@@ -98,8 +97,7 @@ fork_packages_deb9:
   except:
     refs:
       - master
-      - next-major
-      - dev-ARC6
+      - next
       - branches@nordugrid/arc
       - tags@nordugrid/arc
   artifacts:
@@ -132,7 +130,8 @@ packages_deb9:
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
   tags:
-    - build-deb9
+    - 158.39.77.8
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -162,7 +161,8 @@ packages_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build-el6
+    - 158.39.77.164
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -191,7 +191,8 @@ packages_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build-el7
+    - 158.39.77.235
+    - bgo-runner
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
