@@ -99,9 +99,4 @@ Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.
 
 
-= Previous releases
-
-Details of previous releases can be found at:
-  http://www.nordugrid.org/arc/releases/
-
 
