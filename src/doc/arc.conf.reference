@@ -9,7 +9,7 @@
 ## The arc.conf configuration file consists of the following blocks: 
 ##
 ##  [common]
-##  [authgroup:allowedusers]
+##  [authgroup:groupname]
 ##  [mapping]
 ##  [lrms]
 ##  [lrms/ssh]
@@ -18,15 +18,14 @@
 ##  [arex/cache/cleaner] 
 ##  [arex/data-staging]
 ##  [arex/ws]
-##  [arex/ws/emies]
+##  [arex/ws/jobs]
 ##  [arex/ws/cache]
 ##  [arex/ws/candypond]
 ##  [arex/ws/argus]
-##  [arex/rest] 
 ##  [arex/jura]
 ##  [arex/jura/archiving]
-##  [arex/jura/sgas:neic_sgas]
-##  [arex/jura/apel:egi_prod_apel]
+##  [arex/jura/sgas:targetname]
+##  [arex/jura/apel:targetname]
 ##  [arex/ganglia]
 ##  [gridftpd]
 ##  [gridftpd/jobs]
@@ -39,14 +38,13 @@
 ##  [infosys/glue1]
 ##  [infosys/glue1/site-bdii]
 ##  [infosys/cluster]
-##  [queue:gridlong]
+##  [queue:name]
 ##  [datadelivery-service]
 ##  [acix-scanner]
 ##  [acix-index]
-##  [userlist:biousers]
+##  [userlist:name]
 ##  [nordugridmap]
-##
-##TODO: add a new block or rename [arex/ws/emies] to cover the new REST interface as well
+##  [custom:blockname]
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## Enabling (turning on) a functionality, a service or an interface requires the presence of the
@@ -88,7 +86,7 @@
 ##   (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
 ## 
 ## and for block headers: 
-##   [keyword:(stripped space)space is allowed within identifier(stripped space)]
+##   [keyword:(stripped space)space is NOT allowed within identifier(stripped space)]
 ##
 ## Detailed textual definition:
 ##   a) All trailing and leading spaces on each confiuration line are stripped and ignored.
@@ -99,9 +97,8 @@
 ##   c) In block headers of [keyword] kind (after 'a' is applied) no additional spaces are allowed
 ##      around "keyword" and inside "keyword".
 ##   d) In block headers of [keyword:identifier] kind (after 'a' is applied) no additional spaces
-##      are allowed around "keyword" and inside "keyword". The spaces ARE allowed around and inside
-##      "identifier" part. Those around "identifier" are stripped and ignored. Those inside
-##      "identifier" are treated as its integral part and are preserved.
+##      are allowed around "keyword" and inside both "keyword" and "identifier". 
+##      The spaces ARE allowed around  "identifier" part and stripped and ignored.
 ##
 ## Mandatory configuration options are indicated by an asterix prefix to the
 ## option name e.g: "*mandatory_configoption". Mandatory options with undefined values 
@@ -214,27 +211,32 @@
 ## allowedvalues: relaxed standard strict noerrors
 ## default: standard
 #voms_processing=strict
+##
+##
 ### end of the [common] block ##############################################
 
 
-### The [authgroup:name] (previously [group]) blocks ######################################
+### The [authgroup:groupname] (previously [group]) blocks ##########################
 ## These configuration blocks contain authorization rules. 
-## An [authrgroup:name] block always defines a group of users where members of the group are 
+## An [authrgroup:groupname] block always defines a group of users where members of the group are 
 ## those who satisfy the authorization rules.
 ## The rules within the block determine which user belong to the authgroup. 
-## Then, the access control of ARC services are
-## implemented via specifying the [authgroup:name] to which certain permissions are granted.
+## Then, access control and identity mapping of ARC services are implemented 
+## via associating a authgroup with an interface, queue or a mapping rule 
+## using one of the "allowaccess", "denyaccess" or [mapping] block parameters.
 ## For more info please read "Security Framework of ARC" at
 ## http://www.nordugrid.org/documents/arc-security-documentation.pdf
 ## The authgroup should not be mistaken for a virtual organisation (VO).
 ## An authgroup may match a single VO if only a single check (rule) on VO membership is perfomed.
-## It is however more common to allow multiple VOs in a single authgroup.
 ##
 ## IMPORTANT: Rules in an authgroup are processed in their order of appearance.
 ## The first matching rule decides the membership of the user to the authgroup
 ## being evaluated and the processing STOPS within that authgroup. This does not mean that
-## the same user is not processed for the next authgroup: all [authgroup:name] blocks are
+## the same user is not processed for the next authgroup: all [authgroup:groupname] blocks are
 ## evaluated, even if a user already has a match with one of the earlier groups.
+##
+## All the objects used in the rules MUST be defined before it may be used. For example,
+## to create group of authgroups you must first defined the child groups.
 ##
 ## There are positively and negatively matching rules.
 ## If a rule is matched positively then the user tested is accepted
@@ -246,12 +248,7 @@
 ## which will let the rule match the complement of users. That complement
 ## operator ("!") may be combined with the operator for positive or negative
 ## matching.
-##
-## TODO: consider implementing Roger's suggestion and introduce a "rule" variable 
-##
-## All the objects used in the rules (e.g. other authgoups or userlists) MUST be 
-## defined before it may be used.
-#[authgroup:allowedusers]
+#[authgroup:prodtesters]
 ## CHANGE: renamed the block.
 
 ## subject = certificate_subject - Rule to match specific subject of user's
@@ -278,9 +275,9 @@
 
 ## authgroup = group_name [group_name ...] - (previously group) Match user already belonging to one
 ## of specified authgroups. The authgroup referred here must be defined earlier in
-## configuration file. Multiple authgroup names may be specified for this rule.
+## arc.conf configuration file. Multiple authgroup names may be specified for this rule.
 ## That allows creating hierarchical structure of authorization groups like
-## 'clients' are those which are 'users' and 'admins'.
+## "all-atlas" are those which are "atlas-users" and "atlas-admins".
 ## multivalued
 ## default: undefined
 #authgroup=local_admins
@@ -305,17 +302,11 @@
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
-## lcas library directory database - Call LCAS functions to check rule.
-## CHANGE35: DELETED. The same can be done with the "plugin" parameter
-
-## remote URL ... - Check user's credentials against remote service. Only
-## CHANGE36: DELETED.  Feature is not used for ages. Code simplification.
-
-## all = yess|no - Matches any or none user identity. For 'yes' argument this rule
-## always returns positive match. For 'no' it is always no match.
+## all = yes|no - Matches any or none user identity. For "yes" argument this rule
+## always returns positive match. For "no" it is always no match.
 ## default: undefined
 #all=yes
-## CHANGE215: MODIFIED options
+## CHANGE: MODIFIED options
 ##
 ##
 ### end of the [authgroup:name] blocks ###############################
@@ -331,19 +322,29 @@
 
 ## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
-## optionally followed by a "unixgroup" UNIX group.
+## optionally followed by a "unixgroup" UNIX group. 
+## In case of non-existing "unixname" local user the mapping rule fails.
 ## multivalued
 ## default: undefined
 #map_to_user=any nobody:nobody
 
 ## map_to_pool = authgroup_name directory - the user that belong to specified 
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
-## are part of this pool are stored line-by-line in the file "directory/pool". 
-## Used accont names are stored in other files placed in the same directory. 
-## If a UNIX account name was not used for 10 days, it may be reassigned to another user.
+## are part of this pool are stored line-by-line in the "pool" file inside the "directory". 
+## The "directory" also contains information about used accont names stored in another files.
+## If there are no more available accounts in the defined pool for mapping then
+## accounts not used for a configurable time period may be reassigned. 
+## The pool behaviour, including account reuse, is configureable with the opional 
+## "directory/config" file that has INI syntax (line-by-line "key=value"). 
+## Possible keys of the "config" file are:
+##   "timeout" 
+##      Define the timeout in days (default is "10") after which the UNIX 
+##      account can be reassigned to another user if not used. The "0" value 
+##      means no lease expiration.
 ## multivalued
 ## default: undefined
 #map_to_pool=atlas /etc/grid-security/pool/atlas
+## TODO: Aleksander to code the new feature directory/config feature
 
 ## map_with_file = authgroup_name file - for users that belongs to specified
 ## authgroup the subject of certificate is matched against a list of subjects 
@@ -371,6 +372,7 @@
 ## default: undefined
 #map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 ##
+##
 ### end of the [mapping] block ##############################################
 
 
@@ -381,34 +383,27 @@
 ## ARC subsystems. 
 ##
 ## ARC support the most common LRMS flavours.
-## For detailed description of recommended LRMS setups for ARC please refer to ARC CE sysadmin
-## guide: http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf
 #[lrms]
 ## CHANGE: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
 ## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
 ## default queue name.
-## ONLY ONE LRMS IS ALLOWED. MULTIPLE lrms ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
+## ONLY ONE LRMS IS ALLOWED. MULTIPLE LRMS ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
 ## For lrmstype, the following values can be chosen:
 ##   - fork    - simple forking of jobs to the same node as the server
 ##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
-##   - pbs     - PBS (covers all the PBS flavours e.g. OpenPBS, PBSPro, ScalablePBS, Torque)
+##   - pbs     - PBS (covers all the PBS flavours e.g. Torque, PBSPro, etc)
 ##   - lsf     - LSF
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
 ##   - boinc   - Boinc
-##   - slurmpy - new generation SLURM scripts (provide access to slurm via ssh too)
-##
-## PBS has many flavours, ARC currenly supports OpenPBS, PBSPro, ScalablePBS
-## and Torque (the official name for ScalablePBS). There is no need to specify
-## the flavour or the version number of the PBS, simply write 'pbs'. Similarly,
-## there is no need to specify (Sun/Oracle) Grid Engine versions and flavours.
+##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well)
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
 ## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
-## the job descriptions submitted to the ARC CE do not specify a requested queue.
+## the client does not specify a queue name during the job submission procees.
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
 ## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy
@@ -495,8 +490,7 @@
 ## default: undefined
 #condor_rank=(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000
 
-## condor_requirements = string - It needs to be defined for each Condor queue.
-## Use this option to determine which nodes belong to the current queue.
+## condor_requirements = string - Specify additional constraints for Condor resources.
 ## The value of "condor_requirements" must be a valid constraints string
 ## which is recognized by a "condor_status -constraint ..." command. It can
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
@@ -505,7 +499,7 @@
 ## config file on the node: 
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
-## A job submitted to this queue is allowed to run on any node which satisfies
+## A job submitted to this resource is allowed to run on any node which satisfies
 ## the "condor_requirements" constraint.  If "condor_requirements" is not set,
 ## jobs will be allowed to run on any of the nodes in the pool. When configuring
 ## multiple queues, you can differentiate them based on memory size or disk
@@ -561,6 +555,12 @@
 ## allowedvalues: yes no
 ## default: yes
 #slurm_use_sacct=yes
+
+## slurm_requirements = string - Use this option to specify extra SLURM-specific parameters.
+## default: undefined
+#slurm_requirements=memory on node >> 200
+## CHANGE: new parameter proposed in Umea retreat
+## TODO: clarify this with Andrej
 
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
@@ -672,7 +672,6 @@
 ##
 ##
 ### end of [lrms/ssh] block #####################################################
-
 
 
 ### The [arex] block - previously [grid-manager] #####################
@@ -941,7 +940,6 @@
 #cachedir=/scratch/cache
 #cachedir=/shared/cache /frontend/jobcache
 #cachedir=/fs1/cache drain
-##
 ##
 ##
 ### end of the [arex/cache] #############################################
@@ -1251,14 +1249,13 @@
 ### end of the [arex/ws] block ##############################
 
 
-### The [arex/ws/emies] block ################################
-## EMIES is "The" Web Service interface offered by A-REX to create and manage computational jobs,
-## obtain resource and activity information, also handle delegation. EMIES is a complete set of
-## Computing Element interface, it encapsulates all the functionality a CE should expose via its interface.
-## See interface description at
-## http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt
-## If you don't want to offer EMIES interface, remove or comment out this block in our arc.conf.
-#[arex/ws/emies]
+### The [arex/ws/jobs] block ################################
+## AREX offers a set of web service interfaces implented via either REST or WS-SOAP.
+## This block enables the job management, info query, delegation protocols through both the REST and 
+## EMIES interface. 
+## Consult the http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt for EMIES inteface description 
+## and read the TO-BE-PROVIDED ARC-REST interface specification.
+#[arex/ws/jobs]
 ## CHANGE: new subblock
 
 ## allownew = yes/no - The 'allownew' config parameter sets if the Computing Element accepts
@@ -1277,14 +1274,31 @@
 #allownew_override=yourauthgroup
 ## CHANGE: rename. modify behaviour: possible to specify several groups on a single line!
 
-## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization
-## groups that are allowed to access the WS EMIES - based jobsubmission interface.
-## If this parameter is not set, then no additional restrictions are applied for authorizing
-## user access.
-## The matching group is also used for evaluating VOMS attributes representing the user.
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
+## are authorized to access the ARC-CE via this interface. A related config option the
+## "denyaccess" (see below) can be used to reject access. 
+## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
 ## default: undefined
-#allowaccess=biousers atlasusers
-## CHANGE: new parameter in the EMIES block
+## multivalued
+#allowaccess=biousers
+#allowaccess=atlasusers
+## TODO: understand how voms attributes are extracted, is i true that "the matching group is also used for evaluating VOMS attributes representing the user only if a matching allowaccess is present?"
+
+## denyaccess = authgroup - Defines that the specified authgroup members 
+## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
+## "allowaccess" (see above) can be used to grant access. 
+## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
+## default: undefined
+## multivalued
+#denyaccess=blacklisted-users
 
 ## maxjobdesc = size - specifies maximal allowed size of job description
 ## in bytes. Default value is 5MB. Use 0 to set unlimited size.
@@ -1293,7 +1307,7 @@
 ## CHANGE: new parameter in this block. Implement support in the code for WS-interface.
 ##
 ##
-### end of the [arex/ws/emies] block ##############################
+### end of the [arex/ws/jobs] block ##############################
 
 
 ### The [arex/ws/cache] block ################################
@@ -1633,8 +1647,6 @@
 ## installation. Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc.
 ## Ganglia is now integrated into ARC to extract jobmetrics. Ganglia for system metrics is
 ## run as separate gangliarc instance.
-## 
-##
 #[arex/ganglia]
 ## CHANGE: RENAMED block
 
@@ -1813,14 +1825,31 @@
 #allownew_override=yourauthgroup
 ## CHANGE: rename. modify behaviour: possible to specify several groups on a single line!
 
-## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization groups
-## that are allowed to access the gridftp-based jobsubmission interface.
-## If this parameter is not set, then no additional restrictions are applied for authorizing
-## user access.
-## The matching group is also used for evaluating VOMS attributes representing the user.
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
+## are authorized to access the ARC-CE via this interface. A related config option the
+## "denyaccess" (see below) can be used to reject access. 
+## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
 ## default: undefined
-#allowaccess=biousers atlasusers
-## CHANGE: renamed
+## multivalued
+#allowaccess=biousers
+#allowaccess=atlasusers
+## TODO: understand how voms attributes are extracted, is i true that "the matching group is also used for evaluating VOMS attributes representing the user only if a matching allowaccess is present?"
+
+## denyaccess = authgroup - Defines that the specified authgroup members 
+## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
+## "allowaccess" (see above) can be used to grant access. 
+## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
+## default: undefined
+## multivalued
+#denyaccess=blacklisted-users
 
 ## maxjobdesc = size - specifies maximal allowed size of job description
 ## in bytes. Default value is 5MB. Use 0 to set unlimited size.
@@ -1849,13 +1878,30 @@
 ## default: undefined
 #mount=/scratch/grid
 
-## allowaccess = authgroup [authgroup ...] - (previously groupcfg) Specifies authorization groups
-## that are allowed to access the gridftp-based jobsubmission interface.
-## If this parameter is not set, then no additional restrictions are applied for authorizing
-## user access.
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
+## are authorized to access the gridftp file service. A related config option the
+## "denyaccess" (see below) can be used to reject access. 
+## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
 ## default: undefined
-#allowaccess=biousers atlasusers
-## CHANGE: renamed
+## multivalued
+#allowaccess=biousers
+#allowaccess=atlasusers
+
+## denyaccess = authgroup - Defines that the specified authgroup members 
+## are REJECTED, not authorized to access the gridftp file service. Note that a related config option the
+## "allowaccess" (see above) can be used to grant access. 
+## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then no additional restrictions are applied 
+## for authorizing user access and the interface is open to everybody authenticated.
+## default: undefined
+## multivalued
+#denyaccess=blacklisted-users
 
 ## dir = path options - Specifies access rules for accessing files in "path"
 ## (relative to virtual and real path) and all the files and directories below.
@@ -2241,7 +2287,6 @@
 ## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB.
-##
 #[infosys/glue1/site-bdii]
 ## CHANGE: renamed. turn on/off the fake site-bdii based on this block.
 
@@ -2475,7 +2520,7 @@
 ## default: undefined
 #sge_jobopts=-P atlas -r yes
 
-## condor_requirements = string - It needs to be defined for each Condor queue.
+## condor_requirements = string - It may be defined for each Condor queue.
 ## Use this option to determine which nodes belong to the current queue.
 ## The value of "condor_requirements" must be a valid constraints string
 ## which is recognized by a "condor_status -constraint ..." command. It can
@@ -2492,6 +2537,12 @@
 ## space, for example.
 ## default: $VAR{[lrms]condor_requirements}
 #condor_requirements=(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)
+
+## slurm_requirements = string - Use this option to specify extra SLURM-specific parameters.
+## default: undefined
+#slurm_requirements=memory on node >> 200
+## CHANGE: new parameter proposed in Umea retreat
+## TODO: clarify this with Andrej
 
 ## totalcpus = number - Manually sets the number of cpus assigned to the queue. No need to
 ## specify the parameter in case the queue_node_string method was used to assign
@@ -2558,16 +2609,28 @@
 #benchmark=SPECINT2000 222
 #benchmark=SPECFP2000 333
 
-## allowaccess = authgroup [authgroup ...] - Specifies authorization groups
-## that are allowed to submit jobs to this queue. It does not override simular 
-## parameter specified in [gridftpd/jobs] and [arex/ws/emies] blocks.
-## If this parameter is not set, then no additional restrictions are applied for
-## authorizing user abbility to submit jobs to this queue.
-## The matching group from this parameter does not affect which VOMS
-## attributes are selected as representing the user.
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
+## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 
+## A related config option the "denyaccess" (see below) can be used to deny submission to the queue.
+## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then the queue is accessible by everyone already authorized.
 ## default: undefined
-#allowaccess=biousers atlasusers
-## CHANGE: NEW parameter in the [queue:name] block
+## multivalued
+#allowaccess=biousers
+#allowaccess=atlasusers
+
+## denyaccess = authgroup - Defines that the specified authgroup members 
+## are NOT allowed to submit jobs to this queue of ARC-CE after despite the user is already granted access to the CE via one of the interfaces. 
+## A related config option the "allowaccess" (see below) can be used to grant job submission to the queue.
+## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
+## These statements are processed sequentially in the order they are specified in the 
+## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
+## If there are no authorization statements specified, then the queue is accessible by everyone already authorized.
+## default: undefined
+## multivalued
+#denyaccess=blacklisted-for-the-queue
 
 ## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise 
 ## which VOs are authorized on the [queue:name] of the cluster.
@@ -2606,12 +2669,10 @@
 ##
 ##
 ## TODO: add Florido's new variables both to the queue and cluster block (maxcputime and maxwalltime)
-##
 ### end of the [queue:name] blocks ########################
 
 
 ### The [datadelivery-service] block ###############################
-##
 ## This block configures and enables the data delivery service. This service is intended to off-load
 ## data-staging from A-REX and usually deployed on one or more separate machines. 
 ## See details at https://wiki.nordugrid.org/wiki/Data_Staging/Multi-host
@@ -2823,7 +2884,6 @@
 
 
 ### The [userlist:name] (previously [vo]) blocks ################################
-##
 ## The [userlist:name] blocks are used to define userlists and configure how those are
 ## generated by the nordugridmap utility, including the optional user mapping information.
 ## The userlist is identified with the generated file that is stored in the "outfile".
@@ -3022,9 +3082,6 @@
 ## remains valid. Default is 259200 (3 days).
 ## default: 259200
 #cachetime=259200
-
-## issuer_processing - control the behavior of [userlist/name] block's require_issuerdn
-## CHANGE28: DELETED
 
 ## mapuser_processing = owerwrite/keep - Controls the behavior of [userlist:name] block's mapped_unixid
 ## parameter usage. 

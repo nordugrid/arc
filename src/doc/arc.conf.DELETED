@@ -321,7 +321,8 @@
 ## vomapfile - path to vo-mapfile location.
 ## CHANGE27: DELETED, we don't support arc-ur-logger any longer. don't generate that file any longer either.
 
-
+## issuer_processing - control the behavior of [userlist/name] block's require_issuerdn
+## CHANGE28: DELETED
 
 
 

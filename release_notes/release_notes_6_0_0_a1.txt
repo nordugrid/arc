@@ -10,8 +10,7 @@ ARC 6 contains major improvements in the deployment, configuration and maintenan
 
 Although there has been some major re-engineering in the code base (see below), the interfaces are unchanged - ARC 5 clients are compatible with an ARC 6 CE and vice versa.
 
-As of the 6.0.0a1 test release most of the planned development is completed, only smaller adjustments and some code cleanup is missing.
-Since July University of Oslo has been running ARC 6 with regular nightly updates.
+As of the 6.0.0a1 test release most of the planned development is completed, only smaller adjustments and some code cleanup is missing. Since July University of Oslo has been running ARC 6 with regular nightly updates.
 
 Next step is to deploy this first test release on other sites, more sites deploying ARC 6 will mean more deployment, configuration and usage pattern are to be covered, more bugs discovered and fixed. So please volunteer to give it a try!
 
@@ -35,7 +34,6 @@ Improvements and new features
 * Major server-side configuration changes
 ** Configuration has been cleaned up, regrouped and made more streamlined.
 ** ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup. Automatically installed with ARC, including test-CA and test host certificate for immediate test submission.
-
 ** ARC now operates with a so-called running configuration which is based on arc.conf (which is to be manually edited by the system administrator) but in addition includes any unchanged default values present in ARC. You can get a dump of the running configuration using the arcctl tool.
 ** Default values have had a big tidy up and are now handled consistently throughout ARC.
 
@@ -49,6 +47,8 @@ Improvements and new features
 
 
 * ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS
+
+* The internal job-loop in A-Rex has been re-engineered to be event-driven in order to improve scalability. 
 
 * Packaging has been restructured:
 ** Streamlined package name scheme
