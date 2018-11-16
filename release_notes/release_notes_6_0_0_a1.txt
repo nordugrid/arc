@@ -2,7 +2,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC 6.0.0a1     12 November 2018
+Release Notes for NorduGrid ARC 6.0.0a1     16 November 2018
 -----------------------------------------------------------
 After a long ARC 6 preparation period, we are finally ready to announce the very first test release of ARC 6: the alpha release (6.0.0a1)
 
