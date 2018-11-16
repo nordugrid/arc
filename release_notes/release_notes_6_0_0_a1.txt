@@ -76,8 +76,6 @@ We are working on cleaning up the documentation.
 Availability
 ------------
 
-Please download from source or use the nightly packages:
-
 = Source
   * https://source.coderefinery.org/nordugrid/arc/tree/v6.0.0a1
   Download the source code with:
@@ -94,7 +92,8 @@ Please download from source or use the nightly packages:
     15.10, 16.04, 16.10, 17.04, 17.10, 18.04 and 18.10 (i386 and amd64)
 
 = Nordugrid repository
-  * Not yet available
+  Not yet available, but will eventually show up
+  * http://www.nordugrid.org/arc/releases/6
     
 Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.
