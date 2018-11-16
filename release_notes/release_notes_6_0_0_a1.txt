@@ -93,7 +93,7 @@ Availability
 
 = Nordugrid repository
   Not yet available, but will eventually show up
-  * http://www.nordugrid.org/arc/releases/6
+  * http://download.nordugrid.org/repos/
     
 Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.
