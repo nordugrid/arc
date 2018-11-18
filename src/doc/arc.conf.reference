@@ -3130,6 +3130,13 @@
 ##
 ### end of the [nordugridmap] block ##################################
 
+### The [custom:name] block ###################################################
+## This optional block is for those who wish to include non-ARC configuration
+## in arc.conf. Custom blocks will be ignored by ARC components including the
+## configuration validator. Any non-ARC configuration which is not in a
+## custom block will be flagged as an error by the validator and A-REX will not
+## start.
+#[custom:mytool]
 
-
-
+##
+### end of the [custom] block #################################################
