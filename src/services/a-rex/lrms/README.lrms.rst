@@ -23,7 +23,7 @@ submit_common.sh::
 
 lrms=boinc::
 
-  $CONFIG_boinc_app_id   # not in reference
+  $CONFIG_boinc_app_id   [lrms]
   $CONFIG_boinc_db_host  [lrms]
   $CONFIG_boinc_db_port  [lrms]
   $CONFIG_boinc_db_user  [lrms]
