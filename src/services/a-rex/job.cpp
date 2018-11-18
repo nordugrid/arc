@@ -56,7 +56,37 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
   return false;
 }
 
+static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched) {
+  for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((l1->second) == (*l2)) {
+        matched = l1->second;
+        return l1->first;
+      };
+    };
+  };
+  return false;
+}
+
 static bool match_groups(std::list<std::string> const & groups, ARexGMConfig& config) {
+  std::string matched_group;
+  if(!groups.empty()) {
+    for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
+      if(*a) {
+        // This security attribute collected information about user's authorization groups
+        Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
+        if(sattr) {
+          if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+            return true;
+          };
+        };
+      };
+    };
+  };
+  return false;
+}
+
+static bool match_groups(std::list<std::pair<bool,std::string> > const & groups, ARexGMConfig& config) {
   std::string matched_group;
   if(!groups.empty()) {
     for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
@@ -363,7 +393,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       };
       if(*q == job_.queue) {
         // Before allowing this queue check for allowed authorization group
-        std::list<std::string> const & groups = config_.GmConfig().AllowedGroups(job_.queue.c_str());
+        std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(job_.queue.c_str());
         if(!groups.empty()) {
           if(!match_groups(groups, config_)) {
             failure_="Requested queue "+job_.queue+" is not allowed for this user";

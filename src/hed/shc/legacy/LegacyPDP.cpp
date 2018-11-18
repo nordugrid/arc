@@ -31,6 +31,18 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
   return false;
 }
 
+static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched, Arc::Logger& logger) {
+  for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((l1->second) == (*l2)) {
+        matched = l1->second;
+        return l1->first;
+      };
+    };
+  };
+  return false;
+}
+
 class LegacyPDPCP: public ConfigParser {
  public:
   LegacyPDPCP(LegacyPDP::cfgfile& file, Arc::Logger& logger):ConfigParser(file.filename,logger),file_(file) {
@@ -58,16 +70,19 @@ class LegacyPDPCP: public ConfigParser {
 
   virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
     //if(group_matched_) return true;
-    if(cmd != "allowaccess") return true;
+    if((cmd != "allowaccess") && (cmd != "denyaccess")) return true;
+
     std::string bname = id;
     if(!name.empty()) bname = bname+":"+name;
     for(std::list<LegacyPDP::cfgblock>::iterator block = file_.blocks.begin();
-                                 block != file_.blocks.end();++block) {
+                                   block != file_.blocks.end();++block) {
       if(block->name == bname) {
         block->limited = true;
         std::list<std::string> groups;
         Arc::tokenize(line,groups," ");
-        block->groups.insert(block->groups.end(),groups.begin(),groups.end());
+        for(std::list<std::string>::const_iterator group = groups.begin(); group != groups.end(); ++group) {
+          block->groups.push_back(std::pair<bool,std::string>(cmd == "allowaccess",*group));
+        };
       };
     };
     return true;
@@ -81,7 +96,7 @@ LegacyPDP::LegacyPDP(Arc::Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg),a
   any_ = false;
   Arc::XMLNode group = (*cfg)["Group"];
   while((bool)group) {
-    groups_.push_back((std::string)group);
+    groups_.push_back(std::pair<bool,std::string>(true,(std::string)group));
     ++group;
   };
   Arc::XMLNode vo = (*cfg)["VO"];
