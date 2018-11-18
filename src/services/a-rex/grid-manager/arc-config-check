@@ -144,6 +144,7 @@ my %introducedSections = (
 	"arex/jura/sgas" => [],
 	"arex/jura/apel" => [],
 	"queue" => [],
+	"custom" => []
 );
 
 print STDERR "The following sections have configurable subgroups: "
@@ -550,8 +551,8 @@ sub confcheck($) {
 			next;
 		}
 
-		# check we have a valid parameter name
-		if (@$validparams != 0 and !grep(/^$name$/, @$validparams)) {
+		# check we have a valid parameter name, ignoring [custom:] blocks
+		if (@$validparams != 0 and !grep(/^$name$/, @$validparams) and $blockname !~ m/^custom:/) {
 			e("$arcconf:$c: found unknown parameter $name\n");
 			next;
 		}
@@ -609,7 +610,7 @@ sub check_completeness() {
 	foreach my $k (keys %$config) {
 		next if grep(/^$k$/,@$validblocks) || !@$validblocks;
 		my @secs;
-		map { push(@secs,$_) if $k=~/^$_/;} keys %introducedSections;
+		map { push(@secs,$_) if $k=~/^$_:/;} keys %introducedSections;
 		print STDERR "$k -> " . join(":",@secs)."\n" if $debug;
 
 		if (0 == @secs) {
@@ -618,7 +619,7 @@ sub check_completeness() {
 		}
 		elsif (1 < @secs) {
 			die "Programming error: found multiple sections "
-			    .join(",",@secs)." to be prefixes of secion '$k'.\n";
+			    .join(",",@secs)." to be prefixes of section '$k'.\n";
 		}
 
 		my $secs1 = $secs[0];
