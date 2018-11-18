@@ -494,6 +494,12 @@ sub confcheck($) {
 		if ($line =~ m/^\s*\[(.+)\]\s*$/) {
 			$blockname = $1;
 			$blockcontents = 0;
+			
+			# No spaces allowed in block names
+			if ($blockname =~ m/\s/) {
+			    e("No spaces allowed in block names: [$blockname]\n");
+			    next;
+			}
 
 			# blocknames must be unique
 			# but there is a special case of userlist blocks...
