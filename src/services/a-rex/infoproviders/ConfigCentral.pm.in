@@ -578,8 +578,8 @@ sub build_config_from_json {
     } 
     
     $config->{arex}{ws}{emies} ||= {};
-    if (defined $jsonconf->{'arex/ws/emies'}) {
-        my $arexwsemies = $jsonconf->{'arex/ws/emies'};
+    if (defined $jsonconf->{'arex/ws/jobs'}) {
+        my $arexwsemies = $jsonconf->{'arex/ws/jobs'};
         move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
         $config->{arex}{ws}{emies}{enabled} = 1;
     } else {
@@ -917,7 +917,7 @@ sub set_defaults {
     # blocknames that are relevant for infosys and should be set to enable
     my @blocknames = ('arex',
                       'arex/ws',
-                      'arex/ws/emies',
+                      'arex/ws/jobs',
                       'gridftpd',
                       'infosys',
                       'infosys/cluster',

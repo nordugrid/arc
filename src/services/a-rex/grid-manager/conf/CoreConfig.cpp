@@ -94,7 +94,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int common_secnum = 0;
   cf.AddSection("common");
   static const int emies_secnum = 1;
-  cf.AddSection("arex/ws/emies");
+  cf.AddSection("arex/ws/jobs");
   static const int ws_secnum = 2;
   cf.AddSection("arex/ws");
   static const int jura_secnum = 3;
@@ -404,7 +404,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       continue;
     };
 
-    if (cf.SectionNum() == emies_secnum) { // arex/ws/emies
+    if (cf.SectionNum() == emies_secnum) { // arex/ws/jobs
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         config.enable_emies_interface = true;
