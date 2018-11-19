@@ -2,7 +2,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC 6.0.0a1     12 November 2018
+Release Notes for NorduGrid ARC 6.0.0a1     16 November 2018
 -----------------------------------------------------------
 After a long ARC 6 preparation period, we are finally ready to announce the very first test release of ARC 6: the alpha release (6.0.0a1)
 
@@ -76,8 +76,6 @@ We are working on cleaning up the documentation.
 Availability
 ------------
 
-Please download from source or use the nightly packages:
-
 = Source
   * https://source.coderefinery.org/nordugrid/arc/tree/v6.0.0a1
   Download the source code with:
@@ -94,15 +92,11 @@ Please download from source or use the nightly packages:
     15.10, 16.04, 16.10, 17.04, 17.10, 18.04 and 18.10 (i386 and amd64)
 
 = Nordugrid repository
-  * Not yet available
+  Not yet available, but will eventually show up
+  * http://download.nordugrid.org/repos/6
     
 Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.
 
-
-= Previous releases
-
-Details of previous releases can be found at:
-  http://www.nordugrid.org/arc/releases/
 
 

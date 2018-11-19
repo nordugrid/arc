@@ -15,7 +15,7 @@
 # which contains commands to start A-REX service. Service
 # is either run isolated or with WS interface enabled.
 # To enable WS interface ARC0 configuration file must 
-# contain [arex/ws/emies] section
+# contain [arex/ws/jobs] section
 # and mandatory option in [arex/ws]:
 #    wsurl="a_rex_url"
 
@@ -273,13 +273,13 @@ prepare() {
     arex_path=""
     arex_service_plexer=""
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
-    arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
+    arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/jobs`
     if [ "$ws_present" = 'true' ] ; then
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
         MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
         MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
         MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
-        USERAUTH_BLOCK='arex/ws/emies'
+        USERAUTH_BLOCK='arex/ws/jobs'
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
         arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
         arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
