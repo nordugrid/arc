@@ -367,7 +367,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
                 std::string group_name=Arc::ConfigIni::NextArg(rest);
                 if(group_name.length() == 0) break;
                 if(user.user.select_group(group_name)) {
-                  group_match = group_match_allow;
+                  group_match = group_match_deny;
                   break;  
                 };
               };
