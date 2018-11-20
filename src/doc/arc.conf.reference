@@ -2709,12 +2709,6 @@
 #port=8443
 ## CHANGE: NEW
 
-## ipversion = number - IP version to use
-## default: 4
-#ipversion=6
-## TODO: Ask Aleksandr if can we have both 4 and 6 together (multivalued)?
-## CHANGE: NEW
-
 ## pidfile = path - pid file of the daemon
 ## default: /var/run/arc/datadelivery-service.pid
 ## TODO: changed the pid file name and location!
@@ -2748,10 +2742,13 @@
 ## CHANGE: NEW
 
 ## *allowed_ip = ip - IP address authorized to access service. Normally this is the
-## A-REX host IP.
+## A-REX host IP. By default the delivery service listens on all available
+## interfaces, so if both IPv4 and IPv6 are enabled on this and the A-REX host,
+## remember to add both A-REX host IPs here.
 ## multivalued
 ## default: undefined
 #allowed_ip=192.0.2.1
+#allowed_ip=2001:db8:85a3::8a2e:370:7334
 ## CHANGE: NEW
 
 ## allowed_dn = DN - DN authorized to access service. This option restricts access
