@@ -756,12 +756,15 @@ int JobPlugin::close(bool eof) {
       if(*q == job_desc.queue) break; 
     };
   };
-  std::list<std::string> const& allowed_groups = config.AllowedGroups(job_desc.queue.c_str());  
-  if(!allowed_groups.empty()) {
+  std::list<std::pair<bool,std::string> > const& matching_groups = config.MatchingGroups(job_desc.queue.c_str());  
+  if(!matching_groups.empty()) {
     // here access limit defined for requested queue - check against user group(s)
     bool allowed = false;
-    for(std::list<std::string>::const_iterator group = allowed_groups.begin(); group != allowed_groups.end(); ++group) {
-      if(user_a.check_group(*group)) { allowed = true; break; };
+    for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
+      if(user_a.check_group(group->second)) {
+        allowed = group->first;
+        break;
+      };
     };
     if(!allowed) {
       error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
