@@ -431,7 +431,14 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           while(!rest.empty()) {
             std::string str = Arc::ConfigIni::NextArg(rest);
             if(!str.empty()) {
-              config.allowed_groups[""].push_back(str);
+              config.matching_groups[""].push_back(std::pair<bool,std::string>(true,str));
+            };
+          };
+        } else if (command == "denyaccess") {
+          while(!rest.empty()) {
+            std::string str = Arc::ConfigIni::NextArg(rest);
+            if(!str.empty()) {
+              config.matching_groups[""].push_back(std::pair<bool,std::string>(false,str));
             };
           };
         };
@@ -528,7 +535,17 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             while(!rest.empty()) {
               std::string str = Arc::ConfigIni::NextArg(rest);
               if(!str.empty()) {
-                config.allowed_groups[queue_name].push_back(str);
+                config.matching_groups[queue_name].push_back(std::pair<bool,std::string>(true,str));
+              }
+            }
+          }
+        } else if (command == "denyaccess") {
+          if (!config.queues.empty()) {
+            std::string queue_name = *(--config.queues.end());
+            while(!rest.empty()) {
+              std::string str = Arc::ConfigIni::NextArg(rest);
+              if(!str.empty()) {
+                config.matching_groups[queue_name].push_back(std::pair<bool,std::string>(false,str));
               }
             }
           }

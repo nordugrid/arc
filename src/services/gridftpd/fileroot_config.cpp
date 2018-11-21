@@ -154,7 +154,13 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
     conf_state_plugin  // inside plugin configuration
   } config_state_t;
   config_state_t st = conf_state_none;
-  bool right_group = true;
+  typedef enum {
+    group_match_no_command, // no access command
+    group_match_allow,      // allowaccess matched
+    group_match_deny,       // denyaccess matched
+    group_match_none        // nothing matched
+  } group_match_t;
+  group_match_t group_match = group_match_no_command;
   user.user.select_group(NULL);
   std::string group_name; // =config_next_arg(rest);
   int group_decision = AAA_NO_MATCH;
@@ -172,13 +178,14 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
     std::string rest;
     std::string command;
     cf.ReadNext(command,rest);
-    if(!right_group) { // skip configuration for wrong auth group
+    if(group_match == group_match_deny) { // skip configuration for wrong auth group
       if(!cf.SectionNew()) continue;
     };
     int r = gridftpd::config_vo(user.user,cf,command,rest,&logger); // [userlist] processing
     if(r==0) continue; // processed
     if(cf.SectionNew()) {
-      if(right_group) switch(st) {
+      // section finished
+      if((group_match == group_match_no_command) || (group_match == group_match_allow)) switch(st) {
         case conf_state_group: { // authgroup processing ended
           if(group_name.length() == 0) {
             logger.msg(Arc::ERROR, "unnamed group");
@@ -239,7 +246,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
       plugin_name="";
       plugin_path="";
       group_name="";
-      right_group = true;
+      group_match = group_match_no_command;
       user.user.select_group(NULL);
       group_decision = AAA_NO_MATCH;
       if(cf.SubSection()[0] == 0) { // no subsection
@@ -333,18 +340,36 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
         if((command == ".") && (rest.empty())) {
           // separator
         } else if(command == "allowaccess") {
-          user.user.select_group(NULL);
-          if(rest.find_first_not_of(" \t") == std::string::npos) {
-            logger.msg(Arc::ERROR, "Missing authgroup name in allowaccess");
-            return 1;
-          } else {
-            right_group=false; // switch default to not allowed
-            for(;;) {
-              std::string group_name=Arc::ConfigIni::NextArg(rest);
-              if(group_name.length() == 0) break;
-              right_group=user.user.select_group(group_name);
-              if(right_group) {
-                break;
+          if((group_match != group_match_allow) && (group_match != group_match_deny)) {
+            if(rest.find_first_not_of(" \t") == std::string::npos) {
+              logger.msg(Arc::ERROR, "Missing authgroup name in allowaccess");
+              return 1;
+            } else {
+              group_match = group_match_none; // switch from defaut to no match
+              for(;;) {
+                std::string group_name=Arc::ConfigIni::NextArg(rest);
+                if(group_name.length() == 0) break;
+                if(user.user.select_group(group_name)) {
+                  group_match = group_match_allow;
+                  break;  
+                };
+              };
+            };
+          };
+        } else if(command == "denyaccess") {
+          if((group_match != group_match_allow) && (group_match != group_match_deny)) {
+            if(rest.find_first_not_of(" \t") == std::string::npos) {
+              logger.msg(Arc::ERROR, "Missing authgroup name in denyaccess");
+              return 1;
+            } else {
+              group_match = group_match_none; // switch from defaut to no match
+              for(;;) {
+                std::string group_name=Arc::ConfigIni::NextArg(rest);
+                if(group_name.length() == 0) break;
+                if(user.user.select_group(group_name)) {
+                  group_match = group_match_deny;
+                  break;  
+                };
               };
             };
           };

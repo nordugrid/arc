@@ -234,7 +234,7 @@ public:
   const std::list<std::string> & AuthorizedVOs(const char * queue) const;
   /// Returns list of authorization groups for specified queue.
   /// If queue is not specified value for server is returned.
-  const std::list<std::string> & AllowedGroups(const char * queue = "") const;
+  const std::list<std::pair<bool,std::string> > & MatchingGroups(const char * queue = "") const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -337,8 +337,8 @@ private:
   std::map<std::string,std::string> forced_voms;
   /// VOs authorized per queue
   std::map<std::string, std::list<std::string> > authorized_vos;
-  /// groups allowed per queue
-  std::map<std::string, std::list<std::string> > allowed_groups;
+  /// groups allowed per queue with allow/deny mark (true/false)
+  std::map<std::string, std::list<std::pair<bool, std::string> > > matching_groups;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;
