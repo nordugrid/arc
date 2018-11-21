@@ -152,7 +152,7 @@ std::string SimpleMap::map(const char* subject) {
       if(i == names.end()) {
         // Always try to destroy old mappings without corresponding 
         // entry in the pool file
-        if(((unsigned int)(time(NULL) - st.st_mtime)) >= selfunmap_time_) {
+        if((selfunmap_time_ > 0) && (((unsigned int)(time(NULL) - st.st_mtime)) >= selfunmap_time_)) {
           unlink(filename.c_str());
         };
       } else {
@@ -176,6 +176,7 @@ std::string SimpleMap::map(const char* subject) {
     return *(names.begin());
   };
   // Try to release one of old names
+  if(selfunmap_time_ == 0) failure("old mappings are not allowed to expire");
   if(oldmap_name.length() == 0) failure("no old mappings found");
   if(((unsigned int)(time(NULL) - oldmap_time)) < selfunmap_time_) failure("no old enough mappings found");
   // releasing the old entry
