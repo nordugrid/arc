@@ -221,7 +221,7 @@ deploy_staging_el6:
   dependencies:
     - packages_el6
   tags:
-    - docker-socket-runner2
+    - docker-socket-runner-bgo4 
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
