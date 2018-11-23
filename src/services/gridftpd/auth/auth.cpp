@@ -310,6 +310,10 @@ AuthResult AuthUser::evaluate(const char* line) {
         switch(res) {
           case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
           case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+          case AAA_NO_MATCH:
+          case AAA_FAILURE:
+          default:
+            break;
         };
       };
       return res;
