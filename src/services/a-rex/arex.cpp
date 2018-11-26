@@ -639,6 +639,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ));
   } else if(method == "PUT") {
     sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY));
+  } else if(method == "DELETE") {
+    sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY));
   }
   if(sattr) {
     inmsg.Auth()->set("AREX",sattr);
@@ -1014,6 +1016,40 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       };
     };
     return ret;
+  } else if(method == "DELETE") {
+    logger_.msg(Arc::VERBOSE, "process: DELETE");
+    Arc::MCC_Status ret;
+    CountedResourceLock cl_lock(datalimit_);
+    switch(sub_op) {
+      case SubOpInfo:
+        ret = DeleteInfo(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNew:
+        ret = DeleteNew(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpLogs:
+        ret = DeleteLogs(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpDelegation:
+        ret = DeleteDelegation(inmsg,outmsg,*config,id,subpath);
+        break;
+      case SubOpCache:
+        ret = DeleteCache(inmsg,outmsg,*config,subpath);
+        break;
+      case SubOpNone:
+      default:
+        ret = DeleteJob(inmsg,outmsg,*config,id,subpath);
+        break;
+    };
+    if(ret) {
+      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+      if(!sret) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
+        delete outmsg.Payload(NULL);
+        return sret;
+      };
+    };
+    return ret;
   } else if(!method.empty()) {
     logger_.msg(Arc::VERBOSE, "process: method %s is not supported",method);
     return make_http_fault(outmsg,501,"Not Implemented");
@@ -1090,6 +1126,10 @@ Arc::MCC_Status ARexService::PutDelegation(Arc::Message& inmsg,Arc::Message& out
   };
 #endif
   return make_empty_response(outmsg);
+}
+
+Arc::MCC_Status ARexService::DeleteDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  return make_http_fault(outmsg,501,"Not Implemented");
 }
 
 static void information_collector_starter(void* arg) {

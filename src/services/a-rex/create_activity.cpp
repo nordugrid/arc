@@ -269,6 +269,9 @@ Arc::MCC_Status ARexService::PutNew(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   return make_http_fault(outmsg,200,job.ID().c_str());
 }
 
+Arc::MCC_Status ARexService::DeleteNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  return make_http_fault(outmsg,501,"Not Implemented");
+}
 
 } // namespace ARex
 
