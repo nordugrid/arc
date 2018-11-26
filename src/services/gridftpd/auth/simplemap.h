@@ -6,6 +6,7 @@ class SimpleMap {
  private:
   std::string dir_;
   int pool_handle_;
+  unsigned int selfunmap_time_;
  public:
   SimpleMap(const char* dir);
   ~SimpleMap(void);

@@ -17,6 +17,7 @@
 
 #include <glibmm/miscutils.h>
 
+#include <arc/StringConv.h>
 #include <arc/Logger.h>
 
 #include "simplemap.h"
@@ -52,6 +53,25 @@ SimpleMap::SimpleMap(const char* dir):dir_(dir) {
   if((dir_.length() == 0) || (dir_[dir_.length()-1] != '/')) dir_+="/";
   if(dir_[0] != '/') dir_=Glib::get_current_dir()+"/"+dir_;
   pool_handle_=open((dir_+"pool").c_str(),O_RDWR);
+  selfunmap_time_ = SELFUNMAP_TIME;
+  std::ifstream config(dir_+"config");
+  while(config.good()) {
+    std::string str;
+    getline(config, str);
+    std::string::size_type sep = str.find('=');
+    if(sep != std::string::npos) {
+      // So far only one command is supported
+      if(str.substr(0,sep) == "timeout") {
+        unsigned int n;
+        if(Arc::stringto(str.substr(sep+1), n)) {
+          selfunmap_time_ = n*24*60*60;
+          logger.msg(Arc::VERBOSE, "SimpleMap: acquired new unmap time of %u seconds", selfunmap_time_);
+        } else {
+          logger.msg(Arc::ERROR, "SimpleMap: wrong number in unmaptime command", str.substr(sep+1));
+        }
+      }
+    }
+  }
 }
 
 SimpleMap::~SimpleMap(void) {
@@ -132,7 +152,7 @@ std::string SimpleMap::map(const char* subject) {
       if(i == names.end()) {
         // Always try to destroy old mappings without corresponding 
         // entry in the pool file
-        if(((unsigned int)(time(NULL) - st.st_mtime)) >= SELFUNMAP_TIME) {
+        if((selfunmap_time_ > 0) && (((unsigned int)(time(NULL) - st.st_mtime)) >= selfunmap_time_)) {
           unlink(filename.c_str());
         };
       } else {
@@ -156,8 +176,9 @@ std::string SimpleMap::map(const char* subject) {
     return *(names.begin());
   };
   // Try to release one of old names
+  if(selfunmap_time_ == 0) failure("old mappings are not allowed to expire");
   if(oldmap_name.length() == 0) failure("no old mappings found");
-  if(((unsigned int)(time(NULL) - oldmap_time)) < SELFUNMAP_TIME) failure("no old enough mappings found");
+  if(((unsigned int)(time(NULL) - oldmap_time)) < selfunmap_time_) failure("no old enough mappings found");
   // releasing the old entry
   info(std::string("Releasing expired mapping of ")+oldmap_subject+
        " to "+oldmap_name+" back to pool");
