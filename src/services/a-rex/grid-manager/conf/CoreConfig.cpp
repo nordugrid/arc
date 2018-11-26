@@ -378,7 +378,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         if (!config.jobs_metrics) continue;
         if (command == "gmetric_bin_path") {
           std::string fname = rest;  // empty is not allowed, if not filled in arc.conf  default value is used
-	  logger.msg(Arc::DEBUG,"Maiken CoreConfig.cpp fname: %s",fname.c_str());
           config.jobs_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
@@ -389,8 +388,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             if((metric == "jobstates") || 
                (metric == "all")) {
               config.jobs_metrics->SetEnabled(true);
-	      logger.msg(Arc::DEBUG,"Maiken CoreConfig.cpp ENABLING metrics");
-
             };
           };
         };
