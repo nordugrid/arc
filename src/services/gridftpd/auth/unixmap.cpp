@@ -41,29 +41,135 @@ void split_unixname(std::string& unixname,std::string& unixgroup) {
   if(unixgroup[0] == '*') unixgroup.resize(0);
 }
 
+static inline void skip_spaces(char const * & line) {
+  for(;*line;line++) if(!isspace(*line)) break; // skip spaces
+}
+
+static inline void skip_till_space(char const * & line) {
+  for(;*line;line++) if(isspace(*line)) break;
+}
+
+enum opt_action {
+  action_continue,
+  action_stop
+};
+
+enum opt_event {
+  event_nogroup,
+  event_nomap,
+  event_map
+};
+
+static char const option_none_str[] = { "*" };
+
+static char const action_continue_str[] = { "continue" };
+static char const action_stop_str[] = { "stop" };
+
+static char const event_nogroup_str[] = { "onnogroup" };
+static char const event_nomap_str[]   = { "onnomap" };
+static char const event_map_str[]     = { "onmap" };
+
+#define match_string(tag,start,end) (((end-start+1) == sizeof(tag)) && (strncmp(start,tag,end-start) == 0))
+
+static bool parse_option(const char* option, int option_len, opt_event& event, opt_action& action) {
+  const char* option_end = option+option_len;
+  if(match_string(option_none_str,option,option_end)) return true;
+  const char* event_start = option;
+  for(;option<option_end;option++) if(*option == '=') break;
+  if(option >= option_end) return false;
+  const char* event_end = option;
+  ++option;
+  const char* action_start = option;
+  const char* action_end = option_end;
+  if(match_string(event_nogroup_str,event_start,event_end)) {
+    event = event_nogroup;
+  } else if(match_string(event_nomap_str,event_start,event_end)) {
+    event = event_nomap;
+  } else if(match_string(event_map_str,event_start,event_end)) {
+    event = event_map;
+  } else {
+    return false;
+  }
+  if(match_string(action_continue_str,action_start,action_end)) {
+    action = action_continue;
+  } else if(match_string(action_stop_str,action_start,action_end)) {
+    action = action_stop;
+  } else {
+    return false;
+  }
+  return true;
+}
+
+static bool parse_options(const char* options, int options_len, opt_action& onnogroup, opt_action& onnomap, opt_action& onmap) {
+  // default actions
+  onnogroup = action_continue;
+  onnomap = action_continue;
+  onmap = action_stop;
+  const char* options_end = options+options_len;
+  while(options<options_end) {
+    const char* option = options;
+    for(;options<options_end;options++) if(*options == ',') break;
+    opt_event event;
+    opt_action action;
+    if(!parse_option(option, options-option, event, action))
+      return false;
+    switch(event) {
+      case event_nogroup:
+        onnogroup = action;
+        break;
+      case event_nomap:
+        onnomap = action;
+        break;
+      case event_map:
+        onmap = action;
+        break;
+    };
+    ++options;
+  }
+  return true;
+}
+
 AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
-  // rule = authgroup args
+  // now: rule = options authgroup args
   mapped_=false;
   if(!line) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
     return AAA_FAILURE;
   };
-  for(;*line;line++) if(!isspace(*line)) break;
+  skip_spaces(line);
   if(*line == 0) {
     logger.msg(Arc::ERROR,"User name mapping command is empty");
     return AAA_FAILURE;
   };
+  // identify common parts of mapping commands
+  const char* options = line;
+  skip_till_space(line);
+  int options_len = line-options;
+  skip_spaces(line);
   const char* groupname = line;
-  for(;*line;line++) if(isspace(*line)) break;
+  skip_till_space(line);
   int groupname_len = line-groupname;
   if(groupname_len == 0) {
     logger.msg(Arc::ERROR,"User name mapping has empty group: %s", groupname);
     return AAA_FAILURE;
   };
-  if(!user_.check_group(std::string(groupname,groupname_len))) return AAA_NO_MATCH;
+  // parse options
+  opt_action onnogroup;
+  opt_action onnomap;
+  opt_action onmap;
+  if(!parse_options(options, options_len, onnogroup, onnomap, onmap)) {
+    logger.msg(Arc::ERROR,"User name mapping options parsing error");
+    return AAA_FAILURE;
+  };
+  // match specified authgroup
+  if(!user_.check_group(std::string(groupname,groupname_len))) {
+    // event onnogroup
+    mapped_= (onnogroup == action_stop);
+    return AAA_NO_MATCH;
+  };
   unix_user_.name.resize(0);
   unix_user_.group.resize(0);
-  for(;*line;line++) if(!isspace(*line)) break;
+  skip_spaces(line);
   if(!rule || (*rule == 0)) {
     logger.msg(Arc::ERROR,"User name mapping has empty command");
     return AAA_FAILURE;
@@ -72,17 +178,21 @@ AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
     if(strcmp(s->cmd,rule) == 0) {
       AuthResult res=(this->*(s->map))(user_,unix_user_,line);
       if(res == AAA_POSITIVE_MATCH) {
-        mapped_=true;
+        // event onmap
+        mapped_= (onmap == action_stop);
         return AAA_POSITIVE_MATCH;
       };
       if(res == AAA_FAILURE) {
-        // Processing failure cause immediate error
+        // Processing failure, cause immediate error
         return AAA_FAILURE;
       };
       // Paranoid about negative match
+      // event onnomap
+      mapped_= (onnomap == action_stop);
       return AAA_NO_MATCH;
     };
   };
+  logger.msg(Arc::ERROR,"Unknown user name mapping rule %s",rule);
   return AAA_FAILURE;
 }
 
@@ -113,7 +223,7 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
     return AAA_FAILURE;
   };
-  for(;*line;line++) if(!isspace(*line)) break;
+  skip_spaces(line);
   if(*line == 0) {
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
     return AAA_FAILURE;
@@ -129,7 +239,7 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
     return AAA_FAILURE;
   };
   line=p;
-  for(;*line;line++) if(!isspace(*line)) break;
+  skip_spaces(line);
   if(*line == 0) {
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
     return AAA_FAILURE;

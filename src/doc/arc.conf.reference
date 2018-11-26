@@ -320,15 +320,23 @@
 #[mapping]
 ## CHANGE: This is a new block
 
-## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
+## map_to_user = options authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
 ## optionally followed by a "unixgroup" UNIX group. 
 ## In case of non-existing "unixname" local user the mapping rule fails.
+## The options are list of comma separated list of event=action pairs or '*' as placeholder.
+## Possible actions are:
+##   - "stop" - stop processing maping commands
+##   - "continue" - proceed to next mapping command
+## Possible events are:
+##   "onnogroup" - specified authgroup does not match (default action is "continue")
+##   "onnomap"   - specified authgroup matches but mapping processing fails (defalt action is "continue"),
+##   "onmap"     - specified authgroup matches and mapping processing succedes (defalt action is "stop"),
 ## multivalued
 ## default: undefined
 #map_to_user=any nobody:nobody
 
-## map_to_pool = authgroup_name directory - the user that belong to specified 
+## map_to_pool = options authgroup_name directory - the user that belong to specified 
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
 ## are part of this pool are stored line-by-line in the "pool" file inside the "directory". 
 ## The "directory" also contains information about used accont names stored in another files.
@@ -341,15 +349,16 @@
 ##      Define the timeout in days (default is "10") after which the UNIX 
 ##      account can be reassigned to another user if not used. The "0" value 
 ##      means no lease expiration.
+## Options are the same as in map_to_user command.
 ## multivalued
 ## default: undefined
 #map_to_pool=atlas /etc/grid-security/pool/atlas
-## TODO: Aleksander to code the new feature directory/config feature
 
-## map_with_file = authgroup_name file - for users that belongs to specified
+## map_with_file = options authgroup_name file - for users that belongs to specified
 ## authgroup the subject of certificate is matched against a list of subjects 
 ## stored in the specified "file", one per line followed by a local UNIX account 
 ## name. This rule can be used to implement legacy grid-mapfile aproach.
+## Options are the same as in map_to_user command.
 ## multivalued
 ## default: undefined
 #map_with_file=any /etc/grid-security/grid-mapfile
@@ -361,8 +370,9 @@
 ## printed on stdout (optionally followed by a UNIX group name separated by colon).
 ## Plugin execution time is limited to "timeout" seconds. In the arguments 
 ## the following substitutions are applied before the plugin is started:
-##   - "%D" – subject of user’s certificate,
-##   - "%P" – path to credentials’ proxy file.
+##   - "%D" - subject of user's certificate,
+##   - "%P" - path to credentials' proxy file.
+## Options are the same as in map_to_user command.
 ## ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
 ## configuration. For more information about configuring LCMAPS refer to 
 ## 'Using LCAS/LCMAPS' document.
