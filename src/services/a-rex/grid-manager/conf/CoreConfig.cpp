@@ -99,22 +99,22 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("arex/ws");
   static const int jura_secnum = 3;
   cf.AddSection("arex/jura");
-  static const int gm_secnum = 4;
-  cf.AddSection("arex");
-  static const int infosys_secnum = 5;
-  cf.AddSection("infosys"); 
-  static const int queue_secnum = 6;
-  cf.AddSection("queue");
-  static const int ssh_secnum = 7;
-  cf.AddSection("lrms/ssh");
-  static const int lrms_secnum = 8;
-  cf.AddSection("lrms");
-  static const int cluster_secnum = 9;
-  cf.AddSection("infosys/cluster");
-  static const int perflog_secnum = 10;
-  cf.AddSection("common/perflog");
-  static const int ganglia_secnum = 11;
+  static const int ganglia_secnum = 4;
   cf.AddSection("arex/ganglia");
+  static const int gm_secnum = 5;
+  cf.AddSection("arex");
+  static const int infosys_secnum = 6;
+  cf.AddSection("infosys"); 
+  static const int queue_secnum = 7;
+  cf.AddSection("queue");
+  static const int ssh_secnum = 8;
+  cf.AddSection("lrms/ssh");
+  static const int lrms_secnum = 9;
+  cf.AddSection("lrms");
+  static const int cluster_secnum = 10;
+  cf.AddSection("infosys/cluster");
+  static const int perflog_secnum = 11;
+  cf.AddSection("common/perflog");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/arex.perflog");
@@ -372,11 +372,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       continue;
     };
 
+
     if (cf.SectionNum() == ganglia_secnum) { // arex/ganglia
       if (cf.SubSection()[0] == '\0') {
         if (!config.jobs_metrics) continue;
         if (command == "gmetric_bin_path") {
-          std::string fname = rest;  // empty is allowed too
+          std::string fname = rest;  // empty is not allowed, if not filled in arc.conf  default value is used
+	  logger.msg(Arc::DEBUG,"Maiken CoreConfig.cpp fname: %s",fname.c_str());
           config.jobs_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
@@ -387,6 +389,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             if((metric == "jobstates") || 
                (metric == "all")) {
               config.jobs_metrics->SetEnabled(true);
+	      logger.msg(Arc::DEBUG,"Maiken CoreConfig.cpp ENABLING metrics");
+
             };
           };
         };
@@ -395,6 +399,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     };
 
     if (cf.SectionNum() == ws_secnum) { // arex/ws
+     
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         if(command == "wsurl") {
