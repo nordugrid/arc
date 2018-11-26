@@ -12,6 +12,7 @@ namespace ARex {
 class JobsList;
 class JobLocalDescription;
 class GMConfig;
+class JobsMetrics;
 
 /// Possible job states
 enum job_state_t {
@@ -42,6 +43,8 @@ class GMJob {
  friend class GMJobRef;
  friend class GMJobQueue;
  friend class GMJobMock;
+ friend class JobsMetrics;
+
  private:
   // State of the job (state machine)
   job_state_t job_state;

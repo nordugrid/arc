@@ -15,6 +15,8 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
+  fail_ratio = 0;
+  job_counter = 0;
   std::memset(jobs_processed, 0, sizeof(jobs_processed));
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
   std::memset(jobs_processed_changed, 0, sizeof(jobs_processed_changed));
@@ -25,6 +27,8 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   std::memset(jobs_rate_changed, 0, sizeof(jobs_rate_changed));
   std::memset(jobs_state_accum, 0, sizeof(jobs_state_accum));
   std::memset(jobs_state_accum_last, 0, sizeof(jobs_state_accum_last));
+
+  fail_ratio_changed = false;
 
   time_lastupdate = time(NULL);
 }
@@ -39,18 +43,42 @@ void JobsMetrics::SetEnabled(bool val) {
 void JobsMetrics::SetConfig(const char* fname) {
   config_filename = fname;
 }
-
+  
 void JobsMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
 
-static const char* gmetric_tool = "/usr/bin/gmetric";
 
-void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state, job_state_t old_state) {
+  void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
   Glib::RecMutex::Lock lock_(lock);
 
 
-  //actual states
+  std::string job_id = i->job_id;
+
+  /*
+    ## - staging -- number of tasks in different data staging states
+    ## - cache -- free cache space
+    ## - session -- free session directory space
+    ## - heartbeat -- last modification time of A-REX heartbeat
+    ## - processingjobs -- the number of jobs currently being processed by ARC (jobs
+    ##                     between PREPARING and FINISHING states)
+    ## - failedjobs -- the ratio of failed jobs to all jobs
+    ## - jobstates -- number of jobs in different A-REX internal stages
+    ## - all -- all of the above metrics
+  */
+  
+
+  //accumulative state
+  ++jobs_state_accum[new_state];
+  ++job_counter;
+  if(i->CheckFailure(config)) ++job_fail_counter;
+
+
+  //ratio of failed jobs to all jobs
+  fail_ratio = job_fail_counter/job_counter;
+  fail_ratio_changed = true;
+
+  //actual states (jobstates)
   if(old_state < JOB_STATE_UNDEFINED) {
     ++(jobs_processed[old_state]);
     jobs_processed_changed[old_state] = true;
@@ -68,6 +96,7 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
   
     job_state_t last_old = JOB_STATE_UNDEFINED;
     job_state_t last_new = JOB_STATE_UNDEFINED;
+
 
     //find this jobs old and new state from last iteration
     if(jobs_state_old_map.find(job_id) != jobs_state_old_map.end()){
@@ -99,7 +128,7 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
     
 
     //for each statechange, increase number of jobs in the state and calculate rates,  at defined periods: update accum-array and histograms
-    ++jobs_state_accum[new_state];
+    //TO-DO - this will increase and increase, until arex restart? No good?
     
     time_now = time(NULL);
     time_delta = time_now - time_lastupdate;
@@ -119,6 +148,8 @@ void JobsMetrics::ReportJobStateChange(std::string job_id, job_state_t new_state
       }
     }
   }
+
+
   Sync();
 }
 
@@ -140,6 +171,17 @@ void JobsMetrics::Sync(void) {
   // Run gmetric to report one change at a time
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
   //Sync is therefore called multiple times until there are not more histograms that have changed
+
+  if(fail_ratio_changed){
+    if(RunMetrics(
+		  std::string("AREX-JOBS-FAIL-RATE"),
+		  Arc::tostring(fail_ratio), "double", "fail/all"
+		  )) {
+      fail_ratio_changed = false;
+      return;
+    };
+  }
+  
 
   for(int state = 0; state < JOB_STATE_UNDEFINED; ++state) {
     if(jobs_processed_changed[state]) {
@@ -188,7 +230,8 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
   if(proc) return false;
   std::list<std::string> cmd;
   if(tool_path.empty()) {
-    cmd.push_back(gmetric_tool);
+    logger.msg(Arc::ERROR,"gmetric_bin_path empty in arc.conf (should never happen the default value should be used");
+    return false;
   } else {
     cmd.push_back(tool_path);
   };
