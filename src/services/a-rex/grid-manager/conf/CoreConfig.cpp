@@ -372,11 +372,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       continue;
     };
 
+
     if (cf.SectionNum() == ganglia_secnum) { // arex/ganglia
       if (cf.SubSection()[0] == '\0') {
         if (!config.jobs_metrics) continue;
         if (command == "gmetric_bin_path") {
-          std::string fname = rest;  // empty is allowed too
+          std::string fname = rest;  // empty is not allowed, if not filled in arc.conf  default value is used
           config.jobs_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
@@ -395,6 +396,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     };
 
     if (cf.SectionNum() == ws_secnum) { // arex/ws
+     
       if (cf.SubSection()[0] == '\0') {
         ws_enabled = true;
         if(command == "wsurl") {
