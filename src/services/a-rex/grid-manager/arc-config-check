@@ -496,8 +496,8 @@ sub confcheck($) {
 			$blockcontents = 0;
 			
 			# No spaces allowed in block names
-			if ($blockname =~ m/\s/) {
-			    e("No spaces allowed in block names: [$blockname]\n");
+			if (($blockname !~ m/:/ && $blockname =~ m/\s/) || ($blockname =~ m/:\s*\w+\s+\w+\s*/)) {
+			    e("No spaces allowed within block keywords or identifiers: [$blockname]\n");
 			    next;
 			}
 
