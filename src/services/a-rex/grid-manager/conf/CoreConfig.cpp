@@ -101,8 +101,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("arex/ws");
   static const int jura_secnum = 4;
   cf.AddSection("arex/jura");
-  static const int ganglia_secnum = 4;
-  cf.AddSection("arex/ganglia");
   static const int gm_secnum = 5;
   cf.AddSection("arex");
   static const int infosys_secnum = 6;
