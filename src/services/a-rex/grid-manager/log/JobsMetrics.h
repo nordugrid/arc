@@ -43,6 +43,7 @@ class JobsMetrics {
   bool jobs_state_old_new_changed[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
   bool jobs_rate_changed[JOB_STATE_UNDEFINED];
 
+  //id,state
   std::map<std::string,job_state_t> jobs_state_old_map;
   std::map<std::string,job_state_t> jobs_state_new_map;
   
