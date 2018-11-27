@@ -130,7 +130,7 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
   if(i) {
     if(i->job_state != new_state) {
       JobsMetrics* metrics = config.GetJobsMetrics();
-      if(metrics) metrics->ReportJobStateChange(i->job_id, new_state, i->job_state);
+      if(metrics) metrics->ReportJobStateChange(config, i, i->job_state, new_state);
       std::string msg = Arc::Time().str(Arc::UTCTime);
       msg += " Job state change ";
       msg += i->get_state_name();
