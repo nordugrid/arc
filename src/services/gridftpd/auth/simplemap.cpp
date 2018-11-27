@@ -54,7 +54,7 @@ SimpleMap::SimpleMap(const char* dir):dir_(dir) {
   if(dir_[0] != '/') dir_=Glib::get_current_dir()+"/"+dir_;
   pool_handle_=open((dir_+"pool").c_str(),O_RDWR);
   selfunmap_time_ = SELFUNMAP_TIME;
-  std::ifstream config(dir_+"config");
+  std::ifstream config((dir_+"config").c_str());
   while(config.good()) {
     std::string str;
     getline(config, str);
