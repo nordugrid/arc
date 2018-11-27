@@ -100,6 +100,7 @@ bool JobsMetrics::CheckRunMetrics(void) {
   if(run_result != 0) {
    logger.msg(Arc::ERROR,": Metrics tool returned error code %i: %s",run_result,proc_stderr);
   };
+  delete proc;
   proc = NULL;
   return true;
 }

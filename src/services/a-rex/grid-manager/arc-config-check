@@ -496,8 +496,8 @@ sub confcheck($) {
 			$blockcontents = 0;
 			
 			# No spaces allowed in block names
-			if ($blockname =~ m/\s/) {
-			    e("No spaces allowed in block names: [$blockname]\n");
+			if (($blockname !~ m/:/ && $blockname =~ m/\s/) || ($blockname =~ m/:\s*\w+\s+\w+\s*/)) {
+			    e("No spaces allowed within block keywords or identifiers: [$blockname]\n");
 			    next;
 			}
 
@@ -669,6 +669,14 @@ sub check_completeness() {
 	if (getpwnam(getpwuid($<)) == 0 && keys %{ $config->{"mapping"} } == 1) {
 		e("[mapping] block cannot be empty if running as root\n");
 	}
+
+    # Warn if no allow/denyaccess blocks are present in interface blocks
+    if (exists($config->{"arex/ws/jobs"}) && !(exists($config->{"arex/ws/jobs"}{"allowaccess"}) || exists($config->{"arex/ws/jobs"}{"denyaccess"}))) {
+        w("No allowaccess or denyaccess defined in [arex/ws/jobs]. Interface will be open for all mapped users\n");
+    }
+    if (exists($config->{"gridftpd/jobs"}) && !(exists($config->{"gridftpd/jobs"}{"allowaccess"}) || exists($config->{"gridftpd/jobs"}{"denyaccess"}))) {
+        w("No allowaccess or denyaccess defined in [gridftpd/jobs]. Interface will be open for all mapped users\n");
+    }
 
 }
 

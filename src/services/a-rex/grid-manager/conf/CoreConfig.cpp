@@ -93,11 +93,13 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.SetSectionIndicator(".");
   static const int common_secnum = 0;
   cf.AddSection("common");
-  static const int emies_secnum = 1;
+  static const int ganglia_secnum = 1;
+  cf.AddSection("arex/ganglia");
+  static const int emies_secnum = 2;
   cf.AddSection("arex/ws/jobs");
-  static const int ws_secnum = 2;
+  static const int ws_secnum = 3;
   cf.AddSection("arex/ws");
-  static const int jura_secnum = 3;
+  static const int jura_secnum = 4;
   cf.AddSection("arex/jura");
   static const int ganglia_secnum = 4;
   cf.AddSection("arex/ganglia");

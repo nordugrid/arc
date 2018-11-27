@@ -136,6 +136,13 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status PutDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status PutCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
 
+  Arc::MCC_Status DeleteJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status DeleteLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status DeleteInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status DeleteNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status DeleteDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
+  Arc::MCC_Status DeleteCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+
   // A-REX faults
   void GenericFault(Arc::SOAPFault& fault);
   void NotAuthorizedFault(Arc::XMLNode fault);
