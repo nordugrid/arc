@@ -1669,27 +1669,12 @@
 #gmetric_bin_path=/usr/local/bin/gmetric
 ## CHANGE: Moved from deleted [gangliarc] block and renamed. Path used in arc-ganglia implementation JobsMetrics.cpp
 
-## logfile = path - log file of the daemon.
-## default: /var/log/arc/gangliarc.log
-#logfile=/tmp/gangliarc.log
-## TODO: is this needed for the internal ganglia?
-
-## pidfile = pid - pid file of the daemon.
-## default: /var/run/gangliarc.pid
-#pidfile=/tmp/gangliarc.pid
-## TODO: it is not a separate service, therefore pid is not there. 
-
-## python_bin_path = path - The path to python executable. 
-## default: /usr/bin/python
-#python_bin_path=/usr/local/bin/python
-## TODO (Maiken) clarify if this is still needed.
-
 ## metrics = name_of_the_metrics - the metrics to be monitored. 
 ## metrics takes a comma-separated list of one or more of the following metrics:
-## - staging -- number of tasks in different data staging states
-## - cache -- free cache space
-## - session -- free session directory space
-## - heartbeat -- last modification time of A-REX heartbeat
+## - staging -- number of tasks in different data staging states - not yet implemented
+## - cache -- free cache space - not yet implemented
+## - session -- free session directory space - not yet implemented
+## - heartbeat -- last modification time of A-REX heartbeat - not yet implemented
 ## - processingjobs -- the number of jobs currently being processed by ARC (jobs
 ##                     between PREPARING and FINISHING states)
 ## - failedjobs -- the number of failed jobs per last 100 finished
