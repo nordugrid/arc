@@ -315,7 +315,21 @@
 ### The [mapping] block ##############################################
 ## This block defines the grid-identity to local UNIX identity mapping rules 
 ## used by various ARC components.
-## Mapping rules are processed sequentially and processing stops at first 
+##
+## Mapping rules are processed sequentially in the defined order.
+## Each rule defines mapping method that triggered for specified "authgroup" members.
+## Processing of the next rule depends on the "options" defined for the current rule
+## and can be flexibly tuned.
+## By default:
+##   - mapping process continue to the next rule in case of grid-identity is not
+##     matched specified "authgroup" or mapping rule is not able to accomplish mapping.
+##   - mapping process stops if user is a member of authgroup and mapping rule returns
+##     valid UNIX identity
+##
+## NOTE that if mapping process had stopped and there is still no local UNIX identity
+## identified, the user running A-REX will be used.
+## NOTE that when grid-identity is mapped to "root" account request processing fails implicitely.
+##
 ## successful one. 
 #[mapping]
 ## CHANGE: This is a new block
@@ -323,8 +337,7 @@
 ## map_to_user = options authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
 ## optionally followed by a "unixgroup" UNIX group. 
-## In case of non-existing "unixname" local user the mapping rule fails.
-## The options are list of comma separated list of event=action pairs or '*' as placeholder.
+## The options are list of comma separated "event=action" pairs or "*" as placeholder.
 ## Possible actions are:
 ##   - "stop" - stop processing maping commands
 ##   - "continue" - proceed to next mapping command
@@ -332,9 +345,10 @@
 ##   "onnogroup" - specified authgroup does not match (default action is "continue")
 ##   "onnomap"   - specified authgroup matches but mapping processing fails (defalt action is "continue"),
 ##   "onmap"     - specified authgroup matches and mapping processing succedes (defalt action is "stop"),
+## In case of non-existing "unixname" local user the mapping rule triggers "onnomap" event.
 ## multivalued
 ## default: undefined
-#map_to_user=any nobody:nobody
+#map_to_user=* any nobody:nobody
 
 ## map_to_pool = options authgroup_name directory - the user that belong to specified 
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
@@ -352,7 +366,7 @@
 ## Options are the same as in map_to_user command.
 ## multivalued
 ## default: undefined
-#map_to_pool=atlas /etc/grid-security/pool/atlas
+#map_to_pool=onnomap=stop atlas /etc/grid-security/pool/atlas
 
 ## map_with_file = options authgroup_name file - for users that belongs to specified
 ## authgroup the subject of certificate is matched against a list of subjects 
@@ -361,7 +375,7 @@
 ## Options are the same as in map_to_user command.
 ## multivalued
 ## default: undefined
-#map_with_file=any /etc/grid-security/grid-mapfile
+#map_with_file=* any /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
 ## external "plugin" executable with specified arguments to find the UNIX account 
@@ -380,7 +394,7 @@
 ## mapping rule to nonexistent or safe account if dynamic mapping sources are used.
 ## multivalued
 ## default: undefined
-#map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
+#map_with_plugin=onnomap=continue altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 ##
 ##
 ### end of the [mapping] block ##############################################
