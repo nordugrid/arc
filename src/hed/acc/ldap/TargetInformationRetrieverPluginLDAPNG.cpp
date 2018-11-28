@@ -49,8 +49,7 @@ namespace Arc {
     std::string escaped_dn = escape_chars(credential.GetIdentityName(), filter_esc, '\\', false, escape_hex);
 
     url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
-                         "(objectclass=nordugrid-queue)"
-                         "(nordugrid-authuser-sn=" + escaped_dn + "))");
+                         "(objectclass=nordugrid-queue))");
 
     DataBuffer buffer;
     DataHandle handler(url, uc);
@@ -180,7 +179,6 @@ namespace Arc {
           }
         }
 
-        XMLNode authuser = queue["nordugrid-info-group-name"]["nordugrid-authuser-name"];
         if (queue["nordugrid-queue-name"]) {
           ComputingShare->Name = (std::string)queue["nordugrid-queue-name"];
         }
@@ -215,7 +213,6 @@ namespace Arc {
           EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ComputingShare->MaxVirtualMemory);
         EntryToInt(url, queue["nordugrid-queue-nodememory"], ComputingShare->MaxMainMemory) || 
           EntryToInt(url, (*it)["nordugrid-cluster-nodememory"], ComputingShare->MaxMainMemory);
-        EntryToInt(url, authuser["nordugrid-authuser-diskspace"], ComputingShare->MaxDiskSpace);
         if ((*it)["nordugrid-cluster-localse"]) {
           ComputingShare->DefaultStorageService = (std::string)(*it)["nordugrid-cluster-localse"];
         }
@@ -238,38 +235,6 @@ namespace Arc {
           ((ComputingShare->RunningJobs > 0) ? ComputingShare->RunningJobs : 0) +
           ((ComputingShare->WaitingJobs > 0) ? ComputingShare->WaitingJobs : 0) +
           ((ComputingShare->PreLRMSWaitingJobs > 0) ? ComputingShare->PreLRMSWaitingJobs : 0);
-        if (authuser["nordugrid-authuser-freecpus"]) {
-          std::string value =
-            (std::string)authuser["nordugrid-authuser-freecpus"];
-          std::string::size_type pos = 0;
-          do {
-            std::string::size_type spacepos = value.find(' ', pos);
-            std::string entry;
-            if (spacepos == std::string::npos)
-              entry = value.substr(pos);
-            else
-              entry = value.substr(pos, spacepos - pos);
-            int num_cpus = 0;
-            Period time;
-            std::string::size_type colonpos = entry.find(':');
-            if (colonpos == std::string::npos) {
-              stringto(entry, num_cpus);
-              time = LONG_MAX;
-            }
-            else {
-              stringto(entry.substr(0, colonpos), num_cpus);
-              int t = 0;
-              if (stringto(entry.substr(colonpos + 1), t)) {
-                time = t*60;
-              }
-            }
-            ComputingShare->FreeSlotsWithDuration[time] = num_cpus;
-            pos = spacepos;
-            if (pos != std::string::npos)
-              pos++;
-          } while (pos != std::string::npos);
-          ComputingShare->FreeSlots = ComputingShare->FreeSlotsWithDuration.begin()->second;
-        }
         EntryToInt(url, (*it)["nordugrid-cluser-usedcpus"], ComputingShare->UsedSlots);
         if (queue["nordugrid-queue-schedulingpolicy"]) {
           ComputingShare->ReservationPolicy = (std::string)queue["nordugrid-queue-schedulingpolicy"];
