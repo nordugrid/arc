@@ -1164,7 +1164,7 @@ sub collect($) {
     
     # Computing Endpoints IDs
     my $ARCgftpjobcepID;
-    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint}; # ARCGridFTPComputingEndpoint ID
+    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled}); # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID;
     $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$wsendpoint" if $wsenabled; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
