@@ -217,7 +217,7 @@ sub collect($) {
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};
         $c->{credentialexpirationtime} = mds_date($credenddate) if $credenddate;
         $c->{trustedca} = $host_info->{trustedcas} if $host_info->{trustedcas};
-        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint};
+        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
         $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
             if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
