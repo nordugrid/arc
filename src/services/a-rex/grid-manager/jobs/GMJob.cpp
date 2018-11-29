@@ -13,6 +13,8 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+Glib::RecMutex GMJobQueue::lock_;
+
 GMJob::job_state_rec_t const GMJob::states_all[JOB_STATE_NUM] = {
   { "ACCEPTED",   ' ' }, // JOB_STATE_ACCEPTED
   { "PREPARING",  'b' }, // JOB_STATE_PREPARING
@@ -126,15 +128,16 @@ void GMJob::DestroyReference(void) {
 }
 
 bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
-  // Lock job instance
-  Glib::RecMutex::Lock lock(ref_lock);
+  // Simply use global lock. It will protect both queue content and 
+  // reference to queue inside job.
+  Glib::RecMutex::Lock qlock(GMJobQueue::lock_);
+
   GMJobQueue* old_queue = queue;
   if (old_queue == new_queue) {
     // shortcut
     if(!to_front) return true;
     if(!old_queue) return true;
     // move to front
-    Glib::RecMutex::Lock qlock(old_queue->lock_);
     old_queue->queue_.remove(this); // ineffective operation!
     old_queue->queue_.push_front(this);
     return true;
@@ -149,16 +152,12 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
     };
   };
   if (old_queue) {
-    // Lock current queue
-    Glib::RecMutex::Lock qlock(old_queue->lock_);
     // Remove from current queue
     old_queue->queue_.remove(this); // ineffective operation!
     queue = NULL;
     // Unlock current queue
   };
   if (new_queue) {
-    // Lock new queue
-    Glib::RecMutex::Lock qlock(new_queue->lock_);
     // Add to new queue
     if(!to_front) {
       new_queue->queue_.push_back(this);
@@ -172,6 +171,7 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   if(new_queue && !old_queue) {
     ++ref_count;
   } else if(!new_queue && old_queue) {
+    Glib::RecMutex::Lock lock(ref_lock);
     if(--ref_count == 0) {
       logger.msg(Arc::ERROR,"%s: Job monitoring is lost due to removal from queue",job_id);
       lock.release(); // release before deleting referenced object
@@ -224,40 +224,36 @@ GMJobQueue::GMJobQueue(int priority):priority_(priority) {
 }
 
 bool GMJobQueue::Push(GMJobRef& ref) {
-  if(ref) {
-    return ref->SwitchQueue(this);
-  };
-  return false;
+  if(!ref) return false;
+  return ref->SwitchQueue(this);
 }
 
 bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
-  if(ref) {
-    if(ref->SwitchQueue(this)) {
-      // Most of the cases job lands last in list
-      std::list<GMJob*>::reverse_iterator opos = queue_.rbegin();
-      while(opos != queue_.rend()) {
-        if(ref == GMJobRef(*opos)) {
-          // Can it be moved ?
-          std::list<GMJob*>::reverse_iterator npos = opos;
-          std::list<GMJob*>::reverse_iterator rpos = npos;
-          ++npos;
-          while(npos != queue_.rend()) {
-            if(!compare(ref, *npos)) break;
-            rpos = npos;
-            ++npos;
-          };
-          if(rpos != opos) {  // no reason to move to itself
-            queue_.insert(--(rpos.base()),*opos);
-            queue_.erase(--(opos.base()));
-          };
-          break;
-        };
-        ++opos;
+  if(!ref) return false;
+  Glib::RecMutex::Lock qlock(lock_);
+  if(!ref->SwitchQueue(this)) return false;
+  // Most of the cases job lands last in list
+  std::list<GMJob*>::reverse_iterator opos = queue_.rbegin();
+  while(opos != queue_.rend()) {
+    if(ref == GMJobRef(*opos)) {
+      // Can it be moved ?
+      std::list<GMJob*>::reverse_iterator npos = opos;
+      std::list<GMJob*>::reverse_iterator rpos = npos;
+      ++npos;
+      while(npos != queue_.rend()) {
+        if(!compare(ref, *npos)) break;
+        rpos = npos;
+        ++npos;
       };
-      return true;
+      if(rpos != opos) {  // no reason to move to itself
+        queue_.insert(--(rpos.base()),*opos);
+        queue_.erase(--(opos.base()));
+      };
+      break;
     };
+    ++opos;
   };
-  return false;
+  return true;
 }
 
 GMJobRef GMJobQueue::Front() {
@@ -276,10 +272,8 @@ GMJobRef GMJobQueue::Pop() {
 }
 
 bool GMJobQueue::Unpop(GMJobRef& ref) {
-  if(ref) {
-    return ref->SwitchQueue(this, true);
-  };
-  return false;
+  if(!ref) return false;
+  return ref->SwitchQueue(this, true);
 }
 
 bool GMJobQueue::Erase(GMJobRef& ref) {
@@ -294,12 +288,14 @@ bool GMJobQueue::Erase(GMJobRef& ref) {
 
 bool GMJobQueue::Exists(const GMJobRef& ref) const {
   if(!ref) return false;
-  Glib::RecMutex::Lock lock(const_cast<Glib::RecMutex&>(lock_));
+  Glib::RecMutex::Lock lock(lock_);
   return (ref->queue == this);
 }
 
 void GMJobQueue::Sort(comparator_t compare) {
+  Glib::RecMutex::Lock lock(lock_);
   queue_.sort(compare);
 }
 
 } // namespace ARex
+
