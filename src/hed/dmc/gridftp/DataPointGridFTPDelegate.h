@@ -30,7 +30,22 @@ namespace ArcDMCGridFTP {
   class DataPointGridFTPDelegate
     : public DataPointDirect {
   private:
+    class LogRedirect: public Run::Data {
+     public:
+      LogRedirect(): level_(FATAL) { };
+      virtual ~LogRedirect() { Flush(); };
+      virtual void Append(char const* data, unsigned int size);
+      void Flush();
+    private:
+      // for sanity checks
+      std::string::size_type const level_size_max_ = 32;
+      std::string::size_type const buffer_size_max_ = 4096;
+      LogLevel level_;
+      std::string buffer_;
+    };
+
     static Logger logger;
+    LogRedirect log_redirect;
     int ftp_threads;
     bool autodir;
 

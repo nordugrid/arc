@@ -42,23 +42,15 @@ namespace ArcDMCGridFTP {
     argv.push_front("-s");
     argv.push_front(Arc::level_to_string(logger.getThreshold()));
     argv.push_front("-V");
-    LogFormat format = LogDestination::getDefaultFormat();
-    std::list<LogDestination*> destinations = logger.getDestinations();
-    if(!destinations.empty()) {
-      if(destinations.front()) format = destinations.front()->getFormat();
-    } else {
-      std::list<LogDestination*> destinations = Logger::getRootLogger().getDestinations();
-      if(!destinations.empty()) {
-        if(destinations.front()) format = destinations.front()->getFormat();
-      }
-    }
+    LogFormat format = ShortFormat; // Header is then added while redirecting stderr
     argv.push_front(Arc::tostring(format));
     argv.push_front("-F");
     argv.push_front(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBSUBDIR+G_DIR_SEPARATOR_S+"arc-dmcgridftp");
     run = new Run(argv);
     run->KeepStdin(false);
     run->KeepStdout(false);
-    run->KeepStderr(true);
+    run->KeepStderr(false);
+    run->AssignStderr(log_redirect);
     if(!run->Start()) {
       return DataStatus(errCode, "Failed to start helper process for "+url.plainstr());
     }
@@ -528,6 +520,34 @@ namespace ArcDMCGridFTP {
     if(triesleft < 1) triesleft = 1;
     ResetMeta();
     return true;
+  }
+
+  void DataPointGridFTPDelegate::LogRedirect::Append(char const* data, unsigned int size) {
+    while(size >= 0) {
+      char const* sep = (char const*)memchr(data, '\n', size);
+      if (sep == NULL) break;
+      if(buffer_.length() < buffer_size_max_) buffer_.append(data,sep-data);
+      Flush();
+      size -= sep-data+1;
+      data = sep+1;
+    }
+    if (size > 0) buffer_.append(data,size);
+  }
+
+  void DataPointGridFTPDelegate::LogRedirect::Flush() {
+    if(!buffer_.empty()) {
+      // I could not find any better method for recovering message level
+      std::string::size_type dsep = buffer_.find(':');
+      if((dsep != std::string::npos) &&
+         (dsep < level_size_max_) &&
+         (string_to_level(buffer_.substr(0,dsep),level_))) {
+        dsep += 1;
+      } else {
+        dsep = 0;
+      }
+      logger.msg(level_, "%s", buffer_.c_str()+dsep);
+      buffer_.clear();
+    }
   }
 
 } // namespace ArcDMCGridFTP
