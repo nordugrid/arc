@@ -522,6 +522,9 @@ namespace ArcDMCGridFTP {
     return true;
   }
 
+  std::string::size_type const DataPointGridFTPDelegate::LogRedirect::level_size_max_ = 32;
+  std::string::size_type const DataPointGridFTPDelegate::LogRedirect::buffer_size_max_ = 4096;
+
   void DataPointGridFTPDelegate::LogRedirect::Append(char const* data, unsigned int size) {
     while(size >= 0) {
       char const* sep = (char const*)memchr(data, '\n', size);

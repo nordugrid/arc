@@ -38,8 +38,8 @@ namespace ArcDMCGridFTP {
       void Flush();
     private:
       // for sanity checks
-      std::string::size_type const level_size_max_ = 32;
-      std::string::size_type const buffer_size_max_ = 4096;
+      static std::string::size_type const level_size_max_;
+      static std::string::size_type const buffer_size_max_;
       LogLevel level_;
       std::string buffer_;
     };
