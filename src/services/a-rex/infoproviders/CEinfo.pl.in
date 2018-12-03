@@ -426,6 +426,11 @@ sub get_lrms_info($$$) {
 
     # this conforms to LRMSInfo.pm specification
     my $lrms_opts = Storable::dclone($config->{lrms});
+    
+    # Additional info used by LRMS modules
+    $lrms_opts->{controldir} = $config->{control}{'.'}{controldir};
+    $lrms_opts->{loglevel} = $config->{infosys}{loglevel};
+    
     # TODO: double check this cleanup, if needed
     delete $lrms_opts->{$_} for qw(xenvs shares);
     $lrms_opts->{jobs} = $jobids;
