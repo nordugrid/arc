@@ -19,10 +19,33 @@ namespace Arc {
    * \headerfile Run.h arc/Run.h */
   class Run {
     friend class RunPump;
+  public:
+    class Data {
+     public:
+      virtual ~Data() {};
+      virtual void Append(char const* data, unsigned int size) {};
+      virtual void Remove(unsigned int size) {};
+      virtual char const* Get() const { return NULL; };
+      virtual unsigned int Size() const { return 0; };
+    };
+
   private:
     Run(const Run&);
     Run& operator=(Run&);
   protected:
+    class StringData: public Data {
+     public:
+      StringData();
+      virtual ~StringData();
+      void Assign(std::string& str);
+      virtual void Append(char const* data, unsigned int size);
+      virtual void Remove(unsigned int size);
+      virtual char const* Get() const;
+      virtual unsigned int Size() const;
+     private:
+      std::string* content_;
+    };
+
     // working directory
     std::string working_directory;
     // Handles
@@ -30,9 +53,12 @@ namespace Arc {
     int stderr_;
     int stdin_;
     // Associated string containers
-    std::string *stdout_str_;
-    std::string *stderr_str_;
-    std::string *stdin_str_;
+    Data *stdout_str_;
+    Data *stderr_str_;
+    Data *stdin_str_;
+    StringData stdout_str_wrap_;
+    StringData stderr_str_wrap_;
+    StringData stdin_str_wrap_;
     //
     bool stdout_keep_;
     bool stderr_keep_;
@@ -141,14 +167,17 @@ namespace Arc {
     /** This method must be called before Start(). str object
         must be valid as long as this object exists. */
     void AssignStdout(std::string& str);
+    void AssignStdout(Data& str);
     /// Associate stderr handle of executable with string.
     /** This method must be called before Start(). str object
         must be valid as long as this object exists. */
     void AssignStderr(std::string& str);
+    void AssignStderr(Data& str);
     /// Associate stdin handle of executable with string.
     /** This method must be called before Start(). str object
         must be valid as long as this object exists. */
     void AssignStdin(std::string& str);
+    void AssignStdin(Data& str);
     /// Keep stdout same as parent's if keep = true.
     void KeepStdout(bool keep = true);
     /// Keep stderr same as parent's if keep = true.
