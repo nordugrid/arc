@@ -1,0 +1,188 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 16     September 18, 2017
+-----------------------------------------------
+
+This is a minor release, introducing new features and addressing bugs discovered since release 15.03u15. 
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.3.2 to 5.4.0
+  * documents - from 2.0.16 to 2.0.17
+Nagios plugins, Gangliarc and metapackages are unchanged.
+
+
+
+Note:
+In the process of fixing bug 3666 for ARC 5.3.2 a backward incompatibility was introduced in the EMI-ES interface.
+This backward incompatibility is still present in 5.4.0.
+
+If you run ARC < 5.3.2 you are asked to not turn on the EMI-ES interface, hence avoiding any problems.
+Sites running ARC >= 5.3.2 should not suffer from the issue.
+
+
+
+New features highlights
+-----------------------
+
+  * Code adaption to OpenSSL 1.1.x, specifically for distributions which build OpenSSL without deprecated functions.
+  * Fix for handling signing_policy files which come with Windows-oriented editors. 
+  * Increase in data transfer performance, mostly affecting chunked HTTP transfers.
+  * Remove use of Credential objects in DTR, instead using strings for credential attributes. May help with data staging performance.
+  * Technology preview of ARCHERY - The next generation Information Index Service for ARC.
+    The ARCHERY client-plugin and ldap-monitor is included in this round. The ARCHERY-manage component will be released in ARC 6.
+
+
+
+Information on ARCHERY technology preview and how to test it
+------------------------------------------------------------
+
+ARC Hierarchical Endpoints Registry (ARCHERY) publishes endpoints of resource providers directly in the DNS
+by using the domain name as an entry point for resource discovery. ARCHERY is aimed to replace existing EGIIS services.
+Compared to EGIIS it is not bound to LDAP endpoints and brings the reliability, integrity, caching and administration delegation
+features of DNS to the grid indexes world. 
+
+To start using ARCHERY just point the ARC client to the entry point domain name: arcsub -g nordugrid.org myjob.xrsl
+No extra configuration needed, it works out of the box.
+While NorduGrid Top-Level ARCHERY entry point in the nordugrid.org domain is under establishment,
+anyone can use the testing instance at: archery-all.grid.org.ua.
+
+NOTE that archery-manage is not shipped with this release.
+
+More information can be found in the NorduGrid ARCHERY Architecture Overview document:
+https://docs.google.com/document/d/1E3IHZIWv1oPRs3yJeCnI1VOLh-ec-23L_FTY-zjlquQ/edit.
+
+
+
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed or partially fixed in the ARC core:
+  * Potential issues having ARC build and function properly on distributions with OpenSSL 1.1.0.
+    Code adaption to OpenSSL 1.1.x. Specifically for distributions which build OpenSSL without deprecated functions.
+    Adaption includes fix to bug 3678.
+  * Non-optimal data transfer perfomance affecting chunked HTTP transfers.
+    Max allowed size of transfer buffer is increased to a reasonable size for modern computers.
+    The fix may improve performance. 
+  * Non-optimal staging performance. Some sites have reported congestions when dealing with jobs that have a large amount of input files.
+    Removing the use of Credential objects in DTR may help staging performance. 
+  
+
+=== Accounting
+
+  * No changes.
+ 
+
+=== Information system
+
+  * File containing XML description of the cluster is moved from temporary directory to controldir.
+    This file is produced and consumed internally by A-REX and should not have any effect outside.
+  * Fix to prevent VO computingshares producing negative number of running jobs.
+    This is a technology preview, related to the partially fixed bug number 3686.
+  * See above for information about ARCHERY.
+  
+== ARC Clients
+
+  * Slight increase of performance for BES submission interface. 
+
+  
+== Nagios plugins
+
+  * No changes.
+
+
+
+Fixed or partially fixed bugs
+----------
+
+Since ARC 15.03 update 15, the following bugs were fully or partially fixed:
+  * 3678 HostInfo.pm doesn't find CA Issuer after upgrade to openssl 1.1.0.
+  * 3669 Inconsistency of walltime/cputime report of multi-core jobs depending on the interface.
+  * 3686 Negative VO numbers.
+
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The
+    only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files.
+    While all log messages are correctly logged in the main log file, some rotated log
+    files may receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a consequence,
+    EMIES WS clients can no longer find a queue by VO name the same way as in previous versions
+    of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u16 consists of the following source packages:
+  * NorduGrid ARC, version 5.4.0 (main components)
+  * NorduGrid ARC Documents version 2.0.17
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.9.1
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
+
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.4.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.17
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.9.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 7.0 to 9.0 (i386 and amd64)
+  * Fedora: from 12 to 26 (i386 and x86_64)
+  * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
+    15.10, 16.04, 16.10, and 17.04 (i386 and amd64)
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

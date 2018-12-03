@@ -1,0 +1,399 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 11.05 update 1             August 16 2011
+-----------------------------------------------------
+
+NorduGrid ARC 11.05 has received an update to most components from version 1.0.0
+to 1.0.1 and documents from 1.0.1 to 1.0.2. 
+
+ARC components in 11.05 update 1:
+
+  * ARC Core (includes documents)
+  * ARC Clients
+  * ARC CE
+  * ARC Infosys
+  * ARC gridftp server
+  * arcjobtool GUI (not updated)
+
+ARC Core
+--------
+
+ARC Core component contains: HED, HED LIDI, HED security, HED language bindings,
+DMCs and ARC documentation. 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-1.0.1
+  * nordugrid-arc-doc-1.0.2
+  * nordugrid-arc-ca-utils-1.0.1
+  * nordugrid-arc-debuginfo-1.0.1
+  * nordugrid-arc-devel-1.0.1
+  * nordugrid-arc-doxygen-1.0.1
+  * nordugrid-arc-hed-1.0.1
+  * nordugrid-arc-java-1.0.1
+  * nordugrid-arc-python-1.0.1
+  * nordugrid-arc-python26-1.0.1
+  * nordugrid-arc-plugins-needed-1.0.1
+  * nordugrid-arc-plugins-globus-1.0.1
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+  * nordugrid-arc-doc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.0.1-1.el5.src.rpm
+  * nordugrid-arc-doc-1.0.2-1.el5.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.0.1.tar.gz
+  * nordugrid-arc-doc-1.0.2.tar.gz
+
+= Documentation
+
+  * ARC HED description
+  * WS configuration manual 
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2491 2.6 python bindings for RH5
+
+Medium priority bugs fixed:
+
+  * 2455 arc1 fails to compile with recent libxml2 and xmlsec
+  * 2507 arc* commands inconsistent behaviour between each other
+  * 2405 gridftp dmc is not using anonymous as the default for plain ftp
+
+Less urgent bugs fixed:
+
+  * 2497 Inconsistent CA packages installation instruction
+  * 2403 arc.conf.template refers to arc server but is in package
+nordugrid-arc-client
+  * 2407 No check for Python.h is made in ./configure, but the python bindings
+are built
+  * 2451 autogen.sh fails on SLC5
+
+= Deployment notes:
+
+New package nordugrid-arc-python26-1.0.1-0.rc4.el5.x86_64.rpm has been added.
+Otherwise this release does not introduce any changes in the deployment
+procedures described in ARC documentation 
+
+= Known Issues
+
+None
+
+
+ARC Clients
+-----------
+
+ARC Clients component contains pre-WS compute CLI, pre-WS data CLI, WS compute
+CLI and WS data CLI 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-client-1.0.1
+  * nordugrid-arc-compat-1.0.0
+  * nordugrid-arc-compat-debuginfo-1.0.0
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+  * nordugrid-arc-compat-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.0.1-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.1-1.<os>.src.rpm
+  * nordugrid-arc-compat-1.0.0-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.0.1.tar.gz
+  * nordugrid-arc-compat-1.0.0.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-client-tools-1.0.1
+
+= Documentation
+
+  * Functional description of WS clients
+  * WS Client user guide
+  * Pre-WS Client user guide
+  * WS client installation instructions
+  * Pre-WS client installation instructions
+  * Troubleshooting
+  * XRSL manual
+  * Transition from Pre-WS to WS client - a guide
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2475 XRSLParserTest fails on some 64bit platforms: RHEL 4+5, SL5, Fedora 5+6
+  * 2472 Period and Time not usable with python for missing methods to get
+values
+  * 2423 arctest can not find targets, reports bogus error
+  * 1887 arcstat -a very inefficient
+  * 2452 ARClib's DownloadDirectory aborts with: globus_list_rest: Assertion
+`head != 0' failed.
+  * 2463 argget report failure in downloading jobs from ARC0 sites
+
+Medium priority bugs fixed:
+
+  * 2148 User tools (arccp/rm/ls) should uri encode their arguments before using
+them
+  * 2426 typo in job description for arctest -J1
+  * 2429 ldapsearch should escape parentheses
+  * 2469 arcsub seg faults when [] is in the job description
+  * 2520 GGUS-Ticket-ID: #72340 EMI1 ARC CE 1.0.0 wrong user mapping
+  * 2442 ARC incompatible with CERN voms server
+  * 2420 arcproxy manpage errors
+  * 2365 Job submission failed, no more possible targets however server is
+health
+  * 2484 ARClib does not export the version number/string
+  * 2288 More informative errors in arcstat when a site is down
+  * 2430 ARC shouldn't request a gsiftp URL when it isn't configured to use one
+  * 2431 ARC should release the TURL after transfer failure
+  * 2458 arcls fails to list files on dcache gridftp server
+  * 2493 ngrm command line options descriptions differ
+
+Less urgent bugs fixed:
+
+  * 2529 arcproxy: wrong error message when key/certificate files are absent
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Clients documentation. 
+
+= Known issues
+
+Bugs 2471 and 2485 (requesting two versions of the same runtime environment
+simultaneously) are not fixed yet. 
+
+For bug 2473 (crash in SWIG-generated Python library) only a workaround exists
+so far. 
+
+
+ARC CE
+------
+
+ARC CE component includes A-REX, CE-Cache, CE-staging, LRMS modules, JURA,
+nordugridmap, information providers and Janitor 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-arex-1.0.1
+  * nordugrid-arc-janitor-1.0.1
+  * nordugrid-arc-gridmap-utils-1.0.1
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.0.1-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.2-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.0.1.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-compute-element-1.0.1
+
+= Documentation
+
+  * Design and functional description of A-REX
+  * ARC CE installation instructions
+  * Configuration template
+  * Data Staging Wiki
+  * Batch back-ends guide
+  * Janitor handbook
+  * JURA documentation
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2482 looping downloader
+  * 2236 Uploaders hangs
+  * 2301 Uploaders from WS ARC segfault while trying to upload to SRM:// URLs
+  * 2474 renew credentials does not work with arc1 server
+  * 2449 ARC 11.05 parsing voms attributes
+  * 2520 GGUS-Ticket-ID: #72340 EMI1 ARC CE 1.0.0 wrong user mapping
+  * 2442 ARC incompatible with CERN voms server
+
+Medium priority bugs fixed:
+
+  * 2370 multiple arched processes are spawned
+  * 2388 Logrotate and gridftp and A-REX
+  * 2425 Timeout for user uploadable files is too long
+  * 2445 A-REX crashes when using WS-interface
+  * 2453 arcclean reporting failure at server site
+  * 2456 seg fault from gridftpd when submitting job
+  * 2494 jobs get stuck in EXECUTED when resumed after failing in uploading
+output files
+  * 2527 inputcheck not resolving hostnames at all
+  * 2375 Two downloaders per job, blocking each other
+  * 2467 Failure not reported in gm-jobs.log
+  * 2434 No man page - nordugridmap
+  * 2411 Only SLURM 2.2.1 supported, not newer version.
+  * 2427 gm-kick is called by scan-SLURM-job but it is not installed in
+{$basedir}
+  * 2441 Unable to configure ARC to build with external LCMAPS headers
+  * 2540 [Arc] [ERROR] [15117/165611864] Failed setting file owner
+  * 2219 Segmentation faults in DataStagingDelivery
+  * 2470 URLs with spaces cannot be cached
+  * 1214 cache logging location and general log rotation
+  * 2519 nordugrid-arc-compute-element metapackage does not trigger the
+installation of CA packages
+  * 2496 Wrong metapackage name in server installation instructions
+
+Less urgent bugs fixed:
+
+  * 2412 Downloading fails from ARC gridftpd 0.8.1 site when using cache.
+  * 2486 missmatch between Mb and kB in scan-sge-job
+  * 2461 GGUS-Ticket-ID: #71248 EMI1: arc-ce documentation issues
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC CE documentation. 
+
+= Known issues
+
+Bug 2240 (crash triggered by setenv/getenv calls in LFC libraries) is resolved
+by a temporary workaround. A proper solution requires re-write of LFC
+libraries. 
+
+Feature request 2523 (configurable fall-back user mapping in case of
+non-accepted VOMS extensions) is pending for documentation. 
+
+
+ARC Infosys
+-----------
+
+ARC Infosys component contains ARIS, EGIIS and ARC Grid Monitor
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-aris-1.0.1
+  * nordugrid-arc-egiis-1.0.1
+  * nordugrid-arc-ldap-monitor-1.0.1
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.0.1-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.2-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.0.1.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-information-index-1.0.1
+
+= Documentation
+
+  * ARC Information system guide and technical description
+  * LDAP Grid monitor description
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2487 Infosystem thrashes the contents of /var/lock/subsys/ when started
+  * 2516 WARNING: Failed to create ldif generator script for infosys
+
+Medium priority bugs fixed:
+
+  * 2504 The grid-infosys and the bdii start-up scripts use the same files
+  * 2535 1.0.1rc4 infoprovider failes due to wrong PID location
+  * 2435 No man page - arc-infoindex-relay & arc-infoindex-server
+  * 2447 GGUS-Ticket-ID: #70959 EMI1 arc-infosys1.0.0, missing conf file or
+template, and also missing in the documentation
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Infosys documentation. 
+
+= Known issues
+
+Documentation improvements are still needed.
+
+
+ARC gridftp server
+------------------
+
+ARC gridftp server component contains ARC gridftp server and ARC gridftp jobplugin.
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-gridftpd-1.0.1
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.0.1-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.0.1.tar.gz
+
+= Documentation
+
+  * ARC gridtpd description
+
+= Release notes
+
+What's new:
+
+Medium priority bugs fixed:
+
+  * 2536 gridftpd doesn't work when arc.conf is a symlink
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC gridftp documentation. 
+
+= Known issues
+
+None

@@ -1,0 +1,176 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 11    December 15, 2016
+-----------------------------------------------
+
+This is a bugfix release, addressing bugs discovered since release 15.03u10. 
+
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.2.0 to 5.2.1
+  * documents - from 2.0.11 to 2.0.12
+Nagios plugins, CAnL C++ and metapackages are unchanged.
+
+
+
+
+* Note1 related to feature included in last release - offline script to generate performance data in infoproviders * 
+Note that in 15.03 update 10, a bug was introduced, which filled up the folder storing the NYTProf performance collection. Users are encouraged to clean up the perl_nytprof folder. Default location is
+/var/log/arc/perfdata/perl_nytprof                                                                                                           
+
+It is safe to run                                                                                                                              
+rm -f /var/log/arc/perfdata/perl_nytprof/*                                                                                                   
+while A-REX is running.          
+
+Issue is fixed in this release (see bug 3616).
+
+
+* Note2 related to openssl 1.1 transition **
+As already mentioned in release notes of 15.03u10: Note that from next major release we will not continue support for EL5 and Ubuntu 10.04 LTS. This is a consequence of significant code changes when implementing OpenSSL 1.1.0 in ARC needed for continued support of EPEL based platforms, in addition to Debian. As of Fedora 26 and Debian 9 these platforms will move to OpenSSL 1.1.0. Therefore as of next major release support of OpenSSL versions lower than 1.0.0 will be dropped. In addition, as of next major relase legacy proxies will not be supported.
+
+
+ 
+
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed in the ARC core:
+
+  * Added support for lowercase slurm in arc.conf to match other LRMS (see bug 3526).
+  * Fixed problem where updates in HTCondor 8.5.5 broke job status query in back-end (see bug 3603).
+  * Support output redirection from shell in arccat (fixes bug 3613)
+  * Fixed problem in condor info backend related to problems extracting the controldir from the config. 
+  * Added possibility for A-Rex to recognize VO authorization specified in configuration and use it while accepting jobs destined to virtual VO queues.
+  * Various smaller enhancements and bugfixes in addition to code cleaning.
+
+=== Accounting
+
+  * No changes.
+ 
+=== Information system
+
+The following issues were fixed in the information system:
+
+  * Fixes issue of information provider collection scripts being restarted non-stop in case of errors, hence reduces load on frontend.
+  * Data collection in perferator is now done using PerfData.pl instead of nytprofmerge (attempts to ease issues in bug 3616).	
+  * Fixed issues with paths and SLURM support in PerfData.pl	
+  * Reduced frequency of infoproviders performance data collection to half an hour (see bug 3616).
+  
+== ARC Clients
+
+The following issues were fixed in the ARC Clients:
+  * Fixes the way the ARC client determines queue name through information system and hence provides better support for clusters with VO dedicated queues.
+  * Fixes issues with client being sensitive to slow servers by ignoring failures during unimportant operations. Namely while closing GridFTP connection.
+  
+== Nagios plugins
+
+  * No changes.
+
+== Common authentication library CaNL++
+
+  * No changes.
+
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 10, the following bugs were fixed:
+
+  * 3526 Change SLURM config to lowercase
+  * 3599 A-REX tries to create perflog dir even if reporting is turned off
+  * 3603 Updates in HTCondor 8.5.5 break job status query in the back-end
+  * 3611 Phase out legacy nordugridmap features
+  * 3612 Multiple DTRs requesting and downloading same input file skipping cache.
+  * 3614 gm-jobs segfaults from time to time when a-rex is active on controldir
+  * 3616 NytPROF performance collection is resource intensive disk and CPU
+  * 3619 Missing \"$\" in before the variable bdii_user.
+  * 3622 arc-datadelivery-service does not properly handle bad network input.
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The
+    only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files.
+    While all log messages are correctly logged in the main log file, some rotated log
+    files may receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a consequence,
+    EMIES WS clients can no longer find a queue by VO name the same way as in previous versions
+    of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u11 consists of the following source packages:
+  * NorduGrid ARC, version 5.2.1 (main components)
+  * NorduGrid ARC Documents version 2.0.12
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.4
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.1
+  * Common authentication library caNl++, version 1.0.1
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.2.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.12
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.4
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.1
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0, 7.0 and 8.0 (i386 and amd64)
+  * Fedora: from 3 to 25 (i386 and x86_64)
+  * CentOS: EL4, EL5, EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04,
+    13.10, 14.04, 14.10, 15.04, 15.10, 16.04 and 16.10 (i386 and amd64)
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

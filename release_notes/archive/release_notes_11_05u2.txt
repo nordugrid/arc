@@ -1,0 +1,363 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 11.05 update 2             October 4 2011
+-----------------------------------------------------
+
+NorduGrid ARC 11.05 has received an update to most components from version 1.0.1
+to 1.1.0 and documents from 1.0.2 to 1.1.0  
+
+ARC components in 11.05 update 2:
+
+  * ARC Core (includes documents)
+  * ARC Clients
+  * ARC CE
+  * ARC Infosys
+  * ARC gridftp server
+  * arcjobtool GUI (not updated)
+
+ARC Core
+--------
+
+ARC Core component contains: HED, HED LIDI, HED security, HED language bindings,
+DMCs and ARC documentation. 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-1.1.0
+  * nordugrid-arc-doc-1.1.0
+  * nordugrid-arc-ca-utils-1.1.0
+  * nordugrid-arc-debuginfo-1.1.0
+  * nordugrid-arc-devel-1.1.0
+  * nordugrid-arc-doxygen-1.1.0
+  * nordugrid-arc-hed-1.1.0
+  * nordugrid-arc-java-1.1.0
+  * nordugrid-arc-python-1.1.0
+  * nordugrid-arc-python26-1.1.0
+  * nordugrid-arc-plugins-needed-1.1.0
+  * nordugrid-arc-plugins-globus-1.1.0
+  * nordugrid-arc-nagios-plugins-0.9-1
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+  * nordugrid-arc-doc-bin.tar.gz
+  * nordugrid-arc-nagios-plugins-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.1.0-1.el5.src.rpm
+  * nordugrid-arc-doc-1.1.0-1.el5.src.rpm
+  * nordugrid-arc-nagios-plugins-0.9-1.el5_old_3-10-2011_19-19-43-0.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.0.tar.gz
+  * nordugrid-arc-doc-1.1.0.tar.gz
+
+= Documentation
+
+  * ARC HED description
+  * WS configuration manual 
+
+= Release notes
+
+What's new:
+
+Feature requests implemented:
+
+  * 2477 Distribute ARC nagios plugins together with the next ARC release 
+
+High priority bugs fixed:
+
+  * 2534 Absent clients metapackage in 1.0.1rc1
+  * 2479 MinGW packages fails nightly build
+  * 2015 merged standalone to contain both new and old client tools
+  * 2592 cache lockfile leak
+  * 2609 download fails if one of the srm replicas cannot be fetched
+  * 2509 Information system manual/guide is needed
+
+Medium priority bugs fixed:
+
+  * 1832 placeholders remain in the profiles and the inis on debian
+
+
+= Deployment notes:
+
+This release does not introduce any changes in the deployment procedures
+described in ARC documentation
+
+= Known Issues
+
+None
+
+
+ARC Clients
+-----------
+
+ARC Clients component contains pre-WS compute CLI, pre-WS data CLI, WS compute
+CLI and WS data CLI 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-client-1.1.0
+  * nordugrid-arc-compat-1.0.0
+  * nordugrid-arc-compat-debuginfo-1.0.0
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+  * nordugrid-arc-compat-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.1.0-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.1-1.<os>.src.rpm
+  * nordugrid-arc-compat-1.0.0-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.0.tar.gz
+  * nordugrid-arc-compat-1.0.0.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-client-tools-1.0.1
+
+= Documentation
+
+  * Functional description of WS clients
+  * WS Client user guide
+  * Pre-WS Client user guide
+  * WS client installation instructions
+  * Pre-WS client installation instructions
+  * Troubleshooting
+  * XRSL manual
+  * Transition from Pre-WS to WS client - a guide
+
+= Release notes
+
+What's new:
+
+Feature requests implemented:
+
+  * 1347 improving ngclean and arcclean error messages 
+
+High priority bugs fixed:
+
+  * 2599 arctest does not set a queue in job description
+  * 2485 arc1 client rejects submission of jobs with RTEs of same name but
+different versions
+  * 2473 Segmentation fault when looping a mapped std::list public member from
+Python
+  * 2468 File transfers fail from Windows Client(s)
+  * 1765 arcinfo is too redundant with its error messages
+
+Medium priority bugs fixed:
+
+  * 1760 arcrm does not return correct value
+
+Less urgent bugs fixed:
+
+  * 2625 Job submission slows down a lot as the local job store size increases
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Clients documentation. 
+
+= Known issues
+
+None
+
+
+ARC CE
+------
+
+ARC CE component includes A-REX, CE-Cache, CE-staging, LRMS modules, JURA,
+nordugridmap, information providers and Janitor 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-arex-1.1.0
+  * nordugrid-arc-janitor-1.1.0
+  * nordugrid-arc-gridmap-utils-1.1.0
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.1.0-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.2-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.0.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-compute-element-1.0.1
+
+= Documentation
+
+  * Design and functional description of A-REX
+  * ARC CE installation instructions
+  * Configuration template
+  * Data Staging Wiki
+  * Batch back-ends guide
+  * Janitor handbook
+  * JURA documentation
+
+= Release notes
+
+What's new:
+
+Feature requests implemented:
+
+  * 2591 publish version information for ARC CE
+
+High priority bugs fixed:
+
+  * 2280 SRM transfer protocols are hard-coded
+  * 2442 ARC incompatible with CERN voms server
+  * 2520 GGUS-Ticket-ID: #72340   EMI1 ARC CE 1.0.0 wrong user mapping
+  * 2565 downloader fails if all the inputs are remote
+  * 2579 Transfer shares not using enough slot
+  * 2236 Uploaders hangs
+
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC CE documentation. 
+
+= Known issues
+
+None
+
+
+ARC Infosys
+-----------
+
+ARC Infosys component contains ARIS, EGIIS and ARC Grid Monitor
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-aris-1.1.0
+  * nordugrid-arc-egiis-1.1.0
+  * nordugrid-arc-ldap-monitor-1.1.0
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.1.0-1.<os>.src.rpm
+  * nordugrid-arc-meta-1.0.2-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.0.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-information-index-1.0.1
+
+= Documentation
+
+  * ARC Information system guide and technical description
+  * LDAP Grid monitor description
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2595 totalcpus in [queue/*] section is ignored
+  * 2443 The client doesn't see the status of the job if hostname contains
+uppercase letters
+
+Medium priority bugs fixed:
+
+  * 802 review the content of the nordugrid-arc-doc package for 0.8
+  * 2037 infosys non-responsive on high-load
+
+Less urgent bugs fixed:
+
+  * 2642    Banning DNs, and the infosystem
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Infosys documentation. 
+
+= Known issues
+
+Documentation improvements are still needed.
+
+
+ARC gridftp server
+------------------
+
+ARC gridftp server component contains ARC gridftp server and ARC gridftp jobplugin.
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-gridftpd-1.1.0
+
+Binary tarballs:
+
+  * nordugrid-arc-bin.tar.gz
+
+Source package:
+
+  * nordugrid-arc-1.1.0-1.<os>.src.rpm
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.0.tar.gz
+
+= Documentation
+
+  * ARC gridtpd description
+
+= Release notes
+
+What's new:
+
+Feature requests implemented:
+
+  * 1312 Downloaders take too long when files are not available
+
+High priority bugs fixed:
+
+  * 2524 provide out-of-box configuration examples for server-side ARC (CE,
+EGIIS and SE)
+
+Medium priority bugs fixed:
+
+  * 1883 error messages when uploading a file to existing file on arc: or
+gsiftp: should be the same 
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC gridftp documentation. 
+
+= Known issues
+
+Documentation improvements are still needed.

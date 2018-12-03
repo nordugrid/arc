@@ -1,0 +1,204 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 14      May 30, 2017
+-----------------------------------------------
+
+This is a bugfix release, addressing bugs discovered since release 15.03u13
+which suffered from a memory leak causing frequent crashes.
+
+In this release numerous fixes have been implemented in order to make ARC more reliable and stable.
+
+Highlights are:
+* Many memory leaks and memory corruption cases have been eliminated.
+* Effort has been made to improve a long-standing issue where ARC crashed or hung due to Glib process spawning.
+* Likelihood of crashes and hangs due to file handle leaks should be reduced.
+* Finally, the sqlite delegation store code has been optimized for increased speed. 
+
+
+Note that as of ARC 5.3.0, incorrect treatment of namespace constraints is fixed,
+resulting in rejection of certificates that do not comply with policies.
+
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.3.0 to 5.3.1
+  * Nagios plugins - from 1.8.4 to 1.9.0
+  * documents - from 2.0.14 to 2.0.15
+Gangliarc and metapackages are unchanged.
+
+
+
+ 
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed or partially fixed in the ARC core:
+  * A partial solution for the missing detail level of EMI-ES submission interface's initial job status.
+    State is now reported as "processing-queued". That will delay reporting job execution start but should avoid
+    causing wrong impression of job starting, stopping and then starting again.(Bug 3640).
+  * One major and several minor memory leaks and memory corruption cases were removed. (Bug 3651).
+    The major memory leak resulted in ARC 5.3.0 crashing very frequently due to rapid increase of the consumed
+    anonymous memory. The most important memory leaks are now removed. 
+  * Changed delegation locking implementation which caused slow EMI-ES job submission for large job descriptions. (Bug 3652).
+  * A long-standing issue with unreliable glib_spawn processes is fixed by replacing lib spawn process with pure fork.
+    This in addition fixes bugs 2905 and 3456.
+  * A long-standing issue with file handles leaks and improper use of file handles causing ARC to hang or crash is partially fixed. (Bug 3655).
+  * arctest -J 1 now works again after the shut down of ftp.nordugrid.org. (Bug 3654).
+  * Fixed problem that user input-files were truncated when submitting with the EMI-ES submission interface. (Bug 3659).
+  * Various code cleanup and fixes.
+
+
+
+
+
+=== Accounting
+
+  * No changes.
+ 
+
+=== Information system
+
+The following issues were fixed in the information system:
+
+  * No changes.
+  
+  
+== ARC Clients
+
+The following issues were fixed in ARC clients:
+
+  * No clanges.
+
+  
+== Nagios plugins
+Most important changes:
+  * Move scheduled cleanup from `check_arcce_monitor` to `check_arcce_clean`.
+    As a consequence users may want to run `check_arcce_clean` at least once
+    per every hour.
+  * Keep better track of the work done by `check_arcce_monitor` and
+    `check_arcce_clean`. Try to bail out within a slotted time to avoid
+    unclean exits and spurious Nagios alerts. Instead report on the progress
+    and raise a warning or critical alerts if it seems like the probes are not
+    keeping up.
+  * Clean up jobs from the local ARC job file which cannot be queried and
+    which do not correspond to any active job.
+  * The operation of `check_arcce_monitor` can now be restricted to jobs for a
+    certain CE and/or those having been created with a certain `--job-tag`.
+    This should allow running one monitor service per CE and/or job type,
+    though it has not been tested under Nagios.
+
+
+Minor fixes:
+
+  * Remove execute bit and shebang from `arcce_igtf.py`.
+  * In `check_archostcert` consider certs unusable 2 days before expiration.
+  * Various timeouts have been adjusted or added.
+  * Fix repeated renaming of output directories from `arcget`.
+  * Make random adjustments to rescheduled job times and process rescheduled
+    and monitoring work in random order.
+  * Remove deprecated `--use-jobs-xml` option from `check_arcce_clean` and
+    some other ancient stuff which nobody will notice.
+  * Avoid warning due to unparsed 12 hex-digit lines from `arcstat`.
+  * Various minor fixes.
+  
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 13, the following bugs were fully or partially fixed:
+  * 2905 - arex 2.0.1rc1 fails to change the job status from SUBMIT
+  * 3456 - a-rex with glib version >2.32 uses inconsistent child control
+  * 3640 EMI-ES interface wrongly reports initial job status
+  * 3651 A-REX crashes or hangs every hour
+  * 3652 EMI-ES job submission is slow for large job descriptions
+  * 3655 ARC gets stuck after a short while and needs to be killed
+  * 3654 Source files for arctest -J 1 unavailable from ftp.nordugrid.org
+  * 3659 EMI-ES job submission LRMS error due to truncated executable
+
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The
+    only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files.
+    While all log messages are correctly logged in the main log file, some rotated log
+    files may receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a consequence,
+    EMIES WS clients can no longer find a queue by VO name the same way as in previous versions
+    of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u14 consists of the following source packages:
+  * NorduGrid ARC, version 5.3.1 (main components)
+  * NorduGrid ARC Documents version 2.0.15
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.9.0
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
+
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.3.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.15
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.9.0
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 7.0 and 8.0 (i386 and amd64)
+  * Fedora: from 12 to 25 (i386 and x86_64)
+  * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 11.10, 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
+    15.10, 16.04, 16.10, and 17.04 (i386 and amd64)
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

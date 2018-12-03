@@ -1,0 +1,568 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 13.02                  February 28, 2013
+--------------------------------------------
+
+The Advanced Resource Connector (ARC) middleware, introduced by NorduGrid
+(www.nordugrid.org), is an open source software solution enabling production
+quality computational and data Grids since May 2002. The previous production
+ARC release, version 12.05u1, was released on November 8, 2012.
+
+
+Upgrade and deployment notes
+----------------------------
+
+Upgrade is straightforward when standard Linux repositories are used. A-REX and
+GridFTPd will restart automatically, while infosystem services will need a
+manual start:
+
+   nordugrid-arc-slapd start
+   nordugrid-arc-bdii start
+   nordugrid-arc-inforeg start
+
+In order to enable new features in the ARC Compute Element, changes in the
+arc.conf are needed, as described below.
+
+For a first installation (from scratch), use of metapackages is recommended.
+Please consult ARC server and client deployment documentation.
+
+Known issues (e.g., APEL accounting on Debian) are described below.
+
+
+Backwards incompatible changes
+------------------------------
+
+  * ISIS, Janitor, Chelonia and Hopi are removed from the distribution
+  * libarcclient library is renamed to libarccompute
+  * libarcdata2 library is renamed to libarcdata
+  * ngconfigtest is renamed to arc-config-check, installs to libexec instead of
+    bin and is packaged with A-REX instead of common package. New "validate"
+    option is added to A-REX init script which calls arc-config-check.
+  * xrootd DMC is moved out of plugins-globus package and into a new package
+    nordugrid-arc-plugins-xrootd
+  * arcsrmping utiity is removed
+  * The Python utility module arcom is obsoleted
+  * ClientInterface classes are moved to new libarccommunication library.
+  * ExecutionTargetSet class is replaced with ExecutionTargetSorter for sorting
+    ExecutionTarget objects
+  * Main attributes of the Job class are changed, also in the jobs.xml:
+    Cluster and the InterfaceName attributes are removed, JobID is changed
+    from URL to string, ServiceInformation, JobManagement and JobStatus URL
+    are added, as well as attributes InterfaceName, StageIn, StageOut and
+    SessionDir.
+  * Support for per-user control directories in A-REX is removed, as well as
+    corresponding "control" option from arc.conf. Added support for
+    substitutions in configuration based on dynamically mapped local user.
+  * GridFactory back-end is removed
+  * RLS support is removed
+  * Perftest is renamed to arcperftest and man page is added.
+  * Some test and misc tools are moved to a new sub package
+    nordugrid-arc-misc-utils: arcwsrf, arcemiestest, arcperftest,
+    saml_assertion_init 
+  * GLUE2: all endpoints are now shown inside the A-REX org.nordugrid.arex
+    ComputingService
+  * EMI-ES rendering: one Endpoint per port-type including data capabilities
+
+
+New features highlights
+-----------------------
+
+  * EMI ES interface is implemented in ARC client tools
+  * Support for EMI ES interface version 1.16 is implemented in A-REX service
+  * Communications with ARGUS PEP and PDP are implemented and integrated into
+    A-REX
+  * CAR 1.2 accounting messages can be sent to an APEL destination
+  * nordugridmap is updated to version 2.0
+  * ACIX (ARC Cache Index) is added to the distribution (RHEL>=5, Fedora>=7,
+    Debian>=4)
+  * New package nordugrid-arc-plugins-gfal is added, containing the GFAL DMC
+    and depending on gfal2 (RHEL/Fedora only)
+  * xRSL parser is extended to parse "countpernode" and "exclusiveexecution"
+    attributes used for expressing parallel setup requirements
+  * GLUE2 rendering is finalised, also in the EMI-ES context
+  * Introduced a relay backend in LDAP configuration for interoperability
+    with GLUE2 Top-BDII, and changed the top element of Glue1 schema to match
+    the needs of Glue1 Top-BDII. Now an ARC CE can directly be aggregated by
+    a Top-BDII if ARIS LDPA URL is configured correctly in GOCDB.
+  * Improved automatic slapd/BDII backend configuration. In particular,
+    BDII paths are automatically generated and can be removed from arc.conf.
+    Removing them from arc.conf during update is recommended, unless one knows
+    exactly how BDII configuration works.
+
+
+ARC components: detailed new features
+-------------------------------------
+
+ARC components in release 13.02 are:
+
+  * ARC Core (includes documents)
+  * ARC Clients
+  * ARC CE
+  * ARC Infosys
+  * ARC gridftp server
+  * Nagios plugins
+  * Common authentication library CaNL++
+
+
+== ARC Core
+
+Most significant improvements in the ARC Core are:
+
+  * Handle out-of-band data at TCP layer.
+  * Watchdog implemented for arched container and used in A-REX. See
+    documentation for configuration options.
+  * Support for plugin priorities added.
+  * Add errno-like field to DataStatus class
+  * Cache service can run in same arched as A-REX with shared DTR instance
+  * Implement 3rd party transfer in data library (new method
+    DataPoint::Transfer3rdPaty()) and arccp (new option -3) using GFAL DMC
+  * HTTP implementation in data plugin enhanced to support redirection and
+    chunked transfers for all functions.
+  * Security plugin (Argus PDP Client) supports the contact with Argus PDP
+    server to achieve access control decision. Argus library dependency is
+    not required for this plugin.
+  * Change DataPoint API - Check() now takes a bool parameter to determine
+    whether metadata information should be obtained during permission check.
+  * Add DataPoint::Rename() for renaming files.
+  * Add ability to run DataDelivery service without the need for a host
+    certificate. See documentation for configuration details.
+  * Removed ability to set locale per LogDestination
+  * Transparently load native ARC JNI-C++ library when using ARC Java
+    bindings. Thus making it redundant to call 'System.loadLibrary("jarc")'.
+  * Splitting Python bindings into multiple modules
+  * List classes in ARC Java bindings now implements the Iterable Java
+    interface. That makes it possible to use list objects in Java foreach
+    statement. Adapting the listiterator classes in order to comply with the
+    Java Iterator interface which those classes.
+  * Adding support for storing job information in Berkeley DB. Only available
+    in the library (libarccompute) and language bindings, but not in the CLI.
+
+
+== ARC Clients
+
+Most significant improvements in the ARC Clients and SDK are:
+
+  * EMI ES interface is implemented in ARC client tools. See documentation
+    and man-pages for new interface names.
+
+  * arcproxy can support the contacting to VOMS server with RESTful interface.
+    See documentation and man pages for options.
+  * arcproxy supports proxy retrieval from myproxy server with VOMS AC included
+  * arcproxy supports proxy generation with VOMS AC included, when using
+    credential source from NSS DB
+  * arcproxy supports the detection of NSS DB from default location of
+    Firefox, Seamonkey and Thunderbird.
+  * Add NSS as a dependency. Currently used only by arcproxy
+
+  * Add arcrename command. See documentation and man-page for functionality
+    and possible options.
+  * Improved formatting of arcls -l by aligning columns
+  * Change recursion options for arccp and arcls. -r specifies infinite
+    recursion and -D is used for a specific level or recursion.
+
+  * arcsub adapted to use rebased submission functionality 
+  * Extended arcsub to be able to submit directly to submission endpoints (no
+    resource discovery and matchmaking).
+  * Extending arctest to print DNs of installed CA-certificates.
+  * Add new PythonBroker, ACIXBroker.py, which uses ACIX to rank sites by
+    number of cached input files.
+
+  * Adding possibility to format the CE specific job state string
+  * Submitter class extended with capability of job submission relying on
+    resource discovery and brokering, previously part of arcsub
+  * Introducing new class ExecutionTargetSorter for sorting ExecutionTarget
+    objects. It is to replace the ExecutionTargetSet class which isn't working
+    as intended.
+  * Significant fixes and cleanup in the CREAM job plugin.
+  * Added submitting convenience methods to Submitter class which only takes
+    endpoints and job descriptions as arguments.
+  * Extending xRSL parser to parse "countpernode" and "exclusiveexecution"
+    attributes used for expressing parallel setup requirements.
+  * Improved backwards compatibility when reading job list files (client side).
+    Job records from 1.x and 2.x is supported, 1.x and 2.x does not support the
+    format used in 3.x. Support for NOX job record format is dropped. As always
+    'arcsync' can be used to recover the job list.
+
+
+== ARC Compute Element
+
+Most significant improvements in the ARC Compute Element are:
+
+  * SLURMmod.pm plugin with native ARC1 API is introduced
+  * Make arc-ur-logger use ARC python API to retrieve information in proxy
+    instead of relying on voms-proxy-info
+  * Communications with ARGUS PEP and PDP are implemented and integrated into
+    A-REX. See documentation for configuration options.
+  * nordugridmap is updated to version 2.0. See documentation for configuration
+    options.
+  * Client files stage in performance enhanced by decreasing number of
+    reconnections during one submission cycle.
+  * Increase performance of client file staging to/from HTTPS interface
+    of A-REX service by turning off encryption.
+  * Administrator utility gm-jobs is extended to cancel and clean jobs, as
+    well as to provide information about delegated tokens and filter jobs by
+    identifier. See documentation and man-pages for new options.
+  * Support for per-user control directories in A-REX is removed. Added support
+    for substitutions in configuration based on dynamically mapped local user.
+    See documentation for changes in configuration options.
+  * Support for EMI ES interface version 1.16 implemented in A-REX service.
+  * Added GRAMI support for EMI-ES parallel specification
+  * A-REX default data staging mechanism is changed to DTR. The old system can
+    still be used by setting enable_dtr="no" in arc.conf.
+  * Added support for GLUE2 in SLURM infoprovider
+  * Added parallel support in the LoadLeveler back-end
+  * Removed GridFactory back-end
+
+=== Accounting:
+
+Several significant changes were made to the JURA accounting component, making
+it compatible with the latest APEL version. Please see Known Issues below if
+you are using a Debian/Ubuntu system.
+
+  * Use 2.0.0 version of SSM to the message sending.
+  * Parse the configured (optional) topic value from the server configuration.
+  * Fixed the published MachineName attribute by JURA
+  * Fixed the logger URL by the APEL destination
+  * Fixed the non-published VO attributes
+  * Send CAR 1.2 accounting messages to the APEL destination. See documentation
+    for configuration options.
+  * Set the non-standard compilation prefix by ssmsend location.
+
+
+== ARC Information System
+
+Improvements in the information system concerned finalising the GLUE2 schema
+publishing, integration with Top-BDII, and integration with EMIR:
+
+  * Improved bdii-update automatic configuration. BDII configuration commands
+    are no longer needed in the [infosys] configuration block.
+  * Finalized GLUE2 rendering:
+    * Removed ARIS service. All endpoints are now shown inside
+      the A-REX org.nordugrid.arex ComputingService. This makes the GLUE2
+      rendering backward incompatible with previous versions of ARC.
+    * Removed ComputingActivities from LDAP rendering. Can be enabled with
+      infosys_glue2_ldap_showactivities, a new option.
+    * Finalized EMI-ES rendering, one Endpoint per port-type
+      including data capabilities. This obsoletes the experimental 12.05
+      EMI-ES GLUE2 rendering and therefore makes this change backward
+      incompatible.
+    * added infosys_glue2_service_qualitylevel option for the sysadmin
+      to set manually GLUE2 QualityLevel, useful for operations within
+      EGI.
+  * Implemented a solution for client to match GLUE2 Service ID even if
+    looking at data from nordugrid schema.
+  * Implemented a solution for the client to know which interface the
+    job was submitted both in GLUE2 and Nordugrid schema.
+  * Introduced a relay back-end in LDAP configuration for interoperability
+    with GLUE2 Top-BDII. Now an ARC CE can directly be aggregated by
+    a Top-BDII if ARIS LDAP URL is configured correctly in GOCDB.
+  * Changed the top element of Glue1 schema to match the needs of
+    Glue1 Top-BDII.
+  * Added several fixes to Glue1 schema: localse, queue names.
+  * Added infosys support for openldap2.4 on SLX distributions
+  * Enabled GLUE2 schema rendering together with the old nordugrid schema
+    in the LDAP-monitor.
+  * Added new column in LDAP-monitor to the Queue table for GLUE2 rendering.
+
+
+== ARC gridftp server
+
+No changes have been made to this component.
+
+
+== Nagios plugins
+
+Nagios monitoring plugins evolved from release 1.3.9 to 1.5.0. Most significant
+changes are: 
+
+   * Fix EL5 compatibility issues
+   * Add missing job name for check_arcce; don't report check
+     errors unless job was fetched.
+   * Adjust setup.py to use prefix-relative paths for scripts.
+   * Fix JSDL specification of runtime environment.
+   * Allow specifying RTEs in arcnagios.ini; may be important for SAM
+     deployment.
+   * Package the IGTF CA certificates check script.
+   * Import check_arcservice probe
+   * Add --check-contact option to the ARIS probe.
+   * Improve configuration examples and comments and include them in the
+     documentation.
+   * Fix two issues with "check_arcinfosys aris --compare-glue".
+   * Add a missing import to check_arcinfosys (thanks to pyflakes).
+   * Fix format args in warning for check_arcinfosys.
+   * Use alternate output paths to ply.yacc.yacc
+   * Add check_archostcert (checks host certificate via infosys).
+   * Add entry point to check_arcce to tidy jobs.xml after failed cleanup.
+   * Fixed a bug which manifests in the GLUE2 check when it attempt to report
+     that a primary key is not found, giving UNKNOWN instead of ERROR status.
+   * Add additional information to the Nagios output for arcproxy failure and
+     for the IGTF probe.
+   * Add --queue option to "check_arcce submit".
+   * Remove some confusing and redundant output.
+
+
+== Common authentication library CaNL++
+
+   * Improved unit tests coverage (almost complete)
+   * More complete implementation of the extension and attribute handling for
+     certificates
+   * CaNL++ is integrated into an ARC client utility
+
+
+Fixed bugs
+----------
+
+Since ARC 12.05 update 1, the following bugs were fully or partially fixed:
+
+  * 1983 Nagios, Munin plugins for HED services
+  * 2506 nordugridmap fails with libwww-perl 6.02
+  * 2581 GGUS-Ticket-ID: #73547  ARC ARIS Glue publishing not passing Nagios
+    BDII test - Missing Service record 
+  * 2597 Missing dependencies for arc-ur-logger
+  * 2648 Fix hardcoded paths to Glue schema location
+  * 2767 Misleading "CEInfo: WARNING: Failed to create ldif generator script
+    for infosys" in infoprovider log even if LDAP is not running/not
+    configured 
+  * 2836 LSF backend as well as cluster.pl and qju.pl do no cope well with
+    "-" values
+  * 2886 Publish MaxSlotsPerJob in LRMS backends
+  * 2904 SLURM.pm information collector does not export nodes_info for GLUE2
+  * 2929 GLUE2PolicyRule and nordugrid-cluster-acl differ when defining
+    authorizedvo
+  * 2943 Discrepancy between jsdl-arc.xsd and actual parsing
+  * 2949 Introduce new arctest for primenumbers generation
+  * 2952 Requesting PythonBroker causes segfault 
+  * 2968 Undocumented configuration parameters: Infosystem
+  * 2969 Undocumented configuration parameters: Information providers
+  * 2970 Undocumented configuration parameters: A-REX
+  * 2979 fork_job_limit has no effect on number of running jobs
+  * 2988 Back-end /bin/sh scripts should not contain bashism
+  * 2994 Data staging fails when submit a job to a EMI-ES endpoint
+  * 2995 unable to stat jobs when using 3.0.0rc1 arc client tools
+  * 2997 Can't download from LFC (old data staging)
+  * 3003 JURA does not report VO membership
+  * 3009 Publish GLUE2 MaxSlotsPerJob in SGE
+  * 3011 Publish GLUE2 MaxSlotsPerJob in Condor
+  * 3012 Publish GLUE2 MaxSlotsPerJob in DGBridge
+  * 3013 bdii-update crashes when user not root on Ubuntu 12.04
+  * 3014 set_count: command not found
+  * 3015 jobs.xml incompatibility between arc2.0 and 3.0
+  * 3017 Failed to download http input file after cache permission check
+  * 3018 make install creates invalid include directories
+  * 3020 ARCCE Job Submission probe crashes on SL6
+  * 3021 ARCInfosys Glue2 Schema check not working with local schema
+  * 3023 Unnamed arguments in Python code cannot be properly localized
+  * 3025 Cannot read from xrootd
+  * 3026 nordugrid-arc-compute-element : Depends: nordugrid-arc-arex but it is
+    not going to be installed 
+  * 3027 Use single channel for deleting multiple files on same host
+  * 3029 Job submission to LRMS failed with - syntax error in submit-pbs-job
+  * 3036 Failed to find valid session directory
+  * 3037 Undeclared namespace prefixes in A-REX XML
+  * 3039 arc-config-check tests on production configurations before release
+  * 3046 make uninstall does not remove .apd files
+  * 3050 configure.ac uses obsolete macros
+  * 3051 Can't use an undefined value as an ARRAY reference at
+    /opt/arc/share/arc/ARC1ClusterInfo.pm line 570. 
+  * 3054 Broker does not take min CPU time into account
+  * 3057 nordugrid-arc-bdii does not reset permissions on files
+  * 3063 Exiting subroutine via next at /usr/share/arc/ARC0ClusterInfo.pm line
+    398
+  * 3064 job is resumed in wrong state after plugin at PREPARING failed
+  * 3062 Error in PREUN scriptlet in rpm package n
+  * 3071 unable to start nordugrid-arc-slapd on a clean OS
+  * 3073 arcsub crashes when submitting a job using adl (witn 3.0.0rc3)
+  * 3077 Problems with gridftpd on ubuntu
+  * 3085 Grid manager log not found when JSDL is used to describe jobs
+  * 3088 SLURM partitions running information not correct
+
+
+Packaging changes
+-----------------
+
+= Information system
+
+The package nordugrid-arc-aris has been split into two packages:
+nordugrid-arc-aris and nordugrid-arc-ldap-infosys. 
+
+  * To run a local information system (ARIS) requires nordugrid-arc-aris and
+    nordugrid-arc-ldap-infosys
+  * To run an information index (EGIIS) requires nordugrid-arc-egiis and
+    nordugrid-arc-ldap-infosys 
+
+= Data Management Components (DMCs)
+
+The Data Management Component (DMC) plugins provide support for various Grid
+data access protocols. In previous versions of ARC there were two packages:
+
+  * nordugrid-arc-plugins-needed - for protocols file, http(s), arc, LDAP, SRM.
+    This has no external dependencies. 
+  * nordugrid-arc-plugins-globus - Globus-related protocols: gsiftp, RLS, LFC,
+    xrootd. Depends on Globus and xrootd packages 
+
+In EMI-3 the corresponding packages are:
+
+  * nordugrid-arc-plugins-needed - for protocols file, http(s), arc, LDAP, SRM.
+    This has no external dependencies. 
+  * nordugrid-arc-plugins-globus - Globus-related protocols: gsiftp, LFC.
+    Depends on Globus packages. 
+  * nordugrid-arc-plugins-xrootd - xrootd protocol. Depends on xrootd packages.
+  * nordugrid-arc-plugins-gfal - Plugin to interact with gfal2 as part of EMI
+    datalib. Depends on core gfal2 packages. Protocol support within gfal2 is 
+    provided by its own set of plugins which nordugrid-arc-plugins-gfal does
+    not depend on.
+
+Note: RLS is no longer supported.
+
+= Common Authentication Library (CAnL++)
+
+The ARC build depends on canl-c++ and a new package nordugrid-arc-arcproxyalt
+has been released, containing a version of the arcproxy command line tool which
+depends on CAnL++.
+
+= ARC Cache Index (ACIX)
+
+ACIX is packaged along with the rest of ARC in new packages
+
+  * nordugrid-arc-acix-core - core components
+  * nordugrid-arc-acix-cache - cache info collector which runs alongside the CE
+  * nordugrid-arc-acix-index - service which indexes cache content from CEs
+
+See the ARC CE system administrator manual for more information on ACIX.
+
+= Miscellaneous utilities
+
+A new package nordugrid-arc-misc-utils is available, containing various test and
+other utilities. The following binary executables have been moved from the
+nordugrid-arc-client package to this new package:
+
+  * arcwsrf
+  * perftest (renamed arcperftest)
+  * saml_assertion_init
+
+In addition a new binary executable is available in this package:
+
+  * arcemiestest
+
+= Discontinued packages
+
+The following packages are no longer distributed
+
+  * nordugrid-arc-chelonia
+  * nordugrid-arc-hopi
+  * nordugrid-arc-isis
+  * nordugrid-arc-janitor
+
+
+Configuration changes
+---------------------
+
+The ARC information system init script grid-infosys has been split into
+separate components. The scripts to run depend on which component of the
+information system you are running:
+
+  * To start a local information system (ARIS):
+        start nordugrid-arc-slapd
+        start nordugird-arc-bdii
+
+  * To start a information index server (EGIIS):
+        start nordugrid-arc-slapd
+        start nordugrid-arc-egiis
+
+  * If you are running both an ARIS and an EGIIS you should only start the
+    nordugrid-arc-slapd service once. 
+
+  * To start the information registration process to other EGIIS services:
+        start nordugrid-arc-inforeg
+
+= arc.conf changes
+
+For full description of all arc.conf configuration see arc.conf.reference,
+distributed with ARC packages. 
+
+  * New options arguspdp_endpoint and arguspdp_profile for ARGUS integration
+  * New option watchdog for automatic service restart
+  * New sections [acix/cacheserver] and [acix/indexserver] for ACIX
+  * Option newdatastaging is deprecated. It has been renamed enable_dtr and is
+    "yes" by default
+  * Option control is no longer supported. controldir should be used instead
+
+
+API changes
+-----------
+
+API changes from libraries version 2.0.1 to 3.0.0 are documented at
+http://wiki.nordugrid.org/index.php/API_changes 
+
+
+Known issues
+------------
+
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source.
+  * arcmigrate is currently non-functional
+  * Jobs submitted through EMI ES cannot be renewed or resumed
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 13.02 consists of the following source packages:
+  * NorduGrid ARC, version 3.0.0 (main components)
+  * NorduGrid ARC Documents version 1.3.0 
+  * metapackages for client tools, computing element and information index,
+  version 1.0.6
+  * Nagios probes for ARC CE, version 1.5.0
+  * Common authentication library caNl++, version 1.0.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/3.0.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.3.0
+
+Source for metapackages is available from:
+
+http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.6
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.5.0
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.0
+
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+  * Fedora: from 3 to 19 (i386 and x86_64)
+  * RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04 and 12.10
+   (i386 and amd64) 
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+
+
+
