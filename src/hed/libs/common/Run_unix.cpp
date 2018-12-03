@@ -602,7 +602,7 @@ namespace Arc {
         CloseStdout();
         return false;
       } else {
-        stdout_str_->append(buf, l);
+        stdout_str_->Append(buf, l);
       }
     } else {
       // Event shouldn't happen if not expected
@@ -619,7 +619,7 @@ namespace Arc {
         CloseStderr();
         return false;
       } else {
-        stderr_str_->append(buf, l);
+        stderr_str_->Append(buf, l);
       }
     } else {
       // Event shouldn't happen if not expected
@@ -630,17 +630,16 @@ namespace Arc {
 
   bool Run::stdin_handler(Glib::IOCondition) {
     if (stdin_str_) {
-      if (stdin_str_->length() == 0) {
+      if (stdin_str_->Size() == 0) {
         CloseStdin();
         stdin_str_ = NULL;
       } else {
-        int l = WriteStdin(0, stdin_str_->c_str(), stdin_str_->length());
+        int l = WriteStdin(0, stdin_str_->Get(), stdin_str_->Size());
         if (l == -1) {
           CloseStdin();
           return false;
         } else {
-          // Not very effective
-          *stdin_str_ = stdin_str_->substr(l);
+          stdin_str_->Remove(l);
         }
       }
     } else {
@@ -849,15 +848,42 @@ namespace Arc {
   }
 
   void Run::AssignStdout(std::string& str) {
-    if (!running_) stdout_str_ = &str;
+    if (!running_) {
+      stdout_str_wrap_.Assign(str);
+      stdout_str_ = &stdout_str_wrap_;
+    }
+  }
+
+  void Run::AssignStdout(Data& str) {
+    if (!running_) {
+      stdout_str_ = &str;
+    }
   }
 
   void Run::AssignStderr(std::string& str) {
-    if (!running_) stderr_str_ = &str;
+    if (!running_) {
+      stderr_str_wrap_.Assign(str);
+      stderr_str_ = &stderr_str_wrap_;
+    }
+  }
+
+  void Run::AssignStderr(Data& str) {
+    if (!running_) {
+      stderr_str_ = &str;
+    }
   }
 
   void Run::AssignStdin(std::string& str) {
-    if (!running_) stdin_str_ = &str;
+    if (!running_) {
+      stdin_str_wrap_.Assign(str);
+      stdin_str_ = &stdin_str_wrap_;
+    }
+  }
+
+  void Run::AssignStdin(Data& str) {
+    if (!running_) {
+      stdin_str_ = &str;
+    }
   }
 
   void Run::KeepStdout(bool keep) {
@@ -1070,6 +1096,36 @@ namespace Arc {
     bool error;
     return Listen(-1,error);
   }
+
+
+  Run::StringData::StringData(): content_(NULL) {
+  }
+
+  Run::StringData::~StringData() {
+  }
+
+  void Run::StringData::Assign(std::string& str) {
+    content_ = &str;
+  }
+
+  void Run::StringData::Append(char const* data, unsigned int size) {
+    if(content_) content_->append(data, size);
+  }
+
+  void Run::StringData::Remove(unsigned int size) {
+    if(content_) content_->erase(0, size);
+  }
+
+  char const* Run::StringData::Get() const {
+    if(!content_) return NULL;
+    return content_->c_str();
+  }
+
+  unsigned int Run::StringData::Size() const {
+    if(!content_) return 0;
+    return content_->length();
+  }
+
 
 }
 
