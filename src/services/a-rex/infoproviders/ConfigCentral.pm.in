@@ -967,7 +967,7 @@ sub set_defaults {
     
     # Define a-rex endpoint. Hardcoded after ARC6.
     if (defined $config->{'arex/ws'}) {
-        $config->{'arex/ws'}{wsurl} = 'https://'.$config->{common}{hostname}.':443/arex';
+        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{common}{hostname}.':443/arex';
     } else {
         $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
     }
