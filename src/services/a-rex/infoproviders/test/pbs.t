@@ -111,7 +111,8 @@ ENDSIMULATOROUTPUT
                pbs_log_path => "<TESTDIR>/bin",
                dedicated_node_string => '', # NB: it's set in order to avoid perl warnings 
                queues => {},
-               jobs => []
+               jobs => [],
+               loglevel => '5'
             };
   $cfg->{queues}{queue1} = {users => ['user1']};
   
