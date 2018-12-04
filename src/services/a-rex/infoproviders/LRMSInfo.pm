@@ -60,7 +60,9 @@ my $lrms_options_schema = {
 	    'users' => [ '' ]  # list of user IDs to query in the LRMS
         }
     },
-    'jobs' => [ '' ]           # list of jobs IDs to query in the LRMS
+    'jobs' => [ '' ],           # list of jobs IDs to query in the LRMS
+    'controldir' => '*',    # path to controldir, taken from main config
+    'loglevel' => ''       # infoproviders loglevel
 };
 
 my $lrms_info_schema = {
@@ -153,8 +155,9 @@ sub collect($) {
     #my ($lrms_name, $share) = split / /, $lrmsstring; # C 10 new lrms block
     my $lrms_name = $options->{lrms};
     my $share = $options->{defaultqueue};
+    my $loglevel = $options->{loglevel};
     $log->error('lrms option is missing') unless $lrms_name;
-    load_lrms($lrms_name);
+    load_lrms($lrms_name, $loglevel);
 
     # merge schema exported by the LRMS plugin
     my $schema = { %$lrms_options_schema, %{get_lrms_options_schema()} };
@@ -190,9 +193,11 @@ sub collect($) {
 # Loads the needed LRMS plugin at runtime
 # First try to load XYZmod.pm (implementing the native ARC1 interface)
 # otherwise try to load XYZ.pm (ARC0.6 plugin)
+# input: lrmsname, loglevel
 
-sub load_lrms($) {
+sub load_lrms($$) {
     my $lrms_name = uc(shift);
+    my $loglevel = uc(shift);
 
     my $module = $lrms_name."mod";
     eval { require "$module.pm" };
@@ -202,7 +207,7 @@ sub load_lrms($) {
         $log->debug("Using ARC0.6 compatible $lrms_name module");
 
         require ARC0mod;
-        ARC0mod::load_lrms($lrms_name);
+        ARC0mod::load_lrms($lrms_name, $loglevel);
         $module = "ARC0mod";
     }
     import $module qw(get_lrms_info get_lrms_options_schema);

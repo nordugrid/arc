@@ -533,7 +533,7 @@ sub queue_info ($$) {
 
     collect_node_data();
     collect_job_data();
-    collect_jobids($qname, $$config{control}{'.'}{controldir});
+    collect_jobids($qname, $$config{controldir});
 
     # Number of available (free) cpus can not be larger that
     # free cpus in the whole cluster
