@@ -1603,8 +1603,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -1888,8 +1889,9 @@ sub collect($) {
             }
             
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2019,8 +2021,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2137,8 +2140,9 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -2240,8 +2244,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2353,8 +2358,9 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -2442,8 +2448,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2990,8 +2997,9 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             
