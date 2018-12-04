@@ -2990,8 +2990,7 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            # a-rex port hardcoded in ARC6
-            if (defined $host_info->{ports}{arched}{'443'}) {
+            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
                 push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
             }
             
