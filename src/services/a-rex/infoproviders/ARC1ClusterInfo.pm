@@ -1170,7 +1170,7 @@ sub collect($) {
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:rest:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
@@ -2404,7 +2404,7 @@ sub collect($) {
             $cep->{CreationTime} = $creation_time;
             $cep->{Validity} = $validity_ttl;
 
-            $cep->{ID} = "$ARCRESTcepIDp:ac";
+            $cep->{ID} = "$ARCRESTcepIDp";
 
             # Name not necessary -- why? added back
             $cep->{Name} = "ARC REST";
