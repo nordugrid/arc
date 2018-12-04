@@ -171,7 +171,7 @@ ENDSIMULATOROUTPUT
   my $cfg = {  slurm_bin_path => "<TESTDIR>/bin",
                queues => { queue1 => { users => ['user1'] } },
                jobs => ['1', '2'],
-               loglevel = '5'
+               loglevel => '5'
             };
             
   my $lrms_info = $suite->collect(\@progs, $simulator_output, $cfg);
