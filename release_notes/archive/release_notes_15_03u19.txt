@@ -1,0 +1,151 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 19     November 09, 2018
+-----------------------------------------------
+
+This is a bugfix release, mainly to address how ARC counts HELD jobs in Condor. 
+The request was made through discussions in the wlcg-arc-ce-discuss email list.
+
+In addition, this release includes some packaging related changes, and a couple
+of other small bugfixes.
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.4.2 to 5.4.3
+  * documents - from 2.0.19 to 2.0.20
+Gangliarc, Nagios plugins and metapackages are unchanged.
+
+
+ 
+Detailed notes
+--------------
+
+The following issues were fixed:
+
+== ARC Server and core components
+
+  * No changes
+
+
+=== Accounting
+
+  * No changes
+ 
+
+=== Information system
+    
+  * Before this change all jobs in HOLD state were counted as queued.
+    With this change, Condor jobs in HOLD state are only counted as QUEUED if
+    HoldReasonCode == 16, otherwise they are counted as SUSPENDED (Bug 3753)
+   
+  
+== ARC Clients
+
+  * No changes
+      
+  
+== Nagios plugins
+
+  * No changes
+
+
+
+Fixed bugs or implemented feature requests 
+------------------------------------------
+
+Since ARC 15.03 update 18, the following bugs were fixed or feature requests were
+implemented:
+
+  * 3701 Respect s3 port number
+  * 3704 GLUE2 ComputingShareFreeSlotsWithDuration format is handled as integer but it's a
+    string (also GGUS#132829)
+  * 3705 Add support for RTE arguments in xRSL
+  * 3725 gm-jobs -h crashes
+  * 3733 ACIX uses method removed from latest python-twisted version
+  * 3741 arccat is not operational since ARC 5.4.2
+  * 3753 Condor held jobs should not be counted as queued
+
+GGUS ticket addressed:
+
+  * 132829 Help needed to debug ARC-CE information system issue
+  * 134645 Accounting problem at KIT (patch to relax FQDN demands in condor history file)
+
+
+Known issues
+------------
+  * There is a memory leak when using Java API for multiple job submission with files to BES
+    interface.
+  * The CPU time is not measured correctly for jobs that kill the parent process, such as some
+    agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu system, because the
+    python-dirq package is not available for them. The workaround is to build this package from
+    source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used to describe jobs,
+    and the broker type must be set to Null in the client.conf file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite
+    loop. The only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files. While
+    all log messages are correctly logged in the main log file, some rotated log files may 
+    receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a 
+    consequence, EMIES WS clients can no longer find a queue by VO name the same way as in 
+    previous versions of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u19 consists of the following source packages:
+  * NorduGrid ARC, version 5.4.3 (main components)
+  * NorduGrid ARC Documents version 2.0.20
+  * metapackages for client tools, computing element and information index, version 1.0.7
+  * Nagios probes for ARC CE, version 1.9.1
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
+
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.4.3
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.20
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.9.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 7.0 to 9.0 (i386 and amd64)
+  * Fedora: from 12 to 29 (i386 and x86_64)
+  * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 12.04 to 18.10 (i386 and amd64)
+    
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/
