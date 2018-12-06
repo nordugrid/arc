@@ -37,6 +37,16 @@ namespace Arc {
     return SubmissionStatus::NOT_IMPLEMENTED | SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
   }
 
+  void SubmitterPlugin::SetUserConfig(const UserConfig& uc) {
+    // Changing user configuration may change identity.
+    // Hence all open connections become invalid.
+    if(!usercfg || !usercfg->IsSameIdentity(uc)) {
+      delete dest_handle;
+      dest_handle = NULL;
+    }
+    usercfg = &uc;
+  }
+
   bool SubmitterPlugin::PutFiles(const JobDescription& job, const URL& url) const {
     FileCache cache;
     DataMover mover;
