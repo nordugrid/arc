@@ -27,7 +27,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 # no arc.conf parsing needed as well as LRMS-specific config
 #common_init
 
-GMKICK=${libexecdir}/gm-kick
+GMKICK=${pkglibexecdir}/gm-kick
 
 # Prints the uid of the owner of the file given as argument
 # Perl is used because it's more portable than using the stat command
