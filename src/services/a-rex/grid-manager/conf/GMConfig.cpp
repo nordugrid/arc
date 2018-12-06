@@ -75,6 +75,7 @@ void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
   jobs_metrics = NULL;
+  heartbeat_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
   delegations = NULL;

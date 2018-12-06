@@ -25,6 +25,7 @@
 #include "job.h"
 #include "grid-manager/log/JobLog.h"
 #include "grid-manager/log/JobsMetrics.h"
+#include "grid-manager/log/HeartBeatMetrics.h"
 #include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/jobs/ContinuationPlugins.h"
 #include "grid-manager/files/ControlFileHandling.h"
@@ -1209,6 +1210,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   valid = false;
   config_.SetJobLog(new JobLog());
   config_.SetJobsMetrics(new JobsMetrics());
+  config_.SetHeartBeatMetrics(new HeartBeatMetrics());
   config_.SetJobPerfLog(new Arc::JobPerfLog());
   config_.SetContPlugins(new ContinuationPlugins());
   // logger_.addDestination(logcerr);
@@ -1339,6 +1341,7 @@ ARexService::~ARexService(void) {
   delete config_.GetJobLog();
   delete config_.GetJobPerfLog();
   delete config_.GetJobsMetrics();
+  delete config_.GetHeartBeatMetrics();
 }
 
 } // namespace ARex
