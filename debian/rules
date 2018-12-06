@@ -51,6 +51,7 @@ configure-stamp:
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
 		    --enable-sqlite \
+		    --enable-internal \
 		    $(CANL_CONFIGURE_OPTION)
 	touch $@
 

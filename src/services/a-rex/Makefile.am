@@ -4,7 +4,13 @@ else
 JURA_CLIENT =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema internaljobplugin rte
+if INTERNAL_ENABLED
+INTERNAL = internaljobplugin
+else
+INTERNAL =
+endif
+
+SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
 DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la

@@ -863,6 +863,7 @@ fi
 %if ! %{with_ldns}
     --disable-ldns \
 %endif
+    --enable-internal \
 %if %{use_systemd}
      --with-systemd-units-location=%{_unitdir} \
 %endif
