@@ -15,6 +15,7 @@ namespace ARex {
 // Forward declarations for classes for which this is just a container
 class JobLog;
 class JobsMetrics;
+class HeartBeatMetrics;
 class ContinuationPlugins;
 class RunPlugin;
 class DelegationStores;
@@ -134,6 +135,8 @@ public:
   void SetJobPerfLog(Arc::JobPerfLog* log) { job_perf_log = log; }
   /// Set JobsMetrics object
   void SetJobsMetrics(JobsMetrics* metrics) { jobs_metrics = metrics; }
+  /// Set HeartBeatMetrics object
+  void SetHeartBeatMetrics(HeartBeatMetrics* metrics) { heartbeat_metrics = metrics; }
   /// Set ContinuationPlugins (plugins run at state transitions)
   void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
   /// Set DelegationStores object
@@ -142,6 +145,8 @@ public:
   JobLog* GetJobLog() const { return job_log; }
   /// JobsMetrics object
   JobsMetrics* GetJobsMetrics() const { return jobs_metrics; }
+  /// HeartBeatMetrics object
+  HeartBeatMetrics* GetHeartBeatMetrics() const { return heartbeat_metrics; }
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
@@ -251,6 +256,8 @@ private:
   JobLog* job_log;
   /// For reporting jobs metric to ganglia
   JobsMetrics* jobs_metrics;
+  /// For reporting heartbeat metric to ganglia
+  HeartBeatMetrics* heartbeat_metrics;
   /// For logging performace/profiling information
   Arc::JobPerfLog* job_perf_log;
   /// Plugins run at certain state changes

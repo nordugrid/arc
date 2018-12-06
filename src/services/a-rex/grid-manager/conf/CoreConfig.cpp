@@ -15,6 +15,7 @@
 #include "../run/RunPlugin.h"
 #include "../log/JobLog.h"
 #include "../log/JobsMetrics.h"
+#include "../log/HeartBeatMetrics.h"
 #include "../jobs/JobsList.h"
 
 #include "CacheConfig.h"
@@ -379,6 +380,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         if (command == "gmetric_bin_path") {
           std::string fname = rest;  // empty is not allowed, if not filled in arc.conf  default value is used
           config.jobs_metrics->SetGmetricPath(fname.c_str());
+          config.heartbeat_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
           std::list<std::string> metrics;
@@ -389,6 +391,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
                (metric == "all")) {
               config.jobs_metrics->SetEnabled(true);
             };
+	    if((metric == "heartbeat") ||
+	       (metric == "all")){
+		 config.heartbeat_metrics->SetEnabled(true);
+	       };
+
           };
         };
       };
