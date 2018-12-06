@@ -14,6 +14,7 @@
 #include "jobs/CommFIFO.h"
 #include "log/JobLog.h"
 #include "log/JobsMetrics.h"
+#include "log/HeartBeatMetrics.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"
 #include "files/ControlFileHandling.h"
@@ -348,6 +349,10 @@ bool GridManager::thread() {
       };
 
     };
+
+    //Is this the right place to call ReportHeartBeatChange?
+    HeartBeatMetrics* heartbeat_metrics = config_.GetHeartBeatMetrics();
+    if(heartbeat_metrics) heartbeat_metrics->ReportHeartBeatChange(config_);
 
     jobs.WaitAttention();
     logger.msg(Arc::DEBUG,"Waking up");
