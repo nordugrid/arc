@@ -426,6 +426,7 @@ namespace ArcDMCGridFTP {
         result = DataStatus(DataStatus::ListError, "Failed to read helper result for "+url.plainstr());
         break;
       }
+      file.SetName(file.GetLastName()); // relative name is expected historically
       files.push_back(file);
       tag = InTag(*run, 1000*usercfg.Timeout());
     }
