@@ -1773,7 +1773,7 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            if ( $config->{gridftpd}{allownew} == 0 ) {
+            if ( (not defined $config->{gridftpd}{allownew}) or ($config->{gridftpd}{allownew} == 0 ) ) {
                 $cep->{ServingState} = 'draining';
             } else {
                 $cep->{ServingState} = $servingstate;
