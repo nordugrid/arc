@@ -1861,7 +1861,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -1993,7 +1993,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -2120,7 +2120,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "testing";
+            $ep->{QualityLevel} = "production";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
@@ -2216,7 +2216,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -2338,7 +2338,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "testing";
+            $ep->{QualityLevel} = "production";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
@@ -2617,123 +2617,8 @@ sub collect($) {
 
         $arexceps->{NorduGridLocalSubmissionEndpoint} = $getNorduGridLocalSubmissionEndpoint;
 
-
-        #### Other A-REX ComputingEndpoints. these are currently disabled as I don't know how to handle them.
-        # Placeholder for Stagein interface
-
-        my $getStageinComputingEndpoint = sub {
-            
-            # don't publish if no Endpoint URL
-            return undef unless $stageinhostport ne '';
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = $StageincepID;
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
-
-            # OBS: ideally HED should be asked for the URL
-            #$cep->{URL} = $wsendpoint;
-            $cep->{Capability} = [ 'data.management.transfer' ];
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'Stagein';
-            $cep->{InterfaceVersion} = [ '1.0' ];
-            #$cep->{InterfaceExtension} = [ '' ];
-            $cep->{WSDL} = [ $wsendpoint."/?wsdl" ];
-            # Wrong type, should be URI
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "development";
-
-            # How to calculate health for this interface?
-            my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            $cep->{ServingState} = $servingstate;
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if no Endpoint URL
-        $arexceps->{StageinComputingEndpoint} = $getStageinComputingEndpoint if $stageinhostport ne '';
-
-
         ### ARIS endpoints are now part of the A-REX service. 
-        # TODO: change ComputingService code in printers to scan for Endpoints
+        # TODO: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant
 
         my $getArisLdapNGEndpoint = sub {
 
@@ -2945,98 +2830,6 @@ sub collect($) {
         };
         
         $arexceps->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
-
-        ## TODO: remove this endpoint
-        my $getArisWSRFGlue2Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS WSRF GLUE2 Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $wsendpoint;
-            # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:wsrfglue2:$wsendpoint";
-            $ep->{Capability} = ['information.discovery.resource'];
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put a relevant document here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "nordugrid-arc";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }            
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-            
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ComputingServiceID} = $csvID;
-
-            return $ep;
-        };
-        
-        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if ($wsenabled);
 
         
         # Collect endpoints in the datastructure
@@ -3677,275 +3470,8 @@ sub collect($) {
 
     my $othersv = {};
 
-    # ARIS service has been removed from the rendering.
-    # other services that follow might end up to be endpoints
-    
-    #$othersv->{ARIS} = $getARISService;
-
-    # Service:Cache-Index
-
-    my $getCacheIndexService = sub {
-    
-	my $sv = {};
-
-	$sv->{CreationTime} = $creation_time;
-	$sv->{Validity} = $validity_ttl;
-
-	$sv->{ID} = $CacheIndexsvID;
-
-	$sv->{Name} = "$config->{service}{ClusterName}:Service:Cache-Index" if $config->{service}{ClusterName}; # scalar
-	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-	$sv->{Capability} = [ 'information.discovery' ];
-	$sv->{Type} = 'org.nordugrid.information.cache-index';
-
-	# OBS: QualityLevel reflects the quality of the sotware
-	# One of: development, testing, pre-production, production
-	$sv->{QualityLevel} = 'testing';
-
-	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
-
-	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
-
 	#EndPoint here
 
-    ## TODO: remove this endpoint
-	my $getCacheIndexEndpoint = sub {
-
-	    return undef;
-
-	    my $ep = {};
-
-	    $ep->{CreationTime} = $creation_time;
-	    $ep->{Validity} = $validity_ttl;
-
-	    # Name not necessary -- why? added back
-	    $ep->{Name} = "ARC Cache Index";
-
-	    # Configuration parser does not contain ldap port!
-	    # must be updated
-	    # port hardcoded for tests 
-	    # $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
-        # $ep->{ID} = $CacheIndexepIDp.":".$ep->{URL};
-	    $ep->{Capability} = [ 'information.discovery' ];
-	    $ep->{Technology} = 'webservice';
-	    $ep->{InterfaceName} = 'Cache-Index';
-	    $ep->{InterfaceVersion} = [ '1.0' ];
-	    # Wrong type, should be URI
-	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-	    #              ];
-	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "nordugrid-arc";
-	    $ep->{ImplementationVersion} = $config->{arcversion};
-	    $ep->{QualityLevel} = "testing";
-
-	    # How to calculate health for this interface?
-	    my %healthissues;
-
-	    if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-	    if (     $host_info->{hostcert_expired}
-		    or $host_info->{issuerca_expired}) {
-		  push @{$healthissues{critical}}, "Host credentials expired";
-	    } elsif (not $host_info->{hostcert_enddate}
-		    or not $host_info->{issuerca_enddate}) {
-		  push @{$healthissues{critical}}, "Host credentials missing";
-	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		    or $host_info->{issuerca_enddate} - time < 48*3600) {
-		  push @{$healthissues{warning}}, "Host credentials will expire soon";
-	    }
-	    }
-
-	    if (%healthissues) {
-	    my @infos;
-	    for my $level (qw(critical warning other)) {
-		  next unless $healthissues{$level};
-		  $ep->{HealthState} ||= $level;
-		  push @infos, @{$healthissues{$level}};
-	    }
-	    $ep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-	    $ep->{HealthState} = 'ok';
-	    }
-
-	    $ep->{ServingState} = 'production';
-
-	    # StartTime: get it from hed
-
-	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-	    # TODO: Downtime, is this necessary, and how should it work?
-
-	    if ($config->{accesspolicies}) {
-	    my @apconfs = @{$config->{accesspolicies}};
-	    $ep->{AccessPolicies} = sub {
-		  return undef unless @apconfs;
-		  my $apconf = pop @apconfs;
-		  my $apol = {};
-		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		  $apol->{Scheme} = "basic";
-		  $apol->{Rule} = $apconf->{Rule};
-		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $ep->{ID};
-		  return $apol;
-	    };
-	    }
-	    
-	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-
-	    # Associations
-
-	    $ep->{ServiceID} = $CacheIndexsvID;
-
-	    return $ep;
-	};
-
-	$sv->{Endpoint} = $getCacheIndexEndpoint;
-
-	# Associations
-
-	$sv->{AdminDomainID} = $adID;
-
-	return $sv;
-    };
-    
-    # Disabled until I find a way to know if it's configured or not.
-    # $othersv->{CacheIndex} = $getCacheIndexService;
-    
-    # Service: HED-Control / TODO: should be changed to HEDSHOT
-
-    my $getHEDControlService = sub {
-
-	my $sv = {};
-
-	$sv->{CreationTime} = $creation_time;
-	$sv->{Validity} = $validity_ttl;
-
-	$sv->{ID} = $HEDControlsvID;
-
-	$sv->{Name} = "$config->{service}{ClusterName}:Service:HED-CONTROL" if $config->{service}{ClusterName}; # scalar
-	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-	$sv->{Capability} = [ 'information.discovery' ];
-	$sv->{Type} = 'org.nordugrid.information.cache-index';
-
-	# OBS: QualityLevel reflects the quality of the sotware
-	# One of: development, testing, pre-production, production
-	$sv->{QualityLevel} = 'pre-production';
-
-	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
-
-	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
-
-	#EndPoint here
-
-    ## TODO: remove this endpoint
-	my $getHEDControlEndpoint = sub {
-
-	    #return undef unless ( -e $config->{bdii_update_pid_file});
-
-	    my $ep = {};
-
-	    $ep->{CreationTime} = $creation_time;
-	    $ep->{Validity} = $validity_ttl;
-
-	    # Name not necessary -- why? added back
-	    $ep->{Name} = "ARC HED WS Control Interface";
-
-	    # Configuration parser does not contain ldap port!
-	    # must be updated
-	    # port hardcoded for tests 
-	    $ep->{URL} = "$arexhostport/mgmt";
-        $ep->{ID} = $HEDControlepIDp.":".$ep->{URL};
-	    $ep->{Capability} = [ 'containermanagement.control' ];
-	    $ep->{Technology} = 'webservice';
-	    $ep->{InterfaceName} = 'HED-CONTROL';
-	    $ep->{InterfaceVersion} = [ '1.0' ];
-	    # Wrong type, should be URI
-	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-	    #              ];
-	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/" ];
-	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "nordugrid-arc";
-	    $ep->{ImplementationVersion} = $config->{arcversion};
-	    $ep->{QualityLevel} = "pre-production";
-
-	    # How to calculate health for this interface?
-	    my %healthissues;
-
-	    if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-	    if (     $host_info->{hostcert_expired}
-		    or $host_info->{issuerca_expired}) {
-		  push @{$healthissues{critical}}, "Host credentials expired";
-	    } elsif (not $host_info->{hostcert_enddate}
-		    or not $host_info->{issuerca_enddate}) {
-		  push @{$healthissues{critical}}, "Host credentials missing";
-	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		    or $host_info->{issuerca_enddate} - time < 48*3600) {
-		  push @{$healthissues{warning}}, "Host credentials will expire soon";
-	    }
-	    }
-
-	    if (%healthissues) {
-	    my @infos;
-	    for my $level (qw(critical warning other)) {
-		  next unless $healthissues{$level};
-		  $ep->{HealthState} ||= $level;
-		  push @infos, @{$healthissues{$level}};
-	    }
-	    $ep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-	    $ep->{HealthState} = 'ok';
-	    }
-
-	    $ep->{ServingState} = 'production';
-
-	    # StartTime: get it from hed
-
-	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-	    # TODO: Downtime, is this necessary, and how should it work?
-
-	    if ($config->{accesspolicies}) {
-	    my @apconfs = @{$config->{accesspolicies}};
-	    $ep->{AccessPolicies} = sub {
-		  return undef unless @apconfs;
-		  my $apconf = pop @apconfs;
-		  my $apol = {};
-		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		  $apol->{Scheme} = "basic";
-		  $apol->{Rule} = $apconf->{Rule};
-		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $ep->{ID};
-		  return $apol;
-	      };
-	    };
-	    
-	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-
-	    # Associations
-
-	    $ep->{ServiceID} = $HEDControlsvID;
-
-	    return $ep;
-	};
-
-	$sv->{Endpoint} = $getHEDControlEndpoint;
-
-	# Associations
-
-	$sv->{AdminDomainID} = $adID;
-
-	return $sv;
-    };
-
-    # Disabled until I find a way to know if it's configured or not.
-    # $othersv->{HEDControl} = $getHEDControlService);
-    
 
     # aggregates services
 
