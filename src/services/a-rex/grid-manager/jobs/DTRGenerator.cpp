@@ -131,8 +131,8 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
     staging_conf(config),
     info(config),
     jobs(jobs),
-    jobs_received(JobsList::ProcessingQueuePriority+1),
-    jobs_processing(JobsList::ProcessingQueuePriority+2) {
+    jobs_received(JobsList::ProcessingQueuePriority+1, "DTR received"),
+    jobs_processing(JobsList::ProcessingQueuePriority+2, "DTR processing") {
 
   if (!staging_conf) return;
   // Set log level for DTR in job.id.errors files
