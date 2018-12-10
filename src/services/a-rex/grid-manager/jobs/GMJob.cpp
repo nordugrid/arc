@@ -104,7 +104,9 @@ GMJob::~GMJob(void){
 
 void GMJob::AddReference(void) {
   Glib::RecMutex::Lock lock(ref_lock);
-  ++ref_count;
+  if(++ref_count == 0) {
+    logger.msg(Arc::FATAL,"%s: Job monitoring counter is broken",job_id);
+  }
 }
 
 void GMJob::RemoveReference(void) {
@@ -123,7 +125,10 @@ void GMJob::DestroyReference(void) {
     lock.release();
     delete this;
   } else {
-    logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references",job_id,ref_count);
+    if(queue) 
+      logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references and %s queue associated",job_id,ref_count,queue->name_);
+    else
+      logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references",job_id,ref_count);
   };
 }
 
@@ -169,7 +174,10 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   };
   // Handle reference counter
   if(new_queue && !old_queue) {
-    ++ref_count;
+    Glib::RecMutex::Lock lock(ref_lock);
+    if(++ref_count == 0) {
+      logger.msg(Arc::FATAL,"%s: Job monitoring counter is broken",job_id);
+    }
   } else if(!new_queue && old_queue) {
     Glib::RecMutex::Lock lock(ref_lock);
     if(--ref_count == 0) {
@@ -220,7 +228,7 @@ void GMJob::PrepareToDestroy(void) {
 
 // ----------------------------------------------------------
 
-GMJobQueue::GMJobQueue(int priority):priority_(priority) {
+GMJobQueue::GMJobQueue(int priority, char const * name):priority_(priority),name_(name) {
 }
 
 bool GMJobQueue::Push(GMJobRef& ref) {
