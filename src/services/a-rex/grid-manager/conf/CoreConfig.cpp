@@ -16,6 +16,7 @@
 #include "../log/JobLog.h"
 #include "../log/JobsMetrics.h"
 #include "../log/HeartBeatMetrics.h"
+#include "../log/SpaceMetrics.h"
 #include "../jobs/JobsList.h"
 
 #include "CacheConfig.h"
@@ -381,6 +382,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           std::string fname = rest;  // empty is not allowed, if not filled in arc.conf  default value is used
           config.jobs_metrics->SetGmetricPath(fname.c_str());
           config.heartbeat_metrics->SetGmetricPath(fname.c_str());
+          config.space_metrics->SetGmetricPath(fname.c_str());
         }
         else if (command == "metrics") {
           std::list<std::string> metrics;
@@ -395,13 +397,16 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 	       (metric == "all")){
 		 config.heartbeat_metrics->SetEnabled(true);
 	       };
-
+	    if((metric == "cache") || 
+	       (metric == "all")){
+	      config.space_metrics->SetEnabled(true);
+	    };
           };
         };
       };
       continue;
     };
-
+    
     if (cf.SectionNum() == ws_secnum) { // arex/ws
      
       if (cf.SubSection()[0] == '\0') {
