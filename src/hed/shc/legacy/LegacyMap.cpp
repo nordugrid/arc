@@ -110,7 +110,7 @@ class LegacyMapCP: public ConfigParser {
         };
     } else if(cmd.compare(0,7,"policy_") == 0) {
         // Rules that change the stack processing policy starts with 'policy_'
-        if(!map_.set_mapping_policy(cmd.c_str(), line.c_str())) {
+        if(!map_.set_map_policy(cmd.c_str(), line.c_str())) {
             logger_.msg(Arc::ERROR, "Failed to change mapping stack processing policy: %s %s", cmd, line);
             return false;
         };

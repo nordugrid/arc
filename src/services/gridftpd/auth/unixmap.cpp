@@ -26,7 +26,7 @@ UnixMap::source_t UnixMap::sources[] = {
 
 UnixMap::UnixMap(AuthUser& user,const std::string& id):
   user_(user),map_id_(id),mapped_(false),
-  map_policy_(MAPPING_CONTINUE,MAPPING_STOP,MAPPING_STOP) {
+  map_policy_({MAPPING_CONTINUE,MAPPING_STOP,MAPPING_STOP}) {
 }
 
 UnixMap::~UnixMap(void) {
@@ -69,6 +69,7 @@ bool UnixMap::set_map_policy(const char* rule, const char* line) {
     return false;
   };
   // parse event action
+  map_action_t action;
   if(strcmp(line, action_continue_str) == 0) {
     action = MAPPING_CONTINUE;
   } else if(strcmp(line, action_stop_str) == 0) {

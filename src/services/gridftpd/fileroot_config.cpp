@@ -316,7 +316,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
                 return 1;
               };
             } else if(command.compare(0,7,"policy_") == 0) {
-               if(!user.set_mapping_policy(command.c_str(), rest.c_str())) {
+               if(!user.set_map_policy(command.c_str(), rest.c_str())) {
                  user.user.clear_groups(); nodes.clear();
                  logger.msg(Arc::ERROR, "Failed to change mapping stack processing policy: %s %s", command, rest);
                  return 1;
