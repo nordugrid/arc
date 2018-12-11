@@ -49,6 +49,8 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
   Glib::RecMutex::Lock lock_(lock);
 
 
+  totalFreeCache = 0;
+
   std::vector <std::string> cachedirs = config.CacheParams().getCacheDirs();
   if(!cachedirs.empty()){
 
@@ -79,7 +81,7 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
     }
   }
   else{
-    logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculating free space.");    
+    logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculation of free space.");    
   }
   
 
