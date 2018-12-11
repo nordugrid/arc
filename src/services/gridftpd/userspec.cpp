@@ -249,6 +249,10 @@ AuthResult userspec_t::mapgroup(const char* rule, const char* line) {
   return res;
 }
 
+bool userspec_t::set_map_policy(const char* rule, const char* line) {
+  return map.set_map_policy(rule, line);
+}
+
 //AuthResult userspec_t::mapvo(const char* line) {
 //  AuthResult res = map.mapvo(line);
 //  if(res == AAA_POSITIVE_MATCH) refresh();

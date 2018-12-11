@@ -25,7 +25,8 @@ UnixMap::source_t UnixMap::sources[] = {
 };
 
 UnixMap::UnixMap(AuthUser& user,const std::string& id):
-  user_(user),map_id_(id),mapped_(false) {
+  user_(user),map_id_(id),mapped_(false),
+  map_policy_(MAPPING_CONTINUE,MAPPING_STOP,MAPPING_STOP) {
 }
 
 UnixMap::~UnixMap(void) {
@@ -49,86 +50,48 @@ static inline void skip_till_space(char const * & line) {
   for(;*line;line++) if(isspace(*line)) break;
 }
 
-enum opt_action {
-  action_continue,
-  action_stop
-};
-
-enum opt_event {
-  event_nogroup,
-  event_nomap,
-  event_map
-};
-
-static char const option_none_str[] = { "*" };
-
 static char const action_continue_str[] = { "continue" };
-static char const action_stop_str[] = { "stop" };
+static char const action_stop_str[]     = { "stop" };
 
-static char const event_nogroup_str[] = { "onnogroup" };
-static char const event_nomap_str[]   = { "onnomap" };
-static char const event_map_str[]     = { "onmap" };
+static char const option_nogroup_str[] = { "policy_on_nogroup" };
+static char const option_nomap_str[]   = { "policy_on_nomap" };
+static char const option_map_str[]     = { "policy_on_map" };
 
-#define match_string(tag,start,end) (((end-start+1) == sizeof(tag)) && (strncmp(start,tag,end-start) == 0))
-
-static bool parse_option(const char* option, int option_len, opt_event& event, opt_action& action) {
-  const char* option_end = option+option_len;
-  if(match_string(option_none_str,option,option_end)) return true;
-  const char* event_start = option;
-  for(;option<option_end;option++) if(*option == '=') break;
-  if(option >= option_end) return false;
-  const char* event_end = option;
-  ++option;
-  const char* action_start = option;
-  const char* action_end = option_end;
-  if(match_string(event_nogroup_str,event_start,event_end)) {
-    event = event_nogroup;
-  } else if(match_string(event_nomap_str,event_start,event_end)) {
-    event = event_nomap;
-  } else if(match_string(event_map_str,event_start,event_end)) {
-    event = event_map;
+// Set mapping rules stack processing policy options
+bool UnixMap::set_map_policy(const char* rule, const char* line) {
+  if(!line) {
+    logger.msg(Arc::ERROR,"Mapping policy option has empty value");
+    return false;
+  };
+  skip_spaces(line);
+  if(*line == 0) {
+    logger.msg(Arc::ERROR,"Mapping policy option has empty value");
+    return false;
+  };
+  // parse event action
+  if(strcmp(line, action_continue_str) == 0) {
+    action = MAPPING_CONTINUE;
+  } else if(strcmp(line, action_stop_str) == 0) {
+    action = MAPPING_STOP;
   } else {
+    logger.msg(Arc::ERROR,"Unsupported mapping policy action: %s",line);
     return false;
   }
-  if(match_string(action_continue_str,action_start,action_end)) {
-    action = action_continue;
-  } else if(match_string(action_stop_str,action_start,action_end)) {
-    action = action_stop;
+  // parse policy event type
+  if(strcmp(rule, option_nogroup_str) == 0) {
+    map_policy_.nogroup = action;
+  } else if(strcmp(line, option_nomap_str) == 0) {
+    map_policy_.nomap = action;
+  } else if(strcmp(line, option_map_str) == 0) {
+    map_policy_.map = action;
   } else {
+    logger.msg(Arc::ERROR,"Unsupported mapping policy option: %s",rule);
     return false;
   }
   return true;
 }
 
-static bool parse_options(const char* options, int options_len, opt_action& onnogroup, opt_action& onnomap, opt_action& onmap) {
-  // default actions
-  onnogroup = action_continue;
-  onnomap = action_continue;
-  onmap = action_stop;
-  const char* options_end = options+options_len;
-  while(options<options_end) {
-    const char* option = options;
-    for(;options<options_end;options++) if(*options == ',') break;
-    opt_event event;
-    opt_action action;
-    if(!parse_option(option, options-option, event, action))
-      return false;
-    switch(event) {
-      case event_nogroup:
-        onnogroup = action;
-        break;
-      case event_nomap:
-        onnomap = action;
-        break;
-      case event_map:
-        onmap = action;
-        break;
-    };
-    ++options;
-  }
-  return true;
-}
-
+// Mapping options processing
 AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
   // now: rule = options authgroup args
   mapped_=false;
@@ -142,29 +105,17 @@ AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
     return AAA_FAILURE;
   };
   // identify common parts of mapping commands
-  const char* options = line;
-  skip_till_space(line);
-  int options_len = line-options;
-  skip_spaces(line);
   const char* groupname = line;
   skip_till_space(line);
   int groupname_len = line-groupname;
   if(groupname_len == 0) {
-    logger.msg(Arc::ERROR,"User name mapping has empty group: %s", groupname);
-    return AAA_FAILURE;
-  };
-  // parse options
-  opt_action onnogroup;
-  opt_action onnomap;
-  opt_action onmap;
-  if(!parse_options(options, options_len, onnogroup, onnomap, onmap)) {
-    logger.msg(Arc::ERROR,"User name mapping options parsing error");
+    logger.msg(Arc::ERROR,"User name mapping has empty authgroup: %s", groupname);
     return AAA_FAILURE;
   };
   // match specified authgroup
   if(!user_.check_group(std::string(groupname,groupname_len))) {
-    // event onnogroup
-    mapped_= (onnogroup == action_stop);
+    // nogroup event
+    mapped_= (map_policy_.nogroup == MAPPING_STOP);
     return AAA_NO_MATCH;
   };
   unix_user_.name.resize(0);
@@ -178,8 +129,8 @@ AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
     if(strcmp(s->cmd,rule) == 0) {
       AuthResult res=(this->*(s->map))(user_,unix_user_,line);
       if(res == AAA_POSITIVE_MATCH) {
-        // event onmap
-        mapped_= (onmap == action_stop);
+        // map event
+        mapped_= (map_policy_.map == MAPPING_STOP);
         return AAA_POSITIVE_MATCH;
       };
       if(res == AAA_FAILURE) {
@@ -187,8 +138,8 @@ AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
         return AAA_FAILURE;
       };
       // Paranoid about negative match
-      // event onnomap
-      mapped_= (onnomap == action_stop);
+      // nomap event
+      mapped_= (map_policy_.nomap == MAPPING_STOP);
       return AAA_NO_MATCH;
     };
   };
@@ -300,7 +251,7 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
 AuthResult UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line) {
   // ... dir
   if(user.DN()[0] == 0) {
-    logger.msg(Arc::ERROR, "User pool call is missing user subject.");
+    logger.msg(Arc::ERROR, "User pool mapping is missing user subject.");
     return AAA_NO_MATCH;
   };
   SimpleMap pool(line);
