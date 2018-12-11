@@ -301,7 +301,7 @@ sub main {
             my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
             timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
         }
-        if ($config->{infosys}{nordugrid}{enabled} and $config->{infosys}{gridfptd}{enabled}) {
+        if ($config->{infosys}{nordugrid}{enabled} and $config->{gridftpd}{enabled}) {
             $log->info("Generating NorduGrid LDIF rendering");
             my $ldifPrinter = NGldifPrinter->new($fh, $config->{infosys}{validity_ttl});
             timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
