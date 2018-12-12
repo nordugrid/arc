@@ -127,6 +127,11 @@ fi
 
 # PID file
 PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile arex`
+if [ "x$PID_FILE" = "x" ]; then
+    # Missing default value for pidfile means no service block is present
+    echo "ARC configuration is missing [arex] block"
+    exit 1
+fi
 ARC_RUNTIME_CONFIG=
 
 ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
