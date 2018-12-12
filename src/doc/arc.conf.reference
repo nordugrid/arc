@@ -313,49 +313,48 @@
 
 
 ### The [mapping] block ##############################################
-## This block defines the grid-identity to local UNIX identity mapping rules 
+## This block defines the grid-identity to local UNIX identity mapping rules
 ## used by various ARC components.
 ##
-## Mapping rules are processed sequentially in the defined order.
-## Each rule defines mapping method that triggered for specified "authgroup" members.
-## Processing of the next rule depends on the "options" defined for the current rule
-## and can be flexibly tuned.
-## By default:
-##   - mapping process continue to the next rule in case of grid-identity is not
-##     matched specified "authgroup" or mapping rule is not able to accomplish mapping.
-##   - mapping process stops if user is a member of authgroup and mapping rule returns
-##     valid UNIX identity
+## Rules in the [mapping] block are processed IN A SEQUENCE in line order of the
+## configuration file (from top to bottom).
+##
+## There are two kind of rules:
+##   - mapping rules that defines how the particular "authgroup" members are mapped
+##   - policy rules that modifies the mapping rules sequence processing
+##
+## Policy of mapping rules processing can be redefined at the any point of sequence
+## and affects all mapping rules defined after the polcy rule.
+##
+## Default policy for mapping rules sequence processing is:
+##   - processing CONTINUES to the next rule if identity of user DO NOT match "authgroup"
+##     specified in the rule (can be redefined with "policy_on_nogroup" option)
+##   - processing STOPS if identity of user match "authgroup" specified in the mapping rule.
+##     Depend on whether mapping rule returns valid UNIX identity the processing can be
+##     redefined with "policy_on_map" and "policy_on_nomap" options.
 ##
 ## NOTE that if mapping process had stopped and there is still no local UNIX identity
 ##   identified, the user running A-REX will be used.
-## NOTE that when grid-identity is mapped to "root" account request processing fails implicitely.
+## NOTE that when grid-identity is mapped to "root" account - request processing fails implicitely.
+##
 ##
 #[mapping]
 ## CHANGE: This is a new block
 
-## map_to_user = options authgroup_name unixname[:unixgroup] - the users that belongs to
+## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
 ## optionally followed by a "unixgroup" UNIX group. 
-##
-## The options are list of comma separated "event=action" pairs or "*" as placeholder.
-## Possible actions are:
-##   - "stop" - stop processing maping commands,
-##   - "continue" - proceed to next mapping command.
-## Possible events are:
-##   - "onnogroup" - specified authgroup does not match (default action is "continue")
-##   - "onnomap"   - specified authgroup matches but mapping processing fails (defalt action is "continue"),
-##   - "onmap"     - specified authgroup matches and mapping processing succedes (defalt action is "stop"),
-## In case of non-existing "unixname" local user the mapping rule triggers "onnomap" event.
-## multivalued
+## In case of non-existing "unixname" local user the mapping rule returns NOT VALID
+## UNIX identity.
 ## default: undefined
-#map_to_user=* any nobody:nobody
+#map_to_user=any nobody:nobody
 
-## map_to_pool = options authgroup_name directory - the user that belong to specified 
+## map_to_pool = authgroup_name directory - the user that belong to specified
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
 ## are part of this pool are stored line-by-line in the "pool" file inside the "directory". 
 ## The "directory" also contains information about used accont names stored in another files.
 ## If there are no more available accounts in the defined pool for mapping then
-## accounts not used for a configurable time period may be reassigned. 
+## accounts not used for a configurable time period may be reassigned.
 ## The pool behaviour, including account reuse, is configureable with the opional 
 ## "directory/config" file that has INI syntax (line-by-line "key=value"). 
 ## Possible keys of the "config" file are:
@@ -363,19 +362,15 @@
 ##      Define the timeout in days (default is "10") after which the UNIX 
 ##      account can be reassigned to another user if not used. The "0" value 
 ##      means no lease expiration.
-## Options are the same as in "map_to_user" command.
-## multivalued
 ## default: undefined
-#map_to_pool=onnomap=stop atlas /etc/grid-security/pool/atlas
+#map_to_pool=atlas /etc/grid-security/pool/atlas
 
-## map_with_file = options authgroup_name file - for users that belongs to specified
+## map_with_file = authgroup_name file - for users that belongs to specified
 ## authgroup the subject of certificate is matched against a list of subjects 
 ## stored in the specified "file", one per line followed by a local UNIX account 
 ## name. This rule can be used to implement legacy grid-mapfile aproach.
-## Options are the same as in "map_to_user" command.
-## multivalued
 ## default: undefined
-#map_with_file=* any /etc/grid-security/grid-mapfile
+#map_with_file=any /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
 ## external "plugin" executable with specified arguments to find the UNIX account 
@@ -387,15 +382,39 @@
 ## In the arguments the following substitutions are applied before the plugin is started:
 ##   - "%D" - subject of user's certificate,
 ##   - "%P" - path to credentials' proxy file.
-## Options are the same as in "map_to_user" command.
 ##
 ## ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
 ## configuration. For more information about configuring LCMAPS refer to 
 ## 'Using LCAS/LCMAPS' document.
-## multivalued
 ## default: undefined
-#map_with_plugin=onnomap=continue altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
-##
+#map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
+
+## policy_on_nomap = continue/stop - redefines mapping rules sequence processing policy
+## in case identity of user match "authgroup" specified in the mapping rule and mapping
+## rule DO NOT return valid UNIX identity. Default policy is "stop" processing the furhter
+## rules.
+## For example this policy will be triggered if pool is depleted, certificate subject is
+## missing in the map file used for defined authgroup or plugin execution failed.
+## default: undefined
+## allowedvalues: continue stop
+#policy_on_nomap=continue
+
+## policy_on_map = continue/stop - redefines mapping rules sequence processing policy
+## in case identity of user match "authgroup" specified in the mapping rule and mapping
+## rule return valid UNIX identity. Default policy is "stop" processing the furhter
+## rules.
+## This policy will be triggered if rule successfully returns the result (allocated in pool,
+## matched in map file, plugin call was successful).
+## default: undefined
+## allowedvalues: continue stop
+#policy_on_map=stop
+
+## policy_on_nogroup = continue/stop - redefines mapping rules sequence processing policy
+## in case identity of user DO NOT match "authgroup" specified in the mapping rule.
+## Default policy is "continue" processing the furhter rules.
+## default: undefined
+## allowedvalues: continue stop
+#policy_on_nogroup=stop
 ##
 ### end of the [mapping] block ##############################################
 
