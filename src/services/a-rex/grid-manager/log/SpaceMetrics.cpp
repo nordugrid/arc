@@ -27,6 +27,11 @@ SpaceMetrics::SpaceMetrics():enabled(false),proc(NULL) {
   totalFreeCache = 0;
   freeCache_update = false;
 
+  freeSession = 0;
+  totalFreeSession = 0;
+  freeSession_update = false;
+
+
 }
 
 SpaceMetrics::~SpaceMetrics() {
@@ -49,8 +54,52 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
   Glib::RecMutex::Lock lock_(lock);
 
 
-  totalFreeCache = 0;
 
+
+
+  /*Free sessiondir space*/
+  struct statvfs info_session;
+  totalFreeSession = 0;
+  std::vector <std::string> sessiondirs = config.SessionRoots();
+
+  if(!sessiondirs.empty()){
+
+    std::vector<std::string>::iterator it = sessiondirs.begin();
+    for(std::vector<std::string>::iterator i = sessiondirs.begin(); i!= sessiondirs.end(); i++){
+
+
+      std::string path = *i;
+      //sessiondir can have several options, extract the path part
+      if ((*i).find(" ") != std::string::npos){
+	path = (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1);
+      }
+      
+
+
+      if (statvfs(path.c_str(), &info_session) != 0) {
+	  logger.msg(Arc::ERROR,"Error getting info from statvfs for the path %s:", path);
+      }
+      else{
+
+	// return free space in GB
+	freeSession = (float)(info_session.f_bfree * info_session.f_bsize) / (float)(1024 * 1024 * 1024);
+	totalFreeSession += freeSession;
+	logger.msg(Arc::DEBUG, "Sessiondir %s: Free space %f GB", path, totalFreeSession);
+	
+	freeSession_update = true;
+      }
+    }
+
+  }
+  else{
+    logger.msg(Arc::ERROR,"No session directories found in configuration.");
+  }
+
+
+
+  /*Cache space */
+  struct statvfs info_cache;
+  totalFreeCache = 0;
   std::vector <std::string> cachedirs = config.CacheParams().getCacheDirs();
   if(!cachedirs.empty()){
 
@@ -64,17 +113,14 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
 	path = (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1);
       }
       
-
-      struct statvfs info;
-      if (statvfs(path.c_str(), &info) != 0) {
+      if (statvfs(path.c_str(), &info_cache) != 0) {
 	  logger.msg(Arc::ERROR,"Error getting info from statvfs for the path %s:", path);
       }
       else{
-	
 	// return free space in GB
-	freeCache = (float)(info.f_bfree * info.f_bsize) / (float)(1024 * 1024 * 1024);
+	freeCache = (float)(info_cache.f_bfree * info_cache.f_bsize) / (float)(1024 * 1024 * 1024);
 	totalFreeCache += freeCache;
-	logger.msg(Arc::DEBUG, "Cache %s: Free space %f GB", path, freeCache);
+	logger.msg(Arc::DEBUG, "Cache %s: Free space %f GB", path, totalFreeCache);
 	
 	freeCache_update = true;
       }
@@ -116,6 +162,16 @@ void SpaceMetrics::Sync(void) {
 		  Arc::tostring(totalFreeCache), "int32", "GB"
 		  )) {
       freeCache_update = false;
+      return;
+    };
+  }
+
+  if(freeSession_update){
+    if(RunMetrics(
+		  std::string("AREX-SESSION-FREE"),
+		  Arc::tostring(totalFreeSession), "int32", "GB"
+		  )) {
+      freeSession_update = false;
       return;
     };
   }
