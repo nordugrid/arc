@@ -1671,10 +1671,11 @@
 
 ### The [arex/ganglia] block  - previously [gangliarc] ###############################
 ##
-## This block enables the monitoring of ARC-specific metrics through and existing ganglia
-## installation. Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc.
-## Ganglia is now integrated into ARC to extract jobmetrics. Ganglia for system metrics is
-## run as separate gangliarc instance.
+## This block enables the monitoring of ARC-specific metrics. 
+## Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc, 
+## ganglia is now instead integrated into ARC, and gangliarc is obsolete. 
+## Note that AREX ganglia (as gangliarc did) depends on an existing ganglia installation, 
+## as it sends its metrics to a running gmond process. 
 #[arex/ganglia]
 ## CHANGE: RENAMED block
 
