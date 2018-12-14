@@ -83,9 +83,9 @@ bool UnixMap::set_map_policy(const char* rule, const char* line) {
   // parse policy event type
   if(strcmp(rule, option_nogroup_str) == 0) {
     map_policy_.nogroup = action;
-  } else if(strcmp(line, option_nomap_str) == 0) {
+  } else if(strcmp(rule, option_nomap_str) == 0) {
     map_policy_.nomap = action;
-  } else if(strcmp(line, option_map_str) == 0) {
+  } else if(strcmp(rule, option_map_str) == 0) {
     map_policy_.map = action;
   } else {
     logger.msg(Arc::ERROR,"Unsupported mapping policy option: %s",rule);
