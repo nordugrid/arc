@@ -72,20 +72,20 @@ bool UnixMap::set_map_policy(const char* rule, const char* line) {
   };
   // parse event action
   map_action_t action;
-  if(strncmp(line, action_continue_str, strlen(action_continue_str)) == 0) {
+  if(strcmp(line, action_continue_str) == 0) {
     action = MAPPING_CONTINUE;
-  } else if(strncmp(line, action_stop_str, strlen(action_stop_str)) == 0) {
+  } else if(strcmp(line, action_stop_str) == 0) {
     action = MAPPING_STOP;
   } else {
     logger.msg(Arc::ERROR,"Unsupported mapping policy action: %s",line);
     return false;
   }
   // parse policy event type
-  if(strncmp(rule, option_nogroup_str, strlen(option_nogroup_str)) == 0) {
+  if(strcmp(rule, option_nogroup_str) == 0) {
     map_policy_.nogroup = action;
-  } else if(strncmp(line, option_nomap_str, strlen(option_nomap_str)) == 0) {
+  } else if(strcmp(line, option_nomap_str) == 0) {
     map_policy_.nomap = action;
-  } else if(strncmp(line, option_map_str, strlen(option_map_str)) == 0) {
+  } else if(strcmp(line, option_map_str) == 0) {
     map_policy_.map = action;
   } else {
     logger.msg(Arc::ERROR,"Unsupported mapping policy option: %s",rule);
