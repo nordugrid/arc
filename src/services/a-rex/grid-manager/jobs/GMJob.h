@@ -192,14 +192,6 @@ public:
     return job_ == NULL;
   }
 
-  bool operator==(GMJobRef const& other) {
-    return (job_ == other.job_);
-  }
-
-  bool operator!=(GMJobRef const& other) {
-    return (job_ != other.job_);
-  }
-
   GMJob& operator*() const {
     return *job_;
   }
@@ -226,11 +218,12 @@ class GMJobQueue {
   static Glib::RecMutex lock_;
   int const priority_;
   std::list<GMJob*> queue_;
+  std::string name_;
   GMJobQueue();
   GMJobQueue(GMJobQueue const& it);
  public:
   //! Construct jobs queue with specified priority.
-  GMJobQueue(int priority);
+  GMJobQueue(int priority, char const * name);
 
   //! Comparison function type definition.
   typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);

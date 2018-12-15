@@ -188,6 +188,11 @@ export PYTHONPATH
 
 # PID and lock file
 PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile gridftpd`
+if [ "x$PID_FILE" = "x" ]; then
+    # Missing default value for pidfile means no service block is present
+    log_failure_msg "ARC configuration is missing [gridftpd] block"
+    exit 1
+fi
 ARC_RUNTIME_CONFIG=
 LOCKFILE=
 
