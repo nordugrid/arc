@@ -65,7 +65,7 @@
 ## keywords and optionally block identifiers. Keywords may be separated by "/" 
 ## and used to label subblocks (e.g. [arex/jura]), while block identifiers
 ## are separated by ":" from keywords. For example, in the [queue:short] 
-## block header 'queue' is a keyword while 'short' is an identifier, e.g. the name of the queue.
+## block header "queue" is a keyword while "short" is an identifier, e.g. the name of the queue.
 ## Block headers must be UNIQUE.
 ##
 ## A block starts with a unique [keyword:identifier] blockheader and ends where the next block
@@ -111,7 +111,7 @@
 ## no values. Furthermore, configuration options within disabled blocks takes no values either.   
 ##
 ## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
-## [authgroup:name] MUST be defined before used in the blocks such as [mapping], [arex] or 
+## [authgroup:name] MUST be defined before used in the blocks such as [mapping], [arex/ws/jobs] or 
 ## [gridftp/jobs]. The same rule applies to defining legacy [userlist:name] blocks.
 ## Furthermore, the order of the authorization blocks itself may have influence over 
 ## authorization decisions!
@@ -119,23 +119,27 @@
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks. Every configuration option is described
 ## in a dedicated paragraph with the following reference syntax notation.
-## This file is parsed by configuration validation script and so
-## it is important that it follows the agreed syntax: For each block or
-## option please add explanatory text with two ## followed by a space at the
-## beginning of the line and then an example with a single # and no spaces at
-## the beginning of the line. These examples are used as reference parameters
-## for the block and configuration option names!
+## This file is parsed at buildtime to assist in configuration default parsing and validation script
+## and so it is important that it follows the agreed syntax: For each block or
+## option please add explanatory text with two "##" followed by a space at the
+## beginning of the line and then an example with a single "#" and no spaces at
+## the beginning of the line. 
 ##
 ## example_config_option = value [optional values] - Here comes the explanation
 ## of the config option. Mandatory configuration options are indicated by an asterix prefix to the
-## option name e.g:  *mandatory_configoption vs. optional_configoption.
-## The explanation is followed by the special keyword "multivalued" in a separate line to indicate 
-## that it can be set multiple times (multivalued). Missing such keyword means the config option
-## can only occur once in the arc.conf. By default the arc.conf config options are optional
-## and single-valued. For some config options only a fix set of values are allowed. These are
+## option name e.g:  "*mandatory_configoption" vs. "optional_configoption".
+## The explanation can be followed by the special keywords in a separate line:
+##   - "multivalued" - used to indicate that config option can be specified multiple times.
+##     This forms a set of values for the same configuration option irrespective of lines order.
+##   - "sequenced" - used to indicate that config option is a part of the sequence and its
+##     effect on configuration depends on the lines order. Sequenced option can be specified
+##     several times in the configuration sequence independently.
+## Missing such keywords means the config option can only occur once in the arc.conf.
+## By default the arc.conf config options are optional and single-valued.
+## For some config options only a fix set of values are allowed. These are
 ## listed in a separate line after the "allowedvalues" keyword.
 ## The default of every config option is explicitly given in the "default:" line.
-## Default can be a pre-set value, a substitution or the undefined keyword.
+## Default can be a pre-set value, a substitution or the "undefined" keyword.
 ## The last line of the paragraph is always a valid example preceded by a single "#"
 ## multivalued
 ## allowedvalues: 12 34 56
@@ -253,14 +257,14 @@
 
 ## subject = certificate_subject - Rule to match specific subject of user's
 ## X.509 certificate. No masks, patterns and regular expressions are allowed.
-## multivalued
+## sequenced
 ## default: undefined
 #subject=/O=Grid/O=Big VO/CN=Main Boss
 #subject=/O=Grid/O=Big VO/CN=Deputy Boss
 
 ## file = path - Processes a list of DNs stored in an external file one per line and adds those to
 ## the authgroup.
-## multivalued
+## sequenced
 ## default: undefined
 #file=/etc/grid-security/local_users
 #file=/etc/grid-security/atlas_users
@@ -268,7 +272,7 @@
 
 ## voms = vo group role capabilities - Match VOMS attribute in user's credential.
 ## Use "*" to match any value.
-## multivalued
+## sequenced
 ## default: undefined
 #voms=nordugrid Guests * *
 #voms=atlas students prodman *
@@ -278,7 +282,7 @@
 ## arc.conf configuration file. Multiple authgroup names may be specified for this rule.
 ## That allows creating hierarchical structure of authorization groups like
 ## "all-atlas" are those which are "atlas-users" and "atlas-admins".
-## multivalued
+## sequenced
 ## default: undefined
 #authgroup=local_admins
 #authgroup=local_admins remote_users
@@ -286,7 +290,7 @@
 
 ## userlist = ulist_name [ulist_name ...] - (previously vo) Match user belonging to ulist_name defined
 ## in an earlier [userlist:ulist_name] block. Multiple userlist names are allowed for this rule.
-## multivalued
+## sequenced
 ## default: undefined
 #userlist=biousers
 ## CHANGE: renamed
@@ -298,12 +302,13 @@
 ##   - "%P" - path to proxy
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
 ## For more information about configuring LCAS refer to 'Using LCAS/LCMAPS' document.
-## multivalued
+## sequenced
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
+## sequenced
 ## default: undefined
 #all=yes
 ## CHANGE: MODIFIED options
@@ -323,17 +328,17 @@
 ##   - mapping rules that defines how the particular "authgroup" members are mapped
 ##   - policy rules that modifies the mapping rules sequence processing
 ##
-## Policy of mapping rules processing can be redefined at the any point of sequence
-## and affects all mapping rules defined after the polcy rule.
-##
-## Default policy for mapping rules sequence processing is:
+## Default policy for mapping rules processing is:
 ##   - processing CONTINUES to the next rule if identity of user DO NOT match "authgroup"
 ##     specified in the rule (can be redefined with "policy_on_nogroup" option)
 ##   - processing STOPS if identity of user match "authgroup" specified in the mapping rule.
-##     Depend on whether mapping rule returns valid UNIX identity the processing can be
+##     Depend on whether this mapping rule returns valid UNIX identity the processing can be
 ##     redefined with "policy_on_map" and "policy_on_nomap" options.
 ##
-## NOTE that if mapping process had stopped and there is still no local UNIX identity
+## Policy can be redefined at the any point of configuration sequence and affects 
+## all mapping rules defined after the polcy rule.
+##
+## NOTE that if mapping process STOPS and there is still no local UNIX identity
 ##   identified, the user running A-REX will be used.
 ## NOTE that when grid-identity is mapped to "root" account - request processing fails implicitely.
 ##
@@ -344,8 +349,9 @@
 ## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
 ## optionally followed by a "unixgroup" UNIX group. 
-## In case of non-existing "unixname" local user the mapping rule returns NOT VALID
-## UNIX identity.
+## In case of non-existing "unixname" account the mapping rule treated as a rule that 
+## did not returned mapped identity (nomap).
+## sequenced
 ## default: undefined
 #map_to_user=any nobody:nobody
 
@@ -362,6 +368,7 @@
 ##      Define the timeout in days (default is "10") after which the UNIX 
 ##      account can be reassigned to another user if not used. The "0" value 
 ##      means no lease expiration.
+## sequenced
 ## default: undefined
 #map_to_pool=atlas /etc/grid-security/pool/atlas
 
@@ -369,6 +376,7 @@
 ## authgroup the subject of certificate is matched against a list of subjects 
 ## stored in the specified "file", one per line followed by a local UNIX account 
 ## name. This rule can be used to implement legacy grid-mapfile aproach.
+## sequenced
 ## default: undefined
 #map_with_file=any /etc/grid-security/grid-mapfile
 
@@ -386,6 +394,7 @@
 ## ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
 ## configuration. For more information about configuring LCMAPS refer to 
 ## 'Using LCAS/LCMAPS' document.
+## sequenced
 ## default: undefined
 #map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 
@@ -395,6 +404,7 @@
 ## rules.
 ## For example this policy will be triggered if pool is depleted, certificate subject is
 ## missing in the map file used for defined authgroup or plugin execution failed.
+## sequenced
 ## default: undefined
 ## allowedvalues: continue stop
 #policy_on_nomap=continue
@@ -405,6 +415,7 @@
 ## rules.
 ## This policy will be triggered if rule successfully returns the result (allocated in pool,
 ## matched in map file, plugin call was successful).
+## sequenced
 ## default: undefined
 ## allowedvalues: continue stop
 #policy_on_map=stop
@@ -412,6 +423,7 @@
 ## policy_on_nogroup = continue/stop - redefines mapping rules sequence processing policy
 ## in case identity of user DO NOT match "authgroup" specified in the mapping rule.
 ## Default policy is "continue" processing the furhter rules.
+## sequenced
 ## default: undefined
 ## allowedvalues: continue stop
 #policy_on_nogroup=stop
@@ -2932,7 +2944,7 @@
 ## userlist (with optional mapping info).
 ## If the same file specified as output for different [userlist:name] blocks
 ## then nordugridmap will automatically merge entries following the order of the blocks.
-## default: $VAR{[common/mapping]gridmap}
+## default: /etc/grid-security/grid-mapfile
 #outfile=/etc/grid-security/lists/atlas-users
 ## CHANGE: renamed from "file"
 
@@ -3012,7 +3024,7 @@
 ##         then nordugridmap will skip users without mapping information
 ##		   (if no mapping information provided by sources)
 ## default: nobody
-#mapped_unixid
+#mapped_unixid=
 #mapped_unixid=gridtest
 ## CHANGE: Modified. The empty value should work the same way as missing parameter. set the default to "nobody"
 
