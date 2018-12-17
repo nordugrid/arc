@@ -38,6 +38,7 @@ class userspec_t {
   const AuthUser& get_user(void) const { return user; };
   //AuthResult mapname(const char* line);
   AuthResult mapgroup(const char* rule, const char* line);
+  bool set_map_policy(const char* rule, const char* line);
   //AuthResult mapvo(const char* line);
   bool mapped(void) const { return (bool)map; };
 };
