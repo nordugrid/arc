@@ -309,10 +309,18 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
         } else if(cf.SectionNum() == cfgsec_mapping_n) {
           // Only mapping functionality left is "unixgroupmap". And it is not indicated explicitely.
           if(!user.mapped()) {
-            if(user.mapgroup(command.c_str(), rest.c_str()) == AAA_FAILURE) {
-              user.user.clear_groups(); nodes.clear();
-              logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
-              return 1;
+            if(command.compare(0,4,"map_") == 0) {
+              if(user.mapgroup(command.c_str(), rest.c_str()) == AAA_FAILURE) {
+                user.user.clear_groups(); nodes.clear();
+                logger.msg(Arc::ERROR, "failed while processing configuration command: %s %s", command, rest);
+                return 1;
+              };
+            } else if(command.compare(0,7,"policy_") == 0) {
+               if(!user.set_map_policy(command.c_str(), rest.c_str())) {
+                 user.user.clear_groups(); nodes.clear();
+                 logger.msg(Arc::ERROR, "Failed to change mapping stack processing policy in: %s = %s", command, rest);
+                 return 1;
+               };
             };
           };
         };

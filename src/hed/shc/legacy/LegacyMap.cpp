@@ -100,11 +100,20 @@ class LegacyMapCP: public ConfigParser {
   virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
     if(!is_block_) return true;
     if(map_) return true; // already mapped
-    // Now we have only one command left "unixgroupmap" and it is not indicated at all.
-    //# [unixgroupmap] rule [=] authgroup args
-    if(map_.mapgroup(cmd.c_str(), line.c_str()) == AAA_FAILURE) {
-      logger_.msg(Arc::ERROR, "Failed processing user mapping command: %s %s", cmd, line);
-      return false;
+    if(cmd.compare(0,4,"map_") == 0) {
+        // All mapping rules starts with 'map_'
+        // Now we have only one command left "unixgroupmap" and it is not indicated at all.
+        //# [unixgroupmap] rule [=] authgroup args
+        if(map_.mapgroup(cmd.c_str(), line.c_str()) == AAA_FAILURE) {
+          logger_.msg(Arc::ERROR, "Failed processing user mapping command: %s %s", cmd, line);
+          return false;
+        };
+    } else if(cmd.compare(0,7,"policy_") == 0) {
+        // Rules that change the stack processing policy starts with 'policy_'
+        if(!map_.set_map_policy(cmd.c_str(), line.c_str())) {
+            logger_.msg(Arc::ERROR, "Failed to change mapping stack processing policy in: %s = %s", cmd, line);
+            return false;
+        };
     };
     return true;
   };
