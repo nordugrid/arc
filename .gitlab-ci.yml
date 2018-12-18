@@ -192,7 +192,7 @@ packages_el7:
     - echo "Preparing and running rpmbuild"
     - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
     - make dist
-    - VERSION="`cat VERSION`_$(date +%Y-%m-%dT%H:%M:%S)-${CI_COMMIT_SHA:0:8}"
+    - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
