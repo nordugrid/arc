@@ -3,6 +3,10 @@
 #endif
 
 #include <fcntl.h>
+#include <XrdCl/XrdClCopyProcess.hh>
+#include <XrdCl/XrdClPropertyList.hh>
+#include <XrdCl/XrdClDefaultEnv.hh>
+#include <XrdCl/XrdClLog.hh>
 
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
@@ -117,8 +121,40 @@ namespace ArcDMCXrootd {
     if (writing) return DataStatus::IsWritingError;
     reading = true;
 
+    XrdCl::PropertyList props;
+    XrdCl::PropertyList results;
+    props.Set("source", url.plainstr());
+    props.Set("target", "/tmp/test123");
+    XrdCl::CopyProcess copy;
+    XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+      reading = false;
+      return DataStatus(DataStatus::ReadStartError, st.errNo);
+    }
+    buffer = &buf;
+
+    XrdCl::PropertyList processConfig;
+    processConfig.Set( "jobType", "configuration" );
+    processConfig.Set( "parallel", 1 );
+    copy.AddJob( processConfig, 0 );
+    copy.Prepare();
+
+    XrdCl::CopyProgressHandler cph;
+    st = copy.Run(&cph);
+    buffer->eof_read(true);
+    transfer_cond.signal();
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
+      reading = false;
+      return DataStatus(DataStatus::ReadStartError, st.errNo);
+    }
+    return DataStatus::Success;
+
+
     {
       CertEnvLocker env(usercfg);
+      logger.msg(INFO, "Opening %s", url.plainstr());
       fd = XrdPosixXrootd::Open(url.plainstr().c_str(), O_RDONLY);
       if (fd == -1) {
         logger.msg(VERBOSE, "Could not open file %s for reading: %s", url.plainstr(), StrError(errno));
@@ -494,7 +530,12 @@ namespace ArcDMCXrootd {
     // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
     // Level 1 enables some messages which go to stdout - which messes up
     // communication in DTR so better to use no debugging
-    if (logger.getThreshold() == DEBUG) XrdPosixXrootd::setDebug(1);
+    XrdCl::DefaultEnv env;
+    XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
+    if (logger.getThreshold() == DEBUG) {
+      XrdPosixXrootd::setDebug(1);
+      log->SetLevel(XrdCl::Log::DebugMsg);
+    }
     else XrdPosixXrootd::setDebug(0);
   }
 
