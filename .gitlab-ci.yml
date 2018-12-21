@@ -12,6 +12,7 @@ fork_packages_el6:
   stage: build
   image: maikenp/arc-build-centos6
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -45,6 +46,7 @@ fork_packages_el7:
   stage: build
   image: maikenp/arc-build-centos7
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -78,6 +80,7 @@ fork_packages_deb9:
   stage: build
   image: maikenp/arc-build-debian9
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - apt-get update -y
     - echo "6.0.0" > VERSION
     - ./autogen.sh
@@ -115,8 +118,8 @@ packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - apt-get update -y
-    - echo "6.0.0" > VERSION
     - ./autogen.sh
     - ./configure
     - make dist
@@ -150,6 +153,7 @@ packages_el6:
   stage: packages
   image: maikenp/arc-build-centos6
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -180,6 +184,7 @@ packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
   script:
+    - echo "master_$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -250,4 +255,4 @@ deploy_staging_el7:
   allow_failure: true
 
 ## note-to-self: can also download the rpms from latest job with (example for el7):
-## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
+    ## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip

@@ -2,17 +2,24 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC 6.0.0a1     16 November 2018
------------------------------------------------------------
-After a long ARC 6 preparation period, we are finally ready to announce the very first test release of ARC 6: the alpha release (6.0.0a1)
+Release Notes for NorduGrid ARC Test-release 6.0.0a3     19 December 2018
+-------------------------------------------------------------------------
+After a long ARC 6 preparation period, we are finally ready to announce the very first *test release* of ARC 6: the alpha release (6.0.0a3).
+The previous two tags have been installed and tested with WLCG workloads at the University of Oslo.
+Issues were found and fixed, and we now think that we have a version ready for wider testing. 
 
-ARC 6 contains major improvements in the deployment, configuration and maintenance of ARC CE. It also comes with new features and services while some legacy features have been removed.
 
-Although there has been some major re-engineering in the code base (see below), the interfaces are unchanged - ARC 5 clients are compatible with an ARC 6 CE and vice versa.
+ARC 6 contains major improvements in the deployment, configuration and maintenance of ARC CE.
+It also comes with new features and services while some legacy features have been removed.
 
-As of the 6.0.0a1 test release most of the planned development is completed, only smaller adjustments and some code cleanup is missing. Since July University of Oslo has been running ARC 6 with regular nightly updates.
+Although there has been some major re-engineering in the code base (see below),
+the interfaces are unchanged - ARC 5 clients are compatible with an ARC 6 CE and vice versa.
 
-Next step is to deploy this first test release on other sites, more sites deploying ARC 6 will mean more deployment, configuration and usage pattern are to be covered, more bugs discovered and fixed. So please volunteer to give it a try!
+As of the 6.0.0a3 test release most of the planned development is completed,
+only smaller adjustments and some code cleanup is missing.
+
+The next step is to deploy this first test release on other sites. More sites deploying ARC 6 will mean more deployment,
+configuration and usage pattern are to be covered, more bugs discovered and fixed. So please volunteer to give it a try!
 
 
 Important Changes
@@ -23,7 +30,7 @@ The most important things to bear in mind if you are used to ARC 5:
 * Complete overhaul of configuration
 * Runtime environments (RTEs) must be explicitly enabled through the arcctl tool
 * The NorduGrid schema is no longer published by default - it must be enabled via the [infosys/nordugrid] block
-* Gridmap files (although still supported) are no longer recommended. VO-based authorisation should be configured as described in [ref to arc6 doc]
+* Gridmap files (although still supported) are no longer recommended. VO-based authorisation should be configured as described in http://www.nordugrid.org/documents/arc6/user/reference.html. 
 * Validation of the ARC configuration is enforced by A-REX startup scripts. If you have configuration errors then A-REX will not start.
 * Renaming of startup scripts and default log files
 
@@ -33,17 +40,23 @@ Improvements and new features
 
 * Major server-side configuration changes
 ** Configuration has been cleaned up, regrouped and made more streamlined.
-** ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup. Automatically installed with ARC, including test-CA and test host certificate for immediate test submission.
-** ARC now operates with a so-called running configuration which is based on arc.conf (which is to be manually edited by the system administrator) but in addition includes any unchanged default values present in ARC. You can get a dump of the running configuration using the arcctl tool.
+** ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup.
+   Automatically installed with ARC, including test-CA and test host certificate for immediate test submission.
+** ARC now operates with a so-called running configuration which is based on arc.conf
+   (which is to be manually edited by the system administrator) but in addition includes any unchanged default values
+   present in ARC. You can get a dump of the running configuration using the arcctl tool.
 ** Default values have had a big tidy up and are now handled consistently throughout ARC.
 
-* The RTE framework has got a redesigned architecture and largely extended functionality (default, installed, enabled RTEs, introduction of RTE prameters)
+* The RTE framework has got a redesigned architecture and largely extended functionality
+  (default, installed, enabled RTEs, introduction of RTE prameters)
 
-* A new server-side control tool: arcctl has been developed. With this tool you can handle the configuration, the RTEs, the jobs, and many other things related to running an ARC CE.
+* A new server-side control tool: arcctl has been developed.
+  With this tool you can handle the configuration, the RTEs, the jobs, and many other things related to running an ARC CE.
 
-* Two new submission interfaces have been included:
+* Two new submission interfaces have been included, both are *technology previews and not for production*
  ** The REST interface - enabled together with the A-Rex Web-Service.
- ** The INTERNAL interface - a special interface aimed for restrictive HPC sites, to be used with a local installation of the ARC Control Tower.
+ ** The INTERNAL interface - a special interface aimed for restrictive HPC sites,
+    to be used with a local installation of the ARC Control Tower.
 
 
 * ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS
@@ -57,46 +70,41 @@ Improvements and new features
 
 
 
-
-
 Documentation
 ---------------
-Please note that documentation is not complete, but you can what is available here: http://www.nordugrid.org/documents/arc6/index.html
+Please note that documentation is not complete, but what is available can be found here: http://www.nordugrid.org/documents/arc6/index.html
 For a quick installation guide, have a look at http://www.nordugrid.org/documents/arc6/user/try_arc6.html
 
 Note that with ARC 6 you must enable the RTE's you need as a separate step after installation.
 See documentation in: http://www.nordugrid.org/documents/arc6/user/rtes.html
 
-
 Parts of the old documentation available from http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf is still relevant, but there are not guarantees.
 
-We are working on cleaning up the documentation. 
+We are working on cleaning up and extending the documentation. 
 
 
 Availability
 ------------
 
 = Source
-  * https://source.coderefinery.org/nordugrid/arc/tree/v6.0.0a1
+  * https://source.coderefinery.org/nordugrid/arc/tree/v6.0.0a3
   Download the source code with:
-  * git clone -b 'v6.0.0a1' --single-branch --depth 1 https://source.coderefinery.org/nordugrid/arc.git
+  * git clone -b 'v6.0.0a3' --single-branch --depth 1 https://source.coderefinery.org/nordugrid/arc.git
 
 = Nightly packages
   * Instructions: http://www.nordugrid.org/documents/arc6/developer/nightlies-repo.html#nightlies-repo
 
-  We build for the following systems:
+= Nordugrid repository
+  * Instructions: http://www.nordugrid.org/documents/arc6/user/repository.html
+  * Repo: http://download.nordugrid.org/repos/6
+    
+
+We build for the following systems:
   * Debian: 7.0 to 9.0 (i386 and amd64)
   * Fedora: from 12 to 29 (i386 and x86_64)
   * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
   * Ubuntu: 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
     15.10, 16.04, 16.10, 17.04, 17.10, 18.04 and 18.10 (i386 and amd64)
-
-= Nordugrid repository
-  Not yet available, but will eventually show up
-  * http://download.nordugrid.org/repos/6
-    
-Scientific Linux and RedHat are implicitly supported through corresponding
-CentOS repositories.
 
 
 
