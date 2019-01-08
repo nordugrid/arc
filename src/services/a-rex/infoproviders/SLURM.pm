@@ -43,6 +43,7 @@ sub slurm_read_config($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM config, store dictionary in scont_config
     my %scont_config;
+    checkbin("$path/scontrol");
     open (SCPIPE,"$path/scontrol show config| grep -Ev \"primary|Configuration|^\$\"|");
     while(<SCPIPE>){
 	chomp;
@@ -67,6 +68,7 @@ sub slurm_read_jobs($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM jobs, store dictionary in scont_jobs
     my %scont_jobs;
+    checkbin("$path/squeue");
     open (SCPIPE,"$path/squeue -a -h -t all -o \"JobId=%i TimeUsed=%M Partition=%P JobState=%T ReqNodes=%D ReqCPUs=%C TimeLimit=%l Name=%j NodeList=%N\"|");
     while(<SCPIPE>){
 	my %job;
@@ -100,6 +102,7 @@ sub slurm_read_partitions($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM partitions, store dictionary in scont_part
     my %scont_part;
+    checkbin("$path/sinfo");
     open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L\"|");
     while(<SCPIPE>){
 	my %part;
@@ -142,6 +145,7 @@ sub slurm_read_cpuinfo($){
     # get SLURM partitions, store dictionary in scont_part
     my %sinfo_cpuinfo;
     my $cpuinfo;
+    checkbin("$path/sinfo");
     open (SCPIPE,"$path/sinfo -a -h -o \"cpuinfo=%C\"|");
     while(<SCPIPE>){
 	my $string = $_;
@@ -163,6 +167,7 @@ sub slurm_read_nodes($){
     my ($path) = ($$config{slurm_bin_path} or $$config{SLURM_bin_path} or "/usr/bin");
     # get SLURM nodes, store dictionary in scont_nodes
     my %scont_nodes;
+    checkbin("$path/scontrol");
     open (SCPIPE,"$path/scontrol show node --oneliner|");
     while(<SCPIPE>){
 	my %record;
@@ -312,6 +317,11 @@ sub slurm_expand_nodes($){
     return $enodes;
 }
 
+# check the existence of a passed binary, full path.
+sub checkbin ($) {
+    my $apbin = shift;
+    error("Can't find $apbin , Exiting...") unless -f $apbin;
+}
 
 ############################################
 # Public subs
