@@ -82,7 +82,7 @@ sub slurm_init_check($) {
    my @slurm_commands = ('scontrol','squeue','sinfo');
 
    foreach my $slurmcmd (@slurm_commands) {
-        $log->error("$path/$slurmcmd command not found. Exiting...") unless (-f "$path/$slurmcmd") ;
+        $log->error("$path/$slurmcmd command not found. Check slurm_bin_path in configuration. Exiting...") unless (-f "$path/$slurmcmd") ;
    }
 }
 

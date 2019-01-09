@@ -320,7 +320,7 @@ sub slurm_expand_nodes($){
 # check the existence of a passed binary, full path.
 sub checkbin ($) {
     my $apbin = shift;
-    error("Can't find $apbin , Exiting...") unless -f $apbin;
+    error("Can't find $apbin , check slurm_bin_path. Exiting...") unless -f $apbin;
 }
 
 ############################################
