@@ -22,7 +22,7 @@ namespace ArcDMCFile {
   class DataPointFile
     : public DataPointDirect {
   public:
-    DataPointFile(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointFile(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
     virtual ~DataPointFile();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

@@ -21,7 +21,7 @@ namespace ArcDMCXrootd {
     : public DataPointDirect {
 
    public:
-    DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointXrootd(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
     virtual ~DataPointXrootd();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

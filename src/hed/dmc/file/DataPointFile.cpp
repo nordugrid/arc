@@ -42,8 +42,8 @@ namespace ArcDMCFile {
 
   Logger DataPointFile::logger(Logger::getRootLogger(), "DataPoint.File");
 
-  DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg),
+  DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg),
       reading(false),
       writing(false),
       is_channel(false),
@@ -72,7 +72,7 @@ namespace ArcDMCFile {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "file" && ((const URL &)(*dmcarg)).Protocol() != "stdio")
       return NULL;
-    return new DataPointFile(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointFile(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   int DataPointFile::open_channel() {

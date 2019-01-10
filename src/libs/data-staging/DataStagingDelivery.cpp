@@ -225,7 +225,7 @@ int main(int argc,char* argv[]) {
   else if (!proxy_cred.empty()) source_cfg.CredentialString(proxy_cred);
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
-  DataHandle source(source_url,source_cfg);
+  DataHandle source(source_url, source_cfg, dest_url.plainstr());
   if(!source) {
     logger.msg(ERROR, "Source URL not supported: %s", source_url.str());
     _exit(-1);
@@ -244,7 +244,7 @@ int main(int argc,char* argv[]) {
   else if (!proxy_cred.empty()) dest_cfg.CredentialString(proxy_cred);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   //dest_cfg.UtilsDirPath(...); - probably not needed
-  DataHandle dest(dest_url,dest_cfg);
+  DataHandle dest(dest_url,dest_cfg, source_url.plainstr());
   if(!dest) {
     logger.msg(ERROR, "Destination URL not supported: %s", dest_url.str());
     _exit(-1);
@@ -325,35 +325,38 @@ int main(int argc,char* argv[]) {
     _exit(-1);
     //return -1;
   };
-  DataStatus dest_st = dest->StartWriting(buffer);
-  if(!dest_st) {
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                 (dest_url.Protocol() != "file") ?
-                  (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
-                                         DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
-                 DataStaging::DTRErrorStatus::ERROR_DESTINATION,
-                 std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
-                  " : "+std::string(dest_st),
-                 0,0,0);
-    _exit(-1);
-    //return -1;
-  };
-  // While transfer is running in another threads
-  // here we periodically report status to parent
-  bool eof_reached = false;
-  for(;!buffer.error() && !delivery_shutdown;) {
-    if(buffer.eof_read() && buffer.eof_write()) {
-      eof_reached = true; break;
+  bool eof_reached = buffer.eof_read();
+  // Check if source did the copy itself
+  if (!eof_reached) {
+    DataStatus dest_st = dest->StartWriting(buffer);
+    if(!dest_st) {
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                   (dest_url.Protocol() != "file") ?
+                    (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                           DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                    DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
+                   DataStaging::DTRErrorStatus::ERROR_DESTINATION,
+                   std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
+                    " : "+std::string(dest_st),
+                   0,0,0);
+      _exit(-1);
+      //return -1;
     };
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
-                 DataStaging::DTRErrorStatus::NONE_ERROR,
-                 DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
-                 "",
-                 buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest),0);
-    buffer.wait_any();
-  };
+    // While transfer is running in another threads
+    // here we periodically report status to parent
+    for(;!buffer.error() && !delivery_shutdown;) {
+      if(buffer.eof_read() && buffer.eof_write()) {
+        eof_reached = true; break;
+      };
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+                   DataStaging::DTRErrorStatus::NONE_ERROR,
+                   DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+                   "",
+                   buffer.speed.transferred_size(),
+                   GetFileSize(*source,*dest),0);
+      buffer.wait_any();
+    };
+  }
   if (delivery_shutdown) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::INTERNAL_PROCESS_ERROR,
@@ -373,7 +376,7 @@ int main(int argc,char* argv[]) {
 
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
-  dest_st = dest->StopWriting();
+  DataStatus dest_st = dest->StopWriting();
   source_st = source->StopReading();
   bool reported = false;
 

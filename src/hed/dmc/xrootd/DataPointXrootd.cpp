@@ -21,8 +21,8 @@ namespace ArcDMCXrootd {
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
   XrdPosixXrootd DataPointXrootd::xrdposix;
 
-  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg),
+  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg),
       fd(-1),
       reading(false),
       writing(false){
@@ -45,7 +45,7 @@ namespace ArcDMCXrootd {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
-    return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointXrootd(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   void DataPointXrootd::read_file_start(void* arg) {
@@ -120,38 +120,49 @@ namespace ArcDMCXrootd {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
     reading = true;
-
-    XrdCl::PropertyList props;
-    XrdCl::PropertyList results;
-    props.Set("source", url.plainstr());
-    props.Set("target", "/tmp/test123");
-    XrdCl::CopyProcess copy;
-    XrdCl::XRootDStatus st = copy.AddJob(props, &results);
-    if (!st.IsOK()) {
-      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
-      reading = false;
-      return DataStatus(DataStatus::ReadStartError, st.errNo);
-    }
     buffer = &buf;
 
-    XrdCl::PropertyList processConfig;
-    processConfig.Set( "jobType", "configuration" );
-    processConfig.Set( "parallel", 1 );
-    copy.AddJob( processConfig, 0 );
-    copy.Prepare();
+    if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
+      XrdCl::PropertyList props;
+      XrdCl::PropertyList results;
+      props.Set("source", url.plainstr());
+      std::string target_str(transfer_url);
+      if (target_str.find("file:/") == 0) {
+        // xrootd doesn't like the arc file:/ urls so remove the protocol
+        target_str = target_str.substr(5);
+      }
+      if (target_str == "stdio:/stdout") {
+        target_str = "-";
+      }
+      props.Set("target", target_str);
+      XrdCl::CopyProcess copy;
+      XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+      if (!st.IsOK()) {
+        logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+        reading = false;
+        return DataStatus(DataStatus::ReadStartError, st.errNo, st.GetErrorMessage());
+      }
 
-    XrdCl::CopyProgressHandler cph;
-    st = copy.Run(&cph);
-    buffer->eof_read(true);
-    transfer_cond.signal();
-    if (!st.IsOK()) {
-      logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
-      reading = false;
-      return DataStatus(DataStatus::ReadStartError, st.errNo);
+      XrdCl::PropertyList processConfig;
+      processConfig.Set("jobType", "configuration" );
+      processConfig.Set("parallel", 1 );
+      copy.AddJob(processConfig, 0 );
+      copy.Prepare();
+
+      XrdCl::CopyProgressHandler cph;
+      st = copy.Run(&cph);
+      buffer->eof_read(true);
+      buffer->eof_write(true);
+      transfer_cond.signal();
+      if (!st.IsOK()) {
+        logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
+        reading = false;
+        return DataStatus(DataStatus::ReadStartError, st.errNo, st.GetErrorMessage());
+      }
+      return DataStatus::Success;
     }
-    return DataStatus::Success;
 
-
+    // The copy is handled by ARC using the xrootd posix interface
     {
       CertEnvLocker env(usercfg);
       logger.msg(INFO, "Opening %s", url.plainstr());
@@ -178,7 +189,6 @@ namespace ArcDMCXrootd {
       }
     }
 
-    buffer = &buf;
     transfer_cond.reset();
     // create thread to maintain reading
     if(!CreateThreadFunction(&DataPointXrootd::read_file_start, this)) {
@@ -282,6 +292,52 @@ namespace ArcDMCXrootd {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
     writing = true;
+    // Remember the DataBuffer we got, the separate writing thread will use it
+    buffer = &buf;
+
+    if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
+      // Check that the source did not also have transfer_url set
+      if (buffer->eof_read()) return DataStatus::Success;
+
+      XrdCl::PropertyList props;
+      XrdCl::PropertyList results;
+      props.Set("target", url.plainstr());
+      std::string source_str(transfer_url);
+      if (source_str.find("file:/") == 0) {
+        // xrootd doesn't like the arc file:/ urls so remove the protocol
+        source_str = source_str.substr(5);
+      }
+      if (source_str == "stdio:/stdin") {
+        source_str = "-";
+      }
+      props.Set("source", source_str);
+      XrdCl::CopyProcess copy;
+      XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+      if (!st.IsOK()) {
+        logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+        reading = false;
+        return DataStatus(DataStatus::WriteStartError, st.errNo, st.GetErrorMessage());
+      }
+      buffer = &buf;
+
+      XrdCl::PropertyList processConfig;
+      processConfig.Set("jobType", "configuration" );
+      processConfig.Set("parallel", 1 );
+      copy.AddJob(processConfig, 0 );
+      copy.Prepare();
+
+      XrdCl::CopyProgressHandler cph;
+      st = copy.Run(&cph);
+      buffer->eof_read(true);
+      buffer->eof_write(true);
+      transfer_cond.signal();
+      if (!st.IsOK()) {
+        logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
+        reading = false;
+        return DataStatus(DataStatus::WriteStartError, st.errNo, st.GetErrorMessage());
+      }
+      return DataStatus::Success;
+    }
 
     {
       CertEnvLocker env(usercfg);
@@ -310,8 +366,6 @@ namespace ArcDMCXrootd {
       }
     }
 
-    // Remember the DataBuffer we got, the separate writing thread will use it
-    buffer = &buf;
     transfer_cond.reset();
     // StopWriting will wait for this condition,
     // which will be signalled by the separate writing thread

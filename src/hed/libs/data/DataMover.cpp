@@ -882,59 +882,63 @@ namespace Arc {
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
       std::string cache_lock;
-      if (!cacheable) {
-        destination.AddCheckSumObject(&crc_dest);
-        datares = destination.StartWriting(buffer);
-        if (!datares.Passed()) {
-          logger.msg(ERROR, "Failed to start writing to destination: %s",
-                     destination.str());
-          destination.StopWriting();
-          destination.FinishWriting(true);
-          source_url.StopReading();
-          source_url.FinishReading(true);
-          if (!destination.PreUnregister(replication ||
-                                         destination_meta_initially_stored).Passed())
-            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                       "You may need to unregister it manually: %s", destination.str());
-          if (destination.NextLocation())
-            logger.msg(VERBOSE, "(Re)Trying next destination");
-          res = datares;
-          if(destination.GetFailureReason() != DataStatus::UnknownError)
-            res = destination.GetFailureReason();
-          continue;
+      // If the source takes care of the copy by itself then don't call Start/StopWriting
+      bool done_by_source = buffer.eof_read();
+      if (!done_by_source) {
+        if (!cacheable) {
+          destination.AddCheckSumObject(&crc_dest);
+          datares = destination.StartWriting(buffer);
+          if (!datares.Passed()) {
+            logger.msg(ERROR, "Failed to start writing to destination: %s",
+                       destination.str());
+            destination.StopWriting();
+            destination.FinishWriting(true);
+            source_url.StopReading();
+            source_url.FinishReading(true);
+            if (!destination.PreUnregister(replication ||
+                                           destination_meta_initially_stored).Passed())
+              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                         "You may need to unregister it manually: %s", destination.str());
+            if (destination.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next destination");
+            res = datares;
+            if(destination.GetFailureReason() != DataStatus::UnknownError)
+              res = destination.GetFailureReason();
+            continue;
+          }
         }
-      }
-      else {
-#ifndef WIN32
-        chdest.AddCheckSumObject(&crc_dest);
-        datares = chdest.StartWriting(buffer);
-        if (!datares.Passed()) {
-          // TODO: put callback to clean cache into FileCache
-          logger.msg(ERROR, "Failed to start writing to cache");
-          chdest.StopWriting();
-          source_url.StopReading();
-          source_url.FinishReading(true);
-          // hope there will be more space next time
-          cache.StopAndDelete(canonic_url);
-          if (!destination.PreUnregister(replication ||
-                                         destination_meta_initially_stored).Passed())
-            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                       "You may need to unregister it manually");
-          destination.NextLocation(); /* to decrease retry counter */
-          return DataStatus::CacheError; // repeating won't help here
+        else {
+  #ifndef WIN32
+          chdest.AddCheckSumObject(&crc_dest);
+          datares = chdest.StartWriting(buffer);
+          if (!datares.Passed()) {
+            // TODO: put callback to clean cache into FileCache
+            logger.msg(ERROR, "Failed to start writing to cache");
+            chdest.StopWriting();
+            source_url.StopReading();
+            source_url.FinishReading(true);
+            // hope there will be more space next time
+            cache.StopAndDelete(canonic_url);
+            if (!destination.PreUnregister(replication ||
+                                           destination_meta_initially_stored).Passed())
+              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                         "You may need to unregister it manually");
+            destination.NextLocation(); /* to decrease retry counter */
+            return DataStatus::CacheError; // repeating won't help here
+          }
+          cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
+  #endif
         }
-        cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
-#endif
-      }
-      logger.msg(VERBOSE, "Waiting for buffer");
-      // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
-      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
-        buffer.wait_any();
-        if (cacheable && !cache_lock.empty()) {
-          // touch cache lock file regularly so it is still valid
-          if (utime(cache_lock.c_str(), NULL) == -1) {
-            logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
-                       cache_lock, source_url.str(), StrError(errno));
+        logger.msg(VERBOSE, "Waiting for buffer");
+        // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
+        for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
+          buffer.wait_any();
+          if (cacheable && !cache_lock.empty()) {
+            // touch cache lock file regularly so it is still valid
+            if (utime(cache_lock.c_str(), NULL) == -1) {
+              logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
+                         cache_lock, source_url.str(), StrError(errno));
+            }
           }
         }
       }
@@ -950,7 +954,7 @@ namespace Arc {
       logger.msg(VERBOSE, "Closing write channel");
       // turn off checks during stop_writing() if force is turned on
       destination_url.SetAdditionalChecks(destination_url.GetAdditionalChecks() && !force_registration);
-      if (!destination_url.StopWriting().Passed()) {
+      if (!done_by_source && !destination_url.StopWriting().Passed()) {
         destination_url.FinishWriting(true);
         buffer.error_write(true);
       }
