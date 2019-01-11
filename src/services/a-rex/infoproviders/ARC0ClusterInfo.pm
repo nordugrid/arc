@@ -323,9 +323,12 @@ sub collect($) {
             $q->{nodememory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
             $q->{architecture} = $sconfig->{Platform}
                 if $sconfig->{Platform};
-            push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
-                if $sconfig->{OSName} and $sconfig->{OSVersion};
-            push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            # override instead of merging
+            if ($sconfig->{OSName} and $sconfig->{OSVersion}) {
+                push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
+            } else {
+                push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            }
             $q->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
                 if $sconfig->{Benchmark};
             $q->{maxrunning} = $qinfo->{maxrunning} if defined $qinfo->{maxrunning};
