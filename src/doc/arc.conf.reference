@@ -2440,11 +2440,15 @@
 ## If the NODES are inhomogeneous with respect to this attribute do NOT set it on
 ## cluster level, arrange your nodes into homogeneous groups assigned to a queue
 ## and use queue-level attributes.
-## opsys will be used to fill GLUE2 OSName, OSVersion and OSFamily unless
-## these values are explicitly defined. See below for their usage.
+## If opsys=adotf, will result in Automatic Determination of the Operating System
+## On The Frontend, which should only be used if the frontend has the same 
+## OS as the nodes.
+## The adotf discovered values will be used to fill GLUE2 OSName, OSVersion
+## and OSFamily unless these values are explicitly defined for each queue.
+## See the [queue:queuename] block for their usage.
+## Note: Any custom value other than 'adotf' does NOT affect values in the GLUE2 schema.
 ## multivalued
-## default: undefined
-## TODO: check if adotf is supported for this parameter. If so, use that as default.
+## default: adotf
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 #opsys=CentOS-5.6
@@ -2606,8 +2610,8 @@
 ## attributes. When the frontend's architecture or cputype agrees with the queue
 ## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to
 ## request automatic determination of architecture or nodecpu.
-## For GLUE2, fine tune configuration of OSName, OSVersion, OSFamily
-## is allowed in a dedicated subblock.
+## For GLUE2, fine tune configuration of ExecutionEnvironments' OSName, OSVersion, OSFamily
+## is allowed with dedicated options osname,osversion,osfamily.
 
 ## nodecpu = formatted_string - see description at [infosys/cluster] block
 ## default: $VAR{[infosys/cluster]nodecpu}
@@ -2630,21 +2634,30 @@
 #architecture=adotf
 
 ## opsys = formatted_string - see description at [infosys/cluster] block
+## If osname, osversion are present, the values in opsys are ignored. 
 ## multivalued
 ## default: $VAR{[infosys/cluster]opsys}
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 
 ## osname = string - Only for GLUE2
-## multivalued
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osname=Ubuntu
 
 ## osversion = string - Only for GLUE2
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osversion=12.04
 
 ## osfamily = string - Only for GLUE2
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osfamily=linux
 
