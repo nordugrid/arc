@@ -4,7 +4,45 @@
 ##### Last updated: 2019-01-11
 --------------------------------------------------------
 
-# ARC Middleware
+Suggested structure
+========================================
+
+* Purpose of this document
+  * To point the reader to existing documentation
+  * To describe how to build from sources
+     We should assume who reads could be one or more of:
+     * reading github https://source.coderefinery.org/nordugrid/arc/blob/master/README
+     * has downloaded the tarball
+     * has cloned the git repo
+     * is a user
+     * is a developer
+* Short description of the SW
+* Alternatives to building (repos)
+* Building the software
+  * Getting the software
+  * Build prerequisites 
+  * Build dependencies
+    * Using distros
+      * Build process
+    * Without distros 
+      * Mandatory
+        * Runtime
+          * ldap (maybe not needed after EGIIS phase out?)
+      * Optional
+        * Build
+        * Build & runtime
+        * Runtime
+      * Build process
+* Installation, configuration and testing
+  * just point to relevant pages
+* Contributing
+  * Developer's pages, mainly git wiki
+* Contacts
+  * Support, documentation, mailing lists, contact
+
+
+ARC Middleware
+==============
 
 The Advanced Resource Connector (ARC) middleware, developed by the
 NorduGrid Collaboration (www.nordugrid.org), is an open source software
@@ -13,15 +51,16 @@ processing of large data volumes. ARC is being used to enable national
 and international e-infrastructures since its first release in 2002.
 
 
-
-# Dependencies
+Dependencies
+============
 
 The core part of middleware is written in C/C++. Building the software
 from source or installing a pre-compiled binary requires different
 external packages, furthermore the client and server packages have
 different dependencies too. 
 
-## Mandatory dependencies
+Mandatory dependencies
+----------------------
 
 Build prerequisites:
   o GNU make, autotools (autoconf>=2.56) (automake>=1.8)
@@ -53,7 +92,8 @@ If you are using LDAP based infosys:
   o bdii version 5 or later
   o glue-schema
 
-## Optional dependencies
+Optional dependencies
+----------------------
 
 Build:
   o CppUnit for unit testing
