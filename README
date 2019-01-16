@@ -6,9 +6,9 @@ Last updated: 2019-01-16
 
 Purpose of this Document
 ========================
-
 This document is meant to introduce the reader to the
 software and to point to existing documentation.
+
 
 Table of contents
 =================
@@ -23,15 +23,16 @@ Table of contents
   * Documentation
   * Contact
 
+
 What is the ARC Middleware
 ==========================
-
 The Advanced Resource Connector (ARC) middleware, developed by the
 NorduGrid Collaboration (<httpwww.nordugrid.org>), is an open source software
 solution enabling e-Science computing infrastructures with emphasis on
 processing of large data volumes. 
 ARC is being used to enable national and international e-infrastructures
 since its first release in 2002.
+
 
 License
 =======
@@ -40,16 +41,16 @@ LICENSE file).
 The necessary 3rd party libraries are usually available in standard
 Linux distributions; in rare cases NorduGrid repositories offer them.
 
+
 Getting the software
 ====================
-
 All the information about how to get the software is available at
 
   <http://download.nordugrid.org/>
 
+
 Installation
 ============
-
 If you want to install for a specific distribution, see the list of 
 supported distributions here:
 
@@ -63,16 +64,16 @@ If you want to build and install the software yourself, please read
 
   <TBD>
 
+
 Configuration and Testing
 =========================
-
 See the official online documentation:
 
   <http://www.nordugrid.org/documents/arc6/user/arc6_install_guide.html>
 
+
 Contributing
 ============
-
 The open source development of the ARC middleware is coordinated by
 the NorduGrid Collaboration which is always open to new members.
 Contributions from the community to the software and the documentation
@@ -95,7 +96,6 @@ on the NorduGrid web site: <http://www.nordugrid.org>
 
 Support, Mailing lists
 ==============================================
-
 User support and site installation assistance is provided via 
 several mailing lists, among which the nordugrid-discuss mailing list 
 is a general forum for all kind of issues related to the ARC middleware. 
@@ -105,9 +105,9 @@ The Bugzilla problem tracking system accepts requests for features or
 enhancements, and is the prime medium to track and report problems.
   <https://bugzilla.nordugrid.org> 
 
+
 Documentation
 =============
-
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
 tutorial materials can be fetched from the documentation section of
@@ -116,8 +116,8 @@ tutorial materials can be fetched from the documentation section of
 ARC6 specific documentation is at
   <http://www.nordugrid.org/documents/arc6/>
 
+
 Contact
 =======
-
 Contact information is kept updated on the <http://www.nordugrid.org>
 web site.
