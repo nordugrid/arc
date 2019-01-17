@@ -1,418 +1,123 @@
-ARC Middleware
-==============
+=====================
+ARC MIDDLEWARE README
+=====================
+Last updated: 2019-01-16
+`````````````````````````
 
+Purpose of this Document
+========================
+This document is meant to introduce the reader to the
+software and to point to existing documentation.
+
+
+Table of contents
+=================
+
+  * What is the ARC Middleware
+  * License
+  * Getting the software
+  * Installation
+  * Configuration and Testing
+  * Contributing
+  * Support, Mailing lists
+  * Documentation
+  * Contact
+
+
+What is the ARC Middleware
+==========================
 The Advanced Resource Connector (ARC) middleware, developed by the
-NorduGrid Collaboration (www.nordugrid.org), is an open source software
-solution enabling computing grid infrastructures with emphasis on
-processing of large data volumes. ARC is being used to enable national
-and international e-infrastructures since its first release in 2002.
+NorduGrid Collaboration (<http://www.nordugrid.org>), is an open source software
+solution enabling e-Science computing infrastructures with emphasis on
+processing of large data volumes. 
+ARC is being used to enable national and international e-infrastructures
+since its first release in 2002.
 
 
-
-Dependencies
-============
-
-The core part of middleware is written in C/C++. Building the software
-from source or installing a pre-compiled binary requires different
-external packages, furthermore the client and server packages have
-different dependencies too. Below a list of the explicit requirements
-is shown: 
-
-Mandatory dependencies
-----------------------
-Build:
-  o GNU make, autotools (autoconf>=2.56) (automake>=1.8)
-  o CVS
-  o m4
-  o GNU gettext
-  o C++ compiler and library
-  o libtool
-  o pkg-config
-  o doxygen
-
-Build & runtime:
-  o e2fsprogs
-  o gthread-2.0 version 2.4.7 or later
-  o glibmm-2.4 version 2.4.7 or later
-  o libxml-2.0 version 2.4.0 or later
-  o openssl version 0.9.7a or later
-
-If you are using LDAP based infosys:
-  o open-ldap server
-  o bdii version 5 or later
-  o glue-schema
-
-Optional dependencies
----------------------
-Build:
-  o CppUnit for unit testing
-  o Grid Packaging Tools (GPT) (compute client)
-  o swig version 1.3.28 or later (bindings)
-
-Build & runtime:
-  o open-ldap client (LDAP DMC)
-  o python 2.4 or higher (bindings, APEL publisher by Jura, ACIX)
-  o java sdk 1.4 or later (bindings)
-  o globus-common 4 (compute client)
-  o globus-gssapi-gsi 4 (compute client)
-  o globus-ftp-client 4 (compute client)
-  o globus-ftp-control 4 (compute client)
-  o globus-io  4 (compute client)
-  o globus-openssl (compute client)
-  o xrootd (xrootd DMC)
-  o GFAL 2 (GFAL DMC)
-  o Berkeley DB C++ interface (Delegation)
-  o xmlsec1 1.2.4 or higher (Security)
-  o NSS 3 (credential)
-
-Runtime dependencies:
-  o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
-  o Perl, perl-SOAP-Lite, perl-Crypt-OpenSSL-X509 (nordugridmap)
-  o perl-DBI (Boinc backend)
-  o GNU time (A-rex)
-  o VOMS
-  o Stomppy, m2Crypto (APEL publisher by Jura)
-  o pyOpenSSL, python-twisted-web, python-twisted-core, python-simplejson,
-    (Python 2.4 only) python-hashlib (ACIX)
-
-Please note that depending on operating system distribution to build
-ARC you may need to install development versions of mentioned packages.
-
+License
+=======
+The software code is released under the Apache 2.0 License (see the
+LICENSE file). 
+The necessary 3rd party libraries are usually available in standard
+Linux distributions; in rare cases NorduGrid repositories offer them.
 
 
 Getting the software
 ====================
+All the information about how to get the software is available at
 
-The middleware is free to deploy anywhere by anybody. Binary packages
-are available from Ubuntu, Fedora and EPEL repositories, as well as
-from NorduGrid's own repositories, as described at
-http://download.nordugrid.org 
+  <http://download.nordugrid.org/>
 
-The software code is released under the Apache 2.0 License (see the
-LICENSE file). It is available from the NorduGrid's Subversion
-repository, see http://svn.nordugrid.org for more details.
 
-The necessary 3rd party libraries are usually available in standard
-Linux distributions; in rare cases NorduGrid repositories offer them.
+Installation
+============
+If you want to install for a specific distribution, see the list of 
+supported distributions here:
 
-There are also nightly code snapshots and package builds available at
-http://download.nordugrid.org/nightlies/packages/nordugrid-arc/trunk/ .
+  <http://download.nordugrid.org/repos.html>
+  
+And follow the instructions here:
 
+  <http://www.nordugrid.org/documents/arc6/user/index.html>
 
+If you want to build and install the software yourself, please read
 
-Building & Installation
-=======================
+  <TBD>
 
-The recommended way to install ARC is from repositories.  If you want
-to build it yourself and downloaded the tarball, unpack it and cd into
-the created directory (below, replace 1.0.0 with the desired tag):
 
-  tar -zxvf nordugrid-arc-1.0.0.tar.gz
-  cd nordugrid-arc-1.0.0
+Configuration and Testing
+=========================
+See the official online documentation:
 
-If you obtained the code from the Subversion repository, use the
-'tags/1.0.0' directory.
-  svn co http://svn.nordugrid.org/repos/nordugrid/arc1/tags/1.0.0 nordugrid-arc
-  cd nordugrid-arc
-
-Now configure the obtained code with
-
-  ./autogen.sh
-  ./configure --prefix=PLACE_TO_INSTALL_ARC
-
-Choose the installation prefix wisely and according to the
-requirements of your OS and personal preferences. ARC should function
-properly from any location. By default installation goes into /usr/local if
-you omit the '--prefix' option. If you install into another directory
-than /usr/local you may need to set up an environment variable after
-installation:
-
-  export ARC_LOCATION=PLACE_TO_INSTALL_ARC
-
-On some systems 'autogen.sh' may produce few warnings. Ignore them as 
-long as 'configure' passes without errors. But in case of problems 
-during configure or compilation, collect them and present while 
-reporting problems.
-
-If the previous commands finish without errors, do
-
-  touch src/doxygen/*.pdf
-
-in order to get around an issue with timestamps and then compile and
-install ARC:
-
-  make
-  make install
-
-If you have already installed ARC libraries in the system default
-location such as /usr/lib you may need to use the following
-installation command instead in order to override installed pkgconfig
-files and/or libtool archives which contain -L/usr/lib:
-
-  make LDFLAGS="-L<PLACE_TO_INSTALL_ARC>/lib" install
-
-On some systems you may need to use gmake instead of make.
-
-Depending on the chosen installation location you may need to run the last
-command from a root account. That should install the following components:
-
-sbin/arched - server executable
-etc/init.d - daemon init scripts
-bin/ - user tools and command line clients
-lib/ - common libraries used by clients, server and plugins
-lib/arc/ - plugins implementing Message Chain, Service and Security components
-include/arc/ - C++ headers for application development
-libexec/ - additional modules used by ARC services - currently only A-REX
-share/arc - configuration examples, templates etc
-share/doc/nordugrid-arc-* - documentation
-share/locale - internationalization files - curently very limited support
-share/man - manual pages for various utilities
-
-
-
-X509 Certificates
-=================
-
-All ARC services use HTTPS or GridFTP as transport protocol so they require
-proper setup of an X509 security infrastructure. Minimal requirements are:
-* Host certificate aka public key in PEM format
-* Corresponding private key
-* Certificate of the Certification Authority (CA) which was used to sign the
-  host certificate
-* Certificates of CAs of clients which are going to send requests to services,
-  unless of course clients use the same CA as the server.
-
-More information about X509 certificates and their usage in Grid environment 
-can be found on http://www.nordugrid.org/documents/certificate_howto.html
-and http://www.nordugrid.org/documents/arc-server-install.html#security
-
-For testing purposes you can use pre-generated certificates and
-keys available at:
-
- http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/sec/TestCA
-
-Alternatively, you may choose to use KnowARC Instant CA service available at 
-https://arc-emi.grid.upjs.sk/instantCA/instantCA . It is especially useful when
-testing installations consisting of multiple hosts.
-
-Please remember that it is not safe to use such instant keys in publicly
-accessible installations of ARC. Make sure that even the generated CA
-certificate is removed before making your services available to the
-outside world.
-
-You can put host certificates and private keys anywhere. Common locations
-for servers running from root account are /etc/grid-security/hostcert.pem
-and /etc/grid-security/hostkey.pem, respectively. The content of the
-private key must not be encrypted nor protected by a password since
-a service has no way to ask a password. Therefore it must be properly protected
-by means of file system permissions (some services enforce that the private key
-is only readable by the user running the service).
-
-It is possible to configure the ARC server to accept either a single CA
-certificate or multiple CA certificates located in the specified directory. The
-latter option is recommended. The common location is
-/etc/grid-security/certificates/ . In that case the names of the certificate
-files have to follow the hash values of the certificates. These are obtainable
-by running the command
-
-  openssl x509 -hash -noout -in path_to_certificate
-
-The corresponding file name for the certificate should be <hash_value>.0 . 
-The value for the pre-generated CA certificate is 4457e417. 
-
-For the ARC client tools you may use the pre-generated user certificate and key
-located at the same place above. Generally the key and certificate are not used
-directly but a passphraseless proxy certificate is generated and used instead.
-ARC comes with a proxy generation utility arcproxy - see 'man arcproxy' for
-usage and options. Locations of the credentials are provided to the client
-tools via the client configuration file.
-
-The set of pre-generated keys and certificates also includes a user
-certificate in PKCS12 format which you can import into your browser
-for accessing ARC services capable of producing HTML output.
-
-IMPORTANT: If during the configuration stage you see a message "OpenSSL 
-contains no support for proxy credentials" that means you won't be
-able to use proxy credentials generated by utilities like grid-proxy-init,
-voms-proxy-init or arcproxy. Because of that all user private keys must
-be kept unencrypted. 
-
-
-
-ARC Server Setup & Configuration
-================================
-
-The configuration of the ARC server is specified in a file which by default
-is at /etc/arc.conf. A different location can be specified by the ARC_CONFIG
-environment variable. For configuration details and examples please refer to
-the reference in share/doc/nordugrid-arc/arc.conf.reference or the service 
-manual of the particular services you wish to run.
-
-
-
-The A-REX Service
-=================
-
-ARC comes with an OGSA BES compliant Grid job management service called A-REX.
-To deploy A-REX refer to "ARC Computing Element: System Administrator Guide"
-(NORDUGRID-MANUAL-20) which contains extensive information on set up and
-configuration of A-REX.
-
-
-
-Testing and Using A-REX (clients)
-=================================
-
-Instructions below refer to the Web Service interface; similar tests
-can be done for the original GridFTP-based interface (gsiftp:// protocol).
-
-Now you may use the command line utility 'arcinfo' to obtain a service
-description.  You can do something like
-
- arcinfo -c https://localhost:60000/arex -l
-
-This should produce a description list of the resources A-REX represents. Below
-you can see a truncated example of proper output.
-
----
-Cluster: localhost
- Health State: ok
-
-Location information:
-
-Domain information:
-
-Service information:
- Service Name: MINIMAL Computing Element
- Service Type: org.nordugrid.execution.arex
-
-Endpoint information:
- URL: https://localhost:60000/arex
- Capabilities:
-  executionmanagement.jobexecution
- Technology: webservice
- Interface Name: OGSA-BES
- Supported Profiles:
-  WS-I 1.0
-  HPC-BP
- Implementor: NorduGrid
- Implementation Name: A-REX
- Implementation Version: 0.9
- QualityLevel: development
- Health State: ok
- Serving State: production
- Issuer CA: /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
- Trusted CAs:
-  /C=BE/O=BELNET/OU=BEGrid/CN=BEGrid CA/emailAddress=gridca@belnet.be
-  /C=FR/O=CNRS/CN=CNRS2-Projets
-  /DC=org/DC=ugrid/CN=UGRID CA
-[...]
- Staging: staginginout
- Job Descriptions:
-  ogf:jsdl:1.0
-
-Queue information:
- Mapping Queue: default
- Max Total Jobs: 100
- Max Running Jobs: 10
- Max Waiting Jobs: 99
- Max Pre LRMS Waiting Jobs: 0
- Max User Running Jobs: 5
- Max Slots Per Job: 1
- Doesn't Support Preemption
- Total Jobs: 0
- Running Jobs: 0
- Waiting Jobs: 0
- Suspended Jobs: 0
- Staging Jobs: 0
- Pre-LRMS Waiting Jobs: 0
- Free Slots: 10
- Free Slots With Duration:
-  P68Y1M5DT3H14M7S: 10
- Used Slots: 0
- Requested Slots: 0
-
-Manager information:
- Resource Manager: torque
- Doesn't Support Advance Reservations
- Doesn't Support Bulk Submission
- Total Physical CPUs: 10
- Total Logical CPUs: 10
- Total Slots: 10
- Non-homogeneous Resource
- Working area is nor shared among jobs
- Working Area Total Size: 15
- Working Area Free Size: 4
- Working Area Life Time: P7D
- Cache Area Total Size: 15
- Cache Area Free Size: 4
-
-Execution Environment information:
- Execution environment is a physical machine
- Execution environment does not support inbound connections
- Execution environment does not support outbound connections
----
-
-
-A-REX accepts jobs described in XRSL, which is described in "Extended Resource
-Specification Language: Reference Manual for ARC versions 0.8 and above"
-(NORDUGRID-MANUAL-4). To submit a job to the A-REX service one may use the
-'arcsub' command:
-
-arcsub -c https://localhost:60000/arex -f simple.xrsl
-
-If everything goes fine, somewhere in its output there should be a message
-"Job submitted", and a job identifier is obtained which will be stored locally
-in a client job store. One can then query job state with the 'arcstat' utility:
-
- arcstat <job id>
- State: Running
-
- arcstat <job id>
- State: Finished
-
-For more information on these and other arc* job and data management commands
-please see the man pages of those utilities or "ARC Clients: User Manual for
-ARC 11.05 (client versions 1.0.0) and above" (NORDUGRID-MANUAL-13).
-
+  <http://www.nordugrid.org/documents/arc6/user/arc6_install_guide.html>
 
 
 Contributing
 ============
-
 The open source development of the ARC middleware is coordinated by
 the NorduGrid Collaboration which is always open to new members.
 Contributions from the community to the software and the documentation
 is welcomed. Sources can be downloaded from the software repository
-at download.nordugrid.org or the Subversion code repository at
-svn.nordugrid.org.
+at <http://download.nordugrid.org> or the Coderefinery gitlab repository
+at <https://https://source.coderefinery.org/nordugrid/arc>
 
-The technical coordination group defines outstanding issues that have
-to be addressed in the framework of ARC development. Feature
+The Technical Coordination Group (TCG) defines outstanding issues that 
+have to be addressed in the framework of ARC development. Feature
 requests and enhancement proposals are recorded in the Bugzilla bug
-tracking system at bugzilla.nordugrid.org. For a more detailed
+tracking system at <https://bugzilla.nordugrid.org>. For a more detailed
 description, write access to the code repository and further
-questions, write to the nordugrid-discuss mailing list (see
-www.nordugrid.org for details). Ongoing and completed Grid research
-projects and student assignments related to the middleware are listed
-on the NorduGrid web site as well.
+questions, subscribe and write to the *nordugrid-discuss* mailing list:
+  <https://mail.nordugrid.org/mailman/listinfo>
+
+Ongoing and completed e-Science research projects and student 
+assignments related to the middleware are listed
+on the NorduGrid web site: <http://www.nordugrid.org>
 
 
-
-Support, documentation, mailing lists, contact
+Support, Mailing lists
 ==============================================
+User support and site installation assistance is provided via 
+several mailing lists, among which the nordugrid-discuss mailing list 
+is a general forum for all kind of issues related to the ARC middleware. 
+  <https://mail.nordugrid.org/mailman/listinfo>
 
-User support and site installation assistance is provided via the
-request tracking system available at nordugrid-support@nordugrid.org.
-In addition, the NorduGrid runs several mailing lists, among which the
-nordugrid-discuss mailing list is a general forum for all kind of
-issues related to the ARC middleware. The Bugzilla problem tracking system
-(bugzilla.nordugrid.org) accepts requests for features or enhancements,
-and is the prime medium to track and report problems.
+The Bugzilla problem tracking system accepts requests for features or 
+enhancements, and is the prime medium to track and report problems.
+  <https://bugzilla.nordugrid.org> 
 
+
+Documentation
+=============
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
 tutorial materials can be fetched from the documentation section of
-www.nordugrid.org
+  <http://www.nordugrid.org>
 
-Contact information is kept updated on the www.nordugrid.org web site.
+ARC6 specific documentation is at
+  <http://www.nordugrid.org/documents/arc6/>
+
+
+Contact
+=======
+Contact information is kept updated on the <http://www.nordugrid.org>
+web site.
