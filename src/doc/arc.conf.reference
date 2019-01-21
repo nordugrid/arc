@@ -667,6 +667,7 @@
 
 ## boinc_app_id - ID of the app handled by this CE. Setting this option
 ## makes database queries much faster in large projects with many apps.
+## default: undefined
 #boinc_app_id=1
 ##
 ##
