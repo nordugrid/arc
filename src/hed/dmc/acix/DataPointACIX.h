@@ -26,7 +26,7 @@ namespace ArcDMCACIX {
   class DataPointACIX
     : public Arc::DataPointIndex {
   public:
-    DataPointACIX(const Arc::URL& url, const Arc::UserConfig& usercfg, Arc::PluginArgument* parg);
+    DataPointACIX(const Arc::URL& url, const Arc::UserConfig& usercfg, const std::string& transfer_url, Arc::PluginArgument* parg);
     ~DataPointACIX();
     static Plugin* Instance(Arc::PluginArgument *arg);
     virtual Arc::DataStatus Resolve(bool source);

@@ -1064,8 +1064,8 @@ namespace ArcDMCGridFTP {
     return DataStatus::Success;
   }
 
-  DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg),
+  DataPointGridFTP::DataPointGridFTP(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg),
       cbarg(new CBArg(this)),
       ftp_active(false),
       credential(NULL),
@@ -1298,7 +1298,7 @@ namespace ArcDMCGridFTP {
     }
     factory->makePersistent(module);
     OpenSSLInit();
-    return new DataPointGridFTP(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointGridFTP(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   bool DataPointGridFTP::WriteOutOfOrder() {

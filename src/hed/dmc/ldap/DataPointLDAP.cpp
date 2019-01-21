@@ -17,8 +17,8 @@ namespace ArcDMCLDAP {
 
   Logger DataPointLDAP::logger(Logger::getRootLogger(), "DataPoint.LDAP");
 
-  DataPointLDAP::DataPointLDAP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg) {}
+  DataPointLDAP::DataPointLDAP(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg) {}
 
   DataPointLDAP::~DataPointLDAP() {
     StopReading();
@@ -43,7 +43,7 @@ namespace ArcDMCLDAP {
     // TODO: provide generic solution for holding plugin in memory as long
     //   as plugins/related obbjects are still active.
     factory->makePersistent(module);
-    return new DataPointLDAP(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointLDAP(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointLDAP::Check(bool check_meta) {

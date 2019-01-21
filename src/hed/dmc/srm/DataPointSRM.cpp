@@ -25,8 +25,8 @@ namespace ArcDMCSRM {
 
   Logger DataPointSRM::logger(Logger::getRootLogger(), "DataPoint.SRM");
 
-  DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg),
+  DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg),
       srm_request(NULL),
       r_handle(NULL),
       reading(false),
@@ -43,7 +43,7 @@ namespace ArcDMCSRM {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "srm")
       return NULL;
-    return new DataPointSRM(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointSRM(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointSRM::Check(bool check_meta) {

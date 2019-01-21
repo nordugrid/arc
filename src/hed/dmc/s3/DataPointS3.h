@@ -22,7 +22,7 @@ using namespace Arc;
  */
 class DataPointS3 : public DataPointDirect {
 public:
-  DataPointS3(const URL &url, const UserConfig &usercfg, PluginArgument *parg);
+  DataPointS3(const URL &url, const UserConfig &usercfg, const std::string& transfer_url, PluginArgument *parg);
   virtual ~DataPointS3();
   static Plugin *Instance(PluginArgument *arg);
   virtual DataStatus StartReading(DataBuffer &buffer);

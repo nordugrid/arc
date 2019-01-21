@@ -883,7 +883,7 @@ namespace Arc {
       DataStatus write_failure = DataStatus::Success;
       std::string cache_lock;
       // If the source takes care of the copy by itself then don't call Start/StopWriting
-      bool done_by_source = buffer.eof_read();
+      bool done_by_source = buffer.get_excl();
       if (!done_by_source) {
         if (!cacheable) {
           destination.AddCheckSumObject(&crc_dest);
@@ -908,7 +908,7 @@ namespace Arc {
           }
         }
         else {
-  #ifndef WIN32
+#ifndef WIN32
           chdest.AddCheckSumObject(&crc_dest);
           datares = chdest.StartWriting(buffer);
           if (!datares.Passed()) {
@@ -927,18 +927,18 @@ namespace Arc {
             return DataStatus::CacheError; // repeating won't help here
           }
           cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
-  #endif
+#endif
         }
-        logger.msg(VERBOSE, "Waiting for buffer");
-        // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
-        for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
-          buffer.wait_any();
-          if (cacheable && !cache_lock.empty()) {
-            // touch cache lock file regularly so it is still valid
-            if (utime(cache_lock.c_str(), NULL) == -1) {
-              logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
-                         cache_lock, source_url.str(), StrError(errno));
-            }
+      }
+      logger.msg(VERBOSE, "Waiting for buffer");
+      // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
+      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
+        buffer.wait_any();
+        if (cacheable && !cache_lock.empty()) {
+          // touch cache lock file regularly so it is still valid
+          if (utime(cache_lock.c_str(), NULL) == -1) {
+            logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
+                       cache_lock, source_url.str(), StrError(errno));
           }
         }
       }

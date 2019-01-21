@@ -48,6 +48,71 @@ namespace ArcDMCXrootd {
     return new DataPointXrootd(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
+  class CopyFileArgs {
+   public:
+     CopyFileArgs(DataPointXrootd *it, const std::string& source, const std::string& dest)
+       :it(it), source(source), dest(dest) {}
+     DataPointXrootd *it;
+     std::string source;
+     std::string dest;
+  };
+
+  void DataPointXrootd::copy_file_start(void* arg) {
+    CopyFileArgs *args = (CopyFileArgs*)arg;
+    args->it->copy_file(args->source, args->dest);
+    delete args;
+  }
+
+  void DataPointXrootd::copy_file(std::string source, std::string dest) {
+    XrdCl::PropertyList props;
+    XrdCl::PropertyList results;
+
+    // Check for special source/dest to handle
+    if (source.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      source = source.substr(5);
+    }
+    if (source == "stdio:/stdin") {
+      source = "-";
+    }
+
+    if (dest.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      dest = dest.substr(5);
+    }
+    if (dest == "stdio:/stdout") {
+      dest = "-";
+    }
+    props.Set("source", source);
+    props.Set("target", dest);
+    XrdCl::CopyProcess copy;
+    XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+      buffer->error_read(true);
+      transfer_cond.signal();
+      return;
+    }
+
+    XrdCl::PropertyList processConfig;
+    processConfig.Set("jobType", "configuration" );
+    processConfig.Set("parallel", 1 );
+    copy.AddJob(processConfig, 0 );
+    copy.Prepare();
+
+    XrdCl::CopyProgressHandler cph;
+    st = copy.Run(&cph);
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to copy %s: %s", source, st.GetErrorMessage());
+      dest.find("root:/") == 0 ? buffer->error_write(true) : buffer->error_read(true);
+      transfer_cond.signal();
+      return;
+    }
+    buffer->eof_read(true);
+    buffer->eof_write(true);
+    transfer_cond.signal();
+  }
+
   void DataPointXrootd::read_file_start(void* arg) {
     ((DataPointXrootd*)arg)->read_file();
   }
@@ -123,41 +188,13 @@ namespace ArcDMCXrootd {
     buffer = &buf;
 
     if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
-      XrdCl::PropertyList props;
-      XrdCl::PropertyList results;
-      props.Set("source", url.plainstr());
-      std::string target_str(transfer_url);
-      if (target_str.find("file:/") == 0) {
-        // xrootd doesn't like the arc file:/ urls so remove the protocol
-        target_str = target_str.substr(5);
-      }
-      if (target_str == "stdio:/stdout") {
-        target_str = "-";
-      }
-      props.Set("target", target_str);
-      XrdCl::CopyProcess copy;
-      XrdCl::XRootDStatus st = copy.AddJob(props, &results);
-      if (!st.IsOK()) {
-        logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+      // Claim DataBuffer for exclusive use
+      buffer->set_excl(true);
+      CopyFileArgs *args = new CopyFileArgs(this, url.plainstr(), transfer_url);
+      if (!CreateThreadFunction(&DataPointXrootd::copy_file_start, args)) {
+        delete args;
         reading = false;
-        return DataStatus(DataStatus::ReadStartError, st.errNo, st.GetErrorMessage());
-      }
-
-      XrdCl::PropertyList processConfig;
-      processConfig.Set("jobType", "configuration" );
-      processConfig.Set("parallel", 1 );
-      copy.AddJob(processConfig, 0 );
-      copy.Prepare();
-
-      XrdCl::CopyProgressHandler cph;
-      st = copy.Run(&cph);
-      buffer->eof_read(true);
-      buffer->eof_write(true);
-      transfer_cond.signal();
-      if (!st.IsOK()) {
-        logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
-        reading = false;
-        return DataStatus(DataStatus::ReadStartError, st.errNo, st.GetErrorMessage());
+        return DataStatus::ReadStartError;
       }
       return DataStatus::Success;
     }
@@ -194,7 +231,6 @@ namespace ArcDMCXrootd {
     if(!CreateThreadFunction(&DataPointXrootd::read_file_start, this)) {
       XrdPosixXrootd::Close(fd);
       reading = false;
-      buffer = NULL;
       return DataStatus::ReadStartError;
     }
 
@@ -296,45 +332,13 @@ namespace ArcDMCXrootd {
     buffer = &buf;
 
     if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
-      // Check that the source did not also have transfer_url set
-      if (buffer->eof_read()) return DataStatus::Success;
-
-      XrdCl::PropertyList props;
-      XrdCl::PropertyList results;
-      props.Set("target", url.plainstr());
-      std::string source_str(transfer_url);
-      if (source_str.find("file:/") == 0) {
-        // xrootd doesn't like the arc file:/ urls so remove the protocol
-        source_str = source_str.substr(5);
-      }
-      if (source_str == "stdio:/stdin") {
-        source_str = "-";
-      }
-      props.Set("source", source_str);
-      XrdCl::CopyProcess copy;
-      XrdCl::XRootDStatus st = copy.AddJob(props, &results);
-      if (!st.IsOK()) {
-        logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
-        reading = false;
-        return DataStatus(DataStatus::WriteStartError, st.errNo, st.GetErrorMessage());
-      }
-      buffer = &buf;
-
-      XrdCl::PropertyList processConfig;
-      processConfig.Set("jobType", "configuration" );
-      processConfig.Set("parallel", 1 );
-      copy.AddJob(processConfig, 0 );
-      copy.Prepare();
-
-      XrdCl::CopyProgressHandler cph;
-      st = copy.Run(&cph);
-      buffer->eof_read(true);
-      buffer->eof_write(true);
-      transfer_cond.signal();
-      if (!st.IsOK()) {
-        logger.msg(ERROR, "Failed to copy %s: %s", url.plainstr(), st.GetErrorMessage());
-        reading = false;
-        return DataStatus(DataStatus::WriteStartError, st.errNo, st.GetErrorMessage());
+      // Claim DataBuffer for exclusive use
+      buffer->set_excl(true);
+      CopyFileArgs *args = new CopyFileArgs(this, transfer_url, url.plainstr());
+      if (!CreateThreadFunction(&DataPointXrootd::copy_file_start, args)) {
+        delete args;
+        writing = false;
+        return DataStatus::WriteStartError;
       }
       return DataStatus::Success;
     }

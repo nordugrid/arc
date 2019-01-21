@@ -26,7 +26,7 @@ namespace ArcDMCLDAP {
   class DataPointLDAP
     : public DataPointDirect {
   public:
-    DataPointLDAP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointLDAP(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
     virtual ~DataPointLDAP();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

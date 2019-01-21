@@ -52,8 +52,8 @@ namespace ArcDMCACIX {
     }
   }
 
-  DataPointACIX::DataPointACIX(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointIndex(url, usercfg, parg), original_location_resolved(false) {}
+  DataPointACIX::DataPointACIX(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointIndex(url, usercfg, transfer_url, parg), original_location_resolved(false) {}
 
   DataPointACIX::~DataPointACIX() {}
 
@@ -67,7 +67,7 @@ namespace ArcDMCACIX {
     // Change URL protocol to https and reconstruct URL so HTTP options are parsed
     std::string acix_url(((const URL&)(*dmcarg)).fullstr());
     acix_url.replace(0, 4, "https");
-    return new DataPointACIX(URL(acix_url), *dmcarg, arg);
+    return new DataPointACIX(URL(acix_url), *dmcarg, *dmcarg, arg);
   }
 
   DataStatus DataPointACIX::Check(bool check_meta) {

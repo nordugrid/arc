@@ -70,6 +70,8 @@ namespace Arc {
     };
     /// checksums to be computed in this buffer
     std::list<checksum_desc> checksums;
+    /// Flag for DataPoint to claim buffer for exclusive use
+    bool excl;
 
   public:
     /// This object controls transfer speed
@@ -296,6 +298,10 @@ namespace Arc {
      * If not initialized then this number represents size of default buffer.
      */
     unsigned int buffer_size() const;
+    /// Informs that one DataPoint has taken the buffer for exclusive use
+    void set_excl(bool v);
+    /// Returns true if one DataPoint has taken the buffer for exclusive use
+    bool get_excl() const;
   };
 
 } // namespace Arc

@@ -23,7 +23,7 @@ using namespace Arc;
   class DataPointHTTP
     : public DataPointDirect {
   public:
-    DataPointHTTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointHTTP(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
     virtual ~DataPointHTTP();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool SetURL(const URL& url);

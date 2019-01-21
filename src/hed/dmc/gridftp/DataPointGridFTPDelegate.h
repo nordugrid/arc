@@ -67,7 +67,7 @@ namespace ArcDMCGridFTP {
     DataStatus EndCommand(Arc::CountedPointer<Arc::Run>& run, DataStatus::DataStatusType errCode, char tag);
 
   public:
-    DataPointGridFTPDelegate(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
+    DataPointGridFTPDelegate(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
     virtual ~DataPointGridFTPDelegate();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool SetURL(const URL& url);

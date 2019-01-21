@@ -9,8 +9,8 @@ namespace ArcDMCMock {
 
   using namespace Arc;
 
-  DataPointMock::DataPointMock(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg) {}
+  DataPointMock::DataPointMock(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, transfer_url, parg) {}
 
   DataPointMock::~DataPointMock() {}
 
@@ -73,7 +73,7 @@ namespace ArcDMCMock {
     if (((const URL &)(*dmcarg)).Protocol() != "mock" &&
         ((const URL &)(*dmcarg)).Protocol() != "fail")
       return NULL;
-    return new DataPointMock(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointMock(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
 } // namespace ArcDMCMock

@@ -75,8 +75,8 @@ namespace ArcDMCGFAL {
 
   Logger DataPointGFAL::logger(Logger::getRootLogger(), "DataPoint.GFAL");
 
-  DataPointGFAL::DataPointGFAL(const URL& u, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(u, usercfg, parg), fd(-1), reading(false), writing(false) {
+  DataPointGFAL::DataPointGFAL(const URL& u, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointDirect(u, usercfg, transfer_url, parg), fd(-1), reading(false), writing(false) {
       LogLevel loglevel = logger.getThreshold();
       if (loglevel == DEBUG)
         gfal2_log_set_level (G_LOG_LEVEL_DEBUG);
@@ -102,7 +102,7 @@ namespace ArcDMCGFAL {
         // gfal protocol is used in 3rd party transfer to load this DMC
         ((const URL &)(*dmcarg)).Protocol() != "gfal")
       return NULL;
-    return new DataPointGFAL(*dmcarg, *dmcarg, dmcarg);
+    return new DataPointGFAL(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointGFAL::Resolve(bool source) {

@@ -325,9 +325,8 @@ int main(int argc,char* argv[]) {
     _exit(-1);
     //return -1;
   };
-  bool eof_reached = buffer.eof_read();
-  // Check if source did the copy itself
-  if (!eof_reached) {
+  // Check if source is doing the copy itself
+  if (!buffer.get_excl()) {
     DataStatus dest_st = dest->StartWriting(buffer);
     if(!dest_st) {
       ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
@@ -342,21 +341,23 @@ int main(int argc,char* argv[]) {
       _exit(-1);
       //return -1;
     };
-    // While transfer is running in another threads
-    // here we periodically report status to parent
-    for(;!buffer.error() && !delivery_shutdown;) {
-      if(buffer.eof_read() && buffer.eof_write()) {
-        eof_reached = true; break;
-      };
-      ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
-                   DataStaging::DTRErrorStatus::NONE_ERROR,
-                   DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
-                   "",
-                   buffer.speed.transferred_size(),
-                   GetFileSize(*source,*dest),0);
-      buffer.wait_any();
-    };
   }
+  // While transfer is running in another threads
+  // here we periodically report status to parent
+  bool eof_reached = false;
+  for(;!buffer.error() && !delivery_shutdown;) {
+    if(buffer.eof_read() && buffer.eof_write()) {
+      eof_reached = true; break;
+    };
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+                 DataStaging::DTRErrorStatus::NONE_ERROR,
+                 DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+                 "",
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest),0);
+    buffer.wait_any();
+  };
+
   if (delivery_shutdown) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::INTERNAL_PROCESS_ERROR,
@@ -376,7 +377,10 @@ int main(int argc,char* argv[]) {
 
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
-  DataStatus dest_st = dest->StopWriting();
+  DataStatus dest_st = DataStatus::Success;
+  if (!buffer.get_excl()) {
+    dest_st = dest->StopWriting();
+  }
   source_st = source->StopReading();
   bool reported = false;
 

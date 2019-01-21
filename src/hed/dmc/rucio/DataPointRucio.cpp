@@ -84,8 +84,8 @@ namespace ArcDMCRucio {
     }
   }
 
-  DataPointRucio::DataPointRucio(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointIndex(url, usercfg, parg) {
+  DataPointRucio::DataPointRucio(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+    : DataPointIndex(url, usercfg, transfer_url, parg) {
     // Get RUCIO_ACCOUNT, try in order:
     // - rucioaccount URL option
     // - RUCIO_ACCOUNT environment variable
@@ -122,7 +122,7 @@ namespace ArcDMCRucio {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "rucio")
       return NULL;
-    return new DataPointRucio(*dmcarg, *dmcarg, arg);
+    return new DataPointRucio(*dmcarg, *dmcarg, *dmcarg, arg);
   }
 
   DataStatus DataPointRucio::Check(bool check_meta) {

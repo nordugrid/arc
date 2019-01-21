@@ -41,8 +41,10 @@ namespace ArcDMCXrootd {
     /// thread functions for async read/write
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);
+    static void copy_file_start(void* arg);
     void read_file();
     void write_file();
+    void copy_file(std::string source, std::string dest);
 
     /// must be called everytime a new XrdClient is created
     void set_log_level();

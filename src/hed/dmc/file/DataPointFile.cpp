@@ -128,7 +128,9 @@ namespace ArcDMCFile {
       unsigned int l;
       if (!buffer->for_read(h, l, true)) {
         /* failed to get buffer - must be error or request to exit */
-        buffer->error_read(true);
+        if (!buffer->eof_write()) {
+          buffer->error_read(true);
+        }
         break;
       }
       if (buffer->error()) {
