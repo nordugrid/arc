@@ -1463,11 +1463,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}
 %else
 %{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%endif
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
+%endif
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
@@ -1477,6 +1477,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
 %else
 %{python3_sitearch}/%{pkgdir}
 %endif
