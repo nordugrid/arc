@@ -111,6 +111,8 @@ my $share_options = {
     totalcpus => '*',
     defaultmemory => '*',
     AdvertisedVO =>  [ '*' ],
+    maxcputime => '*',
+    maxwalltime => '*'
 };
 my $gmuser_options = {
     controldir => '',
