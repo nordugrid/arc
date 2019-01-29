@@ -654,6 +654,26 @@ sub addprefix {
    return @prefixedset;	
 }
 
+# sub to pick a value in order: first value preferred to others
+# can have as many parameters as one wants.
+# Here we use PERL eager evaluation of parameters, undefined parameters
+# are passed as blank values with no exception thrown (weird)
+sub prioritizedvalues {
+   my @values = @_;
+
+   print "input array is: @values \n";
+
+   while (@values) {
+      my $current = shift @values;
+      return $current if $current ne '';
+  }
+
+   # just in case all the above fails, log and return GLUE2 default
+   # warning
+   $log->warning("Badly defined parameters in call to prioritizedvalues, returning GLUE2 default UNDEFINEDVALUE");
+   return 'UNDEFINEDVALUE';
+}
+
 # TODO: add VOs information
 
 
@@ -2888,12 +2908,12 @@ sub collect($) {
         $csha->{MappingQueue} = $qname if $qname;
 
         # use limits from LRMS
-        $csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
+        $csha->{MaxCPUTime} = prioritizedvalues($qinfo->{maxcputime},'UNDEFINEDVALUE');
         # TODO: implement in backends
         $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
         $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
         $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
-        $csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+        $csha->{MaxWallTime} =  prioritizedvalues($qinfo->{maxwalltime},'UNDEFINEDVALUE');
         # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
         #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
         $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
@@ -3557,4 +3577,5 @@ sub collect($) {
 }
 
 1;
+
 
