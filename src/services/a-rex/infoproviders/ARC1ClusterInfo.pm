@@ -661,17 +661,15 @@ sub addprefix {
 sub prioritizedvalues {
    my @values = @_;
 
-   print "input array is: @values \n";
-
    while (@values) {
       my $current = shift @values;
-      return $current if $current ne '';
+      return $current if (($current ne '') or ((scalar @values) == 1));
   }
 
    # just in case all the above fails, log and return GLUE2 default
    # warning
-   $log->warning("Badly defined parameters in call to prioritizedvalues, returning GLUE2 default UNDEFINEDVALUE");
-   return 'UNDEFINEDVALUE';
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
+   return '';
 }
 
 # TODO: add VOs information
@@ -2908,12 +2906,12 @@ sub collect($) {
         $csha->{MappingQueue} = $qname if $qname;
 
         # use limits from LRMS
-        $csha->{MaxCPUTime} = prioritizedvalues($qinfo->{maxcputime},'UNDEFINEDVALUE');
+        $csha->{MaxCPUTime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
         # TODO: implement in backends
         $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
         $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
         $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
-        $csha->{MaxWallTime} =  prioritizedvalues($qinfo->{maxwalltime},'UNDEFINEDVALUE');
+        $csha->{MaxWallTime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
         # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
         #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
         $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
