@@ -656,18 +656,15 @@ sub addprefix {
 
 # sub to pick a value in order: first value preferred to others
 # can have as many parameters as one wants.
-# Here we use PERL eager evaluation of parameters, undefined parameters
-# are passed as blank values with no exception thrown (weird)
 sub prioritizedvalues {
    my @values = @_;
 
    while (@values) {
       my $current = shift @values;
-      return $current if (($current ne '') or ((scalar @values) == 1));
+      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
   }
 
-   # just in case all the above fails, log and return GLUE2 default
-   # warning
+   # just in case all the above fails, log and return empty string
    $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
    return '';
 }
