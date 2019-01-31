@@ -2518,6 +2518,25 @@
 #cpudistribution=1cpu:3,2cpu:4,4cpu:1
 ##
 ##
+
+## maxcputime = number - This is the maximum CPU time specified in seconds
+## that the LRMS can allocate for the job. The default if not defined 
+## is that infoproviders get this value automatically from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#maxcputime=300000
+
+## maxwalltime = number - This is the maximum Wall time specified in 
+## seconds that the LRMS can allocate for the job. The default 
+## if not defined is that infoproviders get this value automatically 
+## from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#maxwalltime=600000
 ### end of the [infosys/cluster] block #####################
 
 
@@ -2727,7 +2746,15 @@
 ## CHANGE: documented in [queue] as described in [arex]
 ##
 ##
-## TODO: add Florido's new variables both to the queue and cluster block (maxcputime and maxwalltime)
+## maxcputime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#maxcputime=300000
+
+## maxwalltime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#maxwalltime=600000
 ### end of the [queue:name] blocks ########################
 
 
