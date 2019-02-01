@@ -404,7 +404,7 @@ Connector (ARC).
 This package contains the ARC gridftp server which has a plugin framework.
 Current plugins include:
 
-  fileplugin : Standard gridftp server based on Globus globus-ftp-control
+  filedirplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
 %package datadelivery-service
@@ -1164,7 +1164,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
-%{_libdir}/%{pkgdir}/fileplugin.*
+%{_libdir}/%{pkgdir}/filedirplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
