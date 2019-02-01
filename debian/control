@@ -76,7 +76,7 @@ Description: ARC GridFTP server
  .
  Current plugins include:
  .
-   fileplugin : Standard GridFTP server based on Globus globus-ftp-control
+   filedirplugin : Standard GridFTP server based on Globus globus-ftp-control
    jobsplugin : Classical ARC job submission interface
 
 Package: nordugrid-arc-datadelivery-service

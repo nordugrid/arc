@@ -1745,7 +1745,7 @@
 ## This block enables and configures the gridftp server. The usage of the gridftp is
 ## twofold in connection with ARC: 1) The server together with its custom jobplugin
 ## can be used as a job submission and management interface for an ARC CE.
-## 2) The server with the fileplugin can be used as a very simplistic storage element.
+## 2) The server with the filedirplugin can be used as a very simplistic storage element.
 ## This block configures the common server capabilities. To make the gridftp service functional,
 ## you need to enable at least one of the plugin subblocks as well.
 #[gridftpd]
@@ -1907,9 +1907,9 @@
 
 
 ### The [gridftpd/filedir] block #########################################
-## The fileplugin module of the gridftp server can be used to set up a
+## The filedirplugin module of the gridftp server can be used to set up a
 ## simplistic grid storage element (SE). This subblock enables and configures
-## such an SE by "exporting" a directory using the gridftpd's fileplugin.
+## such an SE by "exporting" a directory using the gridftpd's filedirplugin.
 ## Comment out this block if you don't need a SE.
 #[gridftpd/filedir]
 
