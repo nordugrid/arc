@@ -29,7 +29,7 @@ sub prioritizedvalues {
 
    # just in case all the above fails, return empty string
    $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
-   return '';
+   return undef;
 }
 
 ############################################################################
@@ -350,11 +350,11 @@ sub collect($) {
             $q->{maxqueuable}= $qinfo->{maxqueuable}if defined $qinfo->{maxqueuable};
             $q->{maxuserrun} = $qinfo->{maxuserrun} if defined $qinfo->{maxuserrun};
             $q->{maxcputime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
-            $q->{maxcputime} = defined $q->{maxcputime} ? int $q->{maxcputime}/60 : '';
+            $q->{maxcputime} = defined $q->{maxcputime} ? int $q->{maxcputime}/60 : undef;
             $q->{mincputime} = int $qinfo->{mincputime}/60 if defined $qinfo->{mincputime};
             $q->{defaultcputime} = int $qinfo->{defaultcput}/60 if defined $qinfo->{defaultcput};
             $q->{maxwalltime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
-            $q->{maxwalltime} = defined $q->{maxwalltime} ? int $q->{maxwalltime}/60 : '';
+            $q->{maxwalltime} = defined $q->{maxwalltime} ? int $q->{maxwalltime}/60 : undef;
             $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
