@@ -12,6 +12,7 @@ import socket
 import dns.resolver
 import dns.update
 import dns.query
+import dns.tsig
 import dns.tsigkeyring
 from dns.exception import DNSException
 
@@ -422,7 +423,8 @@ def get_archery_endpoints(archery, nameserver=None, resolver=None):
 #
 # HANDLE DDNS UPDATE
 #
-def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
+def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300,
+                keyalgorithm=dns.tsig.default_algorithm):
     """Incrementally updates ARCHERY records in DNS"""
     keyring = dns.tsigkeyring.from_text(keyring_dict)
     main_selector = '_archery.{}.'.format(domain)
@@ -455,7 +457,8 @@ def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
     add_rr = new_endpoints_set - old_endpoints_set
 
     try:
-        update = dns.update.Update(domain, keyring=keyring)
+        update = dns.update.Update(domain, keyring=keyring,
+                                   keyalgorithm=keyalgorithm)
         for r in remove_rr:
             logger.debug('Going to REMOVE record by means of DDNS update: %s', r)
             rr = r.split(' ', 1)
@@ -484,6 +487,16 @@ log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
 
+# Enumerated arguments
+_tsig_algorithms = {
+    'HMAC-MD5': dns.tsig.HMAC_MD5,
+    'HMAC-SHA1': dns.tsig.HMAC_SHA1,
+    'HMAC-SHA224': dns.tsig.HMAC_SHA224,
+    'HMAC-SHA256': dns.tsig.HMAC_SHA256,
+    'HMAC-SHA384': dns.tsig.HMAC_SHA384,
+    'HMAC-SHA512': dns.tsig.HMAC_SHA512,
+}
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
 parser.add_argument('-d', '--debug', action='store', default='INFO',
@@ -503,6 +516,9 @@ parser.add_argument('-u', '--ddns-update', action='store_true',
 parser.add_argument('--domain', help='domain name of the ARCHERY endpoint to use (required for DDNS update)')
 parser.add_argument('--ddns-master-ip', help='master NS IP address to contact (required for DDNS update)')
 parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS update)')
+parser.add_argument('--ddns-tsig-algorithm',
+                    help='Cryptographic algorithm for TSIG',
+                    choices=list(_tsig_algorithms.keys()), default='HMAC-MD5')
 cmd_args = parser.parse_args()
 
 # Set requested logging level
@@ -583,7 +599,8 @@ for ce in ce_list:
 if cmd_args.ddns_update:
     logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
                 nameserver, list(keyring_dict.keys())[0])
-    ddns_update(domain, nameserver, keyring_dict, endpoints)
+    ddns_update(domain, nameserver, keyring_dict, endpoints,
+                keyalgorithm=_tsig_algorithms[cmd_args.ddns_tsig_algorithm])
 
 # Output information if requested
 if cmd_args.output:
