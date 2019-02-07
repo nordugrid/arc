@@ -1,4 +1,5 @@
 This branch is for the work planned and described in : https://source.coderefinery.org/nordugrid/arc/snippets/19
+The meeting notes related to this can be found here: http://indico.lucas.lu.se/event/1126/material/minutes/minutes.html (and previous meetings)
 
 As several developers are expected to work on this, a central development branch has been created. 
 You can commit by direct push. 
@@ -6,3 +7,5 @@ You can commit by direct push.
 Please keep the branch up to date with master following the usual procedures for a development branch
 
 Once the work is done the branch will be merged back into master, and also into the "next" branch. 
+
+This file should be removed before merging into master. 
