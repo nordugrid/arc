@@ -2361,7 +2361,7 @@
 
 ## alias = text - An arbitrary alias name of the cluster, optional.
 ## default: undefined
-#cluster_alias=Big Blue Cluster in Nowhere
+#alias=Big Blue Cluster in Nowhere
 
 ## hostname = fqdn - Set the FQDN of the frontend.
 ## default: $VAR{[common]hostname}
