@@ -12,7 +12,7 @@ fork_packages_el6:
   stage: build
   image: maikenp/arc-build-centos6
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -46,7 +46,7 @@ fork_packages_el7:
   stage: build
   image: maikenp/arc-build-centos7
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -80,7 +80,7 @@ fork_packages_deb9:
   stage: build
   image: maikenp/arc-build-debian9
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - apt-get update -y
     - echo "6.0.0" > VERSION
     - ./autogen.sh
@@ -118,7 +118,7 @@ packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - apt-get update -y
     - ./autogen.sh
     - ./configure
@@ -153,7 +153,7 @@ packages_el6:
   stage: packages
   image: maikenp/arc-build-centos6
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -184,7 +184,7 @@ packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
   script:
-    - echo "${CI_COMMIT_SHA:0:8}_$(date +%Y%m%dT%H%M%S)_master" > VERSION	
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
