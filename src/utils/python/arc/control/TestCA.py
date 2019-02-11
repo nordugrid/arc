@@ -143,7 +143,7 @@ class TestCAControl(ComponentControl):
             try:
                 pw = pwd.getpwnam(args.install_user)
             except KeyError:
-                self.logger.error('Specified user %s is not exist.', args.install_user)
+                self.logger.error('Specified user %s does not exist.', args.install_user)
                 self._remove_certs_and_exit(usercertfiles)
             # get homedir
             homedir = pw.pw_dir
