@@ -215,14 +215,21 @@ deploy_staging_el6:
   stage: deploy_and_test
   image: docker:stable
   script:
+   - cat /dockerrun.sh
+    - ls -lhrt /arc-testfiles
+    - ls -lhrt /arc-logs
     - source /dockerrun.sh
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - /arc/arc-logs/
-     - /arc/arc-tests/
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - packages_el6
   tags:
@@ -237,14 +244,21 @@ deploy_staging_el7:
   stage: deploy_and_test
   image: docker:stable
   script:
+    - cat /dockerrun.sh
+    - ls -lhrt /arc-testfiles
+    - ls -lhrt /arc-logs
     - source /dockerrun.sh
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
   environment:
     name: staging
   artifacts:
     when: always
     paths:
-     - /arc/arc-logs/
-     - /arc/arc-tests/
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - packages_el7
   tags:
