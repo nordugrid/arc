@@ -80,7 +80,6 @@ fork_packages_deb9:
   stage: build
   image: maikenp/arc-build-debian9
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
     - apt-get update -y
     - echo "6.0.0" > VERSION
     - ./autogen.sh
@@ -118,7 +117,7 @@ packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - echo "6.0.0" > VERSION
     - apt-get update -y
     - ./autogen.sh
     - ./configure
