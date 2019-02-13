@@ -215,7 +215,7 @@ deploy_staging_el6:
   stage: deploy_and_test
   image: docker:stable
   script:
-   - cat /dockerrun.sh
+    - cat /dockerrun.sh
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
     - source /dockerrun.sh
