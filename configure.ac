@@ -197,7 +197,6 @@ enables_data_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
 enables_wsrf_client=yes
-enables_unicore_client=no
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -1020,7 +1019,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
         else
-          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc)
         fi
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" = "xyes"; then
@@ -2166,11 +2165,6 @@ AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable buil
 AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
 AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
 
-AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins (not affected by --enable-all).]),
-  [enables_unicore_client=$enableval],[])
-AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
-AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
-
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
@@ -2308,14 +2302,10 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
                  src/hed/acc/ARC0/Makefile
-                 src/hed/acc/ARC1/Makefile
-                 src/hed/acc/ARC1/test/Makefile
                  src/hed/acc/ARCREST/Makefile
                  src/hed/acc/EMIES/Makefile
                  src/hed/acc/EMIES/arcemiestest.1
                  src/hed/acc/EMIES/schema/Makefile
-                 src/hed/acc/CREAM/Makefile
-                 src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
@@ -2638,7 +2628,6 @@ JURA client:        ${enables_jura_client}
 SAML VOMS client:   ${enables_saml_client}
 WSRF client:        ${enables_wsrf_client}
 
-UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}

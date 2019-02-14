@@ -10,12 +10,6 @@ else
 PYTHONBROKER =
 endif
 
-if UNICORE_ENABLED
-UNICORE = UNICORE
-else
-UNICORE =
-endif
-
 if EMIES_ENABLED
 EMIES = EMIES
 else
@@ -28,5 +22,5 @@ else
 ARCREST =
 endif
 
-SUBDIRS = TEST $(ARC0) ARC1 $(ARCREST) $(EMIES) CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser SER ldap
-DIST_SUBDIRS = TEST ARC0 ARC1 ARCREST EMIES CREAM Broker PythonBroker UNICORE JobDescriptionParser SER ldap
+SUBDIRS = TEST $(ARC0) $(ARCREST) $(EMIES) Broker $(PYTHONBROKER) JobDescriptionParser SER ldap
+DIST_SUBDIRS = TEST ARC0 ARCREST EMIES Broker PythonBroker JobDescriptionParser SER ldap

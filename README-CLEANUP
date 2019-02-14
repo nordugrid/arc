@@ -56,15 +56,15 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - acc/ldap, remove GLUE1 and BDII stuff, Martin (Andrii backup)
    
-   - acc/UNICORE should be removed, Andrii
+   - [DONE] acc/UNICORE should be removed, Andrii
    
-   -acc/SER remove EMIR, Andrii
+   - acc/SER remove EMIR, Andrii
    
-   -acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
+   - acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
    
-   - acc/CREAM remove, Andrii
+   - [DONE] acc/CREAM remove, Andrii
    
-   - acc/ARC1 remove, Andrii
+   - [DONE] acc/ARC1 remove, Andrii
    
    - acc/ARC0 RENAME to gridftpjob, Andrii
    
