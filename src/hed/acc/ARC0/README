@@ -1,10 +1,2 @@
-Arc Client Component (ACC) plugins for supporting ARC classic (ARC0)
+Arc Client Component (ACC) plugins for supporting the gridftpjob submission and control interface
 
-Implements the following specialized classes:
-
-o JobControllerPluginARC0
-o SubmitterARC0
-
-Additional support classes:
-
-o FTPControl
