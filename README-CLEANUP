@@ -8,4 +8,48 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
   * EMIR support
   * EGIIS sever-side (aka infosys registrations to EGIS) BUT: keep EGIS in the client
   * support for JDL, JSDL,
-  * WS-monitor
+  
+  
+  
+  Code/functionality/feature                    assigned person(s)
+  -----------------------------------------------------------------
+  
+   -Windows packaging, build (e.g arc.nsi, mingw-nordugrid-arc.spec.in)  Mattias
+   
+   -NSIS    Anders (Mattias as backup)  
+   
+   -Makefile.am, Configure.ac: clean off Windows, Java, Solaris  Mattias
+   
+   -SWIG Java bindings Mattias
+   
+   -BES server-side implementation, Aleksandr
+   
+   - a-rex/key.pem, cert.pem,ca.pem 11 year-old files are needed? Aleks
+   
+   - a-rex/session,jobstatus are these needed or just some test leftovers?, Aleks
+   
+   - a-rex/ldiff (some ldif to xml converter).  is this in use?, Aleks
+   
+   - a-rex/infoproviders/glue-generator.pl DELETE since we drop GLUE1 schema, Florido
+   
+   - infoproviders should not publish the following: nordugrid-authuser objectclass, obsoleted endpoints such as BES,GLUE1,WSRF  Florido
+   
+   - grid-manager/inputcheck.cpp, not used functionality, shall be removed? Aleks
+   
+   - grid-manager/misc  check if all those utils are still relevant, Aleks
+   
+   - acix/cacheserver, apply new service name (acix-scanner) in the code, David
+   
+   - hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleks
+   
+   - hed/lib/common  remove win32 stuff, Anders
+   
+   - hed/daemon, clean off java, win stuff, Anders with Mattias
+   
+   -hed/daemon/schemas, check what is old/unused/garbage there, David
+   
+   
+   
+   
+   
+   
