@@ -2,17 +2,21 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
 
   * CREAM related plugins and server-side components
   * UNICORE related plugins and server-side components
-  * all the windows & solaris stuff
+  * all the windows & solaris code and build
   * JAVA bindings
-  * BES and other non-EMIES WS flavours
-  * EMIR support
+  * BES, WSRF  and other non-EMIES WS flavours
+  * JDL, ARCJSDL, RSL job description dialect, we keep only XRSL and ADL
+  * EMIR
   * EGIIS sever-side (aka infosys registrations to EGIS) BUT: keep EGIS in the client
-  * support for JDL, JSDL,
+  * infosys schemas and info fetching for GLUE1, (top)BDII ; nordugrid-authuser object from NG schema
+  * 
   
   
   
-  Code/functionality/feature                    assigned person(s)
-  -----------------------------------------------------------------
+  DETAILS:
+  
+  Code/functionality/feature            assigned person(s)        status
+  ---------------------------------------------------------------------------
   
    -Windows packaging, build (e.g arc.nsi, mingw-nordugrid-arc.spec.in)  Mattias
    
@@ -22,7 +26,9 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    -SWIG Java bindings Mattias
    
-   -BES server-side implementation, Aleksandr
+   - BES server-side implementation, Aleksandr
+   
+   - WSRF server and client side implementaton, Aleksandr
    
    - a-rex/key.pem, cert.pem,ca.pem 11 year-old files are needed? Aleks
    
@@ -47,6 +53,36 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
    - hed/daemon, clean off java, win stuff, Anders with Mattias
    
    -hed/daemon/schemas, check what is old/unused/garbage there, David
+   
+   - acc/ldap, remove GLUE1 and BDII stuff, Martin (Andrii backup)
+   
+   - acc/UNICORE should be removed, Andrii
+   
+   -acc/SER remove EMIR, Andrii
+   
+   -acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
+   
+   - acc/CREAM remove, Andrii
+   
+   - acc/ARC1 remove, Andrii
+   
+   - acc/ARC0 RENAME to gridftpjob, Andrii
+   
+   - external, check if cjson still in use, or if it needs even an update, David
+   
+   - client/wsrf remove, Andrii
+   
+   - client/saml, remove Andrii
+   
+   - client/echo remove, Andrii
+   
+   - client/credentials/arcproxyalt remove, Andrii
+   
+   - client/credentials/test2myproxyserver remove, Andrii
+   
+   - client/cache make it candypond, Andrii
+   
+   
    
    
    
