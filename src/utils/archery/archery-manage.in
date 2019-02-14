@@ -7,6 +7,7 @@ import logging
 import argparse
 import ldap
 import json
+import hashlib
 import re
 import socket
 import dns.resolver
@@ -19,76 +20,49 @@ from dns.exception import DNSException
 #
 # OUTPUT FORMATTING FUNCTIONS
 #
-def output_celist(endpoint_list, cmd_args):
-    """Output the list of CE hostnames (JSON capable)"""
-    celist = []
-    for ce, ep in endpoint_list.items():
-        if len(ep) > 0 or cmd_args.output_all:
-            celist.append(ce)
+def output_celist(archery_object, cmd_args):
+    """Output the list of ARC CE hostnames (JSON capable)"""
+    arcce_ids = [s['id'] for s in archery_services(archery_object, 'org.nordugrid.arex')]
     if cmd_args.json:
-        print(json.dumps(celist))
+        print(json.dumps(arcce_ids))
     else:
-        for ce in celist:
+        for ce in arcce_ids:
             print(ce)
 
 
-def output_endpoints(endpoint_list, cmd_args):
+def output_endpoints(archery_object, cmd_args):
     """Output the list of endpoints and its type (JSON capable)"""
-    elist = []
-    for _, ep in endpoint_list.items():
-        for e in ep:
-            if 's' not in e:
-                elist.append(e)
-            elif e['s'] != "0" or cmd_args.output_all:
-                elist.append(e)
+    elist = archery_endpoints(archery_object)
 
     if cmd_args.json:
         print(json.dumps(elist))
     else:
         for e in elist:
+            if 's' in e and e['s'] != '1':
+                if not cmd_args.output_all:
+                    continue
             print('{u:<60} : {t}'.format(**e))
 
 
-def output_zonefile(endpoint_list, cmd_args):
+def output_zonefile(archery_object, cmd_args, ttl=300):
     """Output the content of BIND zone file"""
     if cmd_args.json:
-        logger.error('JSON format is not supported by archery formatter')
+        logger.error('JSON format is not supported by zone file formatter')
     if cmd_args.output_all:
-        logger.debug('ARCHERY formatter includes all endpoints by default and ignore --output-all option')
-    if cmd_args.domain is None:
-        logger.error('Domain name (--domain) is required to generate zonefile output for ARCHERY')
-        sys.exit(1)
+        logger.debug('ARCHERY zone file formatter includes all endpoints by default and ignore --output-all option')
 
-    _archery_rr_template = '{selector:<64}{ttl:>6} TXT "u={url} t={type}{inactive}"'
-    ttl = 300
+    rrset = list(archery_txt_rrset(archery_object))
+    rrset.sort()
 
-    a_pointers = []
-    a_endpoints = []
-    archery_selector = '_archery.{}.'.format(cmd_args.domain)
-    for hostname, endpoints in endpoint_list.items():
-        ce_selector = '{}._archery.{}'.format(hostname, cmd_args.domain)
-        if len(endpoints) > 0:
-            a_pointers.append(_archery_rr_template.format(selector=archery_selector,
-                                                          ttl=ttl, url='u=dns://' + ce_selector,
-                                                          type='org.nordugrid.archery', inactive=''))
-            for e in endpoints:
-                status = ''
-                if 's' in e and e['s'] != 1:
-                    status = ' s={}'.format(e['s'])
-                a_endpoints.append(_archery_rr_template.format(selector=ce_selector, ttl=ttl,
-                                                               url=e['u'], type=e['t'],
-                                                               inactive=status))
-    print('; pointers to CE endpoints')
-    for p in a_pointers:
-        print(p)
-    print('; CE endpoints')
-    for e in a_endpoints:
-        print(e)
+    for rr in rrset:
+        rr_mod = rr.split(' ', 1)
+        print('{0:<64}{1:>6} TXT "{2}"'.format(rr_mod[0], ttl, rr_mod[1]))
+
 
 _output_formatters = {
     'CEs': output_celist,
     'endpoints': output_endpoints,
-    'archery': output_zonefile
+    'zonefile': output_zonefile
 }
 
 
@@ -265,6 +239,93 @@ _filters = {
 
 
 #
+# ARCHERY DATA PROCESSING
+#
+
+def archery_endpoints(archery_object, etype=None):
+    """Returns list of endpoint data from ARCHERY object tree"""
+    endpoints = []
+    # add endpoint records
+    if 'endpoints' in archery_object:
+        for edata in archery_object['endpoints']:
+            # filter by endtpoint type if requested
+            if etype is not None:
+                if edata['t'] != etype:
+                    continue
+            endpoints.append(edata)
+    # process child records
+    if 'contains' in archery_object:
+        for cdata in archery_object['contains']:
+            endpoints += archery_endpoints(cdata, etype)
+    return endpoints
+
+
+def archery_services(archery_object, stype=None):
+    """Returns list of services data from ARCHERY object tree"""
+    services = []
+    if 'object' not in archery_object:
+        return services
+    if archery_object['object'] == 'group':
+        if 'contains' in archery_object:
+            for cdata in archery_object['contains']:
+                services += archery_services(cdata, stype)
+    elif archery_object['object'] == 'service':
+        # filter by service type
+        if stype is not None:
+            if 'type' not in archery_object:
+                logger.debug('There is no service type defined for service object at %s. Skipping.',
+                             archery_object['rr_owner'])
+                return services
+            if archery_object['type'] != stype:
+                logger.debug('Skipping service object at %s (type %s does not match requested %s).',
+                             archery_object['rr_owner'], archery_object['type'], stype)
+                return services
+        # check for service id
+        if 'id' not in archery_object:
+            logger.debug('There is no ID defined for service object at %s. Skipping.',
+                         archery_object['rr_owner'])
+            return services
+        # append service
+        services.append({
+            'id': archery_object['id'],
+            'type': archery_object['type'] if 'type' in archery_object else None,
+        })
+    return services
+
+
+def archery_txt_rrset(archery_object):
+    """Returns set of TXT RRs for ARCHERY object tree"""
+    rrset = set()
+    rr_owner = archery_object['rr_owner']
+    # construct object record
+    if 'object' in archery_object:
+        rr = ' o=' + archery_object['object']
+        if 'type' in archery_object:
+            rr += ' t=' + archery_object['type']
+        if 'id' in archery_object:
+            rr += ' id=' + archery_object['id']
+        # group object without type and id is the default
+        if rr != ' o=group':
+            rrset.add(rr_owner + rr)
+    # add endpoint records
+    if 'endpoints' in archery_object:
+        for edata in archery_object['endpoints']:
+            estatus = ''
+            if 's' in edata and edata['s'] != 1:
+                estatus = ' s={0}'.format(edata['s'])
+            rrset.add('{0} u={1} t={2}{3}'.format(rr_owner, edata['u'], edata['t'], estatus))
+    # add child records
+    if 'contains' in archery_object:
+        for cdata in archery_object['contains']:
+            estatus = ''
+            if 'status' in cdata and cdata['status'] != 1:
+                estatus = ' s={0}'.format(cdata['status'])
+            rrset.add('{0} u=dns://{1} t=org.nordugrid.archery{2}'.format(rr_owner, cdata['rr_owner'], estatus))
+            rrset |= archery_txt_rrset(cdata)
+    return rrset
+
+
+#
 # INFORMATION SOURCES PROCESSING FUNCTIONS
 #
 def get_file_celist(fpath):
@@ -321,7 +382,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=5):
 #
 # ARIS ENDPOINTS PARSING FUNCTION
 #
-def get_ce_endpoints_glue2(hostname, port=2135, ldap_timeout=5, filters=None):
+def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=None):
     """Get CE endpoints by querying ARIS GLUE2"""
     if filters is None:
         filters = []
@@ -369,98 +430,131 @@ def get_ce_endpoints_glue2(hostname, port=2135, ldap_timeout=5, filters=None):
     return endpoints
 
 
+def get_arc_ce_group(ce_list, rr_owner='_archery', applied_filters=None):
+    """Create ARCHERY data object that represent ARC CE services group"""
+    archery_object = {
+        'object': 'group',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+
+    for ce in ce_list:
+        logger.info('Fetching endpoints info from CE\'s %s LDAP GLUE2', ce)
+        service_object = {
+            'object': 'service',
+            'type': 'org.nordugrid.arex',
+            'id': ce
+        }
+        service_hash = hashlib.sha1(json.dumps(service_object)).hexdigest()[:10]
+
+        service_object['rr_owner'] = service_hash + '.' + rr_owner
+        service_object['endpoints'] = get_arc_ce_endpoints_ldapglue2(ce, filters=applied_filters)
+
+        archery_object['contains'].append(service_object)
+
+    return archery_object
+
+
+
 #
-# ARCHERY INFO FETCHING FUNCTIONS
+# ARCHERY DNS PROCESSING
 #
 def parse_archery_txt(txtstr):
-    """Get endpoint information dict from ARCHERY DNS TXT record"""
-    endpoint = {}
+    """Get data dict from ARCHERY DNS TXT string representation"""
+    rrdata = {}
     for kv in txtstr.split(' '):
         if kv[1] == '=':
-            endpoint[kv[0]] = kv[2:]
+            rrdata[kv[0]] = kv[2:]
         else:
             logger.debug('Malformed archery TXT entry %s (%s does not match k=value)', txtstr, kv)
-    return endpoint
+    return rrdata
 
 
-def get_archery_endpoints(archery, nameserver=None, resolver=None):
-    """Get endpoints info from ARCHERY"""
-    endpoints = {}
+def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
+    """Get ARCHERY data from DNS endpoint"""
+    archery_object = {
+        'contains': [],
+        'endpoints': []
+    }
     # construct archery exact domain name to query
-    if archery[0:6] == 'dns://':
-        archery = archery[6:]
+    if dns_name[0:6] == 'dns://':
+        dns_name = dns_name[6:]
     else:
-        archery = '_archery.' + archery
+        dns_name = '_archery.' + dns_name
     # create DNS resolver
     if resolver is None:
         resolver = dns.resolver.Resolver()
         if nameserver is not None:
             resolver.nameservers = [nameserver]
-    # query TXT records
-    logger.debug('Querying ARCHERY endpoint: %s', archery)
+    # query TXT RRSet
+    logger.debug('Querying ARCHERY data from: %s', dns_name)
     try:
-        archery_rrs = resolver.query(archery, 'TXT')
-        ttl = archery_rrs.rrset.ttl
-        selector = str(archery_rrs.rrset.name)
-        endpoints[selector] = {'txt': [], 'endpoints': []}
+        archery_rrs = resolver.query(dns_name, 'TXT')
+        archery_object['rr_owner'] = str(archery_rrs.rrset.name)
+        guess_object_kind = 'group'
         for rr in archery_rrs:
             txt = ''.join(rr.strings)
-            endpoints[selector]['txt'].append({'txt': txt, 'ttl': ttl})
-            txtendpoint = parse_archery_txt(txt)
-            endpoints[selector]['endpoints'].append(txtendpoint)
-            # recursive query if needed
-            if txtendpoint['t'] == 'org.nordugrid.archery':
-                if 's' in txtendpoint and txtendpoint['s'] != '1':
+            rrdata = parse_archery_txt(txt)
+            # object description resource record found
+            if 'o' in rrdata:
+                archery_object['object'] = rrdata['o']
+                # type and id for the object if available
+                if 't' in rrdata:
+                    archery_object['type'] = rrdata['t']
+                if 'id' in rrdata:
+                    archery_object['id'] = rrdata['id']
+            # other records that contains endpoint/grouping data
+            elif 'u' in rrdata:
+                if 't' in rrdata:
+                    if rrdata['t'] == 'org.nordugrid.archery':
+                        child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver)
+                        if 's' in rrdata and rrdata['s'] != '1':
+                            child_object['status'] = 0
+                        archery_object['contains'].append(child_object)
+                    else:
+                        guess_object_kind = 'service'
+                        archery_object['endpoints'].append(rrdata)
+                else:
+                    logger.error('ARCHERY data in %s contains broken endpoint record without type: %s', dns_name, txt)
                     continue
-                endpoints.update(get_archery_endpoints(txtendpoint['u'], resolver=resolver))
+        # object kind checks
+        if 'object' in archery_object and archery_object['object'] != guess_object_kind:
+            logger.warning('ARCHERY object defined by %s name is declared as %s kind but contains information '
+                           'that should not be defined there', dns_name, archery_object['object'])
     except DNSException as err:
-        logger.warning('Failed to query ARCHERY endpoint %s. Error: %s', archery, err)
+        logger.warning('Failed to query ARCHERY data from %s. Error: %s', dns_name, err)
 
-    return endpoints
+    return archery_object
 
 
 #
 # HANDLE DDNS UPDATE
 #
-def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
-    """Incrementally updates ARCHERY records in DNS"""
+def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, ttl=300):
+    """Incrementally updates ARCHERY data records in DNS"""
     keyring = dns.tsigkeyring.from_text(keyring_dict)
-    main_selector = '_archery.{}.'.format(domain)
+    main_rr_owner = '_archery.{}.'.format(domain.rstrip('.'))
 
-    # new endpoints according to provided list
-    new_endpoints_set = set()
-    for hostname, endpoints in endpoint_list.items():
-        h_selector = '{}._archery.{}'.format(hostname, domain)
-        if len(endpoints) > 0:
-            new_endpoints_set.add('{} u=dns://{} t=org.nordugrid.archery'.format(main_selector, h_selector))
-            for e in endpoints:
-                status = ''
-                if 's' in e and e['s'] != 1:
-                    status = ' s={}'.format(e['s'])
-                new_endpoints_set.add('{}. u={} t={}{}'.format(h_selector, e['u'], e['t'], status))
+    # new TXT data according to provided data object
+    new_dns_rrset = archery_txt_rrset(new_archery_object)
 
     # old endpoints from querying the ARCHERY
-    old_endpoints_set = set()
-    archery_endpoints = get_archery_endpoints('dns://' + main_selector, nameserver=nameserver)
-    for selector, data in archery_endpoints.items():
-        if domain not in selector:
-            continue
-        for txts in data['txt']:
-            old_endpoints_set.add('{} {}'.format(selector, txts['txt']))
+    dns_archery_object = fetch_archery_dns_data('dns://' + main_rr_owner, nameserver=nameserver)
+    old_dns_rrset = archery_txt_rrset(dns_archery_object)
 
-    # print(json.dumps(list(new_endpoints_set), indent=2))
-    # print(json.dumps(list(old_endpoints_set), indent=2))
+    # print(json.dumps(list(new_dns_rrset), indent=2))
+    # print(json.dumps(list(old_dns_rrset), indent=2))
 
-    remove_rr = old_endpoints_set - new_endpoints_set
-    add_rr = new_endpoints_set - old_endpoints_set
+    remove_rrs = old_dns_rrset - new_dns_rrset
+    add_rrs = new_dns_rrset - old_dns_rrset
 
     try:
         update = dns.update.Update(domain, keyring=keyring)
-        for r in remove_rr:
+        for r in remove_rrs:
             logger.debug('Going to REMOVE record by means of DDNS update: %s', r)
             rr = r.split(' ', 1)
             update.delete(rr[0], 'txt', rr[1].replace(' ', r'\ '))
-        for a in add_rr:
+        for a in add_rrs:
             logger.debug('Going to ADD record by means of DDNS update: %s', a)
             ar = a.split(' ', 1)
             update.add(ar[0], ttl, 'txt', ar[1].replace(' ', r'\ '))
@@ -472,9 +566,31 @@ def ddns_update(domain, nameserver, keyring_dict, endpoint_list, ttl=300):
     except DNSException as e:
         logger.error('Failed in DDNS update. Error: %s', e)
 
+
 #
 # MAIN EXECUTION CYCLE
 #
+def get_parser():
+    """Command line arguments parser"""
+    parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
+    parser.add_argument('-d', '--debug', action='store', default='INFO',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    parser.add_argument('-s', '--source', action='append', required=True,
+                        help='Select CE list source (file: and egiis: sources are supported)')
+    parser.add_argument('-f', '--filter', action='append', help='Add one or more filters to endpoint list. '
+                                                                'Use \'-f help\' to show available filters')
+    parser.add_argument('-o', '--output', choices=list(_output_formatters.keys()),
+                        help='Output the value to stdout according to specified type')
+    parser.add_argument('--json', action='store_true',
+                        help='Change output format from plaintext to JSON')
+    parser.add_argument('--output-all', action='store_true',
+                        help='Output all CEs/endpoints including inactive (filters are still applied)')
+    parser.add_argument('-u', '--ddns-update', action='store_true',
+                        help='Invoke DNS zone direct update by means of DDNS with TSIG auth')
+    parser.add_argument('--domain', help='domain name of the ARCHERY endpoint to use (required for DDNS update)')
+    parser.add_argument('--ddns-master-ip', help='master NS IP address to contact (required for DDNS update)')
+    parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS update)')
+    return parser
 
 # Initialize logger
 logger = logging.getLogger('ARC.ARCHERY-Manage')
@@ -484,108 +600,94 @@ log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
 
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
-parser.add_argument('-d', '--debug', action='store', default='INFO',
-                    choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
-parser.add_argument('-s', '--source', action='append', required=True,
-                    help='Select CE list source (file: and egiis: sources are supported)')
-parser.add_argument('-f', '--filter', action='append', help='Add one or more filters to endpoint list. '
-                                                            'Use \'-f help\' to show available filters')
-parser.add_argument('-o', '--output', choices=list(_output_formatters.keys()),
-                    help='Output the value to stdout according to specified type')
-parser.add_argument('--json', action='store_true',
-                    help='Change output format from plaintext to JSON')
-parser.add_argument('--output-all', action='store_true',
-                    help='Output all CEs/endpoints including inactive (filters are still applied)')
-parser.add_argument('-u', '--ddns-update', action='store_true',
-                    help='Invoke DNS zone direct update by means of DDNS with TSIG auth')
-parser.add_argument('--domain', help='domain name of the ARCHERY endpoint to use (required for DDNS update)')
-parser.add_argument('--ddns-master-ip', help='master NS IP address to contact (required for DDNS update)')
-parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS update)')
-cmd_args = parser.parse_args()
 
-# Set requested logging level
-logger.setLevel(getattr(logging, cmd_args.debug, 20))
+if __name__ == '__main__':
+    # Process command line arguments
+    parser = get_parser()
+    cmd_args = parser.parse_args()
+    # Set requested logging level
+    logger.setLevel(getattr(logging, cmd_args.debug, 20))
 
-# Check DDNS update required options before doing anything
-if cmd_args.ddns_update:
-    # check for domain
-    if cmd_args.domain is None:
-        logger.error('Domain name (--domain) is required to use DDNS update')
-        sys.exit(1)
+    # Domain name to work with
     domain = cmd_args.domain
-    # check for master nameserver IP
-    if cmd_args.ddns_master_ip is None:
-        logger.error('Name server master IP to communicate (--ddns-master-ip) is required to use DDNS update')
-        sys.exit(1)
-    nameserver = cmd_args.ddns_master_ip
-    # check for keyring
-    if cmd_args.ddns_tsig_keyfile is None:
-        logger.error('TSIG keyfile (--ddns-tsig-keyfile) is required to use DDNS update')
-        sys.exit(1)
-    else:
-        try:
-            logger.debug('Reading TSIG key from %s', cmd_args.ddns_tsig_keyfile)
-            with open(cmd_args.ddns_tsig_keyfile, 'r') as tsig_f:
-                keyring_str = tsig_f.readline()
-                keyring_s = keyring_str.split(':')
-                if len(keyring_s) != 2:
-                    logger.error('Failed to parse TSIG keyfile %s. Expected format is keyname:secret',
-                                 cmd_args.ddns_tsig_keyfile)
-                    sys.exit(1)
-                logger.debug('TSIG key %s has been successfully read', keyring_s[0])
-                keyring_dict = {keyring_s[0]: keyring_s[1]}
-        except EnvironmentError as err:
-            logger.error('Failed to read TSIG keyfile %s. Error: %s', cmd_args.ddns_tsig_keyfile, err)
+    # Check DDNS update required options before doing anything
+    if cmd_args.ddns_update:
+        # check for domain
+        if domain is None:
+            logger.error('Domain name (--domain) is required to use DDNS update')
             sys.exit(1)
+        # check for master nameserver IP
+        if cmd_args.ddns_master_ip is None:
+            logger.error('Name server master IP to communicate (--ddns-master-ip) is required to use DDNS update')
+            sys.exit(1)
+        nameserver = cmd_args.ddns_master_ip
+        # check for keyring
+        if cmd_args.ddns_tsig_keyfile is None:
+            logger.error('TSIG keyfile (--ddns-tsig-keyfile) is required to use DDNS update')
+            sys.exit(1)
+        else:
+            try:
+                logger.debug('Reading TSIG key from %s', cmd_args.ddns_tsig_keyfile)
+                with open(cmd_args.ddns_tsig_keyfile, 'r') as tsig_f:
+                    keyring_str = tsig_f.readline()
+                    keyring_s = keyring_str.split(':')
+                    if len(keyring_s) != 2:
+                        logger.error('Failed to parse TSIG keyfile %s. Expected format is keyname:secret',
+                                     cmd_args.ddns_tsig_keyfile)
+                        sys.exit(1)
+                    logger.debug('TSIG key %s has been successfully read', keyring_s[0])
+                    keyring_dict = {keyring_s[0]: keyring_s[1]}
+            except EnvironmentError as err:
+                logger.error('Failed to read TSIG keyfile %s. Error: %s', cmd_args.ddns_tsig_keyfile, err)
+                sys.exit(1)
 
-# Parse filters for fetching endpoints
-applied_filters = []
-if cmd_args.filter is not None:
-    for f in cmd_args.filter:
-        if f == 'help':
-            print('Supported filters are:')
-            for _, fclass in _filters.items():
-                fci = fclass()
-                fci.help()
-            sys.exit(0)
-        fdef = f.split(':', 1)
-        ftype = fdef[0]
-        fargs = fdef[1] if len(fdef) > 1 else ''
-        if ftype not in list(_filters.keys()):
-            logger.error('Ignoring bad filter definition: %s', f)
-            continue
-        fclass = _filters[ftype]
-        fobj = fclass(fargs)
-        applied_filters.append(fobj)
+    # Parse filters for fetching endpoints
+    applied_filters = []
+    if cmd_args.filter is not None:
+        for f in cmd_args.filter:
+            if f == 'help':
+                print('Supported filters are:')
+                for _, fclass in _filters.items():
+                    fci = fclass()
+                    fci.help()
+                sys.exit(0)
+            fdef = f.split(':', 1)
+            ftype = fdef[0]
+            fargs = fdef[1] if len(fdef) > 1 else ''
+            if ftype not in list(_filters.keys()):
+                logger.error('Ignoring bad filter definition: %s', f)
+                continue
+            fclass = _filters[ftype]
+            fobj = fclass(fargs)
+            applied_filters.append(fobj)
 
-# Get CE list from defined sources
-ce_list = []
-for source in cmd_args.source:
-    if source.startswith('file:'):
-        logger.info('Obtaining CE list from file: %s', source[5:])
-        ce_list += get_file_celist(source[5:])
-    elif source.startswith('egiis:'):
-        logger.info('Obtaining CE list from EGIIS URL: %s', source[6:])
-        ce_list += get_egiis_celist(source[6:])
-    else:
-        logger.error('Unsupported CE list source: %s', source)
-logger.debug('Fetched CE list to work with: %s', ', '.join(ce_list))
+    # Get CE list from defined sources
+    ce_list = []
+    for source in cmd_args.source:
+        if source.startswith('file:'):
+            logger.info('Obtaining CE list from file: %s', source[5:])
+            ce_list += get_file_celist(source[5:])
+        elif source.startswith('egiis:'):
+            logger.info('Obtaining CE list from EGIIS URL: %s', source[6:])
+            ce_list += get_egiis_celist(source[6:])
+        else:
+            logger.error('Unsupported CE list source: %s', source)
+    logger.debug('Fetched CE list to work with: %s', ', '.join(ce_list))
 
-# Fetching endpoints info from CE's LDAP GLUE2
-endpoints = {}
-logger.info('Fetching endpoints info from CE\'s LDAP GLUE2')
-for ce in ce_list:
-    endpoints[ce] = get_ce_endpoints_glue2(ce, filters=applied_filters)
+    # Base domain name to work with
+    rr_owner = '_archery'
+    if domain is not None:
+        rr_owner += '.{0}.'.format(domain.rstrip('.'))
 
-# Invoke DDNS update if requested
-if cmd_args.ddns_update:
-    logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
-                nameserver, list(keyring_dict.keys())[0])
-    ddns_update(domain, nameserver, keyring_dict, endpoints)
+    archery_object = get_arc_ce_group(ce_list, rr_owner, applied_filters)
 
-# Output information if requested
-if cmd_args.output:
-    formatter_f = _output_formatters[cmd_args.output]
-    formatter_f(endpoints, cmd_args)
+    # Invoke DDNS update if requested
+    if cmd_args.ddns_update:
+        logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
+                    nameserver, list(keyring_dict.keys())[0])
+        archery_ddns_update(domain, nameserver, keyring_dict, archery_object)
+
+    # Output information if requested
+    if cmd_args.output:
+        formatter_f = _output_formatters[cmd_args.output]
+        formatter_f(archery_object, cmd_args)
