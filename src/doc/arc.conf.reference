@@ -888,10 +888,11 @@
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
 ##   "onsuccess", "onfailure", "ontimeout"
 ##      defines the action that A-REX should take on succesfull execution (exit code 0), 
-##      failed execution (exit code is not 0) or execution timeout respectively:
-##        - "pass" - continue executing job,
-##        - "fail" - cancel job,
-##        - "log" - write to log about the failure and continue executing job.
+##      failed execution (exit code is not 0) or execution timeout respectively.
+## Possible actions are:
+##   - "pass" - continue executing job,
+##   - "fail" - cancel job,
+##   - "log" - write to log about the failure and continue executing job.
 ## It is possible to use following sugstitutions to construct plugin command line:
 ##   - "%R" - session root (value of sessiondir in [arex] block)
 ##   - "%C" - controldir path
@@ -2348,13 +2349,11 @@
 ##
 ### end of the [infosys/glue1/site-bdii] block ###################################
 
-
-
-## Information schema-neutral blocks [infosys/cluster] and [queue/NAME] contain attributes
+### The [infosys/cluster] block ###################################################
+## Information schema-neutral blocks [infosys/cluster] and [queue:NAME] contain attributes
 ## that describe the computing cluster together with its queues. The parameters are
 ## available for every information model/schema representation.
-
-### The [infosys/cluster] block ###################################################
+##
 ## This block describes the cluster characteristics of a Computing Element.
 ## The information specified here is mostly used by the Infosys ARC component.
 #[infosys/cluster]
@@ -3063,7 +3062,7 @@
 ##         information)
 ##    "allow_empty_unixid = no"
 ##         then nordugridmap will skip users without mapping information
-##		   (if no mapping information provided by sources)
+##         (if no mapping information provided by sources)
 ## default: nobody
 #mapped_unixid=
 #mapped_unixid=gridtest
