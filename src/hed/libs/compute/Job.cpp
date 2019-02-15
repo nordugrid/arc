@@ -314,16 +314,6 @@ namespace Arc {
         JobStatusInterfaceName          = "org.nordugrid.ldapng";
         JobManagementInterfaceName      = "org.nordugrid.gridftpjob";
       }
-      else if ((std::string)job["Flavour"] == "BES") {
-        ServiceInformationInterfaceName = "org.ogf.bes";
-        JobStatusInterfaceName          = "org.ogf.bes";
-        JobManagementInterfaceName      = "org.ogf.bes";
-      }
-      else if ((std::string)job["Flavour"] == "ARC1") {
-        ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
-        JobStatusInterfaceName          = "org.nordugrid.xbes";
-        JobManagementInterfaceName      = "org.nordugrid.xbes";
-      }
       else if ((std::string)job["Flavour"] == "INTERNAL") {
         ServiceInformationInterfaceName = "org.nordugrid.internal";
         JobStatusInterfaceName          = "org.nordugrid.internal";
