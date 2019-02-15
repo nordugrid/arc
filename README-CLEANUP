@@ -46,6 +46,10 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - acix/cacheserver, apply new service name (acix-scanner) in the code, David
    
+   - hed/dmc/arc, remove code, David
+   
+   - hed/lib/data, remove remote cache code, David
+   
    - hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleks
    
    - hed/lib/common  remove win32 stuff, Anders
