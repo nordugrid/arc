@@ -404,7 +404,7 @@ Connector (ARC).
 This package contains the ARC gridftp server which has a plugin framework.
 Current plugins include:
 
-  fileplugin : Standard gridftp server based on Globus globus-ftp-control
+  filedirplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
 %package datadelivery-service
@@ -1164,7 +1164,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
-%{_libdir}/%{pkgdir}/fileplugin.*
+%{_libdir}/%{pkgdir}/filedirplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
@@ -1463,11 +1463,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}
 %else
 %{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%endif
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
+%endif
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
@@ -1477,6 +1477,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
 %else
 %{python3_sitearch}/%{pkgdir}
 %endif

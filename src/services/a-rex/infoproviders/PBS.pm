@@ -60,6 +60,7 @@ sub get_pbs_version ($) {
     # path to LRMS commands
     my ($config) = shift;
     my ($path) = $$config{pbs_bin_path};
+    error("pbs_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 
     # determine the flavour and version of PBS
     my $qmgr_string=`$path/qmgr -c "list server"`;
@@ -378,6 +379,7 @@ sub cluster_info ($) {
     # Path to LRMS commands
     my ($config) = shift;
     my ($path) = $$config{pbs_bin_path};
+    error("pbs_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 
     # Return data structure %lrms_cluster{$keyword}
     #
@@ -504,6 +506,7 @@ sub queue_info ($$) {
     # Path to LRMS commands
     my ($config) = shift;
     my ($path) = $$config{pbs_bin_path};
+    error("pbs_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 
     # Name of the queue to query
     my ($qname) = shift;
@@ -766,6 +769,7 @@ sub jobs_info ($$@) {
     # Path to LRMS commands
     my ($config) = shift;
     my ($path) = $$config{pbs_bin_path};
+    error("pbs_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 
     # Name of the queue to query
     my ($qname) = shift;
@@ -917,6 +921,7 @@ sub users_info($$@) {
     # Path to LRMS commands
     my ($config) = shift;
     my ($path) = $$config{pbs_bin_path};
+    error("pbs_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 
     # Name of the queue to query
     my ($qname) = shift;

@@ -662,7 +662,7 @@ namespace Arc {
   }
 
   unsigned int DataBuffer::buffer_size() const {
-    if (bufs == NULL) return 65536;
+    if (bufs == NULL) return 1048576;
     unsigned int size = 0;
     for (int i = 0; i < bufs_n; i++) {
       if (size < bufs[i].size) size = bufs[i].size;

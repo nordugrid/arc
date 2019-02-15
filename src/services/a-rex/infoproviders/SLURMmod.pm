@@ -43,9 +43,9 @@ sub get_lrms_info($) {
     $options = shift;
 
     $path = ($options->{slurm_bin_path} or "/usr/bin");
-	
-#	slurm_init_check();
-	
+
+    slurm_init_check($path);
+
     slurm_get_data();
     
     cluster_info();
@@ -72,16 +72,19 @@ sub get_lrms_info($) {
 # Private subs
 ##########################################
 
-#sub slurm_init_check() {
-#
-#$log->info("Verifying slurm commands...");
-#
-#my @slurm_commands = ('scontrol','squeue','sinfo');
-#
-#foreach my $slurmcmd (@slurm_commands) {
-#	unless (-e "$path/$slurmcmd") {$log->error("$slurmcmd command not found. Exiting...")};
-#	}	
-#}
+# checks existence of slurm commands
+sub slurm_init_check($) {
+
+   my $path = shift;
+
+   $log->info("Verifying slurm commands...");
+
+   my @slurm_commands = ('scontrol','squeue','sinfo');
+
+   foreach my $slurmcmd (@slurm_commands) {
+        $log->error("$path/$slurmcmd command not found. Check slurm_bin_path in configuration. Exiting...") unless (-f "$path/$slurmcmd") ;
+   }
+}
 
 sub nodes_info() {
     my $lrms_nodes = {};

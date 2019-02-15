@@ -1,2 +1,2 @@
-fileplugin for GridFTP server. Allows exposure of a file-system hierarchy
+filedirplugin for GridFTP server. Allows exposure of a file-system hierarchy
 through the GridFTP interface.
