@@ -49,10 +49,10 @@ EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
-	create_activity.cpp get_activity_documents.cpp \
-	get_activity_statuses.cpp terminate_activities.cpp \
-	change_activity_status.cpp migrate_activity.cpp \
-	get_factory_attributes_document.cpp update_credentials.cpp faults.cpp \
+	create_activity.cpp \
+	get_activity_statuses.cpp \
+	change_activity_status.cpp \
+	update_credentials.cpp faults.cpp \
 	get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \
 	information_collector.cpp cachecheck.cpp tools.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h tools.h

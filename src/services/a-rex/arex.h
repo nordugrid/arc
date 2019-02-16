@@ -45,7 +45,6 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
   OptimizedInformationContainer(bool parse_xml = true);
   ~OptimizedInformationContainer(void);
   int OpenDocument(void);
-  Arc::MessagePayload* Process(Arc::SOAPEnvelope& in);
   void AssignFile(const std::string& filename);
   void Assign(const std::string& xml,const std::string filename = "");
 };
@@ -71,7 +70,6 @@ class ARexService: public Arc::Service {
   std::string uname_;
   std::string common_name_;
   std::string long_description_;
-  std::string lrms_name_;
   std::string os_name_;
   std::string gmrun_;
   unsigned int infoprovider_wakeup_period_;
@@ -84,17 +82,6 @@ class ARexService: public Arc::Service {
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 
   // A-REX operations
-  Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
-  AREXOP(GetActivityStatuses);
-  AREXOP(TerminateActivities);
-  AREXOP(GetActivityDocuments);
-  AREXOP(GetFactoryAttributesDocument);
-
-  AREXOP(StopAcceptingNewActivities);
-  AREXOP(StartAcceptingNewActivities);
-
-  AREXOP(ChangeActivityStatus);
-  Arc::MCC_Status MigrateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   AREXOP(CacheCheck);
 
   /** Update credentials for specified job through A-REX own interface */
@@ -144,17 +131,6 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status DeleteCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
 
   // A-REX faults
-  void GenericFault(Arc::SOAPFault& fault);
-  void NotAuthorizedFault(Arc::XMLNode fault);
-  void NotAuthorizedFault(Arc::SOAPFault& fault);
-  void NotAcceptingNewActivitiesFault(Arc::XMLNode fault);
-  void NotAcceptingNewActivitiesFault(Arc::SOAPFault& fault);
-  void UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& feature);
-  void UnsupportedFeatureFault(Arc::SOAPFault& fault,const std::string& feature);
-  void CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message);
-  void CantApplyOperationToCurrentStateFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message);
-  void OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message);
-  void OperationWillBeAppliedEventuallyFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message);
   void UnknownActivityIdentifierFault(Arc::XMLNode fault,const std::string& message);
   void UnknownActivityIdentifierFault(Arc::SOAPFault& fault,const std::string& message);
   void InvalidRequestMessageFault(Arc::XMLNode fault,const std::string& element,const std::string& message);

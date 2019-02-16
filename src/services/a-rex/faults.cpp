@@ -7,22 +7,10 @@
 #include "arex.h"
 #include "tools.h"
 
+
+namespace ARex {
+
   /*
-  NotAuthorizedFault
-
-  NotAcceptingNewActivitiesFault
-
-  UnsupportedFeatureFault
-    Feature (string, unbounded)
-
-  CantApplyOperationToCurrentStateFault
-    ActivityStatus (ActivityStatusType)
-    Message (xsd:string)
-
-  OperationWillBeAppliedEventuallyFault
-    ActivityStatus (ActivityStatusType)
-    Message (xsd:string)
-
   UnknownActivityIdentifierFault
     Message (string)
 
@@ -31,8 +19,6 @@
     Message (string)
 
   */
-
-namespace ARex {
 
 // A-REX faults
 
@@ -43,66 +29,6 @@ static void SetFaultResponse(Arc::SOAPFault& fault) {
   Arc::XMLNode fault_node = fault;
   Arc::SOAPEnvelope res(fault_node.Parent().Parent()); // Fault->Body->Envelope
   Arc::WSAHeader(res).Action(BES_FACTORY_FAULT_URL);
-}
-
-void ARexService::GenericFault(Arc::SOAPFault& fault) {
-  Arc::XMLNode fault_node = fault;
-  Arc::SOAPEnvelope res(fault_node.Parent().Parent()); // Fault->Body->Envelope
-  Arc::WSAHeader(res).Action("");
-}
-
-void ARexService::NotAuthorizedFault(Arc::XMLNode fault) {
-  fault.Name("bes-factory:NotAuthorizedFault");
-}
-
-void ARexService::NotAuthorizedFault(Arc::SOAPFault& fault) {
-  NotAuthorizedFault(fault.Detail(true).NewChild("dummy"));
-  SetFaultResponse(fault);
-}
-
-void ARexService::NotAcceptingNewActivitiesFault(Arc::XMLNode fault) {
-  fault.Name("bes-factory:NotAcceptingNewActivitiesFault");
-  return;
-}
-
-void ARexService::NotAcceptingNewActivitiesFault(Arc::SOAPFault& fault) {
-  NotAcceptingNewActivitiesFault(fault.Detail(true).NewChild("dummy"));
-  SetFaultResponse(fault);
-}
-
-void ARexService::UnsupportedFeatureFault(Arc::XMLNode fault,const std::string& feature) {
-  fault.Name("bes-factory:UnsupportedFeatureFault");
-  if(!feature.empty()) fault.NewChild("bes-factory:Feature")=feature;
-  return;
-}
-
-void ARexService::UnsupportedFeatureFault(Arc::SOAPFault& fault,const std::string& feature) {
-  UnsupportedFeatureFault(fault.Detail(true).NewChild("dummy"),feature);
-  SetFaultResponse(fault);
-}
-
-void ARexService::CantApplyOperationToCurrentStateFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
-  fault.Name("bes-factory:CantApplyOperationToCurrentStateFault");
-  addActivityStatus(fault,gm_state,"",failed);
-  fault.NewChild("bes-factory:Message")=message;
-  return;
-}
-
-void ARexService::CantApplyOperationToCurrentStateFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
-  CantApplyOperationToCurrentStateFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
-  SetFaultResponse(fault);
-}
-
-void ARexService::OperationWillBeAppliedEventuallyFault(Arc::XMLNode fault,const std::string& gm_state,bool failed,const std::string& message) {
-  fault.Name("bes-factory:OperationWillBeAppliedEventuallyFault");
-  addActivityStatus(fault,gm_state,"",failed);
-  fault.NewChild("bes-factory:Message")=message;
-  return;
-}
-
-void ARexService::OperationWillBeAppliedEventuallyFault(Arc::SOAPFault& fault,const std::string& gm_state,bool failed,const std::string& message) {
-  OperationWillBeAppliedEventuallyFault(fault.Detail(true).NewChild("dummy"),gm_state,failed,message);
-  SetFaultResponse(fault);
 }
 
 void ARexService::UnknownActivityIdentifierFault(Arc::XMLNode fault,const std::string& message) {
