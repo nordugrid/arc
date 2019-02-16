@@ -55,8 +55,6 @@ namespace Arc {
    * 
    * <b>Computing Services:</b>
    * * EMI ES
-   * * BES (+ ARC BES extension)
-   * * CREAM
    * * GridFTPJob interface (requires the nordugrid-arc-plugins-globus package)
    * 
    * <b>Registry and Index Services:</b>

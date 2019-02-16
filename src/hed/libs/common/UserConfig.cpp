@@ -1102,9 +1102,7 @@ TODO: Make FileUtils function to this
         } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {
           std::string infointerface = "org.nordugrid.ldapglue2";
           if (flavour == "ARC0") infointerface = "org.nordugrid.ldapng";
-          if (flavour == "ARC1") infointerface = "org.nordugrid.wsrfglue2";
           if (flavour == "EMIES") infointerface = "org.ogf.glue.emies.resourceinfo";
-          if (flavour == "CREAM") infointerface = "org.nordugrid.ldapglue1";
           service.InterfaceName = infointerface;
         }
         service.URLString = url;
