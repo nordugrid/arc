@@ -1046,7 +1046,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/libarcsecurity.so.*
 %{_libdir}/libarcscitokens.so.*
 %{_libdir}/libarcinfosys.so.*
-%{_libdir}/libarcws.so.*
+%{_libdir}/libarcwsaddressing.so.*
 %{_libdir}/libarcwssecurity.so.*
 %if %{with_xmlsec1}
 %{_libdir}/libarcxmlsec.so.*

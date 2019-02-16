@@ -3,6 +3,7 @@
 #endif
 
 #include <arc/StringConv.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "arex.h"
 #include "tools.h"

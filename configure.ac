@@ -196,7 +196,6 @@ enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
 enables_saml_client=yes
-enables_wsrf_client=yes
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -220,7 +219,6 @@ enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
@@ -250,7 +248,6 @@ enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
 enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
@@ -2160,11 +2157,6 @@ fi
 AC_MSG_NOTICE([SAML client tool enabled: $enables_saml_client])
 AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enables_saml_client" = "xyes"])
 
-AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable building client tools for querying WSRF-enabled services.]),
-  [enables_wsrf_client=$enableval],[])
-AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
-AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
-
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
@@ -2186,7 +2178,6 @@ if test "$enables_hed" = "no"; then
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
           "$enables_saml_client" = "yes" -o \
-          "$enables_wsrf_client" = "yes" -o \
           ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
@@ -2272,7 +2263,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/security/ArcPDP/alg/Makefile
                  src/hed/libs/security/ArcPDP/fn/Makefile
                  src/hed/libs/credentialstore/Makefile
-                 src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/ws-security/test/Makefile
@@ -2281,7 +2271,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/infosys/test/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/delegation/test/Makefile
-                 src/hed/libs/ws/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
                  src/hed/libs/scitokens/Makefile
@@ -2516,8 +2505,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
                  src/clients/compute/arctest.1
-                 src/clients/wsrf/arcwsrf.1
-                 src/clients/wsrf/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
@@ -2626,7 +2613,6 @@ CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
 SAML VOMS client:   ${enables_saml_client}
-WSRF client:        ${enables_wsrf_client}
 
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
