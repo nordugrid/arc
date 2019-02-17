@@ -453,10 +453,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{mingw32_bindir}/arcemiestest.exe
 %{mingw32_bindir}/arcperftest.exe
-%{mingw32_bindir}/arcwsrf.exe
 %doc %{mingw32_mandir}/man1/arcemiestest.1*
 %doc %{mingw32_mandir}/man1/arcperftest.1*
-%doc %{mingw32_mandir}/man1/arcwsrf.1*
 
 %if %{with_mingw32_xmlsec1}
 %{mingw32_bindir}/saml_assertion_init.exe
@@ -626,10 +624,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{mingw64_bindir}/arcemiestest.exe
 %{mingw64_bindir}/arcperftest.exe
-%{mingw64_bindir}/arcwsrf.exe
 %doc %{mingw64_mandir}/man1/arcemiestest.1*
 %doc %{mingw64_mandir}/man1/arcperftest.1*
-%doc %{mingw64_mandir}/man1/arcwsrf.1*
 
 %if %{with_mingw64_xmlsec1}
 %{mingw64_bindir}/saml_assertion_init.exe
