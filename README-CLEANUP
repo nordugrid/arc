@@ -51,6 +51,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
      > are you guys crazy? you want to lose all customers in one go? I suggest we remove this in arc7. --Florido
    
    - infoproviders should not publish the following: nordugrid-authuser objectclass, obsoleted endpoints such as BES,GLUE1,WSRF  Florido
+     > ok for removal of nordugrid-authuser, BES and WSRF. Not ok for Glue1 see above --Florido
    
    - grid-manager/inputcheck.cpp, not used functionality, shall be removed? Aleks
    
@@ -71,6 +72,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    - hed/daemon/schemas, check what is old/unused/garbage there, David
    
    - [DONE] acc/ldap, remove GLUE1 and BDII stuff, Andrii
+     > what is BDII stuff? be careful here. --Florido
    
    - [DONE] acc/UNICORE should be removed, Andrii
    
