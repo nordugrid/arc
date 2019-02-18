@@ -69,7 +69,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - hed/daemon/schemas, check what is old/unused/garbage there, David
    
-   - acc/ldap, remove GLUE1 and BDII stuff, Martin (Andrii backup)
+   - [DONE] acc/ldap, remove GLUE1 and BDII stuff, Andrii
    
    - [DONE] acc/UNICORE should be removed, Andrii
    

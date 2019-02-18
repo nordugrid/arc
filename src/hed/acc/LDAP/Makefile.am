@@ -1,17 +1,15 @@
-pkglib_LTLIBRARIES = libaccldap.la
+pkglib_LTLIBRARIES = libaccLDAP.la
 
-libaccldap_la_SOURCES  = Descriptors.cpp \
+libaccLDAP_la_SOURCES  = DescriptorsLDAP.cpp \
 	Extractor.h \
 	JobListRetrieverPluginLDAPNG.cpp JobListRetrieverPluginLDAPNG.h \
 	JobListRetrieverPluginLDAPGLUE2.cpp JobListRetrieverPluginLDAPGLUE2.h \
 	TargetInformationRetrieverPluginLDAPNG.cpp TargetInformationRetrieverPluginLDAPNG.h \
-	TargetInformationRetrieverPluginLDAPGLUE1.cpp TargetInformationRetrieverPluginLDAPGLUE1.h \
 	TargetInformationRetrieverPluginLDAPGLUE2.cpp TargetInformationRetrieverPluginLDAPGLUE2.h \
-	ServiceEndpointRetrieverPluginEGIIS.cpp ServiceEndpointRetrieverPluginEGIIS.h \
-	ServiceEndpointRetrieverPluginBDII.cpp ServiceEndpointRetrieverPluginBDII.h
-libaccldap_la_CXXFLAGS = -I$(top_srcdir)/include \
+	ServiceEndpointRetrieverPluginEGIIS.cpp ServiceEndpointRetrieverPluginEGIIS.h
+libaccLDAP_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-libaccldap_la_LIBADD = \
+libaccLDAP_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -19,4 +17,4 @@ libaccldap_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
-libaccldap_la_LDFLAGS = -no-undefined -avoid-version -module
+libaccLDAP_la_LDFLAGS = -no-undefined -avoid-version -module
