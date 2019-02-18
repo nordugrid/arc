@@ -22,5 +22,11 @@ else
 ARCREST =
 endif
 
-SUBDIRS = TEST $(ARC0) $(ARCREST) $(EMIES) Broker $(PYTHONBROKER) JobDescriptionParser SER ldap
-DIST_SUBDIRS = TEST ARC0 ARCREST EMIES Broker PythonBroker JobDescriptionParser SER ldap
+if LDNS_ENABLED
+ARCHERY = ARCHERY
+else
+ARCHERY =
+endif
+
+SUBDIRS = TEST $(ARC0) $(ARCREST) $(EMIES) Broker $(PYTHONBROKER) JobDescriptionParser $(ARCHERY) ldap
+DIST_SUBDIRS = TEST ARC0 ARCREST EMIES Broker PythonBroker JobDescriptionParser ARCHERY ldap

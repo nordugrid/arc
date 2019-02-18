@@ -73,7 +73,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] acc/UNICORE should be removed, Andrii
    
-   - acc/SER remove EMIR, Andrii
+   - [DONE] acc/SER remove EMIR, Andrii => renamed to acc/ARCHERY as it is the only option now
    
    - acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
    

@@ -2278,7 +2278,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
-                 src/hed/acc/SER/Makefile
+                 src/hed/acc/ARCHERY/Makefile
                  src/hed/acc/ldap/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
