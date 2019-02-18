@@ -89,7 +89,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] client/saml, remove Andrii
    
-   - client/echo remove, Andrii
+   - [DONE] client/echo remove, Andrii
    
    - client/credentials/arcproxyalt remove, Andrii
    

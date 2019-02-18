@@ -192,7 +192,6 @@ enables_monitor=yes
 #  Clients
 enables_compute_client=yes
 enables_credentials_client=yes
-enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
 enables_emies_client=yes
@@ -2128,11 +2127,6 @@ AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client],
 AC_MSG_NOTICE([Credentials client tools enabled: $enables_credentials_client])
 AM_CONDITIONAL([CREDENTIALS_CLIENT_ENABLED],[test "x$enables_credentials_client" = "xyes"])
 
-AC_ARG_ENABLE(echo_client, AC_HELP_STRING([--disable-echo-client], [disable building client tools for communicationg with Echo service]),
-  [enables_echo_client=$enableval],[])
-AC_MSG_NOTICE([Echo client tool enabled: $enables_echo_client])
-AM_CONDITIONAL([ECHO_CLIENT_ENABLED],[test "x$enables_echo_client" = "xyes"])
-
 AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable building generic client tools for handling data]),
   [enables_data_client=$enableval],[])
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
@@ -2160,7 +2154,6 @@ if test "$enables_hed" = "no"; then
           "$enables_datadelivery_service" = "yes" -o \
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
-          "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
           ; then
@@ -2471,8 +2464,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/data/arcmkdir.1
                  src/clients/data/arcrename.1
-                 src/clients/echo/Makefile
-                 src/clients/echo/arcecho.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
                  src/clients/compute/Makefile
@@ -2593,7 +2584,6 @@ ACIX service:       ${enables_acix}
 COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
-ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
 
 EMI ES client (ACC): ${enables_emies_client}

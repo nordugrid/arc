@@ -1094,7 +1094,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
-%{_bindir}/arcecho
 %{_bindir}/arcget
 %{_bindir}/arcinfo
 %{_bindir}/arckill
@@ -1115,7 +1114,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
-%doc %{_mandir}/man1/arcecho.1*
 %doc %{_mandir}/man1/arcget.1*
 %doc %{_mandir}/man1/arcinfo.1*
 %doc %{_mandir}/man1/arckill.1*
