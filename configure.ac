@@ -195,7 +195,6 @@ enables_credentials_client=yes
 enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
-enables_saml_client=yes
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -218,7 +217,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
@@ -247,7 +245,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
@@ -2146,17 +2143,6 @@ AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable buil
 AC_MSG_NOTICE([JURA client tool enabled: $enables_jura_client])
 AM_CONDITIONAL([JURA_CLIENT_ENABLED],[test "x$enables_jura_client" = "xyes"])
 
-AC_ARG_ENABLE(saml_client, AC_HELP_STRING([--disable-saml-client], [disable building client tool for communicating SAML-based VOMS service]),
-  [enables_saml_client=$enableval],[])
-if test "$enables_saml_client" = "yes"; then
-  if test "$enables_xmlsec1" != "yes" ; then
-    enables_saml_client="no"
-    AC_MSG_NOTICE([SAML client requires xmlsec1 - disabling])
-  fi
-fi
-AC_MSG_NOTICE([SAML client tool enabled: $enables_saml_client])
-AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enables_saml_client" = "xyes"])
-
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
@@ -2177,7 +2163,6 @@ if test "$enables_hed" = "no"; then
           "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
-          "$enables_saml_client" = "yes" -o \
           ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
@@ -2490,8 +2475,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/echo/arcecho.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
-                 src/clients/saml/Makefile
-                 src/clients/saml/saml_assertion_init.1
                  src/clients/compute/Makefile
                  src/clients/compute/arcstat.1
                  src/clients/compute/arcinfo.1
@@ -2612,7 +2595,6 @@ DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
-SAML VOMS client:   ${enables_saml_client}
 
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}

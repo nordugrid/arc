@@ -22,14 +22,8 @@ else
 COMPUTE_CLIENT =
 endif
 
-if SAML_CLIENT_ENABLED
-SAML_CLIENT = saml
-else
-SAML_CLIENT =
-endif
-
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(SAML_CLIENT)
-DIST_SUBDIRS = data echo credentials compute saml
+SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) 
+DIST_SUBDIRS = data echo credentials compute
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf

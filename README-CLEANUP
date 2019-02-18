@@ -74,9 +74,9 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - external, check if cjson still in use, or if it needs even an update, David -> YES still used by Rucio and ACIX DMCs and scitokens code
    
-   - client/wsrf remove, Andrii
+   - [DONE by ALeks] client/wsrf remove, Andrii
    
-   - client/saml, remove Andrii
+   - [DONE] client/saml, remove Andrii
    
    - client/echo remove, Andrii
    

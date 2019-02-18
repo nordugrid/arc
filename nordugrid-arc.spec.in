@@ -1488,10 +1488,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
 %{_bindir}/arcperftest
-%if %{with_xmlsec1}
-%{_bindir}/saml_assertion_init
-%doc %{_mandir}/man1/saml_assertion_init.1*
-%endif
 %doc %{_mandir}/man1/arcemiestest.1*
 %doc %{_mandir}/man1/arcperftest.1*
 
