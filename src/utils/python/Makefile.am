@@ -1,4 +1,4 @@
-pkglibexec_SCRIPTS = arcconfig-parser
+pkglibexec_SCRIPTS = arcconfig-parser arccandypond
 sbin_SCRIPTS = arcctl
 pkgdata_DATA = arc.parser.defaults
 

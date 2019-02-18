@@ -1288,6 +1288,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %endif
+%{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
