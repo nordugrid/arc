@@ -77,6 +77,7 @@ debian/tmp/usr/lib/arc/candypond
 debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
 debian/tmp/usr/share/arc/rte/ENV/PROXY
 debian/tmp/usr/share/arc/rte/ENV/RTE
+debian/tmp/usr/share/arc/rte/ENV/CANDYPOND
 
 debian/tmp/usr/sbin/arcctl
 debian/tmp/usr/sbin/a-rex-backtrace-collect
