@@ -1,4 +1,16 @@
-obsoleted technology that should be removed from ARC 6 as part of the code cleanup
+This branch is dedicated to the cleanup of obsoleted technology. 
+
+As several developers are expected to work on this, a central development branch has been created. 
+You can commit by direct push. 
+
+Please keep the branch up to date with master following the usual procedures for a development branch
+
+Once the work is done the branch will be merged back into master, and also into the "next" branch. 
+
+This file should be removed before merging into master. 
+
+
+Obsoleted technology that should be removed from ARC 6 as part of the code cleanup:
 
   * CREAM related plugins and server-side components
   * UNICORE related plugins and server-side components
@@ -9,7 +21,6 @@ obsoleted technology that should be removed from ARC 6 as part of the code clean
   * EMIR
   * EGIIS sever-side (aka infosys registrations to EGIS) BUT: keep EGIS in the client
   * infosys schemas and info fetching for GLUE1, (top)BDII ; nordugrid-authuser object from NG schema
-  * 
   
   
   
