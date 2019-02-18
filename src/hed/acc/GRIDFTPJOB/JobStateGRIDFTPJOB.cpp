@@ -2,11 +2,11 @@
 #include <config.h>
 #endif
 
-#include "JobStateARC0.h"
+#include "JobStateGRIDFTPJOB.h"
 
 namespace Arc {
 
-  JobState::StateType JobStateARC0::StateMap(const std::string& state) {
+  JobState::StateType JobStateGRIDFTPJOB::StateMap(const std::string& state) {
     std::string state_ = state;
 /*
    Infosys states (mapped from GM states):

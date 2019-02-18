@@ -1,7 +1,7 @@
 if GRIDFTP_ENABLED
-ARC0 = ARC0
+GRIDFTPJOB = GRIDFTPJOB
 else
-ARC0 =
+GRIDFTPJOB =
 endif
 
 if PYTHON_SWIG_ENABLED
@@ -28,5 +28,5 @@ else
 ARCHERY =
 endif
 
-SUBDIRS = TEST $(ARC0) $(ARCREST) $(EMIES) Broker $(PYTHONBROKER) JobDescriptionParser $(ARCHERY) ldap
-DIST_SUBDIRS = TEST ARC0 ARCREST EMIES Broker PythonBroker JobDescriptionParser ARCHERY ldap
+SUBDIRS = TEST $(GRIDFTPJOB) $(ARCREST) $(EMIES) Broker $(PYTHONBROKER) JobDescriptionParser $(ARCHERY) ldap
+DIST_SUBDIRS = TEST GRIDFTPJOB ARCREST EMIES Broker PythonBroker JobDescriptionParser ARCHERY ldap

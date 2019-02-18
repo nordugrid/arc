@@ -1382,10 +1382,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files plugins-globus
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/arc-dmcgridftp
-%{_libdir}/%{pkgdir}/libaccARC0.so
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
-%{_libdir}/%{pkgdir}/libaccARC0.apd
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
 %{_libdir}/%{pkgdir}/libdmcgridftp.apd
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
 %{_libdir}/libarcglobusutils.so.*

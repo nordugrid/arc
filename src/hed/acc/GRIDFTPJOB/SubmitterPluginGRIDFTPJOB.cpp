@@ -18,7 +18,7 @@
 #include <arc/compute/JobDescription.h>
 #include <arc/compute/SubmissionStatus.h>
 
-#include "SubmitterPluginARC0.h"
+#include "SubmitterPluginGRIDFTPJOB.h"
 #include "FTPControl.h"
 
 namespace Arc {
@@ -26,14 +26,14 @@ namespace Arc {
   // Characters to be escaped in LDAP filter according to RFC4515
   static const std::string filter_esc("&|=!><~*/()");
 
-  Logger SubmitterPluginARC0::logger(Logger::getRootLogger(), "SubmitterPlugin.ARC0");
+  Logger SubmitterPluginGRIDFTPJOB::logger(Logger::getRootLogger(), "SubmitterPlugin.GRIDFTPJOB");
 
-  bool SubmitterPluginARC0::isEndpointNotSupported(const std::string& endpoint) const {
+  bool SubmitterPluginGRIDFTPJOB::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
 
-  Plugin* SubmitterPluginARC0::Instance(PluginArgument *arg) {
+  Plugin* SubmitterPluginGRIDFTPJOB::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
@@ -41,15 +41,15 @@ namespace Arc {
     Glib::Module* module = subarg->get_module();
     PluginsFactory* factory = subarg->get_factory();
     if(!(factory && module)) {
-      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - SubmitterPlugin for ARC0 is disabled. Report to developers.");
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - SubmitterPlugin for GRIDFTPJOB is disabled. Report to developers.");
       return NULL;
     }
     factory->makePersistent(module);
-    return new SubmitterPluginARC0(*subarg, arg);
+    return new SubmitterPluginGRIDFTPJOB(*subarg, arg);
   }
 
 
-  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginGRIDFTPJOB::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     FTPControl ctrl;
     URL url((endpoint.find("://") == std::string::npos ? "gsiftp://" : "") + endpoint, false, 2811, "/jobs");
     URL infoURL("ldap://" + url.Host(), false, 2135, "/Mds-Vo-name=local,o=Grid");
@@ -172,7 +172,7 @@ namespace Arc {
     return retval;
   }
 
-  SubmissionStatus SubmitterPluginARC0::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+  SubmissionStatus SubmitterPluginGRIDFTPJOB::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     SubmissionStatus retval;
 
     // gridftp and ldapng intterfaces are bound. So for submiting to

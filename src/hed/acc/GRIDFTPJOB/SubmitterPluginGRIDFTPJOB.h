@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_SUBMITTERPLUGINARC0_H__
-#define __ARC_SUBMITTERPLUGINARC0_H__
+#ifndef __ARC_SUBMITTERPLUGINGRIDFTPJOB_H__
+#define __ARC_SUBMITTERPLUGINGRIDFTPJOB_H__
 
 #ifdef WIN32
 #include <fcntl.h>
@@ -14,10 +14,10 @@ namespace Arc {
   class Config;
   class SubmissionStatus;
 
-  class SubmitterPluginARC0 : public SubmitterPlugin {
+  class SubmitterPluginGRIDFTPJOB : public SubmitterPlugin {
   public:
-    SubmitterPluginARC0(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
-    ~SubmitterPluginARC0() {}
+    SubmitterPluginGRIDFTPJOB(const UserConfig& usercfg, PluginArgument* parg) : SubmitterPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~SubmitterPluginGRIDFTPJOB() {}
 
     static Plugin* Instance(PluginArgument *arg);
 
@@ -32,4 +32,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_SUBMITTERPLUGINARC0_H__
+#endif // __ARC_SUBMITTERPLUGINGRIDFTPJOB_H__

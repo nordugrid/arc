@@ -23,20 +23,20 @@
 #include <fcntl.h>
 #endif
 
-#include "JobStateARC0.h"
-#include "JobControllerPluginARC0.h"
+#include "JobStateGRIDFTPJOB.h"
+#include "JobControllerPluginGRIDFTPJOB.h"
 #include "FTPControl.h"
 
 namespace Arc {
 
-  Logger JobControllerPluginARC0::logger(Logger::getRootLogger(), "JobControllerPlugin.ARC0");
+  Logger JobControllerPluginGRIDFTPJOB::logger(Logger::getRootLogger(), "JobControllerPlugin.GRIDFTPJOB");
 
-  bool JobControllerPluginARC0::isEndpointNotSupported(const std::string& endpoint) const {
+  bool JobControllerPluginGRIDFTPJOB::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "gsiftp";
   }
 
-  Plugin* JobControllerPluginARC0::Instance(PluginArgument *arg) {
+  Plugin* JobControllerPluginGRIDFTPJOB::Instance(PluginArgument *arg) {
     JobControllerPluginArgument *jcarg =
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
@@ -44,14 +44,14 @@ namespace Arc {
     Glib::Module* module = jcarg->get_module();
     PluginsFactory* factory = jcarg->get_factory();
     if(!(factory && module)) {
-      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - SubmitterPlugin for ARC0 is disabled. Report to developers.");
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - SubmitterPlugin for GRIDFTPJOB is disabled. Report to developers.");
       return NULL;
     }
     factory->makePersistent(module);
-    return new JobControllerPluginARC0(*jcarg, arg);
+    return new JobControllerPluginGRIDFTPJOB(*jcarg, arg);
   }
 
-  void JobControllerPluginARC0::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  void JobControllerPluginGRIDFTPJOB::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     std::map<std::string, std::list<Job*> > jobsbyhost;
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if (!(*it)->JobStatusURL) {
@@ -139,7 +139,7 @@ namespace Arc {
           }
 
           if ((*xit)["nordugrid-job-status"])
-            (*jit)->State = JobStateARC0((std::string)(*xit)["nordugrid-job-status"]);
+            (*jit)->State = JobStateGRIDFTPJOB((std::string)(*xit)["nordugrid-job-status"]);
           if ((*xit)["nordugrid-job-globalowner"])
             (*jit)->Owner = (std::string)(*xit)["nordugrid-job-globalowner"];
           if ((*xit)["nordugrid-job-execqueue"])
@@ -197,7 +197,7 @@ namespace Arc {
                      PeriodMinutes);
           if ((*xit)["nordugrid-job-rerunable"])
             (*jit)->RestartState =
-              JobStateARC0((std::string)((*xit)["nordugrid-job-rerunable"]));
+              JobStateGRIDFTPJOB((std::string)((*xit)["nordugrid-job-rerunable"]));
           if ((*xit)["nordugrid-job-queuerank"])
             (*jit)->WaitingPosition =
               stringtoi((*xit)["nordugrid-job-queuerank"]);
@@ -231,7 +231,7 @@ namespace Arc {
     }
   }
 
-  bool JobControllerPluginARC0::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginGRIDFTPJOB::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -279,7 +279,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginGRIDFTPJOB::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -321,14 +321,14 @@ namespace Arc {
       }
 
       IDsProcessed.push_back(job.JobID);
-      job.State = JobStateARC0("KILLED");
+      job.State = JobStateGRIDFTPJOB("KILLED");
       logger.msg(VERBOSE, "Job cancelling successful");
     }
 
     return ok;
   }
 
-  bool JobControllerPluginARC0::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginGRIDFTPJOB::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -375,7 +375,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+  bool JobControllerPluginGRIDFTPJOB::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Job& job = **it;
@@ -443,7 +443,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginARC0::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
+  bool JobControllerPluginGRIDFTPJOB::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
     url = URL(job.JobID);
     switch (resource) {
     case Job::STDIN:
@@ -470,7 +470,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerPluginARC0::GetJobDescription(const Job& job,
+  bool JobControllerPluginGRIDFTPJOB::GetJobDescription(const Job& job,
                                             std::string& desc_str) const {
     std::string jobid = job.JobID;
     logger.msg(VERBOSE, "Trying to retrieve job description of %s from "

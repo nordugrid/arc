@@ -6,12 +6,12 @@
 
 #include <arc/loader/Plugin.h>
 
-#include "JobControllerPluginARC0.h"
-#include "SubmitterPluginARC0.h"
+#include "JobControllerPluginGRIDFTPJOB.h"
+#include "SubmitterPluginGRIDFTPJOB.h"
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
-  { "ARC0", "HED:SubmitterPlugin", "ARCs classic Grid Manager", 0, &Arc::SubmitterPluginARC0::Instance },
-  { "ARC0", "HED:JobControllerPlugin", "ARCs classic Grid Manager", 0, &Arc::JobControllerPluginARC0::Instance },
+  { "GRIDFTPJOB", "HED:SubmitterPlugin", "ARCs classic Grid Manager", 0, &Arc::SubmitterPluginGRIDFTPJOB::Instance },
+  { "GRIDFTPJOB", "HED:JobControllerPlugin", "ARCs classic Grid Manager", 0, &Arc::JobControllerPluginGRIDFTPJOB::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
 

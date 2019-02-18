@@ -1,18 +1,18 @@
-#ifndef __ARC_JOBSTATEARC0_H__
-#define __ARC_JOBSTATEARC0_H__
+#ifndef __ARC_JOBSTATEGRIDFTPJOB_H__
+#define __ARC_JOBSTATEGRIDFTPJOB_H__
 
 #include <arc/compute/JobState.h>
 
 namespace Arc {
 
-  class JobStateARC0
+  class JobStateGRIDFTPJOB
     : public JobState {
   public:
-    JobStateARC0(const std::string& state)
+    JobStateGRIDFTPJOB(const std::string& state)
       : JobState(state, &StateMap) {}
     static JobState::StateType StateMap(const std::string& state);
   };
 
 }
 
-#endif // __ARC_JOBSTATEARC0_H__
+#endif // __ARC_JOBSTATEGRIDFTPJOB_H__

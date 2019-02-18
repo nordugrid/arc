@@ -2241,7 +2241,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
-                 src/hed/acc/ARC0/Makefile
+                 src/hed/acc/GRIDFTPJOB/Makefile
                  src/hed/acc/ARCREST/Makefile
                  src/hed/acc/EMIES/Makefile
                  src/hed/acc/EMIES/arcemiestest.1

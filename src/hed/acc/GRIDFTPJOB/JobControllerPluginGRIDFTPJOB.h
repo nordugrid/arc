@@ -1,7 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
-#ifndef __ARC_JOBCONTROLLERARC0_H__
-#define __ARC_JOBCONTROLLERARC0_H__
+#ifndef __ARC_JOBCONTROLLERGRIDFTPJOB_H__
+#define __ARC_JOBCONTROLLERGRIDFTPJOB_H__
 
 #include <arc/compute/JobControllerPlugin.h>
 
@@ -9,10 +9,10 @@ namespace Arc {
 
   class URL;
 
-  class JobControllerPluginARC0 : public JobControllerPlugin {
+  class JobControllerPluginGRIDFTPJOB : public JobControllerPlugin {
   public:
-    JobControllerPluginARC0(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
-    ~JobControllerPluginARC0() {}
+    JobControllerPluginGRIDFTPJOB(const UserConfig& usercfg, PluginArgument* parg) : JobControllerPlugin(usercfg, parg) { supportedInterfaces.push_back("org.nordugrid.gridftpjob"); }
+    ~JobControllerPluginGRIDFTPJOB() {}
 
     static Plugin* Instance(PluginArgument *arg);
 
@@ -34,4 +34,4 @@ namespace Arc {
 
 } // namespace Arc
 
-#endif // __ARC_JOBCONTROLLERARC0_H__
+#endif // __ARC_JOBCONTROLLERGRIDFTPJOB_H__
