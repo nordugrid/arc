@@ -38,10 +38,6 @@
 
 #include <openssl/ui.h>
 
-#ifdef HAVE_CANLXX
-#include <canl-c++/canlxx.h>
-#endif
-
 /*
 #ifdef HAVE_NSS
 #include <arc/credential/NSSUtil.h>

@@ -840,33 +840,6 @@ AC_SUBST(SQLITE_CFLAGS)
 AC_SUBST(SQLITE_LIBS)
 AM_CONDITIONAL([SQLITE_ENABLED], test x$SQLITE_INSTALLED = xyes)
 
-#check emi common authentiation library
-enables_canlxx=no
-AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
-if test "x$enables_canlxx" = "xyes"; then
-  AC_ARG_WITH(canlxx,
-    AC_HELP_STRING([--with-canlxx=PATH], [CANL++ installation path]),
-    [
-      if test "x$PKG_CONFIG_PATH" != "x"; then
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
-      fi
-    ]
-  )
-  AC_MSG_NOTICE([PKG_CONFIG_PATH for CANL++ is: $PKG_CONFIG_PATH])
-  PKG_CHECK_MODULES(CANLXX, [canl-c++], [], [
-    AC_MSG_NOTICE([Failed to find EMI common authentication libraries])
-    enables_canlxx=no
-  ])
-fi
-if test "x$enables_canlxx" = "xyes" ; then
-  AC_DEFINE(HAVE_CANLXX,,[define if CANL++ is enabled and available])
-fi
-AC_SUBST(CANLXX_CFLAGS)
-AC_SUBST(CANLXX_LIBS)
-AM_CONDITIONAL(CANLXX_ENABLED, test "x$enables_canlxx" = "xyes")
-
 # check cppunit
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enables_cppunit=$enableval],[])
@@ -2557,7 +2530,6 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
-CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}
