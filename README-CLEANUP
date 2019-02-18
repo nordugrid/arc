@@ -48,7 +48,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    - a-rex/ldiff (some ldif to xml converter).  is this in use?, Aleks
    
    - a-rex/infoproviders/glue-generator.pl DELETE since we drop GLUE1 schema, Florido
-     > are you guys crazy? you want to lose all customers in one go? I suggest we remove this in arc6. --Florido
+     > are you guys crazy? you want to lose all customers in one go? I suggest we remove this in arc7. --Florido
    
    - infoproviders should not publish the following: nordugrid-authuser objectclass, obsoleted endpoints such as BES,GLUE1,WSRF  Florido
    
