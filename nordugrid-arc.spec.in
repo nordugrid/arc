@@ -98,8 +98,6 @@
 %global with_gfal 0
 %endif
 
-%global with_canl 0
-
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0}
 %global with_xmlsec1 %{!?_without_xmlsec1:1}%{?_without_xmlsec1:0}
 %else
@@ -202,9 +200,7 @@ Obsoletes:	%{name}-hopi < 2.0.0
 Obsoletes:	%{name}-isis < 2.0.0
 Obsoletes:	%{name}-janitor < 2.0.0
 Obsoletes:	%{name}-doxygen < 4.0.0
-%if ! %{with_canl}
 Obsoletes:	%{name}-arcproxyalt < %{version}-%{release}
-%endif
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
 
@@ -245,9 +241,6 @@ BuildRequires:	globus-ftp-control-devel
 BuildRequires:	globus-gssapi-gsi-devel >= 12.2
 %else
 BuildRequires:	globus-gssapi-gsi-devel < 12.2
-%endif
-%if %{with_canl}
-BuildRequires:	canl-c++-devel
 %endif
 %if %{with_xrootd}
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 5
@@ -354,20 +347,6 @@ For the regular user of any ARC-based computational grid,
 this client package contains (or depends on) all packages
 that are needed to submit jobs, query their status and
 retrieve results.
-
-%if %{with_canl}
-%package arcproxyalt
-Summary:	ARC proxy client based on canl
-Group:		Applications/Internet
-Requires:	%{name} = %{version}-%{release}
-
-%description arcproxyalt
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package includes a preview of the arcproxy command based on canl.
-%endif
 
 %package hed
 Summary:	ARC Hosting Environment Daemon
@@ -848,9 +827,6 @@ fi
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
      --with-altpython=%{__altpython} \
 %endif
-%if %{with_canl}
-     --enable-canlxx \
-%endif
 %if ! %{with_xrootd}
      --disable-xrootd \
 %endif
@@ -1129,12 +1105,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
-
-%if %{with_canl}
-%files arcproxyalt
-%defattr(-,root,root,-)
-%{_bindir}/arcproxyalt
-%endif
 
 %files hed
 %defattr(-,root,root,-)
