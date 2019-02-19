@@ -912,16 +912,27 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
     add_rrs = new_dns_rrset - old_dns_rrset
 
     try:
-        update = dns.update.Update(domain, keyring=keyring,
-                                   keyalgorithm=keyalgorithm)
+        update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
         for r in remove_rrs:
             logger.debug('Going to REMOVE record by means of DDNS update: %s', r)
             rr = r.split(' ', 1)
             update.delete(rr[0], 'txt', rr[1].replace(' ', r'\ '))
+            if len(update.to_wire()) > 65000:
+                logger.info('Size limit reached. Sending partial update to DNS master %s via DDNS '
+                            'protocol (using TSIG key %s)', nameserver, list(keyring_dict.keys())[0])
+                dns.query.tcp(update, nameserver)
+                update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+
         for a in add_rrs:
             logger.debug('Going to ADD record by means of DDNS update: %s', a)
             ar = a.split(' ', 1)
             update.add(ar[0], ttl, 'txt', ar[1].replace(' ', r'\ '))
+            if len(update.to_wire()) > 65000:
+                logger.info('Size limit reached. Sending partial update to DNS master %s via DDNS'
+                            'protocol (using TSIG key %s)', nameserver, list(keyring_dict.keys())[0])
+                dns.query.tcp(update, nameserver)
+                update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+
         logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
                     nameserver, list(keyring_dict.keys())[0])
         dns.query.tcp(update, nameserver)
