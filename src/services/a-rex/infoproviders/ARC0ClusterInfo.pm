@@ -17,6 +17,21 @@ sub mds_date {
     return strftime("%Y%m%d%H%M%SZ", gmtime($seconds));
 }
 
+# sub to pick a value in order: first value preferred to others
+# can have as many parameters as one wants.
+sub prioritizedvalues {
+   my @values = @_;
+
+   while (@values) {
+      my $current = shift @values;
+      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
+  }
+
+   # just in case all the above fails, return empty string
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
+   return undef;
+}
+
 ############################################################################
 # Combine info from all sources to prepare the final representation
 ############################################################################
@@ -323,18 +338,23 @@ sub collect($) {
             $q->{nodememory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
             $q->{architecture} = $sconfig->{Platform}
                 if $sconfig->{Platform};
-            push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
-                if $sconfig->{OSName} and $sconfig->{OSVersion};
-            push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            # override instead of merging
+            if ($sconfig->{OSName} and $sconfig->{OSVersion}) {
+                push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
+            } else {
+                push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            }
             $q->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
                 if $sconfig->{Benchmark};
             $q->{maxrunning} = $qinfo->{maxrunning} if defined $qinfo->{maxrunning};
             $q->{maxqueuable}= $qinfo->{maxqueuable}if defined $qinfo->{maxqueuable};
             $q->{maxuserrun} = $qinfo->{maxuserrun} if defined $qinfo->{maxuserrun};
-            $q->{maxcputime} = int $qinfo->{maxcputime}/60 if defined $qinfo->{maxcputime};
+            $q->{maxcputime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
+            $q->{maxcputime} = defined $q->{maxcputime} ? int $q->{maxcputime}/60 : undef;
             $q->{mincputime} = int $qinfo->{mincputime}/60 if defined $qinfo->{mincputime};
             $q->{defaultcputime} = int $qinfo->{defaultcput}/60 if defined $qinfo->{defaultcput};
-            $q->{maxwalltime} =  int $qinfo->{maxwalltime}/60 if defined $qinfo->{maxwalltime};
+            $q->{maxwalltime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
+            $q->{maxwalltime} = defined $q->{maxwalltime} ? int $q->{maxwalltime}/60 : undef;
             $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};

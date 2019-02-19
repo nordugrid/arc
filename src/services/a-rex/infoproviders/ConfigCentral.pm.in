@@ -111,6 +111,8 @@ my $share_options = {
     totalcpus => '*',
     defaultmemory => '*',
     AdvertisedVO =>  [ '*' ],
+    maxcputime => '*',
+    maxwalltime => '*'
 };
 my $gmuser_options = {
     controldir => '',
@@ -242,6 +244,7 @@ my $config_schema = {
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
+        # TODO: This causes odd/unsupported options to pass the checks
         %$xenv_options,
         %$share_options,
         QualityLevel => ''
@@ -652,13 +655,10 @@ sub build_config_from_json {
         $log->error('Infoproviders cannot continue without the [infosys/glue2] block. Please add it. Exiting...')
     }
 
-    ############################ legacy ini config file structure #############################
-
-
+    ### Process infosys/cluster
     my $cluster = $jsonconf->{'infosys/cluster'};
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
-        rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
         rename_keys $cluster, $config->{location}, { cluster_location => 'PostCode' };
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
@@ -682,6 +682,7 @@ sub build_config_from_json {
                 $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
             }
         }
+        # TODO: this causes possibly unsupported values like OSName, OSVersion to be moved and not renamed
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
         # TODO: check if this is needed
         move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
@@ -735,7 +736,9 @@ sub build_config_from_json {
 
         # TODO: change opsys here if needed
         rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
-                                      opsys => 'OpSys', benchmark => 'Benchmark'};
+                                      opsys => 'OpSys', osname => 'OSName',
+                                      osversion => 'OSVersion', osfamily => 'OSFamily',
+                                      benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
         
         # TODO: what is this?

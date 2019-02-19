@@ -104,7 +104,7 @@ class TestCAControl(ComponentControl):
             keyfname = hostcertfiles.keyLocation.split('/')[-1]
             if not args.force:
                 if os.path.exists(os.path.join(workdir, certfname)) or os.path.exists(os.path.join(workdir, keyfname)):
-                    self.logger.error('Host certificate for %s is already exists.', hostname)
+                    self.logger.error('Host certificate for %s already exists.', hostname)
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
@@ -114,7 +114,7 @@ class TestCAControl(ComponentControl):
         else:
             if not args.force:
                 if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
-                    logger.error('Host certificate is already exists.')
+                    logger.error('Host certificate already exists.')
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
             logger.info('Installing generated host certificate to %s', self.__test_hostcert)
@@ -143,18 +143,18 @@ class TestCAControl(ComponentControl):
             try:
                 pw = pwd.getpwnam(args.install_user)
             except KeyError:
-                self.logger.error('Specified user %s is not exist.', args.install_user)
+                self.logger.error('Specified user %s does not exist.', args.install_user)
                 self._remove_certs_and_exit(usercertfiles)
             # get homedir
             homedir = pw.pw_dir
             if not os.path.isdir(homedir):
-                self.logger.error('Home directory %s is not exists for user %s', homedir, args.install_user)
+                self.logger.error('Home directory %s does not exist for user %s', homedir, args.install_user)
                 self._remove_certs_and_exit(usercertfiles)
             # .globus usercerts location
             usercertsdir = homedir + '/.globus'
             if os.path.exists(usercertsdir + '/usercert.pem') or os.path.exists(usercertsdir + '/userkey.pem'):
                 if not args.force:
-                    self.logger.error('User credentials are already exists in %s. Use \'--force\' to overwrite.',
+                    self.logger.error('User credentials already exist in %s. Use \'--force\' to overwrite.',
                                       usercertsdir)
                     self._remove_certs_and_exit(usercertfiles)
             if not os.path.isdir(usercertsdir):
@@ -247,7 +247,7 @@ class TestCAControl(ComponentControl):
 
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
-        testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
         testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
 
@@ -255,7 +255,7 @@ class TestCAControl(ComponentControl):
         add_parser_digest_validity(testca_host, 30)
         testca_host.add_argument('-n', '--hostname', action='store',
                                  help='Generate certificate for specified hostname instead of this host')
-        testca_host.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_host.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
         testca_user = testca_actions.add_parser('usercert', help='Generate and sign testing user certificate')
         add_parser_digest_validity(testca_user, 30)
@@ -265,5 +265,5 @@ class TestCAControl(ComponentControl):
                                  help='Install certificates to $HOME/.globus for specified user instead of workdir')
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
-        testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
         testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

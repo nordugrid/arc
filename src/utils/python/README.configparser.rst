@@ -218,7 +218,7 @@ Using BASH export::
   # eval "$( arcconfig-parser --block infosys --block arex --block common --export bash )"
   # echo "$CONFIG_gridmap"
 
-Check block(s) exists (``[common/perflog]`` is not exists in the example)::
+Check block(s) exists (``[common/perflog]`` does not exists in the example)::
 
   # arcconfig-parser --block common/perflog --block arex
   # echo $?

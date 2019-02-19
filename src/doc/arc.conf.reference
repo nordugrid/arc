@@ -667,6 +667,7 @@
 
 ## boinc_app_id - ID of the app handled by this CE. Setting this option
 ## makes database queries much faster in large projects with many apps.
+## default: undefined
 #boinc_app_id=1
 ##
 ##
@@ -887,10 +888,11 @@
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
 ##   "onsuccess", "onfailure", "ontimeout"
 ##      defines the action that A-REX should take on succesfull execution (exit code 0), 
-##      failed execution (exit code is not 0) or execution timeout respectively:
-##        - "pass" - continue executing job,
-##        - "fail" - cancel job,
-##        - "log" - write to log about the failure and continue executing job.
+##      failed execution (exit code is not 0) or execution timeout respectively.
+## Possible actions are:
+##   - "pass" - continue executing job,
+##   - "fail" - cancel job,
+##   - "log" - write to log about the failure and continue executing job.
 ## It is possible to use following sugstitutions to construct plugin command line:
 ##   - "%R" - session root (value of sessiondir in [arex] block)
 ##   - "%C" - controldir path
@@ -1744,7 +1746,7 @@
 ## This block enables and configures the gridftp server. The usage of the gridftp is
 ## twofold in connection with ARC: 1) The server together with its custom jobplugin
 ## can be used as a job submission and management interface for an ARC CE.
-## 2) The server with the fileplugin can be used as a very simplistic storage element.
+## 2) The server with the filedirplugin can be used as a very simplistic storage element.
 ## This block configures the common server capabilities. To make the gridftp service functional,
 ## you need to enable at least one of the plugin subblocks as well.
 #[gridftpd]
@@ -1906,9 +1908,9 @@
 
 
 ### The [gridftpd/filedir] block #########################################
-## The fileplugin module of the gridftp server can be used to set up a
+## The filedirplugin module of the gridftp server can be used to set up a
 ## simplistic grid storage element (SE). This subblock enables and configures
-## such an SE by "exporting" a directory using the gridftpd's fileplugin.
+## such an SE by "exporting" a directory using the gridftpd's filedirplugin.
 ## Comment out this block if you don't need a SE.
 #[gridftpd/filedir]
 
@@ -2347,20 +2349,18 @@
 ##
 ### end of the [infosys/glue1/site-bdii] block ###################################
 
-
-
-## Information schema-neutral blocks [infosys/cluster] and [queue/NAME] contain attributes
+### The [infosys/cluster] block ###################################################
+## Information schema-neutral blocks [infosys/cluster] and [queue:NAME] contain attributes
 ## that describe the computing cluster together with its queues. The parameters are
 ## available for every information model/schema representation.
-
-### The [infosys/cluster] block ###################################################
+##
 ## This block describes the cluster characteristics of a Computing Element.
 ## The information specified here is mostly used by the Infosys ARC component.
 #[infosys/cluster]
 
 ## alias = text - An arbitrary alias name of the cluster, optional.
 ## default: undefined
-#cluster_alias=Big Blue Cluster in Nowhere
+#alias=Big Blue Cluster in Nowhere
 
 ## hostname = fqdn - Set the FQDN of the frontend.
 ## default: $VAR{[common]hostname}
@@ -2440,11 +2440,15 @@
 ## If the NODES are inhomogeneous with respect to this attribute do NOT set it on
 ## cluster level, arrange your nodes into homogeneous groups assigned to a queue
 ## and use queue-level attributes.
-## opsys will be used to fill GLUE2 OSName, OSVersion and OSFamily unless
-## these values are explicitly defined. See below for their usage.
+## If opsys=adotf, will result in Automatic Determination of the Operating System
+## On The Frontend, which should only be used if the frontend has the same 
+## OS as the nodes.
+## The adotf discovered values will be used to fill GLUE2 OSName, OSVersion
+## and OSFamily unless these values are explicitly defined for each queue.
+## See the [queue:queuename] block for their usage.
+## Note: Any custom value other than 'adotf' does NOT affect values in the GLUE2 schema.
 ## multivalued
-## default: undefined
-## TODO: check if adotf is supported for this parameter. If so, use that as default.
+## default: adotf
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 #opsys=CentOS-5.6
@@ -2513,6 +2517,25 @@
 #cpudistribution=1cpu:3,2cpu:4,4cpu:1
 ##
 ##
+
+## maxcputime = number - This is the maximum CPU time specified in seconds
+## that the LRMS can allocate for the job. The default if not defined 
+## is that infoproviders get this value automatically from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#maxcputime=300000
+
+## maxwalltime = number - This is the maximum Wall time specified in 
+## seconds that the LRMS can allocate for the job. The default 
+## if not defined is that infoproviders get this value automatically 
+## from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#maxwalltime=600000
 ### end of the [infosys/cluster] block #####################
 
 
@@ -2606,8 +2629,8 @@
 ## attributes. When the frontend's architecture or cputype agrees with the queue
 ## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to
 ## request automatic determination of architecture or nodecpu.
-## For GLUE2, fine tune configuration of OSName, OSVersion, OSFamily
-## is allowed in a dedicated subblock.
+## For GLUE2, fine tune configuration of ExecutionEnvironments' OSName, OSVersion, OSFamily
+## is allowed with dedicated options osname,osversion,osfamily.
 
 ## nodecpu = formatted_string - see description at [infosys/cluster] block
 ## default: $VAR{[infosys/cluster]nodecpu}
@@ -2630,21 +2653,30 @@
 #architecture=adotf
 
 ## opsys = formatted_string - see description at [infosys/cluster] block
+## If osname, osversion are present, the values in opsys are ignored. 
 ## multivalued
 ## default: $VAR{[infosys/cluster]opsys}
 #opsys=Linux-2.6.18
 #opsys=glibc-2.5.58
 
 ## osname = string - Only for GLUE2
-## multivalued
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osname=Ubuntu
 
 ## osversion = string - Only for GLUE2
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osversion=12.04
 
 ## osfamily = string - Only for GLUE2
+## overrides values defined in opsys for a single ExecutionEnvironment.
+## Configuration of multiple ExecutionEnvironment for the same queue
+## is not supported. Create a different queue for that.
 ## default: undefined
 #osfamily=linux
 
@@ -2713,7 +2745,15 @@
 ## CHANGE: documented in [queue] as described in [arex]
 ##
 ##
-## TODO: add Florido's new variables both to the queue and cluster block (maxcputime and maxwalltime)
+## maxcputime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#maxcputime=300000
+
+## maxwalltime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#maxwalltime=600000
 ### end of the [queue:name] blocks ########################
 
 
@@ -3022,7 +3062,7 @@
 ##         information)
 ##    "allow_empty_unixid = no"
 ##         then nordugridmap will skip users without mapping information
-##		   (if no mapping information provided by sources)
+##         (if no mapping information provided by sources)
 ## default: nobody
 #mapped_unixid=
 #mapped_unixid=gridtest

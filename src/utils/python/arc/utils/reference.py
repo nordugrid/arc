@@ -154,14 +154,14 @@ __rst_top_header = """\
 ARC Configuration Reference Document
 ************************************
 
-Configuration structure
-=======================
+General configuration structure
+===============================
 
 """
 
 __rst_blocks_header = """\
-Configuration blocks
-====================
+Configuration blocks and options
+================================
 
 """
 

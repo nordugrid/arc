@@ -83,7 +83,7 @@ namespace Arc {
      * \param size size of every buffer in bytes.
      * \param blocks number of buffers.
      */
-    DataBuffer(unsigned int size = 65536, int blocks = 3);
+    DataBuffer(unsigned int size = 1048576, int blocks = 3);
     /// Construct a new DataBuffer object with checksum computation
     /**
      * \param size size of every buffer in bytes.
@@ -91,7 +91,7 @@ namespace Arc {
      * \param cksum object which will compute checksum. Should not be
      * destroyed until DataBuffer itself.
      */
-    DataBuffer(CheckSum *cksum, unsigned int size = 65536, int blocks = 3);
+    DataBuffer(CheckSum *cksum, unsigned int size = 1048576, int blocks = 3);
     /// Destructor.
     ~DataBuffer();
     /// Reinitialize buffers with different parameters.
@@ -102,7 +102,7 @@ namespace Arc {
      * destroyed until DataBuffer itself.
      * \return true if buffers were successfully initialized
      */
-    bool set(CheckSum *cksum = NULL, unsigned int size = 65536,
+    bool set(CheckSum *cksum = NULL, unsigned int size = 1048576,
              int blocks = 3);
     /// Add a checksum object which will compute checksum of buffer.
     /**

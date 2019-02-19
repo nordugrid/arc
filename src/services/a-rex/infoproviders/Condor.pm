@@ -483,7 +483,7 @@ sub cluster_info ($) {
 
     my %lrms_cluster;
 
-    configure_condor_env(%$config) or die "Condor executables or config file not found\n";
+    configure_condor_env(%$config) or error("Condor executables (in condor_bin_path) or config file (condor_config) not found, check configuration. Exiting...");
 
     collect_node_data();
     collect_job_data();
@@ -529,7 +529,7 @@ sub queue_info ($$) {
     warning("Option 'condor_requirements' is not defined for queue $qname") unless $qdef;
     debug("===Requirements for queue $qname: $qdef");
     
-    configure_condor_env(%$config) or die "Condor executables or config file not found\n";
+    configure_condor_env(%$config) or error("Condor executables (in condor_bin_path) or config file (condor_config) not found, check configuration. Exiting...");
 
     collect_node_data();
     collect_job_data();
