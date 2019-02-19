@@ -297,6 +297,9 @@ def archery_services(archery_object, stype=None):
 def archery_txt_rrset(archery_object):
     """Returns set of TXT RRs for ARCHERY object tree"""
     rrset = set()
+    if 'rr_owner' not in archery_object:
+        logger.error('Malformed archery object to generate RRset data. Execution aborted.')
+        sys.exit(1)
     rr_owner = archery_object['rr_owner']
     # construct object record
     if 'object' in archery_object:
@@ -318,10 +321,21 @@ def archery_txt_rrset(archery_object):
     # add child records
     if 'contains' in archery_object:
         for cdata in archery_object['contains']:
+            # status
             estatus = ''
             if 'status' in cdata and cdata['status'] != 1:
                 estatus = ' s={0}'.format(cdata['status'])
-            rrset.add('{0} u=dns://{1} t=org.nordugrid.archery{2}'.format(rr_owner, cdata['rr_owner'], estatus))
+            # child type
+            if 'child_type' in cdata:
+                ctype = cdata['child_type']
+            elif 'object' in cdata:
+                ctype = 'archery.' + cdata['object']
+            else:
+                if 'contains' in cdata and len(cdata['contains']) > 0:
+                    ctype = 'archery.group'
+                else:
+                    ctype = 'archery.service'
+            rrset.add('{0} u=dns://{1} t={2}{3}'.format(rr_owner, cdata['rr_owner'], ctype, estatus))
             rrset |= archery_txt_rrset(cdata)
     return rrset
 
@@ -431,6 +445,23 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=
     return endpoints
 
 
+def dns_rr_owner_name(archery_object, parent_owner):
+    """Generate RR owner name based on the object content and parent owner name"""
+    # TODO: consider to add another naming schemes
+    # concatenate different object attribute values
+    strid = parent_owner
+    if 'object' in archery_object:
+        strid += archery_object['object']
+    else:
+        strid += 'group'
+    if 'type' in archery_object:
+        strid += archery_object['type']
+    if 'id' in archery_object:
+        strid += archery_object['id']
+    # produce SHA1 hash (SHA1 selected for best speed) and shorten it
+    return hashlib.sha1(strid).hexdigest()[:10]
+
+
 def get_arc_ce_group(ce_list, rr_owner='_archery', applied_filters=None):
     """Create ARCHERY data object that represent ARC CE services group"""
     archery_object = {
@@ -446,15 +477,13 @@ def get_arc_ce_group(ce_list, rr_owner='_archery', applied_filters=None):
             'type': 'org.nordugrid.arex',
             'id': ce
         }
-        service_hash = hashlib.sha1(json.dumps(service_object)).hexdigest()[:10]
-
+        service_hash = dns_rr_owner_name(service_object, rr_owner)
         service_object['rr_owner'] = service_hash + '.' + rr_owner
         service_object['endpoints'] = get_arc_ce_endpoints_ldapglue2(ce, filters=applied_filters)
 
         archery_object['contains'].append(service_object)
 
     return archery_object
-
 
 
 #
@@ -469,12 +498,16 @@ _tsig_algorithms = {
     'HMAC-SHA512': dns.tsig.HMAC_SHA512,
 }
 
+
 def parse_archery_txt(txtstr):
     """Get data dict from ARCHERY DNS TXT string representation"""
     rrdata = {}
     for kv in txtstr.split(' '):
+        # only one letter keys and 'id' is supported now
         if kv[1] == '=':
             rrdata[kv[0]] = kv[2:]
+        elif kv.startswith('id='):
+            rrdata['id'] = kv[3:]
         else:
             logger.debug('Malformed archery TXT entry %s (%s does not match k=value)', txtstr, kv)
     return rrdata
@@ -516,8 +549,20 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
             # other records that contains endpoint/grouping data
             elif 'u' in rrdata:
                 if 't' in rrdata:
-                    if rrdata['t'] == 'org.nordugrid.archery':
+                    if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery']:
+                        # fetch the data from DNS
                         child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver)
+                        # record child object type
+                        child_object['child_type'] = rrdata['t']
+                        # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
+                        if 'rr_owner' not in child_object:
+                            child_rr_owner = rrdata['u']
+                            if child_rr_owner.startswith('dns://'):
+                                child_rr_owner = child_rr_owner[6:]
+                            if child_rr_owner.endswith(dns_name):
+                                child_rr_owner = child_rr_owner[:-len(dns_name)]
+                            child_object['rr_owner'] = child_rr_owner
+                        # add status for child object if defined
                         if 's' in rrdata and rrdata['s'] != '1':
                             child_object['status'] = 0
                         archery_object['contains'].append(child_object)
@@ -699,7 +744,8 @@ if __name__ == '__main__':
     if cmd_args.ddns_update:
         logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
                     nameserver, list(keyring_dict.keys())[0])
-        archery_ddns_update(domain, nameserver, keyring_dict, archery_object)
+        archery_ddns_update(domain, nameserver, keyring_dict, archery_object,
+                            keyalgorithm = _tsig_algorithms[cmd_args.ddns_tsig_algorithm])
 
     # Output information if requested
     if cmd_args.output:
