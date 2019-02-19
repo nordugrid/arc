@@ -649,16 +649,29 @@ def fetch_infosys_data(archery_object, applied_filters=None):
     """Process topology tree and fetch infosys data to be added into the ARCHERY"""
     if 'endpoints' in archery_object:
         if 'endpoints_fetch' in archery_object:
+            fetched = []
             for fetch_method in archery_object['endpoints_fetch'].keys():
                 fetch_f = __fetch_data_map[fetch_method]
                 fdata = fetch_f(archery_object['endpoints_fetch'][fetch_method], filters=applied_filters)
-                archery_object['endpoints'] += fdata
+                fetched += fdata
+            if fetched:
+                archery_object['endpoints'] += fetched
+            else:
+                # mark as inactive if no endpoints are fetched
+                archery_object['status'] = 0
+
     if 'contains' in archery_object:
         if 'contains_fetch' in archery_object:
+            fetched = []
             for fetch_method in archery_object['contains_fetch'].keys():
                 fetch_f = __fetch_data_map[fetch_method]
                 fdata = fetch_f(archery_object['contains_fetch'][fetch_method], filters=applied_filters)
-                archery_object['contains'] += fdata
+                fetched += fdata
+            if fetched:
+                archery_object['contains'] += fetched
+            else:
+                # mark as inactive if no child objects are fetched
+                archery_object['status'] = 0
         # recursively process tree
         for child_object in archery_object['contains']:
             fetch_infosys_data(child_object, applied_filters)
@@ -789,17 +802,18 @@ def parse_archery_txt(txtstr):
     return rrdata
 
 
-def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
+def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name=''):
     """Get ARCHERY data from DNS endpoint"""
     archery_object = {
         'contains': [],
-        'endpoints': []
+        'endpoints': [],
+        'rr_owner': ''
     }
-    # construct archery exact domain name to query
+    # construct archery exact domain name to query (ensure the dot is at the end)
     if dns_name[0:6] == 'dns://':
-        dns_name = dns_name[6:]
+        dns_name = dns_name[6:].rstrip('.') + '.'
     else:
-        dns_name = '_archery.' + dns_name
+        dns_name = '_archery.' + dns_name.rstrip('.') + '.'
     # create DNS resolver
     if resolver is None:
         resolver = dns.resolver.Resolver()
@@ -811,8 +825,8 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
         archery_rrs = resolver.query(dns_name, 'TXT')
         # get RRSet owner name (without full DNS suffix including dot)
         rrset_name = str(archery_rrs.rrset.name)
-        if rrset_name.endswith(dns_name):
-            rrset_name = rrset_name[:-(len(dns_name)+1)]
+        if parent_name and rrset_name.endswith(parent_name):
+            rrset_name = rrset_name[:-(len(parent_name)+1)]
         archery_object['rr_owner'] = rrset_name
         guess_object_kind = 'group'
         for rr in archery_rrs:
@@ -831,7 +845,7 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
                 if 't' in rrdata:
                     if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery']:
                         # fetch the data from DNS
-                        child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver)
+                        child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver, parent_name=dns_name)
                         # record child object type
                         child_object['child_type'] = rrdata['t']
                         # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
@@ -839,8 +853,8 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None):
                             child_rr_owner = rrdata['u']
                             if child_rr_owner.startswith('dns://'):
                                 child_rr_owner = child_rr_owner[6:]
-                            if child_rr_owner.endswith(dns_name):
-                                child_rr_owner = child_rr_owner[:-len(dns_name)]
+                            if child_rr_owner.endswith(parent_name):
+                                child_rr_owner = child_rr_owner[:-len(parent_name)]
                             child_object['rr_owner'] = child_rr_owner
                         # add status for child object if defined
                         if 's' in rrdata and rrdata['s'] != '1':
