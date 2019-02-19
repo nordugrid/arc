@@ -94,7 +94,7 @@ def output_services(archery_object, cmd_args):
 def output_zonefile(archery_object, cmd_args, ttl=300):
     """Output the content of BIND zone file"""
     if cmd_args.json:
-        logger.error('JSON format is not supported by zone file formatter')
+        logger.error('JSON format is not supported by DNS zone file formatter')
     if cmd_args.output_all:
         logger.debug('ARCHERY zone file formatter includes all endpoints by default and ignore --output-all option')
 
@@ -121,7 +121,7 @@ _output_formatters = {
 class EndpointFilter(object):
     """Abstract interface class for implementing endpoint filters"""
     def filter(self, endpoint_dict):
-        raise NotImplementedError('Filter function should be implemented (return True is for filtering)')
+        raise NotImplementedError('Filter function should be implemented (return True means filtering)')
 
     def help(self):
         raise NotImplementedError('Help function should be implemented')
@@ -149,7 +149,7 @@ class EndpointFilterType(EndpointFilter):
         logger.debug('Endpoint type filter: checking %s (type %s) complies filter definition',
                      endpoint_dict['u'], endpoint_dict['t'])
         if endpoint_dict['t'] not in self._allowed_endpoint_types:
-            logger.info('Endpoint %s of type %s filtered (type filter)', endpoint_dict['u'], endpoint_dict['t'])
+            logger.info('Endpoint %s (type %s) filtered (type filter)', endpoint_dict['u'], endpoint_dict['t'])
             return True
         return False
 
@@ -172,18 +172,18 @@ class EndpointFilterPortscan(EndpointFilter):
             address = uri_parms['host']
             port = int(uri_parms['port'])
             try:
-                logger.debug('Portscan Filter: testing %s:%s connectivity.', address, port)
+                logger.debug('Portscan filter: testing %s:%s connectivity.', address, port)
                 s.settimeout(5)
                 s.connect((address, port))
             except Exception as err:
-                logger.info('Endpoint %s of type %s filtered (port connectivity filter). Exception is %s',
+                logger.info('Endpoint %s (type %s) filtered (port connectivity filter). Exception is %s',
                             endpoint_dict['u'], endpoint_dict['t'], err)
                 return True
             finally:
                 s.close()
             return False
         else:
-            logger.error('Endpoint %s of type %s filtered (port connectivity filter). Failed to parse URI.',
+            logger.error('Endpoint %s (type %s) filtered (port connectivity filter). Failed to parse URI.',
                          endpoint_dict['u'], endpoint_dict['t'])
             return True
 
@@ -217,7 +217,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
                 uri_parms = uri_data.groupdict()
                 ldap_uri = 'ldap://{}:2135/o=grid'.format(uri_parms['host'])
             else:
-                logger.error('Endpoint %s of type %s filtered (allowed VO filter). Failed to parse URI.',
+                logger.error('Endpoint %s (type %s) filtered (allowed VO filter). Failed to parse URI.',
                              endpoint_dict['u'], endpoint_dict['t'])
                 return True
         else:
@@ -257,11 +257,11 @@ class EndpointFilterAllowedVO(EndpointFilter):
                     volist = [v.split(':', 1)[1] for v in volist[ldap_attrs[0]]]
                     for vo in self._allowed_vos:
                         if vo not in volist:
-                            logger.info('Endpoint %s of type %s filtered (allowed VO filter)', endpoint_dict['u'],
+                            logger.info('Endpoint %s (type %s) filtered (allowed VO filter)', endpoint_dict['u'],
                                         endpoint_dict['t'])
                             return True
             except ldap.LDAPError as err:
-                logger.error('Endpoint %s of type %s filtered (allowed VO filter). '
+                logger.error('Endpoint %s (type %s) filtered (allowed VO filter). '
                              'Failed to query LDAP endpoint %s to apply VO filter. Error: %s',
                              endpoint_dict['u'], endpoint_dict['t'], ldap_uri, err)
                 return True
@@ -282,7 +282,7 @@ _filters = {
 # ARCHERY DATA PROCESSING
 #
 def archery_endpoints(archery_object, etype=None):
-    """Returns list of endpoint data from ARCHERY object tree"""
+    """Return list of endpoint data from ARCHERY object tree"""
     endpoints = []
     # add endpoint records
     if 'endpoints' in archery_object:
@@ -300,7 +300,7 @@ def archery_endpoints(archery_object, etype=None):
 
 
 def archery_services(archery_object, stype=None):
-    """Returns list of services data from ARCHERY object tree"""
+    """Return list of services data from ARCHERY object tree"""
     services = []
     # detect type of object
     if 'object' in archery_object:
@@ -339,10 +339,10 @@ def archery_services(archery_object, stype=None):
 
 
 def archery_txt_rrset(archery_object, parent_rr_owner=''):
-    """Returns set of TXT RRs for ARCHERY object tree"""
+    """Return set of TXT RRs for ARCHERY object tree"""
     rrset = set()
     if 'rr_owner' not in archery_object:
-        logger.error('Malformed archery object to generate RRset data. Execution aborted.')
+        logger.error('Malformed archery object to generate RRSet data. Execution aborted.')
         sys.exit(1)
     rr_owner = archery_object['rr_owner']
     if parent_rr_owner:
@@ -397,7 +397,7 @@ def get_file_celist(fpath):
             ce_list = [line.strip() for line in fd]
             return ce_list
     except EnvironmentError:
-        logger.error('Failed to open file %s to read CE list', fpath)
+        logger.error('Failed to open file %s to read AEC CE list', fpath)
     return ce_list
 
 
@@ -425,7 +425,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=5):
         egiis_entries = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_BASE)
 
         if egiis_entries is None:
-            logger.error('Querying EGIIS %s returns empty result set.', egiis_uri)
+            logger.error('EGIIS %s query returns empty result set.', egiis_uri)
             return ce_list
 
         for egiis_dn, egiis_entry in egiis_entries:
@@ -444,7 +444,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=5):
 # INFO ENDPOINTS PROCESSING FUNCTION
 #
 def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=None):
-    """Get CE endpoints by querying ARIS GLUE2"""
+    """Get ARC CE endpoints by querying LDAP GLUE2 (fallback to LDAP NG query)"""
     if filters is None:
         filters = []
     endpoints = []
@@ -462,7 +462,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=
 
         ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
         if ldap_endpoints_list is None:
-            logger.error('Querying LDAP GLUE2 for %s returns empty result set.', hostname)
+            logger.error('LDAP GLUE2 query for %s returns empty result set.', hostname)
             return endpoints
 
         for ldap_dn, ldap_ee in ldap_endpoints_list:
@@ -484,7 +484,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=
                     break
             else:
                 # add endpoint if not filtered
-                logger.debug('Found endpoint %s (type %s) for CE %s', e_url, e_type, hostname)
+                logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
                 endpoints.append(e_entry)
     except ldap.LDAPError as err:
         logger.error('Failed to query LDAP GLUE2 for %s. Error: %s', hostname, err)
@@ -497,7 +497,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=
 
 
 def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=5, filters=None):
-    """Get CE endpoints by querying Legacy ARIS LDAP Nordugrid Schema"""
+    """Get ARC CE endpoints by querying Legacy LDAP NorduGrid Schema"""
     if filters is None:
         filters = []
     endpoints = []
@@ -516,7 +516,7 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=5, filters=Non
 
         ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
         if ldap_endpoints_list is None:
-            logger.error('Querying LDAP NG for %s returns empty result set.', hostname)
+            logger.error('LDAP NG query for %s returns empty result set.', hostname)
             return endpoints
 
         for ldap_dn, ldap_ee in ldap_endpoints_list:
@@ -536,7 +536,7 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=5, filters=Non
                     break
             else:
                 # add endpoint if not filtered
-                logger.debug('Found endpoint %s (type %s) for CE %s', e_url, e_type, hostname)
+                logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
                 endpoints.append(e_entry)
                 # also add ldapng endpoint to comply gridftpjob
                 ldapng_uri = '{0}/{1}'.format(ldap_uri, ldap_basedn)
@@ -555,7 +555,7 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=5, filters=None):
     if ldap_uri_match:
         ldap_uri_dict = ldap_uri_match.groupdict()
     else:
-        logger.error('URI %s does not looks like LDAP URI, skipping information fetching.', uri)
+        logger.error('Cannot parse URI %s as LDAP URI. Skipping information fetching.', uri)
         return []
 
     if filters is None:
@@ -586,7 +586,7 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=5, filters=None):
                                           ldap_service_filter, ldap_service_attrs)
 
         if service_info is None:
-            logger.error('Querying Site-BDII LDAP GLUE2 for %s/%s returns empty result set.', ldap_uri, ldap_basedn)
+            logger.error('Site-BDII LDAP GLUE2 query for %s/%s returns empty result set.', ldap_uri, ldap_basedn)
             return []
 
         for ldap_dn, ldap_s in service_info:
@@ -689,7 +689,6 @@ def get_arcce_topolgy(ce_list, rr_owner='_archery'):
     }
 
     for ce in ce_list:
-        logger.info('Fetching endpoints info from CE\'s %s LDAP GLUE2', ce)
         service_object = {
             'object': 'service',
             'type': 'org.nordugrid.arex',
@@ -718,7 +717,7 @@ def get_gocdb_topology(rr_owner='_archery'):
         conn.request('GET', gocdb_path)
         response = conn.getresponse()
         if response.status != 200:
-            logger.error('Failed to get Site list from GOCDB PI at http://%s%s. HTTP return reason: %s',
+            logger.error('Failed to get sites list from GOCDB PI at http://%s%s. HTTP reason: %s',
                          gocdb_host, gocdb_path, response.reason)
             sys.exit(1)
         # parse the XML
@@ -726,7 +725,7 @@ def get_gocdb_topology(rr_owner='_archery'):
         for site in gocdb_xml:
             ngi = site.attrib['ROC']
             if str(site.attrib['GIIS_URL']).strip() == '':
-                logger.warning('Site %s in %s NGI contains to Site-BDII information. Skipping.',
+                logger.warning('Site %s in %s NGI contains no Site-BDII information. Skipping.',
                                site.attrib['NAME'], ngi)
                 continue
             if ngi not in topology:
@@ -868,11 +867,11 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
                     continue
         # check for objects with no endpoints
         if not archery_object['contains'] and not archery_object['endpoints']:
-            logger.warning('ARCHERY service object stored in %s has no endpoints defined.', dns_name)
+            logger.warning('ARCHERY service object defined by %s has no endpoints.', dns_name)
         # object kind checks
         elif 'object' in archery_object and archery_object['object'] != guess_object_kind:
-            logger.warning('ARCHERY object defined by %s name is declared as %s kind but contains information '
-                           'that should not be defined there', dns_name, archery_object['object'])
+            logger.warning('ARCHERY %s object defined by %s name contains information '
+                           'that should not be defined for this object kind.', archery_object['object'], dns_name)
     except DNSException as err:
         logger.warning('Failed to query ARCHERY data from %s. Error: %s', dns_name, err)
 
@@ -918,8 +917,7 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
             rr = r.split(' ', 1)
             update.delete(rr[0], 'txt', rr[1].replace(' ', r'\ '))
             if len(update.to_wire()) > 65000:
-                logger.info('Size limit reached. Sending partial update to DNS master %s via DDNS '
-                            'protocol (using TSIG key %s)', nameserver, list(keyring_dict.keys())[0])
+                logger.info('Size limit reached. Sending partial DDNS update.')
                 dns.query.tcp(update, nameserver)
                 update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
 
@@ -928,15 +926,12 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
             ar = a.split(' ', 1)
             update.add(ar[0], ttl, 'txt', ar[1].replace(' ', r'\ '))
             if len(update.to_wire()) > 65000:
-                logger.info('Size limit reached. Sending partial update to DNS master %s via DDNS'
-                            'protocol (using TSIG key %s)', nameserver, list(keyring_dict.keys())[0])
+                logger.info('Size limit reached. Sending partial DDNS update.')
                 dns.query.tcp(update, nameserver)
                 update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
 
-        logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
-                    nameserver, list(keyring_dict.keys())[0])
-        dns.query.tcp(update, nameserver)
         # if exception is not raised we have succeeded with update
+        dns.query.tcp(update, nameserver)
         logger.info('ARCHERY information has been updated for zone %s', domain)
     except DNSException as e:
         logger.error('Failed in DDNS update. Error: %s', e)
@@ -947,26 +942,25 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
 #
 def get_parser():
     """Command line arguments parser"""
-    parser = argparse.ArgumentParser(description='Nordugrid ARCHERY administration tool')
+    parser = argparse.ArgumentParser(description='NorduGrid ARCHERY management tool')
     parser.add_argument('-d', '--debug', action='store', default='INFO',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
     parser.add_argument('-s', '--source', action='store', required=True,
-                        help='Select services topology source (\'help\' will print out possible types)')
-    parser.add_argument('-f', '--filter', action='append', help='Add one or more filters to endpoint list. '
-                                                                'Use \'-f help\' to show available filters')
+                        help='Services topology source (use \'help\' value to print available sources)')
+    parser.add_argument('-f', '--filter', action='append',
+                        help='Add endpoints filter (use \'help\' value to print available filters)')
     parser.add_argument('-o', '--output', choices=list(_output_formatters.keys()),
-                        help='Output data to the stdout according to requested format')
+                        help='Write requested data to stdout')
     parser.add_argument('--json', action='store_true',
                         help='Change output format from plaintext to JSON')
     parser.add_argument('--output-all', action='store_true',
-                        help='Output all CEs/endpoints including inactive (filters are still applied)')
+                        help='Output all services/endpoints including inactive (filters are still applied)')
     parser.add_argument('-u', '--ddns-update', action='store_true',
-                        help='Invoke DNS zone direct update by means of DDNS with TSIG auth')
-    parser.add_argument('--domain', help='domain name of the ARCHERY endpoint to use (required for DDNS update)')
-    parser.add_argument('--ddns-master-ip', help='master NS IP address to contact (required for DDNS update)')
+                        help='Invoke DNS zone incremental DDNS update secured by TSIG key')
+    parser.add_argument('--domain', help='Domain name of the ARCHERY endpoint to use (required for DDNS update)')
+    parser.add_argument('--ddns-master-ip', help='Master DNS IP address (required for DDNS update)')
     parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS update)')
-    parser.add_argument('--ddns-tsig-algorithm',
-                        help='Cryptographic algorithm for TSIG',
+    parser.add_argument('--ddns-tsig-algorithm', help='Cryptographic algorithm for TSIG',
                         choices=list(_tsig_algorithms.keys()), default='HMAC-MD5')
     return parser
 
@@ -995,7 +989,7 @@ if __name__ == '__main__':
             sys.exit(1)
         # check for master nameserver IP
         if cmd_args.ddns_master_ip is None:
-            logger.error('Name server master IP to communicate (--ddns-master-ip) is required to use DDNS update')
+            logger.error('DNS master IP (--ddns-master-ip) is required to use DDNS update')
             sys.exit(1)
         nameserver = cmd_args.ddns_master_ip
         # check for keyring
@@ -1012,7 +1006,7 @@ if __name__ == '__main__':
                         logger.error('Failed to parse TSIG keyfile %s. Expected format is keyname:secret',
                                      cmd_args.ddns_tsig_keyfile)
                         sys.exit(1)
-                    logger.debug('TSIG key %s has been successfully read', keyring_s[0])
+                    logger.debug('TSIG key %s has been read successfully', keyring_s[0])
                     keyring_dict = {keyring_s[0]: keyring_s[1]}
             except EnvironmentError as err:
                 logger.error('Failed to read TSIG keyfile %s. Error: %s', cmd_args.ddns_tsig_keyfile, err)
@@ -1044,25 +1038,25 @@ if __name__ == '__main__':
         rr_owner += '.{0}.'.format(domain.rstrip('.'))
 
     # Define services topology
-    logger.info('Constructing ARCHERY object topology according to configuration.')
+    logger.info('Constructing ARCHERY objects topology according to configuration.')
     source = cmd_args.source
     if source.startswith('file:'):
         logger.error('The \'file:\' source type is deprecated. Use \'arcce-list:\' for the same behavior.')
         sys.exit(1)
     elif source.startswith('arcce-list:'):
-        logger.info('Obtaining ARC CE list from file: %s', source[11:])
+        logger.info('Obtaining ARC CEs list from file: %s', source[11:])
         ce_list = get_file_celist(source[11:])
         archery_object = get_arcce_topolgy(ce_list, rr_owner)
     elif source.startswith('egiis:'):
-        logger.info('Obtaining ARC CE list from EGIIS URL: %s', source[6:])
+        logger.info('Obtaining ARC CEs list from EGIIS: %s', source[6:])
         ce_list = get_egiis_celist(source[6:])
-        logger.debug('Fetched CE list to work with: %s', ', '.join(ce_list))
+        logger.debug('Fetched EGIIS CEs list to work with: %s', ', '.join(ce_list))
         archery_object = get_arcce_topolgy(ce_list, rr_owner)
     elif source.startswith('archery:'):
         logger.info('Obtaining services topology from ARCHERY DNS endpoint: %s', source[8:])
         archery_object = fetch_archery_dns_data(source[8:])
     elif source.startswith('gocdb'):
-        logger.info('Obtaining services topology from EGI GOCDB programming interface')
+        logger.info('Obtaining services topology from EGI GOCDB.')
         archery_object = get_gocdb_topology(rr_owner)
     elif source == 'help':
         sources_types = {
@@ -1076,11 +1070,11 @@ if __name__ == '__main__':
             print(' {0:>12}: {1}'.format(st, sd))
         sys.exit(0)
     else:
-        logger.error('Unsupported services topology source: %s', source)
+        logger.error('Unsupported source: %s', source)
         sys.exit(1)
 
     # Fetch topology data from defined infosys services
-    logger.info('Fetching data from object information sources.')
+    logger.info('Fetching endpoints data from information system.')
     fetch_infosys_data(archery_object, applied_filters)
 
     # Invoke DDNS update if requested
@@ -1094,4 +1088,3 @@ if __name__ == '__main__':
     if cmd_args.output:
         formatter_f = _output_formatters[cmd_args.output]
         formatter_f(archery_object, cmd_args)
-
