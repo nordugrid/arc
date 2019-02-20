@@ -1042,27 +1042,6 @@ sub collect($) {
                 )
                 ];
     };
-    
-    # for org.nordugrid.xbes
-    my $arexhostport = '';
-    if ($wsenabled) {
-      $arexhostport = $config->{arexhostport};
-      $csvendpointsnum = $csvendpointsnum + 2; # xbes and wsrf
-      $epscapabilities->{'org.nordugrid.xbes'} = [
-                                    'executionmanagement.jobexecution',
-                                    'executionmanagement.jobmanager',
-                                    'executionmanagement.jobdescription',
-                                    'security.delegation'
-                                    ];  
-      $epscapabilities->{'common'} = [
-                @{$epscapabilities->{'common'}},
-                (
-                'data.access.sessiondir.https',
-                'data.access.stageindir.https',
-                'data.access.stageoutdir.https'
-                )
-                ];
-    };
         
     # The following are for EMI-ES
     my $emieshostport = '';
@@ -1105,10 +1084,10 @@ sub collect($) {
                                   'executionmanagement.jobcreation',
                                   'executionmanagement.jobexecution',
                                   'executionmanagement.jobmanagement',
-	                          'executionmanagement.jobdescription',
-	                          'information.discovery.resource',
-	                          'information.discovery.job',
-	                          'information.lookup.job',
+                                  'executionmanagement.jobdescription',
+                                  'information.discovery.resource',
+                                  'information.discovery.job',
+                                  'information.lookup.job',
                                   'security.delegation'
                                   ];  
     $epscapabilities->{'common'} = [
@@ -1180,8 +1159,6 @@ sub collect($) {
     # Computing Endpoints IDs
     my $ARCgftpjobcepID;
     $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled}); # ARCGridFTPComputingEndpoint ID
-    my $ARCWScepID;
-    $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$wsendpoint" if $wsenabled; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
@@ -1192,7 +1169,6 @@ sub collect($) {
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
-    push(@cepIDs,$ARCWScepID) if ($wsenabled);
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     
     my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
@@ -1208,13 +1184,7 @@ sub collect($) {
     my %xenvIDs; # ExecutionEnvironment IDs
     my $tseID = "urn:ogf:ToStorageElement:$hostname:storageservice"; # ToStorageElement ID prefix
     
-    # Other Service IDs
-    # my $ARISsvID = "urn:ogf:Service:$hostname:aris"; # ARIS service ID REMOVED
     my $ARISepIDp = "urn:ogf:Endpoint:$hostname"; # ARIS Endpoint ID kept for uniqueness
-    my $CacheIndexsvID = "urn:ogf:Service:$hostname:cacheindex"; # Cache-Index service ID
-    my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:cacheindex"; # Cache-Index Endpoint ID
-    my $HEDControlsvID = "urn:ogf:Service:$hostname:hedcontrol"; # HED-CONTROL service ID
-    my $HEDControlepIDp = "urn:ogf:Endpoint:$hostname:hedcontrol"; # HED-CONTROL Endpoint ID
 
     # Generate ComputingShare IDs
     for my $share (keys %{$GLUE2shares}) {
@@ -1265,28 +1235,28 @@ sub collect($) {
     if ($config->{service}{AdvertisedVO}) { @clusteradvertisedvos = @{$config->{service}{AdvertisedVO}}; }
     my $unionadvertisedvos;
     if (@clusteradvertisedvos) {
-		foreach my $vo (@clusteradvertisedvos) {
-			$unionadvertisedvos->{$vo}='';
-		}
-	}
-	# add the per-queue advertisedvo if any
-	my $shares = Storable::dclone($GLUE2shares);
-	for my $share ( keys %$shares ) {
-		if ($GLUE2shares->{$share}{AdvertisedVO}) {
-			my (@tempvos) = $GLUE2shares->{$share}{AdvertisedVO} if ($GLUE2shares->{$share}{AdvertisedVO});
-			foreach my $vo (@tempvos) {
-				$unionadvertisedvos->{$vo}='';
-			}
-		}
-	}   
+        foreach my $vo (@clusteradvertisedvos) {
+            $unionadvertisedvos->{$vo}='';
+        }
+    }
+    # add the per-queue advertisedvo if any
+    my $shares = Storable::dclone($GLUE2shares);
+    for my $share ( keys %$shares ) {
+        if ($GLUE2shares->{$share}{AdvertisedVO}) {
+            my (@tempvos) = $GLUE2shares->{$share}{AdvertisedVO} if ($GLUE2shares->{$share}{AdvertisedVO});
+            foreach my $vo (@tempvos) {
+                $unionadvertisedvos->{$vo}='';
+            }
+        }
+    }   
     
     
     my @unionadvertisedvos;
     if ($unionadvertisedvos) {
-		@unionadvertisedvos =  keys %$unionadvertisedvos ;
-		@unionadvertisedvos = addprefix('vo:',@unionadvertisedvos);
-		undef $unionadvertisedvos;
-	}
+        @unionadvertisedvos =  keys %$unionadvertisedvos ;
+        @unionadvertisedvos = addprefix('vo:',@unionadvertisedvos);
+        undef $unionadvertisedvos;
+    }
     
     
     # AccessPolicies implementation. Can be called for each endpoint.
@@ -1545,11 +1515,8 @@ sub collect($) {
           
         # Here comes a list of endpoints we support.
         # GridFTPd job execution endpoint - org.nordugrid.gridfptjob
-        # XBES A-REX WSRF job submission endpoint
         # EMI-ES one endpoint per port-type
         # LDAP endpoints one per schema
-        # WS-LIDI A-REX WSRF information system endpoint
-        # A-REX datastaging endpoint
 
         # these will contain only endpoints with URLs defined
         # Simple endpoints will be rendered as computingEndpoints
@@ -1559,158 +1526,6 @@ sub collect($) {
 
         # A-REX ComputingEndpoints
         
-        # ARC XBES and WS-LIDI
-          
-        my $getARCWSComputingEndpoint = sub {
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = $ARCWScepID;
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC CE XBES WSRF submission interface and WSRF LIDI Information System";
-
-            # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $wsendpoint;
-            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.xbes'}}, @{$epscapabilities->{'common'}} ];
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'org.ogf.bes';
-            $cep->{InterfaceVersion} = [ '1.0' ];
-            $cep->{InterfaceExtension} = [ 'urn:org.nordugrid.xbes' ];
-            $cep->{WSDL} = [ $wsendpoint."/?wsdl" ];
-            # Wrong type, should be URI
-            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-                        "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-                          ];
-            $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "testing";
-
-            my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            # TODO: check if the option below still applies
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
-            $cep->{ServingState} = $servingstate;
-
-            # TODO: StartTime: get it from hed - maybe look at logs?
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-#            TODO: Adrian's style accesspolicies. Might be handy later.
-#             if ($config->{accesspolicies}) {
-#              my @apconfs = @{$config->{accesspolicies}};
-#              $cep->{AccessPolicies} = sub {
-#                  return undef unless @apconfs;
-#                  my $apconf = pop @apconfs;
-#                  my $apol = {};
-#                  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-#                  $apol->{Scheme} = "basic";
-#                  $apol->{Rule} = $apconf->{Rule};
-#                  $apol->{UserDomainID} = $apconf->{UserDomainID};
-#                  $apol->{EndpointID} = $ARCWScepID;
-#                  return $apol;
-#              };
-#             }
-                
-            # AccessPolicies
-           
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # ComputingActivities
-            
-            if ($nojobs) {
-              $cep->{ComputingActivities} = undef;
-            } else {
-              # this complicated thing here creates a specialized getComputingActivities
-              # version of sub with a builtin parameter!
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.xbes'); };
-            }
-
-            # Associations
-
-            # No computingshareID should be associated to endpoint -- unless we enforce
-            # binding between endpoints and queues
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if arex_mount_point not configured in arc.conf
-        $arexceps->{ARCWSComputingEndpoint} = $getARCWSComputingEndpoint if ($wsenabled);
-
         # ARC GridFTPd job submission interface 
           
         my $getARCGFTPdComputingEndpoint = sub {
@@ -3572,5 +3387,3 @@ sub collect($) {
 }
 
 1;
-
-
