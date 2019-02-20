@@ -90,14 +90,17 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
     // Query archery for endpoints info
     $archery_endpoints = query_dns_archery($endpoint, $errors, $debug);
     foreach ($archery_endpoints as $ainfo) {
-        if ($ainfo['t'] == 'org.nordugrid.archery') {
+        if ($ainfo['t'] == 'org.nordugrid.archery' OR $ainfo['t'] == 'archery' OR 
+            $ainfo['t'] == 'archery.service' OR $ainfo['t'] == 'archery.group' ) {
+            if (isset($ainfo['s'])) {
+                if ($ainfo['s'] != "1") {
+                    continue;
+                }
+            }
             $more_endpoints = recursive_archery_info ($ainfo['u'], $schema, $errors, $debug=0, $looplimit-1);
             $endpoints = array_merge($endpoints, $more_endpoints);
         } elseif ($ainfo['t'] == 'org.nordugrid.ldapegiis') {
             //TODO: invoke egiis query
-            continue;
-        } elseif ($ainfo['t'] == 'org.nordugrid.emir') {
-            //TODO: invoke emir query (or maybe we should abandone it)
             continue;
         } elseif ($ainfo['t'] == 'org.nordugrid.ldapng') {
             if ( $schema !== 'NG' ) continue;
@@ -130,11 +133,9 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
                     'base' => "nordugrid-cluster-name=".$parsed_url['host'].",".DN_LOCAL
                 );
             }
-        } elseif ($ainfo['t'] == 'org.ogf.glue.emies.resourceinfo') {
-            // silently skip EMIES endpoints for now
-            continue;
         } else {
-            if ($debug) dbgerr_html(sprintf($errors["134"],$ainfo['t'],$ainfo['u']));
+            // skip all unsupported endpoints (e.g. submission endpoints, WS endpoints, etc)
+            continue;
         }
     }
     return $endpoints;

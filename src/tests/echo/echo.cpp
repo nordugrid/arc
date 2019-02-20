@@ -129,15 +129,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   // Analyzing request 
 
   // Checking if it's info request
-  if(MatchXMLNamespace(inpayload->Child(0),"http://docs.oasis-open.org/wsrf/rp-2")) {
-    Arc::SOAPEnvelope* outxml = infodoc.Process(*inpayload);
-    if(!outxml) {
-      return make_fault(outmsg,"WSRF request processing failed");
-    };
-    outpayload = new Arc::PayloadSOAP(*outxml);
-    delete outxml;
-  }
-  else if((*inpayload)["size"]){
+  if((*inpayload)["size"]){
     Arc::XMLNode echo_op = (*inpayload)["size"];
     int size = atoi(std::string(echo_op["size"]).c_str());
     std::string msg = "Message for you, sir";

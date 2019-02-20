@@ -49,10 +49,10 @@ EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
-	create_activity.cpp get_activity_documents.cpp \
-	get_activity_statuses.cpp terminate_activities.cpp \
-	change_activity_status.cpp migrate_activity.cpp \
-	get_factory_attributes_document.cpp update_credentials.cpp faults.cpp \
+	create_activity.cpp \
+	get_activity_statuses.cpp \
+	change_activity_status.cpp \
+	update_credentials.cpp faults.cpp \
 	get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \
 	information_collector.cpp cachecheck.cpp tools.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h tools.h
@@ -63,7 +63,7 @@ libarex_la_LIBADD = \
 	ldif/libldif.la \
 	$(GRIDMANAGER_LIBS) \
 	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
@@ -78,7 +78,7 @@ test_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 test_LDADD = \
 	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

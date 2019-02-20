@@ -98,8 +98,6 @@
 %global with_gfal 0
 %endif
 
-%global with_canl 0
-
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0}
 %global with_xmlsec1 %{!?_without_xmlsec1:1}%{?_without_xmlsec1:0}
 %else
@@ -202,9 +200,7 @@ Obsoletes:	%{name}-hopi < 2.0.0
 Obsoletes:	%{name}-isis < 2.0.0
 Obsoletes:	%{name}-janitor < 2.0.0
 Obsoletes:	%{name}-doxygen < 4.0.0
-%if ! %{with_canl}
 Obsoletes:	%{name}-arcproxyalt < %{version}-%{release}
-%endif
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
 
@@ -245,9 +241,6 @@ BuildRequires:	globus-ftp-control-devel
 BuildRequires:	globus-gssapi-gsi-devel >= 12.2
 %else
 BuildRequires:	globus-gssapi-gsi-devel < 12.2
-%endif
-%if %{with_canl}
-BuildRequires:	canl-c++-devel
 %endif
 %if %{with_xrootd}
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 5
@@ -354,20 +347,6 @@ For the regular user of any ARC-based computational grid,
 this client package contains (or depends on) all packages
 that are needed to submit jobs, query their status and
 retrieve results.
-
-%if %{with_canl}
-%package arcproxyalt
-Summary:	ARC proxy client based on canl
-Group:		Applications/Internet
-Requires:	%{name} = %{version}-%{release}
-
-%description arcproxyalt
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package includes a preview of the arcproxy command based on canl.
-%endif
 
 %package hed
 Summary:	ARC Hosting Environment Daemon
@@ -848,9 +827,6 @@ fi
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
      --with-altpython=%{__altpython} \
 %endif
-%if %{with_canl}
-     --enable-canlxx \
-%endif
 %if ! %{with_xrootd}
      --disable-xrootd \
 %endif
@@ -1046,7 +1022,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/libarcsecurity.so.*
 %{_libdir}/libarcscitokens.so.*
 %{_libdir}/libarcinfosys.so.*
-%{_libdir}/libarcws.so.*
+%{_libdir}/libarcwsaddressing.so.*
 %{_libdir}/libarcwssecurity.so.*
 %if %{with_xmlsec1}
 %{_libdir}/libarcxmlsec.so.*
@@ -1094,7 +1070,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
-%{_bindir}/arcecho
 %{_bindir}/arcget
 %{_bindir}/arcinfo
 %{_bindir}/arckill
@@ -1115,7 +1090,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
-%doc %{_mandir}/man1/arcecho.1*
 %doc %{_mandir}/man1/arcget.1*
 %doc %{_mandir}/man1/arcinfo.1*
 %doc %{_mandir}/man1/arckill.1*
@@ -1131,12 +1105,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
-
-%if %{with_canl}
-%files arcproxyalt
-%defattr(-,root,root,-)
-%{_bindir}/arcproxyalt
-%endif
 
 %files hed
 %defattr(-,root,root,-)
@@ -1288,11 +1256,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %endif
+%{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
+%{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
@@ -1367,14 +1337,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %dir %{_libdir}/%{pkgdir}/test
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
-%{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
-%{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
-%{_libdir}/%{pkgdir}/libaccSER.so
-%{_libdir}/%{pkgdir}/libaccldap.so
+%{_libdir}/%{pkgdir}/libaccARCHERY.so
+%{_libdir}/%{pkgdir}/libaccLDAP.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
@@ -1390,14 +1358,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libmccsoap.so
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
-%{_libdir}/%{pkgdir}/libaccARC1.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
-%{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
-%{_libdir}/%{pkgdir}/libaccSER.apd
-%{_libdir}/%{pkgdir}/libaccldap.apd
+%{_libdir}/%{pkgdir}/libaccARCHERY.apd
+%{_libdir}/%{pkgdir}/libaccLDAP.apd
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
@@ -1418,10 +1384,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files plugins-globus
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/arc-dmcgridftp
-%{_libdir}/%{pkgdir}/libaccARC0.so
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
 %{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
-%{_libdir}/%{pkgdir}/libaccARC0.apd
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
 %{_libdir}/%{pkgdir}/libdmcgridftp.apd
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
 %{_libdir}/libarcglobusutils.so.*
@@ -1495,14 +1461,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files test-utils
 %defattr(-,root,root,-)
 %{_bindir}/arcemiestest
-%{_bindir}/arcwsrf
 %{_bindir}/arcperftest
-%if %{with_xmlsec1}
-%{_bindir}/saml_assertion_init
-%doc %{_mandir}/man1/saml_assertion_init.1*
-%endif
 %doc %{_mandir}/man1/arcemiestest.1*
-%doc %{_mandir}/man1/arcwsrf.1*
 %doc %{_mandir}/man1/arcperftest.1*
 
 %files archery-manage

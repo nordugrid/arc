@@ -13,14 +13,6 @@ CXXFLAGS += -std=c++11
 endif
 endif
 
-CANL_SUPPORT = no
-
-ifeq ($(CANL_SUPPORT),yes)
-CANL_CONFIGURE_OPTION = --enable-canlxx
-else
-CANL_CONFIGURE_OPTION =
-endif
-
 ifeq ($(shell perl -mInline::Python < /dev/null 2>/dev/null && echo 1),1)
 N =
 else
@@ -52,7 +44,6 @@ configure-stamp:
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
 		    --enable-sqlite \
 		    --enable-internal \
-		    $(CANL_CONFIGURE_OPTION)
 	touch $@
 
 build: build-arch build-indep

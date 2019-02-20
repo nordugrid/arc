@@ -38,10 +38,6 @@ namespace ARex {
     return operator[](path).Process(credentials,in,out,client);
   }
 
-  bool DelegationStores::DelegatedToken(const std::string& path,Arc::XMLNode token,const std::string& client,std::string& credentials) {
-    return operator[](path).DelegatedToken(credentials,token,client);
-  }
-
   bool DelegationStores::GetRequest(const std::string& path,std::string& id,const std::string& client,std::string& request) {
     return operator[](path).GetRequest(id,client,request);
   }

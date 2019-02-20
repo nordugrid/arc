@@ -39,28 +39,11 @@ namespace ARex {
 #define DEFAULT_JOBCONTROL_MAX_CLIENTS (100)
 #define DEFAULT_DATATRANSFER_MAX_CLIENTS (100)
  
-static const std::string BES_FACTORY_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/");
-static const std::string BES_FACTORY_NPREFIX("bes-factory");
-static const std::string BES_FACTORY_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-factory");
-
-static const std::string BES_MANAGEMENT_ACTIONS_BASE_URL("http://schemas.ggf.org/bes/2006/08/bes-management/BESManagementPortType/");
-static const std::string BES_MANAGEMENT_NPREFIX("bes-management");
-static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-management");
-
 static const std::string BES_ARC_NPREFIX("a-rex");
 static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
 
 static const std::string DELEG_ARC_NPREFIX("arcdeleg");
 static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
-
-static const std::string BES_GLUE2PRE_NPREFIX("glue2pre");
-static const std::string BES_GLUE2PRE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
-
-static const std::string BES_GLUE2_NPREFIX("glue2");
-static const std::string BES_GLUE2_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec/2/0");
-
-static const std::string BES_GLUE2D_NPREFIX("glue2d");
-static const std::string BES_GLUE2D_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
 
 static const std::string ES_TYPES_NPREFIX("estypes");
 static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
@@ -79,8 +62,6 @@ static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/act
 
 static const std::string ES_AINFO_NPREFIX("esainfo");
 static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity/types");
-
-static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
 
 char const* ARexService::InfoPath = "*info";
 char const* ARexService::LogsPath = "*logs";
@@ -126,39 +107,8 @@ ARexSecAttr::ARexSecAttr(const std::string& action) {
 }
 
 ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
-  if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
-    if(MatchXMLName(op,"CreateActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_CREATE;
-    } else if(MatchXMLName(op,"GetActivityStatuses")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    } else if(MatchXMLName(op,"TerminateActivities")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"GetActivityDocuments")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-      id_=AREX_POLICY_OPERATION_URN;
-      action_=AREX_POLICY_OPERATION_INFO;
-    }
-  } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
-    if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-      id_=AREX_POLICY_OPERATION_URN;
-      action_=AREX_POLICY_OPERATION_ADMIN;
-    } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-      id_=AREX_POLICY_OPERATION_URN;
-      action_=AREX_POLICY_OPERATION_ADMIN;
-    }
-  } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
-    if(MatchXMLName(op,"ChangeActivityStatus")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"MigrateActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"CacheCheck")) {
+  if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+    if(MatchXMLName(op,"CacheCheck")) {
       id_=AREX_POLICY_OPERATION_URN;
       action_=AREX_POLICY_OPERATION_INFO;
     }
@@ -170,9 +120,6 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
       id_=JOB_POLICY_OPERATION_URN;
       action_=JOB_POLICY_OPERATION_MODIFY;
     }
-  } else if(MatchXMLNamespace(op,WSRF_NAMESPACE)) {
-    id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_INFO;
   } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
     if(MatchXMLName(op,"CreateActivity")) {
       id_=JOB_POLICY_OPERATION_URN;
@@ -290,23 +237,6 @@ std::string ARexSecAttr::get(const std::string& id) const {
   return "";
 };
 
-static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(BES_FACTORY_NPREFIX + ":" + opname + "Response");
-  Arc::WSAHeader(res).Action(BES_FACTORY_ACTIONS_BASE_URL + opname + "Response");
-  return response;
-}
-
-static Arc::XMLNode BESManagementResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(BES_MANAGEMENT_NPREFIX + ":" + opname + "Response");
-  Arc::WSAHeader(res).Action(BES_MANAGEMENT_ACTIONS_BASE_URL + opname + "Response");
-  return response;
-}
-
-static Arc::XMLNode BESARCResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(BES_ARC_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-
 static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(ES_CREATE_NPREFIX + ":" + opname + "Response");
   return response;
@@ -403,14 +333,6 @@ static std::string GetPath(std::string url){
   return url.substr(ps);
 }
 
-
-Arc::MCC_Status ARexService::StopAcceptingNewActivities(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
-  return Arc::MCC_Status();
-}
-
-Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& /*config*/,Arc::XMLNode /*in*/,Arc::XMLNode /*out*/) {
-  return Arc::MCC_Status();
-}
 
 Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg, const char* resp) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
@@ -678,7 +600,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
   if(method == "POST") {
-    // Check if request is for top of tree (BES factory) or particular 
+    // Check if request is for top of tree (factory) or particular 
     // job (listing activity)
     // It must be base URL in request
     if(sub_op != SubOpNone) {
@@ -692,40 +614,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::PayloadSOAP& res = *outpayload;
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
-      if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
-        // Aplying known namespaces
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"CreateActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
-        } else if(MatchXMLName(op,"GetActivityStatuses")) {
-          CountedResourceLock cl_lock(beslimit_);
-          GetActivityStatuses(*config,op,BESFactoryResponse(res,"GetActivityStatuses"));
-        } else if(MatchXMLName(op,"TerminateActivities")) {
-          CountedResourceLock cl_lock(beslimit_);
-          TerminateActivities(*config,op,BESFactoryResponse(res,"TerminateActivities"));
-        } else if(MatchXMLName(op,"GetActivityDocuments")) {
-          CountedResourceLock cl_lock(beslimit_);
-          GetActivityDocuments(*config,op,BESFactoryResponse(res,"GetActivityDocuments"));
-        } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-          CountedResourceLock cl_lock(beslimit_);
-          GetFactoryAttributesDocument(*config,op,BESFactoryResponse(res,"GetFactoryAttributesDocument"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
-        // Aplying known namespaces
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-          CountedResourceLock cl_lock(beslimit_);
-          StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
-        } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-          CountedResourceLock cl_lock(beslimit_);
-          StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+      if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
@@ -794,13 +683,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"ChangeActivityStatus")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
-        } else if(MatchXMLName(op,"MigrateActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
-        } else if(MatchXMLName(op,"CacheCheck")) {
+        if(MatchXMLName(op,"CacheCheck")) {
           CacheCheck(*config,*inpayload,*outpayload);
         } else {
           SOAP_NOT_SUPPORTED;
@@ -857,43 +740,6 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #endif
           };
         };
-      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
-        CountedResourceLock cl_lock(infolimit_);
-        /*
-        Arc::SOAPEnvelope* out_ = infodoc_.Arc::InformationInterface::Process(*inpayload);
-        if(out_) {
-          out_->Swap(*outpayload);
-          delete out_;
-        } else {
-          delete outpayload;
-          return make_soap_fault(outmsg);
-        };
-        */
-        delete outpayload;
-        Arc::MessagePayload* mpayload = infodoc_.Process(*inpayload);
-        if(!mpayload) {
-          return make_soap_fault(outmsg);
-        };
-        try {
-          outpayload = dynamic_cast<Arc::PayloadSOAP*>(mpayload);
-        } catch(std::exception& e) { };
-        outmsg.Payload(mpayload);
-        if(logger_.getThreshold() <= Arc::VERBOSE) {
-          if(outpayload) {
-            std::string str;
-            outpayload->GetDoc(str, true);
-            logger_.msg(Arc::VERBOSE, "process: response=%s",str);
-          } else {
-            logger_.msg(Arc::VERBOSE, "process: response is not SOAP");
-          };
-        };
-        Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-        if(!sret) {
-          logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-          delete outmsg.Payload(NULL);
-          return sret;
-        };
-        return Arc::MCC_Status(Arc::STATUS_OK);
       } else {
         SOAP_NOT_SUPPORTED;
       };
@@ -1178,11 +1024,6 @@ class ArexServiceNamespaces: public Arc::NS {
     // Define supported namespaces
     Arc::NS& ns_(*this);
     ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
-    ns_[BES_GLUE2_NPREFIX]=BES_GLUE2_NAMESPACE;
-    ns_[BES_GLUE2PRE_NPREFIX]=BES_GLUE2PRE_NAMESPACE;
-    ns_[BES_GLUE2D_NPREFIX]=BES_GLUE2D_NAMESPACE;
-    ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
-    ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
     ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;
     ns_[ES_TYPES_NPREFIX]=ES_TYPES_NAMESPACE;
     ns_[ES_CREATE_NPREFIX]=ES_CREATE_NAMESPACE;
@@ -1272,17 +1113,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   gmrun_ = (std::string)((*cfg)["gmrun"]);
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
-  lrms_name_ = (std::string)((*cfg)["LRMSName"]);
-  // Must be URI. URL may be too restrictive, but is safe.
-  if(!Arc::URL(lrms_name_)) {
-    if (!lrms_name_.empty()) {
-      logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
-    } else {
-      logger_.msg(Arc::VERBOSE, "No LRMSName is provided. This is needed if you wish to completely comply with the BES specifications.");
-    };
-    // Filling something to make it follow BES specs
-    lrms_name_ = "uri:undefined";
-  };
   // TODO: check for enumeration values
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
   std::string debugLevel = (std::string)((*cfg)["debugLevel"]);

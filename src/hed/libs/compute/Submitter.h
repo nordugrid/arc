@@ -55,19 +55,15 @@ namespace Arc {
    * 
    * <b>Computing Services:</b>
    * * EMI ES
-   * * BES (+ ARC BES extension)
-   * * CREAM
    * * GridFTPJob interface (requires the nordugrid-arc-plugins-globus package)
    * 
    * <b>Registry and Index Services:</b>
-   * * EMIR
    * * EGIIS
-   * * Top BDII
+   * * ARCHERY
    * 
    * <b>Local Information Schemes:</b>
    * * %GLUE2 (through LDAP and EMI ES)
    * * NorduGrid schema (through LDAP)
-   * * GLUE1 (through LDAP)
    * 
    * <b>Matchmaking and Ranking Algorithms:</b>
    * * Benchmark

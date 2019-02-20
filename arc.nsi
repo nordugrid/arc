@@ -35,7 +35,7 @@ Section "Main Components"
 	File /oname=libarcsecurity-0.dll "src\hed\libs\security\.libs\libarcsecurity-0.dll"
 	File /oname=libarccommunication-0.dll "src\hed\libs\communication\.libs\libarccommunication-0.dll"
 	File /oname=libarccompute-0.dll "src\hed\libs\client\.libs\libarccompute-0.dll"
-	File /oname=libarcws-0.dll "src\hed\libs\ws\.libs\libarcws-0.dll"
+	File /oname=libarcwsaddressing-0.dll "src\hed\libs\ws\.libs\libarcwsaddressing-0.dll"
 	File /oname=libarcinfosys-0.dll "src\hed\libs\infosys\.libs\libarcinfosys-0.dll"
 	File /oname=libarcdata-0.dll "src\hed\libs\data\.libs\libarcdata-0.dll"
     ; GLIB libs

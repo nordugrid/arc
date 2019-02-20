@@ -1,0 +1,109 @@
+This branch is dedicated to the cleanup of obsoleted technology. 
+
+As several developers are expected to work on this, a central development branch has been created. 
+You can commit by direct push. 
+
+Please keep the branch up to date with master following the usual procedures for a development branch
+
+Once the work is done the branch will be merged back into master, and also into the "next" branch. 
+
+This file should be removed before merging into master. 
+
+
+Obsoleted technology that should be removed from ARC 6 as part of the code cleanup:
+
+  * CREAM related plugins and server-side components
+  * UNICORE related plugins and server-side components
+  * all the windows & solaris code and build
+  * JAVA bindings
+  * BES, WSRF  and other non-EMIES WS flavours
+  * JDL, ARCJSDL, RSL job description dialect, we keep only XRSL and ADL
+  * EMIR
+  * EGIIS sever-side (aka infosys registrations to EGIS) BUT: keep EGIS in the client
+  * infosys schemas and info fetching for GLUE1, (top)BDII ; nordugrid-authuser object from NG schema
+  
+  
+  
+  DETAILS:
+  
+  Code/functionality/feature            assigned person(s)        status
+  ---------------------------------------------------------------------------
+  
+   -Windows packaging, build (e.g arc.nsi, mingw-nordugrid-arc.spec.in)  Mattias
+   
+   -NSIS    Anders (Mattias as backup)  
+   
+   -Makefile.am, Configure.ac: clean off Windows, Java, Solaris  Mattias
+   
+   -SWIG Java bindings Mattias
+   
+   - BES server-side implementation, Aleksandr
+   
+   - WSRF server and client side implementaton, Aleksandr
+   
+   - a-rex/key.pem, cert.pem,ca.pem 11 year-old files are needed? Aleks
+   
+   - a-rex/session,jobstatus are these needed or just some test leftovers?, Aleks
+   
+   - a-rex/ldiff (some ldif to xml converter).  is this in use?, Aleks
+   
+   - a-rex/infoproviders/glue-generator.pl DELETE since we drop GLUE1 schema, Florido
+     > are you guys crazy? you want to lose all customers in one go? I suggest we remove this in arc7. --Florido
+   
+   - infoproviders should not publish the following: nordugrid-authuser objectclass, obsoleted endpoints such as BES,GLUE1,WSRF  Florido
+     > ok for removal of nordugrid-authuser, BES and WSRF. Not ok for Glue1 see above --Florido
+   
+   - grid-manager/inputcheck.cpp, not used functionality, shall be removed? Aleks
+   
+   - grid-manager/misc  check if all those utils are still relevant, Aleks
+   
+   - acix/cacheserver, apply new service name (acix-scanner) in the code, David
+   
+   - hed/dmc/arc, remove code, David
+   
+   - hed/lib/data, remove remote cache code, David
+   
+   - hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleks
+   
+   - hed/lib/common  remove win32 stuff, Anders
+   
+   - hed/daemon, clean off java, win stuff, Anders with Mattias
+   
+   - hed/daemon/schemas, check what is old/unused/garbage there, David
+   
+   - [DONE] acc/ldap, remove GLUE1 and BDII stuff, Andrii
+     > what is BDII stuff? be careful here. --Florido
+   
+   - [DONE] acc/UNICORE should be removed, Andrii
+   
+   - [DONE] acc/SER remove EMIR, Andrii => renamed to acc/ARCHERY as it is the only option now
+   
+   - acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
+   
+   - [DONE] acc/CREAM remove, Andrii
+   
+   - [DONE] acc/ARC1 remove, Andrii
+   
+   - [DONE] acc/ARC0 RENAME to GRIDFTPJOB, Andrii
+   
+   - external, check if cjson still in use, or if it needs even an update, David -> YES still used by Rucio and ACIX DMCs and scitokens code
+   
+   - [DONE by ALeks] client/wsrf remove, Andrii
+   
+   - [DONE] client/saml, remove Andrii
+   
+   - [DONE] client/echo remove, Andrii
+   
+   - [DONE] client/credentials/arcproxyalt remove, Andrii
+   
+   - [DONE] client/credentials/test2myproxyserver remove, Andrii
+   
+   - client/cache make it candypond, Andrii
+   
+   
+   
+   
+   
+   
+   
+   

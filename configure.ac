@@ -192,12 +192,8 @@ enables_monitor=yes
 #  Clients
 enables_compute_client=yes
 enables_credentials_client=yes
-enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
-enables_saml_client=yes
-enables_wsrf_client=yes
-enables_unicore_client=no
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -220,8 +216,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
@@ -250,8 +244,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
@@ -848,33 +840,6 @@ AC_SUBST(SQLITE_CFLAGS)
 AC_SUBST(SQLITE_LIBS)
 AM_CONDITIONAL([SQLITE_ENABLED], test x$SQLITE_INSTALLED = xyes)
 
-#check emi common authentiation library
-enables_canlxx=no
-AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
-if test "x$enables_canlxx" = "xyes"; then
-  AC_ARG_WITH(canlxx,
-    AC_HELP_STRING([--with-canlxx=PATH], [CANL++ installation path]),
-    [
-      if test "x$PKG_CONFIG_PATH" != "x"; then
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
-      fi
-    ]
-  )
-  AC_MSG_NOTICE([PKG_CONFIG_PATH for CANL++ is: $PKG_CONFIG_PATH])
-  PKG_CHECK_MODULES(CANLXX, [canl-c++], [], [
-    AC_MSG_NOTICE([Failed to find EMI common authentication libraries])
-    enables_canlxx=no
-  ])
-fi
-if test "x$enables_canlxx" = "xyes" ; then
-  AC_DEFINE(HAVE_CANLXX,,[define if CANL++ is enabled and available])
-fi
-AC_SUBST(CANLXX_CFLAGS)
-AC_SUBST(CANLXX_LIBS)
-AM_CONDITIONAL(CANLXX_ENABLED, test "x$enables_canlxx" = "xyes")
-
 # check cppunit
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(cppunit, AC_HELP_STRING([--disable-cppunit], [disable cppunit-based UNIT testing of code]),[enables_cppunit=$enableval],[])
@@ -1020,7 +985,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
         else
-          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc)
         fi
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" = "xyes"; then
@@ -2135,11 +2100,6 @@ AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client],
 AC_MSG_NOTICE([Credentials client tools enabled: $enables_credentials_client])
 AM_CONDITIONAL([CREDENTIALS_CLIENT_ENABLED],[test "x$enables_credentials_client" = "xyes"])
 
-AC_ARG_ENABLE(echo_client, AC_HELP_STRING([--disable-echo-client], [disable building client tools for communicationg with Echo service]),
-  [enables_echo_client=$enableval],[])
-AC_MSG_NOTICE([Echo client tool enabled: $enables_echo_client])
-AM_CONDITIONAL([ECHO_CLIENT_ENABLED],[test "x$enables_echo_client" = "xyes"])
-
 AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable building generic client tools for handling data]),
   [enables_data_client=$enableval],[])
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
@@ -2149,27 +2109,6 @@ AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable buil
   [enables_jura_client=$enableval],[])
 AC_MSG_NOTICE([JURA client tool enabled: $enables_jura_client])
 AM_CONDITIONAL([JURA_CLIENT_ENABLED],[test "x$enables_jura_client" = "xyes"])
-
-AC_ARG_ENABLE(saml_client, AC_HELP_STRING([--disable-saml-client], [disable building client tool for communicating SAML-based VOMS service]),
-  [enables_saml_client=$enableval],[])
-if test "$enables_saml_client" = "yes"; then
-  if test "$enables_xmlsec1" != "yes" ; then
-    enables_saml_client="no"
-    AC_MSG_NOTICE([SAML client requires xmlsec1 - disabling])
-  fi
-fi
-AC_MSG_NOTICE([SAML client tool enabled: $enables_saml_client])
-AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enables_saml_client" = "xyes"])
-
-AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable building client tools for querying WSRF-enabled services.]),
-  [enables_wsrf_client=$enableval],[])
-AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
-AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
-
-AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins (not affected by --enable-all).]),
-  [enables_unicore_client=$enableval],[])
-AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
-AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
 
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
@@ -2188,11 +2127,8 @@ if test "$enables_hed" = "no"; then
           "$enables_datadelivery_service" = "yes" -o \
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
-          "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
-          "$enables_saml_client" = "yes" -o \
-          "$enables_wsrf_client" = "yes" -o \
           ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
@@ -2278,7 +2214,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/security/ArcPDP/alg/Makefile
                  src/hed/libs/security/ArcPDP/fn/Makefile
                  src/hed/libs/credentialstore/Makefile
-                 src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/ws-security/test/Makefile
@@ -2287,7 +2222,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/infosys/test/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/delegation/test/Makefile
-                 src/hed/libs/ws/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
                  src/hed/libs/scitokens/Makefile
@@ -2307,22 +2241,18 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
-                 src/hed/acc/ARC0/Makefile
-                 src/hed/acc/ARC1/Makefile
-                 src/hed/acc/ARC1/test/Makefile
+                 src/hed/acc/GRIDFTPJOB/Makefile
                  src/hed/acc/ARCREST/Makefile
                  src/hed/acc/EMIES/Makefile
                  src/hed/acc/EMIES/arcemiestest.1
                  src/hed/acc/EMIES/schema/Makefile
-                 src/hed/acc/CREAM/Makefile
-                 src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
-                 src/hed/acc/SER/Makefile
-                 src/hed/acc/ldap/Makefile
+                 src/hed/acc/ARCHERY/Makefile
+                 src/hed/acc/LDAP/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
@@ -2454,6 +2384,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/rte/Makefile
                  src/services/a-rex/rte/ENV/PROXY
+                 src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
@@ -2507,12 +2438,8 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/data/arcmkdir.1
                  src/clients/data/arcrename.1
-                 src/clients/echo/Makefile
-                 src/clients/echo/arcecho.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
-                 src/clients/saml/Makefile
-                 src/clients/saml/saml_assertion_init.1
                  src/clients/compute/Makefile
                  src/clients/compute/arcstat.1
                  src/clients/compute/arcinfo.1
@@ -2526,8 +2453,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
                  src/clients/compute/arctest.1
-                 src/clients/wsrf/arcwsrf.1
-                 src/clients/wsrf/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
@@ -2606,7 +2531,6 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
-CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}
@@ -2633,12 +2557,8 @@ ACIX service:       ${enables_acix}
 COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
-ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
-SAML VOMS client:   ${enables_saml_client}
-WSRF client:        ${enables_wsrf_client}
 
-UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}

@@ -39,10 +39,6 @@ class DelegationStores {
   /// Stores delegated credentials corresponding to delegation request obtained by call to GetRequest().
   /// Only public part is expected in 'credentials'.
   bool PutDeleg(const std::string& path,const std::string& id,const std::string& client,const std::string& credentials);
-  /// Stores delegated credentials token defined by 'token' into storage 'path'. 
-  /// Extracted token is also returned in 'credentials'.
-  /// If operation is successful returns true.
-  bool DelegatedToken(const std::string& path,Arc::XMLNode token,const std::string& client,std::string& credentials);
 };
 
 } // namespace ARex

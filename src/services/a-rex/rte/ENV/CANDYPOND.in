@@ -1,0 +1,44 @@
+# description: makes ARC Candypond client availble on the Worker Nodes and ready to be used
+# param:CANDYPOND_URL:string:auto:Manually redefine Candypond URL
+
+CANDYPOND_URL=${CANDYPOND_URL:-"auto"}
+
+ARC_LIBEXEC_DIR="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
+ARC_CONFIG_PARSER="$ARC_LIBEXEC_DIR/arcconfig-parser --load -r $ARC_CONFIG"
+
+if [ "x$1" = "x0" ]; then
+    # determine Candypond URL
+    if [ "x$CANDYPOND_URL" = "xauto" ]; then
+        if [ ! -r "$ARC_CONFIG" ]; then 
+            echo "WARNING: arc.conf is not readable, assumming Candypond is enabled and default URL is used." >&2
+            CANDYPOND_URL="https://$(hostname -f):443/arex/candypond"
+        else
+            # check Candypond is enabled
+            $ARC_CONFIG_PARSER -b arex/ws/candypond
+            if [ $? -ne 0 ]; then
+                echo "FATAL: Candypond is not enabled. Add [arex/ws/candypond] to the arc.conf." >&2
+                exit 1
+            fi
+            # get URL
+            CANDYPOND_URL="$( $ARC_CONFIG_PARSER -b arex/ws -o wsurl )/candypond"
+        fi
+    fi
+
+    # copy 'arccandypond' tool to sessiondir
+    mkdir -p ${joboption_directory}/arc/bin/
+    cp $ARC_LIBEXEC_DIR/arccandypond ${joboption_directory}/arc/bin/
+
+    # add URL to job environment (find the last and add to bottom)
+    arc_env_idx=0
+    arc_env_var="joboption_env_${arc_env_idx}"
+    while eval "test -n \"\$$arc_env_var\""; do 
+        arc_env_idx=$(( arc_env_idx + 1 ))
+        arc_env_var="joboption_env_${arc_env_idx}"
+    done
+    eval "export ${arc_env_var}=ARC_CANDYPOND_URL='$CANDYPOND_URL'"
+
+elif [ "x$1" = "x1" ]; then
+    # add to PATH
+    export PATH="${RUNTIME_JOB_DIR}/arc/bin:$PATH"
+fi
+

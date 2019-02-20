@@ -6,7 +6,7 @@
 #include <arc/Thread.h>
 #include <arc/XMLNode.h>
 #include <arc/message/SOAPEnvelope.h>
-#include <arc/wsrf/WSResourceProperties.h>
+//#include <arc/wsrf/WSResourceProperties.h>
 #include <arc/infosys/InfoFilter.h>
 
 namespace Arc {
@@ -31,16 +31,6 @@ class InformationInterface {
   /** Constructor. If 'safe' is true all calls to Get will be locked. */
   InformationInterface(bool safe = true);
   virtual ~InformationInterface(void);
-  /* This method is called by service which wants to process WSRF request.
-    It parses 'in' message, calls appropriate 'Get' method and returns
-    response SOAP message.
-    In case of error it either returns NULL or corresponding SOAP fault. */
-  SOAPEnvelope* Process(SOAPEnvelope& in);
-  /* This method adds possibility to filter produced document.
-    Document is filtered according to embedded and provided policies. 
-    User identity and filtering algorithm are defined by
-     specified */
-  SOAPEnvelope* Process(SOAPEnvelope& in,const InfoFilter& filter,const InfoFilterPolicies& policies = InfoFilterPolicies(),const NS& ns = NS());
 };
 
 /// Information System document container and processor.
@@ -66,47 +56,6 @@ class InformationContainer: public InformationInterface {
   /** Replaces internal XML document with @doc. 
     If @copy is true this method makes a copy of @doc for internal use. */
   void Assign(XMLNode doc,bool copy = false);
-};
-
-/// Request for information in InfoSystem
-/** This is a convenience wrapper creating proper WS-ResourceProperties
-  request targeted InfoSystem interface of service. */
-class InformationRequest {
- private:
-  WSRP* wsrp_;
- public:
-  /** Dummy constructor */
-  InformationRequest(void);
-  /** Request for attribute specified by elements of path. 
-    Currently only first element is used. */
-  InformationRequest(const std::list<std::string>& path);
-  /** Request for attribute specified by elements of paths. 
-    Currently only first element of every path is used. */
-  InformationRequest(const std::list<std::list<std::string> >& paths);
-  /** Request for attributes specified by XPath query. */
-  InformationRequest(XMLNode query);
-  ~InformationRequest(void);
-  operator bool(void) { return (wsrp_ != NULL); };
-  bool operator!(void) { return (wsrp_ == NULL); };
-  /** Returns generated SOAP message */
-  SOAPEnvelope* SOAP(void);
-};
-
-/// Informational response from InfoSystem
-/** This is a convenience wrapper analyzing WS-ResourceProperties response 
-  from InfoSystem interface of service. */
-class InformationResponse {
- private:
-  WSRF* wsrp_;
- public:
-  /** Constructor parses WS-ResourceProperties ressponse. 
-    Provided SOAPEnvelope object must be valid as long as this object is in use. */
-  InformationResponse(SOAPEnvelope& soap);
-  ~InformationResponse(void);
-  operator bool(void) { return (wsrp_ != NULL); };
-  bool operator!(void) { return (wsrp_ == NULL); };
-  /** Returns set of attributes which were in SOAP message passed to constructor. */
-  std::list<XMLNode> Result(void);
 };
 
 } // namespace Arc
