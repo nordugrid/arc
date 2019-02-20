@@ -73,9 +73,11 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/ssm2.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/brokers.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/sender.cfg
 
+debian/tmp/usr/lib/arc/arccandypond
 debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
 debian/tmp/usr/share/arc/rte/ENV/PROXY
 debian/tmp/usr/share/arc/rte/ENV/RTE
+debian/tmp/usr/share/arc/rte/ENV/CANDYPOND
 
 debian/tmp/usr/sbin/arcctl
 debian/tmp/usr/sbin/a-rex-backtrace-collect
