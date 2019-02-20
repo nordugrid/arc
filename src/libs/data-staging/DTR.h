@@ -50,15 +50,6 @@ namespace DataStaging {
 #include <arc/Thread.h>
 #include "DTRStatus.h"
 
-#ifdef WIN32
-#ifndef uid_t
-#define uid_t int
-#endif
-#ifndef gid_t
-#define gid_t int
-#endif
-#endif
-
 /// DataStaging contains all components for data transfer scheduling and execution.
 namespace DataStaging {
 

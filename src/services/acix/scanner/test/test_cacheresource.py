@@ -4,7 +4,7 @@ from twisted.internet import reactor, defer
 from twisted.web import resource, server
 
 from acix.core import bloomfilter, cacheclient
-from acix.cacheserver import cache, cacheresource
+from acix.scanner import cache, cacheresource
 
 
 TEST_URLS1 = [ 'srm://srm.ndgf.org/biogrid/db/uniprot/UniProt12.6/uniprot_sprot.fasta.gz',

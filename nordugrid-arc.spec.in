@@ -1296,9 +1296,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files acix-scanner
 %defattr(-,root,root,-)
 %if %{py3default}
-%{python3_sitelib}/acix/cacheserver
+%{python3_sitelib}/acix/scanner
 %else
-%{python2_sitelib}/acix/cacheserver
+%{python2_sitelib}/acix/scanner
 %endif
 %if %{use_systemd}
 %{_unitdir}/arc-acix-scanner.service

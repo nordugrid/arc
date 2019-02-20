@@ -1,4 +1,4 @@
-from acix.cacheserver import cachesetup
+from acix.scanner import cachesetup
 
 createApplication = cachesetup.createCacheApplication
 

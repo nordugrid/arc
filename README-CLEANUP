@@ -57,11 +57,11 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - grid-manager/misc  check if all those utils are still relevant, Aleks
    
-   - acix/cacheserver, apply new service name (acix-scanner) in the code, David
+   - [DONE] acix/cacheserver, apply new service name (acix-scanner) in the code, David
    
-   - hed/dmc/arc, remove code, David
+   - [DONE] hed/dmc/arc, remove code, David
    
-   - hed/lib/data, remove remote cache code, David
+   - [DONE] hed/lib/data, remove remote cache code, David
    
    - hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleks
    
@@ -69,7 +69,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - hed/daemon, clean off java, win stuff, Anders with Mattias
    
-   - hed/daemon/schemas, check what is old/unused/garbage there, David
+   - hed/daemon/schemas, check what is old/unused/garbage there, David -> I have no idea what this is or if is it needed
    
    - [DONE] acc/ldap, remove GLUE1 and BDII stuff, Andrii
      > what is BDII stuff? be careful here. --Florido

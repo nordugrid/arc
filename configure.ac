@@ -2387,11 +2387,11 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
-                 src/services/acix/cacheserver/Makefile
-                 src/services/acix/cacheserver/arc-acix-scanner
-                 src/services/acix/cacheserver/arc-acix-scanner-start
-                 src/services/acix/cacheserver/arc-acix-scanner.service
-                 src/services/acix/cacheserver/test/Makefile
+                 src/services/acix/scanner/Makefile
+                 src/services/acix/scanner/arc-acix-scanner
+                 src/services/acix/scanner/arc-acix-scanner-start
+                 src/services/acix/scanner/arc-acix-scanner.service
+                 src/services/acix/scanner/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile

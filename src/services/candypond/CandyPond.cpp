@@ -356,7 +356,7 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
     bool available = false;
     bool is_locked = false;
 
-    if (!cache.Start(url, available, is_locked, true)) {
+    if (!cache.Start(url, available, is_locked)) {
       if (is_locked) {
         resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Locked);
         resultelement.NewChild("ReturnCodeExplanation") = "File is locked";

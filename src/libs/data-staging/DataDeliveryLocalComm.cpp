@@ -12,9 +12,6 @@ namespace DataStaging {
 
   // Check if needed and create copy of proxy with suitable ownership
   static std::string prepare_proxy(const std::string& proxy_path, int child_uid, int child_gid) {
-#ifdef WIN32
-    return "";
-#else
     if (proxy_path.empty()) return ""; // No credentials
     int my_uid = (int)::getuid();
     if (my_uid != 0) return ""; // Can't switch user id
@@ -36,7 +33,6 @@ namespace DataStaging {
       return "";
     }
     return proxy_new_path;
-#endif
   }
 
   DataDeliveryLocalComm::DataDeliveryLocalComm(DTR_ptr dtr, const TransferParameters& params)
