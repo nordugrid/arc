@@ -1096,7 +1096,7 @@ TODO: Make FileUtils function to this
         std::string flavour = flavour_url.substr(0, pos);
         std::string url = flavour_url.substr(pos + 1);
         if (service.type == ConfigEndpoint::REGISTRY) {
-          std::string registryinterface = "org.nordugrid.emir";
+          std::string registryinterface = "org.nordugrid.archery";
           if (flavour == "ARC0") registryinterface = "org.nordugrid.ldapegiis";
           service.InterfaceName = registryinterface;
         } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {

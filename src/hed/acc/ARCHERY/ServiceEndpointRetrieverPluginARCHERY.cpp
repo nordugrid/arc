@@ -143,9 +143,7 @@ namespace Arc {
                          *it == "archery" ||
                          *it == "archery.group" ||
                          *it == "archery.service" || 
-                         *it == "org.nordugrid.ldapegiis" || 
-                         *it == "org.nordugrid.emir" || 
-                         *it == "org.nordugrid.bdii" ) {
+                         *it == "org.nordugrid.ldapegiis" ) {
                         se.Capability.insert("information.discovery.registry");
                         se.InterfaceName = supportedInterfaces.empty()?std::string(""):supportedInterfaces.front();
                     } else {
