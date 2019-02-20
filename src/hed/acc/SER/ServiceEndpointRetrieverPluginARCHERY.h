@@ -18,6 +18,9 @@ public:
   ServiceEndpointRetrieverPluginARCHERY(PluginArgument* parg):
       ServiceEndpointRetrieverPlugin(parg) {
     supportedInterfaces.push_back("org.nordugrid.archery");
+    supportedInterfaces.push_back("archery");
+    supportedInterfaces.push_back("archery.group");
+    supportedInterfaces.push_back("archery.service");
   }
   virtual ~ServiceEndpointRetrieverPluginARCHERY() {}
 
