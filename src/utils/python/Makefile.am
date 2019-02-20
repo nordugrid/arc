@@ -1,4 +1,4 @@
-pkglibexec_SCRIPTS = arcconfig-parser
+pkglibexec_SCRIPTS = arcconfig-parser arccandypond
 sbin_SCRIPTS = arcctl
 pkgdata_DATA = arc.parser.defaults
 
@@ -11,7 +11,7 @@ all-local:
 arc.parser.defaults: $(srcdir)/../../doc/arc.conf.reference
 	$(PYTHON) $(srcdir)/arcconfig-reference --extract-defaults -r $< > $@
 
-EXTRA_DIST = arcconfig-reference
+EXTRA_DIST = arcconfig-reference arccandypond
 
 SUBDIRS = arc
 DIST_SUBDIRS = arc

@@ -1288,11 +1288,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %endif
+%{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
+%{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
