@@ -94,6 +94,9 @@ namespace Arc {
         const char* trimchars = " \"\t\n";
         se_str.erase(se_str.find_last_not_of(trimchars) + 1);
         se_str.erase(0, se_str.find_first_not_of(trimchars));
+        // skip object ID records (not valuable for endpoints retrieving)
+        std::string se_str_start = se_str.substr(0,2);
+        if ( se_str_start == "o=" ) { continue; }
         // define variables to hold service endpoint properties
         std::string se_url;
         std::vector<std::string> se_types;
@@ -136,7 +139,13 @@ namespace Arc {
                     // register endpoint
                     Endpoint se(se_url);
                     // with corresponding capability
-                    if ( *it == "org.nordugrid.archery" || *it == "org.nordugrid.ldapegiis" || *it == "org.nordugrid.emir" || *it == "org.nordugrid.bdii" ) {
+                    if ( *it == "org.nordugrid.archery" || 
+                         *it == "archery" ||
+                         *it == "archery.group" ||
+                         *it == "archery.service" || 
+                         *it == "org.nordugrid.ldapegiis" || 
+                         *it == "org.nordugrid.emir" || 
+                         *it == "org.nordugrid.bdii" ) {
                         se.Capability.insert("information.discovery.registry");
                         se.InterfaceName = supportedInterfaces.empty()?std::string(""):supportedInterfaces.front();
                     } else {

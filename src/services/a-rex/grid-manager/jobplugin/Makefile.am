@@ -11,7 +11,7 @@ jobsplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 jobsplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
 jobsplugin_la_LIBADD = \
-	../../../gridftpd/fileplugin/fileplugin_la-fileplugin.lo \
+	../../../gridftpd/fileplugin/filedirplugin_la-fileplugin.lo \
 	../../../gridftpd/libgridftpd_la-userspec.lo \
 	../../../gridftpd/libgridftpd_la-names.lo \
 	../../../gridftpd/libgridftpd_la-misc.lo \
