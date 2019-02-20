@@ -240,7 +240,7 @@ sub emies_state {
     } elsif ($gm_state eq "KILLED") {
             $es_state->{State} = [ "terminal" ];
             if (! defined($failure_state)) {
-                $log->warning('EMIES Failure state attribute cannot be determined.');
+                $log->debug('EMIES Failure state attribute cannot be determined.');
             } else {
                 if ($failure_state eq "ACCEPTED")  {                
                     $es_state->{Attributes} = ["validation-failure"];
@@ -266,7 +266,7 @@ sub emies_state {
             $es_state->{State} = [ "terminal" ];
             # introduced for bug #3036
             if (! defined($failure_state)) {
-                $log->warning('EMIES Failure state attribute cannot be determined.');
+                $log->debug('EMIES Failure state attribute cannot be determined.');
             } else {
                 if ($failure_state eq "ACCEPTED")  {                
                     $es_state->{Attributes} = ["validation-failure"];
@@ -338,7 +338,7 @@ sub getGMStatus {
             my ($first_line) = <GMJOB_STATUS>;
             close GMJOB_STATUS;
             unless ($first_line) {
-				$log->warning("Job $ID: cannot get status from file $gmjob_status : Skipping job");
+                $log->verbose("Job $ID: cannot get status from file $gmjob_status : Skipping job");
                 next;
             }
             chomp $first_line;
@@ -458,13 +458,13 @@ sub selectnodes {
         }
     }
     if ($nscfg{Command}) {
-        $log->warning("Not implemented: NodeSelection: Command");
+        $log->verbose("Not implemented: NodeSelection: Command");
     }
 
     delete $nscfg{Regex};
     delete $nscfg{Tag};
     delete $nscfg{Command};
-    $log->warning("Unknown NodeSelection option: @{[keys %nscfg]}") if %nscfg;
+    $log->verbose("Unknown NodeSelection option: @{[keys %nscfg]}") if %nscfg;
 
     $selected{$_} = $nodes->{$_} for keys %selected;
 
@@ -612,7 +612,7 @@ sub xeinfos {
                 my $nodes2 = $nodemap{$xenvs[$j]};
                 next unless $nodes2;
                 my $overlap = intersection($nodes1, $nodes2);
-                $log->warning("Overlap detected between ExecutionEnvironments $xenvs[$i] and $xenvs[$j]. "
+                $log->verbose("Overlap detected between ExecutionEnvironments $xenvs[$i] and $xenvs[$j]. "
                              ."Use NodeSelection options to select correct nodes") if %$overlap;
             }
         }
