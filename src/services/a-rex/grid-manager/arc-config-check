@@ -369,7 +369,9 @@ sub confchecktripel($$$) {
 	}
 	
 	# Check for logrotate paths
-	if ($block =~ /^(common|arex|gridftp|infosys)$/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
+	if ($block =~ /^(arex|gridftpd|infosys)$/ and $name =~ /^(logfile|pidfile)$/) {
+	    check_logrotate($block,$name,$value);
+	}
 
 	# check for any mount dirs
 	if ($name eq "mount") {
@@ -412,19 +414,21 @@ sub confchecktripel($$$) {
 
 # Checks log locations for standard location
 sub check_logrotate($$$$) {
-	my ($block, $name, $value, $defaultlocation) = @_;
-	my $defaultpath = '/var/log/arc/';
-	my $defaultlocations = {
-							'commonlogfile' => $defaultpath.'gridftpd.log',
-							'arexlogfile' => $defaultpath.'arex.log',
-							'gridftpdlogfile' => $defaultpath.'gridftpd.log',
-							'infosysproviderlog' => $defaultpath.'infoprovider.log',
-						   };
-	$defaultlocation = $defaultlocations->{$block.$name} || $defaultpath;
-	if ($value ne $defaultlocation ) {
-		w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
-	}	
-} 
+    my ($block, $name, $value, $defaultlocation) = @_;
+    my $defaultlogpath = '/var/log/arc/';
+    my $defaultpidpath = '/var/run/';
+    my $defaultlocations = {
+                            'arexlogfile' => $defaultlogpath.'arex.log',
+                            'arexpidfile' => $defaultpidpath.'arc/arex.pid',
+                            'gridftpdlogfile' => $defaultlogpath.'gridftpd.log',
+                            'gridftpdpidfile' => $defaultpidpath.'gridftpd.pid',
+                            'infosyslogfile' => $defaultlogpath.'infoprovider.log',
+                           };
+    $defaultlocation = $defaultlocations->{$block.$name} || $defaultlogpath;
+    if ($value ne $defaultlocation ) {
+        w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
+    }
+}
 
 # Get all valid configuration parameters and blocks from arc.parser.defaults.
 # Dynamic blocks which match those in %introducedSections are not included.
