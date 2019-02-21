@@ -5,7 +5,7 @@ import tempfile
 from twisted.trial import unittest
 from twisted.internet import defer
 
-from acix.cacheserver import pscan
+from acix.scanner import pscan
 
 
 

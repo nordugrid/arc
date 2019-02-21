@@ -1268,7 +1268,6 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
   cache_config.substitute(config, job->get_user());
   // there is no uid switch during Release so uid/gid is not so important
   Arc::FileCache cache(cache_config.getCacheDirs(),
-                       std::vector<std::string>(),
                        cache_config.getDrainingCacheDirs(),
                        job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();

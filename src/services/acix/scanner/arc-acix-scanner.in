@@ -123,10 +123,10 @@ do_start() {
     fi  
 
     APPSTART="
-from acix import cacheserver;
+from acix import scanner;
 from twisted.python import log;
 from twisted.python.logfile import LogFile;
-application = cacheserver.createApplication();
+application = scanner.createApplication();
 log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
 "
 

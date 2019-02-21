@@ -5,7 +5,7 @@ from twisted.application import internet, service
 from twisted.web import resource, server
 
 from acix.core import ssl
-from acix.cacheserver import pscan, cache, cacheresource
+from acix.scanner import pscan, cache, cacheresource
 
 from arc.utils import config
 
@@ -68,7 +68,7 @@ def createCacheApplication(use_ssl=SSL_DEFAULT, port=None, cache_dir=None,
     site = server.Site(siteroot)
 
     # setup application
-    application = service.Application("arc-cacheserver")
+    application = service.Application("acix-scanner")
 
     cs.setServiceParent(application)
 
