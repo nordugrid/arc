@@ -675,7 +675,7 @@ __fetch_data_map = {
 def _worker_info_fetch(fetch_queue, lock):
     """Worker process to fetch enqueued data and add it to ARCHERY object"""
     # { method, uri, obj, obj_attr, filters }
-    while not fetch_queue.empty():
+    while True:
         pdata = fetch_queue.get()
         logger.debug('Processing %s data fetching', pdata['uri'])
         fetch_f = __fetch_data_map[pdata['method']]
@@ -733,9 +733,9 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
     enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters)
     # start worker threads
     for i in range(threads):
-        logger.debug('Staring worker thread %s to fetch infosys data.')
+        logger.debug('Staring worker thread %s to fetch infosys data.', i)
         worker = Thread(target=_worker_info_fetch, args=(fetch_queue, object_lock,))
-        # worker.setDaemon(True)
+        worker.setDaemon(True)
         worker.start()
     # wait for parallel fetch to complete
     logger.info('Waiting for fetching data completion...')
@@ -870,23 +870,53 @@ def parse_archery_txt(txtstr):
     return rrdata
 
 
-def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name=''):
+def fetch_archery_dns_data(dns_name, nameserver=None, threads=10):
     """Get ARCHERY data from DNS endpoint"""
     archery_object = {
         'contains': [],
         'endpoints': [],
         'rr_owner': ''
     }
+    req_queue = Queue()
+    req_queue.put({
+        'name': dns_name,
+        'obj': archery_object,
+        'parent_name': '',
+    })
+
+    # start worker threads
+    for i in range(threads):
+        logger.debug('Staring worker thread %s to fetch DNS data.', i)
+        worker = Thread(target=_worker_resolver, args=(req_queue, nameserver,))
+        worker.setDaemon(True)
+        worker.start()
+
+    # wait for parallel fetch to complete
+    logger.info('Waiting for DNS queries completion...')
+    req_queue.join()
+
+    return archery_object
+
+
+def _worker_resolver(req_queue, nameserver=None):
+    # thread DNS resolver
+    resolver = dns.resolver.Resolver()
+    if nameserver is not None:
+        resolver.nameservers = [nameserver]
+    # request
+    while True:
+        req = req_queue.get()
+        __fetch_archery_dns_data(req_queue, req['obj'], req['name'], resolver, req['parent_name'])
+        req_queue.task_done()
+
+
+def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, parent_name=''):
+    """Get ARCHERY data from DNS endpoint"""
     # construct archery exact domain name to query (ensure the dot is at the end)
     if dns_name[0:6] == 'dns://':
         dns_name = dns_name[6:].rstrip('.') + '.'
     else:
         dns_name = '_archery.' + dns_name.rstrip('.') + '.'
-    # create DNS resolver
-    if resolver is None:
-        resolver = dns.resolver.Resolver()
-        if nameserver is not None:
-            resolver.nameservers = [nameserver]
     # query TXT RRSet
     logger.debug('Querying ARCHERY data from: %s', dns_name)
     try:
@@ -915,20 +945,22 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
                 if 't' in rrdata:
                     if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery']:
                         # fetch the data from DNS
-                        child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver, parent_name=dns_name)
-                        child_object['pointer_rr_data'] = txt
-                        # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
-                        if 'rr_owner' not in child_object:
-                            child_rr_owner = rrdata['u']
-                            if child_rr_owner.startswith('dns://'):
-                                child_rr_owner = child_rr_owner[6:]
-                            if child_rr_owner.endswith(parent_name):
-                                child_rr_owner = child_rr_owner[:-len(parent_name)]
-                            child_object['rr_owner'] = child_rr_owner
+                        child_object = {
+                            'contains': [],
+                            'endpoints': [],
+                            'pointer_rr_data': txt,
+                            'rr_owner': ''
+                        }
                         # add status for child object if defined
                         if 's' in rrdata and rrdata['s'] != '1':
                             child_object['status'] = 0
                         archery_object['contains'].append(child_object)
+                        # enqueue request to fetch child data (child object is already created)
+                        req_queue.put({
+                            'name': rrdata['u'],
+                            'obj': child_object,
+                            'parent_name': dns_name,
+                        })
                     else:
                         guess_object_kind = 'service'
                         rrdata['rr_data'] = txt
@@ -945,8 +977,11 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
                            'that should not be defined for this object kind.', archery_object['object'], dns_name)
     except DNSException as err:
         logger.warning('Failed to query ARCHERY data from %s (Error: %s)', dns_name, err)
-
-    return archery_object
+        # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
+        rrset_name = dns_name
+        if rrset_name.endswith(parent_name):
+            rrset_name = rrset_name[:-len(parent_name)]
+        archery_object['rr_owner'] = rrset_name
 
 
 #
