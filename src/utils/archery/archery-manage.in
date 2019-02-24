@@ -45,6 +45,18 @@ class HTTPSInsecureConnection(httplib.HTTPSConnection):
         self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
 
 
+def LDAPStrError(err):
+    """Get string error from LDAP exception"""
+    errstr = ''
+    if 'desc' in err.message:
+        errstr += err.message['desc']
+        if 'info' in err.message:
+            errstr += ' ({0})'.format(err.message['info'])
+    else:
+        errstr += str(err)
+    return errstr
+
+
 #
 # OUTPUT FORMATTING FUNCTIONS
 #
@@ -263,7 +275,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
             except ldap.LDAPError as err:
                 logger.error('Endpoint %s (type %s) filtered (allowed VO filter). '
                              'Failed to query LDAP endpoint %s to apply VO filter. Error: %s',
-                             endpoint_dict['u'], endpoint_dict['t'], ldap_uri, err)
+                             endpoint_dict['u'], endpoint_dict['t'], ldap_uri, LDAPStrError(err))
                 return True
         return False
 
@@ -347,41 +359,53 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
     rr_owner = archery_object['rr_owner']
     if parent_rr_owner:
         rr_owner += '.' + parent_rr_owner
-    # construct object record
-    if 'object' in archery_object:
-        rr = ' o=' + archery_object['object']
+    # construct object record (if not already exists)
+    if 'rr_data' not in archery_object and 'object' in archery_object:
+        rr = 'o=' + archery_object['object']
         if 'type' in archery_object:
             rr += ' t=' + archery_object['type']
         if 'id' in archery_object:
             rr += ' id=' + archery_object['id']
-        # group object without type and id is the default
-        if rr != ' o=group':
-            rrset.add(rr_owner + rr)
+        # group object without type and id is the default behaviour (no RRSet needed)
+        if rr != 'o=group':
+            archery_object['rr_data'] = rr
+    # add object record RRSet (if defined)
+    if 'rr_data' in archery_object:
+        rrset.add('{0} {1}'.format(rr_owner, archery_object['rr_data']))
     # add endpoint records
     if 'endpoints' in archery_object:
         for edata in archery_object['endpoints']:
-            estatus = ''
-            if 's' in edata and edata['s'] != 1:
-                estatus = ' s={0}'.format(edata['s'])
-            rrset.add('{0} u={1} t={2}{3}'.format(rr_owner, edata['u'], edata['t'], estatus))
+            # construct TXT rendering for endpoint record (if not already exists)
+            if 'rr_data' not in edata:
+                estatus = ''
+                if 's' in edata and edata['s'] != 1:
+                    estatus = ' s={0}'.format(edata['s'])
+                edata['rr_data'] = 'u={0} t={1}{2}'.format(edata['u'], edata['t'], estatus)
+            # add service endpoints RRSet
+            rrset.add('{0} {1}'.format(rr_owner, edata['rr_data']))
     # add child records
     if 'contains' in archery_object:
         for cdata in archery_object['contains']:
-            # status
-            estatus = ''
-            if 'status' in cdata and cdata['status'] != 1:
-                estatus = ' s={0}'.format(cdata['status'])
-            # child type
-            if 'child_type' in cdata:
-                ctype = cdata['child_type']
-            elif 'object' in cdata:
-                ctype = 'archery.' + cdata['object']
-            else:
-                if 'contains' in cdata and len(cdata['contains']) > 0:
-                    ctype = 'archery.group'
+            # construct TXT rendering for pointer record (if not already exists)
+            if 'pointer_rr_data' not in cdata:
+                # status
+                estatus = ''
+                if 'status' in cdata and cdata['status'] != 1:
+                    estatus = ' s={0}'.format(cdata['status'])
+                # child type
+                if 'object' in cdata:
+                    ctype = 'archery.' + cdata['object']
                 else:
-                    ctype = 'archery.service'
-            rrset.add('{0} u=dns://{1}.{2} t={3}{4}'.format(rr_owner, cdata['rr_owner'], rr_owner, ctype, estatus))
+                    if 'contains' in cdata and len(cdata['contains']) > 0:
+                        ctype = 'archery.group'
+                    else:
+                        ctype = 'archery.service'
+                cdata['pointer_rr_data'] = 'u=dns://{0}.{1} t={2}{3}'.format(
+                    cdata['rr_owner'], rr_owner, ctype, estatus
+                )
+            # add pointed record RRSet
+            rrset.add('{0} {1}'.format(rr_owner, cdata['pointer_rr_data']))
+            # add child object data RRSet
             rrset |= archery_txt_rrset(cdata, rr_owner)
     return rrset
 
@@ -436,7 +460,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=5):
                                             '{Mds-Service-Ldap-suffix[0]}'.format(**egiis_entry), ldap_timeout)
 
     except ldap.LDAPError as err:
-        logger.warning('Failed to query EGIIS %s. Error: %s', egiis_uri, err)
+        logger.warning('Failed to query EGIIS %s. Error: %s', egiis_uri, LDAPStrError(err))
     return list(set(ce_list))
 
 
@@ -487,7 +511,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=5, filters=
                 logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
                 endpoints.append(e_entry)
     except ldap.LDAPError as err:
-        logger.error('Failed to query LDAP GLUE2 for %s. Error: %s', hostname, err)
+        logger.error('Failed to query LDAP GLUE2 for %s. Error: %s', hostname, LDAPStrError(err))
 
     # fallback to LDAP NG for classic legacy ARC CEs without GLUE2 support
     if not endpoints:
@@ -544,7 +568,7 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=5, filters=Non
                 endpoints.append(ldapng_entry)
 
     except ldap.LDAPError as err:
-        logger.error('Failed to query LDAP NG for %s. Error: %s', hostname, err)
+        logger.error('Failed to query LDAP NG for %s. Error: %s', hostname, LDAPStrError(err))
     return endpoints
 
 
@@ -634,7 +658,7 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=5, filters=None):
                     continue
                 services[e_service]['endpoints'].append(e_entry)
     except ldap.LDAPError as err:
-        logger.error('Failed to query LDAP GLUE2 for %s/%s. Error: %s', ldap_uri, ldap_basedn, err)
+        logger.error('Failed to query LDAP GLUE2 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
 
     return services.values()
 
@@ -791,13 +815,17 @@ def parse_archery_txt(txtstr):
     """Get data dict from ARCHERY DNS TXT string representation"""
     rrdata = {}
     for kv in txtstr.split(' '):
+        # in case of broken records
+        if len(kv) < 3:
+            logger.warning('Malformed archery TXT entry "%s" ("%s" too short for k=v)', txtstr, kv)
+            continue
         # only one letter keys and 'id' is supported now
         if kv[1] == '=':
             rrdata[kv[0]] = kv[2:]
         elif kv.startswith('id='):
             rrdata['id'] = kv[3:]
         else:
-            logger.debug('Malformed archery TXT entry %s (%s does not match k=value)', txtstr, kv)
+            logger.warning('Malformed archery TXT entry "%s" (%s does not match k=value)', txtstr, kv)
     return rrdata
 
 
@@ -830,9 +858,11 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
         guess_object_kind = 'group'
         for rr in archery_rrs:
             txt = ''.join(rr.strings)
+            # parse object data
             rrdata = parse_archery_txt(txt)
             # object description resource record found
             if 'o' in rrdata:
+                archery_object['rr_data'] = txt
                 archery_object['object'] = rrdata['o']
                 # type and id for the object if available
                 if 't' in rrdata:
@@ -845,8 +875,7 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
                     if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery']:
                         # fetch the data from DNS
                         child_object = fetch_archery_dns_data(rrdata['u'], resolver=resolver, parent_name=dns_name)
-                        # record child object type
-                        child_object['child_type'] = rrdata['t']
+                        child_object['pointer_rr_data'] = txt
                         # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
                         if 'rr_owner' not in child_object:
                             child_rr_owner = rrdata['u']
@@ -861,6 +890,7 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
                         archery_object['contains'].append(child_object)
                     else:
                         guess_object_kind = 'service'
+                        rrdata['rr_data'] = txt
                         archery_object['endpoints'].append(rrdata)
                 else:
                     logger.error('ARCHERY data in %s contains broken endpoint record without type: %s', dns_name, txt)
@@ -873,7 +903,7 @@ def fetch_archery_dns_data(dns_name, nameserver=None, resolver=None, parent_name
             logger.warning('ARCHERY %s object defined by %s name contains information '
                            'that should not be defined for this object kind.', archery_object['object'], dns_name)
     except DNSException as err:
-        logger.warning('Failed to query ARCHERY data from %s. Error: %s', dns_name, err)
+        logger.warning('Failed to query ARCHERY data from %s (Error: %s)', dns_name, err)
 
     return archery_object
 
