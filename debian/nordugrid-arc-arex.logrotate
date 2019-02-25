@@ -38,7 +38,6 @@
 #
 # Extra services coupled with A-REX
 #
-/var/log/arc/arc-acix-scanner.log
 /var/log/arc/nordugridmap.log
 {
   missingok
