@@ -28,6 +28,15 @@ class TestCAControl(ComponentControl):
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
     __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
+    def __define_CA_ID(self, caid=None):
+        """Internal function to define CA ID and file paths"""
+        if caid is None:
+            # CRC32 hostname-based hash used by default
+            caid = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
+        self.caName = 'ARC TestCA {0}'.format(caid)
+        self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
+        self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
+
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
         self.x509_cert_dir = '/etc/grid-security/certificates'
@@ -62,11 +71,8 @@ class TestCAControl(ComponentControl):
             self.logger.error('Hostname %s is longer that 64 characters and does not fit to X509 subject limit.')
             sys.exit(1)
 
-        # define CA name and location
-        crc32_ca_id = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
-        self.caName = 'ARC TestCA {0}'.format(crc32_ca_id)
-        self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
-        self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
+        # define CA name and paths
+        self.__define_CA_ID()
 
     def createca(self, args):
         # CA certificates dir
@@ -250,6 +256,10 @@ class TestCAControl(ComponentControl):
                 sys.exit(1)
 
     def control(self, args):
+        # define CA ID if provided
+        if args.ca_id is not None:
+            self.__define_CA_ID(args.ca_id)
+        # parse actions
         if args.action == 'init':
             self.createca(args)
         elif args.action == 'cleanup':
@@ -266,6 +276,9 @@ class TestCAControl(ComponentControl):
     def register_parser(root_parser):
         testca_ctl = root_parser.add_parser('test-ca', help='ARC Test CA control')
         testca_ctl.set_defaults(handler_class=TestCAControl)
+
+        testca_ctl.add_argument('--ca-id', action='store',
+                                help='Define CA ID to work with (default is to use hostname-based hash)')
 
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
