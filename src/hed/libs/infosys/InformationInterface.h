@@ -6,8 +6,6 @@
 #include <arc/Thread.h>
 #include <arc/XMLNode.h>
 #include <arc/message/SOAPEnvelope.h>
-//#include <arc/wsrf/WSResourceProperties.h>
-#include <arc/infosys/InfoFilter.h>
 
 namespace Arc {
 

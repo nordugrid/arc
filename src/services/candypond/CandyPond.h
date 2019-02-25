@@ -2,7 +2,7 @@
 #define CANDYPONDSERVICE_H_
 
 
-#include <arc/infosys/RegisteredService.h>
+#include <arc/message/Service.h>
 #include <arc/message/Message.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -32,7 +32,7 @@ namespace CandyPond {
  * downloaded by CandyPond if requested, using the DTR data staging
  * framework.
  */
-class CandyPond: public Arc::RegisteredService {
+class CandyPond: public Arc::Service {
 
  private:
   /** Return codes of cache link */
@@ -98,10 +98,6 @@ class CandyPond: public Arc::RegisteredService {
    * to appropriate CandyPond method.
    */
   virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
-  /**
-   * Supplies information on the service for use in the information system.
-   */
-  bool RegistrationCollector(Arc::XMLNode &doc);
   /** Returns true if the CandyPond is valid. */
   operator bool() { return valid; };
   /** Returns true if the CandyPond is not valid. */

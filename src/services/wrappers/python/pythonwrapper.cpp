@@ -133,7 +133,6 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     arc_module = NULL;
     module = NULL;
     object = NULL;
-    inforeg = NULL;
 
     if (tstate == NULL) {
         logger.msg(Arc::ERROR, "Main Python thread is not initialized");
@@ -282,15 +281,12 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     //tstate = PyGILState_GetThisThreadState();
     //PyEval_ReleaseThread(tstate);
 
-    inforeg = new InfoRegisters(*cfg, this);
-
     logger.msg(Arc::VERBOSE, "Python Wrapper constructor succeeded");
     initialized = true;
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void)
 {
-    if(inforeg) delete inforeg;
     service_lock.lock();
     PyEval_AcquireThread(tstate);
     // Release python objects - it is needed for Python

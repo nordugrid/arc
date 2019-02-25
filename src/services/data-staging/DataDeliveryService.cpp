@@ -559,7 +559,7 @@ namespace DataStaging {
 
 
   DataDeliveryService::DataDeliveryService(Arc::Config *cfg, Arc::PluginArgument* parg)
-    : RegisteredService(cfg,parg),
+    : Service(cfg,parg),
       max_processes(100),
       current_processes(0) {
 
@@ -711,14 +711,6 @@ namespace DataStaging {
       return Arc::MCC_Status();
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
-  }
-
-  bool DataDeliveryService::RegistrationCollector(Arc::XMLNode &doc) {
-    Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
-    Arc::XMLNode regentry(isis_ns, "RegEntry");
-    regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.datadeliveryservice";
-    regentry.New(doc);
-    return true;
   }
 
   Arc::MCC_Status DataDeliveryService::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {

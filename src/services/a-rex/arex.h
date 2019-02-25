@@ -4,9 +4,9 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
-#include <arc/infosys/InfoRegister.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/message/Service.h>
 
 #include "FileChunks.h"
 #include "grid-manager/GridManager.h"
@@ -61,7 +61,6 @@ class ARexService: public Arc::Service {
   Arc::Logger logger_;
   DelegationStores delegation_stores_;
   OptimizedInformationContainer infodoc_;
-  Arc::InfoRegisters* inforeg_;
   CountedResource infolimit_;
   CountedResource beslimit_;
   CountedResource datalimit_;

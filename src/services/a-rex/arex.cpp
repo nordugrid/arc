@@ -1045,7 +1045,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               logger_(Arc::Logger::rootLogger, "A-REX"),
               delegation_stores_(),
               infodoc_(true),
-              inforeg_(NULL),
               infoprovider_wakeup_period_(0),
               all_jobs_count_(0),
               gm_(NULL) {
@@ -1159,11 +1158,9 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     }
   }
   valid=true;
-  inforeg_ = new Arc::InfoRegisters(*cfg,this);
 }
 
 ARexService::~ARexService(void) {
-  if(inforeg_) delete inforeg_;
   thread_count_.RequestCancel();
   delete gm_; // This should stop all GM-related threads too
   thread_count_.WaitForExit(); // Here A-REX threads are waited for

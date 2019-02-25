@@ -6,10 +6,8 @@ lib_LTLIBRARIES = libarcinfosys.la
 #noinst_PROGRAMS = test test_cache # test_register
 
 libarcinfosys_ladir = $(pkgincludedir)/infosys
-libarcinfosys_la_HEADERS = InformationInterface.h InfoCache.h \
-	InfoRegister.h InfoFilter.h RegisteredService.h
-libarcinfosys_la_SOURCES = InformationInterface.cpp InfoCache.cpp \
-	InfoRegister.cpp InfoFilter.cpp RegisteredService.cpp BootstrapISIS.cpp
+libarcinfosys_la_HEADERS = InformationInterface.h
+libarcinfosys_la_SOURCES = InformationInterface.cpp
 libarcinfosys_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 libarcinfosys_la_LIBADD = \

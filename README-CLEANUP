@@ -53,9 +53,9 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    - infoproviders should not publish the following: nordugrid-authuser objectclass, obsoleted endpoints such as BES,GLUE1,WSRF  Florido, GLUE1 NOT REMOVED ; BES WSRF REMOVED
      > ok for removal of nordugrid-authuser, BES and WSRF. Not ok for Glue1 see above --Florido
    
-   - grid-manager/inputcheck.cpp, not used functionality, shall be removed? Aleksandr
+   - [MAYBE USED] grid-manager/inputcheck.cpp, not used functionality, shall be removed? Aleksandr
    
-   - grid-manager/misc  check if all those utils are still relevant, Aleksandr
+   - [NOT UTILS, PART OF CODE] grid-manager/misc  check if all those utils are still relevant, Aleksandr
    
    - [DONE] acix/cacheserver, apply new service name (acix-scanner) in the code, David
    
@@ -63,7 +63,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] hed/lib/data, remove remote cache code, David
    
-   - hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleksandr
+   - [DONE, REST IS RELEVANT] hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleksandr
    
    - hed/lib/common  remove win32 stuff, Anders
    

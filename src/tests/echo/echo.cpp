@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include <arc/message/MCCLoader.h>
-#include <arc/infosys/RegisteredService.h>
+#include <arc/message/Service.h>
 #include <arc/message/PayloadSOAP.h>
 
 #include "echo.h"
@@ -27,7 +27,7 @@ using namespace Arc;
 
 namespace Echo {
 
-Service_Echo::Service_Echo(Arc::Config *cfg, Arc::PluginArgument *parg):RegisteredService(cfg,parg),logger(Arc::Logger::rootLogger, "Echo") {
+Service_Echo::Service_Echo(Arc::Config *cfg, Arc::PluginArgument *parg):Service(cfg,parg),logger(Arc::Logger::rootLogger, "Echo") {
   ns_["echo"]="http://www.nordugrid.org/schemas/echo";
   prefix_=(std::string)((*cfg)["prefix"]);
   suffix_=(std::string)((*cfg)["suffix"]);
@@ -158,14 +158,6 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
       logger.msg(Arc::VERBOSE, "process: response=%s",str);
   }; 
   return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-bool Service_Echo::RegistrationCollector(Arc::XMLNode &doc) {
-  // RegEntry element generation
-  Arc::XMLNode empty(ns_, "RegEntry");
-  empty.New(doc);
-  doc.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.tests.echo";
-  return true;
 }
 
 
