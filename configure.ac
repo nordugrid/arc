@@ -2333,7 +2333,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/jura/jura.1
                  src/services/a-rex/jura/ssm/Makefile
                  src/services/a-rex/jura/ssm/ssmsend
-                 src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
                  src/services/a-rex/lrms/arc/Makefile
