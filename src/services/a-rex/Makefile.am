@@ -10,8 +10,8 @@ else
 INTERNAL =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
-DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
+SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
+DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check
@@ -60,7 +60,6 @@ libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD = \
-	ldif/libldif.la \
 	$(GRIDMANAGER_LIBS) \
 	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
 	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \

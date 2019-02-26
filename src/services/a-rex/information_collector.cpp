@@ -19,7 +19,6 @@
 #include <arc/message/PayloadSOAP.h>
 #include <arc/FileUtils.h>
 
-#include "ldif/LDIFtoXML.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "job.h"
 #include "arex.h"

@@ -41,11 +41,11 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] WSRF server and client side implementaton, Aleksandr
    
-   - a-rex/key.pem, cert.pem,ca.pem 11 year-old files are needed? Aleksandr
+   - [DONE] a-rex/key.pem, cert.pem,ca.pem 11 year-old files are needed? Aleksandr
    
-   - a-rex/session,jobstatus are these needed or just some test leftovers?, Aleksandr
+   - [DONE] a-rex/session,jobstatus are these needed or just some test leftovers?, Aleksandr
    
-   - a-rex/ldiff (some ldif to xml converter).  is this in use?, Aleksandr
+   - [DONE] a-rex/ldiff (some ldif to xml converter).  is this in use?, Aleksandr
    
    - a-rex/infoproviders/glue-generator.pl DELETE since we drop GLUE1 schema, Florido, NOT REMOVED
      > are you guys crazy? you want to lose all customers in one go? I suggest we remove this in arc7. --Florido
