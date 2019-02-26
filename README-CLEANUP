@@ -78,7 +78,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] acc/SER remove EMIR, Andrii => renamed to acc/ARCHERY as it is the only option now
    
-   - acc/JobDescriptionParser remove JDL, ARCJSDL, RSL (keep only ADL and XRSL), Martin
+   - [DONE] acc/JobDescriptionParser remove JDL, ARCJSDL, RSL[only shared code with xRSL, no separate support exists] (keep only ADL and XRSL), Andrii
    
    - [DONE] acc/CREAM remove, Andrii
    
@@ -88,7 +88,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - external, check if cjson still in use, or if it needs even an update, David -> YES still used by Rucio and ACIX DMCs and scitokens code
    
-   - [DONE by ALeks] client/wsrf remove, Andrii
+   - [DONE] client/wsrf remove, Aleksandr
    
    - [DONE] client/saml, remove Andrii
    
@@ -98,7 +98,7 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE] client/credentials/test2myproxyserver remove, Andrii
    
-   - client/cache make it candypond, Andrii
+   - [DONE, MR 606] client/cache make it candypond, Andrii
    
    
    
