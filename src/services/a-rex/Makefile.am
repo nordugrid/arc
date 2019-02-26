@@ -14,7 +14,7 @@ SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema 
 DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
-noinst_PROGRAMS = test test_cache_check
+noinst_PROGRAMS = test_cache_check
 if PYTHON_LRMS_ENABLED
     PYTHON_LRMS_PKGLIBEXEC_FILES = arc-sshfs-mount
 else
@@ -72,19 +72,6 @@ libarex_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 libarex_la_LDFLAGS = -no-undefined -avoid-version -module $(DBCXX_LIBS)
-
-test_SOURCES = test.cpp
-test_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-test_LDADD = \
-	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
-	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \
-	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 test_cache_check_SOURCES = test_cache_check.cpp
 test_cache_check_CXXFLAGS = -I$(top_srcdir)/include \
