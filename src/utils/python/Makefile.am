@@ -1,6 +1,6 @@
-pkglibexec_SCRIPTS = arcconfig-parser arccandypond
+pkglibexec_SCRIPTS = arcconfig-parser arccandypond jura-archive-manager
 sbin_SCRIPTS = arcctl
-pkgdata_DATA = arc.parser.defaults
+pkgdata_DATA = arc.parser.defaults accounting_sqlite_db_init.sql
 
 man_MANS = arcctl.1
 
@@ -11,7 +11,7 @@ all-local:
 arc.parser.defaults: $(srcdir)/../../doc/arc.conf.reference
 	$(PYTHON) $(srcdir)/arcconfig-reference --extract-defaults -r $< > $@
 
-EXTRA_DIST = arcconfig-reference arccandypond
+EXTRA_DIST = arcconfig-reference arccandypond accounting_sqlite_db_init.sql
 
 SUBDIRS = arc
 DIST_SUBDIRS = arc
