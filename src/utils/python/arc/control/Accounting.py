@@ -2,13 +2,12 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
+from .JuraArchive import JuraArchive
 import sys
 import os
 import datetime
 import subprocess
-import isodate  # extra dependency on python-isodate package
 import ldap
-import xml.etree.ElementTree as ElementTree
 import argparse
 import tempfile
 from functools import reduce
@@ -38,12 +37,12 @@ def add_timeframe_args(parser, required=False):
 
 def complete_owner_vo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_vos(parsed_args)
+    return AccountingControl(arcconf).complete_vos(prefix)
 
 
 def complete_owner(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_users(parsed_args)
+    return AccountingControl(arcconf).complete_users(prefix)
 
 
 class AccountingControl(ComponentControl):
@@ -59,13 +58,14 @@ class AccountingControl(ComponentControl):
         # binary path include runtime config
         self.jura_bin = ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
         # archive
-        self.archivedir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
-        if self.archivedir is None:
+        archive_dir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
+        if archive_dir is None:
             self.logger.warning('Accounting records archiving is not enabled! '
                                 'It is not possible to operate with accounting information or doing re-publishing.')
             sys.exit(1)
-        if not self.archivedir.endswith('/'):
-            self.archivedir += '/'
+        # archive manager
+        accounting_db_dir = arcconfig.get_value('dbdir', 'arex/jura/archiving')
+        self.archive = JuraArchive(archive_dir, accounting_db_dir)
         # logs
         self.logfile = arcconfig.get_value('logfile', 'arex/jura')
         if self.logfile is None:
@@ -81,227 +81,99 @@ class AccountingControl(ComponentControl):
             os.environ['X509_USER_CERT'] = x509_host_cert
         if x509_host_key is not None:
             os.environ['X509_USER_KEY'] = x509_host_key
-        # records
-        self.sgas_records = []
-        self.apel_records = []
 
     def __del__(self):
         os.unlink(self.runconfig)
 
-    def __xml_to_dict(self, t):
-        childs = list(t)
-        if childs:
-            d = {t.tag: {}}
-            for cd in map(self.__xml_to_dict, list(t)):
-                for k, v in cd.items():
-                    if k in d[t.tag]:
-                        d[t.tag][k].append(v)
-                    else:
-                        d[t.tag][k] = [v]
+    def __ensure_accounting_db(self, args):
+        """Ensure accounting database availabiliy"""
+        if self.archive.db_exists():
+            self.archive.db_connection_init()
+        elif args.db_init:
+            self.logger.info('Migrating Jura archive to accounting database')
+            self.archive.process_records()
         else:
-            d = {t.tag: t.text}
-            # add extra tags with attribute values in name
-            for a, av in t.attrib.items():
-                a_tag = t.tag + '_' + a.split('}')[-1] + '_' + av
-                d[a_tag] = t.text
-        return d
-
-    def __usagerecord_to_dict(self, xml_f):
-        xml = ElementTree.parse(xml_f)
-        return self.__xml_to_dict(xml.getroot())
+            self.logger.error('Accounting database is not initialized and operation on records are not available. '
+                              'Most probably jura-archive-manager is not active. '
+                              'If you want to force database init from arcctl add --init-db option.')
+            sys.exit(1)
 
     @staticmethod
-    def __parse_ur_common(ardict):
-        # extract common info
-        arinfo = {
-            'JobID': ardict['JobIdentity'][0]['GlobalJobId'][0],
-            'JobName': ardict['JobName'][0],
-            'Owner': None,
-            'OwnerVO': None,
-            'StartTime': isodate.parse_datetime(ardict['StartTime'][0]).replace(tzinfo=None),
-            'EndTime': isodate.parse_datetime(ardict['EndTime'][0]).replace(tzinfo=None),
-            'WallTime': isodate.parse_duration('PT0S'),
-            'CpuTime': isodate.parse_duration('PT0S'),
-            'Processors': 0,
-        }
-        # extract optional common info (possibly missing)
-        if 'Processors' in ardict:
-            arinfo['Processors'] = ardict['Processors'][0]
-        if 'WallDuration' in ardict:
-            arinfo['WallTime'] = isodate.parse_duration(ardict['WallDuration'][0])
-        if 'CpuDuration_usageType_all' in ardict:
-            arinfo['CpuTime'] = isodate.parse_duration(ardict['CpuDuration_usageType_all'][0])
-        elif 'CpuDuration' in ardict:
-            for ct in ardict['CpuDuration']:
-                arinfo['CpuTime'] += isodate.parse_duration(ct)
-        return arinfo
-
-    def __parse_records(self, apel=True, sgas=True):
-        __ns_sgas_vo = '{http://www.sgas.se/namespaces/2009/05/ur/vo}VO'
-        __ns_sgas_voname = '{http://www.sgas.se/namespaces/2009/05/ur/vo}Name'
-        archive_files = os.listdir(self.archivedir)
-        if len(archive_files) > 1000:
-            self.logger.warning('There are lot of accounting records in the archive. Processing can take a long time.')
-        for ar in archive_files:
-            if apel and ar.startswith('usagerecordCAR.'):
-                # APEL CAR records
-                self.logger.debug('Processing the %s APEL accounting record', ar)
-                ardict = self.__usagerecord_to_dict(self.archivedir + ar)['UsageRecord']
-                # extract info
-                try:
-                    arinfo = self.__parse_ur_common(ardict)
-                    if 'UserIdentity' in ardict:
-                        if 'GlobalUserName' in ardict['UserIdentity'][0]:
-                            arinfo['Owner'] = ardict['UserIdentity'][0]['GlobalUserName'][0]
-                        if 'Group' in ardict['UserIdentity'][0]:
-                            arinfo['OwnerVO'] = ardict['UserIdentity'][0]['Group'][0]
-                except KeyError as err:
-                    self.logger.error('Malformed APEL record %s found in accounting archive. Cannot find %s key.',
-                                      ar, str(err))
-                except IndexError as err:
-                    self.logger.error('Malformed APEL record %s found in accounting archive. Error: %s.',
-                                      ar, str(err))
-                else:
-                    self.apel_records.append(arinfo)
-            elif sgas and ar.startswith('usagerecord.'):
-                # SGAS accounting records
-                self.logger.debug('Processing the %s SGAS accounting record', ar)
-                ardict = self.__usagerecord_to_dict(self.archivedir + ar)['JobUsageRecord']
-                # extract info
-                try:
-                    arinfo = self.__parse_ur_common(ardict)
-                    if 'UserIdentity' in ardict:
-                        if 'GlobalUserName' in ardict['UserIdentity'][0]:
-                            arinfo['Owner'] = ardict['UserIdentity'][0]['GlobalUserName'][0]
-                        if __ns_sgas_vo in ardict['UserIdentity'][0]:
-                            arinfo['OwnerVO'] = ardict['UserIdentity'][0][__ns_sgas_vo][0][__ns_sgas_voname][0]
-                except KeyError as err:
-                    self.logger.error('Malformed SGAS record %s found in accounting archive. Cannot find %s key.',
-                                      ar, str(err))
-                except IndexError as err:
-                    self.logger.error('Malformed SGAS record %s found in accounting archive. Error: %s.',
-                                      ar, str(err))
-                else:
-                    self.sgas_records.append(arinfo)
-
-    @staticmethod
-    def __filter_records(records, args):
-        if args.filter_vo or args.filter_user:
-            frecords = []
-            for r in records:
-                if args.filter_vo:
-                    if r['OwnerVO'] not in args.filter_vo:
-                        continue
-                if args.filter_user:
-                    if r['Owner'] not in args.filter_user:
-                        continue
-                frecords.append(r)
-        else:
-            frecords = records
+    def __construct_filter(args):
+        filters = {}
+        if hasattr(args, 'filter_vos') and args.filter_vos:
+            filters['vos'] = args.filter_vos
+        if hasattr(args, 'filter_user') and args.filter_user:
+            filters['owners'] = args.filter_user
         if args.start_from:
-            frecords = [x for x in frecords if (x['StartTime'] > args.start_from)]
+            filters['startfrom'] = args.start_from
         if args.end_till:
-            frecords = [x for x in frecords if (x['EndTime'] < args.end_till)]
-        return frecords
-
-    @staticmethod
-    def __get_from_till(records):
-        min_from = records[0]['StartTime']
-        max_till = records[0]['EndTime']
-        for r in records:
-            if r['StartTime'] < min_from:
-                min_from = r['StartTime']
-            if r['EndTime'] > max_till:
-                max_till = r['EndTime']
-        return min_from, max_till
-
-    @staticmethod
-    def __get_walltime(records):
-        walltime = datetime.timedelta(0)
-        cputime = datetime.timedelta(0)
-        for r in records:
-            walltime += r['WallTime']
-            cputime += r['CpuTime']
-        return walltime, cputime
-
-    @staticmethod
-    def __get_vos(records):
-        vos = set()
-        for r in records:
-            vos.add(r['OwnerVO'])
-        return list(vos)
-
-    @staticmethod
-    def __get_users(records):
-        vos = set()
-        for r in records:
-            vos.add(r['Owner'])
-        return list(vos)
-
-    def __stats_show(self, records, args):
-        frecords = self.__filter_records(records, args)
-        if not frecords:
-            self.logger.error('There are no records that match filters.')
-            sys.exit(0)
-        if args.jobs:
-            print(len(frecords))
-        elif args.walltime:
-            print(self.__get_walltime(frecords)[0])
-        elif args.cputime:
-            print(self.__get_walltime(frecords)[1])
-        elif args.vos:
-            print('\n'.join(self.__get_vos(frecords)))
-        elif args.users:
-            print('\n'.join(self.__get_users(frecords)))
-        else:
-            walltime, cputime = self.__get_walltime(frecords)
-            sfrom, etill = self.__get_from_till(frecords)
-            kind = 'APEL' if args.apel else 'SGAS'
-            jobs = len(frecords)
-            print('Statistics for {0} jobs from {1} till {2}:\n' \
-                  '  Number of jobs: {3:>16}\n' \
-                  '  Total WallTime: {4:>16}\n' \
-                  '  Total CPUTime:  {5:>16}'.format(kind, sfrom, etill, jobs, walltime, cputime))
+            filters['endtill'] = args.end_till
+        return filters
 
     def stats(self, args):
-        self.__parse_records(args.apel, args.sgas)
-        if args.apel:
-            if self.apel_records:
-                self.logger.info('Showing the APEL archived records statistics')
-                self.__stats_show(self.apel_records, args)
+        # construct filter
+        filters = self.__construct_filter(args)
+        # loop over types
+        for t in args.type:
+            self.logger.info('Showing the %s archived records statistics', t.upper())
+            filters['type'] = t
+            # show stats data (particular info requested)
+            if args.jobs:
+                print(self.archive.get_records_count(filters))
+            elif args.walltime:
+                print(self.archive.get_records_walltime(filters))
+            elif args.cputime:
+                print(self.archive.get_records_cputime(filters))
+            elif args.vos:
+                print('\n'.join(self.archive.get_records_vos(filters)))
+            elif args.users:
+                print('\n'.join(self.archive.get_records_owners(filters)))
             else:
-                self.logger.info('There are no APEL archived records available')
-        if args.sgas:
-            if self.sgas_records:
-                self.logger.info('Showing the SGAS archived records statistics')
-                self.__stats_show(self.sgas_records, args)
-            else:
-                self.logger.info('There are no SGAS archived records available')
+                # show summary info
+                count = self.archive.get_records_count(filters)
+                if count:
+                    sfrom, etill = self.archive.get_records_dates(filters)
+                    walltime = self.archive.get_records_walltime(filters)
+                    cputime = self.archive.get_records_cputime(filters)
+                    print('Statistics for {0} jobs from {1} till {2}:\n'
+                          '  Number of jobs: {3:>16}\n'
+                          '  Total WallTime: {4:>16}\n'
+                          '  Total CPUTime:  {5:>16}'.format(t.upper(), sfrom, etill, count, walltime, cputime))
+                else:
+                    print('There are no {0} archived records available', t.upper())
 
     def republish(self, args):
         if args.start_from > args.end_till:
             self.logger.error('Records start time should be before the end time.')
             sys.exit(1)
-        startfrom = args.start_from.strftime('%Y.%m.%d').replace('.0', '.')
-        endtill = args.end_till.strftime('%Y.%m.%d').replace('.0', '.')
+        # export necessary records to republishing directory
+        filters = self.__construct_filter(args)
+        filters['type'] = 'apel' if args.apel_url else 'sgas'
+        exportdir = self.archive.export_records(filters)
+        # define timeframe for Jura
+        jura_startfrom = args.start_from.strftime('%Y.%m.%d').replace('.0', '.')
+        jura_endtill = args.end_till.strftime('%Y.%m.%d').replace('.0', '.')
         command = ''
         if args.apel_url:
             command = '{0} -u {1} -t {2} -r {3}-{4} {5}'.format(
                 self.jura_bin,
                 args.apel_url,
                 args.apel_topic,
-                startfrom, endtill,
-                self.archivedir
+                jura_startfrom, jura_endtill,
+                exportdir
             )
         elif args.sgas_url:
             command = '{0} -u {1} -r {2}-{3} {4}'.format(
                 self.jura_bin,
                 args.sgas_url,
-                startfrom, endtill,
-                self.archivedir
+                jura_startfrom, jura_endtill,
+                exportdir
             )
         self.logger.info('Running the following command to republish accounting records: %s', command)
         subprocess.call(command.split(' '))
+        # clean export dir
+        self.archive.export_remove()
 
     def get_apel_brockers(self, args):
         try:
@@ -345,12 +217,12 @@ class AccountingControl(ComponentControl):
 
     def control(self, args):
         if args.action == 'stats':
-            args.sgas = 'sgas' in args.type
-            args.apel = 'apel' in args.type
+            self.__ensure_accounting_db(args)
             self.stats(args)
         elif args.action == 'logs':
             self.logs(args.ssm)
         elif args.action == 'republish':
+            self.__ensure_accounting_db(args)
             self.republish(args)
         elif args.action == 'apel-brokers':
             self.get_apel_brockers(args)
@@ -358,17 +230,11 @@ class AccountingControl(ComponentControl):
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
 
-    def complete_vos(self, args):
-        self.__parse_records()
-        vos = self.__get_vos(self.__filter_records(self.sgas_records, args))
-        vos += self.__get_vos(self.__filter_records(self.apel_records, args))
-        return vos
+    def complete_vos(self, prefix):
+        return self.archive.get_all_vos(prefix)
 
-    def complete_users(self, args):
-        self.__parse_records()
-        users = self.__get_users(self.__filter_records(self.sgas_records, args))
-        users += self.__get_users(self.__filter_records(self.apel_records, args))
-        return users
+    def complete_users(self, prefix):
+        return self.archive.get_all_owners(prefix)
 
     @staticmethod
     def register_parser(root_parser):
@@ -378,6 +244,7 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
 
+        # republish
         accounting_republish = accounting_actions.add_parser('republish', help='Republish archived usage records')
         add_timeframe_args(accounting_republish, required=True)
         accounting_url = accounting_republish.add_mutually_exclusive_group(required=True)
@@ -385,30 +252,37 @@ class AccountingControl(ComponentControl):
                                     help='Specify APEL server URL (e.g. https://mq.cro-ngi.hr:6163)')
         accounting_url.add_argument('-s', '--sgas-url',
                                     help='Specify APEL server URL (e.g. https://grid.uio.no:8001/logger)')
+        accounting_republish.add_argument('--db-init', action='store_true',
+                                      help='Force accounting database init from arcctl')
         accounting_republish.add_argument('-t', '--apel-topic', default='/queue/global.accounting.cpu.central',
                                           choices=['/queue/global.accounting.cpu.central',
                                                    '/queue/global.accounting.test.cpu.central'],
                                           help='Redefine APEL topic (default is %(default)s)')
 
+        # logs
         accounting_logs = accounting_actions.add_parser('logs', help='Show accounting logs')
         accounting_logs.add_argument('-s', '--ssm', help='Show SSM logs instead of Jura logs', action='store_true')
 
-        accounting_list = accounting_actions.add_parser('stats', help='Show archived records statistics')
-        accounting_list.add_argument('-t', '--type', help='Accounting system type',
+        # stats
+        accounting_stats = accounting_actions.add_parser('stats', help='Show archived records statistics')
+        accounting_stats.add_argument('-t', '--type', help='Accounting system type',
                                      choices=['apel', 'sgas'], action='append', required=True)
-        add_timeframe_args(accounting_list)
-        accounting_list.add_argument('--filter-vo', help='Count only the jobs owned by this VO(s)',
+        add_timeframe_args(accounting_stats)
+        accounting_stats.add_argument('--db-init', action='store_true',
+                                      help='Force accounting database init from arcctl')
+        accounting_stats.add_argument('--filter-vo', help='Count only the jobs owned by this VO(s)',
                                      action='append').completer = complete_owner_vo
-        accounting_list.add_argument('--filter-user', help='Count only the jobs owned by this user(s)',
+        accounting_stats.add_argument('--filter-user', help='Count only the jobs owned by this user(s)',
                                      action='append').completer = complete_owner
 
-        accounting_info = accounting_list.add_mutually_exclusive_group(required=False)
-        accounting_info.add_argument('-j', '--jobs', help='Show number of jobs', action='store_true')
-        accounting_info.add_argument('-w', '--walltime', help='Show total WallTime', action='store_true')
-        accounting_info.add_argument('-c', '--cputime', help='Show total CPUTime', action='store_true')
-        accounting_info.add_argument('-v', '--vos', help='Show VO that owns jobs', action='store_true')
-        accounting_info.add_argument('-u', '--users', help='Show users that owns jobs', action='store_true')
+        accounting_stats_info = accounting_stats.add_mutually_exclusive_group(required=False)
+        accounting_stats_info.add_argument('-j', '--jobs', help='Show number of jobs', action='store_true')
+        accounting_stats_info.add_argument('-w', '--walltime', help='Show total WallTime', action='store_true')
+        accounting_stats_info.add_argument('-c', '--cputime', help='Show total CPUTime', action='store_true')
+        accounting_stats_info.add_argument('-v', '--vos', help='Show VOs that owns jobs', action='store_true')
+        accounting_stats_info.add_argument('-u', '--users', help='Show users that owns jobs', action='store_true')
 
+        # apel-brockers
         accounting_brokers = accounting_actions.add_parser('apel-brokers',
                                                            help='Fetch available APEL brokers from GLUE2 Top-BDII')
         accounting_brokers.add_argument('-t', '--top-bdii', default='ldap://lcg-bdii.cern.ch:2170',
