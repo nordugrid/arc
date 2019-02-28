@@ -38,21 +38,13 @@ if __name__ == '__main__':
     args_parser = get_parser()
     cmd_args = args_parser.parse_args()
     logger.setLevel(getattr(logging, cmd_args.debug, 30))
-    # Config parsing (archive manager designed to be called by A-REX => runtime config provided)
+    # Config parsing (archive manager designed to be run by A-REX => runtime config provided)
     config.load_run_config(cmd_args.config)
 
-    # Start logging to file
-    logfile = config.get_value('logfile', 'arex/jura/archiving')
+    # Set loglevel in accordance to config
     loglevel = config.get_value('loglevel', 'arex/jura/archiving')
     loglevel = [logging.CRITICAL, logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG, logging.DEBUG][loglevel]
-
-    logger.debug('Initializing logging to file: %s on %s level', logfile, loglevel)
-    log_handler_file = logging.FileHandler(logfile)
-    log_handler_file.setFormatter(
-        logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]')
-    )
-    log_handler_file.setLevel(loglevel)
-    logger.addHandler(log_handler_file)
+    logger.setLevel(loglevel)
 
     # Init archive management
     archive_dir = config.get_value('archivedir', 'arex/jura/archiving')
@@ -66,7 +58,12 @@ if __name__ == '__main__':
     am.process_records(batch_size)
 
     # Do cleanup
-    archivettl = config.get_value('archivettl', 'arex/jura/archiving')
-    if archivettl is not None:
-        # TODO: implement records removal
+    records_ttl = config.get_value('recordsttl', 'arex/jura/archiving')
+    if records_ttl is not None:
+        # TODO: implement records removal from FS
+        pass
+
+    db_ttl = config.get_value('dbttl', 'arex/jura/archiving')
+    if db_ttl is not None:
+        # TODO: implement records removal from Database
         pass
