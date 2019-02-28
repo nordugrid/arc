@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import logging
+import datetime
 
 # ARC-prefix path in PYTHONPATH
 arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
@@ -60,10 +61,10 @@ if __name__ == '__main__':
     # Do cleanup
     records_ttl = config.get_value('recordsttl', 'arex/jura/archiving')
     if records_ttl is not None:
-        # TODO: implement records removal from FS
-        pass
+        enddate = datetime.date.today() - datetime.timedelta(days=int(records_ttl))
+        am.remove_records(enddate)
 
     db_ttl = config.get_value('dbttl', 'arex/jura/archiving')
     if db_ttl is not None:
-        # TODO: implement records removal from Database
-        pass
+        enddate = datetime.date.today() - datetime.timedelta(days=int(db_ttl))
+        am.remove_db_records(enddate)

@@ -32,8 +32,8 @@ class AccountingDBSQLite(object):
             # In case we need to adjust database scheme, altering sql will be applied here depending on the version
             self.logger.debug('Loaded archive database version %s at %s', db_version, db_file)
         # init vars for records filtering methods
-        self.select_filter = ''
-        self.select_filter_params = ()
+        self.filter_str = ''
+        self.filter_params = ()
         self.return_empty_select = False
 
     def close(self):
@@ -134,13 +134,13 @@ class AccountingDBSQLite(object):
 
     def filters_clear(self):
         """Clear all filters"""
-        self.select_filter = ''
-        self.select_filter_params = ()
+        self.filter_str = ''
+        self.filter_params = ()
 
     def filter_type(self, typeid):
         """Add record type filtering to the select queries"""
-        self.select_filter += 'AND RecordType = ? '
-        self.select_filter_params += (typeid,)
+        self.filter_str += 'AND RecordType = ? '
+        self.filter_params += (typeid,)
 
     def filter_vos(self, vonames):
         """Add VO filtering to the select queries"""
@@ -154,8 +154,8 @@ class AccountingDBSQLite(object):
         if not voids:
             self.return_empty_select = True
         else:
-            self.select_filter += 'AND VOId IN({0}) '.format(','.join(['?'] * len(voids)))
-            self.select_filter_params += tuple(voids)
+            self.filter_str += 'AND VOId IN({0}) '.format(','.join(['?'] * len(voids)))
+            self.filter_params += tuple(voids)
 
     def filter_owners(self, dns):
         """Add job owner DN filtering to the select queries"""
@@ -169,29 +169,29 @@ class AccountingDBSQLite(object):
         if not ownerids:
             self.return_empty_select = True
         else:
-            self.select_filter += 'AND OwnerId IN({0}) '.format(','.join(['?'] * len(ownerids)))
-            self.select_filter_params += tuple(ownerids)
+            self.filter_str += 'AND OwnerId IN({0}) '.format(','.join(['?'] * len(ownerids)))
+            self.filter_params += tuple(ownerids)
 
     def filter_startfrom(self, stime):
         """Add job start time filtering to the select queries"""
-        self.select_filter += 'AND StartTime > ? '
-        self.select_filter_params += (stime,)
+        self.filter_str += 'AND StartTime > ? '
+        self.filter_params += (stime,)
 
     def filter_endtill(self, etime):
         """Add job end time filtering to the select queries"""
-        self.select_filter += 'AND EndTime < ? '
-        self.select_filter_params += (etime,)
+        self.filter_str += 'AND EndTime < ? '
+        self.filter_params += (etime,)
 
-    def _filtered_select(self, sql, params=(), errorstr=''):
+    def _filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         if self.return_empty_select:
             return []
-        if self.select_filter:
+        if self.filter_str:
             if 'WHERE' in sql:
-                sql += ' ' + self.select_filter
+                sql += ' ' + self.filter_str
             else:
-                sql += ' WHERE' + self.select_filter[3:]
-            params += self.select_filter_params
+                sql += ' WHERE' + self.filter_str[3:]
+            params += self.filter_params
         try:
             res = self.con.execute(sql, params)
             return res
@@ -206,28 +206,28 @@ class AccountingDBSQLite(object):
     def get_records_path_data(self):
         """Return records IDs and EndTime (necessary to find the file path)"""
         data = []
-        for res in self._filtered_select("SELECT RecordId, EndTime FROM UsageRecords",
-                                         errorstr='Failed to get accounting records.'):
+        for res in self._filtered_query("SELECT RecordId, EndTime FROM UsageRecords",
+                                        errorstr='Failed to get accounting records.'):
             data.append((res[0], res[1]))
         return data
 
     def get_records_count(self):
         """Return records count"""
-        for res in self._filtered_select("SELECT COUNT(*) FROM UsageRecords", errorstr='Failed to get records count.'):
+        for res in self._filtered_query("SELECT COUNT(*) FROM UsageRecords", errorstr='Failed to get records count.'):
             return res[0]
         return 0
 
     def get_records_walltime(self):
         """Return total records walltime"""
         wallt = datetime.timedelta(0)
-        for res in self._filtered_select("SELECT WallTime FROM UsageRecords", errorstr='Failed to get walltime values'):
+        for res in self._filtered_query("SELECT WallTime FROM UsageRecords", errorstr='Failed to get walltime values'):
             wallt += datetime.timedelta(seconds=res[0])
         return wallt
 
     def get_records_cputime(self):
         """Return total records cputime"""
         cput = datetime.timedelta(0)
-        for res in self._filtered_select("SELECT CpuTime FROM UsageRecords", errorstr='Failed to get cputime values'):
+        for res in self._filtered_query("SELECT CpuTime FROM UsageRecords", errorstr='Failed to get cputime values'):
             cput += datetime.timedelta(seconds=res[0])
         return cput
 
@@ -235,8 +235,8 @@ class AccountingDBSQLite(object):
         """Return list of owners for selected records"""
         owners = self.get_owners()
         ids = []
-        for res in self._filtered_select("SELECT DISTINCT OwnerId FROM UsageRecords",
-                                         errorstr='Failed to get job owners'):
+        for res in self._filtered_query("SELECT DISTINCT OwnerId FROM UsageRecords",
+                                        errorstr='Failed to get job owners'):
             ids.append(res[0])
         return [dn for dn in owners.keys() if owners[dn] in ids]
 
@@ -244,18 +244,27 @@ class AccountingDBSQLite(object):
         """Return list of VOs for selected records"""
         vos = self.get_vos()
         ids = []
-        for res in self._filtered_select("SELECT DISTINCT VOId FROM UsageRecords",
-                                         errorstr='Failed to get job VOs'):
+        for res in self._filtered_query("SELECT DISTINCT VOId FROM UsageRecords",
+                                        errorstr='Failed to get job VOs'):
             ids.append(res[0])
         return [v for v in vos.keys() if vos[v] in ids]
 
     def get_records_dates(self):
+        """Return startdate and enddate interval for selected records"""
         mindate = None
-        for res in self._filtered_select("SELECT MIN(StartTime) FROM UsageRecords",
-                                         errorstr='Failed to get minimum records start date'):
+        for res in self._filtered_query("SELECT MIN(StartTime) FROM UsageRecords",
+                                        errorstr='Failed to get minimum records start date'):
             mindate = res[0]
         maxdate = None
-        for res in self._filtered_select("SELECT MAX(EndTime) FROM UsageRecords",
-                                         errorstr='Failed to get maximum records start date'):
+        for res in self._filtered_query("SELECT MAX(EndTime) FROM UsageRecords",
+                                        errorstr='Failed to get maximum records start date'):
             maxdate = res[0]
         return mindate, maxdate
+
+    def delete_records(self):
+        """Remove records from database"""
+        if not self.filter_str:
+            self.logger.error('Removing records without applying filters is not allowed')
+            return False
+        self._filtered_query("DELETE FROM UsageRecords")
+        return True

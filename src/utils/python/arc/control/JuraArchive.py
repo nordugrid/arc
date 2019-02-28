@@ -296,8 +296,10 @@ class JuraArchive(object):
         os.makedirs(export_dir)
         self.db_connection_init()
         for (rid, rtime) in self.get_records_path_data(filters):
-            ur_path = self.__record_date_path(rid, rtime)
+            ur_path, ur_name = self.__record_date_path(rid, rtime)
+            ur_path =+ ur_name
             if os.path.exists(ur_path):
+                self.logger.debug('Exporting "%s" records', rid)
                 shutil.copy(ur_path, export_dir + rid)
             else:
                 self.logger.error('Usage records in %s no longer exists. Republishing is not possible.', ur_path)
@@ -308,3 +310,38 @@ class JuraArchive(object):
         export_dir = self.db_dir + subdir.rstrip('/') + '/'
         self.logger.info('Cleaning exported records in %s', export_dir)
         shutil.rmtree(export_dir)
+
+    def remove_records(self, olderthan):
+        """Remove usage record files from the filesystem"""
+        self.logger.info('Removing accounting record files older than %s', olderthan)
+        olderthan_month = olderthan.strftime('%Y-%m')
+        olderthan_day = olderthan.strftime('%d')
+        dirs2remove = []
+        # look for old monthly dirs
+        for f in os.listdir(self.db_dir):
+            fpath = os.path.join(self.db_dir, f)
+            if os.path.isdir(fpath):
+                # check at least format comply (who knows which custom dirs people can have there)
+                if len(f) == 7 and f[5] == '-':
+                    if f < olderthan_month:
+                        dirs2remove.append(fpath)
+        # look for dally dirs inside cut-off month
+        mpath = os.path.join(self.db_dir, olderthan_month)
+        if os.path.isdir(mpath):
+            for f in os.listdir(mpath):
+                if f < olderthan_day:
+                    dirs2remove.append(os.path.join(mpath, f))
+        # remove
+        for dir in dirs2remove:
+            self.logger.debug('Removing %s directory', dir)
+            shutil.rmtree(dir)
+
+    def remove_db_records(self, olderthan):
+        """Remove database records"""
+        self.db.filter_endtill(olderthan)
+        self.logger.info('Removing accounting database records older than %s', olderthan)
+        self.db.delete_records()
+        self.db.filters_clear()
+
+
+
