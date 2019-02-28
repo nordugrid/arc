@@ -5,13 +5,10 @@
 #include "jura.h"
 
 #include <iostream>
-//TODO cross-platform
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
 
-
-//TODO cross-platform
 #include <dirent.h>
 #include <signal.h>
 #include <errno.h>
@@ -30,6 +27,7 @@
 #include "CARAggregation.h"
 #include "Config.h"
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"JURA");
 
 int main(int argc, char **argv)
 {
@@ -38,13 +36,13 @@ int main(int argc, char **argv)
   signal(SIGTTIN,SIG_IGN);
 
   Arc::LogStream logcerr(std::cerr);
-  logcerr.setFormat(Arc::ShortFormat);
-  Arc::Logger::rootLogger.addDestination(logcerr);
+  logcerr.setFormat(Arc::LongFormat);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
 
   opterr=0;
   std::vector<std::string> urls;
   std::vector<std::string> topics;
-  std::string output_dir;
   bool aggregation  = false;
   bool sync = false;
   bool force_resend = false;
@@ -54,24 +52,23 @@ int main(int argc, char **argv)
   std::string month = "";
   std::string vo_filters=""; 
   std::string config_file;
+  std::string archive_dir;
+  std::string str_loglevel;
   int n;
-  while((n=getopt(argc,argv,":u:t:o:y:F:m:r:c:afsvL")) != -1) {
+  while((n=getopt(argc,argv,":u:t:y:F:m:r:A:c:afsd:v")) != -1) {
     switch(n) {
-    case ':': { std::cerr<<"Missing argument\n"; return 1; }
-    case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
+    case ':': { logger.msg(Arc::ERROR, "Missing option argument"); return 1; }
+    case '?': { logger.msg(Arc::ERROR, "Unrecognized option"); return 1; }
     case 'u':
       urls.push_back(std::string(optarg));
       topics.push_back("");
       break;
     case 't':
       if (topics.begin() == topics.end()){
-          std::cerr<<"Add URL value before a topic. (for example: -u [...] -t [...])\n";
+          logger.msg(Arc::ERROR, "Add URL value before a topic. (for example: -u [...] -t [...])");
           return -1;
       }
       topics.back() = optarg;
-      break;
-    case 'o':
-      output_dir = optarg;
       break;
     case 'a':
       aggregation = true;
@@ -89,26 +86,29 @@ int main(int argc, char **argv)
       ur_resend = true;
       resend_range = optarg;
       break;
+    case 'A':
+      archive_dir = optarg;
+      break;
     case 'f':
-      std::cout << "Force resend all aggregation records." << std::endl;
+      logger.msg(Arc::INFO, "Force resend all aggregation records.");
       force_resend = true;
       break;
     case 's':
-      std::cout << "Sync message(s) will be send..." << std::endl;
+      logger.msg(Arc::INFO, "Sync message(s) will be send...");
       sync = true;
+      break;
+    case 'd':
+      str_loglevel = optarg;
       break;
     case 'v':
       std::cout << Arc::IString("%s version %s", "jura", VERSION)
               << std::endl;
       return 0;
       break;
-    case 'L':
-      logcerr.setFormat(Arc::LongFormat);
-      break;
     case 'c':
       config_file = optarg;
       break;
-    default: { std::cerr<<"Options processing error"<<std::endl; return 1; }
+    default: { logger.msg(Arc::ERROR, "Options processing error"); return 1; }
     }
   }
   
@@ -116,7 +116,17 @@ int main(int argc, char **argv)
   // of command line aguments because this is how A-REX calls Jura. 
   ArcJura::Config config(config_file.empty() ? NULL : config_file.c_str());
   if (!config_file.empty() && !config) {
-    std::cerr<<"Failed processing configuration file "<<config_file<<std::endl; return 1;
+    logger.msg(Arc::ERROR, "Failed processing configuration file %s", config_file); return 1;
+  }
+
+  if(archive_dir.empty()){
+    archive_dir = config.getArchiveDir();
+  }
+
+  if(str_loglevel.empty()){
+    Arc::Logger::getRootLogger().setThreshold(config.getLoglevel());
+  } else {
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(str_loglevel));
   }
 
   if ( aggregation ) {
@@ -128,7 +138,7 @@ int main(int argc, char **argv)
         std::string host, port, endpoint;
         if (urls[i].empty())
           {
-            std::cerr << "ServiceURL missing" << std::endl;
+            logger.msg(Arc::ERROR, "ServiceURL missing");
             continue;
           }
         else
@@ -143,10 +153,10 @@ int main(int argc, char **argv)
 
         if (topics[i].empty())
           {
-            std::cerr << "Topic missing for a (" << urls[i] << ") host." << std::endl;
+            logger.msg(Arc::ERROR, "Topic missing for a (%s) host.", urls[i]);
             continue;
           }
-        std::cerr << "Aggregation record(s) sending to " << host << std::endl;
+        logger.msg(Arc::INFO, "Aggregation record(s) sending to %s", host);
         aggr = new ArcJura::CARAggregation(host, port, topics[i], sync);
 
         if ( !year.empty() )
@@ -165,12 +175,9 @@ int main(int argc, char **argv)
   // The essence:
   ArcJura::Reporter *usagereporter;
   if ( ur_resend ) {
-      std::cerr << "resend opt:" << resend_range << std::endl;
-      usagereporter=new ArcJura::ReReporter(
-                      config.getArchiveDir(),
-                      resend_range, urls, topics, vo_filters );
-
-      } else {
+      logger.msg(Arc::INFO, "resend opt: %s", resend_range);
+      usagereporter=new ArcJura::ReReporter(archive_dir, resend_range, urls, topics, vo_filters );
+  } else {
       usagereporter=new ArcJura::UsageReporter(config);
   }
   usagereporter->report();
