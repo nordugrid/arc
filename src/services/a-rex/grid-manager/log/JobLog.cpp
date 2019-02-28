@@ -37,7 +37,7 @@ bool JobLog::SetReporterPeriod(int new_period) {
     reporter_period=new_period;
     // it does not make sense to run archive manager faster than reporter
     if (archive_mgmt_period < reporter_period ) {
-        archive_mgmt_period=reporter_period
+        archive_mgmt_period=reporter_period;
     }
     return true;
 }
