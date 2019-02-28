@@ -27,7 +27,6 @@
 namespace ARex {
 
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");
-#define REPORTER_PERIOD "3600";
 
 void CoreConfig::CheckLRMSBackends(const std::string& default_lrms) {
   std::string tool_path;
@@ -88,6 +87,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   // List of helper commands that will be substituted after all configuration is read
   std::list<std::string> helpers;
   std::string jobreport_publisher;
+  std::string accounting_archive_manager;
   bool helper_log_is_set = false;
   bool job_log_log_is_set = false;
   bool ws_enabled = false;
@@ -101,21 +101,23 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   cf.AddSection("arex/ws/jobs");
   static const int ws_secnum = 3;
   cf.AddSection("arex/ws");
-  static const int jura_secnum = 4;
+  static const int jura_archive_secnum = 4;
+  cf.AddSection("arex/jura/archive");
+  static const int jura_secnum = 5;
   cf.AddSection("arex/jura");
-  static const int gm_secnum = 5;
+  static const int gm_secnum = 6;
   cf.AddSection("arex");
-  static const int infosys_secnum = 6;
+  static const int infosys_secnum = 7;
   cf.AddSection("infosys"); 
-  static const int queue_secnum = 7;
+  static const int queue_secnum = 8;
   cf.AddSection("queue");
-  static const int ssh_secnum = 8;
+  static const int ssh_secnum = 9;
   cf.AddSection("lrms/ssh");
-  static const int lrms_secnum = 9;
+  static const int lrms_secnum = 10;
   cf.AddSection("lrms");
-  static const int cluster_secnum = 10;
+  static const int cluster_secnum = 11;
   cf.AddSection("infosys/cluster");
-  static const int perflog_secnum = 11;
+  static const int perflog_secnum = 12;
   cf.AddSection("common/perflog");
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
@@ -505,6 +507,32 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       continue;
     };
 
+    if (cf.SectionNum() == jura_archive_secnum) { // arex/jura/archive
+      if (cf.SubSection()[0] == '\0') {
+        accounting_archive_manager = "jura-archive-manager";
+        if (command == "logfile") {
+          if (config.job_log) {
+            std::string logfile = rest;
+            if (logfile.empty()) {
+              logger.msg(Arc::ERROR, "Missing file name in [arex/jura/archive] logfile"); return false;
+            }
+            config.job_log->SetArchiveManagerLogFile(logfile.c_str());
+          }
+        }
+        else if (command == "manage_frequency") {
+          if (config.job_log) {
+            std::string period_s = Arc::ConfigIni::NextArg(rest);
+            unsigned int period = 0;
+            if (!Arc::stringto(period_s, period)) {
+              logger.msg(Arc::ERROR, "Wrong number in manage_frequency: %s", period_s); return false;
+            }
+            config.job_log->SetArchiveManagerPeriod(period);
+          }
+        }
+      };
+      continue;
+    }
+
     if (cf.SectionNum() == infosys_secnum) { // infosys - looking for user name to get share uid
       /*
       if (cf.SubSection()[0] == '\0') {
@@ -589,12 +617,15 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   };
   // End of parsing conf commands
 
-  if (jobreport_publisher.empty()) {
-    jobreport_publisher = "jura";
-  }
+  // Define accounting reporter and database manager if configured
   if(config.job_log) {
-    config.job_log->SetReporterTool(jobreport_publisher.c_str());
-    if(!job_log_log_is_set) config.job_log->SetReporterLogFile("/var/log/arc/jura.log");
+    if(!jobreport_publisher.empty()) {
+      config.job_log->SetReporter(jobreport_publisher.c_str());
+      if(!job_log_log_is_set) config.job_log->SetReporterLogFile("/var/log/arc/jura.log");
+      if(!accounting_archive_manager.empty()) {
+        config.job_log->SetArchiveManager(accounting_archive_manager.c_str());
+      }
+    }
   }
 
   if(!helper_log_is_set) {

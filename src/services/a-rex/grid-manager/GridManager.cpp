@@ -304,7 +304,16 @@ bool GridManager::thread() {
     }
     // TODO: check conditions for following calls
     JobLog* joblog = config_.GetJobLog();
-    if(joblog) joblog->RunReporter(config_);
+    if(joblog) {
+      // run jura reporter if enabled
+      if (joblog->ReporterEnabled()){
+        joblog->RunReporter(config_);
+      }
+      // run acconting archive manager if enabled
+      if (joblog->ArchiveManagerEnabled()){
+        joblog->RunArchiveManager(config_);
+      }
+    }
     JobsMetrics* metrics = config_.GetJobsMetrics();
     if(metrics) metrics->Sync();
     // Process jobs which need attention ASAP
