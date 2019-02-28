@@ -89,8 +89,11 @@ class AccountingControl(ComponentControl):
             os.environ['X509_USER_CERT'] = x509_host_cert
         if x509_host_key is not None:
             os.environ['X509_USER_KEY'] = x509_host_key
+        # debug level
+        loglevel = logging.getLogger('ARC').getEffectiveLevel()
+        loglevel = {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]
         # return command
-        return ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
+        return ARC_LIBEXEC_DIR + '/jura -c {0} -d {1} '.format(self.runconfig, loglevel)
 
     def __ensure_accounting_db(self, args):
         """Ensure accounting database availabiliy"""
@@ -164,7 +167,7 @@ class AccountingControl(ComponentControl):
         jura_bin = self.__jura_bin()
         command = ''
         if args.apel_url:
-            command = '{0} -u {1} -t {2} -r {3}-{4} {5}'.format(
+            command = '{0} -u {1} -t {2} -r {3}-{4} -A {5}'.format(
                 jura_bin,
                 args.apel_url,
                 args.apel_topic,
@@ -172,7 +175,7 @@ class AccountingControl(ComponentControl):
                 exportdir
             )
         elif args.sgas_url:
-            command = '{0} -u {1} -r {2}-{3} {4}'.format(
+            command = '{0} -u {1} -r {2}-{3} -A {4}'.format(
                 jura_bin,
                 args.sgas_url,
                 jura_startfrom, jura_endtill,

@@ -53,7 +53,7 @@ if __name__ == '__main__':
                     logging.WARNING,
                     logging.INFO,
                     logging.DEBUG,
-                    logging.DEBUG][int(loglevel)]
+                    logging.DEBUG][loglevel]
         logger.setLevel(loglevel)
 
     # Init archive management
