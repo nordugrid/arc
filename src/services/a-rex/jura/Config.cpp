@@ -9,7 +9,7 @@ namespace ArcJura
 {
 
   char const * const Config::default_logfile = "/var/log/arc/jura.log";
-  Arc::LogLevel const Config::default_loglevel = Arc::WARNING;
+  Arc::LogLevel const Config::default_loglevel = Arc::INFO;
   char const * const Config::default_archivedir = "/var/log/arc/jura/archive";
   unsigned int const Config::default_archivettl = 0; // forever
   unsigned int const Config::default_urdelivery_keepfailed = 30;
@@ -73,18 +73,7 @@ namespace ArcJura
               logger.msg(Arc::ERROR, "Wrong loglevel (%s) config value given!", rest);
               return;
             }
-            switch(loglevel_num) {
-              case 0: loglevel = Arc::DEBUG; break;
-              case 1: loglevel = Arc::VERBOSE; break;
-              case 2: loglevel = Arc::INFO; break;
-              case 3: loglevel = Arc::WARNING; break;
-              case 4: loglevel = Arc::ERROR; break;
-              case 5: loglevel = Arc::FATAL; break;
-              default: 
-                logger.msg(Arc::ERROR, "Wrong loglevel (%s) config value given!", rest);
-                return;
-            }
-            Arc::Logger::getRootLogger().setThreshold(loglevel);
+            loglevel = Arc::old_level_to_level(loglevel_num);
           } else if (command == "vomsless_vo") {
             vomsless_vo = Arc::ConfigIni::NextArg(rest,'#');
             vomsless_issuer = rest;

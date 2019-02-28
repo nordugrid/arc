@@ -38,12 +38,11 @@ int main(int argc, char **argv)
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::LongFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
+  Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
 
   opterr=0;
   std::vector<std::string> urls;
   std::vector<std::string> topics;
-  std::string output_dir;
   bool aggregation  = false;
   bool sync = false;
   bool force_resend = false;
@@ -53,8 +52,10 @@ int main(int argc, char **argv)
   std::string month = "";
   std::string vo_filters=""; 
   std::string config_file;
+  std::string archive_dir;
+  std::string str_loglevel;
   int n;
-  while((n=getopt(argc,argv,":u:t:o:y:F:m:r:c:afsv")) != -1) {
+  while((n=getopt(argc,argv,":u:t:o:y:F:m:r:A:c:afsd:v")) != -1) {
     switch(n) {
     case ':': { logger.msg(Arc::ERROR, "Missing option argument"); return 1; }
     case '?': { logger.msg(Arc::ERROR, "Unrecognized option"); return 1; }
@@ -68,9 +69,6 @@ int main(int argc, char **argv)
           return -1;
       }
       topics.back() = optarg;
-      break;
-    case 'o':
-      output_dir = optarg;
       break;
     case 'a':
       aggregation = true;
@@ -88,6 +86,9 @@ int main(int argc, char **argv)
       ur_resend = true;
       resend_range = optarg;
       break;
+    case 'A':
+      archive_dir = optarg;
+      break;
     case 'f':
       logger.msg(Arc::INFO, "Force resend all aggregation records.");
       force_resend = true;
@@ -95,6 +96,9 @@ int main(int argc, char **argv)
     case 's':
       logger.msg(Arc::INFO, "Sync message(s) will be send...");
       sync = true;
+      break;
+    case 'd':
+      str_loglevel = optarg;
       break;
     case 'v':
       std::cout << Arc::IString("%s version %s", "jura", VERSION)
@@ -113,6 +117,16 @@ int main(int argc, char **argv)
   ArcJura::Config config(config_file.empty() ? NULL : config_file.c_str());
   if (!config_file.empty() && !config) {
     logger.msg(Arc::ERROR, "Failed processing configuration file %s", config_file); return 1;
+  }
+
+  if(archive_dir.empty()){
+    archive_dir = config.getArchiveDir();
+  }
+
+  if(str_loglevel.empty()){
+    Arc::Logger::getRootLogger().setThreshold(config.getLoglevel());
+  } else {
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(str_loglevel));
   }
 
   if ( aggregation ) {
@@ -162,11 +176,8 @@ int main(int argc, char **argv)
   ArcJura::Reporter *usagereporter;
   if ( ur_resend ) {
       logger.msg(Arc::INFO, "resend opt: %s", resend_range);
-      usagereporter=new ArcJura::ReReporter(
-                      config.getArchiveDir(),
-                      resend_range, urls, topics, vo_filters );
-
-      } else {
+      usagereporter=new ArcJura::ReReporter(archive_dir, resend_range, urls, topics, vo_filters );
+  } else {
       usagereporter=new ArcJura::UsageReporter(config);
   }
   usagereporter->report();
