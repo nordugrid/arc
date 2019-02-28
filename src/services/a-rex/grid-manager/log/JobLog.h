@@ -22,7 +22,7 @@ class JobLog {
   std::string filename;
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
-  std::string ca_certificates_dir;A
+  std::string ca_certificates_dir;
   // reporter vars
   std::string reporter_tool;
   std::string reporter_logfile;
@@ -49,7 +49,7 @@ class JobLog {
   /* log job finish iformation */
   bool WriteFinishInfo(GMJob &job,const GMConfig& config);
   /* Check accounting records reporting is enabled */
-  bool ReporterEnabled(void){ return !reporter_tool.empty();}
+  bool ReporterEnabled(void);
   /* Run external utility to report gathered information to accounting services */
   bool RunReporter(const GMConfig& config);
   /* Set period of running reporter */
@@ -59,7 +59,7 @@ class JobLog {
   /* Set name of the log file for accounting reporter */
   bool SetReporterLogFile(const char* fname);
   /* Check accounting archive management is enabled */
-  bool ArchiveManagerEnabled(void){ return !archive_mgmt_tool.empty();}
+  bool ArchiveManagerEnabled(void);
   /* Run external utility to manage archived accounting records */
   bool RunArchiveManager(const GMConfig& config);
   /* Set name of the archive management tool */

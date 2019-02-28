@@ -150,6 +150,11 @@ bool JobLog::RunReporter(const GMConfig &config) {
   return true;
 }
 
+bool JobLog::ReporterEnabled(void) {
+  if (reporter_tool.empty()) return false;
+  return true;
+}
+
 bool JobLog::SetReporter(const char* fname) {
   if(fname) reporter_tool = (std::string(fname));
   return true;
@@ -198,6 +203,11 @@ bool JobLog::RunArchiveManager(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Failure starting accounting archive manager child process");
     return false;
   };
+  return true;
+}
+
+bool JobLog::ArchiveManagerEnabled(void) {
+  if (archive_mgmt_tool.empty()) return false;
   return true;
 }
 
