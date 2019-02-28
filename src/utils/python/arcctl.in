@@ -22,13 +22,9 @@ if os.path.isdir(arc_prefix_pythonpath):
         sys.path.insert(1, arc_prefix_pythonpath)
 
 # Import ARC control and config modules
+from arc.control import ControlCommon
 from arc.control import *
 from arc.utils import config
-
-# Runtime configuration (used for root only)
-arcctl_runtime_config = '@localstatedir@/run/arc/arcctl.runtime.conf'.replace('${prefix}', '@prefix@')
-if os.geteuid() != 0:
-    arcctl_runtime_config = None
 
 
 # Define root parser for arcctl
@@ -46,49 +42,6 @@ def get_parser():
         c.register_parser(subparsers)
     return parser
 
-
-# Return parsed arc.conf (conditionally dump and load config with included defaults)
-def get_arcconfig(conf_f):
-    # handle default
-    def_conf_f = config.arcconf_defpath()
-    runconf_load = False
-    if conf_f is None:
-        if os.path.exists(def_conf_f):
-            conf_f = def_conf_f
-        elif def_conf_f != '/etc/arc.conf' and os.path.exists('/etc/arc.conf'):
-            conf_f = '/etc/arc.conf'
-            logger.warning('There is no arc.conf in ARC installation prefix (%s). '
-                           'Using /etc/arc.conf that exists.', def_conf_f)
-        else:
-            logger.error('Cannot find ARC configuration file in the default location.')
-            return None
-        if arcctl_runtime_config is not None:
-            runconf_load = os.path.exists(arcctl_runtime_config)
-    else:
-        logger.debug('Custom ARC configuration file location used. Runtime configuration will not be used.')
-
-    try:
-        logger.debug('Getting ARC configuration (config file: %s)', conf_f)
-        if runconf_load:
-            arcconf_mtime = os.path.getmtime(conf_f)
-            default_mtime = os.path.getmtime(config.defaults_defpath())
-            runconf_mtime = os.path.getmtime(arcctl_runtime_config)
-            if runconf_mtime < arcconf_mtime or runconf_mtime < default_mtime:
-                runconf_load = False
-        if runconf_load:
-            logger.debug('Loading cached parsed configuration from %s', arcctl_runtime_config)
-            config.load_run_config(arcctl_runtime_config)
-        else:
-            logger.debug('Parsing configuration options from %s (with defaults in %s)',
-                         conf_f, config.defaults_defpath())
-            config.parse_arc_conf(conf_f)
-            if arcctl_runtime_config is not None:
-                config.save_run_config(arcctl_runtime_config)
-        arcconfig = config
-    except IOError:
-        logger.error('Failed to open ARC configuration file %s', conf_f)
-        arcconfig = None
-    return arcconfig
 
 if __name__ == '__main__':
     args_parser = get_parser()
@@ -113,14 +66,12 @@ if __name__ == '__main__':
 
     # Invoke ARC control action
     try:
-        ctl_class(get_arcconfig(cmd_args.config)).control(cmd_args)
+        ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
     except IOError as e:
         # handle SIGPIPE termination
         if e.errno == errno.EPIPE:
             pass
         else:
             # Remove runtime config on any failures
-            if arcctl_runtime_config is not None:
-                if os.path.exists(arcctl_runtime_config):
-                    os.unlink(arcctl_runtime_config)
+            ControlCommon.remove_runtime_config()
             raise

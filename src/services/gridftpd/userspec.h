@@ -22,7 +22,6 @@ class userspec_t {
   UnixMap map;
   UnixMap default_map;
  public:
-  bool  gridmap;
   void free(void) const;
   userspec_t(void);
   ~userspec_t(void);
@@ -37,9 +36,10 @@ class userspec_t {
   short unsigned int get_port(void) const { return port; };
   const int* get_host(void) const { return host; };
   const AuthUser& get_user(void) const { return user; };
-  AuthResult mapname(const char* line);
-  AuthResult mapgroup(const char* line);
-  AuthResult mapvo(const char* line);
+  //AuthResult mapname(const char* line);
+  AuthResult mapgroup(const char* rule, const char* line);
+  bool set_map_policy(const char* rule, const char* line);
+  //AuthResult mapvo(const char* line);
   bool mapped(void) const { return (bool)map; };
 };
 

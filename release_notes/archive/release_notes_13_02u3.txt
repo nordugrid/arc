@@ -1,0 +1,135 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 13.02 update 3               July 19, 2013
+----------------------------------------------
+
+This is a bug fix release, addressing problems with the ARC data tools and
+dCache HTTPS in addition to a backlog of older minor bugfixes.
+
+NorduGrid ARC 13.02 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 3.0.2 to 3.0.3
+  * documents - from 1.3.2 to 1.3.3
+  * metapackages - from 1.0.6 to 1.0.7
+Nagios plugins and CAnL C++ are unchanged.
+
+
+Detailed notes
+--------------
+
+== ARC Core
+
+All blocking issues for ARC data tools to use dCache through HTTPS are now fixed:
+
+  * Non-partial put is now default
+  * Redirection for HTTP PUT is now allowed
+
+Some other bugs where fixed, see below.
+
+== ARC Compute Element
+
+Fixed a typo for ServiceLevel attribute in JURA. JURA can now successfully register
+records in APEL. Some other bugs where fixed, see below.
+
+
+== Other components
+
+Some bugs where fixed in ARC Clients, see below.
+
+
+Fixed bugs
+----------
+
+Since ARC 13.02 u2, the following bugs were fixed:
+
+  * 2416 - problems with arc data tools and dCache https 
+  * 3154 - Allow option of separate log file for WS interface and grid-manager 
+  * 3172 - Submission via 'org.ogf.bes' interface seams failed to pass user's proxy certificate to authplugin
+  * 3177 - Missing Glue1CEImplementationName in ARC Glue1 rendering
+  * 3181 - Dangling .meta causes problems
+  * 3186 - src:nordugrid-arc: uses deprecated find -perm +0123
+  * 3197 - Problems with ServiceLevel in accounting records
+  * 3199 - arcsync doesn't find any jobs
+  * 3200 - Checksum comparison is sometimes not done when downloading input files
+  * 3206 - using (middleware >= nordugrid-arc-x.y.z) doesn't work
+  * 3215 - Different information endpoints publish different implementation names
+  * 3217 - CentOS/SL6 package not create /var/spool/arc directory
+  * 3218 - Things break in condor backend when config file is not in default location
+  * 3219 - make use_ssl: false/true directly configurable for JURA from arc.conf
+
+
+GGUS tickets solved
+-------------------
+
+  * 92862 - ARC job manager (2.0.1-1.el5) stops when data transfers fail 
+ 
+ 
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for some jobs (e.g., ALICE) when using some of the back-ends 
+    (e.g., LoadLeveler and SLURM). The SGE backend is not affected.
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source.
+  * arcmigrate is currently non-functional
+  * Jobs submitted through EMI ES cannot be renewed or resumed
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 13.02u3 consists of the following source packages:
+  * NorduGrid ARC, version 3.0.3 (main components)
+  * NorduGrid ARC Documents version 1.3.3 
+  * metapackages for client tools, computing element and information index,
+    version 1.0.6
+  * Nagios probes for ARC CE, version 1.6.0
+  * Common authentication library caNl++, version 1.0.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/3.0.3
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.3.3
+
+Source for metapackages is available from:
+
+http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.6.0
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.0
+
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0 and 7 (i386 and amd64)
+  * Fedora: from 3 to 19 (i386 and x86_64)
+  * RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10 and 13.04
+    (i386 and amd64) 
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.

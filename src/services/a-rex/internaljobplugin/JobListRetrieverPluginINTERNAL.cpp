@@ -28,8 +28,7 @@ namespace ARexINTERNAL {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
       return ((proto != "file"));
     }
-    
-    return false;
+    return (endpoint.URLString != "localhost");
   }
 
   static URL CreateURL(std::string service) {
@@ -56,6 +55,9 @@ namespace ARexINTERNAL {
 
 
     INTERNALClient ac(uc);
+    if (!ac.GetConfig()) {
+      return s;
+    }
 
     std::list<INTERNALJob> localjobs;
     if (!ac.list(localjobs)) {
@@ -73,12 +75,12 @@ namespace ARexINTERNAL {
 
       //read job description to get hold of submission-interface
       ARex::JobLocalDescription job_desc;
-      ARex::JobId jobid((*itID).id);
-      ARex::job_local_read_file(jobid, *(ac.config), job_desc);
+      ARex::JobId jobid((*itID).GetId());
+      ARex::job_local_read_file(jobid, *ac.GetConfig(), job_desc);
 
       std::string submittedVia = job_desc.interface;
       if (submittedVia != "org.nordugrid.internal") {
-        logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + itID->id, submittedVia);
+        logger.msg(DEBUG, "Skipping retrieved job (%s) because it was submitted via another interface (%s).", url.fullstr() + "/" + itID->GetId(), submittedVia);
         continue;
       }
 

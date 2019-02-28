@@ -15,7 +15,7 @@
 # which contains commands to start A-REX service. Service
 # is either run isolated or with WS interface enabled.
 # To enable WS interface ARC0 configuration file must 
-# contain [arex/ws/emies] section
+# contain [arex/ws/jobs] section
 # and mandatory option in [arex/ws]:
 #    wsurl="a_rex_url"
 
@@ -182,6 +182,11 @@ fi
 
 # PID and lock file
 PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile arex`
+if [ "x$PID_FILE" = "x" ]; then
+    # Missing default value for pidfile means no service block is present
+    log_failure_msg "ARC configuration is missing [arex] block"
+    exit 1
+fi
 ARC_RUNTIME_CONFIG=
 LOCKFILE=
 
@@ -241,11 +246,9 @@ prepare() {
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
-    GRIDMAP=''
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
-      GRIDMAP=`readconfigvar "$ARC_RUNTIME_CONFIG" gridmap mapping`
     fi
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
@@ -263,7 +266,6 @@ prepare() {
     export X509_CERT_DIR
     export GLOBUS_TCP_PORT_RANGE
     export GLOBUS_UDP_PORT_RANGE
-    export GRIDMAP
     export HOSTNAME
     if [ ! -z "$GRIDTMPDIR" ] ; then export TMPDIR="$GRIDTMPDIR" ; fi
 
@@ -276,13 +278,13 @@ prepare() {
     arex_path=""
     arex_service_plexer=""
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
-    arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/emies`
+    arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/jobs`
     if [ "$ws_present" = 'true' ] ; then
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
         MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
         MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
         MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
-        USERAUTH_BLOCK='arex/ws/emies'
+        USERAUTH_BLOCK='arex/ws/jobs'
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
         arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
         arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
@@ -585,17 +587,6 @@ prepare() {
 "
  
     # A-Rex with WS interface over HTTPS
-    gridmap_mapping=''
-    if [ "$mapping_present" = 'true' ]; then
-      if [ ! -z "$GRIDMAP" ]; then
-        gridmap_mapping="
-          <!-- Do initial identity mappping by gridmap file -->
-          <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
-            <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
-          </SecHandler>
-        "
-      fi
-    fi
     AREXCFGWSS="\
 <?xml version=\"1.0\"?>
 <ArcConfig
@@ -639,7 +630,6 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
-      $gridmap_mapping
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
@@ -781,7 +771,7 @@ stop() {
                 log_failure_msg
             fi
       
-            timeout=180; # for stopping nicely
+            timeout=300; # for stopping nicely
             if [ "x$1" != "x" ]; then
                 timeout=1 # 1 second for force-kill
             fi

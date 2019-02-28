@@ -1,0 +1,343 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 13.11                 November 27, 2013
+--------------------------------------------
+
+The Advanced Resource Connector (ARC) middleware is an Open Source 
+software solution to enable distributed computing infrastructures with the 
+emphasis on processing large volumes of data. ARC provides an abstraction 
+layer over computational resources, complete with input and output data 
+movement functionalities. The security model of ARC is identical to that of
+Grid solutions, relying on delegation of user credentials and the concept of
+Virtual Organisations. ARC also provides client tools, as well as API in C++,
+Python and Java.
+
+ARC development is coordinated by the NorduGrid Collaboration (www.nordugrid.org).
+The previous production ARC release, version 13.02u3, was out on July 19, 2013.
+
+
+Upgrade and deployment notes
+----------------------------
+
+Upgrade is straightforward when standard Linux repositories are used. When
+using NorduGrid repositories, please switch to the 13.11 channel. A-REX and
+GridFTPd will restart automatically, while infosystem services might need a
+manual restart. Note that infosys scripts have changed, see detailed notes below.
+Please run the following:
+
+   nordugrid-arc-bdii stop
+   nordugrid-arc-slapd stop
+   nordugrid-arc-inforeg stop
+   
+   nordugrid-arc-ldap-infosys start
+   nordugrid-arc-inforeg start
+
+For a first installation (from scratch), use of metapackages is recommended.
+Please consult ARC server and client deployment documentation.
+
+Known issues are described below.
+
+Deployment notes:
+
+  * arc-ur-logger is soon to be deprecated and sites reporting to SGAS through 
+    arc-ur-logger should use JURA instead. To migrate from ur-logger to JURA, 
+    follow the description under this URL:
+      http://wiki.nordugrid.org/index.php/Accounting/ur-logger-to-jura
+    Note that the log_vo option used by arc-ur-logger is not yet implemented in 
+    JURA.
+  * GACL-related components (GridFTP plugin and HED security plugin) are
+    deprecated and will be removed in the next release.
+  * The infosys startup scripts have changed so that now only 
+    nordugrid-arc-ldap-infosys is needed to start the ldap infosys services. 
+    Note that the registration part is still started with a separate init script.
+
+
+Backwards incompatible changes
+------------------------------
+
+  * ARC client tools use new client-side BDB job storage by default if
+    available. Jobs stored in jobs.xml will by default not be accessed
+    (configurable with joblisttype and joblist)
+  * Old infoproviders (cluster.pl, qju.pl) have been removed. Therefore
+    the arc.conf option "infosys_compat" is not parsed anymore, 
+    and can be removed. 
+  * Support for the legacy downloader and uploaders for data staging has been
+    removed and some related configuration options are now obsolete. See below 
+    for details.
+  * Removed the ngclient2arc command
+  * Removed the HED cache service client
+  * Removed the Chelonia DMC (libdmc.so) and hence the arc:// protocol
+
+
+New features highlights
+-----------------------
+
+  * Improved performance on the client side with a new BDB job storage. Jobs
+    are now stored in BDB by default.
+  * Added ability to set certificate key size, signing algorithm and
+    corresponding proxy generation parameters in API and arcproxy.
+  * Added possibility to print out selected proxy information items using
+    arcproxy.
+  * Added ability to use in-memory credentials instead of files for http and
+    gsiftp-based protocols. The data delivery service no longer needs to store
+    credentials in temporary files for data transfers using these protocols.
+  * Better support for WebDAV. HTTP Stat now defaults to WebDAV with fallback
+    to plain HTTP.
+  * Direct support for downloading files from the ATLAS data management system
+    DQ2. The URL convention is dq2://atlddmcat-reader.cern.ch/dataset/lfn.
+    Physical replicas are constructed using the ATLAS naming convention hence
+    LFC lookup is skipped.
+  * Added config option infosys_ldap_run_dir to relocate infoproviders ldap
+    scripts.
+  * Single startup script for ldap subsystem nordugrid-arc-ldap-infosys.
+  
+
+ARC components: detailed new features and deployment notes
+----------------------------------------------------------
+
+ARC components in release 13.11 are:
+
+  * ARC server and client tools
+    * ARC documentation
+  * Nagios plugins
+  * Common authentication library CaNL++
+
+
+== ARC Server and core components
+
+  * Removed the HED cache client
+  * Added DQ2 DMC to allow download of ATLAS files using dataset and LFN.
+    The URL convention is dq2://atlddmcat-reader.cern.ch/dataset/lfn
+  * Removed the Chelonia DMC (libdmcarc.so) which handles the arc:// protocol
+  
+
+=== Accounting
+
+  * Send APEL synchronisation record after every successfully sent CAR message
+  * Added "JURA-ARC-" prefix for an Infrastructure's description in a CAR as 
+    requested by APEL
+  * Added possibility to prefix the LocalJobId to ensure uniqueness of local 
+    job IDs
+  * Send APEL sync record after every successfully sent CAR message
+  * Collecting information for the aggregation records during the accounting 
+    messsage sending procedure
+
+
+=== Information system
+
+  * Added configration option infosys_ldap_run_dir to relocate infoproviders'
+    LDAP scripts
+  * Added support for cluster_alias option in GLUE2, as ServiceName  
+  * Default Validity of GLUE2 information is set to 10 minutes
+  * AdminDomain Name is now validated by 'service a-rex validate' to
+    avoid inforation system crashing at startup
+  * LDAP DNs containing characters that need to be base64 encoded are
+    now skipped and not published. This mostly affects NorduGrid schema's
+    nordugrid-authuser-name objects.
+  * Now only one script is needed to start the LDAP information system:
+    nordugrid-arc-ldap-infosys
+
+
+== ARC Clients
+
+  * ARC client tools use new client-side BDB job storage used by default if
+    available. Jobs stored in jobs.xml will by default not be accessed
+    (configurable with joblisttype and joblist)
+  * Added ability to set certificate key size, signing algorithm and
+    corresponding proxy generation parameters in API and arcproxy
+  * Added ability to use in-memory credentials instead of files for HTTP- and
+    GSIFTP-based protocols. The data delivery service no longer needs to store
+    credentials in temporary files for data transfers using these protocols.
+  * API allows selection of different job storage types (XML or BDB)
+  * New ThreadID class to map glib thread IDs to incremental counter for easier
+    debugging
+  * API extension for TURLs so DTR can request new locations on retries
+  * Added ability to set a prefix to log messages and new LogFormat MediumFormat
+    for improved DTR logging  
+  * Better support for WebDAV. HTTP Stat now defaults to WebDAV with fallback
+    to plain HTTP
+  * Added bulk operations for submitting and retrieving EMI-ES jobs
+  * Python3 bindings are now properly in place
+  * Removed the old ngclient2arc utility
+
+
+== Nagios plugins
+
+   * Added job ID to status messages from check_arcce_submit
+   * Added methods to define variables conditionally and using pipes
+   * Only expand the job test variables which are actually used
+   * Added support for substitutions based on LDAP queries
+   * Added support for exclusion of specified values for the random_line 
+     substition type
+
+
+== Common authentication library CaNL++
+
+   * Added Python bindings
+   * Minor changes
+
+
+Fixed bugs
+----------
+
+Since ARC 13.02 update 3, the following bugs were fully or partially fixed:
+
+ARC components:
+  * 2741 SHA-1 is hardcoded, SHA-2 support is needed
+  * 3089 bdii-update sometimes becomes unable to update the database
+  * 3118 nordugridmap leaves empty gridmap file
+  * 3142 document authorizedvo= in the common tasks of arc_ce_sysadmin_guide
+  * 3196 infosys_compat=enable not working in ARC 3.x under certain setup
+  * 3202 README needs an update
+  * 3213 /etc/init.d/a-rex validate fails in 3.0.2 due to relocation of arc.conf.reference
+  * 3214 CANL C++ Python bindings
+  * 3221 Monitor cache is unable to distinguish NG and GLUE2 rendering modes
+  * 3222 Blacklist is not included with PHP5.4
+  * 3223 arcproxy creates proxy in different place from voms-proxy-init
+  * 3224 make: test2myproxyserver and arctest -> libcrypto.so.1.0.0: could not read symbols
+  * 3226 AdminDomain name might cause slapd failure to start
+  * 3232 SGE CEinfo exit code 255
+  * 3234 Incorrect exit of check_archostcert probe
+  * 3235 arcsub returns Globus error even though job was submitted to WS
+  * 3237 ARCInfosys Glue2 - bug in nagios probe
+  * 3238 Incorrect startup order of infosys scripts through chkconfig
+  * 3241 HTTP MCC doesn't process HTTP body when next component is not found
+  * 3242 /var/log/arc not created when just installing nordugrid-arc-acix-index
+  * 3243 Timeout specified to arcsync is not propagated to plugins
+  * 3245 Trying to arcget large stdout from EMI-ES job gives partial file
+  * 3250 LL parallel jobs
+  * 3252 submit-ll-job divides cputime by cpu count
+  * 3253 arcproxy info features (voms-proxy-info compatibility)
+  * 3254 gsiftp with ipv6 hangs
+  * 3260 XMLNode XPathLookup magic when read it from file
+  * 3261 Aggregation/synch records sending with the JURA
+  * 3263 ll.pm fails parsing get_long_jobs when there is a space in a value
+  * 3265 xRSL walltime attribute ignored when job submitted via EMI-ES interface
+  * 3269 APEL sync record sending to the APEL
+  * 3276 Python bindings not working for Python 3
+  * 3280 ARC requests Condor to send emails about every job
+  * 3281 Condor backend kills jobs when virtual memory exceeds limit
+  * 3282 Rewrite debian/copyright using new standardized format
+  * 3284 Passing of memory/CPU requirements to Condor
+  * 3288 LocalJobiD of the accounting record must be unique
+  * 3289 Put "s" after the reported Processors value by SLURM
+  * 3297 SGAS not accept the RunTimeEnvironment element
+  * 3298 Crash in bdii if condor knows of no CPUs
+  * 3307 Condor back-end aborts a job if RTE writes to stdout
+
+
+Packaging changes
+-----------------
+
+No major packaging changes have taken place. Some smaller changes are worth mentioning:
+
+  * arc.conf.reference is now located under /usr/share/arc/examples/
+  * The doxygen subpackages have been removed
+  * For Debian, libarccommon2 has been bumped to libarccommon3
+  * sonames have been bumped from 2 to 3
+
+
+Configuration changes
+---------------------
+
+Startup scripts, arc.conf changes
+
+  * The old, deprecated configuration reference arc.conf.template has been
+    removed. arc.conf.reference is the definitive reference for arc.conf.
+  * Support for the legacy downloaders and uploaders used for data staging has
+    been removed and the following options in the [grid-manager] section
+    are now obsolete:
+      enable_dtr
+      maxload
+      maxloadshare
+      share_limit
+    Options in the [data-staging] section should be used instead.
+  * Now only one script is needed to start the ldap information system:
+    nordugrid-arc-ldap-infosys. (nordugrid-arc-inforeg is still needed for the 
+    registration part.)
+
+
+API changes
+-----------
+
+API changes from libraries version 3.0.3 to 4.0.0 are documented at
+http://wiki.nordugrid.org/index.php/API_changes 
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with
+    files to BES interface.
+  * The CPU time is not measured correctly for some jobs (e.g., ALICE) when
+    using some of the backends (e.g., LoadLeveler and SLURM). The SGE backend
+    is not affected.
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source.
+  * arcmigrate is currently non-functional
+  * Jobs submitted through EMI ES cannot be renewed
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified.
+  * Information generated by infoproviders has a predefined validity of 10 
+    minutes. At the moment is not possible to change its freshness, neither in 
+    arc.conf nor with some dynamic value.
+  * LDAP DNs containing characters that needs to be base64 encoded are 
+    now skipped and not published. This mostly affects NorduGrid schema 
+    'nordugrid-authuser-name' objects.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 13.11 consists of the following source packages:
+  * NorduGrid ARC, version 4.0.0 (main components)
+  * NorduGrid ARC Documents version 1.3.4 
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.7.0
+  * Common authentication library caNl++, version 1.0.1
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/4.0.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.3.4
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.7.0
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.1
+
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0 and 6.0 (i386 and amd64)
+  * Fedora: from 5 to 19 (i386 and x86_64)
+  * RedHat: EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04 and
+    13.10 (i386 and amd64) 
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.

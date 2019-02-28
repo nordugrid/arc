@@ -62,8 +62,10 @@ our %modnames = ( PBS    => "PBS",
 # Whether the module implements support for listing nodes.
 our $has_nodes = 1;
 
-sub load_lrms($) {
+# input: lrmsname, loglevel
+sub load_lrms($$) {
     my $lrms_name = uc(shift);
+    my $loglevel = uc(shift);
     my $module = $modnames{$lrms_name};
     $log->error("No ARC0 module for $lrms_name") unless $module;
     eval { require "$module.pm" };
@@ -75,6 +77,7 @@ sub load_lrms($) {
         $has_nodes=0;
     }
     $LogUtils::default_logger = LogUtils->getLogger($module);
+    $LogUtils::loglevel = $loglevel;
 }
 
 # Just generic options, cannot assume anything LRMS specific here
@@ -87,7 +90,9 @@ sub get_lrms_options_schema {
                 'users' => [ '' ]  # list of user IDs to query in the LRMS
             }
         },
-        'jobs' => [ '' ]           # list of jobs IDs to query in the LRMS
+        'jobs' => [ '' ],           # list of jobs IDs to query in the LRMS
+        'controldir' => '*',    # path to controldir, taken from main config
+        'loglevel' => ''        # infoproviders loglevel
     }
 }
 

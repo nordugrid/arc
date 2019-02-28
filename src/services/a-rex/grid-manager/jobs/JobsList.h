@@ -272,6 +272,7 @@ class JobsList {
 
   // Return iterator to object matching given id or jobs.end() if not found
   GMJobRef FindJob(const JobId &id);
+
   bool HasJob(const JobId &id) const;
   // Information about jobs for external utilities
   // No of jobs in all active states from ACCEPTED and FINISHING

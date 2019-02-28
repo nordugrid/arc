@@ -355,6 +355,20 @@ this client package contains (or depends on) all packages
 that are needed to submit jobs, query their status and
 retrieve results.
 
+%if %{with_canl}
+%package arcproxyalt
+Summary:	ARC proxy client based on canl
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+
+%description arcproxyalt
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package includes a preview of the arcproxy command based on canl.
+%endif
+
 %package hed
 Summary:	ARC Hosting Environment Daemon
 Group:		System Environment/Libraries
@@ -390,7 +404,7 @@ Connector (ARC).
 This package contains the ARC gridftp server which has a plugin framework.
 Current plugins include:
 
-  fileplugin : Standard gridftp server based on Globus globus-ftp-control
+  filedirplugin : Standard gridftp server based on Globus globus-ftp-control
   jobsplugin : Classical ARC job submission interface
 
 %package datadelivery-service
@@ -572,20 +586,6 @@ Connector (ARC).
 ARC Globus plugins. This includes the Globus dependent Data Manager
 Components (DMCs).
 
-%if %{with_canl}
-%package arcproxyalt
-Summary:	ARC proxy client based on canl
-Group:		Applications/Internet
-Requires:	%{name} = %{version}-%{release}
-
-%description arcproxyalt
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package includes a preview of the arcproxy command based on canl.
-%endif
-
 %if %{with_xrootd}
 %package plugins-xrootd
 Summary:	ARC xrootd plugins
@@ -629,6 +629,19 @@ Connector (ARC).
 
 ARC plugins for S3. These allow access to data through the S3 protocol.
 %endif
+
+%package plugins-internal
+Summary:	ARC internal plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arex = %{version}-%{release}
+
+%description plugins-internal
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+The ARC internal plugin.
 
 %if %{with_acix}
 %package acix-core
@@ -850,6 +863,7 @@ fi
 %if ! %{with_ldns}
     --disable-ldns \
 %endif
+    --enable-internal \
 %if %{use_systemd}
      --with-systemd-units-location=%{_unitdir} \
 %endif
@@ -908,13 +922,6 @@ make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-example
 make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
-
-# arc.conf.reference needs special handling
-make -C src/doc DESTDIR=$RPM_BUILD_ROOT install-exampleDATA
-
-# Link to arc.conf.reference from doc
-rm -f $PWD/docdir/arc.conf.reference
-ln -s %{_datadir}/%{pkgdir}/examples/arc.conf.reference $PWD/docdir/arc.conf.reference
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1024,7 +1031,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc docdir/arc.conf.reference README AUTHORS LICENSE NOTICE ChangeLog
+%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
+%doc README AUTHORS LICENSE NOTICE ChangeLog
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1059,22 +1067,23 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{python3_sitearch}/%{pkgdir}
 %{python3_sitearch}/%{pkgdir}/__init__.py
 %{python3_sitearch}/%{pkgdir}/paths.py
+%{python3_sitearch}/%{pkgdir}/paths_dist.py
 %dir %{python3_sitearch}/%{pkgdir}/__pycache__
 %{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths.*
+%{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
 %{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/control
 %else
 %dir %{python2_sitearch}/%{pkgdir}
 %{python2_sitearch}/%{pkgdir}/__init__.py*
 %{python2_sitearch}/%{pkgdir}/paths.py*
+%{python2_sitearch}/%{pkgdir}/paths_dist.py*
 %{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/control
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
-%dir %{_datadir}/%{pkgdir}/examples
-%{_datadir}/%{pkgdir}/examples/arc.conf.reference
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
@@ -1123,6 +1132,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 
+%if %{with_canl}
+%files arcproxyalt
+%defattr(-,root,root,-)
+%{_bindir}/arcproxyalt
+%endif
+
 %files hed
 %defattr(-,root,root,-)
 %doc docdir/hed/*
@@ -1149,7 +1164,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
-%{_libdir}/%{pkgdir}/fileplugin.*
+%{_libdir}/%{pkgdir}/filedirplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
@@ -1273,11 +1288,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %endif
+%{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
+%{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
@@ -1358,7 +1375,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
-%{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccldap.so
 %{_libdir}/%{pkgdir}/libarcshc.so
@@ -1382,7 +1398,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
-%{_libdir}/%{pkgdir}/libaccINTERNAL.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
 %{_libdir}/%{pkgdir}/libaccldap.apd
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
@@ -1415,12 +1430,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
 
-%if %{with_canl}
-%files arcproxyalt
-%defattr(-,root,root,-)
-%{_bindir}/arcproxyalt
-%endif
-
 %if %{with_xrootd}
 %files plugins-xrootd
 %defattr(-,root,root,-)
@@ -1442,6 +1451,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libdmcs3.apd
 %endif
 
+%files plugins-internal
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccINTERNAL.so
+%{_libdir}/%{pkgdir}/libaccINTERNAL.apd
+
 %if %{with_python}
 %files -n python2-%{name}
 %defattr(-,root,root,-)
@@ -1451,11 +1465,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}
 %else
 %{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%endif
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
+%endif
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
@@ -1465,6 +1479,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
 %else
 %{python3_sitearch}/%{pkgdir}
 %endif
@@ -1493,238 +1511,3 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_sbindir}/archery-manage
 
-%changelog
-* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
-- Unofficial build
-* Fri Jan 08 2016 Anders Waananen <waananen@nbi.dk> - 5.0.5-1
-- 5.0.5 Final Release
-
-* Thu Nov 19 2015 Anders Waananen <waananen@nbi.dk> - 5.0.4-1
-- 5.0.4 Final Release
-
-* Sun Sep 27 2015 Anders Waananen <waananen@nbi.dk> - 5.0.3-1
-- 5.0.3 Final Release
-
-* Mon Jun 29 2015 Anders Waananen <waananen@nbi.dk> - 5.0.2-1
-- 5.0.2 Final Release
-
-* Thu Jun 25 2015 Anders Waananen <waananen@nbi.dk> - 5.0.1-1
-- 5.0.1 Final Release
-
-* Fri Mar 27 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-1
-- 5.0.0 Final Release
-
-* Thu Mar 19 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-0.rc5
-- 5.0.0 Release candidate 5
-
-* Wed Feb 18 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-0.rc4
-- 5.0.0 Release candidate 4
-
-* Fri Feb 06 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-0.rc3
-- 5.0.0 Release candidate 3
-
-* Thu Feb 05 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-0.rc2
-- 5.0.0 Release candidate 2
-
-* Thu Jan 08 2015 Anders Waananen <waananen@nbi.dk> - 5.0.0-0.rc1
-- 5.0.0 Release candidate 1
-
-* Thu Aug 14 2014 Anders Waananen <waananen@nbi.dk> - 4.2.0-1
-- 4.2.0 Final release
-
-* Tue Apr 29 2014 Anders Waananen <waananen@nbi.dk> - 4.1.0-1
-- 4.1.0 Final release
-
-* Mon Mar 24 2014 Anders Waananen <waananen@nbi.dk> - 4.1.0-0.rc1
-- 4.1.0 Release candidate 1
-
-* Wed Nov 27 2013 Anders Waananen <waananen@nbi.dk> - 4.0.0-1
-- 4.0.0 Final Release
-
-* Wed Nov 06 2013 Anders Waananen <waananen@nbi.dk> - 4.0.0-0.rc2
-- 4.0.0 release candidate 2
-
-* Wed Oct 23 2013 Anders Waananen <waananen@nbi.dk> - 4.0.0-0.rc1
-- 4.0.0 release candidate 1
-
-* Fri Jul 19 2013 Anders Waananen <waananen@nbi.dk> - 3.0.3-1
-- 3.0.3 Final Release
-
-* Wed Jun 12 2013 Anders Waananen <waananen@nbi.dk> - 3.0.2-1
-- 3.0.2 Final Release
-
-* Mon Apr 29 2013 Anders Waananen <waananen@nbi.dk> - 3.0.1-1
-- 3.0.1 Final Release
-
-* Fri Apr 12 2013 Anders Waananen <waananen@nbi.dk> - 3.0.1-0.rc2
-- 3.0.1 release candidate 2
-
-* Fri Apr 12 2013 Anders Waananen <waananen@nbi.dk> - 3.0.1-0.rc1
-- 3.0.1 release candidate 1
-
-* Fri Feb 22 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-1
-- 3.0.0 Final Release
-
-* Wed Feb 20 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc6
-- 3.0.0 release candidate 6
-
-* Wed Feb 06 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc5
-- 3.0.0 release candidate 5
-
-* Sat Feb 02 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc4
-- 3.0.0 release candidate 4
-
-* Wed Jan 30 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc3
-- 3.0.0 release candidate 3
-
-* Mon Jan 28 2013 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc2
-- 3.0.0 release candidate 2
-
-* Thu Dec 06 2012 Anders Waananen <waananen@nbi.dk> - 3.0.0-0.rc1
-- 3.0.0 release candidate 1
-
-* Thu Nov 08 2012 Anders Waananen <waananen@nbi.dk> - 2.0.1-1
-- 2.0.1 Final Release
-
-* Thu Oct 25 2012 Anders Waananen <waananen@nbi.dk> - 2.0.1-0.rc2
-- 2.0.1 release candidate 2
-
-* Fri Aug 24 2012 Anders Waananen <waananen@nbi.dk> - 2.0.1-0.rc1
-- 2.0.1 release candidate 1
-
-* Wed May 23 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-1
-- 2.0.0 Final Release
-
-* Wed Apr 11 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc4.1
-- 2.0.0 release candidate 4.1
-
-* Mon Apr 02 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc4
-- 2.0.0 release candidate 4
-
-* Thu Mar 29 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc3.2
-- 2.0.0 release candidate 3.2
-
-* Tue Mar 27 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc3.1
-- 2.0.0 release candidate 3.1
-
-* Mon Mar 05 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc3
-- 2.0.0 release candidate 3
-
-* Wed Feb 15 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 2.0.0-0.rc2
-- 2.0.0 release candidate 2
-
-* Wed Feb 15 2012 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.1-1
-- 1.1.1 Final Release
-
-* Mon Oct 03 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-1
-- 1.1.0 Final Release
-
-* Sun Sep 25 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc2
-- 1.1.0 release candidate 2
-
-* Sun Sep 11 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc1
-- 1.1.0 release candidate 1
-
-* Sat Jul 23 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.1-1
-- 1.0.1 Final Release
-
-* Tue Jul 19 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.1-0.rc4
-- 1.0.1 release candidate 4
-
-* Sat Jun 18 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.1-0.rc1
-- 1.0.1 release candidate 1
-
-* Mon Apr 18 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-1
-- 1.0.0 Final Release
-
-* Wed Apr 06 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.b5
-- 1.0.0 beta 5
-
-* Wed Mar 23 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.b4
-- 1.0.0 beta 4
-
-* Thu Mar 10 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.b3
-- 1.0.0 beta 3
-
-* Mon Mar 07 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.b2
-- 1.0.0 Beta 2
-
-* Mon Feb 14 2011 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.b1
-- rename nordugrid-arc-nox → nordugrid-arc
-- 1.0.0 Beta 1
-
-* Tue Dec 21 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.1-1
-- 1.2.1 Final Release
-
-* Tue Dec 21 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.1-0.rc2
-- 1.2.1 Release Candidate 2
-
-* Wed Dec 08 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.1-0.rc1
-- 1.2.1 Release Candidate 1
-
-* Fri Oct 22 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.0-1
-- 1.2.0 Final Release
-
-* Thu Sep 30 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.0-0.rc2
-- 1.2.0 Release Candidate 2
-
-* Mon Sep 13 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.2.0-0.rc1
-- 1.2.0 Release Candidate 1
-
-* Wed May 05 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-1
-- 1.1.0 Final Release
-
-* Mon Mar 08 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc6
-- 1.1.0 Release Candidate 6
-
-* Fri Feb 26 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc5.1
-- Rebuild for Globus Toolkit 5
-
-* Fri Feb 26 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc5
-- 1.1.0 Release Candidate 5
-
-* Wed Feb 24 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc4
-- 1.1.0 Release Candidate 4
-
-* Mon Feb 22 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc3
-- 1.1.0 Release Candidate 3
-
-* Mon Feb 15 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc2
-- 1.1.0 Release Candidate 2
-
-* Thu Feb 11 2010 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.1.0-0.rc1
-- 1.1.0 Release Candidate 1
-
-* Sun Nov 29 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-1
-- 1.0.0 Final Release
-
-* Thu Nov 19 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.rc7
-- 1.0.0 Release Candidate 7
-
-* Thu Nov 12 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.rc6
-- 1.0.0 Release Candidate 6
-
-* Wed Nov 04 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 1.0.0-0.rc5
-- rename nordugrid-arc1 → nordugrid-arc-nox
-- 1.0.0 Release candidate 5
-
-* Mon Oct 26 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 0.9.4-0.rc4
-- 0.9.4 Release candidate 4
-
-* Thu Oct 22 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 0.9.4-0.rc3
-- 0.9.4 Release candidate 3
-
-* Wed Oct 14 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 0.9.4-0.rc2
-- 0.9.4 Release candidate 2
-
-* Sun Sep 27 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 0.9.3-1
-- 0.9.3 Final release
-
-* Thu Sep 17 2009 Mattias Ellert <mattias.ellert@fysast.uu.se> - 0.9.3-0.rc3
-- 0.9.3 Release candidate 3
-
-* Wed Jan 14 2009 Anders Wäänänen <waananen@nbi.dk> - 0.9.2-1
-- 0.9.2
-
-* Fri Oct 10 2008 Anders Wäänänen <waananen@nbi.dk> - 0.9.1-1
-- Initial build

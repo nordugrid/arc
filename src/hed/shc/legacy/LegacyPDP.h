@@ -21,7 +21,7 @@ class LegacyPDP : public ArcSec::PDP {
   class cfgblock {
    public:
     std::string name;
-    std::list<std::string> groups;
+    std::list<std::pair<bool,std::string> > groups;
     bool exists;
     bool limited;
     cfgblock(const std::string& n):name(n),exists(false),limited(false) { };
@@ -33,7 +33,7 @@ class LegacyPDP : public ArcSec::PDP {
     cfgfile(const std::string& fname):filename(fname) {};
   };
   bool any_;
-  std::list<std::string> groups_;
+  std::list<std::pair<bool,std::string> > groups_;
   std::list<std::string> vos_;
   std::string attrname_;
   std::string srcname_;

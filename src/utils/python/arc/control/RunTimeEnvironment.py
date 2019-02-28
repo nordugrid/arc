@@ -55,6 +55,7 @@ class RTEControl(ComponentControl):
         self.enabled_rtes = {}
         self.default_rtes = {}
         self.dummy_rtes = {}
+        self.broken_rtes = {}
 
     @staticmethod
     def __get_dir_rtes(rtedir):
@@ -70,12 +71,16 @@ class RTEControl(ComponentControl):
         return rtes
 
     @staticmethod
-    def __list_rte(rte_dict, long_list, prefix=''):
+    def __list_rte(rte_dict, long_list, prefix='', suffix='', broken_list=None):
+        if broken_list is None:
+            broken_list = []
         for rte in sorted(rte_dict):
+            if rte in broken_list:
+                suffix += ' (broken)'
             if long_list:
-                print('{0}{1:32} -> {2}'.format(prefix, rte, rte_dict[rte]))
+                print('{0}{1:32} -> {2}{3}'.format(prefix, rte, rte_dict[rte], suffix))
             else:
-                print(rte)
+                print('{0}{1}'.format(rte, suffix))
 
     @staticmethod
     def __get_rte_description(rte_path):
@@ -119,14 +124,24 @@ class RTEControl(ComponentControl):
         # enabled RTEs (linked to controldir)
         self.logger.debug('Indexing enabled RTEs in %s', self.control_rte_dir + '/enabled')
         self.enabled_rtes = self.__get_dir_rtes(self.control_rte_dir + '/enabled')
-        # handle dummy enabled RTEs
+
         for rte, rtepath in self.enabled_rtes.items():
+            # handle dummy enabled RTEs
             if rtepath == '/dev/null':
                 self.dummy_rtes[rte] = '/dev/null'
+            # detect broken RTEs
+            if not os.path.exists(rtepath):
+                self.broken_rtes[rte] = rtepath
+                self.logger.warning('RunTimeEnvironment %s is enabled but the link to %s is broken.', rte, rtepath)
 
         # default RTEs (linked to default)
         self.logger.debug('Indexing default RTEs in %s', self.control_rte_dir + '/default')
         self.default_rtes = self.__get_dir_rtes(self.control_rte_dir + '/default')
+        for rte, rtepath in self.default_rtes.items():
+            # detect broken RTEs
+            if not os.path.exists(rtepath):
+                self.broken_rtes[rte] = rtepath
+                self.logger.warning('RunTimeEnvironment %s is set default but the link to %s is broken.', rte, rtepath)
 
     def __get_rte_file(self, rte):
         self.__fetch_rtes()
@@ -181,7 +196,10 @@ class RTEControl(ComponentControl):
         return rte_list
 
     def __list_brief(self):
-        for rte_type, rte_dict in [('system', self.system_rtes), ('user', self.user_rtes), ('dummy', self.dummy_rtes)]:
+        for rte_type, rte_dict in [('system', self.system_rtes),
+                                   ('user', self.user_rtes),
+                                   ('dummy', self.dummy_rtes),
+                                   ('broken', self.broken_rtes)]:
             for rte in sorted(rte_dict):
                 link = rte_dict[rte]
                 kind = [rte_type]
@@ -197,6 +215,8 @@ class RTEControl(ComponentControl):
                     if link == self.default_rtes[rte]:
                         kind.append('default')
                         show_disabled = False
+                if rte in self.broken_rtes:
+                    show_disabled = False
                 if show_disabled:
                     kind.append('disabled')
                 print('{0:32} ({1})'.format(rte, ', '.join(kind)))
@@ -223,20 +243,25 @@ class RTEControl(ComponentControl):
             print('There are no enabled RTEs')
         else:
             print('Enabled RTEs:')
-            self.__list_rte(self.enabled_rtes, True, prefix='\t')
+            self.__list_rte(self.enabled_rtes, True, prefix='\t', broken_list=self.broken_rtes.keys())
         # default
         if not self.default_rtes:
             print('There are no default RTEs')
         else:
             print('Default RTEs:')
-            self.__list_rte(self.default_rtes, True, prefix='\t')
+            rte_dict = {}
+            for rte, rtepath in self.default_rtes.items():
+                if rte in self.broken_rtes:
+                    rte += ' (broken)'
+                    rte_dict[rte] = rtepath
+            self.__list_rte(self.default_rtes, True, prefix='\t', broken_list=self.broken_rtes.keys())
 
     def list(self, args):
         self.__fetch_rtes()
         if args.enabled:
-            self.__list_rte(self.enabled_rtes, args.long)
+            self.__list_rte(self.enabled_rtes, args.long, broken_list=self.broken_rtes.keys())
         elif args.default:
-            self.__list_rte(self.default_rtes, args.long)
+            self.__list_rte(self.default_rtes, args.long, broken_list=self.broken_rtes.keys())
         elif args.system:
             self.__list_rte(self.system_rtes, args.long)
         elif args.user:
@@ -265,6 +290,7 @@ class RTEControl(ComponentControl):
                         'name': pname,
                         'allowed_string': param_re.group(2),
                         'allowed_values': param_re.group(2).split(','),
+                        'default_value': param_re.group(3),
                         'value': param_re.group(3),
                         'description': param_re.group(4)
                     }
@@ -309,15 +335,23 @@ class RTEControl(ComponentControl):
         params = self.__params_parse(rte)
         for pdescr in params.values():
             if is_long:
-                print('{name:>16} = {value:8} {description} (allowed values are: {allowed_string})'.format(**pdescr))
+                print('{name:>16} = {value:8} {description} (default is {default_value}) '
+                      '(allowed values are: {allowed_string})'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))
 
-    def params_set(self, rte, parameter, value):
+    def params_unset(self, rte, parameter):
+        self.params_set(rte, parameter, None, use_default=True)
+
+    def params_set(self, rte, parameter, value, use_default=False):
         params = self.__params_parse(rte)
         if parameter not in params:
             self.logger.error('There is no such parameter %s for RunTimeEnvironment %s', parameter, rte)
             sys.exit(1)
+        # use default value if requested
+        if use_default:
+            value = params[parameter]['default_value']
+        # check type and allowed values
         if params[parameter]['allowed_string'] == 'string':
             pass
         elif params[parameter]['allowed_string'] == 'int':
@@ -328,6 +362,7 @@ class RTEControl(ComponentControl):
             self.logger.error('Parameter %s for RunTimeEnvironment %s should be one of %s',
                               parameter, rte, params[parameter]['allowed_string'])
             sys.exit(1)
+        # assign new value
         params[parameter]['value'] = value
         self.__params_write(rte, params)
 
@@ -379,29 +414,41 @@ class RTEControl(ComponentControl):
 
         rte_path = rte_enable_path + rtename
         if os.path.exists(rte_path):
+            # handle case for already enabled RTEs
             if os.path.islink(rte_path):
                 linked_to = os.readlink(rte_path)
                 if linked_to != rtepath:
+                    log_msg_base = 'RunTimeEnvironment %s is already enabled but linked to different location (%s).'
                     if not force:
-                        self.logger.error(
-                            'RunTimeEnvironment %s is already enabled but linked to different location (%s). '
-                            'Use \'--force\' to relink', rtename, linked_to)
+                        self.logger.error(log_msg_base + 'Use \'--force\' to relink', rtename, linked_to)
                         sys.exit(1)
                     else:
-                        self.logger.debug(
-                            'RunTimeEnvironment %s is already enabled but linked to different location (%s). '
-                            'Removing previous link.', rtename, linked_to)
+                        self.logger.debug(log_msg_base + 'Removing previous link.', rtename, linked_to)
                         os.unlink(rte_path)
                 else:
-                    self.logger.info('RunTimeEnvironment %s is already %s. Nothing to do.', rtename, rtetype)
+                    self.logger.warning('RunTimeEnvironment %s is already %s. Nothing to do.', rtename, rtetype)
                     return
             else:
                 self.logger.error('RunTimeEnvironment file %s is already exists but it is not symlink as expected. '
                                   'Have you manually perform modifications of controldir content?', rte_path)
                 sys.exit(1)
-
-        self.logger.debug('Linking RunTimeEnvironment file %s to %s', rtepath, rte_enable_path)
-        os.symlink(rtepath, rte_enable_path + rtename)
+        elif os.path.islink(rte_path):
+            # handle broken symlink case
+            log_msg_base = 'RunTimeEnvironment %s is already enabled but points to not-existing location (%s).'
+            if not force:
+                self.logger.error(log_msg_base + 'Use \'--force\' to relink.', rtename, os.readlink(rte_path))
+                sys.exit(1)
+            else:
+                self.logger.debug(log_msg_base + 'Removing broken link.', rtename, os.readlink(rte_path))
+                os.unlink(rte_path)
+        # create link to controldir
+        try:
+            self.logger.debug('Linking RunTimeEnvironment file %s to %s', rtepath, rte_enable_path)
+            os.symlink(rtepath, rte_enable_path + rtename)
+        except OSError as e:
+            self.logger.error('Filed to link RunTimeEnvironment file %s to %s. Error: %s', rtepath,
+                              rte_enable_path, e.strerror)
+            sys.exit(1)
 
     def disable(self, rte_def, rtetype='enabled'):
         """
@@ -461,6 +508,8 @@ class RTEControl(ComponentControl):
             self.params_get(args.rte, args.long)
         elif args.action == 'params-set':
             self.params_set(args.rte, args.parameter, args.value)
+        elif args.action == 'params-unset':
+            self.params_unset(args.rte, args.parameter)
         else:
             self.logger.critical('Unsupported RunTimeEnvironment control action %s', args.action)
             sys.exit(1)
@@ -536,7 +585,11 @@ class RTEControl(ComponentControl):
         rte_params_get.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_get.add_argument('-l', '--long', help='Detailed listing of parameters', action='store_true')
 
-        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameters')
+        rte_params_set = rte_actions.add_parser('params-set', help='Set configurable RTE parameter')
         rte_params_set.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_set.add_argument('parameter', help='RTE parameter to configure').completer = complete_rte_params
         rte_params_set.add_argument('value', help='RTE parameter value to set').completer = complete_rte_params_values
+
+        rte_params_unset = rte_actions.add_parser('params-unset', help='Use default value for RTE parameter')
+        rte_params_unset.add_argument('rte', help='RTE name').completer = complete_rte_name
+        rte_params_unset.add_argument('parameter', help='RTE parameter to unset').completer = complete_rte_params

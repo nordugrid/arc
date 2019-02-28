@@ -399,7 +399,7 @@ fi
 
 batchid=
 if [ ! -z "$joboption_arg_2" ]; then
-  taskid=$(echo $joboption_arg_2|grep -m1 -o taskID=........|cut -d = -f 2 )
+  taskid=$(echo $joboption_arg_2|grep -E -m1 -o "taskID=[[:digit:]]+"|cut -d = -f 2 )
   if [ ! -z "$taskid" ]; then
     batchid="--batch $taskid"
   fi
@@ -436,10 +436,11 @@ echo 'ret=$?' >>$LRMS_JOB_BOINC
 
 echo 'exit $ret' >>$LRMS_JOB_BOINC
 if [ $DEBUG -eq 2 ];then
-  cat $LRMS_JOB_BOINC
+  cat $LRMS_JOB_BOINC 1>&2
 else
-   sh $LRMS_JOB_BOINC 1>&2 >/tmp/log.boinc
+  sh $LRMS_JOB_BOINC 1>&2
 fi
+
 rc=$?
 
 if [ $rc -eq 0 ];then

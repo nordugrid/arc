@@ -246,7 +246,8 @@ ENDSIMULATOROUTPUT
 	           sge_bin_path => "<TESTDIR>/bin",
                sge_root => "<TESTDIR>/bin",
                queues => {},
-               jobs => []
+               jobs => [],
+               loglevel => '5'
             };
   $cfg->{queues}{'all.q'} = {users => ['user1']};
   

@@ -1,0 +1,308 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 15.03                 March 27, 2015
+--------------------------------------------
+
+The Advanced Resource Connector (ARC) middleware is an Open Source 
+software solution to enable distributed computing infrastructures with the 
+emphasis on processing large volumes of data. ARC provides an abstraction 
+layer over computational resources, complete with input and output data 
+movement functionalities. The security model of ARC is identical to that of
+Grid solutions, relying on delegation of user credentials and the concept of
+Virtual Organisations. ARC also provides client tools, as well as API in C++,
+Python and Java.
+
+ARC 15.03 is a major release of ARC, including the following component upgrades:
+  * core, clients, CE, Infosys and gridftp - from version 4.2.0 to 5.0.0
+  * documents - from 1.5.0 to 2.0.0
+  * Nagios plugins - from 1.8.1 to 1.8.2
+CAnL C++ v1.0.1, gangliarc v1.0.0 and metapackages v1.0.7 are unchanged.
+
+ARC development is coordinated by the NorduGrid Collaboration (www.nordugrid.org).
+The previous production ARC release, version 13.11u2, was released on August 14, 2014.
+
+
+Upgrade and deployment notes
+----------------------------
+
+Upgrade is straightforward when standard Linux repositories are used, however 
+please take note of configuration changes below. An automatic update is not
+recommended for this new major release. When using NorduGrid repositories,
+please switch to the 15.03 channel. Services (A-REX, GridFTPd and information
+system) will restart automatically upon package upgrade. Should they not
+restart, or when upgrade is done from source, manual restart is needed as per
+documentation.
+
+For a first installation (from scratch), use of metapackages is recommended.
+Please consult ARC server and client deployment documentation.
+
+Known issues are described later in this document.
+
+Deployment notes:
+
+  * arc-ur-logger is removed and sites reporting to SGAS through 
+    arc-ur-logger should use JURA instead. To migrate from ur-logger to JURA, 
+    follow the description under this URL:
+      http://wiki.nordugrid.org/index.php/Accounting/ur-logger-to-jura
+    Note that the log_vo option used by arc-ur-logger is not yet implemented in 
+    JURA.
+  * cache-service is deprecated
+  * UNICORE client is deprecated
+  * CREAM client and corresponding job description language is deprecated
+  * job.xml is deprecated
+  * ARGUS based identitymap is deprecated
+  * Migration feature in A-REX and migration API is deprecated
+
+
+Backwards incompatible changes
+------------------------------
+
+  * Many [grid-manager] options in arc.conf have moved to the [data-staging]
+    section. See details below.
+  * Removed components:
+    * arc-ur-logger
+    * LFC DMC
+    * DQ2 DMC
+    * old data staging in grid-manager
+    * confusa
+    * external gridsite dependency
+    * arcmigrate
+    * arcslcs and slcs service
+    * SAML service
+
+
+
+New features highlights
+-----------------------
+
+  * Added option to use sacct in SLURM backend, see details below
+  * Added several options to data-staging for better cache management, see 
+    details below
+  * It is now possible to turn off partial HTTP gets, see details below
+  * Support for SSLv3 is disabled
+  
+
+ARC components: detailed new features and deployment notes
+----------------------------------------------------------
+
+ARC components in release 15.03 are:
+
+  * ARC server and client tools
+    * ARC documentation
+  * Nagios plugins
+  * Common authentication library CaNL++
+
+
+== ARC Server and core components
+
+  * Removed LCF DMC, DQ2 DMC, old data staging, SAML service and slcs service
+  * Added option to disable partial HTTP GET in A-REX and in URLs. Configurable 
+    with httpgetpartial option in [data-stager] in arc.conf and with 
+    httpgetpartial URL option in URLs. Default is httpgetpartial=yes. Note that 
+    setting httpgetpartial=no can significantly increase download speed for large
+    files
+  * Added option cacheshared to the [data-staging] section to enable better 
+    management of caches on filesystems shared with other data
+  * Added option cachespacetool to the [data-staging]section to allow a 
+    user-specified tool for the cache cleaner to find file system space information
+  * Added option to use sacct in SLURM backend. Configurable with option 
+    slurm_use_sacct in [common] section in arc.conf. Default is no
+  * Support for SSLv3 is now disabled
+  * Many bugfixes, see details below
+  
+=== Accounting
+
+  * arc-ur-logger was removed, JURA should be used instead
+  * Added logging to JURA. For the logging to be enabled, jobreport_logfile must be
+    set in the [grid-manager] section of arc.conf
+  * JURA now provides the same values to SGAS and APEL
+  * Many bugfixes, see details below
+
+=== Information system
+
+  * Several bugfixes, see details below
+
+== ARC Clients
+
+  * Removed arcmigrate
+  * Several bugfixes, see details below
+
+== Nagios plugins
+
+  * Added option to monitor state progress
+  * Added support multiple LDAP attribute lookup, to be used in the EGI setup to
+    add GlueSAPath as a fallback for GlueVOInfoPath for SRM checks
+  * Delayed some IGTF warnings which were raised before the publication day
+  * Fixed parsing of arcstat output for GLUE2-enabled CEs, using "Status"
+    instead of "Specific status"
+  * Fixed /tmp file leak when arccp fails, and improved related logging
+  * Added --min-proxy-lifetime option and increased default to avoid expiration
+    before the job is run
+  * Fixed missed passive state update when arcget output dir was absent
+
+== Common authentication library CaNL++
+
+   * No changes
+
+
+Fixed bugs
+----------
+
+Since ARC 13.11 update 2, the following bugs were fully fixed:
+
+  * 959 stage-out (upload)  whole directory to a remote storage
+  * 2756 poorly performing infosystem causes unstable client behaviour during job submission
+  * 2889 submit_common.sh calls config_parser.sh instead of config_parser_compat.sh ?
+  * 2938 PBS.pm wrong nordugrid-queue-running for multi-core jobs
+  * 3005 Add warning to job log, when requesting negative job cputime
+  * 3102 SLURMmod.pm: Better log errors instead of Perl warnings when unexpected values in control dir are found
+  * 3146 Undefined/unititialized values in infoprovider.log ubuntu 12.04
+  * 3161 JURA should have an own logfile
+  * 3184 Condor back-end reports suspended jobs as EXECUTED
+  * 3262 Configurable limits on data delivery servers
+  * 3264 Configurable tool for finding disk space for cache cleaner
+  * 3290 Report the number of cores used by job into the accounting log
+  * 3303 Down nodes cause SGEmod to fail
+  * 3353 inconsistent arcproxy parameter : -P is NOT a location (directory)
+  * 3355 LL v3 vs v4 parsing
+  * 3369 scan-sge-job should bail out if qacct is missing
+  * 3374 Multi-lib conflict
+  * 3375 Download/upload should fail when proxy is expired instead of retrying
+  * 3389 Using arcinfo without a proxy screws up terminal
+  * 3392 arccp -i fails to stage data from tape
+  * 3394 Dynamic output file limitation with EMI-ES
+  * 3395 scan-ll-job drops out of loop over jobs too soon
+  * 3396 DB_CDB_ALLDB error on Debian OS
+  * 3397 ARCJSDL unit test fails on OS X
+  * 3398 Building fails for distributions with glib2 >= 2.41.2
+  * 3399 Configuring the period of jura's calling from configuration
+  * 3400 SSM update to 2.1.3
+  * 3403 Bad response from sbatch causes a-rex crash
+  * 3404 Jura seems to generate different URs for OPS and FGI VOs - vo:Group section is missing for FGI.CSC.FI VO URs
+  * 3405 JSDL problem, IndividualPhysicalMemory
+  * 3410 llstatus -R gives ConsumableCpus*(32,32), not matched in LL.pm regexp
+  * 3411 inconsistent cache handling
+  * 3417 New filesystem clean cache
+  * 3419 acix-cache python traceback "Unhandled Error"
+  * 3420 Remote cache access: don't download from own cache
+  * 3425 ARC services support SSLv3 protocol
+  * 3428 acix-index does not logrotate
+  * 3429 /var/log/arc/bdii/bdii-update.log is never logrotated
+  * 3433 Publish authorised VOs per queue
+  * 3434 Slurm backend should use sacct
+  * 3435 Should be possible to specify host JURA is uploading from
+  * 3437 [ARC-CE JURA] There seems to be a wrong module import in /usr/share/arc/ssm/ssm2.py
+  * 3438 scan-condor-job is sometimes much too slow
+  * 3439 DTR doesn't verify supplied destination checksum
+  * 3440 processors for APEL not in diag
+  * 3441 bashism in /bin/sh script - Debian BTS #772283
+  * 3442 Too many objects duplicated and not being cleared in the ldap
+  * 3444 Starting information system service (nordugrid-arc-ldap-infosys) is unreliable
+  * 3445 ARC-CEs reporting different values to SGAS and APEL
+  * 3446 5.0-rc1 rpm .spec files contains errors
+  * 3449 a-rex dies from "glibmm-ERROR"
+  * 3452 CPU time limit incorrect for multi-core jobs (condor backend)
+  * 3453 Errors from logrotate when A-REX is not running
+  * 3455 ARC http transfer are slow due to limited buffer
+  * 3457 Accounting problem with PBS/torque for multi-core jobs
+
+
+Packaging changes
+-----------------
+
+No major packaging changes have taken place.
+
+
+Configuration changes
+---------------------
+
+  * The following arc.conf options have been moved from the [grid-manager]
+    section to the [data-staging] section: speedcontrol, securetransfer,
+    passivetransfer, maxtransfertries, acix_endpoint, localtransfer,
+    preferredpattern, copyurl, linkurl. Be sure to update configuration before
+    restarting A-REX after the update.
+  * The new option cacheshared has been added to the [data-staging] section to enable better management of caches on
+    filesystems shared with other data
+  * The new option cachespacetool has been added to the [data-staging] section to allow a user-specified tool for the cache cleaner to find file system space information.
+  * The new option httpgetpartial has been added to the [data-staging] section.
+  * The new option jobreport_logfile has been added to the [grid-manager] section.
+
+
+API changes
+-----------
+
+API changes from libraries version 4.2.0 to 5.0.0 are documented at
+http://wiki.nordugrid.org/index.php/API_changes 
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent 
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified
+  * JURA cannot send/store local user ids
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03 consists of the following source packages:
+  * NorduGrid ARC, version 5.0.0 (main components)
+  * NorduGrid ARC Documents version 2.0.0
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.2
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.0
+  * Common authentication library caNl++, version 1.0.1
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.0.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.0
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.2
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0 and 7.0 (i386 and amd64)
+  * Fedora: from 5 to 20 (i386 and x86_64)
+  * RedHat: EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04,
+    13.10 and 14.04 (i386 and amd64) 
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.

@@ -85,7 +85,6 @@ attributes depending on how the mapping should be done.
       <tcp:Listen>
         <tcp:Interface inisections="datadelivery-service common" initag="hostname" inidefaultvalue="localhost"/>
         <tcp:Port inisections="datadelivery-service common" initag="port" inidefaultvalue="443"/>
-        <tcp:Version inisections="datadelivery-service common" initag="ipversion" inidefaultvalue="4"/>
       </tcp:Listen>
     </Component>
     <Component initokendisables="datadelivery-service#secure=no" name="tls.service" id="tls">

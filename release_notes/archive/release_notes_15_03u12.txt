@@ -1,0 +1,151 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 12    February 7, 2017
+-----------------------------------------------
+
+This is a bugfix release, addressing a vulnerability discovered in 15.03u11. 
+
+
+The vulnerability is related to the performance logging feature, specifically to the folder which default is /var/log/arc/perfdata and its given permissions. The issue is not considered severe, but additional protective measures have anyway been introduced. From version 15.03u12 the folder in mention will only be created if the system administrator explicitly asks for it.
+
+
+The performance logging feature is off by default, both in this and earlier versions of ARC. In this version, in addition the folder will only be created if the feature is turned on. 
+
+
+If you want to enable the performance logging for debugging purposes or other specific reasons, this is as before done in your configuration settings. The flag to turn on the performance logging has changed from "yes" to "expert-debug-on", see documentation.
+
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.2.1 to 5.2.2
+  * documents - from 2.0.12 to 2.0.13
+Nagios plugins, CAnL C++ and metapackages are unchanged.
+
+
+
+ 
+
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed in the ARC core:
+
+  * Permission settings on directory created by the performance logging resulted in logrotate warnings, in addition to introducing possible vulnerability.   
+
+=== Accounting
+
+  * No changes.
+ 
+=== Information system
+
+  * No changes.
+
+  
+== ARC Clients
+
+  * No changes.
+
+  
+== Nagios plugins
+
+  * No changes.
+
+== Common authentication library CaNL++
+
+  * No changes.
+
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 11, the following bugs were partially fixed:
+
+  * 3633 Security problem in 5.2.1 (restricted)
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The
+    only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files.
+    While all log messages are correctly logged in the main log file, some rotated log
+    files may receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a consequence,
+    EMIES WS clients can no longer find a queue by VO name the same way as in previous versions
+    of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u12 consists of the following source packages:
+  * NorduGrid ARC, version 5.2.2 (main components)
+  * NorduGrid ARC Documents version 2.0.13
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.4
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.1
+  * Common authentication library caNl++, version 1.0.1
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.2.2
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.13
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.4
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.1
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0, 7.0 and 8.0 (i386 and amd64)
+  * Fedora: from 3 to 24 (i386 and x86_64)
+  * CentOS: EL4, EL5, EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04,
+    13.10, 14.04, 14.10, 15.04, 15.10 and 16.04 (i386 and amd64)
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

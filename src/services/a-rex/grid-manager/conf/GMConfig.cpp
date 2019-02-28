@@ -43,28 +43,31 @@ namespace ARex {
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
 static std::list<std::string> empty_string_list;
+static std::list<std::pair<bool,std::string> > empty_group_list;
+
+std::string GMConfig::GuessConfigFile() {
+  struct stat st;
+  std::string file = Arc::GetEnv("ARC_CONFIG");
+  if(!file.empty()) {
+    return file; // enforced location
+  }
+  file = Arc::ArcLocation::Get() + "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  file = "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  return "";
+}
 
 GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
   // If no config file was given, guess it. The order to try is
   // $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf, /etc/arc.conf
-  struct stat st;
   if (conffile.empty()) {
-    std::string file = Arc::GetEnv("ARC_CONFIG");
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = Arc::ArcLocation::Get() + "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
+    conffile = GuessConfigFile();
   }
 }
 
@@ -72,6 +75,8 @@ void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
   jobs_metrics = NULL;
+  heartbeat_metrics = NULL;
+  space_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
   delegations = NULL;
@@ -284,9 +289,9 @@ const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const
   return (pos == authorized_vos.end()) ? empty_string_list : pos->second;
 }
 
-const std::list<std::string> & GMConfig::AllowedGroups(const char * queue) const {
-  std::map<std::string, std::list<std::string> >::const_iterator pos = allowed_groups.find(queue);
-  return (pos == allowed_groups.end()) ? empty_string_list : pos->second;
+const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroups(const char * queue) const {
+  std::map<std::string, std::list<std::pair<bool,std::string> > >::const_iterator pos = matching_groups.find(queue);
+  return (pos == matching_groups.end()) ? empty_group_list : pos->second;
 }
 
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {

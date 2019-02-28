@@ -4,7 +4,6 @@ debian/tmp/usr/lib/arc/libaccCREAM.so
 debian/tmp/usr/lib/arc/libaccEMIES.so
 debian/tmp/usr/lib/arc/libaccARCREST.so
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.so
-debian/tmp/usr/lib/arc/libaccINTERNAL.so
 debian/tmp/usr/lib/arc/libaccSER.so
 debian/tmp/usr/lib/arc/libaccldap.so
 debian/tmp/usr/lib/arc/test/libaccTEST.so
@@ -29,7 +28,6 @@ debian/tmp/usr/lib/arc/libaccCREAM.apd
 debian/tmp/usr/lib/arc/libaccEMIES.apd
 debian/tmp/usr/lib/arc/libaccARCREST.apd
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.apd
-debian/tmp/usr/lib/arc/libaccINTERNAL.apd
 debian/tmp/usr/lib/arc/libaccSER.apd
 debian/tmp/usr/lib/arc/libaccldap.apd
 debian/tmp/usr/lib/arc/test/libaccTEST.apd

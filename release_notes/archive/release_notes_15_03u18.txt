@@ -1,16 +1,20 @@
 Advanced Resource Connector (ARC)
 =================================
 
-======
-NB! New template to be made. This is not the final version!
-======
-
-
-Release Notes for NorduGrid ARC 6.0     xx xx 
+Release Notes for NorduGrid ARC 15.03 update 18     December 13, 2017
 -----------------------------------------------
 
+This is a bugfix release, addressing bugs discovered since release 15.03u17.
 
-NorduGrid ARC 6 has received an update to:
+There are 3 fixed bugs in this version of ARC. These involve the infoprovider, EMI-ES submission interface,
+and  multicore jobs use of scratchdir. See more details below. 
+
+In addition memory leaks have been found and fixed, in Globus code and elsewhere in A-Rex. 
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.4.1 to 5.4.2
+  * documents - from 2.0.18 to 2.0.19
+Gangliarc, Nagios plugins and metapackages are unchanged.
 
 
  
@@ -21,19 +25,38 @@ The following issues were fixed:
 
 == ARC Server and core components
 
+  * Single node multicore jobs now use scratch disk by default (Bug 3694).
+  * Several memory leak fixes, and general cleanup and enhancements.  
+
 === Accounting
 
+  * No changes
+ 
+
 === Information system
+
+  * Negative VO numbers should no longer occur in GLUE2 VO ComputingShares (Bug 3686).
+
   
 == ARC Clients
+
+  * Jobs submitted via EMI-ES interface with non-dynamical output files will no longer fail due to missing delegations file.
+    Full delegation is now always done by default in EMI-ES (Bug 3693).
+      
   
+== Nagios plugins
+
+  * No changes
 
 
 
 Fixed bugs
 ----------
 
-Since ARC 6.xx, the following bugs were fixed:
+Since ARC 15.03 update 17, the following bugs were fixed:
+  * 3686 Negative VO numbers
+  * 3693 ENV/PROXY fails to delegate full credential for EMI-ES job
+  * 3694 multicore scratch fix to skip RUNTIME_ENABLE_MULTICORE_SCRATCH
 
 
 
@@ -66,9 +89,13 @@ Availability
 
 = Source
 
-ARC release 6.X consists of the following source packages:
-  * NorduGrid ARC, version X.X.X (main components)
+ARC release 15.03u18 consists of the following source packages:
+  * NorduGrid ARC, version 5.4.2 (main components)
+  * NorduGrid ARC Documents version 2.0.19
   * metapackages for client tools, computing element and information index, version 1.0.7
+  * Nagios probes for ARC CE, version 1.9.1
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
 
 
 Source code for main components is available from here:
@@ -79,6 +106,15 @@ Documentation source (mostly LaTeX) is available from:
 
 Source for metapackages is available from:
   http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.9.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
 
 = Repositories
 
@@ -91,7 +127,7 @@ These repositories provide binary packages for:
   * Fedora: from 12 to 26 (i386 and x86_64)
   * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
   * Ubuntu: 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
-    15.10, 16.04, 16.10, and 17.04 (i386 and amd64)
+    15.10, 16.04, 16.10, 17.04 and 17.10 (i386 and amd64)
     
 Scientific Linux and RedHat are implicitly supported through corresponding
 CentOS repositories.

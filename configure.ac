@@ -183,6 +183,7 @@ enables_ldns=yes
 enables_hed=yes
 #  Services
 enables_a_rex_service=yes
+enables_internal=no
 enables_gridftpd_service=yes
 enables_ldap_service=yes
 enables_candypond=yes
@@ -208,6 +209,7 @@ enables_acix=yes
 AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults for most of components.]),
 [
 enables_a_rex_service=$enableval
+enables_internal=$enableval
 enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
 enables_monitor=$enableval
@@ -2001,6 +2003,18 @@ fi
 AC_MSG_NOTICE([A-Rex service enabled: $enables_a_rex_service])
 AM_CONDITIONAL([A_REX_SERVICE_ENABLED],[test "x$enables_a_rex_service" = "xyes"])
 
+# Internal job plugin
+AC_ARG_ENABLE(internal, AC_HELP_STRING([--enable-internal], [enable building the internal job plugin]),
+  [enables_internal=$enableval],[])
+if test "$enables_internal" = "yes"; then
+  if test "x$enables_a_rex_service" != "xyes" ; then
+    AC_MSG_NOTICE([Internal job plugin can't be built without A-Rex - disabling])
+    enables_internal="no"
+  fi
+fi
+AC_MSG_NOTICE([Internal plugin enabled: $enables_internal])
+AM_CONDITIONAL([INTERNAL_ENABLED],[test "x$enables_internal" = "xyes"])
+
 # Gridftpd
 AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [disable building Gridftpd service]),
   [enables_gridftpd_service=$enableval],[])
@@ -2440,6 +2454,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/rte/Makefile
                  src/services/a-rex/rte/ENV/PROXY
+                 src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile
@@ -2534,7 +2549,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/python/arcctl
                  src/utils/python/arcctl.1
                  src/utils/python/arc/Makefile
-                 src/utils/python/arc/paths.py
+                 src/utils/python/arc/gen_paths_dist.sh
                  src/utils/python/arc/utils/Makefile
                  src/utils/python/arc/control/Makefile
                  src/utils/hed/wsdl2hed.1
@@ -2609,6 +2624,7 @@ Included components:
 HED:                ${enables_hed}
 
 A-REX service:      ${enables_a_rex_service}
+Internal plugin:    ${enables_internal}
 GRIDFTPD service:   ${enables_gridftpd_service}
 LDAP Info service:  ${enables_ldap_service}
 CANDYPOND service:  ${enables_candypond}

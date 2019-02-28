@@ -12,6 +12,7 @@ import shutil
 import datetime
 import tarfile
 import pwd
+import zlib
 from contextlib import closing
 
 
@@ -25,6 +26,7 @@ def add_parser_digest_validity(parser, defvalidity=90):
 class TestCAControl(ComponentControl):
     __test_hostcert = '/etc/grid-security/testCA-hostcert.pem'
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
+    __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
@@ -40,7 +42,7 @@ class TestCAControl(ComponentControl):
             if x509_cert_dir:
                 self.x509_cert_dir = x509_cert_dir
             self.hostname = arcconfig.get_value('hostname', 'common')
-            self.logger.debug('Using hostname from arc.conf: {0}', self.hostname)
+            self.logger.debug('Using hostname from arc.conf: %s', self.hostname)
 
         # if hostname is not defined via arc.conf
         if self.hostname is None:
@@ -48,14 +50,21 @@ class TestCAControl(ComponentControl):
                 # try to get it from hostname -f
                 hostname_f = subprocess.Popen(['hostname', '-f'], stdout=subprocess.PIPE)
                 self.hostname = hostname_f.stdout.readline().strip()
-                self.logger.debug('Using hostname from \'hostname -f\': {0}', self.hostname)
+                self.logger.debug('Using hostname from \'hostname -f\': %s', self.hostname)
             except OSError:
                 # fallback
                 self.hostname = socket.gethostname()
                 self.logger.warning('Cannot get hostname from \'hostname -f\'. '
-                                    'Using {0} that comes from name services.', self.hostname)
+                                    'Using %s that comes from name services.', self.hostname)
 
-        self.caName = 'ARC {0} TestCA'.format(self.hostname)
+        # check hostname X509 constraint
+        if len(str(self.hostname)) > 64:
+            self.logger.error('Hostname %s is longer that 64 characters and does not fit to X509 subject limit.')
+            sys.exit(1)
+
+        # define CA name and location
+        crc32_ca_id = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
+        self.caName = 'ARC TestCA {0}'.format(crc32_ca_id)
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
 
@@ -67,6 +76,20 @@ class TestCAControl(ComponentControl):
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
+
+    def cleanup_files(self):
+        # CA certificates dir
+        if not os.path.exists(self.x509_cert_dir):
+            self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
+            os.makedirs(self.x509_cert_dir, mode=0o755)
+        # CA files cleanup
+        cg = CertificateGenerator(self.x509_cert_dir)
+        cg.cleanupCAfiles(self.caName)
+        # hostcert/key and auth files cleanup
+        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile):
+            if os.path.exists(f):
+                self.logger.debug('Removing the file: %s', f)
+                os.unlink(f)
 
     def signhostcert(self, args):
         ca = CertificateKeyPair(self.caKey, self.caCert)
@@ -81,7 +104,7 @@ class TestCAControl(ComponentControl):
             keyfname = hostcertfiles.keyLocation.split('/')[-1]
             if not args.force:
                 if os.path.exists(os.path.join(workdir, certfname)) or os.path.exists(os.path.join(workdir, keyfname)):
-                    self.logger.error('Host certificate for %s is already exists.', hostname)
+                    self.logger.error('Host certificate for %s already exists.', hostname)
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
@@ -91,7 +114,7 @@ class TestCAControl(ComponentControl):
         else:
             if not args.force:
                 if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
-                    logger.error('Host certificate is already exists.')
+                    logger.error('Host certificate already exists.')
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
             logger.info('Installing generated host certificate to %s', self.__test_hostcert)
@@ -120,18 +143,18 @@ class TestCAControl(ComponentControl):
             try:
                 pw = pwd.getpwnam(args.install_user)
             except KeyError:
-                self.logger.error('Specified user %s is not exist.', args.install_user)
+                self.logger.error('Specified user %s does not exist.', args.install_user)
                 self._remove_certs_and_exit(usercertfiles)
             # get homedir
             homedir = pw.pw_dir
             if not os.path.isdir(homedir):
-                self.logger.error('Home directory %s is not exists for user %s', homedir, args.install_user)
+                self.logger.error('Home directory %s does not exist for user %s', homedir, args.install_user)
                 self._remove_certs_and_exit(usercertfiles)
             # .globus usercerts location
             usercertsdir = homedir + '/.globus'
             if os.path.exists(usercertsdir + '/usercert.pem') or os.path.exists(usercertsdir + '/userkey.pem'):
                 if not args.force:
-                    self.logger.error('User credentials are already exists in %s. Use \'--force\' to overwrite.',
+                    self.logger.error('User credentials already exist in %s. Use \'--force\' to overwrite.',
                                       usercertsdir)
                     self._remove_certs_and_exit(usercertfiles)
             if not os.path.isdir(usercertsdir):
@@ -190,10 +213,22 @@ class TestCAControl(ComponentControl):
                         usercertfiles.certLocation,
                         usercertfiles.keyLocation,
                         os.getcwd()))
+        # add subject to allowed list
+        if not args.no_auth:
+            try:
+                self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
+                                 usercertfiles.dn, self.__test_authfile)
+                with open(self.__test_authfile, 'a') as a_file:
+                    a_file.write(usercertfiles.dn + '\n')
+            except IOError as err:
+                self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
+                sys.exit(1)
 
     def control(self, args):
         if args.action == 'init':
             self.createca(args)
+        elif args.action == 'cleanup':
+            self.cleanup_files()
         elif args.action == 'hostcert':
             self.signhostcert(args)
         elif args.action == 'usercert':
@@ -212,13 +247,15 @@ class TestCAControl(ComponentControl):
 
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
-        testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+
+        testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
 
         testca_host = testca_actions.add_parser('hostcert', help='Generate and sign testing host certificate')
         add_parser_digest_validity(testca_host, 30)
         testca_host.add_argument('-n', '--hostname', action='store',
                                  help='Generate certificate for specified hostname instead of this host')
-        testca_host.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_host.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
         testca_user = testca_actions.add_parser('usercert', help='Generate and sign testing user certificate')
         add_parser_digest_validity(testca_user, 30)
@@ -228,4 +265,5 @@ class TestCAControl(ComponentControl):
                                  help='Install certificates to $HOME/.globus for specified user instead of workdir')
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
-        testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exists')
+        testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+        testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

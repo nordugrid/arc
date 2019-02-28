@@ -654,6 +654,21 @@ sub addprefix {
    return @prefixedset;	
 }
 
+# sub to pick a value in order: first value preferred to others
+# can have as many parameters as one wants.
+sub prioritizedvalues {
+   my @values = @_;
+
+   while (@values) {
+      my $current = shift @values;
+      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
+  }
+
+   # just in case all the above fails, log and return empty string
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
+   return '';
+}
+
 # TODO: add VOs information
 
 
@@ -725,21 +740,21 @@ sub collect($) {
         } else {
        # create as many shares as the advertisedvo in the [infosys/cluster] block
        # iff advertisedvo not defined in queue block
-			if (defined $config->{service}{AdvertisedVO}) { 
-				my ($clusteradvertvos) = $config->{service}{AdvertisedVO};
-				for my $clusteradvertvo (@{$clusteradvertvos}) {
-					# generate an additional share with such advertisedVO
-					my $share_vo = $currentshare.'_'.$clusteradvertvo;
-					$GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
-					# add the queue from configuration as MappingQueue
-					$GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
-					# remove VOs from that share, substitute with default VO
-					$GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
-					# TODO: use config elements for this
-					$GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
-				}    
-			}
-	    }
+            if (defined $config->{service}{AdvertisedVO}) { 
+                my ($clusteradvertvos) = $config->{service}{AdvertisedVO};
+                for my $clusteradvertvo (@{$clusteradvertvos}) {
+                    # generate an additional share with such advertisedVO
+                    my $share_vo = $currentshare.'_'.$clusteradvertvo;
+                    $GLUE2shares->{$share_vo} = Storable::dclone($config->{shares}{$currentshare});
+                    # add the queue from configuration as MappingQueue
+                    $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
+                    # remove VOs from that share, substitute with default VO
+                    $GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
+                    # TODO: use config elements for this
+                    $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
+                }    
+            }
+        }
         # remove VO array from the datastructure of the share with the same name of the queue
         delete $GLUE2shares->{$share_name}{AdvertisedVO};
         undef $share_name;
@@ -895,9 +910,9 @@ sub collect($) {
             $requestedslots{$share} += $job->{count} || 1;
             $share_prepping{$share}++;
             if (defined $vomsvo) {
-				$requestedslots{$sharevomsvo} += $job->{count} || 1;
-				$share_prepping{$sharevomsvo}++;
-			}
+                $requestedslots{$sharevomsvo} += $job->{count} || 1;
+                $share_prepping{$sharevomsvo}++;
+            }
             # TODO: is this used anywhere?
             $user_prepping{$gridowner}++ if $gridowner;
         }
@@ -920,36 +935,36 @@ sub collect($) {
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
                     if (defined $vomsvo) {
-						$inlrmsslots{$sharevomsvo}{running} ||= 0; 
-						$inlrmsslots{$sharevomsvo}{suspended} ||= 0;
-						$inlrmsslots{$sharevomsvo}{queued} ||= 0;
-					}
+                        $inlrmsslots{$sharevomsvo}{running} ||= 0; 
+                        $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
+                        $inlrmsslots{$sharevomsvo}{queued} ||= 0;
+                    }
                     if ($lrmsjob->{status} eq 'R') {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
                         if (defined $vomsvo) {
-							$inlrmsjobs{$sharevomsvo}{running}++;
-							$inlrmsslots{$sharevomsvo}{running} += $slots;
-						}
+                            $inlrmsjobs{$sharevomsvo}{running}++;
+                            $inlrmsslots{$sharevomsvo}{running} += $slots;
+                        }
                     } elsif ($lrmsjob->{status} eq 'S') {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
                         if (defined $vomsvo) {
-							$inlrmsjobs{$sharevomsvo}{suspended}++;
+                            $inlrmsjobs{$sharevomsvo}{suspended}++;
                             $inlrmsslots{$sharevomsvo}{suspended} += $slots;
-						}
+                        }
                     } else {  # Consider other states 'queued'
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
                         if (defined $vomsvo) {
-						    $inlrmsjobs{$sharevomsvo}{queued}++;
-							$inlrmsslots{$sharevomsvo}{queued} += $slots;
-							$requestedslots{$sharevomsvo} += $slots;
-						}
+                            $inlrmsjobs{$sharevomsvo}{queued}++;
+                            $inlrmsslots{$sharevomsvo}{queued} += $slots;
+                            $requestedslots{$sharevomsvo} += $slots;
+                        }
                     }
                 }
             } else {
@@ -977,7 +992,7 @@ sub collect($) {
     my $epscapabilities = {};
 
     # defaults now set in ConfigCentral
-    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/";
+    my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/" if ($config->{infosys}{ldap}{enabled});
     my $ldapngendpoint = '';
     my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
@@ -1010,9 +1025,9 @@ sub collect($) {
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
         
     # for org.nordugrid.gridftpjob
-    if ( $config->{gridftpd}{enabled} == 1 ) { 
-	$gridftphostport = "$hostname:$config->{gridftpd}{port}";
-	$csvendpointsnum++;
+    if ($config->{gridftpd}{enabled}) { 
+    $gridftphostport = "$hostname:$config->{gridftpd}{port}";
+    $csvendpointsnum++;
     $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
                 'executionmanagement.jobexecution',
                 'executionmanagement.jobmanager', 
@@ -1112,21 +1127,21 @@ sub collect($) {
     # ARIS LDAP endpoints
     
     # ldapng
-    if ( defined $config->{infosys}{nordugrid} ) {
+    if ( $config->{infosys}{nordugrid}{enabled} ) {
         $csvendpointsnum++;
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue1
-    if ( defined $config->{infosys}{glue1} ) {
+    if ( $config->{infosys}{glue1}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
         $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
     }
     
     # ldapglue2
-    if ( defined $config->{infosys}{glue2}{ldap} ) {
+    if ( $config->{infosys}{glue2}{ldap}{enabled} ) {
         $csvendpointsnum++;
         $ldapglue2endpoint = $ldaphostport."o=glue";
         $epscapabilities->{'org.nordugrid.ldapglue2'} = [ 'information.discovery.resource' ];
@@ -1145,12 +1160,12 @@ sub collect($) {
     my $servingstate = 'draining';
     my ($sessiondirs) = ($config->{control}{'.'}{sessiondir});
     foreach my $sd (@$sessiondirs) {
-		my @hasdrain = split(' ',$sd);
-		if ($hasdrain[-1] ne 'drain') {
-			$servingstate = 'production';
-		}
-	}
-	
+        my @hasdrain = split(' ',$sd);
+        if ($hasdrain[-1] ne 'drain') {
+            $servingstate = 'production';
+        }
+    }
+
     # TODO: userdomain
     my $userdomain='';
 
@@ -1164,19 +1179,19 @@ sub collect($) {
     
     # Computing Endpoints IDs
     my $ARCgftpjobcepID;
-    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint}; # ARCGridFTPComputingEndpoint ID
+    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled}); # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID;
     $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$wsendpoint" if $wsenabled; # ARCWSComputingEndpoint ID
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $emiesenabled; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:rest:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
-    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled} == 1);
+    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
     push(@cepIDs,$ARCWScepID) if ($wsenabled);
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     
@@ -1319,14 +1334,14 @@ sub collect($) {
     
     # Basic mapping policy: it can only contain one vo.     
     
-    my $getBasicMappingPolicy = sub {	
-	    my ($shareID, $sharename) = @_;
+    my $getBasicMappingPolicy = sub {
+        my ($shareID, $sharename) = @_;
         my $mpol = {};
         $mpol->{CreationTime} = $creation_time;
         $mpol->{Validity} = $validity_ttl;
         $mpol->{ID} = "$mpolIDp:basic:$GLUE2shares->{$sharename}{AdvertisedVO}";
         $mpol->{Scheme} = "basic";
-	    $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
+        $mpol->{Rule} = [ "vo:$GLUE2shares->{$sharename}{AdvertisedVO}" ];
         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
         $mpol->{ShareID} = $shareID;
         return $mpol;
@@ -1603,8 +1618,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -1772,7 +1788,7 @@ sub collect($) {
             $cep->{HealthState} = 'ok';
             }
 
-            if ( $config->{gridftpd}{allownew} == 0 ) {
+            if ( (not defined $config->{gridftpd}{allownew}) or ($config->{gridftpd}{allownew} == 0 ) ) {
                 $cep->{ServingState} = 'draining';
             } else {
                 $cep->{ServingState} = $servingstate;
@@ -1860,7 +1876,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -1888,8 +1904,9 @@ sub collect($) {
             }
             
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -1991,7 +2008,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -2019,8 +2036,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2117,7 +2135,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "testing";
+            $ep->{QualityLevel} = "production";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
@@ -2137,8 +2155,9 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -2212,7 +2231,7 @@ sub collect($) {
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -2240,8 +2259,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2333,7 +2353,7 @@ sub collect($) {
             $ep->{ImplementationName} = "nordugrid-arc";
             $ep->{ImplementationVersion} = $config->{arcversion};
 
-            $ep->{QualityLevel} = "testing";
+            $ep->{QualityLevel} = "production";
 
             # How to calculate health for this interface?
             # TODO: inherit health infos from arex endpoints
@@ -2353,8 +2373,9 @@ sub collect($) {
             }            
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
             
             if (%healthissues) {
@@ -2404,7 +2425,7 @@ sub collect($) {
             $cep->{CreationTime} = $creation_time;
             $cep->{Validity} = $validity_ttl;
 
-            $cep->{ID} = "$ARCRESTcepIDp:ac";
+            $cep->{ID} = "$ARCRESTcepIDp";
 
             # Name not necessary -- why? added back
             $cep->{Name} = "ARC REST";
@@ -2442,8 +2463,9 @@ sub collect($) {
             }
 
             # check health status by using port probe in hostinfo
-            if (defined $host_info->{ports}{arched}{'443'} and @{$host_info->{ports}{arched}{'443'}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
+            my $arexport = $config->{arex}{port};
+            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
+                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
             }
 
             if (%healthissues) {
@@ -2610,123 +2632,8 @@ sub collect($) {
 
         $arexceps->{NorduGridLocalSubmissionEndpoint} = $getNorduGridLocalSubmissionEndpoint;
 
-
-        #### Other A-REX ComputingEndpoints. these are currently disabled as I don't know how to handle them.
-        # Placeholder for Stagein interface
-
-        my $getStageinComputingEndpoint = sub {
-            
-            # don't publish if no Endpoint URL
-            return undef unless $stageinhostport ne '';
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = $StageincepID;
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
-
-            # OBS: ideally HED should be asked for the URL
-            #$cep->{URL} = $wsendpoint;
-            $cep->{Capability} = [ 'data.management.transfer' ];
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'Stagein';
-            $cep->{InterfaceVersion} = [ '1.0' ];
-            #$cep->{InterfaceExtension} = [ '' ];
-            $cep->{WSDL} = [ $wsendpoint."/?wsdl" ];
-            # Wrong type, should be URI
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "development";
-
-            # How to calculate health for this interface?
-            my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            $cep->{ServingState} = $servingstate;
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if no Endpoint URL
-        $arexceps->{StageinComputingEndpoint} = $getStageinComputingEndpoint if $stageinhostport ne '';
-
-
         ### ARIS endpoints are now part of the A-REX service. 
-        # TODO: change ComputingService code in printers to scan for Endpoints
+        # TODO: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant
 
         my $getArisLdapNGEndpoint = sub {
 
@@ -2939,98 +2846,6 @@ sub collect($) {
         
         $arexceps->{LDAPGLUE2Endpoint} = $getArisLdapGlue2Endpoint if $ldapglue2endpoint ne '';
 
-        ## TODO: remove this endpoint
-        my $getArisWSRFGlue2Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS WSRF GLUE2 Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $wsendpoint;
-            # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:wsrfglue2:$wsendpoint";
-            $ep->{Capability} = ['information.discovery.resource'];
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put a relevant document here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "nordugrid-arc";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
-            }            
-
-            # check health status by using port probe in hostinfo
-            # a-rex port hardcoded in ARC6
-            if (defined $host_info->{ports}{arched}{'443'}) {
-                push @{$healthissues{@{$host_info->{ports}{arched}{'443'}}[0]}} , @{$host_info->{ports}{arched}{'443'}}[1];
-            }
-            
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ComputingServiceID} = $csvID;
-
-            return $ep;
-        };
-        
-        $arexceps->{WSRFGLUE2Endpoint} = $getArisWSRFGlue2Endpoint if ($wsenabled);
-
         
         # Collect endpoints in the datastructure
 
@@ -3088,12 +2903,12 @@ sub collect($) {
         $csha->{MappingQueue} = $qname if $qname;
 
         # use limits from LRMS
-        $csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
+        $csha->{MaxCPUTime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
         # TODO: implement in backends
         $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
         $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
         $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
-        $csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+        $csha->{MaxWallTime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
         # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
         #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
         $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
@@ -3670,275 +3485,8 @@ sub collect($) {
 
     my $othersv = {};
 
-    # ARIS service has been removed from the rendering.
-    # other services that follow might end up to be endpoints
-    
-    #$othersv->{ARIS} = $getARISService;
-
-    # Service:Cache-Index
-
-    my $getCacheIndexService = sub {
-    
-	my $sv = {};
-
-	$sv->{CreationTime} = $creation_time;
-	$sv->{Validity} = $validity_ttl;
-
-	$sv->{ID} = $CacheIndexsvID;
-
-	$sv->{Name} = "$config->{service}{ClusterName}:Service:Cache-Index" if $config->{service}{ClusterName}; # scalar
-	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-	$sv->{Capability} = [ 'information.discovery' ];
-	$sv->{Type} = 'org.nordugrid.information.cache-index';
-
-	# OBS: QualityLevel reflects the quality of the sotware
-	# One of: development, testing, pre-production, production
-	$sv->{QualityLevel} = 'testing';
-
-	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
-
-	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
-
 	#EndPoint here
 
-    ## TODO: remove this endpoint
-	my $getCacheIndexEndpoint = sub {
-
-	    return undef;
-
-	    my $ep = {};
-
-	    $ep->{CreationTime} = $creation_time;
-	    $ep->{Validity} = $validity_ttl;
-
-	    # Name not necessary -- why? added back
-	    $ep->{Name} = "ARC Cache Index";
-
-	    # Configuration parser does not contain ldap port!
-	    # must be updated
-	    # port hardcoded for tests 
-	    # $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
-        # $ep->{ID} = $CacheIndexepIDp.":".$ep->{URL};
-	    $ep->{Capability} = [ 'information.discovery' ];
-	    $ep->{Technology} = 'webservice';
-	    $ep->{InterfaceName} = 'Cache-Index';
-	    $ep->{InterfaceVersion} = [ '1.0' ];
-	    # Wrong type, should be URI
-	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-	    #              ];
-	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "nordugrid-arc";
-	    $ep->{ImplementationVersion} = $config->{arcversion};
-	    $ep->{QualityLevel} = "testing";
-
-	    # How to calculate health for this interface?
-	    my %healthissues;
-
-	    if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-	    if (     $host_info->{hostcert_expired}
-		    or $host_info->{issuerca_expired}) {
-		  push @{$healthissues{critical}}, "Host credentials expired";
-	    } elsif (not $host_info->{hostcert_enddate}
-		    or not $host_info->{issuerca_enddate}) {
-		  push @{$healthissues{critical}}, "Host credentials missing";
-	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		    or $host_info->{issuerca_enddate} - time < 48*3600) {
-		  push @{$healthissues{warning}}, "Host credentials will expire soon";
-	    }
-	    }
-
-	    if (%healthissues) {
-	    my @infos;
-	    for my $level (qw(critical warning other)) {
-		  next unless $healthissues{$level};
-		  $ep->{HealthState} ||= $level;
-		  push @infos, @{$healthissues{$level}};
-	    }
-	    $ep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-	    $ep->{HealthState} = 'ok';
-	    }
-
-	    $ep->{ServingState} = 'production';
-
-	    # StartTime: get it from hed
-
-	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-	    # TODO: Downtime, is this necessary, and how should it work?
-
-	    if ($config->{accesspolicies}) {
-	    my @apconfs = @{$config->{accesspolicies}};
-	    $ep->{AccessPolicies} = sub {
-		  return undef unless @apconfs;
-		  my $apconf = pop @apconfs;
-		  my $apol = {};
-		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		  $apol->{Scheme} = "basic";
-		  $apol->{Rule} = $apconf->{Rule};
-		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $ep->{ID};
-		  return $apol;
-	    };
-	    }
-	    
-	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-
-	    # Associations
-
-	    $ep->{ServiceID} = $CacheIndexsvID;
-
-	    return $ep;
-	};
-
-	$sv->{Endpoint} = $getCacheIndexEndpoint;
-
-	# Associations
-
-	$sv->{AdminDomainID} = $adID;
-
-	return $sv;
-    };
-    
-    # Disabled until I find a way to know if it's configured or not.
-    # $othersv->{CacheIndex} = $getCacheIndexService;
-    
-    # Service: HED-Control / TODO: should be changed to HEDSHOT
-
-    my $getHEDControlService = sub {
-
-	my $sv = {};
-
-	$sv->{CreationTime} = $creation_time;
-	$sv->{Validity} = $validity_ttl;
-
-	$sv->{ID} = $HEDControlsvID;
-
-	$sv->{Name} = "$config->{service}{ClusterName}:Service:HED-CONTROL" if $config->{service}{ClusterName}; # scalar
-	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-	$sv->{Capability} = [ 'information.discovery' ];
-	$sv->{Type} = 'org.nordugrid.information.cache-index';
-
-	# OBS: QualityLevel reflects the quality of the sotware
-	# One of: development, testing, pre-production, production
-	$sv->{QualityLevel} = 'pre-production';
-
-	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
-
-	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
-
-	#EndPoint here
-
-    ## TODO: remove this endpoint
-	my $getHEDControlEndpoint = sub {
-
-	    #return undef unless ( -e $config->{bdii_update_pid_file});
-
-	    my $ep = {};
-
-	    $ep->{CreationTime} = $creation_time;
-	    $ep->{Validity} = $validity_ttl;
-
-	    # Name not necessary -- why? added back
-	    $ep->{Name} = "ARC HED WS Control Interface";
-
-	    # Configuration parser does not contain ldap port!
-	    # must be updated
-	    # port hardcoded for tests 
-	    $ep->{URL} = "$arexhostport/mgmt";
-        $ep->{ID} = $HEDControlepIDp.":".$ep->{URL};
-	    $ep->{Capability} = [ 'containermanagement.control' ];
-	    $ep->{Technology} = 'webservice';
-	    $ep->{InterfaceName} = 'HED-CONTROL';
-	    $ep->{InterfaceVersion} = [ '1.0' ];
-	    # Wrong type, should be URI
-	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-	    #              ];
-	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/" ];
-	    $ep->{Implementor} = "NorduGrid";
-	    $ep->{ImplementationName} = "nordugrid-arc";
-	    $ep->{ImplementationVersion} = $config->{arcversion};
-	    $ep->{QualityLevel} = "pre-production";
-
-	    # How to calculate health for this interface?
-	    my %healthissues;
-
-	    if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-	    if (     $host_info->{hostcert_expired}
-		    or $host_info->{issuerca_expired}) {
-		  push @{$healthissues{critical}}, "Host credentials expired";
-	    } elsif (not $host_info->{hostcert_enddate}
-		    or not $host_info->{issuerca_enddate}) {
-		  push @{$healthissues{critical}}, "Host credentials missing";
-	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		    or $host_info->{issuerca_enddate} - time < 48*3600) {
-		  push @{$healthissues{warning}}, "Host credentials will expire soon";
-	    }
-	    }
-
-	    if (%healthissues) {
-	    my @infos;
-	    for my $level (qw(critical warning other)) {
-		  next unless $healthissues{$level};
-		  $ep->{HealthState} ||= $level;
-		  push @infos, @{$healthissues{$level}};
-	    }
-	    $ep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-	    $ep->{HealthState} = 'ok';
-	    }
-
-	    $ep->{ServingState} = 'production';
-
-	    # StartTime: get it from hed
-
-	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-	    # TODO: Downtime, is this necessary, and how should it work?
-
-	    if ($config->{accesspolicies}) {
-	    my @apconfs = @{$config->{accesspolicies}};
-	    $ep->{AccessPolicies} = sub {
-		  return undef unless @apconfs;
-		  my $apconf = pop @apconfs;
-		  my $apol = {};
-		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		  $apol->{Scheme} = "basic";
-		  $apol->{Rule} = $apconf->{Rule};
-		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $ep->{ID};
-		  return $apol;
-	      };
-	    };
-	    
-	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-
-	    # Associations
-
-	    $ep->{ServiceID} = $HEDControlsvID;
-
-	    return $ep;
-	};
-
-	$sv->{Endpoint} = $getHEDControlEndpoint;
-
-	# Associations
-
-	$sv->{AdminDomainID} = $adID;
-
-	return $sv;
-    };
-
-    # Disabled until I find a way to know if it's configured or not.
-    # $othersv->{HEDControl} = $getHEDControlService);
-    
 
     # aggregates services
 
@@ -4024,4 +3572,5 @@ sub collect($) {
 }
 
 1;
+
 

@@ -30,81 +30,17 @@ use LogUtils;
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 #######################################################################
-## Block defaults. Will be removed once the python parser returns 
-## defaults.
-## The defaults below are taken from arc.defaults.conf and
-## for default enabled blocks this is not yet decided.
+## Block dependencies
 #######################################################################
 
-my $confdefaults = {
-    common => {
-       arcversion => '@VERSION@',
-       # hostname => hostname(),  # this is set by set_defaults
-       # gridftpd defaults moved to ConfigCentral read_json_config, maybe move them here
-       x509_host_key => '/etc/grid-security/hostkey.pem',
-       x509_host_cert => '/etc/grid-security/hostcert.pem',
-       x509_cert_dir => '/etc/grid-security/certificates'
-    },
-    lrms => { # TODO: add lrms defaults
-    },
-    arex => {
-        defaultttl  => '604800 2629744',
-        infoproviders_timelimit => 10800, # C 42
-        shared_filesystem => 'yes'
-    },
-    gridftpd => {
-        port => '2811',    
-        pidfile => '/var/run/gridftpd.pid',
-        allownew => 'yes'
-    },
-   'gridftpd/jobs' => {
-        mountpoint => '/jobs'
-    },
-    infosys => {
-        # default blocks, not in arc.conf but for convenience here
-        # this can be changed using defined but kept here for the moment
-        glue2 => {},
-        # default values
-        validity_ttl =>  10800,
-        loglevel => '3',
-        logfile => '/var/log/arc/infoprovider.log'
-    },
-    'infosys/ldap' => {
-        # hostname => hostname(),  # this is set by set_defaults
-        port => '2135',
-        infosys_ldap_run_dir => '/var/run/arc/infosys/'
-    },
-    'infosys/ldap/bdii' => {
-
-    # TODO: merge ldap and bdii options again. Update InfosysHelper accordingly
-
-       # used in InfosysHelper, these depend on BDII, but we have some
-       # control on them:
-       bdii_run_dir => '/var/run/arc/bdii',
-       bdii_log_dir => '/var/log/arc/bdii',
-       bdii_tmp_dir => '/var/tmp/arc/bdii',
-       bdii_var_dir => '/var/lib/arc/bdii',
-       # this one depends on bdii_run_dir
-       bdii_update_pid_file => '/var/run/arc/bdii/bdii-update.pid'
-       
-       ## TODO: fix this elsewere, the value should be set according to the formula below
-       ## not used directly by infoproviders, maybe by bdii config? In Infosyshelper and 
-       ## startup scripts is called max_cycle
-       ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
-       ## default: $provider_timeout + $infoproviders_timelimit + $wakeupperiod
-       #bdii_read_timeout=300
-    },
-    'infosys/glue2' => {
-       admindomain_name => 'UNDEFINEDVALUE', # should be there for correctness of ARC XML schema
-       admindomain_distributed => 'no',
-       computingservice_qualitylevel => 'production'
-    },
-    'infosys/glue2/ldap' => {
-        showactivities => 'no'
-    },
-    'monitoring/perflog' => {
-        perflogdir => '/var/log/arc/perfdata'
-    }
+my $blockdependencies = {
+    'gridftpd/jobs' => ['gridftpd'],
+    'infosys/cluster' => ['infosys'],
+    'infosys/ldap' => ['infosys'],
+    'infosys/nordugrid' => ['infosys/ldap'],
+    'infosys/glue1' => ['infosys/nordugrid'],
+    'infosys/glue2' => ['infosys'],
+    'infosys/glue2/ldap' => ['infosys/glue2','infosys/ldap'],
 };
 
 
@@ -175,6 +111,8 @@ my $share_options = {
     totalcpus => '*',
     defaultmemory => '*',
     AdvertisedVO =>  [ '*' ],
+    maxcputime => '*',
+    maxwalltime => '*'
 };
 my $gmuser_options = {
     controldir => '',
@@ -216,6 +154,7 @@ my $sshcommon_options = {
 
 # C 141
 my $ldap_infosys_options = {
+    enabled => '',
     port => '*',
     infosys_ldap_run_dir => '*',
     validity_ttl => '*',
@@ -251,12 +190,13 @@ my $wsemies_options = { # C 71
 
 # C 66
 my $ws_options = {
+    enabled => '',
     wsurl => '*',
     emies => { %$wsemies_options } # C 71
 };
 
 my $admindomain_options = {
-	Name => '*',
+    Name => '*',
     Description => '*',
     WWW => '*',
     Distributed => '*',
@@ -266,6 +206,7 @@ my $admindomain_options = {
 
 # C 156
 my $glue2_options = {
+    enabled => '',
     computingservice_qualitylevel => '*' # 157
 };
 
@@ -303,6 +244,7 @@ my $config_schema = {
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
+        # TODO: This causes odd/unsupported options to pass the checks
         %$xenv_options,
         %$share_options,
         QualityLevel => ''
@@ -366,22 +308,29 @@ my $config_schema = {
         %$lrms_share_options
     },
     infosys => {
-		nordugrid => {}, # C 155
-		logfile => '*',  #C 133
-		loglevel => '*', #C 134, replaces ProviderLog
-		validity_ttl => '*',
-		ldap => { # C141
+        enabled => '',
+        nordugrid => {
+            enabled => ''
+        }, # C 155
+        logfile => '*',  #C 133
+        loglevel => '*', #C 134, replaces ProviderLog
+        validity_ttl => '*',
+        ldap => { # C141
             %$ldap_infosys_options, # C 141
         },
-        glue1 => {}, # C 161
+        glue1 => {
+            enabled => ''
+            }, # C 161
         glue2 => { # C 156
            %$glue2_options,
            ldap => { # C158
-               showactivities => '*'
+                enabled => '',
+                showactivities => '*'
            }
         }
     },
     arex => {
+        enabled => '',
         defaultttl => '*',
         logfile => '*',
         loglevel => '*', # replaces $config_schema->{debugLevel}, C 37
@@ -391,7 +340,7 @@ my $config_schema = {
         ws => { %$ws_options } # C 66
     },
     gridftpd => {
-        enabled => '*',
+        enabled => '',
         port => '*',
         mountpoint => '*',
         allownew => '*',
@@ -516,12 +465,12 @@ sub read_json_config {
     my $jsonconfig='';
     { 
       local $/; # slurp mode
-	  open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
-	  $jsonconfig = <$jsonout>;
-	  close $jsonout;
-	}
-	my $config = decode_json($jsonconfig);
-	#print Dumper($config);
+       open (my $jsonout, "$libexecpath/arcconfig-parser -e json --load -r $arcconf |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+       $jsonconfig = <$jsonout>;
+       close $jsonout;
+    }
+    my $config = decode_json($jsonconfig);
+    #print Dumper($config);
     
     return $config;
 }
@@ -535,14 +484,6 @@ sub build_config_from_json {
     
     my $jsonconf = read_json_config($file);
 
-    ## TODO: check defaults.
-    ## maybe add the default checker in InfoChecker.pm?
-    ## this is required for the mandatory values. Program should exit with 
-    ## errors or solve the issue automatically if the mandatory value
-    ## is not set.
-    ## $jsonconf = InfoChecker::setDefaults($jsonconf);
-    ## ALTERNATIVE: defaults are produced by the python parser. The the above step is not needed.
-    ## I am quite sure some subsystem-dependent logic will be needed.
     set_defaults($jsonconf);
     
     # Those values that are the same as in arc.conf will 
@@ -640,8 +581,8 @@ sub build_config_from_json {
     } 
     
     $config->{arex}{ws}{emies} ||= {};
-    if (defined $jsonconf->{'arex/ws/emies'}) {
-        my $arexwsemies = $jsonconf->{'arex/ws/emies'};
+    if (defined $jsonconf->{'arex/ws/jobs'}) {
+        my $arexwsemies = $jsonconf->{'arex/ws/jobs'};
         move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
         $config->{arex}{ws}{emies}{enabled} = 1;
     } else {
@@ -651,13 +592,12 @@ sub build_config_from_json {
 
 
     # gridftpd config
-    if (defined $jsonconf->{'gridftpd/jobs'}) {
+    if ((defined $jsonconf->{'gridftpd/jobs'}) || (defined $jsonconf->{'gridftpd'})) {
         $config->{gridftpd} ||= {};
         my $gconf = $jsonconf->{'gridftpd'};
         my $gjconf = $jsonconf->{'gridftpd/jobs'};
         move_keys $gconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
         move_keys $gjconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
-        $config->{gridftpd}{enabled} = 1;
     } else {
         $log->verbose("[gridftpd/jobs] block not found in arc.conf. Disabling gridftpd job interface information generation.");
     }
@@ -674,8 +614,9 @@ sub build_config_from_json {
 
     # information schemas
     # NorduGRID
-    if (defined $jsonconf->{'infosys/nordugrid'}) {
+    if ($jsonconf->{'infosys/nordugrid'}{enabled}) {
         $config->{infosys}{nordugrid} ||= {};
+        move_keys $jsonconf->{'infosys/nordugrid'}, $config->{infosys}{nordugrid}, [keys %{$config_schema->{infosys}{nordugrid}}];
     }
 
     # Glue 1.2/1.3
@@ -686,13 +627,13 @@ sub build_config_from_json {
     }    
 
     ####### GLUE2
-    if (defined $jsonconf->{'infosys/glue2'}) {
+    if ( $jsonconf->{'infosys/glue2'}{enabled} ) {
         $config->{infosys}{glue2} ||= {};
         my $glue2conf = $jsonconf->{'infosys/glue2'};
         move_keys $glue2conf, $config->{infosys}{glue2}, [keys %$glue2_options];
         rename_keys $config->{infosys}{glue2}, $config->{service}, {computingservice_qualitylevel => 'QualityLevel'};
         # GLUE2 ldap
-        if (defined $jsonconf->{'infosys/glue2/ldap'}) {
+        if ( $jsonconf->{'infosys/glue2/ldap'}{enabled} ) {
            $config->{infosys}{glue2}{ldap} ||= {};
            my $glue2ldapconf = $jsonconf->{'infosys/glue2/ldap'};
            move_keys $glue2ldapconf, $config->{infosys}{glue2}{ldap}, [keys %{$config_schema->{infosys}{glue2}{ldap}}];
@@ -710,14 +651,14 @@ sub build_config_from_json {
                 admindomain_owner => 'Owner',
                 admindomain_otherinfo => 'OtherInfo'
         }
+    } else {
+        $log->error('Infoproviders cannot continue without the [infosys/glue2] block. Please add it. Exiting...')
     }
-    ############################ legacy ini config file structure #############################
 
-
+    ### Process infosys/cluster
     my $cluster = $jsonconf->{'infosys/cluster'};
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
-        rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
         rename_keys $cluster, $config->{location}, { cluster_location => 'PostCode' };
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
@@ -741,12 +682,13 @@ sub build_config_from_json {
                 $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
             }
         }
+        # TODO: this causes possibly unsupported values like OSName, OSVersion to be moved and not renamed
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
         # TODO: check if this is needed
         move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
     }
 
-        ## use hostname as cluster name if not defined
+    ## use hostname as cluster name if not defined
     my $hostname = $config->{hostname};
     {  
         my @dns = split /\./, $hostname;
@@ -794,7 +736,9 @@ sub build_config_from_json {
 
         # TODO: change opsys here if needed
         rename_keys $queue, $xeconf, {homogeneity => 'Homogeneous', architecture => 'Platform',
-                                      opsys => 'OpSys', benchmark => 'Benchmark'};
+                                      opsys => 'OpSys', osname => 'OSName',
+                                      osversion => 'OSVersion', osfamily => 'OSFamily',
+                                      benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
         
         # TODO: what is this?
@@ -947,67 +891,101 @@ sub parseConfig {
     return $config;
 }
 
+## subblock_check_required(jsonconfig, block, requiredblock)
+# Checks if the parent block is enabled and sets the enable flags accordingly
 
+sub subblock_check_required {
+    my ($config, $block) = @_;
+    my @dependencyarray = @{$blockdependencies->{$block}};
+    if ($config->{$block}{enabled}) {
+        $config->{$block}{enabled} = 0;
+        for my $requiredblock (@dependencyarray) {
+            $log->debug("Checking $block, enabled=$config->{$block}{enabled}, $requiredblock, enabled=$config->{$requiredblock}{enabled}");
+            unless ($config->{$requiredblock}{enabled}) {
+                $log->error("required [$requiredblock] block not found but [$block] defined. Please define [$requiredblock]. Exiting");
+            } else {
+            $config->{$block}{enabled} = 1;
+            } 
+        }
+    }
+}
+
+## The defaults come from the parser, but due to a PERL side effect in scanning
+# hashes here we add information about enable/disable blocks.
 sub set_defaults {
     my ($config) = @_;
     
     $log->debug("Applying defaults");
     
-    ## TODO: create default blocks here. Ongoing    
-    
-    # force gridftpd defaults if only gridftpd/jobs is found in config
-    if (defined $config->{'gridftpd/jobs'}) {
-          unless (defined $config->{'gridftpd'}) {
-               $log->warning("[gridftpd] block not found but subblocks defined. Using [gridftpd] defaults");
-               $config->{gridftpd} ||= {}
-          }
-    }
+    # blocknames that are relevant for infosys and should be set to enable
+    my @blocknames = ('arex',
+                      'arex/ws',
+                      'arex/ws/jobs',
+                      'gridftpd',
+                      'infosys',
+                      'infosys/cluster',
+                      'infosys/glue1',
+                      'infosys/glue2',
+                      'infosys/glue2/ldap',
+                      'infosys/ldap',
+                      'infosys/nordugrid'
+                      );
 
-    # Force NorduGRID publishing if glue1 is enabled
-    if (defined $config->{'infosys/glue1'}) {
-       unless (defined $config->{'infosys/nordugrid'}) {
-           $log->warning("Glue1 information is based on NorduGRID schema. Automatically enabling [infosys/nordugrid]. Manually add such block to arc.conf to remove this message");
-           $config->{'infosys/nordugrid'} ||= {};
-       }
+    ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks
+    for my $block (@blocknames) {
+        $config->{$block}{enabled} = (defined $config->{$block}) ? 1 : 0;
+    };
+
+    #$log->debug(Dumper($config));
+
+    # Check for dependencies
+    
+    for my $block (keys %$blockdependencies) {
+        subblock_check_required($config,$block);
     }
+    
+    ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point
+
+    #default ARC version taken from build. Artificiously placed in common
+    $config->{common}{arcversion}='@VERSION@';
+
+    # gridftpd hardcoded defaults
+    $config->{gridftpd}{port} = '2811' if ($config->{'gridftpd'}{enabled});
+    $config->{gridftpd}{mountpoint} = '/jobs' if ($config->{'gridftpd'}{enabled});
+
     
     # force ldap defaults if ldap renderings are enabled in config
-    if ((defined $config->{'infosys/nordugrid'}) || (defined $config->{'infosys/glue2/ldap'})) {
-        unless (defined $config->{'infosys/ldap'}) {
-            $log->warning("[infosys/ldap] block not found but LDAP schema renderings defined. Probably the LDAP server is down. Forcing LDAP defaults to generate renderings anyway. Configure at least the [infosys/ldap] block to remove this message.");
-            $config->{'infosys/ldap'} ||= {};
-        }
-    }
+    $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
     
-    # TODO after Andrii changes, might be removed
-    # force BDII defaults if LDAP configured    
-    if (defined $config->{'infosys/ldap'}) {
-        $log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
-        $config->{'infosys/ldap/bdii'} ||= {};
-    }
+    ## TODO after Andrii changes, might be removed
+    ## force BDII defaults if LDAP configured    
+    #if (defined $config->{'infosys/ldap'}) {
+        #$log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
+        #$config->{'infosys/ldap/bdii'} ||= {};
+    #}
     
     # Set default hostname
-    $confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
-    $confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
+    #$confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
+    #$confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
     
     # Define a-rex endpoint. Hardcoded after ARC6.
     if (defined $config->{'arex/ws'}) {
-        $confdefaults->{'arex/ws'}{wsurl} = 'https://'.$confdefaults->{common}{hostname}.':443/arex';
+        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{common}{hostname}.':443/arex';
     } else {
         $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
     }
     
-    ## end of default blocks creation
+    ### end of default blocks creation
     
     
-    for (keys %$confdefaults) {
-        if (defined $config->{$_}) {
-            $config->{$_} ||= {};
-            merge_hash_values($config->{$_},$confdefaults->{$_});
-        } else {
-          $log->debug("\[$_\] block missing, defaults not applied.");
-        }
-    }
+    #for (keys %$confdefaults) {
+        #if (defined $config->{$_}) {
+            #$config->{$_} ||= {};
+            #merge_hash_values($config->{$_},$confdefaults->{$_});
+        #} else {
+          #$log->debug("\[$_\] block missing, defaults not applied.");
+        #}
+    #}
 }
 
 ## getValueOf: Cherry picks arc.conf values
@@ -1024,18 +1002,19 @@ sub getValueOf ($$$){
     my $value='';
     { 
       local $/; # slurp mode
-	  open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
-	  $value = <$parserout>;
-	  close $parserout;
-	}
+      open (my $parserout, "$libexecpath/arcconfig-parser --load -r $arcconf -b $block -o $option |") || $log->error("Python config parser error: $! at line: ".__LINE__." libexecpath: $libexecpath");
+      $value = <$parserout>;
+      close $parserout;
+    }
 
     # strip trailing newline
     chomp $value;
 
+    # TODO: this should be removed after Andrii's default in place
     # get defaults
-    if ( !(defined $value) || $value eq 'None') {
-        $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
-    }
+    #if ( !(defined $value) || $value eq 'None') {
+    #    $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
+    #}
   
     return $value;
 

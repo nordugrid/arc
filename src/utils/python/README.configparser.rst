@@ -165,13 +165,13 @@ Examples
 
 Get value of option in block::
 
-  # arcconfig-parser --block infosys --option providerlog
+  # arcconfig-parser --block infosys --option logfile
   /var/log/arc/infoprovider.log
 
 Get value of option in blocks in order they are specified
 (e.g. if not found in ``[gridftpd]`` look in the ``[common]`` block [1]_)::
 
-  # arcconfig-parser --block gridftpd --block common --option x509_user_key
+  # arcconfig-parser --block gridftpd --block common --option x509_host_key
   /etc/grid-security/hostkey.pem
 
 .. [1] Block dependencies are now implied by defaults file, so for most cases it is enough to specify only block in question
@@ -218,7 +218,7 @@ Using BASH export::
   # eval "$( arcconfig-parser --block infosys --block arex --block common --export bash )"
   # echo "$CONFIG_gridmap"
 
-Check block(s) exists (``[common/perflog]`` is not exists in the example)::
+Check block(s) exists (``[common/perflog]`` does not exists in the example)::
 
   # arcconfig-parser --block common/perflog --block arex
   # echo $?
@@ -232,14 +232,14 @@ List block subblocks::
   infosys/nordugrid
   infosys/glue2
   infosys/glue2/ldap
-  infosys/glue1
+  infosys/cluster
 
 Using parser as Python module::
 
   from arc.utils import config
 
   # initial parsing with defaults
-  config.parse_arc_conf('/tmp/arc.conf', '/tmp/defaults.conf')
+  config.parse_arc_conf('/etc/arc.conf', '/usr/share/arc/arc.parser.defaults')
 
   # get parsed dictionary and list of blocks in the arc.conf order
   >>> confdict = config.get_config_dict()
@@ -255,18 +255,18 @@ Using parser as Python module::
   >>> a
   '/etc/grid-security/hostkey.pem'
 
-  # get value of 'allowunknown' option from [gridftpd] block
-  >>> b = config.get_value('allowunknown', 'gridftpd')
+  # get value of 'allowactivedata' option from [gridftpd] block
+  >>> b = config.get_value('allowactivedata', 'gridftpd')
   >>> b
   'yes'
 
-  # get value of 'allowunknown' option from [gridftpd] block (always return list)
-  >>> c = config.get_value('allowunknown', 'gridftpd', force_list=True)
+  # get value of 'allowactivedata' option from [gridftpd] block (always return list)
+  >>> c = config.get_value('allowactivedata', 'gridftpd', force_list=True)
   >>> c
   ['yes']
 
-  # get value of 'allowunknown' option from [gridftpd] block (return boolean value)
-  >>> d = config.get_value('allowunknown', 'gridftpd', bool_yesno=True)
+  # get value of 'allowactivedata' option from [gridftpd] block (return boolean value)
+  >>> d = config.get_value('allowactivedata', 'gridftpd', bool_yesno=True)
   >>> d
   True
 

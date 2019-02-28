@@ -154,14 +154,16 @@ __rst_top_header = """\
 ARC Configuration Reference Document
 ************************************
 
-Configuration structure
-=======================
+General configuration structure
+===============================
 
 """
 
 __rst_blocks_header = """\
-Configuration blocks
-===================="""
+Configuration blocks and options
+================================
+
+"""
 
 __rst_skiplist = [
     '## WARNING: this file will not work as a configuration template',
@@ -187,7 +189,6 @@ def reference2rst(reference_f):
 
     with open(reference_f, 'rt') as ref_f:
         in_example = False
-        in_skip = False
         in_list = False
         in_codeblock = False
         new_option = False
@@ -204,13 +205,24 @@ def reference2rst(reference_f):
                 if sline.startswith(skipline):
                     sline = ''
                     # continue
-            if sline.startswith('## Below we give a detailed description of all the configuration options'):
-                in_skip = True
-            if in_skip:
-                if sline.startswith('#example_config_option=56'):
-                    sys.stdout.write(__rst_blocks_header)
-                    in_skip = False
-                continue
+
+            # example before blocks
+            if block_name is None:
+                if sline.startswith('## example_config_option'):
+                    sys.stdout.write('example_config_option\n');
+                    sys.stdout.write('~~~~~~~~~~~~~~~~~~~~~\n');
+                    __rst_infotype('Synopsis')
+                    sys.stdout.write('``example_config_option = value [optional values]``\n')
+                    __rst_infotype('Description')
+                    sline = sline.replace('example_config_option = value [optional values] - ', '')
+                elif sline.startswith('## A block configures an ARC service'):
+                    sys.stdout.write('[block]\n');
+                    sys.stdout.write('-------\n');
+
+
+            # start of blocks
+            if sline.startswith('### The [common] block'):
+                sys.stdout.write(__rst_blocks_header)
 
             # block name
             block_match = block_head_re.match(confline)
@@ -264,6 +276,11 @@ def reference2rst(reference_f):
                 sys.stdout.write('\nThis option in **multivalued**.\n')
                 continue
 
+            # sequenced
+            if sline.startswith('## sequenced'):
+                sys.stdout.write('\nThis is **sequenced** option.\n')
+                continue
+
             # allowedvalues
             if sline.startswith('## allowedvalues:'):
                 __rst_infotype('Allowed values')
@@ -300,6 +317,8 @@ def reference2rst(reference_f):
                         .replace(']', ']``')\
                         .replace('"', '``')\
                         .replace('``[#]``', '[#]')\
+                        .replace('``]', ']')\
+                        .replace('````', '``')\
                         .replace(' *', ' \*')
 
                 sys.stdout.write(shhline + '\n')

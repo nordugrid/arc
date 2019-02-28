@@ -4,7 +4,13 @@ else
 JURA_CLIENT =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema internaljobplugin rte
+if INTERNAL_ENABLED
+INTERNAL = internaljobplugin
+else
+INTERNAL =
+endif
+
+SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
 DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
@@ -92,7 +98,7 @@ test_cache_check_LDADD = \
 
 install-data-local:
 	$(MKDIR_P) "$(DESTDIR)$(sysconfdir)"
-	if test ! -e $(DESTDIR)$(sysconfdir)/arc.conf; then $(INSTALL_DATA) arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf; fi
+	if test ! -e $(DESTDIR)$(sysconfdir)/arc.conf; then $(INSTALL_DATA) $(srcdir)/arc.zero.conf $(DESTDIR)$(sysconfdir)/arc.conf; fi
 
 uninstall-local:
 	rm -f $(DESTDIR)$(sysconfdir)/arc.conf

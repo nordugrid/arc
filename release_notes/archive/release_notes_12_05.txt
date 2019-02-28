@@ -1,0 +1,530 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 12.05                         May 21 2012
+--------------------------------------------
+
+The Advanced Resource Connector (ARC) middleware, introduced by NorduGrid
+(www.nordugrid.org), is an open source software solution enabling production
+quality computational and data Grids since May 2002. The previous production ARC
+release, version 11.05u3, was released on March 22, 2012.
+
+The 12.05 release of the ARC software has a number of substantial changes. Many
+of them are not backwards compatible, particularly the client library. For a
+detailed technical overview of the API changes go to:
+  http://wiki.nordugrid.org/index.php/API_changes
+Users and developers who made use of ARC command line or libraries in their
+tools will have to re-write the code.
+
+Apart of many new features, ARC 12.05 comes with numerous bug fixes and
+improved documentation.
+
+
+
+New features highlights
+-----------------------
+
+ARC Compute Element now supports EMI-ES interface for job submission,
+manipulation and status query. The EMI-ES interface is discoverable only
+via information endpoints that make use of GLUE2 schema. Note that this breaks
+compatibility of ARC WS endpoints with older ARC 11.05 clients that relied on
+incomplete GLUE2 to communicate to pre-production WS endpoints. Upgrade to new
+ARC 12.05 client is highly recommended.
+
+ARC Job ID became a truly globally unique identifier.
+
+The new data staging framework (codenamed DTR), which replaces the downloaders
+and uploaders, was previously released as a prototype in 11.05 and now sees its
+first production-level release. In addition to numerous bug fixes and
+scalability improvements, data staging over multiple hosts is now supported and
+several new configuration options are available. For more information see
+http://wiki.nordugrid.org/index.php/Data_Staging
+
+The JURA accounting component on ARC CE now supports generation of reports
+according to the Computing Accounting Record (CAR 1.0) format. It is also now
+able to send accounting records to the APEL server via SSM transfer protocol.
+
+ARC client library and the command line interface underwent a major re-writing,
+making it yet more modular and extensible to any combination of interfaces.
+Currently supported information query interfaces are LDAP-based ARC, Glue1.2
+and GLUE2 ones, as well as WS-based GLUE2 and EMI-ES. For job submission
+interface, ARC legacy GridFTP is supported, as well as OGSA-BES and its ARC
+extension, and EMI-ES. Note that upgrade to the new ARC client is highly
+recommended, because older ARC clients from ARC 11.05 are not forwards
+compatible with newer ARC 12.05 WS endpoints that use completed GLUE2
+information schema.
+
+ARC command line interface receives a new configuration file allowing to
+configure preferences with granularity as fine as each Grid site. New command
+line options are available as well, and some old ones have new format.
+
+ARC components now support GLUE2 information standard. GLUE2 information can be
+published either via LDAP or as an XML document. This includes publication of
+ComputingActivities (jobs) per submission endpoint in the LDAP rendering 
+and GLUE2 HealthState for each endpoint in both LDAP and XML.
+ARC service configuration now supports specification of GLUE2
+AdminDomain and Policies, and has a debugging option for BDII to reduce
+slapd logs overhead. Note that this completed GLUE2 implementation breaks
+backwards compatibility with ARC 11.05 clients that relied on an incomplete
+implementation to interact with pre-production WS interfaces. 
+
+Security tools have been improved, now supporting proxy generation from a
+PKCS12 certificate.
+
+A dedicated library for credential manipulation and secure communication is now
+available, CaNL++. At the moment it is not yet used by any tool, and as such is
+a technology preview and a prototype for a common authentication library in EMI.
+
+The 12.05 release comes complete with a set of Nagios probes that can be
+deployed against ARC Compute Element and other services.
+
+
+
+ARC components: detailed new features and deployment notes
+-----------------------------------------------------------
+
+ARC components in release 12.05 are:
+
+  * ARC Core (includes documents)
+  * ARC Clients
+  * ARC CE
+  * ARC Infosys
+  * ARC gridftp server
+  * Nagios plugins
+  * Common authentication library CaNL++
+
+
+== ARC Core
+
+The X.509 credentials handling code got significant cleaning which enhanced its
+stability in corner cases. Functionality was also extended.
+
+Globus code handling was enhanced to work properly with dynamically loaded plugins.
+
+Thread safety regarding usage of environment variables was enhanced.
+
+Support for GridSite Delegation interface - both versions 1 and 2 - was added.
+
+Adoption of Argus server as source of authorization and user mapping decisions.
+
+Numerous enhancements and fixes for data protocols - especially SRM protocol. 
+Preliminary support for GFAL2 library and hence protocols supported by it.
+Implemented initial support for Xrootd data protocol - read-only yet.
+
+Support for old authorization configuration ported into new framework including
+support for VOMS, LCAS and LCMAPS. That makes it possible to use WS services with 
+[vo] and [group] based authorization configuration.
+
+Support for controllable VOMS error processing allows to adjust for different 
+VOMS error tolerance policies.
+
+Significant cleaning of SWIG bindings. Few enhancements for Python.
+
+
+== ARC Clients
+
+The ARC client library is now capable of querying LDAP-based GLUE2 information
+and submit and manage jobs on services with the EMI-ES interface.
+
+The concept of the grid middleware flavours (e.g. "ARC0", "ARC1", "BES", etc.)
+is removed from this release, and while the library does its best to discover
+and figure out what protocol has to be used to connect to a given service, when
+there is still a need to specify, the GLUE2 concept of the "InterfaceName" is
+used. The InterfaceName is a string specifying the name of the interface of a
+service endpoint, e.g. "org.ogf.emies" or "org.nordugrid.ldapng". For the
+possible values please see the "ARC Information System" section.
+
+Note that upgrade to the new ARC client is highly recommended, because older ARC
+clients from ARC 11.05 are not forwards compatible with newer ARC 12.05 WS
+endpoints that use completed GLUE2 information schema.
+
+The syntax of some of the command line arguments are changed too:
+* it is now an error to specify a grid middleware flavour with the --cluster or
+  --index options
+* it is not possible to reject services by prepending a "-" character when using
+  the --cluster or --index options
+* during service discovery to reject CEs and registries with a given hostname or
+  URL, the --rejectdiscovery option can be used
+* during job management to skip jobs which are on a CE with a given hostname or
+  URL, the --rejectmanagement option can be used
+* to explicitly select a job submission interface, the --submissioninterface
+  command line option can be used with the given GLUE2 InterfaceName
+
+The client configuration file (client.conf) was also restructured:
+* a new way is introduced to configure services with a "one section per service"
+  approach
+* the concept of the alias is changed: an alias now is a unique name of a single
+  service, never more than one
+* the concept of the group is introduced: services can be members of multiple
+  groups
+* to select default services, the "default=yes" options need to be added to the
+  section of the given service
+* the alias section and the defaultservices option are deprecated
+* when selecting a service at the command line with the --cluster or --index
+  options, there are three possibilities:
+   * using a URL, which does not use any information from the client config
+   * using an alias name, which selects the service with the given alias
+   * using a group name, which selects all services within the given group
+
+A new command, arcmkdir, is introduced, which allows directory creation on grid
+storage elements and catalogs.
+
+=== libarcclient
+
+After significant restructuring, the C++ library (and also the Python and Java
+bindings of it) provides a more developer-friendly API, and the data model is
+much more aligned to the model of GLUE2.
+
+With respect to resource discovery the TargetGenerator and TargetRetriever
+classes has been replaced with the ServiceEndpointRetriever,
+TargetInformationRetriever, ComputingServiceRetriever and JobListRetriever
+classes, where the ServiceEndpointRetriever class should be used for querying
+index or registry services for any type of service, the
+TargetInformationRetriever class for querying local information systems, the
+ComputingServiceRetriever class which combines the functionality of the two
+first classes, and then the JobListRetriever class which is used for retrieving
+information on jobs. The reason for this change was that the TargetGenerator and
+TargetRetriever classes was utilized for the just described multiple different
+functionalities, and didn't provide a very flexible usage. The new classes
+relies on the same template class EntityRetriever, fully threaded within the
+class itself in order to be able to spawn multiple querying requests in
+parallel. The querying in particular is carried out by specialised plugins and
+since the threading is kept within the EntityRetriever class these plugins do
+not have to worry about threading issues.
+
+In order to access the retrieved information, be it Endpoint,
+ComputingServiceType, or Job objects the EntityRetriever class utilises the
+concept of a consumer class, which is a class which implements an addEntity
+method, which means that retrieved objects will not be kept with in the
+retriever classes, but will be handed over to the specified consumer object.
+
+The Broker class in libarcclient has also been subject to restructuring and
+is consequently backwards incompatible. It should now be used as a tool for
+adding matching targets to a set, which can be ordered using the comparablility
+of the Broker. Technically the Broker no longer keeps targets within it self,
+instead a suitable external container should be used to hold matching and
+possibly ordered targets. The previous need for using a loader instance in order
+to use the broker is now no longer necessary, as it has been encapsulated inside
+the Broker class it self.
+
+Restructuring has also been done on the Submitter class, which now is more a
+convenience class, rather than an abstract plugin class as previously. It also
+incapsulate the loading functionality, and can be used directly. Additionally
+the Submitter plugins has been changed to accept a list of job descriptions,
+making bulk submission possible.
+
+Previously the libarcclient library had a strict dependence on the job list file
+(~/.arc/jobs.xml), however that dependency has now been removed, which mostly
+affected the JobController class. That class had now be renamed to
+JobControllerPlugin reflecting that it is a abstract class meant to be extended
+by specialised classes. Most of the functionality previously covered by the
+JobController class has now been moved to the JobSupervisor class, which also
+incapsulates the loading functionality of plugins. As with the Submitter plugins
+the methods of the JobControllerPlugin class has been changed in order to allow
+multiple jobs to be processed by a single method call, allowing for bulk
+operations.
+
+Since a computing resource now can have multiple endpoints, queues etc. there
+was a need for adapting the ExecutionTarget class, to fit the GLUE2 data model,
+as mentioned above. It now consist of shared objects named according to GLUE2
+entities, and the classes of these objects contains public member variables
+corresponding to the associated GLUE2 attribute for that entity, making it
+completely backwards incompatible. As hinted above resource discovery now
+returns ComputingServiceType objects, which consists of multiple shared objects
+reflecting computing endpoints, queues, etc., where as an ExecutionTarget object
+only consist of one of each of these shared objects.
+Also the Job class has been subject to minor backwards incompatible changes,
+most importantly the Flavour attribute has been removed, and its usage replaced
+by the InterfaceName attribute. The SubmissionEndpoint, InfoEndpoint, ISB, OSB
+and AuxInfo attributes has been replaced by the IDFromEndpoint attribute which
+holds that information.
+
+
+== ARC Compute Element
+
+The EMI-ES interface is implemented. It is disabled by default but can be turned
+on through the option enable_emies_interface=yes in the [grid-manager] section 
+of arc.conf. The interface will be accessible at the endpoint given in the 
+arex_mount_point option, which must also be specified. Clients can request this 
+interface using the interface option org.ogf.emies. 
+
+Note that EMI-ES interface is discoverable only via information endpoints that
+make use of GLUE2 schema, which breaks compatibility of ARC WS endpoints with
+older ARC 11.05 clients that relied on incomplete GLUE2 to communicate to
+pre-production WS endpoints. Upgrade to new ARC 12.05 client is highly
+recommended.
+
+Information interfaces now along with proprietary NorduGrid rendering provide 
+standard GLUE2. 
+
+WS interface now supports authorization configuration of GridFTP interface hence
+making WS and GridFTP interfaces fully interchangeable. 
+
+The new data staging framework is disabled by default but can be enabled through
+the option newdatastaging=yes in the [grid-manager] section of arc.conf. No
+other change in configuration is necessary and data transfer limits will be
+taken from the maxload option as before. However, it is possible to configure
+many parameters of the system using options in the new [data-staging] section.
+
+Multi-host data staging allows data transfer to be spread across multiple hosts
+and can lead to increased data throughput for the site. This system can replace
+the multi Grid Manager setup. It can be enabled by deploying the DataDelivery
+Service on remote hosts and adding those hosts to the data-staging
+configuration. A variety of deployment scenarios are possible depending on the
+site setup. For more information on configuration and deployment of the new data
+staging system see the wiki page
+http://wiki.nordugrid.org/index.php/Data_Staging
+
+Configuration of JURA is described in the ARC CE system administrator manual. 
+Reporting in CAR 1.0 format is enabled by default. APEL reporting is still in
+beta testing state, and depends on the SSM version.
+
+ARC VOMS AC-based queue policy enforcing plugin (arc-vomsac-check) for A-REX is 
+added to the release. The plugin designed to be used as a handler for ACCEPTED
+state in arc.conf and introduces new option 'ac_policy' for [queue] sections
+that allows to configure access filters based on FQANs provided in user
+proxy-certificate with VOMS extension. See man arc-vomsac-check for more
+information.
+
+LRMS backends updated - especially DGBridge.
+
+
+== ARC Information System
+
+ARIS in release 12.05 supports the latest official GLUE2 schema; this schema is
+now shipped with EMI packages. While some GLUE2 support existed in previous
+releases, several new features are introduced, largely completing the
+implementation.
+
+ARC information system is compliant with the latest GLUE2 XML schema.
+
+LDAP GLUE2 schema has a new tree to accommodate AdminDomain in a separate
+branch.
+
+Support is added in arc.conf to specify GLUE2 AdminDomain and Policies.
+
+Publication of ComputingActivities (jobs) per submission endpoint is
+implemented. ComputingActivities are currently published only via LDAP.
+
+GLUE2 HealthState is added for each interface.
+
+The following new GLUE2 compliant names for Services and Endpoints are
+introduced:
+
+Services:
+* A-REX execution service (org.nordugrid.execution.arex)
+* ARIS information service (org.nordugrid.information.aris)
+
+Endpoints:
+* A-REX supports three different Endpoints at the same time:
+   * classic gridftp job sumbission interface (org.nordugrid.gridftpjob)
+   * A-REX eXtended BES Web Services submission interface
+     (org.ogf.bes)
+   * EMI-ES (org.ogf.emies, still in the process of being decided)
+* ARIS supports five different endpoints:
+   * classic NorduGrid schema LDAP interface (org.nordugrid.ldapng)
+   * glue 1.2/1.3 LDAP interface (org.nordugrid.ldapglue1)
+   * GLUE2 LDAP interface (org.nordugrid.ldapglue2)
+   * WSRF GLUE2 interface (org.nordugrid.wsrfglue2)
+   * EMI-ES (org.ogf.emies, still in the process of being decided)
+
+In addition, debugging option for BDII in arc.conf is added, to reduce slapd
+logs overhead.
+
+Note that this completed GLUE2 implementation breaks backwards compatibility
+with ARC 11.05 clients that relied on an incomplete implementation to interact
+with pre-production WS interfaces.
+
+== ARC gridftp server
+
+Improved support for IPv6.
+
+
+== Nagios plugins
+
+This is the first official release of Nagios plugins for NorduGrid ARC service
+monitoring. The probes are primarily meant to monitor ARC services, though some
+of them are more generic. The package includes probes to:
+
+* test job submission to compute elements. This probe has one entry point
+  which assembles and submits a job including various customizable sub-tests
+  such as data staging and execution of shell code. Another entry point
+  fetches jobs and publishes results to passive services.
+
+* validate the content of LDAP data produced by the information system. One
+  entry point does a schema validation of a complete tree of GLUE2 entries,
+  followed by additional verification of requirements of GLUE2 which are not
+  encoded in the schema. The two other entry points validate selected entries of
+  an ARIS and EGIIS tree against the NorduGrid schema, respectively, and
+  perform additional checks on the content. The former can validate and
+  compare the corresponding Glue1.2 data.
+
+* attempt data transfers and test related storage operations. The probe
+  supports the same protocols as the arc* tools, provided the corresponding
+  plugins are installed. The probe can attempt upload, listing, download, and
+  deletion. It compares uploaded and downloaded files.
+
+The probes are packaged for various platforms under the names
+
+    nordugrid-arc-nagios-plugins
+    nordugrid-arc-nagios-plugins-doc
+
+The latter package contains all relevant documentation. The documentation is
+packaged separately from the rest of ARC documents, as the Nagios probes are
+typically deployed away from monitored services.
+
+Binary packages are available in EMI and NorduGrid repositories. Source code is
+available from the NorduGrid repository (see below), and from the original git
+repository at
+
+    http://git.nbi.ku.dk/cgit/public/nordugrid-arc-nagios-plugins/
+
+
+== Common authentication library CaNL++
+
+CaNL++ provides set of functionalities for credential manipulation and secure
+communication, namely:
+
+Credential Manipulation:
+* CSR generation, Proxy signing, EEC signing(probably useful for SLC - short
+  lived credential)
+* Certificate verification: CRL, OCSP (retrieve OCSP responder URL via
+  AIA - Authority Information Access extension)
+* Credential source for proxy generation: cert/priv key files; softoken from
+  nss db (i.e., via pkcs11 interface, therefore user’s credential in Firefox can
+  be utilized)
+
+Secure Communication:
+* Authenticated connection establishment, without exposing openssl object such
+  as X509 and SSL;
+* Could be easily extended to support other security lib, such as nss lib.
+
+
+
+Fixed bugs
+----------
+
+Since ARC 11.05 update 3, the following bugs were fixed:
+
+* 655  Very much more flexible NEW infosystem design and implementation
+       w.r.t. grid users
+* 778  The ngsub queries all the sites even if cluster attribute is present in
+       the xrsl
+* 1305 ARC1: add URL::CanonicURL
+* 1401 Authplugin %U is reported with an empty string, not local username
+* 1988 ARC1 CLI Hungarian translation
+* 2546 GGUS-Ticket-ID: #72853      grid-monitoring-probes-org.ndgf-0.4-1.el5
+       overwrites config file, wrong VO
+* 2569 new data-staging queue too small and should be configurable
+* 2594 a-rex in DTR mode blocks fast job processing when resolving inputs
+* 2631 arcproxy man pages does not list the search locations for the
+       certificate/key pair
+* 2657 ARC CE does not publish cluster attribute and does not show in
+       grid-monitor
+* 2684 Better checks needed on A-REX startup to avoid multiple instances
+* 2694 /etc/init.d/grid-infosys fails to start slapd when index service is
+       configured in
+* 2701 a-rex crash in multi-host DTR mode
+* 2702 arc documentation should contain information on how to configure
+       fetch-crl
+* 2708 Multi-host DTR should be able to direct transfers to specific
+       nodes
+* 2712 Safe restart of DTR uploads after A-REX crash or incomplete stop
+* 2720 defaultmemory directive in arc.conf ignored by backend
+* 2726 Remove or replace /usr/libexec/arc/inputcheck with something more sane
+* 2728 ldap infosys crashes in case of a wrong set_cachesize BDII config
+       parameter
+* 2750 Jura client will fail by a simple usage
+* 2752 The jura client tool generates invalid XML output
+* 2759 Random failures in libarcdatatest
+* 2764 /etc/init.d/grid-infosys: line 1262: [: -ne: unary operator expected
+* 2765 ThreadTest fails often and at random
+* 2766 [Arc.gridftpd] [ERROR] Failed to create socket(IPv6): Address family not
+       supported by protocol
+* 2768 Missing joboption variables in RTE instructions
+* 2771 Use of uninitialized value in concatenation (.) or string at
+       /usr/share/arc/ARC1ClusterInfo.pm line 679.
+* 2776 Specifying "/" in outputfiles causes LRMS error 1 on some sites
+* 2781 ARIS creates wrong nordugrid-queue-comment attribute in nordugrid schema
+       when arched is started with a given XML file
+* 2783 Missing documentation for ARGUS PEP identity mapping
+* 2784 arcstat can't create lockfiles on Windows
+* 2785 Chelonia section in User Manual
+* 2788 arcget can't fetch output files from ARC2.0.0rc3
+* 2792 unable to run ARC CE when no empty line at the end of arc.conf
+* 2793 Inputfiles also listed as outputfiles are deleted before out staging.
+* 2799 arctest -E reports "proxy not valid" with valid proxy
+* 2800 arcget -a segfaults when trying to download job results
+* 2804 arccat doesn't work with EMI-ES
+* 2805 Credential errors in uploader and EMI-ES
+* 2806 Segmentation fault in arccat
+* 2812 grid-infosys script missing in ubuntu packages
+* 2816 Jobs submitted to ldapglue2 not found in info system
+
+
+
+Known issues
+------------
+
+ARC GUI (arcjobtool) is not available yet, pending implementation of client
+library changes. 
+
+Standalone client tar-balls for Linux are not yet available.
+
+
+
+Availability
+------------
+
+== Source
+
+ARC release 12.05 consists of the following source packages:
+* NorduGrid ARC, version 2.0.0 (main components)
+* NorduGrid ARC "compat", version 1.0.1 (old client)
+* NorduGrid ARC Documents version 1.1.2 
+* metapackages for client tools, computing element and information index,
+  version 1.0.1
+* Nagios probes for ARC CE, version 1.3.8
+* Common authentication library caNl++, version 0.2.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.0
+
+Source for the compatibility package (old client) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/arc0/tags/compat_1.0.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.1.2
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.1
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.3.8
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/0.2.0
+
+
+== Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+* Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+* Fedora: from 3 to 16 (i386 and x86_64)
+* RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+* Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10 and 12.04 (i386 and amd64)
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+
+
+
+

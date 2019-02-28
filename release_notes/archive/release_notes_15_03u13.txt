@@ -1,0 +1,180 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 13      April 6, 2017
+-----------------------------------------------
+
+This is a minor release, introducing new features and addressing bugs discovered since release 15.03u12. 
+
+As of Fedora 26 and Debian 9 and their migration to OpenSSL 1.1, ARC has undergone a lot of work in order to implement support for the new OpenSSL versions. The consequence is that
+   * support of OpenSSL versions lower than 1.0.0 is dropped.
+   * support for EL5 and Ubuntu 10.04 LTS and below is dropped.
+   * old GSI proxies are no longer supported. This should not cause complications as both WLCG and EGI have confirmed that they do not use non-RFC proxies. ARC uses RFC proxies by default.
+   * Canl-c++ is no longer supported as it is retired from Fedora and Debian.
+
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.2.2 to 5.3.0
+  * gangliarc - from 1.0.1 to 1.0.2
+  * documents - from 2.0.13 to 2.0.14
+Nagios plugins and metapackages are unchanged.
+CAnL C++ is removed.
+
+A new standalone tool, jura_to_es has been developed. This allows sending of Jura accounting logs to Elasticsearch for analysis.
+
+
+New features highlights
+-----------------------
+ * Support of OpenSSL 1.1.0 and above.
+ * Ganglia implementation in A-Rex. This allows ganglia job-metrics to be extracted directly from A-Rex, instead of from parsing log-files and other job-related files like the standalone gangliarc tool does. The two can run alongside each other. Enable the A-Rex ganglia implementation from the [grid-manager] block in your arc.conf file.  Enter enable_ganglia="yes" and ganglialocation="/usr/bin", where the path should point to your specific installation. See also \href{http://wiki.nordugrid.org/wiki/Gangliarc} for details on how to use ganglia with ARC (gangliarc).
+ * New standalone tool which sends jura accounting logs to Elasticsearch. Download source code from http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0  and install with 'python setup.py install'. After installation start the tool with '/etc/init.d/jura_to_es start'. For details see the README file distributed with the tool.
+ * New option to allow all data transfer log messages to be collected in a central log (See bug 2598)
+
+ 
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed in the ARC core:
+
+  * Added new option to allow all data transfer log messages to be collected in a central log. Use the option central_logfile in the [data-staging] block to turn it on. All log-messages from the data-staging will then, in addition to be written to each jobs log.<jobid>.errors file, be tracked in the file datastaging.log in your ARC log directory. (Bug 2598).
+  * Improved stability of GridFTP DMC by handling unexpected callback in GridFTP related code. (Bug 3636).
+  * It is now possible through configuration through the max_jobs parameter in the [grid-manager] block to limit number of subproceses started by A-Rex hence avoiding exhaustion of OS resources - number of child processes allowed.
+  * Ensured compatability with new libs3 API.  Added auth. region to relevant API calls : 34d11b2e0f1440faa6230dc0d8312439022e5efb. Set request timeout for all functions : 552a45a9bcdfe18b139cfabd428694bca4ec756e This also fixes rawhide builds as reported in: https://bugzilla.redhat.com/show_bug.cgi?id=1420805
+  * Optimised data staging option of gm-jobs - no need to parse control files.
+  * More support for sqlite as delegation database. To replace unstable BDB.
+  * Various smaller enhancements and bugfixes in addition to code cleaning.
+
+=== Accounting
+
+  * No changes.
+ 
+
+=== Information system
+
+The following issues were fixed in the information system:
+
+ * Removal of leftover code from old infoproviders, namely support for gridftp storage. ARC can no longer publish gridftp Storage Element information.  (Bug 3286).
+ * Removal of heartbeat between A-REX and infoproviders. A consequence of these fixes is that A-REX should be more stable, but infoproviders might take more time. In particular:
+   * The default infoproviders timeout is changed to 3 hours
+   * The default bdii timeout is changed to 6 hours  
+  
+  
+== ARC Clients
+
+The following issues were fixed in ARC clients:
+
+  * No changes.
+
+  
+== Nagios plugins
+
+  * No changes.
+
+  
+== Common authentication library CaNL++
+
+  * This library has been removed as a consequence of supporting openssl >= 1.1. 
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 12, the following bugs were fully or partially fixed:
+  * 2036 infosys not scalable for ~100k jobs (related to bug 3573)
+  * 2598 data transfers should log error messages to a central log
+  * 3286 Phase out old infoproviders legacy code
+  * 3573 Remove heartbeat code and increase infoproviders and bdii default timeout (related to bug 2036)
+  * 3603 Updates in HTCondor 8.5.5 break job status query in the back-end
+  * 3635 nordugrid-arc: FTBFS with libs3-4.0-0.1.20170206git208bcba.fc26
+  * 3636 A-Rex hanging\/crashing in GridFTP DMC destructor
+  * 3638 Specify an exclusion pattern in preferredpattern
+  * 3641 SSL errors with CERN certificates
+  * 3644 Value of NordugridQueue attribute should be quotation marks
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The
+    only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files.
+    While all log messages are correctly logged in the main log file, some rotated log
+    files may receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a consequence,
+    EMIES WS clients can no longer find a queue by VO name the same way as in previous versions
+    of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u13 consists of the following source packages:
+  * NorduGrid ARC, version 5.3.0 (main components)
+  * NorduGrid ARC Documents version 2.0.14
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.4
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
+
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.3.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.14
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.4
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 7.0 and 8.0 (i386 and amd64)
+  * Fedora: from 12 to 25 (i386 and x86_64)
+  * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 11.10, 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
+    15.10, 16.04 and 16.10 (i386 and amd64)
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

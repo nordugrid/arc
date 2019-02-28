@@ -286,9 +286,8 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "Timed out while waiting for cache lock");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (DtrList.is_being_cached(request)) {
-      // TODO A low priority DTR holding the cache lock can block a high priority DTR
-      // downloading the same file. Here we should cancel the low priority one to let
-      // the high priority one go through
+      // If the source is already being cached the priority of that DTR
+      // will be raised by is_being_cached() if this DTR's priority is higher
       Arc::Period cache_wait_period(10);
       request->get_logger()->msg(Arc::VERBOSE, "File is currently being cached, will wait %is", cache_wait_period.GetPeriod());
       request->set_process_time(cache_wait_period);

@@ -8,6 +8,7 @@ import re
 import pickle
 import time
 import pwd
+import signal
 
 try:
    input = raw_input  # Redefine for Python 2
@@ -63,6 +64,7 @@ class JobsControl(ComponentControl):
         self.cache_min_jobs = 1000
         self.cache_ttl = 30
         self.jobs = {}
+        self.process_job_log_file = False   # dummy assignment for job_log follow
 
     def __get_config_value(self, block, option, default_value=None):
         value = self.arcconfig.get_value(option, block)
@@ -225,11 +227,20 @@ class JobsControl(ComponentControl):
                     sys.stdout.write(line)
             sys.stdout.flush()
 
+    def job_log_signal_handler(self, signum, frame):
+        self.process_job_log_file = False
+
     def job_log(self, args):
         error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
+        self.process_job_log_file = True
         if os.path.exists(error_log):
+            el_f = open(error_log, 'r')
             print_line = True
-            with open(error_log, 'r') as el_f:
+            pos = 0
+            if args.follow:
+                signal.signal(signal.SIGINT, self.job_log_signal_handler)
+            while self.process_job_log_file:
+                el_f.seek(pos)
                 for line in el_f:
                     if line.startswith('----- starting submit'):
                         print_line = args.lrms
@@ -239,7 +250,13 @@ class JobsControl(ComponentControl):
                             continue
                     if print_line:
                         sys.stdout.write(line)
-            sys.stdout.flush()
+                sys.stdout.flush()
+                pos = el_f.tell()
+                if not args.follow:
+                    self.process_job_log_file = False
+                else:
+                    time.sleep(0.1)
+            el_f.close()
         else:
             self.__get_jobs()
             self.__job_exists(args.jobid)
@@ -309,13 +326,6 @@ class JobsControl(ComponentControl):
             if ds_re:
                 data_download = ds_re.group(1)
                 data_upload = ds_re.group(2)
-        # show general stats per-state
-        if not args.no_states:
-            for s in jobstates:
-                if args.long:
-                    print('{state}\n  Processing: {processing:>10}\n  Waiting:    {waiting:>10}'.format(**s))
-                else:
-                    print('{state:>11}: {processing:>8} ({waiting})'.format(**s))
         # show total stats if requested
         if args.total:
             for t in totalstats:
@@ -329,13 +339,26 @@ class JobsControl(ComponentControl):
                     print('{state}\n  Jobs:  {jobs:>15}\n  Limit: {limit:>15}'.format(**t))
                 else:
                     print('{state:>11}: {jobs:>8} of {limit}'.format(**t))
-        if args.data_staging:
+        # show datastaging stats
+        elif args.data_staging:
             if args.long:
                 print('Processing jobs in data-staging:')
                 print('  Downloading: {0:>9}'.format(data_download))
                 print('  Uploading:   {0:>9}'.format(data_upload))
+                # add detailed stats from gm-jobs on long output
+                gmjobs_out = self.__run_gmjobs('-s')
+                for line in iter(gmjobs_out.stdout.readline, ''):
+                    print(line, end='')
             else:
-                print(' Processing: {0:>8} + {1}'.format(data_download, data_upload))
+                print('{0:>11}: {1:>8}'.format('Downloading', data_download))
+                print('{0:>11}: {1:>8}'.format('Uploading', data_upload))
+        # show general stats per-state by default
+        else:
+            for s in jobstates:
+                if args.long:
+                    print('{state}\n  Processing: {processing:>10}\n  Waiting:    {waiting:>10}'.format(**s))
+                else:
+                    print('{state:>11}: {processing:>8} ({waiting})'.format(**s))
 
     def control(self, args):
         self.cache_ttl = args.cachettl
@@ -396,6 +419,7 @@ class JobsControl(ComponentControl):
         jobs_log.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_log.add_argument('-l', '--lrms', help='Include LRMS job submission script into the output',
                               action='store_true')
+        jobs_log.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
         jobs_log.add_argument('-s', '--service', help='Show ARC CE logs containing the jobID instead of job log',
                               action='store_true')
 
@@ -421,7 +445,7 @@ class JobsControl(ComponentControl):
         jobs_cleanall.add_argument('-o', '--owner', help='Filter jobs by owner').completer = complete_job_owner
 
         jobs_stats = jobs_actions.add_parser('stats', help='Show jobs statistics')
-        jobs_stats.add_argument('-S', '--no-states', help='Do not show per-state job stats', action='store_true')
-        jobs_stats.add_argument('-t', '--total', help='Show server total stats', action='store_true')
-        jobs_stats.add_argument('-d', '--data-staging', help='Show server datastaging stats', action='store_true')
         jobs_stats.add_argument('-l', '--long', help='Detailed output of stats', action='store_true')
+        jobs_stats_type = jobs_stats.add_mutually_exclusive_group()
+        jobs_stats_type.add_argument('-t', '--total', help='Show server total stats', action='store_true')
+        jobs_stats_type.add_argument('-d', '--data-staging', help='Show server datastaging stats', action='store_true')

@@ -161,7 +161,7 @@ RTE_include_default () {
     default_rte_dir="${CONFIG_controldir}/rte/default/"
     if [ -d "$default_rte_dir" ]; then
         # get default RTEs
-        default_rtes=` find "$default_rte_dir" ! -type d | sed "s#^$default_rte_dir##" `
+        default_rtes=` find "$default_rte_dir" ! -type d -exec test -e {} \; -print | sed "s#^$default_rte_dir##" `
         if [ -n "$default_rtes" ]; then
             # Find last RTE index defined
             rte_idx=0
@@ -170,14 +170,25 @@ RTE_include_default () {
                 rte_idx=$(( rte_idx + 1 ))
                 eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
             done
+            req_idx=$rte_idx
             # Add default RTEs to the list
             for rte_name in $default_rtes; do
+                # check if already included into the list of requested RTEs
+                check_idx=0
+                while [ $check_idx -lt $req_idx ]; do
+                    eval "check_rte=\${joboption_runtime_${check_idx}}"
+                    if [ "$rte_name" = "$check_rte" ]; then
+                        echo "$rte_name RTE is already requested: skipping the same default RTE injection." 1>&2
+                        continue 2
+                    fi
+                    check_idx=$(( check_idx + 1 ))
+                done
                 eval "joboption_runtime_${rte_idx}=$rte_name"
                 rte_idx=$(( rte_idx + 1 ))
             done
         fi
     fi
-    unset default_rte_dir default_rtes is_rte rte_idx rte_name
+    unset default_rte_dir default_rtes is_rte rte_idx rte_name req_idx check_idx check_rte
 }
 
 RTE_path_set () {
@@ -189,7 +200,7 @@ RTE_path_set () {
     if [ ! -f "$rte_path" ]; then
         rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
         if [ ! -f "$rte_path" ]; then
-            echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing or not enabled." 1>&2
+            echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing, broken or not enabled." 1>&2
             exit 1
         fi
     fi

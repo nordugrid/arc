@@ -110,9 +110,6 @@ namespace gridftpd {
         return 1; // not processed command
       };
     } else if(section == "mapping") {
-      if(cmd == "gridmap") {
-        Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
-      };
     } else if(section == "gridftpd") {
       // [gridftpd] section
       if(cmd == "logfile") {

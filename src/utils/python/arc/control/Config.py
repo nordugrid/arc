@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from .ControlCommon import *
 from arc.utils import reference
 import sys
-import shutil
 
 
 def complete_block_name(prefix, parsed_args, **kwargs):
@@ -106,43 +105,6 @@ class ConfigControl(ComponentControl):
         for line in reference.get_option_description(args.reference, args.block, args.option):
             sys.stdout.write(line)
 
-    def var_set(self, args):
-        # filter allowed values
-        allowed_values = reference.allowed_values(args.reference, args.block, args.option)
-        if allowed_values:
-            for v in args.value:
-                if v not in allowed_values:
-                    self.logger.error('Value %s is not allowed. Allowed values are: %s', v, ','.join(allowed_values))
-                    sys.exit(1)
-        # get configured
-        values = self.arcconfig.get_value(args.option, args.block, force_list=True)
-        # handle multivalued
-        multivalued = reference.is_multivalued(args.reference, args.block, args.option)
-        if multivalued and not args.override:
-            values.extend(args.value)
-        else:
-            values = args.value
-
-        if not multivalued and len(values) > 1:
-            self.logger.error('The option "%s" in the [%s] block is not multivalued.', args.option, args.block)
-            sys.exit(1)
-        # modify config
-        if args.dry_run:
-            for line in self.arcconfig.yield_modified_conf(args.block, args.option, values):
-                sys.stdout.write(line)
-            sys.stdout.flush()
-        else:
-            try:
-                tmpfile = args.config + '.tmp'
-                shutil.copy2(args.config, tmpfile)
-                with open(tmpfile, 'w') as tf:
-                    for line in self.arcconfig.yield_modified_conf(args.block, args.option, values):
-                        tf.write(line)
-                self.logger.info('Replacing %s with modified value', args.config)
-                shutil.move(tmpfile, args.config)
-            except IOError as err:
-                self.logger.error('Failed to modify config. %s', str(err))
-
     def control(self, args):
         if args.action == 'dump':
             self.dump()
@@ -150,8 +112,6 @@ class ConfigControl(ComponentControl):
             self.var_get(args)
         elif args.action == 'describe':
             self.describe(args)
-        elif args.action == 'set':
-            self.var_set(args)
         elif args.action == 'brief':
             self.brief(args)
         else:
@@ -173,18 +133,8 @@ class ConfigControl(ComponentControl):
 
         config_describe = config_actions.add_parser('describe', help='Describe configuration option')
         add_block_and_option_to_parser(config_describe)
-        config_describe.add_argument('-r', '--reference', default=ARC_DATA_DIR+'/examples/arc.conf.reference',
+        config_describe.add_argument('-r', '--reference', default=ARC_DOC_DIR+'/arc.conf.reference',
                                      help='Redefine arc.conf.reference location (default is %(default)s)')
-
-        config_set = config_actions.add_parser('set', help='Change configuration option value')
-        add_block_and_option_to_parser(config_set)
-        config_set.add_argument('value', nargs='+', help='Configuration option value')
-        config_set.add_argument('-o', '--override', action='store_true',
-                                help='For multivalued options override config values (default is add another one)')
-        config_set.add_argument('-r', '--reference', default=ARC_DATA_DIR + '/examples/arc.conf.reference',
-                                help='Redefine arc.conf.reference location (default is %(default)s)')
-        config_set.add_argument('--dry-run', action='store_true',
-                                help='Write the modified config to stdout instead of changing the file')
 
         config_brief = config_actions.add_parser('brief', help='Print configuration brief points')
         config_brief.add_argument('-t', '--type', help='Show brief only for provided options type',

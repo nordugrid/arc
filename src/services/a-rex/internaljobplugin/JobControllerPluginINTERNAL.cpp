@@ -46,14 +46,14 @@ namespace ARexINTERNAL {
     if (jobs.empty()) return;
     
     INTERNALClient ac;
-    ARex::GMConfig *config;
-    if(!ac.SetAndLoadConfig(config)){
+    ARex::GMConfig const *config = ac.GetConfig();
+    if(!config){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
       return;
     }
 
     //Is this method doing what it is supposed to do? I think the main purpose is to get hold of jobids for existing jobs in the system. 
-     for(std::list<Job*>::iterator itJ = jobs.begin(); itJ != jobs.end(); itJ++){
+    for(std::list<Job*>::iterator itJ = jobs.begin(); itJ != jobs.end(); itJ++){
       
       //stat the .description file to check whether job is still in the system  
       //(*itJ).JobID is now the global id, tokenize and get hold of just the local jobid
@@ -87,8 +87,8 @@ namespace ARexINTERNAL {
   bool JobControllerPluginINTERNAL::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
     INTERNALClient ac(*usercfg);
-    ARex::GMConfig *config;
-    if(!ac.SetAndLoadConfig(config)){
+    ARex::GMConfig const * config = ac.GetConfig();
+    if(!config){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
       return false;
     }
@@ -114,8 +114,8 @@ namespace ARexINTERNAL {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       
       INTERNALClient ac(*usercfg);
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -141,8 +141,8 @@ namespace ARexINTERNAL {
       // 1. Fetch/find delegation ids for each job
 
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -182,8 +182,8 @@ namespace ARexINTERNAL {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
     
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -224,13 +224,13 @@ namespace ARexINTERNAL {
     URL stageout;
     URL session;
     // TODO: currently using first valid URL. Need support for multiple.
-    for(std::list<URL>::iterator s = ljob.stagein.begin();s!=ljob.stagein.end();++s) {
+    for(std::list<URL>::const_iterator s = ljob.GetStagein().begin();s!=ljob.GetStagein().end();++s) {
       if(*s) { stagein = *s; break; }
     }
-    for(std::list<URL>::iterator s = ljob.stageout.begin();s!=ljob.stageout.end();++s) {
+    for(std::list<URL>::const_iterator s = ljob.GetStageout().begin();s!=ljob.GetStageout().end();++s) {
       if(*s) { stageout = *s; break; }
     }
-    for(std::list<URL>::iterator s = ljob.session.begin();s!=ljob.session.end();++s) {
+    for(std::list<URL>::const_iterator s = ljob.GetSession().begin();s!=ljob.GetSession().end();++s) {
       if(*s) { session = *s; break; }
     }
 
@@ -244,8 +244,8 @@ namespace ARexINTERNAL {
       Job tjob;
       tjob.JobID = job.JobID;
       INTERNALClient ac;
-      ARex::GMConfig *config;
-      if(!ac.SetAndLoadConfig(config)){
+      ARex::GMConfig const * config = ac.GetConfig();
+      if(!config){
         logger.msg(Arc::ERROR,"Failed to load grid-manager config file");
         return false;
       }
@@ -254,13 +254,13 @@ namespace ARexINTERNAL {
         logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID);
         return false;
       }
-      for(std::list<URL>::iterator s = ljob.stagein.begin();s!=ljob.stagein.end();++s) {
+      for(std::list<URL>::const_iterator s = ljob.GetStagein().begin();s!=ljob.GetStagein().end();++s) {
         if(*s) { stagein = *s; break; }
       }
-      for(std::list<URL>::iterator s = ljob.stageout.begin();s!=ljob.stageout.end();++s) {
+      for(std::list<URL>::const_iterator s = ljob.GetStageout().begin();s!=ljob.GetStageout().end();++s) {
         if(*s) { stageout = *s; break; }
       }
-      for(std::list<URL>::iterator s = ljob.session.begin();s!=ljob.session.end();++s) {
+      for(std::list<URL>::const_iterator s = ljob.GetSession().begin();s!=ljob.GetSession().end();++s) {
         if(*s) { session = *s; break; }
       }
       // Choose url by state

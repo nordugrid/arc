@@ -116,7 +116,17 @@ fi
 echo "GetEnv = True" >> $LRMS_JOB_DESCRIPT
 
 # universe
-echo "Universe = vanilla" >> $LRMS_JOB_DESCRIPT
+if [ ! -z $DOCKER_UNIVERSE ] ; then
+    echo "Universe = $DOCKER_UNIVERSE" >> $LRMS_JOB_DESCRIPT
+    echo "should_transfer_files   = YES" >> $LRMS_JOB_DESCRIPT
+    echo "when_to_transfer_output = ON_EXIT" >> $LRMS_JOB_DESCRIPT
+else
+    echo "Universe = vanilla" >> $LRMS_JOB_DESCRIPT
+fi
+
+if [ ! -z $DOCKER_IMAGE ] ; then
+   echo "docker_image = $DOCKER_IMAGE" >> $LRMS_JOB_DESCRIPT
+fi
 
 # notification
 echo "Notification = Never" >> $LRMS_JOB_DESCRIPT

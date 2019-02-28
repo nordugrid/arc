@@ -4,6 +4,7 @@ import re
 import sys
 import os
 import subprocess
+from arc.paths import *
 
 # init module logger
 logger = logging.getLogger('ARC.ConfigParserPy')
@@ -12,20 +13,6 @@ log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
-
-# set relevant paths
-try:
-    from arc import paths
-    ARC_CONF = paths.ARC_CONF
-    ARC_DATA_DIR = paths.ARC_DATA_DIR
-    ARC_RUN_DIR = paths.ARC_RUN_DIR
-except ImportError:
-    paths = None
-    logger.error('There are no installation specific paths defined. '
-                 'It seams you are running config parser without autoconf - hardcoded defaults will be used.')
-    ARC_CONF = '/etc/arc.conf'
-    ARC_DATA_DIR = '/usr/share/arc'
-    ARC_RUN_DIR = '/var/run/arc'
 
 # module-wise data structures to store parsed configs
 __parsed_config = {}
@@ -62,9 +49,12 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     """General entry point for parsing arc.conf (with defaults substitutions if defined)"""
     # parse /etc/arc.conf first
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
-    # save parsed dictionary keys that holds original arc.conf values
+    # pre-processing of values
+    _process_config()
+    # save parsed dictionary keys that holds arc.conf values without defaults
     for block, options_dict in __parsed_config.items():
         __parsed_config_admin_defined.update({block: options_dict.keys()})
+    # defaults processing
     if defaults_f is not None:
         if os.path.exists(defaults_f):
             # parse defaults
@@ -81,13 +71,8 @@ def yield_arc_conf():
     """Yield stored config dict line by line"""
     for b in __parsed_blocks:
         yield '[{0}]\n'.format(b)
-        for opt in __parsed_config[b]['__options_order']:
-            val = __parsed_config[b][opt]
-            if isinstance(val, list):
-                for v in val:
-                    yield '{0}={1}\n'.format(opt, v)
-            else:
-                yield '{0}={1}\n'.format(opt, val)
+        for opt, val in zip(__parsed_config[b]['__options'], __parsed_config[b]['__values']):
+            yield '{0}={1}\n'.format(opt, val)
         yield '\n'
 
 
@@ -157,37 +142,39 @@ def _conf_substitute_exec(optstr):
 
 
 def _conf_substitute_var(optstr, current_block):
-    """Search for $VAR{} values in parsed config structure and returns substituted variable value"""
+    """Search for $VAR{} values in parsed config structure and returns substituted variable values list"""
     subst = False
+    subst_optstr = [optstr]
     valr = __var_re.finditer(optstr)
     for v in valr:
+        subst = True
         refvar = v.groupdict()['option']
         block = v.groupdict()['block']
         if block is None:
             block = current_block
         # references is already in arc.conf dict
-        value = None
+        subst_value = None
         if block in __parsed_blocks:
-            if refvar in __parsed_config[block]:
-                value = __parsed_config[block][refvar]
+            subst_value = _config_list_values(block, refvar)
         # but there are cases with missing block
         elif block in __default_blocks:
             logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
-            if refvar in __default_config[block]:
-                if __default_config[block][refvar] != __no_default:
-                    value = __default_config[block][refvar]
-        if value is None:
-            logger.debug('Failed to find reference variable value for %s. Skipping.', v.group(0))
-            optstr = None
+            subst_value = _config_list_values(block, refvar)
+            if subst_value is not None:
+                if subst_value[0] == __no_default:
+                    subst_value = None
+        if subst_value is None:
+            logger.debug('Value for %s is not defined in arc.conf and no default value set.', v.group(0))
+            subst_optstr = None
+            break
         else:
-            logger.debug('Substituting variable %s value: %s', v.group(0), value)
-            # for multivalued parameters substitution replaces the value with the whole list
-            if isinstance(value, list):
-                optstr = value
-            else:
-                optstr = optstr.replace(v.group(0), value)
-        subst = True
-    return subst, optstr
+            newopstr = []
+            for opt in subst_optstr:
+                for value in subst_value:
+                    logger.debug('Substituting variable %s value: %s', v.group(0), value)
+                    newopstr.append(opt.replace(v.group(0), value))
+            subst_optstr = newopstr
+    return subst, subst_optstr
 
 
 def _conf_substitute_eval(optstr):
@@ -207,22 +194,36 @@ def _conf_substitute_eval(optstr):
     return subst, optstr
 
 
+def _process_config():
+    """Process configuration options and conditionally modify values"""
+    # Allow to specify name-based loglevel values in arc.conf and replace them by numeric to be used by ARC services
+    str_loglevels = {'DEBUG': '5', 'VERBOSE': '4', 'INFO': '3', 'WARNING': '2', 'ERROR': '1', 'FATAL': '0'}
+    for block in __parsed_blocks:
+        if 'loglevel' in __parsed_config[block]['__options']:
+            loglevel_idx = __parsed_config[block]['__options'].index('loglevel')
+            loglevel_value = __parsed_config[block]['__values'][loglevel_idx]
+            if loglevel_value in str_loglevels.keys():
+                loglevel_num_value = str_loglevels[loglevel_value]
+                logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
+                             loglevel_value, loglevel_num_value, block)
+                __parsed_config[block]['__values'][loglevel_idx] = loglevel_num_value
+
+
 def _merge_defults():
     """Add not specified config options from defaults file to parsed config dict (defined blocks only)"""
     for block in __parsed_blocks:
-        optdict = __parsed_config[block]
+        dblock = block
         if ':' in block:
-            block = block.split(':')[0].strip()
-        if block in __default_config:
-            for opt in __default_config[block]['__options_order']:
-                val = __default_config[block][opt]
-                if opt not in optdict:
+            dblock = block.split(':')[0].strip()
+        if dblock in __default_blocks:
+            for opt, val in zip(__default_config[dblock]['__options'], __default_config[dblock]['__values']):
+                if opt not in __parsed_config[block]['__options']:
                     # add option from default file
                     if val != __no_default:
-                        optdict['__options_order'].append(opt)
-                        optdict.update({opt: val})
+                        __parsed_config[block]['__options'].append(opt)
+                        __parsed_config[block]['__values'].append(val)
         else:
-            logger.warning('Configuration block [%s] is not in the defaults file.', block)
+            logger.warning('Configuration block [%s] is not in the defaults file.', dblock)
 
 
 def _evaluate_values():
@@ -236,46 +237,48 @@ def _evaluate_values():
     # Evaluate substitutions: EXEC
     # e.g. $EXEC{hostname -f}
     for block in __parsed_blocks:
-        for opt in __parsed_config[block]['__options_order']:
+        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options']), __parsed_config[block]['__values']):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
-            val = __parsed_config[block][opt]
             if '$EXEC' in val:
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_exec(val)
                 if subst:
-                    __parsed_config[block][opt] = subval
+                    __parsed_config[block]['__values'][i] = subval
     # Evaluate substitutions: VAR
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block in __parsed_blocks:
-        for opt in list(__parsed_config[block]['__options_order']):
+        idx_shift = 0
+        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options']), __parsed_config[block]['__values']):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
-            val = __parsed_config[block][opt]
             if '$VAR' in val:
                 # try to substitute (match regex and proceed on match)
-                subst, subval = _conf_substitute_var(val, block)
+                subst, subval_list = _conf_substitute_var(val, block)
                 if subst:
-                    if subval is None:
-                        __parsed_config[block]['__options_order'].remove(opt)
-                        del __parsed_config[block][opt]
-                    else:
-                        __parsed_config[block][opt] = subval
+                    if subval_list is not None:
+                        for sv in subval_list:
+                            __parsed_config[block]['__options'].insert(i + idx_shift, opt)
+                            __parsed_config[block]['__values'].insert(i + idx_shift, sv)
+                            idx_shift += 1
+                    # remove original
+                    __parsed_config[block]['__options'].pop(i+idx_shift)
+                    __parsed_config[block]['__values'].pop(i+idx_shift)
+                    idx_shift -= 1
     # Evaluate substitutions: EVAL
     # e.g. $EVAL{$VAR{bdii_provider_timeout} + $VAR{infoproviders_timelimit} + ${wakeupperiod}}
     for block in __parsed_blocks:
-        for opt in __parsed_config[block]['__options_order']:
+        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options']), __parsed_config[block]['__values']):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
-            val = __parsed_config[block][opt]
             if '$EVAL' in val:
                 # try to substitute (match regex and proceed on match)
                 subst, subval = _conf_substitute_eval(val)
                 if subst:
-                    __parsed_config[block][opt] = subval
+                    __parsed_config[block]['__values'][i] = subval
 
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
@@ -289,7 +292,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
             if block_match:
                 block_dict = block_match.groupdict()
                 block_id = block_dict['block']
-                parsed_confdict_ref[block_id] = {'__options_order': []}
+                parsed_confdict_ref[block_id] = {'__options': [], '__values': []}
                 parsed_blockslist_ref.append(block_id)
                 if block_dict['block_name'] is not None:
                     parsed_confdict_ref[block_id]['__block_name'] = block_dict['block_name'][1:].strip()
@@ -303,33 +306,39 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                     continue
                 option = option_match.groupdict()['option']
                 value = option_match.groupdict()['value']
-                # TODO: no quotes strip (check "" as default values first)
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1]
-                # values are lists when multivalued
-                if option in parsed_confdict_ref[block_id]:
-                    if isinstance(parsed_confdict_ref[block_id][option], list):
-                        value = parsed_confdict_ref[block_id][option] + [value]
-                    else:
-                        value = [parsed_confdict_ref[block_id][option], value]
-                # add option to the ordered list
-                if option not in parsed_confdict_ref[block_id]['__options_order']:
-                    parsed_confdict_ref[block_id]['__options_order'].append(option)
-                # add option to confdict
-                parsed_confdict_ref[block_id][option] = value
+                # ordered lists of options
+                parsed_confdict_ref[block_id]['__options'].append(option)
+                parsed_confdict_ref[block_id]['__values'].append(value)
                 continue
             logger.warning("Failed to parse line #%s: %s", ln + 1, confline.strip('\n'))
 
 
-def _config_subset(blocks=None):
+def _config_list_values(block, option):
+    """Returns list of options values in the block (list of one element if not multivalued or None if not defined)"""
+    values = None
+    if option in __parsed_config[block]['__options']:
+        values = [__parsed_config[block]['__values'][i]
+                  for i, opt in enumerate(__parsed_config[block]['__options'])
+                  if opt == option]
+    return values
+
+
+def _config_dict(blocks=None):
     """Returns configuration dictionary for requested blocks"""
-    if blocks is None:
-        blocks = []
-    blocks_dict = {}
-    for cb in __parsed_config:
-        if cb in blocks:
-            blocks_dict[cb] = __parsed_config[cb]
-    return blocks_dict
+    parsed_dict = {}
+    for b in __parsed_blocks:
+        if blocks is not None:
+            if b not in blocks:
+                continue
+        parsed_dict[b] = {}
+        for k, v in zip(__parsed_config[b]['__options'], __parsed_config[b]['__values']):
+            if k in parsed_dict[b]:
+                if not isinstance(parsed_dict[b][k], list):
+                    parsed_dict[b][k] = [parsed_dict[b][k]]
+                parsed_dict[b][k].append(v)
+            else:
+                parsed_dict[b][k] = v
+    return parsed_dict
 
 
 def _blocks_list(blocks=None):
@@ -352,8 +361,7 @@ def export_json(blocks=None, subsections=False):
     if blocks is not None:
         if subsections:
             blocks = get_subblocks(blocks)
-        return json.dumps(_config_subset(blocks))
-    return json.dumps(__parsed_config)
+    return json.dumps(_config_dict(blocks))
 
 
 def export_bash(blocks=None, subsections=False, options_filter=None):
@@ -372,26 +380,35 @@ def export_bash(blocks=None, subsections=False, options_filter=None):
         blocks = get_subblocks(blocks, is_reversed=True)
     else:
         blocks.reverse()
-    blocks_dict = _config_subset(blocks)
+    # loop over block and update bash config in precedence order
     bash_config = {}
     for b in blocks:
-        if b not in blocks_dict:
+        if b not in __parsed_blocks:
             continue
-        for k in blocks_dict[b]['__options_order']:
+        block_config = {}
+        for k, v in zip(__parsed_config[b]['__options'], __parsed_config[b]['__values']):
             if options_filter:
                 if k not in options_filter:
                     logger.debug('Option "%s" will not be exported (not in allowed list)', k)
                     continue
-            v = blocks_dict[b][k]
-            if isinstance(v, list):
-                bash_config['CONFIG_' + k] = '__array__'
-                for i, vi in enumerate(v):
-                    bash_config['CONFIG_{0}_{1}'.format(k, i)] = vi
+            bash_key = 'CONFIG_' + k
+            # if key exists already in block (multivalued) - create list of values
+            if bash_key in block_config:
+                if not isinstance(block_config[bash_key], list):
+                    block_config[bash_key] = [block_config[bash_key]]
+                block_config[bash_key].append(v)
             else:
-                bash_config['CONFIG_' + k] = v
+                block_config[bash_key] = v
+        bash_config.update(block_config)
+    # construct eval string
     eval_str = ''
     for k, v in bash_config.items():
-        eval_str += k + '="' + v.replace('"', '\\"') + '"\n'
+        if isinstance(v, list):
+            eval_str += k + '="__array__"\n'
+            for i, vi in enumerate(v):
+                eval_str += '{0}_{1}="{2}"\n'.format(k, i, vi.replace('"', '\\"'))
+        else:
+            eval_str += '{0}="{1}"\n'.format(k, v.replace('"', '\\"'))
     return eval_str
 
 
@@ -406,16 +423,19 @@ def get_value(option, blocks=None, force_list=False, bool_yesno=False):
     """
     for b in _blocks_list(blocks):
         if b in __parsed_config:
-            if option in __parsed_config[b]:
-                value = __parsed_config[b][option]
+            values = _config_list_values(b, option)
+            if values is not None:
+                # convert yes/no to True/False if requested
                 if bool_yesno:
-                    if value == 'yes':
-                        value = True
-                    elif value == 'no':
-                        value = False
-                if force_list and not isinstance(value, list):
-                    value = [value]
-                return value
+                    for i, value in enumerate(values):
+                        if value == 'yes':
+                            values[i] = True
+                        elif value == 'no':
+                            values[i] = False
+                # return value if list is not requested
+                if not force_list and len(values) == 1:
+                    return values[0]
+                return values
     if force_list:
         return []
     return None
@@ -432,7 +452,7 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
     if blocks is None:
         blocks = []
     subblocks = []
-    for b in blocks:
+    for b in _blocks_list(blocks):
         bsb = []
         for cb in __parsed_blocks:
             if re.search(r'^' + b + r'[/:]', cb):
@@ -449,7 +469,7 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
 
 def get_config_dict():
     """Returns the entire dictionary that holds parsed configuration"""
-    return __parsed_config
+    return _config_dict()
 
 
 def get_config_blocks():
@@ -467,31 +487,7 @@ def check_blocks(blocks=None, and_logic=True):
     result = and_logic
     for b in _blocks_list(blocks):
         if and_logic:
-            result = (b in __parsed_config) and result
+            result = (b in __parsed_blocks) and result
         else:
-            result = (b in __parsed_config) or result
+            result = (b in __parsed_blocks) or result
     return result
-
-
-def yield_modified_conf(refblock, refoption, newvalue, conf_f=__def_path_arcconf):
-    sferblock = '[{0}]'.format(refblock)
-    with open(conf_f, 'rt') as refconf:
-        in_correct_block = False
-        inserted = False
-        for confline in refconf:
-            sconfline = confline.strip()
-            if not in_correct_block:
-                if sconfline == sferblock:
-                    in_correct_block = True
-            else:
-                is_nextblock = sconfline.startswith('[')
-                if sconfline.startswith(refoption) or is_nextblock:
-                    if not inserted:
-                        for v in newvalue:
-                            yield '{0}={1}\n'.format(refoption, v)
-                        if is_nextblock:
-                            yield '\n'
-                        inserted = True
-                    if not is_nextblock:
-                        continue
-            yield confline

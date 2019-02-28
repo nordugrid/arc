@@ -15,6 +15,8 @@ namespace ARex {
 // Forward declarations for classes for which this is just a container
 class JobLog;
 class JobsMetrics;
+class HeartBeatMetrics;
+class SpaceMetrics;
 class ContinuationPlugins;
 class RunPlugin;
 class DelegationStores;
@@ -59,10 +61,16 @@ public:
     deleg_db_sqlite
   };
 
-  /// Use given (or guessed if not given) configuration file.
+  /// Returns configuration file as guessed.
   /**
    * Guessing uses $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf or the default
-   * location /etc/arc.conf. Load() should then be used to parse the
+   * location /etc/arc.conf.
+   */
+  static std::string GuessConfigFile();
+
+  /// Use given (or guessed if not given) configuration file.
+  /**
+   * Load() should then be used to parse the
    * configuration and fill member variables.
    * @param conffile Path to configuration file, will be guessed if empty
    */
@@ -128,6 +136,10 @@ public:
   void SetJobPerfLog(Arc::JobPerfLog* log) { job_perf_log = log; }
   /// Set JobsMetrics object
   void SetJobsMetrics(JobsMetrics* metrics) { jobs_metrics = metrics; }
+  /// Set HeartBeatMetrics object
+  void SetHeartBeatMetrics(HeartBeatMetrics* metrics) { heartbeat_metrics = metrics; }
+  /// Set HeartBeatMetrics object
+  void SetSpaceMetrics(SpaceMetrics* metrics) { space_metrics = metrics; }
   /// Set ContinuationPlugins (plugins run at state transitions)
   void SetContPlugins(ContinuationPlugins* plugins) { cont_plugins = plugins; }
   /// Set DelegationStores object
@@ -136,6 +148,10 @@ public:
   JobLog* GetJobLog() const { return job_log; }
   /// JobsMetrics object
   JobsMetrics* GetJobsMetrics() const { return jobs_metrics; }
+  /// HeartBeatMetrics object
+  HeartBeatMetrics* GetHeartBeatMetrics() const { return heartbeat_metrics; }
+  /// SpaceMetrics object
+  SpaceMetrics* GetSpaceMetrics() const { return space_metrics; }
   /// JobPerfLog object
   Arc::JobPerfLog* GetJobPerfLog() const { return job_perf_log; }
   /// Plugins run at state transitions
@@ -228,7 +244,7 @@ public:
   const std::list<std::string> & AuthorizedVOs(const char * queue) const;
   /// Returns list of authorization groups for specified queue.
   /// If queue is not specified value for server is returned.
-  const std::list<std::string> & AllowedGroups(const char * queue = "") const;
+  const std::list<std::pair<bool,std::string> > & MatchingGroups(const char * queue = "") const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -245,6 +261,10 @@ private:
   JobLog* job_log;
   /// For reporting jobs metric to ganglia
   JobsMetrics* jobs_metrics;
+  /// For reporting heartbeat metric to ganglia
+  HeartBeatMetrics* heartbeat_metrics;
+  /// For reporting free space metric to ganglia
+  SpaceMetrics* space_metrics;
   /// For logging performace/profiling information
   Arc::JobPerfLog* job_perf_log;
   /// Plugins run at certain state changes
@@ -331,8 +351,8 @@ private:
   std::map<std::string,std::string> forced_voms;
   /// VOs authorized per queue
   std::map<std::string, std::list<std::string> > authorized_vos;
-  /// groups allowed per queue
-  std::map<std::string, std::list<std::string> > allowed_groups;
+  /// groups allowed per queue with allow/deny mark (true/false)
+  std::map<std::string, std::list<std::pair<bool, std::string> > > matching_groups;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;

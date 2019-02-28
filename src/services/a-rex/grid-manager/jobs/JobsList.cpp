@@ -72,10 +72,10 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0),
-    jobs_polling(0),
-    jobs_wait_for_running(WaitQueuePriority),
-    jobs_attention(AttentionQueuePriority),
-    jobs_processing(ProcessingQueuePriority),
+    jobs_polling(0, "polling"),
+    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
+    jobs_attention(AttentionQueuePriority, "attention"),
+    jobs_processing(ProcessingQueuePriority, "processing"),
     helpers(config.Helpers(), *this) {
 
   job_slow_polling_last = time(NULL);
@@ -130,7 +130,7 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
   if(i) {
     if(i->job_state != new_state) {
       JobsMetrics* metrics = config.GetJobsMetrics();
-      if(metrics) metrics->ReportJobStateChange(i->job_id, new_state, i->job_state);
+      if(metrics) metrics->ReportJobStateChange(config, i, i->job_state, new_state);
       std::string msg = Arc::Time().str(Arc::UTCTime);
       msg += " Job state change ";
       msg += i->get_state_name();
@@ -889,7 +889,7 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   if(i->local->dryrun) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
-    i->AddFailure("User requested dryrun. Job skipped.");
+    i->AddFailure("Job has dryrun requested. Job skipped.");
     return JobFailed; // go to next job
   }
   // check per-DN limit on processing jobs
@@ -1210,7 +1210,7 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
         CleanChildProcess(i);
       }
       // put some explanation
-      i->AddFailure("User requested to cancel the job");
+      i->AddFailure("Job is canceled by external request");
       JobFailStateRemember(i,i->job_state,false);
       // behave like if job failed
       if(!FailedJob(i,true)) {
@@ -1387,6 +1387,7 @@ bool JobsList::ActJob(GMJobRef& i) {
       // Processing to be done on relatively successful state changes
       JobLog* joblog = config.GetJobLog();
       if(joblog) joblog->WriteJobRecord(*i,config);
+      // TODO: Consider moving following code into ActJob* methods
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
         if(joblog) joblog->WriteFinishInfo(*i,config);
@@ -1444,7 +1445,6 @@ bool JobsList::ActJob(GMJobRef& i) {
 
   // Job in special state or specifically requested to be removed (TODO: remove check for job state)
   if((job_result == JobDropped) ||
-     (i->job_state == JOB_STATE_FINISHED) ||
      (i->job_state == JOB_STATE_DELETED) ||
      (i->job_state == JOB_STATE_UNDEFINED)) {
     // Such jobs are not kept in memory

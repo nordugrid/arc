@@ -144,6 +144,7 @@ my %introducedSections = (
 	"arex/jura/sgas" => [],
 	"arex/jura/apel" => [],
 	"queue" => [],
+	"custom" => []
 );
 
 print STDERR "The following sections have configurable subgroups: "
@@ -368,7 +369,9 @@ sub confchecktripel($$$) {
 	}
 	
 	# Check for logrotate paths
-	if ($block =~ /^(common|arex|gridftp|infosys)$/ and $name eq 'logfile') {check_logrotate($block,$name,$value)};
+	if ($block =~ /^(arex|gridftpd|infosys)$/ and $name =~ /^(logfile|pidfile)$/) {
+	    check_logrotate($block,$name,$value);
+	}
 
 	# check for any mount dirs
 	if ($name eq "mount") {
@@ -411,52 +414,42 @@ sub confchecktripel($$$) {
 
 # Checks log locations for standard location
 sub check_logrotate($$$$) {
-	my ($block, $name, $value, $defaultlocation) = @_;
-	my $defaultpath = '/var/log/arc/';
-	my $defaultlocations = {
-							'commonlogfile' => $defaultpath.'gridftpd.log',
-							'arexlogfile' => $defaultpath.'arex.log',
-							'gridftpdlogfile' => $defaultpath.'gridftpd.log',
-							'infosysproviderlog' => $defaultpath.'infoprovider.log',
-						   };
-	$defaultlocation = $defaultlocations->{$block.$name} || $defaultpath;
-	if ($value ne $defaultlocation ) {
-		w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
-	}	
-} 
+    my ($block, $name, $value, $defaultlocation) = @_;
+    my $defaultlogpath = '/var/log/arc/';
+    my $defaultpidpath = '/var/run/';
+    my $defaultlocations = {
+                            'arexlogfile' => $defaultlogpath.'arex.log',
+                            'arexpidfile' => $defaultpidpath.'arc/arex.pid',
+                            'gridftpdlogfile' => $defaultlogpath.'gridftpd.log',
+                            'gridftpdpidfile' => $defaultpidpath.'gridftpd.pid',
+                            'infosyslogfile' => $defaultlogpath.'infoprovider.log',
+                           };
+    $defaultlocation = $defaultlocations->{$block.$name} || $defaultlogpath;
+    if ($value ne $defaultlocation ) {
+        w("[$block] $name: $value is not in the default location ($defaultlocation). Logrotation will not work, check your system logrotation configuration files\n");
+    }
+}
 
-# Get all valid configuration parameters and blocks from arc.conf.reference.
+# Get all valid configuration parameters and blocks from arc.parser.defaults.
 # Dynamic blocks which match those in %introducedSections are not included.
 
 sub validconfparams() {
 
 	my @validparams;
 	my @validblocks;
-	my @multiparams;
-	my @novalueparams;
-	unless (open (ARCREF, "<$arcloc/share/arc/examples/arc.conf.reference")) {
-		w("Could not open arc.conf.reference. No arc.conf parameter checking will be done\n");
-		return ( \@validparams, \@validblocks );
+	# parameters allowed to have no value
+	my @novalueparams = ("all", "mapped_unixid");
+	unless (open (ARCREF, "<$arcloc/share/arc/arc.parser.defaults")) {
+		e("Could not open arc.parser.defaults so cannot check arc.conf consistency\n");
+		return ( \@validparams, \@validblocks, \@novalueparams );
 	}
-	my $multivalued = 0;
 	while (my $line = <ARCREF>) {
-		if ($line =~ m/^#(\w*)\s*(=.*)?$/) { # match #parameter[=value]
+		if ($line =~ m/^(\w*)=.*$/) { # match parameter=value
 			my $name = $1;
-			my $value = $2;
-			# take out spaces
-			$name =~ s/^\s*//;
-			$name =~ s/\s*$//;
 			if (!grep(/^$name$/, @validparams)) {
 				push(@validparams, $name);
-				if ($multivalued) {
-				  push(@multiparams, $name);
-				  $multivalued = 0;
-				}
-				if (!defined $value) {
-				    push(@novalueparams, $name);
-				}
 			}
-		} elsif ($line =~ m|^#\[(.*)\]$|) { # match #[section]
+		} elsif ($line =~ m|^\[(.*)\]$|) { # match [section]
 			my $blockname = $1;
 			my $dynamic = 0;
 			foreach my $k (keys %introducedSections) {
@@ -465,11 +458,9 @@ sub validconfparams() {
 				}
 			}
 			push(@validblocks, $blockname) if !$dynamic;
-		} elsif ($line =~ m/^## multivalued$/) {
-		  $multivalued = 1; # the next option can be multivalued
 		}
 	}
-	return ( \@validparams, \@validblocks, \@multiparams, \@novalueparams );
+	return ( \@validparams, \@validblocks, \@novalueparams );
 }
 	
 =item configuration check
@@ -488,14 +479,14 @@ sub confcheck($) {
 	}
 
 	# valid parameter names and blocks
-	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
+	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 	my $blockname = undef;
 	my $blockcontents = 0;
 	my $c = 0;
 	my $vo_counter = 0;
 	while (my $line = <CONFIGFILE>) {
 		if ($line =~ m/^<\?xml version=.*\?>$/) {
-			w("XML configuration can not yet be validated\n");
+			w("XML configuration cannot be validated\n");
 			return;
 		}
 		$c++;
@@ -507,6 +498,12 @@ sub confcheck($) {
 		if ($line =~ m/^\s*\[(.+)\]\s*$/) {
 			$blockname = $1;
 			$blockcontents = 0;
+			
+			# No spaces allowed in block names
+			if (($blockname !~ m/:/ && $blockname =~ m/\s/) || ($blockname =~ m/:\s*\w+\s+\w+\s*/)) {
+			    e("No spaces allowed within block keywords or identifiers: [$blockname]\n");
+			    next;
+			}
 
 			# blocknames must be unique
 			# but there is a special case of userlist blocks...
@@ -564,9 +561,9 @@ sub confcheck($) {
 			next;
 		}
 
-		# check we have a valid parameter name
-		if (@$validparams != 0 and !grep(/^$name$/, @$validparams)) {
-			w("$arcconf:$c: found unknown parameter $name\n");
+		# check we have a valid parameter name, ignoring [custom:] blocks
+		if (@$validparams != 0 and !grep(/^$name$/, @$validparams) and $blockname !~ m/^custom:/) {
+			e("$arcconf:$c: found unknown parameter $name\n");
 			next;
 		}
 
@@ -577,11 +574,7 @@ sub confcheck($) {
 		$blockcontents++;
 
 		if ($config->{$blockname}{$name}) {
-			if (grep(/^$name$/, @$multiple)) {
-				$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
-			} else {
-				w("$arcconf:$c: duplicate parameter: ".$name."\n");
-			}
+			$config->{$blockname}{$name} .= ">]|sep|[<" . $value;
 		} else {
 			$config->{$blockname}{$name} = $value;
 		}
@@ -619,18 +612,15 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "arex", "infosys", "lrms");
+	my @required=("common", "mapping", "arex", "infosys", "lrms");
 
-	# mapping block is required if running as root
-	push @required, "mapping" if getpwnam(getpwuid($<)) == 0;
-
-	my ($validparams, $validblocks, $multiple, $novalueparams) = validconfparams();
+	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 
 	# testing for unknown
 	foreach my $k (keys %$config) {
-		next if grep(/^$k$/,@$validblocks);
+		next if grep(/^$k$/,@$validblocks) || !@$validblocks;
 		my @secs;
-		map { push(@secs,$_) if $k=~/^$_/;} keys %introducedSections;
+		map { push(@secs,$_) if $k=~/^$_:/;} keys %introducedSections;
 		print STDERR "$k -> " . join(":",@secs)."\n" if $debug;
 
 		if (0 == @secs) {
@@ -639,7 +629,7 @@ sub check_completeness() {
 		}
 		elsif (1 < @secs) {
 			die "Programming error: found multiple sections "
-			    .join(",",@secs)." to be prefixes of secion '$k'.\n";
+			    .join(",",@secs)." to be prefixes of section '$k'.\n";
 		}
 
 		my $secs1 = $secs[0];
@@ -678,6 +668,19 @@ sub check_completeness() {
 	else {
 		w("No hostname defined, the default $hn will be used.\n");
 	}
+
+	# Mapping cannot be empty if running as root
+	if (getpwnam(getpwuid($<)) == 0 && keys %{ $config->{"mapping"} } == 1) {
+		e("[mapping] block cannot be empty if running as root\n");
+	}
+
+    # Warn if no allow/denyaccess blocks are present in interface blocks
+    if (exists($config->{"arex/ws/jobs"}) && !(exists($config->{"arex/ws/jobs"}{"allowaccess"}) || exists($config->{"arex/ws/jobs"}{"denyaccess"}))) {
+        w("No allowaccess or denyaccess defined in [arex/ws/jobs]. Interface will be open for all mapped users\n");
+    }
+    if (exists($config->{"gridftpd/jobs"}) && !(exists($config->{"gridftpd/jobs"}{"allowaccess"}) || exists($config->{"gridftpd/jobs"}{"denyaccess"}))) {
+        w("No allowaccess or denyaccess defined in [gridftpd/jobs]. Interface will be open for all mapped users\n");
+    }
 
 }
 

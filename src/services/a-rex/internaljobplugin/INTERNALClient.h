@@ -32,9 +32,9 @@ namespace ARexINTERNAL {
 
   class INTERNALJob {
 
-    //private:
-    
-  public:
+  friend class INTERNALClient;
+
+  private:
 
     std::string id;
     std::string state;
@@ -48,6 +48,7 @@ namespace ARexINTERNAL {
     std::list<Arc::URL> session;
     std::list<Arc::URL> stageout;
     
+  public:
     INTERNALJob& operator=(const Arc::Job& job);
   
     void toJob(INTERNALClient* client, INTERNALJob* localjob, Arc::Job& j) const;
@@ -57,6 +58,10 @@ namespace ARexINTERNAL {
     INTERNALJob(/*const */ARex::ARexJob& _arexjob, const ARex::GMConfig& _config, std::string const& _deleg_id);
     INTERNALJob(void){};
  
+    std::string const GetId() const { return id; }
+    std::list<Arc::URL> const& GetStagein() const { return stagein; }
+    std::list<Arc::URL> const& GetSession() const { return session; }
+    std::list<Arc::URL> const& GetStageout() const { return stageout; }
   };
 
   //! A client class for the INTERNAL service.
@@ -68,6 +73,8 @@ namespace ARexINTERNAL {
    */
   class INTERNALClient {
 
+  friend class INTERNALJob;
+
   public:
 
     //! The constructor for the INTERNALClient class.
@@ -76,7 +83,7 @@ namespace ARexINTERNAL {
        @param url The URL of the INTERNAL service.
        @param usercfg onfiguration object.
      */
-    INTERNALClient(void);//default constructur in order to use the logger
+    INTERNALClient(void);
     INTERNALClient(const Arc::UserConfig& usercfg);
     INTERNALClient(const Arc::URL& url, const Arc::UserConfig& usercfg);
    
@@ -86,12 +93,12 @@ namespace ARexINTERNAL {
      */
     ~INTERNALClient();
 
+    ARex::GMConfig const * GetConfig() const { return config; }
 
-    Arc::URL ce;
-    std::string endpoint;
-    Arc::UserConfig usercfg;
-    std::string cfgfile;
-
+    const std::string& failure(void) const { return lfailure; }
+ 
+    bool CreateDelegation(std::string& deleg_id);
+    bool RenewDelegation(std::string const& deleg_id);
 
     //! Submit a job.
     //TO-DO Fix description 
@@ -107,11 +114,6 @@ namespace ARexINTERNAL {
     bool submit(const Arc::JobDescription& jobdesc, INTERNALJob& localjob, const std::string delegation_id = "");
     bool putFiles(INTERNALJob const& localjob, std::list<std::string> const& sources, std::list<std::string> const& destinations);
   
-
-    const std::string& failure(void) {
-      return lfailure;
-    }
-
     bool info(std::list<INTERNALJob>& jobids,std::list<INTERNALJob>& jobids_found);
     bool info(INTERNALJob& job, Arc::Job& info);
     bool clean(const std::string& jobid);
@@ -126,6 +128,15 @@ namespace ARexINTERNAL {
      */
     bool sstat(Arc::XMLNode& xmldoc);
 
+
+  private:
+    Arc::URL ce;
+    std::string endpoint;
+    Arc::UserConfig usercfg;
+    std::string cfgfile;
+
+
+
     Arc::User user;
     std::vector<std::string> session_dirs;
     std::vector<std::string> session_dirs_non_draining;
@@ -134,14 +145,12 @@ namespace ARexINTERNAL {
     ARex::GMConfig *config;
     ARex::ARexGMConfig *arexconfig;
 
-    bool SetAndLoadConfig(ARex::GMConfig*& _config, std::string cfgfile = "");
-    bool SetEndPoint(ARex::GMConfig*& _config);
+    bool SetAndLoadConfig();
+    bool SetEndPoint();
     //bool SetGMDirs();
     bool MapLocalUser();
     bool PrepareARexConfig();
     //bool PreProcessJob(ARex::JobDescriptionHandler& job_desc_handler, ARex::JobLocalDescription& job_desc);
-    bool CreateDelegation(std::string& deleg_id);
-    bool RenewDelegation(std::string const& deleg_id);
 
     bool readonly;
     unsigned int job_rsl_max_size;
@@ -159,8 +168,6 @@ namespace ARexINTERNAL {
      */
     static Arc::Logger logger;
 
-  private:
-
     ARex::DelegationStores deleg_stores;
     std::list<std::string> avail_queues;
 
@@ -171,6 +178,7 @@ namespace ARexINTERNAL {
   };
 
   class INTERNALClients {
+  private:
     std::multimap<Arc::URL, INTERNALClient*> clients_;
     const Arc::UserConfig& usercfg_;
   public:

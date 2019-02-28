@@ -1,0 +1,234 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 12.05 update 1                November 8, 2012
+----------------------------------------------
+
+NorduGrid ARC 12.05 has received an update to:
+ * core, clients, CE, Infosys and gridftp - from version 2.0.0 to 2.0.1
+ * documents - from 1.1.2 to 1.2.0
+ * Nagios plugins - from 1.3.8 to 1.3.11
+ * metapackages - from 1.0.1 to 1.0.2
+CAnL C++ and old client tools (ng* and GUI) are unchanged.
+
+
+ARC components in 12.05 update 1:
+
+  * ARC Core 2.0.1 (includes nordugrid-arc-doc v1.2.0)
+  * ARC Clients 2.0.1 (includes nordugrid-arc-compat v1.0.1)
+  * ARC CE 2.0.1 (includes nordugrid-arc-nagios-plugins v1.3.11)
+  * ARC Infosys 2.0.1
+  * ARC gridftp server 2.0.1
+  * canl++ 0.2.0
+
+The metapackages for 12.05 update 1 do not include nordugrid-arc-janitor anymore 
+and hence have a minor version update:
+
+  * nordugrid-arc-client-tools v1.0.2
+  * nordugrid-arc-compute-element v1.0.2
+  * nordugrid-arc-information-index v1.0.2
+
+Please note that the following packages are not distributed with ARC 12.05 anymore:
+
+  * nordugrid-arc-chelonia
+  * nordugrid-arc-hopi
+  * nordugrid-arc-isis
+  * nordugrid-arc-janitor
+  
+
+
+ARC components: detailed notes
+-------------------------------
+
+
+== ARC Core
+
+Numerous small enhancements and fixes spread all over all Core libraries, see
+the list of fixed bugs below.
+
+
+== ARC Clients
+
+Enhancing user experience by providing better messages; manual pages and
+documentation are corrected and made more detailed in places.
+
+Some fixes for better handling of corner use cases.
+
+
+== ARC Compute Element
+
+Significantly enhanced GLUE2 support. Better support and fixes for multi-node 
+jobs. Stability enhancements and numerous small code fixes.
+
+
+== ARC Information System
+
+Overall stability and logging enhancements. 
+
+
+== ARC gridftp server
+
+Few bug fixes.
+
+
+== Common authentication library CaNL++
+
+No changes
+
+
+== Nagios plugins
+
+Nagios plugins had three minor tags since previous ARC release. In addition
+to one fixed bug, several other improvements were made, such as fixing EL5 
+build and compatibility issues and usability improvements. Consult release 
+notes available inside the package for more details.
+
+
+Fixed bugs
+----------
+
+Since ARC 12.05, the following bugs were fully or partially fixed:
+
+849 cpuTime wallTime for parallel jobs
+1279 arcsub for ARC0 error message in case of absent globus plugins should be improved
+1928 Client tools should check proxy validity
+2030 walltime not set in PBS jobs with ARC 0.8.2.2 client
+2038 Flag for doing middleware specific submission
+2092 configuration validation is needed
+2132 ngcp -r deletes existing files
+2327 arcsub always empty AccessControl element generate from xrsl
+2334 bad element generated from the InputSandbox by JDL
+2345 no output generated if FileSystem/DiskSpace   is specified in JSDL
+2356 bad element generated from the ProcessCountLimit  by JSDL
+2380 Secure arccp from dCache fails silently
+2459 arcsync not removing expired jobs
+2624 Many unnecessary perl warning in infoprovider.log
+2647 arcget, arcstat  -c do not accept long format of resource description
+2666 infoprovider.log filling up with crap
+2676 Do not return a negative number of jobs
+2709 Finalize GLUE2 rendering
+2727 Used CPUs are populated incorrectly for PBS Pro
+2808 Incorrect procedure to expand SLURM node list.
+2820 Got segmentation fault from arccp
+2824 a-rex performance issues and service failure
+2831 brokername=FastestQueue does not work in client.conf
+2832 arccp fails but reports success with multipart/x-mixed-replace content type
+2833 The -g option with arcsub automatically adds Mds-Vo-name=NorduGrid, o=Grid when querying for CEs
+2834 arc.conf does not accept CRLF line terminators
+2835 glue1.2/1.3 fails due to Illegal division by zero at /var/run/arc/infosys/arc-glue-bdii-ldif line 423.
+2837 ARC site infosys rendering needs the /opt/glite directory structure
+2841 Adding slurm joboptions from runtime environment
+2842 ERROR: Failed uploading file: Failed while writing to destination
+2846 Submission interface selection does not affect arcsub when using EGIIS
+2848 arcstat with specific job ID does not overwrite default computing service
+2851 Seg faults on a-rex shutdown
+2852 Deadlock while shutting down a-rex
+2856 arcget fails to download hierarchical directory structure
+2858 arcclean -f doesn't work when info does not exist for any of the jobs in the job list
+2860 nordugrid-arc-devel package depends on Globus
+2864 arcinfo says URL but prints hostname
+2867 Wrong default walltime/cputime in NG-Ldap infosys tree
+2869 Infoprovider floods log file with perl warnings from PBS.pm
+2879 arcsub with memory request returns no more possible targets
+2881 arcproxy should explain where does it look for credentials
+2882 slurm backend mishandles memory request
+2884 PBS: dedicated_node_string does not affect usedcpus value
+2885 Failed to submit job to org.ogf.emies interface when 'count' is specified in xrsl
+2888 DataStagingDelivery should be in nordugrid-arc instead of nordugrid-arc-arex
+2894 arccp segfaults when file exists
+2897 Infosys does not set ExecutionEnvironment mandatory values as imposed by GLUE2 LDAP latest schema
+2898 arcrm does not understand filelist argument
+2550 arcproxy and voms configuration
+2682 Misleading error message using several VOMSes when server shortened VOMS AC validity time
+2762 Hanging in distributed DTR
+2823 glue-generator.pl produces GlueCEUniqueID with hardcoded queue name
+2840 glue-generator.pl writes CESEBindGroups even without defined localses
+2895 usage of check_arcinfosys - UNKNOWN: Error loading modules : cannot import name str2dn 
+2901 arckill does not clean jobs
+2905 arex 2.0.1rc1 fails to change the job status from SUBMIT
+2911 Bad plugin causes gridftpd to segfault
+2915 gridftpd exits with Select failed: No child processes
+2916 arcsync puts wrong interface in jobs.xml
+2917 when using "threads=2" url option, the result of the HTTP query contains the HTML twice
+2919 Should be able to use arccat -l in PREPARING state
+2920 nordugrid-arc-python 2.0.0: memory leak in UserConfig.GetServices()
+2928 globus_i_ftp_control_data_cc_destroy(): handle has oustanding references.Can't handle such situation.
+2930 ARC+SLURM stopped caring about count= in jobs between 2.0.0 and 2.0.1rc1
+2931 The HTML returned as the list of jobs is malformed.
+2936 arcsub gridftpjob submission returns unclear error when host key has wrong permissions on server side
+2937 A-REX downloader has problems with http redirection on SL5
+2958 JURA does not enumerate job log records when new JobID format is used in A-REX
+2959 JURA uses local node name as MachineName
+2963 Problems with some methods of java class ExecutionTarget 
+2967 A-REX does not write accounting logs
+2971 JURA fails to pass APEL record to SSM
+2972 JURA incorrectly invoke ssm_master 
+
+
+Known issues
+------------
+
+ARC GUI (arcjobtool) is not available yet, pending implementation of client
+library changes. 
+
+Standalone client tar-balls for Linux are not yet available.
+
+As a result of bug fix 2851, A-REX can take up to one minute to stop.
+
+Bug 2905 is solved using workaround. Source of problem is not yet identified.
+
+
+Availability
+------------
+
+== Source
+
+ARC release 12.05 update 1 consists of the following source packages:
+* NorduGrid ARC, version 2.0.1 (main components)
+* NorduGrid ARC "compat", version 1.0.1 (old client)
+* NorduGrid ARC Documents version 1.2.0 
+* metapackages for client tools, computing element and information index,
+  version 1.0.2
+* Nagios probes for ARC CE, version 1.3.11
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/2.0.1
+
+Source for the compatibility package (old client) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/arc0/tags/compat_1.0.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.2.0
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.2
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.3.11
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/0.2.0
+
+
+== Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+* Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+* Fedora: from 3 to 17 (i386 and x86_64)
+* RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+* Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04 and 12.10 (i386 and amd64)
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X binaries are available from same repositories for
+clients and some services.
+
+
+
+
+

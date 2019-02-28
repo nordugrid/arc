@@ -16,6 +16,15 @@ class UnixMap {
     const char* cmd;
     map_func_t map;
   } source_t;
+  typedef enum {
+    MAPPING_CONTINUE,
+    MAPPING_STOP
+  } map_action_t;
+  typedef struct {
+    map_action_t nogroup;
+    map_action_t nomap;
+    map_action_t map;
+  } map_events_t;
   static source_t sources[]; // Supported evaluation sources
   // Unix user obtained after mapping
   unix_user_t unix_user_;
@@ -23,6 +32,8 @@ class UnixMap {
   AuthUser& user_;
   // Identity of mapping request.
   std::string map_id_;
+  // Mapping processing policy
+  map_events_t map_policy_;
   // Mapping was done
   bool mapped_;
   AuthResult map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line);
@@ -42,9 +53,9 @@ class UnixMap {
   const std::string& unix_group(void) const { return unix_user_.group; };
   AuthUser& user(void) { return user_; };
   // Map
-  AuthResult mapname(const char* line);
-  AuthResult mapgroup(const char* line);
-  AuthResult mapvo(const char* line);
+  AuthResult mapgroup(const char* rule, const char* line);
+  // Stack processing policy
+  bool set_map_policy(const char* rule, const char* line);
 };
 
 } // namespace ArcSHCLegacy

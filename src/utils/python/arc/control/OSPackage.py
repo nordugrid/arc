@@ -16,24 +16,39 @@ class OSPackageManagement(object):
     """This class aimed to handle both yum (RedHat) and apt (Debian) cases"""
     def __init__(self):
         self.command_base = []  # placeholder to include command's prefix, like ssh to host
-        # self.command_base = ['ssh', 'arc6.grid.org.ua']
         self.logger = logging.getLogger('ARCCTL.OSPackageManagement')
-        # detect yum (will also works with dnf wrapper)
+        # detect yum
         try:
-            yum_output = subprocess.Popen(self.command_base + ['yum', '--version'],
+            self.logger.debug('Looking for rpm/yum is installed on the system.')
+            yum_dnf_found = False
+            yum_output = subprocess.Popen(self.command_base + ['rpm', '-q', 'yum'],
                                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             stdout = yum_output.communicate()
             if yum_output.returncode == 0:
                 self.pm = 'yum'
-                self.pm_is_installed = 'rpm -q {0}'
                 self.pm_cmd = 'yum'
+                yum_dnf_found = True
+            else:
+                # if we are still here instead of OSError: rpm is there but yum is not - try dnf
+                self.logger.debug('Looking for rpm/dnf is installed on the system.')
+                dnf_output = subprocess.Popen(self.command_base + ['rpm', '-q', 'dnf'],
+                                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                stdout = dnf_output.communicate()
+                if dnf_output.returncode == 0:
+                    self.pm = 'dnf'
+                    self.pm_cmd = 'dnf'
+                    yum_dnf_found = True
+            if yum_dnf_found:
+                self.pm_is_installed = 'rpm -q {0}'
                 self.pm_repodir = '/etc/yum.repos.d/'
-                self.pm_version = stdout[0].split('\n')[0]
+                self.pm_version = stdout[0].split('-')[1]
+                self.logger.debug('Using %s version %s for package management', self.pm, self.pm_version)
                 return
         except OSError:
             pass
         # detect apt
         try:
+            self.logger.debug('Looking for dpkg/apt-get is installed on the system')
             apt_output = subprocess.Popen(self.command_base + ['apt-get', '--version'],
                                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             stdout = apt_output.communicate()
@@ -43,10 +58,12 @@ class OSPackageManagement(object):
                 self.pm_cmd = 'apt-get'
                 self.pm_repodir = '/etc/apt/sources.list.d/'
                 self.pm_version = stdout[0].split('\n')[0].replace('apt ', '')
+                self.logger.debug('Using apt-get version %s for package management', self.pm_version)
                 return
         except OSError:
             pass
-        self.logger.error('Cannot find yum or apt-get to manage OS packages. You distribution is not supported yet.')
+        self.logger.error(
+            'Cannot find yum, dnf or apt-get to manage OS packages. You distribution is not supported yet.')
         sys.exit(1)
 
     def version(self):
@@ -102,10 +119,11 @@ class OSPackageManagement(object):
             sys.exit(1)
 
     def update_cache(self):
-        if self.pm == 'yum':
-            command = self.command_base + ['yum', 'makecache']
+        command = self.command_base
+        if self.pm == 'yum' or self.pm == 'dnf':
+            command += [self.pm_cmd, 'makecache']
         elif self.pm == 'apt':
-            command = self.command_base + ['apt-get', 'update']
+            command += [self.pm_cmd, 'update']
         self.logger.info('Updating packages metadata from repositories')
         return subprocess.call(command)
 

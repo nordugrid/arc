@@ -46,7 +46,7 @@ class OSServiceManagement(object):
                     'active': 'systemctl -q is-active {0}'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
-                self.logger.debug('Managing OS services using {0} version {1}', self.sm, self.sm_version)
+                self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:
             pass
@@ -69,7 +69,7 @@ class OSServiceManagement(object):
                     'active': 'service {0} status'
                 }
                 self.sm_version = stdout[0].split('\n')[0]
-                self.logger.debug('Managing OS services using {0} version {1}', self.sm, self.sm_version)
+                self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:
             pass
@@ -107,6 +107,12 @@ class OSServiceManagement(object):
 
     def stop(self, service):
         return self.__exec_service_cmd(service, 'stop')
+
+    def restart(self, service):
+        stop_status = self.__exec_service_cmd(service, 'stop')
+        if stop_status != 0:
+            return stop_status
+        return self.__exec_service_cmd(service, 'start')
 
     def is_enabled(self, service):
         return self.__check_service(service, 'enabled')

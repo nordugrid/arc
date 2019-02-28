@@ -40,11 +40,32 @@ class CertificateGenerator(object):
     @staticmethod
     def checkMessageDigest(messagedigest):
         if messagedigest not in CertificateGenerator.supportedMessageDigests:
-            raise Exception("The message digest \"%s\" is not supported" % messagedigest)
+            logger.error("The message digest \"%s\" is not supported", messagedigest)
+            sys.exit(1)
+
+    def cleanupCAfiles(self, name="Test CA"):
+        namelen = len(name)
+        dashname = name.replace(" ", "-")
+        # remove the links first
+        for fname in os.listdir(self.work_dir):
+            fpath = os.path.join(self.work_dir, fname)
+            if os.path.islink(fpath):
+                linkto = os.readlink(fpath).replace(self.work_dir.rstrip('/') + '/', '')
+                if linkto[0:namelen] == dashname:
+                    logger.debug('Removing the CA link: %s -> %s', fname, linkto)
+                    os.unlink(fpath)
+        # remove the files itself
+        for fname in os.listdir(self.work_dir):
+            fpath = os.path.join(self.work_dir, fname)
+            if os.path.isfile(fpath):
+                if fname[0:namelen] == dashname:
+                    logger.debug('Removing the CA file: %s', fname)
+                    os.unlink(fpath)
 
     def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):
         if not isinstance(validityperiod, (int, long)):
-            raise Exception("The 'validityperiod' argument must be an integer")
+            logger.error("The 'validityperiod' argument must be an integer")
+            sys.exit(1)
 
         CertificateGenerator.checkMessageDigest(messagedigest)
 
@@ -52,33 +73,28 @@ class CertificateGenerator(object):
         certLocation = os.path.join(self.work_dir, name.replace(" ", "-") + ".pem")
         if os.path.isfile(keyLocation):
             if force:
-                logger.info("Key file '%s' already exist. Removing. ", keyLocation)
-                os.unlink(keyLocation)
+                logger.info("Key file '%s' already exist. Cleaning up previous Test-CA files.", keyLocation)
+                self.cleanupCAfiles(name)
             else:
-                logger.error("Error generating CA certificate and key: file '%s' already exist", keyLocation)
+                logger.error("Error generating CA certificate and key: file '%s' is already exist", keyLocation)
                 sys.exit(1)
         if os.path.isfile(certLocation):
             if force:
-                logger.info("Certificate file '%s' already exist. Removing. ", certLocation)
-                # remove the links
-                for fname in os.listdir(self.work_dir):
-                    if fname.endswith('.0'):
-                        fpath = os.path.join(self.work_dir, fname)
-                        if os.readlink(fpath) == name.replace(" ", "-") + ".pem":
-                            os.unlink(fpath)
-                # clean the cert itself
-                os.unlink(certLocation)
+                logger.info("Certificate file '%s' already exist. Cleaning up previous Test-CA files.", certLocation)
+                self.cleanupCAfiles(name)
             else:
-                logger.error("Error generating CA certificate and key: file '%s' already exist", certLocation)
+                logger.error("Error generating CA certificate and key: file '%s' is already exist", certLocation)
                 sys.exit(1)
 
         subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=" + name
         logger.info('Generating Test CA %s', subject)
         if popen(["openssl", "genrsa", "-out", keyLocation, "2048"])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to generate CA key")
+            sys.exit(1)
         if popen(["openssl", "req", "-x509", "-new", "-" + messagedigest, "-subj", subject, "-key",
                   keyLocation, "-out", certLocation, "-days", str(validityperiod)])["returncode"] != 0:
-            raise Exception()
+            logger.error('Failed to self-sign certificate')
+            sys.exit(1)
 
         ca = CertificateKeyPair(keyLocation, certLocation, subject)
         if use_for_signing:
@@ -123,12 +139,21 @@ cond_subjects globus '"{cond_subject}/*"'
     def generateHostCertificate(self, hostname, prefix="host", ca=None,
                                 validityperiod=30, messagedigest="sha1", force=False):
         if ca is None and self._ca is None:
-            raise Exception("No CA provided")
+            logger.error("No CA provided")
+            sys.exit(1)
         if not isinstance(validityperiod, (int, long)):
-            raise Exception("The 'validityperiod' argument must be an integer")
+            logger.error("The 'validityperiod' argument must be an integer")
+            sys.exit(1)
 
         if ca is None:
             ca = self._ca
+
+        try:
+            with open(ca.keyLocation, 'r') as ca_key:
+                pass
+        except IOError as e:
+            logger.error("Failed to access Test CA key. Error(%s): %s", e.errno, e.strerror)
+            sys.exit(1)
 
         CertificateGenerator.checkMessageDigest(messagedigest)
 
@@ -156,10 +181,12 @@ cond_subjects globus '"{cond_subject}/*"'
         logger.info('Generating host certificate signing request.')
         subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=host\/" + hostname
         if popen(["openssl", "genrsa", "-out", keyLocation, "2048"])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to generate host key")
+            sys.exit(1)
         if popen(["openssl", "req", "-new", "-" + messagedigest, "-subj", subject,
                   "-key", keyLocation, "-out", certReqLocation])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to generate certificate signing request")
+            sys.exit(1)
 
         config_descriptor, config_name = tempfile.mkstemp(prefix="x509v3_config-")
         config = os.fdopen(config_descriptor, "w")
@@ -172,7 +199,9 @@ cond_subjects globus '"{cond_subject}/*"'
         if popen(["openssl", "x509", "-req", "-" + messagedigest, "-in", certReqLocation, "-CA", ca.certLocation,
                   "-CAkey", ca.keyLocation, "-CAcreateserial", "-extfile", config_name, "-out", certLocation,
                   "-days", str(validityperiod)])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to sign host certificate with Test CA.")
+
+            sys.exit(1)
 
         os.remove(certReqLocation)
         os.remove(config_name)
@@ -184,12 +213,21 @@ cond_subjects globus '"{cond_subject}/*"'
 
     def generateClientCertificate(self, name, prefix="client", ca=None, validityperiod=30, messagedigest="sha1"):
         if ca is None and self._ca is None:
-            raise Exception("No CA provided")
+            logger.error("No CA provided")
+            sys.exit(1)
         if not isinstance(validityperiod, (int, long)):
-            raise Exception("The 'validityperiod' argument must be an integer")
+            logger.error("The 'validityperiod' argument must be an integer")
+            sys.exit(1)
 
         if ca is None:
             ca = self._ca
+
+        try:
+            with open(ca.keyLocation, 'r') as ca_key:
+                pass
+        except IOError as e:
+            logger.error("Failed to access Test CA key. Error(%s): %s", e.errno, e.strerror)
+            sys.exit(1)
 
         CertificateGenerator.checkMessageDigest(messagedigest)
 
@@ -209,10 +247,12 @@ cond_subjects globus '"{cond_subject}/*"'
         logger.info('Generating client certificate signing request.')
         subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=" + name
         if popen(["openssl", "genrsa", "-out", keyLocation, "2048"])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to generate host key")
+            sys.exit(1)
         if popen(["openssl", "req", "-new", "-" + messagedigest, "-subj", subject,
                   "-key", keyLocation, "-out", certReqLocation])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to generate certificate signing request")
+            sys.exit(1)
 
         config_descriptor, config_name = tempfile.mkstemp(prefix="x509v3_config-")
         config = os.fdopen(config_descriptor, "w")
@@ -224,7 +264,8 @@ cond_subjects globus '"{cond_subject}/*"'
         if popen(["openssl", "x509", "-req", "-" + messagedigest, "-in", certReqLocation, "-CA",
                   ca.certLocation, "-CAkey", ca.keyLocation, "-CAcreateserial", "-extfile", config_name,
                   "-out", certLocation, "-days", str(validityperiod)])["returncode"] != 0:
-            raise Exception()
+            logger.error("Failed to sign user certificate with Test CA")
+            sys.exit(1)
 
         os.remove(certReqLocation)
         os.remove(config_name)

@@ -937,6 +937,22 @@ namespace Arc {
      **/
     const URL& SLCS() const { return slcs; }
 
+    /// Check if configuration represents same user identity (false negatives are likely)
+    /**
+     * Compare identity represented by this object to one provided.
+     *
+     * @param other configuration object to compare to
+     * @return true if identities are definitely the same.
+     * @see
+     **/
+    bool IsSameIdentity(UserConfig const & other) const {
+      if(credentialString != other.credentialString) return false;
+      if(proxyPath != other.proxyPath) return false;
+      if(certificatePath != other.certificatePath) return false;
+      if(username != other.username) return false;
+      return true;
+    }
+
     /// Set store directory
     /**
      * Sets directory which will be used to store credentials obtained

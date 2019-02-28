@@ -523,5 +523,9 @@ Arc::MCC_Status ARexService::PutLogs(Arc::Message& inmsg,Arc::Message& outmsg,AR
   return make_http_fault(outmsg,500,"Requested operation is not possible");
 }
 
+Arc::MCC_Status ARexService::DeleteLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  return make_http_fault(outmsg,501,"Not Implemented");
+}
+
 } // namespace ARex
 

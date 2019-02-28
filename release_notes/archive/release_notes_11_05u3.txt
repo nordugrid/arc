@@ -1,0 +1,327 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 11.05 update 3           March 22 2012
+-----------------------------------------------------
+
+NorduGrid ARC 11.05 has received an update to most components from version
+1.1.0 to 1.1.1
+
+ARC components in 11.05 update 3:
+
+  * ARC Core (includes documents)
+  * ARC Clients
+  * ARC CE
+  * ARC Infosys
+  * ARC gridftp server
+  * arcjobtool GUI (not updated)
+
+ARC Core
+--------
+
+ARC Core component contains: HED, HED LIDI, HED security, HED language bindings,
+DMCs and ARC documentation. 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-1.1.1
+  * nordugrid-arc-doc-1.1.1
+  * nordugrid-arc-ca-utils-1.1.1
+  * nordugrid-arc-debuginfo-1.1.1
+  * nordugrid-arc-devel-1.1.1
+  * nordugrid-arc-doxygen-1.1.1
+  * nordugrid-arc-hed-1.1.1
+  * nordugrid-arc-java-1.1.1
+  * nordugrid-arc-python-1.1.1
+  * nordugrid-arc-python26-1.1.1
+  * nordugrid-arc-plugins-needed-1.1.1
+  * nordugrid-arc-plugins-globus-1.1.1
+
+Source package:
+
+  * nordugrid-arc-1.1.1-1
+  * nordugrid-arc-doc-1.1.1-1
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.1.tar.gz
+  * nordugrid-arc-doc-1.1.1.tar.gz
+
+= Documentation
+
+  * ARC HED description
+  * WS configuration manual 
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2692 cannot use dcache SRM with latest trunk
+
+Medium priority bugs fixed:
+
+  * 2699 DataHandle broken in Python bindings in Subversion head (regression).
+  * 2680 Transfer timeouts when copying large files (>100MB) from http
+  * 2717 SimpleCondition::broadcast() only wakes up one thread
+
+Less urgent bugs fixed:
+
+  * 2675 CheckSumTest fails on ppc and ppc64
+
+= Deployment notes:
+
+This release does not introduce any changes in the deployment procedures
+described in ARC documentation
+
+= Known Issues
+
+None
+
+
+ARC Clients
+-----------
+
+ARC Clients component contains pre-WS compute CLI, pre-WS data CLI, WS compute
+CLI and WS data CLI 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-client-1.1.1
+  * nordugrid-arc-compat-1.0.0
+  * nordugrid-arc-compat-debuginfo-1.0.0
+
+Source package:
+
+  * nordugrid-arc-1.1.1-1
+  * nordugrid-arc-meta-1.0.1-1
+  * nordugrid-arc-compat-1.0.0-1
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.1.tar.gz
+  * nordugrid-arc-compat-1.0.0.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-client-tools-1.0.1
+
+= Documentation
+
+  * Functional description of WS clients
+  * WS Client user guide
+  * Pre-WS Client user guide
+  * WS client installation instructions
+  * Pre-WS client installation instructions
+  * Troubleshooting
+  * XRSL manual
+  * Transition from Pre-WS to WS client - a guide
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2544 arcproxy fails to PUT credentials to MyProxy server when UI has one second desync
+  * 2660 arcproxy not creating a proxy
+  * 2391 arcproxy prints misleading ERROR when one of VOMS servers is unavailable
+  * 2444 arcstat -a doesn't ask the status of all jobs if there is a problem for one of the jobs
+
+Medium priority bugs fixed:
+
+  * None
+
+Less urgent bugs fixed:
+
+  * 2700 arccp cannot handle certain characters in URLs
+  * 2664 arcget does not download any files
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Clients documentation. 
+
+= Known issues
+
+None
+
+
+ARC CE
+------
+
+ARC CE component includes A-REX, CE-Cache, CE-staging, LRMS modules, JURA,
+nordugridmap, information providers and Janitor 
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-arex-1.1.1
+  * nordugrid-arc-janitor-1.1.1
+  * nordugrid-arc-gridmap-utils-1.1.1
+
+Source package:
+
+  * nordugrid-arc-1.1.1-1
+  * nordugrid-arc-meta-1.0.1-1
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.1.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-compute-element-1.0.1
+
+= Documentation
+
+  * Design and functional description of A-REX
+  * ARC CE installation instructions
+  * Configuration template
+  * Data Staging Wiki
+  * Batch back-ends guide
+  * Janitor handbook
+  * JURA documentation
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2672 A-REX wakeup thread is stuck
+  * 2646 nordugridmap does not apply specified filters
+  * 2719 slurm memory settings wrong
+
+Medium priority bugs fixed:
+
+  * 2573 a-rex/DTR leaks memory
+  * 2723 a [vo] [groups] configuration makes arched hang when contacted via arcwsrf
+
+Less urgent bugs fixed:
+
+  * None
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC CE documentation. 
+
+= Known issues
+
+None
+
+
+ARC Infosys
+-----------
+
+ARC Infosys component contains ARIS, EGIIS and ARC Grid Monitor
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-aris-1.1.1
+  * nordugrid-arc-egiis-1.1.1
+  * nordugrid-arc-ldap-monitor-1.1.1
+
+Source package:
+
+  * nordugrid-arc-1.1.1-1
+  * nordugrid-arc-meta-1.0.1-1
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.1.tar.gz
+
+Meta package:
+
+  * nordugrid-arc-information-index-1.0.1
+
+= Documentation
+
+  * ARC Information system guide and technical description
+  * LDAP Grid monitor description
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * 2694 /etc/init.d/grid-infosys fails to start slapd when index service is configured in
+  * 2736 Multilined information in LDAP is base64 encoded (workaround)
+
+Medium priority bugs fixed:
+
+  * 2661 BDII_BIND is not printed to bdii.conf
+
+Less urgent bugs fixed:
+
+  * None
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC Infosys documentation. 
+
+= Known issues
+
+Documentation improvements are still needed.
+
+
+ARC gridftp server
+------------------
+
+ARC gridftp server component contains ARC gridftp server and ARC gridftp
+jobplugin.
+
+= Package list
+
+Binaries:
+
+  * nordugrid-arc-gridftpd-1.1.1
+
+Source package:
+
+  * nordugrid-arc-1.1.1-1
+
+Source tarballs:
+
+  * nordugrid-arc-1.1.1.tar.gz
+
+= Documentation
+
+  * ARC gridtpd description
+
+= Release notes
+
+What's new:
+
+High priority bugs fixed:
+
+  * None
+
+Medium priority bugs fixed:
+
+  * None
+ 
+Less urgent bugs fixed:
+
+  * None
+
+
+= Deployment notes
+
+This release does not introduce any changes in the deployment procedures
+described in ARC gridftp documentation. 
+
+= Known issues
+
+Documentation improvements are still needed.

@@ -49,13 +49,16 @@ def complete_owner(prefix, parsed_args, **kwargs):
 class AccountingControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.Accounting')
+        # runtime config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
             sys.exit(1)
         _, self.runconfig = tempfile.mkstemp(suffix='.conf', prefix='arcctl.jura.')
         self.logger.debug('Dumping runtime configuration for Jura to %s', self.runconfig)
         arcconfig.save_run_config(self.runconfig)
+        # binary path include runtime config
         self.jura_bin = ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
+        # archive
         self.archivedir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
         if self.archivedir is None:
             self.logger.warning('Accounting records archiving is not enabled! '
@@ -63,10 +66,22 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
         if not self.archivedir.endswith('/'):
             self.archivedir += '/'
+        # logs
         self.logfile = arcconfig.get_value('logfile', 'arex/jura')
         if self.logfile is None:
             self.logfile = '/var/log/arc/jura.log'
         self.ssmlog = '/var/spool/arc/ssm/ssmsend.log'  # hardcoded in JURA_DEFAULT_DIR_PREFIX and ssm/sender.cfg
+        # certificates
+        x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
+        x509_host_cert = arcconfig.get_value('x509_host_cert', 'common')
+        x509_host_key = arcconfig.get_value('x509_host_key', 'common')
+        if x509_cert_dir is not None:
+            os.environ['X509_CERT_DIR'] = x509_cert_dir
+        if x509_host_cert is not None:
+            os.environ['X509_USER_CERT'] = x509_host_cert
+        if x509_host_key is not None:
+            os.environ['X509_USER_KEY'] = x509_host_key
+        # records
         self.sgas_records = []
         self.apel_records = []
 
@@ -85,6 +100,10 @@ class AccountingControl(ComponentControl):
                         d[t.tag][k] = [v]
         else:
             d = {t.tag: t.text}
+            # add extra tags with attribute values in name
+            for a, av in t.attrib.items():
+                a_tag = t.tag + '_' + a.split('}')[-1] + '_' + av
+                d[a_tag] = t.text
         return d
 
     def __usagerecord_to_dict(self, xml_f):
@@ -102,7 +121,7 @@ class AccountingControl(ComponentControl):
             'StartTime': isodate.parse_datetime(ardict['StartTime'][0]).replace(tzinfo=None),
             'EndTime': isodate.parse_datetime(ardict['EndTime'][0]).replace(tzinfo=None),
             'WallTime': isodate.parse_duration('PT0S'),
-            'CPUTime': isodate.parse_duration('PT0S'),
+            'CpuTime': isodate.parse_duration('PT0S'),
             'Processors': 0,
         }
         # extract optional common info (possibly missing)
@@ -110,9 +129,11 @@ class AccountingControl(ComponentControl):
             arinfo['Processors'] = ardict['Processors'][0]
         if 'WallDuration' in ardict:
             arinfo['WallTime'] = isodate.parse_duration(ardict['WallDuration'][0])
-        if 'CPUDuration' in ardict:
-            for ct in ardict['WallDuration']:
-                arinfo['CPUTime'] += isodate.parse_duration(ct)
+        if 'CpuDuration_usageType_all' in ardict:
+            arinfo['CpuTime'] = isodate.parse_duration(ardict['CpuDuration_usageType_all'][0])
+        elif 'CpuDuration' in ardict:
+            for ct in ardict['CpuDuration']:
+                arinfo['CpuTime'] += isodate.parse_duration(ct)
         return arinfo
 
     def __parse_records(self, apel=True, sgas=True):
@@ -200,7 +221,7 @@ class AccountingControl(ComponentControl):
         cputime = datetime.timedelta(0)
         for r in records:
             walltime += r['WallTime']
-            cputime += r['CPUTime']
+            cputime += r['CpuTime']
         return walltime, cputime
 
     @staticmethod

@@ -1,0 +1,584 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for NorduGrid ARC 11.05                          May 5 2011
+--------------------------------------------
+
+The Advanced Resource Connector (ARC) middleware, introduced by NorduGrid
+(www.nordugrid.org), is an open source software solution enabling production
+quality computational and data Grids since May 2002. The previous production ARC
+release, version 0.8.3.1 was released on December 21, 2010.
+
+The 11.05 release of the ARC software represents a major change, for the first
+time in history of ARC introducing a very substantially re-written computing
+element (execution service), and for the second time - a re-written client
+component. Moreover, distribution and version conventions of ARC and its
+packages change in order to accommodate latest developments in European Grid
+middlewares. Code repository underwent major changes as well. For the reasons
+above, careful upgrade from older ARC releases is advised, following the
+suggested migration instructions. While in general the upgrade procedure is
+reasonably smooth, you may encounter difficulties in case your system was
+configured in a severely customized manner.
+
+
+New version convention, packaging and distribution
+--------------------------------------------------
+
+In previous ARC releases, release number was identical to that of the
+individual package version. This caused certain limitations and confusion.
+Starting with 11.05, ARC releases follow the numbering scheme familiar for
+Ubuntu users: first two digits indicate release year (2011), next two digits
+separated by a period indicate release month (5 for May), and eventual next
+two digits after a period denote incremental minor release version (absent for
+the major release).
+
+Packages constituting an ARC release changed their contents, some keeping the
+names (when the contents was completely analogous, like nordugrid-arc-client),
+and some changing the name. Packages containing preview "nox" components in
+ARC 0.8 series became regular nordugrid-arc packages. Details of new packaging
+convention can be found in NorduGrid Wiki (wiki.nordugrid.org).
+
+Package version number follows the traditional approach: underscoring the major
+step forward, most ARC packages in release 11.05 acquire version number 1.0.0.
+For packages that preserve their names it makes an auto-upgrade technically
+possible. Package numbers are in general independent from each other, such
+that ARC releases in future will see more packages with differing versions. A
+change of a package version does not necessarily trigger a new ARC release.
+More details on version numbering and rules can be found in NorduGrid Wiki.
+
+To prevent accidental auto-upgrade, NorduGrid switches to the new repository
+structure, introducing new repository for each major release. This also allows
+to maintain support for older releases, if necessary.
+
+Several key ARC 11.05 packages built for Scientific Linux 5 x86_64 are also
+distributed with the EMI-1 release. Package naming, numbering and dependencies
+in EMI is identical to those in ARC releases.
+
+Previously existing meta-packages are re-defined to include new components:
+* nordugrid-arc-client-tools (client tools, plugins, Python and Java wrappers,
+  CA policies)
+* nordugrid-arc-compute-element (A-REX, ARIS, Janitor, gridftp server and user
+  mapping utility)
+* nordugrid-arc-information-index (EGIIS)
+
+
+New features highlights
+-----------------------
+
+ARC 11.05 collects and integrates several innovative next generation services
+and client tools into a consistent software release. All these components were
+available for preview in ARC 0.8 releases ("nox" packages), and now are mature
+enough to become mainstream.
+
+ARC 11.05 adds a new client that can be installed on both Microsoft Windows and
+Mac OS X. It can also submit jobs both through the old gridftp interface of ARC
+0.8 as well as through the new, more standard-conforming, WS-based interface.
+Old client tools (as in ARC 0.8 series) are available still, as a compatibility
+package. Standalone client tar-ball includes both old and new clients.
+
+The Grid Manager based computing element has been replaced by a re-factored and
+improved version called A-REX (ARC Resource-coupled EXecution service).
+
+Information system now supports publishing information following the GLUE2
+standard, and support for GLUE 1.2 is improved for compatibility with gLite
+within EMI.
+
+As an experimental feature, new data staging framework is included in A-REX. It
+aims to address shortcomings presented by the older uploader/downloader
+methods, but so far it is turned off by default.
+
+A number of other new features are introduced (see the following sections),
+prompting some changes in the configuration. More details can be found in
+migration guides:
+
+  http://wiki.nordugrid.org/index.php/Migration_from_0.8
+
+
+IMPORTANT change: With this ARC release, the Grid Manager based compute element
+will reach its End of Life support. Please (re-)read the previously communicated
+change and implications:
+
+  http://www.nordugrid.org/arc/gm-eol.html
+
+
+
+ARC components: detailed new features and deployment notes
+-----------------------------------------------------------
+
+ARC components term is introduced to denote logical grouping of tools and
+services. The components are:
+* Core
+* Compute Element (CE)
+* Clients
+* gridftp server
+* Information System
+
+For installation purposes, they are grouped into meta-packages (gridftpd server
+is included into Compute Element meta-package, and Core is a common dependency).
+
+Apart of these, the following services are available:
+* ISIS - WS-based information system
+* Chelonia - Experimental lightweight self-healing storage framework
+
+The following changes are common for several components:
+
+* ARC is now installed under /usr instead of /opt/nordugrid
+* ARC libraries now use so-names
+* Several components can now be used with SELinux
+* ARC can now be compiled with ICC
+* ARC now has many more unit-tests further increasing the reliability of the
+  software
+* A new configuration-format (XML) is now supported together with the
+  old arc.conf (INI)
+* ARC will by default use logrotate to rotate logs when installed
+  via binary repositories
+* By default, ARC now logs in /var/log/arc
+
+
+== ARC Core
+
+New features:
+* HED code cleaned up for Argus integration
+* Implemented full request in Argus plugin using ARC schema
+* Time resolution in HED increased to nanoseconds
+* HED logging framework extended to be compatible with external log
+  rotation solutions
+* More logging formats introduced for special cases
+* Introduced per-thread objects handling for more fine grained logging
+* Enhanced configuration framework to increase usability
+* Support for Python3000 in language bindings
+* Functionality improvements in XML handling
+* Performance enhancements of Loader module by avoiding multiple
+  loading/scanning of same plugin
+* Added additional authorization protection in delegation interface classes
+* New implementation of file locking. Now with timeouts and owner control.
+* The nordugrid grid-update-crls security utility is deprecated in
+  favour of fetch-crl.
+* Performance improvements of GridFTP module
+
+Deployment notes:
+* Note that this installation removes grid-crl-update and replaces it with
+  fetch-crl which renders the nordugrid-arc-ca-utils package empty. For backward
+  compatibility, fetch-crl is enabled through cron.
+
+== ARC Compute Element
+
+New features:
+* Migration to the new code base completed.
+* Grid Manager service is completely refactored and re-engineered, while
+  keeping all of its key features, including automatic data caching
+  and staging. The "replacement" is called A-REX (for ARC Resource-coupled
+  EXecution service), which is a more sustainable, scalable and extensible (e.g.
+  via plugins) solution.
+* A-REX provides a new WS-based interface in addition to the gridftp-based
+  pre-WS interface, thus preserving backwards interface compatibility.
+* A-REX can publish, through the LIDI WS interface, GLUE2 XML information
+* A-REX comes with set of information providers that can feed GLUE2 LDAP
+  information into the ARIS service.
+* A-REX comes with support for new back-end for the EDGI 3GBridged.
+* A-REX can now handle routing queues in PBS
+* Support for setting a "defaultmemory" attribute in arc.conf, which will
+  be used in case a user does not specify memory requirements in the job
+  description.
+* As an experimental feature A-REX offers improved input/output data handling
+  framework.
+* As an experimental feature A-REX comes with and ARGUS authorization plugin
+* The dynamic runtime environment module, Janitor, is another experimental
+  new feature.
+* Janitor has no redland dependency any more
+
+
+Deployment notes:
+* For sites deploying ARC 0.8.3 or ARC 0.8.3.1 releases, a smooth upgrade path
+  via Yum is provided. Since this will imply switch from Grid Manager to
+  A-REX, careful check is advised. Please refer to Grid Manager EOL notes
+  (http://www.nordugrid.org/arc/gm-eol.html) for details.
+* To deploy a functional computing element with the current production
+  interfaces one needs to install the new nordugrid-arc-arex package
+  together with ARIS and gridftp server packages, or the
+  nordugrid-arc-compute-element meta-package. ARIS and gridftp are necessary to
+  provide backward interface compatibility. It is also recommended to deploy
+  the gridmap-utils package (included in the meta-package).
+* To start the A-REX service use "/etc/init.d/a-rex start" (there is a
+   compatibility grid-manager symlink provided, too).
+* By default, A-REX uses configuration file from the old Grid Manager.
+  Configurations taken from previous ARC CE deployments should work out of the
+  box, though there were numerous changes to the configuration parameters and
+  options. None of the changes is backward incompatible. Details are available
+  in migration notes (see Additional documents section).
+* None of the experimental features is turned on by default
+    
+== ARC Information System
+
+New features:
+* Naming change to avoid ambiguity: ARIS (ARC Resource Information System)
+  replaces GRIS and EGIIS (Enhanced Grid Information Indexing System) replaces
+  GIIS
+* ARIS can publish GLUE2 information via LDAP
+* Initial support for making ARIS act as a gLite's SiteBDII (experimental).
+* Improved file locking in the EGIIS index server relay utility
+* Stability fixes in both ARIS and EGIIS.
+* Improved handling of non-ASCII information
+* The start-up script now handles bad shutdowns properly
+* Information system can now be run as a non-privileged user (start as
+  root, set user in arc.conf, default is the LDAP-user)
+* Infoproviders publish validity of host credentials in ARC schema
+
+Deployment notes:
+* ARIS is deployed by installing the nordugrid-arc-aris package. If you are
+  upgrading from an earlier release, the update should be automatic from any of
+  the previous packages (nordugrid-arc-infosys-ldap,
+  nordugrid-arc-nox-ldap-infosys).
+* EGIIS is deployed by installing the nordugrid-arc-egiis package. If you
+  are updating from an earlier release, the update from nordugrid-arc-nox-giis
+  should be automatic. A meta package nordugrid-arc-information-index is also
+  provided for easy deployment.
+* In order to keep publishing the same information as in GRIS before, no
+  configuration changes are needed.
+* New configuration options were introduced for enabling publishing new
+  information in ARIS. In order to enable or disable different information
+  schemas in the output, the following variables can be set in the [infosys]
+  section of the arc.conf (defaults as indicated below):
+
+    infosys_nordugrid="enable"
+    infosys_glue12="disable"
+    infosys_glue2_ldap="disable"
+
+  In order to publish site BDII information a new [infosys/site/<sitename>]
+  section should be added to the arc.conf configuration file, containing a
+  unique_id option identifying the site and a URL option giving the address to
+  the resource BDII.
+
+== ARC Clients
+
+New features:
+* New compute and data clients (arcsub, arcstat, arcls, arccp etc.) replace
+  analogous previous clients (ngsub, ngstat, ngls, ngcp, ngrm, ngtransfer,
+  ngstage, ngacl).
+* The new clients can be installed on Mac OS X and Microsoft Windows in addition
+  to Linux.
+* Introduction of a modular architecture, which comes to its power in the
+  libarcclient and libarcdata2 libraries.
+* Modular libarcclient allows easy extension for additional services, ranking
+  algorithms, or job description languages.
+* New plugins-based data library, libarcdata2, replaces previous data library.
+* Compute client comes with plugins providing functionality for job submission,
+  resubmission, and job management against the pre-WS ARC, A-REX, CREAM and any
+  BES-based Execution Service.
+* Compute client supports job migration between A-REX instances.
+* Compute client supports resource discovery based on EGIIS, ISIS and BDII
+  index services.
+* Compute client offers matchmaking and ranking by shortest queue, clock speed,
+  benchmark or data location.
+* Compute client offers job description translation between the XRSL, JSDL and
+  JDL languages.
+* Data access is now managed through DMCs, protocol-specific plugins.
+* Improved default output for arcls, now closer to UNIX ls. Options are
+  provided to specify non-default output.
+* Improved error messages for arcls and arccp, improved calculation of file
+  checksums.
+* URLs in arcsub -c can be replaced by short target names.
+* arcsub supports multiple RSL in one file
+
+
+Deployment notes:
+* The new clients (arc*) are available from the nordugrid-arc-client package.
+* The behaviour and interface of the new clients slightly differ from the old
+  ones, so for  compatibility reasons the ng* still distributed in the
+  nordugrid-arc-compat package.
+* The libarcclient and libarcdata2 libraries are available from the
+  nordugrid-arc package.
+* The DMCs and different plugins are available from
+  nordugrid-arc-plugins-needed and nordugrid-arc-plugins-globus (the latter
+  requires a number of Globus packages).
+* The old arclib is now replaced by the new libraries and tagged as obsolete
+  (though still available).
+
+== ARC gridftp server
+
+New features:
+* Code moved over to the HED code base, removing previous duplications
+* Numerous code fixes to comply with more strict compilers
+* Works on non-Linux systems
+* Builds without GACL
+* Startup script is compliant with Fedora requirements
+
+
+Fixed bugs
+----------
+
+* bug #859: Support for routing queues
+* bug #1214: cache logging location and general log rotation
+* bug #1579: Performance problems due to XML handling of A-REX
+* bug #1589: LRMS module names has different case
+* bug #1725: Careful and question in src/services/a-rex/conf/conf_file.cpp
+* bug #1738: Errors in moving files from worker node to the frontend are ignored
+* bug #1777: Information system should not try to publish broken records
+* bug #1781: Run::Wait(int timeout) sometimes doesn't timeout
+* bug #1783: arcstat asks for passphrase even if proxy exists
+* bug #1798: Substitutions in cachedir don't work
+* bug #1857: Using arccp with outputfile - (dash) for stdout fails
+* bug #1875: arcstat is redundant with the error message when proxy
+  files does not exist 
+* bug #1876: arcget does not work with subdirectories
+* bug #1912: "Standard" ARC0 plugins missing from ARC1
+* bug #1950: arcls does GSI checks and warns even though no GSI url is used
+* bug #1979: Configuration issues when running a split GFS / GM setup
+* bug #2026: arcproxy - dteam VO error
+* bug #2051: ldap-infosys fails to compile
+* bug #2099: arched init script doesn't work
+* bug #2103: Circular dependency between ldap-infosys and a-rex rpm packages
+* bug #2115: grid-infosys startup script does not output text properly
+* bug #2123: Improve SRM permission check
+* bug #2126: Problems with LFC and proxies in multi-threaded environment
+* bug #2129: Error when starting grid-infosys
+* bug #2133: Python bindings for MinGW32
+* bug #2138: Infoproviders fail when no control dir for '.' is defined
+* bug #2139: "Failed to shut down SSL" messages in the logs
+* bug #2144: openssl1 does not work with InstantCA
+* bug #2146: Illegal character handling in information collectors
+* bug #2151: grid-infosys startup script does not handle bad shutdowns properly
+* bug #2152: Returning reference of local variable causes segmentation
+  fault when using Java bindings 
+* bug #2153: Control and session directory do not look to be cleaned
+  after the job is retrieved with arcget -a or with arcget<jobID> 
+* bug #2155: Segmentation fault with arcproxy with invalid vomses file
+* bug #2157: Unstable AREX
+* bug #2159: ngsub does not respect dryrun command line option
+* bug #2160: A-REX must support dryrun job description attribute
+* bug #2164: arcget -very slow download from arc0 cluster
+* bug #2166: Querying jobs by state is confusing
+* bug #2167: FINISHED jobs are never cleaned
+* bug #2168: PBS back-end doesn't see non-grid jobs for PBSPro_10.0.0.82981
+* bug #2169: uploader stuck and using 100% CPU (possible SSL race condition)
+* bug #2170: Job memory set to nodememory if not specified
+* bug #2171: HTTP/1.1 Status code errors
+* bug #2174: scan-*-job fails reading .diag files in some configurations
+* bug #2175: arched crashes when it is started with config for NonSecureP2PISIS
+* bug #2178: A-REX start up does not parse /etc/{sysconfig,default}/a-rex properly 
+* bug #2179: ARC1 infosys doesn't start
+* bug #2180: ngcat can not determine the stdout location
+* bug #2181: A-REX crashes after a while running
+* bug #2182: A-REX grid manager does not send job notification mails
+* bug #2183: CEInfo.pl fails - can't write to log.
+* bug #2185: How nordugrid-queue-maxrunning is calculated on SGE backends
+* bug #2187: std::cout in Credential library
+* bug #2190: <QueueName> in JSDL-arc ignored by remote server
+* bug #2192: arcresub says "no more possible targets" even if there are
+* bug #2194: Can't have an output file with more than one destination
+* bug #2195: Very basic lock file handling in arclib clients
+* bug #2197: arcsub reports IP address instead of hostname
+* bug #2198: Build fails while making doxygen
+* bug #2202: Occasional seg faults at the end of arcstat
+* bug #2203: BenchmarkBroker::ComparePerformance
+* bug #2204: arcls <file> does not print anything
+* bug #2205: arcls -c fails even if I have read access to the file
+* bug #2208: arcls -m doesn't seem to work
+* bug #2209: Batch systems backends produce invalid local job id when
+  submission to LRMS fails 
+* bug #2212: arccp -i doesn't print any indicator
+* bug #2213: arccp: ugly error message with -u
+* bug #2214: Specifying -y cachepath to arccp can give strange error message
+* bug #2216: Provide the "old" arc0-based arclib library as part of
+  the compat package 
+* bug #2219: Segmentation faults in DataStagingDelivery
+* bug #2220: Confusing error message with arcls rls://
+* bug #2222: Incompatibility between ngsub and arc1 XRSL parser
+* bug #2224: SRM DMC does not respect port specified in URL
+* bug #2225: Libraries must use proper so-names
+* bug #2226: unixgroup option of gridftpd not working
+* bug #2228: Python bindings are broken since operator= is not handled
+  correctly 
+* bug #2229: Problem in downloading files using ngcp and arccp against Hopi
+* bug #2230: Dependency issues for
+  nordugrid-arc-ca-utils-1.0.0-0.b1.el5.x86_64 and
+  arc-gridmap-utils-1.0.0-0.b1.el5.x86_64 
+* bug #2231: Services don't support chkconfig, scriptlet failures during install
+* bug #2234: Downloader checksum mismatch
+* bug #2235: MCC TLS loosing user context on Mac.
+* bug #2236: Uploaders hangs
+* bug #2238: arcinfo (possibly all arc* commands) prints ugly error if
+  the service is not there 
+* bug #2239: arcinfo should not print ldap error (CREAM?) when querying A-REX
+* bug #2242: Compilation fails in java bindings:
+* bug #2243: Segmentation fault with 'arcls -c nonexistent-url'
+* bug #2244: arcls fails to list files in an A-REX session directory
+* bug #2245: Occasional seg faults at the end of arcls https://...
+* bug #2246: Grid-infosys does not handle the remotegmdir drain option
+* bug #2247: GThread error after every arc* command
+* bug #2250: arcproxy -d does not recognize wrong debug level
+* bug #2254: all JDL jobs failing with "Failed in files upload
+  (post-processing)" 
+* bug #2255: Job submitted to A-REX is never in status queueing (so
+  arcmigrate can not be used?) 
+* bug #2256: Make libarcglobusutils an installable library
+* bug #2258: make check fails when loading the wrong libmodcrypto or
+  libmodcredential plugin 
+* bug #2259: arcsync output needs cosmetic changes
+* bug #2260: arcresub, arcmigrate: "End of double quoted string not found"
+* bug #2261: arcls fails to list file in gmlog directory through https
+* bug #2262: arcget fails to download file with size > 4GB from 32-bit A-REX
+* bug #2264: homogeneity config option is not working
+* bug #2265: architecture=adotf is not substituted
+* bug #2267: FileLockTest unit test fails on a Mac
+* bug #2271: arcresub, arcmigrate: only can resubmit or migrate job to
+  a queue with the same name 
+* bug #2272: make check fails on mac os x because listfuncTest cannot find malloc.h
+* bug #2273: SRM DMC should not be part of the plugins-globus package
+* bug #2274: libarcdata test fails on mac os x
+* bug #2275: arcstat -a Error: Serious troubles (problems during
+  processing problems)
+* bug #2277: arcsub ERROR: Failed uploading file: Failed while writing
+  to destination
+* bug #2283: arched in unknown state
+* bug #2285: arcls truncates filenames when path begins with
+  G_DIR_SEPARATOR and contains 1 or 2 G_DIR_SEPARATOR 
+* bug #2288: More informative errors in arcstat when a site is down
+* bug #2289: arcstat with wrong debug level falls back to FATAL
+* bug #2290: Segfault  in ngsub when submitting a multi-job XRSL
+* bug #2292: Proxy file for the job is sometimes missing
+* bug #2295: Permission errors in cache handling
+* bug #2301: Uploaders from WS ARC segfault while trying to upload to
+  SRM:// URLs 
+* bug #2302: No default library path in the general HED profile
+* bug #2303: ngtest man errors
+* bug #2304: ngtest - invalid error message. Message contains arctest
+* bug #2310: Segmentation fault with ng*  -t -1
+* bug #2312: ngtest -giislist giis.list -configuration provides wrong
+  information 
+* bug #2314: exec option is not set for executable input files
+* bug #2318: ISIS can not load plugins
+* bug #2319: Files are deleted from session dir after failed upload
+* bug #2320: Credential tests fail on RHEL4 and Fedora 3
+* bug #2323: Severe bugs in the infosys with 1.0.0b4
+* bug #2324: arcsub broker fails if memory is specified in XRSL
+* bug #2325: arcsub broker fails if opsys is specified in XRSL
+* bug #2328: arcsub broker fails if queue is specified in XRSL
+* bug #2329: Wrong lifetime value translation by the arcsub
+* bug #2330: arcsub broker fails if architecture is specified in XRSL
+  or CPUArchitecture/CPUArchitectureName is specified in JSDL 
+* bug #2341: Wrong location of config_parser_compat.sh in gridftpd init script
+* bug #2346: grid-infosys can't find glue-generator.pl, starts but no
+  slapd running on SL5 x86_64 nordugrid repos 
+* bug #2348: No output generated if OperatinSystem  is specified in JSDL
+* bug #2349: Missing examples of configuration files
+* bug #2353: No slapd running on SL5 x86_64 EMI-1 RC2 repos
+* bug #2357: arcsub broker fails if VirtualMemoryLimit is specified in JSDL
+* bug #2359: From EMI RC2 repo the nordugrid-arc-compute-element fails to install
+* bug #2360: Information system failed to start
+* bug #2367: arc-file-access gets stuck and uses 100% CPU after arcget
+  with WS-interface
+* bug #2371: A-REX installation failure
+* bug #2372: Wrong dependencies of nordugrid-arc-compute-element
+* bug #2374: glue12 publishing is broken
+* bug #2375: Two downloaders per job, blocking each other
+* bug #2377: nordugrid-arc-client-tools meta-package incomplete
+* bug #2381: Startup policy for SySV services on Debian must be fixed
+* bug #2382: Erroneous error messages when copying to stdout/stderr
+* bug #2387: Strange exit code from /etc/init.d/grid-infosys status
+* bug #2389: Glue12 reports the same value for physical and logical CPU amounts
+* bug #2390: Infosystem must configure slapd_bindhostname="*"
+* bug #2405: gridftp dmc is not using anonymous as the default for plain ftp
+* bug #2408: Cannot download from Hopi service using curl
+
+* Bugfixes in Argus plugin enhancing robustness
+* Run class loosing output produced by child process
+* Run class slow while running quick processes
+* Run class not behaving properly after fork()
+* HTTP class was not handling all requests
+* Proper lock around use of non-concurrent third party libraries (like
+  LFC, RLS)
+* MCC loading failure were not detected
+* Numerous fixes for making more features useful on Win32
+* TCP connection interrupted by POSIX signal
+* "Not implemented" error not handled properly in HTTP code
+* VOMS handling code error not handled and causes segfault
+* Utilities long options without short pair not recognized
+* Amount of memory for thread stacks was not estimated properly on
+  64-bit CPUs.
+* Fix for publishing of draining remote grid-manager directories in ARIS
+* Information about root of virtual file system was not reported
+  properly in gridftp
+
+In addition, a few documentation-related issues are fixed.
+
+Known issues
+------------
+
+* README file distributed with the main package contains some obsolete
+  information
+* GLUE2 XML document published by A-REX is incomplete due to the absence of 
+  official XML rendering
+* The new arc* commands are not 100% compatible with the old ng*
+  commands.Consult NorduGrid Wiki for details:
+  http://wiki.nordugrid.org/index.php/ARC_Client_Tools_Transition
+* Recursive copy using ngcp -r deletes existing files (see bug #2132). Use
+  caution when using ngcp -r or use arccp -r instead.
+* Source code distributed by EMI can only be built using SWIG 1.3.29
+  (not above) If your system has a newer SWIG, please use source
+  distributed by NorduGrid instead.
+* Client error messages are still suboptimal; please report inadequate messages
+  to http://bugzilla.nordugrid.org/enter_bug.cgi?product=NorduGrid%20ARC
+* There are additional non-critical smaller issues registered in NorduGrid
+  Bugzilla; before reporting a bug, always try to cross-check whether it was
+  reported already
+
+
+Availability
+------------
+
+== Source:
+
+ARC release 11.05 consists of the following source packages:
+* NorduGrid ARC version 1.0.0 (main components)
+* NorduGrid ARC "compat" version 1.0.0 (old client)
+* NorduGrid ARC Documents 1.0.1 (documents)
+* arcjobtool version 0.3.0 (GUI)
+
+
+Source code for main components is available from here:
+  svn co http://svn.nordugrid.org/repos/nordugrid/arc1/tags/1.0.0 arc-1.0.0
+
+Source for the compatibility package (old client) is available from:
+  svn co \
+http://svn.nordugrid.org/repos/nordugrid/arc0/tags/compat_1.0.0 arc_compat-1.0.0
+
+Documentation source (mostly LaTeX) is available from:
+  svn co http://svn.nordugrid.org/repos/nordugrid/docs/tags/1.0.1 arc_doc-1.0.1
+
+GUI arcjobtool is available from:
+  svn co \
+http://laportal.svn.sourceforge.net/svnroot/laportal/tags/arcjobtool-0.3.0-arc/\
+arcjobtool_0.3.0
+
+== Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+* Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+* Fedora: from 3 to 14 (i386 and x86_64)
+* RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+* Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10 and 11.04 (i386 and amd64)
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+Standalone client tar-balls for Linux are available from respective repositories
+for each flavor.
+
+
+Additional documents
+--------------------
+
+Document describing the next release, used internally:
+  http://wiki.nordugrid.org/index.php/ARC_Next
+
+Information for people upgrading from ARC 0.x series:
+  http://wiki.nordugrid.org/index.php/Migration_from_0.8
+

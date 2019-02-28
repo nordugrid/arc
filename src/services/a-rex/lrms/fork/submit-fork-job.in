@@ -130,7 +130,11 @@ echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG
 # Note negative values are normally only settable by superusers 
 priority=$joboption_priority
 if [ ! -z $priority ]; then
-    nicevalue=$[ 20 - ($priority * 2 / 5) ]
+    if [ `id -u` = '0' ]; then
+        nicevalue=$[ 20 - ($priority * 2 / 5) ]
+    else
+        nicevalue=$[ 20 - ($priority / 5) ]
+    fi
     joboption_args="nice -n $nicevalue $joboption_args"
 fi
 

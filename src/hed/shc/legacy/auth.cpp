@@ -20,11 +20,19 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-AuthResult AuthUser::match_all(const char* /* line */) {
-  default_voms_=voms_t();
-  default_vo_=NULL;
-  default_group_=NULL;
-  return AAA_POSITIVE_MATCH;
+AuthResult AuthUser::match_all(const char* line) {
+  std::string token = Arc::trim(line);
+  if(token == "yes") {
+    default_voms_=voms_t();
+    default_vo_=NULL;
+    default_group_=NULL;
+    return AAA_POSITIVE_MATCH;
+  }
+  if(token == "no") {
+    return AAA_NO_MATCH;
+  }
+  logger.msg(Arc::ERROR,"Unexpected argument for 'all' rule - %s",token);
+  return AAA_FAILURE;
 }
 
 AuthResult AuthUser::match_group(const char* line) {
@@ -32,7 +40,7 @@ AuthResult AuthUser::match_group(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<group_t>::iterator i = groups_.begin();i!=groups_.end();++i) {
       if(s == i->name) {
@@ -51,7 +59,7 @@ AuthResult AuthUser::match_vo(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<std::string>::iterator i = vos_.begin();i!=vos_.end();++i) {
       if(s == *i) {
@@ -226,6 +234,10 @@ AuthResult AuthUser::evaluate(const char* line) {
         switch(res) {
           case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
           case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+          case AAA_NO_MATCH:
+          case AAA_FAILURE:
+          default:
+            break;
         };
       };
       return res;

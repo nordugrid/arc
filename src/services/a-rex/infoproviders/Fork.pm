@@ -195,9 +195,11 @@ sub cluster_info ($) {
     # usedcpus on a fork machine is determined from the 1min cpu
     # loadaverage and cannot be larger than the totalcpus
 
-    if (`uptime` =~ /load averages?:\s+([.\d]+),?\s+([.\d]+),?\s+([.\d]+)/) {
-        $lrms_cluster{usedcpus} = ($1 <= $lrms_cluster{totalcpus})
-                       ? floor(0.5+$1) : $lrms_cluster{totalcpus};
+    if ( `uptime` =~ /load averages?:\s+([.\d]+,?[.\d]+),?\s+([.\d]+,?[.\d]+),?\s+([.\d]+,?[.\d]+)/ ) {
+        my $usedcpus = $1;
+        $usedcpus =~ tr/,/./;
+        $lrms_cluster{usedcpus} = ($usedcpus <= $lrms_cluster{totalcpus})
+                       ? floor(0.5+$usedcpus) : $lrms_cluster{totalcpus};
     } else {
         error("Failed getting load averages");
         $lrms_cluster{usedcpus} = 0;

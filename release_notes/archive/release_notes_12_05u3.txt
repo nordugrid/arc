@@ -1,0 +1,132 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 12.05 update 3               April 25, 2013
+----------------------------------------------
+
+This is a bug fix release, addressing three important bugs: 3151, 3159 
+and 3160.
+
+NorduGrid ARC 12.05 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 2.0.2 to 2.0.3
+  * documents - from 1.2.1 to 1.2.2
+Nagios plugins,CAnL C++, metapackages, old cliets and GUI are unchanged 
+w.r.t. 12.05 update 2.
+
+
+ARC components in 12.05 update 2:
+
+  * ARC Core 2.0.3 (includes nordugrid-arc-doc v1.2.2)
+  * ARC Clients 2.0.3 (includes nordugrid-arc-compat v1.0.1)
+  * ARC CE 2.0.3 (includes nordugrid-arc-nagios-plugins v1.6.0)
+  * ARC Infosys 2.0.3
+  * ARC gridftp server 2.0.3
+  * canl++ 0.2.0
+
+
+ARC components: detailed notes
+-------------------------------
+
+== ARC Core
+
+No changes
+
+
+== ARC Clients
+
+No changes
+
+
+== ARC Compute Element
+
+Fixed bugs 3159 and 3160
+
+
+== ARC Information System
+
+No changes
+
+
+== ARC gridftp server
+
+Fixed bug 3151
+
+
+== Common authentication library CaNL++
+
+No changes
+
+
+== Nagios plugins
+
+No changes
+
+
+Fixed bugs
+----------
+
+Since ARC 12.05u2, the following bug was fixed:
+  * 3151 gridftpd seg faults at the end of every child process
+  * 3159 multiple errors in `/usr/share/arc/configure-SLURM-env.sh`
+  * 3160 submit-SLURM-job fails with syntax error and exit code 2
+
+
+Known issues
+------------
+
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * As a result of bug fix 2851, A-REX can take up to one minute to stop.
+  * Bug 2905 is solved using workaround. Source of the problem is not yet identified.
+
+
+Availability
+------------
+
+== Source
+
+ARC release 12.05 update 3 consists of the following source packages:
+  * NorduGrid ARC, version 2.0.3 (main components)
+  * NorduGrid ARC "compat", version 1.0.1 (old client)
+  * NorduGrid ARC Documents version 1.2.2 
+  * metapackages for client tools, computing element and information index,
+    version 1.0.2
+  * Nagios probes for ARC CE, version 1.6.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/2.0.3
+
+Source for the compatibility package (old client) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/arc0/tags/compat_1.0.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.2.2
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.2
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.6.0
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/0.2.0
+
+
+== Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+  * Fedora: from 3 to 18 (i386 and x86_64)
+  * RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04 and 12.10 (i386 and amd64)
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X binaries are available from same repositories for
+clients and some services.

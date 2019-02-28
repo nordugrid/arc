@@ -1,4 +1,4 @@
 debian/tmp/usr/sbin/gridftpd
 debian/tmp/usr/share/man/man8/gridftpd.8
-debian/tmp/usr/lib/arc/fileplugin.*
+debian/tmp/usr/lib/arc/filedirplugin.*
 debian/tmp/usr/lib/arc/jobsplugin.*
