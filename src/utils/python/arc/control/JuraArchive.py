@@ -21,10 +21,14 @@ class JuraArchive(object):
 
     def __init__(self, archive_dir, db_dir=None):
         self.archive_dir = archive_dir.rstrip('/') + '/'
+        # define db directory
         if db_dir is None:
             self.db_dir = self.archive_dir
         else:
             self.db_dir = db_dir.rstrip('/') + '/'
+        # create db directory if not exists
+        if not os.path.isdir(self.db_dir):
+            os.makedirs(self.db_dir)
         self.logger = logging.getLogger('ARC.JuraArchive.Manager')
         self.db_file = self.db_dir + 'accounting.db'
         self.db = None  # type: AccountingDBSQLite
@@ -293,16 +297,24 @@ class JuraArchive(object):
         """Export all usage record files that match filtering criteria to the common directory"""
         export_dir = self.db_dir + subdir.rstrip('/') + '/'
         self.logger.info('Exporting accounting records to %s', export_dir)
+        if os.path.isdir(export_dir):
+            if not os.listdir(export_dir):
+                # remove empty directory without throwing an error
+                os.rmdir(export_dir)
+            else:
+                self.logger.error('Export directory is already present. '
+                                  'To avoid conflicts, please check and remove old directory')
+                sys.exit(1)
         os.makedirs(export_dir)
         self.db_connection_init()
         for (rid, rtime) in self.get_records_path_data(filters):
             ur_path, ur_name = self.__record_date_path(rid, rtime)
-            ur_path =+ ur_name
+            ur_path += ur_name
             if os.path.exists(ur_path):
-                self.logger.debug('Exporting "%s" records', rid)
+                self.logger.debug('Exporting "%s" record', rid)
                 shutil.copy(ur_path, export_dir + rid)
             else:
-                self.logger.error('Usage records in %s no longer exists. Republishing is not possible.', ur_path)
+                self.logger.error('Usage records in %s is no longer exists. Republishing is not possible.', ur_path)
         return export_dir
 
     def export_remove(self, subdir='republish'):
@@ -322,7 +334,7 @@ class JuraArchive(object):
             fpath = os.path.join(self.db_dir, f)
             if os.path.isdir(fpath):
                 # check at least format comply (who knows which custom dirs people can have there)
-                if len(f) == 7 and f[5] == '-':
+                if len(f) == 7 and f[4] == '-':
                     if f < olderthan_month:
                         dirs2remove.append(fpath)
         # look for dally dirs inside cut-off month

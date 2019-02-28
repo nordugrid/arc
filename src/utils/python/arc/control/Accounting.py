@@ -37,26 +37,23 @@ def add_timeframe_args(parser, required=False):
 
 def complete_owner_vo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_vos(prefix)
+    return AccountingControl(arcconf).complete_vos(prefix, parsed_args)
 
 
 def complete_owner(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_users(prefix)
+    return AccountingControl(arcconf).complete_users(prefix, parsed_args)
 
 
 class AccountingControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.Accounting')
-        # runtime config
+        # arc config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
             sys.exit(1)
-        _, self.runconfig = tempfile.mkstemp(suffix='.conf', prefix='arcctl.jura.')
-        self.logger.debug('Dumping runtime configuration for Jura to %s', self.runconfig)
-        arcconfig.save_run_config(self.runconfig)
-        # binary path include runtime config
-        self.jura_bin = ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
+        self.arcconfig = arcconfig
+        self.runconfig = None
         # archive
         archive_dir = arcconfig.get_value('archivedir', 'arex/jura/archiving')
         if archive_dir is None:
@@ -71,19 +68,29 @@ class AccountingControl(ComponentControl):
         if self.logfile is None:
             self.logfile = '/var/log/arc/jura.log'
         self.ssmlog = '/var/spool/arc/ssm/ssmsend.log'  # hardcoded in JURA_DEFAULT_DIR_PREFIX and ssm/sender.cfg
-        # certificates
-        x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
-        x509_host_cert = arcconfig.get_value('x509_host_cert', 'common')
-        x509_host_key = arcconfig.get_value('x509_host_key', 'common')
+
+    def __del__(self):
+        if self.runconfig is not None:
+            os.unlink(self.runconfig)
+
+    def __jura_bin(self):
+        """Return jura binary invocation command"""
+        # dump runconfig
+        _, self.runconfig = tempfile.mkstemp(suffix='.conf', prefix='arcctl.jura.')
+        self.logger.debug('Dumping runtime configuration for Jura to %s', self.runconfig)
+        self.arcconfig.save_run_config(self.runconfig)
+        # setup environment (x509)
+        x509_cert_dir = self.arcconfig.get_value('x509_cert_dir', 'common')
+        x509_host_cert = self.arcconfig.get_value('x509_host_cert', 'common')
+        x509_host_key = self.arcconfig.get_value('x509_host_key', 'common')
         if x509_cert_dir is not None:
             os.environ['X509_CERT_DIR'] = x509_cert_dir
         if x509_host_cert is not None:
             os.environ['X509_USER_CERT'] = x509_host_cert
         if x509_host_key is not None:
             os.environ['X509_USER_KEY'] = x509_host_key
-
-    def __del__(self):
-        os.unlink(self.runconfig)
+        # return command
+        return ARC_LIBEXEC_DIR + '/jura -c ' + self.runconfig
 
     def __ensure_accounting_db(self, args):
         """Ensure accounting database availabiliy"""
@@ -93,16 +100,16 @@ class AccountingControl(ComponentControl):
             self.logger.info('Migrating Jura archive to accounting database')
             self.archive.process_records()
         else:
-            self.logger.error('Accounting database is not initialized and operation on records are not available. '
+            self.logger.error('Accounting database is not initialized. '
                               'Most probably jura-archive-manager is not active. '
-                              'If you want to force database init from arcctl add --init-db option.')
+                              'If you want to force database init from arcctl add --db-init option.')
             sys.exit(1)
 
     @staticmethod
     def __construct_filter(args):
         filters = {}
-        if hasattr(args, 'filter_vos') and args.filter_vos:
-            filters['vos'] = args.filter_vos
+        if hasattr(args, 'filter_vo') and args.filter_vo:
+            filters['vos'] = args.filter_vo
         if hasattr(args, 'filter_user') and args.filter_user:
             filters['owners'] = args.filter_user
         if args.start_from:
@@ -141,7 +148,7 @@ class AccountingControl(ComponentControl):
                           '  Total WallTime: {4:>16}\n'
                           '  Total CPUTime:  {5:>16}'.format(t.upper(), sfrom, etill, count, walltime, cputime))
                 else:
-                    print('There are no {0} archived records available', t.upper())
+                    print('There are no {0} archived records available'.format(t.upper()))
 
     def republish(self, args):
         if args.start_from > args.end_till:
@@ -150,14 +157,15 @@ class AccountingControl(ComponentControl):
         # export necessary records to republishing directory
         filters = self.__construct_filter(args)
         filters['type'] = 'apel' if args.apel_url else 'sgas'
-        exportdir = self.archive.export_records(filters)
+        exportdir = self.archive.export_records(filters=filters)
         # define timeframe for Jura
         jura_startfrom = args.start_from.strftime('%Y.%m.%d').replace('.0', '.')
         jura_endtill = args.end_till.strftime('%Y.%m.%d').replace('.0', '.')
+        jura_bin = self.__jura_bin()
         command = ''
         if args.apel_url:
             command = '{0} -u {1} -t {2} -r {3}-{4} {5}'.format(
-                self.jura_bin,
+                jura_bin,
                 args.apel_url,
                 args.apel_topic,
                 jura_startfrom, jura_endtill,
@@ -165,7 +173,7 @@ class AccountingControl(ComponentControl):
             )
         elif args.sgas_url:
             command = '{0} -u {1} -r {2}-{3} {4}'.format(
-                self.jura_bin,
+                jura_bin,
                 args.sgas_url,
                 jura_startfrom, jura_endtill,
                 exportdir
@@ -230,10 +238,12 @@ class AccountingControl(ComponentControl):
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
 
-    def complete_vos(self, prefix):
+    def complete_vos(self, prefix, args):
+        self.__ensure_accounting_db(args)
         return self.archive.get_all_vos(prefix)
 
-    def complete_users(self, prefix):
+    def complete_users(self, prefix, args):
+        self.__ensure_accounting_db(args)
         return self.archive.get_all_owners(prefix)
 
     @staticmethod

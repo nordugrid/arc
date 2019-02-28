@@ -1609,7 +1609,7 @@
 ## batchsize = number - Number of archived records to process in one chunk by the
 ## accounting database manager. Each run of manager have as many processing cycles
 ## (one per "batchsize" records) as needed to process all records in the JURA archive.
-## defailt: 100
+## default: 100
 #batchsize=1000
 ## CHANGE: NEW
 

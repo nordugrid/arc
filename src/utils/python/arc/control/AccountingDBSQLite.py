@@ -7,7 +7,7 @@ from arc.paths import *
 
 class AccountingDBSQLite(object):
     """SQLite implementation of ARC accounting archive database"""
-    __dbinit_sql_script = ARC_DATA_DIR + 'accounting_sqlite_db_init.sql'
+    __dbinit_sql_script = ARC_DATA_DIR + '/accounting_sqlite_db_init.sql'
 
     def __init__(self, db_file):
         self.logger = logging.getLogger('ARC.JuraArchive.SQLiteDB')
@@ -62,7 +62,7 @@ class AccountingDBSQLite(object):
         try:
             if startswith:
                 res = self.con.execute(
-                    "SELECT {0},{1} FROM {2} WHERE {0} LIKE '?%'".format(value, key, table), (startswith,))
+                    "SELECT {0},{1} FROM {2} WHERE {0} LIKE ?".format(value, key, table), (startswith + '%',))
             else:
                 res = self.con.execute("SELECT {0},{1} FROM {2}".format(value, key, table))
             # create owners dict
@@ -197,7 +197,7 @@ class AccountingDBSQLite(object):
             return res
         except sqlite3.Error as e:
             params += (str(e),)
-            self.logger.debug('Failed to execute select query: {0}. Error: %s'.format(sql.replace('?', '%s')), *params)
+            self.logger.debug('Failed to execute query: {0}. Error: %s'.format(sql.replace('?', '%s')), *params)
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
@@ -267,4 +267,5 @@ class AccountingDBSQLite(object):
             self.logger.error('Removing records without applying filters is not allowed')
             return False
         self._filtered_query("DELETE FROM UsageRecords")
+        self.con.commit()
         return True

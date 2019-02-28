@@ -7,13 +7,17 @@ import logging
 import argparse
 import errno
 
-# Initialize logging
+# Initialize logging (ARCCTL namespace)
 logger = logging.getLogger('ARCCTL')
 logger.setLevel(logging.INFO)
 log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
+
+# Use the same setup for ARC namespace
+arclogger = logging.getLogger('ARC')
+arclogger.addHandler(log_handler_stderr)
 
 # ARC-prefix path in PYTHONPATH
 arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
@@ -57,10 +61,10 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     cmd_args = args_parser.parse_args()
-    # Set log level for both arcctl and config loggers
+    # Set log level for both ARCCTL. and ARC. logging namespaces
     loglevel = getattr(logging, cmd_args.debug, 30)
     logger.setLevel(loglevel)
-    config.logger.setLevel(loglevel)
+    arclogger.setLevel(loglevel)
     # Define handler class
     ctl_class = cmd_args.handler_class
 

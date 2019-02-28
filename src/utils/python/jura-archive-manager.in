@@ -44,8 +44,17 @@ if __name__ == '__main__':
 
     # Set loglevel in accordance to config
     loglevel = config.get_value('loglevel', 'arex/jura/archiving')
-    loglevel = [logging.CRITICAL, logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG, logging.DEBUG][loglevel]
-    logger.setLevel(loglevel)
+    if loglevel is not None:
+        loglevel = int(loglevel)
+        if loglevel > 5:
+            loglevel = 5
+        loglevel = [logging.CRITICAL,
+                    logging.ERROR,
+                    logging.WARNING,
+                    logging.INFO,
+                    logging.DEBUG,
+                    logging.DEBUG][int(loglevel)]
+        logger.setLevel(loglevel)
 
     # Init archive management
     archive_dir = config.get_value('archivedir', 'arex/jura/archiving')
