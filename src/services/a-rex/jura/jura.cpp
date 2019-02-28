@@ -55,7 +55,7 @@ int main(int argc, char **argv)
   std::string archive_dir;
   std::string str_loglevel;
   int n;
-  while((n=getopt(argc,argv,":u:t:o:y:F:m:r:A:c:afsd:v")) != -1) {
+  while((n=getopt(argc,argv,":u:t:y:F:m:r:A:c:afsd:v")) != -1) {
     switch(n) {
     case ':': { logger.msg(Arc::ERROR, "Missing option argument"); return 1; }
     case '?': { logger.msg(Arc::ERROR, "Unrecognized option"); return 1; }

@@ -51,10 +51,13 @@ namespace ArcJura
         if (file.SubSection()[0] == '\0') {
           if (command == "x509_host_key") {
             host_key = rest;
+            Arc::SetEnv("X509_USER_KEY", host_key);
           } else if (command == "x509_host_cert") {
             host_cert = rest;
+            Arc::SetEnv("X509_USER_CERT", host_cert);
           } else if (command == "x509_cert_dir") {
             ca_cert_dir = rest;
+            Arc::SetEnv("X509_CERT_DIR", host_cert);
           }
         }
       } else if (file.SectionNum() == arex_secnum) {
@@ -91,10 +94,13 @@ namespace ArcJura
             }
           } else if (command == "x509_host_key") {
             host_key = rest;
+            Arc::SetEnv("X509_USER_KEY", host_key, true);
           } else if (command == "x509_host_cert") {
             host_cert = rest;
+            Arc::SetEnv("X509_USER_CERT", host_cert, true);
           } else if (command == "x509_cert_dir") {
             ca_cert_dir = rest;
+            Arc::SetEnv("X509_CERT_DIR", host_cert, true);
           }
         }
       } else if (file.SectionNum() == archiving_secnum) {
