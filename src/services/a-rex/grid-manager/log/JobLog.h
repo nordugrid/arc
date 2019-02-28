@@ -23,11 +23,11 @@ class JobLog {
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
   std::string ca_certificates_dir;
-  std::string logger_name;
-  std::string logfile;
-  Arc::Run *proc;
-  time_t last_run;
-  int period;
+  std::string reporter_tool;
+  std::string reporter_logfile;
+  Arc::Run *reporter_proc;
+  time_t reporter_last_run;
+  int reporter_period;
   bool open_stream(std::ofstream &o);
   static void initializer(void* arg);
  public:
@@ -43,11 +43,11 @@ class JobLog {
   /* Run external utility to report gathered information to logger service */
   bool RunReporter(const GMConfig& config);
   /* Set period of running */
-  bool SetPeriod(int period);
+  bool SetReporterPeriod(int period);
   /* Set name of the accounting reporter */
-  bool SetLogger(const char* fname);
+  bool SetReporterTool(const char* fname);
   /* Set name of the log file for accounting reporter */
-  bool SetLogFile(const char* fname);
+  bool SetReporterLogFile(const char* fname);
   /* Create data file for Reporter */
   bool WriteJobRecord(GMJob &job,const GMConfig &config);
   /* Set credential file names for accessing logging service */

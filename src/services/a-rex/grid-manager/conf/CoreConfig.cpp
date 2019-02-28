@@ -470,7 +470,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
               logger.msg(Arc::ERROR, "Missing file name in [arex/jura] logfile"); return false;
             };
             job_log_log_is_set = true;
-            config.job_log->SetLogFile(logfile.c_str());
+            config.job_log->SetReporterLogFile(logfile.c_str());
           };
         }
         else if (command == "urdelivery_frequency") {
@@ -480,7 +480,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             if (!Arc::stringto(period_s, period)) {
               logger.msg(Arc::ERROR, "Wrong number in urdelivery_frequency: %s", period_s); return false;
             }
-            config.job_log->SetPeriod(period);
+            config.job_log->SetReporterPeriod(period);
           }
         }
         else if (command == "x509_host_key") {
@@ -593,8 +593,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     jobreport_publisher = "jura";
   }
   if(config.job_log) {
-    config.job_log->SetLogger(jobreport_publisher.c_str());
-    if(!job_log_log_is_set) config.job_log->SetLogFile("/var/log/arc/jura.log");
+    config.job_log->SetReporterTool(jobreport_publisher.c_str());
+    if(!job_log_log_is_set) config.job_log->SetReporterLogFile("/var/log/arc/jura.log");
   }
 
   if(!helper_log_is_set) {
