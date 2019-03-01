@@ -4,6 +4,7 @@ from __future__ import print_function
 
 # general puprose
 import sys
+import time
 import logging
 import argparse
 import hashlib
@@ -13,7 +14,10 @@ import json
 import socket
 # DATA fetching
 import ldap
-import httplib
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
 import ssl
 import xml.etree.ElementTree as ElementTree
 # DNS processing
@@ -25,7 +29,10 @@ import dns.tsigkeyring
 from dns.exception import DNSException
 # Multithreading
 from threading import Thread, Lock
-from queue import Queue
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 
 # GLOBAL VARIABLES
 _fetch_timeout = 10
@@ -51,15 +58,21 @@ class HTTPSInsecureConnection(httplib.HTTPSConnection):
         self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
 
 
-def LDAPStrError(err):
+def LDAPStrError(ldape):
     """Get string error from LDAP exception"""
-    errstr = ''
-    if 'desc' in err.message:
-        errstr += err.message['desc']
-        if 'info' in err.message:
-            errstr += ' ({0})'.format(err.message['info'])
+    if hasattr(ldape, 'message') and type(ldape.message) == dict:
+        err = ldape.message
+    elif len(ldape.args) and type(ldape.args[0]) == dict:
+        err = ldape.args[0]
     else:
-        errstr += str(err)
+        return str(ldape)
+    errstr = ''
+    if 'desc' in err:
+        errstr += err['desc']
+        if 'info' in err:
+            errstr += ' ({0})'.format(err['info'])
+    else:
+        errstr += str(ldape)
     return errstr
 
 
@@ -214,7 +227,7 @@ class EndpointFilterPortscan(EndpointFilter):
 
 class EndpointFilterAllowedVO(EndpointFilter):
     """Filter endpoints by allowed VO information in LDAP"""
-    __uri_re = re.compile(r'^(?P<uri>(?P<protocol>ldap|https)://(?P<host>[^:/]+)(?P<port>:[0-9]+))/*.*')
+    __uri_re = re.compile(r'^(?P<uri>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?P<port>:[0-9]+))/*.*')
     __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
 
     def __init__(self, args=''):
@@ -276,7 +289,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
                 for (_, volist) in search_r:
                     if ldap_attrs[0] not in volist:
                         return True
-                    volist = [v.split(':', 1)[1] for v in volist[ldap_attrs[0]]]
+                    volist = [v.decode().split(':', 1)[1] for v in volist[ldap_attrs[0]]]
                     for vo in self._allowed_vos:
                         if vo not in volist:
                             logger.info('Endpoint %s (type %s) filtered (allowed VO filter)', endpoint_dict['u'],
@@ -464,7 +477,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
 
         for egiis_dn, egiis_entry in egiis_entries:
             if egiis_dn.startswith('nordugrid-cluster-name='):
-                ce_list.append(egiis_entry['Mds-Service-hn'][0])
+                ce_list.append(egiis_entry['Mds-Service-hn'][0].decode())
             else:
                 ce_list += get_egiis_celist('ldap://{Mds-Service-hn[0]}:2135/'
                                             '{Mds-Service-Ldap-suffix[0]}'.format(**egiis_entry), ldap_timeout)
@@ -503,14 +516,14 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
             if 'GLUE2EndpointURL' not in ldap_ee:
                 logger.warning(
                     'Failed to find endpoint URL in LDAP response for DN %s. '
-                    'It seams GLUE2 rendering is broken for %s.', ldap_dn, ldap_uri)
+                    'It seams GLUE2 rendering is broken for %s.', ldap_dn.decode(), ldap_uri)
                 continue
             # get endpoint data
-            e_id = ldap_ee['GLUE2EndpointID'][0]
-            e_url = ldap_ee['GLUE2EndpointURL'][0]
-            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0]
+            e_id = ldap_ee['GLUE2EndpointID'][0].decode()
+            e_url = ldap_ee['GLUE2EndpointURL'][0].decode()
+            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0].decode()
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
-            if ldap_ee['GLUE2EndpointHealthState'][0].upper() != 'OK':
+            if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
                 e_entry['s'] = '0'
             # apply filters if any
             for fo in filters:
@@ -557,11 +570,11 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
             if 'nordugrid-cluster-contactstring' not in ldap_ee:
                 logger.warning(
                     'Failed to find endpoint URL (contactstring) in LDAP response for DN %s. '
-                    'It seams NG rendering is broken for %s.', ldap_dn, ldap_uri)
+                    'It seams NG rendering is broken for %s.', ldap_dn.decode(), ldap_uri)
                 continue
             # get endpoint data
-            e_id = ldap_ee['nordugrid-cluster-name'][0]
-            e_url = ldap_ee['nordugrid-cluster-contactstring'][0]
+            e_id = ldap_ee['nordugrid-cluster-name'][0].decode()
+            e_url = ldap_ee['nordugrid-cluster-contactstring'][0].decode()
             e_type = 'org.nordugrid.gridftpjob'
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
             # apply filters if any
@@ -627,13 +640,14 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
             if 'GLUE2ServiceID' not in ldap_s:
                 logger.warning(
                     'Failed to find service ID in the LDAP response for DN %s. '
-                    'It seams GLUE2 rendering is broken for %s/%s.', ldap_dn, ldap_uri, ldap_basedn)
+                    'It seams GLUE2 rendering is broken for %s/%s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
                 continue
             # get service data
-            s_id = ldap_s['GLUE2ServiceID'][0]
-            s_type = ldap_s['GLUE2ServiceType'][0]
+            s_id = ldap_s['GLUE2ServiceID'][0].decode()
+            s_type = ldap_s['GLUE2ServiceType'][0].decode()
             services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
             services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+            logger.debug('Found service %s (type %s)', s_id, s_type)
 
         # Query endpoints info
         ldap_endpoints_filter = '(objectClass=GLUE2Endpoint)'
@@ -647,21 +661,22 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
             if 'GLUE2EndpointURL' not in ldap_ee:
                 logger.warning(
                     'Failed to find endpoint URL in LDAP response for DN %s. '
-                    'It seams GLUE2 rendering is broken for %s.', ldap_dn, ldap_uri, ldap_basedn)
+                    'It seams GLUE2 rendering is broken for %s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
                 continue
-            e_id = ldap_ee['GLUE2EndpointID'][0]
-            e_url = ldap_ee['GLUE2EndpointURL'][0]
-            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0]
+            e_id = ldap_ee['GLUE2EndpointID'][0].decode()
+            e_url = ldap_ee['GLUE2EndpointURL'][0].decode()
+            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0].decode()
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
-            if ldap_ee['GLUE2EndpointHealthState'][0].upper() != 'OK':
+            if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
                 e_entry['s'] = '0'
-            e_service = ldap_ee['GLUE2EndpointServiceForeignKey'][0]
+            e_service = ldap_ee['GLUE2EndpointServiceForeignKey'][0].decode()
             # apply filters if any
             for fo in filters:
                 if fo.filter(e_entry):
                     break
             else:
                 # add endpoint if not filtered
+                logger.debug('Found endpoint %s (type %s) for %s service', e_url, e_type, e_service)
                 if e_service not in services:
                     logger.error('Found endpoint %s (type %s) for service ID %s, '
                                  'but service itself is missing in the rendering.', e_url, e_type, e_service)
@@ -746,6 +761,10 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
         worker.start()
     # wait for parallel fetch to complete
     logger.info('Waiting for fetching data completion...')
+    # make it killable
+    while not fetch_queue.empty():
+        time.sleep(0.3)
+    # join for sure
     fetch_queue.join()
 
 
@@ -856,7 +875,7 @@ def dns_rr_owner_name(archery_object, parent_owner):
     if 'id' in archery_object:
         strid += archery_object['id']
     # produce SHA1 hash (SHA1 selected for best speed) and shorten it
-    return hashlib.sha1(strid).hexdigest()[:10]
+    return hashlib.sha1(strid.encode()).hexdigest()[:10]
 
 
 def parse_archery_txt(txtstr):
@@ -936,7 +955,10 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
         archery_object['rr_owner'] = rrset_name
         guess_object_kind = 'group'
         for rr in archery_rrs:
-            txt = ''.join(rr.strings)
+            # fetch all records
+            txt = ''
+            for rri in rr.strings:
+                txt += rri.decode()
             # parse object data
             rrdata = parse_archery_txt(txt)
             # object description resource record found
