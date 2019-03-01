@@ -6,6 +6,7 @@
 #include <vector>
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 namespace ArcJura
 {

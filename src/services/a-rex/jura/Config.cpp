@@ -3,11 +3,13 @@
 
 #include "Config.h"
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"JURA.Config");
+
 namespace ArcJura
 {
 
   char const * const Config::default_logfile = "/var/log/arc/jura.log";
-  Arc::LogLevel const Config::default_loglevel = Arc::WARNING;
+  Arc::LogLevel const Config::default_loglevel = Arc::INFO;
   char const * const Config::default_archivedir = "/var/log/arc/jura/archive";
   unsigned int const Config::default_archivettl = 0; // forever
   unsigned int const Config::default_urdelivery_keepfailed = 30;
@@ -49,10 +51,13 @@ namespace ArcJura
         if (file.SubSection()[0] == '\0') {
           if (command == "x509_host_key") {
             host_key = rest;
+            Arc::SetEnv("X509_USER_KEY", host_key);
           } else if (command == "x509_host_cert") {
             host_cert = rest;
+            Arc::SetEnv("X509_USER_CERT", host_cert);
           } else if (command == "x509_cert_dir") {
             ca_cert_dir = rest;
+            Arc::SetEnv("X509_CERT_DIR", host_cert);
           }
         }
       } else if (file.SectionNum() == arex_secnum) {
@@ -68,20 +73,10 @@ namespace ArcJura
           } else if (command == "loglevel") {
             unsigned int loglevel_num;
             if (!Arc::stringto(rest, loglevel_num)) {
-              std::cerr<<"Wrong loglevel ("<< rest << ") attributum value given!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong loglevel (%s) config value given!", rest);
               return;
             }
-            switch(loglevel_num) {
-              case 0: loglevel = Arc::DEBUG; break;
-              case 1: loglevel = Arc::VERBOSE; break;
-              case 2: loglevel = Arc::INFO; break;
-              case 3: loglevel = Arc::WARNING; break;
-              case 4: loglevel = Arc::ERROR; break;
-              case 5: loglevel = Arc::FATAL; break;
-              default: 
-                std::cerr<<"Wrong loglevel ("<< rest << ") attributum value given!"<<std::endl;
-                return;
-            }
+            loglevel = Arc::old_level_to_level(loglevel_num);
           } else if (command == "vomsless_vo") {
             vomsless_vo = Arc::ConfigIni::NextArg(rest,'#');
             vomsless_issuer = rest;
@@ -89,31 +84,29 @@ namespace ArcJura
             vo_group = rest;
           } else if (command == "urdelivery_keepfailed") {
             if (!Arc::stringto(rest, urdelivery_keepfailed)) {
-              std::cerr<<"Wrong urdelivery_keepfailed ("<< rest << ") attributum value given!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong urdelivery_keepfailed (%s) config value given!", rest);
               return;
             }
           } else if (command == "urdelivery_frequency") {
             if (!Arc::stringto(rest, urdelivery_frequency)) {
-              std::cerr<<"Wrong urdelivery_frequency ("<< rest << ") attributum value given!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong urdelivery_frequency (%s) config value given!", rest);
               return;
             }
           } else if (command == "x509_host_key") {
             host_key = rest;
+            Arc::SetEnv("X509_USER_KEY", host_key, true);
           } else if (command == "x509_host_cert") {
             host_cert = rest;
+            Arc::SetEnv("X509_USER_CERT", host_cert, true);
           } else if (command == "x509_cert_dir") {
             ca_cert_dir = rest;
+            Arc::SetEnv("X509_CERT_DIR", host_cert, true);
           }
         }
       } else if (file.SectionNum() == archiving_secnum) {
         if (file.SubSection()[0] == '\0') {
           archiving = true;
-          if (command == "archivettl") {
-            if (!Arc::stringto(rest, archivettl)) {
-              std::cerr<<"Wrong archivettl ("<< rest << ") attributum value given!"<<std::endl;
-              return;
-            }
-          } else if (command == "archivedir") {
+          if (command == "archivedir") {
             archivedir = rest;
           }
         }
@@ -121,7 +114,7 @@ namespace ArcJura
         if (file.SectionNew()) {
           name = file.SectionIdentifier();
           if(name.empty()) {
-            std::cerr<<"Name part is missing by SGAS section!"<<std::endl;
+            logger.msg(Arc::ERROR, "Name part is missing by SGAS section!");
             return;
           }
           sgas_entries.push_back(SGAS());
@@ -130,7 +123,7 @@ namespace ArcJura
           if (command == "targeturl") {
             sgas_entries.back().targeturl = rest;
             if(!sgas_entries.back().targeturl) {
-              std::cerr<<"Targeturl attributum value is missing by SGAS!"<<std::endl;
+              logger.msg(Arc::ERROR, "Targeturl config value is missing by SGAS!");
               return;
             }
           } else if (command == "localid_prefix") {
@@ -140,7 +133,7 @@ namespace ArcJura
           } else if (command == "urbatchsize") {
             if(!Arc::stringto(rest, sgas_entries.back().urbatchsize) ||
                 sgas_entries.back().urbatchsize == 4294967295 ) {  // it is -1
-              std::cerr<<"Wrong urbatchsize ("<< rest << ") attributum value given by SGAS!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong urbatchsize (%s) config value given by SGAS!", rest);
               return;
             }
           }
@@ -149,7 +142,7 @@ namespace ArcJura
         if (file.SectionNew()) {
           name = file.SectionIdentifier();
           if(name.empty()) {
-            std::cerr<<"Name part is missing by APEL section!"<<std::endl;
+            logger.msg(Arc::ERROR, "Name part is missing by APEL section!");
             return;
           }
           apel_entries.push_back(APEL());
@@ -158,7 +151,7 @@ namespace ArcJura
           if (command == "targeturl") {
             apel_entries.back().targeturl = rest;
             if(!apel_entries.back().targeturl) {
-              std::cerr<<"Targeturl attributum value is missing by APEL!"<<std::endl;
+              logger.msg(Arc::ERROR, "Targeturl config value is missing by APEL!");
               return;
             }
           } else if (command == "topic") {
@@ -169,7 +162,7 @@ namespace ArcJura
             apel_entries.back().benchmark_type = rest;
           } else if (command == "benchmark_value") {
             if(!Arc::stringto(rest, apel_entries.back().benchmark_value)) {
-              std::cerr<<"Wrong benchmark_value ("<< rest << ") attributum value given by APEL!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong benchmark_value (%s) config value given by APEL!", rest);
               return;
             }
           } else if (command == "benchmark_description") {
@@ -188,7 +181,7 @@ namespace ArcJura
           } else if (command == "urbatchsize") {
             if(!Arc::stringto(rest, apel_entries.back().urbatchsize) ||
                 sgas_entries.back().urbatchsize == 4294967295 ) {  // it is -1) {
-              std::cerr<<"Wrong urbatchsize ("<< rest << ") attributum value given by APEL!"<<std::endl;
+              logger.msg(Arc::ERROR, "Wrong urbatchsize (%s) config value given by APEL!", rest);
               return;
             }
           }
