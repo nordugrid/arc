@@ -211,7 +211,7 @@ packages_el7:
   allow_failure: false
 
 run_static_analysis_el6:
-  stage: test
+  stage: static-ana
   image: maikenp/arc-sca-centos6
   script:
     - set +e
