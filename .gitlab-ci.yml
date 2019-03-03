@@ -211,7 +211,7 @@ packages_el7:
   allow_failure: false
 
 run_static_analysis_el6:
-  stage: static-ana
+  stage: static_ana
   image: maikenp/arc-sca-centos6
   script:
     - set +e
@@ -237,6 +237,9 @@ run_static_analysis_el6:
     #- echo $PATH
   tags:
     - 158.39.77.235
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   artifacts:
     when: always
     expire_in: 1 days
