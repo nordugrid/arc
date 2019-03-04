@@ -372,54 +372,14 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 RTE_stage2
 
-#####################################################
-#  Upload output files
 ####################################################
-# There is no sense to keep trash till GM runs uploader
-echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
-# Delete all files except listed in job.#.output
-echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-
-if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
-  cat "$joboption_controldir/job.$joboption_gridid.output" | \
-  # remove leading backslashes, if any
-  sed 's/^\/*//' | \
-  # backslashes and spaces are escaped with a backslash in job.*.output. The
-  # shell built-in read undoes this escaping.
-  while read name rest; do
-
-    # make it safe for shell by replacing single quotes with '\''
-    name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
-
-    # protect from deleting output files including those in the dynamic list
-    if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
-
-      dynlist=${name#@}
-      echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
-      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-  chmod -R u-w "./$dynlist" 2>/dev/null
-  cat "./$dynlist" | while read name rest; do
-    chmod -R u-w "./$name" 2>/dev/null
-  done
-EOSCR
-    else
-      echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
-    fi
-  done
-fi
-  
-echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo 'fi' >> $LRMS_JOB_SCRIPT
-echo "" >> $LRMS_JOB_SCRIPT
+#  Clean up output files li local scratchdir
+####################################################
+clean_local_scratch_dir_output
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
-# !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
 ##############################################################
 move_files_to_frontend
 

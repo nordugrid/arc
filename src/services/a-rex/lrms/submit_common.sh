@@ -425,6 +425,60 @@ move_files_to_node () {
 EOSCR
 }
 
+
+##############################################################
+# Clean up output files in the local scratch dir
+##############################################################
+clean_local_scratch_dir_output () {
+  # "moveup" parameter will trigger output files moving to one level up
+  if [ "x$1" = "xmoveup" ]; then
+	  move_files_up=1
+  fi
+  # There is no sense to keep trash till GM runs uploader
+  echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
+  # Delete all files except listed in job.#.output
+  echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  
+  if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
+    cat "$joboption_controldir/job.$joboption_gridid.output" | \
+    # remove leading backslashes, if any
+    sed 's/^\/*//' | \
+    # backslashes and spaces are escaped with a backslash in job.*.output. The
+    # shell built-in read undoes this escaping.
+    while read name rest; do
+  
+      # make it safe for shell by replacing single quotes with '\''
+      name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
+  
+      # protect from deleting output files including those in the dynamic list
+      if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
+  
+        dynlist=${name#@}
+        echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
+        cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+  chmod -R u-w "./$dynlist" 2>/dev/null
+  cat "./$dynlist" | while read name rest; do
+    chmod -R u-w "./$name" 2>/dev/null
+  done
+EOSCR
+      else
+        echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
+        if [ -n "$move_files_up" -a -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+           echo "  mv \"\$RUNTIME_JOB_DIR\"/'$name' ../." >> $LRMS_JOB_SCRIPT
+        fi
+      fi
+    done
+  fi
+  
+  echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo 'fi' >> $LRMS_JOB_SCRIPT
+  echo "" >> $LRMS_JOB_SCRIPT
+}
+
 ##############################################################
 # move files back to frontend
 ##############################################################
@@ -439,7 +493,8 @@ move_files_to_frontend () {
         echo "Failed to move '$RUNTIME_NODE_JOB_DIR' to '$destdir'" 1>&2
         RESULT=1
       fi
-    else
+
+else
       # remove links
       rm -f "$RUNTIME_JOB_STDOUT" 2>/dev/null
       rm -f "$RUNTIME_JOB_STDERR" 2>/dev/null
