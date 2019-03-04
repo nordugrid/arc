@@ -1596,7 +1596,7 @@
 ## sets the number of days to keep the usage record files in the accounting database
 ## If not specified the files are kept forever.
 ## default: undefined
-##archivettl=365
+#archivettl=365
 ## CHANGE: new parameter. new feature to implement!
 ##
 ##
