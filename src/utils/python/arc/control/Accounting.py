@@ -62,6 +62,8 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
         # archive manager
         accounting_db_dir = arcconfig.get_value('dbdir', 'arex/jura/archiving')
+        if accounting_db_dir is None:
+            accounting_db_dir = archive_dir
         self.archive = JuraArchive(archive_dir, accounting_db_dir)
         # logs
         self.logfile = arcconfig.get_value('logfile', 'arex/jura')

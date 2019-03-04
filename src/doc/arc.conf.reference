@@ -1572,8 +1572,7 @@
 ## 
 ## Stored records are than processed by accounting archive manager
 ## that process the records, store data into SQLite accounting database, 
-## move record files to date-defined location in "dbdir" and
-## maintains the accounting database aging.
+## create new archive structure and maintains the accounting database aging.
 ##
 ## By default the archiving is turned off.
 #[arex/jura/archiving]
@@ -1588,51 +1587,17 @@
 #archivedir=/var/spool/arc/jura/archive
 ## CHANGE: NEW
 
-## dbdir = path - Sets the directory path for accounting database. 
-## Accounting statistics stored in SQLite database and sorted by date usage
-## records are maintained in this directore by accounting archive manager.
-## default: $VAR{archivedir}
-#dbdir=/var/spool/arc/accountingdb
-## CHANGE: NEW
-
 ## logfile = path - The name of the accounting database manager logfile.
 ## default: /var/log/arc/jura-archive-manager.log
 #logfile=/var/log/arc/jura-archive-manager.log
 ## CHANGE: NEW
 
-## loglevel = number - Log level for the accounting database manager.
-## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
-## default: 3
-#loglevel=3
-## CHANGE: NEW
-
-## batchsize = number - Number of archived records to process in one chunk by the
-## accounting database manager. Each run of manager have as many processing cycles
-## (one per "batchsize" records) as needed to process all records in the JURA archive.
-## default: 100
-#batchsize=1000
-## CHANGE: NEW
-
-## manage_frequency = seconds - Specifies the frequency of archiveed records 
-## processing: how often the accounting archive manager is started by A-REX
-## default: 3600
-#manage_frequency=3600
-## CHANGE: NEW
-
-## recordsttl = days - The records time to live (ttl) parameter
+## archivettl = days - The records time to live (ttl) parameter
 ## sets the number of days to keep the usage record files in the accounting database
 ## If not specified the files are kept forever.
-## NOTE that this DOES NOT trigger cleanup data of data stored in SQLite
 ## default: undefined
-#recordsttl=90
+##archivettl=365
 ## CHANGE: new parameter. new feature to implement!
-
-## dbttl = days - The database time to live (ttl) parameter
-## sets the number of days to keep the accounting data in the SQLite database
-## If not specified the data is kept forever.
-## default: undefined
-#dbttl=365
-## CHANGE: NEW
 ##
 ##
 ### end of the [arex/jura/archiving] block ########################

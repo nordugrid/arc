@@ -43,7 +43,9 @@ if __name__ == '__main__':
     config.load_run_config(cmd_args.config)
 
     # Set loglevel in accordance to config
-    loglevel = config.get_value('loglevel', 'arex/jura/archiving')
+    loglevel = config.get_value('loglevel', 'arex/jura/archive')
+    if loglevel is None:
+        loglevel = config.get_value('loglevel', 'arex/jura')
     if loglevel is not None:
         loglevel = int(loglevel)
         if loglevel > 5:
@@ -59,6 +61,8 @@ if __name__ == '__main__':
     # Init archive management
     archive_dir = config.get_value('archivedir', 'arex/jura/archiving')
     db_dir = config.get_value('dbdir', 'arex/jura/archiving')
+    if db_dir is None:
+        db_dir = archive_dir
     am = JuraArchive.JuraArchive(archive_dir, db_dir)
 
     # Process records in Jura archive
@@ -68,7 +72,7 @@ if __name__ == '__main__':
     am.process_records(batch_size)
 
     # Do cleanup
-    records_ttl = config.get_value('recordsttl', 'arex/jura/archiving')
+    records_ttl = config.get_value('archivettl', 'arex/jura/archiving')
     if records_ttl is not None:
         enddate = datetime.date.today() - datetime.timedelta(days=int(records_ttl))
         am.remove_records(enddate)

@@ -90,6 +90,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   std::string accounting_archive_manager;
   bool helper_log_is_set = false;
   bool job_log_log_is_set = false;
+  bool archive_manage_log_is_set = false;
   bool ws_enabled = false;
   Arc::ConfigIni cf(cfile);
   cf.SetSectionIndicator(".");
@@ -471,8 +472,12 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             if (logfile.empty()) {
               logger.msg(Arc::ERROR, "Missing file name in [arex/jura] logfile"); return false;
             };
-            job_log_log_is_set = true;
             config.job_log->SetReporterLogFile(logfile.c_str());
+            // default for archive management is to use the same logpath as jura
+            std::string archive_manager_logfile = logfile.substr(0, logfile.size() - 4) + "-archive-manager.log";
+            config.job_log->SetArchiveManagerLogFile(archive_manager_logfile.c_str());
+            job_log_log_is_set = true;
+            archive_manage_log_is_set = true;
           };
         }
         else if (command == "urdelivery_frequency") {
@@ -483,6 +488,8 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
               logger.msg(Arc::ERROR, "Wrong number in urdelivery_frequency: %s", period_s); return false;
             }
             config.job_log->SetReporterPeriod(period);
+            // default for archive management is to use the same period as jura
+            config.job_log->SetArchiveManagerPeriod(period);
           }
         }
         else if (command == "x509_host_key") {
@@ -517,6 +524,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
               logger.msg(Arc::ERROR, "Missing file name in [arex/jura/archive] logfile"); return false;
             }
             config.job_log->SetArchiveManagerLogFile(logfile.c_str());
+            archive_manage_log_is_set = true;
           }
         }
         else if (command == "manage_frequency") {
@@ -624,6 +632,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
       if(!job_log_log_is_set) config.job_log->SetReporterLogFile("/var/log/arc/jura.log");
       if(!accounting_archive_manager.empty()) {
         config.job_log->SetArchiveManager(accounting_archive_manager.c_str());
+        if(!archive_manage_log_is_set) config.job_log->SetArchiveManagerLogFile("/var/log/arc/jura-archive-manager.log");
       }
     }
   }
