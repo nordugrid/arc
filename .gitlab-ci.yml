@@ -3,10 +3,10 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
+  - static_ana
   - build
   - packages
   - deploy_and_test
-  - static_ana
 
 
 fork_packages_el6:
