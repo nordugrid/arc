@@ -438,8 +438,7 @@ clean_local_scratch_dir_output () {
   echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
   # Delete all files except listed in job.#.output
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  chmod -R u+w "./"' >> $LRMS_JOB_SCRIPT
   
   if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
     cat "$joboption_controldir/job.$joboption_gridid.output" | \
@@ -473,8 +472,7 @@ EOSCR
   fi
   
   echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-  echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-  echo '  find ./ -type d -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+  echo '  chmod -R u+w "./"' >> $LRMS_JOB_SCRIPT
   echo 'fi' >> $LRMS_JOB_SCRIPT
   echo "" >> $LRMS_JOB_SCRIPT
 }
