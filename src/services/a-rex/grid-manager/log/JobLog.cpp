@@ -116,19 +116,21 @@ bool JobLog::RunReporter(const GMConfig &config) {
     delete reporter_proc;
     reporter_proc=NULL;
   };
-  if(time(NULL) < (reporter_last_run+reporter_period)) return true; // default: once per hour
-  reporter_last_run=time(NULL);
+  // Check tool exits
   if (reporter_tool.empty()) {
     logger.msg(Arc::ERROR,": Accounting records reporter tool is not specified");
     return false;
   }
-  // Prevent concurrent run
+  // Prevent concurrent run (including publisher run)
   if(running_tools.get()) {
     return true; // other tool is running
   } else {
     running_tools.inc();
   }
-  // Reporter is tun with only argument - configuration file.
+  // Record the start time
+  if(time(NULL) < (reporter_last_run+reporter_period)) return true; // default: once per hour
+  reporter_last_run=time(NULL);
+  // Reporter is run with only argument - configuration file.
   // It is supposed to parse that configuration file to obtain other parameters.
   std::list<std::string> argv;
   argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+reporter_tool);
@@ -181,18 +183,20 @@ bool JobLog::RunArchiveManager(const GMConfig &config) {
     delete archive_mgmt_proc;
     archive_mgmt_proc=NULL;
   };
-  if(time(NULL) < (archive_mgmt_last_run+archive_mgmt_period)) return true; // default: once per hour
-  archive_mgmt_last_run=time(NULL);
+  // Check tool exists
   if (archive_mgmt_tool.empty()) {
     logger.msg(Arc::ERROR,": Accounting archive management tool is not specified");
     return false;
   }
-  // Prevent concurrent run
+  // Prevent concurrent run (including publisher run)
   if(running_tools.get()) {
     return true; // other tool is running
   } else {
     running_tools.inc();
   }
+  // Record the start time
+  if(time(NULL) < (archive_mgmt_last_run+archive_mgmt_period)) return true; // default: once per hour
+  archive_mgmt_last_run=time(NULL);
   // Pass only runtime config to archive manager
   std::list<std::string> argv;
   argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+archive_mgmt_tool);
