@@ -28,6 +28,15 @@ class TestCAControl(ComponentControl):
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
     __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
+    def __define_CA_ID(self, caid=None):
+        """Internal function to define CA ID and file paths"""
+        if caid is None:
+            # CRC32 hostname-based hash used by default
+            caid = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
+        self.caName = 'ARC TestCA {0}'.format(caid)
+        self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
+        self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
+
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
         self.x509_cert_dir = '/etc/grid-security/certificates'
@@ -62,11 +71,8 @@ class TestCAControl(ComponentControl):
             self.logger.error('Hostname %s is longer that 64 characters and does not fit to X509 subject limit.')
             sys.exit(1)
 
-        # define CA name and location
-        crc32_ca_id = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
-        self.caName = 'ARC TestCA {0}'.format(crc32_ca_id)
-        self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
-        self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
+        # define CA name and paths
+        self.__define_CA_ID()
 
     def createca(self, args):
         # CA certificates dir
@@ -98,7 +104,32 @@ class TestCAControl(ComponentControl):
         hostname = self.hostname if args.hostname is None else args.hostname
         hostcertfiles = cg.generateHostCertificate(hostname, ca=ca, validityperiod=args.validity,
                                                    messagedigest=args.digest)
-        if args.hostname is not None:
+        if args.export_tar:
+            workdir = os.getcwd()
+            tarball = 'hostcert-{0}.tar.gz'.format(hostname)
+            exportdir = tempfile.mkdtemp()
+            certdir = exportdir + '/certificates'
+            os.mkdir(certdir)
+            # move generated certs
+            shutil.move(hostcertfiles.certLocation, exportdir + '/hostcert.pem')
+            shutil.move(hostcertfiles.keyLocation, exportdir + '/hostkey.pem')
+            # copy TestCA files
+            cafiles = cg.getCAfiles(self.caName, self.x509_cert_dir)
+            for cafile in cafiles['files']:
+                if cafile.endswith('.srl') or cafile == self.caKey:
+                    continue
+                shutil.copy2(cafile, certdir)
+            os.chdir(certdir)
+            for cafile, linkto in cafiles['links']:
+                os.symlink(linkto, cafile.replace(self.x509_cert_dir.rstrip('/') + '/', ''))
+            os.chdir(exportdir)
+            # create tarball
+            with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
+                tarf.add('.')
+            # cleanup
+            os.chdir(workdir)
+            shutil.rmtree(exportdir)
+        elif args.hostname is not None:
             workdir = os.getcwd()
             certfname = hostcertfiles.certLocation.split('/')[-1]
             keyfname = hostcertfiles.keyLocation.split('/')[-1]
@@ -225,6 +256,10 @@ class TestCAControl(ComponentControl):
                 sys.exit(1)
 
     def control(self, args):
+        # define CA ID if provided
+        if args.ca_id is not None:
+            self.__define_CA_ID(args.ca_id)
+        # parse actions
         if args.action == 'init':
             self.createca(args)
         elif args.action == 'cleanup':
@@ -242,6 +277,9 @@ class TestCAControl(ComponentControl):
         testca_ctl = root_parser.add_parser('test-ca', help='ARC Test CA control')
         testca_ctl.set_defaults(handler_class=TestCAControl)
 
+        testca_ctl.add_argument('--ca-id', action='store',
+                                help='Define CA ID to work with (default is to use hostname-based hash)')
+
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
 
@@ -256,6 +294,8 @@ class TestCAControl(ComponentControl):
         testca_host.add_argument('-n', '--hostname', action='store',
                                  help='Generate certificate for specified hostname instead of this host')
         testca_host.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+        testca_host.add_argument('-t', '--export-tar', action='store_true',
+                                 help='Export tar archive to use from another host')
 
         testca_user = testca_actions.add_parser('usercert', help='Generate and sign testing user certificate')
         add_parser_digest_validity(testca_user, 30)

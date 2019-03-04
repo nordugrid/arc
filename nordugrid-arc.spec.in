@@ -811,6 +811,13 @@ Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{py3default}
+Requires:   python3-dns
+Requires:   python3-ldap
+%else
+Requires:   python-dns
+Requires:   python-ldap
+%endif
 
 %description archery-manage
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1288,11 +1295,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %endif
+%{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
 %{_datadir}/%{pkgdir}/rte/ENV/LRMS-SCRATCH
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
+%{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf

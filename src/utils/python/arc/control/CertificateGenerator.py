@@ -43,24 +43,35 @@ class CertificateGenerator(object):
             logger.error("The message digest \"%s\" is not supported", messagedigest)
             sys.exit(1)
 
-    def cleanupCAfiles(self, name="Test CA"):
+    def getCAfiles(self, name="Test CA", work_dir=None):
+        cafiles = {'links': [], 'files': []}
+        if work_dir is None:
+            work_dir = self.work_dir
         namelen = len(name)
         dashname = name.replace(" ", "-")
-        # remove the links first
-        for fname in os.listdir(self.work_dir):
-            fpath = os.path.join(self.work_dir, fname)
+        # get the symlinks pointing to CA files
+        for fname in os.listdir(work_dir):
+            fpath = os.path.join(work_dir, fname)
             if os.path.islink(fpath):
-                linkto = os.readlink(fpath).replace(self.work_dir.rstrip('/') + '/', '')
+                linkto = os.readlink(fpath).replace(work_dir.rstrip('/') + '/', '')
                 if linkto[0:namelen] == dashname:
-                    logger.debug('Removing the CA link: %s -> %s', fname, linkto)
-                    os.unlink(fpath)
-        # remove the files itself
-        for fname in os.listdir(self.work_dir):
-            fpath = os.path.join(self.work_dir, fname)
+                    cafiles['links'].append((fpath, linkto))
+        # ca files itself
+        for fname in os.listdir(work_dir):
+            fpath = os.path.join(work_dir, fname)
             if os.path.isfile(fpath):
                 if fname[0:namelen] == dashname:
-                    logger.debug('Removing the CA file: %s', fname)
-                    os.unlink(fpath)
+                    cafiles['files'].append(fpath)
+        return cafiles
+
+    def cleanupCAfiles(self, name="Test CA"):
+        cafiles = self.getCAfiles(name)
+        for (fpath, linkto) in cafiles['links']:
+            logger.debug('Removing the CA link: %s -> %s', fpath, linkto)
+            os.unlink(fpath)
+        for fpath in cafiles['files']:
+            logger.debug('Removing the CA file: %s', fpath)
+            os.unlink(fpath)
 
     def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):
         if not isinstance(validityperiod, (int, long)):

@@ -2454,6 +2454,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/rte/Makefile
                  src/services/a-rex/rte/ENV/PROXY
+                 src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
                  src/services/acix/cacheserver/Makefile

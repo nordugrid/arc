@@ -281,7 +281,7 @@ Description: ARC test tools
 
 Package: nordugrid-arc-archery-manage
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}
+Depends: ${misc:Depends}, ${python:Depends}, python-ldap, python-dns
 Description: Archery administration
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
