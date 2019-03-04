@@ -23,13 +23,14 @@ class JobLog {
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
   std::string ca_certificates_dir;
-  // reporter vars
+  Arc::SimpleCounter running_tools;
+  // reporter tool vars
   std::string reporter_tool;
   std::string reporter_logfile;
   Arc::Run *reporter_proc;
   time_t reporter_last_run;
   int reporter_period;
-  // archive manager vars
+  // archive manager tool vars
   std::string archive_mgmt_tool;
   std::string archive_mgmt_logfile;
   Arc::Run *archive_mgmt_proc;

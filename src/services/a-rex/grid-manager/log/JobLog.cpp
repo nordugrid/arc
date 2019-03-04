@@ -112,6 +112,7 @@ bool JobLog::WriteFinishInfo(GMJob &job,const GMConfig &config) {
 bool JobLog::RunReporter(const GMConfig &config) {
   if(reporter_proc != NULL) {
     if(reporter_proc->Running()) return true; /* running */
+    running_tools.dec();
     delete reporter_proc;
     reporter_proc=NULL;
   };
@@ -121,6 +122,12 @@ bool JobLog::RunReporter(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Accounting records reporter tool is not specified");
     return false;
   }
+  // Prevent concurrent run
+  if(running_tools.get()) {
+    return true; // other tool is running
+  } else {
+    running_tools.inc();
+  }
   // Reporter is tun with only argument - configuration file.
   // It is supposed to parse that configuration file to obtain other parameters.
   std::list<std::string> argv;
@@ -129,6 +136,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   argv.push_back(config.ConfigFile());
   reporter_proc = new Arc::Run(argv);
   if((!reporter_proc) || (!(*reporter_proc))) {
+    running_tools.dec();
     delete reporter_proc;
     reporter_proc = NULL;
     logger.msg(Arc::ERROR,": Failure creating slot for accounting reporter child process");
@@ -142,6 +150,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", argv.front());
   if(!reporter_proc->Start()) {
+    running_tools.dec();
     delete reporter_proc;
     reporter_proc = NULL;
     logger.msg(Arc::ERROR,": Failure starting accounting reporter child process");
@@ -168,6 +177,7 @@ bool JobLog::SetReporterLogFile(const char* fname) {
 bool JobLog::RunArchiveManager(const GMConfig &config) {
   if(archive_mgmt_proc != NULL) {
     if(archive_mgmt_proc->Running()) return true; /* running */
+    running_tools.dec();
     delete archive_mgmt_proc;
     archive_mgmt_proc=NULL;
   };
@@ -177,6 +187,12 @@ bool JobLog::RunArchiveManager(const GMConfig &config) {
     logger.msg(Arc::ERROR,": Accounting archive management tool is not specified");
     return false;
   }
+  // Prevent concurrent run
+  if(running_tools.get()) {
+    return true; // other tool is running
+  } else {
+    running_tools.inc();
+  }
   // Pass only runtime config to archive manager
   std::list<std::string> argv;
   argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+archive_mgmt_tool);
@@ -184,6 +200,7 @@ bool JobLog::RunArchiveManager(const GMConfig &config) {
   argv.push_back(config.ConfigFile());
   archive_mgmt_proc = new Arc::Run(argv);
   if((!archive_mgmt_proc) || (!(*archive_mgmt_proc))) {
+    running_tools.dec();
     delete archive_mgmt_proc;
     archive_mgmt_proc = NULL;
     logger.msg(Arc::ERROR,": Failure creating slot for accounting archive manager child process");
@@ -198,6 +215,7 @@ bool JobLog::RunArchiveManager(const GMConfig &config) {
   archive_mgmt_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", argv.front());
   if(!archive_mgmt_proc->Start()) {
+    running_tools.dec();
     delete archive_mgmt_proc;
     archive_mgmt_proc = NULL;
     logger.msg(Arc::ERROR,": Failure starting accounting archive manager child process");
