@@ -83,7 +83,7 @@ class JuraArchive(object):
         # extract common info
         arinfo = {
             'JobID': ardict['JobIdentity'][0]['GlobalJobId'][0],
-            'JobName': ardict['JobName'][0],
+            'JobName': 'N/A',
             'Owner': 'N/A',
             'OwnerVO': 'N/A',
             'StartTime': isodate.parse_datetime(ardict['StartTime'][0]).replace(tzinfo=None),
@@ -93,6 +93,8 @@ class JuraArchive(object):
             'Processors': 0,
         }
         # extract optional common info (possibly missing)
+        if 'JobName' in ardict:
+            arinfo['JobName'] = ardict['JobName'][0]
         if 'Processors' in ardict:
             arinfo['Processors'] = ardict['Processors'][0]
         if 'WallDuration' in ardict:
