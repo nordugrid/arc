@@ -23,7 +23,6 @@ class JobLog {
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
   std::string ca_certificates_dir;
-  Arc::SimpleCounter running_tools;
   // reporter tool vars
   std::string reporter_tool;
   std::string reporter_logfile;
