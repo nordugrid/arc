@@ -463,9 +463,9 @@ clean_local_scratch_dir_output () {
   done
 EOSCR
       else
-        echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
+        printf "%s\n" "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
         if [ -n "$move_files_up" -a -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-           echo "  mv \"\$RUNTIME_JOB_DIR\"/'$name' ../." >> $LRMS_JOB_SCRIPT
+           printf "%s\n" "  mv \"\$RUNTIME_JOB_DIR\"/'$name' ../." >> $LRMS_JOB_SCRIPT
         fi
       fi
     done
