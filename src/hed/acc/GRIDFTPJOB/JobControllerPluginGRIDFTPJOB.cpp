@@ -19,10 +19,6 @@
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
 
-#ifdef WIN32
-#include <fcntl.h>
-#endif
-
 #include "JobStateGRIDFTPJOB.h"
 #include "JobControllerPluginGRIDFTPJOB.h"
 #include "FTPControl.h"

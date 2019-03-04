@@ -2,12 +2,8 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include <glibmm/miscutils.h>
-#else
 #include <pwd.h>
 #include <unistd.h>
-#endif
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -28,15 +24,6 @@ public:
 
 void UserTest::OwnUserTest() {
 
-#ifdef WIN32
-  // uid/gid not implemented in win32 version of User
-  int uid = 0;
-  int gid = 0;
-  bool found;
-  std::string username = Glib::getenv("USERNAME", found);
-  CPPUNIT_ASSERT(found);
-  std::string home = g_get_user_config_dir();
-#else
   uid_t uid_ = getuid();
   // My username
   struct passwd pwd;
@@ -48,7 +35,6 @@ void UserTest::OwnUserTest() {
   std::string username = pwd_p->pw_name;
   std::string home = Arc::GetEnv("HOME");
   if (home.empty()) pwd_p->pw_dir;
-#endif
 
   // User using this user's uid
   Arc::User user;

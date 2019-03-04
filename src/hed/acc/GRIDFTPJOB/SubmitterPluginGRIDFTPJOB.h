@@ -3,10 +3,6 @@
 #ifndef __ARC_SUBMITTERPLUGINGRIDFTPJOB_H__
 #define __ARC_SUBMITTERPLUGINGRIDFTPJOB_H__
 
-#ifdef WIN32
-#include <fcntl.h>
-#endif
-
 #include <arc/compute/SubmitterPlugin.h>
 
 namespace Arc {

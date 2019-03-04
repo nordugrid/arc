@@ -5,26 +5,13 @@ noinst_PROGRAMS = perftest_saml2sso perftest_slcs \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize \
 	perftest_samlaa
 else 
-if WIN32
-bin_PROGRAMS = arcperftest
-noinst_PROGRAMS = \
-	perftest_deleg_bysechandler perftest_deleg_bydelegclient
-else
 bin_PROGRAMS = arcperftest
 noinst_PROGRAMS = \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize
 endif
-endif
 
 man_MANS = arcperftest.1
-
-if WIN32
-# On WIN32 the win32.h header file is needed.
-include_arc_headers_win32 = -I$(top_srcdir)/include
-else
-include_arc_headers_win32 = 
-endif
 
 arcperftest_SOURCES = perftest.cpp
 arcperftest_CXXFLAGS = -I$(top_srcdir)/include \
@@ -107,13 +94,13 @@ perftest_deleg_bydelegclient_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_duration_SOURCES = perftest_cmd_duration.cpp
-perftest_cmd_duration_CXXFLAGS = $(include_arc_headers_win32) \
+perftest_cmd_duration_CXXFLAGS = \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_cmd_duration_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_times_SOURCES = perftest_cmd_times.cpp
-perftest_cmd_times_CXXFLAGS = $(include_arc_headers_win32) \
+perftest_cmd_times_CXXFLAGS = \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 perftest_cmd_times_LDADD = \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

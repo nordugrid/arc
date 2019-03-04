@@ -59,10 +59,8 @@ void RunTest::TestRun0() {
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));
   CPPUNIT_ASSERT_EQUAL(0, run.Result());
-#ifndef WIN32
   CPPUNIT_ASSERT_EQUAL(std::string("STDOUT"), outstr);
   CPPUNIT_ASSERT_EQUAL(std::string("STDERR"), errstr);
-#endif
 }
 
 void RunTest::TestRun255() {

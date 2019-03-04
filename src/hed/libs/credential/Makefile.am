@@ -1,13 +1,8 @@
 lib_LTLIBRARIES = libarccredential.la
 #noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
-#if WIN32
-#VOMS_HEADER =
-#VOMS_SOURCE =
-#else
 VOMS_HEADER = VOMSUtil.h VOMSConfig.h
 VOMS_SOURCE = VOMSUtil.cpp VOMSConfig.cpp
-#endif
 
 if NSS_ENABLED
 NSS_HEADER = NSSUtil.h nssprivkeyinfocodec.h

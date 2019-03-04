@@ -6,9 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifndef WIN32 
 #include <sys/mman.h>
-#endif
 #include <iostream>
 #include <arc/FileUtils.h>
 #include "PayloadFile.h"
@@ -45,14 +43,10 @@ void PayloadFile::SetRead(int h,Size_t start,Size_t end) {
     return;
   }
 
-#ifndef WIN32 
   if(size_ > 0) {
     addr_=(char*)mmap(NULL,size_,PROT_READ,MAP_SHARED,handle_,0);
     if(addr_ == (char*)MAP_FAILED) goto error;
   }
-#else 
-  goto error;
-#endif
 
   return;
 error:
@@ -63,11 +57,7 @@ error:
 }
 
 PayloadFile::~PayloadFile(void) {
-
-#ifndef WIN32 
   if(addr_ != (char*)MAP_FAILED) munmap(addr_,size_);
-#endif
-
   if(handle_ != -1) ::close(handle_);
   handle_=-1; size_=0; addr_=(char*)MAP_FAILED;
   return;
@@ -239,7 +229,6 @@ Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::
 }
 
 Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {
-#ifndef WIN32 
   struct stat st;
   if(fstat(h,&st) != 0) return NULL;
   if(st.st_size > PayloadBigFile::Threshold()) {
@@ -250,11 +239,6 @@ Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start,Ar
   PayloadFile* f = new PayloadFile(h,start,end);
   if(!*f) { delete f; return NULL; };
   return f;
-#else
-  PayloadBigFile* f = new PayloadBigFile(h,start,end);
-  if(!*f) { delete f; return NULL; };
-  return f;
-#endif
 }
 
 Arc::MessagePayload* newFileRead(Arc::FileAccess* h,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {

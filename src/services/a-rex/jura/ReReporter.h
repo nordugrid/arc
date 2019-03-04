@@ -8,10 +8,6 @@
 
 #include <arc/Logger.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "Reporter.h"
 #include "Destination.h"
 

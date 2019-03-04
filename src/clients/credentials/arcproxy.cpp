@@ -38,11 +38,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   // The profiles.ini could exist under firefox, seamonkey and thunderbird
   std::vector<std::string> profiles_homes;
 
-#ifndef WIN32
   std::string home_path = user.Home();
-#else
-  std::string home_path = Glib::get_home_dir();
-#endif
 
   std::string profiles_home;
 
@@ -55,28 +51,6 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
 
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
-
-#elif defined(WIN32)
-  //Windows Vista and Win7
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
-  //WinXP and Win2000
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);    
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
 #else //Linux
   profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
   profiles_homes.push_back(profiles_home);
@@ -1252,14 +1226,12 @@ static int runmain(int argc, char *argv[]) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
     }
-#ifndef WIN32
     EVP_PKEY* pkey = signer.GetPrivKey();
     if(!pkey) {
       std::cerr << Arc::IString("Proxy generation failed: No valid private key found.") << std::endl;
       return EXIT_FAILURE;
     }
     if(pkey) EVP_PKEY_free(pkey);
-#endif
     std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;

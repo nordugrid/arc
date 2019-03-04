@@ -5,17 +5,12 @@
 #endif
 
 #include <string>
-#ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
-
-#else // WIN32
-#include <glibmm/miscutils.h>
-#endif
 
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
@@ -28,7 +23,6 @@ int UserSwitch::suid_count = 0;
 int UserSwitch::suid_uid_orig = -1;
 int UserSwitch::suid_gid_orig = -1;
 
-#ifndef WIN32
   static uid_t get_user_id(void) {
     uid_t user_id = getuid();
     if (user_id != 0)
@@ -171,102 +165,6 @@ int UserSwitch::suid_gid_orig = -1;
     return true;
   }
 
-#else
-  // Win32 implementation
-
-  static uid_t get_user_id(void) {
-    return 0; // TODO: The user id is not used on windows for file permissions etc.
-  }
-
-  static uid_t get_group_id(void) {
-    return 0; // TODO: The user id is not used on windows for file permissions etc.
-  }
-
-  bool User::set(const struct passwd *pwd_p) {
-    if (pwd_p == NULL)
-      return false;
-    name = pwd_p->pw_name;
-    home = pwd_p->pw_dir;
-    uid = pwd_p->pw_uid;
-    gid = pwd_p->pw_gid;
-    return true;
-  }
-
-  User::User(void): valid(false) {
-    int uid = get_user_id();
-    int gid = get_group_id();
-    bool found;
-
-    struct passwd pwd_p;
-
-    std::string name = Glib::getenv("USERNAME", found);
-    if (!found)
-      name = "";
-    std::string home = g_get_user_config_dir();
-
-    pwd_p.pw_name = const_cast<char*>(name.c_str());
-    pwd_p.pw_uid = uid;
-    pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = const_cast<char*>(home.c_str());
-
-    set(&pwd_p);
-    valid = true;
-  }
-
-  User::User(const std::string& name, const std::string& group): valid(false) {
-    this->name = name;
-    int uid = get_user_id();
-    int gid = get_group_id();
-    // TODO: get gid from group
-
-    struct passwd pwd_p;
-
-    std::string home = g_get_user_config_dir();
-
-    pwd_p.pw_name = const_cast<char*>(name.c_str());
-    pwd_p.pw_uid = uid;
-    pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = const_cast<char*>(home.c_str());
-
-    set(&pwd_p);
-    valid = true;
-  }
-
-  User::User(int uid, int gid): valid(false) {
-    this->uid = uid;
-    this->gid = gid;
-    if (this->gid == -1) this->gid = 0;
-
-    bool found;
-
-    struct passwd pwd_p;
-
-    std::string name = Glib::getenv("USERNAME", found);
-    if (!found)
-      name = "";
-    std::string home = g_get_user_config_dir();
-
-    pwd_p.pw_name = const_cast<char*>(name.c_str());
-    pwd_p.pw_uid = uid;
-    pwd_p.pw_gid = gid;
-    pwd_p.pw_dir = const_cast<char*>(home.c_str());
-
-    set(&pwd_p);
-    valid = true;
-  }
-
-  int User::check_file_access(const std::string& path, int flags) const {
-    // XXX NOP
-    return 0;
-  }
-
-  bool User::SwitchUser() const {
-    // XXX NOP
-    return false;
-  }
-#endif
-
-#ifndef WIN32
   UserSwitch::UserSwitch(int uid,int gid):valid(false) {
     suid_lock.lock(); // locking while analyzing situation
     while(suid_count > 0) {
@@ -336,15 +234,5 @@ int UserSwitch::suid_gid_orig = -1;
   void UserSwitch::resetPostFork(void) {
     valid = false;
   }
-#else
-  UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
-  }
-
-  UserSwitch::~UserSwitch(void) {
-  }
-
-  void UserSwitch::resetPostFork(void) {
-  }
-#endif
 
 } // namespace Arc

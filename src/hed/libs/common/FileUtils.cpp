@@ -15,10 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <glibmm.h>
-#ifndef WIN32
 #include <poll.h>
 #include <sys/mman.h>
-#endif
 
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
@@ -116,7 +114,6 @@ bool FileCopy(int source_handle,int destination_handle) {
   off_t source_size = lseek(source_handle,0,SEEK_END);
   if(source_size == (off_t)(-1)) return false;
   if(source_size == 0) return true;
-#ifndef WIN32
   if(source_size <= FileCopyBigThreshold) {
     void* source_addr = mmap(NULL,source_size,PROT_READ,MAP_SHARED,source_handle,0);
     if(source_addr != MAP_FAILED) {
@@ -125,7 +122,6 @@ bool FileCopy(int source_handle,int destination_handle) {
       return r;
     }
   }
-#endif
   if(lseek(source_handle,0,SEEK_SET) != 0) return false;
   char* buf = new char[FileCopyBufSize];
   if(!buf) return false;
@@ -217,11 +213,7 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     if(!fa.fa_rename(tempfile, filename)) { errno = fa.geterrno(); fa.fa_unlink(tempfile); return false; }
     return true;
   }
-#ifndef WIN32
   if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
-#else
-  if(mode == 0) mode = S_IRUSR|S_IWUSR;
-#endif
   std::string tempfile = filename+".XXXXXX";
   int h = ::mkstemp(const_cast<char*>(tempfile.c_str()));
   if(h == -1) return false;

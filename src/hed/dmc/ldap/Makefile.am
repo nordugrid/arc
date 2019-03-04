@@ -5,11 +5,7 @@ libdmcldap_la_SOURCES = DataPointLDAP.cpp LDAPQuery.cpp \
 libdmcldap_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 
-if WIN32
-THR_LIBS =
-else
 THR_LIBS = -lpthread
-endif
 
 libdmcldap_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \

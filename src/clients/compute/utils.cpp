@@ -14,8 +14,6 @@
 
 #include "utils.h"
 
-#ifndef WIN32
-
 #include <unistd.h>
 #include <termios.h>
 
@@ -30,14 +28,6 @@ ConsoleRecovery::~ConsoleRecovery(void) {
   if(ti) tcsetattr(STDIN_FILENO, TCSANOW, ti);
   delete ti;
 }
-
-#else
-
-ConsoleRecovery::ConsoleRecovery(void) { ti=NULL; }
-
-ConsoleRecovery::~ConsoleRecovery(void) { }
-
-#endif
 
 std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);

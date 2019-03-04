@@ -1145,14 +1145,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       return NULL;
     }
 
-#ifndef WIN32
-
     // TODO: ASN1_OCTET_STRING_free is not working correctly
     //      on Windows Vista, bugreport: 1587
 
     if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
 
-#endif
     if(ext_obj) ASN1_OBJECT_free(ext_obj);
 
     return ext;

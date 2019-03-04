@@ -18,9 +18,6 @@
 #include <time.h>
 #include <sstream>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 #include <arc/Logger.h>
 #include <arc/Utils.h>
 

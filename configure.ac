@@ -2177,9 +2177,6 @@ AC_SUBST(DATER)
 SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
 
-AH_BOTTOM([#ifdef WIN32
-#include <arc/win32.h>
-#endif])
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/external/Makefile
@@ -2229,7 +2226,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
                  src/hed/daemon/unix/Makefile
-                 src/hed/daemon/win32/Makefile
                  src/hed/mcc/Makefile
                  src/hed/mcc/soap/Makefile
                  src/hed/mcc/tcp/Makefile

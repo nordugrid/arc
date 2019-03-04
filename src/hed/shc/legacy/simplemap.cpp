@@ -29,13 +29,10 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"SimpleMap");
 class FileLock {
  private:
   int h_;
-#ifndef WIN32
   struct flock l_;
-#endif
  public:
   FileLock(int h):h_(h) {
     if(h_ == -1) return;
-#ifndef WIN32
     l_.l_type=F_WRLCK;
     l_.l_whence=SEEK_SET;
     l_.l_start=0;
@@ -44,14 +41,11 @@ class FileLock {
       if(fcntl(h_,F_SETLKW,&l_) == 0) break;
       if(errno != EINTR) { h_=-1; return; };
     };
-#endif
   };
   ~FileLock(void) {
     if(h_ == -1) return;
-#ifndef WIN32
     l_.l_type=F_UNLCK;
     fcntl(h_,F_SETLKW,&l_);
-#endif
   };
   operator bool(void) { return (h_ != -1); };
   bool operator!(void) { return (h_ == -1); };

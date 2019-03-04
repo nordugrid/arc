@@ -13,9 +13,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/Thread.h>
 
-#ifndef WIN32
 #include <dlfcn.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,10 +79,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     if(!srvarg) return NULL;
     Arc::ChainContext* ctx = (Arc::ChainContext*)(*srvarg);
 
-#ifndef WIN32
     // ((Arc::PluginsFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
     ::dlopen(((Arc::PluginsFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
-#endif
 
     service_lock.lock();
     // Initialize the Python Interpreter

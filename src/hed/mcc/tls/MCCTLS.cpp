@@ -3,12 +3,8 @@
 #endif
 
 #include <sys/types.h>
-#ifndef WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#else
-#define NOGDI
-#endif
 
 #include <iostream>
 #include <fstream>

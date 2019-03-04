@@ -6,13 +6,8 @@
 
 #include <utime.h>
 #include <sys/stat.h>
-#ifndef WIN32
 #include <sys/utsname.h>
-#endif
 #include <unistd.h>
-#ifdef WIN32
-#include <Winsock2.h> // for gethostname()
-#endif
 
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
@@ -81,7 +76,6 @@ void FileLockTest::TestFileLockAcquire() {
   bool lock_removed = false;
   struct utimbuf times;
   time_t t = 1;
-#ifndef WIN32
   // set old modification time
   // utime does not work on windows - skip for windows
   times.actime = t;
@@ -93,7 +87,6 @@ void FileLockTest::TestFileLockAcquire() {
   // call acquire() again - should succeed and make new lock file
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
-#endif
 
   // look at modification time - should not be more than 1 second old
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat lock file " + lock_file, 0, stat(lock_file.c_str(), &fileStat));
@@ -113,14 +106,12 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(!lock.acquire(lock_removed));
   CPPUNIT_ASSERT(!lock_removed);
 
-#ifndef WIN32
   // try again with a non-existent pid
   // windows can't check for running pid - skip for windows
   _createFile(lock_file, "99999@" + host);
   lock_removed = false;
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
-#endif
 
   // badly formatted pid
   _createFile(lock_file, "abcd@" + host);
@@ -157,7 +148,6 @@ void FileLockTest::TestFileLockAcquire() {
   lock = Arc::FileLock(filename);
   CPPUNIT_ASSERT(!lock.acquire());
 
-#ifndef WIN32
   // set old modification time - acquire should now succeed
   // utime does not work on windows - skip for windows
   times.actime = t;
@@ -167,9 +157,7 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT_EQUAL(t, fileStat.st_mtime);
 
   CPPUNIT_ASSERT(lock.acquire());
-#endif
 
-#ifndef WIN32
   // create lock with empty hostname - acquire should still work
   // windows can't check for running pid - skip for windows
   lock = Arc::FileLock(filename);
@@ -177,7 +165,6 @@ void FileLockTest::TestFileLockAcquire() {
   lock_removed = false;
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
-#endif
 }
 
 void FileLockTest::TestFileLockRelease() {

@@ -6,10 +6,6 @@
 #include <list>
 #include <string>
 
-#ifdef WIN32
-#include <arc/win32.h> 
-#endif
-
 #ifdef USE_WIN32_LDAP_API
 #include <winldap.h>
 #else
