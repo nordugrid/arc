@@ -62,7 +62,7 @@ read -r -d '' job_script_patch <<'EOF'
 @@ -161,6 +161,19 @@
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 +  chmod -R u-w "$RUNTIME_JOB_DIR"/'testfile' 2>/dev/null
 +  dynlist='list_of_outputfiles_generated_by_job'
 +  chmod -R u-w "./$dynlist" 2>/dev/null
@@ -77,7 +77,7 @@ read -r -d '' job_script_patch <<'EOF'
 +  chmod -R u-w "$RUNTIME_JOB_DIR"/'another'\''tricky'\''file' 2>/dev/null
 +  chmod -R u-w "$RUNTIME_JOB_DIR"/'another\'\''tricky\'\''file' 2>/dev/null
    find ./ -type f -perm /200 -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
  fi
 EOF
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl

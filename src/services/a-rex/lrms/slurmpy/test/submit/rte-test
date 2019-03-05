@@ -65,7 +65,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
@@ -133,7 +133,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
@@ -205,7 +205,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
@@ -375,7 +375,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
@@ -459,7 +459,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
@@ -516,7 +516,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
@@ -624,7 +624,7 @@ read -r -d '' job_script_patch <<'EOF'
 +
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
-   find ./ -type f -exec chmod u+w "{}" ";"
+   chmod -R u+w "./"
 EOF
 
 echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
