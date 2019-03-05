@@ -24,16 +24,27 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600) {
+JobLog::JobLog(void):filename(""),reporter_proc(NULL),reporter_last_run(0),reporter_period(3600),
+                     archive_mgmt_proc(NULL),archive_mgmt_last_run(0),archive_mgmt_period(3600){
 }
 
 void JobLog::SetOutput(const char* fname) {
   filename=fname;
 }
 
-bool JobLog::SetPeriod(int new_period) {
+bool JobLog::SetReporterPeriod(int new_period) {
     if ( new_period < 3600 ) return false;
-    period=new_period;
+    reporter_period=new_period;
+    // it does not make sense to run archive manager faster than reporter
+    if (archive_mgmt_period < reporter_period ) {
+        archive_mgmt_period=reporter_period;
+    }
+    return true;
+}
+
+bool JobLog::SetArchiveManagerPeriod(int new_period) {
+    if ( new_period < reporter_period ) return false;
+    archive_mgmt_period=new_period;
     return true;
 }
 
@@ -99,53 +110,121 @@ bool JobLog::WriteFinishInfo(GMJob &job,const GMConfig &config) {
 } 
 
 bool JobLog::RunReporter(const GMConfig &config) {
-  if(proc != NULL) {
-    if(proc->Running()) return true; /* running */
-    delete proc;
-    proc=NULL;
+  if(reporter_proc != NULL) {
+    if(reporter_proc->Running()) return true; /* running */
+    delete reporter_proc;
+    reporter_proc=NULL;
   };
-  if(time(NULL) < (last_run+period)) return true; // default: once per hour
-  last_run=time(NULL);
-  if (logger_name.empty()) {
-    logger.msg(Arc::ERROR,": Logger name is not specified");
+  // Check tool exits
+  if (reporter_tool.empty()) {
+    logger.msg(Arc::ERROR,": Accounting records reporter tool is not specified");
     return false;
   }
-  // Reporter is tun with only argument - configuration file.
+  // Record the start time
+  if(time(NULL) < (reporter_last_run+reporter_period)) return true; // default: once per hour
+  reporter_last_run=time(NULL);
+  // Reporter is run with only argument - configuration file.
   // It is supposed to parse that configuration file to obtain other parameters.
   std::list<std::string> argv;
-  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+logger_name);
+  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+reporter_tool);
   argv.push_back("-c");
   argv.push_back(config.ConfigFile());
-  proc = new Arc::Run(argv);
-  if((!proc) || (!(*proc))) {
-    delete proc;
-    proc = NULL;
-    logger.msg(Arc::ERROR,": Failure creating slot for reporter child process");
+  reporter_proc = new Arc::Run(argv);
+  if((!reporter_proc) || (!(*reporter_proc))) {
+    delete reporter_proc;
+    reporter_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure creating slot for accounting reporter child process");
     return false;
   };
   std::string errlog;
   JobLog* joblog = config.GetJobLog();
   if(joblog) {
-    if(!joblog->logfile.empty()) errlog = joblog->logfile;
+    if(!joblog->reporter_logfile.empty()) errlog = joblog->reporter_logfile;
   };
-  proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
+  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", argv.front());
-  if(!proc->Start()) {
-    delete proc;
-    proc = NULL;
-    logger.msg(Arc::ERROR,": Failure starting reporter child process");
+  if(!reporter_proc->Start()) {
+    delete reporter_proc;
+    reporter_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure starting accounting reporter child process");
     return false;
   };
   return true;
 }
 
-bool JobLog::SetLogger(const char* fname) {
-  if(fname) logger_name = (std::string(fname));
+bool JobLog::ReporterEnabled(void) {
+  if (reporter_tool.empty()) return false;
   return true;
 }
 
-bool JobLog::SetLogFile(const char* fname) {
-  if(fname) logfile = (std::string(fname));
+bool JobLog::SetReporter(const char* fname) {
+  if(fname) reporter_tool = (std::string(fname));
+  return true;
+}
+
+bool JobLog::SetReporterLogFile(const char* fname) {
+  if(fname) reporter_logfile = (std::string(fname));
+  return true;
+}
+
+bool JobLog::RunArchiveManager(const GMConfig &config) {
+  if(reporter_proc != NULL) {
+    if(reporter_proc->Running()) return true; /* reporter is running */
+  }
+  if(archive_mgmt_proc != NULL) {
+    if(archive_mgmt_proc->Running()) return true; /* archive manager is running */
+    delete archive_mgmt_proc;
+    archive_mgmt_proc=NULL;
+  };
+  // Check tool exists
+  if (archive_mgmt_tool.empty()) {
+    logger.msg(Arc::ERROR,": Accounting archive management tool is not specified");
+    return false;
+  }
+  // Record the start time
+  if(time(NULL) < (archive_mgmt_last_run+archive_mgmt_period)) return true; // default: once per hour
+  archive_mgmt_last_run=time(NULL);
+  // Pass only runtime config to archive manager
+  std::list<std::string> argv;
+  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+archive_mgmt_tool);
+  argv.push_back("-c");
+  argv.push_back(config.ConfigFile());
+  archive_mgmt_proc = new Arc::Run(argv);
+  if((!archive_mgmt_proc) || (!(*archive_mgmt_proc))) {
+    delete archive_mgmt_proc;
+    archive_mgmt_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure creating slot for accounting archive manager child process");
+    return false;
+  };
+  // Logfile is handled by A-REX
+  std::string errlog;
+  JobLog* joblog = config.GetJobLog();
+  if(joblog) {
+    if(!joblog->archive_mgmt_logfile.empty()) errlog = joblog->archive_mgmt_logfile;
+  };
+  archive_mgmt_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
+  logger.msg(Arc::DEBUG, "Running command %s", argv.front());
+  if(!archive_mgmt_proc->Start()) {
+    delete archive_mgmt_proc;
+    archive_mgmt_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure starting accounting archive manager child process");
+    return false;
+  };
+  return true;
+}
+
+bool JobLog::ArchiveManagerEnabled(void) {
+  if (archive_mgmt_tool.empty()) return false;
+  return true;
+}
+
+bool JobLog::SetArchiveManager(const char* fname) {
+  if(fname) archive_mgmt_tool = (std::string(fname));
+  return true;
+}
+
+bool JobLog::SetArchiveManagerLogFile(const char* fname) {
+  if(fname) archive_mgmt_logfile = (std::string(fname));
   return true;
 }
 
@@ -171,10 +250,10 @@ void JobLog::SetCredentials(std::string const &key_path,std::string const &certi
 }
 
 JobLog::~JobLog(void) {
-  if(proc != NULL) {
-    if(proc->Running()) proc->Kill(0);
-    delete proc;
-    proc=NULL;
+  if(reporter_proc != NULL) {
+    if(reporter_proc->Running()) reporter_proc->Kill(0);
+    delete reporter_proc;
+    reporter_proc=NULL;
   };
 }
 

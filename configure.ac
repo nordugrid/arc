@@ -2548,6 +2548,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/python/Makefile
                  src/utils/python/arcctl
                  src/utils/python/arcctl.1
+                 src/utils/python/jura-archive-manager
                  src/utils/python/arc/Makefile
                  src/utils/python/arc/gen_paths_dist.sh
                  src/utils/python/arc/utils/Makefile

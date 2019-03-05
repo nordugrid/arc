@@ -1,0 +1,83 @@
+#!@PYTHON@
+
+import argparse
+import os
+import sys
+import logging
+import datetime
+
+# ARC-prefix path in PYTHONPATH
+arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
+if os.path.isdir(arc_prefix_pythonpath):
+    if arc_prefix_pythonpath not in sys.path:
+        sys.path.insert(1, arc_prefix_pythonpath)
+
+from arc.utils import config
+from arc.control import JuraArchive
+
+# Initialize logging
+logger = logging.getLogger('ARC')
+logger.setLevel(logging.INFO)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
+
+
+# Define root parser
+def get_parser():
+    parser = argparse.ArgumentParser(description='NorduGrid ARC Jura Archive Manager')
+    parser.add_argument('-c', '--config', action='store',
+                        help='Config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser.add_argument('-d', '--debug', action='store',
+                        help='Verbosity level (default is %(default)s)', default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    return parser
+
+if __name__ == '__main__':
+    # Command line arguments parsing
+    args_parser = get_parser()
+    cmd_args = args_parser.parse_args()
+    logger.setLevel(getattr(logging, cmd_args.debug, 30))
+    # Config parsing (archive manager designed to be run by A-REX => runtime config provided)
+    config.load_run_config(cmd_args.config)
+
+    # Set loglevel in accordance to config
+    loglevel = config.get_value('loglevel', 'arex/jura/archive')
+    if loglevel is None:
+        loglevel = config.get_value('loglevel', 'arex/jura')
+    if loglevel is not None:
+        loglevel = int(loglevel)
+        if loglevel > 5:
+            loglevel = 5
+        loglevel = [logging.CRITICAL,
+                    logging.ERROR,
+                    logging.WARNING,
+                    logging.INFO,
+                    logging.DEBUG,
+                    logging.DEBUG][loglevel]
+        logger.setLevel(loglevel)
+
+    # Init archive management
+    archive_dir = config.get_value('archivedir', 'arex/jura/archiving')
+    db_dir = config.get_value('dbdir', 'arex/jura/archiving')
+    if db_dir is None:
+        db_dir = archive_dir
+    am = JuraArchive.JuraArchive(archive_dir, db_dir)
+
+    # Process records in Jura archive
+    batch_size = config.get_value('batchsize', 'arex/jura/archiving')
+    if batch_size is None:
+        batch_size = 100
+    am.process_records(batch_size)
+
+    # Do cleanup
+    records_ttl = config.get_value('archivettl', 'arex/jura/archiving')
+    if records_ttl is not None:
+        enddate = datetime.date.today() - datetime.timedelta(days=int(records_ttl))
+        am.remove_records(enddate)
+
+    db_ttl = config.get_value('dbttl', 'arex/jura/archiving')
+    if db_ttl is not None:
+        enddate = datetime.date.today() - datetime.timedelta(days=int(db_ttl))
+        am.remove_db_records(enddate)
