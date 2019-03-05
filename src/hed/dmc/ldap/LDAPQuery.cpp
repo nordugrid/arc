@@ -9,31 +9,7 @@
 #include <list>
 #include <string>
 
-#ifdef USE_WIN32_LDAP_API
-#include <winldap.h>
-#include <winber.h>
-
-#define timeval l_timeval
-
-# ifndef ldap_msgtype
-# define ldap_msgtype(m) ((m)->lm_msgtype)
-# endif
-
-# ifndef ldap_first_message
-# define ldap_first_message ldap_first_entry
-# endif
-
-# ifndef ldap_next_message
-# define ldap_next_message ldap_next_entry
-# endif
-
-# ifndef ldap_unbind_ext
-# define ldap_unbind_ext(l,s,c) ldap_unbind(l)
-# endif
-
-#else
 #include <ldap.h>
-#endif
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -313,11 +289,7 @@ namespace ArcDMCLDAP {
     ldap_initialize(&connection,
                     ("ldap://" + host + ':' + tostring(port)).c_str());
 #else
-#ifdef USE_WIN32_LDAP_API
-    connection = ldap_init(const_cast<char *>(host.c_str()), port);
-#else
     connection = ldap_init(host.c_str(), port);
-#endif
 #endif
     ldap_lock()->unlock();
 
@@ -406,15 +378,11 @@ namespace ArcDMCLDAP {
 
     int ldresult = 0;
     if (arg->anonymous) {
-#ifdef USE_WIN32_LDAP_API
-      ldresult = ldap_simple_bind_s(arg->connection, NULL, NULL);
-#else
       BerValue cred = {
         0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
                                   &cred, NULL, NULL, NULL);
-#endif
     }
     else {
 #if defined (HAVE_SASL_H) || defined (HAVE_SASL_SASL_H)
@@ -439,15 +407,11 @@ namespace ArcDMCLDAP {
                                               my_sasl_interact,
                                               &defaults);
 #else
-#ifdef USE_WIN32_LDAP_API
-      ldresult = ldap_simple_bind_s(arg->connection, NULL, NULL);
-#else
       BerValue cred = {
         0, const_cast<char*>("")
       };
       ldresult = ldap_sasl_bind_s(arg->connection, NULL, LDAP_SASL_SIMPLE,
                                   &cred, NULL, NULL, NULL);
-#endif
 #endif
     }
 
@@ -500,22 +464,14 @@ namespace ArcDMCLDAP {
     }
 
     int ldresult = ldap_search_ext(connection,
-#ifdef USE_WIN32_LDAP_API
-                                   const_cast<char *>(base.c_str()),
-#else
                                    base.c_str(),
-#endif
                                    scope,
                                    filt,
                                    attrs,
                                    0,
                                    NULL,
                                    NULL,
-#ifdef USE_WIN32_LDAP_API
-                                   timeout,
-#else
                                    &tout,
-#endif
                                    0,
                                    &messageid);
 
@@ -567,12 +523,6 @@ namespace ArcDMCLDAP {
                                             LDAP_MSG_ONE,
                                             &tout,
                                             &res)) > 0) {
-#ifdef USE_WIN32_LDAP_API
-      if (ldap_count_entries(connection, res) == 0) {
-        done = true;
-        continue;
-      }
-#endif
       for (LDAPMessage *msg = ldap_first_message(connection, res); msg;
            msg = ldap_next_message(connection, msg)) {
 

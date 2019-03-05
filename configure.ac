@@ -1678,14 +1678,7 @@ if test "x$enables_ldap" = "xyes"; then
     LDAP=yes
 
     SAVE_LDFLAGS=$LDFLAGS
-
-    case "${host}" in
-      *-*-mingw32):
-      ;;
-      *):
-        LDFLAGS=-lpthread
-      ;;
-    esac
+    LDFLAGS=-lpthread
     AC_CHECK_LIB([ldap_r], [ldap_first_message], [
       AC_CHECK_LIB([ldap_r], [ldap_initialize], [
         AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
@@ -1705,21 +1698,6 @@ if test "x$enables_ldap" = "xyes"; then
 
   [
     LDAP=no
-
-    # Try native LDAP on Win32 if OpenLDAP fails
-    case "${host}" in
-      *-*-mingw32)
-    AC_CHECK_HEADER([winldap.h],
-    [
-      AC_CHECK_LIB([wldap32], [ldap_init],
-      [
-        LDAP=yes
-        LDAP_LIBS="-lwldap32"
-        AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
-      ])
-    ], [], [[#include <windows.h>]]) ;;
-    esac
-
   ])
 
   enables_ldap="$LDAP"
