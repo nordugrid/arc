@@ -6,11 +6,7 @@
 #include <list>
 #include <string>
 
-#ifdef USE_WIN32_LDAP_API
-#include <winldap.h>
-#else
 #include <ldap.h>
-#endif
 
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -81,11 +77,7 @@ namespace ArcDMCLDAP {
     int timeout;
 
     ldap *connection;
-#ifdef USE_WIN32_LDAP_API
-    ULONG messageid;
-#else
     int messageid;
-#endif
 
     static Logger logger;
 

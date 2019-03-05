@@ -20,4 +20,4 @@ libarccredentialstore_la_LDFLAGS  = -version-info 3:0:0
 #test_LDADD = \
 #	libarccredentialstore.la \
 #	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-#	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+#	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)

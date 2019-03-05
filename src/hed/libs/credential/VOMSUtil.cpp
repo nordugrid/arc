@@ -6,10 +6,6 @@
 #include <glibmm/fileutils.h>
 #include <unistd.h>
 
-#ifndef HAVE_GETDOMAINNAME
-#include <sys/systeminfo.h>
-#endif
-
 #include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/ArcRegex.h>
@@ -1155,26 +1151,6 @@ err:
 
     return true;
   }
-
-#ifndef HAVE_GETDOMAINNAME
-  static int getdomainname(char *name, int length) {
-    char	szBuffer[256];
-    long	nBufSize = sizeof(szBuffer);
-    char	*pBuffer = szBuffer;      
-
-    long result_len = sysinfo( SI_SRPC_DOMAIN, pBuffer, nBufSize );		
-
-    if (result_len > length) {
-      return -1;
-    }
-
-    memcpy (name, pBuffer, result_len);
-    if (result_len < length)
-      name[result_len] = '\0';
-   
-    return 0;
-  }
-#endif
 
   static std::string getfqdn(void) {
     std::string name;

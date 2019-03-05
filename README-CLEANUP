@@ -29,13 +29,13 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
   Code/functionality/feature            assigned person(s)        status
   ---------------------------------------------------------------------------
   
-   -Windows packaging, build (e.g arc.nsi, mingw-nordugrid-arc.spec.in)  Mattias
+   - [DONE] Windows packaging, build (e.g arc.nsi, mingw-nordugrid-arc.spec.in)  Mattias
    
-   -NSIS    Anders (Mattias as backup)  
+   - [DONE] NSIS    Anders (Mattias as backup)
    
-   -Makefile.am, Configure.ac: clean off Windows, Java, Solaris  Mattias
+   - [DONE] Makefile.am, Configure.ac: clean off Windows, Java, Solaris  Mattias
    
-   -SWIG Java bindings Mattias
+   - [DONE] SWIG Java bindings Mattias
    
    - [DONE] BES server-side implementation, Aleksandr
    
@@ -65,9 +65,9 @@ Obsoleted technology that should be removed from ARC 6 as part of the code clean
    
    - [DONE, REST IS RELEVANT] hed/lib/infosys (some sort of limited infoservice with ISIS registration, etc..), is this relevant? Aleksandr
    
-   - hed/lib/common  remove win32 stuff, Anders
+   - [DONE] hed/lib/common  remove win32 stuff, Anders
    
-   - hed/daemon, clean off java, win stuff, Anders with Mattias
+   - [DONE] hed/daemon, clean off java, win stuff, Anders with Mattias
    
    - hed/daemon/schemas, check what is old/unused/garbage there, David -> I have no idea what this is or if is it needed
    
