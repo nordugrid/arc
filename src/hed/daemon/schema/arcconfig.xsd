@@ -46,6 +46,5 @@
 
 <!-- Language wrapper services -->
 <xsd:import namespace="http://www.nordugrid.org/schemas/pythonwrapper/2009/08" schemaLocation="pythonwrapper.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/javawrapper/2009/08" schemaLocation="javawrapper.xsd"/> 
 
 </xsd:schema>

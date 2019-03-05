@@ -1072,7 +1072,6 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
   struct stat st;
   if(old_file.empty()) return old_file;
   if(::stat(old_file.c_str(),&st) != 0) return old_file;
-// No getuid on win32
   if(::getuid() == st.st_uid) return old_file;
   std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccred.XXXXXX");
   if (!TmpFileCreate(tmpname, "")) return old_file;

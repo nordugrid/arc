@@ -6,4 +6,4 @@ test_CXXFLAGS = -I$(top_srcdir)/include \
 test_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS)

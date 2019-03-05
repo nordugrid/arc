@@ -55,7 +55,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_STATIC
-AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
@@ -435,7 +434,8 @@ if test "$enables_python" = "yes"; then
 
     AC_TRY_COMPILE([#include <Python.h>], [Py_InitializeEx(0)],[
         AC_MSG_NOTICE([Python includes functionality of skipping initialization registration of signal handlers])
-        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])
+        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX, 1,
+          [Define if you have Py_InitializeEx function])
         enables_python_service="yes"
     ],[
         AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])
@@ -638,7 +638,7 @@ if test "$?" = '1'; then
   PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 else
   PKG_CHECK_MODULES(GLIBMM, [giomm-2.4])
-  AC_DEFINE(HAVE_GIOMM,, [define if giomm is supported in glibmm])
+  AC_DEFINE(HAVE_GIOMM, 1, [define if giomm is supported in glibmm])
 fi
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
@@ -649,7 +649,7 @@ CPPFLAGS="$CPPFLAGS $GLIBMM_CFLAGS"
 AC_CHECK_HEADER([glibmm/optioncontext.h], [
   AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
     [Glib::OptionContext ctx; ctx.set_summary("summary")], [
-      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY,,
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY, 1,
         [define if glibmm has Glib::OptionContext::set_summary()])
       AC_MSG_NOTICE([using glibmm command line parsing])
     ], [
@@ -658,7 +658,7 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
   )
   AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
     [Glib::OptionContext ctx; ctx.get_help();],[
-      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP,,
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP, 1,
         [define if glibmm has Glib::OptionContext::get_help()])
     ], [
     ]
@@ -666,37 +666,39 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
 ])
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH,,[define if glibmm have support for controling state of children processes])
+  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH, 1,
+    [define if glibmm have support for controling state of children processes])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
 fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::ModuleFlags flags = Glib::MODULE_BIND_LOCAL;],[glibmm_bind_local=yes],[glibmm_bind_local=no])
 if test "$glibmm_bind_local" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL,,[define if glibmm have support local symbol resolution in shared libraries])
+  AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL, 1,
+    [define if glibmm have support local symbol resolution in shared libraries])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no way to limit scope of symbols of shared libraries. Make sure external libraries used by plugins have no conflicting symbols. HINT: use Globus compiled against system OpenSSL library.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::getenv("");],[glibmm_getenv=yes],[glibmm_getenv=no])
 if test "$glibmm_getenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_GETENV,,[define if glibmm have getenv operations])
+  AC_DEFINE(HAVE_GLIBMM_GETENV, 1, [define if glibmm have getenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for getenv. Usage of libc getenv is unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::setenv("", "");],[glibmm_setenv=yes],[glibmm_setenv=no])
 if test "$glibmm_setenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_SETENV,,[define if glibmm have setenv operations])
+  AC_DEFINE(HAVE_GLIBMM_SETENV, 1, [define if glibmm have setenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for setenv. Usage of libc setenv may be unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::unsetenv("");],[glibmm_unsetenv=yes],[glibmm_unsetenv=no])
 if test "$glibmm_unsetenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_UNSETENV,,[define if glibmm have unsetenv operations])
+  AC_DEFINE(HAVE_GLIBMM_UNSETENV, 1, [define if glibmm have unsetenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for unsetenv. Usage of libc unsetenv may be unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::listenv();],[glibmm_listenv=yes],[glibmm_listenv=no])
 if test "$glibmm_listenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_LISTENV,,[define if glibmm have listenv operations])
+  AC_DEFINE(HAVE_GLIBMM_LISTENV, 1, [define if glibmm have listenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for listenv. Usage of libc environ is unsafe in multi-threaded applications.])
 fi
@@ -811,7 +813,7 @@ if test "$enables_nss" = "yes"; then
     enables_nss=no
   ])
   if test "x$NSS_INSTALLED" = "xyes" ; then
-    AC_DEFINE(HAVE_NSS,,[define if NSS is enabled and available])
+    AC_DEFINE(HAVE_NSS, 1, [define if NSS is enabled and available])
   fi
 fi
 AC_SUBST(NSS_CFLAGS)
@@ -826,7 +828,7 @@ PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
   enables_sqlite=no
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
-  AC_DEFINE(HAVE_SQLITE,,[define if SQLite is available])
+  AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
   # Check for finction available since 3.8
   SAVE_CFLAGS=$CFLAGS
   SAVE_LIBS=$LIBS
@@ -898,7 +900,7 @@ else
   enables_ldns="no"
 fi
 if test "x$enables_ldns" = "xyes" ; then
-  AC_DEFINE(HAVE_LDNS,,[define if LDNS is enabled and available])
+  AC_DEFINE(HAVE_LDNS, 1, [define if LDNS is enabled and available])
 else
   LDNS_CFLAGS=
   LDNS_LIBS=
@@ -920,7 +922,7 @@ case "${host}" in
 esac
 
 if test "x$MACOSX" = "xyes"; then
-  AC_DEFINE(_MACOSX,,[Define if compiling for MacOSX])
+  AC_DEFINE(_MACOSX, 1, [Define if compiling for MacOSX])
 fi
 AM_CONDITIONAL([MACOSX], [ test "x$MACOSX" = "xyes"])
 
@@ -1212,15 +1214,8 @@ else
   SAVE_LDFLAGS=$LDFLAGS
   SAVE_CXXFLAGS=$CXXFLAGS
 
-  case $host in
-    *-*-mingw*)
-      CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
-      ;;
-    *)
-      # pthread needed for RH9
-      LDFLAGS="$LDFLAGS -lpthread"
-      ;;
-  esac
+  # pthread needed for RH9
+  LDFLAGS="$LDFLAGS -lpthread"
 
   LDFLAGS="$LDFLAGS $db4_library_path"
 
@@ -1248,10 +1243,9 @@ fi
 AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
-  # Mingw need -I$dbcxx_dir
-  AC_DEFINE(HAVE_DBCXX, , [define if Berkeley DB C++ binding is available])
+  AC_DEFINE(HAVE_DBCXX, 1, [define if Berkeley DB C++ binding is available])
   SAVE_CXXFLAGS=$CXXFLAGS
-  CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS $DBCXX_CPPFLAGS"
   AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION
   CXXFLAGS=$SAVE_CXXFLAGS
 fi
@@ -1271,7 +1265,8 @@ fi
 AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbjstore])
 AM_CONDITIONAL([DBJSTORE_ENABLED],[test "x$enables_dbjstore" = "xyes"])
 if test "x$enables_dbjstore" = "xyes"; then
-  AC_DEFINE(DBJSTORE_ENABLED,, [define if to build job information in BDB storage])
+  AC_DEFINE(DBJSTORE_ENABLED, 1,
+    [define if to build job information in BDB storage])
 fi
 
 # SQLITEJSTORE (storing jobs information in SQLite)
@@ -1286,7 +1281,8 @@ fi
 AC_MSG_NOTICE([Storing jobs in SQLite enabled: $enables_sqlitejstore])
 AM_CONDITIONAL([SQLITEJSTORE_ENABLED],[test "x$enables_sqlitejstore" = "xyes"])
 if test "x$enables_sqlitejstore" = "xyes"; then
-  AC_DEFINE(SQLITEJSTORE_ENABLED,, [define if to build job information in SQLite storage])
+  AC_DEFINE(SQLITEJSTORE_ENABLED, 1,
+    [define if to build job information in SQLite storage])
 fi
 
 # globus/gpt packages
@@ -1494,7 +1490,7 @@ if test "x$LCAS_LOCATION" != "x"; then
   CPPFLAGS=$SAVE_CPPFLAGS
 fi
 if test "x$LCAS_LOCATION" != "x"; then
-  AC_DEFINE(HAVE_LCAS,, [define if lcas is available])
+  AC_DEFINE(HAVE_LCAS, 1, [define if lcas is available])
   AC_SUBST(LCAS_LOCATION)
   AC_SUBST(LCAS_CFLAGS)
   AC_SUBST(LCAS_LIBS)
@@ -1550,7 +1546,7 @@ if test "x$LCMAPS_LOCATION" != "x"; then
   CPPFLAGS=$SAVE_CPPFLAGS
 fi
 if test "x$LCMAPS_LOCATION" != "x"; then
-  AC_DEFINE(HAVE_LCMAPS,, [define if lcmaps is available])
+  AC_DEFINE(HAVE_LCMAPS, 1, [define if lcmaps is available])
   AC_SUBST(LCMAPS_LOCATION)
   AC_SUBST(LCMAPS_CFLAGS)
   AC_SUBST(LCMAPS_LIBS)
@@ -1593,10 +1589,9 @@ if test "x$enables_s3" = "xyes"; then
   AC_SUBST(S3_LIBS)
   if test x$enables_s3 = xyes
   then
-      if s3 help 2>&1 | grep -q  -- '--timeout'
-      then
-      AC_DEFINE([HAVE_S3_TIMEOUT],,[Define if S3 API has timeouts])
-      fi
+    if s3 help 2>&1 | grep -q  -- '--timeout' ; then
+      AC_DEFINE([HAVE_S3_TIMEOUT], 1, [Define if S3 API has timeouts])
+    fi
   fi
 fi
 
@@ -1654,10 +1649,10 @@ AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 
 # Setup defines
 if test -n "$GLOBUS_COMMON_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
+    AC_DEFINE(HAVE_GLOBUS, 1, [define if GLOBUS is available])
 fi
 if test x"$XMLSEC_INSTALLED" = xyes; then
-    AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
+    AC_DEFINE(HAVE_XMLSEC, 1, [define if XMLSEC package is available])
 fi
 
 # Setup messages for reporting
@@ -1679,6 +1674,7 @@ if test "x$enables_ldap" = "xyes"; then
 
     SAVE_LDFLAGS=$LDFLAGS
     LDFLAGS=-lpthread
+
     AC_CHECK_LIB([ldap_r], [ldap_first_message], [
       AC_CHECK_LIB([ldap_r], [ldap_initialize], [
         AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
@@ -1831,15 +1827,8 @@ AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MEMCMP
 AC_FUNC_MKTIME
-# GNU compatible *ALLOC functions are available on Windows
-# The test will however fail when cross-compiling with mingw
-case "${host}" in
-  *-*-mingw32) : ;;
-            *)
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-;;
-esac
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
@@ -1853,37 +1842,7 @@ AC_SUBST(LIBRESOLV)
 
 fi
 
-# check for platfom specific extra libraries and flags
-
-EXTRA_LIBS=""
-REGEX_LIBS=""
-SOCKET_LIBS=""
-WIN32=""
-case "${host}" in
-  *-*-mingw32)
-    WIN32="yes"
-    REGEX_LIBS="-lregex"
-    SOCKET_LIBS="-lws2_32"
-    EXTRA_LIBS="-lole32"
-    # its required to libtool generate .dlls on win32 using mingw
-    LDFLAGS="$LDFLAGS -no-undefined"
-    AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
-    AC_PATH_PROGS(WINDRES, windres.exe ${host}-windres)
-    ;;
-  *solaris*)
-    SOCKET_LIBS="-lsocket"
-    CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
-    CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
-    ;;
-  *)
-    AC_DEFINE(HAVE_GETDOMAINNAME,,[let's suppose the unix-alike (except solaris) has gethostname method])
-    ;;
-esac
-AC_SUBST(EXTRA_LIBS)
-AC_SUBST(REGEX_LIBS)
-AC_SUBST(SOCKET_LIBS)
-AM_CONDITIONAL([WIN32], [ test "x$WIN32" = "xyes" ])
-
+# check for platfom specific flags
 case " $LDFLAGS " in
      " -Wl,--no-undefined ") ;;
      " -Wl,-no-undefined ") ;;
@@ -1892,7 +1851,6 @@ case " $LDFLAGS " in
      *)
         case "${host}" in
             *darwin*);;
-            *solaris*);;
             *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
         esac
         ;;
@@ -1925,17 +1883,11 @@ AM_CONDITIONAL([PYDOXYGEN],[test -f python/python/arc/index.xml -o "x$DOXYGEN" !
 AM_CONDITIONAL([ALTPYDOXYGEN],[test -f python/altpython/arc/index.xml -o "x$DOXYGEN" != "x"])
 
 # Check for explicitly and implicitely disabled services
-if test "x$WIN32" = "xyes" ; then
-  AC_MSG_NOTICE([In WIN32 environment many (all) services are not supported yet])
-fi
 # A-Rex
 AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),
   [enables_a_rex_service=$enableval],[])
 if test "$enables_a_rex_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([A-Rex can't be built for WIN32 environment - disabling])
-    enables_a_rex_service="no"
-  elif test "x$SQLITE_INSTALLED" != "xyes" ; then
+  if test "x$SQLITE_INSTALLED" != "xyes" ; then
     AC_MSG_NOTICE([A-Rex can't be built without SQLite - disabling])
     enables_a_rex_service="no"
   elif test "x$DBCXX_LIBS" = "x" ; then
@@ -1962,10 +1914,6 @@ AM_CONDITIONAL([INTERNAL_ENABLED],[test "x$enables_internal" = "xyes"])
 AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [disable building Gridftpd service]),
   [enables_gridftpd_service=$enableval],[])
 if test "$enables_gridftpd_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([Gridftpd can not be built for WIN32 environment - disabling])
-    enables_gridftpd_service="no"
-  fi
   gridftpd_service_globus_pkgs="globus-common globus-io globus-gsi-credential globus-openssl-module globus-ftp-control"
   gridftpd_service_globus_pkgs_missing=""
   for pkg in $gridftpd_service_globus_pkgs
@@ -2004,12 +1952,6 @@ AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "
 # LDAP service
 AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
   [enables_ldap_service=$enableval],[])
-if test "$enables_ldap_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([LDAP infosystem can't be built for WIN32 environment - disabling])
-    enables_ldap_service="no"
-  fi
-fi
 
 AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
 AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
@@ -2025,10 +1967,7 @@ AM_CONDITIONAL([MONITOR_ENABLED],[test "x$enables_monitor" = "xyes"])
 AC_ARG_ENABLE(candypond, AC_HELP_STRING([--disable-candypond], [disable building candypond]),
   [enables_candypond=$enableval],[])
 if test "$enables_candypond" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_candypond="no"
-    AC_MSG_NOTICE([CandyPond service can't be built for WIN32 environment - disabling])
-  elif test ! "x$enables_a_rex_service" = "xyes" ; then
+  if test ! "x$enables_a_rex_service" = "xyes" ; then
     enables_candypond="no"
     AC_MSG_NOTICE([CandyPond can't be built without A-REX - disabling])
   fi
@@ -2039,12 +1978,6 @@ AM_CONDITIONAL([CANDYPOND_ENABLED],[test "x$enables_candypond" = "xyes"])
 # DataDelivery service
 AC_ARG_ENABLE(datadelivery_service, AC_HELP_STRING([--disable-datadelivery-service], [disable building DataDelivery service]),
   [enables_datadelivery_service=$enableval],[])
-if test "$enables_datadelivery_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_datadelivery_service="no"
-    AC_MSG_NOTICE([DataDelivery service can't be built for WIN32 environment - disabling])
-  fi
-fi
 AC_MSG_NOTICE([DataDelivery service enabled: $enables_datadelivery_service])
 AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_service" = "xyes"])
 
@@ -2119,8 +2052,8 @@ tmp_dir=/tmp
 gnu_time=/usr/bin/time
 
 case "${host}" in
-    *solaris* | *darwin* )
-        # hostname -f does not work on Solaris, OS X
+    *darwin*)
+        # hostname -f does not work on OS X
         nodename="hostname" ;;
     *)
         nodename="/bin/hostname -f" ;;
@@ -2134,17 +2067,7 @@ AC_SUBST(gnu_time)
 AC_SUBST(nodename)
 
 # Shell for the job control scripts
-
-case $host_os in
-
-  solaris* )
-      posix_shell='/usr/xpg4/bin/sh'
-      ;;
-  * )
-      posix_shell='/bin/sh'
-      ;;
-esac
-
+posix_shell='/bin/sh'
 AC_SUBST(posix_shell)
 
 DATE=`date +%Y-%m-%d`
@@ -2474,14 +2397,11 @@ AC_CONFIG_FILES([Makefile
                  debian/Makefile
                  debian/changelog.deb
                  nordugrid-arc.spec
-                 mingw-nordugrid-arc.spec
                  src/hed/daemon/arched.8
                  src/hed/daemon/scripts/arched
                  src/hed/daemon/scripts/arched.service
                  src/hed/daemon/scripts/arched-start
                  arcbase.pc
-                 nsis/Makefile
-                 nsis/arc.nsis
                  src/doxygen/Makefile
 ])
 AC_CONFIG_FILES([src/utils/python/arcconfig-parser],

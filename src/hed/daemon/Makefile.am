@@ -15,6 +15,6 @@ arched_LDADD = $(LDADD) \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 man_MANS = arched.8
