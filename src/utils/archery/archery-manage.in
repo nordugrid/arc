@@ -595,14 +595,22 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
     return endpoints
 
 
-def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=None):
-    """Get services and their endpoints by querying Site-BDII LDAP GLUE2"""
+def _ldap_uri_dict(uri):
+    """Parse LDAP URI and return the dict of URI components"""
     __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
     ldap_uri_match = __ldap_uri_re.match(uri)
     if ldap_uri_match:
         ldap_uri_dict = ldap_uri_match.groupdict()
     else:
         logger.error('Cannot parse URI %s as LDAP URI. Skipping information fetching.', uri)
+        return None
+    return ldap_uri_dict
+
+
+def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=None):
+    """Get services and their endpoints by querying Site-BDII LDAP GLUE1"""
+    ldap_uri_dict = _ldap_uri_dict(uri)
+    if ldap_uri_dict is None:
         return []
 
     if filters is None:
@@ -611,10 +619,124 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
     services = {}
 
     ldap_uri = ldap_uri_dict['uri']
+    ldap_basedn = ldap_uri_dict['basedn']
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        # Query info (3 completely different kind of objects in Glue1: Serive, CE and SE)
+        ldap_service_filter = '(|(objectClass=GlueService)(objectClass=GlueCE)' \
+                              '(objectClass=GlueSE)(objectClass=GlueSEControlProtocol)' \
+                              '(objectClass=GlueSEAccessProtocol))'
+        # Service object attributes
+        ldap_service_attrs = ['GlueServiceEndpoint', 'GlueServiceStatus', 'GlueServiceType', 'GlueServiceName']
+        # CE attribute
+        ldap_service_attrs += ['GlueCEInfoContactString', 'GlueCEImplementationName', 'GlueInformationServiceURL',
+                               'GlueForeignKey']
+        # SE attributes
+        ldap_service_attrs += ['GlueSEImplementationName', 'GlueSEUniqueID', 'GlueChunkKey',
+                               'GlueSEControlProtocolEndpoint', 'GlueSEControlProtocolType',
+                               'GlueSEAccessProtocolEndpoint', 'GlueSEAccessProtocolType']
+
+        glue1_data = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE,
+                                        ldap_service_filter, ldap_service_attrs)
+
+        if glue1_data is None:
+            logger.error('Site-BDII LDAP GLUE1.3 query for %s/%s returns empty result set.', ldap_uri, ldap_basedn)
+            return []
+
+        if filters:
+            logger.warning('No filters support for legacy GLUE1.3')
+
+        for ldap_dn, ldap_data in glue1_data:
+            if 'GlueServiceEndpoint' in ldap_data:
+                # General service object parsing (both service and endpoint)
+                s_id = ldap_data['GlueServiceName'][0].decode()
+                se_type = ldap_data['GlueServiceType'][0].decode()
+                if s_id not in services:
+                    services[s_id] = {'object': 'service', 'type': se_type, 'id': s_id, 'endpoints': []}
+                    services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+                e_id = ldap_dn.decode()
+                e_url = ldap_data['GlueServiceEndpoint'][0].decode()
+                e_entry = {'id': e_id, 'u': e_url, 't': se_type}
+                if ldap_data['GlueServiceStatus'][0].decode().upper() != 'OK':
+                    e_entry['s'] = '0'
+                services[s_id]['endpoints'].append(e_entry)
+            elif 'GlueCEInfoContactString' in ldap_data:
+                # CE object parsing (both service and endpoint)
+                s_id = ldap_data['GlueForeignKey'][0].decode()
+                s_id = s_id[20:]  # remove GlueClusterUniqueID=
+                s_type = ldap_data['GlueCEImplementationName'][0].decode()
+                se_type = s_type
+                ie_type = s_type
+                if s_type == 'CREAM':
+                    se_type = 'org.glite.ce.CREAM'
+                    ie_type = 'bdii_site'
+                elif s_type == 'ARC-CE':
+                    se_type = 'org.nordugrid.gridftpjob'
+                    ie_type = 'org.nordugrid.ldapng'
+                se_url = ldap_data['GlueCEInfoContactString'][0].decode()
+                ie_url = ldap_data['GlueInformationServiceURL'][0].decode()
+                if s_id not in services:
+                    services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
+                    services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+                se_entry = {'id': se_url, 'u': se_url, 't': se_type}
+                services[s_id]['endpoints'].append(se_entry)
+                ie_entry = {'id': ie_url, 'u': ie_url, 't': ie_type}
+                services[s_id]['endpoints'].append(ie_entry)
+            elif 'GlueSE' in ldap_data:
+                # SE object (service)
+                s_id = ldap_data['GlueSEUniqueID'][0].decode()
+                s_type = ldap_data['GlueSEImplementationName'][0].decode()
+                services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
+                services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+            elif 'GlueChunkKey' in ldap_data:
+                # SE endpoint objects
+                s_id = ldap_data['GlueChunkKey'][0].decode()
+                s_id = s_id[15:]  # remove GlueSEUniqueID=
+                if 'GlueSEControlProtocolEndpoint' in ldap_data:
+                    e_url = ldap_data['GlueSEControlProtocolEndpoint'][0].decode()
+                    e_type = ldap_data['GlueSEControlProtocolType'][0].decode()
+                else:
+                    e_url = ldap_data['GlueSEAccessProtocolEndpoint'][0].decode()
+                    e_type = ldap_data['GlueSEAccessProtocolType'][0].decode()
+                if s_id not in services:
+                    continue
+                e_entry = {'id': e_url, 'u': e_url, 't': e_type}
+                services[s_id]['endpoints'].append(e_entry)
+            else:
+                logger.warning(
+                    'Failed to find any known service data in the LDAP response for DN %s. '
+                    'It seams GLUE1.3 rendering is broken for %s/%s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
+                continue
+
+    except ldap.LDAPError as err:
+        logger.error('Failed to query LDAP GLUE1.3 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
+
+    return services.values()
+
+
+def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=None):
+    """Get services and their endpoints by querying Site-BDII LDAP GLUE2"""
+    ldap_uri_dict = _ldap_uri_dict(uri)
+    if ldap_uri_dict is None:
+        return []
+
+    if filters is None:
+        filters = []
+
+    services = {}
+
+    ldap_uri = ldap_uri_dict['uri']
+    glue1_fallback = False
 
     # construct GLUE2 base DN
     ldap_basedn = ldap_uri_dict['basedn']
     if ldap_basedn.endswith('o=grid'):
+        glue1_fallback = True
         # legacy glue1.3 basedn given: remove suffix, replace mds-vo-name
         ldap_basedn = ldap_basedn[:-6] + 'o=glue'
         ldap_basedn = 'GLUE2DomainID' + ldap_basedn[11:]
@@ -685,12 +807,19 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
     except ldap.LDAPError as err:
         logger.error('Failed to query LDAP GLUE2 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
 
+    # fallback to LDAP GLUE1 for legacy Site-BDII without GLUE2 support
+    if not services and glue1_fallback:
+        logger.warning('There are no service endpoints fetched for LDAP GLUE2 URI %s. '
+                       'Falling back to LDAP GLUE1 site-bdii query.', ldap_uri)
+        services = get_sitebdii_endpoints_ldapglue1(ldap_uri_dict['basedn'], ldap_timeout, filters)
+
     return services.values()
 
 _fetch_data_map = {
     'arc-ldapglue2': get_arc_ce_endpoints_ldapglue2,
     'arc-ldapng': get_arc_ce_endpoints_ldapng,
-    'sitebdii': get_sitebdii_endpoints_ldapglue2
+    'sitebdii': get_sitebdii_endpoints_ldapglue2,
+    'sitebdii-glue1': get_sitebdii_endpoints_ldapglue1
 }
 
 
