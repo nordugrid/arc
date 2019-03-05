@@ -5,6 +5,7 @@ debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/gm-*
 debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/jura
+debian/tmp/usr/lib/arc/jura-archive-manager
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
 debian/tmp/usr/lib/arc/ssmsend

@@ -6,7 +6,7 @@ from arc.paths import *
 logger = logging.getLogger('ARCCTL.Common')
 
 # Runtime configuration (used for root only)
-arcctl_runtime_config = ARC_RUN_DIR + 'arcctl.runtime.conf'
+arcctl_runtime_config = ARC_RUN_DIR + '/arcctl.runtime.conf'
 if os.geteuid() != 0:
     arcctl_runtime_config = None
 
