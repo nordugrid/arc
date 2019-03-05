@@ -237,7 +237,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
     def filter(self, endpoint_dict):
         ldap_uri = endpoint_dict['u']
         if endpoint_dict['t'] == 'org.nordugrid.ldapglue2':
-            ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={}))'.format(
+            ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(
                 endpoint_dict['id'])
             ldap_attrs = ['GLUE2PolicyRule']
         elif endpoint_dict['t'] == 'org.nordugrid.ldapng':
@@ -250,7 +250,7 @@ class EndpointFilterAllowedVO(EndpointFilter):
             uri_data = self.__uri_re.match(endpoint_dict['u'])
             if uri_data:
                 uri_parms = uri_data.groupdict()
-                ldap_uri = 'ldap://{}:2135/o=grid'.format(uri_parms['host'])
+                ldap_uri = 'ldap://{0}:2135/o=grid'.format(uri_parms['host'])
             else:
                 logger.error('Endpoint %s (type %s) filtered (allowed VO filter). Failed to parse URI.',
                              endpoint_dict['u'], endpoint_dict['t'])
@@ -260,8 +260,8 @@ class EndpointFilterAllowedVO(EndpointFilter):
             uri_data = self.__uri_re.match(endpoint_dict['u'])
             if uri_data:
                 uri_parms = uri_data.groupdict()
-                ldap_uri = 'ldap://{}:2135/o=glue'.format(uri_parms['host'])
-                ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={}))'.format(
+                ldap_uri = 'ldap://{0}:2135/o=glue'.format(uri_parms['host'])
+                ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(
                     endpoint_dict['id'])
                 ldap_attrs = ['GLUE2PolicyRule']
             else:
@@ -496,7 +496,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
         filters = []
     endpoints = []
 
-    ldap_uri = 'ldap://{}:{}'.format(hostname, port)
+    ldap_uri = 'ldap://{0}:{1}'.format(hostname, port)
     ldap_basedn = 'o=glue'
     ldap_filter = '(objectClass=GLUE2ComputingEndpoint)'
     ldap_attrs = ['GLUE2EndpointID', 'GLUE2EndpointURL', 'GLUE2EndpointHealthState', 'GLUE2EndpointInterfaceName']
@@ -549,7 +549,7 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
         filters = []
     endpoints = []
 
-    ldap_uri = 'ldap://{}:{}'.format(hostname, port)
+    ldap_uri = 'ldap://{0}:{1}'.format(hostname, port)
     ldap_basedn = 'Mds-Vo-name=local,o=grid'
 
     ldap_filter = '(objectClass=nordugrid-cluster)'
@@ -1160,7 +1160,7 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
                         keyalgorithm=dns.tsig.default_algorithm):
     """Incrementally updates ARCHERY data records in DNS"""
     keyring = dns.tsigkeyring.from_text(keyring_dict)
-    main_rr_owner = '_archery.{}.'.format(domain.rstrip('.'))
+    main_rr_owner = '_archery.{0}.'.format(domain.rstrip('.'))
 
     # new TXT data according to provided data object
     new_dns_rrset = archery_txt_rrset(new_archery_object)
