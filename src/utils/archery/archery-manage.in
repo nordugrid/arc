@@ -277,7 +277,6 @@ class EndpointFilterAllowedVO(EndpointFilter):
             try:
                 logger.debug('Allowed VO Filter: querying ARIS %s for allowed VOs', ldap_uri)
                 ldap_conn = ldap.initialize(ldap_uri)
-                # TODO: configurable ldap timeouts
                 ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, self.timeout)
                 ldap_conn.set_option(ldap.OPT_TIMEOUT, self.timeout)
                 ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
@@ -386,9 +385,9 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
     if 'rr_data' not in archery_object and 'object' in archery_object:
         rr = 'o=' + archery_object['object']
         if 'type' in archery_object:
-            rr += ' t=' + archery_object['type']
+            rr += ' t=' + archery_object['type'].replace(' ', '-')
         if 'id' in archery_object:
-            rr += ' id=' + archery_object['id']
+            rr += ' id=' + archery_object['id'].replace(' ', '-')
         # group object without type and id is the default behaviour (no RRSet needed)
         if rr != 'o=group':
             archery_object['rr_data'] = rr
@@ -403,7 +402,7 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
                 estatus = ''
                 if 's' in edata and edata['s'] != 1:
                     estatus = ' s={0}'.format(edata['s'])
-                edata['rr_data'] = 'u={0} t={1}{2}'.format(edata['u'], edata['t'], estatus)
+                edata['rr_data'] = 'u={0} t={1}{2}'.format(edata['u'], edata['t'].replace(' ', '-'), estatus)
             # add service endpoints RRSet
             rrset.add('{0} {1}'.format(rr_owner, edata['rr_data']))
     # add child records
@@ -811,7 +810,7 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
     if not services and glue1_fallback:
         logger.warning('There are no service endpoints fetched for LDAP GLUE2 URI %s. '
                        'Falling back to LDAP GLUE1 site-bdii query.', ldap_uri)
-        services = get_sitebdii_endpoints_ldapglue1(ldap_uri_dict['basedn'], ldap_timeout, filters)
+        return get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout, filters)
 
     return services.values()
 
