@@ -162,9 +162,9 @@ fi
 runtimeenvironments=
 if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
   find ./ -type l -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
   find ./ -type f -perm /200 -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
 fi
 
   if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then 
