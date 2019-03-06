@@ -112,6 +112,10 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPoint::Transfer(const URL& otherendpoint, bool source, Callback3rdParty callback) {
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
+  }
+
   DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback) {
     return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
@@ -205,6 +209,10 @@ namespace Arc {
   }
 
   bool DataPoint::RequiresCredentialsInFile() const {
+    return false;
+  }
+
+  bool DataPoint::SupportsTransfer() const {
     return false;
   }
 

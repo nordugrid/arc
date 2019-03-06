@@ -3,7 +3,6 @@
 #endif
 
 #include <fcntl.h>
-#include <XrdCl/XrdClCopyProcess.hh>
 #include <XrdCl/XrdClPropertyList.hh>
 #include <XrdCl/XrdClDefaultEnv.hh>
 #include <XrdCl/XrdClLog.hh>
@@ -20,6 +19,20 @@ namespace ArcDMCXrootd {
 
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
   XrdPosixXrootd DataPointXrootd::xrdposix;
+
+  XrootdProgressHandler::XrootdProgressHandler(DataPoint::Callback3rdParty callback)
+   : cb(callback), cancel(false) {}
+
+  void XrootdProgressHandler::JobProgress(uint16_t jobNum,
+                                          uint64_t bytesProcessed,
+                                          uint64_t bytesTotal) {
+    cb(bytesProcessed);
+  }
+
+  bool XrootdProgressHandler::ShouldCancel(uint64_t jobNum) {
+    return cancel;
+  }
+
 
   DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
     : DataPointDirect(url, usercfg, transfer_url, parg),
@@ -48,22 +61,7 @@ namespace ArcDMCXrootd {
     return new DataPointXrootd(*dmcarg, *dmcarg, *dmcarg, dmcarg);
   }
 
-  class CopyFileArgs {
-   public:
-     CopyFileArgs(DataPointXrootd *it, const std::string& source, const std::string& dest)
-       :it(it), source(source), dest(dest) {}
-     DataPointXrootd *it;
-     std::string source;
-     std::string dest;
-  };
-
-  void DataPointXrootd::copy_file_start(void* arg) {
-    CopyFileArgs *args = (CopyFileArgs*)arg;
-    args->it->copy_file(args->source, args->dest);
-    delete args;
-  }
-
-  void DataPointXrootd::copy_file(std::string source, std::string dest) {
+  DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, Callback3rdParty callback) {
     XrdCl::PropertyList props;
     XrdCl::PropertyList results;
 
@@ -89,9 +87,7 @@ namespace ArcDMCXrootd {
     XrdCl::XRootDStatus st = copy.AddJob(props, &results);
     if (!st.IsOK()) {
       logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
-      buffer->error_read(true);
-      transfer_cond.signal();
-      return;
+      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
     }
 
     XrdCl::PropertyList processConfig;
@@ -100,17 +96,17 @@ namespace ArcDMCXrootd {
     copy.AddJob(processConfig, 0 );
     copy.Prepare();
 
-    XrdCl::CopyProgressHandler cph;
-    st = copy.Run(&cph);
+    XrdCl::CopyProgressHandler * cph = NULL;
+    if (callback) {
+      cph = new XrootdProgressHandler(callback);
+    }
+    st = copy.Run(cph);
+    if (cph) delete cph;
     if (!st.IsOK()) {
       logger.msg(ERROR, "Failed to copy %s: %s", source, st.GetErrorMessage());
-      dest.find("root:/") == 0 ? buffer->error_write(true) : buffer->error_read(true);
-      transfer_cond.signal();
-      return;
+      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
     }
-    buffer->eof_read(true);
-    buffer->eof_write(true);
-    transfer_cond.signal();
+    return DataStatus::Success;
   }
 
   void DataPointXrootd::read_file_start(void* arg) {
@@ -187,19 +183,6 @@ namespace ArcDMCXrootd {
     reading = true;
     buffer = &buf;
 
-    if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
-      // Claim DataBuffer for exclusive use
-      buffer->set_excl(true);
-      CopyFileArgs *args = new CopyFileArgs(this, url.plainstr(), transfer_url);
-      if (!CreateThreadFunction(&DataPointXrootd::copy_file_start, args)) {
-        delete args;
-        reading = false;
-        return DataStatus::ReadStartError;
-      }
-      return DataStatus::Success;
-    }
-
-    // The copy is handled by ARC using the xrootd posix interface
     {
       CertEnvLocker env(usercfg);
       logger.msg(INFO, "Opening %s", url.plainstr());
@@ -330,18 +313,6 @@ namespace ArcDMCXrootd {
     writing = true;
     // Remember the DataBuffer we got, the separate writing thread will use it
     buffer = &buf;
-
-    if (!transfer_url.empty()) { // xrootd handles the copy entirely by itself
-      // Claim DataBuffer for exclusive use
-      buffer->set_excl(true);
-      CopyFileArgs *args = new CopyFileArgs(this, transfer_url, url.plainstr());
-      if (!CreateThreadFunction(&DataPointXrootd::copy_file_start, args)) {
-        delete args;
-        writing = false;
-        return DataStatus::WriteStartError;
-      }
-      return DataStatus::Success;
-    }
 
     {
       CertEnvLocker env(usercfg);
@@ -580,6 +551,18 @@ namespace ArcDMCXrootd {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, Callback3rdParty callback) {
+    if (source) {
+      return copy_file(url.plainstr(), otherendpoint.plainstr(), callback);
+    } else {
+      return copy_file(otherendpoint.plainstr(), url.plainstr(), callback);
+    }
+  }
+
+  bool DataPointXrootd::SupportsTransfer() const {
+    return true;
+  }
+
   bool DataPointXrootd::RequiresCredentialsInFile() const {
     return true;
   }
@@ -588,13 +571,15 @@ namespace ArcDMCXrootd {
     // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
     // Level 1 enables some messages which go to stdout - which messes up
     // communication in DTR so better to use no debugging
-    XrdCl::DefaultEnv env;
     XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
     if (logger.getThreshold() == DEBUG) {
       XrdPosixXrootd::setDebug(1);
-      log->SetLevel(XrdCl::Log::DebugMsg);
+      log->SetLevel(XrdCl::Log::DumpMsg);
     }
-    else XrdPosixXrootd::setDebug(0);
+    else {
+      XrdPosixXrootd::setDebug(0);
+      log->SetLevel(XrdCl::Log::ErrorMsg);
+    }
   }
 
 } // namespace ArcDMCXrootd
