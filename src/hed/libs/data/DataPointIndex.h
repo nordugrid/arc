@@ -95,7 +95,7 @@ namespace Arc {
   protected:
     bool resolved;
     bool registered;
-    DataPointIndex(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
+    DataPointIndex(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
 
   private:
     // Following members must be kept synchronised hence they are private

@@ -16,11 +16,10 @@ namespace Arc {
 
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
 
-  DataPoint::DataPoint(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
+  DataPoint::DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : Plugin(parg),
       url(url),
       usercfg(usercfg),
-      transfer_url(transfer_url),
       size((unsigned long long int)(-1)),
       modified(-1),
       valid(-1),
@@ -289,8 +288,8 @@ namespace Arc {
 
   DataPointLoader::~DataPointLoader() {}
 
-  DataPoint* DataPointLoader::load(const URL& url, const UserConfig& usercfg, const std::string& transfer_url) {
-    DataPointPluginArgument arg(url, usercfg, transfer_url);
+  DataPoint* DataPointLoader::load(const URL& url, const UserConfig& usercfg) {
+    DataPointPluginArgument arg(url, usercfg);
     factory_->load(FinderLoader::GetLibrariesList(), "HED:DMC");
     return factory_->GetInstance<DataPoint>("HED:DMC", &arg, false);
   }

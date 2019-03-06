@@ -41,7 +41,7 @@ namespace ArcDMCRucio {
   class DataPointRucio
     : public Arc::DataPointIndex {
   public:
-    DataPointRucio(const Arc::URL& url, const Arc::UserConfig& usercfg, const std::string& transfer_url, Arc::PluginArgument* parg);
+    DataPointRucio(const Arc::URL& url, const Arc::UserConfig& usercfg, Arc::PluginArgument* parg);
     ~DataPointRucio();
     static Plugin* Instance(Arc::PluginArgument *arg);
     virtual Arc::DataStatus Resolve(bool source);

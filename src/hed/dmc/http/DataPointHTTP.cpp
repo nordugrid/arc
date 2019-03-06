@@ -267,8 +267,8 @@ using namespace Arc;
     lock_.unlock();
   }
 
-  DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, transfer_url, parg),
+  DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       reading(false),
       writing(false),
       chunks(NULL),
@@ -293,7 +293,7 @@ using namespace Arc;
         ((const URL &)(*dmcarg)).Protocol() != "dav" &&
         ((const URL &)(*dmcarg)).Protocol() != "davs")
       return NULL;
-    return new DataPointHTTP(*dmcarg, *dmcarg, *dmcarg, dmcarg);
+    return new DataPointHTTP(*dmcarg, *dmcarg, dmcarg);
   }
 
   static bool html2list(const char *html, const URL& base,

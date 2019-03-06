@@ -27,7 +27,7 @@ namespace ArcDMCGFAL {
   class DataPointGFAL
     : public DataPointDirect {
   public:
-    DataPointGFAL(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
+    DataPointGFAL(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointGFAL();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);

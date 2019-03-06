@@ -10,8 +10,8 @@
 
 namespace Arc {
 
-  DataPointDirect::DataPointDirect(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
-    : DataPoint(url, usercfg, transfer_url, parg),
+  DataPointDirect::DataPointDirect(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPoint(url, usercfg, parg),
       buffer(NULL),
       bufsize(-1),
       bufnum(1),

@@ -209,8 +209,8 @@ static int putObjectDataCallback(int bufferSize, char *buffer,
 }
 
 DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
-                         const std::string& transfer_url, PluginArgument *parg)
-    : DataPointDirect(url, usercfg, transfer_url, parg), fd(-1), reading(false),
+                         PluginArgument *parg)
+    : DataPointDirect(url, usercfg, parg), fd(-1), reading(false),
       writing(false) {
   hostname = std::string(url.Host() + ":" + tostring(url.Port()));
   access_key = Arc::GetEnv("S3_ACCESS_KEY");
@@ -269,7 +269,7 @@ Plugin *DataPointS3::Instance(PluginArgument *arg) {
       ((const URL &)(*dmcarg)).Protocol() != "s3+https")
     return NULL;
 
-  return new DataPointS3(*dmcarg, *dmcarg, *dmcarg, dmcarg);
+  return new DataPointS3(*dmcarg, *dmcarg, dmcarg);
 }
 
 DataStatus DataPointS3::Check(bool check_meta) { return DataStatus::Success; }

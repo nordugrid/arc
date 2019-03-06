@@ -241,7 +241,7 @@ int main(int argc,char* argv[]) {
   else if (!proxy_cred.empty()) source_cfg.CredentialString(proxy_cred);
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
-  DataHandle source(source_url, source_cfg, dest_url.plainstr());
+  DataHandle source(source_url, source_cfg);
   if(!source) {
     logger.msg(ERROR, "Source URL not supported: %s", source_url.str());
     _exit(-1);
@@ -260,7 +260,7 @@ int main(int argc,char* argv[]) {
   else if (!proxy_cred.empty()) dest_cfg.CredentialString(proxy_cred);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   //dest_cfg.UtilsDirPath(...); - probably not needed
-  DataHandle dest(dest_url,dest_cfg, source_url.plainstr());
+  DataHandle dest(dest_url,dest_cfg);
   if(!dest) {
     logger.msg(ERROR, "Destination URL not supported: %s", dest_url.str());
     _exit(-1);

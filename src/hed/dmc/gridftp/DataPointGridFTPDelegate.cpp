@@ -453,8 +453,8 @@ namespace ArcDMCGridFTP {
     return DataStatus::Success;
   }
 
-  DataPointGridFTPDelegate::DataPointGridFTPDelegate(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, transfer_url, parg),
+  DataPointGridFTPDelegate::DataPointGridFTPDelegate(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       reading(false),
       writing(false),
       ftp_run() {
@@ -489,7 +489,7 @@ namespace ArcDMCGridFTP {
         ((const URL&)(*dmcarg)).Protocol() != "ftp") {
       return NULL;
     }
-    return new DataPointGridFTPDelegate(*dmcarg, *dmcarg, *dmcarg, dmcarg);
+    return new DataPointGridFTPDelegate(*dmcarg, *dmcarg, dmcarg);
   }
 
   bool DataPointGridFTPDelegate::WriteOutOfOrder() {

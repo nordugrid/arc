@@ -33,8 +33,8 @@ namespace Arc {
   class DataHandle {
   public:
     /// Construct a new DataHandle
-    DataHandle(const URL& url, const UserConfig& usercfg, const std::string& transfer_url=std::string())
-      : p(getLoader().load(url, usercfg, transfer_url)) {}
+    DataHandle(const URL& url, const UserConfig& usercfg)
+      : p(getLoader().load(url, usercfg)) {}
     /// Destructor
     ~DataHandle() {
       if (p)
@@ -69,8 +69,8 @@ namespace Arc {
      * This static method is mostly for bindings to other languages
      * and if available scope of obtained DataPoint is undefined.
      */
-    static DataPoint* GetPoint(const URL& url, const UserConfig& usercfg, const std::string& transfer_url) {
-      return getLoader().load(url, usercfg, transfer_url);
+    static DataPoint* GetPoint(const URL& url, const UserConfig& usercfg) {
+      return getLoader().load(url, usercfg);
     }
   private:
     /// Pointer to specific DataPoint instance

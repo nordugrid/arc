@@ -34,8 +34,8 @@ namespace ArcDMCXrootd {
   }
 
 
-  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, transfer_url, parg),
+  DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
+    : DataPointDirect(url, usercfg, parg),
       fd(-1),
       reading(false),
       writing(false){
@@ -58,7 +58,7 @@ namespace ArcDMCXrootd {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
-    return new DataPointXrootd(*dmcarg, *dmcarg, *dmcarg, dmcarg);
+    return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
   }
 
   DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, Callback3rdParty callback) {
@@ -181,11 +181,9 @@ namespace ArcDMCXrootd {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
     reading = true;
-    buffer = &buf;
 
     {
       CertEnvLocker env(usercfg);
-      logger.msg(INFO, "Opening %s", url.plainstr());
       fd = XrdPosixXrootd::Open(url.plainstr().c_str(), O_RDONLY);
       if (fd == -1) {
         logger.msg(VERBOSE, "Could not open file %s for reading: %s", url.plainstr(), StrError(errno));
@@ -209,11 +207,13 @@ namespace ArcDMCXrootd {
       }
     }
 
+    buffer = &buf;
     transfer_cond.reset();
     // create thread to maintain reading
     if(!CreateThreadFunction(&DataPointXrootd::read_file_start, this)) {
       XrdPosixXrootd::Close(fd);
       reading = false;
+      buffer = NULL;
       return DataStatus::ReadStartError;
     }
 
@@ -311,8 +311,6 @@ namespace ArcDMCXrootd {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
     writing = true;
-    // Remember the DataBuffer we got, the separate writing thread will use it
-    buffer = &buf;
 
     {
       CertEnvLocker env(usercfg);
@@ -341,6 +339,8 @@ namespace ArcDMCXrootd {
       }
     }
 
+    // Remember the DataBuffer we got, the separate writing thread will use it
+    buffer = &buf;
     transfer_cond.reset();
     // StopWriting will wait for this condition,
     // which will be signalled by the separate writing thread

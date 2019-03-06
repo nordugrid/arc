@@ -289,8 +289,8 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
                                 bool verbose,
                                 int timeout) {
 
-  Arc::DataHandle source(s_url, usercfg, d_url.plainstr());
-  Arc::DataHandle destination(d_url, usercfg, s_url.plainstr());
+  Arc::DataHandle source(s_url, usercfg);
+  Arc::DataHandle destination(d_url, usercfg);
   if (!source) {
     logger.msg(Arc::ERROR, "Unsupported source url: %s", s_url.str());
     return Arc::DataStatus::ReadAcquireError;

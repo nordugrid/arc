@@ -798,8 +798,6 @@ namespace Arc {
     URL url;
     /// UserConfig supplied in constructor.
     const UserConfig usercfg;
-    /// Transfer URL
-    const std::string transfer_url;
 
     // attributes
     /// Size of object represented by DataPoint.
@@ -835,7 +833,7 @@ namespace Arc {
      * \param usercfg User configuration object
      * \param parg plugin argument
      */
-    DataPoint(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
+    DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
 
     /// Perform third party transfer.
     /**
@@ -855,7 +853,7 @@ namespace Arc {
   private:
     DataPointLoader();
     ~DataPointLoader();
-    DataPoint* load(const URL& url, const UserConfig& usercfg, const std::string& transfer_url);
+    DataPoint* load(const URL& url, const UserConfig& usercfg);
     friend class DataHandle;
   };
   /** \endcond */
@@ -864,10 +862,9 @@ namespace Arc {
   class DataPointPluginArgument
     : public PluginArgument {
   public:
-    DataPointPluginArgument(const URL& url, const UserConfig& usercfg, const std::string& transfer_url)
+    DataPointPluginArgument(const URL& url, const UserConfig& usercfg)
       : url(url),
-        usercfg(usercfg),
-        transfer_url(transfer_url) {}
+        usercfg(usercfg) {}
     ~DataPointPluginArgument() {}
     operator const URL&() {
       return url;
@@ -875,13 +872,9 @@ namespace Arc {
     operator const UserConfig&() {
       return usercfg;
     }
-    operator const std::string&() {
-      return transfer_url;
-    }
   private:
     const URL& url;
     const UserConfig& usercfg;
-    const std::string& transfer_url;
   };
   /** \endcond */
 

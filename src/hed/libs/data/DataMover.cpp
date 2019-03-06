@@ -776,10 +776,10 @@ namespace Arc {
           else {
             logger.msg(INFO, "Replica %s has high latency, trying next source", source_url.CurrentLocation().str());
             source.NextLocation();
-#ifndef WIN32
+  #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-#endif
+  #endif
             continue;
           }
         }

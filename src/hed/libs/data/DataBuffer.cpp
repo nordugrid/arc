@@ -88,7 +88,6 @@ namespace Arc {
     error_transfer_flag = false;
     set(NULL, size, blocks);
     eof_pos = 0;
-    excl = false;
   }
 
   DataBuffer::DataBuffer(CheckSum *cksum, unsigned int size,
@@ -103,7 +102,6 @@ namespace Arc {
     error_transfer_flag = false;
     set(cksum, size, blocks);
     eof_pos = 0;
-    excl = false;
   }
 
   DataBuffer::~DataBuffer() {
@@ -668,14 +666,6 @@ namespace Arc {
       if (size < bufs[i].size) size = bufs[i].size;
     }
     return size;
-  }
-
-  void DataBuffer::set_excl(bool v) {
-    excl = v;
-  }
-
-  bool DataBuffer::get_excl() const {
-    return excl;
   }
 
 } // namespace Arc

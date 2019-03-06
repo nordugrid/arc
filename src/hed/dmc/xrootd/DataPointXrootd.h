@@ -35,7 +35,7 @@ namespace ArcDMCXrootd {
     : public DataPointDirect {
 
    public:
-    DataPointXrootd(const URL& url, const UserConfig& usercfg, const std::string& transfer_url, PluginArgument* parg);
+    DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg);
     virtual ~DataPointXrootd();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buffer);
@@ -57,7 +57,6 @@ namespace ArcDMCXrootd {
     /// thread functions for async read/write
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);
-    static void copy_file_start(void* arg);
     void read_file();
     void write_file();
     DataStatus copy_file(std::string source, std::string dest, Callback3rdParty callback = NULL);
