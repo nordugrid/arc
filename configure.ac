@@ -2546,6 +2546,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/archery/Makefile
                  src/utils/archery/archery-manage
                  src/utils/python/Makefile
+                 src/utils/python/arccandypond
                  src/utils/python/arcctl
                  src/utils/python/arcctl.1
                  src/utils/python/jura-archive-manager
