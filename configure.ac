@@ -34,11 +34,23 @@ else
    debianversion="$baseversion~$preversion"
 fi
 
+# numeric ARC_VERSION_* used for API fall back to current release seriese (e.g. when 'master' is specified in VESRION file, the "6.0.0" will be used)
+ARC_VERSION_MAJOR=`echo $VERSION | awk -F. '{print match($1, /^[[0-9]]+$/) ? $1 : "6"}'`
+ARC_VERSION_MINOR=`echo $VERSION | awk -F. '{print match($2, /[[^ ]]/) ? $2 : "0"}'`
+ARC_VERSION_PATCH=`echo $VERSION | awk -F. '{print match($3, /[[^ ]]/) ? $3 : "0"}'`
+ARC_VERSION_NUM=`printf "0x%02x%02x%02x" $ARC_VERSION_MAJOR $ARC_VERSION_MINOR $ARC_VERSION_PATCH`
+ARC_VERSION=`echo $ARC_VERSION_MAJOR.$ARC_VERSION_MINOR.$ARC_VERSION_PATCH`
+
 AC_SUBST(baseversion)
 AC_SUBST(preversion)
 AC_SUBST(fedorarelease)
 AC_SUBST(fedorasetupopts)
 AC_SUBST(debianversion)
+AC_SUBST(ARC_VERSION_MAJOR)
+AC_SUBST(ARC_VERSION_MINOR)
+AC_SUBST(ARC_VERSION_PATCH)
+AC_SUBST(ARC_VERSION_NUM)
+AC_SUBST(ARC_VERSION)
 
 # This macro was introduced in autoconf 2.57g? but we currently only require 2.56
 m4_ifdef([AC_CONFIG_MACRO_DIR], [AC_CONFIG_MACRO_DIR([m4])])
@@ -2252,6 +2264,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/compute/Makefile
                  src/hed/libs/compute/test/Makefile
                  src/hed/libs/compute/examples/Makefile
+                 src/hed/libs/common/ArcVersion.h
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/communication/Makefile
