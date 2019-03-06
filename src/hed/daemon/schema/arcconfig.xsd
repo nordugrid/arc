@@ -29,18 +29,18 @@
 <xsd:import namespace="http://www.nordugrid.org/schemas/arcpdp/2009/08" schemaLocation="ArcPDP.xsd"/> 
 
 <!-- Services -->
-<xsd:import namespace="http://www.nordugrid.org/schemas/slcs/2009/08" schemaLocation="slcs.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/spservice/2009/08" schemaLocation="SPService.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/aaservice/2009/08" schemaLocation="aaservice.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/compiler/2009/08" schemaLocation="compiler.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/charon/2009/08" schemaLocation="charon.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/isis/2009/08" schemaLocation="isis.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/ahash/2009/08" schemaLocation="ahash.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/bartender/2009/08" schemaLocation="bartender.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/shepherd/2009/08" schemaLocation="shepherd.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/librarian/2009/08" schemaLocation="librarian.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/sched/2009/08" schemaLocation="sched.xsd"/> 
-<xsd:import namespace="http://www.nordugrid.org/schemas/paul/2009/08" schemaLocation="paul.xsd"/> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/slcs/2009/08" schemaLocation="slcs.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/spservice/2009/08" schemaLocation="SPService.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/aaservice/2009/08" schemaLocation="aaservice.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/compiler/2009/08" schemaLocation="compiler.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/charon/2009/08" schemaLocation="charon.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/isis/2009/08" schemaLocation="isis.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/ahash/2009/08" schemaLocation="ahash.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/bartender/2009/08" schemaLocation="bartender.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/shepherd/2009/08" schemaLocation="shepherd.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/librarian/2009/08" schemaLocation="librarian.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/sched/2009/08" schemaLocation="sched.xsd"/ --> 
+<!-- xsd:import namespace="http://www.nordugrid.org/schemas/paul/2009/08" schemaLocation="paul.xsd"/ --> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/echo/2009/08" schemaLocation="echo.xsd"/> 
 <xsd:import namespace="http://www.nordugrid.org/schemas/a-rex/2009/08" schemaLocation="a-rex.xsd"/> 
 
