@@ -43,7 +43,7 @@ configure-stamp:
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
 		    --enable-sqlite \
-		    --enable-internal \
+		    --enable-internal
 	touch $@
 
 build: build-arch build-indep

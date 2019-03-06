@@ -1341,7 +1341,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
+%if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.so
+%endif
 %{_libdir}/%{pkgdir}/libaccLDAP.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
@@ -1358,13 +1360,15 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libmccsoap.so
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
+%{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
+%if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.apd
+%endif
 %{_libdir}/%{pkgdir}/libaccLDAP.apd
-%{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
 %{_libdir}/%{pkgdir}/libdmcfile.apd
@@ -1376,9 +1380,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libidentitymap.apd
 %{_libdir}/%{pkgdir}/libarguspdpclient.apd
 %{_libdir}/%{pkgdir}/libmcchttp.apd
+%{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmccsoap.apd
 %{_libdir}/%{pkgdir}/libmcctcp.apd
-%{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
 
 %files plugins-globus
