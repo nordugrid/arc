@@ -24,6 +24,8 @@ fork_packages_el6:
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+      - build
   except:
     refs:
       - master
@@ -64,6 +66,8 @@ fork_packages_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
+  tags:
+      - build
   except:
     refs:
       - master
@@ -91,6 +95,8 @@ fork_packages_deb9:
     - dpkg-buildpackage -b -us -uc
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
+  tags:
+      - build
   except:
     refs:
       - master
@@ -126,6 +132,8 @@ packages_deb9:
     - dpkg-buildpackage -b -us -uc
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
+  tags:
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -155,6 +163,8 @@ packages_el6:
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -183,6 +193,8 @@ packages_el7:
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
