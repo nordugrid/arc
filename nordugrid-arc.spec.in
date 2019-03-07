@@ -938,6 +938,10 @@ fi
 %preun arex
 %stop_on_removal arc-arex
 
+if [ $1 -eq 0 ]; then
+  arcctl test-ca cleanup
+fi
+
 %postun arex
 %condrestart_on_update arc-arex
 
