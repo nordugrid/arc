@@ -181,16 +181,6 @@ typedef struct {
 
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/data/FileCache.h
-%{
-#ifdef WIN32
-#ifndef uid_t
-#define uid_t int
-#endif
-#ifndef gid_t
-#define gid_t int
-#endif
-#endif
-%}
 typedef int uid_t;
 typedef int gid_t;
 %{

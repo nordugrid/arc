@@ -117,11 +117,7 @@ namespace DataStaging {
       if (source_endpoint->Stat(files, datapoints) == Arc::DataStatus::Success) source_supports_bulk = true;
     }
 
-#ifdef WIN32
-    cache_state = NON_CACHEABLE;
-#else
     cache_state = (source_endpoint->Cache() && destination_endpoint->Local()) ? CACHEABLE : NON_CACHEABLE;
-#endif
     if (source_url.Option("failureallowed") == "yes" || destination_url.Option("failureallowed") == "yes") {
       mandatory = false;
     }

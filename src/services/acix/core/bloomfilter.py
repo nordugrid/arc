@@ -110,7 +110,7 @@ class BloomFilter(object):
 
 if __name__ == '__main__':
     import time
-    from acix.cacheserver import pscan
+    from acix.scanner import pscan
 
     try:
         scanner = pscan.CacheScanner()

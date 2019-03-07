@@ -67,7 +67,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_STATIC
-AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
@@ -204,12 +203,8 @@ enables_monitor=yes
 #  Clients
 enables_compute_client=yes
 enables_credentials_client=yes
-enables_echo_client=yes
 enables_data_client=yes
 enables_jura_client=yes
-enables_saml_client=yes
-enables_wsrf_client=yes
-enables_unicore_client=no
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -232,8 +227,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
@@ -262,8 +255,6 @@ enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
 enables_jura_client=$enableval
-enables_saml_client=$enableval
-enables_wsrf_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
@@ -455,7 +446,8 @@ if test "$enables_python" = "yes"; then
 
     AC_TRY_COMPILE([#include <Python.h>], [Py_InitializeEx(0)],[
         AC_MSG_NOTICE([Python includes functionality of skipping initialization registration of signal handlers])
-        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])
+        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX, 1,
+          [Define if you have Py_InitializeEx function])
         enables_python_service="yes"
     ],[
         AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])
@@ -658,7 +650,7 @@ if test "$?" = '1'; then
   PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
 else
   PKG_CHECK_MODULES(GLIBMM, [giomm-2.4])
-  AC_DEFINE(HAVE_GIOMM,, [define if giomm is supported in glibmm])
+  AC_DEFINE(HAVE_GIOMM, 1, [define if giomm is supported in glibmm])
 fi
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
@@ -669,7 +661,7 @@ CPPFLAGS="$CPPFLAGS $GLIBMM_CFLAGS"
 AC_CHECK_HEADER([glibmm/optioncontext.h], [
   AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
     [Glib::OptionContext ctx; ctx.set_summary("summary")], [
-      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY,,
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY, 1,
         [define if glibmm has Glib::OptionContext::set_summary()])
       AC_MSG_NOTICE([using glibmm command line parsing])
     ], [
@@ -678,7 +670,7 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
   )
   AC_TRY_COMPILE([#include <glibmm/optioncontext.h>],
     [Glib::OptionContext ctx; ctx.get_help();],[
-      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP,,
+      AC_DEFINE(HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP, 1,
         [define if glibmm has Glib::OptionContext::get_help()])
     ], [
     ]
@@ -686,37 +678,39 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
 ])
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
 if test "$glibmm_childwatch" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH,,[define if glibmm have support for controling state of children processes])
+  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH, 1,
+    [define if glibmm have support for controling state of children processes])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
 fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::ModuleFlags flags = Glib::MODULE_BIND_LOCAL;],[glibmm_bind_local=yes],[glibmm_bind_local=no])
 if test "$glibmm_bind_local" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL,,[define if glibmm have support local symbol resolution in shared libraries])
+  AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL, 1,
+    [define if glibmm have support local symbol resolution in shared libraries])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no way to limit scope of symbols of shared libraries. Make sure external libraries used by plugins have no conflicting symbols. HINT: use Globus compiled against system OpenSSL library.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::getenv("");],[glibmm_getenv=yes],[glibmm_getenv=no])
 if test "$glibmm_getenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_GETENV,,[define if glibmm have getenv operations])
+  AC_DEFINE(HAVE_GLIBMM_GETENV, 1, [define if glibmm have getenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for getenv. Usage of libc getenv is unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::setenv("", "");],[glibmm_setenv=yes],[glibmm_setenv=no])
 if test "$glibmm_setenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_SETENV,,[define if glibmm have setenv operations])
+  AC_DEFINE(HAVE_GLIBMM_SETENV, 1, [define if glibmm have setenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for setenv. Usage of libc setenv may be unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::unsetenv("");],[glibmm_unsetenv=yes],[glibmm_unsetenv=no])
 if test "$glibmm_unsetenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_UNSETENV,,[define if glibmm have unsetenv operations])
+  AC_DEFINE(HAVE_GLIBMM_UNSETENV, 1, [define if glibmm have unsetenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for unsetenv. Usage of libc unsetenv may be unsafe in multi-threaded applications.])
 fi
 AC_TRY_COMPILE([#include <glibmm/miscutils.h>],[Glib::listenv();],[glibmm_listenv=yes],[glibmm_listenv=no])
 if test "$glibmm_listenv" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_LISTENV,,[define if glibmm have listenv operations])
+  AC_DEFINE(HAVE_GLIBMM_LISTENV, 1, [define if glibmm have listenv operations])
 else
   AC_MSG_NOTICE([WARNING: glibmm has no support for listenv. Usage of libc environ is unsafe in multi-threaded applications.])
 fi
@@ -831,7 +825,7 @@ if test "$enables_nss" = "yes"; then
     enables_nss=no
   ])
   if test "x$NSS_INSTALLED" = "xyes" ; then
-    AC_DEFINE(HAVE_NSS,,[define if NSS is enabled and available])
+    AC_DEFINE(HAVE_NSS, 1, [define if NSS is enabled and available])
   fi
 fi
 AC_SUBST(NSS_CFLAGS)
@@ -846,7 +840,7 @@ PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
   enables_sqlite=no
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
-  AC_DEFINE(HAVE_SQLITE,,[define if SQLite is available])
+  AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
   # Check for finction available since 3.8
   SAVE_CFLAGS=$CFLAGS
   SAVE_LIBS=$LIBS
@@ -859,33 +853,6 @@ fi
 AC_SUBST(SQLITE_CFLAGS)
 AC_SUBST(SQLITE_LIBS)
 AM_CONDITIONAL([SQLITE_ENABLED], test x$SQLITE_INSTALLED = xyes)
-
-#check emi common authentiation library
-enables_canlxx=no
-AC_ARG_ENABLE(canlxx, AC_HELP_STRING([--enable-canlxx], [enable use of EMI common authentication libraries]), [enables_canlxx="$enableval"], [])
-if test "x$enables_canlxx" = "xyes"; then
-  AC_ARG_WITH(canlxx,
-    AC_HELP_STRING([--with-canlxx=PATH], [CANL++ installation path]),
-    [
-      if test "x$PKG_CONFIG_PATH" != "x"; then
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
-      fi
-    ]
-  )
-  AC_MSG_NOTICE([PKG_CONFIG_PATH for CANL++ is: $PKG_CONFIG_PATH])
-  PKG_CHECK_MODULES(CANLXX, [canl-c++], [], [
-    AC_MSG_NOTICE([Failed to find EMI common authentication libraries])
-    enables_canlxx=no
-  ])
-fi
-if test "x$enables_canlxx" = "xyes" ; then
-  AC_DEFINE(HAVE_CANLXX,,[define if CANL++ is enabled and available])
-fi
-AC_SUBST(CANLXX_CFLAGS)
-AC_SUBST(CANLXX_LIBS)
-AM_CONDITIONAL(CANLXX_ENABLED, test "x$enables_canlxx" = "xyes")
 
 # check cppunit
 if test "$enables_hed" = "yes"; then
@@ -945,7 +912,7 @@ else
   enables_ldns="no"
 fi
 if test "x$enables_ldns" = "xyes" ; then
-  AC_DEFINE(HAVE_LDNS,,[define if LDNS is enabled and available])
+  AC_DEFINE(HAVE_LDNS, 1, [define if LDNS is enabled and available])
 else
   LDNS_CFLAGS=
   LDNS_LIBS=
@@ -967,7 +934,7 @@ case "${host}" in
 esac
 
 if test "x$MACOSX" = "xyes"; then
-  AC_DEFINE(_MACOSX,,[Define if compiling for MacOSX])
+  AC_DEFINE(_MACOSX, 1, [Define if compiling for MacOSX])
 fi
 AM_CONDITIONAL([MACOSX], [ test "x$MACOSX" = "xyes"])
 
@@ -1032,7 +999,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
           PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
               [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
         else
-          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
+          AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc)
         fi
       fi
   elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" = "xyes"; then
@@ -1259,15 +1226,8 @@ else
   SAVE_LDFLAGS=$LDFLAGS
   SAVE_CXXFLAGS=$CXXFLAGS
 
-  case $host in
-    *-*-mingw*)
-      CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
-      ;;
-    *)
-      # pthread needed for RH9
-      LDFLAGS="$LDFLAGS -lpthread"
-      ;;
-  esac
+  # pthread needed for RH9
+  LDFLAGS="$LDFLAGS -lpthread"
 
   LDFLAGS="$LDFLAGS $db4_library_path"
 
@@ -1295,10 +1255,9 @@ fi
 AC_SUBST(DBCXX_LIBS)
 if test ! "x$DBCXX_LIBS" = "x"
 then
-  # Mingw need -I$dbcxx_dir
-  AC_DEFINE(HAVE_DBCXX, , [define if Berkeley DB C++ binding is available])
+  AC_DEFINE(HAVE_DBCXX, 1, [define if Berkeley DB C++ binding is available])
   SAVE_CXXFLAGS=$CXXFLAGS
-  CXXFLAGS="-I$dbcxx_dir $CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS $DBCXX_CPPFLAGS"
   AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION
   CXXFLAGS=$SAVE_CXXFLAGS
 fi
@@ -1318,7 +1277,8 @@ fi
 AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbjstore])
 AM_CONDITIONAL([DBJSTORE_ENABLED],[test "x$enables_dbjstore" = "xyes"])
 if test "x$enables_dbjstore" = "xyes"; then
-  AC_DEFINE(DBJSTORE_ENABLED,, [define if to build job information in BDB storage])
+  AC_DEFINE(DBJSTORE_ENABLED, 1,
+    [define if to build job information in BDB storage])
 fi
 
 # SQLITEJSTORE (storing jobs information in SQLite)
@@ -1333,7 +1293,8 @@ fi
 AC_MSG_NOTICE([Storing jobs in SQLite enabled: $enables_sqlitejstore])
 AM_CONDITIONAL([SQLITEJSTORE_ENABLED],[test "x$enables_sqlitejstore" = "xyes"])
 if test "x$enables_sqlitejstore" = "xyes"; then
-  AC_DEFINE(SQLITEJSTORE_ENABLED,, [define if to build job information in SQLite storage])
+  AC_DEFINE(SQLITEJSTORE_ENABLED, 1,
+    [define if to build job information in SQLite storage])
 fi
 
 # globus/gpt packages
@@ -1541,7 +1502,7 @@ if test "x$LCAS_LOCATION" != "x"; then
   CPPFLAGS=$SAVE_CPPFLAGS
 fi
 if test "x$LCAS_LOCATION" != "x"; then
-  AC_DEFINE(HAVE_LCAS,, [define if lcas is available])
+  AC_DEFINE(HAVE_LCAS, 1, [define if lcas is available])
   AC_SUBST(LCAS_LOCATION)
   AC_SUBST(LCAS_CFLAGS)
   AC_SUBST(LCAS_LIBS)
@@ -1597,7 +1558,7 @@ if test "x$LCMAPS_LOCATION" != "x"; then
   CPPFLAGS=$SAVE_CPPFLAGS
 fi
 if test "x$LCMAPS_LOCATION" != "x"; then
-  AC_DEFINE(HAVE_LCMAPS,, [define if lcmaps is available])
+  AC_DEFINE(HAVE_LCMAPS, 1, [define if lcmaps is available])
   AC_SUBST(LCMAPS_LOCATION)
   AC_SUBST(LCMAPS_CFLAGS)
   AC_SUBST(LCMAPS_LIBS)
@@ -1640,10 +1601,9 @@ if test "x$enables_s3" = "xyes"; then
   AC_SUBST(S3_LIBS)
   if test x$enables_s3 = xyes
   then
-      if s3 help 2>&1 | grep -q  -- '--timeout'
-      then
-      AC_DEFINE([HAVE_S3_TIMEOUT],,[Define if S3 API has timeouts])
-      fi
+    if s3 help 2>&1 | grep -q  -- '--timeout' ; then
+      AC_DEFINE([HAVE_S3_TIMEOUT], 1, [Define if S3 API has timeouts])
+    fi
   fi
 fi
 
@@ -1701,10 +1661,10 @@ AM_CONDITIONAL([SRM_DMC_ENABLED],[test "x$enables_srm_dmc" = "xyes"])
 
 # Setup defines
 if test -n "$GLOBUS_COMMON_VERSION"; then
-    AC_DEFINE(HAVE_GLOBUS,,[define if GLOBUS is available])
+    AC_DEFINE(HAVE_GLOBUS, 1, [define if GLOBUS is available])
 fi
 if test x"$XMLSEC_INSTALLED" = xyes; then
-    AC_DEFINE(HAVE_XMLSEC,,[define if XMLSEC package is available])
+    AC_DEFINE(HAVE_XMLSEC, 1, [define if XMLSEC package is available])
 fi
 
 # Setup messages for reporting
@@ -1725,14 +1685,8 @@ if test "x$enables_ldap" = "xyes"; then
     LDAP=yes
 
     SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS=-lpthread
 
-    case "${host}" in
-      *-*-mingw32):
-      ;;
-      *):
-        LDFLAGS=-lpthread
-      ;;
-    esac
     AC_CHECK_LIB([ldap_r], [ldap_first_message], [
       AC_CHECK_LIB([ldap_r], [ldap_initialize], [
         AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
@@ -1752,21 +1706,6 @@ if test "x$enables_ldap" = "xyes"; then
 
   [
     LDAP=no
-
-    # Try native LDAP on Win32 if OpenLDAP fails
-    case "${host}" in
-      *-*-mingw32)
-    AC_CHECK_HEADER([winldap.h],
-    [
-      AC_CHECK_LIB([wldap32], [ldap_init],
-      [
-        LDAP=yes
-        LDAP_LIBS="-lwldap32"
-        AC_DEFINE(USE_WIN32_LDAP_API,,[Define if using WIN32 LDAP API])
-      ])
-    ], [], [[#include <windows.h>]]) ;;
-    esac
-
   ])
 
   enables_ldap="$LDAP"
@@ -1900,15 +1839,8 @@ AC_FUNC_LSTAT
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MEMCMP
 AC_FUNC_MKTIME
-# GNU compatible *ALLOC functions are available on Windows
-# The test will however fail when cross-compiling with mingw
-case "${host}" in
-  *-*-mingw32) : ;;
-            *)
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-;;
-esac
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
@@ -1922,37 +1854,7 @@ AC_SUBST(LIBRESOLV)
 
 fi
 
-# check for platfom specific extra libraries and flags
-
-EXTRA_LIBS=""
-REGEX_LIBS=""
-SOCKET_LIBS=""
-WIN32=""
-case "${host}" in
-  *-*-mingw32)
-    WIN32="yes"
-    REGEX_LIBS="-lregex"
-    SOCKET_LIBS="-lws2_32"
-    EXTRA_LIBS="-lole32"
-    # its required to libtool generate .dlls on win32 using mingw
-    LDFLAGS="$LDFLAGS -no-undefined"
-    AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
-    AC_PATH_PROGS(WINDRES, windres.exe ${host}-windres)
-    ;;
-  *solaris*)
-    SOCKET_LIBS="-lsocket"
-    CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS"
-    CXXFLAGS="$CXXFLAGS -D_POSIX_PTHREAD_SEMANTICS"
-    ;;
-  *)
-    AC_DEFINE(HAVE_GETDOMAINNAME,,[let's suppose the unix-alike (except solaris) has gethostname method])
-    ;;
-esac
-AC_SUBST(EXTRA_LIBS)
-AC_SUBST(REGEX_LIBS)
-AC_SUBST(SOCKET_LIBS)
-AM_CONDITIONAL([WIN32], [ test "x$WIN32" = "xyes" ])
-
+# check for platfom specific flags
 case " $LDFLAGS " in
      " -Wl,--no-undefined ") ;;
      " -Wl,-no-undefined ") ;;
@@ -1961,7 +1863,6 @@ case " $LDFLAGS " in
      *)
         case "${host}" in
             *darwin*);;
-            *solaris*);;
             *) LDFLAGS="$LDFLAGS -Wl,--no-undefined" ;;
         esac
         ;;
@@ -1994,17 +1895,11 @@ AM_CONDITIONAL([PYDOXYGEN],[test -f python/python/arc/index.xml -o "x$DOXYGEN" !
 AM_CONDITIONAL([ALTPYDOXYGEN],[test -f python/altpython/arc/index.xml -o "x$DOXYGEN" != "x"])
 
 # Check for explicitly and implicitely disabled services
-if test "x$WIN32" = "xyes" ; then
-  AC_MSG_NOTICE([In WIN32 environment many (all) services are not supported yet])
-fi
 # A-Rex
 AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable building A-Rex service]),
   [enables_a_rex_service=$enableval],[])
 if test "$enables_a_rex_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([A-Rex can't be built for WIN32 environment - disabling])
-    enables_a_rex_service="no"
-  elif test "x$SQLITE_INSTALLED" != "xyes" ; then
+  if test "x$SQLITE_INSTALLED" != "xyes" ; then
     AC_MSG_NOTICE([A-Rex can't be built without SQLite - disabling])
     enables_a_rex_service="no"
   elif test "x$DBCXX_LIBS" = "x" ; then
@@ -2031,10 +1926,6 @@ AM_CONDITIONAL([INTERNAL_ENABLED],[test "x$enables_internal" = "xyes"])
 AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [disable building Gridftpd service]),
   [enables_gridftpd_service=$enableval],[])
 if test "$enables_gridftpd_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([Gridftpd can not be built for WIN32 environment - disabling])
-    enables_gridftpd_service="no"
-  fi
   gridftpd_service_globus_pkgs="globus-common globus-io globus-gsi-credential globus-openssl-module globus-ftp-control"
   gridftpd_service_globus_pkgs_missing=""
   for pkg in $gridftpd_service_globus_pkgs
@@ -2073,12 +1964,6 @@ AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "
 # LDAP service
 AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
   [enables_ldap_service=$enableval],[])
-if test "$enables_ldap_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    AC_MSG_NOTICE([LDAP infosystem can't be built for WIN32 environment - disabling])
-    enables_ldap_service="no"
-  fi
-fi
 
 AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
 AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
@@ -2094,10 +1979,7 @@ AM_CONDITIONAL([MONITOR_ENABLED],[test "x$enables_monitor" = "xyes"])
 AC_ARG_ENABLE(candypond, AC_HELP_STRING([--disable-candypond], [disable building candypond]),
   [enables_candypond=$enableval],[])
 if test "$enables_candypond" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_candypond="no"
-    AC_MSG_NOTICE([CandyPond service can't be built for WIN32 environment - disabling])
-  elif test ! "x$enables_a_rex_service" = "xyes" ; then
+  if test ! "x$enables_a_rex_service" = "xyes" ; then
     enables_candypond="no"
     AC_MSG_NOTICE([CandyPond can't be built without A-REX - disabling])
   fi
@@ -2108,12 +1990,6 @@ AM_CONDITIONAL([CANDYPOND_ENABLED],[test "x$enables_candypond" = "xyes"])
 # DataDelivery service
 AC_ARG_ENABLE(datadelivery_service, AC_HELP_STRING([--disable-datadelivery-service], [disable building DataDelivery service]),
   [enables_datadelivery_service=$enableval],[])
-if test "$enables_datadelivery_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_datadelivery_service="no"
-    AC_MSG_NOTICE([DataDelivery service can't be built for WIN32 environment - disabling])
-  fi
-fi
 AC_MSG_NOTICE([DataDelivery service enabled: $enables_datadelivery_service])
 AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_service" = "xyes"])
 
@@ -2147,11 +2023,6 @@ AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client],
 AC_MSG_NOTICE([Credentials client tools enabled: $enables_credentials_client])
 AM_CONDITIONAL([CREDENTIALS_CLIENT_ENABLED],[test "x$enables_credentials_client" = "xyes"])
 
-AC_ARG_ENABLE(echo_client, AC_HELP_STRING([--disable-echo-client], [disable building client tools for communicationg with Echo service]),
-  [enables_echo_client=$enableval],[])
-AC_MSG_NOTICE([Echo client tool enabled: $enables_echo_client])
-AM_CONDITIONAL([ECHO_CLIENT_ENABLED],[test "x$enables_echo_client" = "xyes"])
-
 AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable building generic client tools for handling data]),
   [enables_data_client=$enableval],[])
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
@@ -2161,27 +2032,6 @@ AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable buil
   [enables_jura_client=$enableval],[])
 AC_MSG_NOTICE([JURA client tool enabled: $enables_jura_client])
 AM_CONDITIONAL([JURA_CLIENT_ENABLED],[test "x$enables_jura_client" = "xyes"])
-
-AC_ARG_ENABLE(saml_client, AC_HELP_STRING([--disable-saml-client], [disable building client tool for communicating SAML-based VOMS service]),
-  [enables_saml_client=$enableval],[])
-if test "$enables_saml_client" = "yes"; then
-  if test "$enables_xmlsec1" != "yes" ; then
-    enables_saml_client="no"
-    AC_MSG_NOTICE([SAML client requires xmlsec1 - disabling])
-  fi
-fi
-AC_MSG_NOTICE([SAML client tool enabled: $enables_saml_client])
-AM_CONDITIONAL([SAML_CLIENT_ENABLED],[test "x$enables_saml_client" = "xyes"])
-
-AC_ARG_ENABLE(wsrf_client, AC_HELP_STRING([--disable-wsrf-client], [disable building client tools for querying WSRF-enabled services.]),
-  [enables_wsrf_client=$enableval],[])
-AC_MSG_NOTICE([WSRF client tool enabled: $enables_wsrf_client])
-AM_CONDITIONAL([WSRF_CLIENT_ENABLED],[test "x$enables_wsrf_client" = "xyes"])
-
-AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables building UNICORE-related plugins (not affected by --enable-all).]),
-  [enables_unicore_client=$enableval],[])
-AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
-AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
 
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
@@ -2200,11 +2050,8 @@ if test "$enables_hed" = "no"; then
           "$enables_datadelivery_service" = "yes" -o \
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
-          "$enables_echo_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
           "$enables_jura_client" = "yes" -o \
-          "$enables_saml_client" = "yes" -o \
-          "$enables_wsrf_client" = "yes" -o \
           ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
@@ -2217,8 +2064,8 @@ tmp_dir=/tmp
 gnu_time=/usr/bin/time
 
 case "${host}" in
-    *solaris* | *darwin* )
-        # hostname -f does not work on Solaris, OS X
+    *darwin*)
+        # hostname -f does not work on OS X
         nodename="hostname" ;;
     *)
         nodename="/bin/hostname -f" ;;
@@ -2232,17 +2079,7 @@ AC_SUBST(gnu_time)
 AC_SUBST(nodename)
 
 # Shell for the job control scripts
-
-case $host_os in
-
-  solaris* )
-      posix_shell='/usr/xpg4/bin/sh'
-      ;;
-  * )
-      posix_shell='/bin/sh'
-      ;;
-esac
-
+posix_shell='/bin/sh'
 AC_SUBST(posix_shell)
 
 DATE=`date +%Y-%m-%d`
@@ -2253,9 +2090,6 @@ AC_SUBST(DATER)
 SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
 
-AH_BOTTOM([#ifdef WIN32
-#include <arc/win32.h>
-#endif])
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/external/Makefile
@@ -2291,7 +2125,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/security/ArcPDP/alg/Makefile
                  src/hed/libs/security/ArcPDP/fn/Makefile
                  src/hed/libs/credentialstore/Makefile
-                 src/hed/libs/wsrf/Makefile
                  src/hed/libs/ws-addressing/Makefile
                  src/hed/libs/ws-security/Makefile
                  src/hed/libs/ws-security/test/Makefile
@@ -2300,7 +2133,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/infosys/test/Makefile
                  src/hed/libs/delegation/Makefile
                  src/hed/libs/delegation/test/Makefile
-                 src/hed/libs/ws/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
                  src/hed/libs/scitokens/Makefile
@@ -2308,7 +2140,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
                  src/hed/daemon/unix/Makefile
-                 src/hed/daemon/win32/Makefile
                  src/hed/mcc/Makefile
                  src/hed/mcc/soap/Makefile
                  src/hed/mcc/tcp/Makefile
@@ -2320,22 +2151,18 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
-                 src/hed/acc/ARC0/Makefile
-                 src/hed/acc/ARC1/Makefile
-                 src/hed/acc/ARC1/test/Makefile
+                 src/hed/acc/GRIDFTPJOB/Makefile
                  src/hed/acc/ARCREST/Makefile
                  src/hed/acc/EMIES/Makefile
                  src/hed/acc/EMIES/arcemiestest.1
                  src/hed/acc/EMIES/schema/Makefile
-                 src/hed/acc/CREAM/Makefile
-                 src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
-                 src/hed/acc/SER/Makefile
-                 src/hed/acc/ldap/Makefile
+                 src/hed/acc/ARCHERY/Makefile
+                 src/hed/acc/LDAP/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
@@ -2416,7 +2243,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/jura/jura.1
                  src/services/a-rex/jura/ssm/Makefile
                  src/services/a-rex/jura/ssm/ssmsend
-                 src/services/a-rex/ldif/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
                  src/services/a-rex/lrms/arc/Makefile
@@ -2470,11 +2296,11 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
                  src/services/acix/Makefile
-                 src/services/acix/cacheserver/Makefile
-                 src/services/acix/cacheserver/arc-acix-scanner
-                 src/services/acix/cacheserver/arc-acix-scanner-start
-                 src/services/acix/cacheserver/arc-acix-scanner.service
-                 src/services/acix/cacheserver/test/Makefile
+                 src/services/acix/scanner/Makefile
+                 src/services/acix/scanner/arc-acix-scanner
+                 src/services/acix/scanner/arc-acix-scanner-start
+                 src/services/acix/scanner/arc-acix-scanner.service
+                 src/services/acix/scanner/test/Makefile
                  src/services/acix/core/Makefile
                  src/services/acix/core/test/Makefile
                  src/services/acix/indexserver/Makefile
@@ -2521,12 +2347,8 @@ AC_CONFIG_FILES([Makefile
                  src/clients/data/arcrm.1
                  src/clients/data/arcmkdir.1
                  src/clients/data/arcrename.1
-                 src/clients/echo/Makefile
-                 src/clients/echo/arcecho.1
                  src/clients/credentials/Makefile
                  src/clients/credentials/arcproxy.1
-                 src/clients/saml/Makefile
-                 src/clients/saml/saml_assertion_init.1
                  src/clients/compute/Makefile
                  src/clients/compute/arcstat.1
                  src/clients/compute/arcinfo.1
@@ -2540,8 +2362,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
                  src/clients/compute/arctest.1
-                 src/clients/wsrf/arcwsrf.1
-                 src/clients/wsrf/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1
@@ -2592,14 +2412,11 @@ AC_CONFIG_FILES([Makefile
                  debian/Makefile
                  debian/changelog.deb
                  nordugrid-arc.spec
-                 mingw-nordugrid-arc.spec
                  src/hed/daemon/arched.8
                  src/hed/daemon/scripts/arched
                  src/hed/daemon/scripts/arched.service
                  src/hed/daemon/scripts/arched-start
                  arcbase.pc
-                 nsis/Makefile
-                 nsis/arc.nsis
                  src/doxygen/Makefile
 ])
 AC_CONFIG_FILES([src/utils/python/arcconfig-parser],
@@ -2622,7 +2439,6 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
-CANL++:             ${enables_canlxx}
 BDB C++:            ${enables_dbcxx}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}
@@ -2649,12 +2465,8 @@ ACIX service:       ${enables_acix}
 COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
-ECHO client:        ${enables_echo_client}
 JURA client:        ${enables_jura_client}
-SAML VOMS client:   ${enables_saml_client}
-WSRF client:        ${enables_wsrf_client}
 
-UNICORE client (ACC): ${enables_unicore_client}
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}

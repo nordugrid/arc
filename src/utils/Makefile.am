@@ -1,8 +1,4 @@
-if WIN32
-GRIDMAP =
-else
 GRIDMAP = gridmap
-endif
 
 if HED_ENABLED
 HED = hed

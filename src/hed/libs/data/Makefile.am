@@ -1,20 +1,12 @@
 lib_LTLIBRARIES = libarcdata.la
 
-if WIN32
-DIRS = examples
-else
 DIRS = $(TEST_DIR) examples
-endif
 
 SUBDIRS = $(DIRS)
 DIST_SUBDIRS = test examples
 EXTRA_DIST = cache-clean cache-list
 
-if WIN32
-pkglibexec_SCRIPTS = 
-else
 pkglibexec_SCRIPTS = cache-clean cache-list
-endif
 
 libarcdata_ladir = $(pkgincludedir)/data
 libarcdata_la_HEADERS = DataPoint.h DataPointDirect.h \
@@ -37,8 +29,4 @@ libarcdata_la_LIBADD = \
 	$(OPENSSL_LIBS)
 libarcdata_la_LDFLAGS = -version-info 3:0:0
 
-if WIN32
-man_MANS = 
-else
 man_MANS = cache-clean.1 cache-list.1
-endif

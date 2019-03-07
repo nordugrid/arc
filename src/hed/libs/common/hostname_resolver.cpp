@@ -14,9 +14,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#ifndef WIN32
 #include <poll.h>
-#endif
 #include <dirent.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -35,7 +33,6 @@ static bool sread_start = true;
 
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLIN;
@@ -44,9 +41,6 @@ static bool sread(int s,void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::read(s,buf,size);
       if(l <= 0) return false;
       size-=l;
@@ -59,7 +53,6 @@ static bool sread(int s,void* buf,size_t size) {
 
 static bool swrite(int s,const void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLOUT;
@@ -68,9 +61,6 @@ static bool swrite(int s,const void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::write(s,buf,size);
       if(l < 0) return false;
       size-=l;

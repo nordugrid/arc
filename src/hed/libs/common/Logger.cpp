@@ -14,9 +14,6 @@
 #include <arc/Utils.h>
 
 #include <unistd.h>
-#ifdef WIN32
-#include <process.h>
-#endif
 
 #include "Logger.h"
 
@@ -156,17 +153,9 @@ namespace Arc {
     std::ostringstream sout;
 #ifdef HAVE_GETPID
     sout << getpid() << "/"
-#ifdef WIN32
-         << (unsigned long int)GetCurrentThreadId();
-#else
          << ThreadId::getInstance().get();
-#endif
-#else
-#ifdef WIN32
-    sout << (unsigned long int)GetCurrentThreadId();
 #else
     sout << ThreadId::getInstance().get();
-#endif
 #endif
     return sout.str();
   }

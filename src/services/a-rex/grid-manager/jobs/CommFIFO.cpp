@@ -16,8 +16,6 @@ namespace ARex {
 
 static const unsigned int MAX_ID_SIZE = 64;
 
-#ifndef WIN32
-
 static const std::string fifo_file("/gm.fifo");
 
 bool CommFIFO::make_pipe(void) {
@@ -263,31 +261,5 @@ bool CommFIFO::Ping(const std::string& dir_path) {
   close(fd);
   return true;
 }
-
-#else
-
-CommFIFO::CommFIFO(void) {
-}
-
-CommFIFO::~CommFIFO(void) {
-}
-
-void CommFIFO::wait(int timeout) {
-  return NULL;
-}
-
-CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
-  return add_error;
-}
-
-bool SignalFIFO(const std::string& dir_path) {
-  return false;
-}
-
-bool PingFIFO(const std::string& dir_path) {
-  return false;
-}
-
-#endif
 
 } // namespace ARex

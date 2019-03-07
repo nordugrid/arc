@@ -4,10 +4,8 @@
 
 #include <string>
 #include <sys/types.h>
-#ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
-#endif
 
 #include <glibmm.h>
 
@@ -271,9 +269,6 @@ int main(int argc,char* argv[]) {
         std::cout<<username<<std::flush;
       };
     };
-#ifdef WIN32
-  };
-#else
   } else {
     std::string username;
     if((*lcmaps_run_f)((char*)(subject.c_str()),cred,(char*)"") == 0) {
@@ -313,7 +308,6 @@ int main(int argc,char* argv[]) {
       std::cout<<username<<std::flush;
     };
   };
-#endif
   if((*lcmaps_term_f)() != 0) {
     logger.msg(Arc::WARNING, "Failed to terminate LCMAPS");
   };

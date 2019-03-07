@@ -18,10 +18,6 @@ nodist_pkgpython_PYTHON   = __init__.py $(ARCPYLIBS)
 pyexec_LTLIBRARIES = _arc.la
 endif
 
-if WIN32
-AM_CPPFLAGS = -DWIN32 -DWINNT
-endif
-
 if PYDOXYGEN
 PYDOXFLAGS   = -DPYDOXYGEN
 PYDOXFILE    = pydoxygen.i

@@ -14,11 +14,7 @@
 
 #define X509_CERT_DIR  "X509_CERT_DIR"
 
-#ifndef WIN32
 #define FILE_SEPARATOR "/"
-#else
-#define FILE_SEPARATOR "\\"
-#endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
 

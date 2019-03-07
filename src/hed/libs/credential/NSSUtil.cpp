@@ -25,11 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <vector>
-#ifndef WIN32
 #include <unistd.h>
-#else
-#include <conio.h>
-#endif
 
 #include <openssl/pem.h>
 #include <openssl/err.h>
@@ -2370,7 +2366,7 @@ error:
     return (rv);
   }
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
 // CERT_NameFromDERCert 
 // CERT_IssuerNameFromDERCert 
 // CERT_SerialNumberFromDERCert
@@ -2570,7 +2566,7 @@ loser:
     PORT_FreeArena(arena, PR_FALSE);
     return(SECFailure);
 }
-#endif // #if !defined(WIN32) && !defined(MACOS)
+#endif // #if !defined(MACOS)
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
@@ -2596,7 +2592,7 @@ loser:
       std::string subject_dn;
       SECItem derSubject;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
 #else
       rv = CERT_NameFromDERCert(&cert->derCert, &derSubject);
@@ -2612,7 +2608,7 @@ loser:
       std::string issuer_dn;
       SECItem derIssuer;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
 #else
       rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
@@ -2628,7 +2624,7 @@ loser:
       std::string serial;
       SECItem derSerial;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
 #else
       rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
@@ -2756,7 +2752,7 @@ loser:
     validity = CERT_CreateValidity(start, end);
 
     //Subject
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
 #else
     CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
