@@ -90,13 +90,17 @@ namespace Arc {
                 const std::string& delimiters,
                 const std::string& start_quotes, const std::string& end_quotes) {
     if(pos == std::string::npos) {
+      // input arguments indicate token extraction already finished
       token.resize(0);
       return std::string::npos;
     }
     std::string::size_type te = str.find_first_not_of(delimiters,pos);
-    if(te != std::string::npos) {
-      pos = te;
+    if(te == std::string::npos) {
+      // rest of str is made entirely of delimiters - nothing to parse anymore
+      token.resize(0);
+      return std::string::npos;
     }
+    pos = te;
     std::string::size_type qp = start_quotes.find(str[pos]);
     if(qp != std::string::npos) {
       te = std::string::npos;
@@ -106,9 +110,12 @@ namespace Arc {
         te = str.find(end_quotes[qp],pos+1);
       }
       if(te != std::string::npos) {
+        // only return part in quotes
         token = str.substr(pos+1, te-pos-1);
+        // and next time start looking right after closing quotes
         return te+1;
       }
+      // ignoring non-closing quotes
     }
     te = str.find_first_of(delimiters,pos+1);
     if(te != std::string::npos) {
