@@ -50,7 +50,6 @@ namespace DataStaging {
 
     // Create cache using configuration
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
-                         request->get_cache_parameters().remote_cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
@@ -80,13 +79,12 @@ namespace DataStaging {
 
     bool is_in_cache = false;
     bool is_locked = false;
-    bool use_remote = true;
     // check for forced re-download option
     bool renew = (cacheoption == "renew");
     if (renew) request->get_logger()->msg(Arc::VERBOSE, "Forcing re-download of file %s", canonic_url);
 
     for (;;) {
-      if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, renew)) {
+      if (!cache.Start(canonic_url, is_in_cache, is_locked, renew)) {
         if (is_locked) {
           request->get_logger()->msg(Arc::WARNING, "Cached file is locked - should retry");
           request->set_cache_state(CACHE_LOCKED);
@@ -165,7 +163,6 @@ namespace DataStaging {
         }
         if (outdated) {
           request->get_logger()->msg(Arc::INFO, "Cached file is outdated, will re-download");
-          use_remote = false;
           renew = true;
           continue;
         }
@@ -695,7 +692,6 @@ namespace DataStaging {
     setUpLogger(request);
 
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
-                         request->get_cache_parameters().remote_cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),

@@ -4,10 +4,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32 
-#include <fcntl.h>
-#endif
-
 #include <list>
 #include <string>
 

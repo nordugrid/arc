@@ -1,23 +1,10 @@
-if WIN32
-PLATFORM_DIR = win32
-else
 PLATFORM_DIR = unix
-endif
 
 SUBDIRS = scripts $(PLATFORM_DIR) schema
 
 sbin_PROGRAMS = arched
-SRC_UNIX = options.cpp options.h 
-SRC_WIN32 = options.cpp options.h
-LIB_UNIX = unix/libdaemon.la
-LIB_WIN32 = win32/libdaemon.la
-if WIN32
-SRC = $(SRC_WIN32)
-LIB = $(LIB_WIN32)
-else
-SRC = $(SRC_UNIX)
-LIB = $(LIB_UNIX)
-endif
+SRC = options.cpp options.h 
+LIB = unix/libdaemon.la
 SOURCES = $(SRC)
 LDADD = $(LIB)
 
@@ -28,6 +15,6 @@ arched_LDADD = $(LDADD) \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 man_MANS = arched.8

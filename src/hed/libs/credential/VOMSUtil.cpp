@@ -6,10 +6,6 @@
 #include <glibmm/fileutils.h>
 #include <unistd.h>
 
-#ifndef HAVE_GETDOMAINNAME
-#include <sys/systeminfo.h>
-#endif
-
 #include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/ArcRegex.h>
@@ -41,22 +37,6 @@
 // #define emailOID                 idpkcs9OID ".1"
 
 static std::string default_vomsdir = std::string(G_DIR_SEPARATOR_S) + "etc" + G_DIR_SEPARATOR_S +"grid-security" + G_DIR_SEPARATOR_S + "vomsdir";
-
-#ifdef WIN32
-int gethostname_mingw (char *, size_t);
-int gethostname_mingw (char *name, size_t len) {
-  DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
-  return (GetComputerNameExA(ComputerNameDnsHostname, name, &dlen) ? 0 : -1);
-}
-#define gethostname gethostname_mingw
-
-int getdomainname_mingw (char *, size_t);
-int getdomainname_mingw (char *name, size_t len) {
-  DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);
-  return (GetComputerNameExA(ComputerNameDnsDomain, name, &dlen) ? 0 : -1);
-}
-#define getdomainname getdomainname_mingw
-#endif
 
 
 using namespace ArcCredential;
@@ -1171,26 +1151,6 @@ err:
 
     return true;
   }
-
-#ifndef HAVE_GETDOMAINNAME
-  static int getdomainname(char *name, int length) {
-    char	szBuffer[256];
-    long	nBufSize = sizeof(szBuffer);
-    char	*pBuffer = szBuffer;      
-
-    long result_len = sysinfo( SI_SRPC_DOMAIN, pBuffer, nBufSize );		
-
-    if (result_len > length) {
-      return -1;
-    }
-
-    memcpy (name, pBuffer, result_len);
-    if (result_len < length)
-      name[result_len] = '\0';
-   
-    return 0;
-  }
-#endif
 
   static std::string getfqdn(void) {
     std::string name;

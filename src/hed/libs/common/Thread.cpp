@@ -15,9 +15,7 @@
 
 #ifdef USE_THREAD_POOL
 #include <sys/time.h>
-#ifndef WIN32
 #include <sys/resource.h>
-#endif
 #endif
 
 #include <arc/Logger.h>
@@ -180,7 +178,6 @@ namespace Arc {
       uint64_t n = (((uint64_t)1)<<bits)/thread_stacksize/2;
       n_max = n;
     };
-#ifndef WIN32
     struct rlimit rl;
     if(getrlimit(RLIMIT_AS,&rl) == 0) {
       if(rl.rlim_cur != RLIM_INFINITY) {
@@ -195,7 +192,6 @@ namespace Arc {
         if(n < n_max) n_max = n;
       };
     };
-#endif
     // Just make number to fit
     if(n_max > INT_MAX) n_max = INT_MAX;
     max_count = (int)n_max-1;

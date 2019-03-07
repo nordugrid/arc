@@ -10,11 +10,11 @@ else
 INTERNAL =
 endif
 
-SUBDIRS = delegation grid-manager ldif infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
-DIST_SUBDIRS = delegation grid-manager ldif infoproviders jura lrms schema internaljobplugin rte
+SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
+DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
-noinst_PROGRAMS = test test_cache_check
+noinst_PROGRAMS = test_cache_check
 if PYTHON_LRMS_ENABLED
     PYTHON_LRMS_PKGLIBEXEC_FILES = arc-sshfs-mount
 else
@@ -49,10 +49,10 @@ EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
-	create_activity.cpp get_activity_documents.cpp \
-	get_activity_statuses.cpp terminate_activities.cpp \
-	change_activity_status.cpp migrate_activity.cpp \
-	get_factory_attributes_document.cpp update_credentials.cpp faults.cpp \
+	create_activity.cpp \
+	get_activity_statuses.cpp \
+	change_activity_status.cpp \
+	update_credentials.cpp faults.cpp \
 	get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \
 	information_collector.cpp cachecheck.cpp tools.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h tools.h
@@ -60,10 +60,9 @@ libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD = \
-	ldif/libldif.la \
 	$(GRIDMANAGER_LIBS) \
 	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
@@ -72,19 +71,6 @@ libarex_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 libarex_la_LDFLAGS = -no-undefined -avoid-version -module $(DBCXX_LIBS)
-
-test_SOURCES = test.cpp
-test_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-test_LDADD = \
-	$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la \
-	$(top_builddir)/src/hed/libs/ws/libarcws.la \
-	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
-	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 test_cache_check_SOURCES = test_cache_check.cpp
 test_cache_check_CXXFLAGS = -I$(top_srcdir)/include \

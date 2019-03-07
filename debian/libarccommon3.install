@@ -11,7 +11,7 @@ debian/tmp/usr/lib/libarcmessage.so.*
 debian/tmp/usr/lib/libarcsecurity.so.*
 debian/tmp/usr/lib/libarcscitokens.so.*
 debian/tmp/usr/lib/libarcinfosys.so.*
-debian/tmp/usr/lib/libarcws.so.*
+debian/tmp/usr/lib/libarcwsaddressing.so.*
 debian/tmp/usr/lib/libarcwssecurity.so.*
 debian/tmp/usr/lib/libarcxmlsec.so.*
 debian/tmp/usr/lib/arc/libmodcrypto.so

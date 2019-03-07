@@ -21,9 +21,6 @@ SPECIALISATION_MAPPINGS = JobState JobDescription
 SPECIALISATION_MAPPINGS_JobState = \
 	$(top_srcdir)/src/hed/acc/ARC0/JobStateARC0.cpp \
 	$(top_srcdir)/src/hed/acc/EMIES/JobStateEMIES.cpp \
-	$(top_srcdir)/src/hed/acc/ARC1/JobStateBES.cpp \
-	$(top_srcdir)/src/hed/acc/ARC1/JobStateARC1.cpp \
-	$(top_srcdir)/src/hed/acc/CREAM/JobStateCREAM.cpp
 SPECIALISATION_MAPPINGS_JobDescription = \
 	$(top_srcdir)/src/hed/acc/JobDescriptionParser/XRSLParser.cpp \
 	$(top_srcdir)/src/hed/acc/JobDescriptionParser/ADLParser.cpp \

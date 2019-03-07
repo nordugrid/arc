@@ -2,14 +2,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-
-int main(void) {
-  return -1;
-}
-
-#else
-
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -162,4 +154,3 @@ int main(void) {
   return 0;
 }
 
-#endif

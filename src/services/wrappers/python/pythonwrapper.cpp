@@ -13,9 +13,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/Thread.h>
 
-#ifndef WIN32
 #include <dlfcn.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,10 +79,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     if(!srvarg) return NULL;
     Arc::ChainContext* ctx = (Arc::ChainContext*)(*srvarg);
 
-#ifndef WIN32
     // ((Arc::PluginsFactory*)(*ctx))->load("pythonservice",false,true); // doesn't work, why?
     ::dlopen(((Arc::PluginsFactory*)(*ctx))->findLocation("pythonservice").c_str(),RTLD_NOW | RTLD_GLOBAL);
-#endif
 
     service_lock.lock();
     // Initialize the Python Interpreter
@@ -133,7 +129,6 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     arc_module = NULL;
     module = NULL;
     object = NULL;
-    inforeg = NULL;
 
     if (tstate == NULL) {
         logger.msg(Arc::ERROR, "Main Python thread is not initialized");
@@ -282,15 +277,12 @@ Service_PythonWrapper::Service_PythonWrapper(Arc::Config *cfg,Arc::PluginArgumen
     //tstate = PyGILState_GetThisThreadState();
     //PyEval_ReleaseThread(tstate);
 
-    inforeg = new InfoRegisters(*cfg, this);
-
     logger.msg(Arc::VERBOSE, "Python Wrapper constructor succeeded");
     initialized = true;
 }
 
 Service_PythonWrapper::~Service_PythonWrapper(void)
 {
-    if(inforeg) delete inforeg;
     service_lock.lock();
     PyEval_AcquireThread(tstate);
     // Release python objects - it is needed for Python

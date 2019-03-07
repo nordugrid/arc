@@ -102,9 +102,6 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
         } elseif ($ainfo['t'] == 'org.nordugrid.ldapegiis') {
             //TODO: invoke egiis query
             continue;
-        } elseif ($ainfo['t'] == 'org.nordugrid.emir') {
-            //TODO: invoke emir query (or maybe we should abandone it)
-            continue;
         } elseif ($ainfo['t'] == 'org.nordugrid.ldapng') {
             if ( $schema !== 'NG' ) continue;
             // ldap://<host>:2135/Mds-Vo-Name=local,o=grid

@@ -43,7 +43,6 @@ namespace Arc {
     file_test_success
   } file_test_status;
 
-#ifndef WIN32
   static file_test_status user_file_test(const std::string& path, const User& user) {
     struct stat st;
     if(::stat(path.c_str(),&st) != 0) return file_test_missing;
@@ -60,21 +59,6 @@ namespace Arc {
     if(st.st_mode & (S_IRWXG | S_IRWXO)) return file_test_wrong_permissions;
     return file_test_success;
   }
-#else
-  static file_test_status user_file_test(const std::string& path, const User& /*user*/) {
-    // TODO: implement
-    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
-    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
-    return file_test_success;
-  }
-
-  static file_test_status private_file_test(const std::string& path, const User& /*user*/) {
-    // TODO: implement
-    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
-    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
-    return file_test_success;
-  }
-#endif
 
   static void certificate_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
     if(fts == file_test_success) {
@@ -134,15 +118,9 @@ namespace Arc {
     return Glib::build_filename(User().Home(), ".arc");
   }
 
-#ifndef WIN32
   std::string UserConfig::SYSCONFIG() {
     return G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
   }
-#else
-  std::string UserConfig::SYSCONFIG() {
-    return ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
-  }
-#endif
 
   std::string UserConfig::SYSCONFIGARCLOC() {
     return ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
@@ -177,26 +155,19 @@ namespace Arc {
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
     setDefaults();
     if (loadSysConfig) {
-#ifndef WIN32
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIG(), true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG());
       }
-      else
-#endif
-      if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
+      else if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIGARCLOC(), true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC());
       }
       else
-#ifndef WIN32
         if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
           logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG(), SYSCONFIGARCLOC());
         else
           logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG());
-#else
-        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC());
-#endif
     }
 
     if (conffile.empty()) {
@@ -235,26 +206,19 @@ namespace Arc {
       return;
 
     if (loadSysConfig) {
-#ifndef WIN32
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIG(), true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG());
       }
-      else
-#endif
-      if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
+      else if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
         if (!LoadConfigurationFile(SYSCONFIGARCLOC(), true))
           logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC());
       }
       else
-#ifndef WIN32
         if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
           logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG(), SYSCONFIGARCLOC());
         else
           logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG());
-#else
-        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC());
-#endif
     }
 
     if (conffile.empty()) {
@@ -373,11 +337,7 @@ namespace Arc {
              (initializeCredentials == initializeCredentialsType::SkipCATryCredentials) ||
              (initializeCredentials == initializeCredentialsType::SkipCANotTryCredentials));
     const User user;
-#ifndef WIN32
     std::string home_path = user.Home();
-#else
-    std::string home_path = Glib::get_home_dir();
-#endif
     bool has_proxy = false;
     // Look for credentials.
     std::string proxy_path = GetEnv("X509_USER_PROXY");
@@ -632,13 +592,8 @@ namespace Arc {
       }
     }
     else if (
-#ifndef WIN32
              !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-#else
-             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-#endif
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
@@ -1096,15 +1051,13 @@ TODO: Make FileUtils function to this
         std::string flavour = flavour_url.substr(0, pos);
         std::string url = flavour_url.substr(pos + 1);
         if (service.type == ConfigEndpoint::REGISTRY) {
-          std::string registryinterface = "org.nordugrid.emir";
+          std::string registryinterface = "org.nordugrid.archery";
           if (flavour == "ARC0") registryinterface = "org.nordugrid.ldapegiis";
           service.InterfaceName = registryinterface;
         } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {
           std::string infointerface = "org.nordugrid.ldapglue2";
           if (flavour == "ARC0") infointerface = "org.nordugrid.ldapng";
-          if (flavour == "ARC1") infointerface = "org.nordugrid.wsrfglue2";
           if (flavour == "EMIES") infointerface = "org.ogf.glue.emies.resourceinfo";
-          if (flavour == "CREAM") infointerface = "org.nordugrid.ldapglue1";
           service.InterfaceName = infointerface;
         }
         service.URLString = url;
@@ -1119,10 +1072,7 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
   struct stat st;
   if(old_file.empty()) return old_file;
   if(::stat(old_file.c_str(),&st) != 0) return old_file;
-// No getuid on win32
-#ifndef WIN32
   if(::getuid() == st.st_uid) return old_file;
-#endif
   std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccred.XXXXXX");
   if (!TmpFileCreate(tmpname, "")) return old_file;
   if (!FileCopy(old_file, tmpname)) {

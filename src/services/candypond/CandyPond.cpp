@@ -37,7 +37,7 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 Arc::Logger CandyPond::logger(Arc::Logger::rootLogger, "CandyPond");
 
 CandyPond::CandyPond(Arc::Config *cfg, Arc::PluginArgument* parg) :
-                                               RegisteredService(cfg,parg),
+                                               Service(cfg,parg),
                                                dtr_generator(NULL) {
   valid = false;
   // read configuration information
@@ -356,7 +356,7 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
     bool available = false;
     bool is_locked = false;
 
-    if (!cache.Start(url, available, is_locked, true)) {
+    if (!cache.Start(url, available, is_locked)) {
       if (is_locked) {
         resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Locked);
         resultelement.NewChild("ReturnCodeExplanation") = "File is locked";
@@ -610,14 +610,6 @@ Arc::MCC_Status CandyPond::process(Arc::Message &inmsg, Arc::Message &outmsg) {
     return Arc::MCC_Status();
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
-}
-
-bool CandyPond::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
-  Arc::XMLNode regentry(isis_ns, "RegEntry");
-  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.candypond";
-  regentry.New(doc);
-  return true;
 }
 
 Arc::MCC_Status CandyPond::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {
