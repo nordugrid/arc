@@ -159,6 +159,22 @@ namespace Arc {
       INFO_TYPE_ALL = 127     ///< All the parameters.
     };
 
+
+    /// Do a transfer in a single operation
+    /**
+     * This method is designed for plugins which support doing transfers
+     * between different endpoints in a single operation, rather than two
+     * separate DataPoints communicating with each other via a DataBuffer.
+     * \param endpoint Other endpoint to transfer to or from
+     * \param source Whether this DataPoint is the source (true) or destination
+     * (false)
+     * \param callback Optional monitoring callback
+     * \return Outcome of transfer
+     * \since 6.0.0
+     */
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source,
+                                Callback3rdParty callback = NULL);
+
     /// Perform third party transfer.
     /**
      * Credentials are delegated to the destination and it pulls data from the
@@ -642,6 +658,9 @@ namespace Arc {
 
     /// Check if URL should be staged or queried for Transport URL (TURL)
     virtual bool IsStageable() const;
+
+    /// Returns true if DataPoint supports internal transfer
+    virtual bool SupportsTransfer() const;
 
     /// Check if endpoint can have any use from meta information.
     virtual bool AcceptsMeta() const = 0;

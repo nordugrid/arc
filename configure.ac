@@ -1661,7 +1661,7 @@ if test "x$enables_xrootd" = "xyes"; then
   SAVE_LDFLAGS=$LDFLAGS
   LDFLAGS="$LDFLAGS $XROOTD_LDFLAGS"
   AC_CHECK_LIB([XrdPosix], [_init],
-               [XROOTD_LIBS="$XROOTD_LDFLAGS -lXrdPosix"], [enables_xrootd="no"])
+               [XROOTD_LIBS="$XROOTD_LDFLAGS -lXrdPosix -lXrdCl"], [enables_xrootd="no"])
   LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(XROOTD_CPPFLAGS)

@@ -35,6 +35,10 @@
 
 namespace Arc {
 
+  static void transfer_cb(unsigned long long int bytes_transferred) {
+    fprintf (stderr, "\r%llu kB                  \r", bytes_transferred / 1024);
+  }
+
   Logger DataMover::logger(Logger::getRootLogger(), "DataMover");
 
   DataMover::DataMover()
@@ -781,113 +785,96 @@ namespace Arc {
         }
       }
       source_url.AddCheckSumObject(&crc_source);
-
-      unsigned int wait_time;
-      DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time);
-      if (!datares.Passed()) {
-        logger.msg(ERROR, "Failed to prepare source: %s",
-                   source_url.str());
-        source_url.FinishReading(true);
-        res = datares;
-        /* try another source */
-        if (source.NextLocation())
-          logger.msg(VERBOSE, "(Re)Trying next source");
-#ifndef WIN32
-        if (cacheable)
-          cache.StopAndDelete(canonic_url);
-#endif
-        continue;
-      }
-
-      datares = source_url.StartReading(buffer);
-      if (!datares.Passed()) {
-        logger.msg(ERROR, "Failed to start reading from source: %s",
-                   source_url.str());
-        source_url.StopReading();
-        source_url.FinishReading(true);
-        res = datares;
-        if (source.GetFailureReason() != DataStatus::UnknownError)
-          res = source.GetFailureReason();
-        /* try another source */
-        if (source.NextLocation())
-          logger.msg(VERBOSE, "(Re)Trying next source");
-#ifndef WIN32
-        if (cacheable)
-          cache.StopAndDelete(canonic_url);
-#endif
-        continue;
-      }
-      if (mapped)
-        destination.SetMeta(mapped_p);
-      if (force_registration && destination.IsIndex()) {
-        // at least compare metadata
-        if (!destination.CompareMeta(source)) {
-          logger.msg(ERROR, "Metadata of source and destination are different");
-          source_url.StopReading();
+      if (source_url.SupportsTransfer()) {
+        logger.msg(INFO, "Using internal transfer method of %s", source_url.str());
+        URL dest_url(cacheable ? chdest.GetURL() : destination.GetURL());
+        DataStatus datares = source_url.Transfer(dest_url, true, show_progress ? transfer_cb : NULL);
+      } else if (destination.SupportsTransfer()) {
+        logger.msg(INFO, "Using internal transfer method of %s", destination.str());
+        DataStatus datares = destination.Transfer(source_url.GetURL(), false, transfer_cb);
+      } else {
+        unsigned int wait_time;
+        DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time);
+        if (!datares.Passed()) {
+          logger.msg(ERROR, "Failed to prepare source: %s",
+                     source_url.str());
           source_url.FinishReading(true);
-          source.NextLocation(); /* not exactly sure if this would help */
-          res = DataStatus::PreRegisterError;
-#ifndef WIN32
+          res = datares;
+          /* try another source */
+          if (source.NextLocation())
+            logger.msg(VERBOSE, "(Re)Trying next source");
+  #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
-#endif
+  #endif
           continue;
         }
-      }
-      // pass metadata gathered during start_reading()
-      // from source to destination
-      destination.SetMeta(source);
-      if (chdest_h)
-        chdest.SetMeta(source);
-      if (destination.CheckSize())
-        buffer.speed.set_max_data(destination.GetSize());
-      datares = destination.PreRegister(replication, force_registration);
-      if (!datares.Passed()) {
-        logger.msg(ERROR, "Failed to preregister destination: %s",
-                   destination.str());
-        source_url.StopReading();
-        source_url.FinishReading(true);
-        destination.NextLocation(); /* not exactly sure if this would help */
-        logger.msg(VERBOSE, "destination.next_location");
-        res = datares;
-        // Normally remote destination is not cached. But who knows.
-#ifndef WIN32
-        if (cacheable)
-          cache.StopAndDelete(canonic_url);
-#endif
-        continue;
-      }
-      buffer.speed.reset();
 
-      // cache files don't need prepared
-      datares = destination.PrepareWriting(max_inactivity_time, wait_time);
-      if (!datares.Passed()) {
-        logger.msg(ERROR, "Failed to prepare destination: %s",
-                   destination.str());
-        destination.FinishWriting(true);
-        source_url.StopReading();
-        source_url.FinishReading(true);
-        if (!destination.PreUnregister(replication ||
-                                       destination_meta_initially_stored).Passed())
-          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                     "You may need to unregister it manually: %s", destination.str());
-        /* try another source */
-        if (destination.NextLocation())
-          logger.msg(VERBOSE, "(Re)Trying next destination");
-        res = datares;
-        continue;
-      }
-
-      DataStatus read_failure = DataStatus::Success;
-      DataStatus write_failure = DataStatus::Success;
-      std::string cache_lock;
-      if (!cacheable) {
-        destination.AddCheckSumObject(&crc_dest);
-        datares = destination.StartWriting(buffer);
+        datares = source_url.StartReading(buffer);
         if (!datares.Passed()) {
-          logger.msg(ERROR, "Failed to start writing to destination: %s",
+          logger.msg(ERROR, "Failed to start reading from source: %s",
+                     source_url.str());
+          source_url.StopReading();
+          source_url.FinishReading(true);
+          res = datares;
+          if (source.GetFailureReason() != DataStatus::UnknownError)
+            res = source.GetFailureReason();
+          /* try another source */
+          if (source.NextLocation())
+            logger.msg(VERBOSE, "(Re)Trying next source");
+  #ifndef WIN32
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+  #endif
+          continue;
+        }
+        if (mapped)
+          destination.SetMeta(mapped_p);
+        if (force_registration && destination.IsIndex()) {
+          // at least compare metadata
+          if (!destination.CompareMeta(source)) {
+            logger.msg(ERROR, "Metadata of source and destination are different");
+            source_url.StopReading();
+            source_url.FinishReading(true);
+            source.NextLocation(); /* not exactly sure if this would help */
+            res = DataStatus::PreRegisterError;
+  #ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+  #endif
+            continue;
+          }
+        }
+        // pass metadata gathered during start_reading()
+        // from source to destination
+        destination.SetMeta(source);
+        if (chdest_h)
+          chdest.SetMeta(source);
+        if (destination.CheckSize())
+          buffer.speed.set_max_data(destination.GetSize());
+        datares = destination.PreRegister(replication, force_registration);
+        if (!datares.Passed()) {
+          logger.msg(ERROR, "Failed to preregister destination: %s",
                      destination.str());
-          destination.StopWriting();
+          source_url.StopReading();
+          source_url.FinishReading(true);
+          destination.NextLocation(); /* not exactly sure if this would help */
+          logger.msg(VERBOSE, "destination.next_location");
+          res = datares;
+          // Normally remote destination is not cached. But who knows.
+  #ifndef WIN32
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+  #endif
+          continue;
+        }
+        buffer.speed.reset();
+
+        // cache files don't need prepared
+        datares = destination.PrepareWriting(max_inactivity_time, wait_time);
+        if (!datares.Passed()) {
+          logger.msg(ERROR, "Failed to prepare destination: %s",
+                     destination.str());
           destination.FinishWriting(true);
           source_url.StopReading();
           source_url.FinishReading(true);
@@ -895,241 +882,266 @@ namespace Arc {
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually: %s", destination.str());
+          /* try another source */
           if (destination.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next destination");
           res = datares;
-          if(destination.GetFailureReason() != DataStatus::UnknownError)
-            res = destination.GetFailureReason();
           continue;
         }
-      }
-      else {
+
+        DataStatus read_failure = DataStatus::Success;
+        DataStatus write_failure = DataStatus::Success;
+        std::string cache_lock;
+        if (!cacheable) {
+          destination.AddCheckSumObject(&crc_dest);
+          datares = destination.StartWriting(buffer);
+          if (!datares.Passed()) {
+            logger.msg(ERROR, "Failed to start writing to destination: %s",
+                       destination.str());
+            destination.StopWriting();
+            destination.FinishWriting(true);
+            source_url.StopReading();
+            source_url.FinishReading(true);
+            if (!destination.PreUnregister(replication ||
+                                           destination_meta_initially_stored).Passed())
+              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                         "You may need to unregister it manually: %s", destination.str());
+            if (destination.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next destination");
+            res = datares;
+            if(destination.GetFailureReason() != DataStatus::UnknownError)
+              res = destination.GetFailureReason();
+            continue;
+          }
+        }
+        else {
 #ifndef WIN32
-        chdest.AddCheckSumObject(&crc_dest);
-        datares = chdest.StartWriting(buffer);
-        if (!datares.Passed()) {
-          // TODO: put callback to clean cache into FileCache
-          logger.msg(ERROR, "Failed to start writing to cache");
-          chdest.StopWriting();
-          source_url.StopReading();
-          source_url.FinishReading(true);
-          // hope there will be more space next time
-          cache.StopAndDelete(canonic_url);
+          chdest.AddCheckSumObject(&crc_dest);
+          datares = chdest.StartWriting(buffer);
+          if (!datares.Passed()) {
+            // TODO: put callback to clean cache into FileCache
+            logger.msg(ERROR, "Failed to start writing to cache");
+            chdest.StopWriting();
+            source_url.StopReading();
+            source_url.FinishReading(true);
+            // hope there will be more space next time
+            cache.StopAndDelete(canonic_url);
+            if (!destination.PreUnregister(replication ||
+                                           destination_meta_initially_stored).Passed())
+              logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                         "You may need to unregister it manually");
+            destination.NextLocation(); /* to decrease retry counter */
+            return DataStatus::CacheError; // repeating won't help here
+          }
+          cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
+#endif
+        }
+        logger.msg(VERBOSE, "Waiting for buffer");
+        // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
+        for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
+          buffer.wait_any();
+          if (cacheable && !cache_lock.empty()) {
+            // touch cache lock file regularly so it is still valid
+            if (utime(cache_lock.c_str(), NULL) == -1) {
+              logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
+                         cache_lock, source_url.str(), StrError(errno));
+            }
+          }
+        }
+        logger.msg(VERBOSE, "buffer: read EOF : %s", buffer.eof_read()?"yes":"no");
+        logger.msg(VERBOSE, "buffer: write EOF: %s", buffer.eof_write()?"yes":"no");
+        logger.msg(VERBOSE, "buffer: error    : %s, read: %s, write: %s", buffer.error()?"yes":"no", buffer.error_read()?"yes":"no", buffer.error_write()?"yes":"no");
+        logger.msg(VERBOSE, "Closing read channel");
+        read_failure = source_url.StopReading();
+        source_url.FinishReading((!read_failure.Passed() || buffer.error()));
+        if (cacheable && mapped) {
+          source.SetMeta(mapped_p); // pass more metadata (checksum)
+        }
+        logger.msg(VERBOSE, "Closing write channel");
+        // turn off checks during stop_writing() if force is turned on
+        destination_url.SetAdditionalChecks(destination_url.GetAdditionalChecks() && !force_registration);
+        if (!destination_url.StopWriting().Passed()) {
+          destination_url.FinishWriting(true);
+          buffer.error_write(true);
+        }
+        else if (!destination_url.FinishWriting(buffer.error())) {
+          logger.msg(ERROR, "Failed to complete writing to destination");
+          buffer.error_write(true);
+        }
+
+        if (buffer.error()) {
+  #ifndef WIN32
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+  #endif
           if (!destination.PreUnregister(replication ||
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
-          destination.NextLocation(); /* to decrease retry counter */
-          return DataStatus::CacheError; // repeating won't help here
-        }
-        cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
-#endif
-      }
-      logger.msg(VERBOSE, "Waiting for buffer");
-      // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
-      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error() && !cancelled;) {
-        buffer.wait_any();
-        if (cacheable && !cache_lock.empty()) {
-          // touch cache lock file regularly so it is still valid
-          if (utime(cache_lock.c_str(), NULL) == -1) {
-            logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
-                       cache_lock, source_url.str(), StrError(errno));
-          }
-        }
-      }
-      logger.msg(VERBOSE, "buffer: read EOF : %s", buffer.eof_read()?"yes":"no");
-      logger.msg(VERBOSE, "buffer: write EOF: %s", buffer.eof_write()?"yes":"no");
-      logger.msg(VERBOSE, "buffer: error    : %s, read: %s, write: %s", buffer.error()?"yes":"no", buffer.error_read()?"yes":"no", buffer.error_write()?"yes":"no");
-      logger.msg(VERBOSE, "Closing read channel");
-      read_failure = source_url.StopReading();
-      source_url.FinishReading((!read_failure.Passed() || buffer.error()));
-      if (cacheable && mapped) {
-        source.SetMeta(mapped_p); // pass more metadata (checksum)
-      }
-      logger.msg(VERBOSE, "Closing write channel");
-      // turn off checks during stop_writing() if force is turned on
-      destination_url.SetAdditionalChecks(destination_url.GetAdditionalChecks() && !force_registration);
-      if (!destination_url.StopWriting().Passed()) {
-        destination_url.FinishWriting(true);
-        buffer.error_write(true);
-      }
-      else if (!destination_url.FinishWriting(buffer.error())) {
-        logger.msg(ERROR, "Failed to complete writing to destination");
-        buffer.error_write(true);
-      }
 
-      if (buffer.error()) {
-#ifndef WIN32
-        if (cacheable) 
-          cache.StopAndDelete(canonic_url);
-#endif        
-        if (!destination.PreUnregister(replication ||
-                                       destination_meta_initially_stored).Passed())
-          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                     "You may need to unregister it manually");
-
-        // Check for cancellation
-        if (cancelled) {
-          logger.msg(INFO, "Transfer cancelled successfully");
-          return DataStatus::SuccessCancelled;
-        }
-        // Analyze errors
-        // Easy part first - if either read or write part report error
-        // go to next endpoint.
-        if (buffer.error_read()) {
-          if (source.NextLocation())
-            logger.msg(VERBOSE, "(Re)Trying next source");
-          // check for error from callbacks etc
-          if(source.GetFailureReason() != DataStatus::UnknownError)
-            res=source.GetFailureReason();
-          else
-            res=DataStatus::ReadError;
-        }
-        else if (buffer.error_write()) {
-          if (destination.NextLocation())
-            logger.msg(VERBOSE, "(Re)Trying next destination");
-          // check for error from callbacks etc
-          if(destination.GetFailureReason() != DataStatus::UnknownError) {
-            res=destination.GetFailureReason();
-          } else {
-            res=DataStatus::WriteError;
+          // Check for cancellation
+          if (cancelled) {
+            logger.msg(INFO, "Transfer cancelled successfully");
+            return DataStatus::SuccessCancelled;
           }
-        }
-        else if (buffer.error_transfer()) {
-          // Here is more complicated case - operation timeout
-          // Let's first check if buffer was full
-          res = DataStatus(DataStatus::TransferError, ETIMEDOUT);
-          if (!buffer.for_read()) {
-            // No free buffers for 'read' side. Buffer must be full.
-            res.SetDesc(destination.GetFailureReason().GetDesc());
-            if (destination.NextLocation()) {
-              logger.msg(VERBOSE, "(Re)Trying next destination");
-            }
-          }
-          else if (!buffer.for_write()) {
-            // Buffer is empty
-            res.SetDesc(source.GetFailureReason().GetDesc());
-            if (source.NextLocation()) {
+          // Analyze errors
+          // Easy part first - if either read or write part report error
+          // go to next endpoint.
+          if (buffer.error_read()) {
+            if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
+            // check for error from callbacks etc
+            if(source.GetFailureReason() != DataStatus::UnknownError)
+              res=source.GetFailureReason();
+            else
+              res=DataStatus::ReadError;
+          }
+          else if (buffer.error_write()) {
+            if (destination.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next destination");
+            // check for error from callbacks etc
+            if(destination.GetFailureReason() != DataStatus::UnknownError) {
+              res=destination.GetFailureReason();
+            } else {
+              res=DataStatus::WriteError;
             }
           }
-          else {
-            // Both endpoints were very slow? Choose randomly.
-            logger.msg(VERBOSE, "Cause of failure unclear - choosing randomly");
-            Glib::Rand r;
-            if (r.get_int() < (RAND_MAX / 2)) {
+          else if (buffer.error_transfer()) {
+            // Here is more complicated case - operation timeout
+            // Let's first check if buffer was full
+            res = DataStatus(DataStatus::TransferError, ETIMEDOUT);
+            if (!buffer.for_read()) {
+              // No free buffers for 'read' side. Buffer must be full.
+              res.SetDesc(destination.GetFailureReason().GetDesc());
+              if (destination.NextLocation()) {
+                logger.msg(VERBOSE, "(Re)Trying next destination");
+              }
+            }
+            else if (!buffer.for_write()) {
+              // Buffer is empty
               res.SetDesc(source.GetFailureReason().GetDesc());
               if (source.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next source");
               }
             }
             else {
-              res.SetDesc(destination.GetFailureReason().GetDesc());
-              if (destination.NextLocation()) {
-                logger.msg(VERBOSE, "(Re)Trying next destination");
+              // Both endpoints were very slow? Choose randomly.
+              logger.msg(VERBOSE, "Cause of failure unclear - choosing randomly");
+              Glib::Rand r;
+              if (r.get_int() < (RAND_MAX / 2)) {
+                res.SetDesc(source.GetFailureReason().GetDesc());
+                if (source.NextLocation()) {
+                  logger.msg(VERBOSE, "(Re)Trying next source");
+                }
+              }
+              else {
+                res.SetDesc(destination.GetFailureReason().GetDesc());
+                if (destination.NextLocation()) {
+                  logger.msg(VERBOSE, "(Re)Trying next destination");
+                }
               }
             }
           }
-        }
-        continue;
-      }
-
-      // compare checksum. For uploads this is done in StopWriting, but we also
-      // need to check here if the sum is given in meta attributes. For downloads
-      // compare to the original source (if available).
-      std::string calc_csum;
-      if (crc && buffer.checksum_valid()) {
-        char buf[100];
-        crc.print(buf,100);
-        calc_csum = buf;
-      } else if(crc_source) {
-        char buf[100];
-        crc_source.print(buf,100);
-        calc_csum = buf;
-      } else if(crc_dest) {
-        char buf[100];
-        crc_dest.print(buf,100);
-        calc_csum = buf;
-      }
-      if (!calc_csum.empty()) {
-        // compare calculated to any checksum given as a meta option
-        if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
-           !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
-           calc_csum.substr(0, calc_csum.find(":")) == destination.GetURL().MetaDataOption("checksumtype") &&
-           calc_csum.substr(calc_csum.find(":")+1) != destination.GetURL().MetaDataOption("checksumvalue")) {
-          // error here? yes since we'll have an inconsistent catalog otherwise
-          logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
-              destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
-#ifndef WIN32
-          if (cacheable) {
-            cache.StopAndDelete(canonic_url);
-          }
-#endif
-          if (!destination.Unregister(replication || destination_meta_initially_stored)) {
-            logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
-          }
-          res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
-          if (!Delete(destination, true)) {
-            logger.msg(WARNING, "Failed to delete destination, retry may fail");
-          }
-          if (destination.NextLocation()) {
-            logger.msg(VERBOSE, "(Re)Trying next destination");
-          }
           continue;
         }
-        if (source.CheckCheckSum()) {
-          std::string src_csum_s(source.GetCheckSum());
-          if (src_csum_s.find(':') == src_csum_s.length() -1) {
-            logger.msg(VERBOSE, "Cannot compare empty checksum");
-          }
-          // Check the checksum types match. Some buggy GridFTP servers return a
-          // different checksum type than requested so also check that the checksum
-          // length matches before comparing.
-          else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")) ||
-                   calc_csum.substr(calc_csum.find(":")).length() != src_csum_s.substr(src_csum_s.find(":")).length()) {
-            logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
-          } else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
-            logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
-#ifndef WIN32
-            if(cacheable) {
+
+        // compare checksum. For uploads this is done in StopWriting, but we also
+        // need to check here if the sum is given in meta attributes. For downloads
+        // compare to the original source (if available).
+        std::string calc_csum;
+        if (crc && buffer.checksum_valid()) {
+          char buf[100];
+          crc.print(buf,100);
+          calc_csum = buf;
+        } else if(crc_source) {
+          char buf[100];
+          crc_source.print(buf,100);
+          calc_csum = buf;
+        } else if(crc_dest) {
+          char buf[100];
+          crc_dest.print(buf,100);
+          calc_csum = buf;
+        }
+        if (!calc_csum.empty()) {
+          // compare calculated to any checksum given as a meta option
+          if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
+             !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
+             calc_csum.substr(0, calc_csum.find(":")) == destination.GetURL().MetaDataOption("checksumtype") &&
+             calc_csum.substr(calc_csum.find(":")+1) != destination.GetURL().MetaDataOption("checksumvalue")) {
+            // error here? yes since we'll have an inconsistent catalog otherwise
+            logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
+                destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
+  #ifndef WIN32
+            if (cacheable) {
               cache.StopAndDelete(canonic_url);
             }
-#endif
+  #endif
+            if (!destination.Unregister(replication || destination_meta_initially_stored)) {
+              logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
+            }
             res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
-            if (source.NextLocation()) {
-              logger.msg(VERBOSE, "(Re)Trying next source");
+            if (!Delete(destination, true)) {
+              logger.msg(WARNING, "Failed to delete destination, retry may fail");
+            }
+            if (destination.NextLocation()) {
+              logger.msg(VERBOSE, "(Re)Trying next destination");
             }
             continue;
           }
-          else {
-            logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
+          if (source.CheckCheckSum()) {
+            std::string src_csum_s(source.GetCheckSum());
+            if (src_csum_s.find(':') == src_csum_s.length() -1) {
+              logger.msg(VERBOSE, "Cannot compare empty checksum");
+            }
+            // Check the checksum types match. Some buggy GridFTP servers return a
+            // different checksum type than requested so also check that the checksum
+            // length matches before comparing.
+            else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")) ||
+                     calc_csum.substr(calc_csum.find(":")).length() != src_csum_s.substr(src_csum_s.find(":")).length()) {
+              logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
+            } else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
+              logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
+  #ifndef WIN32
+              if(cacheable) {
+                cache.StopAndDelete(canonic_url);
+              }
+  #endif
+              res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
+              if (source.NextLocation()) {
+                logger.msg(VERBOSE, "(Re)Trying next source");
+              }
+              continue;
+            }
+            else {
+              logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
+            }
           }
+          // set the destination checksum to be what we calculated
+          destination.SetCheckSum(calc_csum.c_str());
+        } else {
+          logger.msg(VERBOSE, "Checksum not computed");
         }
-        // set the destination checksum to be what we calculated
-        destination.SetCheckSum(calc_csum.c_str());
-      } else {
-        logger.msg(VERBOSE, "Checksum not computed");
-      }
 
-      destination.SetMeta(source); // pass more metadata (checksum)
-      datares = destination.PostRegister(replication);
-      if (!datares.Passed()) {
-        logger.msg(ERROR, "Failed to postregister destination %s",
-                   destination.str());
-        if (!destination.PreUnregister(replication ||
-                                       destination_meta_initially_stored).Passed())
-          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
-                     "You may need to unregister it manually: %s", destination.str());
-        destination.NextLocation(); /* not sure if this can help */
-        logger.msg(VERBOSE, "destination.next_location");
-#ifndef WIN32
-        if(cacheable) 
-          cache.Stop(canonic_url);
-#endif
-        res = datares;
-        continue;
-      }
-#ifndef WIN32
+        destination.SetMeta(source); // pass more metadata (checksum)
+        datares = destination.PostRegister(replication);
+        if (!datares.Passed()) {
+          logger.msg(ERROR, "Failed to postregister destination %s",
+                     destination.str());
+          if (!destination.PreUnregister(replication ||
+                                         destination_meta_initially_stored).Passed())
+            logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                       "You may need to unregister it manually: %s", destination.str());
+          destination.NextLocation(); /* not sure if this can help */
+          logger.msg(VERBOSE, "destination.next_location");
+  #ifndef WIN32
+          if(cacheable)
+            cache.Stop(canonic_url);
+  #endif
+          res = datares;
+          continue;
+        }
+  #ifndef WIN32
+      } // not using internal transfer
       if (cacheable) {
         cache.AddDN(canonic_url, dn, exp_time);
         logger.msg(INFO, "Linking/copying cached file");
