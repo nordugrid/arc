@@ -8,12 +8,19 @@ if [ ! -d "$ARC_LOCATION" ]; then
     exit 1
 fi
 
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-if [ ! -r "$ARC_CONFIG" ]; then
-    echo "ARC configuration file ($ARC_CONFIG) not found"
-    echo "If this file is in a non-standard place it can be set with the"
-    echo "  ARC_CONFIG environment variable"
-    exit 1
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+        ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+        ARC_CONFIG=/etc/arc.conf
+    fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+        log_failure_msg "arc.conf is missing at path: $ARC_CONFIG or no ARC_LOCATION is set"
+        log_failure_msg "If this file is in a non-standard place it can be set"
+        log_failure_msg "  with the ARC_CONFIG environment variable"
+        exit 1
+    fi
 fi
 
 # Define runtime config location for infosys LDAP
