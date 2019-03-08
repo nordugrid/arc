@@ -43,8 +43,8 @@ pipeline {
                         allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'cppcheck_html',
-                        reportFiles: 'cppcheck.html',
+                        reportDir: '',
+                        reportFiles: 'index.html',
                         reportName: 'CppCheck Report'
                     ]) 
             }
