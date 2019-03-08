@@ -218,7 +218,7 @@ BuildRequires:	python2-devel
 BuildRequires:	python3-devel
 %endif
 %if %{?rhel}%{!?rhel:0} == 7
-BuildRequires:	python34-devel
+BuildRequires:	python36-devel
 %endif
 %if %{with_pylint}
 BuildRequires:	pylint
