@@ -36,7 +36,7 @@ AuthResult AuthUser::match_file(const char* line) {
       std::string subj;
       p = Arc::get_token(subj,buf,p," ","\"","\"");
       if(subj.empty()) continue; // can't match empty subject - it is dangerous
-      if(subject_ != subj) continue;
+      if(subject != subj) continue;
       f.close();
       return AAA_POSITIVE_MATCH;
     };
