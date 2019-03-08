@@ -46,7 +46,7 @@ namespace Arc {
     virtual void SetCheckSum(const std::string& val);
     virtual void SetSize(const unsigned long long int val);
     virtual bool Registered() const;
-
+    virtual bool SupportsTransfer() const;
     virtual void SetTries(const int n);
 
     // the following are relayed to the current location
@@ -67,6 +67,8 @@ namespace Arc {
     virtual DataStatus FinishWriting(bool error = false);
     virtual std::vector<URL> TransferLocations() const;
     virtual void ClearTransferLocations();
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source,
+                                TransferCallback callback = NULL);
 
     virtual DataStatus Check(bool check_meta);
 

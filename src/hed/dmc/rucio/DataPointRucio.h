@@ -58,6 +58,8 @@ namespace ArcDMCRucio {
     virtual Arc::DataStatus List(std::list<Arc::FileInfo>& files, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus CreateDirectory(bool with_parents=false);
     virtual Arc::DataStatus Rename(const Arc::URL& newurl);
+    // Override to disable checks for zip archives
+    virtual Arc::DataStatus CompareLocationMetadata() const;
   protected:
     static Arc::Logger logger;
   private:

@@ -122,13 +122,13 @@ namespace Arc {
     : public Plugin {
   public:
 
-    /// Callback for use in 3rd party transfer.
+    /// Callback for use in protocol-internal or 3rd party transfers.
     /**
      * Will be called periodically during the transfer with the number of bytes
      * transferred so far.
      * \param bytes_transferred the number of bytes transferred so far
      */
-    typedef void(*Callback3rdParty)(unsigned long long int bytes_transferred);
+    typedef void(*TransferCallback)(unsigned long long int bytes_transferred);
 
     /// Describes the latency to access this URL
     /**
@@ -159,6 +159,22 @@ namespace Arc {
       INFO_TYPE_ALL = 127     ///< All the parameters.
     };
 
+
+    /// Do a transfer in a single operation
+    /**
+     * This method is designed for plugins which support doing transfers
+     * between different endpoints in a single operation, rather than two
+     * separate DataPoints communicating with each other via a DataBuffer.
+     * \param endpoint Other endpoint to transfer to or from
+     * \param source Whether this DataPoint is the source (true) or destination
+     * (false)
+     * \param callback Optional monitoring callback
+     * \return Outcome of transfer
+     * \since 6.0.0
+     */
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source,
+                                TransferCallback callback = NULL);
+
     /// Perform third party transfer.
     /**
      * Credentials are delegated to the destination and it pulls data from the
@@ -175,7 +191,7 @@ namespace Arc {
      * \return outcome of transfer
      */
     static DataStatus Transfer3rdParty(const URL& source, const URL& destination,
-                                       const UserConfig& usercfg, Callback3rdParty callback = NULL);
+                                       const UserConfig& usercfg, TransferCallback callback = NULL);
 
     /// Destructor.
     virtual ~DataPoint();
@@ -643,6 +659,9 @@ namespace Arc {
     /// Check if URL should be staged or queried for Transport URL (TURL)
     virtual bool IsStageable() const;
 
+    /// Returns true if DataPoint supports internal transfer
+    virtual bool SupportsTransfer() const;
+
     /// Check if endpoint can have any use from meta information.
     virtual bool AcceptsMeta() const = 0;
 
@@ -825,7 +844,7 @@ namespace Arc {
      * \param callback Optional monitoring callback
      * \return outcome of transfer
      */
-    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback = NULL);
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback = NULL);
   };
 
   /** \cond Class used by DataHandle to load the required DMC. */

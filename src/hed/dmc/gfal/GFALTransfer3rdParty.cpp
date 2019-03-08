@@ -11,7 +11,7 @@ namespace ArcDMCGFAL {
   // Callback passed to gfal. It calls DataPoint callback and fills relevant
   // info. DataPoint pointer is stored in user_data.
   void GFALTransfer3rdParty::gfal_3rd_party_callback(gfalt_transfer_status_t h, const char* src, const char* dst, gpointer user_data) {
-    DataPoint::Callback3rdParty* cb = (DataPoint::Callback3rdParty*)user_data;
+    DataPoint::TransferCallback* cb = (DataPoint::TransferCallback*)user_data;
     if (cb && *cb) {
       GError * err = NULL;
       size_t bytes = gfalt_copy_get_bytes_transfered(h, &err);
@@ -25,7 +25,7 @@ namespace ArcDMCGFAL {
   }
 
   GFALTransfer3rdParty::GFALTransfer3rdParty(const URL& src, const URL& dest,
-                                             const Arc::UserConfig& cfg, DataPoint::Callback3rdParty cb)
+                                             const Arc::UserConfig& cfg, DataPoint::TransferCallback cb)
   : source(src), destination(dest), transfer_timeout(cfg.Timeout()), callback(cb) {};
 
   DataStatus GFALTransfer3rdParty::Transfer() {
