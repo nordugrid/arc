@@ -3,12 +3,26 @@
 
 #include <list>
 #include <XrdPosix/XrdPosixXrootd.hh>
+#include <XrdCl/XrdClCopyProcess.hh>
 
 #include <arc/data/DataPointDirect.h>
 
 namespace ArcDMCXrootd {
 
   using namespace Arc;
+
+  /**
+   * Progress handler class that is used to pass data to callback in Transfer()
+   */
+  class XrootdProgressHandler : public XrdCl::CopyProgressHandler {
+   public:
+    XrootdProgressHandler(DataPoint::TransferCallback callback);
+    void JobProgress(uint16_t jobNum, uint64_t bytesProcessed, uint64_t bytesTotal);
+    bool ShouldCancel(uint64_t jobNum);
+   private:
+    DataPoint::TransferCallback cb;
+    bool cancel;
+  };
 
   /**
    * xrootd is a protocol for data access across large scale storage clusters.
@@ -35,6 +49,8 @@ namespace ArcDMCXrootd {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source, TransferCallback callback = NULL);
+    virtual bool SupportsTransfer() const;
     virtual bool RequiresCredentialsInFile() const;
 
    private:
@@ -43,6 +59,7 @@ namespace ArcDMCXrootd {
     static void write_file_start(void* arg);
     void read_file();
     void write_file();
+    DataStatus copy_file(std::string source, std::string dest, TransferCallback callback = NULL);
 
     /// must be called everytime a new XrdClient is created
     void set_log_level();

@@ -3,6 +3,9 @@
 #endif
 
 #include <fcntl.h>
+#include <XrdCl/XrdClPropertyList.hh>
+#include <XrdCl/XrdClDefaultEnv.hh>
+#include <XrdCl/XrdClLog.hh>
 
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
@@ -16,6 +19,20 @@ namespace ArcDMCXrootd {
 
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
   XrdPosixXrootd DataPointXrootd::xrdposix;
+
+  XrootdProgressHandler::XrootdProgressHandler(DataPoint::TransferCallback callback)
+   : cb(callback), cancel(false) {}
+
+  void XrootdProgressHandler::JobProgress(uint16_t jobNum,
+                                          uint64_t bytesProcessed,
+                                          uint64_t bytesTotal) {
+    cb(bytesProcessed);
+  }
+
+  bool XrootdProgressHandler::ShouldCancel(uint64_t jobNum) {
+    return cancel;
+  }
+
 
   DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg),
@@ -42,6 +59,54 @@ namespace ArcDMCXrootd {
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
     return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
+  }
+
+  DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, TransferCallback callback) {
+    XrdCl::PropertyList props;
+    XrdCl::PropertyList results;
+
+    // Check for special source/dest to handle
+    if (source.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      source = source.substr(5);
+    }
+    if (source == "stdio:/stdin") {
+      source = "-";
+    }
+
+    if (dest.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      dest = dest.substr(5);
+    }
+    if (dest == "stdio:/stdout") {
+      dest = "-";
+    }
+    props.Set("source", source);
+    props.Set("target", dest);
+    XrdCl::CopyProcess copy;
+    XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
+      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
+    }
+
+    XrdCl::PropertyList processConfig;
+    processConfig.Set("jobType", "configuration" );
+    processConfig.Set("parallel", 1 );
+    copy.AddJob(processConfig, 0 );
+    copy.Prepare();
+
+    XrdCl::CopyProgressHandler * cph = NULL;
+    if (callback) {
+      cph = new XrootdProgressHandler(callback);
+    }
+    st = copy.Run(cph);
+    if (cph) delete cph;
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to copy %s: %s", source, st.GetErrorMessage());
+      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
+    }
+    return DataStatus::Success;
   }
 
   void DataPointXrootd::read_file_start(void* arg) {
@@ -486,6 +551,18 @@ namespace ArcDMCXrootd {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    if (source) {
+      return copy_file(url.plainstr(), otherendpoint.plainstr(), callback);
+    } else {
+      return copy_file(otherendpoint.plainstr(), url.plainstr(), callback);
+    }
+  }
+
+  bool DataPointXrootd::SupportsTransfer() const {
+    return true;
+  }
+
   bool DataPointXrootd::RequiresCredentialsInFile() const {
     return true;
   }
@@ -494,8 +571,15 @@ namespace ArcDMCXrootd {
     // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
     // Level 1 enables some messages which go to stdout - which messes up
     // communication in DTR so better to use no debugging
-    if (logger.getThreshold() == DEBUG) XrdPosixXrootd::setDebug(1);
-    else XrdPosixXrootd::setDebug(0);
+    XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
+    if (logger.getThreshold() == DEBUG) {
+      XrdPosixXrootd::setDebug(1);
+      log->SetLevel(XrdCl::Log::DumpMsg);
+    }
+    else {
+      XrdPosixXrootd::setDebug(0);
+      log->SetLevel(XrdCl::Log::ErrorMsg);
+    }
   }
 
 } // namespace ArcDMCXrootd

@@ -20,6 +20,7 @@ using namespace Arc;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "DataDelivery");
 static bool delivery_shutdown = false;
+static Arc::Time start_time;
 
 static void sig_shutdown(int)
 {
@@ -81,6 +82,22 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
   };
 }
 
+static void ReportOngoingStatus(unsigned long long int bytes) {
+
+  // Send report on stdout
+  ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+               DataStaging::DTRErrorStatus::NONE_ERROR,
+               DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+               "", bytes, 0, 0);
+
+  // Log progress in log
+  time_t t = Arc::Period(Arc::Time() - start_time).GetPeriod();
+  logger.msg(INFO, "%5u s: %10.1f kB  %8.1f kB/s",
+      (unsigned int)t,
+      ((double)bytes) / 1024,
+      (t == 0) ? 0 : ((double)bytes) / 1024 / t);
+}
+
 static unsigned long long int GetFileSize(const DataPoint& source, const DataPoint& dest) {
   if(source.CheckSize()) return source.GetSize();
   if(dest.CheckSize()) return dest.GetSize();
@@ -89,7 +106,6 @@ static unsigned long long int GetFileSize(const DataPoint& source, const DataPoi
 
 int main(int argc,char* argv[]) {
 
-  Arc::Time start_time;
   // log to stderr
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE); //TODO: configurable
   Arc::LogStream logcerr(std::cerr);
@@ -225,7 +241,7 @@ int main(int argc,char* argv[]) {
   else if (!proxy_cred.empty()) source_cfg.CredentialString(proxy_cred);
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
-  DataHandle source(source_url,source_cfg);
+  DataHandle source(source_url, source_cfg);
   if(!source) {
     logger.msg(ERROR, "Source URL not supported: %s", source_url.str());
     _exit(-1);
@@ -310,50 +326,80 @@ int main(int argc,char* argv[]) {
     }
   }
 
-  // Initiating transfer
-  DataStatus source_st = source->StartReading(buffer);
-  if(!source_st) {
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                 (source_url.Protocol()!="file") ?
-                  (source_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
-                                           DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
-                 DataStaging::DTRErrorStatus::ERROR_SOURCE,
-                 std::string("Failed reading from source: ")+source->CurrentLocation().str()+
-                  " : "+std::string(source_st),
-                 0,0,0);
-    _exit(-1);
-    //return -1;
-  };
-  DataStatus dest_st = dest->StartWriting(buffer);
-  if(!dest_st) {
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                 (dest_url.Protocol() != "file") ?
-                  (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
-                                         DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
-                 DataStaging::DTRErrorStatus::ERROR_DESTINATION,
-                 std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
-                  " : "+std::string(dest_st),
-                 0,0,0);
-    _exit(-1);
-    //return -1;
-  };
-  // While transfer is running in another threads
-  // here we periodically report status to parent
+  bool reported = false;
   bool eof_reached = false;
-  for(;!buffer.error() && !delivery_shutdown;) {
-    if(buffer.eof_read() && buffer.eof_write()) {
-      eof_reached = true; break;
+  // checksum validation against supplied value
+  std::string calc_csum;
+  DataStatus source_st;
+  DataStatus dest_st;
+  DataStatus transfer_st;
+
+  // Check if datapoint handles transfer by itself
+  if (source->SupportsTransfer()) {
+    logger.msg(INFO, "Using internal transfer method of %s", source->str());
+    transfer_st = source->Transfer(dest->GetURL(), true, ReportOngoingStatus);
+    if (transfer_st.Passed()) {
+      eof_reached = true;
+      // so that full copy is reported back to scheduler
+      buffer.speed.verbose(false);
+      buffer.speed.transfer(GetFileSize(*source, *dest));
+    }
+  } else if (dest->SupportsTransfer()) {
+    logger.msg(INFO, "Using internal transfer method of %s", dest->str());
+    transfer_st = dest->Transfer(source->GetURL(), false, ReportOngoingStatus);
+    if (transfer_st.Passed()) {
+      eof_reached = true;
+      // so that full copy is reported back to scheduler
+      buffer.speed.verbose(false);
+      buffer.speed.transfer(GetFileSize(*source, *dest));
+    }
+  } else {
+    // Initiating transfer
+    source_st = source->StartReading(buffer);
+    if(!source_st) {
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                   (source_url.Protocol()!="file") ?
+                    (source_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                             DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                    DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
+                   DataStaging::DTRErrorStatus::ERROR_SOURCE,
+                   std::string("Failed reading from source: ")+source->CurrentLocation().str()+
+                    " : "+std::string(source_st),
+                   0,0,0);
+      _exit(-1);
+      //return -1;
     };
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
-                 DataStaging::DTRErrorStatus::NONE_ERROR,
-                 DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
-                 "",
-                 buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest),0);
-    buffer.wait_any();
-  };
+    dest_st = dest->StartWriting(buffer);
+    if(!dest_st) {
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                   (dest_url.Protocol() != "file") ?
+                    (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                           DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                    DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
+                   DataStaging::DTRErrorStatus::ERROR_DESTINATION,
+                   std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
+                    " : "+std::string(dest_st),
+                   0,0,0);
+      _exit(-1);
+      //return -1;
+    }
+    // While transfer is running in another threads
+    // here we periodically report status to parent
+    for(;!buffer.error() && !delivery_shutdown;) {
+      if(buffer.eof_read() && buffer.eof_write()) {
+        eof_reached = true; break;
+      };
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+                   DataStaging::DTRErrorStatus::NONE_ERROR,
+                   DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+                   "",
+                   buffer.speed.transferred_size(),
+                   GetFileSize(*source,*dest),0);
+      buffer.wait_any();
+    };
+    dest_st = dest->StopWriting();
+    source_st = source->StopReading();
+  }
   if (delivery_shutdown) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::INTERNAL_PROCESS_ERROR,
@@ -373,9 +419,6 @@ int main(int argc,char* argv[]) {
 
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
-  dest_st = dest->StopWriting();
-  source_st = source->StopReading();
-  bool reported = false;
 
   // Error at source or destination
   if(source_failed || !source_st) {
@@ -414,6 +457,17 @@ int main(int argc,char* argv[]) {
                  start_time);
     reported = true;
   };
+  if (!transfer_st) {
+    // Usually it's not possible to know at which end the transfer failed
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                 DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                 DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
+                 transfer_st.GetDesc(),
+                 0,
+                 GetFileSize(*source,*dest),
+                 start_time);
+    reported = true;
+  }
 
   // Transfer error, usually timeout
   if(!eof_reached) {
@@ -429,8 +483,6 @@ int main(int argc,char* argv[]) {
     };
   };
 
-  // checksum validation against supplied value
-  std::string calc_csum;
   if (crc && buffer.checksum_valid()) {
     char buf[100];
     crc.print(buf,100);
@@ -474,6 +526,7 @@ int main(int argc,char* argv[]) {
   } else {
     logger.msg(VERBOSE, "Checksum not computed");
   }
+
   if(!reported) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::NONE_ERROR,
