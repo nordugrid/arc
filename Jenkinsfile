@@ -35,7 +35,7 @@ pipeline {
         stage('CppCheck') {
             steps {
                     sh 'cppcheck --enable=all --inconclusive --xml --xml-version=2 . 2> cppcheck.xml'
-                    sh 'scl enable python27 -- $CP_PROJECT_DIR/cppcheck/htmlreport/cppcheck-htmlreport --file=cppcheck.xml --report-dir=cppcheck_html --source-dir=.'
+                    sh 'scl enable python27 -- $CP_PROJECT_DIR/cppcheck/htmlreport/cppcheck-htmlreport --file=cppcheck.xml --report-dir=. --source-dir=.'
                     sh 'ls'
                     publishCppcheck pattern:'cppcheck.xml'
                     publishHTML (
