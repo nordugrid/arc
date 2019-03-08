@@ -42,14 +42,11 @@
 // If defined this turn on additional layer in handling
 // setenv() which tries to avoid memory leaks.
 // Windows uses different way to store environment. TODO: investigate
-#ifndef WIN32
 #define TRICKED_ENVIRONMENT
 extern char** environ;
-#endif
 
 namespace Arc {
 
-#ifndef WIN32
   class SIGPIPEIngore {
   private:
     void (*sighandler_)(int);
@@ -67,7 +64,6 @@ namespace Arc {
   }
 
   static SIGPIPEIngore sigpipe_ignore;
-#endif
 
 #ifdef TRICKED_ENVIRONMENT
 
@@ -297,9 +293,6 @@ namespace Arc {
     };
     return envp;
 #else
-#ifdef WIN32
-#error Glib with support for listenv and getenv is needed
-#endif
     std::list<std::string> envp;
     for(char** enventry = environ; *enventry; ++enventry) {
       envp.push_back(*enventry);

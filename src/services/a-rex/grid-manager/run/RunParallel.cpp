@@ -161,9 +161,6 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
 }
 
 void RunParallel::initializer(void* arg) {
-#ifdef WIN32
-#error This functionality is not available in Windows environment
-#else
   // child
   RunParallel* it = (RunParallel*)arg;
   if(it->cred_) {
@@ -188,7 +185,6 @@ void RunParallel::initializer(void* arg) {
   }
   else { h=::open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
-#endif
 }
 
 } // namespace ARex

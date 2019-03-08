@@ -193,13 +193,13 @@ RTE_include_default () {
 
 RTE_path_set () {
     rte_params_path="${CONFIG_controldir}/rte/params/${rte_name}"
-    if [ ! -f "$rte_params_path" ]; then
+    if [ ! -e "$rte_params_path" ]; then
         rte_params_path=""
     fi
     rte_path="${CONFIG_controldir}/rte/enabled/${rte_name}"
-    if [ ! -f "$rte_path" ]; then
+    if [ ! -e "$rte_path" ]; then
         rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
-        if [ ! -f "$rte_path" ]; then
+        if [ ! -e "$rte_path" ]; then
             echo "ERROR: Requested RunTimeEnvironment ${rte_name} is missing, broken or not enabled." 1>&2
             exit 1
         fi

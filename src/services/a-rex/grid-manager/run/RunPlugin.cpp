@@ -2,9 +2,7 @@
 #include <config.h>
 #endif
 
-#ifndef WIN32
 #include <dlfcn.h>
-#endif
 
 #include <arc/Run.h>
 #include <arc/ArcConfigIni.h>
@@ -113,7 +111,6 @@ bool RunPlugin::run(void) {
       return false;
     };
   } else {
-#ifndef WIN32
     void* lib_h = dlopen(lib.c_str(),RTLD_NOW);
     if(lib_h == NULL) { free(args); return false; };
     lib_plugin_t f;
@@ -138,10 +135,6 @@ bool RunPlugin::run(void) {
                    args[91],args[92],args[93],args[94],args[95],
                    args[96],args[97],args[98],args[99],args[100]);
     dlclose(lib_h);
-#else
-#warning Implement calling function from library for Windows
-    result=-1;
-#endif
   };
   free(args);
   return true;
@@ -183,7 +176,6 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
       return false;
     };
   } else {
-#ifndef WIN32
     void* lib_h = dlopen(lib.c_str(),RTLD_NOW);
     if(lib_h == NULL) { 
       free(args); return false;
@@ -212,10 +204,6 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
                    args[91],args[92],args[93],args[94],args[95],
                    args[96],args[97],args[98],args[99],args[100]);
     dlclose(lib_h);
-#else
-#warning Implement calling function from library for Windows
-    result=-1;
-#endif
   };
   free(args);
   return true;

@@ -2,7 +2,6 @@
 
 make maintainer-clean
 
-rm -fr java/nordugrid/
 rm -fr include/.deps
 
 rm -f nordugrid-arc-*.tar.gz

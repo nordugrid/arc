@@ -11,10 +11,8 @@ namespace Arc {
 
     foreground = false;
     AddOption('f', "foreground", "run daemon in foreground", foreground);
-#ifndef WIN32
     watchdog = false;
     AddOption('w', "watchdog", "enable watchdog to restart process", watchdog);
-#endif
     AddOption('c', "xml-config", "full path of XML config file", "path", xml_config_file);
     AddOption('i', "ini-config", "full path of InI config file", "path", ini_config_file);
     config_dump = false;
@@ -26,12 +24,6 @@ namespace Arc {
     AddOption('s', "schema", "full path of XML schema file", "path", schema_file);
     version = false;
     AddOption('v', "version", "print version information", version);
-#ifdef WIN32
-    install = false;
-    AddOption('a', "install", "install windows service", install);
-    uninstall = false;
-    AddOption('r', "uninstall", "uninstall windows service", uninstall);
-#endif
   }
 
 } // namespace Arc

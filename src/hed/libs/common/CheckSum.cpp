@@ -13,10 +13,6 @@
 #include <arc/StringConv.h>
 #include <arc/CheckSum.h>
 
-#ifdef WIN32
-typedef unsigned char u_char;
-typedef unsigned int u_int;
-#endif
 
 // ----------------------------------------------------------------------------
 // This is CRC(32bit) implementation as in 'cksum' utility

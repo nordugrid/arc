@@ -87,7 +87,6 @@ void FileUtilsTest::TestFileCopy() {
 }
 
 void FileUtilsTest::TestFileLink() {
-#ifndef WIN32
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
   CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1s", true));
   CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1h", false));
@@ -97,7 +96,6 @@ void FileUtilsTest::TestFileLink() {
   CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1h", &st, true));
   CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
   CPPUNIT_ASSERT_EQUAL(testroot+"/file1", Arc::FileReadLink(testroot+"/file1s"));
-#endif
 }
 
 void FileUtilsTest::TestFileCreateAndRead() {
@@ -108,9 +106,7 @@ void FileUtilsTest::TestFileCreateAndRead() {
   struct stat st;
   CPPUNIT_ASSERT(Arc::FileStat(filename, &st, true));
   CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
-#ifndef WIN32
   CPPUNIT_ASSERT_EQUAL(0600, (int)(st.st_mode & 0777));
-#endif
 
   std::list<std::string> data;
   CPPUNIT_ASSERT(Arc::FileRead(filename, data));
@@ -148,9 +144,7 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(stat(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
   CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"+sep+"file4"));
-#ifndef WIN32
   CPPUNIT_ASSERT(symlink(std::string(testroot+sep+"dir1"+sep+"dir2").c_str(), std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"link1").c_str()) == 0);
-#endif
 
   CPPUNIT_ASSERT(!Arc::DirDelete(testroot, false));
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));

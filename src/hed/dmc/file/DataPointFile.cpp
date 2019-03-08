@@ -329,13 +329,11 @@ namespace ArcDMCFile {
       buffer->is_written(h);
     }
     if (fd != -1) {
-#ifndef WIN32
       // This is for broken filesystems. Specifically for Lustre.
       if (fsync(fd) != 0 && errno != EINVAL) { // this error is caused by special files like stdout
         logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), StrError(errno));
         buffer->error_write(true);
       }
-#endif
       if(close(fd) != 0) {
         logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(errno));
         buffer->error_write(true);
@@ -400,14 +398,12 @@ namespace ArcDMCFile {
     if (st.st_mode & S_IRUSR) perms += 'r'; else perms += '-';
     if (st.st_mode & S_IWUSR) perms += 'w'; else perms += '-';
     if (st.st_mode & S_IXUSR) perms += 'x'; else perms += '-';
-#ifndef WIN32
     if (st.st_mode & S_IRGRP) perms += 'r'; else perms += '-';
     if (st.st_mode & S_IWGRP) perms += 'w'; else perms += '-';
     if (st.st_mode & S_IXGRP) perms += 'x'; else perms += '-';
     if (st.st_mode & S_IROTH) perms += 'r'; else perms += '-';
     if (st.st_mode & S_IWOTH) perms += 'w'; else perms += '-';
     if (st.st_mode & S_IXOTH) perms += 'x'; else perms += '-';
-#endif
     file.SetMetaData("accessperm", perms);
     return DataStatus::Success;
   }
@@ -545,9 +541,6 @@ namespace ArcDMCFile {
     reading = true;
     /* try to open */
     int flags = O_RDONLY;
-#ifdef WIN32
-    flags |= O_BINARY;
-#endif
     uid_t uid = usercfg.GetUser().get_uid();
     gid_t gid = usercfg.GetUser().get_gid();
 
@@ -698,9 +691,6 @@ namespace ArcDMCFile {
 
       /* try to create file. Opening an existing file will cause failure */
       int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
-#ifdef WIN32
-      flags |= O_BINARY;
-#endif
       if(((!uid) || (uid == getuid())) && ((!gid) || (gid == getgid()))) {
         fa = NULL;
         fd = ::open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);

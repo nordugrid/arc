@@ -22,13 +22,9 @@ libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h \
 	Logger.h OptionParser.h StringConv.h Thread.h URL.h \
 	User.h UserConfig.h Utils.h XMLNode.h HostnameResolver.h \
 	Counter.h IntraProcessCounter.h IniConfig.h Profile.h \
-	Run.h Watchdog.h JobPerfLog.h win32.h $(MYSQL_WRAPPER_HEADER)
+	Run.h Watchdog.h JobPerfLog.h $(MYSQL_WRAPPER_HEADER)
 
-if WIN32
-PLATFORM_SPECIFIC = Run_win32.cpp win32.cpp
-else
 PLATFORM_SPECIFIC = Run_unix.cpp
-endif
 
 libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	ArcRegex.cpp ArcConfigIni.cpp ArcConfigFile.cpp \
@@ -42,8 +38,7 @@ libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) \
 	$(MYSQL_CFLAGS) $(AM_CXXFLAGS)
 libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(ZLIB_LIBS) \
-	$(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) \
-	$(MYSQL_LIBS) $(LIBINTL)
+	$(UUID_LIBS) $(MYSQL_LIBS) $(LIBINTL)
 libarccommon_la_LDFLAGS = -version-info 3:0:0
 
 arc_file_access_SOURCES  = file_access.cpp file_access.h

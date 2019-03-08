@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -15,7 +14,6 @@
 #include <sys/poll.h>
 #include <netinet/tcp.h>
 #include <fcntl.h>
-#endif
 
 #include <glibmm.h>
 
@@ -30,7 +28,6 @@ namespace ArcMCCTCP {
 
 using namespace Arc;
 
-#ifndef WIN32
 static int spoll(int h, int timeout, unsigned int& events) {
   int r;
   // Second resolution is enough
@@ -53,7 +50,6 @@ static int spoll(int h, int timeout, unsigned int& events) {
   events = fd.revents;
   return r;
 }
-#endif
 
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
 {
@@ -104,7 +100,6 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       logger.msg(VERBOSE, "%s", error_);
       continue;
     }
-#ifndef WIN32
     // In *NIX we can use non-blocking socket because poll() will 
     // be used for waiting.
     int s_flags = ::fcntl(s, F_GETFL, 0);
@@ -153,15 +148,6 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         continue;
       }
     }
-#else
-    if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
-      error_ = IString("Failed to connect to %s(%s):%i",
-                        hostname,family==AF_INET6?"IPv6":"IPv4",port).str();
-      logger.msg(VERBOSE, "%s", error_);
-      close(s); s = -1;
-      continue;
-    };
-#endif
     break;
   };
 #ifndef USE_REMOTE_HOSTNAME_RESOLVER
@@ -207,7 +193,6 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   size=0;
   if(handle_ == -1) return false;
   int flags = 0;
-#ifndef WIN32
   unsigned int events = POLLIN | POLLPRI | POLLERR;
   if(spoll(handle_,timeout_,events) != 1) return false;
   if(!(events & (POLLIN | POLLPRI))) return false; // Probably never happens
@@ -215,7 +200,6 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
     logger.msg(ERROR, "Received message out-of-band (not critical, ERROR level is just for debugging purposes)");
     flags = MSG_OOB;
   }
-#endif
   l=::recv(handle_,buf,l,flags);
   if(flags & MSG_OOB) { size = 0; return true; }
   if(l == -1) return false;
@@ -237,20 +221,14 @@ bool PayloadTCPSocket::Put(const char* buf,Size_t size) {
   if(handle_ == -1) return false;
   time_t start = time(NULL);
   for(;size;) {
-#ifndef WIN32
     unsigned int events = POLLOUT | POLLERR;
     int to = timeout_-(unsigned int)(time(NULL)-start);
     if(to < 0) to = 0;
     if(spoll(handle_,to,events) != 1) return false;
     if(!(events & POLLOUT)) return false;
-#endif
     l=::send(handle_, buf, size, 0);
     if(l == -1) return false;
     buf+=l; size-=l;
-#ifdef WIN32
-    int to = timeout_-(unsigned int)(time(NULL)-start);
-    if(to < 0) return false;
-#endif
   };  
   return true;
 }
@@ -259,11 +237,7 @@ void PayloadTCPSocket::NoDelay(bool val) {
   if(handle_ == -1) return;
   int flag = val?1:0;
 
-#ifdef WIN32
- ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,(const char*)(&flag),sizeof(flag));
-#else
  ::setsockopt(handle_,IPPROTO_TCP,TCP_NODELAY,&flag,sizeof(flag));
-#endif
 
 }
 

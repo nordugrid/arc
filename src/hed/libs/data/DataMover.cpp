@@ -287,7 +287,6 @@ namespace Arc {
         logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
       }
     }
-#ifndef WIN32
     if (cacheable && source.GetURL().Option("cache") != "renew" && source.GetURL().Option("cache") != "check") {
       std::string canonic_url = source.str();
       bool is_in_cache = false;
@@ -317,8 +316,7 @@ namespace Arc {
         }
       }
     }
-#endif /*WIN32*/
-      
+
     for (;;) {
       DataStatus dres = source.Resolve(true);
       if (dres.Passed()) {
@@ -570,15 +568,13 @@ namespace Arc {
       }
       /* Try to initiate cache (if needed) */
       std::string canonic_url = source.str();
-#ifndef WIN32
       if (cacheable) {
         res = DataStatus::Success;
-        bool use_remote = true;
         bool delete_first = (source.GetURL().Option("cache") == "renew");
         for (;;) { /* cycle for outdated cache files */
           bool is_in_cache = false;
           bool is_locked = false;
-          if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, delete_first)) {
+          if (!cache.Start(canonic_url, is_in_cache, is_locked, delete_first)) {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
               source.NextTry(); /* to decrease retry counter */
@@ -626,7 +622,6 @@ namespace Arc {
             if (outdated) {
               delete_first = true;
               logger.msg(INFO, "Cached file is outdated, will re-download");
-              use_remote = false;
               continue;
             }
             logger.msg(VERBOSE, "Cached copy is still valid");
@@ -652,7 +647,6 @@ namespace Arc {
         if (cacheable && !res.Passed())
           continue;
       }
-#endif /*WIN32*/
       if (mapped) {
         if ((mapped_url.Protocol() == "link")
             || (mapped_url.Protocol() == "file")) {
@@ -665,10 +659,8 @@ namespace Arc {
                        source.str());
             source.NextLocation(); /* try another source */
             logger.msg(VERBOSE, "source.next_location");
-#ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-#endif
             res = cres;
             continue;
           }
@@ -711,13 +703,11 @@ namespace Arc {
         }
       }
       URL churl;
-#ifndef WIN32
       if (cacheable) {
         /* create new destination for cache file */
         churl = cache.File(canonic_url);
         logger.msg(INFO, "cache file: %s", churl.Path());
       }
-#endif
       // don't switch user to access cache
       UserConfig usercfg(destination.GetUserConfig());
       usercfg.SetUser(User(getuid()));
@@ -733,7 +723,6 @@ namespace Arc {
       DataPoint& destination_url = cacheable ? chdest : destination;
       // Disable checks meant to provide meta-information if not needed
       source_url.SetAdditionalChecks((do_checks && (checks_required || cacheable)) || (show_progress != NULL));
-      
       if (source_url.GetAdditionalChecks()) {
         if (!source_url.IsIndex()) {
           FileInfo fileinfo;
@@ -746,10 +735,8 @@ namespace Arc {
             if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
             res = r;
-  #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-  #endif
             continue;
           }
         } else {
@@ -761,10 +748,8 @@ namespace Arc {
             if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
             res = r;
-  #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-  #endif
             continue;
           }
         }
@@ -777,10 +762,8 @@ namespace Arc {
           else {
             logger.msg(INFO, "Replica %s has high latency, trying next source", source_url.CurrentLocation().str());
             source.NextLocation();
-  #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-  #endif
             continue;
           }
         }
@@ -804,10 +787,8 @@ namespace Arc {
           /* try another source */
           if (source.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next source");
-  #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
-  #endif
           continue;
         }
 
@@ -823,10 +804,8 @@ namespace Arc {
           /* try another source */
           if (source.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next source");
-  #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
-  #endif
           continue;
         }
         if (mapped)
@@ -839,10 +818,8 @@ namespace Arc {
             source_url.FinishReading(true);
             source.NextLocation(); /* not exactly sure if this would help */
             res = DataStatus::PreRegisterError;
-  #ifndef WIN32
             if (cacheable)
               cache.StopAndDelete(canonic_url);
-  #endif
             continue;
           }
         }
@@ -863,14 +840,11 @@ namespace Arc {
           logger.msg(VERBOSE, "destination.next_location");
           res = datares;
           // Normally remote destination is not cached. But who knows.
-  #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
-  #endif
           continue;
         }
         buffer.speed.reset();
-
         // cache files don't need prepared
         datares = destination.PrepareWriting(max_inactivity_time, wait_time);
         if (!datares.Passed()) {
@@ -889,7 +863,6 @@ namespace Arc {
           res = datares;
           continue;
         }
-
         DataStatus read_failure = DataStatus::Success;
         DataStatus write_failure = DataStatus::Success;
         std::string cache_lock;
@@ -916,7 +889,6 @@ namespace Arc {
           }
         }
         else {
-#ifndef WIN32
           chdest.AddCheckSumObject(&crc_dest);
           datares = chdest.StartWriting(buffer);
           if (!datares.Passed()) {
@@ -935,7 +907,6 @@ namespace Arc {
             return DataStatus::CacheError; // repeating won't help here
           }
           cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
-#endif
         }
         logger.msg(VERBOSE, "Waiting for buffer");
         // cancelling will make loop exit before eof, triggering error and destinatinon cleanup
@@ -957,6 +928,7 @@ namespace Arc {
         source_url.FinishReading((!read_failure.Passed() || buffer.error()));
         if (cacheable && mapped) {
           source.SetMeta(mapped_p); // pass more metadata (checksum)
+
         }
         logger.msg(VERBOSE, "Closing write channel");
         // turn off checks during stop_writing() if force is turned on
@@ -971,10 +943,8 @@ namespace Arc {
         }
 
         if (buffer.error()) {
-  #ifndef WIN32
           if (cacheable)
             cache.StopAndDelete(canonic_url);
-  #endif
           if (!destination.PreUnregister(replication ||
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
@@ -1072,11 +1042,9 @@ namespace Arc {
             // error here? yes since we'll have an inconsistent catalog otherwise
             logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
                 destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
-  #ifndef WIN32
             if (cacheable) {
               cache.StopAndDelete(canonic_url);
             }
-  #endif
             if (!destination.Unregister(replication || destination_meta_initially_stored)) {
               logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
             }
@@ -1102,11 +1070,9 @@ namespace Arc {
               logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
             } else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
               logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
-  #ifndef WIN32
               if(cacheable) {
                 cache.StopAndDelete(canonic_url);
               }
-  #endif
               res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
               if (source.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next source");
@@ -1134,14 +1100,11 @@ namespace Arc {
                        "You may need to unregister it manually: %s", destination.str());
           destination.NextLocation(); /* not sure if this can help */
           logger.msg(VERBOSE, "destination.next_location");
-  #ifndef WIN32
           if(cacheable)
             cache.Stop(canonic_url);
-  #endif
           res = datares;
           continue;
         }
-  #ifndef WIN32
       } // not using internal transfer
       if (cacheable) {
         cache.AddDN(canonic_url, dn, exp_time);
@@ -1164,7 +1127,6 @@ namespace Arc {
           return DataStatus::CacheError; // retry won't help
         }
       }
-#endif
       if (buffer.error())
         continue; // should never happen - keep just in case
       break;

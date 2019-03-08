@@ -11,7 +11,7 @@ from twisted.internet import reactor, defer
 from twisted.web import resource, server
 
 from acix.core import indexclient
-from acix.cacheserver import cache, cacheresource
+from acix.scanner import cache, cacheresource
 from acix.indexserver import index, indexresource
 
 

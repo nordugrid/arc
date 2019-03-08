@@ -22,10 +22,6 @@
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSUtil.h>
 
-// Needed to redefine mkdir on mingw
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 namespace ArcJura
 {

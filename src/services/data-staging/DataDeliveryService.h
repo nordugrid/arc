@@ -4,7 +4,7 @@
 #include <string>
 
 #include <arc/delegation/DelegationInterface.h>
-#include <arc/infosys/RegisteredService.h>
+#include <arc/message/Service.h>
 #include <arc/message/Message.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
@@ -37,7 +37,7 @@ namespace DataStaging {
    * never queried, a separate thread moves any transfers which completed more
    * than one hour ago to the archived list.
    */
-  class DataDeliveryService: public Arc::RegisteredService, DTRCallback {
+  class DataDeliveryService: public Arc::Service, DTRCallback {
 
     /// Managed pointer to stringstream used to hold log output
     typedef Arc::ThreadedPointer<std::stringstream> sstream_ptr;
@@ -110,9 +110,6 @@ namespace DataStaging {
 
     /// Implementation of callback method from DTRCallback
     virtual void receiveDTR(DTR_ptr dtr);
-
-    /// Supplies information on the service for use in the information system.
-    bool RegistrationCollector(Arc::XMLNode &doc);
 
   };
 

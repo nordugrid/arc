@@ -11,9 +11,6 @@
 #include <arc/loader/Loader.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/PayloadSOAP.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);

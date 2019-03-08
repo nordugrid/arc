@@ -133,17 +133,6 @@ namespace Arc {
         pos = std::string::npos;
         break;
       }
-#ifdef WIN32
-      // Windows paths look like protocols - additional checks are needed
-      // So for windows it looks like "disk:\"
-      // TODO: probably some additional check is needed for "disk:"-like
-      // paths. If such path can exist at all.
-      if(pos != std::string::npos) {
-        if(url[pos+1] == '\\') {
-          pos = std::string::npos;
-        }
-      }
-#endif
     }
     if (pos == std::string::npos) {
       // URL does not start from protocol - must be simple path

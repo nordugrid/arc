@@ -3,7 +3,6 @@
 
 #include <Python.h>
 #include <arc/message/Service.h>
-#include <arc/infosys/InfoRegister.h>
 #include <arc/Logger.h>
 
 namespace Arc {
@@ -14,7 +13,6 @@ class Service_PythonWrapper: public Arc::Service {
         PyObject *arc_module;
         PyObject *module;
         PyObject *object;
-        InfoRegisters *inforeg;
         bool initialized;
 
     public:

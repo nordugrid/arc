@@ -14,11 +14,7 @@
 #include <glibmm/timer.h>
 #include <vector>
 
-#ifndef WIN32
 #include <sys/wait.h>
-#else
-#include <windows.h>
-#endif
 
 // Some global shared variables...
 Glib::Mutex* mutex;
@@ -56,37 +52,6 @@ void execCommand() {
   while(Round(::completedTime.as_double() * 1000000) < (duration * 1000000)){
     tBefore.assign_current_time();
 
-#ifdef WIN32
-    STARTUPINFO si = {0};
-    si.cb = sizeof(si);
-    PROCESS_INFORMATION pi;
-    if(CreateProcess(cmd_str.c_str(),NULL,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi)) {
-      std::cout << "Create process failed: "<<GetLastError()<<std::endl;
-      exit(1);
-    };
-
-    int status;
-    status = WaitForSingleObject(pi.hProcess, INFINITE);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
-    tAfter.assign_current_time();
-
-    if (status != WAIT_OBJECT_0 && status != WAIT_ABANDONED) {
-      std::cout << "ERROR: " << cmd_str << " returns code " << status
- << std::endl;
-      Glib::Mutex::Lock lock(*mutex);
-      ::failedCommands++;
-      ::failedTime+=tAfter-tBefore;
-      finishedProcesses++;
-    }
-    else {
-      Glib::Mutex::Lock lock(*mutex);
-      ::completedCommands++;
-      ::completedTime+=tAfter-tBefore;
-      finishedProcesses++;
-    }
-#else
     pid = fork();
     if(pid == 0) {
       int e = execvp(cmd_str.c_str(), list);
@@ -118,7 +83,6 @@ void execCommand() {
         finishedProcesses++;
       }
     }
-#endif
   } 
 
   std::cout << "Number of finished processes: " << finishedProcesses << std::endl;

@@ -25,7 +25,7 @@ fork_packages_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - build-el7
+      - build
   except:
     refs:
       - master
@@ -58,8 +58,6 @@ fork_packages_el7:
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  tags:
-    - build-el7
   artifacts:
     when: on_success
     expire_in: 3 days
@@ -68,6 +66,8 @@ fork_packages_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
+  tags:
+      - build
   except:
     refs:
       - master
@@ -96,7 +96,7 @@ fork_packages_deb9:
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
   tags:
-    - build-deb9
+      - build
   except:
     refs:
       - master
@@ -133,8 +133,7 @@ packages_deb9:
     - echo Delete dbgsym debs to save space
     - rm -f ../*-dbgsym_*.deb
   tags:
-    - 158.39.77.8
-    - bgo-runner
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -165,8 +164,7 @@ packages_el6:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - 158.39.77.164
-    - bgo-runner
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -196,8 +194,7 @@ packages_el7:
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
-    - 158.39.77.235
-    - bgo-runner
+    - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -216,27 +213,29 @@ run_static_analysis_el6:
   script:
     - set +e
     - echo "Enabling python27 for running the cppcheck-htmlreport"
-    - scl enable python27 bash
+    #- export PYTHONPATH="/opt/rh/python27/root/usr/lib/python2.7/site-packages/":$PYTHONPATH
+    #- export PATH="/opt/rh/python27/root/usr/bin/":$PATH
+    #- export LD_LIBRARY_PATH="/opt/rh/python27/root/usr/lib64/":$LD_LIBRARY_PATH
+    #- python --version
+    - mkdir $CI_PROJECT_DIR/arc-tests
+    - mkdir $CI_PROJECT_DIR/arc-tests/sloccount
+    - mkdir $CI_PROJECT_DIR/arc-tests/cppcheck_html
+    - mkdir $CI_PROJECT_DIR/arc-tests/rats
+    - mkdir $CI_PROJECT_DIR/arc-tests/flawfinder
+    - mkdir $CI_PROJECT_DIR/arc-tests/cpplint
+    - ls 
+    - ls /
+    - echo "Enabling python27 for running the cppcheck-htmlreport"
     - export PYTHONPATH="/opt/rh/python27/root/usr/lib/python2.7/site-packages/":$PYTHONPATH
     - export PATH="/opt/rh/python27/root/usr/bin/":$PATH
     - export LD_LIBRARY_PATH="/opt/rh/python27/root/usr/lib64/":$LD_LIBRARY_PATH
     - python --version
-    - yum install -y python-pip
-    - pip install cpplint
-    - ls
-    - ls /usr/local
-    - ls /usr/local/src
-    - mkdir $CI_PROJECT_DIR/arc-tests
-    - mkdir $CI_PROJECT_DIR/arc-tests/cppcheck_html
-    - mkdir $CI_PROJECT_DIR/arc-tests/rats
+    - rats  --html -w 3 ./ > $CI_PROJECT_DIR/arc-tests/rats/rats.html 2>&1
+    - /flawfinder-1.31/flawfinder -m 2 --html --dataonly ./ > $CI_PROJECT_DIR/arc-tests/flawfinder/flawfinder.html 2>&1
+    - scl enable python27 'cpplint --recursive counting=detailed --output=junit ./ > $CI_PROJECT_DIR/arc-tests/cpplint/cpplint.xml 2>&1'
     - cppcheck --enable=all --inconclusive --xml --xml-version=2 . 2> $CI_PROJECT_DIR/arc-tests/cppcheck.xml
-    - $CP_PROJECT_DIR/cppcheck/htmlreport/cppcheck-htmlreport --file=$CI_PROJECT_DIR/arc-tests/cppcheck.xml --report-dir=$CI_PROJECT_DIR/arc-tests/cppcheck_html --source-dir=.
+    - scl enable python27 '$CP_PROJECT_DIR/cppcheck/htmlreport/cppcheck-htmlreport --file=$CI_PROJECT_DIR/arc-tests/cppcheck.xml --report-dir=$CI_PROJECT_DIR/arc-tests/cppcheck_html --source-dir=.'
     - ls $CI_PROJECT_DIR/arc-tests/
-    - cpplint --recursive ./ > cpplint.txt 2>&1
-    - rats --quiet --html -w 3 ./ > $CI_PROJECT_DIR/arc-tests/rats/rats.html 2>&1
-    #- export PATH=$PATH:/usr/local/src
-    #- /usr/local/src/pmd/bin/run.sh cpd --minimum-tokens 100 --files $WORKSPACE/src/ --format xml --language cpp > /arc-tests/pmd.xml
-    #- echo $PATH
   tags:
     - 158.39.77.235
   only:

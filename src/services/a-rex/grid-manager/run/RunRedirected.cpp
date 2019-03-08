@@ -81,9 +81,6 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
 }
 
 void RunRedirected::initializer(void* arg) {
-#ifdef WIN32
-#error This functionality is not available in Windows environment
-#else
   // There must be only async-safe calls here!
   // child
   RunRedirected* it = (RunRedirected*)arg;
@@ -91,7 +88,6 @@ void RunRedirected::initializer(void* arg) {
   if(it->stdin_ != -1)  dup2(it->stdin_,0);
   if(it->stdout_ != -1) dup2(it->stdout_,1);
   if(it->stderr_ != -1) dup2(it->stderr_,2);
-#endif
 }
 
 } // namespace ARex

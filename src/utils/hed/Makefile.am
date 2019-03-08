@@ -8,11 +8,11 @@ wsdl2hed_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 wsdl2hed_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 arcplugin_SOURCES = arcplugin.cpp
 arcplugin_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 arcplugin_LDADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
