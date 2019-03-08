@@ -735,38 +735,39 @@ namespace Arc {
       source_url.SetAdditionalChecks((do_checks && (checks_required || cacheable)) || (show_progress != NULL));
       
       if (source_url.GetAdditionalChecks()) {
-        FileInfo fileinfo;
-        DataPoint::DataPointInfoType verb = (DataPoint::DataPointInfoType)
-                                            (DataPoint::INFO_TYPE_TIMES |
-                                             DataPoint::INFO_TYPE_CONTENT);
-        DataStatus r = source_url.Stat(fileinfo, verb);
-        if (!r.Passed()) {
-          logger.msg(ERROR, "Failed to stat source %s", source_url.str());
-          if (source.NextLocation())
-            logger.msg(VERBOSE, "(Re)Trying next source");
-          res = r;
-#ifndef WIN32
-          if (cacheable)
-            cache.StopAndDelete(canonic_url);
-#endif
-          continue;
+        if (!source_url.IsIndex()) {
+          FileInfo fileinfo;
+          DataPoint::DataPointInfoType verb = (DataPoint::DataPointInfoType)
+                                              (DataPoint::INFO_TYPE_TIMES |
+                                               DataPoint::INFO_TYPE_CONTENT);
+          DataStatus r = source_url.Stat(fileinfo, verb);
+          if (!r.Passed()) {
+            logger.msg(ERROR, "Failed to stat source %s", source_url.str());
+            if (source.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next source");
+            res = r;
+  #ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+  #endif
+            continue;
+          }
+        } else {
+          // check location meta
+          DataStatus r = source_url.CompareLocationMetadata();
+          if (!r.Passed()) {
+            if (r == DataStatus::InconsistentMetadataError)
+              logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
+            if (source.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next source");
+            res = r;
+  #ifndef WIN32
+            if (cacheable)
+              cache.StopAndDelete(canonic_url);
+  #endif
+            continue;
+          }
         }
-
-        // check location meta
-        r = source_url.CompareLocationMetadata();
-        if (!r.Passed()) {
-          if (r == DataStatus::InconsistentMetadataError)
-            logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
-          if (source.NextLocation())
-            logger.msg(VERBOSE, "(Re)Trying next source");
-          res = r;
-#ifndef WIN32
-          if (cacheable)
-            cache.StopAndDelete(canonic_url);
-#endif
-          continue;
-        }
-
         // check for high latency
         if (source_url.GetAccessLatency() == Arc::DataPoint::ACCESS_LATENCY_LARGE) {
           if (source.LastLocation()) {
