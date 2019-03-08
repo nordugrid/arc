@@ -262,8 +262,9 @@
 #subject=/O=Grid/O=Big VO/CN=Main Boss
 #subject=/O=Grid/O=Big VO/CN=Deputy Boss
 
-## file = path - Processes a list of DNs stored in an external file one per line and adds those to
-## the authgroup.
+## file = path - Processes a list of DNs stored in an external file one per line
+## in grid-mapfile format (see map_with_file from [mapping] block, unixname is ignored)
+## and adds those to the authgroup.
 ## sequenced
 ## default: undefined
 #file=/etc/grid-security/local_users
@@ -373,9 +374,10 @@
 #map_to_pool=atlas /etc/grid-security/pool/atlas
 
 ## map_with_file = authgroup_name file - for users that belongs to specified
-## authgroup the subject of certificate is matched against a list of subjects 
-## stored in the specified "file", one per line followed by a local UNIX account 
-## name. This rule can be used to implement legacy grid-mapfile aproach.
+## authgroup the DN of certificate is matched against a list of DNs stored in
+## the specified "file", one per line followed by a local UNIX account name.
+## The DN must be quoted if it contains blank spaces.
+## This rule can be used to implement legacy grid-mapfile aproach.
 ## sequenced
 ## default: undefined
 #map_with_file=any /etc/grid-security/grid-mapfile
