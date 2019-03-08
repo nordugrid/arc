@@ -16,11 +16,11 @@ namespace ArcDMCXrootd {
    */
   class XrootdProgressHandler : public XrdCl::CopyProgressHandler {
    public:
-    XrootdProgressHandler(DataPoint::Callback3rdParty callback);
+    XrootdProgressHandler(DataPoint::TransferCallback callback);
     void JobProgress(uint16_t jobNum, uint64_t bytesProcessed, uint64_t bytesTotal);
     bool ShouldCancel(uint64_t jobNum);
    private:
-    DataPoint::Callback3rdParty cb;
+    DataPoint::TransferCallback cb;
     bool cancel;
   };
 
@@ -49,7 +49,7 @@ namespace ArcDMCXrootd {
     virtual DataStatus Remove();
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Rename(const URL& newurl);
-    virtual DataStatus Transfer(const URL& otherendpoint, bool source, Callback3rdParty callback = NULL);
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source, TransferCallback callback = NULL);
     virtual bool SupportsTransfer() const;
     virtual bool RequiresCredentialsInFile() const;
 
@@ -59,7 +59,7 @@ namespace ArcDMCXrootd {
     static void write_file_start(void* arg);
     void read_file();
     void write_file();
-    DataStatus copy_file(std::string source, std::string dest, Callback3rdParty callback = NULL);
+    DataStatus copy_file(std::string source, std::string dest, TransferCallback callback = NULL);
 
     /// must be called everytime a new XrdClient is created
     void set_log_level();

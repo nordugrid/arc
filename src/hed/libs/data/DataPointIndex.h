@@ -68,7 +68,7 @@ namespace Arc {
     virtual std::vector<URL> TransferLocations() const;
     virtual void ClearTransferLocations();
     virtual DataStatus Transfer(const URL& otherendpoint, bool source,
-                                Callback3rdParty callback = NULL);
+                                TransferCallback callback = NULL);
 
     virtual DataStatus Check(bool check_meta);
 

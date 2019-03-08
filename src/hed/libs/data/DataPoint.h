@@ -122,13 +122,13 @@ namespace Arc {
     : public Plugin {
   public:
 
-    /// Callback for use in 3rd party transfer.
+    /// Callback for use in protocol-internal or 3rd party transfers.
     /**
      * Will be called periodically during the transfer with the number of bytes
      * transferred so far.
      * \param bytes_transferred the number of bytes transferred so far
      */
-    typedef void(*Callback3rdParty)(unsigned long long int bytes_transferred);
+    typedef void(*TransferCallback)(unsigned long long int bytes_transferred);
 
     /// Describes the latency to access this URL
     /**
@@ -173,7 +173,7 @@ namespace Arc {
      * \since 6.0.0
      */
     virtual DataStatus Transfer(const URL& otherendpoint, bool source,
-                                Callback3rdParty callback = NULL);
+                                TransferCallback callback = NULL);
 
     /// Perform third party transfer.
     /**
@@ -191,7 +191,7 @@ namespace Arc {
      * \return outcome of transfer
      */
     static DataStatus Transfer3rdParty(const URL& source, const URL& destination,
-                                       const UserConfig& usercfg, Callback3rdParty callback = NULL);
+                                       const UserConfig& usercfg, TransferCallback callback = NULL);
 
     /// Destructor.
     virtual ~DataPoint();
@@ -844,7 +844,7 @@ namespace Arc {
      * \param callback Optional monitoring callback
      * \return outcome of transfer
      */
-    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback = NULL);
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback = NULL);
   };
 
   /** \cond Class used by DataHandle to load the required DMC. */

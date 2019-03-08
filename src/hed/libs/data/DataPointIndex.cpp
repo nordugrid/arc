@@ -334,7 +334,7 @@ namespace Arc {
    }
 
    DataStatus DataPointIndex::Transfer(const URL& otherendpoint, bool source,
-                                       Callback3rdParty callback) {
+                                       TransferCallback callback) {
      if (!h || !*h)
        return DataStatus::NoLocationError;
      return (*h)->Transfer(otherendpoint, source, callback);

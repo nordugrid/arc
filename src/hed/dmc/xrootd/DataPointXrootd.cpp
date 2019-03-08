@@ -20,7 +20,7 @@ namespace ArcDMCXrootd {
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
   XrdPosixXrootd DataPointXrootd::xrdposix;
 
-  XrootdProgressHandler::XrootdProgressHandler(DataPoint::Callback3rdParty callback)
+  XrootdProgressHandler::XrootdProgressHandler(DataPoint::TransferCallback callback)
    : cb(callback), cancel(false) {}
 
   void XrootdProgressHandler::JobProgress(uint16_t jobNum,
@@ -61,7 +61,7 @@ namespace ArcDMCXrootd {
     return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
   }
 
-  DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, Callback3rdParty callback) {
+  DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, TransferCallback callback) {
     XrdCl::PropertyList props;
     XrdCl::PropertyList results;
 
@@ -551,7 +551,7 @@ namespace ArcDMCXrootd {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, Callback3rdParty callback) {
+  DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
     if (source) {
       return copy_file(url.plainstr(), otherendpoint.plainstr(), callback);
     } else {

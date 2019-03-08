@@ -111,11 +111,11 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPoint::Transfer(const URL& otherendpoint, bool source, Callback3rdParty callback) {
+  DataStatus DataPoint::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
     return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
-  DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback) {
+  DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback) {
     return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
@@ -267,7 +267,7 @@ namespace Arc {
   }
 
   DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination,
-                                         const UserConfig& usercfg, Callback3rdParty callback) {
+                                         const UserConfig& usercfg, TransferCallback callback) {
     // to load GFAL instead of ARC's DMCs we create a fake URL with gfal protocol
     URL gfal_url(destination);
     gfal_url.ChangeProtocol("gfal");

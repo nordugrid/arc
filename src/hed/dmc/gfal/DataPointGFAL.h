@@ -48,7 +48,7 @@ namespace ArcDMCGFAL {
 
   protected:
     // 3rd party transfer (destination pulls from source)
-    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, DataPoint::Callback3rdParty callback = NULL);
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback = NULL);
 
   private:
     DataStatus do_stat(const URL& stat_url, FileInfo& file, DataPointInfoType verb);
