@@ -250,7 +250,7 @@ class TestCAControl(ComponentControl):
                 self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
                                  usercertfiles.dn, self.__test_authfile)
                 with open(self.__test_authfile, 'a') as a_file:
-                    a_file.write(usercertfiles.dn + '\n')
+                    a_file.write('"{0}"\n'.format(usercertfiles.dn))
             except IOError as err:
                 self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
                 sys.exit(1)
