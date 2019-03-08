@@ -232,6 +232,13 @@ namespace ArcDMCRucio {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointRucio::CompareLocationMetadata() const {
+    if (CurrentLocationHandle() && CurrentLocationHandle()->GetURL().HTTPOption("xrdcl.unzip", "") == "") {
+      return DataPointIndex::CompareLocationMetadata();
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointRucio::PreRegister(bool replication, bool force) {
     if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PreRegisterError, ENOTSUP, "Writing to Rucio is not supported");
