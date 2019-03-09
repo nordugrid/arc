@@ -36,7 +36,7 @@
 #
 # xROOTd
 #
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0}
+%if %{?fedora}%{!?fedora:0} >= 24 || %{?rhel}%{!?rhel:0}
 %global with_xrootd %{!?_without_xrootd:1}%{?_without_xrootd:0}
 %else
 %global with_xrootd 0
@@ -243,11 +243,7 @@ BuildRequires:	globus-gssapi-gsi-devel >= 12.2
 BuildRequires:	globus-gssapi-gsi-devel < 12.2
 %endif
 %if %{with_xrootd}
-%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 5
-BuildRequires:	xrootd-client-devel
-%else
-BuildRequires:	xrootd-devel
-%endif
+BuildRequires:	xrootd-client-devel >= 4.5.0
 %endif
 %if %{with_gfal}
 BuildRequires:	gfal2-devel
