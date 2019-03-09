@@ -991,6 +991,7 @@ namespace Arc {
     if (node_ == NULL) return "";
     xmlNsPtr ns_ = xmlSearchNsByHref(node_->doc, node_, (const xmlChar*)urn);
     if (!ns_) return "";
+    if (!(ns_->prefix)) return "";
     return (char*)(ns_->prefix);
   }
 
