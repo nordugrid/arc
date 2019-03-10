@@ -57,11 +57,23 @@ class HTTPSInsecureConnection(httplib.HTTPSConnection):
         # Don't force Server Certificate Check
         self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
 
+class TimeoutQueue(Queue):
+    def join_with_timeout(self, timeout):
+        self.all_tasks_done.acquire()
+        try:
+            endtime = time.time() + timeout
+            while self.unfinished_tasks:
+                remaining = endtime - time.time()
+                if remaining <= 0:
+                    raise OSError('Timeout waiting for the Queue Join')
+                self.all_tasks_done.wait(remaining)
+        finally:
+            self.all_tasks_done.release()
 
 def LDAPStrError(ldape):
     """Get string error from LDAP exception"""
-    if hasattr(ldape, 'message') and type(ldape.message) == dict:
-        err = ldape.message
+    if str(ldape) == dict:
+        err = str(ldape)
     elif len(ldape.args) and type(ldape.args[0]) == dict:
         err = ldape.args[0]
     else:
@@ -532,6 +544,9 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
                 # add endpoint if not filtered
                 logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
                 endpoints.append(e_entry)
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, ldap.TIMEOUT) as err:
+        logger.error('Failed to connect to LDAP server for %s CE. Error: %s', hostname, LDAPStrError(err))
+        return endpoints
     except ldap.LDAPError as err:
         logger.error('Failed to query LDAP GLUE2 for %s. Error: %s', hostname, LDAPStrError(err))
 
@@ -803,6 +818,9 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
                                  'but service itself is missing in the rendering.', e_url, e_type, e_service)
                     continue
                 services[e_service]['endpoints'].append(e_entry)
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, ldap.TIMEOUT) as err:
+        logger.error('Failed to connect to LDAP server %s. Error: %s', ldap_uri, LDAPStrError(err))
+        return services.values()
     except ldap.LDAPError as err:
         logger.error('Failed to query LDAP GLUE2 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
 
@@ -877,7 +895,7 @@ def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None)
 def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
     """Fetch infosys data to be added into the ARCHERY"""
     # create queue and object lock
-    fetch_queue = Queue()
+    fetch_queue = TimeoutQueue()
     object_lock = Lock()
     # recursively add fetch tasks to the fetch queue
     enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters)
@@ -892,9 +910,12 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
     # make it killable
     while not fetch_queue.empty():
         time.sleep(0.3)
-    # join for sure
-    fetch_queue.join()
-
+    # join with timeout (in case of some stuck ldap connections)
+    try:
+        fetch_queue.join_with_timeout(_fetch_timeout*3)
+    except OSError as e:
+        logger.error(str(e))
+        sys.exit(1)
 
 #
 # ARCHERY TOPOLOGY PROCESSING
@@ -1173,6 +1194,7 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
 
     remove_rrs = old_dns_rrset - new_dns_rrset
     add_rrs = new_dns_rrset - old_dns_rrset
+    logger.info('DNS incremental update includes %s records to add and %s records to remove', len(add_rrs), len(remove_rrs))
 
     try:
         update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
