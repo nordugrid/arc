@@ -378,6 +378,7 @@ namespace Arc {
         protocol == "httpg" ||
         protocol == "arc" ||
         protocol == "srm" ||
+        protocol == "root" ||
         protocol == "rucio" ) {
       pos = path.find("?");
       if (pos != std::string::npos) {

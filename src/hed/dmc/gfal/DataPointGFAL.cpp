@@ -623,7 +623,7 @@ namespace ArcDMCGFAL {
     return DataStatus::Success;
   }
 
-  DataStatus DataPointGFAL::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::Callback3rdParty callback) {
+  DataStatus DataPointGFAL::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback) {
 
     if (source.Protocol() == "lfc") lfc_host = source.Host();
     GFALEnvLocker gfal_lock(usercfg, lfc_host);

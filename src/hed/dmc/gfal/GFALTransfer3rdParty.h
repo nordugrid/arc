@@ -14,14 +14,14 @@ namespace ArcDMCGFAL {
   public:
     /// Constructor
     GFALTransfer3rdParty(const URL& source, const URL& dest,
-                         const Arc::UserConfig& cfg, DataPoint::Callback3rdParty cb);
+                         const Arc::UserConfig& cfg, DataPoint::TransferCallback cb);
     /// Start transfer
     DataStatus Transfer();
   private:
     URL source;
     URL destination;
     int transfer_timeout;
-    DataPoint::Callback3rdParty callback;
+    DataPoint::TransferCallback callback;
     static Logger logger;
     /// Callback that is passed to GFAL2. It calls our Callback3rdParty callback
     static void gfal_3rd_party_callback(gfalt_transfer_status_t h, const char* src, const char* dst, gpointer user_data);

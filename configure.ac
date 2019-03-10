@@ -1628,12 +1628,18 @@ if test "x$enables_xrootd" = "xyes"; then
   fi
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $XROOTD_CPPFLAGS"
-  AC_CHECK_HEADER(XrdPosix/XrdPosixXrootd.hh, [], [enables_xrootd="no"] [#include <iostream>])
+  AC_CHECK_HEADER(XrdCl/XrdClBuffer.hh, [], [
+    XROOTD_CPPFLAGS="-std=c++0x $XROOTD_CPPFLAGS"
+    CPPFLAGS="$SAVE_CPPFLAGS $XROOTD_CPPFLAGS"
+    # Disable Autoconf caching
+    unset ac_cv_header_XrdCl_XrdClBuffer_hh
+    AC_CHECK_HEADER(XrdCl/XrdClBuffer.hh, [], [enables_xrootd="no"])
+  ])
   CPPFLAGS=$SAVE_CPPFLAGS
   SAVE_LDFLAGS=$LDFLAGS
   LDFLAGS="$LDFLAGS $XROOTD_LDFLAGS"
   AC_CHECK_LIB([XrdPosix], [_init],
-               [XROOTD_LIBS="$XROOTD_LDFLAGS -lXrdPosix"], [enables_xrootd="no"])
+               [XROOTD_LIBS="$XROOTD_LDFLAGS -lXrdPosix -lXrdCl"], [enables_xrootd="no"])
   LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(XROOTD_CPPFLAGS)
