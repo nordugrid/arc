@@ -2097,6 +2097,7 @@ SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
 
 AC_CONFIG_FILES([Makefile
+                 include/arc/ArcVersion.h
                  src/Makefile
                  src/external/Makefile
                  src/external/cJSON/Makefile
