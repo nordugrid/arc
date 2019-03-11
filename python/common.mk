@@ -84,7 +84,7 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 	grep -h '^#' $< $(top_srcdir)/swig/Arc.i $(PYDOXFILE) | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python $(SWIG_PY3) -threads -o $*_wrap.cpp \
-		-I/usr/include -I$(top_srcdir)/include \
+		-I/usr/include -I$(top_srcdir)/include -I$(top_builddir)/include \
 		$(PYDOXFLAGS) $(SWIG_IS_DBJSTORE_ENABLED) \
 		$(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
 # Workaround for RHEL5 swig + EPEL5 python26
