@@ -218,6 +218,9 @@ BuildRequires:	python2-devel
 BuildRequires:	python3-devel
 %endif
 %if %{?rhel}%{!?rhel:0} == 7
+#		EPEL 7 is in the process of changing default python 3 version
+#		Build require both during the transition
+BuildRequires:	python34-devel
 BuildRequires:	python36-devel
 %endif
 %if %{with_pylint}
