@@ -901,9 +901,14 @@ make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= ins
 make -C src/hed/libs/data/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
 make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C src/clients			DESTDIR=$PWD/docdir/client pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
+
+# client.conf needs special handling
+make -C src/clients DESTDIR=$RPM_BUILD_ROOT install-exampleDATA
+
+# Link to client.conf from doc
+ln -s %{_datadir}/%{pkgdir}/examples/client.conf $PWD/docdir/client.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -1077,7 +1082,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files client
 %defattr(-,root,root,-)
-%doc docdir/client/*
+%doc docdir/client.conf
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
@@ -1096,6 +1101,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_bindir}/arcsub
 %{_bindir}/arcsync
 %{_bindir}/arctest
+%dir %{_datadir}/%{pkgdir}/examples
+%{_datadir}/%{pkgdir}/examples/client.conf
 %dir %{_sysconfdir}/%{pkgdir}
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %doc %{_mandir}/man1/arccat.1*
