@@ -127,13 +127,16 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
+  static char const * LogsPrefix = "/*logs";
+  static char const * DelegPrefix = "/*deleg";
+
   void JobControllerPluginREST::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Arc::URL statusUrl(GetAddressOfResource(**it));
       std::string id((*it)->JobID);
       std::string::size_type pos = id.rfind('/');
       if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+"/*logs/"+id+"/status"); // simple state
+      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status"); // simple state
       Arc::MCCConfig cfg;
       usercfg->ApplyToConfig(cfg);
       Arc::ClientHTTP client(cfg, statusUrl);
@@ -149,6 +152,7 @@ namespace Arc {
       }
       (*it)->State = JobStateARCREST(std::string(response->Buffer(0),response->BufferSize(0)));
       delete response;
+      (*it)->LogDir = std::string(LogsPrefix);
       IDsProcessed.push_back((*it)->JobID);
     }
   }
@@ -160,7 +164,7 @@ namespace Arc {
       std::string id((*it)->JobID);
       std::string::size_type pos = id.rfind('/');
       if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+"/*logs/"+id+"/status");
+      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
       Arc::MCCConfig cfg;
       usercfg->ApplyToConfig(cfg);
       Arc::ClientHTTP client(cfg, statusUrl);
@@ -190,7 +194,7 @@ namespace Arc {
       std::string id((*it)->JobID);
       std::string::size_type pos = id.rfind('/');
       if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+"/*logs/"+id+"/status");
+      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
       Arc::MCCConfig cfg;
       usercfg->ApplyToConfig(cfg);
       Arc::ClientHTTP client(cfg, statusUrl);
@@ -218,7 +222,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Arc::URL delegationUrl(GetAddressOfResource(**it));
-      delegationUrl.ChangePath(delegationUrl.Path()+"/*deleg");
+      delegationUrl.ChangePath(delegationUrl.Path()+DelegPrefix);
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {
         logger.msg(INFO, "Job %s has no delegation associated. Can't renew such job.", (*it)->JobID);
@@ -255,7 +259,7 @@ namespace Arc {
       std::string id((*it)->JobID);
       std::string::size_type pos = id.rfind('/');
       if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+"/*logs/"+id+"/status");
+      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
       Arc::MCCConfig cfg;
       usercfg->ApplyToConfig(cfg);
       Arc::ClientHTTP client(cfg, statusUrl);
@@ -304,8 +308,8 @@ namespace Arc {
     case Job::JOBLOG:
     case Job::JOBDESCRIPTION:
       std::string path = url.Path();
-      path.insert(path.rfind('/'), "/*logs");
-      url.ChangePath(path + (Job::JOBLOG ? "/errors" : "/description"));
+      path.insert(path.rfind('/'), LogsPrefix);
+      url.ChangePath(path + ((resource == Job::JOBLOG) ? "/errors" : "/description"));
       break;
     }
 
@@ -317,7 +321,7 @@ namespace Arc {
     std::string id(job.JobID);
     std::string::size_type pos = id.rfind('/');
     if(pos != std::string::npos) id.erase(0,pos+1);
-    statusUrl.ChangePath(statusUrl.Path()+"/*logs/"+id+"/description");
+    statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/description");
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, statusUrl);
