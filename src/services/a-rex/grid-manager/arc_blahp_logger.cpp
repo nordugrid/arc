@@ -188,10 +188,10 @@ int main(int argc, char *argv[]) {
         clientid = globalid;
     } else if ( interface == "org.ogf.glue.emies.activitycreation" ) {
         clientid = headnode + "/" + globalid;
-    } else if ( interface == "org.nordugrid.xbes" ) {
-        clientid = headnode + "/" + std::string(jobid_s);
+    } else if ( interface == "org.nordugrid.arcrest" ) {
+        clientid = headnode + "/" + globalid;
     } else {
-        logger.msg(Arc::ERROR,"Unsupported submission interface %s. Seems arc-blahp-logger need to be updated accordingly :-) Please submit the bug to bugzilla.");
+        logger.msg(Arc::ERROR,"Unsupported submission interface %s. Seems arc-blahp-logger need to be updated accordingly. Please submit the bug to bugzilla.");
         return EXIT_FAILURE;
     }
 
