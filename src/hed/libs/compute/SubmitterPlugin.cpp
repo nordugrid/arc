@@ -106,6 +106,9 @@ namespace Arc {
         job.LocalInputFiles[it->Name] = it->Checksum; //CheckSumAny::FileChecksum(it->Sources.front().Path(), CheckSumAny::cksum, true);
       }
     }
+    job.StdIn = jobdesc.Application.Input;
+    job.StdOut = jobdesc.Application.Output;
+    job.StdErr = jobdesc.Application.Error;
   }
 
   bool SubmitterPlugin::Migrate(const std::string& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& et,
