@@ -22,6 +22,7 @@ class URLTest
   CPPUNIT_TEST(TestOptUrl);
   CPPUNIT_TEST(TestFtpUrl);
   CPPUNIT_TEST(TestSrmUrl);
+  CPPUNIT_TEST(TestRootUrl);
   CPPUNIT_TEST(TestIP6Url);
   CPPUNIT_TEST(TestIP6Url2);
   CPPUNIT_TEST(TestIP6Url3);
@@ -42,6 +43,7 @@ public:
   void TestOptUrl();
   void TestFtpUrl();
   void TestSrmUrl();
+  void TestRootUrl();
   void TestIP6Url();
   void TestIP6Url2();
   void TestIP6Url3();
@@ -51,7 +53,7 @@ public:
   void TestOptions();
 
 private:
-  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
+  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *rooturl, *ip6url, *ip6url2, *ip6url3;
 };
 
 
@@ -65,6 +67,7 @@ void URLTest::setUp() {
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
   ftpurl = new Arc::URL("ftp://user:secret@ftp.nordugrid.org/pub/files/guide.pdf");
   srmurl = new Arc::URL("srm://srm.nordugrid.org/srm/managerv2?SFN=/data/public:/test.txt:checksumtype=adler32");
+  rooturl = new Arc::URL("root://xrootd.org:1094/mydata:disk/files/data.001.zip.1?xrdcl.unzip=file.1");
   ip6url = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]/path");
   ip6url2 = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777]:2021/path");
   ip6url3 = new Arc::URL("ftp://[ffff:eeee:dddd:cccc:aaaa:9999:8888:7777];cache=no/path");
@@ -245,6 +248,19 @@ void URLTest::TestSrmUrl() {
   CPPUNIT_ASSERT_EQUAL(std::string("adler32"), srmurl->MetaDataOption("checksumtype"));
 }
 
+void URLTest::TestRootUrl() {
+  CPPUNIT_ASSERT(*rooturl);
+  CPPUNIT_ASSERT_EQUAL(std::string("root"), rooturl->Protocol());
+  CPPUNIT_ASSERT(rooturl->Username().empty());
+  CPPUNIT_ASSERT(rooturl->Passwd().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("xrootd.org"), rooturl->Host());
+  CPPUNIT_ASSERT_EQUAL(1094, rooturl->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/mydata:disk/files/data.001.zip.1"), rooturl->Path());
+  CPPUNIT_ASSERT_EQUAL(std::string("file.1"), rooturl->HTTPOption("xrdcl.unzip"));
+  CPPUNIT_ASSERT(rooturl->Options().empty());
+  CPPUNIT_ASSERT(rooturl->Locations().empty());
+
+}
 
 void URLTest::TestIP6Url() {
   CPPUNIT_ASSERT(*ip6url);
