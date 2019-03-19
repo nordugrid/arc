@@ -191,6 +191,7 @@ namespace Arc {
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = info.reason;
       j.DelegationID.push_back(delegationId);
+      j.LogDir = "/*logs";
       
       jc.addEntity(j);
     }
@@ -288,6 +289,7 @@ namespace Arc {
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = info.reason;
       j.DelegationID.push_back(delegationId);
+      j.LogDir = "/*logs";
       
       jc.addEntity(j);
     }

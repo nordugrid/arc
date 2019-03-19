@@ -1416,7 +1416,8 @@ namespace Arc {
     }
     // Making EMI ES specific job id
     // URL-izing job id
-    j.JobID = j.JobManagementURL.str() + "/" + (std::string)jobInfo["ActivityID"]; // TODO: Optimize?
+    std::string id = (std::string)jobInfo["ActivityID"];
+    j.JobID = j.JobManagementURL.str() + "/" + id;
   }
 
   std::string EMIESJobInfo::getSubmittedVia() const {
