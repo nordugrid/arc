@@ -343,6 +343,8 @@ int main(int argc,char* argv[]) {
       // so that full copy is reported back to scheduler
       buffer.speed.verbose(false);
       buffer.speed.transfer(GetFileSize(*source, *dest));
+    } else if (dest->Local()) {
+      dest->Remove(); // to allow retries
     }
   } else if (dest->SupportsTransfer()) {
     logger.msg(INFO, "Using internal transfer method of %s", dest->str());
