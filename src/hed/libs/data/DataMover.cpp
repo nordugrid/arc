@@ -773,9 +773,20 @@ namespace Arc {
         logger.msg(INFO, "Using internal transfer method of %s", source_url.str());
         URL dest_url(cacheable ? chdest.GetURL() : destination.GetURL());
         DataStatus datares = source_url.Transfer(dest_url, true, show_progress ? transfer_cb : NULL);
+        if (!datares.Passed()) {
+          DataHandle d(destination.GetURL(), destination.GetUserConfig());
+          Delete(*d);
+          if (source.NextLocation()) {
+            logger.msg(VERBOSE, "(Re)Trying next source");
+            continue;
+          }
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+          return datares;
+        }
       } else if (destination.SupportsTransfer()) {
         logger.msg(INFO, "Using internal transfer method of %s", destination.str());
-        DataStatus datares = destination.Transfer(source_url.GetURL(), false, transfer_cb);
+        return destination.Transfer(source_url.GetURL(), false, transfer_cb);
       } else {
         unsigned int wait_time;
         DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time);

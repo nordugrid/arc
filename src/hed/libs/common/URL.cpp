@@ -342,7 +342,8 @@ namespace Arc {
       if (protocol == "s3+https") port = S3_HTTPS_DEFAULT_PORT;
     }
 
-    if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0) {
+    if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0 &&
+        (protocol != "root" || path.find('?') == std::string::npos)) {
       pos2 = path.rfind('=');
       if (pos2 != std::string::npos) {
         pos3 = path.rfind(':', pos2);

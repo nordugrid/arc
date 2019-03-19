@@ -41,10 +41,6 @@ namespace ArcDMCXrootd {
       writing(false){
     // set xrootd log level
     set_log_level();
-    // xrootd requires 2 slashes at the start of the URL path
-    if (url.Path().find("//") != 0) {
-      this->url.ChangePath(std::string("/"+url.Path()));
-    }
   }
 
   DataPointXrootd::~DataPointXrootd() {
@@ -83,11 +79,22 @@ namespace ArcDMCXrootd {
     }
     props.Set("source", source);
     props.Set("target", dest);
+    props.Set("checkSumMode", "end2end");
+    props.Set("checkSumType", "adler32");
+    // If checksum is known then compare against this
+    if (CheckCheckSum()) {
+      std::list<std::string> csum;
+      tokenize(GetCheckSum(), csum, ":");
+      if (csum.size() == 2) {
+        props.Set("checkSumType", csum.front());
+        props.Set("checkSumPreset", csum.back());
+      }
+    }
     XrdCl::CopyProcess copy;
     XrdCl::XRootDStatus st = copy.AddJob(props, &results);
     if (!st.IsOK()) {
-      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.GetErrorMessage());
-      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
+      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.ToStr());
+      return DataStatus(DataStatus::TransferError, EIO, st.ToStr());
     }
 
     XrdCl::PropertyList processConfig;
@@ -103,8 +110,9 @@ namespace ArcDMCXrootd {
     st = copy.Run(cph);
     if (cph) delete cph;
     if (!st.IsOK()) {
-      logger.msg(ERROR, "Failed to copy %s: %s", source, st.GetErrorMessage());
-      return DataStatus(DataStatus::TransferError, st.GetErrorMessage());
+      logger.msg(ERROR, "Failed to copy %s: %s", source, st.ToStr());
+      // xrootd defines its own error codes so return generic I/O error
+      return DataStatus(DataStatus::TransferError, EIO, st.ToStr());
     }
     return DataStatus::Success;
   }
