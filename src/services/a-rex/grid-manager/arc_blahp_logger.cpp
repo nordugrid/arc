@@ -21,7 +21,8 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "arc-blahp-logger");
 
 static void usage(char *pname) {
-    logger.msg(Arc::ERROR,"Usage: %s -I <jobID> -U <user> -P <proxy file> -L <job status file> [-c <ceid prefix>] [-p <log prefix> ] [-d <log level>]", pname);
+    std::cerr << "Usage: " << pname << " -I <jobID> -U <user> -P <proxy file> -L <job status file> [-c <ceid prefix>] [-p <log prefix> ] [-d <log level>] [ -i ]\n";
+    std::cerr << "\n  Where\n   -i should be set to ignore failed jobs. Default is to publish them.\n";
 }
 
 int main(int argc, char *argv[]) {
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]) {
     const char *user_s = NULL;
     const char *ceid_s = NULL;
     std::string logprefix = "/var/log/arc/accounting/blahp.log";
+    bool ignore_failed = false;
 
     // log
     Arc::LogLevel debuglevel = Arc::ERROR;
@@ -39,9 +41,12 @@ int main(int argc, char *argv[]) {
     Arc::Logger::getRootLogger().addDestination(logcerr);
     Arc::Logger::getRootLogger().setThreshold(debuglevel);
 
-    // Parse command line options 
-    while ((opt = getopt(argc, argv, "I:U:P:L:c:p:d:")) != -1) {
+    // Parse command line options
+    while ((opt = getopt(argc, argv, "iI:U:P:L:c:p:d:")) != -1) {
         switch (opt) {
+            case 'i':
+                ignore_failed = true;
+                break;
             case 'I':
                 jobid_s = optarg;
                 break;
@@ -65,11 +70,12 @@ int main(int argc, char *argv[]) {
                 Arc::Logger::getRootLogger().setThreshold(debuglevel);
                 break;
             default:
+                logger.msg(Arc::ERROR,"Unknown option %s", opt);
                 usage(argv[0]);
                 return EXIT_FAILURE;
         }
     }
-    
+
     if ( !jobid_s ) {
         logger.msg(Arc::ERROR,"Job ID argument is required.");
         usage(argv[0]);
@@ -110,7 +116,7 @@ int main(int argc, char *argv[]) {
         ceid = std::string(ceid_s);
     }
     logger.msg(Arc::DEBUG,"ceID prefix is set to %s", ceid);
-    
+
     // Get the current timestamp for log and logsuffix
     Arc::SetEnv("TZ","UTC");
     tzset();
@@ -156,9 +162,16 @@ int main(int argc, char *argv[]) {
             } else if ( ! line.compare(0,8,"subject=") ) {
                 subject = line.substr(8);
                 logger.msg(Arc::DEBUG,"owner subject is set to %s", subject);
-            } else if ( ! line.compare(0,12,"failedstate=") ) {
+            } else if ( (! line.compare(0,12,"failedstate=")) && ignore_failed ) {
                 logger.msg(Arc::ERROR,"Job did not finished successfully. Message will not be written to BLAH log.");
                 return EXIT_FAILURE;
+            } else if ( ! line.compare(0,10,"starttime=") ) {
+                //need to convert timestamp into a blah compatible format
+                //blah / apel use the timestamp to determine job eligibility to accounting, as job IDs can (?) loop
+                //it is more deterministic to use the job start date as the timestamp than "now()" which will cause issues in case of processing delays
+                Arc::Time job_timestamp(line.substr(10)) ;
+                timestamp = job_timestamp.str(Arc::UserTime);
+                logger.msg(Arc::DEBUG,"Job timestamp successfully parsed as %s", timestamp);
             }
         }
     } else {
@@ -176,7 +189,7 @@ int main(int argc, char *argv[]) {
     } else if ( interface == "org.ogf.glue.emies.activitycreation" ) {
         clientid = headnode + "/" + globalid;
     } else if ( interface == "org.nordugrid.xbes" ) {
-        clientid = headnode + "/" + std::string(jobid_s); 
+        clientid = headnode + "/" + std::string(jobid_s);
     } else {
         logger.msg(Arc::ERROR,"Unsupported submission interface %s. Seems arc-blahp-logger need to be updated accordingly :-) Please submit the bug to bugzilla.");
         return EXIT_FAILURE;
@@ -214,7 +227,7 @@ int main(int argc, char *argv[]) {
     // Assemble BLAH logentry
     std::string logentry = "\"timestamp=" + timestamp +
                            "\" \"userDN=" + Arc::trim(subject) +
-                           "\" " + fqans_logentry + 
+                           "\" " + fqans_logentry +
                            "\"ceID=" + ceid + "-" + queue +
                            "\" \"jobID=" + std::string(jobid_s) +
                            "\" \"lrmsID=" + Arc::trim(localid) +
@@ -244,4 +257,3 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
