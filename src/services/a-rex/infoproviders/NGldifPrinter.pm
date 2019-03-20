@@ -173,7 +173,7 @@ sub queues {
         $self->end();
         #$self->beginGroup('users');
         #$self->users($data->{users});
-        $self->end();
+        #$self->end();
     });
 }
 
