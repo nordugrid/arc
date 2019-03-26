@@ -130,7 +130,7 @@ def _conf_substitute_exec(optstr):
     for ev in execr:
         try:
             exec_sp = subprocess.Popen(ev.groupdict()['command'].split(' '), stdout=subprocess.PIPE)
-            value = exec_sp.stdout.readline().strip()
+            value = exec_sp.stdout.readline().decode('utf-8').strip()
         except OSError:
             logger.error('Failed to find %s command to substitute in %s. Config is not usable, terminating.',
                          ev.groupdict()['command'], ev.group(0))
@@ -250,7 +250,7 @@ def _evaluate_values():
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block in __parsed_blocks:
         idx_shift = 0
-        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options']), __parsed_config[block]['__values']):
+        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options'][:]), __parsed_config[block]['__values'][:]):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
