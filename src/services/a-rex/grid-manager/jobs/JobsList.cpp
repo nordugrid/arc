@@ -324,6 +324,7 @@ bool JobsList::ActJobsProcessing(void) {
     GMJobRef i = jobs_wait_for_running.Pop();
     if(i) RequestAttention(i);
   };
+  return true;
 }
 
 bool JobsList::ActJobsAttention(void) {
