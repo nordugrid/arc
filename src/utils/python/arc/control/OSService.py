@@ -45,7 +45,7 @@ class OSServiceManagement(object):
                     'installed': 'systemctl status {0}',
                     'active': 'systemctl -q is-active {0}'
                 }
-                self.sm_version = stdout[0].split('\n')[0]
+                self.sm_version = stdout[0].decode('utf-8').split('\n')[0]
                 self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:
@@ -68,7 +68,7 @@ class OSServiceManagement(object):
                     'installed': 'chkconfig --list {0}',
                     'active': 'service {0} status'
                 }
-                self.sm_version = stdout[0].split('\n')[0]
+                self.sm_version = stdout[0].decode('utf-8').split('\n')[0]
                 self.logger.debug('Managing OS services using %s version %s', self.sm, self.sm_version)
                 return
         except OSError:

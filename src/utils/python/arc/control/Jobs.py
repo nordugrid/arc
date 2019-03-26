@@ -158,7 +158,8 @@ class JobsControl(ComponentControl):
         }
         gmjobs_out = self.__run_gmjobs('--longlist --notshowstates')
         job_dict = {}
-        for line in iter(gmjobs_out.stdout.readline, ''):
+        for rline in iter(gmjobs_out.stdout.readline, b''):
+            line = rline.decode('utf-8')
             jobre = __JOB_RE.match(line)
             if jobre:
                 if job_dict:
@@ -206,8 +207,8 @@ class JobsControl(ComponentControl):
             self.__job_exists(jobid)
         __JOB_RE = re.compile(r'^Job:\s*')
         gmjobs_out = self.__run_gmjobs('-J -S ' + action + ' ' + ' '.join(args.jobid))
-        for line in iter(gmjobs_out.stdout.readline, ''):
-            if __JOB_RE.match(line):
+        for line in iter(gmjobs_out.stdout.readline, b''):
+            if __JOB_RE.match(line.decode('utf-8')):
                 sys.stdout.write(line)
         sys.stdout.flush()
 
@@ -222,8 +223,8 @@ class JobsControl(ComponentControl):
         __JOB_RE = re.compile(r'^Job:\s*')
         for argstr in self.__xargs_jobs(self.__filtered_jobs(args), action):
             gmjobs_out = self.__run_gmjobs('-J -S' + argstr)
-            for line in iter(gmjobs_out.stdout.readline, ''):
-                if __JOB_RE.match(line):
+            for line in iter(gmjobs_out.stdout.readline, b''):
+                if __JOB_RE.match(line.decode('utf-8')):
                     sys.stdout.write(line)
             sys.stdout.flush()
 
@@ -309,7 +310,8 @@ class JobsControl(ComponentControl):
         data_upload = 0
         # collect information from gm-jobs
         gmjobs_out = self.__run_gmjobs('-J')
-        for line in iter(gmjobs_out.stdout.readline, ''):
+        for rline in iter(gmjobs_out.stdout.readline, b''):
+            line = rline.decode('utf-8')
             js_re = __RE_JOBSTATES.match(line)
             if js_re:
                 state = js_re.group(1)
@@ -347,8 +349,8 @@ class JobsControl(ComponentControl):
                 print('  Uploading:   {0:>9}'.format(data_upload))
                 # add detailed stats from gm-jobs on long output
                 gmjobs_out = self.__run_gmjobs('-s')
-                for line in iter(gmjobs_out.stdout.readline, ''):
-                    print(line, end='')
+                for line in iter(gmjobs_out.stdout.readline, b''):
+                    print(line.decode('utf-8'), end='')
             else:
                 print('{0:>11}: {1:>8}'.format('Downloading', data_download))
                 print('{0:>11}: {1:>8}'.format('Uploading', data_upload))
