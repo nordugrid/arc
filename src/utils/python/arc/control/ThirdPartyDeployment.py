@@ -45,7 +45,7 @@ class ThirdPartyControl(ComponentControl):
                 self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
             sys.exit(1)
         # get response
-        rcontent = response.read()
+        rcontent = response.read().decode('utf-8')
         if not rcontent.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
@@ -80,6 +80,7 @@ class ThirdPartyControl(ComponentControl):
             s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for line in iter(s_client.stdout.readline, ''):
+                line = line.decode('utf-8')
                 if line.startswith('subject='):
                     dn = line.replace('subject=', '')
                 if line.startswith('issuer='):

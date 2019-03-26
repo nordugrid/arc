@@ -73,7 +73,10 @@ if __name__ == '__main__':
     loglevel = getattr(logging, cmd_args.debug, 30)
     logger.setLevel(loglevel)
     arclogger.setLevel(loglevel)
-    # Define handler class
+    # Define handler class (if present)
+    if not hasattr(cmd_args, 'handler_class'):
+        args_parser.print_help()
+        sys.exit(1)
     ctl_class = cmd_args.handler_class
 
     # Invoke ARC control action

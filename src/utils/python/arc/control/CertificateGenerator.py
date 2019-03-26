@@ -74,7 +74,7 @@ class CertificateGenerator(object):
             os.unlink(fpath)
 
     def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):
-        if not isinstance(validityperiod, (int, long)):
+        if not isinstance(validityperiod, int):
             logger.error("The 'validityperiod' argument must be an integer")
             sys.exit(1)
 
@@ -117,7 +117,7 @@ class CertificateGenerator(object):
         # Order of the -subject_hash and -subject_hash_old flags matters.
         p_handle = popen(["openssl", "x509", "-subject_hash", "-subject_hash_old", "-noout", "-in", certLocation])
         if p_handle["returncode"] == 0:
-            ca.subject_hash, ca.subject_hash_old = p_handle["stdout"].splitlines()
+            ca.subject_hash, ca.subject_hash_old = p_handle["stdout"].decode('utf-8').splitlines()
             # Use relative location. Assume hash link does not already exist (.0).
             certFilename = name.replace(" ", "-") + ".pem"
             os.chdir(self.work_dir)
@@ -152,7 +152,7 @@ cond_subjects globus '"{cond_subject}/*"'
         if ca is None and self._ca is None:
             logger.error("No CA provided")
             sys.exit(1)
-        if not isinstance(validityperiod, (int, long)):
+        if not isinstance(validityperiod, int):
             logger.error("The 'validityperiod' argument must be an integer")
             sys.exit(1)
 
@@ -226,7 +226,7 @@ cond_subjects globus '"{cond_subject}/*"'
         if ca is None and self._ca is None:
             logger.error("No CA provided")
             sys.exit(1)
-        if not isinstance(validityperiod, (int, long)):
+        if not isinstance(validityperiod, int):
             logger.error("The 'validityperiod' argument must be an integer")
             sys.exit(1)
 
