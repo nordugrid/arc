@@ -234,7 +234,7 @@ class JuraArchive(object):
                 else:
                     records.append(arinfo)
             # process if already a batch size
-            if len(arinfo) >= batch_size:
+            if len(records) >= int(batch_size):
                 self.records2db(records)
                 records = []
                 continue
