@@ -852,7 +852,7 @@ fi
 make %{?_smp_mflags}
 
 %check
-make check
+make %{?_smp_mflags} check
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -988,6 +988,18 @@ if [ $1 -eq 0 ]; then
   semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 fi
 %endif
+
+%triggerpostun infosys-ldap -- %{name}-ldap-infosys
+# Uninstalling the old %{name}-ldap-infosys will remove some selinux config
+# for %{name}-infosys-ldap - put them back in this triggerpostun script
+semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
+semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
+
+%triggerpostun infosys-ldap -- %{name}-aris
+# Uninstalling the old %{name}-aris will remove some selinux config
+# for %{name}-infosys-ldap - put them back in this triggerpostun script
+semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
+semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
 
 %triggerun infosys-ldap -- bdii
 %if %{?suse_version:1}%{!?suse_version:0}
