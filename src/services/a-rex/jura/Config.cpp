@@ -180,7 +180,7 @@ namespace ArcJura
             apel_entries.back().vofilters.push_back(rest);
           } else if (command == "urbatchsize") {
             if(!Arc::stringto(rest, apel_entries.back().urbatchsize) ||
-                sgas_entries.back().urbatchsize == 4294967295 ) {  // it is -1) {
+                apel_entries.back().urbatchsize == 4294967295 ) {  // it is -1) {
               logger.msg(Arc::ERROR, "Wrong urbatchsize (%s) config value given by APEL!", rest);
               return;
             }
