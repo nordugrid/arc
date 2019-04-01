@@ -206,7 +206,7 @@ sub translator(){
     my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
     # If you have a custom setup you may want to hack the command below with your own startup script path.
-    my $glueservicestatusinfo=`/etc/init.d/arc-arex status` || `systemctl status arc-arex` || "Cannot determine service status, see $0 line ".__LINE__;
+    my $glueservicestatusinfo=`/etc/init.d/arc-arex status 2>/dev/null` || `systemctl status arc-arex 2>/dev/null` || "Cannot determine service status, see $0 line ".__LINE__;
     chomp $glueservicestatusinfo;
     my $glueservicestatus;
     if ($? == 0) {

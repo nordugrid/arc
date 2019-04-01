@@ -36,7 +36,7 @@ fi
 if [ -r /etc/sysconfig/arc-${prog} ]; then
     . /etc/sysconfig/arc-${prog}
 elif [ -r /etc/default/arc-${prog} ]; then
-    . /etc/default/arc-src/services/a-rex/arc-arex.in${prog}
+    . /etc/default/arc-${prog}
 fi
 
 if [ "$RUN" != "yes" ] ; then
@@ -153,7 +153,27 @@ ARC_RUNTIME_CONFIG=
 ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
 ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
 
+CMD="$ARC_LOCATION/sbin/$prog"
+if [ ! -x "$CMD" ]; then
+    echo "Missing executable"
+    exit 1
+fi
+
+# Pre-process configuration
+$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$ARC_CONFIG" --runconfig "$ARC_RUNTIME_CONFIG" --save 2>/dev/null
+if [ ! "$?" = '0' ] ; then
+    echo "ARC configuration processing failed"
+    exit 1
+fi
+
+CMD="$CMD -c $ARC_RUNTIME_CONFIG"
+CMD="$CMD -P $PID_FILE"
+
+LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile gridftpd`
+if [ ! -d `dirname "$LOGFILE"` ]; then
+    mkdir -p `dirname "$LOGFILE"`
+fi
 
 check_cert
 
-exec "$CMD"
+exec $CMD

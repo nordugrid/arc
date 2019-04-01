@@ -99,7 +99,7 @@ runtime_config_dir=@localstatedir@/run/arc
 if [ ! -d "$runtime_config_dir" ]; then
     mkdir -p "$runtime_config_dir"
 fi
-export ARC_RUNCONFIG="$runtime_config_dir/arc.infosys-ldap.conf"
+export ARC_RUNCONFIG="$runtime_config_dir/arc-infosys-ldap.conf"
 unset runtime_config_dir
 unset prefix
 
