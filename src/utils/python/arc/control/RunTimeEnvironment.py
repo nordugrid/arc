@@ -278,7 +278,7 @@ class RTEControl(ComponentControl):
 
     def __params_parse(self, rte):
         rte_file = self.__get_rte_file(rte)
-        param_str = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]+):(.*)$')
+        param_str = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$')
         params = {}
         with open(rte_file) as rte_f:
             max_lines = 20
@@ -334,8 +334,14 @@ class RTEControl(ComponentControl):
     def params_get(self, rte, is_long=False):
         params = self.__params_parse(rte)
         for pdescr in params.values():
+            # output
             if is_long:
-                print('{name:>16} = {value:8} {description} (default is {default_value}) '
+                # set strings for undefined values output
+                if pdescr['value'] == '':
+                    pdescr['value'] = 'undefined'
+                if pdescr['default_value'] == '':
+                    pdescr['default_value'] = 'undefined'
+                print('{name:>16} = {value:10} {description} (default is {default_value}) '
                       '(allowed values are: {allowed_string})'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))
