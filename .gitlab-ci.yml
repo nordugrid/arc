@@ -257,7 +257,7 @@ deploy_staging_el6:
     - cat /dockerrun.sh
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - source /dockerrun.sh
+    - source /dockerrun.sh maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -286,7 +286,7 @@ deploy_staging_el7:
     - cat /dockerrun.sh
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - source /dockerrun.sh
+    - source /dockerrun.sh maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR

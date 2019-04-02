@@ -1,7 +1,9 @@
 # description: copy proxy certificate to the job session directory
 # param:COPY_CACERT_DIR:Yes,No:Yes:If set to Yes, CA certificate dir will be copied to the session directory along with proxy certificate
+# param:USE_DELEGATION_DB:Yes,No:No:If set to Yes RTE will try to extract proxy certificate from A-REX delegation DB (works in limited number of cases)
 
 COPY_CACERT_DIR="${COPY_CACERT_DIR:-Yes}"
+USE_DELEGATION_DB="${USE_DELEGATION_DB:-No}"
 X509_CERT_DIR="${X509_CERT_DIR:-/etc/grid-security/certificates}"
 
 if [ "x$1" = "x0" ]; then
@@ -9,9 +11,12 @@ if [ "x$1" = "x0" ]; then
         mkdir -pv ${joboption_directory}/arc/certificates/
         cp -rv ${X509_CERT_DIR}/* ${joboption_directory}/arc/certificates/
     fi
-    GM_JOBS="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/gm-jobs"
-    $GM_JOBS -J -S -D ${joboption_gridid} -o "${joboption_directory}/user.proxy"
-    if [ $? != 0 ]; then
+    if [ "x$USE_DELEGATION_DB" = "xYes" ]; then
+        GM_JOBS="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/gm-jobs"
+        # try DB export or fall back to proxy file
+        $GM_JOBS -J -S -D ${joboption_gridid} -o "${joboption_directory}/user.proxy" || USE_DELEGATION_DB="No"
+    fi
+    if [ "x$USE_DELEGATION_DB" = "xNo" ]; then
         cat "${joboption_controldir}/job.${joboption_gridid}.proxy" > "${joboption_directory}/user.proxy"
     fi
     chmod 600 "${joboption_directory}/user.proxy"
