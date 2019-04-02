@@ -150,7 +150,7 @@ prepare() {
     fi
 
     # Assuming ini style config
-    CMD="$CMD -i '$ARC_CONFIG' -p '$PID_FILE' -l '$LOG_FILE'"
+    CMD="$CMD -i $ARC_CONFIG -p $PID_FILE -l $LOG_FILE"
 
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
@@ -171,4 +171,4 @@ fi
 
 prepare
 
-exec "$CMD"
+exec $CMD

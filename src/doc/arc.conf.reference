@@ -939,8 +939,8 @@
 ## CHANGED: rename, infoproviders_timelimit, move to [arex] block
 
 ## pidfile = path - Specify location of file containing PID of daemon process.
-## default: /var/run/arc/arex.pid
-#pidfile=/var/run/run/arex.pid
+## default: /var/run/arched-arex.pid
+#pidfile=/var/run/arched-arex.pid
 
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
@@ -2802,9 +2802,8 @@
 ## CHANGE: NEW
 
 ## pidfile = path - pid file of the daemon
-## default: /var/run/arc/datadelivery-service.pid
-## TODO: changed the pid file name and location!
-#pidfile=/tmp/delivery.pid
+## default: /var/run/arched-datadelivery-service.pid
+#pidfile=/var/run/arched-datadelivery-service.pid
 ## CHANGE: NEW
 
 ## logfile = path - log file of the daemon
