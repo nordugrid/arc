@@ -380,7 +380,7 @@ prepare() {
         exit 1
     fi
 
-    CMD="$CMD -c '$AREX_CONFIG'"
+    CMD="$CMD -c $AREX_CONFIG"
 
     case "$LOGLEVEL" in 
         0) LOGLEVEL="FATAL" ;;
@@ -402,10 +402,10 @@ prepare() {
     fi
     VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
     if [ ! -z "$USERNAME" ] ; then
-        CMD="$CMD -u '$USERNAME'"
+        CMD="$CMD -u $USERNAME"
     fi
     if [ ! -z "$GROUPNAME" ] ; then
-        CMD="$CMD -g '$GROUPNAME'"
+        CMD="$CMD -g $GROUPNAME"
     fi
 
     # Authorization and user mapping for A-REX/EMIES
@@ -619,4 +619,4 @@ fi
 
 prepare
 
-exec "$CMD"
+exec $CMD
