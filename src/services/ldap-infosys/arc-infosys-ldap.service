@@ -1,8 +1,8 @@
 [Unit]
 Description=NorduGrid/ARC local resource information system
-Requires=nordugrid-arc-slapd.service
-After=nordugrid-arc-slapd.service
-BindsTo=nordugrid-arc-slapd.service
+Requires=arc-infosys-ldap-slapd.service
+After=arc-infosys-ldap-slapd.service
+BindsTo=arc-infosys-ldap-slapd.service
 
 [Service]
 Type=forking
