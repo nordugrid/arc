@@ -41,7 +41,7 @@ class OSPackageManagement(object):
             if yum_dnf_found:
                 self.pm_is_installed = 'rpm -q {0}'
                 self.pm_repodir = '/etc/yum.repos.d/'
-                self.pm_version = stdout[0].split('-')[1]
+                self.pm_version = stdout[0].decode('utf-8').split('-')[1]
                 self.logger.debug('Using %s version %s for package management', self.pm, self.pm_version)
                 return
         except OSError:
@@ -57,7 +57,7 @@ class OSPackageManagement(object):
                 self.pm_is_installed = 'dpkg -s {0}'
                 self.pm_cmd = 'apt-get'
                 self.pm_repodir = '/etc/apt/sources.list.d/'
-                self.pm_version = stdout[0].split('\n')[0].replace('apt ', '')
+                self.pm_version = stdout[0].decode('utf-8').split('\n')[0].replace('apt ', '')
                 self.logger.debug('Using apt-get version %s for package management', self.pm_version)
                 return
         except OSError:

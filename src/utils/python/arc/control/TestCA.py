@@ -32,7 +32,7 @@ class TestCAControl(ComponentControl):
         """Internal function to define CA ID and file paths"""
         if caid is None:
             # CRC32 hostname-based hash used by default
-            caid = hex(zlib.crc32(self.hostname) & 0xffffffff)[2:]
+            caid = hex(zlib.crc32(self.hostname.encode('utf-8')) & 0xffffffff)[2:]
         self.caName = 'ARC TestCA {0}'.format(caid)
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')

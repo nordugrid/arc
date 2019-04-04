@@ -6,7 +6,7 @@ After=local_fs.target remote_fs.target
 [Service]
 Type=forking
 PIDFile=/var/run/gridftpd.pid
-ExecStart=@pkgdatadir@/arc-gridftpd-start
+ExecStart=/usr/share/arc/arc-gridftpd-start
 
 [Install]
 WantedBy=multi-user.target

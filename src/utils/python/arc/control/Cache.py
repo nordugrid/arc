@@ -35,7 +35,7 @@ class CacheControl(ComponentControl):
     @staticmethod
     def __get_hash_rpath(url):
         """generate relative to cachedir path to cached content"""
-        urlhash = hashlib.sha1(url).hexdigest()
+        urlhash = hashlib.sha1(url.encode('utf-8')).hexdigest()
         return '/data/' + urlhash[0:2] + '/' + urlhash[2:]
 
     @staticmethod

@@ -612,7 +612,7 @@ Return error if the presence of one value implies one of another
 sub check_completeness() {
 	my $config=shift;
 
-	my @required=("common", "mapping", "arex", "infosys", "lrms");
+	my @required=("common", "mapping", "arex", "infosys", "infosys/glue2", "lrms");
 
 	my ($validparams, $validblocks, $novalueparams) = validconfparams();
 

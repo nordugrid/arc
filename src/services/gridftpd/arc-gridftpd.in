@@ -81,7 +81,7 @@ fi
 if [ -r /etc/sysconfig/arc-${prog} ]; then
     . /etc/sysconfig/arc-${prog}
 elif [ -r /etc/default/arc-${prog} ]; then
-    . /etc/default/arc-src/services/a-rex/arc-arex.in${prog}
+    . /etc/default/arc-${prog}
 fi
 
 if [ "$RUN" != "yes" ] ; then

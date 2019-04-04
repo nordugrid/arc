@@ -418,6 +418,7 @@ namespace ARexINTERNAL {
 
   std::string INTERNALClient::get_error_description() const {
     if (!error_description.empty()) return error_description;
+    return "";
   }
  
   

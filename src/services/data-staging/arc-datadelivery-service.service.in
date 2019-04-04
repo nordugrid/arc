@@ -5,7 +5,7 @@ After=local_fs.target remote_fs.target
 [Service]
 Type=forking
 PIDFile=/var/run/arched-datadelivery-service.pid
-ExecStart=@pkgdatadir@/arc-datadelivery-service-start
+ExecStart=/usr/share/arc/arc-datadelivery-service-start
 
 [Install]
 WantedBy=multi-user.target
