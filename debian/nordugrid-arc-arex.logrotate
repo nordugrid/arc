@@ -15,7 +15,7 @@
   create
   sharedscripts
   postrotate
-	kill -HUP `cat /var/run/arc/arex.pid 2> /dev/null` 2> /dev/null || true
+	kill -HUP `cat /var/run/arched-arex.pid 2> /dev/null` 2> /dev/null || true
   endscript
 }
 
