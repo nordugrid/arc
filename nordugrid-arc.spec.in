@@ -1291,6 +1291,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
 %{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
+%dir %{_datadir}/%{pkgdir}/rte/ENV/CONDOR
+%{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
 %{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
