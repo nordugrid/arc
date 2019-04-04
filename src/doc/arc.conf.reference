@@ -2106,8 +2106,8 @@
 ## infosys_ldap_run_dir = path - The location where NorduGrid/GLUE2 LDAP ldif file
 ## will be generated, and where the fifo to sync between infoproviders
 ## and BDII will be generated.
-## default: /var/run/arc/infosys/
-#infosys_ldap_run_dir=/var/run/arc/infosys/
+## default: /var/run/arc/infosys
+#infosys_ldap_run_dir=/var/run/arc/infosys
 
 ## ldap_schema_dir = path - Allows to explicitly specify an additional path to the schema
 ## files. Note that this doesn't override standard location, but adds

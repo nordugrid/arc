@@ -8,6 +8,7 @@ BindsTo=arc-infosys-ldap-slapd.service
 Type=forking
 PIDFile=/var/run/arc/bdii/bdii-update.pid
 User=ldap
+PermissionsStartOnly=true
 ExecStartPre=/usr/share/arc/create-bdii-config
 ExecStart=/usr/sbin/bdii-update -c /var/run/arc/infosys/bdii.conf -d
 
