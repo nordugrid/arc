@@ -97,42 +97,14 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
-# Needed to get pid file
-readconfigvar() {
-    fname=$1
-    if [ ! -r "$fname" ]; then
-        return
+readorigconfigvar() {
+    value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$2" -o "$3" 2>/dev/null`
+    if [ "$?" = '0' ] ; then
+        echo "$value"
+        exit 0
+    else
+        exit 1
     fi
-    bname="[$2]"
-    vname=$3
-    value=
-    cat "$fname" | grep -e '^\[' -e "^${vname}[[:space:]]*=" | {
-        while true; do
-            read line
-            if [ ! $? = 0 ] ; then
-                return
-            fi
-            if [ "$line" = "$bname" ] ; then
-                while true ; do
-                    read line
-                    if [ ! $? = 0 ] ; then
-                        return
-                    fi
-                    lstart=`echo "$line" | head -c 1`
-                    if [ "$lstart" = '[' ] ; then
-                        return
-                    fi
-                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-                    vlname=`eval "echo $vlname"`
-                    if [ "$vlname" = "$vname" ] ; then
-                        val=`echo "$line" | sed 's/[^=]*=//'`
-                        eval "echo $val"
-                        return
-                    fi
-                done
-            fi
-        done
-    }
 }
 
 # ARC_CONFIG
@@ -144,7 +116,12 @@ if [ "x$ARC_CONFIG" = "x" ]; then
     fi
 fi
 
-PID_FILE=`readconfigvar "$ARC_CONFIG" datadelivery-service pidfile`
+PID_FILE=`readorigconfigvar "$ARC_CONFIG" datadelivery-service pidfile`
+if [ "x$PID_FILE" = "x" ]; then
+    # Missing default value for pidfile means no service block is present
+    log_failure_msg "ARC configuration is missing [datadelivery-service] block"
+    exit 1
+fi
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -153,19 +130,17 @@ if [ `id -u` = 0 ] ; then
     else
         LOCKFILE=/var/lock/$prog-datadelivery-service
     fi
-    if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=/var/run/arc/datadelivery-service.pid
-    fi
 else
     LOCKFILE=$HOME/$prog-datadelivery-service.lock
-    if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=$HOME/datadelivery-service.pid
-    fi
 fi
 
-LOG_FILE=`readconfigvar "$ARC_CONFIG" datadelivery-service logfile`
+LOG_FILE=`readorigconfigvar "$ARC_CONFIG" datadelivery-service logfile`
 if [ "x$LOG_FILE" = "x" ]; then
-    LOG_FILE=/var/log/arc/datadelivery-service.log
+    log_failure_msg "Log file could not be found in [datadelivery-service] block"
+    exit 1
+fi
+if [ ! -d `dirname "$LOGFILE"` ]; then
+    mkdir -p `dirname "$LOGFILE"`
 fi
 
 prepare() {
@@ -180,17 +155,10 @@ prepare() {
         log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
         exit 1
     fi
-    
-    # check that at least service is defined
-    grep -e '^\[datadelivery-service\]' $ARC_CONFIG 1>/dev/null 2>&1
-    if [ $? -ne 0 ] ; then
-        log_failure_msg "Data delivery service not defined in configuration"
-        exit 1
-    fi
-    
+
     # check that if service is insecure no allowed_dns are defined
-    SECURE=`readconfigvar "$ARC_CONFIG" datadelivery-service secure`
-    ALLOWEDDN=`readconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
+    SECURE=`readorigconfigvar "$ARC_CONFIG" datadelivery-service secure`
+    ALLOWEDDN=`readorigconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
     if [ "$SECURE" = "no" ]; then
         if [ "x$ALLOWEDDN" != "x" ]; then
             log_failure_msg "allowed_dn cannot be used with secure=no"
