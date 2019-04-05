@@ -126,7 +126,7 @@
 
 %global pkgdir arc
 
-%if %{?fedora}%{!?fedora:0} >= 25 || %{?rhel}%{!?rhel:0} >= 8
+%if %{?fedora}%{!?fedora:0} >= 25 || %{?rhel}%{!?rhel:0} >= 7
 %global use_systemd 1
 %else
 %global use_systemd 0
