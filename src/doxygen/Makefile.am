@@ -19,12 +19,11 @@ PYTHON_EXAMPLES = $(top_srcdir)/python/examples
 
 SPECIALISATION_MAPPINGS = JobState JobDescription
 SPECIALISATION_MAPPINGS_JobState = \
-	$(top_srcdir)/src/hed/acc/ARC0/JobStateARC0.cpp \
-	$(top_srcdir)/src/hed/acc/EMIES/JobStateEMIES.cpp \
+	$(top_srcdir)/src/hed/acc/GRIDFTPJOB/JobStateGRIDFTPJOB.cpp \
+	$(top_srcdir)/src/hed/acc/EMIES/JobStateEMIES.cpp
 SPECIALISATION_MAPPINGS_JobDescription = \
 	$(top_srcdir)/src/hed/acc/JobDescriptionParser/XRSLParser.cpp \
-	$(top_srcdir)/src/hed/acc/JobDescriptionParser/ADLParser.cpp \
-	$(top_srcdir)/src/hed/acc/JobDescriptionParser/JDLParser.cpp
+	$(top_srcdir)/src/hed/acc/JobDescriptionParser/ADLParser.cpp
 
 
 .SECONDEXPANSION:
