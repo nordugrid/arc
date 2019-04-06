@@ -54,6 +54,14 @@ namespace ArcDMCXrootd {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Xrootd in non-persistent mode - Xrootd code is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
+
     return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
   }
 
