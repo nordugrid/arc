@@ -469,6 +469,24 @@ namespace Arc {
       if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
+
+        uint64_t max_files = RLIM_INFINITY;
+        struct rlimit lim;
+        if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
+        if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
+        char * * argv = new char*[argv_.size()+1];
+        char * * envp = new char*[envp_tmp.size()+1];
+        int n = 0;
+        for(std::list<std::string>::iterator item = argv_.begin(); item != argv_.end(); ++item) {
+          argv[n++] = const_cast<char*>(item->c_str());
+        };
+        argv[n] = NULL;
+        n = 0;
+        for(std::list<std::string>::iterator item = envp_tmp.begin(); item != envp_tmp.end(); ++item) {
+          envp[n++] = const_cast<char*>(item->c_str());
+        };
+        envp[n] = NULL;
+
         pid = ::fork();
         if(pid == 0) {
           // child - set std* and do exec
@@ -487,28 +505,12 @@ namespace Arc {
             if(dup2(pipe_stderr[1], 2) != 2) exit_child(-1, "Failed to setup stderr\n");
             close(pipe_stderr[1]);
           };
-          char * * argv = new char*[argv_.size()+1];
-          char * * envp = new char*[envp_tmp.size()+1];
-          int n = 0;
-          for(std::list<std::string>::iterator item = argv_.begin(); item != argv_.end(); ++item) {
-            argv[n++] = const_cast<char*>(item->c_str());
-          };
-          argv[n] = NULL;
-          n = 0;
-          for(std::list<std::string>::iterator item = envp_tmp.begin(); item != envp_tmp.end(); ++item) {
-            envp[n++] = const_cast<char*>(item->c_str());
-          };
-          envp[n] = NULL;
           arg->Run();
           if(::chdir(working_directory.c_str()) != 0) {
             exit_child(-1, "Failed to change working directory\n");
           }
 
           // close all handles inherited from parent
-          uint64_t max_files = RLIM_INFINITY;
-          struct rlimit lim;
-          if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
-          if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
  	  for(int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
 
           (void)::execve(argv[0], argv, envp);
@@ -528,6 +530,9 @@ namespace Arc {
             stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
           };
         };
+
+        delete[] argv;
+        delete[] envp;
       };
       if(pid == -1) {
         // child was not spawned
