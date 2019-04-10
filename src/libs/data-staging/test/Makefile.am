@@ -32,12 +32,3 @@ DeliveryTest_LDADD = ../libarcdatastaging.la \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
-noinst_PROGRAMS = DTRMemTest
-
-DTRMemTest_SOURCES = DTRMemTest.cpp
-DTRMemTest_CXXFLAGS = -I$(top_srcdir)/include \
-	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
-DTRMemTest_LDADD = ../libarcdatastaging.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
