@@ -203,10 +203,11 @@ if [ -f output.list ];then
 ol=$(awk '{print $1}' output.list)
 for i in $ol
 do
- if [ -f $i ];then
+ if [[ -f $i && ! $i =~ HITS.* ]];then
  flist=$flist" "$i
  fi
 done
+sed -i -e 's/HITS.* /HITS.pool.root.1 /' output.list
 fi
 EOF
 
@@ -398,8 +399,8 @@ if [ ! -z "$joboption_priority" ]; then
 fi
 
 batchid=
-if [ ! -z "$joboption_arg_2" ]; then
-  taskid=$(echo $joboption_arg_2|grep -E -m1 -o "taskID=[[:digit:]]+"|cut -d = -f 2 )
+if [ -f "${joboption_directory_orig}/pandaJobData.out" ]; then
+  taskid=$(grep -E -m1 -o "taskID=[[:digit:]]+" ${joboption_directory_orig}/pandaJobData.out|cut -d = -f 2 )
   if [ ! -z "$taskid" ]; then
     batchid="--batch $taskid"
   fi
