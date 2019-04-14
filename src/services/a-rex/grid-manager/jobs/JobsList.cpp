@@ -236,9 +236,10 @@ bool JobsList::RequestAttention(const JobId& id) {
 bool JobsList::RequestAttention(GMJobRef i) {
   if(i) {
     logger.msg(Arc::DEBUG, "%s: job for attention", i->job_id);
-    jobs_attention.Push(i);
-    jobs_attention_cond.signal();
-    return true;
+    if(jobs_attention.Push(i)) {
+      jobs_attention_cond.signal();
+      return true;
+    };
   };
   return false;
 }
