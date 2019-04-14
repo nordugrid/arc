@@ -222,7 +222,15 @@ bool JobsList::RequestAttention(const JobId& id) {
     };
   };
   if(!i) return false;
-  return RequestAttention(i);
+  if(!RequestAttention(i)) {
+    // Request by id most probably means there is somethng external pending.
+    // And because we do not want external cancel request to get lost, check
+    // immediately and inform DTR generator immediately (so it does not hold job).
+    if(job_cancel_mark_check(i->job_id,config)) dtr_generator.cancelJob(i);
+    // Please note job is not canceled here. But cancel mark will be picked up later.
+    return false;
+  };
+  return true;
 }
 
 bool JobsList::RequestAttention(GMJobRef i) {

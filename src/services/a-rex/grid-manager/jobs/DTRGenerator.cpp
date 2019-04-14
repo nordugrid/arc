@@ -32,6 +32,17 @@ void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
   // write state info to job.id.input for example
 }
 
+// We can't just let jobs leave internal queues because their DTR may be still running.
+// So here is the place some precautions may be taken.
+
+bool GMJobQueueDTR::CanSwitch(GMJob const& job, GMJobQueue const& new_queue, bool to_front) {
+  return GMJobQueue::CanSwitch(job, new_queue, to_front);
+}
+
+bool GMJobQueueDTR::CanRemove(GMJob const& job) {
+  return GMJobQueue::CanRemove(job);
+}
+
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
 bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
@@ -131,8 +142,8 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
     staging_conf(config),
     info(config),
     jobs(jobs),
-    jobs_received(JobsList::ProcessingQueuePriority+1, "DTR received"),
-    jobs_processing(JobsList::ProcessingQueuePriority+2, "DTR processing") {
+    jobs_received(JobsList::ProcessingQueuePriority+1, "DTR received", *this),
+    jobs_processing(JobsList::ProcessingQueuePriority+2, "DTR processing", *this) {
 
   if (!staging_conf) return;
   // Set log level for DTR in job.id.errors files
