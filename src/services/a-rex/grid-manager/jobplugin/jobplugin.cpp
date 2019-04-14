@@ -336,7 +336,12 @@ int JobPlugin::removefile(std::string &name) {
     }
     config.SetControlDir(controldir);
     logger.msg(Arc::INFO, "Cancelling job %s", id);
-    if(job_cancel_mark_put(job,config)) return 0;
+    if(job_cancel_mark_put(job,config)) {
+      CommFIFO::Signal(config.ControlDir(), id);
+      return 0;
+    };
+    error_description="Failed to cancel job.";
+    return 1;
   };
   const char* logname;
   std::string id;
@@ -390,6 +395,7 @@ int JobPlugin::removedir(std::string &dname) {
     {
       GMJob job(id,user);
       bool res = job_cancel_mark_put(job,config);
+      if(res) CommFIFO::Signal(config.ControlDir(), id);
       res &= job_clean_mark_put(job,config);
       if(res) return 0;
     };
@@ -661,6 +667,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
+    CommFIFO::Signal(config.ControlDir(), id);
     return 0;
   };
   if(job_desc.action != "request") {
