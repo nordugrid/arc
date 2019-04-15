@@ -10,6 +10,13 @@
 ##########################  DELETED CONFIG OPTIONS  ###################################
 
 
+### The [common] block ##############################################
+
+## voms_trust_chain - Define the DN chain that the host services trust when the
+## voms AC from peer voms proxy certificate is parsed and validated.
+
+
+
 ### The [authgroup:name] (previously [group]) blocks ######################################
 
 ## name authgroup_name - This optional parameter specifies the name of the authgroup.
