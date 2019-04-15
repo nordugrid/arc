@@ -132,6 +132,20 @@ void GMJob::DestroyReference(void) {
   };
 }
 
+bool GMJobQueue::CanSwitch(GMJob const& job, GMJobQueue const& new_queue, bool to_front) {
+  if(!to_front) {
+    if(!(new_queue.priority_ > priority_)) return false;
+ } else {
+    // If moving to first place in queue accept same priority 
+    if(!(new_queue.priority_ >= priority_)) return false;
+  };
+  return true;
+}
+
+bool GMJobQueue::CanRemove(GMJob const& job) {
+  return true;
+}
+
 bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   // Simply use global lock. It will protect both queue content and 
   // reference to queue inside job.
@@ -149,13 +163,10 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   };
   // Check priority
   if (old_queue && new_queue) {
-    if(!to_front) {
-      if(!(new_queue->priority_ > old_queue->priority_)) return false;
-    } else {
-      // If moving to first place in queue accept same priority 
-      if(!(new_queue->priority_ >= old_queue->priority_)) return false;
-    };
-  };
+    if (!old_queue->CanSwitch(*this, *new_queue, to_front)) return false;
+  } else if (old_queue) {
+    if (!old_queue->CanRemove(*this)) return false;
+  }
   if (old_queue) {
     // Remove from current queue
     old_queue->queue_.remove(this); // ineffective operation!

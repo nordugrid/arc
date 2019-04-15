@@ -12,6 +12,7 @@ class GMConfig;
 class FileData;
 class GMJobRef;
 class JobsList;
+class DTRGenerator;
 
 /**
  * DTRInfo passes state information from data staging to A-REX
@@ -29,6 +30,14 @@ class DTRInfo: public DataStaging::DTRCallback {
   virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };
 
+class GMJobQueueDTR: public GMJobQueue {
+ private:
+  DTRGenerator& generator;
+ public:
+  GMJobQueueDTR(int priority, char const * name, DTRGenerator& parent): GMJobQueue(priority, name), generator(parent) {};
+  virtual bool CanSwitch(GMJob const& ref, GMJobQueue const& new_queue, bool to_front);
+  virtual bool CanRemove(GMJob const& ref);
+};
 
 /**
  * A-REX implementation of DTR Generator. Note that job migration functionality
@@ -49,10 +58,10 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** DTRs received */
   std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
-  GMJobQueue jobs_received;
+  GMJobQueueDTR jobs_received;
   /** Jobs being processing.
       This list is not protected and is used only from DTRGenerator::thread() */
-  GMJobQueue jobs_processing;
+  GMJobQueueDTR jobs_processing;
   /** Jobs cancelled. List of Job IDs. */
   std::list<std::string> jobs_cancelled;
   /** Lock for events.
