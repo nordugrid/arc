@@ -336,58 +336,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         
             break
             
-    return cachefiles    
-            
-            
-def echo(service, proxy, say='hello'):
-    """
-    Call the echo service at the given location and print the response to
-    say. Useful as a test.
-    """
-    
-    (protocol, host, port, path) = splitURL(service)
-    
-    # create request with etree
-    soap = ET.Element('soap-env:Envelope', attrib={
-        'xmlns:echo': 'urn:echo',
-        'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/',
-        'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-    })
-    
-    body = ET.SubElement(soap, 'soap-env:Body')
-    echo = ET.SubElement(body, 'echo:echo')
-    addETElement(echo, 'echo:say', say)
-    
-    request = ET.tostring(soap)
-    
-    conn = HTTPSClientAuthConnection(host, port, proxy, proxy)
-    try:
-        conn.request('POST', path, request)
-    except Exception as e:
-        raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
-    resp = conn.getresponse()
-   
-    print(resp.status, resp.reason)
-
-    # On SOAP fault 500 is returned - this is caught in checkSOAPFault
-    if resp.status != 200 and resp.status != 500:
-        conn.close()
-        raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
-    
-    xmldata = resp.read()
-    
-    conn.close()
-    response = ET.XML(xmldata)
-    checkSOAPFault(response)
-    
-    try:
-        answer = response[0][0][0].text
-    except:
-        raise CacheException('Error with XML structure received from echo service')
-    
-    print('Echo says ' + answer)
+    return cachefiles
 
 
 def get_parser():
