@@ -418,7 +418,7 @@ def get_parser():
     parser_get.add_argument('file', help='Put the content into specified filename')
 
     parser_check = parser_ops.add_parser('check', help='Check the file is in ARC cache (returns exit code)')
-    parser_check.add_argument('url', nargs=1, help='URL of the content to deliver')
+    parser_check.add_argument('url', help='URL of the content to deliver')
     return parser
 
 
@@ -468,7 +468,7 @@ if __name__ == '__main__':
     # send appropriate request to candypond
     try:
         if cmd_args.operation == 'check':
-            cacheurls = cacheCheck(endpoint, proxy, cmd_args.url)
+            cacheurls = cacheCheck(endpoint, proxy, [cmd_args.url])
             if cmd_args.url not in cacheurls:
                 logger.error('Failed to check URL %s presence in cache', cmd_args.url)
                 sys.exit(2)
