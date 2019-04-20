@@ -152,6 +152,7 @@ public:
   bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
+  bool show_json;
 
   int testjobid;
   int runtime;

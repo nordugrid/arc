@@ -157,15 +157,31 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
                         std::sort(jobsSortable.rbegin(), jobsSortable.rend(), orderings[opt.sort]);
   }
 
-  for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
-       it != jobsSortable.end(); ++it) {
-    // Option 'long' (longlist) takes precedence over option 'print-jobids' (printids)
-    if (opt.longlist || !opt.printids) {
-      it->SaveToStream(std::cout, opt.longlist);
+  if (!opt.show_json) {
+    for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
+         it != jobsSortable.end(); ++it) {
+      // Option 'long' (longlist) takes precedence over option 'print-jobids' (printids)
+      if (opt.longlist || !opt.printids) {
+        it->SaveToStream(std::cout, opt.longlist);
+      }
+      else {
+        std::cout << it->JobID << std::endl;
+      }
     }
-    else {
-      std::cout << it->JobID << std::endl;
+  } else {
+    std::cout << "\"jobs\": [";
+    for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
+         it != jobsSortable.end(); ++it) {
+      std::cout << (it==jobsSortable.begin()?"":",") << std::endl;
+      if (opt.longlist || !opt.printids) {
+        it->SaveToStreamJSON(std::cout, opt.longlist);
+      }
+      else {
+        std::cout << "\"" << it->JobID << "\"";
+      }
     }
+    std::cout << std::endl;
+    std::cout << "]" << std::endl;
   }
 
   if (opt.show_unavailable) {
@@ -173,7 +189,9 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   }
   unsigned int returned_info_num = jobmaster.GetSelectedJobs().size();
 
-  std::cout << Arc::IString("Status of %d jobs was queried, %d jobs returned information", queried_num, returned_info_num) << std::endl;
+  if (!opt.show_json) {
+    std::cout << Arc::IString("Status of %d jobs was queried, %d jobs returned information", queried_num, returned_info_num) << std::endl;
+  }
 
   return 0;
 }
