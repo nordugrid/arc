@@ -617,7 +617,6 @@
 ## default: undefined
 #slurm_requirements=memory on node >> 200
 ## CHANGE: new parameter proposed in Umea retreat
-## TODO: clarify this with Andrej
 
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
@@ -714,17 +713,9 @@
 ## mandatory
 #remote_sessiondir=/scratch/grid
 
-## remote_runtimedir = path - Runtime environment directory on cluster frontend to
-## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
-## attribute in the [arex] block.
-## TODO: check if it is still relevant or work with the ARC6 RTE framework
-## default: undefined
-#remote_runtimedir=/SOFTWARE/runtime
-
-## *remote_cachedir = path - Cache directory on cluster frontend to be
+## remote_cachedir = path - Cache directory on cluster frontend to be
 ## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
 ## attribute in the [arex] block.
-## TODO: why is it mandatory and why the remote_sessiondir is not mandatory?
 ## default: undefined
 #remote_cachedir=/scratch/cache
 
@@ -1159,9 +1150,8 @@
 ## default: 10
 #maxdelivery=40
 
-## maxprocessor = number - Maximum number of concurrent files in each pre- and post-
-## processing state, eg cache check or replica resolution.
-## TODO: clarify what are those post and pre states, explain it to sysadmins
+## maxprocessor = number - Maximum number of concurrent files in each of the DTR
+## internal pre- and post-processing states, eg cache check or replica resolution.
 ## default: 10
 #maxprocessor=20
 
@@ -1999,7 +1989,6 @@
 ## on "/section1" and "/section2" subdirectories.
 ## multivalued
 ## default: undefined
-## TODO: check behaviour when this option is missing and user is mapped to root. (what is the default user mapping for file-plugin?)
 #dir=/ nouser read cd dirlist delete create *:* 664:664 mkdir *:* 775:775
 #dir=/section1 nouser read mkdir *:* 700:700 cd dirlist
 #dir=/section2 nouser read mkdir *:* 700:700 cd dirlist
@@ -2621,7 +2610,6 @@
 ## default: undefined
 #slurm_requirements=memory on node >> 200
 ## CHANGE: new parameter proposed in Umea retreat
-## TODO: clarify this with Andrej
 
 ## totalcpus = number - Manually sets the number of cpus assigned to the queue. No need to
 ## specify the parameter in case the queue_node_string method was used to assign
@@ -2771,12 +2759,10 @@
 ### The [datadelivery-service] block ###############################
 ## This block configures and enables the data delivery service. This service is intended to off-load
 ## data-staging from A-REX and usually deployed on one or more separate machines. 
-## See details at https://wiki.nordugrid.org/wiki/Data_Staging/Multi-host
 ##
 ## This service can also act as an independent data transfers service that case it would require 
-## a inteligent data manager that could replace A-REX's intelligence. (see draft vision document)
+## an inteligent data manager that could replace A-REX's intelligence.
 ##  
-## TODO: point to the documentation that describes protocol, operations.
 #[datadelivery-service]
 ## CHANGE: NEW block 
 
@@ -2794,7 +2780,6 @@
 ## default: $EXEC{hostname -f}
 #hostname=localhost
 ## CHANGE: NEW
-## TODO: got remaned from interface, fix DDS startup script  and profile. 
 
 ## port = port - Port on which service listens
 ## default: 443
@@ -2896,7 +2881,6 @@
 ## default: /var/log/arc/arc-acix-scanner.log
 #logfile=/tmp/arc-acix-scanner.log
 ## CHANGE: modified default for the logfile
-## TODO: changed logfile name
 
 ## hostname = string - Hostname on which the acix-scanner listens
 ## default: $EXEC{hostname -f}
@@ -2953,7 +2937,6 @@
 #cachescanner=https://some.host:5443/data/cache
 #cachescanner=https://another.host:5443/data/cache
 ## CHANGE: renamed
-## TODO: should be mandatory
 
 ### X509 related parameters
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.

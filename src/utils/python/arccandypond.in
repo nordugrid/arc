@@ -16,6 +16,7 @@ import ssl
 import pwd
 import argparse
 import logging
+import xml.etree.ElementTree as ET
 
 # init logger
 logger = logging.getLogger('ARC.Candypond.Client')
@@ -24,17 +25,6 @@ log_handler_stderr = logging.StreamHandler()
 log_handler_stderr.setFormatter(
     logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
 logger.addHandler(log_handler_stderr)
-
-try:
-    # Available in python >= 2.5
-    import xml.etree.ElementTree as ET
-except ImportError:
-    try:
-        # python 2.4 version
-        from elementtree import ElementTree as ET
-    except ImportError:
-        logger.critical('Error importing ElementTree. Please install it or use python 2.5 or greater')
-        sys.exit(1)
 
 
 class HTTPSClientAuthConnection(httplib.HTTPSConnection):
@@ -346,58 +336,7 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
         
             break
             
-    return cachefiles    
-            
-            
-def echo(service, proxy, say='hello'):
-    """
-    Call the echo service at the given location and print the response to
-    say. Useful as a test.
-    """
-    
-    (protocol, host, port, path) = splitURL(service)
-    
-    # create request with etree
-    soap = ET.Element('soap-env:Envelope', attrib={
-        'xmlns:echo': 'urn:echo',
-        'xmlns:soap-enc': 'http://schemas.xmlsoap.org/soap/encoding/',
-        'xmlns:soap-env': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-    })
-    
-    body = ET.SubElement(soap, 'soap-env:Body')
-    echo = ET.SubElement(body, 'echo:echo')
-    addETElement(echo, 'echo:say', say)
-    
-    request = ET.tostring(soap)
-    
-    conn = HTTPSClientAuthConnection(host, port, proxy, proxy)
-    try:
-        conn.request('POST', path, request)
-    except Exception as e:
-        raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
-    resp = conn.getresponse()
-   
-    print(resp.status, resp.reason)
-
-    # On SOAP fault 500 is returned - this is caught in checkSOAPFault
-    if resp.status != 200 and resp.status != 500:
-        conn.close()
-        raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
-    
-    xmldata = resp.read()
-    
-    conn.close()
-    response = ET.XML(xmldata)
-    checkSOAPFault(response)
-    
-    try:
-        answer = response[0][0][0].text
-    except:
-        raise CacheException('Error with XML structure received from echo service')
-    
-    print('Echo says ' + answer)
+    return cachefiles
 
 
 def get_parser():
@@ -418,7 +357,7 @@ def get_parser():
     parser_get.add_argument('file', help='Put the content into specified filename')
 
     parser_check = parser_ops.add_parser('check', help='Check the file is in ARC cache (returns exit code)')
-    parser_check.add_argument('url', nargs=1, help='URL of the content to deliver')
+    parser_check.add_argument('url', help='URL of the content to deliver')
     return parser
 
 
@@ -468,7 +407,7 @@ if __name__ == '__main__':
     # send appropriate request to candypond
     try:
         if cmd_args.operation == 'check':
-            cacheurls = cacheCheck(endpoint, proxy, cmd_args.url)
+            cacheurls = cacheCheck(endpoint, proxy, [cmd_args.url])
             if cmd_args.url not in cacheurls:
                 logger.error('Failed to check URL %s presence in cache', cmd_args.url)
                 sys.exit(2)
