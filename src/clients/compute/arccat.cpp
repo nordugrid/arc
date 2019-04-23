@@ -131,10 +131,10 @@ int RUNMAIN(arccat)(int argc, char **argv) {
   }
 
   std::string resourceName;
-  Arc::Job::ResourceType resource;
-  if (opt.show_joblog)      { resource = Arc::Job::JOBLOG; resourceName = "joblog"; }
-  else if (opt.show_stderr) { resource = Arc::Job::STDERR; resourceName = "stderr"; }
-  else                      { resource = Arc::Job::STDOUT; resourceName = "stdout"; }
+  if (opt.show_joblog) { resourceName = "joblog"; }
+  else if (opt.show_stderr) { resourceName = "stderr"; }
+  else if (!opt.show_file.empty()) { resourceName = "session file"; }
+  else { resourceName = "stdout"; }
 
   // saving to a temp file is necessary because chunks from server
   // may arrive out of order
@@ -182,20 +182,53 @@ int RUNMAIN(arccat)(int argc, char **argv) {
       continue;
     }
 
-    if ((opt.show_joblog && it->LogDir.empty()) ||
-        (!opt.show_joblog && opt.show_stderr && it->StdErr.empty()) ||
-        (!opt.show_joblog && !opt.show_stderr && it->StdOut.empty())) {
+    //if ((opt.show_joblog && it->LogDir.empty()) ||
+    //    (!opt.show_joblog && opt.show_stderr && it->StdErr.empty()) ||
+    //    (!opt.show_joblog && !opt.show_stderr && it->StdOut.empty())) {
+    //  logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", resourceName, it->JobID);
+    //  retval = 1;
+    //  continue;
+    //}
+
+    Arc::Job::ResourceType resource;
+    if (opt.show_joblog) { resource = Arc::Job::JOBLOG; }
+    else if (opt.show_stderr) { resource = Arc::Job::STDERR; }
+    else if (!opt.show_file.empty()) {
+      switch((Arc::JobState::StateType)it->State) {
+        case Arc::JobState::ACCEPTED:
+        case Arc::JobState::PREPARING:
+        case Arc::JobState::SUBMITTING:
+        case Arc::JobState::HOLD:
+           resource = Arc::Job::STAGEINDIR;
+           break;
+        case Arc::JobState::QUEUING:
+        case Arc::JobState::RUNNING:
+        case Arc::JobState::OTHER:
+        default:
+           resource = Arc::Job::SESSIONDIR;
+           break;
+        case Arc::JobState::FINISHING:
+        case Arc::JobState::FINISHED:
+        case Arc::JobState::FAILED:
+        case Arc::JobState::KILLED:
+           resource = Arc::Job::STAGEOUTDIR;
+           break;
+      }
+    }
+    else { resource = Arc::Job::STDOUT; }
+    Arc::URL src;
+    if(!it->GetURLToResource(resource, src)) {
       logger.msg(Arc::ERROR, "Cannot determine the %s location: %s", resourceName, it->JobID);
       retval = 1;
       continue;
     }
-
-    Arc::URL src;
-    it->GetURLToResource(resource, src);
     if (!src) {
       logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", resourceName, it->JobID, src.str());
       retval = 1;
       continue;
+    }
+    if (!opt.show_file.empty()) {
+      src.ChangePath(src.Path()+"/"+opt.show_file);
     }
 
     if (!it->CopyJobFile(usercfg, src, dst)) {
