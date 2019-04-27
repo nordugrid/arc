@@ -637,6 +637,13 @@ namespace Arc {
      **/
     const std::string& VOMSESPath();
 
+    /// Get the list of VOMS VOs to be used by default while creating proxy credentials
+    /**
+      This list is populated by the (possibly multiple) `defaultvoms` configuration options.
+      \return a list of defaukt VOMS VOs
+    */
+    const std::list<std::string>& DefaultVOMSes() const { return defaultVomses; };
+
     /// Set user-name for SLCS
     /**
      * Set username which is used for requesting credentials from
@@ -1312,6 +1319,7 @@ namespace Arc {
     URL slcs;
 
     std::string vomsesPath;
+    std::list<std::string> defaultVomses;
 
     std::string storeDirectory;
     std::string downloadDirectory;

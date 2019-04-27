@@ -336,9 +336,11 @@ static int runmain(int argc, char *argv[]) {
                                          "              all --- put all of this DN's attributes into AC; \n"
                                          "              list ---list all of the DN's attribute, will not create AC extension; \n"
                                          "              /Role=yourRole --- specify the role, if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC; \n"
                                          "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC. \n"
+                                         "              If this option is not specified values from configuration files are used.\n"
+                                         "              To avoid anything to be used specify -S with empty value.\n"
                                          ),
                     istring("string"), vomslist);
 
@@ -477,6 +479,17 @@ static int runmain(int argc, char *argv[]) {
   if(use_nssdb) {
     usercfg.CertificatePath("");;
     usercfg.KeyPath("");;
+  }
+
+  if(vomslist.empty()) {
+    vomslist = usercfg.DefaultVOMSes();
+  }
+  for(std::list<std::string>::iterator voms = vomslist.begin(); voms != vomslist.end();) {
+    if(voms->empty()) {
+      voms = vomslist.erase(voms);
+    } else {
+      ++voms;
+    }
   }
 
   // Check for needed credentials objects
