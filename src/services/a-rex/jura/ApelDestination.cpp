@@ -14,19 +14,31 @@
 
 namespace ArcJura
 {
+  // Construct APEL destination during republishing using provided URL and topic
   ApelDestination::ApelDestination(std::string url_, std::string topic_):
     logger(Arc::Logger::rootLogger, "JURA.ApelReReporter"),
     rereport(true),
-    use_ssl("true"),
+    use_ssl("false"),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
                    "UsageRecords")
 
   {
-    init(url_.substr(5), topic_, "", "", "", "");
+    // define APEL URL stripping 'APEL:' if present
+    std::string apel_url = url_;
+    if (url.substr(0,5) == "APEL:") {
+        apel_url = url_.substr(5)
+    }
+    // check SSL url
+    if (apel_url.substr(0,5) == "https") {
+        use_ssl = "true";
+    }
+    // NOTE that cert/key/cadir path will be read from environment variables or defaults are used
+    init(apel_url, topic_, "", "", "", "");
   }
 
+  // Construct APEL destination during normal publishing cycle from joblog and arc.conf
   ApelDestination::ApelDestination(JobLogFile& joblog, const Config::APEL &_conf):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     conf(_conf),
@@ -38,6 +50,8 @@ namespace ArcJura
                    "UsageRecords")
 
   {
+    // WARNING: 'loggerurl' should contains 'APEL:' prefix.
+    // Jura adds this prefix when original A-REX joblogs are converted to per-destination joblogs in accordance to configuration in arc.conf
     init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
 
     //From jobreport_options:

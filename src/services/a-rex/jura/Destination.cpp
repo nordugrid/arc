@@ -16,7 +16,7 @@ namespace ArcJura
   {
     std::string url=joblog["loggerurl"];
     if (url.substr(0,3) == "CAR") {
-        return new CARDestination(joblog, (const Config::APEL &)conf);
+        return new CARDestination(joblog, (const Config::SGAS &)conf);
     }
     //TODO distinguish
     if ( !joblog["topic"].empty() ||
