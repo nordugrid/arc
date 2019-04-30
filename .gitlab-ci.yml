@@ -248,7 +248,27 @@ run_static_analysis_el6:
       - $CI_PROJECT_DIR/arc-tests/
   allow_failure: false
 
-
+deploy_staging_deb9:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - source /dockerrun.sh maikenp/arc-deploy-debian9
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
+  dependencies:
+    - packages_deb9
+  tags:
+    - docker-socket-runner1
+  allow_failure: true
 
 deploy_staging_el6:
   stage: deploy_and_test
