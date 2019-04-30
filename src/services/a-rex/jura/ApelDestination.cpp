@@ -27,7 +27,7 @@ namespace ArcJura
   {
     // define APEL URL stripping 'APEL:' if present
     std::string apel_url = url_;
-    if (url.substr(0,5) == "APEL:") {
+    if (url_.substr(0,5) == "APEL:") {
         apel_url = url_.substr(5);
     }
     // check SSL url
