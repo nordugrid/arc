@@ -99,7 +99,7 @@ namespace ArcJura
         service_url = url;
         if (url.Protocol()!="https")
           {
-            logger.msg(Arc::ERROR, "Protocol is %s, should be https",
+            logger.msg(Arc::ERROR, "Protocol is %s. It is recommended to use secure connection with https.",
                        url.Protocol());
           }
         host=url.Host();
@@ -371,8 +371,9 @@ namespace ArcJura
     command += " " + use_ssl;    //use_ssl
     command += "";
 
+    logger.msg(Arc::INFO, "Running SSM client using: %s", command);
     retval = system(command.c_str());
-    logger.msg(Arc::DEBUG, "system retval: %d", retval);
+    logger.msg(Arc::DEBUG, "SSM client exit code: %d", retval);
     if (retval == 0) {
         return Arc::MCC_Status(Arc::STATUS_OK,
                                "apelclient",
