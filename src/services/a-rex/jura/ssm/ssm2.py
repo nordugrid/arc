@@ -16,16 +16,16 @@
    @author: Will Rogers
 '''
 
-from __future__ import absolute_import
-
 # It's possible for SSM to be used without SSL, and the ssl module isn't in the
 # standard library until 2.6, so this makes it safe for earlier Python versions.
+from builtins import str
 try:
     import ssl
 except ImportError:
     # ImportError is raised later on if SSL is actually requested.
     ssl = None
 
+from __future__ import absolute_import
 from . import crypto
 from dirq.QueueSimple import QueueSimple
 from dirq.queue import Queue
