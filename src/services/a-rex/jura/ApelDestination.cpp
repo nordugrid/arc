@@ -18,7 +18,7 @@ namespace ArcJura
   ApelDestination::ApelDestination(std::string url_, std::string topic_):
     logger(Arc::Logger::rootLogger, "JURA.ApelReReporter"),
     rereport(true),
-    use_ssl("false"),
+    use_ssl(false),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
@@ -32,7 +32,7 @@ namespace ArcJura
     }
     // check SSL url
     if (apel_url.substr(0,5) == "https") {
-        use_ssl = "true";
+        use_ssl = true;
     }
     // NOTE that cert/key/cadir path will be read from environment variables or defaults are used
     init(apel_url, topic_, "", "", "", "");
@@ -43,7 +43,7 @@ namespace ArcJura
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     conf(_conf),
     rereport(false),
-    use_ssl("false"),
+    use_ssl(false),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
@@ -342,7 +342,7 @@ namespace ArcJura
     command += " -C " + cfg.cadir;  //cadir
     command += " -m " + default_path; //messages path
     command += " -d " + Arc::level_to_string(logger.getThreshold()); // loglevel
-    if (use_ssl == "true") {
+    if (use_ssl) {
         command += " --ssl";    //use_ssl
     }
     command += "";

@@ -20,7 +20,7 @@ namespace ArcJura
     std::string topic;
 
     /** Require to set to true this option by production message broker */
-    std::string use_ssl;
+    bool use_ssl;
     /** File name extension */
     int sequence;
     /** location of Aggregation Records */

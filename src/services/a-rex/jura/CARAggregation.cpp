@@ -27,7 +27,7 @@ namespace ArcJura
 
   CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
-    use_ssl("false"),
+    use_ssl(false),
     sequence(0),
     aggr_record_update_need(false),
     synch_message(false),
@@ -175,7 +175,7 @@ namespace ArcJura
     command += " -C " + cfg.cadir;  //cadir
     command += " -m " + default_path; //messages path
     command += " -d " + Arc::level_to_string(logger.getThreshold()); // loglevel
-    if (use_ssl == "true") {
+    if (use_ssl) {
         command += " --ssl";    //use_ssl
     }
     command += "";
