@@ -22,10 +22,10 @@ namespace ArcJura
     aggregationrecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),
                    "SummaryRecords")
   {
-    init(_host, "", "");
+    init(_host, "", "", false);
   }
 
-  CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch):
+  CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch, bool _ssl):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
     use_ssl(false),
     sequence(0),
@@ -35,10 +35,10 @@ namespace ArcJura
                    "SummaryRecords")
   {
     synch_message = synch;
-    init(_host, _port, _topic);
+    init(_host, _port, _topic, _ssl);
   }
 
-  void CARAggregation::init(std::string _host, std::string _port, std::string _topic)
+  void CARAggregation::init(std::string _host, std::string _port, std::string _topic, bool _ssl)
   {
     ns[""] = "http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord";
     ns["urf"] = "http://eu-emi.eu/namespaces/2012/11/computerecord";
@@ -65,6 +65,7 @@ namespace ArcJura
     host  = _host;
     port  = _port;
     topic = _topic;
+    use_ssl = _ssl;
     //read the previous aggregation records
     std::string default_path = (std::string)JURA_DEFAULT_DIR_PREFIX + "/urs/";
     aggr_record_location = default_path + host + "_aggregation_records.xml";

@@ -32,7 +32,7 @@ namespace ArcJura
     Arc::NS ns;
     Arc::NS ns_query;
 
-    void init(std::string _host, std::string _port, std::string _topic);
+    void init(std::string _host, std::string _port, std::string _topic, bool _ssl);
     /** Send records to the accounting server. */
     Arc::MCC_Status send_records(const std::string &urset);
     /** Update all records sending dates */
@@ -57,7 +57,7 @@ namespace ArcJura
     /**
      *  Constructor for record reporting.
      */
-    CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch);
+    CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch, bool _ssl);
     ~CARAggregation();
 
     /** Generated record from CAR record, collects it into the
