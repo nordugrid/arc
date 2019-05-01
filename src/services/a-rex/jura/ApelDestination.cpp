@@ -341,7 +341,7 @@ namespace ArcJura
     command += " -c " + cfg.cert;   //certificate
     command += " -C " + cfg.cadir;  //cadir
     command += " -m " + default_path; //messages path
-    command += " -d " + Arc::Logger::level_to_string(logger.getLevel()); // loglevel
+    command += " -d " + Arc::level_to_string(logger.getThreshold()); // loglevel
     if (use_ssl == "true") {
         command += " --ssl";    //use_ssl
     }
