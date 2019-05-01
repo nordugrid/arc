@@ -164,48 +164,27 @@ namespace ArcJura
                );
     }
     int retval;
-    //ssmsend <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path> <use_ssl>"
-    std::string command;
-    std::vector<std::string> ssm_pathes;
-    std::string exec_cmd = "ssmsend";
-    //RedHat: /usr/libexec/arc/ssm_master
-    ssm_pathes.push_back("/usr/libexec/arc/"+exec_cmd);
-    ssm_pathes.push_back("/usr/local/libexec/arc/"+exec_cmd);
-    // Ubuntu/Debian: /usr/lib/arc/ssm_master
-    ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
-    ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
+    //ssmsend -H <hostname> -p <port> -t <topic> -k <key path> -c <cert path> -C <cadir path> -m <messages path> [--ssl]"
+    std::string command = INSTPREFIX + "/" + PKGLIBEXECSUBDIR + "/ssmsend";
 
-    // If you don't use non-standard prefix for a compilation you will 
-    // use this extra location.
-    std::ostringstream prefix;
-    prefix << INSTPREFIX << "/" << PKGLIBEXECSUBDIR << "/";
-    ssm_pathes.push_back(prefix.str()+exec_cmd);
-    
-    // Find the location of the ssm_master
-    std::string ssm_command = "./ssm/"+exec_cmd;
-    for (int i=0; i<(int)ssm_pathes.size(); i++) {
-        std::ifstream ssmfile(ssm_pathes[i].c_str());
-        if (ssmfile) {
-            // The file exists,
-            ssm_command = ssm_pathes[i];
-            ssmfile.close();
-            break;
-        }
+    command += " -H " + service_url.Host(); //host
+    std::stringstream port;
+    port << service_url.Port();
+    command += " -p " + port.str(); //port
+    command += " -t " + topic;      //topic
+    command += " -k " + cfg.key;    //certificate key
+    command += " -c " + cfg.cert;   //certificate
+    command += " -C " + cfg.cadir;  //cadir
+    command += " -m " + default_path; //messages path
+    command += " -d " + Arc::Logger::level_to_string(logger.getLevel()); // loglevel
+    if (use_ssl == "true") {
+        command += " --ssl";    //use_ssl
     }
-
-    command = ssm_command;
-    command += " " + host;       //host
-    command += " " + port;       //port
-    command += " " + topic;      //topic
-    command += " " + cfg.key;    //certificate key
-    command += " " + cfg.cert;   //certificate
-    command += " " + cfg.cadir;  //cadir
-    command += " " + default_path; //messages path
-    command += " " + use_ssl;    //use_ssl
     command += "";
 
+    logger.msg(Arc::INFO, "Running SSM client using: %s", command);
     retval = system(command.c_str());
-    logger.msg(Arc::DEBUG, "system retval: %d", retval);
+    logger.msg(Arc::DEBUG, "SSM client return value: %d", retval);
     if (retval == 0) {
         return Arc::MCC_Status(Arc::STATUS_OK,
                                "apelclient",
