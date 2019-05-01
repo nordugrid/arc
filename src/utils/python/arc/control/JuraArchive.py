@@ -315,7 +315,7 @@ class JuraArchive(object):
             ur_path += ur_name
             if os.path.exists(ur_path):
                 self.logger.debug('Exporting "%s" record', rid)
-                shutil.copy(ur_path, export_dir + rid)
+                shutil.copy2(ur_path, export_dir + rid)
             else:
                 self.logger.error('Usage records in %s is no longer exists. Republishing is not possible.', ur_path)
         return export_dir
