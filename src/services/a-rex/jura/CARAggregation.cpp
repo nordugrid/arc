@@ -167,10 +167,8 @@ namespace ArcJura
     //ssmsend -H <hostname> -p <port> -t <topic> -k <key path> -c <cert path> -C <cadir path> -m <messages path> [--ssl]"
     std::string command = INSTPREFIX + "/" + PKGLIBEXECSUBDIR + "/ssmsend";
 
-    command += " -H " + service_url.Host(); //host
-    std::stringstream port;
-    port << service_url.Port();
-    command += " -p " + port.str(); //port
+    command += " -H " + host; //host
+    command += " -p " + port; //port
     command += " -t " + topic;      //topic
     command += " -k " + cfg.key;    //certificate key
     command += " -c " + cfg.cert;   //certificate
