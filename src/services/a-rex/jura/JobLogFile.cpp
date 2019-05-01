@@ -44,8 +44,12 @@ namespace ArcJura
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
     std::vector<Arc::VOMSACInfo> voms_attributes;
+
+    // parse VOMS AC suppressing any parsing ERRORs unless DEBUG level is requested
+    Arc::LogLevel current_loglevel = Arc::Logger::getRootLogger().getThreshold();
+    if ( current_loglevel != Arc::DEBUG ) Arc::Logger::getRootLogger().setThreshold(Arc::FATAL);
     parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
-    //parseVOMSAC(cert_str, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    Arc::Logger::getRootLogger().setThreshold(current_loglevel);
 
     return voms_attributes;
   }
