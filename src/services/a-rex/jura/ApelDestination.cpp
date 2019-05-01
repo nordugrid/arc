@@ -330,7 +330,7 @@ namespace ArcJura
     }
     int retval;
     //ssmsend -H <hostname> -p <port> -t <topic> -k <key path> -c <cert path> -C <cadir path> -m <messages path> [--ssl]"
-    std::string command = INSTPREFIX + "/" + PKGLIBEXECSUBDIR + "/ssmsend";
+    std::string command = INSTPREFIX "/" PKGLIBEXECSUBDIR "/ssmsend";
 
     command += " -H " + service_url.Host(); //host
     std::stringstream port;
