@@ -50,13 +50,14 @@ namespace ArcJura
                    "UsageRecords")
 
   {
+    //Settings from arc.conf:
+    max_ur_set_size=conf.urbatchsize;
+    use_ssl=conf.use_ssl;
+
     // WARNING: 'loggerurl' should contains 'APEL:' prefix.
     // Jura adds this prefix when original A-REX joblogs are converted to per-destination joblogs in accordance to configuration in arc.conf
     init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
 
-    //From jobreport_options:
-    max_ur_set_size=conf.urbatchsize;
-    use_ssl=conf.use_ssl;
   }
 
   void ApelDestination::init(std::string serviceurl_,std::string topic_, std::string outputdir_, std::string cert_, std::string key_, std::string ca_)
