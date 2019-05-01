@@ -111,7 +111,7 @@ namespace ArcJura
 
     //read the previous aggregation records
     if (!rereport)
-        aggregationManager = new CARAggregation(host,port,topic, true);
+        aggregationManager = new CARAggregation(host,port,topic,true,use_ssl);
 
     //Get Batch Size:
     //Default value:
