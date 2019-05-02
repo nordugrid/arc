@@ -33,7 +33,7 @@ namespace ArcJura
     int max_ur_set_size;
     bool rereport;
     /** Require to set to ture this option by production message broker */
-    std::string use_ssl;
+    bool use_ssl;
     /** Actual number of usage records in set */
     int urn;
     /** File name extension */
