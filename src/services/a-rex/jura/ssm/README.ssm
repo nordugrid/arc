@@ -1,18 +1,28 @@
-This modified Python codes are part of the SSM that developed by APEL.
+NorduGrid ARC distribution includes necessary SSM python libraries to submit records to APEL.
+This is necessary thus we provides NorduGrid ARC packaging for number of platforms APEL SSM is not packaged.
 
-Prepare selected files from original SSM distribution:
-  brokers.py
-  crypto.py
+SSM libraries are developed by APEL team and can be found at https://github.com/apel/ssm
+
+Following files are copied from APEL SSM codebase:
   __init__.py
-  sender.cfg
+  crypto.py
   ssm2.py
-  sender.py -> ssmsend.in
 
-Apply arc-ssm.patch to add ARC modifications and update files.
+The 'ssmsend' utility is a helper script to invoke SSM to send accounting record to APEL from ARC Jura.
+ARC Jura prepare the records to be sent and call 'ssmsend' utlity with proper parameters,
 
-NOTE: ARC patch includes futurize for Python3 compatibility. Run futurize to make sure new SSM code that not covered by arc-ssm.patch also updated.
+Records submission logic in 'ssmsend' obey APEL sender.py code logic. Everything else is a glue with ARC code.
+In case of operating system has APEL SSM libraries installed - these libraries will be used.
+ARC redistributed libraries are used as a fallback option and targeted for OSes without APEL SSM packaging support.
+
+ARC also works for most modern Linux distrbutions that have Python3 as a default Python version.
+At the time of writting the only modification to redistributed SSM libraries is 'futurization' to support Python 3.
 
 Changelog:
+*Wed May 1 2019 Andrii Salnikov <manf@grid.org.ua>
+- update to ssm2 2.3.0-2
+- ssmsend rework specially for ARC Jura
+
 *Sun Sep 9 2018 Andrii Salnikov <manf@grid.org.ua>
  -update to ssm2 2.3.0
 
