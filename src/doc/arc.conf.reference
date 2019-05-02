@@ -961,7 +961,6 @@
 ## assigned if his/her credentials contain no VOMS attributes.
 ## To assign different values to different queues put this command
 ## into [queue] block.
-## TODO: was missed in queue, check it actually works with queues
 ## default: undefined
 #forcedefaultvoms=/vo/group/subgroup
 ##
@@ -1339,7 +1338,6 @@
 ## multivalued
 #allowaccess=biousers
 #allowaccess=atlasusers
-## TODO: understand how voms attributes are extracted, is i true that "the matching group is also used for evaluating VOMS attributes representing the user only if a matching allowaccess is present?"
 
 ## denyaccess = authgroup - Defines that the specified authgroup members 
 ## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
@@ -1885,7 +1883,6 @@
 ## multivalued
 #allowaccess=biousers
 #allowaccess=atlasusers
-## TODO: understand how voms attributes are extracted, is i true that "the matching group is also used for evaluating VOMS attributes representing the user only if a matching allowaccess is present?"
 
 ## denyaccess = authgroup - Defines that the specified authgroup members 
 ## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
