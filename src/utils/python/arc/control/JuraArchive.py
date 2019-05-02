@@ -304,8 +304,9 @@ class JuraArchive(object):
                 # remove empty directory without throwing an error
                 os.rmdir(export_dir)
             else:
-                self.logger.error('Export directory is already present. '
-                                  'To avoid conflicts, please check and remove old directory')
+                self.logger.error('Export directory %s is already present. '
+                                  'To avoid conflicts, please check and remove old directory',
+                                  export_dir)
                 sys.exit(1)
         os.makedirs(export_dir)
         self.db_connection_init()
@@ -314,7 +315,7 @@ class JuraArchive(object):
             ur_path += ur_name
             if os.path.exists(ur_path):
                 self.logger.debug('Exporting "%s" record', rid)
-                shutil.copy(ur_path, export_dir + rid)
+                shutil.copy2(ur_path, export_dir + rid)
             else:
                 self.logger.error('Usage records in %s is no longer exists. Republishing is not possible.', ur_path)
         return export_dir
