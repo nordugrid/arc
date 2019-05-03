@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from .ControlCommon import *
 from arc.utils import reference
 import sys
+import subprocess
 
 
 def complete_block_name(prefix, parsed_args, **kwargs):
@@ -105,6 +106,15 @@ class ConfigControl(ComponentControl):
         for line in reference.get_option_description(args.reference, args.block, args.option):
             sys.stdout.write(line)
 
+    def verify(self, args):
+        validator_cmd = [ARC_LIBEXEC_DIR + '/arc-config-check']
+        if args.config:
+            validator_cmd += ['--config', args.config]
+        if args.verbosity:
+            validator_cmd.append('--' + args.verbosity)
+        self.logger.debug('Running ARC configuration validator script: %s', ' '.join(validator_cmd))
+        return subprocess.call(validator_cmd)
+
     def control(self, args):
         if args.action == 'dump':
             self.dump()
@@ -114,6 +124,8 @@ class ConfigControl(ComponentControl):
             self.describe(args)
         elif args.action == 'brief':
             self.brief(args)
+        elif args.action == 'verify':
+            sys.exit(self.verify(args))
         else:
             self.logger.critical('Unsupported ARC config control action %s', args.action)
             sys.exit(1)
@@ -139,3 +151,7 @@ class ConfigControl(ComponentControl):
         config_brief = config_actions.add_parser('brief', help='Print configuration brief points')
         config_brief.add_argument('-t', '--type', help='Show brief only for provided options type',
                                   choices=ConfigControl.__brief_list.keys())
+
+        config_verify = config_actions.add_parser('verify', help='Verify ARC CE configuration syntax')
+        config_verify.add_argument('-v', '--verbosity', choices=['quiet', 'verbose', 'debug', 'skip-warnings'],
+                                   help='Controls verbosity of config validation output')
