@@ -419,7 +419,7 @@ sub check_logrotate($$$$) {
     my $defaultpidpath = '/var/run/';
     my $defaultlocations = {
                             'arexlogfile' => $defaultlogpath.'arex.log',
-                            'arexpidfile' => $defaultpidpath.'arc/arex.pid',
+                            'arexpidfile' => $defaultpidpath.'arched-arex.pid',
                             'gridftpdlogfile' => $defaultlogpath.'gridftpd.log',
                             'gridftpdpidfile' => $defaultpidpath.'gridftpd.pid',
                             'infosyslogfile' => $defaultlogpath.'infoprovider.log',
