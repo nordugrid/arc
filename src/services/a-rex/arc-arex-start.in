@@ -611,6 +611,17 @@ prepare() {
     ulimit -c unlimited
 }
 
+validate() {
+    CHECK_CMD=$ARC_LOCATION/@pkglibexecsubdir@/arc-config-check
+    if [ ! -x $CHECK_CMD ]; then
+        echo "Could not find or execute arc-config-check tool"
+        return 1
+    fi
+    eval "$CHECK_CMD --config $ARC_CONFIG $@"
+    RETVAL=$?
+    return $RETVAL
+}
+
 if [ "$RUN" != "yes" ] ; then
     echo "a-rex disabled, please adjust the configuration to your needs "
     echo "and then set RUN to 'yes' in /etc/default/a-rex to enable it."
@@ -618,5 +629,15 @@ if [ "$RUN" != "yes" ] ; then
 fi
 
 prepare
+
+echo "Validating A-REX setup..." >> "$LOGFILE"
+validate >> "$LOGFILE" 2>&1
+RETVAL=$?
+if [ $RETVAL != 0 ]; then
+    # Run validator again to print errors to screen
+    validate --skip-warnings
+    echo "Configuration validation failed"
+    exit 1
+fi
 
 exec $CMD
