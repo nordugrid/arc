@@ -13,8 +13,10 @@ def example():
     # Create a new job object with a given JobID
     job = arc.Job()
     job.JobID = "https://piff.hep.lu.se:443/arex/hYDLDmyxvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmYBFKDmtRy9En"
-    job.Flavour = "ARC1"
+    job.IDFromEndpoint = "hYDLDmyxvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmYBFKDmtRy9En"
     job.ServiceInformationURL = job.JobStatusURL = job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
+    job.JobStatusInterfaceName = 'org.ogf.glue.emies.activitymanagement'
+    job.JobManagementInterfaceName = 'org.ogf.glue.emies.activitymanagement'
 
     sys.stdout.write("Get job information from the computing element...\n")
     # Put the job into a JobSupervisor and update its information

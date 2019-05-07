@@ -30,7 +30,7 @@ def example():
         arc.Endpoint("index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", arc.Endpoint.REGISTRY, "org.nordugrid.ldapegiis"),
         # for the arc-emi.grid.upjs.sk, we don't specify the type (the InterfaceName)
         # we let the system to try all possibilities
-        arc.Endpoint("arc-emi.grid.upjs.sk/O=Grid/Mds-Vo-Name=ARC-EMI", arc.Endpoint.REGISTRY)
+        arc.Endpoint("nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.archery")
     ]
 
     retriever = retrieve(uc, registries)
