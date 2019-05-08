@@ -12,10 +12,12 @@ def example():
     
     # Create a new job object with a given JobID
     job = arc.Job()
-    job.JobID = "https://piff.hep.lu.se:443/arex/1QuMDmRwvUfn5h5iWqkutBwoABFKDmABFKDmIpHKDmXBFKDmIuAean"
-    job.Flavour = "ARC1"
+    job.JobID = "https://piff.hep.lu.se:443/arex/w7LNDmSkEiun1ZPzno6AuCjpABFKDmABFKDmZ9LKDmUBFKDmXugZwm"
+    job.IDFromEndpoint = "w7LNDmSkEiun1ZPzno6AuCjpABFKDmABFKDmZ9LKDmUBFKDmXugZwm"
     job.JobManagementURL = arc.URL("https://piff.hep.lu.se:443/arex")
     job.JobStatusURL = arc.URL("https://piff.hep.lu.se:443/arex")
+    job.JobStatusInterfaceName = 'org.ogf.glue.emies.activitymanagement'
+    job.JobManagementInterfaceName = 'org.ogf.glue.emies.activitymanagement'
     
     sys.stdout.write("Job object before update:\n")
     job.SaveToStream(arc.CPyOstream(sys.stdout), True)
@@ -27,6 +29,10 @@ def example():
     
     # Get our updated job from the JobSupervisor
     jobs = job_supervisor.GetAllJobs()
+    if not jobs:
+        sys.stdout.write("No jobs found\n")
+        return
+
     job = jobs[0]
     
     sys.stdout.write("Job object after update:\n")
