@@ -1719,18 +1719,17 @@
 ## metrics = name_of_the_metrics - the metrics to be monitored. 
 ## metrics takes a comma-separated list of one or more of the following metrics:
 ## - staging -- number of tasks in different data staging states - not yet implemented
-## - cache -- free cache space - not yet implemented
-## - session -- free session directory space - not yet implemented
-## - heartbeat -- last modification time of A-REX heartbeat - not yet implemented
+## - cache -- free cache space
+## - session -- free session directory space
+## - heartbeat -- last modification time of A-REX heartbeat
 ## - processingjobs -- the number of jobs currently being processed by ARC (jobs
-##                     between PREPARING and FINISHING states)
+##                     between PREPARING and FINISHING states) - not yet implemented
 ## - failedjobs -- the number of failed jobs per last 100 finished
-## - jobstates -- number of jobs in different A-REX internal stages
+## - jobstates -- number of jobs in different A-REX stages
 ## - all -- all of the above metrics
 ## default: all
 ## allowedvalues: staging cache session heartbeat processingjobs failedjobs jobstates all
 #metrics=all
-## TODO which metrics is used by the internal ganglia?
 
 ## frequency = seconds - The period between each information gathering cycle, in seconds.
 ## default: 60
