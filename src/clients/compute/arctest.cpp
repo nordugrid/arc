@@ -318,12 +318,9 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorte
       continue;
     }
   
-    std::string jobdesclang = "nordugrid:jsdl";
+    std::string jobdesclang = "emies:adl";
     if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
       jobdesclang = "nordugrid:xrsl";
-    }
-    else if (ets->ComputingEndpoint->InterfaceName == "org.glite.ce.cream") {
-      jobdesclang = "egee:jdl";
     }
     
     if (!preparedTestJob.UnParse(jobdesc, jobdesclang)) {
