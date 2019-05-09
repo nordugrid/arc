@@ -234,6 +234,12 @@ class GMJobQueue {
   //! Insert job into queue at position defined by sorting. Subject to queue priority.
   bool PushSorted(GMJobRef& ref, comparator_t compare);
 
+  //! Check if queue allows for job to be moved into another queue. Default implementation checks priority.
+  virtual bool CanSwitch(GMJob const& ref, GMJobQueue const& new_queue, bool to_front);
+
+  //! Check if queue allows for job to be removed. Default implementation returns true.
+  virtual bool CanRemove(GMJob const& ref);
+
   //! Returns reference to first job in the queue.
   GMJobRef Front();
 

@@ -113,7 +113,7 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
 	mv $*_wrap.cpp.tmp $*_wrap.cpp
 # Fix python3 relative import problem
-	sed "s/import _$*/from arc &/" < $*.py > $*.py.new
+	sed "s/^\(\s*\)\(import _$*.*\)/\1from arc \2/" < $*.py > $*.py.new
 	mv $*.py.new $*.py
 # In swig 2.0.12 the erase method of the SharedBenchmarkMap type (swig template) uses a wrong name for the wrapped std::map::erase method.
 	sed 's/std_map_Sl_std_string_Sc_double_Sc_std_less_Sl_std_string_Sg__Sc_std_allocator_Sl_std_pair_Sl_std_string_SS_const_Sc_double_Sg__Sg__Sg/std_map_Sl_std_string_Sc_double_Sg/g' $*_wrap.cpp > $*_wrap.cpp.tmp

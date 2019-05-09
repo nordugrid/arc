@@ -677,6 +677,10 @@ namespace Arc {
             while (common["brokerarguments"]) common["brokerarguments"].Destroy();
           }
           HANDLESTRATT("vomsespath", VOMSESPath)
+          while (common["defaultvoms"]) {
+            defaultVomses.push_back((std::string)common["defaultvoms"]);
+            common["defaultvoms"].Destroy();
+          }
           HANDLESTRATT("username", UserName)
           HANDLESTRATT("password", Password)
           HANDLESTRATT("proxypath", ProxyPath)

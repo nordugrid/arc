@@ -10,6 +10,13 @@
 ##########################  DELETED CONFIG OPTIONS  ###################################
 
 
+### The [common] block ##############################################
+
+## voms_trust_chain - Define the DN chain that the host services trust when the
+## voms AC from peer voms proxy certificate is parsed and validated.
+
+
+
 ### The [authgroup:name] (previously [group]) blocks ######################################
 
 ## name authgroup_name - This optional parameter specifies the name of the authgroup.
@@ -85,6 +92,14 @@
 ## CHANGE: DELETED
 
 ## dgbridge_stage_prepend = url - Desktop Bridge url prefix pointing to dgbridge_stage_dir.
+## CHANGE: DELETED
+
+
+### The [lrms/ssh] block ##############################################
+
+## remote_runtimedir = path - Runtime environment directory on cluster frontend to
+## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
+## attribute in the [arex] block.
 ## CHANGE: DELETED
 
 

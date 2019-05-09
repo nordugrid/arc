@@ -214,7 +214,7 @@ sub get_cert_info {
         $issuerca =~ s/^[^=]*= */\//;
         $host_info->{issuerca} = $issuerca;
         $host_info->{hostcert_enddate} = enddate($openssl, $hostcert);
-        system("$openssl x509 -noout -checkend 3600 -in '$hostcert'");
+        system("$openssl x509 -noout -checkend 3600 -in '$hostcert' >/dev/null 2>&1");
         $host_info->{hostcert_expired} = $? ? 1 : 0;
         $log->warning("Host certificate is expired in file: $hostcert") if $?;
     }

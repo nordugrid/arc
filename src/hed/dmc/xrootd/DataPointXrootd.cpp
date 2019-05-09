@@ -54,6 +54,14 @@ namespace ArcDMCXrootd {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Xrootd in non-persistent mode - Xrootd code is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
+
     return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
   }
 
@@ -79,15 +87,16 @@ namespace ArcDMCXrootd {
     }
     props.Set("source", source);
     props.Set("target", dest);
-    props.Set("checkSumMode", "end2end");
-    props.Set("checkSumType", "adler32");
-    // If checksum is known then compare against this
+    // If checksum is known then ask xrootd to check it
     if (CheckCheckSum()) {
       std::list<std::string> csum;
       tokenize(GetCheckSum(), csum, ":");
       if (csum.size() == 2) {
+        props.Set("checkSumMode", "end2end");
         props.Set("checkSumType", csum.front());
         props.Set("checkSumPreset", csum.back());
+      } else {
+        logger.msg(WARNING, "Could not handle checksum %s: skip checksum check", GetCheckSum());
       }
     }
     XrdCl::CopyProcess copy;
@@ -418,6 +427,22 @@ namespace ArcDMCXrootd {
       if (XrdPosixXrootd::Stat(u.plainstr().c_str(), &st) != 0 || st.st_ino == (unsigned long long int)(-1)) {
         logger.msg(VERBOSE, "Could not stat file %s: %s", u.plainstr(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
+      }
+      if (verb & INFO_TYPE_CONTENT) {
+        if (u.HTTPOption("xrdcl.unzip") != "") {
+          logger.msg(WARNING, "Not getting checksum of zip constituent");
+        } else {
+          char buf[256];
+          if (XrdPosixXrootd::Getxattr(u.plainstr().c_str(), "xroot.cksum", &buf, sizeof(buf)) == -1) {
+            logger.msg(WARNING, "Could not get checksum of %s: %s", u.plainstr(), StrError(errno));
+          } else {
+            std::string csum(buf);
+            if (csum.find(' ') != std::string::npos) csum.replace(csum.find(' '), 1, ":");
+            logger.msg(VERBOSE, "Checksum %s", csum);
+            file.SetCheckSum(csum);
+            SetCheckSum(csum);
+          }
+        }
       }
     }
 

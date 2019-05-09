@@ -132,7 +132,8 @@ int main(int argc, char **argv)
       {
         std::cout << urls[i] << std::endl;
         //  Tokenize service URL
-        std::string host, port, endpoint;
+        std::string host, port, endpoint, protocol;
+        bool use_ssl = false;
         if (urls[i].empty())
           {
             logger.msg(Arc::ERROR, "ServiceURL missing");
@@ -146,6 +147,7 @@ int main(int argc, char **argv)
             os<<url.Port();
             port=os.str();
             endpoint=url.Path();
+            protocol=url.Protocol();
           }
 
         if (topics[i].empty())
@@ -153,8 +155,11 @@ int main(int argc, char **argv)
             logger.msg(Arc::ERROR, "Topic missing for a (%s) host.", urls[i]);
             continue;
           }
+        if (protocol == "https") {
+           use_ssl = true;
+        }
         logger.msg(Arc::INFO, "Aggregation record(s) sending to %s", host);
-        aggr = new ArcJura::CARAggregation(host, port, topics[i], sync);
+        aggr = new ArcJura::CARAggregation(host, port, topics[i], sync, use_ssl);
 
         if ( !year.empty() )
           {

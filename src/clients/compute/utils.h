@@ -147,11 +147,13 @@ public:
   bool show_stdout;
   bool show_stderr;
   bool show_joblog;
+  std::string show_file;
   bool usejobname;
   bool forcedownload;
   bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
+  bool show_json;
 
   int testjobid;
   int runtime;

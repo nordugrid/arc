@@ -239,15 +239,10 @@ sub jobs_info ($$@) {
         $lrms_jobs{$id}{comment} = [ "LRMS: Running under boinc" ];
 
         $lrms_jobs{$id}{reqwalltime} = "";
-        $lrms_jobs{$id}{reqcputime} = "";   
+        $lrms_jobs{$id}{reqcputime} = "";
         $lrms_jobs{$id}{rank} = "0";
         # Fix cores to 1 since volunteers download 1 task per core
         $lrms_jobs{$id}{cpus} = "1"; 
-        #if (! exists $$jstatus{$id} || $$jstatus{$id}[1] == 0) {
-        #    $lrms_jobs{$id}{cpus} = "1"; 
-        #} else {
-        #    $lrms_jobs{$id}{cpus} = "$$jstatus{$id}[1]"; 
-        #} 
         if(! exists $$jstatus{$id}) {
             $lrms_jobs{$id}{status} = "O";
         } elsif($$jstatus{$id}[0] eq "R") {

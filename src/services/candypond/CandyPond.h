@@ -49,6 +49,8 @@ class CandyPond: public Arc::Service {
   };
   /** Construct a SOAP error message with optional extra reason string */
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
+  /** Add a Result element to a response */
+  void add_result_element(Arc::XMLNode& results, const std::string& fileurl, CacheLinkReturnCode returncode, const std::string& reason);
   /** CandyPond namespace */
   Arc::NS ns;
   /** A-REX configuration */

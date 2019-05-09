@@ -1,6 +1,7 @@
 [Unit]
 Description=NorduGrid/ARC Information system
 After=syslog.target network.target
+PartOf=arc-infosys-ldap.service
 
 [Service]
 Type=forking

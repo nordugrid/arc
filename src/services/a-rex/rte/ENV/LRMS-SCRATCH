@@ -12,8 +12,8 @@ elif [ "x$1" = "x1" ]; then
         if [ ! -d "${TMPDIR_LOCATION}" ]; then
             mkdir "${TMPDIR_LOCATION}"
             chmod 1777 "${TMPDIR_LOCATION}"
-        if
-        export TMPDIR="${TMPDIR_PATH}"
+        fi
+        export TMPDIR="${TMPDIR_LOCATION}"
     fi
 fi
 

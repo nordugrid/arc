@@ -339,6 +339,11 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('l', "joblog",
               istring("show the CE's error log of the job"),
               show_joblog);
+
+    AddOption('f', "file",
+              istring("show the specified file from job's session directory"),
+              istring("filepath"),
+              show_file);
   }
 
   if (c == CO_GET) {
@@ -373,6 +378,10 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('u', "show-unavailable",
               istring("show jobs where status information is unavailable"),
               show_unavailable);
+
+    AddOption('J', "json",
+              istring("show status information in JSON format"),
+              show_json);
   }
 
   if (c == CO_RESUB) {
