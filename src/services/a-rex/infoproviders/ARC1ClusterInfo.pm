@@ -1408,16 +1408,11 @@ sub collect($) {
           # TODO: check where is this taken
           $cact->{IDFromEndpoint} = "urn:idfe:$jobid" if $jobid;
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
-          # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
           # Set job specification language based on description
           if ($gmjob->{description}) {
                 if ($gmjob->{description} eq 'adl') { 
                     $cact->{JobDescription} = 'emies:adl';
-                } elsif ($gmjob->{description} eq 'jsdl') {
-                    # TODO: Supported version might be more accurate if needed.
-                    $cact->{JobDescription} = 'ogf:jsdl:1.0'; 
-                }
-                else {
+                } else {
                     $cact->{JobDescription} = 'nordugrid:xrsl';
                 }
           } else {
@@ -1617,7 +1612,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -1751,7 +1746,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -1879,7 +1874,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2101,7 +2096,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2305,7 +2300,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2411,7 +2406,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
