@@ -132,20 +132,6 @@ if [ -z "$bdii_user" ]; then
     fi
 fi
 
-# Use this command to change user
-if [ -x /sbin/runuser ]; then
-    RUNUSER=runuser
-else
-    RUNUSER=su
-fi
-
-# If missing, we have a problem
-USERSHELL=${USERSHELL:-"/bin/sh"}
-if [ ! -x ${USERSHELL} ]; then
-    log_failure_msg "Could not find ${USERSHELL}"
-    exit 1
-fi
-
 bdii_location=${CONFIG_bdii_location:-/usr}
 bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 if [ ! -x $bdii_update_cmd ]; then
@@ -200,7 +186,8 @@ start () {
 	exit 1
     fi
 
-    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
+    # path to generated helper scripts is hardcoded (in both systemd unit and sysV scripts)
+    /bin/sh /var/run/arc/infosys/bdii-slapd.cmd
     touch ${slapd_lock_file}
 
     iterlimit=30
@@ -216,11 +203,7 @@ start () {
 	return ${RETVAL}
     fi
 
-    if [ `id -u` = 0 ]; then
-	$RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
-    else
-	${bdii_update_cmd} -c ${BDII_CONF} -d
-    fi
+    /bin/sh /var/run/arc/infosys/bdii-update.cmd
     touch ${update_lock_file}
 
     iterlimit=30

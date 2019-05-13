@@ -4,9 +4,9 @@ Documentation=man:gridftpd(8)
 After=local_fs.target remote_fs.target
 
 [Service]
-Type=forking
-PIDFile=/var/run/gridftpd.pid
-ExecStart=/usr/share/arc/arc-gridftpd-start
+ExecStart=@prefix@/@pkgdatasubdir@/arc-gridftpd-start -F
+SuccessExitStatus=255
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target

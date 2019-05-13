@@ -5,9 +5,9 @@ PartOf=arc-infosys-ldap.service
 
 [Service]
 Type=forking
-PIDFile=/var/run/arc/bdii/db/slapd.pid
-ExecStartPre=/usr/share/arc/create-slapd-config
+ExecStartPre=@prefix@/@pkgdatasubdir@/create-slapd-config
 ExecStart=/bin/sh /var/run/arc/infosys/bdii-slapd.cmd
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target

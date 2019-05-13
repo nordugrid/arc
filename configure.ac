@@ -2350,6 +2350,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/create-bdii-config
                  src/services/ldap-infosys/create-slapd-config
                  src/services/ldap-infosys/arc-infosys-ldap
+                 src/services/ldap-infosys/arc-infosys-ldap.service
+                 src/services/ldap-infosys/arc-infosys-ldap-slapd.service
                  src/services/monitor/Makefile
                  src/services/monitor/monitor
                  src/services/monitor/README
