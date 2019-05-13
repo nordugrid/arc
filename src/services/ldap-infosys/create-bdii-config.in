@@ -411,9 +411,9 @@ if [ ! -x ${USERSHELL} ]; then
 fi
 
 cat <<-EOF > ${bdii_update_helper_cmd}
-    if [ `id -u` = 0 ]; then
-        exec $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
-    else
-        exec ${bdii_update_cmd} -c ${BDII_CONF} -d
-    fi
-    EOF
+if [ \$( id -u ) = 0 ]; then
+    exec $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
+else
+    exec ${bdii_update_cmd} -c ${BDII_CONF} -d
+fi
+EOF
