@@ -27,6 +27,17 @@ add_library_path() {
 prog=arched
 RUN=yes
 
+send_systemd_notify() {
+    # return if no systemd-notify found
+    type systemd-notify >/dev/null 2>&1 || return
+    systemd-notify "$@"
+}
+
+log_failure_msg() {
+    send_systemd_notify --status "Error: $@"
+    echo $@
+}
+
 # sysconfig files
 if [ -r /etc/sysconfig/nordugrid ]; then
     . /etc/sysconfig/nordugrid
@@ -42,7 +53,7 @@ fi
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
 if [ ! -d "$GLOBUS_LOCATION" ]; then
-    echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+    log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
     exit 1
 fi
 export GLOBUS_LOCATION
@@ -50,7 +61,7 @@ export GLOBUS_LOCATION
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 export ARC_LOCATION
@@ -94,12 +105,12 @@ prepare() {
 
     CMD="$ARC_LOCATION/sbin/$prog"
     if [ ! -x "$CMD" ]; then
-        echo "Missing executable"
+        log_failure_msg "Missing $CMD executable"
         exit 1
     fi
 
     if [ ! -r "$ARC_CONFIG" ]; then
-        echo "ARC configuration not found (usually /etc/arc.conf)"
+        log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
         exit 1
     fi
 
@@ -108,7 +119,7 @@ prepare() {
     ALLOWEDDN=`readorigconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
     if [ "$SECURE" = "no" ]; then
         if [ "x$ALLOWEDDN" != "x" ]; then
-            echo "allowed_dn cannot be used with secure=no"
+            log_failure_msg "allowed_dn cannot be used with secure=no"
             exit 1
         fi
     fi
@@ -135,4 +146,4 @@ fi
 
 prepare
 
-exec $CMD
+exec $CMD "$@"
