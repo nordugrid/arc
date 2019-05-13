@@ -1,11 +1,10 @@
 [Unit]
-Description=ARC grid manager
+Description=ARC Remote EXecution service
 After=local_fs.target remote_fs.target
 
 [Service]
-Type=forking
-PIDFile=/var/run/arched-arex.pid
-ExecStart=/usr/share/arc/arc-arex-start
+ExecStart=@prefix@/@pkgdatasubdir@/arc-arex-start -f
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
