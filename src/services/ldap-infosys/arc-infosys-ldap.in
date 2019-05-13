@@ -200,7 +200,8 @@ start () {
 	exit 1
     fi
 
-    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
+    # path to generated helper script is hardcoded (in both systemd unit and sysV scripts)
+    /bin/sh /var/run/arc/infosys/bdii-slapd.cmd
     touch ${slapd_lock_file}
 
     iterlimit=30

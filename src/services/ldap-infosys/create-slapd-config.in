@@ -1,10 +1,22 @@
 #!/bin/bash
 
+# Define logging functions
+send_systemd_notify() {
+    # return if no systemd-notify found
+    type systemd-notify >/dev/null 2>&1 || return
+    systemd-notify "$@"
+}
+
+log_failure_msg() {
+    send_systemd_notify --status "Error: $@"
+    echo $@
+}
+
 # Create slapd config for the NorduGrid/ARC information system
 
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 
@@ -39,13 +51,13 @@ ${arcconfig_parser} -c ${ARC_CONFIG} --save -r ${ARC_RUNCONFIG}
 
 # Check for infosys block
 if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys; then
-    echo "Missing [infosys] configuration block"
+    log_failure_msg "Missing [infosys] configuration block"
     exit 1
 fi
 
 # Check for infosys/ldap block
 if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap; then
-    echo "Missing [infosys/ldap] configuration block"
+    log_failure_msg "Missing [infosys/ldap] configuration block"
     exit 1
 fi
 
@@ -86,7 +98,7 @@ bdii_database=${CONFIG_bdii_database:-"hdb"}
 coreschema=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name core.schema \
     -printf "%h/%f\n" 2>/dev/null)
 if [ "x" = "x$coreschema" ]; then
-    echo "Could not find ldap core schema file"
+    log_failure_msg "Could not find ldap core schema file"
     exit 1
 fi
 
@@ -94,7 +106,7 @@ fi
 glueschemadir=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name Glue-CORE.schema \
     -printf "%h\n" 2>/dev/null)
 if [ "x" = "x$glueschemadir" ]; then
-    echo "Error, could not find glue schema directory under /etc"
+    log_failure_msg "Could not find glue schema directory under /etc"
     exit 1
 fi
 
@@ -115,7 +127,7 @@ else
 fi
 
 if [ -z "$slapd_cmd" ] || [ ! -x "$slapd_cmd" ]; then
-    echo "Could not find ldap server binary, usually /usr/sbin/slapd"
+    log_failure_msg "Could not find ldap server binary, usually /usr/sbin/slapd"
     exit 1
 fi
 
@@ -159,7 +171,7 @@ ldapdirs=
 database=${bdii_database}
 find_ldap_database_module
 if [ -z "${database}" ]; then
-    echo "Could not find ldap ${bdii_database} database module"
+    log_failure_msg "Could not find ldap ${bdii_database} database module"
     exit 1
 fi
 moduleload_bdii="${ldapmodule}"
@@ -182,8 +194,8 @@ if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/index; then
     database=shell
     find_ldap_database_module
     if [ -z "${database}" ]; then
-	echo "Could not find ldap shell database module"
-	exit 1
+        log_failure_msg "Could not find ldap shell database module"
+        exit 1
     fi
     moduleload_shell="${ldapmodule}"
 else
@@ -207,7 +219,10 @@ done
 
 bdii_slapd_conf=${infosys_ldap_run_dir}/bdii-slapd.conf
 rm -f $bdii_slapd_conf
-bdii_slapd_cmd=${infosys_ldap_run_dir}/bdii-slapd.cmd
+
+# Put BDII start command into hardcoded path
+mkdir -p /var/run/arc/infosys
+bdii_slapd_cmd=/var/run/arc/infosys/bdii-slapd.cmd
 rm -f $bdii_slapd_cmd
 
 # Ensure the configuration file is not world-readable,
@@ -325,9 +340,9 @@ chown $bdii_user: $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
 if [ "x$slapd_hostnamebind" = "x*" ]; then
-    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo exec ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 else
-    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo exec ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 fi
 chmod +x ${bdii_slapd_cmd}
 
