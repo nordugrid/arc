@@ -218,7 +218,7 @@ def verify_cert_date(certpath):
     if certpath is None:
         raise CryptoException('Invalid None argument to verify_cert_date().')
 
-    args = ['openssl', 'x509', '-checkend', '-noout', '-in', certpath]
+    args = ['openssl', 'x509', '-checkend', '1', '-noout', '-in', certpath]
 
     p1 = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
