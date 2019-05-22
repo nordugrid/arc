@@ -20,17 +20,16 @@ Important Changes
 -----------------
 
 * Complete overhaul of configuration
-* Validation of the ARC configuration is enforced by A-REX startup scripts. If you have configuration errors then A-REX will not start. [TO_DO: What is status of systemd and config checks?]
+* Validation of the ARC configuration is enforced by A-REX startup scripts. If you have configuration errors then A-REX will not start. 
 * Runtime environments (RTEs) must be explicitly enabled through the new arcctl tool (see below)
 * Renaming of startup scripts and default log files
 
 * The NorduGrid schema is no longer published by default - it must be enabled via the [infosys/nordugrid] block
-* Gridmap files (although still supported) are no longer recommended. VO-based authorisation should be configured as described in http://www.nordugrid.org/documents/arc6/user/reference.html. 
+* Gridmap files (although still supported) are no longer recommended. VO-based authorisation should be configured as described in the installation guide:  http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html#configure-authorization-rules. 
 
 * Nordugrid ARC no longer issues a bundle including documentation, gangliarc and nagios
   ** The documentation is no longer distributed as a separate package with the release.
      You can find the current and up-to-date (but not fully complete) doumentation online: http://www.nordugrid.org/documents/arc6/index.html
-     The old manuals are still available here: http://www.nordugrid.org/manuals.html - but please note that some of the contents is now obsolete. 
   ** The separate gangliarc component is discontinued, instead we now have ganglia integrated into AREX.
      For configuration options, see: http://www.nordugrid.org/documents/arc6/admins/reference.html
   ** Nagios probes have their own release cycle and are no more included in the Nordugrid ARC release.
@@ -38,8 +37,9 @@ Important Changes
      The Nagios packages are still hosted by the Nordugrid repository.
 
 
-* Wallclock has changed to wallclock*cores [TO-DO: More info]
-* [TO-DO - More things?]
+* Wallclock has changed to wallclock*cores [TO-DO: More info - where has this changed?]
+
+
 
 Improvements and new features
 -----------------------------
@@ -59,13 +59,26 @@ Improvements and new features
 * The RTE framework
 **  The RTE framework has got a redesigned architecture and largely extended functionality
   (default, installed, enabled RTEs, introduction of RTE prameters).
-  It is controlled and operated by the arcctl tool.
- ** By enabling the DOCKER RTE, HTCondor batch systems now have docker support
-
+** There are several system RTE's installed together with ARC which you can enable on demand. These are
+*** ENV/CANDYPOND:  makes ARC Candypond client availble on the Worker Nodes and ready to be used
+*** ENV/CONDOR/DOCKER: enables submission to Docker universe in HTCondor backend
+*** ENV/LRMS-SCRATCH: enables the usage of local to WN scratch directory defined by LRMS
+*** ENV/PROXY: copy proxy certificate to the job session directory
+*** ENV/RTE: copy RunTimeEnvironment scripts to the job session directory
 
 * ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS
 
-* The internal job-loop in A-Rex has been re-engineered to be event-driven in order to improve scalability. 
+* Accounting configuration, archive and operations has been restructured to improve typical operation like setting up republishing and gathering stats locally. There is better integration with APEL SSM.
+
+* Mapping is now coupled to authgroup and has different configurable policies for rules processing.
+  For more information see: http://www.nordugrid.org/arc/arc6/admins/reference.html#mapping-block
+
+
+* The internal job-loop in A-Rex has been re-engineered to be event-driven in order to improve scalability.
+* xrootd plugin has been re-written to improve data transfer performance
+* Candypond - Cache and deliver your pilot on-demand data" is introduced  as technology preview - see http://www.nordugrid.org/arc/arc6/tech/data/candypond.html
+* Experimantal Python LRMS released first time for SLURM with SSH access support
+
 
 * Packaging has been restructured:
 ** Streamlined package name scheme
@@ -78,15 +91,11 @@ Improvements and new features
  ** The INTERNAL interface - a special interface aimed for restrictive HPC sites,
     to be used with a local installation of the ARC Control Tower.
 
-* [TO-DO: More?] 
 
 
 Documentation
 ---------------------
 The ARC 6 documentation has been rewritten in a modern format at a new location:  http://www.nordugrid.org/documents/arc6
-
-Parts of the old documentation contained in http://www.nordugrid.org/documents/arc-ce-sysadm-guide.pdf
-is still relevant, however things that have changed from ARC 5 to ARC 6 can only be found in the new documentation, and many things, especially information concerning configuration is obsolete.
 
 Please note that although the most important parts of the ARC 6 documentation are in place, it is still not fully complete.
 If you have questions, please contact us!
@@ -102,6 +111,10 @@ We recommend to install ARC release using the Nordugrid repository.
 Other installation options including access to source code are described in the ARC6 documentation (http://www.nordugrid.org/documents/arc6/admins/index.html). [TO-DO - is it though?]
 
 
+
+NOTE
+---------
+If you are updated from ARC5 with old jura accounting archive already containing records, the conversion process to index the archive structure will be initiated and will cause serious system load until finished. To avoid old archive conversion, you can move records before update.
 
 We build for the following systems:
   * Debian: 7.0 - 9.0 (i386 and amd64)
