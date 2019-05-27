@@ -99,12 +99,14 @@ JobsList::~JobsList(void) {
 }
 
 GMJobRef JobsList::FindJob(const JobId &id) {
+  Glib::RecMutex::Lock lock(jobs_lock);
   std::map<JobId,GMJobRef>::iterator ji = jobs.find(id);
   if(ji == jobs.end()) return GMJobRef();
   return ji->second;
 }
 
 bool JobsList::HasJob(const JobId &id) const {
+  Glib::RecMutex::Lock lock(jobs_lock);
   std::map<JobId,GMJobRef>::const_iterator ji = jobs.find(id);
   return (ji != jobs.end());
 }
@@ -153,7 +155,6 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
 
 bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
   GMJobRef i(new GMJob(id,Arc::User(uid)));
-  jobs[id] = i;
   i->keep_finished=config.KeepFinished();
   i->keep_deleted=config.KeepDeleted();
   i->job_state = state;
@@ -166,11 +167,15 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
+    Glib::RecMutex::Lock lock(jobs_lock);
+    jobs[id] = i;
     RequestReprocess(i); // To make job being properly thrown from system
     return false;
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
+  Glib::RecMutex::Lock lock(jobs_lock);
+  jobs[id] = i;
   RequestAttention(i);
   return true;
 }
@@ -191,23 +196,8 @@ bool JobsList::RunningJobsLimitReached() const {
   return num >= config.MaxRunning();
 }
 
-/*
-int JobsList::ProcessingJobs() const {
-  return jobs_num[JOB_STATE_PREPARING] +
-         jobs_num[JOB_STATE_FINISHING];
-}
-
-int JobsList::PreparingJobs() const {
-  return jobs_num[JOB_STATE_PREPARING];
-}
-
-int JobsList::FinishingJobs() const {
-  return jobs_num[JOB_STATE_FINISHING];
-}
-*/
-
-
 void JobsList::PrepareToDestroy(void) {
+  Glib::RecMutex::Lock lock(jobs_lock);
   for(std::map<JobId,GMJobRef>::iterator i=jobs.begin();i!=jobs.end();++i) {
     i->second->PrepareToDestroy();
   }
@@ -358,9 +348,12 @@ bool JobsList::ActJobsPolling(void) {
   };
   ActJobsProcessing();
   // debug info on jobs per DN
-  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
-  for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
-    logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
+  {
+    Glib::RecMutex::Lock lock(jobs_lock);
+    logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
+    for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
+      logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
+  };
   return true;
 }
 
@@ -904,12 +897,20 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   // check per-DN limit on processing jobs
   // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
-  if ((config.MaxPerDN() > 0) &&
-      (jobs_dn[i->local->DN] >= config.MaxPerDN())) {
-    JobPending(i);
-    // Because we have no event for per-DN limit just do polling
-    RequestPolling(i);
-    return JobSuccess;
+
+
+  if (config.MaxPerDN() > 0) {
+    bool limited = false;
+    {
+      Glib::RecMutex::Lock lock(jobs_lock);
+      limited = (jobs_dn[i->local->DN] >= config.MaxPerDN());
+    }
+    if (limited) {
+      JobPending(i);
+      // Because we have no event for per-DN limit just do polling
+      RequestPolling(i);
+      return JobSuccess;
+    }
   }
   // check for user specified time
   if(i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
@@ -1309,7 +1310,10 @@ bool JobsList::DropJob(GMJobRef& i, job_state_t old_state, bool old_pending) {
     // Report about change in conditions
     RequestAttention(); // TODO: Check if really needed
   };
-  jobs.erase(i->job_id);
+  {
+    Glib::RecMutex::Lock lock(jobs_lock);
+    jobs.erase(i->job_id);
+  };
   i.Destroy();
   return true;
 }
@@ -1421,12 +1425,14 @@ bool JobsList::ActJob(GMJobRef& i) {
           if (i->local->DN.empty()) {
              logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
           }
+          Glib::RecMutex::Lock lock(jobs_lock);
           ++(jobs_dn[i->local->DN]);
         };
       };
     } else if(IS_ACTIVE_STATE(old_state)) {
       if(!IS_ACTIVE_STATE(i->job_state)) {
         if(i->GetLocalDescription(config)) {
+          Glib::RecMutex::Lock lock(jobs_lock);
           if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
         };
       };
