@@ -2,7 +2,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.0.0     xx xxxxx 2019
+Release Notes for NorduGrid ARC  6.0.0     27.05.2019
 -------------------------------------------------------------------------
 
 We are very happy to announce the first release of the ARC 6 release series.
@@ -49,7 +49,7 @@ Important Changes
 
 Bugs fixed since ARC 5
 -----------------------
-A full list of bugs fixed since ARC 5 can be found here: [TO-DO: Create page and add link here.]
+A full list of bugs fixed since ARC 5 can be found here: http://www.nordugrid.org/documents/arc6/common/changelog/bugs-6.0.0.html and at the end of these release notes. 
 
 
 Improvements and new features
@@ -114,7 +114,7 @@ Please note that although the most important parts of the ARC 6 documentation ar
 If you have questions, please contact us!
 
 
-Getting hold of ARC 6 
+Installing ARC 6 
 --------------------------------------------------
 We recommend to install ARC release using the Nordugrid repository.
 * Start with the basics: http://www.nordugrid.org/documents/arc6/admins/try_arc6.html
@@ -147,3 +147,46 @@ If you need help with the configuration file or have any other questions related
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 
 
+
+List of bugs fixed since ARC 5
+------------------------------
+* 895	ARC Administrative tools
+* 1421	No log of backend script problems
+* 3034	arcstat -s is case-sensitive
+* 3106	arcproxy could be more expressive when it finds a problem
+* 3360	SGE and LL backends fail to report correct node OS/system information in GLUE2 infosystem
+* 3384	Support for per-queue authorisation configuration and publishing
+* 3451	Configure number of cpus manually
+* 3476	Crashes in multiple ARC components
+* 3545	Patch for Correct Cores Parsing
+* 3557	undetected job submission in case of heavy filesystem load
+* 3565	Allow setting default VO in ~/.arc/client.conf to be used in arcproxy
+* 3566	Implement RTEs processing without shared directory
+* 3569	Exporting CPU/Wall time limits to Glue2/BDII
+* 3570	Arcsub used 100GB memory
+* 3584	JURA: create one log file per job, not per submission
+* 3624	Data delivery service can only listen to one network interface.
+* 3626	Force GLUE2ComputingManagerTotalLogicalCPUs to be totalcpus when this value is defined in arc.conf
+* 3632	arcproxy fails in Ubunt 16.04, 16.10 and recent Debian systems
+* 3637	arcget with multiple jobs crashes
+* 3643	The watchdog crashes
+* 3662	arcsub crashes
+* 3667	JSON output for arcstat
+* 3674	settings in client.conf ignored
+* 3675	Problems retrieving jobs with arcget 1
+* 3676	Problems retrieving jobs with arcget 2 (first byte missing)
+* 3677	arcproxy fails retrieving attributes from voms
+* 3682	Better error message when DN not in gridmap file
+* 3690	Warnings about missing information on deleted jobs
+* 3695	Slowness with arccp and the xrootd protocol
+* 3700	ARC1ClusterInfo.pm uses netstat
+* 3702	Cannot use arc data commands without certificates
+* 3707	Seg fault Triolith - related or not to the data-staging problems on Triolith
+* 3713	Malformed jobs.dat entries
+* 3722	Xenial repo for the (nordugrid) ARC source is not correct
+* 3756	package update failed to restart A-REX
+* 3772	Can't use different credentials within one submission process when jobs require user input files
+* 3773	Enabling arex-ganglia breaks controldir access
+* 3778	arcctl not working if arc code configured with --disable-swig flag and installed with make install
+* 3788	Poor performance with arccp and HTTPS
+* 3812	A-REX hangs inside XRootd after fork
