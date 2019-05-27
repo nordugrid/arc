@@ -11,7 +11,7 @@ ARC 6 contains major improvements in the deployment, configuration and maintenan
 It also comes with new features and services while some legacy features have been removed.
 
 Although there has been some major re-engineering in the code base (see below),
-the interfaces are unchanged - ARC 5 clients (as of 5.X.Y) are compatible with an ARC 6 CE and vice versa.
+the interfaces are unchanged - ARC 5 clients (as of 5.X.Y - TO-DO which client?) are compatible with an ARC 6 CE and vice versa.
 
 With ARC 6 we hope to have greatly increased the ease of setting up and maintaining an ARC production site. 
 
@@ -49,7 +49,9 @@ Important Changes
 
 Bugs fixed since ARC 5
 -----------------------
-A full list of bugs fixed since ARC 5 can be found here: http://www.nordugrid.org/documents/arc6/common/changelog/bugs-6.0.0.html and at the end of these release notes. 
+A full list of bugs fixed since ARC 5 can be found here:
+http://www.nordugrid.org/documents/arc6/common/changelog/bugs-6.0.0.html
+and at the end of these release notes. 
 
 
 Improvements and new features
@@ -77,7 +79,7 @@ Improvements and new features
 *** ENV/PROXY: copy proxy certificate to the job session directory
 *** ENV/RTE: copy RunTimeEnvironment scripts to the job session directory
 
-* ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS
+* ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS [TO-DO - Aleksandr: did we drop EGIIS support completely, or was it just obsoleted?]
 
 * Accounting configuration, archive and operations has been restructured to improve typical operations
   like setting up republishing and gathering stats locally. There is better integration with APEL SSM.
