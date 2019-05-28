@@ -1,8 +1,7 @@
 =====================
 ARC MIDDLEWARE README
 =====================
-Last updated: 2019-01-16
-`````````````````````````
+
 
 Purpose of this Document
 ========================
@@ -16,8 +15,7 @@ Table of contents
   * What is the ARC Middleware
   * License
   * Getting the software
-  * Installation
-  * Configuration and Testing
+  * Installation and Configuration
   * Contributing
   * Support, Mailing lists
   * Documentation
@@ -46,48 +44,39 @@ Getting the software
 ====================
 All the information about how to get the software is available at
 
-  <http://download.nordugrid.org/>
+  <http://www.nordugrid.org/arc/>
 
 
-Installation
-============
-If you want to install for a specific distribution, see the list of 
-supported distributions here:
+Installation and Configuration
+==============================
+If you are new to ARC and want to give a quick try then please follow our 
+quickstart guide that will give you an ARC Computing Element and introduce you 
+to typical distributed computing workflows in just a few minutes!
 
-  <http://download.nordugrid.org/repos.html>
-  
-And follow the instructions here:
-
-  <http://www.nordugrid.org/documents/arc6/user/index.html>
-
-If you want to build and install the software yourself, please read
-
-  <TBD>
+QUICKSTART GUIDE:
+  <http://www.nordugrid.org/arc/arc6/admins/try_arc6.html>
 
 
-Configuration and Testing
-=========================
-See the official online documentation:
+For production Computing Element deployment follow the 
+Installation and Configuration Guide that contains the pointers to precise 
+configuration of every ARC subsystem.
 
-  <http://www.nordugrid.org/documents/arc6/user/arc6_install_guide.html>
+INSTALLATION and CONFIG GUIDE:
+  <http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html>
 
 
 Contributing
 ============
 The open source development of the ARC middleware is coordinated by
-the NorduGrid Collaboration which is always open to new members.
+the NorduGrid Collaboration. The Technical Coordination Group (TCG) defines 
+outstanding issues that have to be addressed in the framework of ARC development. 
 Contributions from the community to the software and the documentation
-is welcomed. Sources can be downloaded from the software repository
-at <http://download.nordugrid.org> or the Coderefinery gitlab repository
-at <https://https://source.coderefinery.org/nordugrid/arc>
+is welcomed. Sources can be downloaded from the Coderefinery gitlab repository
+at 
 
-The Technical Coordination Group (TCG) defines outstanding issues that 
-have to be addressed in the framework of ARC development. Feature
-requests and enhancement proposals are recorded in the Bugzilla bug
-tracking system at <https://bugzilla.nordugrid.org>. For a more detailed
-description, write access to the code repository and further
-questions, subscribe and write to the *nordugrid-discuss* mailing list:
-  <https://mail.nordugrid.org/mailman/listinfo>
+ARC SOURCE:
+  <https://source.coderefinery.org/nordugrid/arc>
+
 
 Ongoing and completed e-Science research projects and student 
 assignments related to the middleware are listed
@@ -99,10 +88,14 @@ Support, Mailing lists
 User support and site installation assistance is provided via 
 several mailing lists, among which the nordugrid-discuss mailing list 
 is a general forum for all kind of issues related to the ARC middleware. 
+
+MAILING LISTS:
   <https://mail.nordugrid.org/mailman/listinfo>
 
 The Bugzilla problem tracking system accepts requests for features or 
-enhancements, and is the prime medium to track and report problems.
+enhancements, and it is also the prime medium to track and report problems.
+
+BUGZILLA:
   <https://bugzilla.nordugrid.org> 
 
 
@@ -110,11 +103,10 @@ Documentation
 =============
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
-tutorial materials can be fetched from the documentation section of
-  <http://www.nordugrid.org>
-
+tutorial materials can be fetched from the documentation section of the website.
+  
 ARC6 specific documentation is at
-  <http://www.nordugrid.org/documents/arc6/>
+  <http://www.nordugrid.org/arc/arc6/>
 
 
 Contact
