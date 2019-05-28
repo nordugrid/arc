@@ -4,6 +4,5 @@ debian/tmp/usr/bin/wsdl2hed
 debian/tmp/usr/share/man/man1/wsdl2hed.1
 debian/tmp/usr/bin/arcplugin
 debian/tmp/usr/share/man/man1/arcplugin.1
-debian/tmp/usr/lib/pkgconfig/arcbase.pc
 debian/tmp/usr/share/arc/examples/sdk/*.cpp
 debian/tmp/usr/share/arc/examples/sdk/*.h

@@ -1032,7 +1032,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
-%doc README AUTHORS LICENSE NOTICE ChangeLog
+%doc README AUTHORS LICENSE NOTICE
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1361,7 +1361,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/wsdl2hed.1*
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
-%{_libdir}/pkgconfig/arcbase.pc
 
 %files plugins-needed
 %defattr(-,root,root,-)
