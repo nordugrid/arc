@@ -5,8 +5,8 @@ ARC MIDDLEWARE README
 
 Purpose of this Document
 ========================
-This document is meant to introduce the reader to the
-software and to point to existing documentation.
+This document is intended to introduce the reader to the
+software and point to existing documentation.
 
 
 Table of contents
@@ -28,7 +28,7 @@ The Advanced Resource Connector (ARC) middleware, developed by the
 NorduGrid Collaboration (<http://www.nordugrid.org>), is an open source software
 solution enabling e-Science computing infrastructures with emphasis on
 processing of large data volumes. 
-ARC is being used to enable national and international e-infrastructures
+ARC has been used to enable national and international e-infrastructures
 since its first release in 2002.
 
 
@@ -49,7 +49,7 @@ All the information about how to get the software is available at
 
 Installation and Configuration
 ==============================
-If you are new to ARC and want to give a quick try then please follow our 
+If you are new to ARC and want to give it a quick try then please follow our 
 quickstart guide that will give you an ARC Computing Element and introduce you 
 to typical distributed computing workflows in just a few minutes!
 
@@ -58,7 +58,7 @@ QUICKSTART GUIDE:
 
 
 For production Computing Element deployment follow the 
-Installation and Configuration Guide that contains the pointers to precise 
+Installation and Configuration Guide, which contains pointers to precise 
 configuration of every ARC subsystem.
 
 INSTALLATION and CONFIG GUIDE:
@@ -71,8 +71,7 @@ The open source development of the ARC middleware is coordinated by
 the NorduGrid Collaboration. The Technical Coordination Group (TCG) defines 
 outstanding issues that have to be addressed in the framework of ARC development. 
 Contributions from the community to the software and the documentation
-is welcomed. Sources can be downloaded from the Coderefinery gitlab repository
-at 
+are welcomed. Source code can be found in the Coderefinery gitlab repository.
 
 ARC SOURCE:
   <https://source.coderefinery.org/nordugrid/arc>
@@ -86,14 +85,14 @@ on the NorduGrid web site: <http://www.nordugrid.org>
 Support, Mailing lists
 ==============================================
 User support and site installation assistance is provided via 
-several mailing lists, among which the nordugrid-discuss mailing list 
-is a general forum for all kind of issues related to the ARC middleware. 
+several mailing lists including the nordugrid-discuss mailing list which provides 
+a general forum for all kind of issues related to the ARC middleware. 
 
 MAILING LISTS:
   <https://mail.nordugrid.org/mailman/listinfo>
 
 The Bugzilla problem tracking system accepts requests for features or 
-enhancements, and it is also the prime medium to track and report problems.
+enhancements, and it is also the main system for tracking and reporting problems.
 
 BUGZILLA:
   <https://bugzilla.nordugrid.org> 
@@ -103,7 +102,7 @@ Documentation
 =============
 Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
-tutorial materials can be fetched from the documentation section of the website.
+tutorial materials can be found in the documentation section of the website.
   
 ARC6 specific documentation is at
   <http://www.nordugrid.org/arc/arc6/>
