@@ -7,71 +7,49 @@ Release Notes for NorduGrid ARC  6.0.0     27.05.2019
 
 We are very happy to announce the first release of the ARC 6 release series.
 
-ARC 6 contains major improvements in the deployment, configuration and maintenance of ARC CE.
-It also comes with new features and services while some legacy features have been removed.
+ARC 6 comes with major re-engineering in the code base leading to improvements 
+in the deployment, configuration, maintenance and scalability of ARC CE.
+It introduces many new features while some legacy interfaces, components and 
+features have been obsoleted and removed.
 
-Although there has been some major re-engineering in the code base (see below),
-the interfaces are unchanged - ARC 5 clients (as of 5.X.Y - TO-DO which client?) are compatible with an ARC 6 CE and vice versa.
+Despite all the new features and code changes the supported ARC 6 CE interfaces 
+are unchanged - the latest ARC 5 clients are compatible with an ARC 6 CE and vice versa.
 
-With ARC 6 we hope to have greatly increased the ease of setting up and maintaining an ARC production site. 
+With ARC 6 we hope to have greatly increased the ease of setting up, configuring 
+and managing an ARC production site and the internal restructuring resulted in
+increased reliability and scalability of an ARC CE.
 
 
 Important Changes
 -----------------
 
-* Complete overhaul of configuration
-* Validation of the ARC configuration is enforced by A-REX startup scripts.
-  If you have configuration errors then A-REX will not start. 
-* Runtime environments (RTEs) must be explicitly enabled through the new arcctl tool (see below)
-* Renaming of startup scripts and default log files
-
-* The NorduGrid schema is no longer published by default - it must be enabled via the [infosys/nordugrid] block
-* Gridmap files (although still supported) are no longer recommended.
-  VO-based authorisation should be configured as described in the installation guide:
-  http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html#configure-authorization-rules. 
-
-* Nordugrid ARC no longer issues a bundle including documentation, gangliarc and nagios
-  ** The documentation is no longer distributed as a separate package with the release.
-     You can find the current and up-to-date (but not fully complete) doumentation online:
-     http://www.nordugrid.org/documents/arc6/index.html
-  ** The separate gangliarc component is discontinued, instead we now have ganglia integrated into AREX.
-     For configuration options, see: http://www.nordugrid.org/documents/arc6/admins/reference.html
-  ** Nagios probes have their own release cycle and are no more included in the Nordugrid ARC release.
-     The source-code together with the installation instructions can be found here:
-     https://source.coderefinery.org/nordugrid/arc-nagios-plugins
-     The Nagios packages are still hosted by the Nordugrid repository.
-
-
-*  ARC6 client now returns walltime as (walltime)*(number of cores)
-** Known issue: Due to granularity of information in GLUE2 and NorduGRID schema,
-   the GLUE2 schema is more accurate and the returned values might differ by +/- 1 min between the two schemas
-
-
-Bugs fixed since ARC 5
------------------------
-A full list of bugs fixed since ARC 5 can be found here:
-http://www.nordugrid.org/documents/arc6/common/changelog/bugs-6.0.0.html
-and at the end of these release notes. 
-
-
-Improvements and new features
------------------------------
-
-* Major server-side configuration changes
-** Configuration has been cleaned up, regrouped and made more streamlined.
+* Complete overhaul of server-side ARC CE configuration:
+** Configuration has been completely reworked, cleaned up, regrouped and made more streamlined.
+** In particular, the way authorization and user mapping is handled got greatly improved,
+for instance higher granularity vo-based authorization is supported and mapping 
+via gridmap files is no longer required nor recommended. 
 ** ARC now comes with a so-called zero configuration - a preconfigured minimal ARC setup automatically installed with ARC,
    including test-CA and test host certificate for immediate test submission.
-** ARC now operates with a so-called running configuration which is based on arc.conf
-   (which is to be manually edited by the system administrator) but in addition includes any unchanged default values
-   present in ARC. You can get a dump of the running configuration using the arcctl tool.
-** Default values have had a big tidy up and are now handled consistently throughout ARC.
+** Default values have had a big tidy up and are now handled consistently throughout ARC
+runtime configuration. 
+** Configuration blocks are now used to enable (turning on) or disable a functionality, 
+a service or an interface. For example, the NorduGrid schema is no longer published 
+unless it is enabled via the corresponding configuration block.
+** Validation of the ARC configuration is enforced by A-REX startup scripts.
+  If you have configuration errors then A-REX will not start. 
 
-* A new server-side control tool: arcctl has been developed.
-** With this tool you can handle the configuration, the RTEs, the jobs, and many other things related to running an ARC CE.
+* Scalability and manageability improvements:
+** The internal job-loop in A-Rex has been re-engineered to be event-driven
+** xrootd plugin has been re-written to improve data transfer performance
+** consistent handling of server-side logging, improved logfile structure
+** Reworked startup scripts
+** Streamlined package name scheme, ldap services have been separated out, etc..
 
-* The RTE framework
+
+* A new framework for RunTimeEnvironments (RTE):
 **  The RTE framework has got a redesigned architecture and largely extended functionality
     (default, installed, enabled RTEs, introduction of RTE parameters).
+** Runtime environments (RTEs) must be explicitly enabled through the new arcctl tool (see below)
 ** There are several system RTE's installed together with ARC which you can enable on demand. These are
 *** ENV/CANDYPOND:  makes ARC Candypond client availble on the Worker Nodes and ready to be used
 *** ENV/CONDOR/DOCKER: enables submission to Docker universe in HTCondor backend
@@ -79,32 +57,72 @@ Improvements and new features
 *** ENV/PROXY: copy proxy certificate to the job session directory
 *** ENV/RTE: copy RunTimeEnvironment scripts to the job session directory
 
-* ARCHERY has been introduced as the new DNS-based service indexing catalogue retiring the ldap-based EGIIS [TO-DO - Aleksandr: did we drop EGIIS support completely, or was it just obsoleted?]
+* ARCCTL, a new server-side management and control tool for sysadmins has been developed.
+** arcctl is meant to be the central one-stop-shop tool for administrating an ARC CE 
+** With this tool you can handle RTEs, the jobs, accounting, ARC services and many other things related to an ARC CE.
+** arcctl also offers help with integrating 3rd party services and components with an ARC CE such as handling CAs, VOMS, etc..
 
-* Accounting configuration, archive and operations has been restructured to improve typical operations
-  like setting up republishing and gathering stats locally. There is better integration with APEL SSM.
+* JURA Accounting subsystem improvements:
+** Accounting configuration, archive and operations has been restructured to improve typical operations.
+** Improved republishing via arcctl.
+** Better integration with APEL SSM.
+** Archive structure is relying on a database for republishing and gathering stats locally. 
 
-* Mapping is now coupled to authgroup and has different configurable policies for rules processing.
-  For more information see: http://www.nordugrid.org/arc/arc6/admins/reference.html#mapping-block
+* ARCHERY, the new DNS-based service endpoint catalogue for ARC
+** archery-manage package to populate the ARCHERY registry with ARC CE endpoint info
+** Official top-level DNS registry under the nordugrid.org domain
+** ARCHERY-compatible clients to submit and monitor jobs (arc cli, ldap monitor)
+** ARCHERY replaces the OBSOLETED EGIIS service of the ARC 5 release series. 
 
-
-* The internal job-loop in A-Rex has been re-engineered to be event-driven in order to improve scalability.
-* xrootd plugin has been re-written to improve data transfer performance
-* Candypond - Cache and deliver your pilot on-demand data" is introduced as technology preview
-  - see http://www.nordugrid.org/arc/arc6/tech/data/candypond.html
-* Experimantal Python LRMS released first time for SLURM with SSH access support
-
-
-* Packaging has been restructured:
-** Streamlined package name scheme
-** ldap services have been separated out, as for instance WS and INTERNAL submission do not need ldap.
-** The INTERNAL submission plugin is separately packaged.
-
-
-* Two new submission interfaces have been included, both are *technology previews and not for production*
- ** The REST interface - enabled together with the A-Rex Web-Service.
- ** The INTERNAL interface - a special interface aimed for restrictive HPC sites,
+* TECHNOLOGY PREVIEW components:
+** The REST interface - enabled together with the A-Rex Web-Service.
+** The INTERNAL interface - a special interface aimed for restrictive HPC sites,
     to be used with a local installation of the ARC Control Tower.
+** Candypond - "Cache and deliver your pilot on-demand data" service to bring 
+the power of ARC Cache to the pilot job universe.
+** Experimental Python LRMS for SLURM with SSH access support.
+
+* The ARC client and SDK:
+** The client has undergone a major internal cleanup, 
+large number of submission, target retrieval and job description plugins got removed as a result of 
+OBSOLETING third-party interfaces and technologies in ARC
+** new plugins for ARCHERY and the REST And INTERNAL interfaces were implemented.
+** The arcstat cli of the ARC6 client and the underlying SDK now handles walltime
+as (walltime)*(number of cores) for multicore jobs.
+
+
+
+
+REMOVED and obsoleted components
+--------------------------------
+
+ * The separate gangliarc component is discontinued, instead we now have ganglia integrated into AREX.
+     For configuration options, see: http://www.nordugrid.org/documents/arc6/admins/reference.html
+
+
+* Nordugrid ARC no longer issues a bundle including documentation, gangliarc and nagios
+
+
+
+KNOWN Issues
+-------------
+
+* Due to granularity of information in GLUE2 and NorduGRID schema,
+   the GLUE2 schema is more accurate and the returned values might differ 
+   by +/- 1 min between the two schemas
+
+* Nagios probes have their own release cycle and are no more included in the Nordugrid ARC release.
+     The source-code together with the installation instructions can be found here:
+     https://source.coderefinery.org/nordugrid/arc-nagios-plugins
+     The Nagios packages are still hosted by the Nordugrid repository.
+
+
+
+Bugs fixed since ARC 5
+-----------------------
+A full list of bugs fixed since ARC 5 can be found here:
+http://www.nordugrid.org/documents/arc6/common/changelog/bugs-6.0.0.html
+and at the end of these release notes. 
 
 
 
