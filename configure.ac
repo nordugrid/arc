@@ -2441,7 +2441,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/daemon/scripts/arched
                  src/hed/daemon/scripts/arched.service
                  src/hed/daemon/scripts/arched-start
-                 arcbase.pc
                  src/doxygen/Makefile
 ])
 AC_CONFIG_FILES([src/utils/python/arcconfig-parser],
