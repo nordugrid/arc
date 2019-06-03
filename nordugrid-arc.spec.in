@@ -627,7 +627,7 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC pluging for ARC REST interface technology preview.
+ARC plugin for ARC REST interface technology preview.
 
 %if %{with_acix}
 %package acix-core
