@@ -616,6 +616,19 @@ Connector (ARC).
 The ARC internal plugin. A special interface aimed for restrictive HPC sites,
 to be used with a local installation of the ARC Control Tower.
 
+%package plugins-arcrest
+Summary:	ARC REST plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arex = %{version}-%{release}
+
+%description plugins-arcrest
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC pluging for ARC REST interface technology preview.
+
 %if %{with_acix}
 %package acix-core
 Summary:	ARC cache index - core
@@ -1364,7 +1377,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
-%{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.so
@@ -1388,7 +1400,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
-%{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.apd
@@ -1448,6 +1459,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccINTERNAL.apd
+
+%files plugins-arcrest
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccARCREST.so
+%{_libdir}/%{pkgdir}/libaccARCREST.apd
 
 %if %{with_python}
 %files -n python2-%{name}
