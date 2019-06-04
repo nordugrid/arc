@@ -42,7 +42,7 @@ void ARexService::InformationCollector(void) {
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
-        if(thread_count_.WaitForExit()) break;
+        logger_.msg(Arc::ERROR,"Failed to start resource information provider");
         continue; // try again
       };
       while(!run.Wait()) {
