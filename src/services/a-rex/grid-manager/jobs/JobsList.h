@@ -43,8 +43,6 @@ public:
 /// jobs through the state machine. New jobs found through Scan methods are
 /// held in memory until reaching FINISHED state.
 class JobsList {
- public:
-//  typedef std::map<JobId,GMJob>::iterator iterator;
  private:
   bool valid;
 
@@ -52,6 +50,8 @@ class JobsList {
   // TODO: It would be nice to remove it and use status files distribution among
   // subfolders in controldir.
   std::map<JobId,GMJobRef> jobs;         
+
+  mutable Glib::RecMutex jobs_lock;
 
   GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 
@@ -254,6 +254,11 @@ class JobsList {
   /// Associated external processes
   ExternalHelpers helpers;
 
+  // Return iterator to object matching given id or null if not found
+  GMJobRef FindJob(const JobId &id);
+
+  bool HasJob(const JobId &id) const;
+
  public:
   static const int ProcessingQueuePriority = 3;
   static const int AttentionQueuePriority = 2;
@@ -264,16 +269,7 @@ class JobsList {
   ~JobsList(void);
   operator bool(void) { return valid; };
   bool operator!(void) { return !valid; };
-  // std::list methods for using JobsList like a regular list
-  //iterator begin(void) { return jobs.begin(); };
-  //iterator end(void) { return jobs.end(); };
-  //size_t size(void) const { return jobs.size(); };
-  //iterator erase(iterator& i) { return jobs.erase(i); };
 
-  // Return iterator to object matching given id or jobs.end() if not found
-  GMJobRef FindJob(const JobId &id);
-
-  bool HasJob(const JobId &id) const;
   // Information about jobs for external utilities
   // No of jobs in all active states from ACCEPTED and FINISHING
   int AcceptedJobs() const;
