@@ -41,9 +41,51 @@ namespace Arc {
     p += l; size -= l;
     return (void*)p;
   }
+
+  static void* parse_string(int& val, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    stringto(str, val);
+    return r;
+  }
   
+  static void* parse_string(URL& url, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    url = URL(str);
+    return r;
+  }
+  
+  static void* parse_string(std::list<std::string>& strs, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    if(!str.empty()) strs.push_back(str);
+    return r;
+  }
+
+  static void* parse_string(JobState& state, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    state = JobState(str);
+    return r;
+  }
+  
+  static void* parse_string(Time& val, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    val.SetTime(stringtoi(str));
+    return r;
+  }
+
+  static void* parse_string(Period& val, const void* buf, uint32_t& size) {
+    std::string str;
+    void* r = parse_string(str, buf, size);
+    val = Period(str);
+    return r;
+  }
+
   static void serialiseJob(const Job& j, Dbt& data) {
-    const std::string version = "3.0.1";
+    const std::string version = "3.0.2";
     const std::string empty_string;
     const std::string dataItems[] =
       {version, j.IDFromEndpoint, j.Name,
@@ -52,7 +94,46 @@ namespace Arc {
        j.ServiceInformationInterfaceName, j.ServiceInformationURL.fullstr(),
        j.SessionDir.fullstr(), j.StageInDir.fullstr(), j.StageOutDir.fullstr(),
        j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime()),
-       j.DelegationID.size()>0?*j.DelegationID.begin():empty_string};
+       // 3.0.1
+       j.DelegationID.size()>0?*j.DelegationID.begin():empty_string,
+       // 3.0.2
+       j.Type,
+       j.LocalIDFromManager,
+       j.JobDescription,
+       j.State.GetGeneralState(),
+       j.RestartState.GetGeneralState(),
+       Arc::tostring(j.ExitCode),
+       j.ComputingManagerExitCode,
+       j.Error.size()>0?*j.Error.begin():empty_string,
+       Arc::tostring(j.WaitingPosition),
+       j.UserDomain,
+       j.Owner,
+       j.LocalOwner,
+       j.RequestedTotalWallTime,
+       j.RequestedTotalCPUTime,
+       Arc::tostring(j.RequestedSlots),
+       j.RequestedApplicationEnvironment.size()>0?*j.RequestedApplicationEnvironment.begin():empty_string,
+       j.StdIn,
+       j.StdOut,
+       j.StdErr,
+       j.LogDir,
+       j.ExecutionNode.size()>0?*j.ExecutionNode.begin():empty_string,
+       j.Queue,
+       j.UsedTotalWallTime,
+       j.UsedTotalCPUTime,
+       Arc::tostring(j.UsedMainMemory),
+       tostring(j.SubmissionTime.GetTime()),
+       tostring(j.ComputingManagerSubmissionTime.GetTime()),
+       tostring(j.StartTime.GetTime()),
+       tostring(j.ComputingManagerEndTime.GetTime()),
+       tostring(j.EndTime.GetTime()),
+       tostring(j.WorkingAreaEraseTime.GetTime()),
+       tostring(j.ProxyExpirationTime.GetTime()),
+       j.SubmissionHost,
+       j.SubmissionClientName,
+       j.OtherMessages.size()>0?*j.OtherMessages.begin():empty_string,
+       j.ActivityOldID.size()>0?*j.ActivityOldID.begin():empty_string
+      };
     const unsigned nItems = sizeof(dataItems)/sizeof(dataItems[0]);
       
     data.set_data(NULL); data.set_size(0);
@@ -74,7 +155,7 @@ namespace Arc {
     
     std::string version;
     d = parse_string(version, d, size);
-    if ((version == "3.0.0") || (version == "3.0.1")) {
+    if ((version == "3.0.0") || (version == "3.0.1") || (version == "3.0.2")) {
       /* Order of items in record. Version 3.0.0
           {version, j.IDFromEndpoint, j.Name,
            j.JobStatusInterfaceName, j.JobStatusURL.fullstr(),
@@ -84,6 +165,43 @@ namespace Arc {
            j.JobDescriptionDocument, tostring(j.LocalSubmissionTime.GetTime())};
          Version 3.0.1
            ..., j.DelegationID}
+         Version 3.0.2
+             j.Type,
+             j.LocalIDFromManager,
+             j.JobDescription,
+             j.State.GetGeneralState(),
+             j.RestartState.GetGeneralState(),
+             j.ExitCode,
+             j.ComputingManagerExitCode,
+             j.Error,
+             j.WaitingPosition,
+             j.UserDomain,
+             j.Owner,
+             j.LocalOwner,
+             j.RequestedTotalWallTime,
+             j.RequestedTotalCPUTime,
+             j.RequestedSlots,
+             j.RequestedApplicationEnvironment,
+             j.StdIn,
+             j.StdOut,
+             j.StdErr,
+             j.LogDir,
+             j.ExecutionNode,
+             j.Queue,
+             j.UsedTotalWallTime,
+             j.UsedTotalCPUTime,
+             j.UsedMainMemory,
+             j.SubmissionTime,
+             j.ComputingManagerSubmissionTime,
+             j.StartTime,
+             j.ComputingManagerEndTime,
+             j.EndTime,
+             j.WorkingAreaEraseTime,
+             j.ProxyExpirationTime,
+             j.SubmissionHost,
+             j.SubmissionClientName,
+             j.OtherMessages,
+             j.ActivityOldID}
        */
       std::string s;
       d = parse_string(j.IDFromEndpoint, d, size);
@@ -98,11 +216,49 @@ namespace Arc {
       d = parse_string(s, d, size); j.StageInDir = URL(s);
       d = parse_string(s, d, size); j.StageOutDir = URL(s);
       d = parse_string(j.JobDescriptionDocument, d, size);
-      d = parse_string(s, d, size); j.LocalSubmissionTime.SetTime(stringtoi(s));
+      d = parse_string(j.LocalSubmissionTime, d, size);
       j.DelegationID.clear();
-      if (version == "3.0.1") {
+      if ((version == "3.0.1") || (version == "3.0.2")) {
         d = parse_string(s, d, size);
         if(!s.empty()) j.DelegationID.push_back(s);
+        if (version == "3.0.2") {
+          d = parse_string(j.Type, d, size);
+          d = parse_string(j.LocalIDFromManager, d, size);
+          d = parse_string(j.JobDescription, d, size);
+          d = parse_string(j.State, d, size);
+          d = parse_string(j.RestartState, d, size);
+          d = parse_string(j.ExitCode, d, size);
+          d = parse_string(j.ComputingManagerExitCode, d, size);
+          d = parse_string(j.Error, d, size);
+          d = parse_string(j.WaitingPosition, d, size);
+          d = parse_string(j.UserDomain, d, size);
+          d = parse_string(j.Owner, d, size);
+          d = parse_string(j.LocalOwner, d, size);
+          d = parse_string(j.RequestedTotalWallTime, d, size);
+          d = parse_string(j.RequestedTotalCPUTime, d, size);
+          d = parse_string(j.RequestedSlots, d, size);
+          d = parse_string(j.RequestedApplicationEnvironment, d, size);
+          d = parse_string(j.StdIn, d, size);
+          d = parse_string(j.StdOut, d, size);
+          d = parse_string(j.StdErr, d, size);
+          d = parse_string(j.LogDir, d, size);
+          d = parse_string(j.ExecutionNode, d, size);
+          d = parse_string(j.Queue, d, size);
+          d = parse_string(j.UsedTotalWallTime, d, size);
+          d = parse_string(j.UsedTotalCPUTime, d, size);
+          d = parse_string(j.UsedMainMemory, d, size);
+          d = parse_string(j.SubmissionTime, d, size);
+          d = parse_string(j.ComputingManagerSubmissionTime, d, size);
+          d = parse_string(j.StartTime, d, size);
+          d = parse_string(j.ComputingManagerEndTime, d, size);
+          d = parse_string(j.EndTime, d, size);
+          d = parse_string(j.WorkingAreaEraseTime, d, size);
+          d = parse_string(j.ProxyExpirationTime, d, size);
+          d = parse_string(j.SubmissionHost, d, size);
+          d = parse_string(j.SubmissionClientName, d, size);
+          d = parse_string(j.OtherMessages, d, size);
+          d = parse_string(j.ActivityOldID, d, size);
+        }
       }
     }
   }
