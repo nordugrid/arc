@@ -272,7 +272,7 @@ namespace Arc {
     
     std::string version;
     d = parse_string(version, d, size);
-    if ((version == "3.0.0") || (version == "3.0.1")) {
+    if ((version == "3.0.0") || (version == "3.0.1") || (version == "3.0.2")) {
       for (unsigned i = 0; i < n-1; ++i) {
         d = parse_string(attr, d, size);
       }
