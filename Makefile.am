@@ -10,8 +10,4 @@ SUBDIRS = src include $(SWIG_SD) python $(POSUB) debian
 
 DIST_SUBDIRS = src include swig python po debian
 
-EXTRA_DIST = nordugrid-arc.spec \
-	nordugrid-arc.SlackBuild autogen.sh LICENSE NOTICE
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = arcbase.pc
+EXTRA_DIST = nordugrid-arc.spec autogen.sh LICENSE NOTICE

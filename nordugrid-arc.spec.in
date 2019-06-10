@@ -187,7 +187,7 @@
 Name:		@PACKAGE@
 Version:	@baseversion@
 Release:	@fedorarelease@%{?dist}
-Summary:	Advanced Resource Connector Grid Middleware
+Summary:	Advanced Resource Connector Middleware
 Group:		System Environment/Daemons
 License:	ASL 2.0
 URL:		http://www.nordugrid.org/
@@ -314,35 +314,28 @@ Requires:	python-argparse
 
 %description
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-The Advanced Resource Connector (ARC) brings computing resources
-together across institutional boundaries. This concept is commonly
-referred to as a "computational grid". Historically, grids address the
-organization of distributed storage of data and parallel computation,
-but could be expanded to arbitrary services.
-
-Just like the web, ARC has its roots in the IT infrastructure that was
-erected to analyze the experiments for high energy physics at CERN.
-The first release, ARC-0.x, was dependent on Globus, the current
-release keeps that compatibility but can also be used independently.
+The ARC middleware is a software solution that uses distributed computing 
+technologies to enable sharing and federation of computing resources 
+across different administrative and application domains. ARC is used to create 
+distributed infrastructures of various scope and complexity, from campus to 
+national and global deployments.
 
 %package client
-Summary:	ARC command line interface
+Summary:	ARC command line clients
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 
 %description client
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-For the regular user of any ARC-based computational grid,
-this client package contains (or depends on) all packages
-that are needed to submit jobs, query their status and
-retrieve results.
+This client package contains all the CLI tools that are needed to 
+operate with x509 proxies, submit and manage jobs and handle datatransfers.
 
 %package hed
 Summary:	ARC Hosting Environment Daemon
@@ -355,10 +348,10 @@ Requires(postun):	%{service_postun_requires}
 
 %description hed
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-The ARC Hosting Environment Daemon (HED). This daemon is a container for
+The ARC Hosting Environment Daemon (HED) is a Web Service container for
 ARC services.
 
 %package gridftpd
@@ -373,14 +366,12 @@ Requires(postun):	%{service_postun_requires}
 
 %description gridftpd
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the ARC gridftp server which has a plugin framework.
-Current plugins include:
-
-  filedirplugin : Standard gridftp server based on Globus globus-ftp-control
-  jobsplugin : Classical ARC job submission interface
+This package contains the ARC gridftp server which can be used as a custom 
+job submission interface in front of an ARC enabled computing cluster or as a
+low-level dedicated gridftp file server. 
 
 %package datadelivery-service
 Summary:	ARC data delivery service
@@ -395,13 +386,13 @@ Requires(postun):	%{service_postun_requires}
 
 %description datadelivery-service
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the ARC data delivery service.
 
 %package infosys-ldap
-Summary:	ARC local information system
+Summary:	ARC LDAP-based information services 
 Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
@@ -435,15 +426,16 @@ Requires(postun):	policycoreutils
 
 %description infosys-ldap
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the LDAP based information system for ARC.
-This package is not self-contained but is closely connected to
-nordugrid-arc-arex.
+This package contains the ARC information services relying on 
+BDII and LDAP technologies to publish ARC CE information according to 
+various LDAP schemas. Please note that the information collectors are part of 
+another package, the nordugrid-arc-arex.
 
 %package monitor
-Summary:	ARC LDAP monitor service
+Summary:	ARC LDAP monitor web application
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	php
@@ -457,16 +449,15 @@ Obsoletes:	%{name}-ws-monitor < 6.0.0
 
 %description monitor
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the LDAP monitor system for ARC.
-This package is self-contained. It is used to set up a web-based monitor
-which pulls information from the information system and displays it in a
-readable manner.
+This package contains the PHP web application that is used to set up a 
+web-based monitor which pulls information from the LDAP information system 
+and visualizes it.
 
 %package arex
-Summary:	ARC Remote EXecution service
+Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
@@ -506,15 +497,20 @@ Requires(postun):	%{service_postun_requires}
 
 %description arex
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-The ARC Remote EXecution service (AREX) provides a service for the
-execution of compute jobs and the transfer of input or output data.
+The ARC Resource-coupled EXecution service (AREX) is the Computing Element of 
+the ARC middleware. AREX offers a full-featured middle layer to manage 
+computational tasks including interfacing to local batch systems, taking care of
+complex environments such as data staging, data caching, software environment 
+provisioning, information collection and explosure, accounting information 
+gathering and publishing. 
+
 
 %if %{with_pythonlrms}
 %package arex-python-lrms
-Summary:	ARC Remote EXecution service - Python LRMS backends
+Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 Requires:	perl(Inline)
@@ -522,12 +518,13 @@ Requires:	perl(Inline::Python)
 
 %description arex-python-lrms
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 The Python LRMS backends are a new implementation of the AREX LRMS
-backend scripts written in Python as an alternative to the traditional
-Perl implementation. It is released as a technology preview.
+backend scripts written in Python. Currently only the SLURM LRMS is supported.
+It is released as a technology preview.
+
 %endif
 
 %package plugins-needed
@@ -537,7 +534,7 @@ Requires:	%{name} = %{version}-%{release}
 
 %description plugins-needed
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC base plugins. This includes the Message Chain Components (MCCs) and
@@ -555,7 +552,7 @@ Requires:	globus-gssapi-gsi < 12.2
 
 %description plugins-globus
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC Globus plugins. This includes the Globus dependent Data Manager
@@ -569,7 +566,7 @@ Requires:	%{name} = %{version}-%{release}
 
 %description plugins-xrootd
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC xrootd plugins. These allow access to data through the xrootd protocol.
@@ -577,18 +574,18 @@ ARC xrootd plugins. These allow access to data through the xrootd protocol.
 
 %if %{with_gfal}
 %package plugins-gfal
-Summary:	ARC GFAL plugins
+Summary:	ARC GFAL2 plugins
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 
 %description plugins-gfal
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC plugins for GFAL2. This allows third-party transfer and adds support
-for several extra transfer protocols (rfio, dcap, gsidcap). Specific
-protocol support is provided by separate gfal2-plugin packages.
+for several extra transfer protocols (rfio, dcap, gsidcap). Support for specific
+protocols is provided by separate 3rd-party GFAL2 plugin packages.
 %endif
 
 %if %{with_s3}
@@ -599,7 +596,7 @@ Requires:	%{name} = %{version}-%{release}
 
 %description plugins-s3
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC plugins for S3. These allow access to data through the S3 protocol.
@@ -613,10 +610,24 @@ Requires:	%{name}-arex = %{version}-%{release}
 
 %description plugins-internal
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-The ARC internal plugin.
+The ARC internal plugin. A special interface aimed for restrictive HPC sites,
+to be used with a local installation of the ARC Control Tower.
+
+%package plugins-arcrest
+Summary:	ARC REST plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arex = %{version}-%{release}
+
+%description plugins-arcrest
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC plugin for ARC REST interface technology preview.
 
 %if %{with_acix}
 %package acix-core
@@ -644,7 +655,7 @@ Requires:	pyOpenSSL
 
 %description acix-core
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Core components of the ARC Cache Index (ACIX).
@@ -664,7 +675,7 @@ Requires(postun):	%{service_postun_requires}
 
 %description acix-scanner
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Cache scanner component of the ARC Cache Index (ACIX), usually installed
@@ -685,13 +696,13 @@ Requires(postun):	%{service_postun_requires}
 
 %description acix-index
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Index server component of the ARC Cache Index (ACIX), usually installed
 independently of any A-REX installation. This component pulls cache content
-from cache servers and can be queried by clients for the location of cached
-files.
+from ACIX cache scanner servers and can be queried by clients for the location 
+of cached files.
 %endif
 
 %package devel
@@ -705,7 +716,7 @@ Requires:	openssl-devel
 
 %description devel
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Header files and libraries needed to develop applications using ARC.
@@ -721,7 +732,7 @@ Requires:	%{name} = %{version}-%{release}
 
 %description -n python2-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Python 2 bindings for ARC.
@@ -738,14 +749,14 @@ Requires:	%{name} = %{version}-%{release}
 
 %description -n python%{python3_pkgversion}-%{name}
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Python 3 bindings for ARC.
 %endif
 
 %package nordugridmap
-Summary:	The nordugridmap authorization tool
+Summary:	The nordugridmap tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
 Requires:	perl(SOAP::Lite)
@@ -758,11 +769,10 @@ BuildArch:	noarch
 
 %description nordugridmap
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-A prominent tool distributed in this package is the nordugridmap
-script to collect user information from the virtual organizations.
+A simple tool to fetch list of users and eventually generate gridmap files.
 
 %package test-utils
 Summary:	ARC test tools
@@ -773,15 +783,14 @@ Obsoletes:	%{name}-misc-utils < 6.0.0
 
 %description test-utils
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains utilities for various tasks including testing. The
-package is usually not required by users or sysadmins but is mainly for
-developers.
+This package contains a few utilities useful to test various ARC subsystems. The
+package is not required by users or sysadmins and it is mainly for developers.
 
 %package archery-manage
-Summary:	Archery administration
+Summary:	ARCHERY administration tool
 Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
@@ -796,11 +805,11 @@ Requires:   python-ldap
 
 %description archery-manage
 NorduGrid is a collaboration aiming at development, maintenance and
-support of the free Grid middleware, known as the Advanced Resource
+support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the archery-manage utility for administration of
-an archery information system.
+an ARCHERY DNS-embedded service endpoint registry.
 
 %prep
 %setup @fedorasetupopts@
@@ -1032,7 +1041,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
-%doc README AUTHORS LICENSE NOTICE ChangeLog
+%doc README AUTHORS LICENSE NOTICE
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
 %{_libdir}/libarccommon.so.*
@@ -1361,7 +1370,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/wsdl2hed.1*
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
-%{_libdir}/pkgconfig/arcbase.pc
 
 %files plugins-needed
 %defattr(-,root,root,-)
@@ -1369,7 +1377,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
-%{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.so
@@ -1393,7 +1400,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
-%{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %if %{with_ldns}
 %{_libdir}/%{pkgdir}/libaccARCHERY.apd
@@ -1453,6 +1459,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccINTERNAL.apd
+
+%files plugins-arcrest
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccARCREST.so
+%{_libdir}/%{pkgdir}/libaccARCREST.apd
 
 %if %{with_python}
 %files -n python2-%{name}
