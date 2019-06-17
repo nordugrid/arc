@@ -143,7 +143,7 @@ bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
 # PIDFile location handling
-update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
+update_pid_file=$( readlink -m ${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid} )
 
 # forced pidfile location instead of arc.conf-based (if FORCE_ARC_RUNDIR is set)
 if [ -n "$FORCE_ARC_RUNDIR" ]; then
@@ -154,7 +154,7 @@ if [ -n "$FORCE_ARC_RUNDIR" ]; then
         custom_pid_file="${update_pid_file}"
         rm -f "${custom_pid_file}"
     fi
-    update_pid_file="${pid_dir}/bdii-update.pid"
+    update_pid_file="$( readlink -m ${pid_dir}/bdii-update.pid )"
     unset pid_dir
 fi
 
