@@ -99,12 +99,13 @@ if [ -n "$FORCE_ARC_RUNDIR" ]; then
     pid_dir="${FORCE_ARC_RUNDIR}/bdii/db"
     mkdir -p "$pid_dir"
     chown -R ${bdii_user}: "$pid_dir"
-    if [ "x${slapd_pid_file}" != "x${pid_dir}/slapd.pid" ]; then
+    pid_file="$( readlink -m ${pid_dir}/slapd.pid )"
+    if [ "x${slapd_pid_file}" != "x${pid_file}" ]; then
         custom_pid_file="${slapd_pid_file}"
         rm -f "$custom_pid_file"
+        slapd_pid_file="${pid_file}"
     fi
-    slapd_pid_file="$( readlink -m ${pid_dir}/slapd.pid )"
-    unset pid_dir
+    unset pid_dir pid_file
 fi
 
 rm -f "${slapd_pid_file}"

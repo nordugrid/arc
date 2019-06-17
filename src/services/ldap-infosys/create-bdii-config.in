@@ -150,12 +150,13 @@ if [ -n "$FORCE_ARC_RUNDIR" ]; then
     pid_dir="${FORCE_ARC_RUNDIR}/bdii"
     mkdir -p "$pid_dir"
     chown -R ${bdii_user}: "$pid_dir"
-    if [ "x${update_pid_file}" != "x${pid_dir}/bdii-update.pid" ]; then
+    pid_file="$( readlink -m ${pid_dir}/bdii-update.pid )"
+    if [ "x${update_pid_file}" != "x${pid_file}" ]; then
         custom_pid_file="${update_pid_file}"
         rm -f "${custom_pid_file}"
+        update_pid_file="${pid_file}"
     fi
-    update_pid_file="$( readlink -m ${pid_dir}/bdii-update.pid )"
-    unset pid_dir
+    unset pid_dir pid_file
 fi
 
 rm -f "${update_pid_file}"
