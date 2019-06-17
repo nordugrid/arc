@@ -153,7 +153,9 @@ if [ ! -z "$CONFIG_condor_rank" ] ; then
 fi
 
 # proxy
-echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
+if [ -f "${joboption_directory}/user.proxy" ]; then
+  echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+fi
 
 ##############################################################
 # (non-)parallel jobs
