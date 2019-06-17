@@ -187,14 +187,10 @@ start () {
     fi
 
     # path to generated helper scripts is hardcoded (in both systemd unit and sysV scripts)
-    /bin/sh /var/run/arc/infosys/bdii-slapd.cmd
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
     touch ${slapd_lock_file}
 
-    iterlimit=30
-    while [ $iterlimit -ge 0 ] && ! [ -r ${slapd_pid_file} ]; do
-	sleep 1
-	iterlimit=$(expr $iterlimit - 1)
-    done
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd-post.cmd
 
     if ! [ -r "${slapd_pid_file}" ]; then
 	log_failure_msg "$prog slapd failed to start"
@@ -203,14 +199,10 @@ start () {
 	return ${RETVAL}
     fi
 
-    /bin/sh /var/run/arc/infosys/bdii-update.cmd
+    /bin/sh ${infosys_ldap_run_dir}/bdii-update.cmd
     touch ${update_lock_file}
 
-    iterlimit=30
-    while [ $iterlimit -ge 0 ] && ! [ -r ${update_pid_file} ]; do
-	sleep 1
-	iterlimit=$(expr $iterlimit - 1)
-    done
+    /bin/sh ${infosys_ldap_run_dir}/bdii-update-post.cmd
 
     if [ ! -r ${update_pid_file} ]; then
 	log_failure_msg "$prog bdii failed to start"
