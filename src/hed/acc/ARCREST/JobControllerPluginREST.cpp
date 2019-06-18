@@ -293,12 +293,15 @@ namespace Arc {
     url.AddOption("httpputpartial=yes",false);
     switch (resource) {
     case Job::STDIN:
+      if(job.StdIn.empty()) return false;
       url.ChangePath(url.Path() + '/' + job.StdIn);
       break;
     case Job::STDOUT:
+      if(job.StdOut.empty()) return false;
       url.ChangePath(url.Path() + '/' + job.StdOut);
       break;
     case Job::STDERR:
+      if(job.StdErr.empty()) return false;
       url.ChangePath(url.Path() + '/' + job.StdErr);
       break;
     case Job::STAGEINDIR:
