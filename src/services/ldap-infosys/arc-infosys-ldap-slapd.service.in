@@ -1,12 +1,15 @@
 [Unit]
-Description=NorduGrid/ARC Information system
+Description=ARC LDAP-based information services - SLAPD
 After=syslog.target network.target
 PartOf=arc-infosys-ldap.service
 
 [Service]
 Type=forking
+Environment=FORCE_ARC_RUNDIR=/var/run/arc
+PIDFile=/var/run/arc/bdii/db/slapd.pid
 ExecStartPre=@prefix@/@pkgdatasubdir@/create-slapd-config
 ExecStart=/bin/sh /var/run/arc/infosys/bdii-slapd.cmd
+ExecStartPost=/bin/sh /var/run/arc/infosys/bdii-slapd-post.cmd
 NotifyAccess=all
 
 [Install]
