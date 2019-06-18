@@ -218,7 +218,6 @@ namespace Arc {
         continue;
       }
 
-      // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
       std::string product;
       JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
       if (!ures) {
@@ -344,9 +343,9 @@ namespace Arc {
     preparedjobdesc.Identification.ActivityOldID.push_back(jobid);
 
     std::string product;
-    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
+    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
     if (!ures) {
-      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
+      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
       clients.release(ac.Release());
       return false;
     }
