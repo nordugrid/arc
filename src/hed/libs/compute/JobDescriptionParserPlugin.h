@@ -150,8 +150,8 @@ namespace Arc {
      * ones, if that is not the case \ref JobDescriptionParserPluginResult::WrongLanguage "WrongLanguage"
      * should be returned.
      * If the \p language argument
-     * For some languages different dialects exist (e.g. user- and GM- side xRSL,
-     * JSDL, JSDL-POSIX), and if the \p dialect argument is specified the
+     * For some languages different dialects exist (e.g. user- and GM- side xRSL),
+     * and if the \p dialect argument is specified the
      * parsing must strictly conform to that dialect. If the dialect is unknown
      * \ref JobDescriptionParserPluginResult::WrongLanguage "WrongLanguage"
      * should be returned.

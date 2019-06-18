@@ -451,13 +451,13 @@ namespace ARexINTERNAL {
         ARex::JobLocalDescription job_desc;
         std::string jobdesc_str;
         Arc::JobDescriptionResult ures = (*itSubmit).UnParse(jobdesc_str,"emies:adl");
-        Arc::XMLNode jsdl(jobdesc_str);
+        Arc::XMLNode adl(jobdesc_str);
         ARex::JobIDGeneratorINTERNAL idgenerator(endpoint);
         const std::string dummy = "";
 
 
 
-        ARex::ARexJob arexjob(jsdl,*arexconfig,delegation_id,dummy,logger,idgenerator);
+        ARex::ARexJob arexjob(adl,*arexconfig,delegation_id,dummy,logger,idgenerator);
         
         if(!arexjob){
           logger.msg(Arc::ERROR, "%s",arexjob.Failure());

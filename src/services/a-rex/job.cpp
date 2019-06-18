@@ -283,13 +283,13 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
-    Arc::XMLNode jsdldoc;
-    jsdl.New(jsdldoc);
-    jsdldoc.GetDoc(job_desc_str);
+    Arc::XMLNode doc;
+    xmljobdesc.New(doc);
+    doc.GetDoc(job_desc_str);
   };
   make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
 }
@@ -742,13 +742,13 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   return;
 }
 
-bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
+bool ARexJob::GetDescription(Arc::XMLNode& xmljobdesc) {
   if(id_.empty()) return false;
   std::string sdesc;
   if(!job_description_read_file(id_,config_.GmConfig(),sdesc)) return false;
   Arc::XMLNode xdesc(sdesc);
   if(!xdesc) return false;
-  jsdl.Replace(xdesc);
+  xmljobdesc.Replace(xdesc);
   return true;
 }
 

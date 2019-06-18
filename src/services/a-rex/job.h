@@ -84,8 +84,8 @@ class ARexJob {
  public:
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
-  /** Create new job with provided JSDL description */
-  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
+  /** Create new job with provided description */
+  ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
   /** Create new job with provided textual description */
   ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
   operator bool(void) { return !id_.empty(); };
@@ -95,8 +95,8 @@ class ARexJob {
   operator ARexJobFailure(void) { return failure_type_; };
   /** Return ID assigned to job */
   std::string ID(void) { return id_; };
-  /** Fills provided jsdl with job description */
-  bool GetDescription(Arc::XMLNode& jsdl);
+  /** Fills provided xml container with job description */
+  bool GetDescription(Arc::XMLNode& xmljobdesc);
   /** Cancel processing/execution of job */
   bool Cancel(void);
   /** Remove job from local pool */
