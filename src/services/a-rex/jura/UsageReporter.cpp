@@ -17,6 +17,7 @@
 
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
+#include <arc/FileUtils.h>
 
 namespace ArcJura
 {
@@ -80,13 +81,17 @@ namespace ArcJura
     errno=0;
     if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
       {
-        logger.msg(Arc::ERROR, 
-                   "Could not open output directory \"%s\": %s",
-                   out_dir.c_str(),
-                   Arc::StrError(errno)
-                   );
-        closedir(dirp);
-        return -1;
+        if (errno != ENOENT) {
+          logger.msg(Arc::ERROR, "Could not open output directory \"%s\": %s", out_dir, Arc::StrError(errno));
+          closedir(dirp);
+          return -1;
+        } else {
+          logger.msg(Arc::INFO,"Creating the output directory \"%s\"", out_dir.c_str());
+          if (!Arc::DirCreate(out_dir, S_IRWXU, true)) {
+            logger.msg(Arc::ERROR,"Failed to create output directory \"%s\": %s", out_dir, Arc::StrError(errno));
+            return -1;
+          }
+        }
       }
     if (odirp != NULL) {
       closedir(odirp);
