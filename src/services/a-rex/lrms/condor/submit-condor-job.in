@@ -112,9 +112,6 @@ else
     echo "Description = $jobname" >> $LRMS_JOB_DESCRIPT
 fi
 
-# environment
-echo "GetEnv = True" >> $LRMS_JOB_DESCRIPT
-
 # universe
 if [ ! -z $DOCKER_UNIVERSE ] ; then
     echo "Universe = $DOCKER_UNIVERSE" >> $LRMS_JOB_DESCRIPT
@@ -222,7 +219,8 @@ if [ ! -z "$joboption_memory" ] ; then
   fi
   echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
+  # it is important to protect evaluation from undefined ResidentSetSize
+  REMOVE="${REMOVE} || ((ResidentSetSize isnt undefined ? ResidentSetSize : 0) > JobMemoryLimit)"
 fi
 
 ##############################################################
