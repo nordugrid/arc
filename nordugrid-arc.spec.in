@@ -207,6 +207,9 @@ Obsoletes:	%{name}-egiis < 6.0.0
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
+%if %{use_systemd}
+BuildRequires:	systemd-devel
+%endif
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	libuuid-devel
 %else
@@ -853,6 +856,7 @@ fi
 %endif
     --enable-internal \
 %if %{use_systemd}
+     --enable-systemd \
      --with-systemd-units-location=%{_unitdir} \
 %endif
      --disable-doc \
