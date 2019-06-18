@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/stat.h>
 #include <sstream>
 
 #include <glibmm.h>
