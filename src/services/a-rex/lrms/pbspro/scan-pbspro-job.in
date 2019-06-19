@@ -19,9 +19,9 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
-joboption_lrms="pbs"
+joboption_lrms="pbspro"
 lrms_options="pbs_bin_path pbs_log_path"
-queue_options="pbs_queue_node nodememory"
+queue_options="pbs_queue_node"
 
 # define paths and config parser
 basedir=`dirname $0`
@@ -331,7 +331,15 @@ if [ ! "$?" = '0' ] ; then
   sleep 60
   exit 1
 fi
-${PBS_BIN_PATH}/qstat -a 2>/dev/null 1>"$pidslist"
+
+# define and execute qstat
+PBS_QSTAT="${PBS_QSTAT:-qstat}"
+if [ ! -z "$PBS_BIN_PATH" ] ; then
+  PBS_QSTAT="${PBS_BIN_PATH}/${PBS_QSTAT}"
+fi
+
+${PBS_QSTAT} -a 2>/dev/null 1>"$pidslist"
+
 if [ ! "$?" = '0' ] ; then
   rm -f "$pidslist"
   # PBS server down ?
@@ -345,6 +353,7 @@ exclude_completed () {
 
 pids=`cat "$pidslist" | grep '^[0-9][0-9]*\.' | exclude_completed | sed 's/^\([0-9][0-9]*\).*/\1/'`
 rm -f "$pidslist"
+
 # Go through directories
 for ctr_dir in "$@" ; do
   if [ ! -z "$perflogdir" ]; then

@@ -1,9 +1,6 @@
 #!@posix_shell@
-# set -x
 #
-#  Originally based on globus submission script for pbs
-#
-#  Submits job to PBS.
+#  Submits job to Altair PBS.Professional
 #  Input: path to grami file
 #
 # The temporary job script is created for the submission and then removed 
@@ -11,9 +8,9 @@
 
 echo "----- starting submit_pbs_job -----" 1>&2
 
-joboption_lrms="pbs"
+joboption_lrms="pbspro"
 lrms_options="pbs_bin_path pbs_log_path"
-queue_options="pbs_queue_node nodememory"
+queue_options="pbs_queue_node"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -55,21 +52,24 @@ RTE_stage0
 ##############################################################
 mktempscript
 
-
-PBS_QSUB='qsub -r n -S /bin/bash -m n '
+PBS_QSUB=${PBS_QSUB:-"qsub"}
 if [ ! -z "$PBS_BIN_PATH" ] ; then
   PBS_QSUB=${PBS_BIN_PATH}/${PBS_QSUB}
 fi
 
-is_cluster=true
-
 ##############################################################
 # Start job script
 ##############################################################
-echo "# PBS batch job script built by arex" > $LRMS_JOB_SCRIPT
+echo "# PBSPro batch job script built by arex" > $LRMS_JOB_SCRIPT
+# use /bin/bash as a top shell
+echo "#PBS Shell_Path_List=/bin/bash" >> $LRMS_JOB_SCRIPT
+# no PBS native mailing
+echo "#PBS -WMail_Points=n" >> $LRMS_JOB_SCRIPT
+# no re-run
+echo "#PBS -r n" >> $LRMS_JOB_SCRIPT
 # write PBS output to 'comment' file
-echo "#PBS -e '${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
-echo "#PBS -j eo">> $LRMS_JOB_SCRIPT
+echo "#PBS Output_Path='${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
+echo "#PBS Join_Path=oe" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
@@ -80,77 +80,90 @@ fi
 # priority
 ##############################################################
 if [ ! -z "$joboption_priority" ]; then
-  #first we must scale priority.  PBS: -1024 -> 1023 ARC: 0-100
+  #first we must scale priority.  PBS: -1024 -> +1023 ARC: 0-100
   priority=$((joboption_priority * (1024+1023) / 100))
   priority=$((priority-1024))
   echo "#PBS -p ${priority}" >> $LRMS_JOB_SCRIPT
 fi
 
-
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then
-  echo "#PBS -A $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
+  echo "#PBS Account_Name=$joboption_rsl_project" >> $LRMS_JOB_SCRIPT
 fi
+
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then
   jobname=`echo "$joboption_jobname" | \
            sed 's/^\([^[:alpha:]]\)/N\1/' | \
            sed 's/[^[:alnum:]]/_/g' | \
 	   sed 's/\(...............\).*/\1/'`
-  echo "#PBS -N '$jobname'" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -WJob_Name='$jobname'" >> $LRMS_JOB_SCRIPT
 fi
 echo "PBS jobname: $jobname" 1>&2
 
 ##############################################################
-# (non-)parallel jobs
+# Set resource requirements
 ##############################################################
 
+# incorporate defaults
 set_count
+set_req_mem
 
-if [ "$joboption_count" = "1" ] ; then
-  nodes_string="#PBS -l nodes=1"
-else
-  if [ ! -z $joboption_numnodes ] ; then
-    nodes_string="#PBS -l nodes=${joboption_numnodes}"
-  else
-#in case no countpernode is requested in job, numnodes will also not be set, use count instead
-    nodes_string="#PBS -l nodes=${joboption_count}"
+# set memory select string
+if [ ! -z "$joboption_memory" ] ; then
+  memreq="${joboption_memory}"
+  if [ -n "$joboption_count" ] && [ $joboption_count -gt 0 ] ; then
+     memreq=$(( $joboption_count * $memreq ))
   fi
+  memreq=":mem=${memreq}mb"
 fi
 
-if [ ! -z $joboption_countpernode ] && [ $joboption_countpernode -gt 0 ] ; then
-  nodes_string="${nodes_string}:ppn=${joboption_countpernode}"
+# single-process/parallel jobs
+if [ "$joboption_count" = "1" ] ; then
+  select_string="#PBS -l select=1:ncpus=1${memreq}"
+  place_string="#PBS -l place=free"
+elif [ -n "$joboption_numnodes" ] ; then
+  # joboption_numnodes set by A-REX when 'countpernode' is defined in job description
+  select_string="#PBS -l select=${joboption_numnodes}:ncpus=${joboption_countpernode:-1}${memreq}"
+  place_string="#PBS -l place=free"
+else
+  # no countpernode is requested - job use count as a number of chunks
+  select_string="#PBS -l select=${joboption_count}:ncpus=1${memreq}"
+  place_string="#PBS -l place=pack"
 fi
 
+# add extra requirements from arc.conf
 if [ ! -z "$CONFIG_pbs_queue_node" ] ; then
-  nodes_string="${nodes_string}:${CONFIG_pbs_queue_node}"
+  select_string="${select_string}:${CONFIG_pbs_queue_node}"
 fi
 
+# exclusice execution
+if [ "$joboption_exclusivenode" = "true" ]; then
+  place_string="${place_string}:excl"
+fi
+
+# node properties (TODO: can be set in RTE only?)
 i=0
 eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
   eval "var_value=\${joboption_nodeproperty_$i}"
-  nodes_string="${nodes_string}:${var_value}"
+  select_string="${select_string}:${var_value}"
   i=$(( $i + 1 ))
   eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
 done
-echo "$nodes_string" >> $LRMS_JOB_SCRIPT
 
-# exclusice execution:
-# there is no standard way to express this in PBS. 
-# One way would be to request a full nodes memory,
-# but this is only feasible on a cluster with 
-# homogenous nodes
-
+echo "${select_string}" >> $LRMS_JOB_SCRIPT
+echo "${place_string}" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Execution times (minutes)
 ##############################################################
+
 if [ ! -z "$joboption_cputime" ] ; then
 # TODO: parallel jobs, add initialization time, make walltime bigger, ...
 # is cputime for every process ?
   if [ $joboption_cputime -lt 0 ] ; then
-    echo 'WARNING: Less than 0 cpu time requested: $joboption_cputime' 1>&2
+    echo 'WARNING: Less than 0 CPU time requested: $joboption_cputime' 1>&2
     joboption_cputime=0
     echo 'WARNING: cpu time set to 0' 1>&2
   fi
@@ -169,7 +182,7 @@ fi
 
 if [ ! -z "$joboption_walltime" ] ; then
   if [ $joboption_walltime -lt 0 ] ; then
-    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
+    echo 'WARNING: Less than 0 walltime requested: $joboption_walltime' 1>&2
     joboption_walltime=0
     echo 'WARNING: wall time set to 0' 1>&2
   fi
@@ -179,46 +192,10 @@ if [ ! -z "$joboption_walltime" ] ; then
   echo "#PBS -l walltime=${walltime_min}:${walltime_sec}" >> $LRMS_JOB_SCRIPT
 fi
 
+
 ##############################################################
-# Requested memory (mb)
+#  PBS stage in/out
 ##############################################################
-
-set_req_mem
-
-#pmem and pvmem are per process, and enforced by PBS via setting up memory ulimit.
-#But in case of using threads - single process is used and limited to per-process memory.
-#To support correct operation of threaded apps in PBS - submit-pbs-job set the general job memory (vmem)
-
-#Moreover according to the PBS manuals, setting vmem is supported on the sufficiently 
-#bigger ammount of operating systems then pvmem.
-
-if [ ! -z "$joboption_memory" ] ; then
-  memreq="${joboption_memory}"
-  if [ ! -z $joboption_count ] && [ $joboption_count -gt 0 ] ; then
-     memreq=$(( $joboption_count * $memreq ))
-  fi
-fi
-
-#requested memory is used to simulate exclusive execution
-if [ "$joboption_exclusivenode" = "true" ]; then
- # using nodememory as maximum mem
-  if [ -n "${CONFIG_nodememory}" ] ; then
-   tempmem=`expr $CONFIG_nodememory / $joboption_countpernode `
-   if [ -n "$memreq" ]; then
-     if [ "${tempmem}" -gt "${memreq}" ] ; then
-       memreq="${tempmem}"
-     fi
-   else
-     memreq="${tempmem}"
-   fi
-  else
-    echo "WARNING: Could not set memory limit to simulate exclusive execution." 1>&2
-  fi 
-fi
-
-if [ ! -z "$memreq" ] ; then
-  echo "#PBS -l vmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
-fi
 
 gate_host=`uname -n`
 if [ -z "$gate_host" ] ; then 
@@ -228,9 +205,6 @@ if [ -z "$gate_host" ] ; then
   exit 1
 fi
 
-##############################################################
-#  PBS stage in/out
-##############################################################
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
   (
     cd "$joboption_directory"
@@ -239,7 +213,7 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
       rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
       echo "Submission: Configuration error.">>"$failures_file"
       exit 1
-    fi
+    i
     scratch_dir=`dirname "$joboption_directory"`
     echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
     echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
@@ -408,7 +382,7 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
     start_ts=`date +%s.%N`
   fi
 
-  ${PBS_QSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+  ${PBS_QSUB} $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   PBS_RESULT="$?"
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
