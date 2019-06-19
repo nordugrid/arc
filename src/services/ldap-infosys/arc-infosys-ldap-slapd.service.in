@@ -2,6 +2,7 @@
 Description=ARC LDAP-based information services - SLAPD
 After=syslog.target network.target
 PartOf=arc-infosys-ldap.service
+StopWhenUnneeded=true
 
 [Service]
 Type=forking
