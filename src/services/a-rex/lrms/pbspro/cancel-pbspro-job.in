@@ -1,0 +1,43 @@
+#!@posix_shell@
+# set -x
+# 
+#  Cancel job running in PBS.
+# 
+
+echo "----- starting cancel_pbs_job -----" 1>&2
+
+joboption_lrms="pbs"
+lrms_options="pbs_bin_path pbs_log_path"
+queue_options="pbs_queue_node nodememory"
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
+
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
+
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
+
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
+
+# define and execute qdel
+PBS_QDEL='qdel'
+if [ ! -z "$PBS_BIN_PATH" ] ; then
+  PBS_QDEL="${PBS_BIN_PATH}/${PBS_QDEL}"
+fi
+
+echo executing qdel with job id $joboption_jobid 1>&2
+"${PBS_QDEL}" "${joboption_jobid}"
+
+echo "----- exiting cancel_pbs_job -----" 1>&2
+echo "" 1>&2
+exit 0
+
