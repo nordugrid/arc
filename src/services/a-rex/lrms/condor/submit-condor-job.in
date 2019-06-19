@@ -131,10 +131,16 @@ fi
 # notification
 echo "Notification = Never" >> $LRMS_JOB_DESCRIPT
 
-# requirements
+# no job restart
+REQUIREMENTS="(NumJobStarts == 0)"
+RERIODIC_REMOVE="(JobStatus == 1 && NumJobStarts > 0)"
+
+# custom requirements
 if [ ! -z "$CONFIG_condor_requirements" ] ; then
-  echo "Requirements = $CONFIG_condor_requirements" >> $LRMS_JOB_DESCRIPT
+  # custom requirement from arc.conf
+  REQUIREMENTS="${REQUIREMENTS} && ( $CONFIG_condor_requirements )"
 fi
+echo "Requirements = ${REQUIREMENTS}" >> $LRMS_JOB_DESCRIPT
 
 #####################################################
 # priority
@@ -175,7 +181,6 @@ fi
 # Execution times (minutes)
 ##############################################################
 
-REMOVE="FALSE"
 
 if [ ! -z "$joboption_cputime" ] ; then
   if [ $joboption_cputime -lt 0 ] ; then
@@ -185,7 +190,7 @@ if [ ! -z "$joboption_cputime" ] ; then
   fi
   maxcputime=$(( $joboption_cputime / $joboption_count ))
   echo "+JobCpuLimit = $joboption_cputime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
+  RERIODIC_REMOVE="${RERIODIC_REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
   
 fi  
   
@@ -203,7 +208,7 @@ if [ ! -z "$joboption_walltime" ] ; then
     echo 'WARNING: wall time set to 0' 1>&2
   fi
   echo "+JobTimeLimit = $joboption_walltime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteWallClockTime > JobTimeLimit"
+  RERIODIC_REMOVE="${RERIODIC_REMOVE} || RemoteWallClockTime > JobTimeLimit"
 fi
 
 ##############################################################
@@ -222,7 +227,7 @@ if [ ! -z "$joboption_memory" ] ; then
   fi
   echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
+  RERIODIC_REMOVE="${RERIODIC_REMOVE} || ResidentSetSize > JobMemoryLimit"
 fi
 
 ##############################################################
@@ -245,7 +250,7 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
   )
 fi
 
-echo "Periodic_remove = ${REMOVE}" >> $LRMS_JOB_DESCRIPT
+echo "Periodic_remove = ${RERIODIC_REMOVE}" >> $LRMS_JOB_DESCRIPT
 echo "Queue" >> $LRMS_JOB_DESCRIPT
 
 echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
