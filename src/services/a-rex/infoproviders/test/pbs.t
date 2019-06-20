@@ -16,8 +16,8 @@ $suite->test("basic", sub {
 # Defines behaviour for:
 #    qmgr -c list server
 #    pbsnodes -a
-#    qstat -f -1
-#    qstat -Q -f -1
+#    qstat -f
+#    qstat -Q -f
 
 #######################################
 args="qmgr -c list server"
@@ -55,11 +55,11 @@ node1
 ENDF
 
 #######################################
-args="qstat -f -1"
+args="qstat -f"
 output=""
 
 #######################################
-args="qstat -Q -f -1"
+args="qstat -Q -f"
 output=<<<ENDF
 Queue: queue1
     queue_type = Execution
