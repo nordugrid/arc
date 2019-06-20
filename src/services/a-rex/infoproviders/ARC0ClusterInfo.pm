@@ -272,7 +272,21 @@ sub collect($) {
         }
         $c->{'cache-free'} = $host_info->{cache_free};
         $c->{'cache-total'} = $host_info->{cache_total};
-        $c->{runtimeenvironment} = [ sort keys %$rte_info ];
+        # get rid of case duplicates in rtes.
+        my @rte_tmp = sort { "\L$a" cmp "\L$b"} (sort keys %$rte_info);
+        my @rtes;
+        foreach my $i (0 .. $#rte_tmp) {
+			if ($i == 0) {
+				push @rtes,$rte_tmp[$i];
+			} elsif ( $i > 0 and $i < $#rte_tmp ) {
+				if ( $rte_tmp[$i] =~ /^\Q$rtes[$#rtes]\E\z/i ) {
+				next;
+				} else {
+					push @rtes,$rte_tmp[$i];
+				}
+			}
+		}
+        $c->{runtimeenvironment} = \@rtes;
         push @{$c->{middleware}}, "nordugrid-arc-".$config->{arcversion};
         push @{$c->{middleware}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
         push @{$c->{middleware}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
