@@ -76,6 +76,8 @@ class ARexJob {
     this instance. */ 
   bool is_allowed(bool fast = false);
   ARexGMConfig& config_;
+  uid_t uid_; /* local user id this job is mapped to - not always same as in config_.user_ */
+  gid_t gid_;
   JobLocalDescription job_;
   bool make_job_id(void);
   bool delete_job_id(void);
