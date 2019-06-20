@@ -122,12 +122,13 @@ sub read_qstat_fQ ($) {
     my ( $path ) = shift;
     my ( %hoh_qstat );
 
-    unless (open QSTATOUTPUT, "$path/qstat -Q -f -1 2>/dev/null |") {
-        error("Error in executing qstat: $path/qstat -Q -f -1");
+    unless (open QSTATOUTPUT, "$path/qstat -Q -f 2>/dev/null |") {
+        error("Error in executing qstat: $path/qstat -Q -f");
     }
 
     my $current_queue = undef;
 
+    my ($qstat_var,$qstat_value) = ();
     while (my $line= <QSTATOUTPUT>) {
         chomp($line);
         if ($line =~ /^$/) {next};
@@ -137,9 +138,16 @@ sub read_qstat_fQ ($) {
         }
         if ( ! defined $current_queue ) {next};
         if ($line =~ m/ = /) {
-            my ($qstat_var,$qstat_value) = split("=", $line, 2);
+            ($qstat_var,$qstat_value) = split("=", $line, 2);
             $qstat_var =~ s/^\s+|\s+$//g;
             $qstat_value =~ s/^\s+|\s+$//g;
+            $hoh_qstat{$current_queue}{$qstat_var} = $qstat_value;
+        }
+        # older PBS versions has no '-1' support
+        # a line starting with a tab is a continuation line
+        if ( $line =~ m/^\t(.+)$/ ) {
+            $qstat_value .= $1;
+            $qstat_value =~ s/\s+$//g;
             $hoh_qstat{$current_queue}{$qstat_var} = $qstat_value;
         }
     }
@@ -157,12 +165,13 @@ sub read_qstat_f ($) {
     my ( $path ) = shift;
     my ( %hoh_qstat );
 
-    unless (open QSTATOUTPUT, "$path/qstat -f -1 2>/dev/null |") {
-        error("Error in executing qstat: $path/qstat -f -1");
+    unless (open QSTATOUTPUT, "$path/qstat -f 2>/dev/null |") {
+        error("Error in executing qstat: $path/qstat -f");
     }
 
     my $jobid = undef;
 
+    my ($qstat_var,$qstat_value) = ();
     while (my $line= <QSTATOUTPUT>) {
         chomp($line);
         if ($line =~ /^$/) {next};
@@ -172,9 +181,16 @@ sub read_qstat_f ($) {
         }
         if ( ! defined $jobid ) {next};
         if ($line =~ m/ = /) {
-            my ($qstat_var,$qstat_value) = split("=", $line, 2);
+            ($qstat_var,$qstat_value) = split("=", $line, 2);
             $qstat_var =~ s/^\s+|\s+$//g;
             $qstat_value =~ s/^\s+|\s+$//g;
+            $hoh_qstat{$jobid}{$qstat_var} = $qstat_value;
+        }
+        # older PBS versions has no '-1' support
+        # a line starting with a tab is a continuation line
+        if ( $line =~ m/^\t(.+)$/ ) {
+            $qstat_value .= $1;
+            $qstat_value =~ s/\s+$//g;
             $hoh_qstat{$jobid}{$qstat_var} = $qstat_value;
         }
     }
