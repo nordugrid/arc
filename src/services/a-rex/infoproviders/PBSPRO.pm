@@ -337,10 +337,6 @@ sub cluster_info ($) {
     # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
     my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
 
-    error("The given flavour of PBS $lrms_cluster{lrms_type} is not supported")
-        unless grep {$_ eq lc($lrms_cluster{lrms_type})}
-            qw(openpbs spbs torque pbspro);
-
     $lrms_cluster{totalcpus} = 0;
     my ($number_of_running_jobs) = 0;
     $lrms_cluster{cpudistribution} = "";
@@ -494,24 +490,10 @@ sub queue_info ($$) {
 
     # publish queue limits parameters
     # general limits (publish as is)
-    my (%keywords);
-    my (%keywords_all) = ( 'max_running' => 'maxrunning',
+    my (%keywords) = ( 'max_running' => 'maxrunning',
                    'max_user_run' => 'maxuserrun',
-                   'max_queuable' => 'maxqueuable' );
-
-    # TODO: MinSlots, etc.
-    my (%keywords_torque) = ( 'resources_max.procct' => 'MaxSlotsPerJob' );
-
-    my (%keywords_pbspro) = ( 'resources_max.ncpus' => 'MaxSlotsPerJob' );
-
-    get_pbs_version($config);
-    if ( $lrms_type eq lc "torque" ) {
-        %keywords = (%keywords_all, %keywords_torque);
-    } elsif ( $lrms_type eq lc "pbspro" ) {
-        %keywords = (%keywords_all, %keywords_pbspro);
-    } else {
-        %keywords = %keywords_all;
-    }
+                   'max_queuable' => 'maxqueuable',
+                   'resources_max.ncpus' => 'MaxSlotsPerJob');
 
     foreach my $k (keys %keywords) {
     if (defined $qstat{$k} ) {
