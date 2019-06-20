@@ -5,6 +5,7 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <memory>
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../conf/GMConfig.h"
