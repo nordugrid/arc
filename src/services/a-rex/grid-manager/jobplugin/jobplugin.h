@@ -5,7 +5,7 @@
 #include <list>
 #include <vector>
 #include <iostream>
-#include <memory>
+#include <arc/Utils.h>
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../conf/GMConfig.h"
@@ -66,7 +66,7 @@ class JobPlugin: public FilePlugin {
   std::string control_dir;
   std::vector<std::string> session_dirs;
   std::vector<std::string> session_dirs_non_draining;
-  std::unique_ptr<DirectUserFilePlugin> chosenFilePlugin;
+  Arc::AutoPointer<DirectUserFilePlugin> chosenFilePlugin;
  public:
   JobPlugin(std::istream &cfile,userspec_t &user,FileNode &node);
   ~JobPlugin(void);

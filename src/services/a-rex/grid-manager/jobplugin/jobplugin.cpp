@@ -75,7 +75,7 @@ typedef struct {
 class DirectUserFilePlugin: public DirectFilePlugin {
  public:
   DirectUserFilePlugin(std::string const& sd, uid_t suid, gid_t sgid, userspec_t& user):
-     DirectFilePlugin(*std::unique_ptr<std::istream>(make_config(sd, suid, sgid)), user),
+     DirectFilePlugin(*Arc::AutoPointer<std::istream>(make_config(sd, suid, sgid)), user),
      uid(suid), gid(sgid) {
   }
 
@@ -296,7 +296,7 @@ int JobPlugin::makedir(std::string &dname) {
     error_description="Can't create subdirectory in a special directory.";
     return 1;
   };
-  std::unique_ptr<DirectUserFilePlugin> fp(makeFilePlugin(id));
+  Arc::AutoPointer<DirectUserFilePlugin> fp(makeFilePlugin(id));
   int r;
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(fp);
@@ -343,7 +343,7 @@ int JobPlugin::removefile(std::string &name) {
     error_description="Special directory can't be mangled.";
     return 1; /* can delete status directory */
   };
-  std::unique_ptr<DirectUserFilePlugin> fp(makeFilePlugin(id));
+  Arc::AutoPointer<DirectUserFilePlugin> fp(makeFilePlugin(id));
   int r;
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(fp);
@@ -398,7 +398,7 @@ int JobPlugin::removedir(std::string &dname) {
     error_description="Special directory can't be mangled.";
     return 1;
   };
-  std::unique_ptr<DirectUserFilePlugin> fp(makeFilePlugin(id));
+  Arc::AutoPointer<DirectUserFilePlugin> fp(makeFilePlugin(id));
   int r;
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(fp);
@@ -440,7 +440,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       return 1;
     }
     config.SetControlDir(controldir);
-    chosenFilePlugin.reset(makeFilePlugin(fname));
+    chosenFilePlugin = makeFilePlugin(fname);
     if(logname) {
       if((*logname) != 0) {
         if(strncmp(logname,"proxy",5) == 0) {
@@ -501,7 +501,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
         };
         logger.msg(Arc::INFO, "Accepting submission of new job or modification request: %s", job_id);
         rsl_opened=true;
-        chosenFilePlugin.reset(makeFilePlugin(job_id));
+        chosenFilePlugin = makeFilePlugin(job_id);
         return 0;
       };
     };
@@ -519,7 +519,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       config.SetSessionRoot(sessiondir);
     }
     config.SetControlDir(controldir);
-    chosenFilePlugin.reset(makeFilePlugin(id));
+    chosenFilePlugin = makeFilePlugin(id);
     store_job_id = id;
     logger.msg(Arc::INFO, "Storing file %s", name);
     if(spec_dir) {
@@ -548,7 +548,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
 }
 
 int JobPlugin::close(bool eof) {
-  if(!initialized || chosenFilePlugin == NULL) return 1;
+  if(!initialized || !chosenFilePlugin) return 1;
   if(!rsl_opened) {
     // file transfer finished
     int r = 0;
@@ -1007,7 +1007,7 @@ int JobPlugin::close(bool eof) {
 }
 
 int JobPlugin::read(unsigned char *buf,unsigned long long int offset,unsigned long long int *size) {
-  if(!initialized || chosenFilePlugin == NULL) {
+  if(!initialized || !chosenFilePlugin) {
     error_description="Transfer is not initialised.";
     return 1;
   };
@@ -1022,7 +1022,7 @@ int JobPlugin::read(unsigned char *buf,unsigned long long int offset,unsigned lo
 }
 
 int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned long long int size) {
-  if(!initialized || chosenFilePlugin == NULL) {
+  if(!initialized || !chosenFilePlugin) {
     error_description="Transfer is not initialised.";
     return 1;
   };
@@ -1157,7 +1157,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     };
   };
   /* allowed - pass to file system */
-  chosenFilePlugin.reset(makeFilePlugin(id));
+  chosenFilePlugin = makeFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(chosenFilePlugin);
     int r=chosenFilePlugin->readdir(name,dir_list,mode);
@@ -1259,7 +1259,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
     };
   };
-  chosenFilePlugin.reset(makeFilePlugin(id));
+  chosenFilePlugin = makeFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(chosenFilePlugin);
     int r=chosenFilePlugin->checkdir(dirname);
@@ -1313,7 +1313,7 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
     };
     return 0;
   };
-  chosenFilePlugin.reset(makeFilePlugin(id));
+  chosenFilePlugin = makeFilePlugin(id);
   if((getuid()==0) && config.StrictSession()) {
     SET_USER_UID(chosenFilePlugin);
     int r=chosenFilePlugin->checkfile(name,info,mode);
