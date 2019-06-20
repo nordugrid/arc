@@ -12,15 +12,7 @@
 
 using namespace ARex;
 
-class DirectFilePlugin;
-
-/*
- * Store per-GM information
- */
-struct gm_dirs_ {
-  std::string control_dir;
-  std::string session_dir;
-};
+class DirectUserFilePlugin;
 
 #define DEFAULT_JOB_RSL_MAX_SIZE (5*1024*1024)
 
@@ -40,12 +32,12 @@ class JobPlugin: public FilePlugin {
   bool make_job_id(void);
   bool delete_job_id(void);
   int check_acl(const char* acl_file,bool spec,const std::string& id);
-  bool is_allowed(const char* name,int perm,bool locked = false,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
-  DirectFilePlugin * selectFilePlugin(std::string id);
+  bool is_allowed(const char* name,int perm,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
+  DirectUserFilePlugin * makeFilePlugin(std::string id);
   /** Find the control dir used by this job id */
   std::string getControlDir(std::string id);
   /** Find the session dir used by this job id */
-  std::string getSessionDir(std::string id);
+  std::string getSessionDir(std::string const& id, uid_t* uid = NULL, gid_t* gid = NULL);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
   void* phandle;
@@ -54,7 +46,8 @@ class JobPlugin: public FilePlugin {
   Arc::User user;
   GMConfig config;
   DelegationStore::DbType deleg_db_type;
-  AuthUser& user_a;
+  //AuthUser& user_a;
+  userspec_t user_s;
   std::list<std::string> avail_queues;
   std::string subject;
   unsigned short int port; // port client used for data channel
@@ -64,19 +57,15 @@ class JobPlugin: public FilePlugin {
   std::string job_id;
   std::string store_job_id;
   unsigned int job_rsl_max_size;
-//!!  char job_rsl[1024*1024+5];
   bool initialized;
   bool rsl_opened;
-  DirectFilePlugin* direct_fs;
   bool readonly;
   const char* matched_vo;
   const voms_t* matched_voms;
-  std::vector<gm_dirs_> gm_dirs_info;
-  std::vector<gm_dirs_> gm_dirs_non_draining;
+  std::string control_dir;
   std::vector<std::string> session_dirs;
   std::vector<std::string> session_dirs_non_draining;
-  std::vector<DirectFilePlugin *> file_plugins;
-  DirectFilePlugin * chosenFilePlugin;
+  std::unique_ptr<DirectUserFilePlugin> chosenFilePlugin;
  public:
   JobPlugin(std::istream &cfile,userspec_t &user,FileNode &node);
   ~JobPlugin(void);
