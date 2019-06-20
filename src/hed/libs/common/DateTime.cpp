@@ -88,7 +88,7 @@ namespace Arc {
     }
 
     if (isdigit(timestring[0])) {
-      tm timestr;
+      tm timestr = { 0 };
       std::string::size_type pos = 0;
 
       if (sscanf(timestring.substr(pos, 10).c_str(),
@@ -183,7 +183,7 @@ namespace Arc {
     }
     else if (timestring.length() == 24) {
       // C time
-      tm timestr;
+      tm timestr = { 0 };
       char day[4];
       char month[4];
 
@@ -236,7 +236,7 @@ namespace Arc {
     }
     else if (timestring.length() == 29) {
       // RFC 1123 time (used by HTTP protoccol)
-      tm timestr;
+      tm timestr = { 0 };
       char day[4];
       char month[4];
 

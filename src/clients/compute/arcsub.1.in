@@ -110,8 +110,8 @@ Job descriptions can also be specified using the \fB--jobdescrfile\fR option
 which expect the file name of the description as argument, or the
 \fB--jobdescrstring\fR option which expect as argument the job description as
 a string, and both options can be specified multiple times and one does not
-exclude the other. The default supported job description languages are xRSL,
-JSDL and JDL.
+exclude the other. The default supported job description languages are xRSL
+and EMIES ADL.
 
 If the job description is successfully submitted a job-ID is returned and
 printed. This job-ID uniquely identifies the job while it is being executed.
@@ -196,21 +196,21 @@ grid-manager (ARC0) and A-REX (ARC1) CEs support this feature.
 
 .SH EXAMPLES
 
-Submission of a job description file "helloworld.jsdl" to the Grid
+Submission of a job description file "helloworld.adl" to the Grid
 .br
-\fBarcsub helloworld.jsdl\fR
+\fBarcsub helloworld.adl\fR
 
 A information index server (registry) can also be queried for CEs to submit to:
 .br
-\fBarcsub -g registry.example.com helloworld.jsdl\fR
+\fBarcsub -g registry.example.com helloworld.adl\fR
 
-Submission of a job description file "helloworld.jsdl" to ce.example.com:
+Submission of a job description file "helloworld.adl" to ce.example.com:
 .br
-\fBarcsub -c ce.example.com helloworld.jsdl\fR
+\fBarcsub -c ce.example.com helloworld.adl\fR
 
 Direct submission to a CE is done as:
 .br
-\fBarcsub --direct -c cd.example.com helloworld.jsdl\fR
+\fBarcsub --direct -c cd.example.com helloworld.adl\fR
 
 The job description can also be specified directly on the command line as shown
 in the example, using the XRSL job description language:
@@ -222,21 +222,21 @@ in the example, using the XRSL job description language:
 When submitting against CEs retrieved from information index servers it might
 be useful to do resource brokering:
 .br
-\fBarcsub -g registry.example.com -b FastestQueue helloworld.jsdl\fR
+\fBarcsub -g registry.example.com -b FastestQueue helloworld.adl\fR
 
 If the job has a large input data set, it can be useful to send it to a CE
 where those files are already cached. The ACIX broker can be used for this:
 .br
-\fBarcsub -g registry.example.com -b PythonBroker:ACIXBroker.ACIXBroker:https://cacheindex.ndgf.org:6443/data/index helloworld.jsdl\fR
+\fBarcsub -g registry.example.com -b PythonBroker:ACIXBroker.ACIXBroker:https://cacheindex.ndgf.org:6443/data/index helloworld.adl\fR
 
 Disregarding a specific CE for submission submitting against an information
 index server:
 .br
-\fBarcsub -g registry.example.com -R badcomputingelement.com/arex helloworld.jsdl\fR
+\fBarcsub -g registry.example.com -R badcomputingelement.com/arex helloworld.adl\fR
 
 Dumping the job description is done as follows:
 .br
-\fBarcsub -c example.com/arex -x helloworld.jsdl\fR
+\fBarcsub -c example.com/arex -x helloworld.adl\fR
 
 .SH FILES
 

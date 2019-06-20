@@ -21,8 +21,8 @@ if [ "x$1" = "x0" ]; then
     fi
     chmod 600 "${joboption_directory}/user.proxy"
 elif [ "x$1" = "x1" ]; then
-    export X509_USER_PROXY="${RUNTIME_JOB_DIR}/user.proxy"
-    export X509_USER_CERT="${RUNTIME_JOB_DIR}/user.proxy"
+    export X509_USER_PROXY="${X509_USER_PROXY:-${RUNTIME_JOB_DIR}/user.proxy}"
+    export X509_USER_CERT="${X509_USER_CERT:-${RUNTIME_JOB_DIR}/user.proxy}"
     if [ "x$COPY_CACERT_DIR" = "xYes" ]; then
         export X509_CERT_DIR="${RUNTIME_JOB_DIR}/arc/certificates"
     else

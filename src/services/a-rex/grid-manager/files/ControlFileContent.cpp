@@ -260,7 +260,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   dryrun = arc_job_desc.Application.DryRun;
 
   projectnames.clear();
-  std::map<std::string, std::string>::const_iterator jr_i = arc_job_desc.OtherAttributes.find("nordugrid:jsdl;Identification/JobProject");
+  std::map<std::string, std::string>::const_iterator jr_i = arc_job_desc.OtherAttributes.find("emies:adl;JobProject");
   if (jr_i != arc_job_desc.OtherAttributes.end()) projectnames.push_back(jr_i->second);
 
   jobname = arc_job_desc.Identification.JobName;

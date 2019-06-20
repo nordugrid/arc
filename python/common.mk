@@ -63,7 +63,8 @@ ARCLIBS = \
 
 nodist__arc_la_SOURCES = $(ARCSWIGINIT) $(ARCWRAPPERS)
 
-_arc_la_CXXFLAGS = -include $(top_builddir)/config.h -I$(top_srcdir)/include \
+_arc_la_CXXFLAGS = -include $(top_builddir)/config.h \
+        -I$(top_srcdir)/include -I$(top_builddir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) \
         -fno-strict-aliasing -DSWIG_COBJECT_TYPES $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
