@@ -1,13 +1,16 @@
 [Unit]
-Description=NorduGrid/ARC local resource information system
+Description=ARC LDAP-based information services - BDII-Update
 Requires=arc-infosys-ldap-slapd.service
 After=arc-infosys-ldap-slapd.service
 BindsTo=arc-infosys-ldap-slapd.service
 
 [Service]
 Type=forking
+Environment=FORCE_ARC_RUNDIR=/var/run/arc
+PIDFile=/var/run/arc/bdii/bdii-update.pid
 ExecStartPre=@prefix@/@pkgdatasubdir@/create-bdii-config
 ExecStart=/bin/sh /var/run/arc/infosys/bdii-update.cmd
+ExecStartPost=/bin/sh /var/run/arc/infosys/bdii-update-post.cmd
 NotifyAccess=all
 
 [Install]

@@ -112,9 +112,6 @@ else
     echo "Description = $jobname" >> $LRMS_JOB_DESCRIPT
 fi
 
-# environment
-echo "GetEnv = True" >> $LRMS_JOB_DESCRIPT
-
 # universe
 if [ ! -z $DOCKER_UNIVERSE ] ; then
     echo "Universe = $DOCKER_UNIVERSE" >> $LRMS_JOB_DESCRIPT
@@ -153,7 +150,9 @@ if [ ! -z "$CONFIG_condor_rank" ] ; then
 fi
 
 # proxy
-echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
+if [ -f "${joboption_directory}/user.proxy" ]; then
+  echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+fi
 
 ##############################################################
 # (non-)parallel jobs
@@ -220,7 +219,8 @@ if [ ! -z "$joboption_memory" ] ; then
   fi
   echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
+  # it is important to protect evaluation from undefined ResidentSetSize
+  REMOVE="${REMOVE} || ((ResidentSetSize isnt undefined ? ResidentSetSize : 0) > JobMemoryLimit)"
 fi
 
 ##############################################################
@@ -235,22 +235,11 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
       echo "Submission: Configuration error.">>"$failures_file"
       exit 1
     fi
+    # transfer all session directory if not shared between ARC CE and worknodes
     scratch_dir=`dirname "$joboption_directory"`
     echo "should_transfer_files = YES" >> $LRMS_JOB_DESCRIPT
     echo "When_to_transfer_output = ON_EXIT_OR_EVICT" >> $LRMS_JOB_DESCRIPT
-
-    count=0
-    input_files="Transfer_input_files = "
-    eval "input_file=\$joboption_inputfile_$count"
-    while [ -n "${input_file}" ]; do
-      if [ "$count" -gt "0" ]; then
-          input_files="${input_files},"
-      fi
-      input_files="${input_files} ${joboption_directory}${input_file}"
-      count=$((count+1))
-      eval "input_file=\$joboption_inputfile_$count"
-    done
-    echo "${input_files}" >> $LRMS_JOB_DESCRIPT
+    echo "Transfer_input_files = $joboption_directory" >> $LRMS_JOB_DESCRIPT
   )
 fi
 
@@ -329,17 +318,6 @@ move_files_to_node
 echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
-
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-    echo "# move input files to local working directory" >> $LRMS_JOB_SCRIPT
-    count=0
-    eval "input_file=\$joboption_inputfile_$count"
-    while [ -n "${input_file}" ]; do
-      echo "mv .${input_file} ${joboption_gridid}/." >> $LRMS_JOB_SCRIPT
-      count=$((count+1))
-      eval "input_file=\$joboption_inputfile_$count"
-    done
-fi
 
 ##############################################################
 #  Skip execution if something already failed

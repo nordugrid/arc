@@ -354,10 +354,8 @@ sub get_gmjobs {
                     next unless $line;
                     if ($line =~ m/^\s*[&+|(]/) { $job->{description} = 'rsl'; last }
                     if ($line =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
-                    if ($line =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
                     my $nextline = <GMJOB_DESCRIPTION>;
                     if ($nextline =~ m/http\:\/\/www.eu-emi.eu\/es\/2010\/12\/adl/) { $job->{description} = 'adl'; last }
-                    if ($nextline =~ m/http\:\/\/schemas.ggf.org\/jsdl\/2005\/11\/jsdl/)   { $job->{description} = 'jsdl'; last }
                     $log->debug("Job $ID: Can't identify job description language");
                     last;
                 }

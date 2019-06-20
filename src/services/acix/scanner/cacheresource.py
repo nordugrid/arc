@@ -51,7 +51,7 @@ class CacheResource(resource.Resource):
 
         request.setHeader("x-hashes", ','.join(hashes))
         request.setHeader("x-cache-time", str(gen_time))
-        request.setHeader("x-cache-url", cache_url)
+        request.setHeader("x-cache-url", str(cache_url))
 
         return cache
 

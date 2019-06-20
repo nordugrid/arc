@@ -75,8 +75,6 @@ namespace Arc {
    * <b>%Job description languages:</b>
    * * EMI ADL
    * * xRSL
-   * * JDL
-   * * JSDL (+ Posix and HPC-P extensions)
    *
    * \page group__compute ARC Compute Library (libarccompute)
    */  
