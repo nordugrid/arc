@@ -352,10 +352,6 @@ sub cluster_info ($) {
     # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
     my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
 
-    error("The given flavour of PBS $lrms_cluster{lrms_type} is not supported")
-        unless grep {$_ eq lc($lrms_cluster{lrms_type})}
-            qw(openpbs spbs torque pbspro);
-
     $lrms_cluster{totalcpus} = 0;
     my ($number_of_running_jobs) = 0;
     $lrms_cluster{cpudistribution} = "";
@@ -548,7 +544,7 @@ sub queue_info ($$) {
         }
 
         # qstat does not return number of cpus, use pbsnodes instead.
-        my ($torque_freecpus,$torque_totalcpus,$nodes_totalcpus,$nodes_freecpus)=(0,0,0,0);
+        my ($pbs_freecpus,$pbs_totalcpus,$nodes_totalcpus,$nodes_freecpus)=(0,0,0,0);
         # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
         my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
 
@@ -590,20 +586,20 @@ sub queue_info ($$) {
                 )
               )
             ) {
-                $torque_totalcpus+=$cpus;
+                $pbs_totalcpus+=$cpus;
                 if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
-                    $torque_freecpus+=$cpus;
+                    $pbs_freecpus+=$cpus;
                 }
             }
         }
 
-        if ($torque_totalcpus eq 0) {
+        if ($pbs_totalcpus eq 0) {
             warning("Node properties are defined in PBS but nothing match the queue filters. Assigning counters for all nodes.");
-            $torque_totalcpus = $nodes_totalcpus;
-            $torque_freecpus = $nodes_freecpus;
+            $pbs_totalcpus = $nodes_totalcpus;
+            $pbs_freecpus = $nodes_freecpus;
         }
 
-        $lrms_queue{totalcpus} = $torque_totalcpus;
+        $lrms_queue{totalcpus} = $pbs_totalcpus;
 
         debug("Totalcpus for all queues are: $lrms_queue{totalcpus}");
 
@@ -613,7 +609,7 @@ sub queue_info ($$) {
             }
         }
 
-        $lrms_queue{status} = $torque_freecpus;
+        $lrms_queue{status} = $pbs_freecpus;
         $lrms_queue{status}=0 if $lrms_queue{status} < 0;
 
         if ( $qstat{state_count} =~ m/.*Running:([0-9]*).*/ ){
@@ -634,7 +630,7 @@ sub queue_info ($$) {
         # Instead use totalcpus - freecpus (This might overrepresent running. because pbsnodes count whole nodes in use.)
         # CUS (2015-02-09)
 
-        my $runningcores = $torque_totalcpus - $torque_freecpus ;
+        my $runningcores = $pbs_totalcpus - $pbs_freecpus ;
         $runningcores = 0 if $runningcores < 0;
 
         $lrms_queue{running} = $runningcores if $runningcores > $lrms_queue{running};
