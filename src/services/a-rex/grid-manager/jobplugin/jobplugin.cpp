@@ -317,7 +317,12 @@ int JobPlugin::removefile(std::string &name) {
       return 1;
     };
     if(!is_allowed(name.c_str(),IS_ALLOWED_WRITE)) return 1;  /* owner of the job */
-    JobId id(name); GMJob job(id, user);
+    JobId id(name);
+    Arc::AutoPointer<GMJob> job(makeJob(id));
+    if(!job) {
+      error_description="Failed to create job object.";
+      return 1;
+    }
     std::string controldir = getControlDir(id);
     if (controldir.empty()) {
       error_description="No control information found for this job.";
@@ -325,7 +330,7 @@ int JobPlugin::removefile(std::string &name) {
     }
     config.SetControlDir(controldir);
     logger.msg(Arc::INFO, "Cancelling job %s", id);
-    if(job_cancel_mark_put(job,config)) {
+    if(job_cancel_mark_put(*job,config)) {
       CommFIFO::Signal(config.ControlDir(), id);
       return 0;
     };
@@ -382,10 +387,14 @@ int JobPlugin::removedir(std::string &dname) {
     logger.msg(Arc::INFO, "Cleaning job %s", id);
     /* put marks because cleaning job may also involve removing locks */
     {
-      GMJob job(id,user);
-      bool res = job_cancel_mark_put(job,config);
+      Arc::AutoPointer<GMJob> job(makeJob(id));
+      if(!job) {
+        error_description="Failed to create job object.";
+        return 1;
+      }
+      bool res = job_cancel_mark_put(*job,config);
       if(res) CommFIFO::Signal(config.ControlDir(), id);
-      res &= job_clean_mark_put(job,config);
+      res &= job_clean_mark_put(*job,config);
       if(res) return 0;
     };
     error_description="Failed to clean job.";
@@ -651,7 +660,12 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    if(!job_restart_mark_put(GMJob(id,user),config)) {
+    Arc::AutoPointer<GMJob> job(makeJob(id));
+    if(!job) {
+      error_description="Failed to create job object.";
+      return 1;
+    }
+    if(!job_restart_mark_put(*job,config)) {
       error_description="Failed to report restart request.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
@@ -1240,16 +1254,20 @@ int JobPlugin::checkdir(std::string &dirname) {
       if((!job_desc.delegationid.empty()) && deleg.PutCred(job_desc.delegationid, subject, proxy_data)) {
         // Also store public content into job.#.proxy
         // Ignore error because main store is already updated
-        GMJob job(id, user, "", JOB_STATE_ACCEPTED);
+        Arc::AutoPointer<GMJob> job(makeJob(id, "", JOB_STATE_ACCEPTED));
+        if(!job) {
+          error_description="Failed to create job object.";
+          return 1;
+        }
 #if 0
-        (void)job_proxy_write_file(job, config, user_cert);
+        (void)job_proxy_write_file(*job, config, user_cert);
 #else
         // For backward compatibility during transitional period store whole proxy
-        (void)job_proxy_write_file(job, config, proxy_data);
+        (void)job_proxy_write_file(*job, config, proxy_data);
 #endif
         logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
         job_desc.expiretime=new_proxy_expires;
-        if(!job_local_write_file(job,config,job_desc)) {
+        if(!job_local_write_file(*job,config,job_desc)) {
           logger.msg(Arc::ERROR, "Failed to write 'local' information");
         };
       } else {
@@ -1530,7 +1548,7 @@ std::string JobPlugin::getDefaultSessionDir() {
 /*
  * Methods to deal with multple control and session dirs
  */
-DirectUserFilePlugin * JobPlugin::makeFilePlugin(std::string id) {
+DirectUserFilePlugin* JobPlugin::makeFilePlugin(std::string id) {
   // get session dir
   uid_t suid = 0;
   gid_t sgid = 0;
@@ -1543,6 +1561,16 @@ DirectUserFilePlugin * JobPlugin::makeFilePlugin(std::string id) {
     sgid = user.get_gid();
   }
   return new DirectUserFilePlugin(sd, suid, sgid, user_s);
+}
+
+
+GMJob* JobPlugin::makeJob(const JobId &job_id,const std::string &dir,job_state_t state) {
+  uid_t suid = 0;
+  gid_t sgid = 0;
+  if(getSessionDir(job_id, &suid, &sgid).empty())
+    return NULL;
+  Arc::User user(suid,sgid);
+  return new GMJob(job_id, user, dir, state);
 }
 
 bool JobPlugin::chooseControlAndSessionDir(std::string /* job_id */, std::string& controldir, std::string& sessiondir) {

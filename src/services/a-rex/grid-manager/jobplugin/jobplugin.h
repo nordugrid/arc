@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <arc/Utils.h>
+#include "../jobs/GMJob.h"
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../conf/GMConfig.h"
@@ -35,6 +36,8 @@ class JobPlugin: public FilePlugin {
   int check_acl(const char* acl_file,bool spec,const std::string& id);
   bool is_allowed(const char* name,int perm,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
   DirectUserFilePlugin * makeFilePlugin(std::string id);
+  GMJob* makeJob(const JobId &job_id,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
+
   /** Find the control dir used by this job id */
   std::string getControlDir(std::string id);
   /** Find the session dir used by this job id */
