@@ -43,6 +43,8 @@ __arcconf_re = {
     'option': re.compile(r'^\s*(?P<option>[^=\[\]\n\s]+)\s*(?:=|(?=\s*$))\s*(?P<value>.*)\s*$')
 }
 
+# block name input
+__blockname_re = re.compile(r'(?P<block_id>[^:]+):\s*(?P<block_name>.*[^\s])\s*$')
 
 # arc.conf parsing function
 def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
@@ -280,6 +282,16 @@ def _evaluate_values():
                 if subst:
                     __parsed_config[block]['__values'][i] = subval
 
+def _canonicalize_blockid(block):
+    # nothing to do with blocks without names
+    if ':' not in block:
+	return block
+    # get name wthout spaces
+    re_match = __blockname_re.match(block)
+    if re_match:
+       re_dict = re_match.groupdict()
+       return '{block_id}:{block_name}'.format(**re_dict)
+    return block
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
     """Parse arc.conf-formatted configuration file to specified data structures"""
@@ -291,7 +303,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
             block_match = __arcconf_re['block'].match(confline)
             if block_match:
                 block_dict = block_match.groupdict()
-                block_id = block_dict['block']
+                block_id = _canonicalize_blockid(block_dict['block'])
                 parsed_confdict_ref[block_id] = {'__options': [], '__values': []}
                 parsed_blockslist_ref.append(block_id)
                 if block_dict['block_name'] is not None:
@@ -359,6 +371,7 @@ def export_json(blocks=None, subsections=False):
     :return: JSON-dumped string
     """
     if blocks is not None:
+        blocks = [ _canonicalize_blockid(b) for b in blocks ]
         if subsections:
             blocks = get_subblocks(blocks)
     return json.dumps(_config_dict(blocks))
@@ -383,6 +396,7 @@ def export_bash(blocks=None, subsections=False, options_filter=None):
     # loop over block and update bash config in precedence order
     bash_config = {}
     for b in blocks:
+        b = _canonicalize_blockid(b)
         if b not in __parsed_blocks:
             continue
         block_config = {}
@@ -422,6 +436,7 @@ def get_value(option, blocks=None, force_list=False, bool_yesno=False):
     :return: option value
     """
     for b in _blocks_list(blocks):
+        b = _canonicalize_blockid(b)
         if b in __parsed_config:
             values = _config_list_values(b, option)
             if values is not None:
@@ -453,6 +468,7 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
         blocks = []
     subblocks = []
     for b in _blocks_list(blocks):
+        b = _canonicalize_blockid(b)
         bsb = []
         for cb in __parsed_blocks:
             if re.search(r'^' + b + r'[/:]', cb):
@@ -486,6 +502,7 @@ def check_blocks(blocks=None, and_logic=True):
     """
     result = and_logic
     for b in _blocks_list(blocks):
+        b = _canonicalize_blockid(b)
         if and_logic:
             result = (b in __parsed_blocks) and result
         else:
