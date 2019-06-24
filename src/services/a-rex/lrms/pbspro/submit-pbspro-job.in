@@ -61,15 +61,16 @@ fi
 # Start job script
 ##############################################################
 echo "# PBSPro batch job script built by arex" > $LRMS_JOB_SCRIPT
-# use /bin/bash as a top shell
-echo "#PBS Shell_Path_List=/bin/bash" >> $LRMS_JOB_SCRIPT
+# use /bin/bash as a top shell (-S option is compatible with older PBSPro versions)
+#echo "#PBS Shell_Path_List=/bin/bash" >> $LRMS_JOB_SCRIPT
+PBS_QSUB="${PBS_QSUB} -S /bin/bash"
 # no PBS native mailing
-echo "#PBS -WMail_Points=n" >> $LRMS_JOB_SCRIPT
+echo "#PBS -m n" >> $LRMS_JOB_SCRIPT
 # no re-run
 echo "#PBS -r n" >> $LRMS_JOB_SCRIPT
 # write PBS output to 'comment' file
-echo "#PBS Output_Path='${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
-echo "#PBS Join_Path=oe" >> $LRMS_JOB_SCRIPT
+echo "#PBS -o '${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
+echo "#PBS -j oe" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 # choose queue
 if [ ! -z "${joboption_queue}" ] ; then
@@ -112,8 +113,9 @@ set_req_mem
 # set memory select string
 if [ ! -z "$joboption_memory" ] ; then
   memreq="${joboption_memory}"
+  # memory per-chunk (joboption_memory is per-process by specification)
   if [ -n "$joboption_count" ] && [ $joboption_count -gt 0 ] ; then
-     memreq=$(( $joboption_count * $memreq ))
+     memreq=$(( ${joboption_countpernode:-1} * $memreq ))
   fi
   memreq=":mem=${memreq}mb"
 fi
@@ -213,7 +215,7 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
       rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
       echo "Submission: Configuration error.">>"$failures_file"
       exit 1
-    i
+    fi
     scratch_dir=`dirname "$joboption_directory"`
     echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
     echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
