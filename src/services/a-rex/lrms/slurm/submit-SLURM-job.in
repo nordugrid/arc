@@ -196,7 +196,7 @@ fi
 # Additional SLURM requirements
 ##############################################################
 
-requirements_string="#SBATCH"
+requirements_string=""
 i=0
 eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
 while [ ! -z "${var_is_set}" ] ; do
@@ -205,7 +205,10 @@ while [ ! -z "${var_is_set}" ] ; do
   i=$(( $i + 1 ))
   eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
 done
-echo "$requirements_string" >> $LRMS_JOB_SCRIPT
+
+if [ ! -z "$requirements_string" ]; then
+  echo "#SBATCH $requirements_string" >> $LRMS_JOB_SCRIPT
+fi
 
 if [ ! -z "$CONFIG_slurm_requirements" ]  && [  "x$CONFIG_slurm_requirements" != "x__array__" ] ; then
   echo "#SBATCH $CONFIG_slurm_requirements" >> $LRMS_JOB_SCRIPT

@@ -17,10 +17,7 @@ $suite->test("basic", sub {
 #    qmgr -c list server
 #    pbsnodes -a
 #    qstat -f
-#    qstat -f -Q queue1
-#    qstat -Q -f queue1
-#    qstat -Q
-#    qstat -n
+#    qstat -Q -f
 
 #######################################
 args="qmgr -c list server"
@@ -62,35 +59,7 @@ args="qstat -f"
 output=""
 
 #######################################
-args="qstat -f -Q queue1"
-output=<<<ENDF
-Queue: queue1
-    queue_type = Execution
-    total_jobs = 0
-    state_count = Transit:0 Queued:0 Held:0 Waiting:0 Running:0 Exiting:0 
-    max_running = 10
-    mtime = 1263485241
-    resources_assigned.ncpus = 0
-    resources_assigned.nodect = 0
-    enabled = True
-    started = True
-
-ENDF
-
-#######################################
-args="qstat -Q"
-output=<<<ENDF
-Queue              Max   Tot   Ena   Str   Que   Run   Hld   Wat   Trn   Ext T         
-----------------   ---   ---   ---   ---   ---   ---   ---   ---   ---   --- -         
-queue1              10     0   yes   yes     0     0     0     0     0     0 E         
-ENDF
-
-#######################################
-args="qstat -n"
-output=""
-
-#######################################
-args="qstat -Q -f queue1"
+args="qstat -Q -f"
 output=<<<ENDF
 Queue: queue1
     queue_type = Execution

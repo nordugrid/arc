@@ -3,8 +3,8 @@ package PBS;
 ######################################################################
 # DISCLAIMER
 ######################################################################
-# This module depends on ARC0mod.pm which is obsolete and deprecated 
-# starting from ARC 6.0 
+# This module depends on ARC0mod.pm which is obsolete and deprecated
+# starting from ARC 6.0
 # Please DO NOT build new LRMS modules based on this one but follow
 # the indications in
 #                       LRMSInfo.pm
@@ -17,12 +17,12 @@ our @ISA = ('Exporter');
 # Module implements these subroutines for the LRMS interface
 
 our @EXPORT_OK = ('cluster_info',
-	      'queue_info',
-	      'jobs_info',
-	      'users_info',
-	      'nodes_info');
+      'queue_info',
+      'jobs_info',
+      'users_info',
+      'nodes_info');
 
-use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
+use LogUtils ( 'start_logging', 'error', 'warning', 'debug' );
 
 ##########################################
 # Saved private variables
@@ -34,8 +34,10 @@ my (%user_jobs_running, %user_jobs_queued);
 # the queue passed in the latest call to queue_info, jobs_info or users_info
 my $currentqueue = undef;
 
-# cache info about nodes
+# cache info returned by PBS commands
 my $pbsnodes;
+my $qstat_f;
+my $qstat_fQ;
 
 # PBS type and flavour
 my $lrms_type = undef;
@@ -64,7 +66,7 @@ sub get_pbs_version ($) {
 
     # determine the flavour and version of PBS
     my $qmgr_string=`$path/qmgr -c "list server"`;
-    if ( $? != 0 ) {    
+    if ( $? != 0 ) {
         warning("Can't run qmgr");
     }
     if ($qmgr_string =~ /pbs_version = \b(\D+)_(\d\S+)\b/) {
@@ -81,37 +83,124 @@ sub get_pbs_version ($) {
 # Private subs
 ##########################################
 
-sub read_pbsnodes ($) { 
+sub read_pbsnodes ($) {
 
     return %$pbsnodes if $pbsnodes;
 
     #processing the pbsnodes output by using a hash of hashes
     # %hoh_pbsnodes (referrenced by $hashref)
- 
+
     my ( $path ) = shift;
     my ( %hoh_pbsnodes);
     my ($nodeid,$node_var,$node_value);
 
     unless (open PBSNODESOUT,  "$path/pbsnodes -a 2>/dev/null |") {
-	error("error in executing pbsnodes");
+        error("error in executing pbsnodes");
     }
-    while (my $line= <PBSNODESOUT>) {	    
-	if ($line =~ /^$/) {next}; 
-	if ($line =~ /^([\w\-]+)/) {		 
-   	    $nodeid= $1 ;
-   	    next;	    
-	}
-	if ($line =~ / = /)  {
-	    ($node_var,$node_value) = split (/ = /, $line);
-	    $node_var =~ s/\s+//g;
-	    chop $node_value;  	     
-	}	     
-	$hoh_pbsnodes{$nodeid}{$node_var} = $node_value;     
-    } 
+    while (my $line= <PBSNODESOUT>) {
+        if ($line =~ /^$/) {next};
+        if ($line =~ /^([\w\-]+)/) {
+            $nodeid= $1 ;
+            next;
+        }
+        if ($line =~ / = /)  {
+            ($node_var,$node_value) = split (/ = /, $line, 2);
+            $node_var =~ s/\s+//g;
+            chop $node_value;
+        }
+        $hoh_pbsnodes{$nodeid}{$node_var} = $node_value;
+    }
     close PBSNODESOUT;
     $pbsnodes = \%hoh_pbsnodes;
 
     return %hoh_pbsnodes;
+}
+
+sub read_qstat_fQ ($) {
+    # return already parsed value
+    return %$qstat_fQ if $qstat_fQ;
+
+    #processing the qstat -fQ output by using a hash of hashes
+    my ( $path ) = shift;
+    my ( %hoh_qstat );
+
+    unless (open QSTATOUTPUT, "$path/qstat -Q -f 2>/dev/null |") {
+        error("Error in executing qstat: $path/qstat -Q -f");
+    }
+
+    my $current_queue = undef;
+
+    my ($qstat_var,$qstat_value) = ();
+    while (my $line= <QSTATOUTPUT>) {
+        chomp($line);
+        if ($line =~ /^$/) {next};
+        if ($line =~ /^Queue: ([\w\-]+)$/) {
+            $current_queue = $1;
+            next;
+        }
+        if ( ! defined $current_queue ) {next};
+        if ($line =~ m/ = /) {
+            ($qstat_var,$qstat_value) = split("=", $line, 2);
+            $qstat_var =~ s/^\s+|\s+$//g;
+            $qstat_value =~ s/^\s+|\s+$//g;
+            $hoh_qstat{$current_queue}{$qstat_var} = $qstat_value;
+            next;
+        }
+        # older PBS versions has no '-1' support
+        # a line starting with a tab is a continuation line
+        if ( $line =~ m/^\t(.+)$/ ) {
+            $qstat_value .= $1;
+            $qstat_value =~ s/\s+$//g;
+            $hoh_qstat{$current_queue}{$qstat_var} = $qstat_value;
+        }
+    }
+    close QSTATOUTPUT;
+
+    $qstat_fQ = \%hoh_qstat;
+    return %hoh_qstat;
+}
+
+sub read_qstat_f ($) {
+    # return already parsed value
+    return %$qstat_f if $qstat_f;
+
+    #processing the qstat -f output by using a hash of hashes
+    my ( $path ) = shift;
+    my ( %hoh_qstat );
+
+    unless (open QSTATOUTPUT, "$path/qstat -f 2>/dev/null |") {
+        error("Error in executing qstat: $path/qstat -f");
+    }
+
+    my $jobid = undef;
+
+    my ($qstat_var,$qstat_value) = ();
+    while (my $line= <QSTATOUTPUT>) {
+        chomp($line);
+        if ($line =~ /^$/) {next};
+        if ($line =~ /^Job Id: (.+)$/) {
+            $jobid = $1;
+            next;
+        }
+        if ( ! defined $jobid ) {next};
+        if ($line =~ m/ = /) {
+            ($qstat_var,$qstat_value) = split("=", $line, 2);
+            $qstat_var =~ s/^\s+|\s+$//g;
+            $qstat_value =~ s/^\s+|\s+$//g;
+            $hoh_qstat{$jobid}{$qstat_var} = $qstat_value;
+        }
+        # older PBS versions has no '-1' support
+        # a line starting with a tab is a continuation line
+        if ( $line =~ m/^\t(.+)$/ ) {
+            $qstat_value .= $1;
+            $qstat_value =~ s/\s+$//g;
+            $hoh_qstat{$jobid}{$qstat_var} = $qstat_value;
+        }
+    }
+    close QSTATOUTPUT;
+
+    $qstat_f = \%hoh_qstat;
+    return %hoh_qstat;
 }
 
 # Splits up the value of the exec_host string.
@@ -195,8 +284,8 @@ sub sum_over_chunks {
     my ($count_func, $string) = @_;
     my $totalcpus = 0;
     for my $chunk (split '\+', $string) {
-	my $cpus = &$count_func($chunk);
-	$totalcpus += $cpus;
+        my $cpus = &$count_func($chunk);
+        $totalcpus += $cpus;
     }
     return $totalcpus;
 }
@@ -222,8 +311,8 @@ sub cpus_in_select_chunk {
     my ($chunk) = @_;
     return $1 if $chunk =~ m/^(\d+)$/;
     if ($chunk =~ m{^(\d+):(.*)$}) {
-	my ($cpus, $resc) = ($1, $2);
-	return $cpus * get_ncpus($resc);
+        my ($cpus, $resc) = ($1, $2);
+        return $cpus * get_ncpus($resc);
     }
     return 0; # not a valid chunk
 }
@@ -232,7 +321,7 @@ sub cpus_in_select_chunk {
 sub get_ppn {
     my ($resc) = @_;
     for my $res (split ':', $resc) {
-	return $1 if $res =~ m /^ppn=(\d+)$/;
+        return $1 if $res =~ m /^ppn=(\d+)$/;
     }
     return 1;
 }
@@ -241,71 +330,19 @@ sub get_ppn {
 sub get_ncpus {
     my ($resc) = @_;
     for my $res (split ':', $resc) {
-	return $1 if $res =~ m /^ncpus=(\d+)$/;
+        return $1 if $res =~ m /^ncpus=(\d+)$/;
     }
     return 1;
 }
 
-sub get_variable($$){
-    my $match = shift;
-    my $string = shift;
-    $string =~ m/(\w\s)*?$match\s?[=:] ((\w|\s|\/|,|.|:|;|\[|\]|\(|\)|-)*?)($| \w+=.*)/ ;
-    my $var = $2;
-    return $var;
-}
-sub read_qstat_f ($) {
-    my $path=shift;
-    unless ( open QSTAT_F, "$path/qstat -f 2>/dev/null |") {
-	error("Error in executing qstat");
-    }
-    
-    my $jobid="";
-    my %qstat_jobs;
-
-    my $rs=$/;
-    $/="";
-    while (<QSTAT_F>) {
-	s/\n\t//g;
-	foreach(split(/\n/)) {
-	    my $string = $_;
-	    if ($string =~ /Job Id/) {
-		$jobid= get_variable("Job Id", $string);
-	    }
-	    if (!$jobid) {
-		next;
-	    }
-	    if ($string =~ /Resource_List.nodes/){
-		$qstat_jobs{$jobid}{"Resource_List.nodes"}= get_variable("Resource_List.nodes",$string);
-	    }
-	    if ($string =~ /exec_host/){
-		$qstat_jobs{$jobid}{"exec_host"}= get_variable("exec_host",$string);
-	    }
-	    if ($string =~ /job_state/){
-		$qstat_jobs{$jobid}{"job_state"}= get_variable("job_state",$string);
-	    }
-	    if ($string =~ /Resource_List.select/){
-		$qstat_jobs{$jobid}{"Resource_List.select"}= get_variable("Resource_List.select",$string);
-	    }
-	    if ($string =~ /Resource_List.ncpus/){
-		$qstat_jobs{$jobid}{"Resource_List.ncpus"}= get_variable("Resource_List.ncpus",$string);
-	    }
-	}
-    };
-    $/=$rs;
-    close QSTAT_F;
-
-    return %qstat_jobs;
-}
-
-
 # gets information about each destination queue behind a
 # routing queue and copies it into the routing queue data structure.
 # at the moment it only copies data from the first queue
-# 
+#
 # input: $queue name of the current queue
-#	 $path to pbs binaries
+#        $path to pbs binaries
 #        $singledqueue that contains the only queue behind the routing one
-#        %qstat{} for the current queue 
+#        %qstat{} for the current queue
 # output: the %dqueue hash containing info about destination queues
 #         in %lrms_queue fashion
 
@@ -319,30 +356,17 @@ sub process_dqueues($$%){
     # build DQs data structure
     my @dqnames;
     if (defined $qstat{'route_destinations'}) {
-	@dqnames=split(",",$qstat{'route_destinations'});
-	@dqueues{@dqnames}=undef;
-	foreach my $dqname ( keys %dqueues ) {
-	    debug("Processing queues behind routing queue. Current queue is $dqname");
-	    my (%dqstat);
-	    unless (open QSTATOUTPUT,   "$path/qstat -Q -f $dqname 2>/dev/null |") {
-		error("Error in executing qstat: $path/qstat -Q -f $dqname");
-	    }
-	    while (my $line= <QSTATOUTPUT>) {
-		if ($line =~ m/ = /) {
-                    chomp($line);
-                    my ($dqstat_var,$dqstat_value) = split("=", $line);
-                    $dqstat_var =~ s/\s+//g;
-                    $dqstat_value =~ s/\s+//g;
-                    $dqstat{$dqstat_var}=$dqstat_value;
-		}
-	    }
-	    close QSTATOUTPUT;
-	    $dqueues{$dqname}=\%dqstat;
-	}
-	# debug($dqueues{'verylong'}{'resources_max.walltime'});
+        @dqnames=split(",",$qstat{'route_destinations'});
+        @dqueues{@dqnames}=undef;
+        my (%hoh_qstatfQ) = read_qstat_fQ($path);
+        foreach my $dqname ( keys %dqueues ) {
+            debug("Processing queues behind routing queue. Current queue is $dqname");
+            $dqueues{$dqname}=$hoh_qstatfQ{$dqname};
+        }
+        # debug($dqueues{'verylong'}{'resources_max.walltime'});
     }
     else {
-	error("No route_destinations for routing queue $qname. Please check LRMS configuration.");
+        error("No route_destinations for routing queue $qname. Please check LRMS configuration.");
     }
     # take the first destination queue behind the RQ, copy its data to the RQ
     # this happens only if the RQ has no data defined on PBS
@@ -350,22 +374,22 @@ sub process_dqueues($$%){
     $singledqueue=shift(@dqnames);
     debug('Just one queue behind routing queue is currently supported: '.$singledqueue);
     my @attributes=(
-	'max_running',
-	'max_user_run',
-	'max_queuable',
-	'resources_max.cput',
-	'resources_min.cput',
-	'resources_default.cput',
-	'resources_max.walltime',
-	'resources_min.walltime',
-	'resources_default.walltime',
-	'state_count'
-	);
+        'max_running',
+        'max_user_run',
+        'max_queuable',
+        'resources_max.cput',
+        'resources_min.cput',
+        'resources_default.cput',
+        'resources_max.walltime',
+        'resources_min.walltime',
+        'resources_default.walltime',
+        'state_count'
+    );
     foreach my $rkey (@attributes) {
         # line to check queues under routing queue values. Undefined values generate crap in logs,
         # so is commented out.
-	# debug('with key '.$rkey.' qstat returns '.$qstat{$rkey}.' and the dest. queue has '.$dqueues{$singledqueue}{$rkey} );
-	if (!defined $qstat{$rkey}) {${$_[0]}{$rkey}=$dqueues{$singledqueue}{$rkey};};
+        # debug('with key '.$rkey.' qstat returns '.$qstat{$rkey}.' and the dest. queue has '.$dqueues{$singledqueue}{$rkey} );
+        if (!defined $qstat{$rkey}) {${$_[0]}{$rkey}=$dqueues{$singledqueue}{$rkey};};
     }
     return %dqueues;
 }
@@ -410,11 +434,11 @@ sub cluster_info ($) {
     my (@cpudist) = 0;
     my %available_nodes = ();
 
-    # loop over all available nodes 
+    # loop over all available nodes
     foreach my $node (keys %hoh_pbsnodes) {
         # skip nodes that does not conform dedicated_node_string filter
         if ( exists $$config{dedicated_node_string} &&  $$config{dedicated_node_string} ne "") {
-            next unless ( $hoh_pbsnodes{$node}{"properties"} =~ 
+            next unless ( $hoh_pbsnodes{$node}{"properties"} =~
                 m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/);
         }
 
@@ -448,11 +472,11 @@ sub cluster_info ($) {
             my ( @comma ) = ($hoh_pbsnodes{$node}{"jobs"}=~ /,/g);
             $number_of_running_jobs += @comma;
         }
-    }      
+    }
 
     # form LRMS cpudistribution string
     for (my $i=0; $i<=$#cpudist; $i++) {
-        next unless ($cpudist[$i]);  
+        next unless ($cpudist[$i]);
         $lrms_cluster{cpudistribution} .= " ".$i."cpu:".$cpudist[$i];
     }
 
@@ -476,27 +500,22 @@ sub cluster_info ($) {
                 $lrms_cluster{usedcpus}++;
             }
         }
-        # 
+        #
         if ( $qstat_jobs{$key}{job_state} =~ /(W|T|Q)/) {
             $lrms_cluster{queuedjobs}++;
             $lrms_cluster{queuedcpus}+=count_usedcpus($qstat_jobs{$key}{"Resource_List.select"},
-                    $qstat_jobs{$key}{"Resource_List.nodes"},
-                    $qstat_jobs{$key}{"Resource_List.ncpus"});
+            $qstat_jobs{$key}{"Resource_List.nodes"},
+            $qstat_jobs{$key}{"Resource_List.ncpus"});
         }
     }
 
     # Names of all LRMS queues
-
     @{$lrms_cluster{queue}} = ();
-    unless (open QSTATOUTPUT,  "$path/qstat -Q 2>/dev/null |") {
-	error("Error in executing qstat");
+
+    my ( %hoh_qstat ) = read_qstat_fQ($path);
+    for my $qkey (keys %hoh_qstat) {
+        push @{$lrms_cluster{queue}}, $qkey;
     }
-    while (my $line= <QSTATOUTPUT>) {
-	if ( $. == 1 or $. == 2 ) {next} # Skip header lines
-	my (@a) = split " ", $line;
-	push @{$lrms_cluster{queue}}, $a[0]; 
-    }
-    close QSTATOUTPUT;
 
     return %lrms_cluster;
 }
@@ -526,34 +545,23 @@ sub queue_info ($$) {
 
     # read the queue information for the queue entry from the qstat
 
-    my (%qstat);
-    unless (open QSTATOUTPUT,   "$path/qstat -Q -f $qname 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -Q -f $qname");
-    }
-    while (my $line= <QSTATOUTPUT>) {       
-	if ($line =~ m/ = /) {
-	    chomp($line);	 
-	    my ($qstat_var,$qstat_value) = split("=", $line);	
-	    $qstat_var =~ s/\s+//g; 
-	    $qstat_value =~ s/\s+//g;    	 
-	    $qstat{$qstat_var}=$qstat_value;
-	}
-    }	    
-    close QSTATOUTPUT;
+    my (%hoh_qstat) = read_qstat_fQ($path);
 
-    # this script contain a solution for a single queue behind the 
+    my (%qstat) = %{$hoh_qstat{$qname}};
+
+    # this script contain a solution for a single queue behind the
     # routing one, the routing queue will inherit some of its
     # attributes.
-    
+
     # this hash contains qstat records for queues - in this case just one
     my %dqueues;
     # this variable contains the single destination queue
     my $singledqueue;
     if ($qstat{queue_type} =~ /Route/) {
-	%dqueues = process_dqueues($qname,$path,\%qstat);
-	$singledqueue = ( keys %dqueues )[0];
+        %dqueues = process_dqueues($qname,$path,\%qstat);
+        $singledqueue = ( keys %dqueues )[0];
     } else {
-    	undef %dqueues;
+        undef %dqueues;
         undef $singledqueue;
     }
 
@@ -561,8 +569,8 @@ sub queue_info ($$) {
     # general limits (publish as is)
     my (%keywords);
     my (%keywords_all) = ( 'max_running' => 'maxrunning',
-		           'max_user_run' => 'maxuserrun',
-		           'max_queuable' => 'maxqueuable' );
+                           'max_user_run' => 'maxuserrun',
+                           'max_queuable' => 'maxqueuable' );
 
     # TODO: MinSlots, etc.
     my (%keywords_torque) = ( 'resources_max.procct' => 'MaxSlotsPerJob' );
@@ -579,27 +587,27 @@ sub queue_info ($$) {
     }
 
     foreach my $k (keys %keywords) {
-	if (defined $qstat{$k} ) {
-	    $lrms_queue{$keywords{$k}} = $qstat{$k};
-	} else {
-	    $lrms_queue{$keywords{$k}} = "";
-	}
+        if (defined $qstat{$k} ) {
+            $lrms_queue{$keywords{$k}} = $qstat{$k};
+        } else {
+            $lrms_queue{$keywords{$k}} = "";
+        }
     }
 
     # queue time limits (convert to minutes)
     %keywords = ( 'resources_max.cput' => 'maxcputime',
-		  'resources_min.cput' => 'mincputime',
-		  'resources_default.cput' => 'defaultcput',
-		  'resources_max.walltime' => 'maxwalltime',
-		  'resources_min.walltime' => 'minwalltime',
-		  'resources_default.walltime' => 'defaultwallt' );
+                  'resources_min.cput' => 'mincputime',
+                  'resources_default.cput' => 'defaultcput',
+                  'resources_max.walltime' => 'maxwalltime',
+                  'resources_min.walltime' => 'minwalltime',
+                  'resources_default.walltime' => 'defaultwallt' );
 
     foreach my $k (keys %keywords) {
-	if ( defined $qstat{$k} ) {
-	    $lrms_queue{$keywords{$k}} = (&count_time($qstat{$k})+($k eq 'resources_min.cput'?1:0));
-	} else {
-	    $lrms_queue{$keywords{$k}} = "";
-	}
+        if ( defined $qstat{$k} ) {
+            $lrms_queue{$keywords{$k}} = (&count_time($qstat{$k})+($k eq 'resources_min.cput'?1:0));
+        } else {
+            $lrms_queue{$keywords{$k}} = "";
+        }
     }
 
     # determine the queue status from the LRMS
@@ -608,155 +616,137 @@ sub queue_info ($$) {
     # cpus. Negative number signals some error state of PBS
     # (reserved for future use).
 
-    # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
-    my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
 
     $lrms_queue{status} = -1;
     $lrms_queue{running} = 0;
     $lrms_queue{queued} = 0;
     $lrms_queue{totalcpus} = 0;
     if ( ($qstat{"enabled"} =~ /True/) and ($qstat{"started"} =~ /True/)) {
-	unless (open QSTATOUTPUT,   "$path/qstat -Q -f $qname 2>/dev/null |") {
-	    error("Error in executing qstat: $path/qstat -Q -f $qname");
-	}
+        # refresh routing queue records, in case something changed on the
+        # destination queues
+        if ($qstat{queue_type} =~ /Route/) {
+            debug("CPUs calculation pass. Queues are scanned a second time. Current queue is: $qstat{queue_type}");
+            %dqueues = process_dqueues($qname,$path,\%qstat);
+            # this variable contains the single destination queue
+            $singledqueue = ( keys %dqueues )[0];
+        } else {
+            undef %dqueues;
+            undef $singledqueue;
+        }
 
-	my %qstat;
-	while (my $line= <QSTATOUTPUT>) {
-	    if ($line =~ m/ = /) {
-		chomp($line);
-		my ($qstat_var,$qstat_value) = split("=", $line);
-		$qstat_var =~ s/\s+//g;
-		$qstat_value =~ s/\s+//g;
-		$qstat{$qstat_var}=$qstat_value;
-	    }
-	}
-	close QSTATOUTPUT;
+        # qstat does not return number of cpus, use pbsnodes instead.
+        my ($torque_freecpus,$torque_totalcpus,$nodes_totalcpus,$nodes_freecpus)=(0,0,0,0);
+        # processing the pbsnodes output by using a hash of hashes %hoh_pbsnodes
+        my ( %hoh_pbsnodes ) = read_pbsnodes( $path );
+        foreach my $node (keys %hoh_pbsnodes) {
+            my $cpus;
+            next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
+            next if $hoh_pbsnodes{$node}{'state'} =~ m/down/;
 
-	# refresh routing queue records, in case something changed on the
-	# destination queues
-	if ($qstat{queue_type} =~ /Route/) {
-	    debug("CPUs calculation pass. Queues are scanned a second time. Current queue is: $qstat{queue_type}");
-	    %dqueues = process_dqueues($qname,$path,\%qstat);
-	    # this variable contains the single destination queue
-	    $singledqueue = ( keys %dqueues )[0];
-	    
-	} else {
-	    undef %dqueues;
-	    undef $singledqueue;
-	}
-
-	# qstat does not return number of cpus, use pbsnodes instead.
-	my ($torque_freecpus,$torque_totalcpus,$nodes_totalcpus,$nodes_freecpus)=(0,0,0,0);
-	foreach my $node (keys %hoh_pbsnodes){
-	    my $cpus;
-	    next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
-	    next if $hoh_pbsnodes{$node}{'state'} =~ m/down/;
-
-	    if ($hoh_pbsnodes{$node}{'np'}) {
-	        $cpus = $hoh_pbsnodes{$node}{'np'};
-	    } elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
-	        $cpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
-	    }
-	    $nodes_totalcpus+=$cpus;
-	    if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
-	        $nodes_freecpus+=$cpus;
-	    }
-
-	    # If pbsnodes have properties assigned to them
-	    # check if queuename or dedicated_node_string matches.
-	    # $singledqueue check has been added for routing queue support,
-	    # also the destination queue is checked to calculate totalcpus
-            # also adds correct behaviour for queue_node_string
-	    if (
-	      ( ! defined $hoh_pbsnodes{$node}{'properties'}
-	      ) || (
-	        (   
-		    defined $qname &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/
-	        ) || (
-		    defined $$config{pbs_dedicated_node_string} &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_dedicated_node_string}(,[^,]+)*$/
-	        ) || (
-		    defined $$config{pbs_queue_node} &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_queue_node}(,[^,]+)*$/
-	        ) || (
-		    defined $singledqueue &&
-		    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$singledqueue(,[^,]+)*$/
-	        )
-	      )
-	    ) {
-            $torque_totalcpus+=$cpus;
-            if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
-                $torque_freecpus+=$cpus;
+            if ($hoh_pbsnodes{$node}{'np'}) {
+                $cpus = $hoh_pbsnodes{$node}{'np'};
+            } elsif ($hoh_pbsnodes{$node}{'resources_available.ncpus'}) {
+                $cpus = $hoh_pbsnodes{$node}{'resources_available.ncpus'};
             }
-	    }
-	}
+            $nodes_totalcpus+=$cpus;
+            if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
+                $nodes_freecpus+=$cpus;
+            }
 
-    if ($torque_totalcpus eq 0) {
-        warning("Node properties are defined in PBS but nothing match the queue filters. Assigning counters for all nodes.");
-        $torque_totalcpus = $nodes_totalcpus;
-        $torque_freecpus = $nodes_freecpus;
-    }
+            # If pbsnodes have properties assigned to them
+            # check if queuename or dedicated_node_string matches.
+            # $singledqueue check has been added for routing queue support,
+            # also the destination queue is checked to calculate totalcpus
+            # also adds correct behaviour for queue_node_string
+            if (
+              ( ! defined $hoh_pbsnodes{$node}{'properties'}
+              ) || (
+                (
+                    defined $qname &&
+                    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/
+                ) || (
+                    defined $$config{pbs_dedicated_node_string} &&
+                    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_dedicated_node_string}(,[^,]+)*$/
+                ) || (
+                    defined $$config{pbs_queue_node} &&
+                    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$$config{pbs_queue_node}(,[^,]+)*$/
+                ) || (
+                    defined $singledqueue &&
+                    $hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$singledqueue(,[^,]+)*$/
+                )
+              )
+            ) {
+                $torque_totalcpus+=$cpus;
+                if ($hoh_pbsnodes{$node}{'state'} =~ m/free/){
+                    $torque_freecpus+=$cpus;
+                }
+            }
+        }
 
-    $lrms_queue{totalcpus} = $torque_totalcpus;
+        if ($torque_totalcpus eq 0) {
+            warning("Node properties are defined in PBS but nothing match the queue filters. Assigning counters for all nodes.");
+            $torque_totalcpus = $nodes_totalcpus;
+            $torque_freecpus = $nodes_freecpus;
+        }
 
-	debug("Totalcpus for all queues are: $lrms_queue{totalcpus}");
+        $lrms_queue{totalcpus} = $torque_totalcpus;
 
-	if(defined $$config{totalcpus}){
-	    if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
-		$lrms_queue{totalcpus}=$$config{totalcpus};
-	    }
-	}
+        debug("Totalcpus for all queues are: $lrms_queue{totalcpus}");
 
-	$lrms_queue{status} = $torque_freecpus;
-	$lrms_queue{status}=0 if $lrms_queue{status} < 0;
+        if(defined $$config{totalcpus}){
+            if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
+                $lrms_queue{totalcpus}=$$config{totalcpus};
+            }
+        }
 
-	if ( $qstat{state_count} =~ m/.*Running:([0-9]*).*/ ){
-	    $lrms_queue{running}=$1;
-	} else {
-	    $lrms_queue{running}=0;
-	}
+        $lrms_queue{status} = $torque_freecpus;
+        $lrms_queue{status}=0 if $lrms_queue{status} < 0;
+
+        if ( $qstat{state_count} =~ m/.*Running:([0-9]*).*/ ){
+            $lrms_queue{running}=$1;
+        } else {
+            $lrms_queue{running}=0;
+        }
 
         # calculate running in case of a routing queue
         if ( $qstat{queue_type} =~ /Route/ ) {
            debug($dqueues{$singledqueue}{state_count});
-	   if ( $dqueues{$singledqueue}{state_count} =~ m/.*Running:([0-9]*).*/ ) {
-		$lrms_queue{running}=$1;
-	   }
-	}
+           if ( $dqueues{$singledqueue}{state_count} =~ m/.*Running:([0-9]*).*/ ) {
+                $lrms_queue{running}=$1;
+           }
+        }
 
         # the above gets the number of nodes not the number of cores in use. If multi core jobs are running, "running" will be underestimated.
         # Instead use totalcpus - freecpus (This might overrepresent running. because pbsnodes count whole nodes in use.)
         # CUS (2015-02-09)
- 
-        my $runningcores = $torque_totalcpus - $torque_freecpus ; 
+
+        my $runningcores = $torque_totalcpus - $torque_freecpus ;
         $runningcores = 0 if $runningcores < 0;
 
         $lrms_queue{running} = $runningcores if $runningcores > $lrms_queue{running};
 
+        if ($lrms_queue{totalcpus} eq 0) {
+            warning("Can't determine number of cpus for queue $qname");
+        }
 
-	if ($lrms_queue{totalcpus} eq 0) {
-	    warning("Can't determine number of cpus for queue $qname");
-	}
-
-	if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
-	    $lrms_queue{queued}=$1;
-	} else {
-	    $lrms_queue{queued}=0;
-	}
+        if ( $qstat{state_count} =~ m/.*Queued:([0-9]*).*/ ){
+            $lrms_queue{queued}=$1;
+        } else {
+            $lrms_queue{queued}=0;
+        }
 
         # fallback for defult values that are required for normal operation
         $lrms_queue{MaxSlotsPerJob} = $lrms_queue{totalcpus} if $lrms_queue{MaxSlotsPerJob} eq "";
 
- 	# calculate queued in case of a routing queue
+        # calculate queued in case of a routing queue
         # queued jobs is the sum of jobs queued in the routing queue
         # plus jobs in the destination queue
         if ( $qstat{queue_type} =~ /Route/ ) {
            debug($dqueues{$singledqueue}{state_count});
-	   if ( $dqueues{$singledqueue}{state_count} =~ m/.*Queued:([0-9]*).*/ ) {
-		$lrms_queue{queued}=$lrms_queue{queued}+$1;
-	   }
-	}
+           if ( $dqueues{$singledqueue}{state_count} =~ m/.*Queued:([0-9]*).*/ ) {
+                $lrms_queue{queued}=$lrms_queue{queued}+$1;
+           }
+        }
 
     }
 
@@ -792,124 +782,105 @@ sub jobs_info ($$@) {
     # qstat output, comment because it is an array, and mem
     # because "kB" needs to be stripped from the value
     my (%skeywords) = ('job_state' => 'status');
-    
+
     my (%tkeywords) = ( 'resources_used.walltime' => 'walltime',
-			'resources_used.cput' => 'cputime',
-			'Resource_List.walltime' => 'reqwalltime',
-			'Resource_List.cputime' => 'reqcputime');
+                        'resources_used.cput' => 'cputime',
+                        'Resource_List.walltime' => 'reqwalltime',
+                        'Resource_List.cputime' => 'reqcputime');
 
     my (%nkeywords) = ( 'Resource_List.select' => 1,
-			'Resource_List.nodes' => 1,
-			'Resource_List.ncpus' => 1);
+                        'Resource_List.nodes' => 1,
+                        'Resource_List.ncpus' => 1);
 
     my ($alljids) = join ' ', @{$jids};
     my ($rank) = 0;
     my %job_owner;
 
     my $handle_attr = sub {
-	my ($jid, $k, $v) = @_;
+        my ($jid, $k, $v) = @_;
 
-	if ( defined $skeywords{$k} ) {
-	    $lrms_jobs{$jid}{$skeywords{$k}} = $v;
-	    if($k eq "job_state") {
-		if( $v eq "U" ) {
-		    $lrms_jobs{$jid}{status} = "S";
-		} elsif ( $v eq "C" ) {
-		    $lrms_jobs{$jid}{status} = ""; # No status means job has completed
-		} elsif ( $v ne "R" and $v ne "Q" and $v ne "S" and $v ne "E" ) {
-		    $lrms_jobs{$jid}{status} = "O";
-		}
-	    }
-	} elsif ( defined $tkeywords{$k} ) {
-	    $lrms_jobs{$jid}{$tkeywords{$k}} = &count_time($v);
-	} elsif ( defined $nkeywords{$k} ) {
-	    $lrms_jobs{$jid}{$k} = $v;
-	} elsif ( $k eq 'exec_host' ) {
-	    my @nodes = split_hostlist($v);
-	    $lrms_jobs{$jid}{nodes} = \@nodes;
-	    #$lrms_jobs{$jid}{cpus} = scalar @nodes;
-	} elsif ( $k eq 'comment' ) {
-	    $lrms_jobs{$jid}{comment} = []
-		unless $lrms_jobs{$jid}{comment};
-	    push @{$lrms_jobs{$jid}{comment}}, "LRMS: $v";
-	} elsif ($k eq 'resources_used.vmem') {
-	    $v =~ s/(\d+).*/$1/;
-	    $lrms_jobs{$jid}{mem} = $v;
-	}
+        if ( defined $skeywords{$k} ) {
+            $lrms_jobs{$jid}{$skeywords{$k}} = $v;
+            if($k eq "job_state") {
+                if( $v eq "U" ) {
+                    $lrms_jobs{$jid}{status} = "S";
+                } elsif ( $v eq "C" ) {
+                    $lrms_jobs{$jid}{status} = ""; # No status means job has completed
+                } elsif ( $v ne "R" and $v ne "Q" and $v ne "S" and $v ne "E" ) {
+                    $lrms_jobs{$jid}{status} = "O";
+                }
+            }
+        } elsif ( defined $tkeywords{$k} ) {
+            $lrms_jobs{$jid}{$tkeywords{$k}} = &count_time($v);
+        } elsif ( defined $nkeywords{$k} ) {
+            $lrms_jobs{$jid}{$k} = $v;
+        } elsif ( $k eq 'exec_host' ) {
+            my @nodes = split_hostlist($v);
+            $lrms_jobs{$jid}{nodes} = \@nodes;
+            #$lrms_jobs{$jid}{cpus} = scalar @nodes;
+        } elsif ( $k eq 'comment' ) {
+            $lrms_jobs{$jid}{comment} = []
+                unless $lrms_jobs{$jid}{comment};
+            push @{$lrms_jobs{$jid}{comment}}, "LRMS: $v";
+        } elsif ($k eq 'resources_used.vmem') {
+            $v =~ s/(\d+).*/$1/;
+            $lrms_jobs{$jid}{mem} = $v;
+        }
 
-	if ( $k eq 'Job_Owner' ) {
-	    $v =~ /(\S+)@/;
-	    $job_owner{$jid} = $1;
-	}
-	if ( $k eq 'job_state' ) {
-	    if ($v eq 'R') {
-		$lrms_jobs{$jid}{rank} = "";
-	    } elsif ($v eq 'C') {
-		$lrms_jobs{$jid}{rank} = "";
-	    } else {
-		$rank++;
-		$lrms_jobs{$jid}{rank} = $rank;
-		$jid=~/^(\d+).+/;
-	    }
-	    if ($v eq 'R' or 'E'){
-		++$user_jobs_running{$job_owner{$jid}};
-	    }
-	    if ($v eq 'Q'){ 
-		++$user_jobs_queued{$job_owner{$jid}};
-	    }
-	}
+        if ( $k eq 'Job_Owner' ) {
+            $v =~ /(\S+)@/;
+            $job_owner{$jid} = $1;
+        }
+        if ( $k eq 'job_state' ) {
+            if ($v eq 'R') {
+                $lrms_jobs{$jid}{rank} = "";
+            } elsif ($v eq 'C') {
+                $lrms_jobs{$jid}{rank} = "";
+            } else {
+                $rank++;
+                $lrms_jobs{$jid}{rank} = $rank;
+                $jid=~/^(\d+).+/;
+            }
+            if ($v eq 'R' or 'E'){
+                ++$user_jobs_running{$job_owner{$jid}};
+            }
+            if ($v eq 'Q'){
+                ++$user_jobs_queued{$job_owner{$jid}};
+            }
+        }
     };
 
-    unless (open QSTATOUTPUT,   "$path/qstat -f 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -f ");
+    my ( %hoh_qstatf ) = read_qstat_f($path);
+    foreach my $pbsjid (keys %hoh_qstatf) {
+        # only jobids known by A-REX are processed
+        my $jid = undef;
+        foreach my $j (@$jids) {
+             if ( $pbsjid =~ /^$j$/ ) {
+                 $jid = $j;
+                 last;
+             }
+        }
+        next unless defined $jid;
+        # handle qstat attributes of the jobs
+        foreach my $k (keys %{$hoh_qstatf{$jid}} ) {
+            my $v = $hoh_qstatf{$jid}{$k};
+            &$handle_attr($jid, $k, $v);
+        }
+        # count cpus for this jobs
+        set_cpucount($lrms_jobs{$jid});
     }
-
-    my ($jid, $k, $v) = ();
-    while (my $line = <QSTATOUTPUT>) {
-	if ($line =~ /^Job Id:\s+(\d+.*)$/) {
-            my $pbsjid = $1;
-	    &$handle_attr($jid, $k, $v) if $k and $jid;
-	    set_cpucount($lrms_jobs{$jid}) if $jid;
-	    ($jid, $k, $v) = ();
-	    foreach my $j (@$jids) {
-		if ( $pbsjid =~ /^$j$/ ) { 
-		    $jid = $j;
-		    last;
-		}
-	    }
-	    next;
-	}
-
-	next unless defined $jid;
-
-	# a line starting with a tab is a continuation line
-	if ( $line =~ m/^\t(.+)$/ ) {
-	    $v .= $1;
-	    next;
-	}
-
-	if ( $line =~ m/^\s*(\S+) = (.*)$/ ) {
-	    my ($newk, $newv) = ($1, $2);
-	    &$handle_attr($jid, $k, $v) if $k and $jid;
-	    ($k, $v) = ($newk, $newv);
-	}
-    }
-    &$handle_attr($jid, $k, $v) if $k and $jid;
-    set_cpucount($lrms_jobs{$jid}) if $jid;
-
-    close QSTATOUTPUT;
 
     my (@scalarkeywords) = ('status', 'rank', 'mem', 'walltime', 'cputime',
-			    'reqwalltime', 'reqcputime');
+                            'reqwalltime', 'reqcputime');
 
-    foreach $jid ( @$jids ) {
-	foreach my $k ( @scalarkeywords ) {
-	    if ( ! defined $lrms_jobs{$jid}{$k} ) {
-		$lrms_jobs{$jid}{$k} = "";
-	    }
-	}
-	$lrms_jobs{$jid}{comment} = [] unless $lrms_jobs{$jid}{comment};
-	$lrms_jobs{$jid}{nodes} = [] unless $lrms_jobs{$jid}{nodes};
+    foreach my $jid ( @$jids ) {
+        foreach my $k ( @scalarkeywords ) {
+            if ( ! defined $lrms_jobs{$jid}{$k} ) {
+                $lrms_jobs{$jid}{$k} = "";
+            }
+        }
+        $lrms_jobs{$jid}{comment} = [] unless $lrms_jobs{$jid}{comment};
+        $lrms_jobs{$jid}{nodes} = [] unless $lrms_jobs{$jid}{nodes};
     }
 
     return %lrms_jobs;
@@ -939,57 +910,40 @@ sub users_info($$@) {
     my (%lrms_users);
 
     # Check that users have access to the queue
-    unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -f -Q $qname");
-    }
+    my ( %hoh_qstatfQ ) = read_qstat_fQ( $path );
 
     my $acl_user_enable = 0;
     my @acl_users;
-    my $more_acls = 0;
     # added for routing queue support
     my @dqueues;
     my $singledqueue;
     my $isrouting;
-    while (my $line= <QSTATOUTPUT>) {   
-        chomp $line;
 
-	# is this a continuation of the acl line?
-	if ($more_acls) {
-	    $line =~ s/^\s*//;  # strip leading spaces
-	    push @acl_users, split ',', $line;
-	    $more_acls = 0 unless $line =~ /,\s*$/;
-	    next;
-	}
-
-	if ( $line =~ /\s*acl_user_enable/ ) {
-	    my ( $k ,$v ) = split ' = ', $line;
-	    unless ( $v eq 'False' ) {
-	      $acl_user_enable = 1;
-	    }
-	}
-	if ( $line =~ /\s*acl_users/ ) {
-	    my ( $k ,$v ) = split ' = ', $line;
-	    unless ( $v eq 'False' ) {
-	      # This condition is kept here in case the reason
-	      # for it being there in the first place was that some
-	      # version or flavour of PBS really has False as an alternative
-	      # to usernames to indicate the absence of user access control
-	      # A Corrallary: Dont name your users 'False' ...
-		push @acl_users, split ',', $v;
-		$more_acls = 1 if $v =~ /,\s*$/;
-	    }
-	}
-        # added to support routing queues
-        if (!$acl_user_enable){
-	      if ($line =~ /\s*route_destinations\s=\s(.*)$/) {
-		    @dqueues=split (',',$1);
-		    $singledqueue=shift(@dqueues);
-		    warning('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
-		    $isrouting = 1;
-	      }
+    foreach my $k (keys %{$hoh_qstatfQ{$qname}}) {
+        my $v = $hoh_qstatfQ{$qname}{$k};
+        if ( $k eq "acl_user_enable" && $v eq "True") {
+            $acl_user_enable = 1;
         }
+        if ( $k eq "acl_users" ) {
+            unless ( $v eq 'False' ) {
+               # This condition is kept here in case the reason
+               # for it being there in the first place was that some
+               # version or flavour of PBS really has False as an alternative
+               # to usernames to indicate the absence of user access control
+               # A Corrallary: Dont name your users 'False' ...
+                push @acl_users, split ',', $v;
+            }
+       }
+       # added to support routing queues
+       if ( !$acl_user_enable ) {
+            if ($k eq "route_destinations" ) {
+                @dqueues=split (',',$v);
+                $singledqueue=shift(@dqueues);
+                warning('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
+                $isrouting = 1;
+            }
+       }
     }
-    close QSTATOUTPUT;
 
     # if the acl_user_enable is not defined in the RQ,
     # it could be defined in the destination queues.
@@ -998,86 +952,60 @@ sub users_info($$@) {
     if ($isrouting){
         debug("Getting acl from destination queue $singledqueue");
         # Check that users have access to the queue
-        unless (open QSTATOUTPUT,   "$path/qstat -f -Q $singledqueue 2>/dev/null |") {
-	    error("Error in executing qstat on destination queue: $path/qstat -f -Q $singledqueue");
-        }
-
         $acl_user_enable = 0;
-        $more_acls = 0;
-    	while (my $line= <QSTATOUTPUT>) {
-	    chomp $line;
-
-	    # is this a continuation of the acl line?
-	    if ($more_acls) {
-		$line =~ s/^\s*//;  # strip leading spaces
-		push @acl_users, split ',', $line;
-		$more_acls = 0 unless $line =~ /,\s*$/;
-		next;
-	    }
-
-	    if ( $line =~ /\s*acl_user_enable/ ) {
-		my ( $k ,$v ) = split ' = ', $line;
-		unless ( $v eq 'False' ) {
-		    $acl_user_enable = 1;
-		}
-	    }
-
-	    if ( $line =~ /\s*acl_users/ ) {
-		my ( $k ,$v ) = split ' = ', $line;
-		unless ( $v eq 'False' ) {
-		    # This condition is kept here in case the reason
-		    # for it being there in the first place was that some
-		    # version or flavour of PBS really has False as an alternative
-		    # to usernames to indicate the absence of user access control
-		    # A Corrallary: Dont name your users 'False' ...
-		    push @acl_users, split ',', $v;
-		    $more_acls = 1 if $v =~ /,\s*$/;
-		}
-	    }
-	}
-	close QSTATOUTPUT;
-	debug(@acl_users);
+        foreach my $k (keys %{$hoh_qstatfQ{$singledqueue}}) {
+            my $v = $hoh_qstatfQ{$singledqueue}{$k};
+            if ( $k eq "acl_user_enable" && $v eq "True") {
+                $acl_user_enable = 1;
+            }
+            if ( $k eq "acl_users" ) {
+                unless ( $v eq 'False' ) {
+                    push @acl_users, split ',', $v;
+                }
+            }
+       }
+       debug(@acl_users);
     }
-  
+
     # acl_users is only in effect when acl_user_enable is true
     if ($acl_user_enable) {
-	foreach my $a ( @{$accts} ) {
-	    if (  grep { $a eq $_ } @acl_users ) {
-	      # The acl_users list has to be sent back to the caller.
-	      # This trick works because the config hash is passed by
-	      # reference.
-	      push @{$$config{acl_users}}, $a;
-	    }
-	    else {		       
-		warning("Local user $a does not ".
-			"have access in queue $qname.");
-	    }
-	}
+        foreach my $a ( @{$accts} ) {
+            if (  grep { $a eq $_ } @acl_users ) {
+              # The acl_users list has to be sent back to the caller.
+              # This trick works because the config hash is passed by
+              # reference.
+              push @{$$config{acl_users}}, $a;
+            }
+            else {
+                warning("Local user $a does not ".
+                        "have access in queue $qname.");
+            }
+        }
     } else {
-	delete $$config{acl_users};
+        delete $$config{acl_users};
     }
 
     # Uses saved module data structure %lrms_queue, which
     # exists if queue_info is called before
     if ( ! exists $lrms_queue{status} ) {
-	%lrms_queue = queue_info( $config, $qname );
+        %lrms_queue = queue_info( $config, $qname );
     }
 
     foreach my $u ( @{$accts} ) {
-	    $user_jobs_running{$u} = 0 unless $user_jobs_running{$u};
-	    if ($lrms_queue{maxuserrun} and ($lrms_queue{maxuserrun} - $user_jobs_running{$u}) < $lrms_queue{status} ) {
-		$lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
-	    }
-	    else {
-		$lrms_users{$u}{freecpus} = $lrms_queue{status};
-	    }
-	    $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
-	    if ($lrms_users{$u}{freecpus} < 0) {
-		$lrms_users{$u}{freecpus} = 0;
-	    }
-	    if ($lrms_queue{maxcputime} and $lrms_users{$u}{freecpus} > 0) {
-		$lrms_users{$u}{freecpus} .= ':'.$lrms_queue{maxcputime};
-	    }
+        $user_jobs_running{$u} = 0 unless $user_jobs_running{$u};
+        if ($lrms_queue{maxuserrun} and ($lrms_queue{maxuserrun} - $user_jobs_running{$u}) < $lrms_queue{status} ) {
+            $lrms_users{$u}{freecpus} = $lrms_queue{maxuserrun} - $user_jobs_running{$u};
+        }
+        else {
+            $lrms_users{$u}{freecpus} = $lrms_queue{status};
+        }
+        $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+        if ($lrms_users{$u}{freecpus} < 0) {
+            $lrms_users{$u}{freecpus} = 0;
+        }
+        if ($lrms_queue{maxcputime} and $lrms_users{$u}{freecpus} > 0) {
+            $lrms_users{$u}{freecpus} .= ':'.$lrms_queue{maxcputime};
+        }
     }
     return %lrms_users;
 }
@@ -1105,7 +1033,7 @@ sub nodes_info($) {
             for my $token (split ',', $status) {
                 my ($opt, $val) = split '=', $token, 2;
                 next unless defined $val;
-                if ($opt eq 'totmem') { 
+                if ($opt eq 'totmem') {
                     $nodes{$host}{vmem} = int($1/1024) if $val =~ m/^(\d+)kb/;
                 } elsif ($opt eq 'physmem') {
                     $nodes{$host}{pmem} = int($1/1024) if $val =~ m/^(\d+)kb/;
