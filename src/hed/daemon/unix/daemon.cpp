@@ -28,6 +28,10 @@
 
 #include "daemon.h"
 
+#ifdef HAVE_SYSTEMD_DAEMON
+#include <systemd/sd-daemon.h>
+#endif
+
 namespace Arc {
 
 Logger Daemon::logger(Logger::rootLogger, "Daemon");
@@ -63,6 +67,12 @@ static void init_parent(pid_t pid,const std::string& pid_file) {
         std::fstream pf(pid_file.c_str(), std::fstream::out);
         pf << pid << std::endl;
         pf.close();
+#ifdef HAVE_SYSTEMD_DAEMON
+        sd_notifyf(0, "READY=1\n"
+            "STATUS=Processing requests...\n"
+            "MAINPID=%lu",
+            (unsigned long) pid);
+#endif
     }
 }
 
@@ -72,6 +82,9 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
     switch(pid) {
         case -1: // parent fork error
             logger.msg(ERROR, "Daemonization fork failed: %s", StrError(errno));
+            #ifdef HAVE_SYSTEMD_DAEMON
+            sd_notifyf(0, "STATUS=Daemonization fork failed: %s\nERRNO=%i", StrError(errno).c_str(), errno);
+            #endif
             exit(1);
         case 0: { // child
             while(true) { // stay in loop waiting for watchdog alarm
@@ -85,6 +98,9 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
                 switch(pid) {
                     case -1: // parent fork error
                         logger.msg(ERROR, "Watchdog fork failed: %s", StrError(errno));
+                        #ifdef HAVE_SYSTEMD_DAEMON
+                        sd_notifyf(0, "STATUS=Watchdog fork failed: %s\nERRNO=%i", StrError(errno).c_str(), errno);
+                        #endif
                         exit(1);
                     case 0: // real child
                         if(watchdog) watchdog_pid = ::getppid();

@@ -140,7 +140,6 @@ namespace Arc {
       }
       ComputingEndpoint->Staging = "staginginout";
       ComputingEndpoint->JobDescriptions.push_back("nordugrid:xrsl");
-      ComputingEndpoint->JobDescriptions.push_back("ogf:jsdl:1.0");
 
       cs.ComputingEndpoint.insert(std::pair<int, ComputingEndpointType>(0, ComputingEndpoint));
       

@@ -171,6 +171,7 @@ fi
 #  Features
 enables_ldap=yes
 enables_mysql=no
+enables_systemd=no
 enables_swig_python=yes
 # Features directly related to components
 enables_cppunit=yes
@@ -644,6 +645,29 @@ fi
 AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
 AC_MSG_NOTICE([Python example checking with pylint enabled: $enables_pylint])
 
+# check systemd daemon integration
+AC_ARG_ENABLE(systemd, AC_HELP_STRING([--enable-systemd], [enable use of the systemd daemon integration features]),[enables_systemd="$enableval"],[])
+if test "x$enables_systemd" = "xyes"; then
+systemd_daemon_save_LIBS=$LIBS
+LIBS=
+AC_SEARCH_LIBS(sd_listen_fds,[systemd systemd-daemon],
+  [have_sd_listen_fds=yes],[have_sd_listen_fds=no],$systemd_daemon_save_LIBS)
+AC_SEARCH_LIBS(sd_notify,[systemd systemd-daemon],
+  [have_sd_notify=yes],[have_sd_notify=no],$systemd_daemon_save_LIBS)
+AC_CHECK_HEADERS(systemd/sd-daemon.h,
+  [have_systemd_sd_daemon_h=yes],[have_systemd_sd_daemon_h=no])
+
+if test x"$have_sd_listen_fds" = x"yes" && \
+   test x"$have_sd_notify" = x"yes" && \
+   test x"$have_systemd_sd_daemon_h" = x"yes"; then
+  AC_DEFINE([HAVE_SYSTEMD_DAEMON],[1],[Define if you have systemd daemon])
+  SYSTEMD_DAEMON_LIBS=$LIBS
+else
+  AC_MSG_FAILURE([--enable-systemd was given, but test for systemd libraries had failed])
+fi
+LIBS=$systemd_daemon_save_LIBS
+fi
+AC_SUBST(SYSTEMD_DAEMON_LIBS)
 
 # check gthread
 if test "$enables_hed" = "yes"; then
@@ -2471,6 +2495,7 @@ Enabled features:
 
 Local jobs info in BDB:    ${enables_dbjstore}
 Local jobs info in SQLite: ${enables_sqlitejstore}
+Systemd Integration:       ${enables_systemd}
 
 Python LRMS back-end dependency:
 Inline::Python Perl module: ${INLINE_PYTHON_FOUND}
