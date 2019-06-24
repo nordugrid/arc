@@ -63,7 +63,7 @@ class RTEControl(ComponentControl):
         for path, _, files in os.walk(rtedir):
             rtebase = path.lstrip(rtedir + '/')
             for f in files:
-                rtename = rtebase + '/' + f
+                rtename = rtebase + '/' + f if rtebase else f
                 rtepath = path + '/' + f
                 if os.path.islink(rtepath):
                     rtepath = os.readlink(rtepath)
