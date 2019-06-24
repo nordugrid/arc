@@ -26,7 +26,8 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
     logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, config.ControlDir());
     return res;
   };
-  GACLperm perm = AuthUserGACLTest(acl,user_a);
+  //GACLperm perm = AuthUserGACLTest(acl,user_a);
+  GACLperm perm = AuthUserGACLTest(acl,user_s.user);
   if(spec) {
     if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
     if(GACLhasRead(perm) || GACLhasWrite(perm)) res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
@@ -91,8 +92,10 @@ int JobPlugin::check_acl(const char* acl_file,bool spec,const std::string& id) {
     bool allowed_to_admin = false;
     // Collect all security attributes
     {
-      std::string user_identity = user_a.DN();
-      const std::vector<struct voms_t>& user_voms = user_a.voms();
+      //std::string user_identity = user_a.DN();
+      std::string user_identity = user_s.user.DN();
+      //const std::vector<struct voms_t>& user_voms = user_a.voms();
+      const std::vector<struct voms_t>& user_voms = user_s.user.voms();
       Arc::XMLNode entry = request.NewChild("entry");
       if(!user_identity.empty()) entry.NewChild("person").NewChild("dn") = user_identity;
       Arc::XMLNode voms;
