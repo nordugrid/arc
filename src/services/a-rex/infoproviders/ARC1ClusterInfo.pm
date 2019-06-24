@@ -1412,8 +1412,7 @@ sub collect($) {
           if ($gmjob->{description}) {
                 if ($gmjob->{description} eq 'adl') { 
                     $cact->{JobDescription} = 'emies:adl';
-                }
-                else {
+                } else {
                     $cact->{JobDescription} = 'nordugrid:xrsl';
                 }
           } else {
@@ -1613,7 +1612,8 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ "nordugrid:xrsl" ];
+
+            $cep->{JobDescription} = [ 'nordugrid:xrsl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
