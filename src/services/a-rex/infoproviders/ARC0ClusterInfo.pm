@@ -278,7 +278,7 @@ sub collect($) {
         foreach my $i (0 .. $#rte_tmp) {
 			if ($i == 0) {
 				push @rtes,$rte_tmp[$i];
-			} elsif ( $i > 0 and $i < $#rte_tmp ) {
+			} elsif ( $i > 0 and $i le $#rte_tmp ) {
 				if ( $rte_tmp[$i] =~ /^\Q$rtes[$#rtes]\E\z/i ) {
 				next;
 				} else {
