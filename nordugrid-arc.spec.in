@@ -814,6 +814,18 @@ Connector (ARC).
 This package contains the archery-manage utility for administration of
 an ARCHERY DNS-embedded service endpoint registry.
 
+%package wn
+Summary:    ARC optional worker nodes components
+Group:      Applications/Internet
+
+%description wn
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the optional components that provide new
+job management features on the worker nodes (WN).
+
 %prep
 %setup @fedorasetupopts@
 
@@ -1518,4 +1530,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files archery-manage
 %defattr(-,root,root,-)
 %{_sbindir}/archery-manage
+
+%files wn
+%defattr(-,root,root,-)
+%attr(4755,root,root) %{_bindir}/arc-job-cgroup
 
