@@ -285,12 +285,12 @@ def _evaluate_values():
 def _canonicalize_blockid(block):
     # nothing to do with blocks without names
     if ':' not in block:
-	return block
+        return block
     # get name wthout spaces
     re_match = __blockname_re.match(block)
     if re_match:
-       re_dict = re_match.groupdict()
-       return '{block_id}:{block_name}'.format(**re_dict)
+        re_dict = re_match.groupdict()
+        return '{block_id}:{block_name}'.format(**re_dict)
     return block
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
