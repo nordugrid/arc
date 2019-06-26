@@ -5,10 +5,10 @@ Advanced Resource Connector (ARC)
 Release Notes for NorduGrid ARC  6.1.0     26.06.2019
 -------------------------------------------------------------------------
 
-We are happy to announce the release of ARC 6.1.0.
+We are happy to announce the ARC 6.1.0 release, the first update of the ARC 6 series.
 
-Several bugs were discovered and fixed.
-ARC 6.1.0 also includes enhancements and new features as can be seen from the merge requests listed below. 
+ARC 6.1.0 contains several bug fixes and the release also includes 
+enhancements and new features as can be seen from the merge requests listed below. 
 
 List of merge requests with bugfixes and enhancements since 6.0.0
 ==================================================================
@@ -59,6 +59,7 @@ List of merge requests with bugfixes and enhancements since 6.0.0
 List of merge requests sorted by type and component:
 =====================================================
 
+
 Type of change:  Bugfix
 ---------------------------
 
@@ -99,8 +100,6 @@ Type of change:  Bugfix
 ** 2019-06-23 baac8957 !797   Space trimming in block names in arcconfig-parser user input (BUGZ-3838)
 
 
-
-
 Type of change:  Redesign or cleanup
 -------------------------------------
 * Component:  Backends,RTE
@@ -130,9 +129,6 @@ Type of change:  Enhancement
 ** 2019-06-03 ca1d5b3d !773   Updating debian packages descriptions in accordance to those in spec file
 
 
-
-
-
 Type of change:  New feature
 ==================================================
 * Component:  Backends
@@ -140,12 +136,10 @@ Type of change:  New feature
 
 
 
-
-
 Documentation
 ---------------------
 The ARC 6 documentation has been rewritten in a modern format and is 
-placed at a new location: http://www.nordugrid.org/arc/arc6
+placed at http://www.nordugrid.org/arc/arc6
 
 Please note that although the most important parts of the ARC 6 documentation are in place, 
 it is still not fully complete. If you have questions, please contact us!
