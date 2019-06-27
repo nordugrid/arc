@@ -21,18 +21,5 @@ read -r -d '' job_description_input <<'EOF'
                ("TEST2" "'Testing'"))
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -20,6 +20,8 @@
- . $script
- }
- # Setting environment variables as specified by user
-+export 'TEST=Testing'
-+export 'TEST2='\''Testing'\'''
- export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
- 
- RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/user-env-test-user_env.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }

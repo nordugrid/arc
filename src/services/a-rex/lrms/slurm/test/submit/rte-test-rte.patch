@@ -1,0 +1,40 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -99,8 +99,21 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for DUMMY:
++RTE_function_0 () {
++# This is a dummy RTE
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}DUMMY;"
++# Calling DUMMY function:
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime DUMMY stage 1 execution failed." 1>&2
++    echo "Runtime DUMMY stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -159,6 +172,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}DUMMY;"
++# Calling DUMMY function:
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime DUMMY stage 2 execution failed." 1>&2
++    echo "Runtime DUMMY stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
+   find ./ -type l -exec rm -f "{}" ";"
+   chmod -R u+w "./"

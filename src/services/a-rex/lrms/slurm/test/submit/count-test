@@ -20,29 +20,7 @@ read -r -d '' job_description_input <<'EOF'
  (count = 6)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -6,7 +6,7 @@
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
--#SBATCH -n 1
-+#SBATCH -n 6
- #SBATCH 
- 
-
-@@ -123,7 +123,7 @@
-   fi
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
--echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
-+echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
- executable='/bin/true'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/count-test-count.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 
 function test_post_check() {
   # Check diag file
@@ -69,30 +47,7 @@ read -r -d '' job_description_input <<'EOF'
  (countpernode = 2)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 14:23:20.868289139 +0100
-+++ b/basic-script.sh 2014-01-28 14:23:20.860289139 +0100
-@@ -6,7 +6,8 @@
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
--#SBATCH -n 1
-+#SBATCH -n 6
-+#SBATCH --ntasks-per-node 2
- #SBATCH 
- 
-
-@@ -123,7 +124,7 @@
-   fi
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
--echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
-+echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
- executable='/bin/true'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/count-test-count_per_node.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 function test_exclusive() {
@@ -102,28 +57,5 @@ read -r -d '' job_description_input <<'EOF'
  (exclusiveexecution = "yes")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 14:23:20.868289139 +0100
-+++ b/basic-script.sh 2014-01-28 14:23:20.860289139 +0100
-@@ -6,7 +6,8 @@
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
--#SBATCH -n 1
-+#SBATCH -n 6
- #SBATCH 
-+#SBATCH --exclusive
-
- # Overide umask of execution node (sometime values are really strange)
-@@ -123,7 +124,7 @@
-   fi
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
--echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
-+echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
- executable='/bin/true'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/count-test-exclusive.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }

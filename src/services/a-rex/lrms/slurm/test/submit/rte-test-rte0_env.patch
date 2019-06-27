@@ -1,0 +1,53 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -21,7 +21,10 @@
+ . $script
+ }
+ # Setting environment variables as specified by user
+-export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
++export 'job_foo=foobar'
++export 'test="TEST"'
++export 'rte_foo="foobar"'
++export GRID_GLOBAL_JOBID='gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env'
+ 
+ RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
+ RUNTIME_JOB_STDIN=/dev/null
+@@ -99,8 +102,22 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for ENV:
++RTE_function_0 () {
++export joboption_env_1="test=\"TEST\""
++export joboption_env_2="rte_foo=\"foobar\""
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}ENV;"
++# Calling ENV function:
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime ENV stage 1 execution failed." 1>&2
++    echo "Runtime ENV stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -159,6 +176,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}ENV;"
++# Calling ENV function:
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime ENV stage 2 execution failed." 1>&2
++    echo "Runtime ENV stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
+   find ./ -type l -exec rm -f "{}" ";"
+   chmod -R u+w "./"
