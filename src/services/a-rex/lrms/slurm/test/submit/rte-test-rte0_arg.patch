@@ -1,0 +1,63 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -99,8 +99,23 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for ARG:
++RTE_function_0 () {
++joboption_arg_0="${joboption_arg_0}/echo"
++export joboption_arg_1="Hello"
++export joboption_arg_2="World"
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}ARG;"
++# Calling ARG function:
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime ARG stage 1 execution failed." 1>&2
++    echo "Runtime ARG stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -124,7 +139,7 @@
+ nodename=`/bin/hostname -f`
+ echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+ echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
+-executable='/bin/true'
++executable='/bin'
+ # Check if executable exists
+ if [ ! -f "$executable" ];
+ then
+@@ -148,9 +163,9 @@
+ fi
+ 
+ if [ -z "$GNU_TIME" ] ; then
+-   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++   "/bin" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
+ else
+-  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
+ 
+ fi
+ RESULT=$?
+@@ -159,6 +174,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}ARG;"
++# Calling ARG function:
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime ARG stage 2 execution failed." 1>&2
++    echo "Runtime ARG stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
+   find ./ -type l -exec rm -f "{}" ";"
+   chmod -R u+w "./"

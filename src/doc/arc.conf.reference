@@ -488,7 +488,9 @@
 
 ## nodename = path - Redefine the command to obtain hostname of LRMS worker node.
 ## By default the value is defined on buildtime and depend on the OS. 
-## In most cases /bin/hostname -f will be used.
+## In most cases "/bin/hostname -f" will be used.
+## NOTE that this way of getting WN hostname will be used only in case of
+##   particular LRMS backend had no native LRMS-defined way.
 ## default: undefined
 #nodename=/bin/hostname -s
 ## CHANGE: moved here from the [arex] block

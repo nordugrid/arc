@@ -20,20 +20,7 @@ read -r -d '' job_description_input <<'EOF'
  (cputime = 1)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,8 @@
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-+#SBATCH -t 1:0
-+#SBATCH -t 1:0
- 
-
- # Overide umask of execution node (sometime values are really strange)
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/cpu-wall-time-test-cputime.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 function test_walltime() {
@@ -42,19 +29,7 @@ read -r -d '' job_description_input <<'EOF'
  (walltime = 1)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,7 @@
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-+#SBATCH -t 1:0
- 
-
- # Overide umask of execution node (sometime values are really strange)
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/cpu-wall-time-test-walltime.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 function test_walltime_and_cputime() {
@@ -64,20 +39,7 @@ read -r -d '' job_description_input <<'EOF'
  (cputime = 1)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -8,6 +8,8 @@
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-+#SBATCH -t 1:0
-+#SBATCH -t 5:0
- 
-
- # Overide umask of execution node (sometime values are really strange)
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/cpu-wall-time-test-walltime_and_cputime.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 function test_walltime_count() {
@@ -87,31 +49,7 @@ read -r -d '' job_description_input <<'EOF'
  (count = 6)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -7,8 +7,9 @@
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
--#SBATCH -n 1
-+#SBATCH -n 6
- #SBATCH 
-+#SBATCH -t 7:0
- 
-
- # Overide umask of execution node (sometime values are really strange)
-@@ -123,7 +124,7 @@
-   fi
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
--echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
-+echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
- executable='/bin/true'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/cpu-wall-time-test-walltime_count.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 function test_cputime_count() {
@@ -121,30 +59,5 @@ read -r -d '' job_description_input <<'EOF'
  (count = 6)
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -7,8 +7,10 @@
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
--#SBATCH -n 1
-+#SBATCH -n 6
- #SBATCH 
-+#SBATCH -t 1:10
-+#SBATCH -t 1:10
- 
-
- # Overide umask of execution node (sometime values are really strange)
-@@ -123,7 +125,7 @@
-   fi
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
--echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
-+echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
- executable='/bin/true'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/cpu-wall-time-test-cputime_count.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
