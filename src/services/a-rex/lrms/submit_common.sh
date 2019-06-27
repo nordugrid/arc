@@ -557,11 +557,15 @@ cd_and_run () {
 EOSCR
 
   if [ ! -z "$NODENAME" ] ; then
-    if [ -z "$NODENAME_WRITTEN" ] ; then
-      echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
-      echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
-    fi
+    cat >> $LRMS_JOB_SCRIPT <<EOSCR
+# Write nodename if not already written in LRMS-specific way
+if [ -z "\$NODENAME_WRITTEN" ] ; then
+  nodename=\`$NODENAME\`
+  echo "nodename=\$nodename" >> "\$RUNTIME_JOB_DIAG"
+fi
+EOSCR
   fi
+
   #TODO this should probably be done on headnode instead
   echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
