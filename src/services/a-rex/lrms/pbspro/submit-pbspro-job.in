@@ -230,6 +230,10 @@ echo " " >> $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
 
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -358,6 +362,11 @@ clean_local_scratch_dir_output
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job
