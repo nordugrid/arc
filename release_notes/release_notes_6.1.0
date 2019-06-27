@@ -8,52 +8,9 @@ Release Notes for NorduGrid ARC  6.1.0     26.06.2019
 We are happy to announce the ARC 6.1.0 release, the first update of the ARC 6 series.
 
 ARC 6.1.0 contains several bug fixes and the release also includes 
-enhancements and new features as can be seen from the merge requests listed below. 
+enhancements and new features as can be seen from the merge requests listed below.
 
-List of merge requests with bugfixes and enhancements since 6.0.0
-==================================================================
-* 2019-06-24 2ee3a6f3 !798   Check RTE is in the directory root (BUGZ-3839)    
-* 2019-06-23 4394281b !797   Space trimming in block names in arcconfig-parser user input (BUGZ-3838)
-* 2019-06-23 cdc90e63 !796   Use original job mapping                          
-* 2019-06-20 ba9a5007 !795   Infosys PBS.pm qstat invocation that works for older versions also
-* 2019-06-20 4cc0f46c !794   Fix extra empty #SBATCH                           
-* 2019-06-20 8316ff71 !793   Dedicated backend for Altair PBS Professional     
-* 2019-06-20 51578546 !792   Cache qstat output in the infosys to reduce number of requests to PBS
-* 2019-06-19 afe67519 !791   slurm_requirements and ENV/SINGULARITY implementation
-* 2019-06-19 6678f09e !790   Prevent condor from restarting the job (BUGZ-3799)
-* 2019-06-18 9e71b7bd !789   StopWhenUnneeded for ldap-slapd (BUGZ-3836)       
-* 2019-06-18 d86da216 !788   Jura should create archive directory if it does not exist (BUGZ-3822)
-* 2019-06-18 76fef17a !787   Condor backend constraints handling improvements (Issue #61)
-* 2019-06-18 e4415b1e !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
-* 2019-06-17 5b71ba48 !785   Rework infosys startup scripts to be more robust under systemd (BUGZ-3835)
-* 2019-06-17 5911338a !784   Systemd support in ARCHED                         
-* 2019-06-14 a6a2daaa !783   Detect openssl version at runtime                 
-* 2019-06-13 7f2322ba !781   force string to avoid unicode issues              
-* 2019-06-07 30ab86ad !779   Make all job storage formats keep information needed for ARC REST interface. Fixes BUGZ-3826
-* 2019-06-04 b01c50c5 !777   Fix error handling while starting infoprovider. Fixes BUGZ-3829
-* 2019-06-03 316e5981 !773   Updating debian packages descriptions in accordance to those in spec file
-* 2019-06-03 7982ba5f !772   Dedicated package for experimental ARC REST plugin
-* 2019-06-24 2ee3a6f3 !798   Check RTE is in the directory root (BUGZ-3839)    
-* 2019-06-23 4394281b !797   Space trimming in block names in arcconfig-parser user input (BUGZ-3838)
-* 2019-06-23 cdc90e63 !796   Use original job mapping                          
-* 2019-06-20 ba9a5007 !795   Infosys PBS.pm qstat invocation that works for older versions also
-* 2019-06-20 4cc0f46c !794   Fix extra empty #SBATCH                           
-* 2019-06-20 8316ff71 !793   Dedicated backend for Altair PBS Professional     
-* 2019-06-20 51578546 !792   Cache qstat output in the infosys to reduce number of requests to PBS
-* 2019-06-19 afe67519 !791   slurm_requirements and ENV/SINGULARITY implementation
-* 2019-06-19 6678f09e !790   Prevent condor from restarting the job (BUGZ-3799)
-* 2019-06-18 9e71b7bd !789   StopWhenUnneeded for ldap-slapd (BUGZ-3836)       
-* 2019-06-18 d86da216 !788   Jura should create archive directory if it does not exist (BUGZ-3822)
-* 2019-06-18 76fef17a !787   Condor backend constraints handling improvements (Issue #61)
-* 2019-06-18 e4415b1e !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
-* 2019-06-17 5b71ba48 !785   Rework infosys startup scripts to be more robust under systemd (BUGZ-3835)
-* 2019-06-17 5911338a !784   Systemd support in ARCHED                         
-* 2019-06-14 a6a2daaa !783   Detect openssl version at runtime                 
-* 2019-06-13 7f2322ba !781   force string to avoid unicode issues              
-* 2019-06-07 30ab86ad !779   Make all job storage formats keep information needed for ARC REST interface. Fixes BUGZ-3826
-* 2019-06-04 b01c50c5 !777   Fix error handling while starting infoprovider. Fixes BUGZ-3829
-* 2019-06-03 316e5981 !773   Updating debian packages descriptions in accordance to those in spec file
-* 2019-06-03 7982ba5f !772   Dedicated package for experimental ARC REST plugin
+
 
 
 List of merge requests sorted by type and component:
@@ -63,13 +20,9 @@ List of merge requests sorted by type and component:
 Type of change:  Bugfix
 ---------------------------
 
-* Component:  Core
+* Component:  Core, Server
 ** 2019-06-17 8b81c2f4 !784   Systemd support in ARCHED                         
 ** 2019-06-14 2cfdcb0a !783   Detect openssl version at runtime                 
-
-* Component:  Server
-** 2019-06-17 150a8fe3 !785   Rework infosys startup scripts to be more robust under systemd (BUGZ-3835)
-** 2019-06-17 8b81c2f4 !784   Systemd support in ARCHED                         
 ** 2019-06-13 ddb58073 !781   force string to avoid unicode issues              
 ** 2019-06-04 7a3a4956 !777   Fix error handling while starting infoprovider. Fixes BUGZ-3829
 
@@ -83,46 +36,36 @@ Type of change:  Bugfix
 * Component:  Accounting
 ** 2019-06-18 6c0f1e70 !788   Jura should create archive directory if it does not exist (BUGZ-3822)
 
-*Component:  Backends
+*Component:  Backends, RTE, Arcctl
+** 2019-06-24 2fedff40 !798   Check RTE is in the directory root (BUGZ-3839)
 ** 2019-06-20 eefa47ac !794   Fix extra empty #SBATCH                           
 ** 2019-06-19 6cb5ff85 !790   Prevent condor from restarting the job (BUGZ-3799)
 ** 2019-06-18 d18159ff !787   Condor backend constraints handling improvements (Issue #61)
 ** 2019-06-18 bd33613c !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
 
-* Component:  Rte
-** 2019-06-24 2fedff40 !798   Check RTE is in the directory root (BUGZ-3839)    
-** 2019-06-18 bd33613c !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
-
-* Component:  Arcctl
-** 2019-06-24 2fedff40 !798   Check RTE is in the directory root (BUGZ-3839)    
-
 * Component:  Configuration
 ** 2019-06-23 baac8957 !797   Space trimming in block names in arcconfig-parser user input (BUGZ-3838)
+
+* Component:  Building
+** 2019-06-25 edbe39b6 !799   Fix TabError: inconsistent use of tabs and spaces in indentation
 
 
 Type of change:  Redesign or cleanup
 -------------------------------------
-* Component:  Backends,RTE
-** 2019-06-18 bd33613c !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
-
 * Component:  Packaging
 ** 2019-06-03 9fa32dd9 !772   Dedicated package for experimental ARC REST plugin
 
 
 Type of change:  Enhancement
--------------------------------------
-* Component:  Core
-** 2019-06-17 8b81c2f4 !784   Systemd support in ARCHED                         
-
-* Component:  Server
+-----------------------------
+* Component:  Core, Server
 ** 2019-06-23 9675bbd7 !796   Use original job mapping                          
-** 2019-06-17 8b81c2f4 !784   Systemd support in ARCHED                         
 
 * Component:  Infosys
 ** 2019-06-20 a47d019f !795   Infosys PBS.pm qstat invocation that works for older versions also
 ** 2019-06-20 90a85c05 !792   Cache qstat output in the infosys to reduce number of requests to PBS
 
-* Component:  Rte
+* Component:  RTE
 ** 2019-06-19 b209cbf0 !791   slurm_requirements and ENV/SINGULARITY implementation
 
 * Component:  Packaging
@@ -130,14 +73,14 @@ Type of change:  Enhancement
 
 
 Type of change:  New feature
-==================================================
+------------------------------
 * Component:  Backends
 ** 2019-06-20 653e03ea !793   Dedicated backend for Altair PBS Professional     
 
 
 
 Documentation
----------------------
+==============
 The ARC 6 documentation has been rewritten in a modern format and is 
 placed at http://www.nordugrid.org/arc/arc6
 
@@ -146,7 +89,7 @@ it is still not fully complete. If you have questions, please contact us!
 
 
 Installing ARC 6 
---------------------------------------------------
+=================
 We recommend to install ARC release using the Nordugrid repository.
 * Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
 * Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
@@ -160,7 +103,7 @@ We provide binary builds for the following systems:
 
 
 Future support of ARC 5-series
--------------------------------
+===============================
 Now that ARC 6.0.0 is released, we will only provide security updates of ARC 5.
 In particular:
 1) No new feature development is planned or going on for ARC5 and no bug-fixing development 
@@ -172,9 +115,38 @@ In particular:
 
 
 Getting in touch
------------------
+==================
 If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
 * Email: nordugrid-discuss@nordugrid.org
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+
+
+
+
+Reverse chronologic list of all merge requests since 6.0.0
+================================================================================
+* 2019-06-25 aadb88ca !799   Fix TabError: inconsistent use of tabs and spaces in indentation
+* 2019-06-24 2ee3a6f3 !798   Check RTE is in the directory root (BUGZ-3839)    
+* 2019-06-23 4394281b !797   Space trimming in block names in arcconfig-parser user input (BUGZ-3838)
+* 2019-06-23 cdc90e63 !796   Use original job mapping                          
+* 2019-06-20 ba9a5007 !795   Infosys PBS.pm qstat invocation that works for older versions also
+* 2019-06-20 4cc0f46c !794   Fix extra empty #SBATCH                           
+* 2019-06-20 8316ff71 !793   Dedicated backend for Altair PBS Professional     
+* 2019-06-20 51578546 !792   Cache qstat output in the infosys to reduce number of requests to PBS
+* 2019-06-19 afe67519 !791   slurm_requirements and ENV/SINGULARITY implementation
+* 2019-06-19 6678f09e !790   Prevent condor from restarting the job (BUGZ-3799)
+* 2019-06-18 9e71b7bd !789   StopWhenUnneeded for ldap-slapd (BUGZ-3836)       
+* 2019-06-18 d86da216 !788   Jura should create archive directory if it does not exist (BUGZ-3822)
+* 2019-06-18 76fef17a !787   Condor backend constraints handling improvements (Issue #61)
+* 2019-06-18 e4415b1e !786   Improved handling of proxy file in HTCondor backend (fixes BUGZ-3824)
+* 2019-06-17 5b71ba48 !785   Rework infosys startup scripts to be more robust under systemd (BUGZ-3835)
+* 2019-06-17 5911338a !784   Systemd support in ARCHED                         
+* 2019-06-14 a6a2daaa !783   Detect openssl version at runtime                 
+* 2019-06-13 7f2322ba !781   force string to avoid unicode issues              
+* 2019-06-07 30ab86ad !779   Make all job storage formats keep information needed for ARC REST interface. Fixes BUGZ-3826
+* 2019-06-04 b01c50c5 !777   Fix error handling while starting infoprovider. Fixes BUGZ-3829
+* 2019-06-03 316e5981 !773   Updating debian packages descriptions in accordance to those in spec file
+* 2019-06-03 7982ba5f !772   Dedicated package for experimental ARC REST plugin
 
 
