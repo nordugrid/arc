@@ -19,6 +19,43 @@ script=$1
 shift
 . $script
 }
+echo "Detecting resource accounting method available for the job." 1>&2
+# Try to use cgroups first
+if command -v arc-job-cgroup; then
+    echo "Found arc-job-cgroup tool: trying to initialize accounting cgroups for the job." 1>&2
+    while true; do
+        # memory cgroup
+        memory_cgroup=$( arc-job-cgroup -m -n @TEST_JOB_ID@ )
+        if [ $? -ne 0 -o -z "$memory_cgroup" ]; then
+            echo "Failed to initialize memory cgroup for accounting." 1>&2
+            break;
+        fi
+        # cpuacct cgroup
+        cpuacct_cgroup=$( arc-job-cgroup -c -n @TEST_JOB_ID@ )
+        if [ $? -ne 0 -o -z "$cpuacct_cgroup" ]; then
+            echo "Failed to initialize cpuacct cgroup for accounting." 1>&2
+            break;
+        fi
+        echo "Cgroups method will be used for job accounting" 1>&2
+        JOB_ACCOUNTING="cgroup"
+        break;
+    done
+fi
+# Fallback to GNU_TIME if cgroups are not working
+if [ -z "$JOB_ACCOUNTING" ]; then
+    GNU_TIME='/usr/bin/time'
+    echo "Looking for $GNU_TIME tool for accounting measurements" 1>&2
+    if [ ! -z "$GNU_TIME" ] && ! "$GNU_TIME" --version >/dev/null 2>&1; then
+        echo "GNU time is not found at: $GNU_TIME" 1>&2
+    else
+        echo "GNU time found and will be used for job accounting." 1>&2
+        JOB_ACCOUNTING="gnutime"
+    fi
+fi
+# Nothing works: rely on LRMS only
+if [ -z "$JOB_ACCOUNTING" ]; then
+    echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
+fi
 # Setting environment variables as specified by user
 export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
 
@@ -135,25 +172,18 @@ then
 fi
 # See if executable is a script, and extract the name of the interpreter
 line1=`dd if="$executable" count=1 2>/dev/null | head -n 1`
-command=`echo $line1 | sed -n 's/^#! *//p'`
-interpreter=`echo $command | awk '{print $1}'`
-if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $command | awk '{print $2}'`; fi
+shebang=`echo $line1 | sed -n 's/^#! *//p'`
+interpreter=`echo $shebang | awk '{print $1}'`
+if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $shebang | awk '{print $2}'`; fi
 # If it's a script and the interpreter is not found ...
 [ "x$interpreter" = x ] || type "$interpreter" > /dev/null 2>&1 || {
 
   echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
   exit 1; }
-GNU_TIME='/usr/bin/time'
-if [ ! -z "$GNU_TIME" ] && ! "$GNU_TIME" --version >/dev/null 2>&1; then
-  echo "WARNING: GNU time not found at: $GNU_TIME" 2>&1;
-  GNU_TIME=
-fi 
-
-if [ -z "$GNU_TIME" ] ; then
-   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
-else
+if [ "x$JOB_ACCOUNTING" = "xgnutime" ]; then
   $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
-
+else
+   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
 fi
 RESULT=$?
 
@@ -197,5 +227,13 @@ else
       rm -rf "$RUNTIME_NODE_JOB_DIR"
     fi
   fi
-  echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
-  exit $RESULT
+# Handle cgroup measurements
+if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
+    # TODO: write measurements to diag
+    # remove nested job accouting cgroups
+    arc-job-cgroup -m -d
+    arc-job-cgroup -c -d
+fi
+# Add exit code to the accounting information and exit the job script
+echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
+exit $RESULT

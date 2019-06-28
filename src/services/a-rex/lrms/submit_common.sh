@@ -164,8 +164,8 @@ if [ "x\$JOB_ACCOUNTING" = "xcgroup" ]; then
     arc-job-cgroup -c -d
 fi
 # Add exit code to the accounting information and exit the job script
-echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
-exit $RESULT
+echo "exitcode=\$RESULT" >> "\$RUNTIME_JOB_DIAG"
+exit \$RESULT
 EOSCR
 }
 

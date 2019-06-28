@@ -1,23 +1,23 @@
---- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
-+++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -124,7 +124,7 @@
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+--- a/basic-script.sh	2019-06-28 09:37:16.206180416 +0200
++++ b/basic-script.sh	2019-06-28 09:37:16.208180370 +0200
+@@ -163,7 +163,7 @@
+   echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+ fi
  echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
 -executable='/bin/true'
 +executable='/bin/echo'
  # Check if executable exists
  if [ ! -f "$executable" ]; 
  then 
-@@ -148,9 +148,9 @@
- fi 
- 
- if [ -z "$GNU_TIME" ] ; then
--   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
-+   "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
- else
+@@ -181,9 +181,9 @@
+   echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
+   exit 1; }
+ if [ "x$JOB_ACCOUNTING" = "xgnutime" ]; then
 -  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
 +  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
- 
+ else
+-   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++   "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
  fi
  RESULT=$?
+ 
