@@ -124,6 +124,6 @@ echo "../../../utils/python/arcconfig-parser --save -d /tmp/parser.defaults -c t
 echo
 
 echo "modify test/test-arc.conf and pass it to CEinfo.pl"
-echo "AREX call: ./CEinfo.pl --splitjobs --config test/test-arc.conf"
-echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config test/test-arc.conf" 
+echo "AREX call: ./CEinfo.pl --splitjobs --config /tmp/arc.runtime.conf"
+echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config /tmp/arc.runtime.conf" 
 

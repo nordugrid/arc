@@ -1248,6 +1248,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/LL.pm
 %{_datadir}/%{pkgdir}/LSF.pm
 %{_datadir}/%{pkgdir}/PBS.pm
+%{_datadir}/%{pkgdir}/PBSPRO.pm
 %{_datadir}/%{pkgdir}/Condor.pm
 %{_datadir}/%{pkgdir}/SLURMmod.pm
 %{_datadir}/%{pkgdir}/SLURM.pm

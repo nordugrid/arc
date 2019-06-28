@@ -451,7 +451,8 @@
 ##   - fork    - simple forking of jobs to the same node as the server
 ##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
-##   - pbs     - PBS (covers all the PBS flavours e.g. Torque, PBSPro, etc)
+##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
+##   - pbspro  - Altair PBS Professional
 ##   - lsf     - LSF
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
@@ -463,10 +464,10 @@
 ## the client does not specify a queue name during the job submission procees.
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
-## allowedvalues: fork sge condor pbs lsf ll slurm boinc slurmpy
+## allowedvalues: fork sge condor pbs pbspro lsf ll slurm boinc slurmpy
 ## default: undefined
 ## mandatory
-#lrms=pbs gridlong
+#lrms=pbspro gridlong
 #lrms=slurm
 ## CHANGE: new lrmstype values added (slurmpy).
 
