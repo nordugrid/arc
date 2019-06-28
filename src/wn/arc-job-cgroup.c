@@ -7,12 +7,11 @@
 #include <errno.h>
 
 static void usage(char *pname) {
-    fprintf(stderr, "Usage: %s {-m|-c} {-d|-n NAME}\nOptions:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n", pname);
+    fprintf(stderr, "Usage: %s {-m|-c} {-d|-n NAME}\n");
+    fprintf(stderr, "Options:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n", pname);
 }
 
-/*
- * Provide the path to the mountpoint where requested cgroup controller tree is mounted
- */
+// Provide the path to the mountpoint where requested cgroup controller tree is mounted
 int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
     FILE *proc_mount_fd = NULL;
     proc_mount_fd = fopen("/proc/mounts", "re");
@@ -56,9 +55,7 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
     return 0;
 }
 
-/*
- * Provide current path to process cgroup for requested controller (relative to the cgroup tree mount point)
- */
+// Provide current path to process cgroup for requested controller (relative to the cgroup tree mount point)
 int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgroup_path) {
     char pid_cgroup_file[20];
     FILE *pid_cgroup_fd = NULL;
@@ -104,9 +101,7 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgr
     return 0;
 }
 
-/*
- * Create a new cgroup and move process with defined PID to it
- */
+// Create a new cgroup and move process with defined PID to it
 int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     char task_path[FILENAME_MAX];
     FILE *cgroup_tasks = NULL;
@@ -153,9 +148,7 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     return 0;
 }
 
-/*
- * Remove cgroup (moving all processed to parent cgroup)
- */
+// Remove cgroup (moving all processed to parent cgroup)
 int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root) {
     char *last_slash = NULL;
     char parent_cgroup_path[FILENAME_MAX];
@@ -175,8 +168,6 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
     // crop last part of the path
     last_slash = strrchr(parent_cgroup_path, '/');
     last_slash[0] = '\0';
-
-    fprintf(stderr, "CG: %s\nParent CG: %s\n", cgroup_path, parent_cgroup_path);
 
     // open tasks files for both cgroups
     strcat(current_cgroup_path, "/tasks");
