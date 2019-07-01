@@ -113,6 +113,38 @@ mktempscript () {
 ##############################################################
 
 accounting_init () {
+    cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+# background helper for cgroups job accounting:
+#   cgroup have only maximum memory measurement for total memory but not for resident memory
+#   solution: dump memory.stats accounting data (caluculated RSS) to memory log regularly
+accounting_write_cgroup_rss_log () {
+    stat_write_idx=0
+    measure_interval=1
+    while true; do
+        cur_rss=$( cat ${memory_cgroup}/memory.stat | sed -n '/^total_rss /s/total_rss //p' )
+        cur_mapped_file=$( cat ${memory_cgroup}/memory.stat | sed -n '/^total_mapped_file /s/total_mapped_file //p' )
+        echo $(( cur_rss + cur_mapped_file )) >> ${memory_log}
+        # TODO: discuss how frequent the measurements should be
+        # Current logic - start with 1 second to handle fast jobs,
+        # then increase interval for jobs that runs longer
+        sleep $measure_interval
+        if [ $stat_write_idx -gt 120 ]; then
+            # once per minute measurements for long running jobs
+            measure_interval=60
+            continue
+        elif  [ $stat_write_idx -lt 60 ]; then
+            # first minute of job run - measure every second
+            measure_interval=1
+        elif [ $stat_write_idx -le 120 ]; then
+            # next 5 minutes - every 5 seconds
+            measure_interval=5
+        fi
+        # increase run counter (only works when walltime is short)
+        stat_write_idx=$(( stat_write_idx + 1 ))
+    done
+}
+EOSCR
+
     cat >> $LRMS_JOB_SCRIPT <<EOSCR
 echo "Detecting resource accounting method available for the job." 1>&2
 # Try to use cgroups first
@@ -131,11 +163,17 @@ if command -v arc-job-cgroup; then
             echo "Failed to initialize cpuacct cgroup for accounting." 1>&2
             break;
         fi
-        echo "Cgroups method will be used for job accounting" 1>&2
+        echo "Using cgroups method for job accounting" 1>&2
         JOB_ACCOUNTING="cgroup"
+
+        # Start memory measurements
+        JOB_MEMORY_LOG="\$( mktemp -p \$RUNTIME_JOB_DIR job.log.rssmemory.XXXXXX )"
+        accounting_write_cgroup_rss_log &
+        JOB_MEMORY_LOGGER=\$!
         break;
     done
 fi
+
 # Fallback to GNU_TIME if cgroups are not working
 if [ -z "\$JOB_ACCOUNTING" ]; then
     GNU_TIME='$GNU_TIME'
@@ -147,6 +185,7 @@ if [ -z "\$JOB_ACCOUNTING" ]; then
         JOB_ACCOUNTING="gnutime"
     fi
 fi
+
 # Nothing works: rely on LRMS only
 if [ -z "\$JOB_ACCOUNTING" ]; then
     echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
@@ -155,17 +194,47 @@ EOSCR
 }
 
 accounting_end () {
-    cat >> $LRMS_JOB_SCRIPT <<EOSCR
+    cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 # Handle cgroup measurements
-if [ "x\$JOB_ACCOUNTING" = "xcgroup" ]; then
-    # TODO: write measurements to diag
-    # remove nested job accouting cgroups
+if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
+    # Stop memory logging
+    kill $JOB_MEMORY_LOGGER
+    while kill -0 $JOB_MEMORY_LOGGER >/dev/null 2>&1; do
+        sleep 1
+    done
+
+    # Max memory used (total)
+    maxmemory=$( cat ${memory_cgroup}/memory.max_usage_in_bytes )
+    maxmemory=$(( maxmemory / 1024 ))
+    echo "maxtotalmemory=${maxmemory}kB" >> "$RUNTIME_JOB_DIAG"
+
+    # Max RSS memory used (calculated from memory log)
+    maxrss=$( cat $JOB_MEMORY_LOG | sort -n | tail -1 )
+    maxrss=$(( maxrss / 1024 ))
+    echo "maxresidentmemory=${maxrss}kB" >> "$RUNTIME_JOB_DIAG"
+    # TODO: this is for compatibilty with current A-REX accounting code. Remove when A-REX will use max value instead.
+    echo "averageresidentmemory=${maxrss}kB" >> "$RUNTIME_JOB_DIAG"
+    # remove memory log
+    rm -f $JOB_MEMORY_LOG
+
+    # User CPU time (cgroup values is in nanoseconds)
+    user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_user )
+    user_cputime=$(( user_cputime / 1000000 ))
+    echo "usertime=${user_cputime}" >> "$RUNTIME_JOB_DIAG"
+
+    # Kernel CPU time (cgroup value is in nanoseconds)
+    kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_sys )
+    kernel_cputime=$(( kernel_cputime / 1000000 ))
+    echo "kerneltime=${kernel_cputime}" >> "$RUNTIME_JOB_DIAG"
+
+    # Remove nested job accouting cgroups
     arc-job-cgroup -m -d
     arc-job-cgroup -c -d
 fi
+
 # Add exit code to the accounting information and exit the job script
-echo "exitcode=\$RESULT" >> "\$RUNTIME_JOB_DIAG"
-exit \$RESULT
+echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
+exit $RESULT
 EOSCR
 }
 
