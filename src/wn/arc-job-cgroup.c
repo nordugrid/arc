@@ -10,8 +10,8 @@
 #define STR(x) STR1(x)
 
 static void usage(char *pname) {
-    fprintf(stderr, "Usage: %s {-m|-c} {-d|-n NAME}\n");
-    fprintf(stderr, "Options:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n", pname);
+    fprintf(stderr, "Usage: %s {-m|-c} {-d|-n NAME}\n", pname);
+    fprintf(stderr, "Options:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n");
 }
 
 // Provide the path to the mountpoint where requested cgroup controller tree is mounted
@@ -121,7 +121,7 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     char *task_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
     snprintf(task_path, FILENAME_MAX, "%s/tasks", cgroup_path);
     int retval = 1;
-    while (1) {
+    do {
         cgroup_tasks = fopen(task_path, "we");
         if (!cgroup_tasks) {
             switch (errno) {
@@ -143,8 +143,7 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
         }
         fprintf(stderr, "Cgroup %s has been successfully created for PID %d\n", cgroup_path, pid);
         retval = 0;
-        break;
-    }
+    } while (0);
     free(task_path);
     fclose(cgroup_tasks);
     return retval;
@@ -165,7 +164,7 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
     FILE *cgroup_tasks_fd = NULL;
     FILE *pcgroup_tasks_fd = NULL;
     int retval = 1;
-    while(1) {
+    do {
         if ( strcmp(parent_cgroup_path, cgroup_root) == 0 ) {
             fprintf(stderr, "Process is already belongs to top-level cgroup. Nothing to do.\n");
             retval = 0;
@@ -208,12 +207,11 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
         // info
         fprintf(stderr, "Cgroup %s has been successfully removed\n", cgroup_path);
         retval = 0;
-        break;
-    }
+    } while (0);
     free(parent_cgroup_path);
     free(current_cgroup_path);
-    fclose(pcgroup_tasks_fd);
-    fclose(cgroup_tasks_fd);
+    if (pcgroup_tasks_fd) fclose(pcgroup_tasks_fd);
+    if (cgroup_tasks_fd) fclose(cgroup_tasks_fd);
     return retval;
 }
 
@@ -238,7 +236,6 @@ int main(int argc, char *argv[]) {
                 controller = "cpuacct";
                 break;
             default:
-                fprintf(stderr, "ERROR: Unknown option %s", opt);
                 usage(argv[0]);
                 return 1;
         }
@@ -253,11 +250,13 @@ int main(int argc, char *argv[]) {
         usage(argv[0]);
         return 1;
     }
+
     char *cgroup_root = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *controller_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *cgroup_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
+
     int retval = 1;
-    while (1) {
+    do {
         // get cgroup root mount
         if (get_cgroup_mount_root(controller, &cgroup_root) != 0) {
             break;
@@ -281,6 +280,7 @@ int main(int argc, char *argv[]) {
             if (move_pids_to_parent_cgroup(cgroup_path, cgroup_root) != 0 ) {
                 break;
             }
+            retval = 0;
         } else {
             // create a child cgroup and mode PPID to it
             snprintf(cgroup_path, FILENAME_MAX, "%s%s/%s", cgroup_root, controller_path, cgroup_name);
@@ -290,9 +290,9 @@ int main(int argc, char *argv[]) {
             // print full path to new cgroup to the stdout
             printf("%s\n", cgroup_path);
             retval = 0;
-            break;
         }
-    }
+    } while (0);
+    // free
     free(cgroup_root);
     free(controller_path);
     free(cgroup_path);
