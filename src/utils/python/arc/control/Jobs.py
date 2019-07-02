@@ -116,7 +116,7 @@ class JobsControl(ComponentControl):
                 for line in attr_f:
                     kv = _KEYVALUE_RE.match(line)
                     if kv:
-                        job_attrs[kv.group(1)] = kv.group(2)
+                        job_attrs[kv.group(1)] = kv.group(2).strip("'\"")
             if attrtype == 'local':
                 job_attrs['mapped_account'] = pwd.getpwuid(os.stat(attr_file).st_uid).pw_name
         else:
@@ -229,9 +229,6 @@ class JobsControl(ComponentControl):
                     sys.stdout.write(line)
             sys.stdout.flush()
 
-    def job_log_signal_handler(self, signum, frame):
-        self.process_job_log_file = False
-
     def job_script(self, args):
         error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
         if os.path.exists(error_log):
@@ -253,34 +250,52 @@ class JobsControl(ComponentControl):
             self.__job_exists(args.jobid)
             self.logger.error('Failed to find job log file containing generated job script: %s', error_log)
 
-    def job_log(self, args):
-        error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
+    @staticmethod
+    def __cut_jobscript(line, print_line):
+        # modifies [print flag, continue flag] list (passed by reference)
+        if line.startswith('----- starting submit'):
+            print_line[0] = False
+            print_line[1] = True
+        if line.startswith('----- exiting submit'):
+            print_line[0] = True
+            print_line[1] = True
+        # keep print flag but remove continue
+        print_line[1] = False
+
+    def __job_log_signal_handler(self, signum, frame):
+        self.process_job_log_file = False
+
+    def __follow_log(self, log, follow=False, process_function=None):
         self.process_job_log_file = True
-        if os.path.exists(error_log):
-            el_f = open(error_log, 'r')
-            print_line = True
+        if os.path.exists(log):
+            el_f = open(log, 'r')
+            print_line = [True, False]  # [print flag, continue flag]
             pos = 0
-            if args.follow:
-                signal.signal(signal.SIGINT, self.job_log_signal_handler)
+            if follow:
+                signal.signal(signal.SIGINT, self.__job_log_signal_handler)
             while self.process_job_log_file:
                 el_f.seek(pos)
                 for line in el_f:
-                    # exclude jobscript from the output
-                    if line.startswith('----- starting submit'):
-                        print_line = False
+                    if process_function is not None:
+                        process_function(line, print_line)
+                    if print_line[1]:
                         continue
-                    if line.startswith('----- exiting submit'):
-                        print_line = True
-                        continue
-                    if print_line:
+                    if print_line[0]:
                         sys.stdout.write(line)
                 sys.stdout.flush()
                 pos = el_f.tell()
-                if not args.follow:
+                if not follow:
                     self.process_job_log_file = False
                 else:
                     time.sleep(0.1)
             el_f.close()
+        else:
+            self.logger.error('Failed to find log file: %s', log)
+
+    def job_log(self, args):
+        error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
+        if os.path.exists(error_log):
+            self.__follow_log(error_log, args.follow, process_function=self.__cut_jobscript)
         else:
             self.__get_jobs()
             self.__job_exists(args.jobid)
@@ -311,6 +326,20 @@ class JobsControl(ComponentControl):
               'State\t\t: {state}\n' \
               'LRMS ID\t\t: {lrmsid}\n' \
               'Modified\t: {modified}'.format(**self.jobs[args.jobid]))
+
+    def job_stdout(self, args):
+        job_grami = self.__parse_job_attrs(args.jobid, 'grami')
+        if not 'joboption_stdout' in job_grami:
+            self.logger.error('Cannot find executable stdout location for job %s', args.jobid)
+            sys.exit(1)
+        self.__follow_log(job_grami['joboption_stdout'], args.follow)
+
+    def job_stderr(self, args):
+        job_grami = self.__parse_job_attrs(args.jobid, 'grami')
+        if not 'joboption_stderr' in job_grami:
+            self.logger.error('Cannot find executable stderr location for job %s', args.jobid)
+            sys.exit(1)
+        self.__follow_log(job_grami['joboption_stderr'], args.follow)
 
     def job_getattr(self, args):
         job_attrs = self.__parse_job_attrs(args.jobid)
@@ -406,6 +435,10 @@ class JobsControl(ComponentControl):
                 self.job_service_logs(args)
             else:
                 self.job_log(args)
+        elif args.action == 'stdout':
+            self.job_stdout(args)
+        elif args.action == 'stderr':
+            self.job_stderr(args)
         elif args.action == 'attr':
             self.job_getattr(args)
         elif args.action == 'stats':
@@ -453,6 +486,14 @@ class JobsControl(ComponentControl):
 
         jobs_info = jobs_actions.add_parser('info', help='Show job main info')
         jobs_info.add_argument('jobid', help='Job ID').completer = complete_job_id
+
+        jobs_stdout = jobs_actions.add_parser('stdout', help='Show job executable stdout')
+        jobs_stdout.add_argument('jobid', help='Job ID').completer = complete_job_id
+        jobs_stdout.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
+
+        jobs_stderr = jobs_actions.add_parser('stderr', help='Show job executable stderr')
+        jobs_stderr.add_argument('jobid', help='Job ID').completer = complete_job_id
+        jobs_stderr.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
 
         jobs_attr = jobs_actions.add_parser('attr', help='Get ')
         jobs_attr.add_argument('jobid', help='Job ID').completer = complete_job_id
