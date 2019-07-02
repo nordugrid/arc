@@ -103,6 +103,8 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgr
 // Create a new cgroup and move process with defined PID to it
 int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     FILE *cgroup_tasks = NULL;
+    // change umask to avoid too restrictive values
+    umask(S_IWGRP | S_IWOTH);
     // create cgroup
     if ( mkdir(cgroup_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0 ) {
         switch (errno) {
@@ -250,11 +252,9 @@ int main(int argc, char *argv[]) {
         usage(argv[0]);
         return 1;
     }
-
     char *cgroup_root = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *controller_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *cgroup_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
-
     int retval = 1;
     do {
         // get cgroup root mount
