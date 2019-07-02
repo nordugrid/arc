@@ -172,15 +172,31 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     # TODO: this is for compatibilty with current A-REX accounting code. Remove when A-REX will use max value instead.
     echo "averageresidentmemory=${maxram}kB" >> "$RUNTIME_JOB_DIAG"
 
-    # User CPU time (cgroup values is in nanoseconds)
-    user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_user )
-    user_cputime=$(( user_cputime / 1000000 ))
-    echo "usertime=${user_cputime}" >> "$RUNTIME_JOB_DIAG"
+    # User CPU time
+    if [ -f "${cpuacct_cgroup}/cpuacct.usage_user" ]; then
+        # cgroup values are in nanoseconds
+        user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_user )
+        user_cputime=$(( user_cputime / 1000000 ))
+    elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
+        # older kernels have only cpuacct.stat that use USER_HZ units
+        user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.stat | sed -n '/^user/s/user //p' )
+        user_hz=$( getconf CLK_TCK )
+        user_cputime=$(( user_cputime / user_hz ))
+    fi
+    [ -n "$user_cputime" ] && echo "usertime=${user_cputime}" >> "$RUNTIME_JOB_DIAG"
 
-    # Kernel CPU time (cgroup value is in nanoseconds)
-    kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_sys )
-    kernel_cputime=$(( kernel_cputime / 1000000 ))
-    echo "kerneltime=${kernel_cputime}" >> "$RUNTIME_JOB_DIAG"
+    # Kernel CPU time
+    if [ -f "${cpuacct_cgroup}/cpuacct.usage_sys" ]; then
+        # cgroup values are in nanoseconds
+        kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_sys )
+        kernel_cputime=$(( kernel_cputime / 1000000 ))
+    elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
+        # older kernels have only cpuacct.stat that use USER_HZ units
+        kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.stat | sed -n '/^system/s/system //p' )
+        [ -z "$user_hz" ] && user_hz=$( getconf CLK_TCK )
+        kernel_cputime=$(( kernel_cputime / user_hz ))
+    fi
+    [ -n "$kernel_cputime" ] && echo "kerneltime=${kernel_cputime}" >> "$RUNTIME_JOB_DIAG"
 
     # Remove nested job accouting cgroups
     arc-job-cgroup -m -d
