@@ -32,7 +32,7 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
     char *mntopt;
     char *mntopt_pos;
     int found = 0;
-    while (!found && fscanf(proc_mount_fd, "%s %s %s %s %d %d", fs_spec, fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
+    while (!found && fscanf(proc_mount_fd, "%" STR(FILENAME_MAX) "s %" STR(FILENAME_MAX) "s %4096s %4096s %d %d", fs_spec, fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
         if (strcmp(fs_type, "cgroup")) continue;
         // split mount options to find the requested controller
         mntopt = strtok_r(fs_mntopts, ",", &mntopt_pos);
