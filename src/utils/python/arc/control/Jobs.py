@@ -107,21 +107,22 @@ class JobsControl(ComponentControl):
             self.logger.error('There is no such job %s', jobid)
             sys.exit(1)
 
-    def __parse_job_attrs(self, jobid):
+    def __parse_job_attrs(self, jobid, attrtype='local'):
         _KEYVALUE_RE = re.compile(r'^([^=]+)=(.*)$')
-        local_file = '{0}/job.{1}.local'.format(self.control_dir, jobid)
+        attr_file = '{0}/job.{1}.{2}'.format(self.control_dir, jobid, attrtype)
         job_attrs = {}
-        if os.path.exists(local_file):
-            with open(local_file, 'r') as local_f:
-                for line in local_f:
+        if os.path.exists(attr_file):
+            with open(attr_file, 'r') as attr_f:
+                for line in attr_f:
                     kv = _KEYVALUE_RE.match(line)
                     if kv:
                         job_attrs[kv.group(1)] = kv.group(2)
-            job_attrs['mapped_account'] = pwd.getpwuid(os.stat(local_file).st_uid).pw_name
+            if attrtype == 'local':
+                job_attrs['mapped_account'] = pwd.getpwuid(os.stat(attr_file).st_uid).pw_name
         else:
             self.__get_jobs()
             self.__job_exists(jobid)
-            self.logger.error('Failed to open job attributes file: %s', local_file)
+            self.logger.error('Failed to open job attributes file: %s', attr_file)
         return job_attrs
 
     def _service_log_print(self, log_path, jobid):
@@ -231,6 +232,27 @@ class JobsControl(ComponentControl):
     def job_log_signal_handler(self, signum, frame):
         self.process_job_log_file = False
 
+    def job_script(self, args):
+        error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
+        if os.path.exists(error_log):
+            el_f = open(error_log, 'r')
+            print_line = False
+            for line in el_f:
+                if line.startswith('----- starting submit'):
+                    print_line = True
+                    continue
+                if line.startswith('----- exiting submit'):
+                    break
+                if print_line:
+                    sys.stdout.write(line)
+            sys.stdout.flush()
+            if not print_line:
+                self.logger.error('There is no job script found in log file. Is the job reached LRMS?')
+        else:
+            self.__get_jobs()
+            self.__job_exists(args.jobid)
+            self.logger.error('Failed to find job log file containing generated job script: %s', error_log)
+
     def job_log(self, args):
         error_log = '{0}/job.{1}.errors'.format(self.control_dir, args.jobid)
         self.process_job_log_file = True
@@ -243,12 +265,13 @@ class JobsControl(ComponentControl):
             while self.process_job_log_file:
                 el_f.seek(pos)
                 for line in el_f:
+                    # exclude jobscript from the output
                     if line.startswith('----- starting submit'):
-                        print_line = args.lrms
+                        print_line = False
+                        continue
                     if line.startswith('----- exiting submit'):
                         print_line = True
-                        if not args.lrms:
-                            continue
+                        continue
                     if print_line:
                         sys.stdout.write(line)
                 sys.stdout.flush()
@@ -376,6 +399,8 @@ class JobsControl(ComponentControl):
             self.kill_or_clean(args, '-r')
         elif args.action == 'info':
             self.jobinfo(args)
+        elif args.action == 'script':
+            self.job_script(args)
         elif args.action == 'log':
             if args.service:
                 self.job_service_logs(args)
@@ -417,10 +442,11 @@ class JobsControl(ComponentControl):
         jobs_list.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)
         jobs_list.add_argument('-o', '--owner', help='Filter jobs by owner').completer = complete_job_owner
 
+        jobs_script = jobs_actions.add_parser('script', help='Display job script submitted to LRMS')
+        jobs_script.add_argument('jobid', help='Job ID').completer = complete_job_id
+
         jobs_log = jobs_actions.add_parser('log', help='Display job log')
         jobs_log.add_argument('jobid', help='Job ID').completer = complete_job_id
-        jobs_log.add_argument('-l', '--lrms', help='Include LRMS job submission script into the output',
-                              action='store_true')
         jobs_log.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
         jobs_log.add_argument('-s', '--service', help='Show ARC CE logs containing the jobID instead of job log',
                               action='store_true')
