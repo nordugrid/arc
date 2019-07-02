@@ -78,6 +78,7 @@ debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
 debian/tmp/usr/share/arc/rte/ENV/PROXY
 debian/tmp/usr/share/arc/rte/ENV/RTE
 debian/tmp/usr/share/arc/rte/ENV/CANDYPOND
+debian/tmp/usr/share/arc/rte/ENV/SINGULARITY
 debian/tmp/usr/share/arc/rte/ENV/CONDOR/DOCKER
 
 debian/tmp/usr/sbin/arcctl
