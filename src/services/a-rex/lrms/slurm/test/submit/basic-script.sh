@@ -120,8 +120,11 @@ if [ "$RESULT" = '0' ] ; then
   if [ ! -z "$RESULT" ] && [ "$RESULT" != 0 ]; then
     exit $RESULT
   fi
-nodename=`/bin/hostname -f`
-echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+# Write nodename if not already written in LRMS-specific way
+if [ -z "$NODENAME_WRITTEN" ] ; then
+  nodename=`/bin/hostname -f`
+  echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+fi
 echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
 executable='/bin/true'
 # Check if executable exists
@@ -174,7 +177,8 @@ fi
         echo "Failed to move '$RUNTIME_NODE_JOB_DIR' to '$destdir'" 1>&2
         RESULT=1
       fi
-    else
+
+else
       # remove links
       rm -f "$RUNTIME_JOB_STDOUT" 2>/dev/null
       rm -f "$RUNTIME_JOB_STDERR" 2>/dev/null

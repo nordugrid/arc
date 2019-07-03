@@ -1,0 +1,27 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -23,9 +23,9 @@
+ export 'GRID_GLOBAL_JOBID='
+ 
+ RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
+-RUNTIME_JOB_STDIN=/dev/null
+-RUNTIME_JOB_STDOUT=/dev/null
+-RUNTIME_JOB_STDERR=/dev/null
++RUNTIME_JOB_STDIN=in
++RUNTIME_JOB_STDOUT=@TEST_SESSION_DIR@/@TEST_JOB_ID@/out
++RUNTIME_JOB_STDERR=@TEST_SESSION_DIR@/@TEST_JOB_ID@/error
+ RUNTIME_JOB_DIAG=@TEST_SESSION_DIR@/@TEST_JOB_ID@.diag
+ if [ ! -z "$RUNTIME_GRIDAREA_DIR" ] ; then
+   RUNTIME_JOB_DIR=$RUNTIME_GRIDAREA_DIR/`basename $RUNTIME_JOB_DIR`
+@@ -148,9 +148,9 @@
+ fi 
+ 
+ if [ -z "$GNU_TIME" ] ; then
+-   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR
+ else
+-  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR
+ 
+ fi
+ RESULT=$?
