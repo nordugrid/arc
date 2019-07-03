@@ -1239,10 +1239,9 @@
 ## default: undefined
 #preferredpattern=srm://myhost.ac.uk|.uk$|ndgf.org$|badhost.org$
 
-
 ## The following options are used to configure multi-host data staging deployment scenario. 
 ## In that setup a couple of additional data staging boxes are enabled to off-load data transfers.
-##
+
 ## deliveryservice = URL - The URL to a remote data delivery service which can perform remote
 ## data staging. 
 ## default: undefined
