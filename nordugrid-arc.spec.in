@@ -1322,6 +1322,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/PROXY
 %{_datadir}/%{pkgdir}/rte/ENV/RTE
 %{_datadir}/%{pkgdir}/rte/ENV/CANDYPOND
+%{_datadir}/%{pkgdir}/rte/ENV/SINGULARITY
 %dir %{_datadir}/%{pkgdir}/rte/ENV/CONDOR
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
