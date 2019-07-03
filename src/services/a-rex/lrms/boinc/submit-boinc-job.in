@@ -94,6 +94,11 @@ echo "# Overide umask of execution node (sometime values are really strange)" >>
 echo "umask 077" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
+# Init accounting
+##############################################################
+accounting_init
+
+##############################################################
 # Add environment variables
 ##############################################################
 add_user_env
@@ -155,7 +160,11 @@ RTE_stage2
 ##############################################################
 #move_files_to_frontend
 
-echo 'echo exitcode=$RESULT >> $RUNTIME_JOB_DIAG'  >> $LRMS_JOB_SCRIPT
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
+
 #############################################################
 # zip the result files into 1 file zip.tar.gz
 #############################################################
