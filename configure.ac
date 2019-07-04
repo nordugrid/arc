@@ -2271,6 +2271,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/gm-delegations-converter.8
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
+                 src/services/a-rex/grid-manager/accounting/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile
                  src/services/a-rex/grid-manager/jobs/Makefile

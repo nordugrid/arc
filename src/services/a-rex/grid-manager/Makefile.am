@@ -4,7 +4,7 @@ else
 JOBPLUGIN_DIR =
 endif
 
-SUBDIRS = jobs run conf misc log mail files $(JOBPLUGIN_DIR)
+SUBDIRS = jobs run conf misc log mail files accounting $(JOBPLUGIN_DIR)
 
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger gm-delegations-converter
