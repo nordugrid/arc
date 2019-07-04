@@ -16,4 +16,5 @@ int main(int argc, char **argv) {
       if (adb.IsValid()) {
          std::cerr << "Database connection is successfull" << std::endl;
       }
+      std::cerr << "Queue ID:" << adb.getDBQueueId("test") << std::endl;
 }

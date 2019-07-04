@@ -30,6 +30,10 @@ namespace ARex {
         return Arc::unescape_chars(str, sql_escape_char,sql_escape_type);
     }
 
+    inline static void sql_unescape(const std::string& str, int& val) {
+        (void)Arc::stringto(Arc::unescape_chars(str, sql_escape_char,sql_escape_type), val);
+    }
+
     inline static void sql_unescape(const std::string& str, Arc::Time& val) {
         if(str.empty()) { val = Arc::Time(); return; }
         val = Arc::Time(Arc::unescape_chars(str, sql_escape_char,sql_escape_type));
@@ -139,5 +143,69 @@ namespace ARex {
         }
         // TODO: implement schema version checking and possible updates
         isValid = true;
+    }
+
+    // callback to build (name,id) map from database table
+    static int ReadIdNameCallback(void* arg, int colnum, char** texts, char** names) {
+        name_id_map_t* name_id_map = static_cast<name_id_map_t*>(arg);
+        std::pair <std::string, unsigned int> rec;
+        for (int n = 0; n < colnum; ++n) {
+            if (names[n] && texts[n]) {
+                if (strcmp(names[n], "ID") == 0) {
+                    int id;
+                    sql_unescape(texts[n], id);
+                    rec.second = id;
+                } else if (strcmp(names[n], "Name") == 0) {
+                    rec.first = sql_unescape(texts[n]);
+                }
+            }
+        }
+        if(!rec.first.empty()) name_id_map->insert(rec);
+        return 0;
+    }
+
+    // general helper to build (name,id) map from database table
+    unsigned int AccountingDBSQLite::QueryAndInsertNameID(const std::string& table, const std::string& iname, name_id_map_t* name_id_map) {
+        if (!isValid) return 0;
+
+        if (name_id_map->empty()) {
+            // empty map - nothing had been fetched from database yet
+            SQLiteDB adb(name);
+            std::string sqlcmd = "SELECT * FROM " + sql_escape(table);
+            if (sqlite3_exec_nobusy(adb.handle(), sqlcmd.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+                return 0;
+            }
+        }
+        // find name
+        name_id_map_t::iterator it;
+        it = name_id_map->find(iname);
+        if (it != name_id_map->end()) {
+            return it->second;
+        } else {
+            // if not found - create the new record in the database
+            SQLiteDB adb(name);
+            std::string sqlcmd = "INSERT INTO " + sql_escape(table) + " (Name) VALUES ('" + sql_escape(iname) + "')";
+            int err;
+            err = sqlite3_exec_nobusy(adb.handle(), sqlcmd.c_str(), NULL, NULL, NULL);
+            if (err != SQLITE_OK ) {
+                adb.logError("Failed to insert data into database", err, Arc::ERROR);
+                return 0;
+            }
+            if(sqlite3_changes(adb.handle()) != 1) {
+                logger.msg(Arc::ERROR, "Failed to add '%s' into the accounting database %s table", iname, table);
+                return 0;
+            }
+            sqlite3_int64 newid = sqlite3_last_insert_rowid(adb.handle());
+            if (newid) {
+                name_id_map->insert(std::pair <std::string, unsigned int>(iname, (unsigned int) newid));
+                return (unsigned int) newid;
+            }
+        }
+        return 0;
+    }
+
+    // Queue table
+    unsigned int AccountingDBSQLite::getDBQueueId(const std::string& queue) {
+        return QueryAndInsertNameID("Queues", queue, &db_queue);
     }
 }
