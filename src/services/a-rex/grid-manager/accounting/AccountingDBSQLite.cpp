@@ -83,7 +83,7 @@ namespace ARex {
             }
             AccountingDBSQLite::logger.msg(Arc::INFO, "Accounting database initialized succesfully");
         }
-        AccountingDBSQLite::logger.msg(Arc::DEBUG, "Accounting database connection has been establised");
+        AccountingDBSQLite::logger.msg(Arc::DEBUG, "Accounting database connection has been established");
     }
 
     void AccountingDBSQLite::SQLiteDB::logError(const char* errpfx, int err, Arc::LogLevel loglevel) {
@@ -110,7 +110,7 @@ namespace ARex {
         closeDB();
     }
 
-    AccountingDBSQLite::AccountingDBSQLite(const std::string& name) : AccountingDB(name) {
+    AccountingDBSQLite::AccountingDBSQLite(const std::string& name) : AccountingDB(name), db(NULL) {
         isValid = false;
         // chech database file exists
         if (!Glib::file_test(name, Glib::FILE_TEST_EXISTS)) {
@@ -145,6 +145,26 @@ namespace ARex {
         isValid = true;
     }
 
+    // init DB connection for multiple usages
+    void AccountingDBSQLite::initSQLiteDB(void) {
+        // already initialized
+        if (db) return;
+        db = new SQLiteDB(name);
+    }
+
+    // close DB connection
+    void AccountingDBSQLite::closeSQLiteDB(void) {
+        if (db) {
+            logger.msg(Arc::DEBUG, "Closing connection to SQLite accounting database");
+            delete db;
+            db = NULL;
+        }
+    }
+
+    AccountingDBSQLite::~AccountingDBSQLite() {
+        closeSQLiteDB();
+    }
+
     // callback to build (name,id) map from database table
     static int ReadIdNameCallback(void* arg, int colnum, char** texts, char** names) {
         name_id_map_t* name_id_map = static_cast<name_id_map_t*>(arg);
@@ -170,9 +190,9 @@ namespace ARex {
 
         if (name_id_map->empty()) {
             // empty map - nothing had been fetched from database yet
-            SQLiteDB adb(name);
+            initSQLiteDB();
             std::string sqlcmd = "SELECT * FROM " + sql_escape(table);
-            if (sqlite3_exec_nobusy(adb.handle(), sqlcmd.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+            if (sqlite3_exec_nobusy(db->handle(), sqlcmd.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
                 return 0;
             }
         }
@@ -183,19 +203,19 @@ namespace ARex {
             return it->second;
         } else {
             // if not found - create the new record in the database
-            SQLiteDB adb(name);
+            initSQLiteDB();
             std::string sqlcmd = "INSERT INTO " + sql_escape(table) + " (Name) VALUES ('" + sql_escape(iname) + "')";
             int err;
-            err = sqlite3_exec_nobusy(adb.handle(), sqlcmd.c_str(), NULL, NULL, NULL);
+            err = sqlite3_exec_nobusy(db->handle(), sqlcmd.c_str(), NULL, NULL, NULL);
             if (err != SQLITE_OK ) {
-                adb.logError("Failed to insert data into database", err, Arc::ERROR);
+                db->logError("Failed to insert data into database", err, Arc::ERROR);
                 return 0;
             }
-            if(sqlite3_changes(adb.handle()) != 1) {
+            if(sqlite3_changes(db->handle()) != 1) {
                 logger.msg(Arc::ERROR, "Failed to add '%s' into the accounting database %s table", iname, table);
                 return 0;
             }
-            sqlite3_int64 newid = sqlite3_last_insert_rowid(adb.handle());
+            sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
             if (newid) {
                 name_id_map->insert(std::pair <std::string, unsigned int>(iname, (unsigned int) newid));
                 return (unsigned int) newid;
@@ -204,8 +224,20 @@ namespace ARex {
         return 0;
     }
 
-    // Queue table
     unsigned int AccountingDBSQLite::getDBQueueId(const std::string& queue) {
         return QueryAndInsertNameID("Queues", queue, &db_queue);
     }
+
+    unsigned int AccountingDBSQLite::getDBUserId(const std::string& userdn) {
+        return QueryAndInsertNameID("Users", userdn, &db_users);
+    }
+
+    unsigned int AccountingDBSQLite::getDBWLCGVOId(const std::string& voname) {
+        return QueryAndInsertNameID("WLCGVOs", voname, &db_wlcgvos);
+    }
+
+    unsigned int AccountingDBSQLite::getDBStatusId(const std::string& status) {
+        return QueryAndInsertNameID("Status", status, &db_status);
+    }
+
 }

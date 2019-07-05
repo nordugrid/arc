@@ -16,7 +16,7 @@ namespace ARex {
     class AccountingDBSQLite : public AccountingDB {
       public:
         AccountingDBSQLite(const std::string& name);
-        virtual ~AccountingDBSQLite() {}
+        ~AccountingDBSQLite();
 
         /// Get database ID for the specified queue
         /**
@@ -35,11 +35,20 @@ namespace ARex {
          * @return database primary key for provided queue
          **/
         unsigned int getDBQueueId(const std::string& queue);
+        /// Get database ID for the specified user DN
+        unsigned int getDBUserId(const std::string& userdn);
+        /// Get database ID for the specified WLCG VO name
+        unsigned int getDBWLCGVOId(const std::string& voname);
+        /// Get database ID for the specified status string
+        unsigned int getDBStatusId(const std::string& status);
 
       private:
         static Arc::Logger logger;
         // Data variables
         name_id_map_t db_queue;
+        name_id_map_t db_users;
+        name_id_map_t db_wlcgvos;
+        name_id_map_t db_status;
         // Class to handle SQLite DB Operations
         class SQLiteDB {
         public:
@@ -51,6 +60,10 @@ namespace ARex {
             sqlite3* aDB;
             void closeDB();
         };
+
+        SQLiteDB* db;
+        void initSQLiteDB(void);
+        void closeSQLiteDB(void);
         /**
          * General helper that retrurn accounting database ID for requested iname 
          * performing lookup in the table with the [ID, Name] columns
