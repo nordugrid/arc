@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libaccounting.la
+noinst_LTLIBRARIES = libaccounting.la
 
 libaccounting_la_SOURCES = \
 	AccountingDBSQLite.cpp \

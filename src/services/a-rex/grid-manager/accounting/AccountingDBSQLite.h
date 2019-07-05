@@ -2,12 +2,15 @@
 #define ARC_ACCOUNTING_DB_SQLITE_H
 
 #include <string>
+#include <map>
 #include <sqlite3.h>
 #include <arc/Logger.h>
 
 #include "AccountingDB.h"
 
 namespace ARex {
+    /// Store name to ID mappings in database tables
+    typedef std::map <std::string, unsigned int> name_id_map_t;
 
     /// Class implementing A-REX accounting records (AAR) storing in SQLite
     class AccountingDBSQLite : public AccountingDB {
@@ -15,11 +18,28 @@ namespace ARex {
         AccountingDBSQLite(const std::string& name);
         virtual ~AccountingDBSQLite() {}
 
-        // returns accounting database ID for the requested queue
+        /// Get database ID for the specified queue
+        /**
+         * This method fetches the database to get stored Queue
+         * primary key. If requested Queue is missing in the database
+         * it will be created and inserted ID is returned.
+         *
+         * Updates db_queue map.
+         *
+         * If db_queue map is already populated with database data and Queue name
+         * is already inside the map, cached data will be returned.
+         *
+         * In case of failure to find and insert the queue name in the database
+         * returns 0.
+         *
+         * @return database primary key for provided queue
+         **/
         unsigned int getDBQueueId(const std::string& queue);
 
       private:
         static Arc::Logger logger;
+        // Data variables
+        name_id_map_t db_queue;
         // Class to handle SQLite DB Operations
         class SQLiteDB {
         public:
