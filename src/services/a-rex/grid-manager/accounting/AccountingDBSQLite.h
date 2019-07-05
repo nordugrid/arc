@@ -5,6 +5,7 @@
 #include <map>
 #include <sqlite3.h>
 #include <arc/Logger.h>
+#include <arc/Thread.h>
 
 #include "AccountingDB.h"
 
@@ -41,11 +42,20 @@ namespace ARex {
         unsigned int getDBWLCGVOId(const std::string& voname);
         /// Get database ID for the specified status string
         unsigned int getDBStatusId(const std::string& status);
-
         /// Get endpoint ID
         unsigned int getDBEndpointId(const aar_endpoint_t& endpoint);
+        
+        /// AAR processing
+        /// get DB ID for already registered job
+        unsigned int getAARDBId(const AAR& aar);
+        /// write AAR to database
+        bool writeAAR(const AAR& aar);
+        /// update AAR in the database
+        bool updateAAR(const AAR& aar);
+
       private:
         static Arc::Logger logger;
+        Glib::Mutex lock_;
         // General Name-ID tables
         name_id_map_t db_queue;
         name_id_map_t db_users;
@@ -78,6 +88,8 @@ namespace ARex {
          * General helper to execute INSERT statement and return the autoincrement ID
          **/
         unsigned int GeneralSQLInsert(const std::string& sql);
+        // General helper to execute UPDATE statement
+        bool GeneralSQLUpdate(const std::string& sql);
         /**
          * General helper that query [ID, Name] table and put the result into the the name_id_map map
          **/

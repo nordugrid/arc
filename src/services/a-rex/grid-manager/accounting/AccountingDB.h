@@ -27,6 +27,10 @@ namespace ARex {
          * @return true if database connection successfull
          **/
         bool IsValid() const { return isValid; }
+        /// Write new AAR into the database
+        virtual bool writeAAR(const AAR& aar) = 0;
+        /// Update existing AAR in the database (only dynamic parameters)
+        virtual bool updateAAR(const AAR& aar) = 0;
     protected:
         const std::string name;
         bool isValid;

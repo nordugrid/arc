@@ -21,6 +21,10 @@ namespace ARex {
         return Arc::escape_chars(str, sql_special_chars, sql_escape_char, false, sql_escape_type);
     }
 
+    inline static std::string sql_escape(int num) {
+        return Arc::tostring(num);
+    }
+
     inline static std::string sql_escape(const Arc::Time& val) {
         if(val.GetTime() == -1) return "";
         return Arc::escape_chars((std::string)val, sql_special_chars, sql_escape_char, false, sql_escape_type);
@@ -124,6 +128,7 @@ namespace ARex {
                 return;
             }
             // initialize new database
+            Glib::Mutex::Lock lock(lock_);
             SQLiteDB adb(name, true); // automatically destroyed out of scope
             if (!adb.handle()) {
                 logger.msg(Arc::ERROR, "Failed to initialize accounting database");
@@ -170,6 +175,7 @@ namespace ARex {
     //  id - autoincrement id of the inserted raw
     unsigned int AccountingDBSQLite::GeneralSQLInsert(const std::string& sql) {
         initSQLiteDB();
+        Glib::Mutex::Lock lock(lock_);
         int err;
         err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {
@@ -181,6 +187,22 @@ namespace ARex {
         }
         sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
         return (unsigned int) newid;
+    }
+
+    // perform update query
+    bool AccountingDBSQLite::GeneralSQLUpdate(const std::string& sql) {
+        initSQLiteDB();
+        Glib::Mutex::Lock lock(lock_);
+        int err;
+        err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
+        if (err != SQLITE_OK ) {
+           db->logError("Failed to update data in the database", err, Arc::ERROR);
+           return false;
+        }
+        if(sqlite3_changes(db->handle()) < 1) {
+           return false;
+        }
+        return true;
     }
 
     // callback to build (name,id) map from database table
@@ -317,5 +339,112 @@ namespace ARex {
             }
         }
         return 0;
+    }
+    
+    // callback to get id from database table
+    static int ReadIdCallback(void* arg, int colnum, char** texts, char** names) {
+        unsigned int* dbid = static_cast<unsigned int*>(arg);
+        for (int n = 0; n < colnum; ++n) {
+            if (names[n] && texts[n]) {
+                int id;
+                sql_unescape(texts[n], id);
+                *dbid = id;
+            }
+        }
+        return 0;
+    }
+
+    // AAR processing
+    unsigned int AccountingDBSQLite::getAARDBId(const AAR& aar) {
+        initSQLiteDB();
+        unsigned int dbid = 0;
+        std::string sql = "SELECT RecordID FROM AAR WHERE JobID = '" + sql_escape(aar.jobid) + "'";
+        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadIdCallback, &dbid, NULL) != SQLITE_OK ) {
+            logger.msg(Arc::ERROR, "Failed to query AAR database ID for job %s", aar.jobid);
+            return 0;
+        }
+        return dbid;
+    }
+
+    bool AccountingDBSQLite::writeAAR(const AAR& aar) {
+        initSQLiteDB();
+        // get the corresponding IDs in connected tables
+        unsigned int endpointid = getDBEndpointId(aar.endpoint);
+        unsigned int queueid = getDBQueueId(aar.queue);
+        unsigned int userid = getDBUserId(aar.userdn);
+        unsigned int wlcgvoid = getDBWLCGVOId(aar.wlcgvo);
+        unsigned int statusid = getDBStatusId(aar.status);
+        // construct insert statement
+        std::string sql = "INSERT INTO AAR ("
+            "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, StatusID, ExitCode, "
+            "SubmitTime, EndTime, NodeCount, CPUCount, UsedMemory, UsedVirtMem, UsedWalltime, "
+            "UsedCPUUserTime, UsedCPUKernelTime, UsedScratch, StageInVolume, StageOutVolume ) "
+            "VALUES ('" +
+                sql_escape(aar.jobid) + "', '" +
+                sql_escape(aar.localid) + "', " +
+                sql_escape(endpointid) + ", " + 
+                sql_escape(queueid) + ", " + 
+                sql_escape(userid) + ", " + 
+                sql_escape(wlcgvoid) + ", " + 
+                sql_escape(statusid) + ", " +
+                sql_escape(aar.exitcode) + ", " +
+                sql_escape(aar.submittime.GetTime()) + ", " + 
+                sql_escape(aar.endtime.GetTime()) + ", " +
+                sql_escape(aar.nodecount) + ", " + 
+                sql_escape(aar.cpucount) + ", " + 
+                sql_escape(aar.usedmemory) + ", " + 
+                sql_escape(aar.usedvirtmemory) + ", " +
+                sql_escape(aar.usedwalltime) + ", " + 
+                sql_escape(aar.usedcpuusertime) + ", " + 
+                sql_escape(aar.usedcpukerneltime) + ", " +
+                sql_escape(aar.usedscratch) + ", " + 
+                sql_escape(aar.stageinvolume) + ", " + 
+                sql_escape(aar.stageoutvolume) +
+            ")";
+        unsigned int recordid = GeneralSQLInsert(sql);
+        if (!recordid) {
+            logger.msg(Arc::ERROR, "Failed to insert AAR into the database for job %s", aar.jobid);
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
+        return true;
+    }
+
+    bool AccountingDBSQLite::updateAAR(const AAR& aar) {
+        initSQLiteDB();
+        // get AAR ID in the database
+        unsigned int recordid = getAARDBId(aar);
+        if (!recordid) {
+            logger.msg(Arc::WARNING, "AAR does not exists in database for job %s. Writing new record instead of updating.", aar.jobid);
+            return writeAAR(aar);
+        }
+        // get the corresponding IDs in connected tables
+        unsigned int statusid = getDBStatusId(aar.status);
+        
+        // construct update statement 
+        // NOTE: it only make sense update the dynamic information not available on submission time
+        std::string sql = "UPDATE AAR SET "
+            "LocalJobID = '" + sql_escape(aar.localid) + "', " +
+            "StatusID = " + sql_escape(statusid) + ", " +
+            "ExitCode = " + sql_escape(aar.exitcode) + ", " +
+            "EndTime = " + sql_escape(aar.endtime.GetTime()) + ", " +
+            "NodeCount = " + sql_escape(aar.nodecount) + ", " + 
+            "CPUCount = " + sql_escape(aar.cpucount) + ", " + 
+            "UsedMemory = " + sql_escape(aar.usedmemory) + ", " + 
+            "UsedVirtMem = " + sql_escape(aar.usedvirtmemory) + ", " +
+            "UsedWalltime = " + sql_escape(aar.usedwalltime) + ", " + 
+            "UsedCPUUserTime = " + sql_escape(aar.usedcpuusertime) + ", " + 
+            "UsedCPUKernelTime = " + sql_escape(aar.usedcpukerneltime) + ", " +
+            "UsedScratch = " + sql_escape(aar.usedscratch) + ", " + 
+            "StageInVolume = " + sql_escape(aar.stageinvolume) + ", " + 
+            "StageOutVolume = " + sql_escape(aar.stageoutvolume) + " " +
+            "WHERE RecordId = " + sql_escape(recordid);
+        // run update
+        if (!GeneralSQLUpdate(sql)) {
+            logger.msg(Arc::ERROR, "Failed to update AAR in the database for job %s", aar.jobid);
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
+        return true;
     }
 }
