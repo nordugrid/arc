@@ -12,18 +12,26 @@ namespace ARex {
  * Defines the data types to store A-REX Accounting Records (AAR)
  */
 
-typedef struct {
-    std::string type,
-    std::string url
-} endpoint_t;
+struct aar_endpoint_t {
+    std::string interface;
+    std::string url;
+    bool operator<(const aar_endpoint_t& endpoint) const {
+        if ( interface < endpoint.interface ) return true;
+        if ( interface == endpoint.interface ) {
+            if ( url < endpoint.url ) return true;
+            return false;
+        }
+        return false;
+    };
+};
 
-typedef struct {
-    str::string url,
-    unsigned long long int size,
-    Arc::Time transferstart,
-    Arc::Time transferend,
-    unsigned int type
-} data_transfer_t;
+struct aar_data_transfer_t {
+    std::string url;
+    unsigned long long int size;
+    Arc::Time transferstart;
+    Arc::Time transferend;
+    unsigned int type;
+};
 
 class AAR {
   public:
@@ -36,7 +44,7 @@ class AAR {
     std::string jobid;              // job unique A-REX ID 
     std::string localid;            // job local LRMS ID
     /* Submission data */
-    endpoint_t  endpoint;           // endpoint type and URL used to submit job
+    aar_endpoint_t  endpoint;       // endpoint type and URL used to submit job
     std::string queue;              // queue
     std::string userdn;             // distinguished name of the job owner
     std::string wlcgvo;             // WLCG VO name
@@ -61,12 +69,12 @@ class AAR {
     std::map <std::string, std::string> authtokenattrs; // auth token attributes
     std::map <std::string, Arc::Time> jobevents;        // events of the job
     std::list <std::string> rte;                        // RTEs
-    std::list <data_transfer_t> transfers;              // data transfers information
+    std::list <aar_data_transfer_t> transfers;          // data transfers information
     /* Store non-seachable optional text data, such as:
      *      jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
      */
     std::map <std::string, std::string> extrainfo;      
-}
+};
 
 }
 

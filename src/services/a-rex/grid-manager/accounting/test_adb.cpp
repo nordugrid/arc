@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "AccountingDBSQLite.h"
+#include "AARContent.h"
 
 
 int main(int argc, char **argv) {
@@ -22,4 +23,9 @@ int main(int argc, char **argv) {
       std::cerr << "User ID:" << adb.getDBUserId("/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov") << std::endl;
       std::cerr << "WLCG VO ID:" << adb.getDBWLCGVOId("atlas") << std::endl;
       std::cerr << "Status ID:" << adb.getDBStatusId("completed") << std::endl;
+
+      ARex::aar_endpoint_t endpoint1 {"org.ogf.glue.emies.activitycreation", "https://arc6.univ.kiev.ua:443/arex"};
+      ARex::aar_endpoint_t endpoint2 {"org.nordugrid.arcrest", "https://arc6.univ.kiev.ua:443/arex"};
+      std::cerr << "Endpoint ID:" << adb.getDBEndpointId(endpoint1) << std::endl;
+      std::cerr << "Endpoint ID:" << adb.getDBEndpointId(endpoint2) << std::endl;
 }

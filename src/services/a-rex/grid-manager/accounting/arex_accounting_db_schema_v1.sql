@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS AAR (
   StageInVolume     INTEGER NOT NULL,
   StageOutVolume    INTEGER NOT NULL,
   /* Foreign keys constraints */
-  FOREIGN KEY(EndpointID) REFERENCES Endpoints(EndpointID),
+  FOREIGN KEY(EndpointID) REFERENCES Endpoints(ID),
   FOREIGN KEY(QueueID) REFERENCES Queues(ID),
   FOREIGN KEY(UserID) REFERENCES Users(ID),
   FOREIGN KEY(VOID) REFERENCES WLCGVOs(ID),
@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS AAR_EndTime_IDX ON AAR(EndTime);
 
 /* Submission endpoints (limited enum of types and URLs) */
 CREATE TABLE IF NOT EXISTS Endpoints (
-  EndpointID    INTEGER PRIMARY KEY AUTOINCREMENT,
+  ID            INTEGER PRIMARY KEY AUTOINCREMENT,
   Interface     TEXT NOT NULL,
   URL           TEXT NOT NULL
 );

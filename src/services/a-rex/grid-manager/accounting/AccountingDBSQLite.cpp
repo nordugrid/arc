@@ -165,6 +165,24 @@ namespace ARex {
         closeSQLiteDB();
     }
 
+    // perform insert query and return
+    //  0 - failure
+    //  id - autoincrement id of the inserted raw
+    unsigned int AccountingDBSQLite::GeneralSQLInsert(const std::string& sql) {
+        initSQLiteDB();
+        int err;
+        err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
+        if (err != SQLITE_OK ) {
+           db->logError("Failed to insert data into database", err, Arc::ERROR);
+           return 0;
+        }
+        if(sqlite3_changes(db->handle()) != 1) {
+           return 0;
+        }
+        sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
+        return (unsigned int) newid;
+    }
+
     // callback to build (name,id) map from database table
     static int ReadIdNameCallback(void* arg, int colnum, char** texts, char** names) {
         name_id_map_t* name_id_map = static_cast<name_id_map_t*>(arg);
@@ -184,15 +202,25 @@ namespace ARex {
         return 0;
     }
 
+    bool AccountingDBSQLite::QueryNameIDmap(const std::string& table, name_id_map_t* name_id_map) {
+        initSQLiteDB();
+        // empty map corresponding to the table if not empty
+        if (!name_id_map->empty()) name_id_map->clear();
+        std::string sql = "SELECT * FROM " + sql_escape(table);
+        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+            return false;
+        }
+        return true;
+    }
+
+
     // general helper to build (name,id) map from database table
     unsigned int AccountingDBSQLite::QueryAndInsertNameID(const std::string& table, const std::string& iname, name_id_map_t* name_id_map) {
         if (!isValid) return 0;
-
+        // fill map with db values
         if (name_id_map->empty()) {
-            // empty map - nothing had been fetched from database yet
-            initSQLiteDB();
-            std::string sqlcmd = "SELECT * FROM " + sql_escape(table);
-            if (sqlite3_exec_nobusy(db->handle(), sqlcmd.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+            if (!QueryNameIDmap(table, name_id_map)) {
+                logger.msg(Arc::ERROR, "Failed to fetch data from %s accounting database table", table);
                 return 0;
             }
         }
@@ -203,22 +231,13 @@ namespace ARex {
             return it->second;
         } else {
             // if not found - create the new record in the database
-            initSQLiteDB();
-            std::string sqlcmd = "INSERT INTO " + sql_escape(table) + " (Name) VALUES ('" + sql_escape(iname) + "')";
-            int err;
-            err = sqlite3_exec_nobusy(db->handle(), sqlcmd.c_str(), NULL, NULL, NULL);
-            if (err != SQLITE_OK ) {
-                db->logError("Failed to insert data into database", err, Arc::ERROR);
-                return 0;
-            }
-            if(sqlite3_changes(db->handle()) != 1) {
+            std::string sql = "INSERT INTO " + sql_escape(table) + " (Name) VALUES ('" + sql_escape(iname) + "')";
+            unsigned int newid = GeneralSQLInsert(sql);
+            if ( newid ) {
+                name_id_map->insert(std::pair <std::string, unsigned int>(iname, newid));
+                return newid;
+            } else {
                 logger.msg(Arc::ERROR, "Failed to add '%s' into the accounting database %s table", iname, table);
-                return 0;
-            }
-            sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
-            if (newid) {
-                name_id_map->insert(std::pair <std::string, unsigned int>(iname, (unsigned int) newid));
-                return (unsigned int) newid;
             }
         }
         return 0;
@@ -240,4 +259,63 @@ namespace ARex {
         return QueryAndInsertNameID("Status", status, &db_status);
     }
 
+    // endpoints
+    static int ReadEndpointsCallback(void* arg, int colnum, char** texts, char** names) {
+        std::map <aar_endpoint_t, unsigned int>* endpoints_map = static_cast<std::map <aar_endpoint_t, unsigned int>*>(arg);
+        std::pair <aar_endpoint_t, unsigned int> rec;
+        for (int n = 0; n < colnum; ++n) {
+            if (names[n] && texts[n]) {
+                if (strcmp(names[n], "ID") == 0) {
+                    int id;
+                    sql_unescape(texts[n], id);
+                    rec.second = id;
+                } else if (strcmp(names[n], "Interface") == 0) {
+                    rec.first.interface = sql_unescape(texts[n]);
+                } else if (strcmp(names[n], "URL") == 0) {
+                    rec.first.url = sql_unescape(texts[n]);
+                } 
+            }
+        }
+        endpoints_map->insert(rec);
+        return 0;
+    }
+
+    bool AccountingDBSQLite::QueryEnpointsmap() {
+        initSQLiteDB();
+        // empty map corresponding to the table if not empty
+        if (!db_endpoints.empty()) db_endpoints.clear();
+        std::string sql = "SELECT * FROM Endpoints";
+        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadEndpointsCallback, &db_endpoints, NULL) != SQLITE_OK ) {
+            return false;
+        }
+        return true;
+    }
+
+    unsigned int AccountingDBSQLite::getDBEndpointId(const aar_endpoint_t& endpoint) {
+        if (!isValid) return 0;
+        // fill map with db values
+        if (db_endpoints.empty()) {
+            if (!QueryEnpointsmap()) {
+                logger.msg(Arc::ERROR, "Failed to fetch data from accounting database Endpoints table");
+                return 0;
+            }
+        }
+        // find endpoint
+        std::map <aar_endpoint_t, unsigned int>::iterator it;
+        it = db_endpoints.find(endpoint);
+        if (it != db_endpoints.end()) {
+            return it->second;
+        } else {
+            // if not found - create the new record in the database
+            std::string sql = "INSERT INTO Endpoints (Interface, URL) VALUES ('" + sql_escape(endpoint.interface) + "', '" + sql_escape(endpoint.url) +"')";
+            unsigned int newid = GeneralSQLInsert(sql);
+            if ( newid ) {
+                db_endpoints.insert(std::pair <aar_endpoint_t, unsigned int>(endpoint, newid));
+                return newid;
+            } else {
+                logger.msg(Arc::ERROR, "Failed to add '%s' URL (interface type %s) into the accounting database Endpoints table", endpoint.url, endpoint.interface);
+            }
+        }
+        return 0;
+    }
 }

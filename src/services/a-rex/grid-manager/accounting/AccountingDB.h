@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "AARContent.h"
+
 namespace ARex {
     class GMJob;
     class GMConfig;
