@@ -31,6 +31,8 @@ namespace ARex {
         virtual bool writeAAR(const AAR& aar) = 0;
         /// Update existing AAR in the database (only dynamic parameters)
         virtual bool updateAAR(const AAR& aar) = 0;
+        /// Add job even record to existing AAR
+        virtual bool addJobEvent(aar_jobevent_t& events, const std::string& jobid) = 0;
     protected:
         const std::string name;
         bool isValid;

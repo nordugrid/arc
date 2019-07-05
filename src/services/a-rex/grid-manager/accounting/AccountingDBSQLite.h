@@ -48,11 +48,13 @@ namespace ARex {
         /// AAR processing
         /// get DB ID for already registered job
         unsigned int getAARDBId(const AAR& aar);
+        unsigned int getAARDBId(const std::string& jobid);
         /// write AAR to database
         bool writeAAR(const AAR& aar);
         /// update AAR in the database
         bool updateAAR(const AAR& aar);
-
+        /// add job even record to AAR
+        bool addJobEvent(aar_jobevent_t& events, const std::string& jobid);
       private:
         static Arc::Logger logger;
         Glib::Mutex lock_;
@@ -96,6 +98,12 @@ namespace ARex {
         bool QueryNameIDmap(const std::string& table, name_id_map_t* name_id_map);
         // Query special tables
         bool QueryEnpointsmap(void);
+        // Write dedicated info tables
+        bool writeRTEs(std::list <std::string>& rtes, unsigned int recordid);
+        bool writeAuthTokenAttrs(std::map <std::string, std::string>& attrs, unsigned int recordid);
+        bool writeExtraInfo(std::map <std::string, std::string>& info, unsigned int recordid);
+        bool writeDTRs(std::list <aar_data_transfer_t>& dtrs, unsigned int recordid);
+        bool writeEvents(std::list <aar_jobevent_t>& events, unsigned int recordid);
     };
 }
 

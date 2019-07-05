@@ -33,6 +33,8 @@ struct aar_data_transfer_t {
     unsigned int type;
 };
 
+typedef std::pair <std::string, Arc::Time> aar_jobevent_t;
+
 class AAR {
   public:
     AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), 
@@ -66,14 +68,14 @@ class AAR {
     unsigned long long int stageinvolume;
     unsigned long long int stageoutvolume;
     /* Complex extra data */
-    std::map <std::string, std::string> authtokenattrs; // auth token attributes
-    std::map <std::string, Arc::Time> jobevents;        // events of the job
-    std::list <std::string> rte;                        // RTEs
-    std::list <aar_data_transfer_t> transfers;          // data transfers information
+    std::map <std::string, std::string> authtokenattrs;     // auth token attributes
+    std::list <aar_jobevent_t> jobevents;                   // events of the job
+    std::list <std::string> rte;                            // RTEs
+    std::list <aar_data_transfer_t> transfers;              // data transfers information
     /* Store non-seachable optional text data, such as:
      *      jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
      */
-    std::map <std::string, std::string> extrainfo;      
+    std::map <std::string, std::string> extrainfo;
 };
 
 }

@@ -366,6 +366,12 @@ namespace ARex {
         return dbid;
     }
 
+    unsigned int AccountingDBSQLite::getAARDBId(const std::string& jobid) {
+        AAR aar;
+        aar.jobid = jobid;
+        return getAARDBId(aar);
+    }
+
     bool AccountingDBSQLite::writeAAR(const AAR& aar) {
         initSQLiteDB();
         // get the corresponding IDs in connected tables
@@ -445,6 +451,87 @@ namespace ARex {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
         }
+        return true;
+    }
+
+    bool AccountingDBSQLite::writeRTEs(std::list <std::string>& rtes, unsigned int recordid) {
+        if (rtes.empty()) return true;
+        std::string sql = "INSERT INTO RunTimeEnvironments (RecordID, RTEName) VALUES ";
+        std::string comma = "";
+        for (std::list<std::string>::iterator it=rtes.begin(); it != rtes.end(); ++it) {
+            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(*it) + "')";
+            comma = ", ";
+        }
+        if(!GeneralSQLInsert(sql)) return false;
+        return true;
+    }
+
+    bool AccountingDBSQLite::writeAuthTokenAttrs(std::map <std::string, std::string>& attrs, unsigned int recordid) {
+        if (attrs.empty()) return true;
+        std::string sql = "INSERT INTO AuthTokenAttributes (RecordID, AttrKey, AttrValue) VALUES ";
+        std::string comma = "";
+        for (std::map<std::string,std::string>::iterator it=attrs.begin(); it!=attrs.end(); ++it) {
+            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "')";
+            comma = ", ";
+        }
+        if(!GeneralSQLInsert(sql)) return false;
+        return true;
+    }
+
+    bool AccountingDBSQLite::writeExtraInfo(std::map <std::string, std::string>& info, unsigned int recordid) {
+        if (info.empty()) return true;
+        std::string sql = "INSERT INTO JobExtraInfo (RecordID, InfoKey, InfoValue) VALUES ";
+        std::string comma = "";
+        for (std::map<std::string,std::string>::iterator it=info.begin(); it!=info.end(); ++it) {
+            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "')";
+            comma = ", ";
+        }
+        if(!GeneralSQLInsert(sql)) return false;
+        return true;
+    }
+
+    bool AccountingDBSQLite::writeDTRs(std::list <aar_data_transfer_t>& dtrs, unsigned int recordid) {
+        if (dtrs.empty()) return true;
+        std::string sql = "INSERT INTO DataTransfers "
+            "(RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType) VALUES ";
+        std::string comma = "";
+        for (std::list<aar_data_transfer_t>::iterator it=dtrs.begin(); it != dtrs.end(); ++it) {
+            sql += comma + "( " + sql_escape(recordid) + ", '" + 
+                   sql_escape(it->url) + "', " +
+                   sql_escape(it->size) + ", " + 
+                   sql_escape(it->transferstart.GetTime()) + ", " + 
+                   sql_escape(it->transferend.GetTime()) + ", " + 
+                   sql_escape(it->type) + ")";
+            comma = ", ";
+        }
+        if(!GeneralSQLInsert(sql)) return false;
+        return true;
+    }
+
+    bool AccountingDBSQLite::writeEvents(std::list <aar_jobevent_t>& events, unsigned int recordid) {
+        if (events.empty()) return true;
+        std::string sql = "INSERT INTO JobEvents (RecordID, EventKey, EventTime) VALUES ";
+        std::string comma = "";
+        for (std::list<aar_jobevent_t>::iterator it=events.begin(); it != events.end(); ++it) {
+            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "')";
+            comma = ", ";
+        }
+        if(!GeneralSQLInsert(sql)) return false;
+        return true;
+    }
+
+    bool AccountingDBSQLite::addJobEvent(aar_jobevent_t& event, const std::string& jobid) {
+        unsigned int recordid = getAARDBId(jobid);
+        if (!recordid) {
+            logger.msg(Arc::ERROR, "Unable to add event: cannot find AAR for job %s in accounting database.", jobid);
+            return false;
+        }
+        std::string sql = "INSERT INTO JobEvents (RecordID, EventKey, EventTime) VALUES (" +
+            sql_escape(recordid) + ", '" + sql_escape(event.first) + "', '" + sql_escape(event.second) + "')";
+        if(!GeneralSQLInsert(sql)) return false;
         return true;
     }
 }
