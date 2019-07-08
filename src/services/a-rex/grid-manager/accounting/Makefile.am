@@ -1,10 +1,10 @@
 noinst_LTLIBRARIES = libaccounting.la
 
 libaccounting_la_SOURCES = \
-	AccountingDBSQLite.cpp \
-	AccountingDBSQLite.h AccountingDB.h AARContent.h
+	AccountingDBSQLite.cpp AAR.cpp \
+	AccountingDBSQLite.h AccountingDB.h AAR.h
 libaccounting_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
 libaccounting_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(SQLITE_LIBS)

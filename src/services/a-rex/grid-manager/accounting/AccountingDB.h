@@ -3,12 +3,9 @@
 
 #include <string>
 
-#include "AARContent.h"
+#include "AAR.h"
 
 namespace ARex {
-    class GMJob;
-    class GMConfig;
-
     /// Abstract class for storing A-REX accounting records (AAR)
     /**
      * This abstract class provides an interface which can be used to store

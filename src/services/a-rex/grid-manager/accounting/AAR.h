@@ -25,15 +25,28 @@ struct aar_endpoint_t {
     };
 };
 
+typedef enum {
+    dtr_input = 10,
+    dtr_cache_input = 11,
+    dtr_output = 20
+} dtr_type;
+
 struct aar_data_transfer_t {
     std::string url;
     unsigned long long int size;
     Arc::Time transferstart;
     Arc::Time transferend;
-    unsigned int type;
+    dtr_type type;
 };
 
 typedef std::pair <std::string, Arc::Time> aar_jobevent_t;
+
+class GMJob;
+class GMConfig;
+
+/*
+ * C++ class representing A-REX Accounting Record (AAR) structure and corresponding methods to build it
+ */
 
 class AAR {
   public:
@@ -57,8 +70,8 @@ class AAR {
     Arc::Time submittime;           // Job submission time
     Arc::Time endtime;              // Job completion time
     /* Used resources */
-    int nodecount;
-    int cpucount;
+    unsigned int nodecount;
+    unsigned int cpucount;
     unsigned long long int usedmemory;
     unsigned long long int usedvirtmemory;
     unsigned long long int usedwalltime;
@@ -76,6 +89,11 @@ class AAR {
      *      jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
      */
     std::map <std::string, std::string> extrainfo;
+
+    /// Fetch info from the job's controldir files and fill AAR data structures
+    bool FetchJobData(const GMJob &job,const GMConfig& config);
+  private:
+    static Arc::Logger logger;
 };
 
 }

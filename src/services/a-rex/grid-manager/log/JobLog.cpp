@@ -18,6 +18,8 @@
 #include "../files/ControlFileContent.h"
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
+#include "../accounting/AAR.h"
+#include "../accounting/AccountingDBSQLite.h"
 #include "JobLog.h"
 
 namespace ARex {
@@ -229,14 +231,40 @@ bool JobLog::SetArchiveManagerLogFile(const char* fname) {
 }
 
 bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
-  // Records are written only for first and last states
-  if((job.get_state() != JOB_STATE_ACCEPTED) &&
-     (job.get_state() != JOB_STATE_FINISHED)) return true;
+  // Legacy joblog files generation
+  // TODO: add configuration option
+  if((job.get_state() == JOB_STATE_ACCEPTED) ||
+     (job.get_state() == JOB_STATE_FINISHED)) {
+        // don't care about legacy method success
+        job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
+  }
 
-  // Only one record per job state change is generated now
-  bool result = job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
+  // Create accounting DB connection
+  std::string accounting_db_path = config.ControlDir() + "/accounting.db";
+  AccountingDBSQLite adb(accounting_db_path);
 
-  return result;
+  if (!adb.IsValid()) {
+    logger.msg(Arc::ERROR,": Failure creating accounting database connection");
+    return false;
+  }
+  
+  // create initial AAR record in the accounting database on ACCEPTED
+  if(job.get_state() == JOB_STATE_ACCEPTED) {
+    AAR aar;
+    aar.FetchJobData(job, config);
+    return adb.createAAR(aar);
+  }
+
+  // update all job metrics when job FINISHED
+  if (job.get_state() == JOB_STATE_FINISHED) {
+    AAR aar;
+    aar.FetchJobData(job, config);
+    return adb.updateAAR(aar);
+  }
+
+  // record job state change event in the accounting database
+  aar_jobevent_t jobevent(job.get_state_name(), Arc::Time());
+  return adb.addJobEvent(jobevent, job.get_id());
 }
 
 void JobLog::SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir)

@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "AccountingDBSQLite.h"
-#include "AARContent.h"
+#include "AAR.h"
 
 int main(int argc, char **argv) {
     Arc::LogStream logcerr(std::cerr);
@@ -53,7 +53,9 @@ int main(int argc, char **argv) {
     aar.stageoutvolume = 0;
     aar.rtes.push_back("ENV/PROXY");
     aar.rtes.push_back("ENV/CANDYPOND");
-    aar.transfers.push_back({"srm://glite01.grid.hku.hk/dpm/grid.hku.hk/home/ops/nagios-snf-3988/arcce/srm-input", 57, Arc::Time("2019-03-20T09:41:37Z"), Arc::Time("2019-03-20T09:41:41Z"), 3});
+
+    aar.transfers.push_back({"srm://glite01.grid.hku.hk/dpm/grid.hku.hk/home/ops/nagios-snf-3988/arcce/srm-input", 57, Arc::Time("2019-03-20T09:41:37Z"), Arc::Time("2019-03-20T09:41:41Z"), ARex::dtr_input});
+
     aar.extrainfo.insert(std::pair <std::string, std::string>("jobname", "test2"));
     aar.extrainfo.insert(std::pair <std::string, std::string>("lrms", "pbs"));
     aar.extrainfo.insert(std::pair <std::string, std::string>("nodename", "s2"));

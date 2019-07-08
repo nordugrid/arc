@@ -538,7 +538,7 @@ namespace ARex {
                    sql_escape(it->size) + ", " + 
                    sql_escape(it->transferstart.GetTime()) + ", " + 
                    sql_escape(it->transferend.GetTime()) + ", " + 
-                   sql_escape(it->type) + ")";
+                   sql_escape(static_cast<int>(it->type)) + ")";
             comma = ", ";
         }
         if(!GeneralSQLInsert(sql)) return false;
