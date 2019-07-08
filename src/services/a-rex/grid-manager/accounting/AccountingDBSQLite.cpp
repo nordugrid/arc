@@ -129,9 +129,10 @@ namespace ARex {
             }
             // initialize new database
             Glib::Mutex::Lock lock(lock_);
-            SQLiteDB adb(name, true); // automatically destroyed out of scope
-            if (!adb.handle()) {
+            db = new SQLiteDB(name, true);
+            if (!db->handle()) {
                 logger.msg(Arc::ERROR, "Failed to initialize accounting database");
+                closeSQLiteDB();
                 return;
             }
             isValid = true;
@@ -141,9 +142,10 @@ namespace ARex {
             return;
         }
         // if we are here database location is fine, trying to open
-        SQLiteDB adb(name); // automatically destroyed out of scope
-        if (!adb.handle()) {
+        initSQLiteDB();
+        if (!db->handle()) {
             logger.msg(Arc::ERROR, "Error opening accounting database");
+            closeSQLiteDB();
             return;
         }
         // TODO: implement schema version checking and possible updates
@@ -174,16 +176,21 @@ namespace ARex {
     //  0 - failure
     //  id - autoincrement id of the inserted raw
     unsigned int AccountingDBSQLite::GeneralSQLInsert(const std::string& sql) {
+        if (!isValid) return 0;
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
         err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
-        if (err != SQLITE_OK ) {
-           db->logError("Failed to insert data into database", err, Arc::ERROR);
-           return 0;
+        if (err != SQLITE_OK) {
+            if (err == SQLITE_CONSTRAINT) {
+                db->logError("It seams record exists already", err, Arc::ERROR);
+            } else {
+                db->logError("Failed to insert data into database", err, Arc::ERROR);
+            }
+            return 0;
         }
-        if(sqlite3_changes(db->handle()) != 1) {
-           return 0;
+        if(sqlite3_changes(db->handle()) < 1) {
+            return 0;
         }
         sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
         return (unsigned int) newid;
@@ -191,16 +198,17 @@ namespace ARex {
 
     // perform update query
     bool AccountingDBSQLite::GeneralSQLUpdate(const std::string& sql) {
+        if (!isValid) return false;
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
         err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {
-           db->logError("Failed to update data in the database", err, Arc::ERROR);
-           return false;
+            db->logError("Failed to update data in the database", err, Arc::ERROR);
+            return false;
         }
         if(sqlite3_changes(db->handle()) < 1) {
-           return false;
+            return false;
         }
         return true;
     }
@@ -225,6 +233,7 @@ namespace ARex {
     }
 
     bool AccountingDBSQLite::QueryNameIDmap(const std::string& table, name_id_map_t* name_id_map) {
+        if (!isValid) return false;
         initSQLiteDB();
         // empty map corresponding to the table if not empty
         if (!name_id_map->empty()) name_id_map->clear();
@@ -238,7 +247,6 @@ namespace ARex {
 
     // general helper to build (name,id) map from database table
     unsigned int AccountingDBSQLite::QueryAndInsertNameID(const std::string& table, const std::string& iname, name_id_map_t* name_id_map) {
-        if (!isValid) return 0;
         // fill map with db values
         if (name_id_map->empty()) {
             if (!QueryNameIDmap(table, name_id_map)) {
@@ -303,6 +311,7 @@ namespace ARex {
     }
 
     bool AccountingDBSQLite::QueryEnpointsmap() {
+        if (!isValid) return false;
         initSQLiteDB();
         // empty map corresponding to the table if not empty
         if (!db_endpoints.empty()) db_endpoints.clear();
@@ -314,7 +323,6 @@ namespace ARex {
     }
 
     unsigned int AccountingDBSQLite::getDBEndpointId(const aar_endpoint_t& endpoint) {
-        if (!isValid) return 0;
         // fill map with db values
         if (db_endpoints.empty()) {
             if (!QueryEnpointsmap()) {
@@ -356,6 +364,7 @@ namespace ARex {
 
     // AAR processing
     unsigned int AccountingDBSQLite::getAARDBId(const AAR& aar) {
+        if (!isValid) return 0;
         initSQLiteDB();
         unsigned int dbid = 0;
         std::string sql = "SELECT RecordID FROM AAR WHERE JobID = '" + sql_escape(aar.jobid) + "'";
@@ -372,7 +381,8 @@ namespace ARex {
         return getAARDBId(aar);
     }
 
-    bool AccountingDBSQLite::writeAAR(const AAR& aar) {
+    bool AccountingDBSQLite::createAAR(AAR& aar) {
+        if (!isValid) return false;
         initSQLiteDB();
         // get the corresponding IDs in connected tables
         unsigned int endpointid = getDBEndpointId(aar.endpoint);
@@ -413,16 +423,25 @@ namespace ARex {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
         }
+        // insert authtoken attributes
+        if (!writeAuthTokenAttrs(aar.authtokenattrs, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write authtoken attributes for job %s", aar.jobid);
+        }
+        // record ACCEPTED state
+        if (!writeEvents(aar.jobevents, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write event records for job %s", aar.jobid);
+        }
         return true;
     }
 
-    bool AccountingDBSQLite::updateAAR(const AAR& aar) {
+    bool AccountingDBSQLite::updateAAR(AAR& aar) {
+        if (!isValid) return false;
         initSQLiteDB();
         // get AAR ID in the database
         unsigned int recordid = getAARDBId(aar);
         if (!recordid) {
-            logger.msg(Arc::WARNING, "AAR does not exists in database for job %s. Writing new record instead of updating.", aar.jobid);
-            return writeAAR(aar);
+            logger.msg(Arc::ERROR, "Cannot to update AAR. Cannot find registered AAR for job %s in accounting database.", aar.jobid);
+            return false;
         }
         // get the corresponding IDs in connected tables
         unsigned int statusid = getDBStatusId(aar.status);
@@ -450,6 +469,22 @@ namespace ARex {
             logger.msg(Arc::ERROR, "Failed to update AAR in the database for job %s", aar.jobid);
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
+        }
+        // write RTE info
+        if (!writeRTEs(aar.rtes, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write RTEs information for the job %s", aar.jobid);
+        }
+        // write DTR info
+        if (!writeDTRs(aar.transfers, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write data transfers information for the job %s", aar.jobid);
+        }
+        // write extra information
+        if (!writeExtraInfo(aar.extrainfo, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write data transfers information for the job %s", aar.jobid);
+        }
+        // record FINISHED state
+        if (!writeEvents(aar.jobevents, recordid)) {
+            logger.msg(Arc::ERROR, "Failed to write event records for job %s", aar.jobid);
         }
         return true;
     }

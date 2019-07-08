@@ -27,11 +27,26 @@ namespace ARex {
          * @return true if database connection successfull
          **/
         bool IsValid() const { return isValid; }
-        /// Write new AAR into the database
-        virtual bool writeAAR(const AAR& aar) = 0;
-        /// Update existing AAR in the database (only dynamic parameters)
-        virtual bool updateAAR(const AAR& aar) = 0;
-        /// Add job even record to existing AAR
+        /// Create new AAR in the database
+        /** 
+         * write basic info available in ACCEPTED state to the 
+         * accounting database.
+         * This methid registers a new job that is just accepted
+         * and write down jobID and ownership information
+         **/
+        virtual bool createAAR(AAR& aar) = 0;
+        /// Update AAR in the database
+        /**
+         * write all accounting info when job reaches FINISHED state
+         * this updates all dynamic and resource consumtion info
+         * collected during the job execution. Extra information about the job
+         * is also recorded here
+         **/
+        virtual bool updateAAR(AAR& aar) = 0;
+        /// Add job even record to AAR
+        /**
+         * write record about job state change to accounting log 
+         **/
         virtual bool addJobEvent(aar_jobevent_t& events, const std::string& jobid) = 0;
     protected:
         const std::string name;

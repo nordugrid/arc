@@ -8,53 +8,57 @@
 #include "AARContent.h"
 
 int main(int argc, char **argv) {
-      Arc::LogStream logcerr(std::cerr);
-      Arc::Logger::getRootLogger().addDestination(logcerr);
-      Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+    Arc::LogStream logcerr(std::cerr);
+    Arc::Logger::getRootLogger().addDestination(logcerr);
+    Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
 
-      ARex::AccountingDBSQLite adb("/tmp/adb.sqlite");
-      if (!adb.IsValid()) {
-         std::cerr << "Database connection was not successfull" << std::endl;
-         return EXIT_FAILURE;
-      }
+    ARex::AccountingDBSQLite adb("/tmp/adb.sqlite");
+    if (!adb.IsValid()) {
+       std::cerr << "Database connection was not successfull" << std::endl;
+       return EXIT_FAILURE;
+    }
 
-      std::cerr << "Queue ID:" << adb.getDBQueueId("atlas_prod") << std::endl;
-      std::cerr << "User ID:" << adb.getDBUserId("/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov") << std::endl;
-      std::cerr << "WLCG VO ID:" << adb.getDBWLCGVOId("atlas") << std::endl;
-      std::cerr << "Status ID:" << adb.getDBStatusId("completed") << std::endl;
+    ARex::AAR aar;
+    aar.jobid = "0DULDmc8azunjwO5upha6lOqABFKDmABFKDmpjJKDmABFKDmQs7RCo";
+    aar.endpoint = { "org.nordugrid.gridftpjob", "gsiftp://arc6.univ.kiev.ua:2811/jobs/" };
+    aar.queue = "grid";
+    aar.userdn = "/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov";
+    aar.wlcgvo = "testbed.univ.kiev.ua";
+    aar.status = "accepted";
+    aar.submittime = Arc::Time("20190624101218Z");
+    aar.authtokenattrs.insert(std::pair <std::string, std::string>("VO", "testbed.univ.kiev.ua"));
+    aar.authtokenattrs.insert(std::pair <std::string, std::string>("VOGroup", "/testbed.univ.kiev.ua"));
+    ARex::aar_jobevent_t accepted_event("ACCEPTED", Arc::Time("20190624101218Z"));
+    aar.jobevents.push_back(accepted_event);
 
-      ARex::aar_endpoint_t endpoint1 {"org.ogf.glue.emies.activitycreation", "https://arc6.univ.kiev.ua:443/arex"};
-      ARex::aar_endpoint_t endpoint2 {"org.nordugrid.arcrest", "https://arc6.univ.kiev.ua:443/arex"};
-      std::cerr << "Endpoint ID:" << adb.getDBEndpointId(endpoint1) << std::endl;
-      std::cerr << "Endpoint ID:" << adb.getDBEndpointId(endpoint2) << std::endl;
-      std::cerr << "Endpoint ID:" << adb.getDBEndpointId(endpoint2) << std::endl;
+    adb.createAAR(aar);
 
-      ARex::AAR aar;
-      aar.jobid = "0DULDmc8azunjwO5upha6lOqABFKDmABFKDmpjJKDmABFKDmQs7RCo";
-      aar.localid = "2805309";
-      aar.endpoint = { "org.nordugrid.gridftpjob", "gsiftp://arc6.univ.kiev.ua:2811/jobs/" };
-      aar.queue = "grid";
-      aar.userdn = "/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov";
-      aar.wlcgvo = "testbed.univ.kiev.ua";
-      aar.status = "completed";
-      aar.exitcode = 0;
-      aar.submittime = Arc::Time("20190624101218Z");
-      aar.nodecount = 2;
-      aar.cpucount = 4;
-      aar.usedmemory = 584;
-      aar.usedvirtmemory = 678;
-      aar.usedwalltime = 1;
-      aar.usedcpuusertime = 0;
-      aar.usedcpukerneltime = 0;
-      aar.usedscratch = 0;
-      aar.stageinvolume = 0;
-      aar.stageoutvolume = 0;
+    ARex::aar_jobevent_t preparing_event("PREPARING", Arc::Time("20190624121218Z"));
+    adb.addJobEvent(preparing_event, aar.jobid);
 
-      adb.writeAAR(aar);
-      std::cerr << "AAR ID: " << adb.getAARDBId(aar) << std::endl;
+    aar.localid = "2805309";
+    aar.endtime = Arc::Time("20190625101758Z");
+    aar.stageinvolume = 100;
+    aar.status = "completed";
+    aar.exitcode = 0;
+    aar.nodecount = 2;
+    aar.cpucount = 4;
+    aar.usedmemory = 584;
+    aar.usedvirtmemory = 678;
+    aar.usedwalltime = 1;
+    aar.usedcpuusertime = 0;
+    aar.usedcpukerneltime = 0;
+    aar.usedscratch = 0;
+    aar.stageinvolume = 0;
+    aar.stageoutvolume = 0;
+    aar.rtes.push_back("ENV/PROXY");
+    aar.rtes.push_back("ENV/CANDYPOND");
+    aar.transfers.push_back({"srm://glite01.grid.hku.hk/dpm/grid.hku.hk/home/ops/nagios-snf-3988/arcce/srm-input", 57, Arc::Time("2019-03-20T09:41:37Z"), Arc::Time("2019-03-20T09:41:41Z"), 3});
+    aar.extrainfo.insert(std::pair <std::string, std::string>("jobname", "test2"));
+    aar.extrainfo.insert(std::pair <std::string, std::string>("lrms", "pbs"));
+    aar.extrainfo.insert(std::pair <std::string, std::string>("nodename", "s2"));
+    aar.extrainfo.insert(std::pair <std::string, std::string>("clienthost", "192.0.2.100"));
+    aar.extrainfo.insert(std::pair <std::string, std::string>("localuser", "tb175"));
 
-      aar.jobid = "0DULDmc8azunjwO5upha6lOqABFKDmABFKDmpjJKDmABFKDmQs7RCm";
-      aar.endtime = Arc::Time("20190625101758Z");
-      aar.stageinvolume = 100;
-      adb.updateAAR(aar);
+    adb.updateAAR(aar);
 }

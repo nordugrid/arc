@@ -38,7 +38,7 @@ typedef std::pair <std::string, Arc::Time> aar_jobevent_t;
 class AAR {
   public:
     AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), 
-               exitcode(-1), submittime((time_t)(0)), endtime((time_t)(0)),
+               exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
                nodecount(0), cpucount(0), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),
                usedscratch(0), stageinvolume(0), stageoutvolume(0) {}
@@ -70,7 +70,7 @@ class AAR {
     /* Complex extra data */
     std::map <std::string, std::string> authtokenattrs;     // auth token attributes
     std::list <aar_jobevent_t> jobevents;                   // events of the job
-    std::list <std::string> rte;                            // RTEs
+    std::list <std::string> rtes;                           // RTEs
     std::list <aar_data_transfer_t> transfers;              // data transfers information
     /* Store non-seachable optional text data, such as:
      *      jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
