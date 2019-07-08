@@ -1426,8 +1426,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_xrootd}
 %files plugins-xrootd
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libdmcxrootd.so
-%{_libdir}/%{pkgdir}/libdmcxrootd.apd
+%{_libdir}/%{pkgdir}/external/libdmcxrootd.so
+%{_libdir}/%{pkgdir}/external/libdmcxrootd.apd
 %endif
 
 %if %{with_gfal}
