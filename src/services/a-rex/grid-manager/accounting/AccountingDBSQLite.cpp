@@ -15,7 +15,7 @@
 namespace ARex {
     Arc::Logger AccountingDBSQLite::logger(Arc::Logger::getRootLogger(), "AccountingDBSQLite");
 
-    int AccountingDBSQLite::SQLiteDB::exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), 
+    int AccountingDBSQLite::SQLiteDB::exec(const char *sql, int (*callback)(void*,int,char**,char**), 
         void *arg, char **errmsg) {
         int err;
         while((err = sqlite3_exec(aDB, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
@@ -53,7 +53,7 @@ namespace ARex {
                 closeDB();
                 return;
             }
-            err = exec_nobusy(db_schema_str.c_str(), NULL, NULL, NULL);
+            err = exec(db_schema_str.c_str(), NULL, NULL, NULL);
             if(err != SQLITE_OK) {
                 logError("Failed to initialize accounting database schema", err, Arc::ERROR);
                 closeDB();
@@ -75,6 +75,11 @@ namespace ARex {
         } else {
             AccountingDBSQLite::logger.msg(loglevel, "SQLite database error: %s", msg);
         }
+    }
+
+    bool AccountingDBSQLite::SQLiteDB::isConnected(void) {
+        if (aDB) return true;
+        return false;
     }
 
     void AccountingDBSQLite::SQLiteDB::closeDB(void) {
@@ -104,7 +109,7 @@ namespace ARex {
             // initialize new database
             Glib::Mutex::Lock lock(lock_);
             db = new SQLiteDB(name, true);
-            if (!db->handle()) {
+            if (!db->isConnected()){
                 logger.msg(Arc::ERROR, "Failed to initialize accounting database");
                 closeSQLiteDB();
                 return;
@@ -117,7 +122,7 @@ namespace ARex {
         }
         // if we are here database location is fine, trying to open
         initSQLiteDB();
-        if (!db->handle()) {
+        if (!db->isConnected()) {
             logger.msg(Arc::ERROR, "Error opening accounting database");
             closeSQLiteDB();
             return;
@@ -154,7 +159,7 @@ namespace ARex {
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
-        err = db->exec_nobusy(sql.c_str(), NULL, NULL, NULL);
+        err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK) {
             if (err == SQLITE_CONSTRAINT) {
                 db->logError("It seams record exists already", err, Arc::ERROR);
@@ -163,10 +168,10 @@ namespace ARex {
             }
             return 0;
         }
-        if(sqlite3_changes(db->handle()) < 1) {
+        if(db->changes() < 1) {
             return 0;
         }
-        sqlite3_int64 newid = sqlite3_last_insert_rowid(db->handle());
+        sqlite3_int64 newid = db->insertID();
         return (unsigned int) newid;
     }
 
@@ -176,12 +181,12 @@ namespace ARex {
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
-        err = db->exec_nobusy(sql.c_str(), NULL, NULL, NULL);
+        err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {
             db->logError("Failed to update data in the database", err, Arc::ERROR);
             return false;
         }
-        if(sqlite3_changes(db->handle()) < 1) {
+        if(db->changes() < 1) {
             return false;
         }
         return true;
@@ -212,7 +217,7 @@ namespace ARex {
         // empty map corresponding to the table if not empty
         if (!name_id_map->empty()) name_id_map->clear();
         std::string sql = "SELECT * FROM " + sql_escape(table);
-        if (db->exec_nobusy(sql.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+        if (db->exec(sql.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
             return false;
         }
         return true;
@@ -290,7 +295,7 @@ namespace ARex {
         // empty map corresponding to the table if not empty
         if (!db_endpoints.empty()) db_endpoints.clear();
         std::string sql = "SELECT * FROM Endpoints";
-        if (db->exec_nobusy(sql.c_str(), &ReadEndpointsCallback, &db_endpoints, NULL) != SQLITE_OK ) {
+        if (db->exec(sql.c_str(), &ReadEndpointsCallback, &db_endpoints, NULL) != SQLITE_OK ) {
             return false;
         }
         return true;
@@ -342,7 +347,7 @@ namespace ARex {
         initSQLiteDB();
         unsigned int dbid = 0;
         std::string sql = "SELECT RecordID FROM AAR WHERE JobID = '" + sql_escape(aar.jobid) + "'";
-        if (db->exec_nobusy(sql.c_str(), &ReadIdCallback, &dbid, NULL) != SQLITE_OK ) {
+        if (db->exec(sql.c_str(), &ReadIdCallback, &dbid, NULL) != SQLITE_OK ) {
             logger.msg(Arc::ERROR, "Failed to query AAR database ID for job %s", aar.jobid);
             return 0;
         }
