@@ -266,7 +266,6 @@ namespace ARex {
                 // parse comma separated values
                 std::list<std::string> dtr_values;
                 Arc::tokenize(value, dtr_values, ",");
-                std::list<std::string>::iterator it = dtr_values.begin();
                 for (std::list<std::string>::iterator it = dtr_values.begin(); it != dtr_values.end(); ++it) {
                     std::string::size_type kvp = it->find('=');
                     if (kvp == std::string::npos) continue;
@@ -279,7 +278,7 @@ namespace ARex {
                         unsigned long long int n;
                         if (string_to_number(dval,n)) dtrinfo.size = n;
                     } else if (dkey == "starttime") {
-                        Arc::Time stime(value);
+                        Arc::Time stime(dval);
                         dtrinfo.transferstart = stime;
                         if (is_input) {
                             if (dtr_in_start == Arc::Time(-1)) dtr_in_start = stime;
@@ -289,7 +288,7 @@ namespace ARex {
                             if (stime < dtr_out_start) dtr_out_start = stime;
                         }
                     } else if (dkey == "endtime") {
-                        Arc::Time etime(value);
+                        Arc::Time etime(dval);
                         dtrinfo.transferend = etime;
                         if (is_input) {
                             if (dtr_in_end == Arc::Time(-1)) dtr_in_end = etime;
