@@ -134,7 +134,7 @@ namespace ARex {
         /* 
          * analyze job.ID.diag and store relevant information 
          */
-        std::string fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
+        std::string fname_src = config.ControlDir() + G_DIR_SEPARATOR_S + "job." + job.get_id() + sfx_diag;
         std::list<std::string> diag_data;
         // nodenames used for node/cpus couting as well as extra info
         std::list<std::string> nodenames;
@@ -238,7 +238,7 @@ namespace ARex {
         /* 
          * analyze job.ID.statistics and store relevant DTR information 
          */
-        fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_statistics;
+        fname_src = config.ControlDir() + G_DIR_SEPARATOR_S + "job." + job.get_id() + sfx_statistics;
         std::list<std::string> statistics_data;
         // DTR events
         Arc::Time dtr_in_start(-1);

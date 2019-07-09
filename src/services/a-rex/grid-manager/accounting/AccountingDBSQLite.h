@@ -40,6 +40,7 @@ namespace ARex {
             SQLiteDB(const std::string& name, bool create = false);
             ~SQLiteDB();
             sqlite3* handle() { return aDB; }
+            int exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg);
             void logError(const char* errpfx, int err, Arc::LogLevel level = Arc::DEBUG);
         private:
             sqlite3* aDB;

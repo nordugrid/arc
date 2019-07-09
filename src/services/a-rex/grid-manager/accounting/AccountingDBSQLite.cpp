@@ -3,8 +3,10 @@
 #endif
 
 #include <arc/FileUtils.h>
-#include <arc/StringConv.h>
 #include <arc/DateTime.h>
+#include <arc/ArcLocation.h>
+
+#include "../../SQLhelpers.h"
 
 #include "AccountingDBSQLite.h"
 
@@ -13,39 +15,10 @@
 namespace ARex {
     Arc::Logger AccountingDBSQLite::logger(Arc::Logger::getRootLogger(), "AccountingDBSQLite");
 
-    static const std::string sql_special_chars("'#\r\n\b\0",6);
-    static const char sql_escape_char('%');
-    static const Arc::escape_type sql_escape_type(Arc::escape_hex);
-
-    inline static std::string sql_escape(const std::string& str) {
-        return Arc::escape_chars(str, sql_special_chars, sql_escape_char, false, sql_escape_type);
-    }
-
-    inline static std::string sql_escape(int num) {
-        return Arc::tostring(num);
-    }
-
-    inline static std::string sql_escape(const Arc::Time& val) {
-        if(val.GetTime() == -1) return "";
-        return Arc::escape_chars((std::string)val, sql_special_chars, sql_escape_char, false, sql_escape_type);
-    }
-
-    inline static std::string sql_unescape(const std::string& str) {
-        return Arc::unescape_chars(str, sql_escape_char,sql_escape_type);
-    }
-
-    inline static void sql_unescape(const std::string& str, int& val) {
-        (void)Arc::stringto(Arc::unescape_chars(str, sql_escape_char,sql_escape_type), val);
-    }
-
-    inline static void sql_unescape(const std::string& str, Arc::Time& val) {
-        if(str.empty()) { val = Arc::Time(); return; }
-        val = Arc::Time(Arc::unescape_chars(str, sql_escape_char,sql_escape_type));
-    }
-
-    int sqlite3_exec_nobusy(sqlite3* db, const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg) {
+    int AccountingDBSQLite::SQLiteDB::exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), 
+        void *arg, char **errmsg) {
         int err;
-        while((err = sqlite3_exec(db, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
+        while((err = sqlite3_exec(aDB, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
             // Access to database is designed in such way that it should not block for long time.
             // So it should be safe to simply wait for lock to be released without any timeout.
             struct timespec delay = { 0, 10000000 }; // 0.01s - should be enough for most cases
@@ -73,13 +46,14 @@ namespace ARex {
         };
         if (create) {
             std::string db_schema_str;
-            std::string sql_file = DB_SCHEMA_FILE;
+            std::string sql_file = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGDATASUBDIR + 
+                G_DIR_SEPARATOR_S + DB_SCHEMA_FILE;
             if(!Arc::FileRead(sql_file, db_schema_str)) {
                 AccountingDBSQLite::logger.msg(Arc::ERROR, "Failed to read database schema file at %s", sql_file);
                 closeDB();
                 return;
             }
-            err = sqlite3_exec_nobusy(aDB, db_schema_str.c_str(), NULL, NULL, NULL);
+            err = exec_nobusy(db_schema_str.c_str(), NULL, NULL, NULL);
             if(err != SQLITE_OK) {
                 logError("Failed to initialize accounting database schema", err, Arc::ERROR);
                 closeDB();
@@ -180,7 +154,7 @@ namespace ARex {
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
-        err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
+        err = db->exec_nobusy(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK) {
             if (err == SQLITE_CONSTRAINT) {
                 db->logError("It seams record exists already", err, Arc::ERROR);
@@ -202,7 +176,7 @@ namespace ARex {
         initSQLiteDB();
         Glib::Mutex::Lock lock(lock_);
         int err;
-        err = sqlite3_exec_nobusy(db->handle(), sql.c_str(), NULL, NULL, NULL);
+        err = db->exec_nobusy(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {
             db->logError("Failed to update data in the database", err, Arc::ERROR);
             return false;
@@ -238,7 +212,7 @@ namespace ARex {
         // empty map corresponding to the table if not empty
         if (!name_id_map->empty()) name_id_map->clear();
         std::string sql = "SELECT * FROM " + sql_escape(table);
-        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
+        if (db->exec_nobusy(sql.c_str(), &ReadIdNameCallback, name_id_map, NULL) != SQLITE_OK ) {
             return false;
         }
         return true;
@@ -316,7 +290,7 @@ namespace ARex {
         // empty map corresponding to the table if not empty
         if (!db_endpoints.empty()) db_endpoints.clear();
         std::string sql = "SELECT * FROM Endpoints";
-        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadEndpointsCallback, &db_endpoints, NULL) != SQLITE_OK ) {
+        if (db->exec_nobusy(sql.c_str(), &ReadEndpointsCallback, &db_endpoints, NULL) != SQLITE_OK ) {
             return false;
         }
         return true;
@@ -368,7 +342,7 @@ namespace ARex {
         initSQLiteDB();
         unsigned int dbid = 0;
         std::string sql = "SELECT RecordID FROM AAR WHERE JobID = '" + sql_escape(aar.jobid) + "'";
-        if (sqlite3_exec_nobusy(db->handle(), sql.c_str(), &ReadIdCallback, &dbid, NULL) != SQLITE_OK ) {
+        if (db->exec_nobusy(sql.c_str(), &ReadIdCallback, &dbid, NULL) != SQLITE_OK ) {
             logger.msg(Arc::ERROR, "Failed to query AAR database ID for job %s", aar.jobid);
             return 0;
         }

@@ -2,7 +2,8 @@ noinst_LTLIBRARIES = libaccounting.la
 
 libaccounting_la_SOURCES = \
 	AccountingDBSQLite.cpp AAR.cpp \
-	AccountingDBSQLite.h AccountingDB.h AAR.h
+	AccountingDBSQLite.h AccountingDB.h AAR.h \
+	../../SQLiteHelpers.h
 libaccounting_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
 libaccounting_la_LIBADD = \
@@ -14,9 +15,7 @@ noinst_PROGRAMS = test_adb
 test_adb_SOURCES = test_adb.cpp
 test_adb_CXXFLAGS = -I$(top_srcdir)/include \
     $(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
-test_adb_LDADD = libaccounting.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(SQLITE_LIBS)
+test_adb_LDADD = libaccounting.la 
 
 pkgdata_DATA = arex_accounting_db_schema_v1.sql
 
