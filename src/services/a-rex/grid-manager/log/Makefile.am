@@ -4,4 +4,4 @@ liblog_la_SOURCES = JobLog.cpp JobLog.h JobsMetrics.cpp JobsMetrics.h HeartBeatM
 liblog_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 liblog_la_LIBADD = $(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(top_builddir)/src/services/a-rex/grid-manager/accounting/libaccounting.la
+	../accounting/libaccounting.la
