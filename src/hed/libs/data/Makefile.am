@@ -37,7 +37,7 @@ arc_dmc_SOURCES = DataExternalHelper.cpp DataExternalHelper.h
 arc_dmc_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 arc_dmc_LDADD = \
-        $(top_builddir)/src/hed/libs/data/libarcdata.la \
+        libarcdata.la \
         $(top_builddir)/src/hed/libs/loader/libarcloader.la \
         $(top_builddir)/src/hed/libs/common/libarccommon.la \
         $(LIBXML2_LIBS) $(GLIBMM_LIBS)
