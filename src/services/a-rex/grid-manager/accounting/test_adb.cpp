@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
     aar.wlcgvo = "testbed.univ.kiev.ua";
     aar.status = "accepted";
     aar.submittime = Arc::Time("20190624101218Z");
-    aar.authtokenattrs.insert(std::pair <std::string, std::string>("VO", "testbed.univ.kiev.ua"));
-    aar.authtokenattrs.insert(std::pair <std::string, std::string>("VOGroup", "/testbed.univ.kiev.ua"));
+    aar.authtokenattrs.push_back(ARex::aar_authtoken_t("vomsfqan", "/testbed.univ.kiev.ua"));
+    aar.authtokenattrs.push_back(ARex::aar_authtoken_t("vomsfqan", "/testbed.univ.kiev.ua/Role=VO-Admin"));
     ARex::aar_jobevent_t accepted_event("ACCEPTED", Arc::Time("20190624101218Z"));
     aar.jobevents.push_back(accepted_event);
 

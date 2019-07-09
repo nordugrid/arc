@@ -104,7 +104,7 @@ namespace ARex {
 
         // Write AAR dedicated info tables
         bool writeRTEs(std::list <std::string>& rtes, unsigned int recordid);
-        bool writeAuthTokenAttrs(std::map <std::string, std::string>& attrs, unsigned int recordid);
+        bool writeAuthTokenAttrs(std::list <aar_authtoken_t>& attrs, unsigned int recordid);
         bool writeExtraInfo(std::map <std::string, std::string>& info, unsigned int recordid);
         bool writeDTRs(std::list <aar_data_transfer_t>& dtrs, unsigned int recordid);
         bool writeEvents(std::list <aar_jobevent_t>& events, unsigned int recordid);

@@ -480,11 +480,11 @@ namespace ARex {
         return true;
     }
 
-    bool AccountingDBSQLite::writeAuthTokenAttrs(std::map <std::string, std::string>& attrs, unsigned int recordid) {
+    bool AccountingDBSQLite::writeAuthTokenAttrs(std::list <aar_authtoken_t>& attrs, unsigned int recordid) {
         if (attrs.empty()) return true;
         std::string sql = "INSERT INTO AuthTokenAttributes (RecordID, AttrKey, AttrValue) VALUES ";
         std::string comma = "";
-        for (std::map<std::string,std::string>::iterator it=attrs.begin(); it!=attrs.end(); ++it) {
+        for (std::list <aar_authtoken_t>::iterator it=attrs.begin(); it!=attrs.end(); ++it) {
             sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
                    sql_escape(it->second) + "')";
             comma = ", ";
