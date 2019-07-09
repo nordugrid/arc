@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libaccounting.la
 libaccounting_la_SOURCES = \
 	AccountingDBSQLite.cpp AAR.cpp \
 	AccountingDBSQLite.h AccountingDB.h AAR.h \
-	../../SQLiteHelpers.h
+	../../SQLhelpers.h
 libaccounting_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
 libaccounting_la_LIBADD = \
