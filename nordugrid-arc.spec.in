@@ -1414,10 +1414,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/arc-dmcgridftp
 %{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
-%{_libdir}/%{pkgdir}/libdmcgridftp.so
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
 %{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
-%{_libdir}/%{pkgdir}/libdmcgridftp.apd
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
 %{_libdir}/libarcglobusutils.so.*
 %{_libexecdir}/%{pkgdir}/arc-lcas
@@ -1428,6 +1426,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.so
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.apd
+%{_libdir}/%{pkgdir}/libdmcxrootddeleg.so
+%{_libdir}/%{pkgdir}/libdmcxrootddeleg.apd
 %endif
 
 %if %{with_gfal}
