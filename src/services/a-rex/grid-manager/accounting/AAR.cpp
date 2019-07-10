@@ -89,7 +89,6 @@ namespace ARex {
             aar_jobevent_t startevent(job.get_state_name(), local.starttime);
             jobevents.push_back(startevent);
         }
-        aar_jobevent_t startevent(job.get_state_name(), Arc::Time());
 
         // extra info
         if (!local.jobname.empty()) extrainfo.insert(

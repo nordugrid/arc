@@ -470,12 +470,12 @@ namespace ARex {
 
     bool AccountingDBSQLite::writeRTEs(std::list <std::string>& rtes, unsigned int recordid) {
         if (rtes.empty()) return true;
-        std::string sql = "INSERT INTO RunTimeEnvironments (RecordID, RTEName) VALUES ";
-        std::string comma = "";
+        std::string sql = "BEGIN TRANSACTION; ";
+        std::string sql_base = "INSERT INTO RunTimeEnvironments (RecordID, RTEName) VALUES ";
         for (std::list<std::string>::iterator it=rtes.begin(); it != rtes.end(); ++it) {
-            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(*it) + "')";
-            comma = ", ";
+            sql += sql_base + "(" + sql_escape(recordid) + ", '" + sql_escape(*it) + "'); ";
         }
+        sql += "COMMIT;";
         if(!GeneralSQLInsert(sql)) {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
@@ -485,13 +485,13 @@ namespace ARex {
 
     bool AccountingDBSQLite::writeAuthTokenAttrs(std::list <aar_authtoken_t>& attrs, unsigned int recordid) {
         if (attrs.empty()) return true;
-        std::string sql = "INSERT INTO AuthTokenAttributes (RecordID, AttrKey, AttrValue) VALUES ";
-        std::string comma = "";
+        std::string sql = "BEGIN TRANSACTION; ";
+        std::string sql_base = "INSERT INTO AuthTokenAttributes (RecordID, AttrKey, AttrValue) VALUES ";
         for (std::list <aar_authtoken_t>::iterator it=attrs.begin(); it!=attrs.end(); ++it) {
-            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
-                   sql_escape(it->second) + "')";
-            comma = ", ";
+            sql += sql_base + "(" + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "'); ";
         }
+        sql += "COMMIT;";
         if(!GeneralSQLInsert(sql)) {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
@@ -501,13 +501,13 @@ namespace ARex {
 
     bool AccountingDBSQLite::writeExtraInfo(std::map <std::string, std::string>& info, unsigned int recordid) {
         if (info.empty()) return true;
-        std::string sql = "INSERT INTO JobExtraInfo (RecordID, InfoKey, InfoValue) VALUES ";
-        std::string comma = "";
+        std::string sql = "BEGIN TRANSACTION; ";
+        std::string sql_base = "INSERT INTO JobExtraInfo (RecordID, InfoKey, InfoValue) VALUES ";
         for (std::map<std::string,std::string>::iterator it=info.begin(); it!=info.end(); ++it) {
-            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
-                   sql_escape(it->second) + "')";
-            comma = ", ";
+            sql += sql_base + "(" + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "'); ";
         }
+        sql += "COMMIT;";
         if(!GeneralSQLInsert(sql)) {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
@@ -517,18 +517,18 @@ namespace ARex {
 
     bool AccountingDBSQLite::writeDTRs(std::list <aar_data_transfer_t>& dtrs, unsigned int recordid) {
         if (dtrs.empty()) return true;
-        std::string sql = "INSERT INTO DataTransfers "
+        std::string sql = "BEGIN TRANSACTION; ";
+        std::string sql_base = "INSERT INTO DataTransfers "
             "(RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType) VALUES ";
-        std::string comma = "";
         for (std::list<aar_data_transfer_t>::iterator it=dtrs.begin(); it != dtrs.end(); ++it) {
-            sql += comma + "( " + sql_escape(recordid) + ", '" + 
+            sql += sql_base + "( " + sql_escape(recordid) + ", '" + 
                    sql_escape(it->url) + "', " +
                    sql_escape(it->size) + ", " + 
                    sql_escape(it->transferstart.GetTime()) + ", " + 
                    sql_escape(it->transferend.GetTime()) + ", " + 
-                   sql_escape(static_cast<int>(it->type)) + ")";
-            comma = ", ";
+                   sql_escape(static_cast<int>(it->type)) + "); ";
         }
+        sql += "COMMIT;";
         if(!GeneralSQLInsert(sql)) {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
@@ -538,13 +538,13 @@ namespace ARex {
 
     bool AccountingDBSQLite::writeEvents(std::list <aar_jobevent_t>& events, unsigned int recordid) {
         if (events.empty()) return true;
-        std::string sql = "INSERT INTO JobEvents (RecordID, EventKey, EventTime) VALUES ";
-        std::string comma = "";
+        std::string sql = "BEGIN TRANSACTION; ";
+        std::string sql_base = "INSERT INTO JobEvents (RecordID, EventKey, EventTime) VALUES ";
         for (std::list<aar_jobevent_t>::iterator it=events.begin(); it != events.end(); ++it) {
-            sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
-                   sql_escape(it->second) + "')";
-            comma = ", ";
+            sql += sql_base + "( " + sql_escape(recordid) + ", '" + sql_escape(it->first) + "', '" +
+                   sql_escape(it->second) + "'); ";
         }
+        sql += "COMMIT;";
         if(!GeneralSQLInsert(sql)) {
             logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
             return false;
