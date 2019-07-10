@@ -5,7 +5,7 @@ import sqlite3
 from arc.paths import *
 
 
-class AccountingDBSQLite(object):
+class JuraArchiveSQLite(object):
     """SQLite implementation of ARC accounting archive database"""
     __dbinit_sql_script = ARC_DATA_DIR + '/accounting_sqlite_db_init.sql'
 
