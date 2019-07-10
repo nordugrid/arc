@@ -161,6 +161,35 @@ namespace DataStaging {
     return true;
   }
 
+  void DTRList::check_priority_changes(const std::string& filename) {
+
+    // Check for file with requested changes
+    std::list<std::string> prio_info;
+    if (!Arc::FileRead(filename, prio_info)) return;
+    Arc::FileCopy(filename, std::string(filename + ".read"));
+    Arc::FileDelete(filename);
+
+    std::map<std::string, int> new_prio;
+    for (std::list<std::string>::const_iterator i = prio_info.begin(); i != prio_info.end(); ++i) {
+      std::list<std::string> tokens;
+      Arc::tokenize(*i, tokens);
+      unsigned int prio;
+      if (tokens.size() == 2 && Arc::stringto(tokens.back(), prio)) {
+        new_prio[tokens.front()] = prio;
+      }
+    }
+
+    std::list<DTR_ptr>::iterator it;
+
+    Lock.lock();
+    for(it = DTRs.begin();it != DTRs.end(); ++it) {
+      if(new_prio.find((*it)->get_id()) != new_prio.end()) {
+        (*it)->set_priority(new_prio[(*it)->get_id()]);
+      }
+    }
+    Lock.unlock();
+  }
+
   void DTRList::caching_started(DTR_ptr request) {
     CachingLock.lock();
     CachingSources[request->get_source_str()] = request->get_priority();
