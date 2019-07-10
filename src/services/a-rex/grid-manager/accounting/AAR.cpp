@@ -305,6 +305,8 @@ namespace ARex {
                 // total counters: stageinvolume, stageoutvolume
                 if ( dtrinfo.type == dtr_input ) stageinvolume += dtrinfo.size;
                 if ( dtrinfo.type == dtr_output ) stageoutvolume += dtrinfo.size;
+                // add dtr info to AAR
+                transfers.push_back(dtrinfo);
             }
         }
         // Events for data stagein/out
