@@ -1005,6 +1005,9 @@ namespace DataStaging {
       delivery_hosts[(*i)->get_delivery_endpoint().Host()]++;
     }
 
+    // Check for any requested changes in priority
+    DtrList.check_priority_changes(std::string(dumplocation + ".prio"));
+
     // Get all the DTRs in a staged state
     staged_queue.clear();
     std::list<DTR_ptr> staged_queue_list;
