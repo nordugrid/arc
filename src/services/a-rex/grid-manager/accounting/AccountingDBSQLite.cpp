@@ -476,7 +476,10 @@ namespace ARex {
             sql += comma + "( " + sql_escape(recordid) + ", '" + sql_escape(*it) + "')";
             comma = ", ";
         }
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 
@@ -489,7 +492,10 @@ namespace ARex {
                    sql_escape(it->second) + "')";
             comma = ", ";
         }
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 
@@ -502,7 +508,10 @@ namespace ARex {
                    sql_escape(it->second) + "')";
             comma = ", ";
         }
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 
@@ -520,7 +529,10 @@ namespace ARex {
                    sql_escape(static_cast<int>(it->type)) + ")";
             comma = ", ";
         }
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 
@@ -533,7 +545,10 @@ namespace ARex {
                    sql_escape(it->second) + "')";
             comma = ", ";
         }
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 
@@ -545,7 +560,10 @@ namespace ARex {
         }
         std::string sql = "INSERT INTO JobEvents (RecordID, EventKey, EventTime) VALUES (" +
             sql_escape(recordid) + ", '" + sql_escape(event.first) + "', '" + sql_escape(event.second) + "')";
-        if(!GeneralSQLInsert(sql)) return false;
+        if(!GeneralSQLInsert(sql)) {
+            logger.msg(Arc::DEBUG, "SQL statement used: %s", sql);
+            return false;
+        }
         return true;
     }
 }
