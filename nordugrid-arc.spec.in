@@ -1057,6 +1057,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/arc-file-access
 %{_libdir}/%{pkgdir}/arc-hostname-resolver
 %{_libdir}/%{pkgdir}/DataStagingDelivery
+%{_libdir}/%{pkgdir}/arc-dmc
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %if %{py3default}
