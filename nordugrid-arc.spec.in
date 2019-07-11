@@ -1114,7 +1114,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
-%{_datadir}/%{pkgdir}/legacy_jura_archivedb_schema.sql
+%dir %{_datadir}/%{pkgdir}/sql-schema
+%{_datadir}/%{pkgdir}/sql-schema/legacy_jura_archivedb_schema.sql
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
@@ -1294,7 +1295,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/scan_common.sh
 %{_datadir}/%{pkgdir}/lrms_common.sh
 %{_datadir}/%{pkgdir}/perferator
-%{_datadir}/%{pkgdir}/arex_accounting_db_schema_v1.sql
+%{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*

@@ -7,7 +7,7 @@ from arc.paths import *
 
 class JuraArchiveSQLite(object):
     """SQLite implementation of legacy jura accounting archive database"""
-    __dbinit_sql_script = ARC_DATA_DIR + '/legacy_jura_archivedb_schema.sql'
+    __dbinit_sql_script = ARC_DATA_DIR + '/sql-schema/legacy_jura_archivedb_schema.sql'
 
     def __init__(self, db_file):
         self.logger = logging.getLogger('ARC.JuraArchive.SQLiteDB')

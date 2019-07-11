@@ -17,7 +17,7 @@ test_adb_CXXFLAGS = -I$(top_srcdir)/include \
     $(GLIBMM_CFLAGS) $(SQLITE_CFLAGS) $(AM_CXXFLAGS)
 test_adb_LDADD = libaccounting.la 
 
-pkgdata_DATA = arex_accounting_db_schema_v1.sql
-
-EXTRA_DIST = arex_accounting_db_schema_v1.sql
+arcsqlschemadir = $(pkgdatadir)/sql-schema
+arcsqlschema_DATA = arex_accounting_db_schema_v1.sql
+EXTRA_DIST = $(arcsqlschema_DATA)
 

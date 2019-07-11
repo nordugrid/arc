@@ -47,7 +47,7 @@ namespace ARex {
         if (create) {
             std::string db_schema_str;
             std::string sql_file = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGDATASUBDIR + 
-                G_DIR_SEPARATOR_S + DB_SCHEMA_FILE;
+                G_DIR_SEPARATOR_S + "sql-schema" + G_DIR_SEPARATOR_S + DB_SCHEMA_FILE;
             if(!Arc::FileRead(sql_file, db_schema_str)) {
                 AccountingDBSQLite::logger.msg(Arc::ERROR, "Failed to read database schema file at %s", sql_file);
                 closeDB();
