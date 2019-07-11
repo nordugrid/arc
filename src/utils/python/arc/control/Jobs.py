@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
+from .Accounting import AccountingControl
 import subprocess
 import sys
 import re
@@ -518,3 +519,7 @@ class JobsControl(ComponentControl):
         jobs_stats_type = jobs_stats.add_mutually_exclusive_group()
         jobs_stats_type.add_argument('-t', '--total', help='Show server total stats', action='store_true')
         jobs_stats_type.add_argument('-d', '--data-staging', help='Show server datastaging stats', action='store_true')
+
+        # add 'job accounting xxx' functionality as well as 'accounting job xxx'
+        jobs_accounting = jobs_actions.add_parser('accounting', help='Show job accounting data')
+        AccountingControl.register_job_parser(jobs_accounting)

@@ -77,7 +77,7 @@ class AccountingDB(object):
         self.close()
 
     # general value fetcher
-    def _get_value(self, sql, params=(), errstr='value'):
+    def __get_value(self, sql, params=(), errstr='value'):
         """General helper to get the one value from database"""
         try:
             for row in self.con.execute(sql, params):
@@ -85,8 +85,21 @@ class AccountingDB(object):
         except sqlite3.Error as e:
             if params:
                 errstr = errstr.format(*params)
-            self.logger.debug('Failed to get %s. Error: %s', errstr, str(e))
+            self.logger.debug('Failed to get %s from the accounting database. Error: %s', errstr, str(e))
         return None
+
+    # general list fetcher
+    def __get_list(self, sql, params=(), errstr='values list'):
+        """General helper to get list of values from the database"""
+        values = []
+        try:
+            for row in self.con.execute(sql, params):
+                values.append(row[0])
+        except sqlite3.Error as e:
+            if params:
+                errstr = errstr.format(*params)
+            self.logger.debug('Failed to get %s from the accounting database. Error: %s', errstr, str(e))
+        return values
 
     # helpers to fetch accounting DB normalization databases to internal class structures
     def __fetch_idname_table(self, table):
@@ -96,7 +109,7 @@ class AccountingDB(object):
             'byname': {}
         }
         try:
-            res = self.con.execute("SELECT ID, Name FROM {0}".format(table))
+            res = self.con.execute('SELECT ID, Name FROM {0}'.format(table))
             for row in res:
                 data['byid'][row[0]] = row[1]
                 data['byname'][row[1]] = row[0]
@@ -128,7 +141,7 @@ class AccountingDB(object):
                 'bytype': {}
             }
             try:
-                res = self.con.execute("SELECT ID, Interface, URL FROM Endpoints")
+                res = self.con.execute('SELECT ID, Interface, URL FROM Endpoints')
                 for row in res:
                     self.endpoints['byid'][row[0]] = (row[1], row[2])
                     self.endpoints['byname']['{0}:{1}'.format(row[1], row[2])] = row[0]
@@ -158,6 +171,16 @@ class AccountingDB(object):
     def get_endpoint_types(self):
         self.__fetch_endpoints()
         return self.endpoints['bytype'].keys()
+
+    def get_jobids(self, prefix=''):
+        sql = 'SELECT JobID FROM AAR'
+        params = ()
+        errstr = 'Job IDs'
+        if prefix:
+            sql += ' WHERE JobId LIKE ?'
+            params += (prefix + '%', )
+            errstr = 'Job IDs starting from {0}'
+        return self.__get_list(sql, params, errstr=errstr)
 
     # construct stats query filters
     def __filter_nameid(self, names, attrdict, attrname, dbfield):

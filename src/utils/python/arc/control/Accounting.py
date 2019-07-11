@@ -42,6 +42,11 @@ def complete_endpoint_type(prefix, parsed_args, **kwargs):
     return AccountingControl(arcconf).complete_endpoint_type()
 
 
+def complete_accounting_jobid(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return AccountingControl(arcconf).complete_jobid(prefix)
+
+
 class AccountingControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.Accounting')
@@ -164,9 +169,20 @@ class AccountingControl(ComponentControl):
             stats['wlcgvos'] = self.adb.get_job_wlcgvos()
             print(json.dumps(stats))
 
+    def jobcontrol(self, args):
+        if args.jobaction == 'info':
+            pass
+        elif args.jobaction == 'events':
+            pass
+        else:
+            self.logger.critical('Unsupported job accounting action %s', args.jobaction)
+            sys.exit(1)
+
     def control(self, args):
         if args.action == 'stats':
             self.stats(args)
+        elif args.action == 'job':
+            self.jobcontrol(args)
         elif args.action == 'apel-brokers':
             self.get_apel_brokers(args)
         elif args.action == 'legacy':
@@ -195,6 +211,23 @@ class AccountingControl(ComponentControl):
     def complete_endpoint_type(self):
         self.__init_adb()
         return self.adb.get_endpoint_types()
+
+    def complete_jobid(self, prefix):
+        self.__init_adb()
+        return self.adb.get_jobids(prefix)
+
+    @staticmethod
+    def register_job_parser(job_accounting_ctl):
+        job_accounting_ctl.set_defaults(handler_class=AccountingControl)
+
+        accounting_actions = job_accounting_ctl.add_subparsers(title='Job Accounting Actions', dest='jobaction',
+                                                               metavar='ACTION', help='DESCRIPTION')
+
+        accounting_job = accounting_actions.add_parser('info', help='Show job accounting data')
+        accounting_job.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
+
+        accounting_job = accounting_actions.add_parser('events', help='Show job event history')
+        accounting_job.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
 
     @staticmethod
     def register_parser(root_parser):
@@ -232,3 +265,7 @@ class AccountingControl(ComponentControl):
                                       help='Define what kind of stats you want to output (default is %(default)s)',
                                       choices=['brief', 'jobcount', 'walltime', 'cputime', 'data-staged-in',
                                                'data-staged-out', 'wlcgvos', 'users', 'json'])
+
+        # per-job accounting information
+        job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
+        AccountingControl.register_job_parser(job_accounting_ctl)
