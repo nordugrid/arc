@@ -94,14 +94,14 @@ class LegacyAccountingControl(ComponentControl):
     @staticmethod
     def __construct_filter(args):
         filters = {}
-        if hasattr(args, 'filter_vo') and args.filter_vo:
-            filters['vos'] = args.filter_vo
-        if hasattr(args, 'filter_user') and args.filter_user:
-            filters['owners'] = args.filter_user
         if args.start_from:
             filters['startfrom'] = args.start_from
         if args.end_till:
             filters['endtill'] = args.end_till
+        if hasattr(args, 'filter_vo') and args.filter_vo:
+            filters['vos'] = args.filter_vo
+        if hasattr(args, 'filter_user') and args.filter_user:
+            filters['owners'] = args.filter_user
         return filters
 
     def stats(self, args):

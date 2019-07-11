@@ -80,6 +80,18 @@ def valid_datetime_type(arg_datetime_str):
                 raise argparse.ArgumentTypeError(msg)
 
 
+def get_human_readable_size(sizeinbytes):
+    """generate human-readable size representation like du command"""
+    sizeinbytes = abs(sizeinbytes)
+    output_fmt = '{0}'
+    for unit in ['bytes', 'K', 'M', 'G', 'T', 'P']:
+        if sizeinbytes < 1024.0:
+            return output_fmt.format(sizeinbytes, unit)
+        output_fmt = '{0:.1f}{1}'
+        sizeinbytes /= 1024.0
+    return '{0:.1f}E'.format(sizeinbytes)
+
+
 class ComponentControl(object):
     """ Common abstract class to ensure all implicit calls to methods are defined """
     def control(self, args):

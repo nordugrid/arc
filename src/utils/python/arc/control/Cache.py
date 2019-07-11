@@ -38,18 +38,6 @@ class CacheControl(ComponentControl):
         urlhash = hashlib.sha1(url.encode('utf-8')).hexdigest()
         return '/data/' + urlhash[0:2] + '/' + urlhash[2:]
 
-    @staticmethod
-    def __get_human_size(sizeinbytes):
-        """generate human-readable size representation like du command"""
-        sizeinbytes = abs(sizeinbytes)
-        output_fmt = '{0}'
-        for unit in ['bytes', 'K', 'M', 'G', 'T', 'P']:
-            if sizeinbytes < 1024.0:
-                return output_fmt.format(sizeinbytes, unit)
-            output_fmt = '{0:.1f}{1}'
-            sizeinbytes /= 1024.0
-        return '{0:.1f}E'.format(sizeinbytes)
-
     def list(self, args):
         all_cached = {}
         for cachedir in self.cache_dirs:
@@ -78,7 +66,7 @@ class CacheControl(ComponentControl):
             for url in sorted(all_cached.keys()):
                 print('{0}\t{1}\t{2}'.format(url.ljust(max_url_len),
                                              all_cached[url]['file'].ljust(max_path_len),
-                                             self.__get_human_size(all_cached[url]['size'])))
+                                             get_human_readable_size(all_cached[url]['size'])))
         else:
             for url in sorted(all_cached.keys()):
                 print(url)
