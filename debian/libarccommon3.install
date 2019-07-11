@@ -31,6 +31,7 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/utils/reference.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Accounting.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingDB.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingLegacy.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Cache.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/CertificateGenerator.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Config.py*

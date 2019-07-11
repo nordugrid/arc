@@ -60,7 +60,7 @@ debian/tmp/usr/share/arc/submit_common.sh
 debian/tmp/usr/share/arc/scan_common.sh
 debian/tmp/usr/share/arc/lrms_common.sh
 
-debian/tmp/usr/share/arc/arex_accounting_db_schema_v1.sql
+debian/tmp/usr/share/arc/legacy_jura_archivedb_schema.sql
 
 debian/tmp/usr/share/man/man1/arc-config-check.1
 debian/tmp/usr/share/man/man1/arcctl.1

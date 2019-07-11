@@ -1114,7 +1114,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
-%{_datadir}/%{pkgdir}/accounting_sqlite_db_init.sql
+%{_datadir}/%{pkgdir}/legacy_jura_archivedb_schema.sql
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema

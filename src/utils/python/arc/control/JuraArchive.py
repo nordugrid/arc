@@ -242,7 +242,7 @@ class JuraArchive(object):
         self.records2db(records)
 
     def _filterwrap(func):
-        """Decorator to parse and apply database filters and perform infornation query"""
+        """Decorator to parse and apply database filters and perform information query"""
         def wrap(self, filters=None):
             self.db_connection_init()
             if filters:
