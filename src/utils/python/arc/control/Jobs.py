@@ -444,6 +444,8 @@ class JobsControl(ComponentControl):
             self.job_getattr(args)
         elif args.action == 'stats':
             self.job_stats(args)
+        elif args.action == 'accounting':
+            AccountingControl(self.arcconfig).jobcontrol(args)
 
     def complete_owner(self, args):
         owners = []

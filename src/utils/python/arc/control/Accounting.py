@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .AccountingLegacy import LegacyAccountingControl
-from .AccountingDB import AccountingDB
+from .AccountingDB import AccountingDB, AAR
 import sys
 import ldap
 import json
@@ -169,9 +169,17 @@ class AccountingControl(ComponentControl):
             stats['wlcgvos'] = self.adb.get_job_wlcgvos()
             print(json.dumps(stats))
 
+    def jobinfo(self, jobid):
+        self.__init_adb()
+        self.adb.filter_jobids([jobid])
+        aars = self.adb.get_aars(resolve_ids=True)
+        self.adb.enrich_aars(aars, True, True, True, True, True)
+        for aar in aars:
+            print(json.dumps(aar.get(), default=str))
+
     def jobcontrol(self, args):
         if args.jobaction == 'info':
-            pass
+            self.jobinfo(args.jobid)
         elif args.jobaction == 'events':
             pass
         else:
