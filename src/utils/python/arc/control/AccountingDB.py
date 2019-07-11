@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import time
 import sqlite3
 
 
@@ -68,6 +69,7 @@ class AccountingDB(object):
     def close(self):
         """Terminate database connection"""
         if self.con is not None:
+            self.logger.debug('Closing connection to accounting database')
             self.con.close()
         self.con = None
 
@@ -158,16 +160,13 @@ class AccountingDB(object):
         return self.endpoints['bytype'].keys()
 
     # construct stats query filters
-    def __filter_nameid(self, names, attrname, dbfield):
+    def __filter_nameid(self, names, attrdict, attrname, dbfield):
         if not names:
             return
-        fetch_func = getattr(self, '__filter_{0}'.format(attrname))
-        fetch_func()
-        attrdict = getattr(self, attrname)
         filter_ids = []
         for n in names:
             if n not in attrdict['byname']:
-                self.logger.error('There are no records with %s %s in the database.', n, attrname)
+                self.logger.error('There are no records matching %s %s in the database.', n, attrname)
             else:
                 filter_ids.append(attrdict['byname'][n])
         if not filter_ids:
@@ -178,19 +177,23 @@ class AccountingDB(object):
 
     def filter_queues(self, queues):
         """Add submission queue filtering to the select queries"""
-        self.__filter_nameid(queues, 'queues', 'QueueID')
+        self.__fetch_queues()
+        self.__filter_nameid(queues, self.queues, 'queues', 'QueueID')
 
     def filter_users(self, users):
         """Add user subject filtering to the select queries"""
-        self.__filter_nameid(users, 'users', 'UserID')
+        self.__fetch_users()
+        self.__filter_nameid(users, self.users, 'users', 'UserID')
 
     def filter_wlcgvos(self, wlcgvos):
         """Add WLCG VOs filtering to the select queries"""
-        self.__filter_nameid(wlcgvos, 'wlcgvos', 'VOID')
+        self.__fetch_wlcgvos()
+        self.__filter_nameid(wlcgvos, self.wlcgvos, 'WLCG VO', 'VOID')
 
     def filter_statuses(self, statuses):
         """Add job status filtering to the select queries"""
-        self.__filter_nameid(statuses, 'queues', 'StatusID')
+        self.__fetch_statuses()
+        self.__filter_nameid(statuses, self.statuses, 'statuses', 'StatusID')
 
     def filter_endpoint_type(self, etypes):
         """Add endpoint type filtering to the select queries"""
@@ -211,11 +214,13 @@ class AccountingDB(object):
 
     def filter_startfrom(self, stime):
         """Add job start time filtering to the select queries"""
-        self.sqlfilter.add('AND SubmitTime > ?', (stime.timestamp(),))
+        unixtime = time.mktime(stime.timetuple())  # works in Python 2.6
+        self.sqlfilter.add('AND SubmitTime > ?', (unixtime,))
 
     def filter_endtill(self, etime):
         """Add job end time filtering to the select queries"""
-        self.sqlfilter.add('AND EndTime < ?', (etime.timestamp(),))
+        unixtime = time.mktime(etime.timetuple())  # works in Python 2.6
+        self.sqlfilter.add('AND EndTime < ?', (unixtime,))
 
     def __filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
@@ -248,7 +253,10 @@ class AccountingDB(object):
 
     def get_stats(self):
         """Return jobs statistics counters for records that match applied filters"""
-        stats = {}
+        stats = {
+            'count': 0, 'walltime': 0, 'cpuusertime': 0, 'cpukerneltime': 0,
+            'stagein': 0, 'stageout': 0, 'rangestart': 0, 'rangeend': 0
+        }
         for res in self.__filtered_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
                                          'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
                                          'MIN(SubmitTime), MAX(EndTime) FROM AAR',
@@ -264,3 +272,25 @@ class AccountingDB(object):
                 'rangeend': res[7]
             }
         return stats
+
+    def get_job_owners(self):
+        """Return list of job owners distinguished names that match applied filters"""
+        userids = []
+        for res in self.__filtered_query('SELECT DISTINCT UserID FROM AAR',
+                                         errorstr='Failed to get accounted job owners'):
+            userids.append(res[0])
+        if userids:
+            self.__fetch_users()
+            return [self.users['byid'][u] for u in userids]
+        return []
+
+    def get_job_wlcgvos(self):
+        """Return list of WLCG VOs jobs matching applied filters belongs to"""
+        voids = []
+        for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
+                                         errorstr='Failed to get accounted WLCG VOs for jobs'):
+            voids.append(res[0])
+        if voids:
+            self.__fetch_wlcgvos()
+            return [self.wlcgvos['byid'][v] for v in voids]
+        return []

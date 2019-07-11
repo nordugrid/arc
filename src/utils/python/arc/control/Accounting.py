@@ -6,6 +6,7 @@ from .AccountingLegacy import LegacyAccountingControl
 from .AccountingDB import AccountingDB
 import sys
 import ldap
+import json
 from functools import reduce
 
 
@@ -52,8 +53,13 @@ class AccountingControl(ComponentControl):
         # accounting db
         self.adb = None  # type: AccountingDB
 
-    # not every accounting subsystem operation requires db connection, so init is on-demand
+    def __del__(self):
+        if self.adb is not None:
+            del self.adb
+            self.adb = None
+
     def __init_adb(self):
+        """DB connection on-demand initialization"""
         if self.adb is not None:
             return
         adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting.db'
@@ -91,6 +97,7 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
 
     def __add_adb_filters(self, args):
+        """apply optional query filters in the right order"""
         self.__init_adb()
         if args.start_from:
             self.adb.filter_startfrom(args.start_from)
@@ -108,6 +115,7 @@ class AccountingControl(ComponentControl):
             self.adb.filter_endpoint_type(args.filter_endpoint)
 
     def __human_readable(self, stats):
+        """Make output human readable converting seconds and bytes to eye candy units"""
         stats['walltime'] = datetime.timedelta(seconds=stats['walltime'])
         stats['cpuusertime'] = datetime.timedelta(seconds=stats['cpuusertime'])
         stats['cpukerneltime'] = datetime.timedelta(seconds=stats['cpukerneltime'])
@@ -118,9 +126,20 @@ class AccountingControl(ComponentControl):
         stats['stageout'] = get_human_readable_size(stats['stageout'])
 
     def stats(self, args):
+        """Print-out different aggregated accounting stats"""
         self.__init_adb()
         self.__add_adb_filters(args)
+        # separate queries
+        if args.output == 'users':
+            print('\n'.join(self.adb.get_job_owners()))
+            return
+        if args.output == 'wlcgvos':
+            print('\n'.join(self.adb.get_job_wlcgvos()))
+            return
+        # common stats query for other options
         stats = self.adb.get_stats()
+        if stats['count'] == 0:
+            self.logger.error('There are no jobs matching defined filtering criteria')
         if args.output == 'brief':
             self.__human_readable(stats)
             print('A-REX accounting statistics from {rangestart} till {rangeend}:\n'
@@ -129,6 +148,21 @@ class AccountingControl(ComponentControl):
                   '  Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)\n'
                   '  Total data staged in: {stagein}\n'
                   '  Total data staged out: {stageout}'.format(**stats))
+        elif args.output == 'jobcount':
+            print(stats['count'])
+        elif args.output == 'walltime':
+            print(stats['walltime'])
+        elif args.output == 'cputime':
+            print(stats['cpuusertime'], ['cpukerneltime'])
+        elif args.output == 'data-staged-in':
+            print(stats['stagein'])
+        elif args.output == 'data-staged-out':
+            print(stats['stageout'])
+        elif args.output == 'json':
+            stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
+            stats['users'] = self.adb.get_job_owners()
+            stats['wlcgvos'] = self.adb.get_job_wlcgvos()
+            print(json.dumps(stats))
 
     def control(self, args):
         if args.action == 'stats':
@@ -141,6 +175,7 @@ class AccountingControl(ComponentControl):
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
 
+    # bash-completion helpers
     def complete_wlcgvo(self):
         self.__init_adb()
         return self.adb.get_wlcgvos()
