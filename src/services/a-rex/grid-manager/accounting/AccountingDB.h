@@ -28,7 +28,7 @@ namespace ARex {
         /** 
          * write basic info available in ACCEPTED state to the 
          * accounting database.
-         * This methid registers a new job that is just accepted
+         * This method registers a new job that is just accepted
          * and write down jobID and ownership information
          **/
         virtual bool createAAR(AAR& aar) = 0;

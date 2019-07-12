@@ -108,7 +108,7 @@ namespace ARex {
         }
 
         if (job.get_state() == JOB_STATE_ACCEPTED) {
-            status = "accepted";
+            status = "in-progress";
             // nothing from .diag and .statistics is relevant for just ACCEPTED jobs
             // so we can stop processing here
             return true;

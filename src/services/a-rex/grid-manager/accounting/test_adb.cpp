@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     aar.queue = "grid";
     aar.userdn = "/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov";
     aar.wlcgvo = "testbed.univ.kiev.ua";
-    aar.status = "accepted";
+    aar.status = "in-progress";
     aar.submittime = Arc::Time("20190624101218Z");
     aar.authtokenattrs.push_back(ARex::aar_authtoken_t("vomsfqan", "/testbed.univ.kiev.ua"));
     aar.authtokenattrs.push_back(ARex::aar_authtoken_t("vomsfqan", "/testbed.univ.kiev.ua/Role=VO-Admin"));

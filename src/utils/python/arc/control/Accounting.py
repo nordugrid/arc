@@ -175,7 +175,7 @@ class AccountingControl(ComponentControl):
         elif args.output == 'walltime':
             print(stats['walltime'])
         elif args.output == 'cputime':
-            print(stats['cpuusertime'], ['cpukerneltime'])
+            print(stats['cpuusertime'] + stats['cpukerneltime'])
         elif args.output == 'data-staged-in':
             print(stats['stagein'])
         elif args.output == 'data-staged-out':
@@ -192,8 +192,8 @@ class AccountingControl(ComponentControl):
         aars = self.adb.get_aars(resolve_ids=True)
         # jobinfo only works with a single job
         aar = aars[0]
-        # no accounting info for accepted jobs
-        if aar.status() == 'accepted':
+        # no accounting info for in-progress jobs
+        if aar.status() == 'in-progress':
             print('Job {JobID} (submitted on {SubmitTime}) is not finished yet. '
                   'Accounting data is not available yet.'.format(**aar.get()))
             return

@@ -264,7 +264,7 @@ class AccountingDB(object):
         filters = {
             'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
                         "WHERE AttrKey = 'vomsfqan' AND AttrValue IN ({0}))",
-            'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0})",
+            'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0}) )",
             'dtrurl': "AND RecordID IN ( SELECT RecordID FROM DataTransfers WHERE URL IN ({0}) )"
         }
         for f in fdict.keys():
