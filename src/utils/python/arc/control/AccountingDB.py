@@ -256,6 +256,28 @@ class AccountingDB(object):
             self.sqlfilter.add('AND JobID IN ({0})'.format(','.join(['?'] * len(jobids))),
                                tuple(jobids))
 
+    def filter_extra_attributes(self, fdict):
+        """Filter additional job information for custom queries"""
+        # predefined filters
+        filters = {
+            'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
+                        "WHERE AttrKey = 'vomsfqan' AND AttrValue IN ({0}))",
+            'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0})",
+            'dtrurl': "AND RecordID IN ( SELECT RecordID FROM DataTransfers WHERE URL IN ({0}) )"
+        }
+        for f in fdict.keys():
+            values = fdict[f][:]
+            if f in filters:
+                sql = filters[f]
+                self.sqlfilter.add(sql.format(','.join(['?'] * len(values))), tuple(values))
+            else:
+                # any job extra info (e.g. jobname, project, etc)
+                sql = "AND RecordID IN ( SELECT RecordID FROM JobExtraInfo " \
+                      "WHERE InfoKey = ? AND InfoValue IN ({0}))"
+                sql = sql.format(','.join(['?'] * len(values)))
+                values.insert(0, f)
+                self.sqlfilter.add(sql, tuple(values))
+
     def __filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         if not self.sqlfilter.isresult():
@@ -295,16 +317,17 @@ class AccountingDB(object):
                                          'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
                                          'MIN(SubmitTime), MAX(EndTime) FROM AAR',
                                          errorstr='Failed to get accounting statistics'):
-            stats = {
-                'count': res[0],
-                'walltime': res[1],
-                'cpuusertime': res[2],
-                'cpukerneltime': res[3],
-                'stagein': res[4],
-                'stageout': res[5],
-                'rangestart': res[6],
-                'rangeend': res[7]
-            }
+            if res[0] != 0:
+                stats = {
+                    'count': res[0],
+                    'walltime': res[1],
+                    'cpuusertime': res[2],
+                    'cpukerneltime': res[3],
+                    'stagein': res[4],
+                    'stageout': res[5],
+                    'rangestart': res[6],
+                    'rangeend': res[7]
+                }
         return stats
 
     def get_job_owners(self):

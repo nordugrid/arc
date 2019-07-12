@@ -118,6 +118,13 @@ class AccountingControl(ComponentControl):
             self.adb.filter_statuses(args.filter_state)
         if args.filter_endpoint:
             self.adb.filter_endpoint_type(args.filter_endpoint)
+        if args.filter_extra:
+            fdict = {}
+            for eattr, evalue in args.filter_extra:
+                if eattr not in fdict:
+                    fdict[eattr] = []
+                fdict[eattr].append(evalue)
+            self.adb.filter_extra_attributes(fdict)
 
     def __human_readable(self, stats):
         """Make output human readable converting seconds and bytes to eye candy units"""
@@ -145,14 +152,15 @@ class AccountingControl(ComponentControl):
         stats = self.adb.get_stats()
         if stats['count'] == 0:
             self.logger.error('There are no jobs matching defined filtering criteria')
-        if args.output == 'brief':
+        if args.output == 'brief' and stats['count']:
             self.__human_readable(stats)
-            print('A-REX accounting statistics from {rangestart} till {rangeend}:\n'
-                  '  Number of jobs: {count}\n'
+            print('A-REX Accounting Statistics:\n'
+                  '  Number of Jobs: {count}\n'
+                  '  Execution timeframe: {rangestart} - {rangeend}\n'
                   '  Total WallTime: {walltime}\n'
                   '  Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)\n'
-                  '  Total data staged in: {stagein}\n'
-                  '  Total data staged out: {stageout}'.format(**stats))
+                  '  Data staged in: {stagein}\n'
+                  '  Data staged out: {stageout}'.format(**stats))
         elif args.output == 'jobcount':
             print(stats['count'])
         elif args.output == 'walltime':
@@ -268,6 +276,9 @@ class AccountingControl(ComponentControl):
                                       action='append').completer = complete_queue
         accounting_stats.add_argument('--filter-endpoint', help='Account jobs submitted via defined endpoint type(s)',
                                       action='append').completer = complete_endpoint_type
+        accounting_stats.add_argument('--filter-extra', nargs=2, action='append', metavar=('ATTRIBUTE', 'VALUE'),
+                                      help='Filter extra attributes (e.g. jobname, project, vomsfqan, rte, dtrurl, etc)'
+                                      )
 
         accounting_stats.add_argument('-o', '--output', default='brief',
                                       help='Define what kind of stats you want to output (default is %(default)s)',
