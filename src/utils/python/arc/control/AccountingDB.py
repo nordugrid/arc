@@ -5,6 +5,8 @@ import time
 import datetime
 import sqlite3
 
+from .ControlCommon import get_human_readable_size
+
 
 class SQLFilter(object):
     """Helper object to aggregate SQL where statements"""
@@ -173,7 +175,7 @@ class AccountingDB(object):
         self.__fetch_endpoints()
         return self.endpoints['bytype'].keys()
 
-    def get_jobids(self, prefix=''):
+    def get_joblist(self, prefix=''):
         sql = 'SELECT JobID FROM AAR'
         params = ()
         errstr = 'Job IDs'
@@ -342,7 +344,7 @@ class AccountingDB(object):
         return []
 
     def get_job_wlcgvos(self):
-        """Return list of WLCG VOs jobs matching applied filters belongs to"""
+        """Return list of WLCG VOs jobs matching applied filters"""
         voids = []
         for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
                                          errorstr='Failed to get accounted WLCG VOs for jobs'):
@@ -351,6 +353,14 @@ class AccountingDB(object):
             self.__fetch_wlcgvos()
             return [self.wlcgvos['byid'][v] for v in voids]
         return []
+
+    def get_job_ids(self):
+        """Return list of JobIDs matching applied filters"""
+        jobids = []
+        for res in self.__filtered_query('SELECT JobID FROM AAR',
+                                         errorstr='Failed to get JobIDs'):
+            jobids.append(res[0])
+        return jobids
 
     # Querying AARs and their info
     def __fetch_authtokenattrs(self, rids):
@@ -540,6 +550,7 @@ class AAR(object):
             'UsedWalltime': res[15],
             'UsedCPUUserTime': res[16],
             'UsedCPUKernelTime': res[17],
+            'UsedCPUTime': res[16] + res[17],
             'UsedScratch': res[18],
             'StageInVolume': res[19],
             'StageOutVolume': res[20],
@@ -550,8 +561,33 @@ class AAR(object):
             'JobExtraInfo': {}
         }
 
+    def add_human_readable(self):
+        for hrattr in ['UsedMemory', 'UsedVirtMem', 'UsedScratch', 'StageInVolume', 'StageOutVolume']:
+            self.aar[hrattr + 'HR'] = get_human_readable_size(self.aar[hrattr])
+
     def recordid(self):
         return self.aar['RecordID']
+
+    def status(self):
+        return self.aar['Status']
+
+    def events(self):
+        return self.aar['JobEvents']
+
+    def wlcgvo(self):
+        return self.aar['WLCGVO']
+
+    def extra(self):
+        return self.aar['JobExtraInfo']
+
+    def rtes(self):
+        return self.aar['RunTimeEnvironments']
+
+    def authtokens(self):
+        return self.aar['AuthTokenAttributes']
+
+    def datatransfers(self):
+        return self.aar['DataTransfers']
 
     def get(self):
         return self.aar

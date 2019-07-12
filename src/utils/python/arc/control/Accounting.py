@@ -143,10 +143,19 @@ class AccountingControl(ComponentControl):
         self.__add_adb_filters(args)
         # separate queries
         if args.output == 'users':
-            print('\n'.join(self.adb.get_job_owners()))
+            out = '\n'.join(self.adb.get_job_owners())
+            if out:
+                print(out)
+            return
+        if args.output == 'jobids':
+            out = '\n'.join(self.adb.get_job_ids())
+            if out:
+                print(out)
             return
         if args.output == 'wlcgvos':
-            print('\n'.join(self.adb.get_job_wlcgvos()))
+            out = '\n'.join(self.adb.get_job_wlcgvos())
+            if out:
+                print(out)
             return
         # common stats query for other options
         stats = self.adb.get_stats()
@@ -177,19 +186,149 @@ class AccountingControl(ComponentControl):
             stats['wlcgvos'] = self.adb.get_job_wlcgvos()
             print(json.dumps(stats))
 
-    def jobinfo(self, jobid):
+    def jobinfo(self, args):
+        self.__init_adb()
+        self.adb.filter_jobids([args.jobid])
+        aars = self.adb.get_aars(resolve_ids=True)
+        # jobinfo only works with a single job
+        aar = aars[0]
+        # no accounting info for accepted jobs
+        if aar.status() == 'accepted':
+            print('Job {JobID} (submitted on {SubmitTime}) is not finished yet. '
+                  'Accounting data is not available yet.'.format(**aar.get()))
+            return
+        # json output dump entire structure as it is
+        if args.output == 'json':
+            self.adb.enrich_aars(aars, True, True, True, True, True)
+            print(json.dumps(aar.get(), default=str))
+            return
+        # human readable sizes for output
+        aar.add_human_readable()
+        # all info output requires extra headers, etc
+        all = True if args.output == 'all' else False
+        tab = ''
+        if all:
+            # job info header
+            header = 'Job {0} accounting info:'.format(args.jobid)
+            print(header)
+            print('='*len(header))
+            tab = '  '
+        # different kinds of info
+        if args.output == 'description' or all:
+            # general info
+            voinfo = 'with no WLCG VO affiliation'
+            if aar.wlcgvo():
+                voinfo = 'as a member of "{WLCGVO}" WLCG VO'
+            if all:
+                print('Job description:')
+            description = tab + \
+                'Job was submitted at {SubmitTime} via "{Interface}" interface using "{EndpointURL}" endpoint.\n' + \
+                tab + 'Job owned by "{UserSN}" ' + voinfo + '.\n' + \
+                tab + 'It was targeted to the "{Queue}" queue with "{LocalJobID}" LRMS ID.\n' + \
+                tab + 'Job {Status} with exit code {ExitCode} at {EndTime}.'
+            print(description.format(**aar.get()))
+            # extra attributes
+            self.adb.enrich_aars(aars, extra=True)
+            extrainfo = aar.extra()
+            if extrainfo:
+                print('  Following job properties are recorded:')
+            for attr in extrainfo.keys():
+                print('    {0}: {1}'.format(attr.capitalize(), extrainfo[attr]))
+        if args.output == 'resources' or all:
+            # resource usage
+            if all:
+                print('Resource usage:')
+            resources = tab + 'Execution timeframe: {SubmitTime} - {EndTime}\n' + \
+                  tab + 'Used WallTime: {UsedWalltime}\n' + \
+                  tab + 'Used CPUTime: {UsedCPUTime} (including {UsedCPUKernelTime} of kernel time)\n' + \
+                  tab + 'Used WN Scratch: {UsedScratchHR}\n' + \
+                  tab + 'Max physical memory: {UsedMemoryHR}\n' + \
+                  tab + 'Max virtual memory: {UsedVirtMemHR}\n' + \
+                  tab + 'Used CPUs: {CPUCount} on {NodeCount} node(s)\n' + \
+                  tab + 'Data staged in: {StageInVolumeHR}\n' + \
+                  tab + 'Data staged out: {StageOutVolumeHR}'
+            print(resources.format(**aar.get()))
+        if args.output == 'rtes' or all:
+            if all:
+                print('Used RunTime Environments:')
+            self.adb.enrich_aars(aars, rtes=True)
+            rtes = aar.rtes()
+            rtesstr = ('\n' + tab).join(rtes)
+            if rtesstr:
+                print(tab + rtesstr)
+            else:
+                print(tab + 'There are no RTEs used by the job.')
+        if args.output == 'authtokens' or all:
+            if all:
+                print('Auth token attributes provided:')
+            self.adb.enrich_aars(aars, authtokens=True)
+            authtokens = aar.authtokens()
+            if authtokens:
+                for (t, v) in authtokens:
+                    print(tab + '{0}: {1}'.format(t.replace('vomsfqan', 'VOMS FQAN'), v))
+            else:
+                print(tab + 'There are no authentication token attributes recorded for the job.')
+
+    def jobevents(self, jobid):
         self.__init_adb()
         self.adb.filter_jobids([jobid])
-        aars = self.adb.get_aars(resolve_ids=True)
-        self.adb.enrich_aars(aars, True, True, True, True, True)
-        for aar in aars:
-            print(json.dumps(aar.get(), default=str))
+        aars = self.adb.get_aars(resolve_ids=False)
+        self.adb.enrich_aars(aars, events=True)
+        events = aars[0].events()
+        if not events:
+            self.logger.error('There are no events registered for job %s', jobid)
+            return
+        for (event, date) in events:
+            print('{0}\t{1}'.format(date, event))
+
+    def jobtransfers(self, jobid):
+        self.__init_adb()
+        self.adb.filter_jobids([jobid])
+        aars = self.adb.get_aars(resolve_ids=False)
+        self.adb.enrich_aars(aars, dtrs=True)
+        datatransfers = aars[0].datatransfers()
+        if not datatransfers:
+            self.logger.error('There are no data transfers registered for job %s', jobid)
+            return
+        # sort by transfer type
+        sorteddtr = {
+            'input': [],
+            'output': []
+        }
+        for dtrinfo in datatransfers:
+            if dtrinfo['type'] == 'output':
+                sorteddtr['output'].append(dtrinfo)
+            else:
+                sorteddtr['input'].append(dtrinfo)
+        # stage-in
+        if sorteddtr['input']:
+            print('Data transfers (downloads) performed during A-REX stage-in:')
+            for dtr in sorteddtr['input']:
+                fromcache = ' (from cache)' if dtr['type'] == 'cache_input' else ''
+                print('  {0}{1}:\n    Size: {2}\n    Download timeframe: {3} - {4}'.format(
+                    dtr['url'], fromcache, get_human_readable_size(dtr['size']),
+                    dtr['timestart'], dtr['timeend']
+                ))
+        else:
+            print('No stage-in data transfers (downloads) performed by A-REX.')
+        # stage-out
+        if sorteddtr['output']:
+            print('Data transfers (uploads) performed during A-REX stage-out:')
+            for dtr in sorteddtr['output']:
+                print('  {0}:\n    Size: {1}\n    Upload timeframe: {2} - {3}'.format(
+                    dtr['url'], get_human_readable_size(dtr['size']),
+                    dtr['timestart'], dtr['timeend']
+                ))
+        else:
+            print('No stage-out data transfers (uploads) performed by A-REX.')
 
     def jobcontrol(self, args):
         if args.jobaction == 'info':
-            self.jobinfo(args.jobid)
+            self.jobinfo(args)
         elif args.jobaction == 'events':
-            pass
+            self.jobevents(args.jobid)
+        elif args.jobaction == 'transfers':
+            self.jobtransfers(args.jobid)
         else:
             self.logger.critical('Unsupported job accounting action %s', args.jobaction)
             sys.exit(1)
@@ -230,7 +369,7 @@ class AccountingControl(ComponentControl):
 
     def complete_jobid(self, prefix):
         self.__init_adb()
-        return self.adb.get_jobids(prefix)
+        return self.adb.get_joblist(prefix)
 
     @staticmethod
     def register_job_parser(job_accounting_ctl):
@@ -240,10 +379,17 @@ class AccountingControl(ComponentControl):
                                                                metavar='ACTION', help='DESCRIPTION')
 
         accounting_job = accounting_actions.add_parser('info', help='Show job accounting data')
+        accounting_job.add_argument('-o', '--output', default='all',
+                                      help='Define what kind of job information you want to output '
+                                           '(default is %(default)s)',
+                                      choices=['all', 'description', 'resources', 'rtes', 'authtokens', 'json'])
         accounting_job.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
 
-        accounting_job = accounting_actions.add_parser('events', help='Show job event history')
-        accounting_job.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
+        accounting_events = accounting_actions.add_parser('events', help='Show job event history')
+        accounting_events.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
+
+        accounting_dtr = accounting_actions.add_parser('transfers', help='Show job data transfers statistics')
+        accounting_dtr.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
 
     @staticmethod
     def register_parser(root_parser):
@@ -283,7 +429,7 @@ class AccountingControl(ComponentControl):
         accounting_stats.add_argument('-o', '--output', default='brief',
                                       help='Define what kind of stats you want to output (default is %(default)s)',
                                       choices=['brief', 'jobcount', 'walltime', 'cputime', 'data-staged-in',
-                                               'data-staged-out', 'wlcgvos', 'users', 'json'])
+                                               'data-staged-out', 'wlcgvos', 'users', 'jobids', 'json'])
 
         # per-job accounting information
         job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
