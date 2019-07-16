@@ -565,17 +565,19 @@ class AAR(object):
         for hrattr in ['UsedMemory', 'UsedVirtMem', 'UsedScratch', 'StageInVolume', 'StageOutVolume']:
             self.aar[hrattr + 'HR'] = get_human_readable_size(self.aar[hrattr])
 
+    # common attributes
     def recordid(self):
         return self.aar['RecordID']
 
     def status(self):
         return self.aar['Status']
 
-    def events(self):
-        return self.aar['JobEvents']
-
     def wlcgvo(self):
         return self.aar['WLCGVO']
+
+    # dedicated lists with extra info
+    def events(self):
+        return self.aar['JobEvents']
 
     def extra(self):
         return self.aar['JobExtraInfo']
@@ -589,5 +591,14 @@ class AAR(object):
     def datatransfers(self):
         return self.aar['DataTransfers']
 
+    # return all dict
     def get(self):
         return self.aar
+
+    # info that requires processing
+    def submithost(self):
+        submithost = self.aar['EndpointURL']
+        submithost = submithost.split(':')[1][2:]  # http://[example.org]:443/jobs..
+        submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
+        return submithost
+

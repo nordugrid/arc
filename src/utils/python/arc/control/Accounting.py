@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from .AccountingLegacy import LegacyAccountingControl
-from .AccountingDB import AccountingDB, AAR
+from .AccountingDB import AccountingDB
 import sys
 import ldap
 import json
