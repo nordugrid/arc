@@ -265,7 +265,9 @@ class AccountingControl(ComponentControl):
             authtokens = aar.authtokens()
             if authtokens:
                 for (t, v) in authtokens:
-                    print(tab + '{0}: {1}'.format(t.replace('vomsfqan', 'VOMS FQAN'), v))
+                    if t == 'vomsfqan' or t == 'mainfqan':
+                        t = 'VOMS FQAN'
+                    print(tab + '{0}: {1}'.format(t, v))
             else:
                 print(tab + 'There are no authentication token attributes recorded for the job.')
 

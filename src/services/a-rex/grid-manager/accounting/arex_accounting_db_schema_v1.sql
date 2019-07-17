@@ -133,7 +133,7 @@ CREATE INDEX IF NOT EXISTS DataTransfers_URL_IDX ON DataTransfers(URL);
 /* Extra arbitrary text attributes affiliated with AAR */
 CREATE TABLE IF NOT EXISTS JobExtraInfo (
   RecordID      INTEGER NOT NULL,
-  InfoKey       TEXT NOT NULL, -- including: jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark_type, benchmark_value
+  InfoKey       TEXT NOT NULL, -- including: jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
   InfoValue     TEXT,
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
 );

@@ -59,9 +59,7 @@ class RecordsPublisher(object):
             del self.adb
             self.adb = None
 
-    def publish_sgas(self, target_conf):
-        """Publish to SGAS target"""
-        self.adb.filters_clean()
+    def __vo_filter(self, target_conf):
         # add WLCG VO filtering if defined in arc.conf
         if 'vofilter' in target_conf:
             vos = []
@@ -69,14 +67,24 @@ class RecordsPublisher(object):
                 vos.append(target_conf['vofilter'])
             else:
                 vos += target_conf['vofilter']
+            self.logger.info('VO filtering is configured. Quierying jobs owned by this WLCG VO(s): %s', ','.join(vos))
             self.adb.filter_wlcgvos(vos)
+
+    def publish_sgas(self, target_conf):
+        """Publish to SGAS target"""
+        self.adb.filters_clean()
+        self.__vo_filter(target_conf)
         # TODO: Apply timerange filters interval in target_conf or query the database for latest
         # get AARs from database
+        self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
+        self.logger.info('Accounting database query returned %s AARs', len(aars))
+        self.logger.debug('Querying additional job information about AARs')
         self.adb.enrich_aars(aars, authtokens=True, rtes=True, dtrs=True, extra=True)
         # get UR parameters
         localid_prefix = target_conf['localid_prefix'] if 'localid_prefix' in target_conf else None
         # create URs
+        self.logger.debug('Going to create OGF.98 Usage Records based on the AARs')
         urs = [UsageRecord(aar, localid_prefix=localid_prefix,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
         # TODO: real publishing
@@ -86,21 +94,18 @@ class RecordsPublisher(object):
     def publish_apel(self, target_conf):
         """Publish to all APEL targets"""
         self.adb.filters_clean()
-        # add WLCG VO filtering if defined in arc.conf
-        if 'vofilter' in target_conf:
-            vos = []
-            if not isinstance(target_conf['vofilter'], list):
-                vos.append(target_conf['vofilter'])
-            else:
-                vos += target_conf['vofilter']
-            self.adb.filter_wlcgvos(vos)
+        self.__vo_filter(target_conf)
         # TODO: Apply timerange filters interval in target_conf or query the database for latest
         # get AARs from database
+        self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
+        self.logger.info('Accounting database query returned %s AARs', len(aars))
+        self.logger.debug('Querying additional job information about AARs')
         self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
         # get UR parameters
         gocdb_name = target_conf['gocdb_name']
         # create URs
+        self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
         cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
         # TODO: real publishing
@@ -117,7 +122,7 @@ class RecordsPublisher(object):
                 self.logger.error('Target URL is mandatory for SGAS publishing but missing in [%s] block.'
                                   'Block processing skipped.')
                 continue
-            # self.publish_sgas(self.confdict[sb])
+            self.publish_sgas(self.confdict[sb])
 
         for ab in self.apel_blocks:
             # mandatory config options check
@@ -129,11 +134,11 @@ class RecordsPublisher(object):
                 self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
                                   'Records will not be reported to %s target.', ab, self.confdict[ab]['targeturl'])
                 continue
-            self.publish_apel(self.confdict[ab])
+            # self.publish_apel(self.confdict[ab])
 
 
-class AccountingRecord(object):
-    """Base class for representing Accounting Records that implements common methots for all formats"""
+class JobAccountingRecord(object):
+    """Base class for representing XML Job Accounting Records that implements common methots for all formats"""
     _voms_fqan_re = re.compile(
         r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?'
     )
@@ -160,8 +165,8 @@ class AccountingRecord(object):
         return self.xml
 
 
-class UsageRecord(AccountingRecord):
-    """Class representing SGAS (OFG.98 based) Usage Record format of accounting records"""
+class UsageRecord(JobAccountingRecord):
+    """Class representing SGAS (OFG.98 based) Usage Record format of job accounting records"""
     __xml_templates = {
         'ur-base': '<JobUsageRecord xmlns:arc="http://www.nordugrid.org/ws/schemas/ur-arc" '
                    'xmlns:ds="http://www.w3.org/2000/09/xmldsig#" '
@@ -183,7 +188,7 @@ class UsageRecord(AccountingRecord):
 
     def __init__(self, aar, localid_prefix=None, vomsless_vo=None, extra_vogroups=None):
         """Create XML representation of UsageRecord"""
-        AccountingRecord.__init__(self, aar)
+        JobAccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.UR')
         self.localid_prefix = localid_prefix
         self.vomsless_vo = vomsless_vo
@@ -232,7 +237,7 @@ class UsageRecord(AccountingRecord):
         if not wlcgvo:
             return vomsxml
         # VOMS FQAN info
-        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan']
+        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t == 'mainfqan']
         fqangroups = []
         fqan_xml = ''
         if vomsfqans:
@@ -373,8 +378,8 @@ class UsageRecord(AccountingRecord):
         self.xml += self.__xml_templates['ur-base'].format(**{'jobrecord': xml})
 
 
-class ComputeAccountingRecord(AccountingRecord):
-    """Class representing EMI CAR v1.2 format of accounting records"""
+class ComputeAccountingRecord(JobAccountingRecord):
+    """Class representing EMI CAR v1.2 format of job accounting records"""
     __xml_templates = {
         'ur-base': '<UsageRecord xmlns:urf="http://eu-emi.eu/namespaces/2012/11/computerecord" '
                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
@@ -388,7 +393,7 @@ class ComputeAccountingRecord(AccountingRecord):
 
     def __init__(self, aar, vomsless_vo=None, extra_vogroups=None, gocdb_name=None, benchmark=None):
         """Create XML representation of Compute Accounting Record"""
-        AccountingRecord.__init__(self, aar)
+        JobAccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.CAR')
         self.vomsless_vo = vomsless_vo
         self.extra_vogroups = extra_vogroups
@@ -432,16 +437,13 @@ class ComputeAccountingRecord(AccountingRecord):
         else:
             return xml
         # VOMS FQAN info
-        # APEL CAR has a concept of effective FQAN (WTF?):
-        #   "if multiple FQAN are available, the effective one MUST be reported"
-        # In ARC during auth phase all FQANs are evaluated and who knows which one is "effective"
-        # In typical case proxy comes with only one FQAN, but if many, let's assume that
-        # the longest one is effective (e.g. group path is longer and /Role= is also added that makes FQAN longer)
-        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan']
+        # EMI CAR and APEL has a concept of effective FQAN.
+        # ARC writes main (first) FQAN as a dedicated entry in AuthTokenAttributes to match this case.
+        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'mainfqan']
+        fqangroups = []
         if vomsfqans:
-            fqan = max(vomsfqans, key=len)
+            fqan = vomsfqans[0]  # there should not be more than one
             fqan_match = self._voms_fqan_re.match(fqan)
-            fqangroups = []
             if fqan_match:
                 xml += '<GroupAttribute urf:type="FQAN">{0}</GroupAttribute>'.format(fqan)
                 fqan_dict = fqan_match.groupdict()
@@ -450,12 +452,14 @@ class ComputeAccountingRecord(AccountingRecord):
                     xml += '<GroupAttribute urf:type="vo-group">{group}</GroupAttribute>'.format(**fqan_dict)
                 if 'role' in fqan_dict and fqan_dict['role']:
                     xml += '<GroupAttribute urf:type="vo-role">{role}</GroupAttribute>'.format(**fqan_dict)
-        # arc.conf: vo_group attributes
-        # goes contradictory to APEL "effective" FQAN concept: if we already have FQAN defined "additional" does not
-        # make sense, but to ensure bug-to-bug compatibility (this works previously) attributes will be added if defined
-        for vg in self.extra_vogroups:
-            if vg not in fqangroups:  # eliminate duplicates
-                xml += '<GroupAttribute urf:type="vo-group">{0}</GroupAttribute>'.format(vg)
+        else:
+            # arc.conf: vo_group attributes
+            # as APEL works only with single FQAN, it has no sense to add more if already defined
+            # also this code adds only the first one if user put many in arc.conf
+            for vg in self.extra_vogroups:
+                if vg not in fqangroups:  # eliminate duplicates
+                    xml += '<GroupAttribute urf:type="vo-group">{0}</GroupAttribute>'.format(vg)
+                    break
         # ProjectName represented as GroupAttribute in CAR
         if 'projectname' in self.aar.extra():
             xml += '<GroupAttribute urf:type="ProjectName">{0}</GroupAttribute>'.format(self.aar.extra()['projectname'])
@@ -517,7 +521,7 @@ class ComputeAccountingRecord(AccountingRecord):
                 primary_node = ''
         # SubmitHost (mandatory)
         # Unlike OGF.98 in CAR "this MUST report the Computing Element Uniqe ID"
-        xml += '<SubmitHost urf:type="ARC CE">{0}</SubmitHost>'.format(self.aar.submithost())
+        xml += '<SubmitHost urf:type="{Interface}">{EndpointURL}</SubmitHost>'.format(**self.aar.get())
         # Queue (mandatory)
         xml += '<Queue urf:description="execution">{0}</Queue>'.format(self.aar.get()['Queue'])
         # Site (mandatory)
@@ -544,11 +548,12 @@ class ComputeAccountingRecord(AccountingRecord):
         allowed_benchmark_types = ['Si2k', 'Sf2k', 'HEPSPEC']
         bechmark_type = ''
         bechmark_value = ''
-        if 'benchmark_type' in aar_extra:
+        if 'benchmark' in aar_extra:
+            (b_type, b_value) = aar_extra['benchmark'].split(':')
             # value from AAR first
             if aar_extra['benchmark_type'] in allowed_benchmark_types:
-                bechmark_type = aar_extra['benchmark_type']
-                bechmark_value = aar_extra['benchmark_value'] if 'benchmark_value' in aar_extra else '1.0'
+                bechmark_type = b_type
+                bechmark_value = b_value if b_value else '1.0'
             else:
                 self.logger.error('Unsupported benchmark type %s in the usage record for job %s.',
                                   aar_extra['benchmark_type'], self.aar.get()['JobID'])

@@ -244,9 +244,14 @@ class AccountingDB(object):
         self.sqlfilter.add('AND SubmitTime > ?', (unixtime,))
 
     def filter_endtill(self, etime):
-        """Add job end time filtering to the select queries"""
+        """Add job end time filtering (end before) to the select queries"""
         unixtime = time.mktime(etime.timetuple())  # works in Python 2.6
         self.sqlfilter.add('AND EndTime < ?', (unixtime,))
+
+    def filter_endfrom(self, etime):
+        """Add job end time filtering (end after) to the select queries"""
+        unixtime = time.mktime(etime.timetuple())  # works in Python 2.6
+        self.sqlfilter.add('AND EndTime > ?', (unixtime,))
 
     def filter_jobids(self, jobids):
         """Add jobid filtering to the select queries"""
@@ -263,7 +268,7 @@ class AccountingDB(object):
         # predefined filters
         filters = {
             'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
-                        "WHERE AttrKey = 'vomsfqan' AND AttrValue IN ({0}))",
+                        "WHERE AttrKey IN ('vomsfqan', 'mainfqan') AND AttrValue IN ({0}))",
             'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0}) )",
             'dtrurl': "AND RecordID IN ( SELECT RecordID FROM DataTransfers WHERE URL IN ({0}) )"
         }

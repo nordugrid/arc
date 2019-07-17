@@ -78,8 +78,10 @@ namespace ARex {
             wlcgvo = local.voms.front();
             if (wlcgvo.at(0) = '/') wlcgvo.erase(0,1);
             // authtokenattrs
+            std::string attrname = "mainfqan";
             for(std::list<std::string>::const_iterator it=local.voms.begin(); it != local.voms.end(); ++it) {
-                authtokenattrs.push_back(aar_authtoken_t("vomsfqan", (*it)));
+                authtokenattrs.push_back(aar_authtoken_t(attrname, (*it)));
+                attrname = "vomsfqan";
             }
         }
         // submittime
