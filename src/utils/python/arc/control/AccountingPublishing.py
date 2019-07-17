@@ -45,6 +45,8 @@ class RecordsPublisher(object):
             self.logger.error('Failed to parse arc.conf. Accounting publihsing is not possible.')
             sys.exit(1)
         # get configured accounting targets and options
+        self.vomsless_vo = arcconfig.get_value('vomsless_vo', ['arex/jura'])
+        self.extra_vogroups = arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
         self.sgas_blocks = arcconfig.get_subblocks('arex/jura/sgas')
         self.apel_blocks = arcconfig.get_subblocks('arex/jura/apel')
         self.confdict = arcconfig.get_config_dict(['arex/jura'] + self.sgas_blocks + self.apel_blocks)
@@ -57,27 +59,67 @@ class RecordsPublisher(object):
             del self.adb
             self.adb = None
 
-    def publish_sgas(self, aars):
-        """Publish to all SGAS targets"""
+    def publish_sgas(self, target_conf):
+        """Publish to SGAS target"""
+        self.adb.filters_clean()
+        # add WLCG VO filtering if defined in arc.conf
+        if 'vofilter' in target_conf:
+            vos = []
+            if not isinstance(target_conf['vofilter'], list):
+                vos.append(target_conf['vofilter'])
+            else:
+                vos += target_conf['vofilter']
+            self.adb.filter_wlcgvos(vos)
+        # TODO: Apply timerange filters interval in target_conf or query the database for latest
+        # get AARs from database
+        aars = self.adb.get_aars(resolve_ids=True)
+        self.adb.enrich_aars(aars, authtokens=True, rtes=True, dtrs=True, extra=True)
+        # get UR parameters
+        localid_prefix = target_conf['localid_prefix'] if 'localid_prefix' in target_conf else None
+        # create URs
+        urs = [UsageRecord(aar, localid_prefix=localid_prefix,
+                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+        # TODO: real publishing
+        print('<?xml version="1.0" encoding="utf-8"?>')
+        print(random.choice(urs).get_xml())
+
+    def publish_apel(self, target_conf):
+        """Publish to all APEL targets"""
+        self.adb.filters_clean()
+        # add WLCG VO filtering if defined in arc.conf
+        if 'vofilter' in target_conf:
+            vos = []
+            if not isinstance(target_conf['vofilter'], list):
+                vos.append(target_conf['vofilter'])
+            else:
+                vos += target_conf['vofilter']
+            self.adb.filter_wlcgvos(vos)
+        # TODO: Apply timerange filters interval in target_conf or query the database for latest
+        # get AARs from database
+        aars = self.adb.get_aars(resolve_ids=True)
+        self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
+        # get UR parameters
+        gocdb_name = target_conf['gocdb_name']
+        # create URs
+        cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name,
+                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+        # TODO: real publishing
+        print('<?xml version="1.0" encoding="utf-8"?>')
+        print(random.choice(cars).get_xml())
+
+    def publish(self):
+        """Publish records"""
+        # TODO: RECORDS SELECTION MOST PROBABLY PER TARGET OR INTEGRATED INTERVAL QUERY
+        # TODO: interval from the command line for republishing
+        # TODO: dedicated database to track what is published (for regular publishing, but not for republishing)
         for sb in self.sgas_blocks:
-            # prepare all-in-one config options dict
-            self.confdict[sb].update(self.confdict['arex/jura'])
-            # mandatory config options check
             if 'targeturl' not in self.confdict[sb]:
                 self.logger.error('Target URL is mandatory for SGAS publishing but missing in [%s] block.'
-                                  'Block processing skipped.', sb)
+                                  'Block processing skipped.')
                 continue
-            # create URs
-            urs = [UsageRecord(aar, self.confdict[sb]) for aar in aars]
-            # TODO: real publishing
-            # print('<?xml version="1.0" encoding="utf-8"?>')
-            # print(random.choice(urs).get_xml())
+            # self.publish_sgas(self.confdict[sb])
 
-    def publish_apel(self, aars):
-        """Publish to all APEL targets"""
         for ab in self.apel_blocks:
-            # prepare all-in-one config options dict
-            self.confdict[ab].update(self.confdict['arex/jura'])
             # mandatory config options check
             if 'targeturl' not in self.confdict[ab]:
                 self.logger.error('Target URL is mandatory for APEL publishing but missing in [%s] block.'
@@ -87,29 +129,7 @@ class RecordsPublisher(object):
                 self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
                                   'Records will not be reported to %s target.', ab, self.confdict[ab]['targeturl'])
                 continue
-            cars = [ComputeAccountingRecord(aar, self.confdict[ab]) for aar in aars]
-            # TODO: real publishing
-            print('<?xml version="1.0" encoding="utf-8"?>')
-            print(random.choice(cars).get_xml())
-
-    def publish(self):
-        """Publish records"""
-        # TODO: RECORDS SELECTION MOST PROBABLY PER TARGET OR INTEGRATED INTERVAL QUERY
-        # TODO: interval from the command line for republishing
-        # TODO: dedicated database to track what is published (for regular publishing, but not for republishing)
-
-        # get records to publish
-        aars = self.adb.get_aars(resolve_ids=True)
-        fetch_dtrs = True if self.sgas_blocks else False  # dtrs are only published to SGAS
-        self.adb.enrich_aars(aars, authtokens=True, rtes=True, dtrs=fetch_dtrs, extra=True)
-
-        # publish to SGAS
-        if self.sgas_blocks:
-            self.publish_sgas(aars)
-
-        # publish to APEL
-        if self.apel_blocks:
-            self.publish_apel(aars)
+            self.publish_apel(self.confdict[ab])
 
 
 class AccountingRecord(object):
@@ -118,12 +138,10 @@ class AccountingRecord(object):
         r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?'
     )
 
-    def __init__(self, aar, conf):
+    def __init__(self, aar):
         """Create XML representation of Accounting Record"""
         self.xml = ''
-        self.confdict = conf
         self.aar = aar  # type: AAR
-        self.filtered = False
 
     # General helper methods
     def _add_aar_node(self, node, field):
@@ -141,10 +159,6 @@ class AccountingRecord(object):
         """Return record XML"""
         return self.xml
 
-    def is_filtered(self):
-        """Indicate whether this record should be filtered according to configuration"""
-        return self.filtered
-
 
 class UsageRecord(AccountingRecord):
     """Class representing SGAS (OFG.98 based) Usage Record format of accounting records"""
@@ -157,7 +171,6 @@ class UsageRecord(AccountingRecord):
                    'xmlns:xsd="http://www.w3.org/2001/XMLSchema" '
                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">{jobrecord}</JobUsageRecord>',
         'record-id': '<RecordIdentity urf:createTime="{createtime}" urf:recordId="{recordid}"/>',
-        'job-local-id': '<LocalJobId>{localid}</LocalJobId>',
         'job-id': '<JobIdentity><GlobalJobId>{globalid}</GlobalJobId>{localid}</JobIdentity>',
         'user-id': '<UserIdentity><GlobalUserName>{globalid}</GlobalUserName>{localid}{wlcgvos}</UserIdentity>',
         'vo-info': '<vo:VO vo:type="voms"><vo:Name>{voname}</vo:Name>{issuer}{attributes}</vo:VO>',
@@ -168,10 +181,15 @@ class UsageRecord(AccountingRecord):
                       '<tr:StartTime>{tstart}</tr:StartTime><tr:EndTime>{tend}</tr:EndTime></tr:FileUpload>'
     }
 
-    def __init__(self, aar, conf):
+    def __init__(self, aar, localid_prefix=None, vomsless_vo=None, extra_vogroups=None):
         """Create XML representation of UsageRecord"""
-        AccountingRecord.__init__(self, aar, conf)
+        AccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.UR')
+        self.localid_prefix = localid_prefix
+        self.vomsless_vo = vomsless_vo
+        self.extra_vogroups = extra_vogroups
+        if self.extra_vogroups is None:
+            self.extra_vogroups = []
         self.__create_xml()
 
     def __record_identity(self):
@@ -189,11 +207,10 @@ class UsageRecord(AccountingRecord):
         localid = self.aar.get()['LocalJobID']
         if localid:
             # optional localid_prefix in arc.conf
-            if 'localid_prefix' in self.confdict:
-                localid = self.confdict['localid_prefix'] + localid
-            localid = self.__xml_templates['job-local-id'].format(**{
-                'localid': localid
-            })
+            if self.localid_prefix is not None:
+                localid = self.localid_prefix + localid
+            # define localid XML
+            localid = '<LocalJobId>{0}</LocalJobId>'.format(localid)
         return self.__xml_templates['job-id'].format(**{
             'globalid': self.aar.get()['JobID'],
             'localid': localid
@@ -207,17 +224,11 @@ class UsageRecord(AccountingRecord):
         voissuer = ''  # no issuer info in current implementation, is this mandatory?
         if not wlcgvo:
             # arc.conf: vomsless VO
-            if 'vomsless_vo' in self.confdict:
-                vomsless_data = self.confdict['vomsless_vo'].split('#')
+            if self.vomsless_vo is not None:
+                vomsless_data = self.vomsless_vo.split('#')
                 wlcgvo = vomsless_data[0]
                 if len(vomsless_data) > 1:
                     voissuer = vomsless_data[1]
-        # arc.conf: VO filtering
-        if 'vofilter' in self.confdict:
-            if not isinstance(self.confdict['vofilter'], list):
-                self.confdict['vofilter'] = [self.confdict['vofilter']]
-            if wlcgvo not in self.confdict['vofilter']:
-                self.filtered = True
         if not wlcgvo:
             return vomsxml
         # VOMS FQAN info
@@ -239,12 +250,9 @@ class UsageRecord(AccountingRecord):
                         fqan_xml += '<vo:Capability>{cap}</vo:Capability>'.format(**fqan_dict)
                     fqan_xml += '</vo:Attribute>'
         # arc.conf: additional vo_group attributes
-        if 'vo_group' in self.confdict:
-            if not isinstance(self.confdict['vo_group'], list):
-                self.confdict['vo_group'] = [self.confdict['vo_group']]
-            for vg in self.confdict['vo_group']:
-                if vg not in fqangroups:  # eliminate duplicates
-                    fqan_xml += '<vo:Attribute><vo:Group>{0}/vo:Group></vo:Attribute>'.format(vg)
+        for vg in self.extra_vogroups:
+            if vg not in fqangroups:  # eliminate duplicates
+                fqan_xml += '<vo:Attribute><vo:Group>{0}/vo:Group></vo:Attribute>'.format(vg)
         # xml VO issuer if defined
         if voissuer:
             voissuer = '<vo:Issuer>{0}</vo:Issuer>'.format(voissuer)
@@ -366,7 +374,7 @@ class UsageRecord(AccountingRecord):
 
 
 class ComputeAccountingRecord(AccountingRecord):
-    """Class representing APEL CAR format of accounting records"""
+    """Class representing EMI CAR v1.2 format of accounting records"""
     __xml_templates = {
         'ur-base': '<UsageRecord xmlns:urf="http://eu-emi.eu/namespaces/2012/11/computerecord" '
                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
@@ -378,10 +386,16 @@ class ComputeAccountingRecord(AccountingRecord):
                    '{localuser}{localgroup}{groups}</UserIdentity>',
     }
 
-    def __init__(self, aar, conf):
+    def __init__(self, aar, vomsless_vo=None, extra_vogroups=None, gocdb_name=None, benchmark=None):
         """Create XML representation of Compute Accounting Record"""
-        AccountingRecord.__init__(self, aar, conf)
+        AccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.CAR')
+        self.vomsless_vo = vomsless_vo
+        self.extra_vogroups = extra_vogroups
+        if self.extra_vogroups is None:
+            self.extra_vogroups = []
+        self.gocdb_name = gocdb_name
+        self.benchmark = benchmark
         self.__create_xml()
 
     def __record_identity(self):
@@ -410,16 +424,9 @@ class ComputeAccountingRecord(AccountingRecord):
         wlcgvo = self.aar.wlcgvo()
         if not wlcgvo:
             # arc.conf: vomsless VO
-            if 'vomsless_vo' in self.confdict:
-                vomsless_data = self.confdict['vomsless_vo'].split('#')
+            if self.vomsless_vo is not None:
+                vomsless_data = self.vomsless_vo.split('#')
                 wlcgvo = vomsless_data[0]
-
-        # arc.conf: VO filtering
-        if 'vofilter' in self.confdict:
-            if not isinstance(self.confdict['vofilter'], list):
-                self.confdict['vofilter'] = [self.confdict['vofilter']]
-            if wlcgvo not in self.confdict['vofilter']:
-                self.filtered = True
         if wlcgvo:
             xml += '<Group>{0}</Group>'.format(wlcgvo)
         else:
@@ -444,14 +451,11 @@ class ComputeAccountingRecord(AccountingRecord):
                 if 'role' in fqan_dict and fqan_dict['role']:
                     xml += '<GroupAttribute urf:type="vo-role">{role}</GroupAttribute>'.format(**fqan_dict)
         # arc.conf: vo_group attributes
-        # goes contradictory to APEL "effective" FQAN concept: if we already have FQAN defined "additinal" does not
+        # goes contradictory to APEL "effective" FQAN concept: if we already have FQAN defined "additional" does not
         # make sense, but to ensure bug-to-bug compatibility (this works previously) attributes will be added if defined
-        if 'vo_group' in self.confdict:
-            if not isinstance(self.confdict['vo_group'], list):
-                self.confdict['vo_group'] = [self.confdict['vo_group']]
-            for vg in self.confdict['vo_group']:
-                if vg not in fqangroups:  # eliminate duplicates
-                    xml += '<GroupAttribute urf:type="vo-group">{0}</GroupAttribute>'.format(vg)
+        for vg in self.extra_vogroups:
+            if vg not in fqangroups:  # eliminate duplicates
+                xml += '<GroupAttribute urf:type="vo-group">{0}</GroupAttribute>'.format(vg)
         # ProjectName represented as GroupAttribute in CAR
         if 'projectname' in self.aar.extra():
             xml += '<GroupAttribute urf:type="ProjectName">{0}</GroupAttribute>'.format(self.aar.extra()['projectname'])
@@ -517,7 +521,7 @@ class ComputeAccountingRecord(AccountingRecord):
         # Queue (mandatory)
         xml += '<Queue urf:description="execution">{0}</Queue>'.format(self.aar.get()['Queue'])
         # Site (mandatory)
-        xml += '<Site urf:type="gocdb">{gocdb_name}</Site>'.format(**self.confdict)
+        xml += '<Site urf:type="gocdb">{0}</Site>'.format(self.gocdb_name)
         # Infrastructure (mandatory)
         lrms = aar_extra['lrms'] if 'lrms' in aar_extra else 'fork'
         xml += '<Infrastructure urf:type="grid" urf:description="JURA-ARC-{0}"></Infrastructure>'.format(lrms.upper())
@@ -548,15 +552,14 @@ class ComputeAccountingRecord(AccountingRecord):
             else:
                 self.logger.error('Unsupported benchmark type %s in the usage record for job %s.',
                                   aar_extra['benchmark_type'], self.aar.get()['JobID'])
-        if not bechmark_type:
+        if not bechmark_type and self.benchmark is not None:
             # config value if not in AAR
-            if 'benchmark_type' in self.confdict:
-                if self.confdict['benchmark_type'] in allowed_benchmark_types:
-                    bechmark_type = self.confdict['benchmark_type']
-                    bechmark_value = self.confdict['benchmark_value'] if 'benchmark_value' in self.confdict else '1.0'
-                else:
-                    self.logger.error('Unsupported benchmark type %s in the arc.conf APEL configuration.',
-                                      self.confdict['benchmark_type'])
+            (b_type, b_value) = self.benchmark.split(':')
+            if bechmark_value in allowed_benchmark_types:
+                bechmark_type = b_type
+                bechmark_value = b_value if b_value else '1.0'
+            else:
+                self.logger.error('Unsupported benchmark type %s in the arc.conf APEL configuration.', b_type)
         if not bechmark_type:
             # just put defaults if still nothing
             bechmark_type = 'Si2k'

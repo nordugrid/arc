@@ -280,6 +280,10 @@ class AccountingDB(object):
                 values.insert(0, f)
                 self.sqlfilter.add(sql, tuple(values))
 
+    def filters_clean(self):
+        """Remove all defined SQL query filters"""
+        self.sqlfilter.clean()
+
     def __filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         if not self.sqlfilter.isresult():
