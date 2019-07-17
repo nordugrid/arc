@@ -293,9 +293,14 @@ class AccountingDB(object):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         if not self.sqlfilter.isresult():
             return []
-        if 'WHERE' not in sql:
-            sql += ' WHERE 1=1'  # verified that this does not affect performance
-        sql += ' ' + self.sqlfilter.getsql()
+        if '<FILTERS>' in sql:
+            # substitute filters to <FILTERS> placeholder if defined
+            sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
+        else:
+            # add to the end of query otherwise
+            if 'WHERE' not in sql:
+                sql += ' WHERE 1=1'  # verified that this does not affect performance
+            sql += ' ' + self.sqlfilter.getsql()
         params += self.sqlfilter.getparams()
         try:
             res = self.con.execute(sql, params)
@@ -475,6 +480,7 @@ class AccountingDB(object):
         return result
 
     def get_aars(self, resolve_ids=False):
+        """Return list of AARs corresponding to filtered query"""
         aars = []
         for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
             aar = AAR()
@@ -497,6 +503,7 @@ class AccountingDB(object):
         return aars
 
     def enrich_aars(self, aars, authtokens=False, events=False, rtes=False, dtrs=False, extra=False):
+        """Add info from extra tables to the list of AAR objects"""
         recordids = [a.recordid() for a in aars]
         auth_data = None
         events_data = None
@@ -525,6 +532,40 @@ class AccountingDB(object):
                 a.aar['DataTransfers'] = dtrs_data[rid]
             if extra_data is not None and rid in extra_data:
                 a.aar['JobExtraInfo'] = extra_data[rid]
+
+    def get_apel_summaries(self):
+        """Return info corresponding to APEL aggregated summary records"""
+        sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
+              AuthTokenAttributes.AttrValue, JobExtraInfo.InfoValue,
+              COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime)
+              FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
+                            UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
+                     WHERE 1=1 <FILTERS>) a
+              LEFT JOIN JobExtraInfo ON JobExtraInfo.RecordID = a.RecordID
+                                    AND JobExtraInfo.InfoKey = "benchmark"
+              LEFT JOIN AuthTokenAttributes ON AuthTokenAttributes.RecordID = a.RecordID
+                                           AND AuthTokenAttributes.AttrKey = "mainfqan"
+              GROUP BY a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount'''
+        summaries = []
+        self.__fetch_users()
+        self.__fetch_wlcgvos()
+        self.__fetch_endpoints()
+        for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
+            summaries.append({
+                'userdn': self.users['byid'][res[0]],
+                'wlcgvo': self.wlcgvos['byid'][res[1]],
+                'endpoint': self.endpoints['byid'][res[2]][1],
+                'nodecount': res[3],
+                'cpucount': res[4],
+                'fqan': res[5],
+                'benchmark': res[6],
+                'count': res[7],
+                'walltime': res[8],
+                'cputime': res[9],
+                'timestart': res[10],
+                'timeend': res[11]
+            })
+        return summaries
 
 
 class AAR(object):

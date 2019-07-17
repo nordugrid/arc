@@ -6,11 +6,30 @@ from .AccountingDB import AccountingDB, AAR
 from arc.paths import ARC_VERSION
 
 import sys
-import datetime
 import logging
 import re
+import datetime
 
 import random
+
+__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
+
+__allowed_benchmark_types = ['Si2k', 'Sf2k', 'HEPSPEC']
+
+
+def get_fqan_components(fqan):
+    """Return tuple of parsed VOMS FQAN parts"""
+    (group, role, capability) = (None, None, None)
+    fqan_match = __voms_fqan_re.match(fqan)
+    if fqan_match:
+        fqan_dict = fqan_match.groupdict()
+        if 'group' in fqan_dict and fqan_dict['group']:
+            group = fqan_dict['group']
+        if 'role' in fqan_dict and fqan_dict['role']:
+            role = fqan_dict['role']
+        if 'cap' in fqan_dict and fqan_dict['cap']:
+            capability = fqan_dict['cap']
+    return (group, role, capability)
 
 
 def duration_to_iso8601(seconds):
@@ -36,7 +55,31 @@ def datetime_to_iso8601(dt):
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def __next_month_start(t):
+    """Helper function to return datetime for the next calendar month start"""
+    nextmonth = t.month + 1
+    nextyear = t.year
+    if nextmonth == 13:
+        nextmonth = 1
+        nextyear += 1
+    return datetime.datetime(nextyear, nextmonth, 1, 0, 0, 0)
+
+
+def split_timeframe(starttime, endtime):
+    """Return list of timeframe tuples that split requested range on monthly basis"""
+    timeframes = []
+    framestart = starttime
+    nextmonth = __next_month_start(starttime)
+    while endtime > nextmonth:
+        timeframes.append((framestart, nextmonth))
+        framestart = nextmonth
+        nextmonth = __next_month_start(framestart)
+    timeframes.append((framestart, endtime))
+    return timeframes
+
+
 class RecordsPublisher(object):
+    """Class for publishing accounting records to central network services"""
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARC.Accounting.Publisher')
         self.adb = None
@@ -73,6 +116,7 @@ class RecordsPublisher(object):
     def publish_sgas(self, target_conf):
         """Publish to SGAS target"""
         self.adb.filters_clean()
+        self.adb.filter_statuses(['completed', 'failed'])
         self.__vo_filter(target_conf)
         # TODO: Apply timerange filters interval in target_conf or query the database for latest
         # get AARs from database
@@ -91,9 +135,21 @@ class RecordsPublisher(object):
         print('<?xml version="1.0" encoding="utf-8"?>')
         print(random.choice(urs).get_xml())
 
+    def __config_benchmark_value(self, confdict):
+        if 'benchmark_type' in confdict and 'benchmark_value' in confdict:
+            if confdict['benchmark_type'] in __allowed_benchmark_types:
+                return '{benchmark_type}:{benchmark_value}'.format(**confdict)
+            self.logger.error('Unsupported benchmark type %s in the arc.conf configuration. '
+                              'Falling back to default "Si2k:1.0"')
+            return 'Si2k:1.0'
+        self.logger.warning('There is no benchmark value defined in the accounting target configuration. '
+                            'All records without acounted benchmark will be reported with "Si2k:1.0"')
+        return 'Si2k:1.0'
+
     def publish_apel(self, target_conf):
         """Publish to all APEL targets"""
         self.adb.filters_clean()
+        self.adb.filter_statuses(['completed', 'failed'])
         self.__vo_filter(target_conf)
         # TODO: Apply timerange filters interval in target_conf or query the database for latest
         # get AARs from database
@@ -104,13 +160,21 @@ class RecordsPublisher(object):
         self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
         # get UR parameters
         gocdb_name = target_conf['gocdb_name']
+        conf_benchmark = self.__config_benchmark_value(target_conf)
         # create URs
         self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
-        cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name,
+        cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name, benchmark=conf_benchmark,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+        # summary records
+        summaries = self.adb.get_apel_summaries()
+        apelsummaries = [
+            APELSummaryRecord(rec, datetime.datetime.today(), gocdb_name, conf_benchmark).get_record()
+            for rec in summaries
+        ]
+        print('\n%%\n'.join(apelsummaries))
         # TODO: real publishing
-        print('<?xml version="1.0" encoding="utf-8"?>')
-        print(random.choice(cars).get_xml())
+        # print('<?xml version="1.0" encoding="utf-8"?>')
+        # print(random.choice(cars).get_xml())
 
     def publish(self):
         """Publish records"""
@@ -134,15 +198,11 @@ class RecordsPublisher(object):
                 self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
                                   'Records will not be reported to %s target.', ab, self.confdict[ab]['targeturl'])
                 continue
-            # self.publish_apel(self.confdict[ab])
+            self.publish_apel(self.confdict[ab])
 
 
 class JobAccountingRecord(object):
     """Base class for representing XML Job Accounting Records that implements common methots for all formats"""
-    _voms_fqan_re = re.compile(
-        r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?'
-    )
-
     def __init__(self, aar):
         """Create XML representation of Accounting Record"""
         self.xml = ''
@@ -242,17 +302,16 @@ class UsageRecord(JobAccountingRecord):
         fqan_xml = ''
         if vomsfqans:
             for fqan in vomsfqans:
-                fqan_match = self._voms_fqan_re.match(fqan)
-                if fqan_match:
-                    fqan_dict = fqan_match.groupdict()
+                (fqan_group, fqan_role, fqan_cap) = get_fqan_components(fqan)
+                if fqan_group is not None:
                     fqan_xml += '<vo:Attribute>'
-                    if 'group' in fqan_dict and fqan_dict['group']:
-                        fqangroups.append(fqan_dict['group'])
-                        fqan_xml += '<vo:Group>{group}</vo:Group>'.format(**fqan_dict)
-                    if 'role' in fqan_dict and fqan_dict['role']:
-                        fqan_xml += '<vo:Role>{role}</vo:Role>'.format(**fqan_dict)
-                    if 'cap' in fqan_dict and fqan_dict['cap']:
-                        fqan_xml += '<vo:Capability>{cap}</vo:Capability>'.format(**fqan_dict)
+                    fqan_xml += '<vo:Group>{0}</vo:Group>'.format(fqan_group)
+                    fqangroups.append(fqan_group)
+                    if fqan_role is not None:
+                        fqan_xml += '<vo:Role>{0}</vo:Role>'.format(fqan_role)
+                    if fqan_cap is not None:
+                        fqan_xml += '<vo:Capability>{0}</vo:Capability>'.format(fqan_cap)
+                if fqan_xml:
                     fqan_xml += '</vo:Attribute>'
         # arc.conf: additional vo_group attributes
         for vg in self.extra_vogroups:
@@ -443,15 +502,13 @@ class ComputeAccountingRecord(JobAccountingRecord):
         fqangroups = []
         if vomsfqans:
             fqan = vomsfqans[0]  # there should not be more than one
-            fqan_match = self._voms_fqan_re.match(fqan)
-            if fqan_match:
+            (fqan_group, fqan_role, _) = get_fqan_components(fqan)
+            if fqan_group is not None:
                 xml += '<GroupAttribute urf:type="FQAN">{0}</GroupAttribute>'.format(fqan)
-                fqan_dict = fqan_match.groupdict()
-                if 'group' in fqan_dict and fqan_dict['group']:
-                    fqangroups.append(fqan_dict['group'])
-                    xml += '<GroupAttribute urf:type="vo-group">{group}</GroupAttribute>'.format(**fqan_dict)
-                if 'role' in fqan_dict and fqan_dict['role']:
-                    xml += '<GroupAttribute urf:type="vo-role">{role}</GroupAttribute>'.format(**fqan_dict)
+                xml += '<GroupAttribute urf:type="vo-group">{0}</GroupAttribute>'.format(fqan_group)
+                fqangroups.append(fqan_group)
+                if fqan_role is not None:
+                    xml += '<GroupAttribute urf:type="vo-role">{0}</GroupAttribute>'.format(fqan_role)
         else:
             # arc.conf: vo_group attributes
             # as APEL works only with single FQAN, it has no sense to add more if already defined
@@ -545,30 +602,19 @@ class ComputeAccountingRecord(JobAccountingRecord):
         #   Technically we can publish this based on JobEvents but there was no such info previously
         #   and looks like it is more theoretical rather than for real analyses
         # ServiceLevel (mandatory) represents benchmarking normalization
-        allowed_benchmark_types = ['Si2k', 'Sf2k', 'HEPSPEC']
-        bechmark_type = ''
-        bechmark_value = ''
+        bechmark_type = 'Si2k'
+        bechmark_value = '1.0'
+        if self.benchmark is not None:
+            (bechmark_type, bechmark_value) = self.benchmark.split(':', 2)
         if 'benchmark' in aar_extra:
-            (b_type, b_value) = aar_extra['benchmark'].split(':')
+            (b_type, b_value) = aar_extra['benchmark'].split(':', 2)
             # value from AAR first
-            if aar_extra['benchmark_type'] in allowed_benchmark_types:
+            if aar_extra['benchmark_type'] in __allowed_benchmark_types:
                 bechmark_type = b_type
                 bechmark_value = b_value if b_value else '1.0'
             else:
                 self.logger.error('Unsupported benchmark type %s in the usage record for job %s.',
-                                  aar_extra['benchmark_type'], self.aar.get()['JobID'])
-        if not bechmark_type and self.benchmark is not None:
-            # config value if not in AAR
-            (b_type, b_value) = self.benchmark.split(':')
-            if bechmark_value in allowed_benchmark_types:
-                bechmark_type = b_type
-                bechmark_value = b_value if b_value else '1.0'
-            else:
-                self.logger.error('Unsupported benchmark type %s in the arc.conf APEL configuration.', b_type)
-        if not bechmark_type:
-            # just put defaults if still nothing
-            bechmark_type = 'Si2k'
-            bechmark_value = '1.0'
+                                  b_type, self.aar.get()['JobID'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
         return xml
 
@@ -579,3 +625,61 @@ class ComputeAccountingRecord(JobAccountingRecord):
         xml += self.__user_identity()
         xml += self.__job_data()
         self.xml += self.__xml_templates['ur-base'].format(**{'jobrecord': xml})
+
+
+class APELSummaryRecord(object):
+    __voinfo_template = '''
+VO: {wlcgvo}
+VOGroup: {fqangroup}
+VORole: {fqanrole}'''
+
+    __record_template = '''Site: {gocdb_name}
+Month: {month}
+Year: {year}
+GlobalUserName: {userdn}{voinfo}
+SubmitHost: {endpoint}
+InfrastructureType: grid
+ServiceLevelType: {benchmark_type}
+ServiceLevel: {benchmark_value}
+NodeCount: {nodecount}
+Processors: {cpucount}
+EarliestEndTime: {timestart}
+LatestEndTime: {timeend}
+WallDuration: {walltime}
+CpuDuration: {cputime}
+NumberOfJobs: {count}'''
+
+    def __init__(self, recorddata, timeframe, gocdb_name, conf_benchmark):
+        self.recorddata = recorddata
+        self.recorddata['month'] = timeframe.month
+        self.recorddata['year'] = timeframe.year
+        self.recorddata['gocdb_name'] = gocdb_name
+        self.recorddata['voinfo'] = self.__vo_info()
+        if self.recorddata['benchmark'] is None:
+            self.recorddata['benchmark'] = conf_benchmark
+        self.__benchmark()
+
+    def __benchmark(self):
+        (type, value) = self.recorddata['benchmark'].split(':', 2)
+        self.recorddata['benchmark_type'] = type
+        self.recorddata['benchmark_value'] = value
+
+    def __vo_info(self):
+        if self.recorddata['wlcgvo'] is None:
+            return ''
+        wlcgvo = self.recorddata['wlcgvo']
+        (group, role) = ('/' + wlcgvo, 'Role=NULL')
+        if self.recorddata['fqan'] is not None:
+            (fqan_group, fqan_role, _) = get_fqan_components(self.recorddata['fqan'])
+            if fqan_group is not None:
+                group = fqan_group
+            if fqan_role is not None:
+                role = fqan_role
+        return self.__voinfo_template.format(**{
+            'wlcgvo': wlcgvo,
+            'fqangroup': group,
+            'fqanrole': role
+        })
+
+    def get_record(self):
+        return self.__record_template.format(**self.recorddata)

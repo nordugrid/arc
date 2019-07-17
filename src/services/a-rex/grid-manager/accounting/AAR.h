@@ -53,7 +53,7 @@ class AAR {
   public:
     AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), 
                exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
-               nodecount(0), cpucount(0), usedmemory(0), usedvirtmemory(0),
+               nodecount(1), cpucount(1), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),
                usedscratch(0), stageinvolume(0), stageoutvolume(0) {}
     /* Unique job ids */
