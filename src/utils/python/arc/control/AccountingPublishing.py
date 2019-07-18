@@ -55,29 +55,6 @@ def datetime_to_iso8601(dt):
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def __next_month_start(t):
-    """Helper function to return datetime for the next calendar month start"""
-    nextmonth = t.month + 1
-    nextyear = t.year
-    if nextmonth == 13:
-        nextmonth = 1
-        nextyear += 1
-    return datetime.datetime(nextyear, nextmonth, 1, 0, 0, 0)
-
-
-def split_timeframe(starttime, endtime):
-    """Return list of timeframe tuples that split requested range on monthly basis"""
-    timeframes = []
-    framestart = starttime
-    nextmonth = __next_month_start(starttime)
-    while endtime > nextmonth:
-        timeframes.append((framestart, nextmonth))
-        framestart = nextmonth
-        nextmonth = __next_month_start(framestart)
-    timeframes.append((framestart, endtime))
-    return timeframes
-
-
 class RecordsPublisher(object):
     """Class for publishing accounting records to central network services"""
     def __init__(self, arcconfig):
@@ -166,12 +143,18 @@ class RecordsPublisher(object):
         cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name, benchmark=conf_benchmark,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
         # summary records
-        summaries = self.adb.get_apel_summaries()
         apelsummaries = [
-            APELSummaryRecord(rec, datetime.datetime.today(), gocdb_name, conf_benchmark).get_record()
-            for rec in summaries
+            APELSummaryRecord(rec, gocdb_name, conf_benchmark).get_record()
+            for rec in self.adb.get_apel_summaries()
         ]
+        apelsyncs = [
+            APELSyncRecord(rec, gocdb_name).get_record()
+            for rec in self.adb.get_apel_sync()
+        ]
+        print('=========SUMMARIES==========')
         print('\n%%\n'.join(apelsummaries))
+        print('=========SYNC==========')
+        print('\n%%\n'.join(apelsyncs))
         # TODO: real publishing
         # print('<?xml version="1.0" encoding="utf-8"?>')
         # print(random.choice(cars).get_xml())
@@ -649,10 +632,8 @@ WallDuration: {walltime}
 CpuDuration: {cputime}
 NumberOfJobs: {count}'''
 
-    def __init__(self, recorddata, timeframe, gocdb_name, conf_benchmark):
+    def __init__(self, recorddata, gocdb_name, conf_benchmark):
         self.recorddata = recorddata
-        self.recorddata['month'] = timeframe.month
-        self.recorddata['year'] = timeframe.year
         self.recorddata['gocdb_name'] = gocdb_name
         self.recorddata['voinfo'] = self.__vo_info()
         if self.recorddata['benchmark'] is None:
@@ -680,6 +661,21 @@ NumberOfJobs: {count}'''
             'fqangroup': group,
             'fqanrole': role
         })
+
+    def get_record(self):
+        return self.__record_template.format(**self.recorddata)
+
+
+class APELSyncRecord(object):
+    __record_template = '''Site: {gocdb_name}
+SubmitHost: {endpoint}
+NumberOfJobs: {count}
+Month: {month}
+Year: {year}'''
+
+    def __init__(self, recorddata, gocdb_name):
+        self.recorddata = recorddata
+        self.recorddata['gocdb_name'] = gocdb_name
 
     def get_record(self):
         return self.__record_template.format(**self.recorddata)
