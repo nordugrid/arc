@@ -64,55 +64,43 @@ class RecordsPublisher(object):
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Accounting publihsing is not possible.')
             sys.exit(1)
+        self.arcconfig = arcconfig
         # get configured accounting targets and options
-        self.vomsless_vo = arcconfig.get_value('vomsless_vo', ['arex/jura'])
-        self.extra_vogroups = arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
-        self.sgas_blocks = arcconfig.get_subblocks('arex/jura/sgas')
-        self.apel_blocks = arcconfig.get_subblocks('arex/jura/apel')
-        self.confdict = arcconfig.get_config_dict(['arex/jura'] + self.sgas_blocks + self.apel_blocks)
-        # accounting database connection
-        adb_file = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting.db'
+        self.vomsless_vo = self.arcconfig.get_value('vomsless_vo', ['arex/jura'])
+        self.extra_vogroups = self.arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
+        self.conf_targets = map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas'))
+        self.conf_targets += map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel'))
+        # accounting database files and connection
+        accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/')
+        adb_file = accounting_dir + '/accounting.db'
         self.adb = AccountingDB(adb_file)
+        # publishing state database file
+        self.pdb_file = accounting_dir + '/publishing.db'
 
     def __del__(self):
         if self.adb is not None:
             del self.adb
             self.adb = None
 
-    def __vo_filter(self, target_conf):
-        # add WLCG VO filtering if defined in arc.conf
-        if 'vofilter' in target_conf:
-            vos = []
-            if not isinstance(target_conf['vofilter'], list):
-                vos.append(target_conf['vofilter'])
-            else:
-                vos += target_conf['vofilter']
-            self.logger.info('VO filtering is configured. Quierying jobs owned by this WLCG VO(s): %s', ','.join(vos))
-            self.adb.filter_wlcgvos(vos)
-
-    def publish_sgas(self, target_conf):
-        """Publish to SGAS target"""
-        self.adb.filters_clean()
-        self.adb.filter_statuses(['completed', 'failed'])
-        self.__vo_filter(target_conf)
-        # TODO: Apply timerange filters interval in target_conf or query the database for latest
-        # get AARs from database
-        self.logger.debug('Querying AARS from accounting database')
-        aars = self.adb.get_aars(resolve_ids=True)
-        self.logger.info('Accounting database query returned %s AARs', len(aars))
-        self.logger.debug('Querying additional job information about AARs')
-        self.adb.enrich_aars(aars, authtokens=True, rtes=True, dtrs=True, extra=True)
-        # get UR parameters
-        localid_prefix = target_conf['localid_prefix'] if 'localid_prefix' in target_conf else None
-        # create URs
-        self.logger.debug('Going to create OGF.98 Usage Records based on the AARs')
-        urs = [UsageRecord(aar, localid_prefix=localid_prefix,
-                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
-        # TODO: real publishing
-        print('<?xml version="1.0" encoding="utf-8"?>')
-        print(random.choice(urs).get_xml())
+    def __get_target_confdict(self, ttype, target):
+        """Get accounting target configuration and check mandatory options"""
+        arcconfdict = self.arcconfig.get_config_dict([target])
+        if target not in arcconfdict:
+            self.logger.error('Failed to find %s target configuration.')
+            return None
+        targetconf = arcconfdict[target]
+        if 'targeturl' not in targetconf:
+            self.logger.error('Target URL is mandatory for publishing but missing in [%s] block.'
+                              'Block processing skipped.')
+            return None
+        if ttype == 'apel' and 'gocdb_name' not in targetconf:
+            self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
+                              'Records will not be reported to %s target.', target, targetconf['targeturl'])
+            return None
+        return targetconf
 
     def __config_benchmark_value(self, confdict):
+        """Return fallback benchmark value in accordance to arc.conf"""
         if 'benchmark_type' in confdict and 'benchmark_value' in confdict:
             if confdict['benchmark_type'] in __allowed_benchmark_types:
                 return '{benchmark_type}:{benchmark_value}'.format(**confdict)
@@ -123,12 +111,70 @@ class RecordsPublisher(object):
                             'All records without acounted benchmark will be reported with "Si2k:1.0"')
         return 'Si2k:1.0'
 
-    def publish_apel(self, target_conf):
-        """Publish to all APEL targets"""
+    def __add_vo_filter(self, target_conf):
+        """Add WLCG VO filtering if defined in arc.conf"""
+        if 'vofilter' in target_conf:
+            vos = []
+            if not isinstance(target_conf['vofilter'], list):
+                vos.append(target_conf['vofilter'])
+            else:
+                vos += target_conf['vofilter']
+            self.logger.info('VO filtering is configured. Quierying jobs owned by this WLCG VO(s): %s', ','.join(vos))
+            self.adb.filter_wlcgvos(vos)
+
+    def __init_adb_filters(self, endfrom, endtill):
         self.adb.filters_clean()
+        # timerange filters first
+        self.adb.filter_endfrom(endfrom)
+        if endtill is not None:
+            self.adb.filter_endtill(endtill)
+        # only finished jobs
         self.adb.filter_statuses(['completed', 'failed'])
-        self.__vo_filter(target_conf)
-        # TODO: Apply timerange filters interval in target_conf or query the database for latest
+
+    def publish_sgas(self, target_conf, endfrom, endtill=None):
+        """Publish to SGAS target"""
+        self.__init_adb_filters(endfrom, endtill)
+        # optional WLCG VO filtering
+        self.__add_vo_filter(target_conf)
+        # query latest job endtime in this records query
+        latest_endtime = self.adb.get_latest_endtime()
+        if latest_endtime is None:
+            self.logger.info('There are no records to publish. Nothing to do')
+            return None
+
+        # get AARs from database
+        self.logger.debug('Querying AARS from accounting database')
+        aars = self.adb.get_aars(resolve_ids=True)
+        self.logger.info('Accounting database query returned %s AARs', len(aars))
+        self.logger.debug('Querying additional job AARs information')
+        self.adb.enrich_aars(aars, authtokens=True, rtes=True, dtrs=True, extra=True)
+        # get UR parameters
+        localid_prefix = target_conf['localid_prefix'] if 'localid_prefix' in target_conf else None
+        # build URs
+        self.logger.debug('Going to create OGF.98 Usage Records based on the AARs')
+        urs = [UsageRecord(aar, localid_prefix=localid_prefix,
+                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+        if not urs:
+            self.logger.error('Failed to build OGF.98 Usage Records for SGAS publishing.')
+            return None
+        # TODO: real publishing
+        print('<?xml version="1.0" encoding="utf-8"?>')
+        print(random.choice(urs).get_xml())
+        # no failures on the way: return latest endtime for records published
+        return latest_endtime
+
+    def publish_apel(self, target_conf, endfrom, endtill=None):
+        """Publish to all APEL targets"""
+        self.__init_adb_filters(endfrom, endtill)
+        # optional WLCG VO filtering
+        self.__add_vo_filter(target_conf)
+        # query latest job endtime in this records query
+        latest_endtime = self.adb.get_latest_endtime()
+        if latest_endtime is None:
+            self.logger.info('There are no records to publish. Nothing to do.')
+            return None
+
+        # TODO: switch methods
         # get AARs from database
         self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
@@ -138,50 +184,55 @@ class RecordsPublisher(object):
         # get UR parameters
         gocdb_name = target_conf['gocdb_name']
         conf_benchmark = self.__config_benchmark_value(target_conf)
-        # create URs
+        # create CAR URs
         self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
         cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name, benchmark=conf_benchmark,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
         # summary records
+        self.logger.debug('Querying APEL Summary data from accounting database')
         apelsummaries = [
             APELSummaryRecord(rec, gocdb_name, conf_benchmark).get_record()
             for rec in self.adb.get_apel_summaries()
         ]
+        self.logger.debug('Querying APEL Sync data from accounting database')
         apelsyncs = [
             APELSyncRecord(rec, gocdb_name).get_record()
             for rec in self.adb.get_apel_sync()
         ]
         print('=========SUMMARIES==========')
-        print('\n%%\n'.join(apelsummaries))
+        print(APELSummaryRecord.join_str().join(apelsummaries))
         print('=========SYNC==========')
-        print('\n%%\n'.join(apelsyncs))
-        # TODO: real publishing
-        # print('<?xml version="1.0" encoding="utf-8"?>')
-        # print(random.choice(cars).get_xml())
+        print(APELSyncRecord.join_str().join(apelsyncs))
+        # no failures on the way: return latest endtime for records published
+        return latest_endtime
 
-    def publish(self):
-        """Publish records"""
-        # TODO: RECORDS SELECTION MOST PROBABLY PER TARGET OR INTEGRATED INTERVAL QUERY
-        # TODO: interval from the command line for republishing
-        # TODO: dedicated database to track what is published (for regular publishing, but not for republishing)
-        for sb in self.sgas_blocks:
-            if 'targeturl' not in self.confdict[sb]:
-                self.logger.error('Target URL is mandatory for SGAS publishing but missing in [%s] block.'
-                                  'Block processing skipped.')
-                continue
-            self.publish_sgas(self.confdict[sb])
+    def republish_configured(self, endfrom, endtill=None):
+        # find config
+        targetconf = {}
+        self.publish_apel(targetconf, endfrom, endtill)
+        pass
 
-        for ab in self.apel_blocks:
-            # mandatory config options check
-            if 'targeturl' not in self.confdict[ab]:
-                self.logger.error('Target URL is mandatory for APEL publishing but missing in [%s] block.'
-                                  'Block processing skipped.', ab)
+    def publish_regular(self):
+        """Publish to all configured targets regularly using latest published date stored in database"""
+        for (ttype, target) in self.conf_targets:
+            # get target config dict
+            targetconf = self.__get_target_confdict(ttype, target)
+            if targetconf is None:
                 continue
-            if 'gocdb_name' not in self.confdict[ab]:
-                self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
-                                  'Records will not be reported to %s target.', ab, self.confdict[ab]['targeturl'])
-                continue
-            self.publish_apel(self.confdict[ab])
+            # fetch latest published record timestamp for this target
+            self.adb.attach_publishing_db(self.pdb_file)
+            endfrom = self.adb.get_last_published(target)
+            self.logger.info('Publishing latest accounting records to [%s] target (finished since %s).',
+                             target, datetime.datetime.fromtimestamp(endfrom))
+            # do publishing
+            latest = None
+            if ttype == 'apel':
+                latest = self.publish_apel(targetconf, endfrom)
+            elif ttype == 'sgas':
+                latest = self.publish_sgas(targetconf, endfrom)
+            # update latest published record timestamp
+            if latest is not None:
+                self.adb.set_last_published(target, latest)
 
 
 class JobAccountingRecord(object):
@@ -611,6 +662,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
 
 
 class APELSummaryRecord(object):
+    """Class representing APEL Summary Record"""
     __voinfo_template = '''
 VO: {wlcgvo}
 VOGroup: {fqangroup}
@@ -665,8 +717,21 @@ NumberOfJobs: {count}'''
     def get_record(self):
         return self.__record_template.format(**self.recorddata)
 
+    @staticmethod
+    def header():
+        return 'APEL-summary-job-message: v0.2'
+
+    @staticmethod
+    def join_str():
+        return '\n%%\n'
+
+    @staticmethod
+    def footer():
+        return '%%'
+
 
 class APELSyncRecord(object):
+    """Class representing APEL Sync Record"""
     __record_template = '''Site: {gocdb_name}
 SubmitHost: {endpoint}
 NumberOfJobs: {count}
@@ -679,3 +744,15 @@ Year: {year}'''
 
     def get_record(self):
         return self.__record_template.format(**self.recorddata)
+
+    @staticmethod
+    def header():
+        return 'APEL-sync-message: v0.1'
+
+    @staticmethod
+    def join_str():
+        return '\n%%\n'
+
+    @staticmethod
+    def footer():
+        return '%%'

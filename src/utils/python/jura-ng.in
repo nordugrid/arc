@@ -56,4 +56,4 @@ if __name__ == '__main__':
         logger.setLevel(loglevel)
 
     rp = AccountingPublishing.RecordsPublisher(config)
-    rp.publish()
+    rp.publish_regular()

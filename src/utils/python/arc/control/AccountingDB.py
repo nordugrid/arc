@@ -68,6 +68,8 @@ class AccountingDB(object):
         self.endpoints = {}
         # select aggregate filtering
         self.sqlfilter = SQLFilter()
+        # publishing db
+        self.attached_publishing_db = False
 
     def close(self):
         """Terminate database connection"""
@@ -238,20 +240,24 @@ class AccountingDB(object):
             self.sqlfilter.add('AND EndpointID IN ({0})'.format(','.join(['?'] * len(filter_ids))),
                                tuple(filter_ids))
 
+    @staticmethod
+    def unixtimestamp(t):
+        """Return unix timestamp representation of date"""
+        if isinstance(t, (datetime.datetime, datetime.date)):
+            return time.mktime(t.timetuple())  # works in Python 2.6
+        return t
+
     def filter_startfrom(self, stime):
         """Add job start time filtering to the select queries"""
-        unixtime = time.mktime(stime.timetuple())  # works in Python 2.6
-        self.sqlfilter.add('AND SubmitTime > ?', (unixtime,))
+        self.sqlfilter.add('AND SubmitTime > ?', (self.unixtimestamp(stime),))
 
     def filter_endtill(self, etime):
         """Add job end time filtering (end before) to the select queries"""
-        unixtime = time.mktime(etime.timetuple())  # works in Python 2.6
-        self.sqlfilter.add('AND EndTime < ?', (unixtime,))
+        self.sqlfilter.add('AND EndTime <= ?', (self.unixtimestamp(etime),))
 
     def filter_endfrom(self, etime):
         """Add job end time filtering (end after) to the select queries"""
-        unixtime = time.mktime(etime.timetuple())  # works in Python 2.6
-        self.sqlfilter.add('AND EndTime > ?', (unixtime,))
+        self.sqlfilter.add('AND EndTime > ?', (self.unixtimestamp(etime),))
 
     def filter_jobids(self, jobids):
         """Add jobid filtering to the select queries"""
@@ -586,6 +592,70 @@ class AccountingDB(object):
                 'endpoint': self.endpoints['byid'][res[2]][1]
             })
         return syncs
+
+    def get_latest_endtime(self):
+        """Return latest endtime for records matching defined filters"""
+        sql = 'SELECT MAX(EndTime) FROM AAR'
+        for res in self.__filtered_query(sql, errorstr='Failed to get latest endtime for records from database'):
+            return res[0]
+        return None
+
+    # Publishing state recording
+    def attach_publishing_db(self, dbfile):
+        """Attach publishing database to current connection"""
+        # already attached, nothing to do
+        if self.attached_publishing_db:
+            return
+        # attach database
+        sql = 'ATTACH DATABASE ? AS pub'
+        dbinit_sql = '''CREATE TABLE IF NOT EXISTS pub.AccountingTargets (
+              TargetID     TEXT UNIQUE NOT NULL,
+              LastEndTime  INTEGER NOT NULL
+            )'''
+        if not os.path.exists(dbfile):
+            self.logger.info('Cannot find accounting publishing database file, will going to init %s.', dbfile)
+        try:
+            self.con.execute(sql, (dbfile, ))
+        except sqlite3.Error as e:
+            self.logger.error('Failed to attach accounting publishing database at %s to the current connection. '
+                              'Error: %s', dbfile, str(e))
+            sys.exit(1)
+        # create table if not exist
+        try:
+            self.con.execute(dbinit_sql)
+        except sqlite3.Error as e:
+            self.logger.error('Failed to initialize accounting publishing database schema. '
+                              'Error: %s', str(e))
+            sys.exit(1)
+        else:
+            self.con.commit()
+        self.attached_publishing_db = True
+
+    def set_last_published(self, target_id, endtimestamp):
+        """Set latest records EndTime published to this target"""
+        sql = 'INSERT OR REPLACE INTO pub.AccountingTargets(TargetID, LastEndTime) VALUES(?, ?)'
+        try:
+            self.con.execute(sql, (target_id, endtimestamp))
+        except sqlite3.Error as e:
+            self.logger.error('Failed to update published latest records EndTime for [%s] target. '
+                              'Error: %s', target_id, str(e))
+        else:
+            self.con.commit()
+
+    def get_last_published(self, target_id):
+        """Get latest records EndTime published to this target"""
+        sql = 'SELECT LastEndTime FROM pub.AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last update time for target [{0}]')
+        # if we publish fist time to this target avoid all eternity of records publishing
+        # for previous records pushing use republish functionality
+        if not updatetime:
+            self.logger.warn('There is no record of last published timestamp for target [%s] in the database. '
+                             'Records starting from Today will be reported. '
+                             'If you want to publish previous records to the new target, '
+                             'please proceed with data republishing.', target_id)
+            updatetime = time.mktime(datetime.date.today().timetuple())  # works in Python 2.6
+            self.set_last_published(target_id, updatetime)
+        return updatetime
 
 
 class AAR(object):
