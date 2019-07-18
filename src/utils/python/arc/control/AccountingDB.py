@@ -609,8 +609,9 @@ class AccountingDB(object):
         # attach database
         sql = 'ATTACH DATABASE ? AS pub'
         dbinit_sql = '''CREATE TABLE IF NOT EXISTS pub.AccountingTargets (
-              TargetID     TEXT UNIQUE NOT NULL,
-              LastEndTime  INTEGER NOT NULL
+              TargetID    TEXT UNIQUE NOT NULL,
+              LastEndTime INTEGER NOT NULL,
+              LastReport  INTEGER NOT NULL
             )'''
         if not os.path.exists(dbfile):
             self.logger.info('Cannot find accounting publishing database file, will going to init %s.', dbfile)
@@ -631,21 +632,23 @@ class AccountingDB(object):
             self.con.commit()
         self.attached_publishing_db = True
 
-    def set_last_published(self, target_id, endtimestamp):
+    def set_last_published_endtime(self, target_id, endtimestamp):
         """Set latest records EndTime published to this target"""
-        sql = 'INSERT OR REPLACE INTO pub.AccountingTargets(TargetID, LastEndTime) VALUES(?, ?)'
+        sql = 'INSERT OR REPLACE INTO pub.AccountingTargets(TargetID, LastEndTime, LastReport) ' \
+              'VALUES(?, ?, ?)'
+        publish_time = self.unixtimestamp(datetime.datetime.today())
         try:
-            self.con.execute(sql, (target_id, endtimestamp))
+            self.con.execute(sql, (target_id, endtimestamp, publish_time))
         except sqlite3.Error as e:
-            self.logger.error('Failed to update published latest records EndTime for [%s] target. '
+            self.logger.error('Failed to update latest published records EndTime for [%s] target. '
                               'Error: %s', target_id, str(e))
         else:
             self.con.commit()
 
-    def get_last_published(self, target_id):
+    def get_last_published_endtime(self, target_id):
         """Get latest records EndTime published to this target"""
         sql = 'SELECT LastEndTime FROM pub.AccountingTargets WHERE TargetID = ?'
-        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last update time for target [{0}]')
+        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last published endtime for target [{0}]')
         # if we publish fist time to this target avoid all eternity of records publishing
         # for previous records pushing use republish functionality
         if not updatetime:
@@ -653,8 +656,16 @@ class AccountingDB(object):
                              'Records starting from Today will be reported. '
                              'If you want to publish previous records to the new target, '
                              'please proceed with data republishing.', target_id)
-            updatetime = time.mktime(datetime.date.today().timetuple())  # works in Python 2.6
-            self.set_last_published(target_id, updatetime)
+            updatetime = self.unixtimestamp(datetime.date.today())
+            self.set_last_published_endtime(target_id, updatetime)
+        return updatetime
+
+    def get_last_report_time(self, target_id):
+        """Get time of the latest report to this target"""
+        sql = 'SELECT LastReport FROM pub.AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last report time for target [{0}]')
+        if not updatetime:
+            updatetime = 0
         return updatetime
 
 

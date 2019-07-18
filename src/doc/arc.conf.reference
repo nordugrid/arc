@@ -1602,11 +1602,11 @@
 ## default: 50
 #urbatchsize=80
 
-## urdelivery_frequency = seconds - Specifies the minimal treshold of the interval between 
+## urdelivery_frequency = seconds - Add optional minimal treshold of the interval between 
 ## subsequent records publishing to this target.
 ## Note that the actual delivery interval is the value divisible by "urdelivery_frequency" 
 ## defined in [arex/jura] block that define the entire JURA process invokation frequency.
-## default: 3600
+## default: undefined
 #urdelivery_frequency=3600
 
 ## legacy_fallback = yes/no - If set to "yes" this target will be handled with legacy code 
@@ -1684,7 +1684,7 @@
 ## default: 1000
 #urbatchsize=1000
 
-## urdelivery_frequency = seconds - Specifies the minimal treshold of the interval between
+## urdelivery_frequency = seconds - Add optional minimal treshold of the interval between
 ## subsequent records publishing to this target.
 ## Note that the actual delivery interval is the value divisible by "urdelivery_frequency"
 ## defined in [arex/jura] block that define the entire JURA process invokation frequency.

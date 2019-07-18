@@ -9,6 +9,7 @@ import sys
 import logging
 import re
 import datetime
+import time
 
 import random
 
@@ -91,7 +92,7 @@ class RecordsPublisher(object):
         targetconf = arcconfdict[target]
         if 'targeturl' not in targetconf:
             self.logger.error('Target URL is mandatory for publishing but missing in [%s] block.'
-                              'Block processing skipped.')
+                              'Block processing skipped.', target)
             return None
         if ttype == 'apel' and 'gocdb_name' not in targetconf:
             self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
@@ -173,44 +174,71 @@ class RecordsPublisher(object):
         if latest_endtime is None:
             self.logger.info('There are no records to publish. Nothing to do.')
             return None
-
-        # TODO: switch methods
-        # get AARs from database
-        self.logger.debug('Querying AARS from accounting database')
-        aars = self.adb.get_aars(resolve_ids=True)
-        self.logger.info('Accounting database query returned %s AARs', len(aars))
-        self.logger.debug('Querying additional job information about AARs')
-        self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
-        # get UR parameters
-        gocdb_name = target_conf['gocdb_name']
+        # get fallback benchmark values from config
         conf_benchmark = self.__config_benchmark_value(target_conf)
-        # create CAR URs
-        self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
-        cars = [ComputeAccountingRecord(aar, gocdb_name=gocdb_name, benchmark=conf_benchmark,
+        if 'apel_messages' not in target_conf:
+            self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
+            target_conf['apel_messages'] = 'summaries'
+        if target_conf['apel_messages'] == 'urs' or target_conf['apel_messages'] == 'both':
+            # get individual AARs from database
+            self.logger.debug('Querying AARS from accounting database')
+            aars = self.adb.get_aars(resolve_ids=True)
+            self.logger.info('Accounting database query returned %s AARs', len(aars))
+            self.logger.debug('Querying additional job information about AARs')
+            self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
+            # create EMI CAR URs
+            self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
+            cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'], benchmark=conf_benchmark,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
-        # summary records
-        self.logger.debug('Querying APEL Summary data from accounting database')
-        apelsummaries = [
-            APELSummaryRecord(rec, gocdb_name, conf_benchmark).get_record()
-            for rec in self.adb.get_apel_summaries()
-        ]
+            if not cars:
+                self.logger.error('Failed to build EMI CAR v1.2 for APEL publishing.')
+                return None
+            # TODO: write it down to target outgoing
+        if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
+            # summary records
+            self.logger.debug('Querying APEL Summary data from accounting database')
+            apelsummaries = [
+                APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark).get_record()
+                for rec in self.adb.get_apel_summaries()
+            ]
+            if not apelsummaries:
+                self.logger.error('Failed to build APEL summaries for publishing.')
+                return None
+            # TODO: write it down to target outgoing
+            print('=========SUMMARIES==========')
+            print(APELSummaryRecord.join_str().join(apelsummaries))
+        # Sync messages are always present
         self.logger.debug('Querying APEL Sync data from accounting database')
         apelsyncs = [
-            APELSyncRecord(rec, gocdb_name).get_record()
+            APELSyncRecord(rec, target_conf['gocdb_name']).get_record()
             for rec in self.adb.get_apel_sync()
         ]
-        print('=========SUMMARIES==========')
-        print(APELSummaryRecord.join_str().join(apelsummaries))
+        # TODO: write it down to target outgoing
         print('=========SYNC==========')
         print(APELSyncRecord.join_str().join(apelsyncs))
         # no failures on the way: return latest endtime for records published
         return latest_endtime
 
-    def republish_configured(self, endfrom, endtill=None):
-        # find config
-        targetconf = {}
-        self.publish_apel(targetconf, endfrom, endtill)
-        pass
+    def republish_configured(self, targetname, endfrom, endtill=None):
+        targetconf = None
+        targettype = None
+        for (ttype, target) in self.conf_targets:
+            (_, tname) = target.split(':')
+            if targetname == tname.strip():
+                targetconf = self.__get_target_confdict(ttype, target)
+                targettype = ttype
+                break
+        if targetconf is None:
+            self.logger.error('Failed to find target %s configuration in the arc.conf to do republishing.', targetname)
+            sys.exit(1)
+        # publish without recording the last intervals
+        latest = None
+        if targettype == 'apel':
+            latest = self.publish_apel(targetconf, endfrom, endtill)
+        elif targettype == 'sgas':
+            latest = self.publish_sgas(targetconf, endfrom, endtill)
+        if latest is None:
+            sys.exit(1)
 
     def publish_regular(self):
         """Publish to all configured targets regularly using latest published date stored in database"""
@@ -219,9 +247,24 @@ class RecordsPublisher(object):
             targetconf = self.__get_target_confdict(ttype, target)
             if targetconf is None:
                 continue
+            # skip legacy fallback targets
+            if 'legacy_fallback' in targetconf:
+                if targetconf['legacy_fallback'] == 'yes':
+                    self.logger.error(
+                        'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
+                continue
+            # constrains on reporting frequency
+            if 'urdelivery_frequency' in targetconf:
+                lastreported = self.adb.get_last_report_time(target)
+                unixtime_now = time.mktime(datetime.datetime.today().timetuple())
+                if (unixtime_now - lastreported) < int(targetconf['urdelivery_frequency']):
+                    self.logger.debug('Records are reported to [%s] target less than %s seconds ago. '
+                                      'Skipping publishing during this run due to "urdelivery_frequency" constraint.',
+                                      target, targetconf['urdelivery_frequency'])
+                    continue
             # fetch latest published record timestamp for this target
             self.adb.attach_publishing_db(self.pdb_file)
-            endfrom = self.adb.get_last_published(target)
+            endfrom = self.adb.get_last_published_endtime(target)
             self.logger.info('Publishing latest accounting records to [%s] target (finished since %s).',
                              target, datetime.datetime.fromtimestamp(endfrom))
             # do publishing
@@ -232,7 +275,7 @@ class RecordsPublisher(object):
                 latest = self.publish_sgas(targetconf, endfrom)
             # update latest published record timestamp
             if latest is not None:
-                self.adb.set_last_published(target, latest)
+                self.adb.set_last_published_endtime(target, latest)
 
 
 class JobAccountingRecord(object):
