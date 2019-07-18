@@ -436,3 +436,48 @@ class AccountingControl(ComponentControl):
         # per-job accounting information
         job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
         AccountingControl.register_job_parser(job_accounting_ctl)
+
+        # republish
+        accounting_republish = accounting_actions.add_parser('republish',
+                                                             help='Republish accounting records to defined target')
+        accounting_republish.add_argument('-b', '--from', type=valid_datetime_type, required=True,
+                                          help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
+        accounting_republish.add_argument('-e', '--till', type=valid_datetime_type, required=True,
+                                          help='Define republishing timeframe end (YYYY-MM-DD [HH:mm[:ss]])')
+
+        accounting_target = accounting_republish.add_mutually_exclusive_group(required=True)
+        accounting_target.add_argument('-t', '--target-name',
+                                       help='Specify configured accounting target name from arc.conf (e.g. neic_sgas).')
+        accounting_target.add_argument('-a', '--apel-url',
+                                       help='Specify APEL server URL (e.g. https://mq.cro-ngi.hr:6162)')
+        accounting_target.add_argument('-s', '--sgas-url',
+                                       help='Specify SGAS server URL (e.g. https://grid.uio.no:8001/logger)')
+
+        accounting_republish.add_argument_group(title='Configured Target',
+                                  description='For arc.conf targets (--target-name) all options are initially fetched '
+                                              'from the configuration. Target-specific options defined on the '
+                                              'command line can be used to override the arc.conf values.')
+
+        apel_options = accounting_republish.add_argument_group(title='APEL',
+                                  description='Options to be used when target is specified using --apel-url')
+        apel_options.add_argument('--apel-topic', required=False, help='Define APEL topic (default is %(default)s)',
+                                  default='/queue/global.accounting.cpu.central',
+                                  choices=['/queue/global.accounting.cpu.central',
+                                           '/queue/global.accounting.test.cpu.central'])
+        apel_options.add_argument('--apel-messages', required=False, default='summaries',
+                                  help='Define APEL messages (default is %(default)s)',
+                                  choices=['urs', 'summaries', 'both'])
+        apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
+        apel_options.add_argument('--benchmark', required=False,
+                                  help='Define fallback benchmark value ("type:value")')
+
+        sgas_options = accounting_republish.add_argument_group(title='SGAS',
+                                  description='Options to be used when target is specified using --sgas-url')
+        sgas_options.add_argument('--localid-prefix', required=False, help='Define optional SGAS localid prefix')
+
+        common_options = accounting_republish.add_argument_group(title='Other options',
+                                                                 description='Works for both APEL and SGAS targets')
+        common_options.add_argument('--vofilter', required=False, action='append',
+                                    help='Republish only jobs owned by these VOs')
+        common_options.add_argument('--urbatchsize', required=False, help='Size of records batch to be send '
+                                                                          '(default is 50 for SGAS, 1000 for APEL)')

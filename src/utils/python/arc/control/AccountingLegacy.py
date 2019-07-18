@@ -216,7 +216,7 @@ class LegacyAccountingControl(ComponentControl):
         accounting_url.add_argument('-a', '--apel-url',
                                     help='Specify APEL server URL (e.g. https://mq.cro-ngi.hr:6163)')
         accounting_url.add_argument('-s', '--sgas-url',
-                                    help='Specify APEL server URL (e.g. https://grid.uio.no:8001/logger)')
+                                    help='Specify SGAS server URL (e.g. https://grid.uio.no:8001/logger)')
         accounting_republish.add_argument('--db-init', action='store_true',
                                       help='Force accounting database init from arcctl')
         accounting_republish.add_argument('-t', '--apel-topic', default='/queue/global.accounting.cpu.central',
