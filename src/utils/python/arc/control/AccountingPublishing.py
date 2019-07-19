@@ -2,23 +2,41 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .AccountingDB import AccountingDB, AAR
-
 from arc.paths import ARC_VERSION
 
 import sys
-import os
 import logging
 import re
 import datetime
 import time
 
-import random
+# APELSSMSender dependencies:
+from dirq.QueueSimple import QueueSimple
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+arc_ssm = False
+try:
+    # third-party SSM libraries
+    from ssm import __version__ as ssm_version
+    from ssm.ssm2 import Ssm2, Ssm2Exception
+    from ssm.crypto import CryptoException
+except ImportError:
+    # re-distributed with NorduGrid ARC
+    arc_ssm = True
+    from arc.ssm import __version__ as ssm_version
+    from arc.ssm.ssm2 import Ssm2, Ssm2Exception
+    from arc.ssm.crypto import CryptoException
 
+
+# module regexes init
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
 
 __url_re = re.compile(r'^(?P<url>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*(?:(?P<path>/.*))?)$')
 
 
+# common helpers
 def get_fqan_components(fqan):
     """Return tuple of parsed VOMS FQAN parts"""
     (group, role, capability) = (None, None, None)
@@ -46,6 +64,8 @@ def get_url_components(url):
             url_dict['port'] = 80
         elif url_dict['protocol'] == 'https':
             url_dict['port'] = 443
+    else:
+        url_dict['port'] = int(url_dict['port'])
     return url_dict
 
 
@@ -72,6 +92,9 @@ def datetime_to_iso8601(dt):
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+#
+# Records publishing classes
+#
 class RecordsPublisher(object):
     """Class for publishing accounting records to central network services"""
     def __init__(self, arcconfig):
@@ -88,11 +111,11 @@ class RecordsPublisher(object):
         self.conf_targets = map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas'))
         self.conf_targets += map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel'))
         # accounting database files and connection
-        accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
-        adb_file = accounting_dir + '/accounting.db'
+        self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
+        adb_file = self.accounting_dir + '/accounting.db'
         self.adb = AccountingDB(adb_file)
         # publishing state database file
-        self.pdb_file = accounting_dir + '/publishing.db'
+        self.pdb_file = self.accounting_dir + '/publishing.db'
 
     def __del__(self):
         if self.adb is not None:
@@ -194,6 +217,18 @@ class RecordsPublisher(object):
             return None
         # get fallback benchmark values from config
         conf_benchmark = self.__config_benchmark_value(target_conf)
+        # parse targetURL and get necessary parameters for APEL publishing
+        urldict = get_url_components(target_conf['targeturl'])
+        target_conf['targethost'] = urldict['host']
+        target_conf['targetport'] = urldict['port']
+        target_conf['targetssl'] = True if urldict['protocol'] == 'https' else False
+        target_conf['dirq_dir'] = self.accounting_dir + '/ssm/' + urldict['host']
+        # add certificate/keys information to target config
+        for k in ['x509_host_cert', 'x509_host_key', 'x509_cert_dir']:
+            target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
+        # init SSM sender
+        apelssm = APELSSMSender(target_conf)
+        # query and queue messages for sending
         if 'apel_messages' not in target_conf:
             self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
             target_conf['apel_messages'] = 'summaries'
@@ -209,9 +244,10 @@ class RecordsPublisher(object):
             cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'], benchmark=conf_benchmark,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
             if not cars:
-                self.logger.error('Failed to build EMI CAR v1.2 for APEL publishing.')
+                self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
                 return None
-            # TODO: write it down to target outgoing
+            # enqueue CARs
+            apelssm.enqueue_cars(cars)
         if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
             # summary records
             self.logger.debug('Querying APEL Summary data from accounting database')
@@ -222,18 +258,20 @@ class RecordsPublisher(object):
             if not apelsummaries:
                 self.logger.error('Failed to build APEL summaries for publishing.')
                 return None
-            # TODO: write it down to target outgoing
-            print('=========SUMMARIES==========')
-            print(APELSummaryRecord.join_str().join(apelsummaries))
-        # Sync messages are always present
+            # enqueue summaries
+            apelssm.enqueue_summaries(apelsummaries)
+        # Sync messages are always sent
         self.logger.debug('Querying APEL Sync data from accounting database')
         apelsyncs = [
             APELSyncRecord(rec, target_conf['gocdb_name']).get_record()
             for rec in self.adb.get_apel_sync()
         ]
-        # TODO: write it down to target outgoing
-        print('=========SYNC==========')
-        print(APELSyncRecord.join_str().join(apelsyncs))
+        # enqueue sync messages
+        apelssm.enqueue_sync(apelsyncs)
+        # publish
+        if not apelssm.send():
+            self.logger.error('Failed to publish messages to APEL broker.')
+            return None
         # no failures on the way: return latest endtime for records published
         return latest_endtime
 
@@ -300,6 +338,96 @@ class RecordsPublisher(object):
                 self.adb.set_last_published_endtime(target, latest)
 
 
+class APELSSMSender(object):
+    """Send messages to APEL broker using SSM libraries"""
+    def __init__(self, targetconf):
+        self.logger = logging.getLogger('ARC.Accounting.APELSSM')
+        self.conf = targetconf
+        dirq_path = self.conf['dirq_dir']
+        self._dirq = QueueSimple(dirq_path)
+        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
+        # adjust SSM logging
+        ssmlogroot = 'arc.ssm' if arc_ssm else 'ssm'
+        ssmlogger = logging.getLogger(ssmlogroot)
+        ssmlogger.setLevel(self.logger.getEffectiveLevel())
+        log_handler_stderr = logging.StreamHandler()
+        log_handler_stderr.setFormatter(
+            logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+        ssmlogger.addHandler(log_handler_stderr)
+
+    def enqueue_cars(self, carlist):
+        for x in range(0, len(carlist), self.batchsize):
+            buf = StringIO.StringIO()
+            buf.write(ComputeAccountingRecord.batch_header())
+            buf.write(ComputeAccountingRecord.join_str().join(carlist[x:x + self.batchsize]))
+            buf.write(ComputeAccountingRecord.batch_footer())
+            self._dirq.add(buf.getvalue())
+            buf.close()
+            del buf
+
+    def enqueue_summaries(self, summaries):
+        for x in range(0, len(summaries), self.batchsize):
+            buf = StringIO.StringIO()
+            buf.write(APELSummaryRecord.header())
+            buf.write(APELSummaryRecord.join_str().join(summaries[x:x + self.batchsize]))
+            buf.write(APELSummaryRecord.footer())
+            self._dirq.add(buf.getvalue())
+            buf.close()
+            del buf
+
+    def enqueue_sync(self, syncs):
+        for x in range(0, len(syncs), self.batchsize):
+            buf = StringIO.StringIO()
+            buf.write(APELSyncRecord.header())
+            buf.write(APELSyncRecord.join_str().join(syncs[x:x + self.batchsize]))
+            buf.write(APELSyncRecord.footer())
+            self._dirq.add(buf.getvalue())
+            buf.close()
+            del buf
+
+    def send(self):
+        ssmsource = 'NorduGrid ARC redistributed' if arc_ssm else 'system-wide installed'
+        self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
+                         self.conf['targeturl'], ssmsource, *ssm_version)
+        self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
+        brokers = [(self.conf['targethost'], self.conf['targetport'])]
+        success = False
+        try:
+            # create SSM2 object for sender
+            sender = Ssm2(brokers,
+                          qpath=self.conf['dirq_dir'],
+                          cert=self.conf['x509_host_cert'],
+                          key=self.conf['x509_host_key'],
+                          capath=self.conf['x509_cert_dir'],
+                          dest=self.conf['topic'],
+                          use_ssl=self.conf['targetssl'])
+
+            if sender.has_msgs():
+                sender.handle_connect()
+                sender.send_all()
+                self.logger.debug('SSM records sending to %s has finished.', self.conf['targeturl'])
+            else:
+                self.logger.info('No messages found in %s to be sent.', self.conf['dirq_dir'])
+        except (Ssm2Exception, CryptoException) as e:
+            self.logger.error('SSM failed to send messages successfully. Error: %s', e)
+        except Exception as e:
+            self.logger.error('Unexpected exception in SSM (type %s). Error: %s. ', e.__class__, e)
+        else:
+            success = True
+
+        try:
+            sender.close_connection()
+        except UnboundLocalError:
+            # SSM not set up.
+            pass
+
+        self.logger.debug('SSM has shut down.')
+        return success
+
+
+#
+# Different accounting usage records
+#
 class JobAccountingRecord(object):
     """Base class for representing XML Job Accounting Records that implements common methots for all formats"""
     def __init__(self, aar):
@@ -318,6 +446,18 @@ class JobAccountingRecord(object):
         if extra in aar_extra:
             return '<{0}>{1}</{0}>'.format(node, aar_extra[extra])
         return ''
+
+    @staticmethod
+    def batch_header():
+        return '<?xml version="1.0" encoding="utf-8"?>\n<UsageRecords>'
+
+    @staticmethod
+    def join_str():
+        return ''
+
+    @staticmethod
+    def batch_footer():
+        return '</UsageRecords>\n'
 
     def get_xml(self):
         """Return record XML"""
@@ -754,6 +894,7 @@ CpuDuration: {cputime}
 NumberOfJobs: {count}'''
 
     def __init__(self, recorddata, gocdb_name, conf_benchmark):
+        self.logger = logging.getLogger('ARC.Accounting.APELSummary')
         self.recorddata = recorddata
         self.recorddata['gocdb_name'] = gocdb_name
         self.recorddata['voinfo'] = self.__vo_info()
@@ -798,7 +939,7 @@ NumberOfJobs: {count}'''
 
     @staticmethod
     def header():
-        return 'APEL-summary-job-message: v0.2'
+        return 'APEL-summary-job-message: v0.2\n'
 
     @staticmethod
     def join_str():
@@ -806,7 +947,7 @@ NumberOfJobs: {count}'''
 
     @staticmethod
     def footer():
-        return '%%'
+        return '\n%%\n'
 
 
 class APELSyncRecord(object):
@@ -818,6 +959,7 @@ Month: {month}
 Year: {year}'''
 
     def __init__(self, recorddata, gocdb_name):
+        self.logger = logging.getLogger('ARC.Accounting.APELSync')
         self.recorddata = recorddata
         self.recorddata['gocdb_name'] = gocdb_name
 
@@ -826,7 +968,7 @@ Year: {year}'''
 
     @staticmethod
     def header():
-        return 'APEL-sync-message: v0.1'
+        return 'APEL-sync-message: v0.1\n'
 
     @staticmethod
     def join_str():
@@ -834,4 +976,4 @@ Year: {year}'''
 
     @staticmethod
     def footer():
-        return '%%'
+        return '\n%%\n'
