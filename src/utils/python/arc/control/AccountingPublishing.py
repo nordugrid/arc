@@ -10,6 +10,12 @@ import re
 import datetime
 import time
 
+# SGASSender dependencies
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
+
 # APELSSMSender dependencies:
 from dirq.QueueSimple import QueueSimple
 try:
@@ -183,7 +189,22 @@ class RecordsPublisher(object):
         if latest_endtime is None:
             self.logger.info('There are no records to publish. Nothing to do')
             return None
-
+        # parse targetURL and get necessary parameters for SGAS publishing
+        urldict = get_url_components(target_conf['targeturl'])
+        if urldict['protocol'] != 'https':
+            self.logger.error('SGAS communication is only possible via HTTPS target URL.')
+            return None
+        target_conf['targethost'] = urldict['host']
+        target_conf['targetport'] = urldict['port']
+        urpath =  urldict['path'].rstrip('/')
+        if not urpath.endswith('/ur'):  # URs publishing path is '/sgas/ur'
+            urpath += '/ur'
+        target_conf['targetpath'] = urpath
+        # add certificate/keys information to target config
+        for k in ['x509_host_cert', 'x509_host_key', 'x509_cert_dir']:
+            target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
+        # init SGAS sender
+        sgassender = SGASSender(target_conf)
         # get AARs from database
         self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
@@ -199,9 +220,10 @@ class RecordsPublisher(object):
         if not urs:
             self.logger.error('Failed to build OGF.98 Usage Records for SGAS publishing.')
             return None
-        # TODO: real publishing
-        print('<?xml version="1.0" encoding="utf-8"?>')
-        print(random.choice(urs).get_xml())
+        # send usage records
+        if not sgassender.send(urs):
+            self.logger.error('Failed to publish messages to SGAS target.')
+            return None
         # no failures on the way: return latest endtime for records published
         return latest_endtime
 
@@ -251,10 +273,8 @@ class RecordsPublisher(object):
         if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
             # summary records
             self.logger.debug('Querying APEL Summary data from accounting database')
-            apelsummaries = [
-                APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark).get_record()
-                for rec in self.adb.get_apel_summaries()
-            ]
+            apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
+                             for rec in self.adb.get_apel_summaries()]
             if not apelsummaries:
                 self.logger.error('Failed to build APEL summaries for publishing.')
                 return None
@@ -262,10 +282,7 @@ class RecordsPublisher(object):
             apelssm.enqueue_summaries(apelsummaries)
         # Sync messages are always sent
         self.logger.debug('Querying APEL Sync data from accounting database')
-        apelsyncs = [
-            APELSyncRecord(rec, target_conf['gocdb_name']).get_record()
-            for rec in self.adb.get_apel_sync()
-        ]
+        apelsyncs = [APELSyncRecord(rec, target_conf['gocdb_name']) for rec in self.adb.get_apel_sync()]
         # enqueue sync messages
         apelssm.enqueue_sync(apelsyncs)
         # publish
@@ -338,6 +355,51 @@ class RecordsPublisher(object):
                 self.adb.set_last_published_endtime(target, latest)
 
 
+class SGASSender(object):
+    """Send messages to SGAS server"""
+    def __init__(self, targetconf):
+        self.logger = logging.getLogger('ARC.Accounting.SGAS')
+        self.conf = targetconf
+        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
+
+    def __post_xml(self, xmldata):
+        conn = httplib.HTTPSConnection(
+            host=self.conf['targethost'],
+            port=self.conf['targetport'],
+            key_file=self.conf['x509_host_key'],
+            cert_file=self.conf['x509_host_cert'],
+        )
+        sent = False
+        try:
+            # conn.set_debuglevel(1)
+            headers = {'Content-type': 'application/xml'}  #; charset=UTF-8
+            conn.request('POST', self.conf['targetpath'], str(xmldata), headers)
+            resp = conn.getresponse()
+            print(resp.read())
+            if resp.status != 200:
+                self.logger.error('Failed to POST records to SGAS server %s. Error code %s returned: %s',
+                                  self.conf['targethost'], str(resp.status), resp.reason)
+            sent = True
+        except Exception as e:
+            self.logger.error('Error connecting to SGAS server %s. Error: %s', self.conf['targethost'], str(e))
+
+        conn.close()
+        return sent
+
+    def send(self, urs):
+        for x in range(0, len(urs), self.batchsize):
+            buf = StringIO.StringIO()
+            buf.write(UsageRecord.batch_header())
+            buf.write(UsageRecord.join_str().join(map(lambda ur: ur.get_xml(), urs[x:x + self.batchsize])))
+            buf.write(UsageRecord.batch_footer())
+            published = self.__post_xml(buf.getvalue())
+            buf.close()
+            del buf
+            if not published:
+                return False
+        return True
+
+
 class APELSSMSender(object):
     """Send messages to APEL broker using SSM libraries"""
     def __init__(self, targetconf):
@@ -359,7 +421,8 @@ class APELSSMSender(object):
         for x in range(0, len(carlist), self.batchsize):
             buf = StringIO.StringIO()
             buf.write(ComputeAccountingRecord.batch_header())
-            buf.write(ComputeAccountingRecord.join_str().join(carlist[x:x + self.batchsize]))
+            buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
+                                                                  carlist[x:x + self.batchsize])))
             buf.write(ComputeAccountingRecord.batch_footer())
             self._dirq.add(buf.getvalue())
             buf.close()
@@ -369,7 +432,7 @@ class APELSSMSender(object):
         for x in range(0, len(summaries), self.batchsize):
             buf = StringIO.StringIO()
             buf.write(APELSummaryRecord.header())
-            buf.write(APELSummaryRecord.join_str().join(summaries[x:x + self.batchsize]))
+            buf.write(APELSummaryRecord.join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
             buf.write(APELSummaryRecord.footer())
             self._dirq.add(buf.getvalue())
             buf.close()
@@ -379,7 +442,7 @@ class APELSSMSender(object):
         for x in range(0, len(syncs), self.batchsize):
             buf = StringIO.StringIO()
             buf.write(APELSyncRecord.header())
-            buf.write(APELSyncRecord.join_str().join(syncs[x:x + self.batchsize]))
+            buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
             buf.write(APELSyncRecord.footer())
             self._dirq.add(buf.getvalue())
             buf.close()
@@ -446,18 +509,6 @@ class JobAccountingRecord(object):
         if extra in aar_extra:
             return '<{0}>{1}</{0}>'.format(node, aar_extra[extra])
         return ''
-
-    @staticmethod
-    def batch_header():
-        return '<?xml version="1.0" encoding="utf-8"?>\n<UsageRecords>'
-
-    @staticmethod
-    def join_str():
-        return ''
-
-    @staticmethod
-    def batch_footer():
-        return '</UsageRecords>\n'
 
     def get_xml(self):
         """Return record XML"""
@@ -675,6 +726,19 @@ class UsageRecord(JobAccountingRecord):
         xml += self.__dtr_data()
         self.xml += self.__xml_templates['ur-base'].format(**{'jobrecord': xml})
 
+    @staticmethod
+    def batch_header():
+        return '<UsageRecords>'
+        # return '<UsageRecords xmlns="http://eu-emi.eu/namespaces/2012/11/computerecord">'
+
+    @staticmethod
+    def join_str():
+        return ''
+
+    @staticmethod
+    def batch_footer():
+        return '</UsageRecords>'
+
 
 class ComputeAccountingRecord(JobAccountingRecord):
     """Class representing EMI CAR v1.2 format of job accounting records"""
@@ -868,6 +932,19 @@ class ComputeAccountingRecord(JobAccountingRecord):
         xml += self.__user_identity()
         xml += self.__job_data()
         self.xml += self.__xml_templates['ur-base'].format(**{'jobrecord': xml})
+
+    @staticmethod
+    def batch_header():
+        return '<?xml version="1.0" encoding="utf-8"?>\n' \
+               '<UsageRecords xmlns="http://eu-emi.eu/namespaces/2012/11/computerecord">'
+
+    @staticmethod
+    def join_str():
+        return ''
+
+    @staticmethod
+    def batch_footer():
+        return '</UsageRecords>'
 
 
 class APELSummaryRecord(object):
