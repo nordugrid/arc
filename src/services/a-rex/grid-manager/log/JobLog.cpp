@@ -22,6 +22,7 @@
 #include "../accounting/AccountingDBSQLite.h"
 #include "JobLog.h"
 
+#define ACCOUNTING_SUBDIR "accounting"
 #define ACCOUNTING_DB_FILE "accounting.db"
 
 namespace ARex {
@@ -242,7 +243,7 @@ bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
   }
 
   // Create accounting DB connection
-  std::string accounting_db_path = config.ControlDir() + G_DIR_SEPARATOR_S + ACCOUNTING_DB_FILE;
+  std::string accounting_db_path = config.ControlDir() + G_DIR_SEPARATOR_S + ACCOUNTING_SUBDIR + G_DIR_SEPARATOR_S + ACCOUNTING_DB_FILE;
   AccountingDBSQLite adb(accounting_db_path);
 
   if (!adb.IsValid()) {

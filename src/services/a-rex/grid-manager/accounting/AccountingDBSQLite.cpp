@@ -5,6 +5,7 @@
 #include <arc/FileUtils.h>
 #include <arc/DateTime.h>
 #include <arc/ArcLocation.h>
+#include <sys/stat.h>
 
 #include "../../SQLhelpers.h"
 
@@ -100,8 +101,12 @@ namespace ARex {
             const std::string dbdir = Glib::path_get_dirname(name);
             // Check if the parent directory exist
             if (!Glib::file_test(dbdir, Glib::FILE_TEST_EXISTS)) {
-                logger.msg(Arc::ERROR, "Accounting database cannot be created. Parent directory %s does not exist.", dbdir);
-                return;
+                if (Arc::DirCreate(dbdir, S_IRWXU, true)) {
+                    logger.msg(Arc::INFO, "Directory %s to store accounting database has been created.", dbdir);
+                } else {
+                    logger.msg(Arc::ERROR, "Accounting database cannot be created. Faile to create parent directory %s.", dbdir);
+                    return;
+                }
             } else if (!Glib::file_test(dbdir, Glib::FILE_TEST_IS_DIR)) {
                 logger.msg(Arc::ERROR, "Accounting database cannot be created: %s is not a directory", dbdir);
                 return;

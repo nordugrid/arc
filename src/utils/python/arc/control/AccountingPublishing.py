@@ -6,6 +6,7 @@ from .AccountingDB import AccountingDB, AAR
 from arc.paths import ARC_VERSION
 
 import sys
+import os
 import logging
 import re
 import datetime
@@ -87,7 +88,7 @@ class RecordsPublisher(object):
         self.conf_targets = map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas'))
         self.conf_targets += map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel'))
         # accounting database files and connection
-        accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/')
+        accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
         adb_file = accounting_dir + '/accounting.db'
         self.adb = AccountingDB(adb_file)
         # publishing state database file
