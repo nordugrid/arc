@@ -1638,6 +1638,7 @@
 ## allowedvalues: yes no
 ## default: no
 #use_ssl=yes
+## CHANGE: LEGACY OPTION, new framework follows targetURL protocol specification
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.

@@ -15,7 +15,7 @@ import random
 
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
 
-__allowed_benchmark_types = ['Si2k', 'Sf2k', 'HEPSPEC']
+__url_re = re.compile(r'^(?P<url>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*(?:(?P<path>/.*))?)$')
 
 
 def get_fqan_components(fqan):
@@ -30,7 +30,22 @@ def get_fqan_components(fqan):
             role = fqan_dict['role']
         if 'cap' in fqan_dict and fqan_dict['cap']:
             capability = fqan_dict['cap']
-    return (group, role, capability)
+    return group, role, capability
+
+
+def get_url_components(url):
+    """Return a dict of parsed URL, None if malformed (no match)"""
+    url_match = __url_re.match(url)
+    if not url_match:
+        return None
+    url_dict = url_match.groupdict()
+    # define well-known port for http(s) urls
+    if url_dict['port'] is None:
+        if url_dict['protocol'] == 'http':
+            url_dict['port'] = 80
+        elif url_dict['protocol'] == 'https':
+            url_dict['port'] = 443
+    return url_dict
 
 
 def duration_to_iso8601(seconds):
@@ -83,34 +98,36 @@ class RecordsPublisher(object):
             del self.adb
             self.adb = None
 
-    def __get_target_confdict(self, ttype, target):
+    def __get_target_confdict(self, target):
         """Get accounting target configuration and check mandatory options"""
         arcconfdict = self.arcconfig.get_config_dict([target])
         if target not in arcconfdict:
             self.logger.error('Failed to find %s target configuration.')
             return None
-        targetconf = arcconfdict[target]
+        return arcconfdict[target]
+
+    def __check_target_confdict(self, ttype, targetconf):
         if 'targeturl' not in targetconf:
-            self.logger.error('Target URL is mandatory for publishing but missing in [%s] block.'
-                              'Block processing skipped.', target)
-            return None
+            self.logger.error('Target URL is mandatory for publishing but missing.'
+                              'Target processing stopped.')
+            return False
+        targeturl = targetconf['targeturl']
+        if get_url_components(targeturl) is None:
+            self.logger.error('Target URL %s does not match URL syntax.', targeturl)
+            return False
         if ttype == 'apel' and 'gocdb_name' not in targetconf:
-            self.logger.error('GOCDB name is required for APEL publishing but missing in [%s] block.'
-                              'Records will not be reported to %s target.', target, targetconf['targeturl'])
-            return None
-        return targetconf
+            self.logger.error('GOCDB name is required for APEL publishing but missing in target configuration.'
+                              'Records will not be reported to %s target.', targeturl)
+            return False
+        return True
 
     def __config_benchmark_value(self, confdict):
         """Return fallback benchmark value in accordance to arc.conf"""
         if 'benchmark_type' in confdict and 'benchmark_value' in confdict:
-            if confdict['benchmark_type'] in __allowed_benchmark_types:
-                return '{benchmark_type}:{benchmark_value}'.format(**confdict)
-            self.logger.error('Unsupported benchmark type %s in the arc.conf configuration. '
-                              'Falling back to default "Si2k:1.0"')
-            return 'Si2k:1.0'
+            return '{benchmark_type}:{benchmark_value}'.format(**confdict)
         self.logger.warning('There is no benchmark value defined in the accounting target configuration. '
-                            'All records without acounted benchmark will be reported with "Si2k:1.0"')
-        return 'Si2k:1.0'
+                            'All records without associated benchmark value will be reported with "HEPSPEC:1.0"')
+        return 'HEPSPEC:1.0'
 
     def __add_vo_filter(self, target_conf):
         """Add WLCG VO filtering if defined in arc.conf"""
@@ -219,18 +236,18 @@ class RecordsPublisher(object):
         # no failures on the way: return latest endtime for records published
         return latest_endtime
 
-    def republish_configured(self, targetname, endfrom, endtill=None):
-        targetconf = None
-        targettype = None
+    def find_configured_target(self, targetname):
         for (ttype, target) in self.conf_targets:
             (_, tname) = target.split(':')
             if targetname == tname.strip():
-                targetconf = self.__get_target_confdict(ttype, target)
-                targettype = ttype
-                break
-        if targetconf is None:
-            self.logger.error('Failed to find target %s configuration in the arc.conf to do republishing.', targetname)
-            sys.exit(1)
+                targetconf = self.__get_target_confdict(target)
+                return targetconf, ttype
+        return None, None
+
+    def republish(self, targettype, targetconf, endfrom, endtill=None):
+        # check config for mandatory options
+        if not self.__check_target_confdict(targettype, targetconf):
+            return False
         # publish without recording the last intervals
         latest = None
         if targettype == 'apel':
@@ -238,14 +255,18 @@ class RecordsPublisher(object):
         elif targettype == 'sgas':
             latest = self.publish_sgas(targetconf, endfrom, endtill)
         if latest is None:
-            sys.exit(1)
+            return False
+        return True
 
     def publish_regular(self):
         """Publish to all configured targets regularly using latest published date stored in database"""
         for (ttype, target) in self.conf_targets:
             # get target config dict
-            targetconf = self.__get_target_confdict(ttype, target)
+            targetconf = self.__get_target_confdict(target)
             if targetconf is None:
+                continue
+            # check general target options
+            if not self.__check_target_confdict(ttype, targetconf):
                 continue
             # skip legacy fallback targets
             if 'legacy_fallback' in targetconf:
@@ -617,6 +638,20 @@ class ComputeAccountingRecord(JobAccountingRecord):
             'groups': self.__user_groups_xml()
         })
 
+    def __filter_benchmark(self, benchmark):
+        """Use only APEL supported benchmarks"""
+        __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
+        bsplit = benchmark.split(':', 2)
+        if len(bsplit) != 2:
+            self.logger.error('Malformed benchmark definition string: "HEPSPEC:1.0" will be used instead.')
+            return 'HEPSPEC', '1.0'
+        (benchmark_type, benchmark_value) = bsplit
+        if benchmark_type not in __allowed_benchmark_types:
+            self.logger.error('Benchmark type %s in not supported by APEL. "HEPSPEC:1.0" will be used instead.',
+                              benchmark_type)
+            return 'HEPSPEC', '1.0'
+        return benchmark_type, benchmark_value
+
     def __job_data(self):
         """Return XML nodes for resource usage and other informational job attributes in AAR"""
         xml = ''
@@ -677,21 +712,11 @@ class ComputeAccountingRecord(JobAccountingRecord):
         xml += self._add_aar_node('Processors', 'CPUCount')
         # TimeInstant (optional)
         #   Technically we can publish this based on JobEvents but there was no such info previously
-        #   and looks like it is more theoretical rather than for real analyses
+        #   and looks like it is more theoretical rather than for real analyses (especially in view of APEL summaries)
         # ServiceLevel (mandatory) represents benchmarking normalization
-        bechmark_type = 'Si2k'
-        bechmark_value = '1.0'
-        if self.benchmark is not None:
-            (bechmark_type, bechmark_value) = self.benchmark.split(':', 2)
-        if 'benchmark' in aar_extra:
-            (b_type, b_value) = aar_extra['benchmark'].split(':', 2)
-            # value from AAR first
-            if aar_extra['benchmark_type'] in __allowed_benchmark_types:
-                bechmark_type = b_type
-                bechmark_value = b_value if b_value else '1.0'
-            else:
-                self.logger.error('Unsupported benchmark type %s in the usage record for job %s.',
-                                  b_type, self.aar.get()['JobID'])
+        if 'benchmark' not in aar_extra:
+            aar_extra['benchma'] = self.benchmark if self.benchmark is not None else ''
+        (bechmark_type, bechmark_value) = self.__filter_benchmark(aar_extra['benchmark'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
         return xml
 
@@ -736,11 +761,21 @@ NumberOfJobs: {count}'''
         self.__benchmark()
 
     def __benchmark(self):
-        (type, value) = self.recorddata['benchmark'].split(':', 2)
-        self.recorddata['benchmark_type'] = type
-        self.recorddata['benchmark_value'] = value
+        """Use only APEL supported benchmarks of fallback to HEPSPEC:1.0"""
+        __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
+        self.recorddata['benchmark_type'] = 'HEPSPEC'
+        self.recorddata['benchmark_value'] = '1.0'
+        bsplit = self.recorddata['benchmark'].split(':', 2)
+        if len(bsplit) != 2:
+            return
+        (benchmark_type, benchmark_value) = bsplit
+        if benchmark_type not in __allowed_benchmark_types:
+            return
+        self.recorddata['benchmark_type'] = benchmark_type
+        self.recorddata['benchmark_value'] = benchmark_value
 
     def __vo_info(self):
+        """Parse WLCG VO info"""
         if self.recorddata['wlcgvo'] is None:
             return ''
         wlcgvo = self.recorddata['wlcgvo']

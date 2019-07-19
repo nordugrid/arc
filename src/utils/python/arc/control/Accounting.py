@@ -4,6 +4,8 @@ from __future__ import absolute_import
 from .ControlCommon import *
 from .AccountingLegacy import LegacyAccountingControl
 from .AccountingDB import AccountingDB
+from .AccountingPublishing import RecordsPublisher
+
 import sys
 import ldap
 import json
@@ -335,6 +337,84 @@ class AccountingControl(ComponentControl):
             self.logger.critical('Unsupported job accounting action %s', args.jobaction)
             sys.exit(1)
 
+    def __add_apel_options(self, args, targetconf, required=False):
+        # topic is mandatory and default exists
+        if args.apel_topic is not None:
+            targetconf['topic'] = args.apel_topic
+        elif required:
+            targetconf['topic'] = '/queue/global.accounting.cpu.central'
+        # message type to send is mandatory and default exists
+        if args.apel_messages is not None:
+            targetconf['apel_messages'] = args.apel_messages
+        elif required:
+            targetconf['apel_messages'] = 'summaries'
+        # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
+        if args.gocdb_name is not None:
+            targetconf['gocdb_name'] = args.gocdb_name
+        # benchmark is optional
+        if args.benchmark is not None:
+            bsplit = args.benchmark.split(':')
+            if len(bsplit) != 2:
+                self.logger.error('Fallback benchmark value should follow "type:value" format')
+            targetconf['benchmark_type'] = bsplit[0]
+            targetconf['benchmark_value'] = bsplit[1]
+        # vofilter is optional
+        if args.vofilter is not None:
+            targetconf['vofilter'] = args.vofilter
+        # urbatchsize has a default
+        if args.urbatchsize is not None:
+            targetconf['urbatchsize'] = args.urbatchsize
+        elif required:
+            targetconf['urbatchsize'] = 1000
+
+    def __add_sgas_options(self, args, targetconf, required=False):
+        # localid_prefix is optional
+        if args.localid_prefix is not None:
+            targetconf['localid_prefix'] = args.localid_prefix
+        # vofilter is optional
+        if args.vofilter is not None:
+            targetconf['vofilter'] = args.vofilter
+        # urbatchsize has a default
+        if args.urbatchsize is not None:
+            targetconf['urbatchsize'] = args.urbatchsize
+        elif required:
+            targetconf['urbatchsize'] = 50
+
+    def republish(self, args):
+        targetconf = {}
+        targettype = None
+        targetid = None
+        confrequired = True
+        publisher = RecordsPublisher(self.arcconfig)
+        if args.target_name is not None:
+            targetid = args.target_name
+            (targetconf, targettype) = publisher.find_configured_target(targetid)
+            if targetconf is None:
+                self.logger.error('Failed to find target %s configuration in the arc.conf to do republishing.',
+                                  targetid)
+                sys.exit(1)
+            confrequired = False
+        elif args.apel_url is not None:
+            targetid = args.apel_url
+            targettype = 'apel'
+            targetconf['targeturl'] = targetid
+        elif args.sgas_url is not None:
+            targetid = args.sgas_url
+            targettype = 'sgas'
+            targetconf['targeturl'] = targetid
+        # create or redefine target configuration
+        if targettype == 'apel':
+            self.__add_apel_options(args, targetconf, required=confrequired)
+        elif targettype == 'sgas':
+            self.__add_sgas_options(args, targetconf, required=confrequired)
+        # run republishing
+        if targetconf:
+            if not publisher.republish(targettype, targetconf, args.start_from, args.end_till):
+                self.logger.error('Failed to republish accounting data from {0} till {1} to {2} target {3}'.format(
+                    args.start_from, args.end_till, targettype.upper(), targetid
+                ))
+                sys.exit(1)
+
     def control(self, args):
         if args.action == 'stats':
             self.stats(args)
@@ -342,6 +422,8 @@ class AccountingControl(ComponentControl):
             self.jobcontrol(args)
         elif args.action == 'apel-brokers':
             self.get_apel_brokers(args)
+        elif args.action == 'republish':
+            self.republish(args)
         elif args.action == 'legacy':
             LegacyAccountingControl(self.arcconfig).control(args)
         else:
@@ -440,9 +522,9 @@ class AccountingControl(ComponentControl):
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
                                                              help='Republish accounting records to defined target')
-        accounting_republish.add_argument('-b', '--from', type=valid_datetime_type, required=True,
+        accounting_republish.add_argument('-b', '--start-from', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
-        accounting_republish.add_argument('-e', '--till', type=valid_datetime_type, required=True,
+        accounting_republish.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe end (YYYY-MM-DD [HH:mm[:ss]])')
 
         accounting_target = accounting_republish.add_mutually_exclusive_group(required=True)
@@ -460,12 +542,12 @@ class AccountingControl(ComponentControl):
 
         apel_options = accounting_republish.add_argument_group(title='APEL',
                                   description='Options to be used when target is specified using --apel-url')
-        apel_options.add_argument('--apel-topic', required=False, help='Define APEL topic (default is %(default)s)',
-                                  default='/queue/global.accounting.cpu.central',
+        apel_options.add_argument('--apel-topic', required=False,
+                                  help='Define APEL topic (default is /queue/global.accounting.cpu.central)',
                                   choices=['/queue/global.accounting.cpu.central',
                                            '/queue/global.accounting.test.cpu.central'])
-        apel_options.add_argument('--apel-messages', required=False, default='summaries',
-                                  help='Define APEL messages (default is %(default)s)',
+        apel_options.add_argument('--apel-messages', required=False,
+                                  help='Define APEL messages (default is summaries)',
                                   choices=['urs', 'summaries', 'both'])
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
         apel_options.add_argument('--benchmark', required=False,
