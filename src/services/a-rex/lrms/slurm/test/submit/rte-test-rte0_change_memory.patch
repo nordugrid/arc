@@ -1,5 +1,5 @@
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+--- a/basic-script.sh	2019-07-22 17:40:16.598535711 +0200
++++ b/basic-script.sh	2019-07-22 17:40:16.600535666 +0200
 @@ -9,6 +9,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
@@ -8,7 +8,7 @@
  
  # Overide umask of execution node (sometime values are really strange)
  umask 077
-@@ -99,8 +99,21 @@
+@@ -135,8 +139,21 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -30,7 +30,7 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -159,6 +172,15 @@
+@@ -205,6 +222,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=
@@ -43,6 +43,6 @@
 +    exit 1
 +fi
 +
- if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
-   find ./ -type l -exec rm -f "{}" ";"
-   chmod -R u+w "./"
+ # Measuring used scratch space
+ echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"
+ # Cleaning up extra files in the local scratch
