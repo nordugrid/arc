@@ -146,6 +146,20 @@ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
     SLURM_NODEFILE=
   fi
 fi
+# Detecting WN operating system for accounting purposes
+if [ -f "/etc/os-release" ]; then
+  SYSTEM_SOFTWARE="$( eval $( cat /etc/os-release ); echo "${NAME} ${VERSION}" )"
+elif [ -f "/etc/system-release" ]; then
+  SYSTEM_SOFTWARE="$( cat /etc/system-release )"
+elif command -v lsb_release >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE=$(lsb_release -ds)
+elif command -v hostnamectl >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE="$( hostnamectl 2>/dev/null | sed -n '/Operating System/s/^\s*Operating System:\s*//p' )"
+elif command -v uname >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE="Linux $( uname -r)"
+fi
+[ -n "$SYSTEM_SOFTWARE" ] && echo "systemsoftware=${SYSTEM_SOFTWARE}" >> "$RUNTIME_JOB_DIAG"
+
 if [ "$RESULT" = '0' ] ; then
   # Changing to session directory
   HOME=$RUNTIME_JOB_DIR
