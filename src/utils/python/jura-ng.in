@@ -115,7 +115,7 @@ if __name__ == '__main__':
     for b in config.get_subblocks(['arex/jura/sgas', 'arex/jura/apel']):
         legacy_block = config.get_value('legacy_fallback', b, bool_yesno=True)
         if legacy_block:
-            logger.info('The [%s] block is marked with legacy_fallback=yes and will be processed by legacy jura.')
+            logger.info('The [%s] block is marked with legacy_fallback=yes and will be processed by legacy jura.', b)
             legacy = True
 
     if legacy:

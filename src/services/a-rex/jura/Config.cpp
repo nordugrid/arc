@@ -128,6 +128,11 @@ namespace ArcJura
             }
           } else if (command == "localid_prefix") {
             sgas_entries.back().localid_prefix = rest;
+          } else if (command == "legacy_fallback") {
+            if ( rest != "yes" ) {
+                logger.msg(Arc::INFO, "Block %s is not marked for legacy fallback processing. Skipping.", sgas_entries.back().name);
+                sgas_entries.pop_back();
+            }
           } else if (command == "vofilter") {
             sgas_entries.back().vofilters.push_back(rest);
           } else if (command == "urbatchsize") {
@@ -153,6 +158,11 @@ namespace ArcJura
             if(!apel_entries.back().targeturl) {
               logger.msg(Arc::ERROR, "Targeturl config value is missing by APEL!");
               return;
+            }
+          } else if (command == "legacy_fallback") {
+            if ( rest != "yes" ) {
+                logger.msg(Arc::INFO, "Block %s is not marked for legacy fallback processing. Skipping.", sgas_entries.back().name);
+                apel_entries.pop_back();
             }
           } else if (command == "topic") {
             apel_entries.back().topic = rest;
