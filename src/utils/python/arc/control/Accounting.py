@@ -192,6 +192,9 @@ class AccountingControl(ComponentControl):
         self.__init_adb()
         self.adb.filter_jobids([args.jobid])
         aars = self.adb.get_aars(resolve_ids=True)
+        if not aars:
+            self.logger.error('There are no job accounting information found for job %s', args.jobid)
+            sys.exit(1)
         # jobinfo only works with a single job
         aar = aars[0]
         # no accounting info for in-progress jobs
@@ -277,6 +280,9 @@ class AccountingControl(ComponentControl):
         self.__init_adb()
         self.adb.filter_jobids([jobid])
         aars = self.adb.get_aars(resolve_ids=False)
+        if not aars:
+            self.logger.error('There are no job accounting information found for job %s', jobid)
+            sys.exit(1)
         self.adb.enrich_aars(aars, events=True)
         events = aars[0].events()
         if not events:
@@ -289,6 +295,9 @@ class AccountingControl(ComponentControl):
         self.__init_adb()
         self.adb.filter_jobids([jobid])
         aars = self.adb.get_aars(resolve_ids=False)
+        if not aars:
+            self.logger.error('There are no job accounting information found for job %s', jobid)
+            sys.exit(1)
         self.adb.enrich_aars(aars, dtrs=True)
         datatransfers = aars[0].datatransfers()
         if not datatransfers:

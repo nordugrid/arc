@@ -11,6 +11,8 @@ import datetime
 import time
 
 # SGASSender dependencies
+import socket
+import ssl
 try:
     import httplib
 except ImportError:
@@ -132,7 +134,7 @@ class RecordsPublisher(object):
 
     def __get_target_confdict(self, target):
         """Get accounting target configuration and check mandatory options"""
-        self.logger.debug('Searching for %s target configuration block in arc.conf', target)
+        self.logger.debug('Searching for [%s] target configuration block in arc.conf', target)
         arcconfdict = self.arcconfig.get_config_dict([target])
         if target not in arcconfdict:
             self.logger.error('Failed to find %s target configuration.')
@@ -338,8 +340,9 @@ class RecordsPublisher(object):
                 if targetconf['legacy_fallback'] == 'yes':
                     self.logger.warning(
                         'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
-                continue
+                    continue
             # constrains on reporting frequency
+            self.adb.attach_publishing_db(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:
                 lastreported = self.adb.get_last_report_time(target)
                 unixtime_now = time.mktime(datetime.datetime.today().timetuple())
@@ -349,7 +352,6 @@ class RecordsPublisher(object):
                                       target, targetconf['urdelivery_frequency'])
                     continue
             # fetch latest published record timestamp for this target
-            self.adb.attach_publishing_db(self.pdb_file)
             endfrom = self.adb.get_last_published_endtime(target)
             self.logger.info('Publishing latest accounting records to [%s] target (finished since %s).',
                              target, datetime.datetime.fromtimestamp(endfrom))
@@ -372,15 +374,52 @@ class SGASSender(object):
         self.logger = logging.getLogger('ARC.Accounting.SGAS')
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
-        self.logger.debug('Initializing SGAS records sender for %s', self.conf['targetpath'])
+        self.logger.debug('Initializing SGAS records sender for %s', self.conf['targethost'])
+
+    class HTTPSClientAuthConnection(httplib.HTTPSConnection):
+        """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
+
+        def __init__(self, host, port, key_file, cert_file, cacerts_path=None, timeout=None):
+            httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
+            self.key_file = key_file
+            self.cert_file = cert_file
+            self.cacerts_path = cacerts_path
+            self.timeout = timeout
+
+        def connect(self):
+            """ Connect to a host on a given (SSL) port.
+                If ca_certs_path is pointing somewhere, use it to check Server Certificate.
+                This is needed to pass ssl.CERT_REQUIRED as parameter to SSLContext for Python 2.6+
+                which forces SSL to check server certificate against CA certificates in the defined location
+            """
+            sock = socket.create_connection((self.host, self.port), self.timeout)
+            if self._tunnel_host:
+                self.sock = sock
+                self._tunnel()
+            # If there's no CA File, don't force Server Certificate Check
+            if self.cacerts_path:
+                protocol = ssl.PROTOCOL_SSLv23  # Python 2.6 compatibility
+                if hasattr(ssl, 'PROTOCOL_TLS'):
+                    protocol = ssl.PROTOCOL_TLS
+                # create SSL context with CA certificates verification
+                ssl_ctx = ssl.SSLContext(protocol)
+                ssl_ctx.load_verify_locations(capath=self.cacerts_path)
+                ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+                ssl_ctx.load_cert_chain(self.cert_file, self.key_file)
+                ssl_ctx.check_hostname = True
+                self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
+            else:
+                self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                            cert_reqs=ssl.CERT_NONE)
 
     def __post_xml(self, xmldata):
         self.logger.debug('Initializing HTTPS connection to %s:%s', self.conf['targethost'], self.conf['targetport'])
-        conn = httplib.HTTPSConnection(
+        conn = self.HTTPSClientAuthConnection(
             host=self.conf['targethost'],
             port=self.conf['targetport'],
             key_file=self.conf['x509_host_key'],
             cert_file=self.conf['x509_host_cert'],
+            cacerts_path=self.conf['x509_cert_dir']
         )
         sent = False
         try:

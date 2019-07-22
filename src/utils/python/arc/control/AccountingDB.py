@@ -571,7 +571,9 @@ class AccountingDB(object):
     def attach_publishing_db(self, dbfile):
         """Attach publishing database to current connection"""
         # already attached, nothing to do
+        self.logger.debug('Attaching accounting publishing database at %s', dbfile)
         if self.attached_publishing_db:
+            self.logger.debug('Database is already attached')
             return
         # attach database
         sql = 'ATTACH DATABASE ? AS pub'
@@ -597,6 +599,7 @@ class AccountingDB(object):
             sys.exit(1)
         else:
             self.con.commit()
+        self.logger.info('Accounting publishing database has been attached')
         self.attached_publishing_db = True
 
     def set_last_published_endtime(self, target_id, endtimestamp):
