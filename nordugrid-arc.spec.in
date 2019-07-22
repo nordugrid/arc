@@ -1239,7 +1239,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
 %{_libexecdir}/%{pkgdir}/jura-ng
-%{_libexecdir}/%{pkgdir}/jura-archive-manager
 %if %{with_sqlite}
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
 %doc %{_mandir}/man8/gm-delegations-converter.8*

@@ -1,4 +1,4 @@
-pkglibexec_SCRIPTS = arcconfig-parser arccandypond jura-archive-manager jura-ng
+pkglibexec_SCRIPTS = arcconfig-parser arccandypond jura-ng
 sbin_SCRIPTS = arcctl
 
 arcsqlschemadir = $(pkgdatadir)/sql-schema

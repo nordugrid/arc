@@ -1546,14 +1546,6 @@
 #x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE: new parameter in this block
 
-## legacy_fallback = yes/no - If set to "yes" the legacy code that relies on A-REX
-## job log files will be enabled and old jura will be invoked for targets that marked with
-## similar "legacy_fallback" option.
-## Note that this option is temporary introduced for backward compatibility in transition period
-## default: no
-#legacy_fallback=no
-## CHANGE: LEGACY BACKWARD COMPATIBILITY SWITCH
-
 ## urdelivery_keepfailed = days - Specifies for how many days JURA will try to send a record
 ## to the destination accounting service before it gives up. Records not successfully sent
 ## by after the number of days expired will be deleted from the controldir/logs directory.
