@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <grp.h>
 
 #include <arc/DateTime.h>
 #include <arc/FileUtils.h>
@@ -52,7 +53,7 @@ namespace ARex {
             }
             grp = getgrgid(st.st_gid);
             if (grp != NULL && grp->gr_name) {
-                owner += ":"
+                owner += ":";
                 owner += grp->gr_name;
             }
         }
