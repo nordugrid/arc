@@ -161,7 +161,7 @@ namespace ArcJura
             }
           } else if (command == "legacy_fallback") {
             if ( rest != "yes" ) {
-                logger.msg(Arc::INFO, "Block %s is not marked for legacy fallback processing. Skipping.", sgas_entries.back().name);
+                logger.msg(Arc::INFO, "Block %s is not marked for legacy fallback processing. Skipping.", apel_entries.back().name);
                 apel_entries.pop_back();
             }
           } else if (command == "topic") {
