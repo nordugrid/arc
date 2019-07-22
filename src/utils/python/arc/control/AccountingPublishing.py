@@ -127,7 +127,7 @@ class RecordsPublisher(object):
         self.logger.debug('Accounting records publisher had been initialized')
 
     def __del__(self):
-        self.logger.debug('Shutting down accountign records publisher')
+        self.logger.debug('Shutting down accounting records publisher')
         if self.adb is not None:
             del self.adb
             self.adb = None
@@ -224,14 +224,14 @@ class RecordsPublisher(object):
         urs = [UsageRecord(aar, localid_prefix=localid_prefix,
                            vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
         if not urs:
-            self.logger.error('Failed to build OGF.98 Usage Records for SGAS publishing.')
+            self.logger.error('Failed to build OGF.98 Usage Records for SGAS publishing')
             return None
         # send usage records
         if not sgassender.send(urs):
-            self.logger.error('Failed to publish messages to SGAS target.')
+            self.logger.error('Failed to publish messages to SGAS target')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records has been published to SGAS target.')
+        self.logger.debug('Accounting records has been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
     def publish_apel(self, target_conf, endfrom, endtill=None):
@@ -284,7 +284,7 @@ class RecordsPublisher(object):
             apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
                              for rec in self.adb.get_apel_summaries()]
             if not apelsummaries:
-                self.logger.error('Failed to build APEL summaries for publishing.')
+                self.logger.error('Failed to build APEL summaries for publishing')
                 return None
             # enqueue summaries
             apelssm.enqueue_summaries(apelsummaries)
@@ -295,10 +295,10 @@ class RecordsPublisher(object):
         apelssm.enqueue_sync(apelsyncs)
         # publish
         if not apelssm.send():
-            self.logger.error('Failed to publish messages to APEL broker.')
+            self.logger.error('Failed to publish messages to APEL broker')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records has been published to APEL broker.')
+        self.logger.debug('Accounting records has been published to APEL broker %s', target_conf['targethost'])
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -364,7 +364,7 @@ class RecordsPublisher(object):
             # update latest published record timestamp
             if latest is not None:
                 self.adb.set_last_published_endtime(target, latest)
-                self.logger.info('Accounting records till %s endtime has been successfully publishe to [%s] target',
+                self.logger.info('Accounting records till %s endtime has been successfully published to [%s] target',
                                  datetime.datetime.fromtimestamp(latest), target)
 
 
@@ -475,7 +475,7 @@ class APELSSMSender(object):
         log_handler_stderr.setFormatter(
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         ssmlogger.addHandler(log_handler_stderr)
-        self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targetpath'])
+        self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
 
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
