@@ -163,7 +163,8 @@ bool JobLog::SetReporterLogFile(const char* fname) {
 
 bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
   // Legacy joblog files generation
-  // TODO: add configuration option
+  // Files are allways jenerates (as in ARC6.0 and 6.1) and will be processed by legacy jura
+  // when "legacy_fallback" option is defined at least for one of the accounting target blocks
   if((job.get_state() == JOB_STATE_ACCEPTED) ||
      (job.get_state() == JOB_STATE_FINISHED)) {
         // don't care about legacy method success
