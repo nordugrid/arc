@@ -29,8 +29,7 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobLog::JobLog(void):filename(""),reporter_proc(NULL),reporter_last_run(0),reporter_period(3600),
-                     archive_mgmt_proc(NULL),archive_mgmt_last_run(0),archive_mgmt_period(3600){
+JobLog::JobLog(void):filename(""),reporter_proc(NULL),reporter_last_run(0),reporter_period(3600) {
 }
 
 void JobLog::SetOutput(const char* fname) {
@@ -40,16 +39,6 @@ void JobLog::SetOutput(const char* fname) {
 bool JobLog::SetReporterPeriod(int new_period) {
     if ( new_period < 3600 ) return false;
     reporter_period=new_period;
-    // it does not make sense to run archive manager faster than reporter
-    if (archive_mgmt_period < reporter_period ) {
-        archive_mgmt_period=reporter_period;
-    }
-    return true;
-}
-
-bool JobLog::SetArchiveManagerPeriod(int new_period) {
-    if ( new_period < reporter_period ) return false;
-    archive_mgmt_period=new_period;
     return true;
 }
 
@@ -169,67 +158,6 @@ bool JobLog::SetReporter(const char* fname) {
 
 bool JobLog::SetReporterLogFile(const char* fname) {
   if(fname) reporter_logfile = (std::string(fname));
-  return true;
-}
-
-bool JobLog::RunArchiveManager(const GMConfig &config) {
-  if(reporter_proc != NULL) {
-    if(reporter_proc->Running()) return true; /* reporter is running */
-  }
-  if(archive_mgmt_proc != NULL) {
-    if(archive_mgmt_proc->Running()) return true; /* archive manager is running */
-    delete archive_mgmt_proc;
-    archive_mgmt_proc=NULL;
-  };
-  // Check tool exists
-  if (archive_mgmt_tool.empty()) {
-    logger.msg(Arc::ERROR,": Accounting archive management tool is not specified");
-    return false;
-  }
-  // Record the start time
-  if(time(NULL) < (archive_mgmt_last_run+archive_mgmt_period)) return true; // default: once per hour
-  archive_mgmt_last_run=time(NULL);
-  // Pass only runtime config to archive manager
-  std::list<std::string> argv;
-  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+archive_mgmt_tool);
-  argv.push_back("-c");
-  argv.push_back(config.ConfigFile());
-  archive_mgmt_proc = new Arc::Run(argv);
-  if((!archive_mgmt_proc) || (!(*archive_mgmt_proc))) {
-    delete archive_mgmt_proc;
-    archive_mgmt_proc = NULL;
-    logger.msg(Arc::ERROR,": Failure creating slot for accounting archive manager child process");
-    return false;
-  };
-  // Logfile is handled by A-REX
-  std::string errlog;
-  JobLog* joblog = config.GetJobLog();
-  if(joblog) {
-    if(!joblog->archive_mgmt_logfile.empty()) errlog = joblog->archive_mgmt_logfile;
-  };
-  archive_mgmt_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
-  logger.msg(Arc::DEBUG, "Running command %s", argv.front());
-  if(!archive_mgmt_proc->Start()) {
-    delete archive_mgmt_proc;
-    archive_mgmt_proc = NULL;
-    logger.msg(Arc::ERROR,": Failure starting accounting archive manager child process");
-    return false;
-  };
-  return true;
-}
-
-bool JobLog::ArchiveManagerEnabled(void) {
-  if (archive_mgmt_tool.empty()) return false;
-  return true;
-}
-
-bool JobLog::SetArchiveManager(const char* fname) {
-  if(fname) archive_mgmt_tool = (std::string(fname));
-  return true;
-}
-
-bool JobLog::SetArchiveManagerLogFile(const char* fname) {
-  if(fname) archive_mgmt_logfile = (std::string(fname));
   return true;
 }
 
