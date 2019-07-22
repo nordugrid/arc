@@ -69,7 +69,7 @@ class AccountingControl(ComponentControl):
         """DB connection on-demand initialization"""
         if self.adb is not None:
             return
-        adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + 'accounting/accounting.db'
+        adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
         self.adb = AccountingDB(adb_file)
 
     def get_apel_brokers(self, args):
@@ -414,6 +414,9 @@ class AccountingControl(ComponentControl):
                     args.start_from, args.end_till, targettype.upper(), targetid
                 ))
                 sys.exit(1)
+        self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
+            args.start_from, args.end_till, targettype.upper(), targetid
+        ))
 
     def control(self, args):
         if args.action == 'stats':

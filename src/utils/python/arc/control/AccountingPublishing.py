@@ -122,14 +122,17 @@ class RecordsPublisher(object):
         self.adb = AccountingDB(adb_file)
         # publishing state database file
         self.pdb_file = self.accounting_dir + '/publishing.db'
+        self.logger.debug('Accounting records publisher had been initialized')
 
     def __del__(self):
+        self.logger.debug('Shutting down accountign records publisher')
         if self.adb is not None:
             del self.adb
             self.adb = None
 
     def __get_target_confdict(self, target):
         """Get accounting target configuration and check mandatory options"""
+        self.logger.debug('Searching for %s target configuration block in arc.conf', target)
         arcconfdict = self.arcconfig.get_config_dict([target])
         if target not in arcconfdict:
             self.logger.error('Failed to find %s target configuration.')
@@ -167,7 +170,7 @@ class RecordsPublisher(object):
                 vos.append(target_conf['vofilter'])
             else:
                 vos += target_conf['vofilter']
-            self.logger.info('VO filtering is configured. Quierying jobs owned by this WLCG VO(s): %s', ','.join(vos))
+            self.logger.info('VO filtering is configured. Querying jobs owned by this WLCG VO(s): %s', ','.join(vos))
             self.adb.filter_wlcgvos(vos)
 
     def __init_adb_filters(self, endfrom, endtill):
@@ -181,6 +184,7 @@ class RecordsPublisher(object):
 
     def publish_sgas(self, target_conf, endfrom, endtill=None):
         """Publish to SGAS target"""
+        self.logger.debug('Assigning filters to SGAS publishing database query')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -196,7 +200,7 @@ class RecordsPublisher(object):
             return None
         target_conf['targethost'] = urldict['host']
         target_conf['targetport'] = urldict['port']
-        urpath =  urldict['path'].rstrip('/')
+        urpath = urldict['path'].rstrip('/')
         if not urpath.endswith('/ur'):  # URs publishing path is '/sgas/ur'
             urpath += '/ur'
         target_conf['targetpath'] = urpath
@@ -225,10 +229,12 @@ class RecordsPublisher(object):
             self.logger.error('Failed to publish messages to SGAS target.')
             return None
         # no failures on the way: return latest endtime for records published
+        self.logger.debug('Accounting records has been published to SGAS target.')
         return latest_endtime
 
     def publish_apel(self, target_conf, endfrom, endtill=None):
         """Publish to all APEL targets"""
+        self.logger.debug('Assigning filters to APEL publishing database query')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -290,6 +296,7 @@ class RecordsPublisher(object):
             self.logger.error('Failed to publish messages to APEL broker.')
             return None
         # no failures on the way: return latest endtime for records published
+        self.logger.debug('Accounting records has been published to APEL broker.')
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -301,6 +308,7 @@ class RecordsPublisher(object):
         return None, None
 
     def republish(self, targettype, targetconf, endfrom, endtill=None):
+        self.logger.info('Starting republishing process to %s target', targettype.upper())
         # check config for mandatory options
         if not self.__check_target_confdict(targettype, targetconf):
             return False
@@ -316,6 +324,7 @@ class RecordsPublisher(object):
 
     def publish_regular(self):
         """Publish to all configured targets regularly using latest published date stored in database"""
+        self.logger.debug('Starting regular accounting publishing sequence')
         for (ttype, target) in self.conf_targets:
             # get target config dict
             targetconf = self.__get_target_confdict(target)
@@ -327,7 +336,7 @@ class RecordsPublisher(object):
             # skip legacy fallback targets
             if 'legacy_fallback' in targetconf:
                 if targetconf['legacy_fallback'] == 'yes':
-                    self.logger.error(
+                    self.logger.warning(
                         'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
                 continue
             # constrains on reporting frequency
@@ -353,6 +362,8 @@ class RecordsPublisher(object):
             # update latest published record timestamp
             if latest is not None:
                 self.adb.set_last_published_endtime(target, latest)
+                self.logger.info('Accounting records till %s endtime has been successfully publishe to [%s] target',
+                                 datetime.datetime.fromtimestamp(latest), target)
 
 
 class SGASSender(object):
@@ -361,8 +372,10 @@ class SGASSender(object):
         self.logger = logging.getLogger('ARC.Accounting.SGAS')
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
+        self.logger.debug('Initializing SGAS records sender for %s', self.conf['targetpath'])
 
     def __post_xml(self, xmldata):
+        self.logger.debug('Initializing HTTPS connection to %s:%s', self.conf['targethost'], self.conf['targetport'])
         conn = httplib.HTTPSConnection(
             host=self.conf['targethost'],
             port=self.conf['targetport'],
@@ -372,14 +385,21 @@ class SGASSender(object):
         sent = False
         try:
             # conn.set_debuglevel(1)
-            headers = {'Content-type': 'application/xml'}  #; charset=UTF-8
+            headers = {'Content-type': 'application/xml; charset=UTF-8'}
+            self.logger.debug('POSTing jobrecords batch to SGAS')
             conn.request('POST', self.conf['targetpath'], str(xmldata), headers)
             resp = conn.getresponse()
-            print(resp.read())
             if resp.status != 200:
                 self.logger.error('Failed to POST records to SGAS server %s. Error code %s returned: %s',
                                   self.conf['targethost'], str(resp.status), resp.reason)
-            sent = True
+                # parse error from SGAS Traceback in returned HTML
+                for line in resp.read().split('\n'):
+                    if line.startswith('<p class="error"'):
+                        errstr = line.replace('<p class="error">&lt;class', '').replace('&gt;', '').replace('</p>', '')
+                        self.logger.error('SGAS returned the following error description:%s', errstr)
+            else:
+                self.logger.info('Records has been sent to SGAS server %s.', self.conf['targethost'])
+                sent = True
         except Exception as e:
             self.logger.error('Error connecting to SGAS server %s. Error: %s', self.conf['targethost'], str(e))
 
@@ -388,6 +408,7 @@ class SGASSender(object):
 
     def send(self, urs):
         for x in range(0, len(urs), self.batchsize):
+            self.logger.debug('Preparing JobUsageRecords batch of max %s records', self.batchsize)
             buf = StringIO.StringIO()
             buf.write(UsageRecord.batch_header())
             buf.write(UsageRecord.join_str().join(map(lambda ur: ur.get_xml(), urs[x:x + self.batchsize])))
@@ -416,9 +437,11 @@ class APELSSMSender(object):
         log_handler_stderr.setFormatter(
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         ssmlogger.addHandler(log_handler_stderr)
+        self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targetpath'])
 
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
+            self.logger.debug('Enqueuing EMI CARs batch of max %s records to be sent', self.batchsize)
             buf = StringIO.StringIO()
             buf.write(ComputeAccountingRecord.batch_header())
             buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
@@ -430,6 +453,7 @@ class APELSSMSender(object):
 
     def enqueue_summaries(self, summaries):
         for x in range(0, len(summaries), self.batchsize):
+            self.logger.debug('Enqueuing APEL Summaries batch of max %s records to be sent', self.batchsize)
             buf = StringIO.StringIO()
             buf.write(APELSummaryRecord.header())
             buf.write(APELSummaryRecord.join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
@@ -440,6 +464,7 @@ class APELSSMSender(object):
 
     def enqueue_sync(self, syncs):
         for x in range(0, len(syncs), self.batchsize):
+            self.logger.debug('Enqueuing APEL Sync messages to be sent')
             buf = StringIO.StringIO()
             buf.write(APELSyncRecord.header())
             buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
@@ -457,6 +482,7 @@ class APELSSMSender(object):
         success = False
         try:
             # create SSM2 object for sender
+            self.logger.debug('Initializing SSM2 sender to publish records into %s queue', self.conf['topic'])
             sender = Ssm2(brokers,
                           qpath=self.conf['dirq_dir'],
                           cert=self.conf['x509_host_cert'],
@@ -728,8 +754,8 @@ class UsageRecord(JobAccountingRecord):
 
     @staticmethod
     def batch_header():
-        return '<UsageRecords>'
-        # return '<UsageRecords xmlns="http://eu-emi.eu/namespaces/2012/11/computerecord">'
+        return '<?xml version="1.0" encoding="utf-8"?>\n' \
+               '<UsageRecords xmlns="http://schema.ogf.org/urf/2003/09/urf">'
 
     @staticmethod
     def join_str():

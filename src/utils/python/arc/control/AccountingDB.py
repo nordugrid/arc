@@ -383,106 +383,71 @@ class AccountingDB(object):
         return jobids
 
     # Querying AARs and their info
-    def __fetch_authtokenattrs(self, rids):
+    def __fetch_authtokenattrs(self):
         """Return dict that holds list of auth token attributes tuples for every record id"""
         result = {}
-        sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes WHERE '
-        if len(rids) == 1:
-            sql += 'RecordID = ?'
-        else:
-            sql += 'RecordID IN ({0})'.format(','.join(['?'] * len(rids)))
-        try:
-            for row in self.con.execute(sql, tuple(rids)):
-                if row[0] not in result:
-                    result[row[0]] = []
-                result[row[0]].append((row[1], row[2]))
-        except sqlite3.Error as e:
-            self.logger.error('Failed to get AuthTokenAttributes for records %s from the accounting database. '
-                              'Error: %s', ','.join(map(str, rids)), str(e))
+        sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes ' \
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
+        for row in self.__filtered_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
+            if row[0] not in result:
+                result[row[0]] = []
+            result[row[0]].append((row[1], row[2]))
         return result
 
-    def __fetch_jobevents(self, rids):
+    def __fetch_jobevents(self):
         """Return list ordered job event tuples"""
         result = {}
-        sql_template = 'SELECT RecordID, EventKey, EventTime FROM JobEvents WHERE {0} ORDER BY EventTime ASC'
-        if len(rids) == 1:
-            sql = sql_template.format('RecordID = ?')
-        else:
-            sql = sql_template.format('RecordID IN ({0})'.format(','.join(['?'] * len(rids))))
-        try:
-            for row in self.con.execute(sql, tuple(rids)):
-                if row[0] not in result:
-                    result[row[0]] = []
-                result[row[0]].append((row[1], row[2]))
-        except sqlite3.Error as e:
-            self.logger.error('Failed to get JobEvents for records %s from the accounting database. '
-                              'Error: %s', ','.join(map(str, rids)), str(e))
+        sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
+        for row in self.__filtered_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
+            if row[0] not in result:
+                result[row[0]] = []
+            result[row[0]].append((row[1], row[2]))
         return result
 
-    def __fetch_rtes(self, rids):
+    def __fetch_rtes(self):
         """Return list of job RTEs"""
         result = {}
-        sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments WHERE '
-        if len(rids) == 1:
-            sql += 'RecordID = ?'
-        else:
-            sql += 'RecordID IN ({0})'.format(','.join(['?'] * len(rids)))
-        try:
-            for row in self.con.execute(sql, tuple(rids)):
-                if row[0] not in result:
-                    result[row[0]] = []
-                result[row[0]].append(row[1])
-        except sqlite3.Error as e:
-            self.logger.error('Failed to get RTEs list for records %s from the accounting database. '
-                              'Error: %s', ','.join(map(str, rids)), str(e))
+        sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments ' \
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
+        for row in self.__filtered_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
+            if row[0] not in result:
+                result[row[0]] = []
+            result[row[0]].append(row[1])
         return result
 
-    def __fetch_datatransfers(self, rids):
+    def __fetch_datatransfers(self):
         """Return list of dicts representing individual job datatransfers"""
         result = {}
-        sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers WHERE '
-        if len(rids) == 1:
-            sql += 'RecordID = ?'
-        else:
-            sql += 'RecordID IN ({0})'.format(','.join(['?'] * len(rids)))
-        try:
-            for row in self.con.execute(sql, tuple(rids)):
-                if row[0] not in result:
-                    result[row[0]] = []
-                # in accordance to C++ enum values
-                ttype = 'input'
-                if row[5] == 11:
-                    ttype = 'cache_input'
-                elif row[5] == 20:
-                    ttype = 'output'
-                result[row[0]].append({
-                    'url': row[1],
-                    'size': row[2],
-                    'timestart': datetime.datetime.fromtimestamp(row[3]),
-                    'timeend': datetime.datetime.fromtimestamp(row[4]),
-                    'type':  ttype
-                })
-        except sqlite3.Error as e:
-            self.logger.error('Failed to get DataTransfers for records %s from the accounting database. '
-                              'Error: %s', ','.join(map(str, rids)), str(e))
+        sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers ' \
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
+        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+            if row[0] not in result:
+                result[row[0]] = []
+            # in accordance to C++ enum values
+            ttype = 'input'
+            if row[5] == 11:
+                ttype = 'cache_input'
+            elif row[5] == 20:
+                ttype = 'output'
+            result[row[0]].append({
+                'url': row[1],
+                'size': row[2],
+                'timestart': datetime.datetime.fromtimestamp(row[3]),
+                'timeend': datetime.datetime.fromtimestamp(row[4]),
+                'type':  ttype
+            })
         return result
 
-    def __fetch_extrainfo(self, rids):
+    def __fetch_extrainfo(self):
         """Return dict of extra job info"""
         result = {}
-        sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo WHERE '
-        if len(rids) == 1:
-            sql += 'RecordID = ?'
-        else:
-            sql += 'RecordID IN ({0})'.format(','.join(['?'] * len(rids)))
-        try:
-            for row in self.con.execute(sql, tuple(rids)):
-                if row[0] not in result:
-                    result[row[0]] = {}
-                result[row[0]][row[1]] = row[2]
-        except sqlite3.Error as e:
-            self.logger.error('Failed to get job extra info for records %s from the accounting database. '
-                              'Error: %s', ','.join(map(str, rids)), str(e))
+        sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo ' \
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
+        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+            if row[0] not in result:
+                result[row[0]] = {}
+            result[row[0]][row[1]] = row[2]
         return result
 
     def get_aars(self, resolve_ids=False):
@@ -509,7 +474,9 @@ class AccountingDB(object):
         return aars
 
     def enrich_aars(self, aars, authtokens=False, events=False, rtes=False, dtrs=False, extra=False):
-        """Add info from extra tables to the list of AAR objects"""
+        """Add info from extra tables to the list of AAR objects.
+        This method assumes that the optional info will be queried just after basic info about AARs (when needed)
+        The same query filtering object should be used! Do not clear filters between get_aars and enrich_aars"""
         recordids = [a.recordid() for a in aars]
         auth_data = None
         events_data = None
@@ -517,15 +484,15 @@ class AccountingDB(object):
         dtrs_data = None
         extra_data = None
         if authtokens:
-            auth_data = self.__fetch_authtokenattrs(recordids)
+            auth_data = self.__fetch_authtokenattrs()
         if events:
-            events_data = self.__fetch_jobevents(recordids)
+            events_data = self.__fetch_jobevents()
         if rtes:
-            rtes_data = self.__fetch_rtes(recordids)
+            rtes_data = self.__fetch_rtes()
         if dtrs:
-            dtrs_data = self.__fetch_datatransfers(recordids)
+            dtrs_data = self.__fetch_datatransfers()
         if extra:
-            extra_data = self.__fetch_extrainfo(recordids)
+            extra_data = self.__fetch_extrainfo()
         for a in aars:
             rid = a.recordid()
             if auth_data is not None and rid in auth_data:
