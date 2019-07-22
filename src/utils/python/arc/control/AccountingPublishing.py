@@ -646,6 +646,7 @@ class UsageRecord(JobAccountingRecord):
     def __user_identity(self):
         """Construct UserIdentity"""
         # LocalUserId is optional
+        # OGF.98 does not restrict this value to username, so we can use name[:group]
         localuser = self._add_extra_node('LocalUserId', 'localuser')
         # GlobalUserId is optional but always present, so it is part of common UserIdentity template
         # WLCG VO attributes are part of SGAS VO Extension
@@ -854,12 +855,21 @@ class ComputeAccountingRecord(JobAccountingRecord):
 
     def __user_identity(self):
         """Construct UserIdentity"""
-        # LocalUserId is mandatory
-        localuser = self._add_extra_node('LocalUserId', 'localuser')
-        if not localuser:
-            localuser = '<LocalUserId>nobody</LocalUserId>'
-        # LocalGroup is recommended but optional (TODO: consider to add to AAR extended attributes)
-        localgroup = self._add_extra_node('LocalGroup', 'localgroup')
+        # LocalUserId is mandatory (nobody is fallback)
+        # LocalGroup is recommended optional
+        localuser = 'nobody'
+        localgroup = ''
+        # Check data in AAR extra info
+        aar_extra = self.aar.extra()
+        if 'localuser' in aar_extra:
+            localuserdata = aar_extra['localuser'].split(':', 2)
+            localuser = localuserdata[0]
+            if len(localuserdata) > 1:
+                localgroup = localuserdata[1]
+        # Create XML
+        localuser = '<LocalUserId>{0}</LocalUserId>'.format(localuser)
+        if localgroup:
+            localgroup = '<LocalGroup>{0}</LocalGroup>'.format(localgroup)
         # GlobalUserName is optional (we always have the UserSN)
         # Group and GroupAttributes are optional recommended
         return self.__xml_templates['user-id'].format(**{

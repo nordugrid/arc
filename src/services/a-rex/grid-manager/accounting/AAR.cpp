@@ -40,16 +40,23 @@ namespace ARex {
 
     static std::string get_file_owner(const std::string& fname) {
         struct stat st;
+        std::string owner = "";
         if (Arc::FileStat(fname, &st, false)) {
             struct passwd pw_;
             struct passwd *pw;
+            struct group *grp;
             char buf[BUFSIZ];
             getpwuid_r(st.st_uid,&pw_,buf,BUFSIZ,&pw);
             if (pw != NULL && pw->pw_name) {
-                return std::string(pw->pw_name);
+                owner += pw->pw_name;
+            }
+            grp = getgrgid(st.st_gid);
+            if (grp != NULL && grp->gr_name) {
+                owner += ":"
+                owner += grp->gr_name;
             }
         }
-        return "";
+        return owner;
     }
 
     bool AAR::FetchJobData(const GMJob &job,const GMConfig& config) {
@@ -210,9 +217,13 @@ namespace ARex {
                 }
             }
         }
-        // Memory: use max if available, otherwise use avarage
+        // Memory: use max if available, otherwise use avarage as a fallback
         usedmemory = mem_max_resident ? mem_max_resident : mem_avg_resident;
         usedvirtmemory = mem_max_total ? mem_max_total: mem_avg_total;
+        // Memory: if no virt memory measured - copy from physical
+        if (!usedvirtmemory && usedmemory ) {
+            usedvirtmemory = usedmemory;
+        }
         // Nodes/CPUs
         if (!nodenames.empty()) {
             // if not recorded in .diag implicitly use nodenames list to count CPUs
@@ -228,7 +239,7 @@ namespace ARex {
             nodenames.unique();
             nodecount = nodenames.size();
         }
-        // localuser
+        // localuser[:group]
         std::string localuser = get_file_owner(fname_src);
         if (!localuser.empty()) {
             extrainfo.insert(
