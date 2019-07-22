@@ -153,7 +153,12 @@ fi
 if [ -z "\$JOB_ACCOUNTING" ]; then
     echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
 fi
+
 EOSCR
+if [ -n "$ACCOUNTING_WN_INSTANCE" ]; then
+  echo "# Define accounting WN instance tag" >> $LRMS_JOB_SCRIPT
+  echo "ACCOUNTING_WN_INSTANCE='$ACCOUNTING_WN_INSTANCE'" >> $LRMS_JOB_SCRIPT
+fi
 }
 
 accounting_end () {
@@ -202,6 +207,11 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     arc-job-cgroup -m -d
     arc-job-cgroup -c -d
 fi
+
+# Record CPU benchmarking values for WN user by the job
+[ -n "${ACCOUNTING_BENCHMARK}" ] && echo "benchmark=${ACCOUNTING_BENCHMARK}" >> "$RUNTIME_JOB_DIAG"
+# Record WN instance tag if defined
+[ -n "${ACCOUNTING_WN_INSTANCE}" ] && echo "wninstance=${ACCOUNTING_WN_INSTANCE}" >> "$RUNTIME_JOB_DIAG"
 
 # Add exit code to the accounting information and exit the job script
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"

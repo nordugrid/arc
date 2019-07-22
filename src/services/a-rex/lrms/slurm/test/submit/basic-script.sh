@@ -288,6 +288,12 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     arc-job-cgroup -m -d
     arc-job-cgroup -c -d
 fi
+
+# Record CPU benchmarking values for WN user by the job
+[ -n "${ACCOUNTING_BENCHMARK}" ] && echo "benchmark=${ACCOUNTING_BENCHMARK}" >> "$RUNTIME_JOB_DIAG"
+# Record WN instance tag if defined
+[ -n "${ACCOUNTING_WN_INSTANCE}" ] && echo "wninstance=${ACCOUNTING_WN_INSTANCE}" >> "$RUNTIME_JOB_DIAG"
+
 # Add exit code to the accounting information and exit the job script
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
 exit $RESULT
