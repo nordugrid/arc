@@ -396,9 +396,8 @@ class SGASSender(object):
             if self._tunnel_host:
                 self.sock = sock
                 self._tunnel()
-            # If there's no CA File, don't force Server Certificate Check
-            if self.cacerts_path:
-                protocol = ssl.PROTOCOL_SSLv23  # Python 2.6 compatibility
+            if self.cacerts_path and hasattr(ssl, 'SSLContext'):
+                protocol = ssl.PROTOCOL_SSLv23
                 if hasattr(ssl, 'PROTOCOL_TLS'):
                     protocol = ssl.PROTOCOL_TLS
                 # create SSL context with CA certificates verification
