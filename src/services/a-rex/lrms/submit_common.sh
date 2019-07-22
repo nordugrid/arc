@@ -550,7 +550,11 @@ clean_local_scratch_dir_output () {
   if [ "x$1" = "xmoveup" ]; then
 	  move_files_up=1
   fi
+  # Calculate the scratch size at the end of execution
+  echo '# Measuring used scratch space' >> $LRMS_JOB_SCRIPT
+  echo 'echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"' >> $LRMS_JOB_SCRIPT
   # There is no sense to keep trash till GM runs uploader
+  echo '# Cleaning up extra files in the local scratch' >> $LRMS_JOB_SCRIPT
   echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
   # Delete all files except listed in job.#.output
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT

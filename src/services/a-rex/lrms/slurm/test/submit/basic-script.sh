@@ -205,6 +205,9 @@ fi
 fi
 # Running RTE scripts (stage 2)
 runtimeenvironments=
+# Measuring used scratch space
+echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"
+# Cleaning up extra files in the local scratch
 if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
   find ./ -type l -exec rm -f "{}" ";"
   chmod -R u+w "./"
