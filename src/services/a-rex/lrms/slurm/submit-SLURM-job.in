@@ -66,6 +66,9 @@ echo "# SLURM batch job script built by arex" >> $LRMS_JOB_SCRIPT
 # rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
 
+# no environment exporting from ARC CE to WN
+echo "#SBATCH --export=NONE" >> $LRMS_JOB_SCRIPT
+
 # write SLURM output to 'comment' file
 echo "#SBATCH -e ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
 echo "#SBATCH -o ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
@@ -115,8 +118,6 @@ echo "SLURM jobname: $jobname" 1>&2
 # Set up the user's environment on the compute node where the script
 # is executed.
 echo "#SBATCH --get-user-env=10L" >> $LRMS_JOB_SCRIPT
-# no environment exporting from ARC CE to WN
-echo "#SBATCH --export=NONE" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # (non-)parallel jobs

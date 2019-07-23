@@ -1,6 +1,7 @@
 #!/bin/bash -l
 # SLURM batch job script built by arex
 #SBATCH --no-requeue
+#SBATCH --export=NONE
 #SBATCH -e @TEST_SESSION_DIR@/@TEST_JOB_ID@.comment
 #SBATCH -o @TEST_SESSION_DIR@/@TEST_JOB_ID@.comment
 
