@@ -477,6 +477,11 @@ class APELSSMSender(object):
         ssmlogger.addHandler(log_handler_stderr)
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
 
+    def __del__(self):
+        # remove unused intermediate directories
+        if self._dirq:
+            self._dirq.purge(0, 0)
+
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
             self.logger.debug('Enqueuing EMI CARs batch of max %s records to be sent', self.batchsize)
