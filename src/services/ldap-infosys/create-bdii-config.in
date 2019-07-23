@@ -444,7 +444,7 @@ EOF
 
 cat <<-EOF > ${bdii_update_posthelper_cmd}
 iterlimit=30
-while [ \$iterlimit -ge 0 ] && ! [ -r ${update_pid_file} ]; do
+while [ \$iterlimit -ge 0 ] && ! [ -r "${update_pid_file}" ]; do
   sleep 1
   iterlimit=\$(expr \$iterlimit - 1)
 done
@@ -452,5 +452,6 @@ EOF
 
 # copy forced pidfile to custom arc.conf pidfile (if needed)
 if [ -n "${custom_pid_file}" ]; then
-    echo "cp ${update_pid_file} ${custom_pid_file}" >> ${bdii_update_posthelper_cmd}
+    echo "mkdir -p \"${custom_pid_file%/*}\"" >> ${bdii_update_posthelper_cmd}
+    echo "cp -a \"${update_pid_file}\" \"${custom_pid_file}\"" >> ${bdii_update_posthelper_cmd}
 fi
