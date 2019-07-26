@@ -302,6 +302,7 @@ RTE_path_set () {
         fi
     fi
     # check RTE is empty
+    unset rte_empty
     [ -s "$rte_path" ] || rte_empty=1
 }
 
