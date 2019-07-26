@@ -376,7 +376,7 @@ chmod +x ${bdii_slapd_cmd}
 # Write post-exec script to check slapd is up and running
 cat <<-EOF > ${bdii_slapd_post_cmd}
 iterlimit=30
-while [ \$iterlimit -ge 0 ] && ! [ -r ${slapd_pid_file} ]; do
+while [ \$iterlimit -ge 0 ] && ! [ -r "${slapd_pid_file}" ]; do
   sleep 1
   iterlimit=\$(expr \$iterlimit - 1)
 done
@@ -384,7 +384,8 @@ EOF
 
 # copy forced pidfile to custom arc.conf pidfile (if forced pid was requested)
 if [ -n "${custom_pid_file}" ]; then
-    echo "cp ${slapd_pid_file} ${custom_pid_file}" >> ${bdii_slapd_post_cmd}
+    echo "mkdir -p \"${custom_pid_file%/*}\"" >> ${bdii_slapd_post_cmd}
+    echo "cp -a \"${slapd_pid_file}\" \"${custom_pid_file}\"" >> ${bdii_slapd_post_cmd}
 fi
 
 # Initialize the database directories
