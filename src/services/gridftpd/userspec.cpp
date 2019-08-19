@@ -122,8 +122,8 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
 bool userspec_t::fill(AuthUser& u, const char* cfg) {
   struct passwd pw_;
   struct group gr_;
-  struct passwd *pw;
-  struct group *gr;
+  struct passwd *pw=NULL;
+  struct group *gr=NULL;
   char bufp[BUFSIZ];
   char bufg[BUFSIZ];
   std::string subject = u.DN();

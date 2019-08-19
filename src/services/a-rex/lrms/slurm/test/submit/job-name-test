@@ -36,20 +36,7 @@ read -r -d '' expected_lrms_job_script <<'EOF'
 #SBATCH 
 
 EOF
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -5,7 +5,7 @@
- #SBATCH -o /my/session/directory.comment
- 
- #SBATCH --nice=50
--#SBATCH -J 'gridjob'
-+#SBATCH -J 'job'
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/job-name-test-job_name_basic.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 # Job name is truncated to 15 characters
@@ -60,20 +47,7 @@ read -r -d '' job_description_input <<'EOF'
  (executable = "/bin/true")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -5,7 +5,7 @@
- #SBATCH -o /my/session/directory.comment
- 
- #SBATCH --nice=50
--#SBATCH -J 'gridjob'
-+#SBATCH -J 'abcdefghijklmno'
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/job-name-test-job_name_truncate.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 # Any non-alphabetic and numeric character is replaced by an underscore '_'.
@@ -84,20 +58,7 @@ read -r -d '' job_description_input <<'EOF'
  (executable = "/bin/true")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -5,7 +5,7 @@
- #SBATCH -o /my/session/directory.comment
- 
- #SBATCH --nice=50
--#SBATCH -J 'gridjob'
-+#SBATCH -J 'job____________'
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/job-name-test-job_name_replace_underscore.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }
 
 # If job name starts with a non-alphabetic character it is prefix with 'N'.
@@ -108,18 +69,5 @@ read -r -d '' job_description_input <<'EOF'
  (executable = "/bin/true")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -5,7 +5,7 @@
- #SBATCH -o /my/session/directory.comment
- 
- #SBATCH --nice=50
--#SBATCH -J 'gridjob'
-+#SBATCH -J 'N12345678901234'
- #SBATCH --get-user-env=10L
- #SBATCH -n 1
- #SBATCH 
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/job-name-test-job_name_prefix_N.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }

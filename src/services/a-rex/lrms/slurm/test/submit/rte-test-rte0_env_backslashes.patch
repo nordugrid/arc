@@ -1,0 +1,48 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -21,6 +21,9 @@
+ }
+ # Setting environment variables as specified by user
+-export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
++export 'job_foo=foo\\bar'
++export 'test="TEST"'
++export 'rte_foo="foo\\bar"'
++export GRID_GLOBAL_JOBID='gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env_backslashes'
+
+ RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
+ RUNTIME_JOB_STDIN=/dev/null
+@@ -101,8 +102,20 @@
+
+ if [ "$RESULT" = '0' ] ; then
+ # Running runtime scripts
+-export RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-}
++export RUNTIME_CONFIG_DIR=${RUNTIME_CONFIG_DIR:-@TEST_SESSION_DIR@/rtes}
+ runtimeenvironments=
++if [ ! -z "$RUNTIME_CONFIG_DIR" ] ; then
++  if [ -r "${RUNTIME_CONFIG_DIR}/ENV" ] ; then
++    runtimeenvironments="${runtimeenvironments}ENV;"
++    cmdl=${RUNTIME_CONFIG_DIR}/ENV
++    sourcewithargs $cmdl 1
++    if [ $? -ne '0' ] ; then
++      echo "Runtime ENV script failed " 1>&2
++      echo "Runtime ENV script failed " 1>"$RUNTIME_JOB_DIAG"
++      exit 1
++    fi
++  fi
++fi
+
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+@@ -159,6 +172,12 @@
+
+ fi
+ fi
++if [ ! -z "$RUNTIME_CONFIG_DIR" ] ; then
++  if [ -r "${RUNTIME_CONFIG_DIR}/ENV" ] ; then
++    cmdl=${RUNTIME_CONFIG_DIR}/ENV
++    sourcewithargs $cmdl 2
++  fi
++fi
+
+ if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
+   find ./ -type l -exec rm -f "{}" ";"

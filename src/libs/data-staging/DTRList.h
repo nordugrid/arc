@@ -102,7 +102,13 @@ namespace DataStaging {
        * @param FilteredList This list is filled with filtered DTRs
        */
       bool filter_dtrs_by_job(const std::string& jobid, std::list<DTR_ptr>& FilteredList);
-      
+
+      /// Check for requested changes in priority in filename
+      /**
+       * @param filename File which is checked for priority changes
+       */
+      void check_priority_changes(const std::string& filename);
+
       /// Update the caching set, add a DTR (only if it is CACHEABLE).
       void caching_started(DTR_ptr request);
 

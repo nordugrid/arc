@@ -284,3 +284,14 @@ Description: ARCHERY administration tool
  .
  This package contains the archery-manage utility for administration of
  an ARCHERY DNS-embedded service endpoint registry.
+
+Package: nordugrid-arc-wn
+Architecture: any
+Description: ARC optional worker nodes components
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the optional components that provide new
+ job management features on the worker nodes (WN).
+

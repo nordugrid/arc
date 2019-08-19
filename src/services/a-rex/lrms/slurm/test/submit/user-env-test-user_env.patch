@@ -1,0 +1,11 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -20,6 +20,8 @@
+ . $script
+ }
+ # Setting environment variables as specified by user
++export 'TEST=Testing'
++export 'TEST2='\''Testing'\'''
+ export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+ 
+ RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@

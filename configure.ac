@@ -2316,6 +2316,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job
                  src/services/a-rex/lrms/pbs/scan-pbs-job
+                 src/services/a-rex/lrms/pbspro/Makefile
+                 src/services/a-rex/lrms/pbspro/submit-pbspro-job
+                 src/services/a-rex/lrms/pbspro/cancel-pbspro-job
+                 src/services/a-rex/lrms/pbspro/scan-pbspro-job
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
@@ -2443,6 +2447,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/gridmap/nordugridmap.8
                  src/utils/gridmap/Makefile
                  src/utils/Makefile
+                 src/wn/Makefile
                  src/doc/Makefile
                  src/doc/arc.conf.5
                  swig/Makefile

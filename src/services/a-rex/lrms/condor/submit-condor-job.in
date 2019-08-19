@@ -128,10 +128,16 @@ fi
 # notification
 echo "Notification = Never" >> $LRMS_JOB_DESCRIPT
 
-# requirements
+# no job restart
+REQUIREMENTS="(NumJobStarts == 0)"
+PERIODIC_REMOVE="(JobStatus == 1 && NumJobStarts > 0)"
+
+# custom requirements
 if [ ! -z "$CONFIG_condor_requirements" ] ; then
-  echo "Requirements = $CONFIG_condor_requirements" >> $LRMS_JOB_DESCRIPT
+  # custom requirement from arc.conf
+  REQUIREMENTS="${REQUIREMENTS} && ( $CONFIG_condor_requirements )"
 fi
+echo "Requirements = ${REQUIREMENTS}" >> $LRMS_JOB_DESCRIPT
 
 #####################################################
 # priority
@@ -172,7 +178,6 @@ fi
 # Execution times (minutes)
 ##############################################################
 
-REMOVE="FALSE"
 
 if [ ! -z "$joboption_cputime" ] ; then
   if [ $joboption_cputime -lt 0 ] ; then
@@ -182,7 +187,7 @@ if [ ! -z "$joboption_cputime" ] ; then
   fi
   maxcputime=$(( $joboption_cputime / $joboption_count ))
   echo "+JobCpuLimit = $joboption_cputime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
   
 fi  
   
@@ -200,7 +205,7 @@ if [ ! -z "$joboption_walltime" ] ; then
     echo 'WARNING: wall time set to 0' 1>&2
   fi
   echo "+JobTimeLimit = $joboption_walltime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteWallClockTime > JobTimeLimit"
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || RemoteWallClockTime > JobTimeLimit"
 fi
 
 ##############################################################
@@ -220,7 +225,7 @@ if [ ! -z "$joboption_memory" ] ; then
   echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
   # it is important to protect evaluation from undefined ResidentSetSize
-  REMOVE="${REMOVE} || ((ResidentSetSize isnt undefined ? ResidentSetSize : 0) > JobMemoryLimit)"
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || ((ResidentSetSize isnt undefined ? ResidentSetSize : 0) > JobMemoryLimit)"
 fi
 
 ##############################################################
@@ -243,7 +248,7 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
   )
 fi
 
-echo "Periodic_remove = ${REMOVE}" >> $LRMS_JOB_DESCRIPT
+echo "Periodic_remove = ${PERIODIC_REMOVE}" >> $LRMS_JOB_DESCRIPT
 echo "Queue" >> $LRMS_JOB_DESCRIPT
 
 echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
@@ -257,6 +262,11 @@ echo " " >> $LRMS_JOB_SCRIPT
 chmod 0755 $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -368,6 +378,10 @@ clean_local_scratch_dir_output "moveup"
 ##############################################################
 move_files_to_frontend
 
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`

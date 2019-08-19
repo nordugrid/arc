@@ -1,0 +1,454 @@
+#!@posix_shell@
+#
+#  Submits job to Altair PBS.Professional
+#  Input: path to grami file
+#
+# The temporary job script is created for the submission and then removed 
+# at the end of this script. 
+
+echo "----- starting submit_pbs_job -----" 1>&2
+
+joboption_lrms="pbspro"
+lrms_options="pbs_bin_path pbs_log_path"
+queue_options="pbs_queue_node"
+
+# ARC1 passes first the config file.
+if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
+
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
+
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
+
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# perflog submission start time 
+if [ ! -z "$perflogdir" ]; then
+   start_ts=`date +%s.%N`
+fi
+
+# define path to wrote failures
+define_failures_file
+
+# check remote or local scratch is configured
+check_any_scratch
+
+##############################################################
+# Zero stage of runtime environments
+##############################################################
+RTE_stage0
+
+##############################################################
+# create job script
+##############################################################
+mktempscript
+
+PBS_QSUB=${PBS_QSUB:-"qsub"}
+if [ ! -z "$PBS_BIN_PATH" ] ; then
+  PBS_QSUB=${PBS_BIN_PATH}/${PBS_QSUB}
+fi
+
+##############################################################
+# Start job script
+##############################################################
+echo "# PBSPro batch job script built by arex" > $LRMS_JOB_SCRIPT
+# use /bin/bash as a top shell (-S option is compatible with older PBSPro versions)
+#echo "#PBS Shell_Path_List=/bin/bash" >> $LRMS_JOB_SCRIPT
+PBS_QSUB="${PBS_QSUB} -S /bin/bash"
+# no PBS native mailing
+echo "#PBS -m n" >> $LRMS_JOB_SCRIPT
+# no re-run
+echo "#PBS -r n" >> $LRMS_JOB_SCRIPT
+# write PBS output to 'comment' file
+echo "#PBS -o '${joboption_directory}.comment'" >> $LRMS_JOB_SCRIPT
+echo "#PBS -j oe" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+# choose queue
+if [ ! -z "${joboption_queue}" ] ; then
+  echo "#PBS -q $joboption_queue" >> $LRMS_JOB_SCRIPT
+fi
+
+##############################################################
+# priority
+##############################################################
+if [ ! -z "$joboption_priority" ]; then
+  #first we must scale priority.  PBS: -1024 -> +1023 ARC: 0-100
+  priority=$((joboption_priority * (1024+1023) / 100))
+  priority=$((priority-1024))
+  echo "#PBS -p ${priority}" >> $LRMS_JOB_SCRIPT
+fi
+
+# project name for accounting
+if [ ! -z "${joboption_rsl_project}" ] ; then
+  echo "#PBS Account_Name=$joboption_rsl_project" >> $LRMS_JOB_SCRIPT
+fi
+
+# job name for convenience
+if [ ! -z "${joboption_jobname}" ] ; then
+  jobname=`echo "$joboption_jobname" | \
+           sed 's/^\([^[:alpha:]]\)/N\1/' | \
+           sed 's/[^[:alnum:]]/_/g' | \
+	   sed 's/\(...............\).*/\1/'`
+  echo "#PBS -WJob_Name='$jobname'" >> $LRMS_JOB_SCRIPT
+fi
+echo "PBS jobname: $jobname" 1>&2
+
+##############################################################
+# Set resource requirements
+##############################################################
+
+# incorporate defaults
+set_count
+set_req_mem
+
+# set memory select string
+if [ ! -z "$joboption_memory" ] ; then
+  memreq="${joboption_memory}"
+  # memory per-chunk (joboption_memory is per-process by specification)
+  if [ -n "$joboption_count" ] && [ $joboption_count -gt 0 ] ; then
+     memreq=$(( ${joboption_countpernode:-1} * $memreq ))
+  fi
+  memreq=":mem=${memreq}mb"
+fi
+
+# single-process/parallel jobs
+if [ "$joboption_count" = "1" ] ; then
+  select_string="#PBS -l select=1:ncpus=1${memreq}"
+  place_string="#PBS -l place=free"
+elif [ -n "$joboption_numnodes" ] ; then
+  # joboption_numnodes set by A-REX when 'countpernode' is defined in job description
+  select_string="#PBS -l select=${joboption_numnodes}:ncpus=${joboption_countpernode:-1}${memreq}"
+  place_string="#PBS -l place=free"
+else
+  # no countpernode is requested - job use count as a number of chunks
+  select_string="#PBS -l select=${joboption_count}:ncpus=1${memreq}"
+  place_string="#PBS -l place=pack"
+fi
+
+# add extra requirements from arc.conf
+if [ ! -z "$CONFIG_pbs_queue_node" ] ; then
+  select_string="${select_string}:${CONFIG_pbs_queue_node}"
+fi
+
+# exclusice execution
+if [ "$joboption_exclusivenode" = "true" ]; then
+  place_string="${place_string}:excl"
+fi
+
+# node properties (TODO: can be set in RTE only?)
+i=0
+eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
+while [ ! -z "${var_is_set}" ] ; do
+  eval "var_value=\${joboption_nodeproperty_$i}"
+  select_string="${select_string}:${var_value}"
+  i=$(( $i + 1 ))
+  eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
+done
+
+echo "${select_string}" >> $LRMS_JOB_SCRIPT
+echo "${place_string}" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+# Execution times (minutes)
+##############################################################
+
+if [ ! -z "$joboption_cputime" ] ; then
+# TODO: parallel jobs, add initialization time, make walltime bigger, ...
+# is cputime for every process ?
+  if [ $joboption_cputime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 CPU time requested: $joboption_cputime' 1>&2
+    joboption_cputime=0
+    echo 'WARNING: cpu time set to 0' 1>&2
+  fi
+  maxcputime="$joboption_cputime"
+  cputime_min=$(( $maxcputime / 60 ))
+  cputime_sec=$(( $maxcputime - $cputime_min * 60 ))
+  echo "#PBS -l cput=${cputime_min}:${cputime_sec}" >> $LRMS_JOB_SCRIPT
+fi  
+  
+if [ -z "$joboption_walltime" ] ; then
+  if [ ! -z "$joboption_cputime" ] ; then
+    # Set walltime for backward compatibility or incomplete requests
+    joboption_walltime=$(( $joboption_cputime * $walltime_ratio ))
+  fi
+fi
+
+if [ ! -z "$joboption_walltime" ] ; then
+  if [ $joboption_walltime -lt 0 ] ; then
+    echo 'WARNING: Less than 0 walltime requested: $joboption_walltime' 1>&2
+    joboption_walltime=0
+    echo 'WARNING: wall time set to 0' 1>&2
+  fi
+  maxwalltime="$joboption_walltime"
+  walltime_min=$(( $maxwalltime / 60 ))
+  walltime_sec=$(( $maxwalltime - $walltime_min * 60 ))
+  echo "#PBS -l walltime=${walltime_min}:${walltime_sec}" >> $LRMS_JOB_SCRIPT
+fi
+
+
+##############################################################
+#  PBS stage in/out
+##############################################################
+
+gate_host=`uname -n`
+if [ -z "$gate_host" ] ; then 
+  echo "Can't get own hostname" 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Configuration error.">>"$failures_file"
+  exit 1
+fi
+
+if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  (
+    cd "$joboption_directory"
+    if [ $? -ne '0' ] ; then 
+      echo "Can't change to session directory: $joboption_directory" 1>&2
+      rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+      echo "Submission: Configuration error.">>"$failures_file"
+      exit 1
+    fi
+    scratch_dir=`dirname "$joboption_directory"`
+    echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
+    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
+    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag" >> $LRMS_JOB_SCRIPT
+  )
+fi
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
+echo "umask 077" >> $LRMS_JOB_SCRIPT
+echo " " >> $LRMS_JOB_SCRIPT
+
+sourcewithargs_jobscript
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
+
+##############################################################
+# Add environment variables
+##############################################################
+add_user_env 
+
+##############################################################
+# Check for existance of executable,
+# there is no sense to check for executable if files are 
+# downloaded directly to computing node
+##############################################################
+if [ -z "${joboption_arg_0}" ] ; then
+  echo 'Executable is not specified' 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Job description error.">>"$failures_file"
+  exit 1
+fi
+
+######################################################################
+# Adjust working directory for tweaky nodes
+# RUNTIME_GRIDAREA_DIR should be defined by external means on nodes
+######################################################################
+if [ ! -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  setup_runtime_env
+else
+  echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> $LRMS_JOB_SCRIPT
+  echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> $LRMS_JOB_SCRIPT
+  RUNTIME_STDIN_REL=`echo "${joboption_stdin}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}/*##"`
+  if [ "$RUNTIME_STDIN_REL" = "${joboption_stdin}" ] ; then
+    echo "RUNTIME_JOB_STDIN=\"${joboption_stdin}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDIN=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDIN_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+  if [ "$RUNTIME_STDOUT_REL" = "${joboption_stdout}" ] ; then
+    echo "RUNTIME_JOB_STDOUT=\"${joboption_stdout}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDOUT=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDOUT_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+  if [ "$RUNTIME_STDERR_REL" = "${joboption_stderr}" ] ; then
+    echo "RUNTIME_JOB_STDERR=\"${joboption_stderr}\"" >> $LRMS_JOB_SCRIPT
+  else
+    echo "RUNTIME_JOB_STDERR=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDERR_REL\"" >> $LRMS_JOB_SCRIPT
+  fi
+fi
+
+##############################################################
+# Add std... to job arguments
+##############################################################
+include_std_streams
+
+##############################################################
+#  Move files to local working directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_node
+
+echo "" >> $LRMS_JOB_SCRIPT
+echo "RESULT=0" >> $LRMS_JOB_SCRIPT
+echo "" >> $LRMS_JOB_SCRIPT
+
+
+#####################################################
+#  Go to working dir and start job
+####################################################
+echo "" >> $LRMS_JOB_SCRIPT
+echo "# Changing to session directory" >> $LRMS_JOB_SCRIPT
+echo "cd \$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
+echo "export HOME=\$RUNTIME_JOB_DIR" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Skip execution if something already failed
+##############################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime configuration at computing node
+##############################################################
+RTE_stage1
+
+
+##############################################################
+#  Diagnostics
+##############################################################
+echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+if [ ! "X$PBS_NODEFILE" = 'X' ] ; then
+  if [ -r "$PBS_NODEFILE" ] ; then
+    cat "$PBS_NODEFILE" | sed 's/\(.*\)/nodename=\1/' >> "$RUNTIME_JOB_DIAG"
+    NODENAME_WRITTEN="1"
+  else
+    PBS_NODEFILE=
+  fi
+fi
+EOSCR
+
+##############################################################
+#  Check intermediate result again
+##############################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Execution
+##############################################################
+cd_and_run
+
+##############################################################
+#  End of RESULT checks
+##############################################################
+echo "fi" >> $LRMS_JOB_SCRIPT
+echo "fi" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+#  Runtime (post)configuration at computing node
+##############################################################
+RTE_stage2
+
+####################################################
+#  Clean up output files li local scratchdir
+####################################################
+clean_local_scratch_dir_output
+
+##############################################################
+#  Move files back to session directory (job is done on node only)
+#  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
+##############################################################
+move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
+
+#######################################
+#  Submit the job
+#######################################
+echo "PBS job script built" 1>&2
+# Execute qsub command
+cd "$joboption_directory"
+echo "PBS script follows:" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+cat "$LRMS_JOB_SCRIPT" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+echo "" 1>&2
+PBS_RESULT=1
+PBS_TRIES=0
+
+if [ ! -z "$perflogdir" ]; then
+   stop_ts=`date +%s.%N`
+   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+   echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobScriptCreation: $t" >> $perflogfilesub
+fi
+
+while [ "$PBS_TRIES" -lt '10' ] ; do
+  if [ ! -z "$perflogdir" ]; then
+    start_ts=`date +%s.%N`
+  fi
+
+  ${PBS_QSUB} $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+  PBS_RESULT="$?"
+  if [ ! -z "$perflogdir" ]; then
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] submit-pbs-job, JobSiubmission: $t" >> $perflogfilesub
+  fi
+
+  if [ "$PBS_RESULT" -eq '0' ] ; then break ; fi 
+  if [ "$PBS_RESULT" -eq '198' ] ; then 
+    echo "Waiting for queue to decrease" 1>&2
+    sleep 60
+    PBS_TRIES=0
+    continue
+  fi
+  grep 'maximum number of jobs' "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  if [ $? -eq '0' ] ; then 
+    echo "Waiting for queue to decrease" 1>&2
+    sleep 60
+    PBS_TRIES=0
+    continue
+  fi 
+  PBS_TRIES=$(( $PBS_TRIES + 1 ))
+  sleep 2
+done
+if [ $PBS_RESULT -eq '0' ] ; then
+   job_id=`cat $LRMS_JOB_OUT`
+   # This should be on the format 1414162.$hostname
+   if [ "${job_id}" = "" ]; then
+      echo "job *NOT* submitted successfully!" 1>&2
+      echo "failed getting the pbs jobid for the job!" 1>&2
+      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+   elif [ `echo "${job_id}" | grep -Ec "^[0-9]+"` != "1" ]; then
+      echo "job *NOT* submitted successfully!" 1>&2
+      echo "badly formatted pbs jobid for the job: $job_id !" 1>&2
+      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+   else
+      echo "joboption_jobid=$job_id" >> $GRAMI_FILE
+      echo "job submitted successfully!" 1>&2
+      echo "local job id: $job_id" 1>&2
+      # Remove temporary job script file
+      rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
+      echo "----- exiting submit_pbs_job -----" 1>&2
+      echo "" 1>&2
+      exit 0
+   fi
+else
+  echo "job *NOT* submitted successfully!" 1>&2
+  echo "got error code from qsub: $PBS_RESULT !" 1>&2
+  echo "Submission: Local submission client failed.">>"$failures_file"
+fi
+echo "Output is:" 1>&2
+cat $LRMS_JOB_OUT 1>&2
+echo "Error output is:"
+cat $LRMS_JOB_ERR 1>&2
+rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+echo "----- exiting submit_pbs_job -----" 1>&2
+echo "" 1>&2
+exit 1
