@@ -323,10 +323,11 @@ AuthResult AuthUser::evaluate(const char* line) {
   return AAA_FAILURE; 
 }
 
-const std::vector<struct voms_t>& AuthUser::voms(void) {
+const std::vector<struct voms_t>& AuthUser::voms(void) const {
   if(!voms_extracted) {
     const char* line = "* * * *";
-    match_voms(line);
+    // Little hack to avoid mess with const in legacy code
+    const_cast<AuthUser*>(this)->match_voms(line);
   };
   return voms_data;
 }
@@ -369,6 +370,26 @@ std::string AuthUser::err_to_string(int err) {
   if(err == AAA_NO_MATCH) return "no match";
   if(err == AAA_FAILURE) return "failure";
   return "";
+}
+
+bool AuthUser::check_group(const char* grp) const {
+  if(grp == NULL) return false;
+  for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+    if(i->name == grp) return true;
+  };
+  return false;
+};
+
+bool AuthUser::select_group(const char* grp) {
+  default_group_ = NULL;
+  if(grp == NULL) return false;
+  for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+    if(i->name == grp) {
+      default_group_ = i->name.c_str();
+      return true;
+    };
+  };
+  return false;
 }
 
 AuthEvaluator::AuthEvaluator(void):name("") {

@@ -50,8 +50,7 @@ class JobPlugin: public FilePlugin {
   Arc::User user;
   GMConfig config;
   DelegationStore::DbType deleg_db_type;
-  //AuthUser& user_a;
-  userspec_t user_s;
+  userspec_t const& user_s;
   std::list<std::string> avail_queues;
   std::string subject;
   unsigned short int port; // port client used for data channel
@@ -71,7 +70,7 @@ class JobPlugin: public FilePlugin {
   std::vector<std::string> session_dirs_non_draining;
   Arc::AutoPointer<DirectUserFilePlugin> chosenFilePlugin;
  public:
-  JobPlugin(std::istream &cfile,userspec_t &user,FileNode &node);
+  JobPlugin(std::istream &cfile,userspec_t const &user,FileNode &node);
   ~JobPlugin(void);
   virtual std::string get_error_description() const;
   virtual int open(const char* name,open_modes mode,unsigned long long int size = 0);
