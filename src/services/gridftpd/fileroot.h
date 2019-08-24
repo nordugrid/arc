@@ -108,7 +108,7 @@ class FilePlugin { /* this is the base class for plugins */
 class FileNode;
 
 /* this is the only exported C function from plugin */
-typedef FilePlugin* (*plugin_init_t)(std::istream &cfile,userspec_t &user,FileNode &node);
+typedef FilePlugin* (*plugin_init_t)(std::istream &cfile,userspec_t const &user,FileNode &node);
 
 class FileNode {
  public:
