@@ -375,7 +375,7 @@ class SLURMInfo(LRMSInfo, object):
     def read_config(self):
         self.config = {}
         execute = execute_local if not self._ssh else execute_remote
-        handle = execute('%s/scontrol show config| grep "MaxJobCount\|SLURM_VERSION"' % (self._path))
+        handle = execute('%s/scontrol show config| grep "MaxJobCount\\|SLURM_VERSION"' % (self._path))
         if handle.returncode:
             raise ArcError('scontrol error: %s' % '\n'.join(handle.stderr), 'SLURMInfo')
         for line in handle.stdout:
@@ -625,7 +625,7 @@ class JobscriptAssemblerSLURM(JobscriptAssembler):
         script += self.get_stub('rte_stage1')
         script += '''if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
   if [ -r "$SLURM_NODEFILE" ] ; then
-    cat "$SLURM_NODEFILE" | sed 's/\(.*\)/nodename=\\1/' >> "$RUNTIME_JOB_DIAG"
+    cat "$SLURM_NODEFILE" | sed 's/\\(.*\\)/nodename=\\1/' >> "$RUNTIME_JOB_DIAG"
     NODENAME_WRITTEN="1"
   else
     SLURM_NODEFILE=

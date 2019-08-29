@@ -383,11 +383,19 @@ if test "$enables_python" = "yes"; then
 
   if test "X$PYTHON" != "X"; then
     PYNAME=`basename $PYTHON`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
     PYNAME=python-`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
@@ -411,7 +419,7 @@ if test "$enables_python" = "yes"; then
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             PYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
@@ -514,11 +522,19 @@ if test "$enables_altpython" = "yes"; then
 
   if test "X$ALTPYTHON" != "X"; then
     ALTPYNAME=`basename $ALTPYTHON`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
     ALTPYNAME=python-`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
@@ -542,7 +558,7 @@ if test "$enables_altpython" = "yes"; then
             ALTPYTHON_LIBS="-L$ALTPY_LIBDEST/config -lpython$ALTPYTHON_VERSION $ALTPYTHON_LIBS"],[
             ALTPYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(ALTPYTHON_VERSION)
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
