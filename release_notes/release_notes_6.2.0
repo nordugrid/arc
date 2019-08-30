@@ -67,7 +67,7 @@ We provide binary builds for the following systems:
 
 Future support of ARC 5-series
 ===============================
-Note that now that ARC 6.0.0 is released, we will only provide security updates of ARC 5.
+Note that now that ARC 6 is released, we will only provide security updates of ARC 5.
 In particular:
 1) No new feature development is planned or going on for ARC5 and no bug-fixing development 
    will happen on ARC5 code base in the future except for security issues.
