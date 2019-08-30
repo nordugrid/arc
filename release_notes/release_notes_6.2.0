@@ -24,7 +24,7 @@ The following Bugzilla tickets have been resolved
 * 3851  Gridftp submission stops working when per-queue allowaccess is enabled
 * 3849  Mystery bug: custom BDII PIDFile location causes infosys directory chown to root at each infoproviders run
 * 3848  Dummy RTE can stop other RTE from being processed by submission scripts
-
+* 3853  cancel-SLURM-job does not work correctly
 
 
 
