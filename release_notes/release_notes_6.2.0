@@ -17,19 +17,19 @@ Highlights in this release
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
-* 3544  Patch for BDII Job Count Breakdown
-* 3845  Provide a hook for an external agent to change DTR priorities
-* 3844  arex and gridftpd services fail to start due to python version
-* 3850  SLURM backend copies ARC CE environment causing updated ENV/PROXY failure
+* 3853  cancel-SLURM-job does not work correctly
 * 3851  Gridftp submission stops working when per-queue allowaccess is enabled
+* 3850  SLURM backend copies ARC CE environment causing updated ENV/PROXY failure
 * 3849  Mystery bug: custom BDII PIDFile location causes infosys directory chown to root at each infoproviders run
 * 3848  Dummy RTE can stop other RTE from being processed by submission scripts
-* 3853  cancel-SLURM-job does not work correctly
+* 3845  Provide a hook for an external agent to change DTR priorities
+* 3844  arex and gridftpd services fail to start due to python version
+* 3544  Patch for BDII Job Count Breakdown
 
 
-
+Other improvements
+--------------------
 In addition the following enhancements and changes are included, together with some other minor improvements
-
 
 * Component:  Arcctl
 **  Adding new features to arcctl job management script for rendering stdout/stderr                   
@@ -38,8 +38,8 @@ In addition the following enhancements and changes are included, together with s
 **  Job resource usage accounting using cgroups - adding a new way of doing job resource usage accounting in ARC.
 
 * Component:  Building
-**  Python 3.8 needed for Fedora 32
-
+** Python 3.8 needed for Fedora 32
+** The ENV/SINGULARITY RTE is now added to the ARC distribution
 
 
 Documentation
