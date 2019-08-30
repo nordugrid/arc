@@ -31,9 +31,6 @@ The following Bugzilla tickets have been resolved
 In addition the following enhancements and changes are included, together with some other minor improvements
 
 
-Type of change:  Enhancements or new features
-----------------------------------------
-
 * Component:  Arcctl
 **  Adding new features to arcctl job management script for rendering stdout/stderr                   
 
