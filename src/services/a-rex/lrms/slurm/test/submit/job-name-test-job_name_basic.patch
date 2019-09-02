@@ -1,0 +1,11 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -5,7 +5,7 @@
+ #SBATCH -o /my/session/directory.comment
+ 
+ #SBATCH --nice=50
+-#SBATCH -J 'gridjob'
++#SBATCH -J 'job'
+ #SBATCH --get-user-env=10L
+ #SBATCH -n 1
+ #SBATCH 

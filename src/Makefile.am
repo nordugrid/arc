@@ -1,15 +1,15 @@
 if HED_ENABLED
 if DOC_ENABLED
-BUILD_SOURCES = external doc hed libs tests services clients utils doxygen
+BUILD_SOURCES = external doc hed libs tests services clients utils wn doxygen
 else
-BUILD_SOURCES = external doc hed libs tests services clients utils
+BUILD_SOURCES = external doc hed libs tests services clients utils wn
 endif
 else
 BUILD_SOURCES =
 endif
 
 SUBDIRS = $(BUILD_SOURCES)
-DIST_SUBDIRS = external doc hed libs tests services clients utils doxygen
+DIST_SUBDIRS = external doc hed libs tests services clients utils doxygen wn
 
 # This won't work in case of cross-compilation. Please
 # some autotools experts fix it.

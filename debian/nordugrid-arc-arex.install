@@ -29,6 +29,7 @@ debian/tmp/usr/share/arc/SGE.pm
 debian/tmp/usr/share/arc/LL.pm
 debian/tmp/usr/share/arc/LSF.pm
 debian/tmp/usr/share/arc/PBS.pm
+debian/tmp/usr/share/arc/PBSPRO.pm
 debian/tmp/usr/share/arc/Condor.pm
 debian/tmp/usr/share/arc/SLURMmod.pm
 debian/tmp/usr/share/arc/SLURM.pm
@@ -77,6 +78,7 @@ debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
 debian/tmp/usr/share/arc/rte/ENV/PROXY
 debian/tmp/usr/share/arc/rte/ENV/RTE
 debian/tmp/usr/share/arc/rte/ENV/CANDYPOND
+debian/tmp/usr/share/arc/rte/ENV/SINGULARITY
 debian/tmp/usr/share/arc/rte/ENV/CONDOR/DOCKER
 
 debian/tmp/usr/sbin/arcctl

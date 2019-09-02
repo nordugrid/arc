@@ -11,7 +11,8 @@
 
 echo "----- starting submit_slurm_job -----" 1>&2
 joboption_lrms="SLURM"
-lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+lrms_options="slurm_requirements slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+queue_options="slurm_requirements"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -64,6 +65,9 @@ echo "# SLURM batch job script built by arex" >> $LRMS_JOB_SCRIPT
 
 # rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
+
+# no environment exporting from ARC CE to WN
+echo "#SBATCH --export=NONE" >> $LRMS_JOB_SCRIPT
 
 # write SLURM output to 'comment' file
 echo "#SBATCH -e ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
@@ -191,12 +195,40 @@ if [ ! -z "$joboption_memory" ] ; then
   echo "#SBATCH --mem-per-cpu=${joboption_memory}" >> $LRMS_JOB_SCRIPT
 fi
 
+##############################################################
+# Additional SLURM requirements
+##############################################################
+
+requirements_string=""
+i=0
+eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
+while [ ! -z "${var_is_set}" ] ; do
+  eval "var_value=\${CONFIG_slurm_requirements_$i}"
+  requirements_string="${requirements_string} ${var_value}"
+  i=$(( $i + 1 ))
+  eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
+done
+
+if [ ! -z "$requirements_string" ]; then
+  echo "#SBATCH $requirements_string" >> $LRMS_JOB_SCRIPT
+fi
+
+if [ ! -z "$CONFIG_slurm_requirements" ]  && [  "x$CONFIG_slurm_requirements" != "x__array__" ] ; then
+  echo "#SBATCH $CONFIG_slurm_requirements" >> $LRMS_JOB_SCRIPT
+fi
+
+
 echo "" >> $LRMS_JOB_SCRIPT
 echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
 echo "umask 077" >> $LRMS_JOB_SCRIPT
 echo " " >> $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -318,6 +350,11 @@ clean_local_scratch_dir_output
 # !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
 ##############################################################
 move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job

@@ -50,6 +50,7 @@ use strict;
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 our %modnames = ( PBS    => "PBS",
+		  PBSPRO => "PBSPRO",
                   SGE    => "SGE",
                   LL     => "LL",
                   LSF    => "LSF",

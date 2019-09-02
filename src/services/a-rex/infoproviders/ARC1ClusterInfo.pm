@@ -1408,16 +1408,11 @@ sub collect($) {
           # TODO: check where is this taken
           $cact->{IDFromEndpoint} = "urn:idfe:$jobid" if $jobid;
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
-          # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
           # Set job specification language based on description
           if ($gmjob->{description}) {
                 if ($gmjob->{description} eq 'adl') { 
                     $cact->{JobDescription} = 'emies:adl';
-                } elsif ($gmjob->{description} eq 'jsdl') {
-                    # TODO: Supported version might be more accurate if needed.
-                    $cact->{JobDescription} = 'ogf:jsdl:1.0'; 
-                }
-                else {
+                } else {
                     $cact->{JobDescription} = 'nordugrid:xrsl';
                 }
           } else {
@@ -1617,7 +1612,8 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+
+            $cep->{JobDescription} = [ 'nordugrid:xrsl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -1751,7 +1747,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -1879,7 +1875,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2101,7 +2097,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2305,7 +2301,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2411,7 +2407,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
+            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
@@ -2822,10 +2818,14 @@ sub collect($) {
         # OBS: this serving state should come from LRMS.
         $csha->{ServingState} = 'production';
 
-        # Count local jobs
-        my $localrunning = $qinfo->{running};
-        my $localqueued = $qinfo->{queued};
-        my $localsuspended = $qinfo->{suspended} || 0;
+        # We can't guess which local job belongs to a certain VO, hence
+        # we set LocalRunning/Waiting/Suspended to zero for shares related to
+        # a VO. 
+        # The global share that represents the queue has also jobs not
+        # managed by the ARC CE as it was in previous versions of ARC
+        my $localrunning = ($qname eq $share) ? $qinfo->{running} : 0;
+        my $localqueued = ($qname eq $share) ? $qinfo->{queued} : 0;
+        my $localsuspended = ($qname eq $share) ? $qinfo->{suspended}||0 : 0;
 
         # TODO: [negative] This should avoid taking as local jobs
         # also those submitted without any VO

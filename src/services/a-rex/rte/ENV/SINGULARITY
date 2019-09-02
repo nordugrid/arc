@@ -1,0 +1,42 @@
+# description: executes the job inside singularity container
+# param:SINGULARITY_IMAGE:string:NULL:singularity image or tree per VO, key:value comma separated, key default if VO not matched
+# param:SINGULARITY_OPTIONS:string: :singularity options
+
+SINGULARITY_OPTIONS="${SINGULARITY_OPTIONS:-}"
+SINGULARITY_IMAGE="${SINGULARITY_IMAGE:-}"
+
+DEFAULT_IMAGE="NULL"
+
+if [ "x$1" = "x0" ]; then
+
+    # get VO
+    #vo=`arcproxy -P $joboption_controldir/job.$joboption_gridid.proxy -i vomsVO 2> /dev/null`
+    localfile=${joboption_controldir}/job.${joboption_gridid}.local
+    vo=`grep voms= $localfile | awk -F / '{print $2}'|sort -u`
+    
+    values=`echo $SINGULARITY_IMAGE | sed -e 's/,/ /g'`
+    for i in $values
+    do
+        voname=`echo $i | awk -F : '{print $1}'`
+        voimage=`echo $i | awk -F : '{print $2}'`
+	if [ "xdefault" = "x$voname" ]; then
+	    DEFAULT_IMAGE=$voimage
+	fi
+	if [ "x$vo" = "x$voname" ] ; then
+	    IMAGE=$voimage
+	fi
+    done
+
+    IMAGE="${IMAGE:-$DEFAULT_IMAGE}"
+
+    # explicit image, NULL skips container
+    IMAGE="${2:-$IMAGE}"
+    # unquote IMAGE
+    temp="${IMAGE%\"}"
+    temp="${temp#\"}"
+    IMAGE=$temp
+
+    if [ "x$IMAGE" != "xNULL" ] ; then
+       joboption_args="/usr/bin/singularity exec $SINGULARITY_OPTIONS --home \${RUNTIME_JOB_DIR} $IMAGE $joboption_args"
+    fi
+fi

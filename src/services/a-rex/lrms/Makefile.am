@@ -7,7 +7,7 @@ else
 PYTHON_LRMS =
 endif
 
-SUBDIRS = pbs fork sge condor lsf ll slurm boinc test $(PYTHON_LRMS)
+SUBDIRS = pbs pbspro fork sge condor lsf ll slurm boinc test $(PYTHON_LRMS)
 
-DIST_SUBDIRS = pbs fork sge condor lsf ll slurm boinc test \
+DIST_SUBDIRS = pbs pbspro fork sge condor lsf ll slurm boinc test \
 	       slurmpy arc

@@ -7,8 +7,8 @@
 
 #include <arc/compute/JobDescriptionParserPlugin.h>
 
-/** ARDLParser
- * The ARCJSDLParser class, derived from the JobDescriptionParserPlugin class, is
+/** ADLParser
+ * The ADLParser class, derived from the JobDescriptionParserPlugin class, is
  * a job description parser for the EMI ES job description language (ADL)
  * described in <http://>.
  */
@@ -28,25 +28,6 @@ namespace Arc {
     JobDescriptionParserPluginResult Assemble(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
-
-  private:
-    /*
-    bool parseSoftware(XMLNode xmlSoftware, SoftwareRequirement& sr) const;
-    void outputSoftware(const SoftwareRequirement& sr, XMLNode& xmlSoftware) const;
-
-    template<typename T>
-    void parseRange(XMLNode xmlRange, Range<T>& range, const T& undefValue) const;
-    template<typename T>
-    Range<T> parseRange(XMLNode xmlRange, const T& undefValue) const;
-    template<typename T>
-    void outputARCJSDLRange(const Range<T>& range, XMLNode& arcJSDL, const T& undefValue) const;
-    template<typename T>
-    void outputJSDLRange(const Range<T>& range, XMLNode& jsdl, const T& undefValue) const;
-
-
-    void parseBenchmark(XMLNode xmlBenchmark, std::pair<std::string, double>& benchmark) const;
-    void outputBenchmark(const std::pair<std::string, double>& benchmark, XMLNode& xmlBenchmark) const;
-    */
   };
 
 } // namespace Arc

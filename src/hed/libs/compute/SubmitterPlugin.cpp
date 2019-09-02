@@ -97,7 +97,7 @@ namespace Arc {
 
     job.ActivityOldID = jobdesc.Identification.ActivityOldID;
 
-    jobdesc.UnParse(job.JobDescriptionDocument, !jobdesc.GetSourceLanguage().empty() ? jobdesc.GetSourceLanguage() : "nordugrid:jsdl"); // Assuming job description is valid.
+    jobdesc.UnParse(job.JobDescriptionDocument, !jobdesc.GetSourceLanguage().empty() ? jobdesc.GetSourceLanguage() : "nordugrid:xrsl"); // Assuming job description is valid.
 
     job.LocalInputFiles.clear();
     for (std::list<InputFileType>::const_iterator it = jobdesc.DataStaging.InputFiles.begin();

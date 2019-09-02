@@ -109,8 +109,106 @@ mktempscript () {
 }
 
 ##############################################################
-# Execution times (obtained in seconds)
+# Jobscript resource usage accounting
 ##############################################################
+
+accounting_init () {
+    cat >> $LRMS_JOB_SCRIPT <<EOSCR
+echo "Detecting resource accounting method available for the job." 1>&2
+JOB_ACCOUNTING=""
+# Try to use cgroups first
+if command -v arc-job-cgroup >/dev/null 2>&1; then
+    echo "Found arc-job-cgroup tool: trying to initialize accounting cgroups for the job." 1>&2
+    while true; do
+        # memory cgroup
+        memory_cgroup="\$( arc-job-cgroup -m -n $joboption_gridid )"
+        if [ \$? -ne 0 -o -z "\$memory_cgroup" ]; then
+            echo "Failed to initialize memory cgroup for accounting." 1>&2
+            break;
+        fi
+        # cpuacct cgroup
+        cpuacct_cgroup="\$( arc-job-cgroup -c -n $joboption_gridid )"
+        if [ \$? -ne 0 -o -z "\$cpuacct_cgroup" ]; then
+            echo "Failed to initialize cpuacct cgroup for accounting." 1>&2
+            break;
+        fi
+        echo "Using cgroups method for job accounting" 1>&2
+        JOB_ACCOUNTING="cgroup"
+        break;
+    done
+fi
+
+# Fallback to GNU_TIME if cgroups are not working
+if [ -z "\$JOB_ACCOUNTING" ]; then
+    GNU_TIME='$GNU_TIME'
+    echo "Looking for \$GNU_TIME tool for accounting measurements" 1>&2
+    if [ ! -z "\$GNU_TIME" ] && ! "\$GNU_TIME" --version >/dev/null 2>&1; then
+        echo "GNU time is not found at: \$GNU_TIME" 1>&2
+    else
+        echo "GNU time found and will be used for job accounting." 1>&2
+        JOB_ACCOUNTING="gnutime"
+    fi
+fi
+
+# Nothing works: rely on LRMS only
+if [ -z "\$JOB_ACCOUNTING" ]; then
+    echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
+fi
+EOSCR
+}
+
+accounting_end () {
+    cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+# Handle cgroup measurements
+if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
+    # Max memory used (total)
+    maxmemory=$( cat "${memory_cgroup}/memory.memsw.max_usage_in_bytes" )
+    maxmemory=$(( (maxmemory + 1023) / 1024 ))
+    echo "maxtotalmemory=${maxmemory}kB" >> "$RUNTIME_JOB_DIAG"
+
+    # Max memory used (RAM)
+    maxram=$( cat "${memory_cgroup}/memory.max_usage_in_bytes" )
+    maxram=$(( (maxram + 1023) / 1024 ))
+    echo "maxresidentmemory=${maxram}kB" >> "$RUNTIME_JOB_DIAG"
+    # TODO: this is for compatibilty with current A-REX accounting code. Remove when A-REX will use max value instead.
+    echo "averageresidentmemory=${maxram}kB" >> "$RUNTIME_JOB_DIAG"
+
+    # User CPU time
+    if [ -f "${cpuacct_cgroup}/cpuacct.usage_user" ]; then
+        # cgroup values are in nanoseconds
+        user_cputime=$( cat "${cpuacct_cgroup}/cpuacct.usage_user" )
+        user_cputime=$(( user_cputime / 1000000 ))
+    elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
+        # older kernels have only cpuacct.stat that use USER_HZ units
+        user_cputime=$( cat "${cpuacct_cgroup}/cpuacct.stat" | sed -n '/^user/s/user //p' )
+        user_hz=$( getconf CLK_TCK )
+        user_cputime=$(( user_cputime / user_hz ))
+    fi
+    [ -n "$user_cputime" ] && echo "usertime=${user_cputime}" >> "$RUNTIME_JOB_DIAG"
+
+    # Kernel CPU time
+    if [ -f "${cpuacct_cgroup}/cpuacct.usage_sys" ]; then
+        # cgroup values are in nanoseconds
+        kernel_cputime=$( cat "${cpuacct_cgroup}/cpuacct.usage_sys" )
+        kernel_cputime=$(( kernel_cputime / 1000000 ))
+    elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
+        # older kernels have only cpuacct.stat that use USER_HZ units
+        kernel_cputime=$( cat "${cpuacct_cgroup}/cpuacct.stat" | sed -n '/^system/s/system //p' )
+        [ -z "$user_hz" ] && user_hz=$( getconf CLK_TCK )
+        kernel_cputime=$(( kernel_cputime / user_hz ))
+    fi
+    [ -n "$kernel_cputime" ] && echo "kerneltime=${kernel_cputime}" >> "$RUNTIME_JOB_DIAG"
+
+    # Remove nested job accouting cgroups
+    arc-job-cgroup -m -d
+    arc-job-cgroup -c -d
+fi
+
+# Add exit code to the accounting information and exit the job script
+echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
+exit $RESULT
+EOSCR
+}
 
 ##############################################################
 # Add environment variables
@@ -205,6 +303,7 @@ RTE_path_set () {
         fi
     fi
     # check RTE is empty
+    unset rte_empty
     [ -s "$rte_path" ] || rte_empty=1
 }
 
@@ -491,8 +590,7 @@ move_files_to_frontend () {
         echo "Failed to move '$RUNTIME_NODE_JOB_DIR' to '$destdir'" 1>&2
         RESULT=1
       fi
-
-else
+    else
       # remove links
       rm -f "$RUNTIME_JOB_STDOUT" 2>/dev/null
       rm -f "$RUNTIME_JOB_STDERR" 2>/dev/null
@@ -511,8 +609,6 @@ else
       rm -rf "$RUNTIME_NODE_JOB_DIR"
     fi
   fi
-  echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
-  exit $RESULT
 EOSCR
 }
 
@@ -557,17 +653,19 @@ cd_and_run () {
 EOSCR
 
   if [ ! -z "$NODENAME" ] ; then
-    if [ -z "$NODENAME_WRITTEN" ] ; then
-      echo "nodename=\`$NODENAME\`" >> $LRMS_JOB_SCRIPT
-      echo "echo \"nodename=\$nodename\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
-    fi
+    cat >> $LRMS_JOB_SCRIPT <<EOSCR
+# Write nodename if not already written in LRMS-specific way
+if [ -z "\$NODENAME_WRITTEN" ] ; then
+  nodename=\`$NODENAME\`
+  echo "nodename=\$nodename" >> "\$RUNTIME_JOB_DIAG"
+fi
+EOSCR
   fi
+
   #TODO this should probably be done on headnode instead
   echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
-  # In case the job executable does not exist the error message might be
-  # printed by GNU_TIME, which can be confusing for the user.  
-  # This will print more appropriate error message.
+  # Define executable and check it exists on the worker node
   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 # Check if executable exists
@@ -584,26 +682,18 @@ EOSCR
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 # See if executable is a script, and extract the name of the interpreter
 line1=`dd if="$executable" count=1 2>/dev/null | head -n 1`
-command=`echo $line1 | sed -n 's/^#! *//p'`
-interpreter=`echo $command | awk '{print $1}'`
-if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $command | awk '{print $2}'`; fi
+shebang=`echo $line1 | sed -n 's/^#! *//p'`
+interpreter=`echo $shebang | awk '{print $1}'`
+if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $shebang | awk '{print $2}'`; fi
 # If it's a script and the interpreter is not found ...
 [ "x$interpreter" = x ] || type "$interpreter" > /dev/null 2>&1 || {
 
   echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
   exit 1; }
 EOSCR
-    # Check that gnu_time works
+    # Check gnutime wrap is used for accounting
     cat >> $LRMS_JOB_SCRIPT <<EOSCR
-GNU_TIME='$GNU_TIME'
-if [ ! -z "\$GNU_TIME" ] && ! "\$GNU_TIME" --version >/dev/null 2>&1; then
-  echo "WARNING: GNU time not found at: \$GNU_TIME" 2>&1;
-  GNU_TIME=
-fi 
-
-if [ -z "\$GNU_TIME" ] ; then
-  $joboption_args $input_redirect $output_redirect
-else
+if [ "x\$JOB_ACCOUNTING" = "xgnutime" ]; then
   \$GNU_TIME -o "\$RUNTIME_JOB_DIAG" -a -f '\
 WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\n\
 MaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\n\
@@ -614,7 +704,8 @@ Swaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\n\
 Inputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\n\
 Signals=%k\n' \
 $joboption_args $input_redirect $output_redirect
-
+else
+  $joboption_args $input_redirect $output_redirect
 fi
 RESULT=\$?
 

@@ -92,7 +92,7 @@ static bool parse_owner_rights(std::string &rest,int &uid,int &gid,int &orbits,i
   return true;
 }
 
-DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
+DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t const &user) {
   data_file=-1;
   uid=user.get_uid();
   gid=user.get_gid();

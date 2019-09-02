@@ -99,7 +99,7 @@ public:
   std::list<DirectAccess> access;
   int data_file;
   std::string mount;
-  DirectFilePlugin(std::istream &cfile,userspec_t &user);
+  DirectFilePlugin(std::istream &cfile,userspec_t const &user);
   ~DirectFilePlugin(void) { };
   virtual int open(const char* name,open_modes mode,unsigned long long int size = 0);
   int open_direct(const char* name,open_modes mode);

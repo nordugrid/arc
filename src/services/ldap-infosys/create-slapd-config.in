@@ -91,6 +91,25 @@ chown ${bdii_user}: ${infosys_ldap_run_dir}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
 bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 
+# PIDFile location handling
+slapd_pid_file=$( readlink -m ${bdii_run_dir}/db/slapd.pid )
+
+# forced pidfile location instead of arc.conf-based (if FORCE_ARC_RUNDIR is set)
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    pid_dir="${FORCE_ARC_RUNDIR}/bdii/db"
+    mkdir -p "$pid_dir"
+    chown -R ${bdii_user}: "$pid_dir"
+    pid_file="$( readlink -m ${pid_dir}/slapd.pid )"
+    if [ "x${slapd_pid_file}" != "x${pid_file}" ]; then
+        custom_pid_file="${slapd_pid_file}"
+        rm -f "$custom_pid_file"
+        slapd_pid_file="${pid_file}"
+    fi
+    unset pid_dir pid_file
+fi
+
+rm -f "${slapd_pid_file}"
+
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"hdb"}
 
@@ -220,10 +239,17 @@ done
 bdii_slapd_conf=${infosys_ldap_run_dir}/bdii-slapd.conf
 rm -f $bdii_slapd_conf
 
-# Put BDII start command into hardcoded path
-mkdir -p /var/run/arc/infosys
-bdii_slapd_cmd=/var/run/arc/infosys/bdii-slapd.cmd
+# Put SLAPD start helpers to known directory
+helpers_dir=$infosys_ldap_run_dir
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    helpers_dir="${FORCE_ARC_RUNDIR}/infosys"
+    mkdir -p "${helpers_dir}"
+fi
+
+bdii_slapd_cmd=${helpers_dir}/bdii-slapd.cmd
 rm -f $bdii_slapd_cmd
+bdii_slapd_post_cmd=${helpers_dir}/bdii-slapd-post.cmd
+rm -f $bdii_slapd_post_cmd
 
 # Ensure the configuration file is not world-readable,
 # as it contains the slapd database password
@@ -257,7 +283,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 	allow bind_v2
 
-	pidfile         $bdii_run_dir/db/slapd.pid
+	pidfile         $slapd_pid_file
 	argsfile        $bdii_run_dir/db/slapd.args
 	loglevel        $slapd_loglevel
 	threads         $threads
@@ -339,6 +365,7 @@ cat <<-EOF >> $bdii_slapd_conf
 chown $bdii_user: $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
+# Write slapd starting command
 if [ "x$slapd_hostnamebind" = "x*" ]; then
     echo exec ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 else
@@ -346,8 +373,22 @@ else
 fi
 chmod +x ${bdii_slapd_cmd}
 
-# Initialize the database directories
+# Write post-exec script to check slapd is up and running
+cat <<-EOF > ${bdii_slapd_post_cmd}
+iterlimit=30
+while [ \$iterlimit -ge 0 ] && ! [ -r "${slapd_pid_file}" ]; do
+  sleep 1
+  iterlimit=\$(expr \$iterlimit - 1)
+done
+EOF
 
+# copy forced pidfile to custom arc.conf pidfile (if forced pid was requested)
+if [ -n "${custom_pid_file}" ]; then
+    echo "mkdir -p \"${custom_pid_file%/*}\"" >> ${bdii_slapd_post_cmd}
+    echo "cp -a \"${slapd_pid_file}\" \"${custom_pid_file}\"" >> ${bdii_slapd_post_cmd}
+fi
+
+# Initialize the database directories
 mkdir -p $bdii_run_dir/db
 mkdir -p $bdii_run_dir/archive
 chown $bdii_user: $bdii_run_dir

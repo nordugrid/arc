@@ -173,6 +173,7 @@ fi
 #  Features
 enables_ldap=yes
 enables_mysql=no
+enables_systemd=no
 enables_swig_python=yes
 # Features directly related to components
 enables_cppunit=yes
@@ -384,11 +385,19 @@ if test "$enables_python" = "yes"; then
 
   if test "X$PYTHON" != "X"; then
     PYNAME=`basename $PYTHON`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
     PYNAME=python-`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
@@ -412,7 +421,7 @@ if test "$enables_python" = "yes"; then
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             PYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
@@ -515,11 +524,19 @@ if test "$enables_altpython" = "yes"; then
 
   if test "X$ALTPYTHON" != "X"; then
     ALTPYNAME=`basename $ALTPYTHON`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
     ALTPYNAME=python-`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
@@ -543,7 +560,7 @@ if test "$enables_altpython" = "yes"; then
             ALTPYTHON_LIBS="-L$ALTPY_LIBDEST/config -lpython$ALTPYTHON_VERSION $ALTPYTHON_LIBS"],[
             ALTPYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(ALTPYTHON_VERSION)
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
@@ -646,6 +663,29 @@ fi
 AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
 AC_MSG_NOTICE([Python example checking with pylint enabled: $enables_pylint])
 
+# check systemd daemon integration
+AC_ARG_ENABLE(systemd, AC_HELP_STRING([--enable-systemd], [enable use of the systemd daemon integration features]),[enables_systemd="$enableval"],[])
+if test "x$enables_systemd" = "xyes"; then
+systemd_daemon_save_LIBS=$LIBS
+LIBS=
+AC_SEARCH_LIBS(sd_listen_fds,[systemd systemd-daemon],
+  [have_sd_listen_fds=yes],[have_sd_listen_fds=no],$systemd_daemon_save_LIBS)
+AC_SEARCH_LIBS(sd_notify,[systemd systemd-daemon],
+  [have_sd_notify=yes],[have_sd_notify=no],$systemd_daemon_save_LIBS)
+AC_CHECK_HEADERS(systemd/sd-daemon.h,
+  [have_systemd_sd_daemon_h=yes],[have_systemd_sd_daemon_h=no])
+
+if test x"$have_sd_listen_fds" = x"yes" && \
+   test x"$have_sd_notify" = x"yes" && \
+   test x"$have_systemd_sd_daemon_h" = x"yes"; then
+  AC_DEFINE([HAVE_SYSTEMD_DAEMON],[1],[Define if you have systemd daemon])
+  SYSTEMD_DAEMON_LIBS=$LIBS
+else
+  AC_MSG_FAILURE([--enable-systemd was given, but test for systemd libraries had failed])
+fi
+LIBS=$systemd_daemon_save_LIBS
+fi
+AC_SUBST(SYSTEMD_DAEMON_LIBS)
 
 # check gthread
 if test "$enables_hed" = "yes"; then
@@ -2294,6 +2334,10 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/pbs/submit-pbs-job
                  src/services/a-rex/lrms/pbs/cancel-pbs-job
                  src/services/a-rex/lrms/pbs/scan-pbs-job
+                 src/services/a-rex/lrms/pbspro/Makefile
+                 src/services/a-rex/lrms/pbspro/submit-pbspro-job
+                 src/services/a-rex/lrms/pbspro/cancel-pbspro-job
+                 src/services/a-rex/lrms/pbspro/scan-pbspro-job
                  src/services/a-rex/lrms/sge/Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
@@ -2421,6 +2465,7 @@ AC_CONFIG_FILES([Makefile
                  src/utils/gridmap/nordugridmap.8
                  src/utils/gridmap/Makefile
                  src/utils/Makefile
+                 src/wn/Makefile
                  src/doc/Makefile
                  src/doc/arc.conf.5
                  swig/Makefile
@@ -2473,6 +2518,7 @@ Enabled features:
 
 Local jobs info in BDB:    ${enables_dbjstore}
 Local jobs info in SQLite: ${enables_sqlitejstore}
+Systemd Integration:       ${enables_systemd}
 
 Python LRMS back-end dependency:
 Inline::Python Perl module: ${INLINE_PYTHON_FOUND}
