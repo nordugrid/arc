@@ -44,7 +44,7 @@ Replaces: nordugrid-arc-client (<< 1.0.1~rc2~)
 Breaks: nordugrid-arc-client (<< 1.0.1~rc2~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), lsb-base (>= 3.0-6)
-Recommends: nordugrid-arc-python
+Recommends: nordugrid-arc-python (= ${binary:Version})
 Description: ARC Hosting Environment Daemon
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource

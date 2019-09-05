@@ -353,7 +353,7 @@ for ARC services.
 Summary:	ARC gridftp server
 Group:		System Environment/Daemons
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-globus
+Requires:	%{name}-plugins-globus = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
