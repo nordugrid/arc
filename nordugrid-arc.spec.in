@@ -45,39 +45,28 @@
 #
 # Python
 #
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version:1}%{!?suse_version:0}
-%if %{?rhel}%{!?rhel:0} == 6
-%ifarch ppc64
-# The python module doesn't build on RHEL6 ppc64 (.toc1 section overflow)
-%global with_python 0
+%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
+%global with_python2 0
 %else
-%global with_python 1
-%endif
-%else
-%global with_python 1
-%endif
-%else
-%global with_python 0
+%global with_python2 1
 %endif
 
-%if %{with_python}
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%global with_python3 1
+%else
+%global with_python3 0
+%endif
+
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%else
-%global with_pylint 0
-%endif
 %else
 %global with_pylint 0
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 29 || %{?rhel}%{!?rhel:0} >= 8
 %global py3default 1
-%global __defpython python3
-%global __altpython python2
 %else
 %global py3default 0
-%global __defpython python2
-%global __altpython python3
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version}%{!?suse_version:0} >= 1110
@@ -196,6 +185,10 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 Obsoletes:	%{name}-arcproxyalt < 6.0.0
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
+%if ! %{with_python2}
+Obsoletes:	python2-%{name} < %{version}-%{release}
+Obsoletes:	%{name}-python < 5.3.3
+%endif
 
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
@@ -209,11 +202,10 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
+%if %{with_python2}
 BuildRequires:	python2-devel
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 8
-BuildRequires:	python3-devel
 %endif
-%if %{?rhel}%{!?rhel:0} == 7
+%if %{with_python3}
 BuildRequires:	python%{python3_pkgversion}-devel
 %endif
 %if %{with_pylint}
@@ -457,12 +449,10 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
-%if %{with_python}
 %if %{py3default}
 Requires:	python3-%{name} = %{version}-%{release}
 %else
 Requires:	python2-%{name} = %{version}-%{release}
-%endif
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
@@ -718,7 +708,7 @@ Connector (ARC).
 
 Header files and libraries needed to develop applications using ARC.
 
-%if %{with_python}
+%if %{with_python2}
 %package -n python2-%{name}
 Summary:	ARC Python 2 wrapper
 Group:		Development/Libraries
@@ -735,7 +725,7 @@ Connector (ARC).
 Python 2 bindings for ARC.
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%if %{with_python3}
 %package -n python%{python3_pkgversion}-%{name}
 Summary:	ARC Python 3 wrapper
 Group:		Development/Libraries
@@ -834,9 +824,6 @@ if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
 fi
 
 %configure --disable-static \
-%if ! %{with_python}
-     --disable-swig-python \
-%endif
 %if ! %{with_acix}
      --disable-acix \
 %endif
@@ -846,9 +833,16 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
-     --with-python=%{__defpython} \
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
-     --with-altpython=%{__altpython} \
+%if %{py3default}
+     --with-python=python3 \
+%if %{with_python2}
+     --with-altpython=python2 \
+%endif
+%else
+     --with-python=python2 \
+%if %{with_python3}
+     --with-altpython=python3 \
+%endif
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
@@ -1474,7 +1468,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 
-%if %{with_python}
+%if %{with_python2}
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
@@ -1490,7 +1484,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%if %{with_python3}
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
