@@ -10,7 +10,7 @@ Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
 Replaces: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
-Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~), nordugrid-arc-java (<< 6.0.0~), nordugrid-arc-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 6.0.0~), nordugrid-arc-java (<< 6.0.0~), nordugrid-arc-egiis (<< 6.0.0~)
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
@@ -55,7 +55,7 @@ Description: ARC Hosting Environment Daemon
 
 Package: nordugrid-arc-gridftpd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-globus (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -268,7 +268,7 @@ Provides: nordugrid-arc-misc-utils
 Replaces: nordugrid-arc-misc-utils (<< 6.0.0~)
 Conflicts: nordugrid-arc-misc-utils (<< 6.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC test tools
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
