@@ -322,8 +322,8 @@ Connector (ARC).
 
 The ARC middleware is a software solution that uses distributed
 computing technologies to enable sharing and federation of computing
-resources across different administrative and application domains. ARC
-is used to create distributed infrastructures of various scope and
+resources across different administrative and application domains.
+ARC is used to create distributed infrastructures of various scope and
 complexity, from campus to national and global deployments.
 
 %package client
@@ -828,8 +828,8 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the optional components that provide new
-job management features on the worker nodes (WN).
+This package contains the optional components that provide new job
+management features on the worker nodes (WN).
 
 %prep
 %setup @fedorasetupopts@
