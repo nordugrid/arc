@@ -891,7 +891,7 @@ PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
   AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
-  # Check for finction available since 3.8
+  # Check for function available since 3.8
   SAVE_CFLAGS=$CFLAGS
   SAVE_LIBS=$LIBS
   CFLAGS="$CFLAGS $SQLITE_CFLAGS"

@@ -42,7 +42,6 @@ configure-stamp:
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
 		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
-		    --enable-sqlite \
 		    --enable-internal
 	touch $@
 

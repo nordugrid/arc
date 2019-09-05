@@ -110,13 +110,6 @@
 %global with_pythonlrms 0
 %endif
 
-# SQLite
-%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
-%global with_sqlite 1
-%else
-%global with_sqlite 0
-%endif
-
 # LDNS
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
 %global with_ldns 1
@@ -304,9 +297,7 @@ BuildRequires:	libtool
 BuildRequires:	perl(Inline)
 BuildRequires:	perl(Inline::Python)
 %endif
-%if %{with_sqlite}
 BuildRequires:	sqlite-devel >= 3.6
-%endif
 %if %{with_ldns}
 BuildRequires:	ldns-devel >= 1.6.8
 %endif
@@ -865,9 +856,6 @@ fi
 %if %{with_pythonlrms}
      --with-inline-python \
 %endif
-%if %{with_sqlite}
-     --enable-sqlite \
-%endif
 %if ! %{with_ldns}
      --disable-ldns \
 %endif
@@ -1238,10 +1226,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
 %{_libexecdir}/%{pkgdir}/jura-archive-manager
-%if %{with_sqlite}
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
-%doc %{_mandir}/man8/gm-delegations-converter.8*
-%endif
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
 %{_libexecdir}/%{pkgdir}/smtp-send
@@ -1299,6 +1284,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
+%doc %{_mandir}/man8/gm-delegations-converter.8*
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*
