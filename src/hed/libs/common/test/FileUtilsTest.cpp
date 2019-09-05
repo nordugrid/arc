@@ -131,20 +131,54 @@ void FileUtilsTest::TestFileCreateAndRead() {
 void FileUtilsTest::TestMakeAndDeleteDir() {
   // create a few subdirs and files then recursively delete
   struct stat st;
+  std::string file1("file1");
+  std::string file2("file2");
+  std::string file3("dir1"+sep+"file3");
+  std::string file4("dir1"+sep+"dir3"+sep+"dir4"+sep+"file4");
+  std::string dir1("dir1");
+  std::string dir2("dir1"+sep+"dir2");
+  std::string dir3("dir1"+sep+"dir3"+sep+"dir4");
+  std::string link1("dir1"+sep+"dir2"+sep+"link1");
+
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) == 0);
-  CPPUNIT_ASSERT(_createFile(testroot+sep+"file1"));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(stat(std::string(testroot+sep+"dir1").c_str(), &st) == 0);
+  CPPUNIT_ASSERT(_createFile(testroot+sep+file1));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+dir1), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+dir1), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir1).c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"file2"));
+  CPPUNIT_ASSERT(_createFile(testroot+sep+file2));
+  CPPUNIT_ASSERT(_createFile(testroot+sep+file3));
   // should fail if with_parents is set to false
-  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"), S_IRUSR | S_IWUSR | S_IXUSR, false));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"), S_IRUSR | S_IWUSR | S_IXUSR, true));
-  CPPUNIT_ASSERT(stat(std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3").c_str(), &st) == 0);
+  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot+sep+dir3), S_IRUSR | S_IWUSR | S_IXUSR, false));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+dir3), S_IRUSR | S_IWUSR | S_IXUSR, true));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir3).c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot+sep+"dir1"+sep+"dir2"+sep+"dir3"+sep+"file4"));
-  CPPUNIT_ASSERT(symlink(std::string(testroot+sep+"dir1"+sep+"dir2").c_str(), std::string(testroot+sep+"dir1"+sep+"dir2"+sep+"link1").c_str()) == 0);
+  CPPUNIT_ASSERT(_createFile(testroot+sep+file4));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot+sep+dir2), S_IRUSR | S_IWUSR | S_IXUSR));
+  CPPUNIT_ASSERT(symlink(std::string(testroot+sep+file3).c_str(), std::string(testroot+sep+link1).c_str()) == 0);
+
+  std::list<std::string> files;
+  files.push_back("/");
+  CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, true));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir2).c_str(), &st) == 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+link1).c_str(), &st) == 0);
+
+  files.clear();
+  files.push_back(file1);
+  files.push_back(dir2);
+  // Delete everything except file1 and dir2
+  CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, true));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir3).c_str(), &st) != 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir2).c_str(), &st) == 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+link1).c_str(), &st) != 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+file1).c_str(), &st) == 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+file2).c_str(), &st) != 0);
+
+  files.pop_back();
+  // Delete only file 1
+  CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, false));
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir2).c_str(), &st) == 0);
+  CPPUNIT_ASSERT(stat(std::string(testroot+sep+file1).c_str(), &st) != 0);
 
   CPPUNIT_ASSERT(!Arc::DirDelete(testroot, false));
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));
