@@ -110,7 +110,8 @@ Provides: nordugrid-arc-cache-service, nordugrid-arc-candypond
 Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
 Conflicts: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
+XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -291,6 +292,7 @@ Description: ARCHERY administration tool
 
 Package: nordugrid-arc-wn
 Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC optional worker nodes components
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -298,4 +300,3 @@ Description: ARC optional worker nodes components
  .
  This package contains the optional components that provide new job
  management features on the worker nodes (WN).
-
