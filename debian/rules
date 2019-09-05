@@ -41,7 +41,7 @@ configure-stamp:
 		    --mandir='$${datadir}/man' \
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
-		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
+		    --docdir='$${datadir}/doc/nordugrid-arc' \
 		    --enable-internal
 	touch $@
 

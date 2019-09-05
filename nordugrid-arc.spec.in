@@ -865,7 +865,7 @@ fi
      --with-systemd-units-location=%{_unitdir} \
 %endif
      --disable-doc \
-     --with-docdir=%{_pkgdocdir}
+     --docdir=%{_pkgdocdir}
 
 make %{?_smp_mflags}
 

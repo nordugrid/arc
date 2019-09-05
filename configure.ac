@@ -75,26 +75,6 @@ AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
 test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
 AC_SUBST([MKDIR_P])
 
-dnl --with-docdir since older autoconf (<2.60) does not support --docdir
-AC_ARG_WITH([docdir],
-AC_HELP_STRING([--with-docdir=DIR],
-  [Install documentation in DIR [[default: ${datadir}/doc]]]),
-  [case $withval in
-    yes|no)
-      AC_MSG_ERROR([Invalid DIR])
-      ;;
-    *)
-      docdir="$withval"
-      ;;
-  esac
-],
-[
-  if test -z "$docdir"; then
-    docdir='${datadir}/doc/${PACKAGE}'
-  fi
-])
-AC_SUBST(docdir)
-
 # Use arc for "pkgdir" instead of nordugrid-arc (@PACKAGE@)
 pkgdatadir='${datadir}/arc'
 pkgincludedir='${includedir}/arc'
