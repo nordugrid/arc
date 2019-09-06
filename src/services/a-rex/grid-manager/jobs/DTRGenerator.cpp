@@ -588,7 +588,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         }
       }
-      std::list<std::string> tokeep;
+      std::list<std::string> tokeep(files.size());
       std::transform(files.begin(), files.end(), tokeep.begin(), filedata_pfn);
       if (!Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
@@ -603,7 +603,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     if (!job_input_read_file(jobid, config, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
     else {
-      std::list<std::string> todelete;
+      std::list<std::string> todelete(files.size());
       std::transform(files.begin(), files.end(), todelete.begin(), filedata_pfn);
       if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
@@ -720,9 +720,9 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       }
     }
     // pre-clean session dir before downloading
-    std::list<std::string> todelete;
+    std::list<std::string> todelete(files.size());
     std::transform(files.begin(), files.end(), todelete.begin(), filedata_pfn);
-    if (Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
+    if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       dtrs_lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
@@ -842,9 +842,9 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         break;
     }
     // pre-clean session dir before uploading
-    std::list<std::string> tokeep;
+    std::list<std::string> tokeep(files.size());
     std::transform(files.begin(), files.end(), tokeep.begin(), filedata_pfn);
-    if (Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
+    if (!Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       dtrs_lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
