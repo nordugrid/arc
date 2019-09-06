@@ -26,8 +26,6 @@ deploy_staging_centos7:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_el7
   tags:
     - 158.39.75.5
   only:
