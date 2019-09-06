@@ -476,9 +476,9 @@ bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files,
       // Check for any files in this dir
       std::list<std::string> newfiles;
       for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
-        std::string fullpath(path + '/' + *f);
+        std::string fullpath(path + *f);
         if (fullpath.substr(0, d->size()) == *d && fullpath.size() > d->size() && fullpath[d->size()] == '/') {
-          newfiles.push_back(f->substr(f->find('/')+1));
+          newfiles.push_back(f->substr(f->find('/', 1)));
         }
       }
       if (!newfiles.empty()) {
@@ -489,7 +489,7 @@ bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files,
 
     bool del = excl;
     for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
-      std::string fullpath(path + '/' + *f);
+      std::string fullpath(path + *f);
       if (fullpath == *d) {
         del = !del;
         break;

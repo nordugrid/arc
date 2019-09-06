@@ -164,8 +164,8 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(stat(std::string(testroot+sep+link1).c_str(), &st) == 0);
 
   files.clear();
-  files.push_back(file1);
-  files.push_back(dir2);
+  files.push_back("/" + file1);
+  files.push_back("/" + dir2);
   // Delete everything except file1 and dir2
   CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, true));
   CPPUNIT_ASSERT(stat(std::string(testroot+sep+dir3).c_str(), &st) != 0);

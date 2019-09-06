@@ -55,7 +55,7 @@ bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
 std::string filedata_pfn(FileData const& fd) {
   return fd.pfn;
 }
-  
+
 void DTRGenerator::main_thread(void* arg) {
   ((DTRGenerator*)arg)->thread();
 }
