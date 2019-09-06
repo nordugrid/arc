@@ -6,8 +6,6 @@ stages:
   - deploy_and_test
 
 
-
-
 deploy_staging_centos7:
   stage: deploy_and_test
   image: docker:stable
