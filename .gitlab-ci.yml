@@ -26,9 +26,6 @@ deploy_staging_centos7:
      #- $CI_PROJECT_DIR/arc-tests/
   tags:
     - 158.39.75.5
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
   allow_failure: true
 
 
