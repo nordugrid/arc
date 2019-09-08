@@ -45,39 +45,28 @@
 #
 # Python
 #
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version:1}%{!?suse_version:0}
-%if %{?rhel}%{!?rhel:0} == 6
-%ifarch ppc64
-# The python module doesn't build on RHEL6 ppc64 (.toc1 section overflow)
-%global with_python 0
+%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
+%global with_python2 0
 %else
-%global with_python 1
-%endif
-%else
-%global with_python 1
-%endif
-%else
-%global with_python 0
+%global with_python2 1
 %endif
 
-%if %{with_python}
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%global with_python3 1
+%else
+%global with_python3 0
+%endif
+
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%else
-%global with_pylint 0
-%endif
 %else
 %global with_pylint 0
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 29 || %{?rhel}%{!?rhel:0} >= 8
 %global py3default 1
-%global __defpython python3
-%global __altpython python2
 %else
 %global py3default 0
-%global __defpython python2
-%global __altpython python3
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version}%{!?suse_version:0} >= 1110
@@ -110,13 +99,6 @@
 %global with_pythonlrms 0
 %endif
 
-# SQLite
-%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
-%global with_sqlite 1
-%else
-%global with_sqlite 0
-%endif
-
 # LDNS
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
 %global with_ldns 1
@@ -130,6 +112,13 @@
 %global use_systemd 1
 %else
 %global use_systemd 0
+%endif
+
+%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
+# LDAP service requires bdii which is not ported to Python 3
+%global with_ldap_service 0
+%else
+%global with_ldap_service 1
 %endif
 
 #
@@ -203,6 +192,15 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 Obsoletes:	%{name}-arcproxyalt < 6.0.0
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
+%if ! %{with_python2}
+Obsoletes:	python2-%{name} < %{version}-%{release}
+Obsoletes:	%{name}-python < 5.3.3
+%endif
+%if ! %{with_ldap_service}
+Obsoletes:	%{name}-infosys-ldap < %{version}-%{release}
+Obsoletes:	%{name}-ldap-infosys < 6.0.0
+Obsoletes:	%{name}-aris < 6.0.0
+%endif
 
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
@@ -216,11 +214,10 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
+%if %{with_python2}
 BuildRequires:	python2-devel
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 8
-BuildRequires:	python3-devel
 %endif
-%if %{?rhel}%{!?rhel:0} == 7
+%if %{with_python3}
 BuildRequires:	python%{python3_pkgversion}-devel
 %endif
 %if %{with_pylint}
@@ -304,9 +301,7 @@ BuildRequires:	libtool
 BuildRequires:	perl(Inline)
 BuildRequires:	perl(Inline::Python)
 %endif
-%if %{with_sqlite}
 BuildRequires:	sqlite-devel >= 3.6
-%endif
 %if %{with_ldns}
 BuildRequires:	ldns-devel >= 1.6.8
 %endif
@@ -322,8 +317,8 @@ Connector (ARC).
 
 The ARC middleware is a software solution that uses distributed
 computing technologies to enable sharing and federation of computing
-resources across different administrative and application domains. ARC
-is used to create distributed infrastructures of various scope and
+resources across different administrative and application domains.
+ARC is used to create distributed infrastructures of various scope and
 complexity, from campus to national and global deployments.
 
 %package client
@@ -362,7 +357,7 @@ for ARC services.
 Summary:	ARC gridftp server
 Group:		System Environment/Daemons
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-globus
+Requires:	%{name}-plugins-globus = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -395,6 +390,7 @@ Connector (ARC).
 
 This package contains the ARC data delivery service.
 
+%if %{with_ldap_service}
 %package infosys-ldap
 Summary:	ARC LDAP-based information services
 Group:		System Environment/Libraries
@@ -437,6 +433,7 @@ This package contains the ARC information services relying on BDII and
 LDAP technologies to publish ARC CE information according to various
 LDAP schemas. Please note that the information collectors are part of
 another package, the nordugrid-arc-arex.
+%endif
 
 %package monitor
 Summary:	ARC LDAP monitor web application
@@ -466,12 +463,10 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
-%if %{with_python}
 %if %{py3default}
 Requires:	python3-%{name} = %{version}-%{release}
 %else
 Requires:	python2-%{name} = %{version}-%{release}
-%endif
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
@@ -727,7 +722,7 @@ Connector (ARC).
 
 Header files and libraries needed to develop applications using ARC.
 
-%if %{with_python}
+%if %{with_python2}
 %package -n python2-%{name}
 Summary:	ARC Python 2 wrapper
 Group:		Development/Libraries
@@ -744,7 +739,7 @@ Connector (ARC).
 Python 2 bindings for ARC.
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%if %{with_python3}
 %package -n python%{python3_pkgversion}-%{name}
 Summary:	ARC Python 3 wrapper
 Group:		Development/Libraries
@@ -828,8 +823,8 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the optional components that provide new
-job management features on the worker nodes (WN).
+This package contains the optional components that provide new job
+management features on the worker nodes (WN).
 
 %prep
 %setup @fedorasetupopts@
@@ -843,9 +838,6 @@ if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
 fi
 
 %configure --disable-static \
-%if ! %{with_python}
-     --disable-swig-python \
-%endif
 %if ! %{with_acix}
      --disable-acix \
 %endif
@@ -855,18 +847,22 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
-     --with-python=%{__defpython} \
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
-     --with-altpython=%{__altpython} \
+%if %{py3default}
+     --with-python=python3 \
+%if %{with_python2}
+     --with-altpython=python2 \
+%endif
+%else
+     --with-python=python2 \
+%if %{with_python3}
+     --with-altpython=python3 \
+%endif
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
 %endif
 %if %{with_pythonlrms}
      --with-inline-python \
-%endif
-%if %{with_sqlite}
-     --enable-sqlite \
 %endif
 %if ! %{with_ldns}
      --disable-ldns \
@@ -876,8 +872,11 @@ fi
      --enable-systemd \
      --with-systemd-units-location=%{_unitdir} \
 %endif
+%if ! %{with_ldap_service}
+     --disable-ldap-service \
+%endif
      --disable-doc \
-     --with-docdir=%{_pkgdocdir}
+     --docdir=%{_pkgdocdir}
 
 make %{?_smp_mflags}
 
@@ -895,8 +894,10 @@ install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
+%if %{with_ldap_service}
 install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
+%endif
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
@@ -994,6 +995,7 @@ fi
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
 
+%if %{with_ldap_service}
 %post infosys-ldap
 %enable_service arc-infosys-ldap
 
@@ -1037,6 +1039,7 @@ FIRST_ARG=1
 %restart_on_update arc-infosys-ldap
 %else
 service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
+%endif
 %endif
 
 %if %{with_acix}
@@ -1193,6 +1196,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
+%if %{with_ldap_service}
 %files infosys-ldap
 %defattr(-,root,root,-)
 %if %{use_systemd}
@@ -1206,8 +1210,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
-%{_datadir}/%{pkgdir}/PerfData.pl
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
+%endif
 
 %files monitor
 %defattr(-,root,root,-)
@@ -1238,10 +1242,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
 %{_libexecdir}/%{pkgdir}/jura-archive-manager
-%if %{with_sqlite}
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
-%doc %{_mandir}/man8/gm-delegations-converter.8*
-%endif
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
 %{_libexecdir}/%{pkgdir}/smtp-send
@@ -1294,11 +1295,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/scan_common.sh
 %{_datadir}/%{pkgdir}/lrms_common.sh
 %{_datadir}/%{pkgdir}/perferator
+%{_datadir}/%{pkgdir}/PerfData.pl
 %doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
+%doc %{_mandir}/man8/gm-delegations-converter.8*
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*
@@ -1488,7 +1491,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 
-%if %{with_python}
+%if %{with_python2}
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %doc docdir/python/*
@@ -1504,7 +1507,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
+%if %{with_python3}
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
