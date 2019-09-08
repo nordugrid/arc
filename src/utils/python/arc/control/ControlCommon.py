@@ -22,20 +22,35 @@ def get_parsed_arcconf(conf_f):
     # handle default
     def_conf_f = config.arcconf_defpath()
     runconf_load = False
+    # if not overrided by command line --config argument (passed as a parameter to this function)
     if conf_f is None:
-        if os.path.exists(def_conf_f):
+        # check location is defined by ARC_CONFIG
+        if 'ARC_CONFIG' in os.environ:
+            conf_f = os.environ['ARC_CONFIG']
+            logger.debug('Will use ARC configuration file %s as defined by ARC_CONFIG environmental variable', conf_f)
+            if not os.path.exists(conf_f):
+                logger.error('Cannot find ARC configuration file %s (defined by ARC_CONFIG environmental variable)',
+                             conf_f)
+                return None
+        # use installation prefix location
+        elif os.path.exists(def_conf_f):
             conf_f = def_conf_f
+            runconf_load = True
+        # or fallback to /etc/arc.conf
         elif def_conf_f != '/etc/arc.conf' and os.path.exists('/etc/arc.conf'):
             conf_f = '/etc/arc.conf'
             logger.warning('There is no arc.conf in ARC installation prefix (%s). '
                            'Using /etc/arc.conf that exists.', def_conf_f)
+            runconf_load = True
         else:
             logger.error('Cannot find ARC configuration file in the default location.')
             return None
+
+    if runconf_load:
         if arcctl_runtime_config is not None:
             runconf_load = os.path.exists(arcctl_runtime_config)
     else:
-        logger.debug('Custom ARC configuration file location used. Runtime configuration will not be used.')
+        logger.debug('Custom ARC configuration file location is specified. Ignoring cached runtime configuration usage.')
 
     try:
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
