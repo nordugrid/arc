@@ -667,6 +667,7 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
 Obsoletes:	%{name}-acix-cache < 6.0.0
 
@@ -689,6 +690,7 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
