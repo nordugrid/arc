@@ -473,20 +473,24 @@ class APELSSMSender(object):
         dirq_path = self.conf['dirq_dir']
         self._dirq = QueueSimple(dirq_path)
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
-        # adjust SSM logging
+        # adjust SSM and stomp logging
         ssmlogroot = 'arc.ssm' if arc_ssm else 'ssm'
-        ssmlogger = logging.getLogger(ssmlogroot)
-        ssmlogger.setLevel(self.logger.getEffectiveLevel())
-        log_handler_stderr = logging.StreamHandler()
-        log_handler_stderr.setFormatter(
-            logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
-        ssmlogger.addHandler(log_handler_stderr)
+        self.__configure_third_party_logging(ssmlogroot)
+        self.__configure_third_party_logging('stomp.py')
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
 
     def __del__(self):
         # remove unused intermediate directories
         if self._dirq:
             self._dirq.purge(0, 0)
+
+    def __configure_third_party_logging(self, logroot):
+        tplogger = logging.getLogger(logroot)
+        tplogger.setLevel(self.logger.getEffectiveLevel())
+        log_handler_stderr = logging.StreamHandler()
+        log_handler_stderr.setFormatter(
+            logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+        tplogger.addHandler(log_handler_stderr)
 
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
