@@ -75,26 +75,6 @@ AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
 test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
 AC_SUBST([MKDIR_P])
 
-dnl --with-docdir since older autoconf (<2.60) does not support --docdir
-AC_ARG_WITH([docdir],
-AC_HELP_STRING([--with-docdir=DIR],
-  [Install documentation in DIR [[default: ${datadir}/doc]]]),
-  [case $withval in
-    yes|no)
-      AC_MSG_ERROR([Invalid DIR])
-      ;;
-    *)
-      docdir="$withval"
-      ;;
-  esac
-],
-[
-  if test -z "$docdir"; then
-    docdir='${datadir}/doc/${PACKAGE}'
-  fi
-])
-AC_SUBST(docdir)
-
 # Use arc for "pkgdir" instead of nordugrid-arc (@PACKAGE@)
 pkgdatadir='${datadir}/arc'
 pkgincludedir='${includedir}/arc'
@@ -383,11 +363,19 @@ if test "$enables_python" = "yes"; then
 
   if test "X$PYTHON" != "X"; then
     PYNAME=`basename $PYTHON`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
     PYNAME=python-`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
+    PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(PYTHON, $PYNAME, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
@@ -411,7 +399,7 @@ if test "$enables_python" = "yes"; then
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             PYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
@@ -514,11 +502,19 @@ if test "$enables_altpython" = "yes"; then
 
   if test "X$ALTPYTHON" != "X"; then
     ALTPYNAME=`basename $ALTPYTHON`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
     ALTPYNAME=python-`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
+    ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
+    ],[
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
@@ -542,7 +538,7 @@ if test "$enables_altpython" = "yes"; then
             ALTPYTHON_LIBS="-L$ALTPY_LIBDEST/config -lpython$ALTPYTHON_VERSION $ALTPYTHON_LIBS"],[
             ALTPYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
-    ])])
+    ])])])])
     AC_SUBST(ALTPYTHON_VERSION)
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
@@ -875,7 +871,7 @@ PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
   AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
-  # Check for finction available since 3.8
+  # Check for function available since 3.8
   SAVE_CFLAGS=$CFLAGS
   SAVE_LIBS=$LIBS
   CFLAGS="$CFLAGS $SQLITE_CFLAGS"

@@ -74,7 +74,7 @@ typedef struct {
 
 class DirectUserFilePlugin: public DirectFilePlugin {
  public:
-  DirectUserFilePlugin(std::string const& sd, uid_t suid, gid_t sgid, userspec_t& user):
+  DirectUserFilePlugin(std::string const& sd, uid_t suid, gid_t sgid, userspec_t const& user):
      DirectFilePlugin(*Arc::AutoPointer<std::istream>(make_config(sd, suid, sgid)), user),
      uid(suid), gid(sgid) {
   }
@@ -133,10 +133,9 @@ static void job_subst(std::string& str,void* arg) {
   if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
 }
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t const &user_,FileNode& node):
     cont_plugins(new ContinuationPlugins),
-    //user_a(user_s.user),
-    user_s(user_s),
+    user_s(user_),
     matched_vo(NULL),
     matched_voms(NULL) {
 
@@ -246,11 +245,8 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s,FileNode& node):
     break;
   };
   if(user_s.user.proxy() != NULL) {
-  //if(user_a.proxy() != NULL) {
     proxy_fname=user_s.user.proxy();
-   // proxy_fname=user_a.proxy();
     if((!proxy_fname.empty()) && user_s.user.is_proxy()) {
-    //if((!proxy_fname.empty()) && user_a.is_proxy()) {
       proxy_is_deleg = true;
     }
   }
@@ -771,7 +767,6 @@ int JobPlugin::close(bool eof) {
     // here access limit defined for requested queue - check against user group(s)
     bool allowed = false;
     for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
-      //if(user_a.check_group(group->second)) {
       if(user_s.user.check_group(group->second)) {
         allowed = group->first;
         break;
@@ -846,7 +841,6 @@ int JobPlugin::close(bool eof) {
   };
   // If no authorized VOMS was identified just report those from credentials
   if(job_desc.voms.empty()) {
-    //const std::vector<struct voms_t>& all_voms = user_a.voms();
     const std::vector<struct voms_t>& all_voms = user_s.user.voms();
     for(std::vector<struct voms_t>::const_iterator v = all_voms.begin();
                              v != all_voms.end(); ++v) {

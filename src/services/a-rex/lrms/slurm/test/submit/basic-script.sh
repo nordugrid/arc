@@ -1,6 +1,7 @@
 #!/bin/bash -l
 # SLURM batch job script built by arex
 #SBATCH --no-requeue
+#SBATCH --export=NONE
 #SBATCH -e @TEST_SESSION_DIR@/@TEST_JOB_ID@.comment
 #SBATCH -o @TEST_SESSION_DIR@/@TEST_JOB_ID@.comment
 
@@ -20,18 +21,19 @@ shift
 . $script
 }
 echo "Detecting resource accounting method available for the job." 1>&2
+JOB_ACCOUNTING=""
 # Try to use cgroups first
-if command -v arc-job-cgroup; then
+if command -v arc-job-cgroup >/dev/null 2>&1; then
     echo "Found arc-job-cgroup tool: trying to initialize accounting cgroups for the job." 1>&2
     while true; do
         # memory cgroup
-        memory_cgroup=$( arc-job-cgroup -m -n @TEST_JOB_ID@ )
+        memory_cgroup="$( arc-job-cgroup -m -n @TEST_JOB_ID@ )"
         if [ $? -ne 0 -o -z "$memory_cgroup" ]; then
             echo "Failed to initialize memory cgroup for accounting." 1>&2
             break;
         fi
         # cpuacct cgroup
-        cpuacct_cgroup=$( arc-job-cgroup -c -n @TEST_JOB_ID@ )
+        cpuacct_cgroup="$( arc-job-cgroup -c -n @TEST_JOB_ID@ )"
         if [ $? -ne 0 -o -z "$cpuacct_cgroup" ]; then
             echo "Failed to initialize cpuacct cgroup for accounting." 1>&2
             break;
@@ -247,13 +249,13 @@ else
 # Handle cgroup measurements
 if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     # Max memory used (total)
-    maxmemory=$( cat ${memory_cgroup}/memory.memsw.max_usage_in_bytes )
-    maxmemory=$(( maxmemory / 1024 ))
+    maxmemory=$( cat "${memory_cgroup}/memory.memsw.max_usage_in_bytes" )
+    maxmemory=$(( (maxmemory + 1023) / 1024 ))
     echo "maxtotalmemory=${maxmemory}kB" >> "$RUNTIME_JOB_DIAG"
 
     # Max memory used (RAM)
-    maxram=$( cat ${memory_cgroup}/memory.max_usage_in_bytes )
-    maxram=$(( maxram / 1024 ))
+    maxram=$( cat "${memory_cgroup}/memory.max_usage_in_bytes" )
+    maxram=$(( (maxram + 1023) / 1024 ))
     echo "maxresidentmemory=${maxram}kB" >> "$RUNTIME_JOB_DIAG"
     # TODO: this is for compatibilty with current A-REX accounting code. Remove when A-REX will use max value instead.
     echo "averageresidentmemory=${maxram}kB" >> "$RUNTIME_JOB_DIAG"
@@ -261,11 +263,11 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     # User CPU time
     if [ -f "${cpuacct_cgroup}/cpuacct.usage_user" ]; then
         # cgroup values are in nanoseconds
-        user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_user )
+        user_cputime=$( cat "${cpuacct_cgroup}/cpuacct.usage_user" )
         user_cputime=$(( user_cputime / 1000000 ))
     elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
         # older kernels have only cpuacct.stat that use USER_HZ units
-        user_cputime=$( cat ${cpuacct_cgroup}/cpuacct.stat | sed -n '/^user/s/user //p' )
+        user_cputime=$( cat "${cpuacct_cgroup}/cpuacct.stat" | sed -n '/^user/s/user //p' )
         user_hz=$( getconf CLK_TCK )
         user_cputime=$(( user_cputime / user_hz ))
     fi
@@ -274,11 +276,11 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     # Kernel CPU time
     if [ -f "${cpuacct_cgroup}/cpuacct.usage_sys" ]; then
         # cgroup values are in nanoseconds
-        kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.usage_sys )
+        kernel_cputime=$( cat "${cpuacct_cgroup}/cpuacct.usage_sys" )
         kernel_cputime=$(( kernel_cputime / 1000000 ))
     elif [ -f "${cpuacct_cgroup}/cpuacct.stat" ]; then
         # older kernels have only cpuacct.stat that use USER_HZ units
-        kernel_cputime=$( cat ${cpuacct_cgroup}/cpuacct.stat | sed -n '/^system/s/system //p' )
+        kernel_cputime=$( cat "${cpuacct_cgroup}/cpuacct.stat" | sed -n '/^system/s/system //p' )
         [ -z "$user_hz" ] && user_hz=$( getconf CLK_TCK )
         kernel_cputime=$(( kernel_cputime / user_hz ))
     fi

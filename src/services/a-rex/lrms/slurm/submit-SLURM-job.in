@@ -66,6 +66,9 @@ echo "# SLURM batch job script built by arex" >> $LRMS_JOB_SCRIPT
 # rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
 
+# no environment exporting from ARC CE to WN
+echo "#SBATCH --export=NONE" >> $LRMS_JOB_SCRIPT
+
 # write SLURM output to 'comment' file
 echo "#SBATCH -e ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
 echo "#SBATCH -o ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT

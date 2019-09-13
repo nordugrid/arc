@@ -27,13 +27,8 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 #  * set common variables
 common_init
 
-joboption_directory_orig=$joboption_directory
-joboption_directory='`pwd`'
 joboption_stdout='`pwd`/'`basename $joboption_stdout`
 joboption_stderr='`pwd`/'`basename $joboption_stderr`
-
-# make sure session is world-writable
-chmod 777 $joboption_directory_orig
 
 RUNTIME_NODE_SEES_FRONTEND=yes
 
@@ -41,6 +36,12 @@ RUNTIME_NODE_SEES_FRONTEND=yes
 # Zero stage of runtime environments
 ##############################################################
 RTE_stage0
+
+joboption_directory_orig=$joboption_directory
+joboption_directory='`pwd`'
+# make sure session is world-writable
+chmod 777 $joboption_directory_orig
+
 echo "project_root=$PROJECT_ROOT" 1>&2
 cd $PROJECT_ROOT
 
@@ -141,13 +142,14 @@ detect_wn_systemsoftware
 #####################################################
 cd_and_run
 
-## print nodename
+## add nodename username@hostname and fix core count for accounting
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
 hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+[ -n "$ATHENA_PROC_NUMBER" ] && sed -i -e 's/Processors=1/Processors='"$ATHENA_PROC_NUMBER"'/' $RUNTIME_JOB_DIAG
 
 FMARK
 
@@ -164,11 +166,6 @@ RTE_stage2
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 #move_files_to_frontend
-
-##############################################################
-# Finish accounting and exit job
-##############################################################
-accounting_end
 
 #############################################################
 # zip the result files into 1 file zip.tar.gz
@@ -229,6 +226,10 @@ echo 'tar cvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
 
 chmod a+r $LRMS_JOB_SCRIPT
 
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job

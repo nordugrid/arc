@@ -7,23 +7,25 @@ else
 endif
 
 pkgdata_SCRIPTS = CEinfo.pl PerfData.pl
-dist_pkgdata_SCRIPTS = glue-generator.pl glite-info-provider-ldap
 
 dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm PBSPRO.pm \
 	LL.pm LSF.pm Condor.pm condor_env.pm SLURM.pm SLURMmod.pm Boinc.pm \
 	IniParser.pm LogUtils.pm Sysinfo.pm \
 	LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \
-	InfoChecker.pm ConfigCentral.pm \
+	InfoChecker.pm \
 	ARC0ClusterInfo.pm ARC1ClusterInfo.pm \
 	SGE.pm Fork.pm \
 	XmlPrinter.pm GLUE2xmlPrinter.pm \
 	LdifPrinter.pm GLUE2ldifPrinter.pm \
 	NGldifPrinter.pm InfosysHelper.pm $(PYTHON_LRMS)
 
-EXTRA_DIST = SLURMPYmod.pm
+pkgdata_DATA = ConfigCentral.pm
 
+if LDAP_SERVICE_ENABLED
+dist_pkgdata_SCRIPTS = glue-generator.pl glite-info-provider-ldap
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 dist_arcldapschema_DATA = schema/nordugrid.schema
+endif
 
 PERL = @PERL@
 

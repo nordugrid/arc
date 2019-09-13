@@ -17,7 +17,7 @@ SCRIPTSNEEDED = check_submit_script.sh \
 
 check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
 
-EXTRA_DIST = $(TESTS) basic-script.sh *.patch
+EXTRA_DIST = $(TESTS) basic-script.sh $(wildcard $(srcdir)/*.patch)
 
 check_submit_script.sh: $(srcdir)/../../../test/check_submit_script.sh
 	cp $< $@

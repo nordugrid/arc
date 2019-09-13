@@ -190,7 +190,7 @@ cond_subjects globus '"{cond_subject}/*"'
                 sys.exit(1)
 
         logger.info('Generating host certificate signing request.')
-        subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=host\/" + hostname
+        subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=host\\/" + hostname
         if popen(["openssl", "genrsa", "-out", keyLocation, "2048"])["returncode"] != 0:
             logger.error("Failed to generate host key")
             sys.exit(1)

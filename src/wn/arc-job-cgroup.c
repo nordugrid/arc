@@ -9,21 +9,22 @@
 #define STR1(x) #x
 #define STR(x) STR1(x)
 
+#define isoctal(x) (((x) & ~7) == '0')
+
 static void usage(char *pname) {
     fprintf(stderr, "Usage: %s {-m|-c} {-d|-n NAME}\n", pname);
     fprintf(stderr, "Options:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n");
 }
 
 // Provide the path to the mountpoint where requested cgroup controller tree is mounted
-int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
+int get_cgroup_mount_root(const char *req_controller, char **cgroup_root_ptr) {
     FILE *proc_mount_fd = NULL;
-    proc_mount_fd = fopen("/proc/mounts", "re");
-
+    proc_mount_fd = fopen("/proc/mounts", "r");
     if (!proc_mount_fd) {
         fprintf(stderr, "ERROR: Cannot read the /proc/mounts\n");
         return 1;
     }
-
+    // parse /proc/mounts looking for req_contrller in mount options
     char *fs_spec = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *fs_mount = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char fs_type[4096];
@@ -32,14 +33,29 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
     char *mntopt;
     char *mntopt_pos;
     int found = 0;
-    while (!found && fscanf(proc_mount_fd, "%" STR(FILENAME_MAX) "s %" STR(FILENAME_MAX) "s %4096s %4096s %d %d", fs_spec, fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
+    while (!found && fscanf(proc_mount_fd, "%" STR(FILENAME_MAX) "s %" STR(FILENAME_MAX) "s %4096s %4096s %d %d\n", fs_spec, fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
         if (strcmp(fs_type, "cgroup")) continue;
         // split mount options to find the requested controller
         mntopt = strtok_r(fs_mntopts, ",", &mntopt_pos);
         while (mntopt) {
-            if (strncmp(req_controller, mntopt, strlen(req_controller) + 1) == 0) {
-                *cgroup_root = strdup(fs_mount);
+            if ((strncmp(req_controller, mntopt, strlen(req_controller) + 1) == 0) && (mntopt[strlen(req_controller)] == ',' || mntopt[strlen(req_controller)] == '\0')) {
                 found = 1;
+                // mounts use \oct encoding for unwanted characters
+                size_t sz = 0;
+                char *mount = fs_mount;
+                char *cgroup_root = *cgroup_root_ptr;
+                while(*mount && sz < FILENAME_MAX) {
+                    if (*mount == '\\' && sz + 3 < FILENAME_MAX && 
+                        isoctal(mount[1]) && isoctal(mount[2]) && isoctal(mount[3])) {
+                        *cgroup_root++ = 64*(mount[1] & 7) + 8*(mount[2] & 7) + (mount[3] & 7);
+                        mount += 4;
+                        sz += 4;
+                    } else {
+                        *cgroup_root++ = *mount++;
+                        sz++;
+                    }
+                }
+                *cgroup_root = '\0';
                 break;
             }
             mntopt = strtok_r(NULL, ",", &mntopt_pos);
@@ -58,16 +74,16 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root) {
 
 // Provide current path to process cgroup for requested controller (relative to the cgroup tree mount point)
 int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgroup_path) {
-    char pid_cgroup_file[32];
+    char pid_cgroup_file[64];
     FILE *pid_cgroup_fd = NULL;
     // open the /proc/<PID>/cgroup file
-    sprintf(pid_cgroup_file, "/proc/%d/cgroup", (int)pid);
-    pid_cgroup_fd = fopen(pid_cgroup_file, "re");
+    snprintf(pid_cgroup_file, 64, "/proc/%d/cgroup", (int)pid);
+    pid_cgroup_fd = fopen(pid_cgroup_file, "r");
     if (!pid_cgroup_fd) {
         fprintf(stderr, "ERROR: Failed to open %s\n", pid_cgroup_file);
         return 1;
     }
-
+    // parse process cgroups looking for req_controller path
     char controllers[64];
     char *controllers_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
     int idx;
@@ -75,15 +91,20 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgr
     char *controller_pos = NULL;
     int found = 0;
     // and find the requested controller path
-    while (!found && fscanf(pid_cgroup_fd, "%d:%64[^:]:%"STR(FILENAME_MAX)"s\n", &idx, controllers, controllers_path) == 3 ){
+    while (!found && fscanf(pid_cgroup_fd, "%d:%64[^:]:%"STR(FILENAME_MAX)"[^\n]\n", &idx, controllers, controllers_path) == 3 ){
         controller = strtok_r(controllers, ",", &controller_pos);
         while (controller) {
-            if (strncmp(req_controller, controller, strlen(req_controller) + 1) == 0) {
+            if ((strncmp(req_controller, controller, strlen(req_controller) + 1) == 0) && (controller[strlen(req_controller)] == ',' || controller[strlen(req_controller)] == '\0')) {
                 // remove slash in the end if present
-                if (controllers_path[strlen(controllers_path) - 1] == '/') {
+                if (strlen(controllers_path) && controllers_path[strlen(controllers_path) - 1] == '/') {
                     controllers_path[strlen(controllers_path) - 1] = '\0';
                 }
-                *cgroup_path = strdup(controllers_path);
+                // check controllers_path starts with '/' if not empty
+                if (strlen(controllers_path) && controllers_path[0] != '/') {
+                    fprintf(stderr, "WARNING: Found controller path '%s' but it is not started with '/'. Skipping.", controllers_path);
+                    continue;
+                }
+                strncpy(*cgroup_path, controllers_path, sizeof(char) * FILENAME_MAX);
                 found = 1;
                 break;
             }
@@ -103,28 +124,34 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgr
 // Create a new cgroup and move process with defined PID to it
 int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     FILE *cgroup_tasks = NULL;
+    char *task_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
     // change umask to avoid too restrictive values
     umask(S_IWGRP | S_IWOTH);
     // create cgroup
-    if ( mkdir(cgroup_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0 ) {
-        switch (errno) {
-            case EPERM:
-                fprintf(stderr, "ERROR: No permissions to create cgroup %s. Do you have a SUID bit set?\n", cgroup_path);
-                break;
-            case ENOENT:
-                fprintf(stderr, "ERROR: Failed to create a cgroup. A component of the cgroup path prefix specified by %s does not name an existing cgroup.\n", cgroup_path);
-                break;
-            default:
-                fprintf(stderr, "ERROR: Failed to create cgroup %s: %s\n.", cgroup_path, strerror(errno));
-        }
-        return 1;
-    }
-    // move pid to cgroup
-    char *task_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    snprintf(task_path, FILENAME_MAX, "%s/tasks", cgroup_path);
     int retval = 1;
     do {
-        cgroup_tasks = fopen(task_path, "we");
+        if ( mkdir(cgroup_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0 ) {
+            switch (errno) {
+                case EPERM:
+                    fprintf(stderr, "ERROR: No permissions to create cgroup %s. Do you have a SUID bit set?\n", cgroup_path);
+                    break;
+                case ENOENT:
+                    fprintf(stderr, "ERROR: Failed to create a cgroup. A component of the cgroup path prefix specified by %s does not name an existing cgroup.\n", cgroup_path);
+                    break;
+                default:
+                    fprintf(stderr, "ERROR: Failed to create cgroup %s: %s\n.", cgroup_path, strerror(errno));
+            }
+            break;
+        }
+        // get cgroup tasks file path
+        int ncopied;
+        ncopied = snprintf(task_path, FILENAME_MAX, "%s/tasks", cgroup_path);
+        if ( ncopied < 0 || ncopied >= FILENAME_MAX ) {
+            fprintf(stderr, "ERROR: Failed to get cgroup %s tasks path. Overflow detected.", cgroup_path);
+            break;
+        }
+        // move pid to cgroup
+        cgroup_tasks = fopen(task_path, "w");
         if (!cgroup_tasks) {
             switch (errno) {
                 case EPERM:
@@ -139,28 +166,27 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
             fprintf(stderr, "ERROR: Failed to add task to cgroup: %s\n", strerror(errno));
             break;
         }
-        if (fflush(cgroup_tasks) < 0) {
+        if (fflush(cgroup_tasks) != 0) {
             fprintf(stderr, "ERROR: Failed to add task to cgroup: %s\n", strerror(errno));
             break;
         }
         fprintf(stderr, "Cgroup %s has been successfully created for PID %d\n", cgroup_path, pid);
         retval = 0;
     } while (0);
+
     free(task_path);
-    fclose(cgroup_tasks);
+    if (cgroup_tasks) fclose(cgroup_tasks);
     return retval;
 }
 
 // Remove cgroup (moving all processed to parent cgroup)
 int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root) {
-    char *last_slash = NULL;
     char *parent_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *current_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
-
-    strcpy(current_cgroup_path, cgroup_path);
-    strcpy(parent_cgroup_path, cgroup_path);
+    strncpy(current_cgroup_path, cgroup_path, FILENAME_MAX);
+    strncpy(parent_cgroup_path, cgroup_path, FILENAME_MAX);
     // check for top-level cgroup
-    if (parent_cgroup_path[strlen(parent_cgroup_path) - 1] == '/') {
+    if (strlen(parent_cgroup_path) && parent_cgroup_path[strlen(parent_cgroup_path) - 1] == '/') {
         parent_cgroup_path[strlen(parent_cgroup_path) - 1] = '\0';
     }
     FILE *cgroup_tasks_fd = NULL;
@@ -173,19 +199,25 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
             break;
         }
         // crop last part of the path
+        char *last_slash = NULL;
         last_slash = strrchr(parent_cgroup_path, '/');
-        last_slash[0] = '\0';
-        // open tasks files for both cgroups
-        strcat(current_cgroup_path, "/tasks");
-        strcat(parent_cgroup_path, "/tasks");
-        cgroup_tasks_fd = fopen(current_cgroup_path, "re");
-        if (!cgroup_tasks_fd) {
-            fprintf(stderr, "ERROR: Failed to open %s for reading. %s\n", cgroup_tasks_fd, strerror(errno));
+        if (last_slash) { last_slash[0] = '\0'; }
+        // paths points to cgroup tasks file
+        if (strlen(current_cgroup_path) > (FILENAME_MAX - 6)) { // parent_cgroup_path is less
+            fprintf(stderr, "ERROR: Failed to move PIDs, path to cgroup /tasks interface will lead to the overflow.");
             break;
         }
-        pcgroup_tasks_fd = fopen(parent_cgroup_path, "we");
+        strcat(current_cgroup_path, "/tasks");
+        strcat(parent_cgroup_path, "/tasks");
+        // open tasks files for both cgroups
+        cgroup_tasks_fd = fopen(current_cgroup_path, "r");
+        if (!cgroup_tasks_fd) {
+            fprintf(stderr, "ERROR: Failed to open %s for reading. %s\n", current_cgroup_path, strerror(errno));
+            break;
+        }
+        pcgroup_tasks_fd = fopen(parent_cgroup_path, "w");
         if (!pcgroup_tasks_fd) {
-            fprintf(stderr, "ERROR: Failed to open %s for writing. %s\n", pcgroup_tasks_fd, strerror(errno));
+            fprintf(stderr, "ERROR: Failed to open %s for writing. %s\n", parent_cgroup_path, strerror(errno));
             break;
         }
         // migrate processes
@@ -196,7 +228,7 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
                 continue;
             }
             // one process per write() call
-            if (fflush(pcgroup_tasks_fd) < 0) {
+            if (fflush(pcgroup_tasks_fd) != 0) {
                 fprintf(stderr, "WARNING: Failed to migrate process %d to parent cgroup. %s\n", cgpid, strerror(errno));
                 continue;
             }
@@ -210,6 +242,7 @@ int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root)
         fprintf(stderr, "Cgroup %s has been successfully removed\n", cgroup_path);
         retval = 0;
     } while (0);
+
     free(parent_cgroup_path);
     free(current_cgroup_path);
     if (pcgroup_tasks_fd) fclose(pcgroup_tasks_fd);
@@ -258,14 +291,10 @@ int main(int argc, char *argv[]) {
     int retval = 1;
     do {
         // get cgroup root mount
-        if (get_cgroup_mount_root(controller, &cgroup_root) != 0) {
-            break;
-        }
+        if (get_cgroup_mount_root(controller, &cgroup_root) != 0) break;
         // get controller-specific path for the parent process
         pid_t ppid = getppid();
-        if (get_cgroup_controller_path(ppid, controller, &controller_path) != 0) {
-            break;
-        }
+        if (get_cgroup_controller_path(ppid, controller, &controller_path) != 0) break;
         // print info
         fprintf(stderr, "Found %s controller for PID %d: %s%s\n", controller, (int)ppid, cgroup_root, controller_path);
         // check root
@@ -274,20 +303,24 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "WARNING: The command is running as non-root and most probably have no access rights. It is designed with SUID bit in mind.\n");
         }
         // Delete vs Create
+        int ncopied;
         if (delete_mode) {
             // delete PPID cgroup (moving all processed to parent cgroup)
-            sprintf(cgroup_path, "%s%s", cgroup_root, controller_path);
-            if (move_pids_to_parent_cgroup(cgroup_path, cgroup_root) != 0 ) {
+            ncopied = snprintf(cgroup_path, FILENAME_MAX, "%s%s", cgroup_root, controller_path);
+            if ( ncopied < 0 || ncopied >= FILENAME_MAX ) {
+                fprintf(stderr, "ERROR: Cannot construct cgroup path for %s controller in %s. Overflow detected.", cgroup_path, cgroup_root);
                 break;
             }
+            if (move_pids_to_parent_cgroup(cgroup_path, cgroup_root) != 0 ) break;
             retval = 0;
         } else {
             // create a child cgroup and mode PPID to it
-            snprintf(cgroup_path, FILENAME_MAX, "%s%s/%s", cgroup_root, controller_path, cgroup_name);
-            if (move_pid_to_cgroup(ppid, cgroup_path) != 0 ) {
+            ncopied = snprintf(cgroup_path, FILENAME_MAX, "%s%s/%s", cgroup_root, controller_path, cgroup_name);
+            if ( ncopied < 0 || ncopied >= FILENAME_MAX ) {
+                fprintf(stderr, "ERROR: Cannot construct child cgroup %s path. Overflow detected.", cgroup_name);
                 break;
             }
-            // print full path to new cgroup to the stdout
+            if (move_pid_to_cgroup(ppid, cgroup_path) != 0 ) break;
             printf("%s\n", cgroup_path);
             retval = 0;
         }

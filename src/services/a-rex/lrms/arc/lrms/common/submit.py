@@ -190,17 +190,17 @@ def RTE_stage0(jobdesc, lrms, **mapping):
             source_sw(sw, sw.getOptions())
 
         # Source new RTE scripts set by the previous step (if any)
-        rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
-        rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+_\d+', k))
+        rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+', k))
+        rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+_\d+', k))
         while len(rte_environ) > len(sw_list):
            for rte, sw in rte_environ.items():
               try:
-                 i = re.match('joboption_runtime_(\d+)', rte).groups()[0]
+                 i = re.match(r'joboption_runtime_(\d+)', rte).groups()[0]
                  if sw not in sw_list:
                     opts = []
                     for rte_, opt in rte_environ_opts.items():
                        try:
-                          j = re.match(rte + '_(\d+)', rte_).groups()[0]
+                          j = re.match(rte + r'_(\d+)', rte_).groups()[0]
                           opts.append(opt)
                        except:
                           pass
@@ -208,8 +208,8 @@ def RTE_stage0(jobdesc, lrms, **mapping):
                     sw_list.append(sw)
               except:
                  pass
-           rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
-           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+_\d+', k))
+           rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+', k))
+           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+_\d+', k))
         # Update jobdesc
         envCreator.setPyEnv(stage0_environ)
         if "RUNTIME_ENABLE_MULTICORE_SCRATCH" in stage0_environ:
@@ -502,7 +502,7 @@ class JobscriptAssembler(object):
                                      # a space which is not escaped.  
                                      re.sub(r'([^\\](\\\\)*) .*', '\\1', name.strip()).
                                      # Replace escaped spaces and single quotes
-                                     replace('\ ', ' ').replace("'", "'\\''").
+                                     replace('\\ ', ' ').replace("'", "'\\''").
                                      # Strip leading slashes (/).
                                      lstrip('/'))
                               )

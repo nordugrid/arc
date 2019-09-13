@@ -168,7 +168,7 @@ bool userspec_t::fill(AuthUser& u, const char* cfg) {
   return true;
 }
 
-std::string subst_user_spec(std::string &in,userspec_t *spec) {
+std::string subst_user_spec(std::string &in,userspec_t const *spec) {
   std::string out = "";
   unsigned int i;
   unsigned int last;
@@ -259,7 +259,7 @@ bool userspec_t::set_map_policy(const char* rule, const char* line) {
 //  return res;
 //}
 
-const char* userspec_t::get_uname(void) {
+const char* userspec_t::get_uname(void) const {
   const char* name = NULL;
   if((bool)map) { name=map.unix_name(); }
   else if((bool)default_map) { name=default_map.unix_name(); };
@@ -267,7 +267,7 @@ const char* userspec_t::get_uname(void) {
   return name;
 }
 
-const char* userspec_t::get_gname(void) {
+const char* userspec_t::get_gname(void) const {
   const char* group = NULL;
   if((bool)map) { group=map.unix_group(); }
   else if((bool)default_map) { group=default_map.unix_group(); };

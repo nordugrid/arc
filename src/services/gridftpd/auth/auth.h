@@ -109,25 +109,9 @@ class AuthUser {
   // Mark this user as belonging to no groups
   void clear_groups(void) { groups.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
-  bool check_group(const char* grp) const {
-    if(grp == NULL) return false;
-    for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
-      if(i->name == grp) return true;
-    };
-    return false;
-  };
+  bool check_group(const char* grp) const;
   bool check_group(const std::string& grp) const { return check_group(grp.c_str());};
-  bool select_group(const char* grp) {
-    default_group_ = NULL;
-    if(grp == NULL) return false;
-    for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
-      if(i->name == grp) {
-        default_group_ = i->name.c_str();
-        return true;
-      };
-    };
-    return false;
-  }
+  bool select_group(const char* grp);
   bool select_group(const std::string& grp) { return select_group(grp.c_str());};
   void add_vo(const char* vo) { vos.push_back(std::string(vo)); };
   void add_vo(const std::string& vo) { vos.push_back(vo); };
@@ -156,7 +140,7 @@ class AuthUser {
   };
   const char* default_subject(void) const { return subject.c_str(); };
   // Returns all VOMS attributes associated with user
-  const std::vector<struct voms_t>& voms(void);
+  const std::vector<struct voms_t>& voms(void) const;
   // Returns all internal (locally configured) VOs associated with user
   const std::list<std::string>& VOs(void) const;
   // convert ARC VOMS attribute list into voms structure

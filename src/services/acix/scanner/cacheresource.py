@@ -40,18 +40,18 @@ class CacheResource(resource.Resource):
 
         gen_time, hashes, cache, cache_url = self.cache_service.getCache()
 
-        request.setHeader('Content-type', 'application/vnd.org.ndgf.acix.bloomfilter')
+        request.setHeader(b'Content-type', b'application/vnd.org.ndgf.acix.bloomfilter')
         
         if not cache:
             log.msg("Cache content has not been built yet")
-            cache = ''
+            cache = b''
             gen_time = 0
             
-        request.setHeader('Content-length', str(len(cache)))
+        request.setHeader(b'Content-length', str(len(cache)).encode())
 
-        request.setHeader("x-hashes", ','.join(hashes))
-        request.setHeader("x-cache-time", str(gen_time))
-        request.setHeader("x-cache-url", str(cache_url))
+        request.setHeader(b'x-hashes', ','.join(hashes).encode())
+        request.setHeader(b'x-cache-time', str(gen_time).encode())
+        request.setHeader(b'x-cache-url', str(cache_url).encode())
 
         return cache
 
