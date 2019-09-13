@@ -175,10 +175,11 @@ class RecordsPublisher(object):
             self.logger.info('VO filtering is configured. Querying jobs owned by this WLCG VO(s): %s', ','.join(vos))
             self.adb.filter_wlcgvos(vos)
 
-    def __init_adb_filters(self, endfrom, endtill):
+    def __init_adb_filters(self, endfrom=None, endtill=None):
         self.adb.filters_clean()
         # timerange filters first
-        self.adb.filter_endfrom(endfrom)
+        if endfrom is not None:
+            self.adb.filter_endfrom(endfrom)
         if endtill is not None:
             self.adb.filter_endtill(endtill)
         # only finished jobs
@@ -236,18 +237,7 @@ class RecordsPublisher(object):
 
     def publish_apel(self, target_conf, endfrom, endtill=None):
         """Publish to all APEL targets"""
-        self.logger.debug('Assigning filters to APEL publishing database query')
-        self.__init_adb_filters(endfrom, endtill)
-        # optional WLCG VO filtering
-        self.__add_vo_filter(target_conf)
-        # query latest job endtime in this records query
-        latest_endtime = self.adb.get_latest_endtime()
-        if latest_endtime is None:
-            self.logger.info('There are no records to publish. Nothing to do.')
-            return None
-        # get fallback benchmark values from config
-        conf_benchmark = self.__config_benchmark_value(target_conf)
-        # parse targetURL and get necessary parameters for APEL publishing
+        # Parse targetURL and get necessary parameters for APEL publishing
         urldict = get_url_components(target_conf['targeturl'])
         target_conf['targethost'] = urldict['host']
         target_conf['targetport'] = urldict['port']
@@ -258,37 +248,53 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
-        # query and queue messages for sending
-        if 'apel_messages' not in target_conf:
-            self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
-            target_conf['apel_messages'] = 'summaries'
-        if target_conf['apel_messages'] == 'urs' or target_conf['apel_messages'] == 'both':
-            # get individual AARs from database
-            self.logger.debug('Querying AARS from accounting database')
-            aars = self.adb.get_aars(resolve_ids=True)
-            self.logger.info('Accounting database query returned %s AARs', len(aars))
-            self.logger.debug('Querying additional job information about AARs')
-            self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
-            # create EMI CAR URs
-            self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
-            cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'], benchmark=conf_benchmark,
-                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
-            if not cars:
-                self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
-                return None
-            # enqueue CARs
-            apelssm.enqueue_cars(cars)
-        if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
-            # summary records
-            self.logger.debug('Querying APEL Summary data from accounting database')
-            apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
-                             for rec in self.adb.get_apel_summaries()]
-            if not apelsummaries:
-                self.logger.error('Failed to build APEL summaries for publishing')
-                return None
-            # enqueue summaries
-            apelssm.enqueue_summaries(apelsummaries)
-        # Sync messages are always sent
+        # database query filters
+        self.logger.debug('Assigning filters to APEL publishing database query')
+        self.__init_adb_filters(endfrom, endtill)
+        # optional WLCG VO filtering
+        self.__add_vo_filter(target_conf)
+        # query latest job endtime in this records query
+        latest_endtime = self.adb.get_latest_endtime()
+        if latest_endtime is None:
+            self.logger.info('There are no new job records to publish. Nothing to do.')
+        else:
+            # get fallback benchmark values from config
+            conf_benchmark = self.__config_benchmark_value(target_conf)
+            # query and queue messages for sending
+            if 'apel_messages' not in target_conf:
+                self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
+                target_conf['apel_messages'] = 'summaries'
+            if target_conf['apel_messages'] == 'urs' or target_conf['apel_messages'] == 'both':
+                # get individual AARs from database
+                self.logger.debug('Querying AARS from accounting database')
+                aars = self.adb.get_aars(resolve_ids=True)
+                self.logger.info('Accounting database query returned %s AARs', len(aars))
+                self.logger.debug('Querying additional job information about AARs')
+                self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
+                # create EMI CAR URs
+                self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
+                cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'], benchmark=conf_benchmark,
+                               vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+                if not cars:
+                    self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
+                    return None
+                # enqueue CARs
+                apelssm.enqueue_cars(cars)
+            if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
+                # summary records
+                self.logger.debug('Querying APEL Summary data from accounting database')
+                apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
+                                 for rec in self.adb.get_apel_summaries()]
+                if not apelsummaries:
+                    self.logger.error('Failed to build APEL summaries for publishing')
+                    return None
+                # enqueue summaries
+                apelssm.enqueue_summaries(apelsummaries)
+        # Sync messages are always sent and contains all timerage data
+        self.logger.debug('Assigning filters to APEL sync database query')
+        self.__init_adb_filters()
+        # optional WLCG VO filtering
+        self.__add_vo_filter(target_conf)
         self.logger.debug('Querying APEL Sync data from accounting database')
         apelsyncs = [APELSyncRecord(rec, target_conf['gocdb_name']) for rec in self.adb.get_apel_sync()]
         # enqueue sync messages
