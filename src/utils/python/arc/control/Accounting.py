@@ -12,13 +12,6 @@ import json
 from functools import reduce
 
 
-def add_timeframe_args(parser, required=False):
-    parser.add_argument('-b', '--start-from', type=valid_datetime_type, required=required,
-                        help='Limit the start time of the records (YYYY-MM-DD [HH:mm[:ss]])')
-    parser.add_argument('-e', '--end-till', type=valid_datetime_type, required=required,
-                        help='Limit the end time of the records (YYYY-MM-DD [HH:mm[:ss]])')
-
-
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
     return AccountingControl(arcconf).complete_wlcgvo()
@@ -108,6 +101,8 @@ class AccountingControl(ComponentControl):
         self.__init_adb()
         if args.start_from:
             self.adb.filter_startfrom(args.start_from)
+        if args.end_from:
+            self.adb.filter_endfrom(args.end_from)
         if args.end_till:
             self.adb.filter_endtill(args.end_till)
         if args.filter_user:
@@ -507,7 +502,12 @@ class AccountingControl(ComponentControl):
 
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')
-        add_timeframe_args(accounting_stats)
+        accounting_stats.add_argument('-b', '--end-from', type=valid_datetime_type,
+                                      help='Define the job completion time range beginning (YYYY-MM-DD [HH:mm[:ss]])')
+        accounting_stats.add_argument('-e', '--end-till', type=valid_datetime_type,
+                                      help='Define the job completion time range end (YYYY-MM-DD [HH:mm[:ss]])')
+        accounting_stats.add_argument('-s', '--start-from', type=valid_datetime_type,
+                                      help='Define the job start time constraint (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_stats.add_argument('--filter-vo', help='Account jobs owned by specified WLCG VO(s)',
                                      action='append').completer = complete_wlcgvo
         accounting_stats.add_argument('--filter-user', help='Account jobs owned by specified user(s)',
@@ -534,7 +534,7 @@ class AccountingControl(ComponentControl):
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
                                                              help='Republish accounting records to defined target')
-        accounting_republish.add_argument('-b', '--start-from', type=valid_datetime_type, required=True,
+        accounting_republish.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_republish.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe end (YYYY-MM-DD [HH:mm[:ss]])')
