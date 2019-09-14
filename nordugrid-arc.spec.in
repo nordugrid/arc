@@ -309,6 +309,12 @@ BuildRequires:	ldns-devel >= 1.6.8
 BuildRequires:	python-argparse
 Requires:	python-argparse
 %endif
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+Requires:	hostname
+%else
+Requires:	net-tools
+%endif
+Requires:	openssl
 
 %description
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -490,6 +496,14 @@ Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
 Obsoletes:	%{name}-candypond < 6.0.0
 
+Requires(post):		%{name} = %{version}-%{release}
+Requires(preun):	%{name} = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+Requires(post):		hostname
+%else
+Requires(post):		net-tools
+%endif
+Requires(post):		openssl
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
 Requires(postun):	%{service_postun_requires}
@@ -667,6 +681,7 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
 Obsoletes:	%{name}-acix-cache < 6.0.0
 
@@ -689,6 +704,7 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
