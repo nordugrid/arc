@@ -472,7 +472,7 @@ bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files,
     // Check for file or dir
     struct stat st;
     if (!FileStat(*d, &st, uid, gid, false)) return false;
-      if (S_ISDIR(st.st_mode)) {
+    if (S_ISDIR(st.st_mode)) {
       // Check for any files in this dir
       std::list<std::string> newfiles;
       for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {

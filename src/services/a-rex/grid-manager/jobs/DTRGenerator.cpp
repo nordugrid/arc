@@ -604,7 +604,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
     else {
       std::list<std::string> todelete(files.size());
-      std::transform(files.begin(), files.end(), todelete.begin(), filedata_pfn);
+      for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
+        if (f->lfn.find(':') != std::string::npos) {
+          todelete.push_back(f->pfn);
+        }
+      }
       if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
       }
@@ -721,7 +725,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     }
     // pre-clean session dir before downloading
     std::list<std::string> todelete(files.size());
-    std::transform(files.begin(), files.end(), todelete.begin(), filedata_pfn);
+    for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
+      if (f->lfn.find(':') != std::string::npos) {
+        todelete.push_back(f->pfn);
+      }
+    }
     if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       dtrs_lock.lock();
