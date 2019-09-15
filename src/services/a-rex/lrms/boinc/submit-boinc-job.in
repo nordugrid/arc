@@ -137,7 +137,8 @@ echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG
 #####################################################
 cd_and_run
 
-## add nodename username@hostname and fix core count for accounting
+# Add nodename username@hostname and fix core count for accounting
+# Add exit code here since accounting_end does it after the diag file has been tarred up
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
 hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
@@ -145,7 +146,7 @@ username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{pr
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
 [ -n "$ATHENA_PROC_NUMBER" ] && sed -i -e 's/Processors=1/Processors='"$ATHENA_PROC_NUMBER"'/' $RUNTIME_JOB_DIAG
-
+echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
 FMARK
 
 echo "" >> $LRMS_JOB_SCRIPT
