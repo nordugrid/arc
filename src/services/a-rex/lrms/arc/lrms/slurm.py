@@ -9,7 +9,8 @@ from __future__ import absolute_import
 import os, sys, time, re
 import arc
 from .common.cancel import cancel
-from .common.config import Config, configure, is_conf_setter
+from .common import config as cconfig
+from .common.config import configure, is_conf_setter
 from .common.proc import execute_local, execute_remote
 from .common.log import debug, verbose, info, warn, error, ArcError
 from .common.lrmsinfo import LRMSInfo
@@ -26,9 +27,9 @@ def set_slurm(cfg):
     :param cfg: parsed arc.conf
     :type cfg: :py:class:`ConfigParser.ConfigParser`
     """
-    Config.slurm_bin_path = str(cfg.get('lrms', 'slurm_bin_path')).strip('"') if \
+    cconfig.Config.slurm_bin_path = str(cfg.get('lrms', 'slurm_bin_path')).strip('"') if \
         cfg.has_option('lrms', 'slurm_bin_path') else '/usr/bin'
-    Config.slurm_wakeupperiod = int(cfg.get('lrms', 'slurm_wakeupperiod').strip('"')) if \
+    cconfig.Config.slurm_wakeupperiod = int(cfg.get('lrms', 'slurm_wakeupperiod').strip('"')) if \
         cfg.has_option('lrms', 'slurm_wakeupperiod') else 30
 
             
@@ -52,8 +53,8 @@ def Submit(config, jobdesc):
     configure(config, set_slurm)
 
     validate_attributes(jobdesc)
-    if Config.remote_host:
-        ssh_connect(Config.remote_host, Config.remote_user, Config.private_key)
+    if cconfig.Config.remote_host:
+        ssh_connect(cconfig.Config.remote_host, cconfig.Config.remote_user, cconfig.Config.private_key)
         
     # Run RTE stage0
     debug('----- starting slurmSubmitter.py -----', 'slurm.Submit')
@@ -87,7 +88,7 @@ def Submit(config, jobdesc):
     #  Submit the job
     ######################################
 
-    execute = execute_local if not Config.remote_host else execute_remote
+    execute = execute_local if not cconfig.Config.remote_host else execute_remote
     directory = jobdesc.OtherAttributes['joboption;directory']
 
     debug('Session directory: %s' % directory, 'slurm.Submit')
@@ -95,9 +96,9 @@ def Submit(config, jobdesc):
     SLURM_TRIES = 0
     handle = None
     while SLURM_TRIES < 10:
-        args = '%s/sbatch %s' % (Config.slurm_bin_path, script_file)
+        args = '%s/sbatch %s' % (cconfig.Config.slurm_bin_path, script_file)
         verbose('Executing \'%s\' on %s' % 
-                (args, Config.remote_host if Config.remote_host else 'localhost'), 'slurm.Submit')
+                (args, cconfig.Config.remote_host if cconfig.Config.remote_host else 'localhost'), 'slurm.Submit')
         handle = execute(args)
         if handle.returncode == 0:
             break
@@ -199,7 +200,7 @@ def Cancel(config, jobid):
 
     verify_job_id(jobid)
     configure(config, set_slurm)
-    cmd = '%s/%s' % (Config.slurm_bin_path, 'scancel')
+    cmd = '%s/%s' % (cconfig.Config.slurm_bin_path, 'scancel')
     return cancel([cmd, jobid], jobid)
 
 
@@ -233,19 +234,19 @@ def Scan(config, ctr_dirs):
     """
     
     configure(config, set_slurm)
-    if Config.scanscriptlog:
-        scanlogfile = arc.common.LogFile(Config.scanscriptlog)
+    if cconfig.Config.scanscriptlog:
+        scanlogfile = arc.common.LogFile(cconfig.Config.scanscriptlog)
         arc.common.Logger_getRootLogger().addDestination(scanlogfile)
-        arc.common.Logger_getRootLogger().setThreshold(Config.log_threshold)
+        arc.common.Logger_getRootLogger().setThreshold(cconfig.Config.log_threshold)
 
     jobs = get_jobs(ctr_dirs)
     if not jobs: return
-    if Config.remote_host:
+    if cconfig.Config.remote_host:
         # NOTE: Assuming 256 B of TCP window needed for each job (squeue)
-        ssh_connect(Config.remote_host, Config.remote_user, Config.private_key, (2 << 7)*len(jobs)) 
+        ssh_connect(cconfig.Config.remote_host, cconfig.Config.remote_user, cconfig.Config.private_key, (2 << 7)*len(jobs)) 
 
-    execute = execute_local if not Config.remote_host else execute_remote
-    args = Config.slurm_bin_path + '/squeue -a -h -o %i:%T -t all -j ' + ','.join(jobs.keys())
+    execute = execute_local if not cconfig.Config.remote_host else execute_remote
+    args = cconfig.Config.slurm_bin_path + '/squeue -a -h -o %i:%T -t all -j ' + ','.join(jobs.keys())
     if '__SLURM_TEST' in os.environ:
         handle = execute(args, env=dict(os.environ))
     else:
@@ -278,7 +279,7 @@ def Scan(config, ctr_dirs):
             set_exit_code_from_diag(job)
         job.message = MESSAGES.get(job.state, '')
 
-        args = Config.slurm_bin_path + '/scontrol -o show job %s' % localid
+        args = cconfig.Config.slurm_bin_path + '/scontrol -o show job %s' % localid
         scontrol_handle = execute(args)
         if scontrol_handle.returncode != 0:
             debug('Got error code %i from scontrol' % scontrol_handle.returncode, 'slurm.Scan')
