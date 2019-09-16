@@ -99,6 +99,20 @@ namespace Arc {
       Specified uid and gid are used for accessing filesystem. */
   bool DirDelete(const std::string& path, bool recursive, uid_t uid, gid_t gid);
 
+  /// Delete contents of a directory, including or excluding certain files
+  /** If excl is true, all files except those specified in files will be
+      deleted. If excl is false, only the files in files will be deleted.
+      files is a list of paths relative to path. Each entry must begin with '/'.
+      Note that path itself is not deleted. */
+  bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl);
+
+  /// Delete contents of a directory, including or excluding certain files, using the specified uid and gid
+  /** If excl is true, all files except those specified in files will be
+      deleted. If excl is false, only the files in files will be deleted.
+      files is a list of paths relative to path. Each entry must begin with '/'.
+      Note that path itself is not deleted. */
+  bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl, uid_t uid, gid_t gid);
+
   /// List all entries in a directory.
   /** If path is not a directory or cannot be listed then false is returned. On
       success entries is filled with the list of entries in the directory. The

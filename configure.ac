@@ -79,11 +79,13 @@ AC_SUBST([MKDIR_P])
 pkgdatadir='${datadir}/arc'
 pkgincludedir='${includedir}/arc'
 pkglibdir='${libdir}/arc'
+extpkglibdir='${libdir}/arc/external'
 pkglibexecdir='${libexecdir}/arc'
 
 AC_SUBST(pkgdatadir)
 AC_SUBST(pkgincludedir)
 AC_SUBST(pkglibdir)
+AC_SUBST(extpkglibdir)
 AC_SUBST(pkglibexecdir)
 
 ARC_API

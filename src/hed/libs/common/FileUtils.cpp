@@ -453,6 +453,56 @@ bool DirDelete(const std::string& path, bool recursive) {
   return true;
 }
 
+bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl) {
+  return DirDeleteExcl(path, files, excl, 0, 0);
+}
+
+bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl, uid_t uid, gid_t gid) {
+  // First check special case of "/" in files (keep or delete everything)
+  for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+    if (*f == "/") {
+      if (excl) return true; // delete nothing
+      return DirDelete(path, true, uid, gid); // delete everything
+    }
+  }
+
+  std::list<std::string> dirlisting;
+  if (!DirList(path, dirlisting, false, uid, gid)) return false;
+  for (std::list<std::string>::const_iterator d = dirlisting.begin(); d != dirlisting.end(); ++d) {
+    // Check for file or dir
+    struct stat st;
+    if (!FileStat(*d, &st, uid, gid, false)) return false;
+    if (S_ISDIR(st.st_mode)) {
+      // Check for any files in this dir
+      std::list<std::string> newfiles;
+      for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+        std::string fullpath(path + *f);
+        if (fullpath.substr(0, d->size()) == *d && fullpath.size() > d->size() && fullpath[d->size()] == '/') {
+          newfiles.push_back(f->substr(f->find('/', 1)));
+        }
+      }
+      if (!newfiles.empty()) {
+        if (!DirDeleteExcl(*d, newfiles, excl, uid, gid)) return false;
+        if (excl) continue;
+      }
+    }
+
+    bool del = excl;
+    for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+      std::string fullpath(path + *f);
+      if (fullpath == *d) {
+        del = !del;
+        break;
+      }
+    }
+    if (del) {
+      if (S_ISDIR(st.st_mode)) DirDelete(*d, true);
+      else FileDelete(*d);
+    }
+  }
+  return true;
+}
+
 static bool list_recursive(FileAccess* fa,const std::string& path,std::list<std::string>& entries,bool recursive) {
   std::string curpath = path;
   while (curpath.rfind('/') == curpath.length()-1) curpath.erase(curpath.length()-1);
