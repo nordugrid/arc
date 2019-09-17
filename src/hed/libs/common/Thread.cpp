@@ -11,6 +11,7 @@
 #endif
 
 #include <unistd.h>
+#include <pthread.h>
 #include <glibmm/init.h>
 
 #ifdef USE_THREAD_POOL
