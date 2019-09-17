@@ -10,6 +10,7 @@
 #include <stdint.h>
 #endif
 
+#include <stdexcept>
 #include <unistd.h>
 #include <pthread.h>
 #include <glibmm/init.h>
