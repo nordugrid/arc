@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
 #include <glibmm/init.h>
 
 #ifdef USE_THREAD_POOL
