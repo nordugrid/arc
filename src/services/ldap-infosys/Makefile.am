@@ -15,5 +15,3 @@ endif
 units_DATA = $(GRID_INFOSYS_UNIT)
 
 pkgdata_SCRIPTS = create-bdii-config create-slapd-config
-
-EXTRA_DIST = arc-infosys-ldap.service arc-infosys-ldap-slapd.service

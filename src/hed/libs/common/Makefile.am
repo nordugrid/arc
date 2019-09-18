@@ -15,7 +15,8 @@ pgmpkglibdir = $(pkglibdir)
 pgmpkglib_PROGRAMS = arc-file-access arc-hostname-resolver
 
 libarccommon_ladir = $(pkgincludedir)
-libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h \
+nodist_libarccommon_la_HEADERS = ArcVersion.h
+libarccommon_la_HEADERS = ArcConfig.h ArcLocation.h \
 	ArcRegex.h ArcConfigIni.h ArcConfigFile.h \
 	Base64.h CheckSum.h DBInterface.h DateTime.h \
 	FileLock.h FileUtils.h FileAccess.h GUID.h IString.h \
