@@ -47,7 +47,8 @@ def configure(configfile, *func):
     global Config
 
     try:
-        assert(getmtime(pickle_conf) > getmtime(configfile))
+        if not (getmtime(pickle_conf) > getmtime(configfile)):
+            raise Exception
         debug('Loading pickled config from ' + pickle_conf, 'common.config')
         with open(pickle_conf, 'rb') as f:
             Config = pickle.load(f)
