@@ -107,8 +107,9 @@ Description: ARC LDAP monitor web application
 
 Package: nordugrid-arc-arex
 Provides: nordugrid-arc-cache-service, nordugrid-arc-candypond
-Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
+Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-infosys-ldap (<< 6.3.0~)
 Conflicts: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
+Breaks: nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-infosys-ldap (<< 6.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
