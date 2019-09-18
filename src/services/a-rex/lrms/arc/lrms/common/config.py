@@ -43,7 +43,8 @@ def configure(configfile, *func):
     os.environ["ARC_CONFIG"] = configfile
 
     import pickle
-    pickle_conf = '/tmp/python_lrms_arc.conf'
+    import hashlib
+    pickle_conf = '/tmp/python_lrms_%s_arc.conf' % hashlib.sha1(configfile.encode()).hexdigest()
     global Config
 
     try:
