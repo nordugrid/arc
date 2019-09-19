@@ -7,7 +7,7 @@ Execute bash commands locally or remotely (SSH).
 from __future__ import absolute_import
 
 from .log import warn, ArcError
-from .config import Config
+from . import config
 from .ssh import SSHSession
 
 
@@ -62,7 +62,7 @@ def execute_remote(args, host = None, timeout = 10):
 
     from time import sleep
 
-    timeout = Config.ssh_timeout
+    timeout = config.Config.ssh_timeout
     def is_timeout(test):
         wait_time = 0
         while not test():

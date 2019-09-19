@@ -105,6 +105,6 @@ def getmtime(path):
 
     try:
         return os.path.getmtime(path)
-    except:
+    except Exception as e:
         error('Failed to stat file: %s\n%s' % (path, str(e)), 'common.files')
         return False
