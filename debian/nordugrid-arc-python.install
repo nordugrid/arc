@@ -1,12 +1,12 @@
 debian/tmp/usr/lib/python?.?/site-packages/_arc.*so
 debian/tmp/usr/lib/python?.?/site-packages/arc/common.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/loader.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/message.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/communication.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/compute.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/credential.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/data.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/delegation.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/loader.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/message.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/security.py*
 debian/tmp/usr/lib/arc/libaccPythonBroker.so
 debian/tmp/usr/lib/arc/libpythonservice.so

@@ -19,6 +19,12 @@ else
 N = -Nnordugrid-arc-arex-python-lrms
 endif
 
+ifeq ($(shell dpkg-query -W -f '$${Depends}' libinline-python-perl 2>/dev/null | grep -q python3 && echo 1),1)
+PYVER = 3
+else
+PYVER = 2
+endif
+
 configure: configure-stamp
 
 configure-stamp:
@@ -42,7 +48,8 @@ configure-stamp:
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
 		    --docdir='$${datadir}/doc/nordugrid-arc' \
-		    --enable-internal
+		    --enable-internal \
+		    --with-python=python$(PYVER)
 	touch $@
 
 build: build-arch build-indep
@@ -101,6 +108,8 @@ install: build-stamp
 
 	rm -f $(CURDIR)/debian/tmp/usr/lib/libarcglobusutils.so
 
+	find debian/tmp -depth -name __pycache__ -exec rm -rf '{}' ';'
+
 	mv debian/tmp/etc/init.d/arc-arex \
 	   debian/nordugrid-arc-arex.arc-arex.init
 	mv debian/tmp/etc/init.d/arched \
@@ -135,15 +144,23 @@ binary-arch: install
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_perl -a $(N)
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -a $(N) || dh_pysupport -a $(N)
+	[ -x /usr/bin/dh_python3 ] && dh_python3 -a $(N) || :
+	[ -x /usr/bin/dh_python2 ] && dh_python2 -a $(N) || :
 	dh_lintian -a $(N)
 	dh_link -a $(N)
 	dh_strip -a $(N)
-	dh_compress -a $(N) -X .pdf -X arc.conf
+	dh_compress -a $(N)
 	dh_fixperms -a $(N) -X /usr/bin/arc-job-cgroup
 	dh_makeshlibs -a $(N)
 	dh_installdeb -a $(N)
 	dh_shlibdeps -a $(N)
+
+	if [ $(PYVER) -eq 3 ] ; then \
+	   echo "pydeps:Depends=python3-ldap, python3-isodate" >> debian/nordugrid-arc-arex.substvars ; \
+	else \
+	   echo "pydeps:Depends=python-ldap, python-isodate, python-stompy" >> debian/nordugrid-arc-arex.substvars ; \
+	fi
+
 	dh_gencontrol -a $(N)
 	dh_md5sums -a $(N)
 	dh_builddeb -a $(N)
@@ -162,12 +179,22 @@ binary-indep: install
 	dh_installinit -p nordugrid-arc-acix-scanner --name arc-acix-scanner
 	dh_installinit -p nordugrid-arc-acix-index --name arc-acix-index
 	dh_perl -i
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
+	[ -x /usr/bin/dh_python3 ] && dh_python3 -i || :
+	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || :
 	dh_lintian -i
 	dh_link -i
-	dh_compress -i -X .pdf
+	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
+
+	if [ $(PYVER) -eq 3 ] ; then \
+	   echo "pydeps:Depends=python3-twisted, python3-openssl" >> debian/nordugrid-arc-acix-core.substvars ; \
+	   echo "pydeps:Depends=python3-ldap, python3-dns" >> debian/nordugrid-arc-archery-manage.substvars ; \
+	else \
+	   echo "pydeps:Depends=python-twisted, python-openssl" >> debian/nordugrid-arc-acix-core.substvars ; \
+	   echo "pydeps:Depends=python-ldap, python-dns" >> debian/nordugrid-arc-archery-manage.substvars ; \
+	fi
+
 	dh_gencontrol -i
 	dh_md5sums -i
 	dh_builddeb -i
