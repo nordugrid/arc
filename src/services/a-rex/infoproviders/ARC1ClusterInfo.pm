@@ -1428,7 +1428,7 @@ sub collect($) {
           $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
           $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
           # OBS: Times are in seconds.
-          $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
+	  $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} * ($gmjob->{count} || 1) if defined $gmjob->{reqwalltime};
           $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
           # OBS: Should include name and version. Exact format not specified
           $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
