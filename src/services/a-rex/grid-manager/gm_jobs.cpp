@@ -25,7 +25,7 @@ using namespace ARex;
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "gm-jobs");
 
 /** Fill maps with shares taken from data staging states log */
-static void get_data_staging_shares(const GMConfig& config,
+static bool get_data_staging_shares(const GMConfig& config,
                                     std::map<std::string, int>& share_preparing,
                                     std::map<std::string, int>& share_preparing_pending,
                                     std::map<std::string, int>& share_finishing,
@@ -34,7 +34,7 @@ static void get_data_staging_shares(const GMConfig& config,
   StagingConfig staging_conf(config);
   if (!staging_conf) {
     logger.msg(Arc::ERROR, "Could not read data staging configuration from %s", config.ConfigFile());
-    return;
+    return false;
   }
   std::string dtr_log = staging_conf.get_dtr_log();
 
@@ -42,7 +42,7 @@ static void get_data_staging_shares(const GMConfig& config,
   std::list<std::string> data;
   if (!Arc::FileRead(dtr_log, data)) {
     logger.msg(Arc::ERROR, "Can't read transfer states from %s. Perhaps A-REX is not running?", dtr_log);
-    return;
+    return false;
   }
   // format DTR_ID state priority share [destination]
   // any state but TRANSFERRING is a pending state
@@ -61,6 +61,8 @@ static void get_data_staging_shares(const GMConfig& config,
       preparing ? share_preparing_pending[share]++ : share_finishing_pending[share]++;
     }
   }
+
+  return true;
 }
 
 class counters_t {
@@ -220,6 +222,8 @@ int main(int argc, char* argv[]) {
     break;
   };
 
+  int exit_code = 0;
+
   std::ostream* outs = &std::cout;
   std::ofstream outf;
   if(!output_file.empty()) {
@@ -261,7 +265,8 @@ int main(int argc, char* argv[]) {
         if(jref) alljobs.push_back(jref);
       }
     } else {
-      JobsList::GetAllJobs(config,alljobs);
+      if(!JobsList::GetAllJobs(config,alljobs))
+        exit_code |= 1; 
     }
     for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) {
       // Collecting information
@@ -271,6 +276,7 @@ int main(int argc, char* argv[]) {
       job_state_t new_state = job_state_read_file(i->get_id(), config, pending);
       if (new_state == JOB_STATE_UNDEFINED) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : Unrecognizable state", i->get_id());
+        exit_code |= 2;
         continue;
       }
       Arc::Time job_time(job_state_time(i->get_id(), config));
@@ -280,6 +286,7 @@ int main(int argc, char* argv[]) {
       JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
       if (&job_desc == NULL) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : No local information.", i->get_id());
+        exit_code |= 4;
         continue;
       }
       if(match_list(job_desc.DN,cancel_users)) {
@@ -328,25 +335,28 @@ int main(int argc, char* argv[]) {
     std::map<std::string, int> share_finishing;
     std::map<std::string, int> share_finishing_pending;
 
-    get_data_staging_shares(config, share_preparing, share_preparing_pending,
-                            share_finishing, share_finishing_pending);
-    *outs<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
-    for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
-      *outs<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+    if(!get_data_staging_shares(config, share_preparing, share_preparing_pending,
+                                share_finishing, share_finishing_pending)) {
+      exit_code |= 8;
+    } else {
+      *outs<<"\n Preparing/Pending files\tTransfer share"<<std::endl;
+      for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
+        *outs<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      }
+      for (std::map<std::string, int>::iterator i = share_preparing_pending.begin(); i != share_preparing_pending.end(); i++) {
+        if (share_preparing[i->first] == 0)
+          *outs<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      }
+      *outs<<"\n Finishing/Pending files\tTransfer share"<<std::endl;
+      for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
+        *outs<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      }
+      for (std::map<std::string, int>::iterator i = share_finishing_pending.begin(); i != share_finishing_pending.end(); i++) {
+        if (share_finishing[i->first] == 0)
+          *outs<<"         0/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
+      }
+      *outs<<std::endl;
     }
-    for (std::map<std::string, int>::iterator i = share_preparing_pending.begin(); i != share_preparing_pending.end(); i++) {
-      if (share_preparing[i->first] == 0)
-        *outs<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
-    }
-    *outs<<"\n Finishing/Pending files\tTransfer share"<<std::endl;
-    for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
-      *outs<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
-    }
-    for (std::map<std::string, int>::iterator i = share_finishing_pending.begin(); i != share_finishing_pending.end(); i++) {
-      if (share_finishing[i->first] == 0)
-        *outs<<"         0/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
-    }
-    *outs<<std::endl;
   }
   
   if(!notshow_states) {
@@ -374,7 +384,9 @@ int main(int argc, char* argv[]) {
 
   if(show_delegs || (show_deleg_ids.size() > 0)) {
     ARex::DelegationStore dstore(config.DelegationDir(), deleg_db_type, false);
-    if(dstore) {
+    if(!dstore) {
+      exit_code |= 16;
+    } else {
       std::list<std::pair<std::string,std::string> > creds = dstore.ListCredIDs();
       for(std::list<std::pair<std::string,std::string> >::iterator cred = creds.begin();
                                        cred != creds.end(); ++cred) {
@@ -407,27 +419,33 @@ int main(int argc, char* argv[]) {
   }
   if(show_deleg_jobs.size() > 0) {
     ARex::DelegationStore dstore(config.DelegationDir(), deleg_db_type, false);
-    for(std::list<std::string>::iterator jobid = show_deleg_jobs.begin();
-                         jobid != show_deleg_jobs.end(); ++jobid) {
-      // Read job's local file to extract delegation id
-      JobLocalDescription job_desc;
-      if(job_local_read_file(*jobid,config,job_desc)) {
-        std::string token;
-        if(!job_desc.delegationid.empty())  {
-          std::string tokenpath = dstore.FindCred(job_desc.delegationid,job_desc.DN);
-          if(!tokenpath.empty()) {
-            (void)Arc::FileRead(tokenpath,token);
+    if(!dstore) {
+      exit_code |= 32;
+    } else {
+      for(std::list<std::string>::iterator jobid = show_deleg_jobs.begin();
+                           jobid != show_deleg_jobs.end(); ++jobid) {
+        // Read job's local file to extract delegation id
+        JobLocalDescription job_desc;
+        if(!job_local_read_file(*jobid,config,job_desc)) {
+          exit_code |= 64;
+        } else {
+          std::string token;
+          if(!job_desc.delegationid.empty())  {
+            std::string tokenpath = dstore.FindCred(job_desc.delegationid,job_desc.DN);
+            if(!tokenpath.empty()) {
+              (void)Arc::FileRead(tokenpath,token);
+            }
           }
-        }
-        if(token.empty()) {
-          // fall back to public only part
-          (void)job_proxy_read_file(*jobid,config,token);
-          job_desc.delegationid = "public";
-        }
-        if(!token.empty()) {
-          *outs<<"Job: "<<*jobid<<std::endl;
-          *outs<<"Delegation: "<<job_desc.delegationid<<", "<<job_desc.DN<<std::endl;
-          *outs<<token<<std::endl;
+          if(token.empty()) {
+            // fall back to public only part
+            (void)job_proxy_read_file(*jobid,config,token);
+            job_desc.delegationid = "public";
+          }
+          if(!token.empty()) {
+            *outs<<"Job: "<<*jobid<<std::endl;
+            *outs<<"Delegation: "<<job_desc.delegationid<<", "<<job_desc.DN<<std::endl;
+            *outs<<token<<std::endl;
+          }
         }
       }
     }
@@ -441,6 +459,7 @@ int main(int argc, char* argv[]) {
                             job != cancel_jobs_list.end(); ++job) {
       if(!job_cancel_mark_put(**job, config)) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : Failed to put cancel mark", (*job)->get_id());
+        exit_code |= 128;
       } else {
         logger.msg(Arc::INFO, "Job: %s : Cancel request put", (*job)->get_id());
       }
@@ -453,6 +472,7 @@ int main(int argc, char* argv[]) {
       // Instead put clean mark and let A-REX do cleaning properly.
       if(!job_clean_mark_put(**job, config)) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : Failed to put clean mark", (*job)->get_id());
+        exit_code |= 256;
       } else {
         logger.msg(Arc::INFO, "Job: %s : Clean request put", (*job)->get_id());
       }
@@ -460,5 +480,5 @@ int main(int argc, char* argv[]) {
   }
   // Cleanly destroy refrences to avoid error messags
   for (std::list<GMJobRef>::iterator ji=alljobs.begin(); ji!=alljobs.end(); ++ji) ji->Destroy();
-  return 0;
+  return exit_code;
 }

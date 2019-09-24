@@ -41,8 +41,7 @@ configure-stamp:
 		    --mandir='$${datadir}/man' \
 		    --infodir='$${datadir}/info' \
 		    --disable-doc \
-		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
-		    --enable-sqlite \
+		    --docdir='$${datadir}/doc/nordugrid-arc' \
 		    --enable-internal
 	touch $@
 
@@ -117,6 +116,8 @@ install: build-stamp
 	mv debian/tmp/etc/init.d/arc-acix-index \
 	   debian/nordugrid-arc-acix-index.arc-acix-index.init
 
+	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
+
 binary: binary-arch binary-indep
 
 binary-arch: install
@@ -139,7 +140,7 @@ binary-arch: install
 	dh_link -a $(N)
 	dh_strip -a $(N)
 	dh_compress -a $(N) -X .pdf -X arc.conf
-	dh_fixperms -a $(N)
+	dh_fixperms -a $(N) -X /usr/bin/arc-job-cgroup
 	dh_makeshlibs -a $(N)
 	dh_installdeb -a $(N)
 	dh_shlibdeps -a $(N)

@@ -18,8 +18,9 @@
 #include <arc/globusutils/GlobusWorkarounds.h>
 #include <arc/globusutils/GSSCredential.h>
 #include <arc/crypto/OpenSSL.h>
+#include <arc/data/DataExternalComm.h>
+#include <arc/data/DataPointDelegate.h>
 
-#include "Communication.h"
 #include "Lister.h"
 
 #include "DataPointGridFTPHelper.h"
@@ -425,8 +426,8 @@ namespace ArcDMCGridFTP {
       logger.msg(DEBUG, "ftp_read_callback: success");
       if(length > 0) {
         // Report received content
-        DataChunkClient dataEntry(buffer, offset, length);
-        dataEntry.write(outstream<<DataChunkTag);
+        DataExternalComm::DataChunkClient dataEntry(buffer, offset, length);
+        dataEntry.write(outstream<<DataExternalComm::DataChunkTag);
       }
       if (eof) it->ftp_eof_flag = true;
       if (it->ftp_eof_flag) {
@@ -447,8 +448,8 @@ namespace ArcDMCGridFTP {
       }
     }
     if(it->data_counter.get() == 0) {
-      DataChunkClient dataEntry(NULL, offset+length, 0); // using 0 size as eof indication
-      dataEntry.write(outstream<<DataChunkTag);
+      DataExternalComm::DataChunkClient dataEntry(NULL, offset+length, 0); // using 0 size as eof indication
+      dataEntry.write(outstream<<DataExternalComm::DataChunkTag);
       if(!it->ftp_eof_flag) {
         // Must be case when all buffers are gone due to errors
         GlobusResult(globus_ftp_client_abort(&it->ftp_handle));
@@ -526,13 +527,13 @@ namespace ArcDMCGridFTP {
     while(true) {
       static globus_byte_t dummy;
       logger.msg(VERBOSE, "start_writing_ftp: waiting for data tag");
-      char c = InTag(instream);
-      if(c != DataChunkTag) {
+      char c = DataExternalComm::InTag(instream);
+      if(c != DataExternalComm::DataChunkTag) {
         logger.msg(ERROR, "start_writing_ftp: failed to read data tag");
         GlobusResult(globus_ftp_client_abort(&ftp_handle));
         break;
       }
-      DataChunkClient dataChunk;
+      DataExternalComm::DataChunkClient dataChunk;
       logger.msg(VERBOSE, "start_writing_ftp: waiting for data chunk");
       if(!dataChunk.read(instream)) {
         logger.msg(ERROR, "start_writing_ftp: failed to read data chunk");
@@ -777,7 +778,7 @@ namespace ArcDMCGridFTP {
       file.SetCheckSum(lister_info.GetCheckSum());
     }
     if(result)
-      OutEntry(outstream<<FileInfoTag, file);
+      DataExternalComm::OutEntry(outstream<<DataExternalComm::FileInfoTag, file);
     return result;
   }
 
@@ -801,7 +802,7 @@ namespace ArcDMCGridFTP {
           result = r;
         }
       }
-      OutEntry(outstream<<FileInfoTag, *i);
+      DataExternalComm::OutEntry(outstream<<DataExternalComm::FileInfoTag, *i);
     }
     return result;
   }
@@ -1090,6 +1091,7 @@ namespace ArcDMCGridFTP {
 } // namespace ArcDMCGridFTP
 
 int main(int argc, char* argv[]) {
+  using namespace Arc;
   // Ignore some signals
   signal(SIGTTOU,SIG_IGN);
   signal(SIGPIPE,SIG_IGN);
@@ -1175,7 +1177,7 @@ int main(int argc, char* argv[]) {
 
   try {
     Arc::UserConfig usercfg;
-    if(!ArcDMCGridFTP::InEntry(std::cin, usercfg)) {
+    if(!DataExternalComm::InEntry(std::cin, usercfg)) {
       throw Arc::DataStatus(Arc::DataStatus::GenericError, "Failed to receive configuration");
     }
 
@@ -1189,7 +1191,7 @@ int main(int argc, char* argv[]) {
     handler->SetSecure(secure);
     handler->SetPassive(passive);
     Arc::DataStatus result(Arc::DataStatus::Success);
-    if(command == "rename") {
+    if(command == Arc::DataPointDelegate::RenameCommand) {
       if(params.empty()) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Expecting new URL among arguments");
       }
@@ -1198,7 +1200,7 @@ int main(int argc, char* argv[]) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
       }
       result = handler->Rename(new_url_str);
-    } else if(command == "list") {
+    } else if(command == Arc::DataPointDelegate::ListCommand) {
       Arc::DataPoint::DataPointInfoType verb = Arc::DataPoint::INFO_TYPE_ALL;
       if(!params.empty()) {
         verb = static_cast<Arc::DataPoint::DataPointInfoType>(Arc::stringtoi(params.front()));
@@ -1208,7 +1210,7 @@ int main(int argc, char* argv[]) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
       }
       result = handler->List(verb);
-    } else if(command == "stat") {
+    } else if(command == Arc::DataPointDelegate::StatCommand) {
       Arc::DataPoint::DataPointInfoType verb = Arc::DataPoint::INFO_TYPE_ALL;
       if(!params.empty()) {
         verb = static_cast<Arc::DataPoint::DataPointInfoType>(Arc::stringtoi(params.front()));
@@ -1222,28 +1224,28 @@ int main(int argc, char* argv[]) {
       if(!params.empty()) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
       }
-      if(command == "read") {
+      if(command == Arc::DataPointDelegate::ReadCommand) {
         result = handler->Read();
-      } else if(command == "write") {
+      } else if(command == Arc::DataPointDelegate::WriteCommand) {
         result = handler->Write();
-      } else if(command == "check") {
+      } else if(command == Arc::DataPointDelegate::CheckCommand) {
         result = handler->Check();
-      } else if(command == "remove") {
+      } else if(command == Arc::DataPointDelegate::RemoveCommand) {
         result = handler->Remove();
-      } else if(command == "mkdir") {
+      } else if(command == Arc::DataPointDelegate::MkdirCommand) {
         result = handler->CreateDirectory(false);
-      } else if(command == "mkdirr") {
+      } else if(command == Arc::DataPointDelegate::MkdirRecursiveCommand) {
         result = handler->CreateDirectory(true);
       } else {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unknown command "+command);
       }
     }
-    ArcDMCGridFTP::OutEntry(std::cout<<ArcDMCGridFTP::DataStatusTag, result);
+    DataExternalComm::OutEntry(std::cout<<DataExternalComm::DataStatusTag, result);
     std::cerr.flush();
     std::cout.flush();
     _exit(0);
   } catch(Arc::DataStatus const& status) {
-    ArcDMCGridFTP::OutEntry(std::cout<<ArcDMCGridFTP::DataStatusTag, status);
+    DataExternalComm::OutEntry(std::cout<<DataExternalComm::DataStatusTag, status);
     std::cerr.flush();
     std::cout.flush();
     _exit(0);

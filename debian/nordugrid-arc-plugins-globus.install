@@ -1,9 +1,7 @@
 debian/tmp/usr/lib/libarcglobusutils.so.*
 debian/tmp/usr/lib/arc/libaccGRIDFTPJOB.so
-debian/tmp/usr/lib/arc/libdmcgridftp.so
 debian/tmp/usr/lib/arc/libdmcgridftpdeleg.so
 debian/tmp/usr/lib/arc/libaccGRIDFTPJOB.apd
-debian/tmp/usr/lib/arc/libdmcgridftp.apd
 debian/tmp/usr/lib/arc/libdmcgridftpdeleg.apd
 debian/tmp/usr/lib/arc/arc-lcas
 debian/tmp/usr/lib/arc/arc-lcmaps

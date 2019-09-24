@@ -3,29 +3,29 @@ Section: net
 Priority: optional
 Maintainer: Mattias Ellert <mattias.ellert@physics.uu.se>
 Uploaders: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev, libinline-python-perl | dash, libldns-dev, python-twisted-core, python-twisted-web, python-openssl
+Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev (>= 3.6), libinline-python-perl | dash, libldns-dev, python-twisted-core, python-twisted-web, python-openssl
 XS-Python-Version: current
 Standards-Version: 4.0.0
 Homepage: http://www.nordugrid.org
 
 Package: libarccommon3
 Replaces: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
-Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 5.3.0~rc1~), nordugrid-arc-java (<< 6.0.0~), nordugrid-arc-egiis (<< 6.0.0~)
+Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), nordugrid-arc-isis (<< 2.0.0~), nordugrid-arc-janitor (<< 2.0.0~), nordugrid-arc-doxygen (<< 4.0.0~), nordugrid-arc-arcproxyalt (<< 6.0.0~), nordugrid-arc-java (<< 6.0.0~), nordugrid-arc-egiis (<< 6.0.0~)
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, openssl
 XB-Python-Version: ${python:Versions}
 Description: Advanced Resource Connector Middleware
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC middleware is a software solution that uses distributed computing
- technologies to enable sharing and federation of computing resources
- across different administrative and application domains. ARC is used to create
- distributed infrastructures of various scope and complexity, from campus to
- national and global deployments.
+ The ARC middleware is a software solution that uses distributed
+ computing technologies to enable sharing and federation of computing
+ resources across different administrative and application domains.
+ ARC is used to create distributed infrastructures of various scope and
+ complexity, from campus to national and global deployments.
 
 Package: nordugrid-arc-client
 Architecture: any
@@ -36,33 +36,34 @@ Description: ARC command line clients
  Connector (ARC).
  .
  This client package contains all the CLI tools that are needed to
- operate with x509 proxies, submit and manage jobs and handle datatransfers.
+ operate with x509 proxies, submit and manage jobs and handle
+ datatransfers.
 
 Package: nordugrid-arc-hed
 Replaces: nordugrid-arc-client (<< 1.0.1~rc2~)
 Breaks: nordugrid-arc-client (<< 1.0.1~rc2~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), lsb-base (>= 3.0-6)
-Recommends: nordugrid-arc-python
+Recommends: nordugrid-arc-python (= ${binary:Version})
 Description: ARC Hosting Environment Daemon
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Hosting Environment Daemon (HED) is a Web Service container for
- ARC services.
+ The ARC Hosting Environment Daemon (HED) is a Web Service container
+ for ARC services.
 
 Package: nordugrid-arc-gridftpd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-globus (= ${binary:Version}), lsb-base (>= 3.0-6)
 Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC gridftp server which can be used as a custom
- job submission interface in front of an ARC enabled computing cluster or as a
- low-level dedicated gridftp file server.
+ This package contains the ARC gridftp server which can be used as a
+ custom job submission interface in front of an ARC enabled computing
+ cluster or as a low-level dedicated gridftp file server.
 
 Package: nordugrid-arc-datadelivery-service
 Architecture: any
@@ -85,9 +86,9 @@ Description: ARC LDAP-based information services
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC information services relying on
- BDII and LDAP technologies to publish ARC CE information according to
- various LDAP schemas. Please note that the information collectors are part of
+ This package contains the ARC information services relying on BDII and
+ LDAP technologies to publish ARC CE information according to various
+ LDAP schemas. Please note that the information collectors are part of
  another package, the nordugrid-arc-arex.
 
 Package: nordugrid-arc-monitor
@@ -101,26 +102,29 @@ Description: ARC LDAP monitor web application
  Connector (ARC).
  .
  This package contains the PHP web application that is used to set up a
- web-based monitor which pulls information from the LDAP information system
- and visualizes it.
+ web-based monitor which pulls information from the LDAP information
+ system and visualizes it.
 
 Package: nordugrid-arc-arex
 Provides: nordugrid-arc-cache-service, nordugrid-arc-candypond
-Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
+Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~), nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-infosys-ldap (<< 6.3.0~)
 Conflicts: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
+Breaks: nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-infosys-ldap (<< 6.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
+XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Resource-coupled EXecution service (AREX) is the Computing Element of
- the ARC middleware. AREX offers a full-featured middle layer to manage
- computational tasks including interfacing to local batch systems, taking care of
- complex environments such as data staging, data caching, software environment
- provisioning, information collection and explosure, accounting information
- gathering and publishing.
+ The ARC Resource-coupled EXecution service (AREX) is the Computing
+ Element of the ARC middleware. AREX offers a full-featured middle
+ layer to manage computational tasks including interfacing to local
+ batch systems, taking care of complex environments such as data
+ staging, data caching, software environment provisioning, information
+ collection and explosure, accounting information gathering and
+ publishing.
 
 Package: nordugrid-arc-arex-python-lrms
 Replaces: nordugrid-arc-arex (<< 6.0.0~)
@@ -134,8 +138,8 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  Connector (ARC).
  .
  The Python LRMS backends are a new implementation of the AREX LRMS
- backend scripts written in Python. Currently only the SLURM LRMS is supported.
- It is released as a technology preview.
+ backend scripts written in Python. Currently only the SLURM LRMS is
+ supported. It is released as a technology preview.
 
 Package: nordugrid-arc-plugins-needed
 Architecture: any
@@ -146,7 +150,7 @@ Description: ARC base plugins
  Connector (ARC).
  .
  ARC base plugins. This includes the Message Chain Components (MCCs)
- and Data Management Components (DMCs).
+ and Data Manager Components (DMCs).
 
 Package: nordugrid-arc-plugins-globus
 Replaces: nordugrid-arc-plugins-needed (<< 1.0.1-2~)
@@ -158,8 +162,8 @@ Description: ARC Globus plugins
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- ARC Globus plugins. This includes the Globus dependent Data
- Management Components (DMCs). 
+ ARC Globus plugins. This includes the Globus dependent Data Manager
+ Components (DMCs).
 
 Package: nordugrid-arc-plugins-internal
 Architecture: any
@@ -169,8 +173,8 @@ Description: ARC internal plugin
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC internal plugin. A special interface aimed for restrictive HPC sites,
- to be used with a local installation of the ARC Control Tower.
+ The ARC internal plugin. A special interface aimed for restrictive HPC
+ sites, to be used with a local installation of the ARC Control Tower.
 
 Package: nordugrid-arc-plugins-arcrest
 Architecture: any
@@ -198,30 +202,30 @@ Provides: nordugrid-arc-acix-cache
 Replaces: nordugrid-arc-acix-cache (<< 6.0.0~)
 Conflicts: nordugrid-arc-acix-cache (<< 6.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - scanner server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Cache scanner component of the ARC Cache Index (ACIX), usually installed
- alongside A-REX. This component collects information on the content of
- an A-REX cache.
+ Cache scanner component of the ARC Cache Index (ACIX), usually
+ installed alongside A-REX. This component collects information on the
+ content of an A-REX cache.
 
 Package: nordugrid-arc-acix-index
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-acix-core (= ${binary:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - index server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Index server component of the ARC Cache Index (ACIX), usually installed
- independently of any A-REX installation. This component pulls cache content
- from ACIX cache scanner servers and can be queried by clients for the location 
- of cached files.
+ Index server component of the ARC Cache Index (ACIX), usually
+ installed independently of any A-REX installation. This component
+ pulls cache content from ACIX cache scanner servers and can be queried
+ by clients for the location of cached files.
 
 Package: nordugrid-arc-dev
 Architecture: any
@@ -258,21 +262,23 @@ Description: The nordugridmap tool
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- A simple tool to fetch list of users and eventually generate gridmap files.
+ A simple tool to fetch list of users and eventually generate gridmap
+ files.
 
 Package: nordugrid-arc-test-utils
 Provides: nordugrid-arc-misc-utils
 Replaces: nordugrid-arc-misc-utils (<< 6.0.0~)
 Conflicts: nordugrid-arc-misc-utils (<< 6.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC test tools
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains a few utilities useful to test various ARC subsystems. The
- package is not required by users or sysadmins and it is mainly for developers.
+ This package contains a few utilities useful to test various ARC
+ subsystems. The package is not required by users or sysadmins and it
+ is mainly for developers.
 
 Package: nordugrid-arc-archery-manage
 Architecture: all
@@ -287,11 +293,11 @@ Description: ARCHERY administration tool
 
 Package: nordugrid-arc-wn
 Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC optional worker nodes components
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the optional components that provide new
- job management features on the worker nodes (WN).
-
+ This package contains the optional components that provide new job
+ management features on the worker nodes (WN).

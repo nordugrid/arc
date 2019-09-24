@@ -11,7 +11,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os, arc, time
-from .config import Config
+from . import config
 from .files import read, write, getmtime
 from .proc import execute_local, execute_remote
 from .log import error, warn
@@ -94,7 +94,7 @@ def set_exit_code_from_diag(job):
 
     # In case of non-NFS setup it may take some time till
     # diagnostics file is delivered. Wait for it max 2 minutes.
-    time_to_wait = 10 if Config.shared_filesystem else 120
+    time_to_wait = 10 if config.Config.shared_filesystem else 120
     time_slept = 0
     time_step = 0.5
 

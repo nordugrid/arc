@@ -23,31 +23,31 @@ def add_services_to_parser(parser):
 class ServicesControl(ComponentControl):
     __blocks_map = {
         'arex': {
-            'package': 'nordugrid-arc-arex',
+            'package': 'arex',
             'service': 'arc-arex'
         },
         'gridftpd': {
-            'package': 'nordugrid-arc-gridftpd',
+            'package': 'gridftpd',
             'service': 'arc-gridftpd'
         },
         'infosys/ldap': {
-            'package': 'nordugrid-arc-infosys-ldap',
+            'package': 'infosys-ldap',
             'service': 'arc-infosys-ldap'
         },
         'datadelivery-service': {
-            'package': 'nordugrid-arc-datadelivery-service',
+            'package': 'datadelivery-service',
             'service': 'arc-datadelivery-service'
         },
         'acix-scanner': {
-            'package': 'nordugrid-arc-acix-scanner',
+            'package': 'acix-scanner',
             'service': 'arc-acix-scanner'
         },
         'acix-index': {
-            'package': 'nordugrid-arc-acix-index',
+            'package': 'acix-index',
             'service': 'arc-acix-index'
         },
         'nordugridmap': {
-            'package': 'nordugrid-arc-nordugridmap',
+            'package': 'nordugridmap',
             'service':  None
         }
     }
@@ -60,13 +60,19 @@ class ServicesControl(ComponentControl):
         self.arcconfig = arcconfig
         self.sm = None
         self.pm = None
+        self.package_base = 'nordugrid-arc'
 
     def __get_pm_sm(self):
         if self.sm is None:
             self.pm = OSPackageManagement()
-            # check arex package that contains arcctl
-            if self.pm.is_installed(self.__blocks_map['arex']['package']):
+            # check arex package that contains arcctl installed via packet manager
+            if self.pm.is_installed(self.package_base + '-' + self.__blocks_map['arex']['package']):
                 self.sm = OSServiceManagement()
+            # epel6 and epel7 contains 'nordugrid-arc6' base to coexist with ARC5 release
+            elif self.pm.is_installed(self.package_base + '6-' + self.__blocks_map['arex']['package']):
+                self.package_base += '6'
+                self.sm = OSServiceManagement()
+            # ARC installed without known packet manager
             else:
                 self.pm = None
                 self.sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
@@ -81,7 +87,7 @@ class ServicesControl(ComponentControl):
             if bservice is not None:
                 services_all.add(bservice)
             if self.arcconfig.check_blocks(block):
-                packages_needed.add(self.__blocks_map[block]['package'])
+                packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
                 if bservice is not None:
                     services_needed.add(bservice)
         return packages_needed, services_all, services_needed
@@ -166,7 +172,7 @@ class ServicesControl(ComponentControl):
                 installed = sm.is_installed(s['service'])
                 installed_str = 'Built from source' if installed else 'Not built'
             else:
-                installed = pm.is_installed(s['package'])
+                installed = pm.is_installed(self.package_base + '-' + s['package'])
                 installed_str = 'Installed' if installed else 'Not installed'
             active = sm.is_active(s['service'])
             enabled = sm.is_enabled(s['service'])

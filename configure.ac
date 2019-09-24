@@ -75,35 +75,17 @@ AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
 test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
 AC_SUBST([MKDIR_P])
 
-dnl --with-docdir since older autoconf (<2.60) does not support --docdir
-AC_ARG_WITH([docdir],
-AC_HELP_STRING([--with-docdir=DIR],
-  [Install documentation in DIR [[default: ${datadir}/doc]]]),
-  [case $withval in
-    yes|no)
-      AC_MSG_ERROR([Invalid DIR])
-      ;;
-    *)
-      docdir="$withval"
-      ;;
-  esac
-],
-[
-  if test -z "$docdir"; then
-    docdir='${datadir}/doc/${PACKAGE}'
-  fi
-])
-AC_SUBST(docdir)
-
 # Use arc for "pkgdir" instead of nordugrid-arc (@PACKAGE@)
 pkgdatadir='${datadir}/arc'
 pkgincludedir='${includedir}/arc'
 pkglibdir='${libdir}/arc'
+extpkglibdir='${libdir}/arc/external'
 pkglibexecdir='${libexecdir}/arc'
 
 AC_SUBST(pkgdatadir)
 AC_SUBST(pkgincludedir)
 AC_SUBST(pkglibdir)
+AC_SUBST(extpkglibdir)
 AC_SUBST(pkglibexecdir)
 
 ARC_API
@@ -891,7 +873,7 @@ PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
   AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
-  # Check for finction available since 3.8
+  # Check for function available since 3.8
   SAVE_CFLAGS=$CFLAGS
   SAVE_LIBS=$LIBS
   CFLAGS="$CFLAGS $SQLITE_CFLAGS"

@@ -6,16 +6,14 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include "Communication.h"
+#include "DataExternalComm.h"
 
-namespace ArcDMCGridFTP {
+namespace Arc {
 
-  using namespace Arc;
-
-  char const ErrorTag = '!';
-  char const DataStatusTag = 'S';
-  char const FileInfoTag = 'F';
-  char const DataChunkTag = 'D';
+  char const DataExternalComm::ErrorTag = '!';
+  char const DataExternalComm::DataStatusTag = 'S';
+  char const DataExternalComm::FileInfoTag = 'F';
+  char const DataExternalComm::DataChunkTag = 'D';
 
   static char const entrySep = '\n';
   static char const itemSep = ',';
@@ -29,7 +27,7 @@ namespace ArcDMCGridFTP {
     EntryFinished() {};
   };
 
-  char InTag(std::istream& instream) {
+  char DataExternalComm::InTag(std::istream& instream) {
     char tag = ErrorTag;
     instream.read(&tag, 1);
     if(instream.gcount() != 1) return ErrorTag;
@@ -37,13 +35,13 @@ namespace ArcDMCGridFTP {
     return tag;
   }
 
-  char InTag(Arc::Run& run, int timeout) {
+  char DataExternalComm::InTag(Arc::Run& run, int timeout) {
     char tag = ErrorTag;
     if(run.ReadStdout(timeout, &tag, 1) != 1) return ErrorTag;
     return tag;
   }
 
-  bool OutTag(Arc::Run& run, int timeout, char tag) {
+  bool DataExternalComm::OutTag(Arc::Run& run, int timeout, char tag) {
    if(run.WriteStdin(timeout, &tag, 1) != 1) return false;
    return true;
   }
@@ -56,7 +54,7 @@ namespace ArcDMCGridFTP {
     return unescape_chars(str, escapeTag, Arc::escape_hex);
   }
 
-//  std::string itemIn(std::istream& instream, char sep = itemSep) {
+//  static std::string itemIn(std::istream& instream, char sep = itemSep) {
 //    std::string str;
 //    std::getline(instream, str, sep);
 //    if(instream.fail())
@@ -64,7 +62,7 @@ namespace ArcDMCGridFTP {
 //    return decode(str);
 //  }
 
-  std::string itemIn(Run& run, int timeout, char sep = itemSep) {
+  static std::string itemIn(Run& run, int timeout, char sep = itemSep) {
     std::string str;
     while(true) {
       char c;
@@ -79,7 +77,7 @@ namespace ArcDMCGridFTP {
     return decode(str);
   }
 
-  void itemOut(Run& run, int timeout, std::string const& item, char sep = itemSep) {
+  static void itemOut(Run& run, int timeout, std::string const& item, char sep = itemSep) {
     std::string str(encode(item));
     const char *buf = str.c_str();
     int size = str.length();
@@ -102,7 +100,7 @@ namespace ArcDMCGridFTP {
 //    return item;
 //  }
 
-  template<typename T> T itemIn(Run& run, int timeout, char sep = itemSep) {
+  template<typename T> static T itemIn(Run& run, int timeout, char sep = itemSep) {
     std::string str(itemIn(run, timeout, sep));
     T item;
     if(!Arc::stringto<T>(str, item))
@@ -110,14 +108,14 @@ namespace ArcDMCGridFTP {
     return item;
   }
 
-  void itemOut(std::ostream& outstream, std::string const& item, char sep = itemSep) {
+  static void itemOut(std::ostream& outstream, std::string const& item, char sep = itemSep) {
     std::string str(encode(item));
     outstream.write(str.c_str(), str.length());
     outstream.write(&sep, 1);
     if(outstream.fail()) throw std::exception();
   }
 
-  std::string itemIn(std::istream& instream, char sep = itemSep) {
+  static std::string itemIn(std::istream& instream, char sep = itemSep) {
     std::string str;
     std::getline(instream, str, sep);
     if(instream.fail())
@@ -125,7 +123,7 @@ namespace ArcDMCGridFTP {
     return decode(str);
   }
 
-  template<typename T> T itemIn(std::istream& instream, char sep = itemSep) {
+  template<typename T> static T itemIn(std::istream& instream, char sep = itemSep) {
     std::string str = itemIn(instream, sep);
     T item;
     if(!Arc::stringto<T>(decode(str), item))
@@ -139,7 +137,7 @@ namespace ArcDMCGridFTP {
 
   // -------------    control    ---------------
 
-  bool InEntry(Arc::Run& run, int timeout, Arc::FileInfo& info) {
+  bool DataExternalComm::InEntry(Arc::Run& run, int timeout, Arc::FileInfo& info) {
     try {
       // Reading fixed part
       info.SetName(itemIn(run,timeout));
@@ -177,7 +175,7 @@ namespace ArcDMCGridFTP {
 
   // -------------     child     ---------------
 
-  bool OutEntry(std::ostream& outstream, Arc::FileInfo const& info) {
+  bool DataExternalComm::OutEntry(std::ostream& outstream, Arc::FileInfo const& info) {
     // fixed part
     outstream<<encode(info.GetName())<<itemSep;
     outstream<<info.GetSize()<<itemSep;
@@ -199,7 +197,7 @@ namespace ArcDMCGridFTP {
     return !outstream.fail();
   }
 
-  //  bool InEntry(std::istream& instream, Arc::FileInfo& info) {
+  //  bool DataExternalComm::InEntry(std::istream& instream, Arc::FileInfo& info) {
   //    try {
   //      instream>>info;
   //      return true;
@@ -215,7 +213,7 @@ namespace ArcDMCGridFTP {
 
   // -------------    control    ---------------
 
-  bool InEntry(Arc::Run& run, int timeout, Arc::DataStatus& status) {
+  bool DataExternalComm::InEntry(Arc::Run& run, int timeout, Arc::DataStatus& status) {
     try {
       Arc::DataStatus::DataStatusType statusCode = static_cast<Arc::DataStatus::DataStatusType>(itemIn<int>(run,timeout));
       int errorCode = itemIn<int>(run,timeout);
@@ -229,7 +227,7 @@ namespace ArcDMCGridFTP {
 
   // -------------     child     ---------------
 
-  bool OutEntry(std::ostream& outstream, Arc::DataStatus const& status) {
+  bool DataExternalComm::OutEntry(std::ostream& outstream, Arc::DataStatus const& status) {
     outstream<<status.GetStatus()<<itemSep;
     outstream<<status.GetErrno()<<itemSep;
     outstream<<encode(status.GetDesc())<<itemSep;
@@ -246,7 +244,7 @@ namespace ArcDMCGridFTP {
 
   // -------------    control    ---------------
 
-  bool OutEntry(Arc::Run& run, int timeout, Arc::UserConfig const& data) {
+  bool DataExternalComm::OutEntry(Arc::Run& run, int timeout, Arc::UserConfig const& data) {
     try {
       itemOut(run, timeout, Arc::inttostr(data.Timeout()));
       itemOut(run, timeout, data.Verbosity());
@@ -266,7 +264,7 @@ namespace ArcDMCGridFTP {
 
   // -------------     child     ---------------
 
-  bool InEntry(std::istream& instream, Arc::UserConfig& data) {
+  bool DataExternalComm::InEntry(std::istream& instream, Arc::UserConfig& data) {
     try {
       data.Timeout(itemIn<int>(instream));
       {
@@ -294,10 +292,10 @@ namespace ArcDMCGridFTP {
 
   // -------------    control    ---------------
 
-  DataChunkExtBuffer::DataChunkExtBuffer() : offset_left(0), size_left(0) {
+  DataExternalComm::DataChunkExtBuffer::DataChunkExtBuffer() : offset_left(0), size_left(0) {
   }
 
-  bool DataChunkExtBuffer::write(Arc::Run& run, int timeout, void const* data, unsigned long long int offset, unsigned long long int size) const {
+  bool DataExternalComm::DataChunkExtBuffer::write(Arc::Run& run, int timeout, void const* data, unsigned long long int offset, unsigned long long int size) const {
     try {
       itemOut(run, timeout, Arc::inttostr(offset));
       itemOut(run, timeout, Arc::inttostr(size));
@@ -312,7 +310,7 @@ namespace ArcDMCGridFTP {
     return false;
   }
 
-  bool DataChunkExtBuffer::read(Arc::Run& run, int timeout, void* data, unsigned long long int& offset, unsigned long long int& size) {
+  bool DataExternalComm::DataChunkExtBuffer::read(Arc::Run& run, int timeout, void* data, unsigned long long int& offset, unsigned long long int& size) {
     try {
       if(size_left == 0) {
         offset_left = itemIn<unsigned long long int>(run, timeout);
@@ -333,18 +331,18 @@ namespace ArcDMCGridFTP {
 
   // -------------     child     ---------------
 
-  DataChunkClient::DataChunkClient(): data(NULL), data_allocated(false), offset(0), size(0), eof(false) {
+  DataExternalComm::DataChunkClient::DataChunkClient(): data(NULL), data_allocated(false), offset(0), size(0), eof(false) {
   }
 
-  DataChunkClient::DataChunkClient(void* data, unsigned long long int offset, unsigned long long int size):
+  DataExternalComm::DataChunkClient::DataChunkClient(void* data, unsigned long long int offset, unsigned long long int size):
      data((char*)data), data_allocated(false), offset(offset), size(size), eof(false) {
   }
 
-  DataChunkClient::~DataChunkClient() {
+  DataExternalComm::DataChunkClient::~DataChunkClient() {
     if(data_allocated) delete[] data;
   }
 
-  bool DataChunkClient::write(std::ostream& outstream) const {
+  bool DataExternalComm::DataChunkClient::write(std::ostream& outstream) const {
     try {
       itemOut(outstream, Arc::inttostr(offset));
       itemOut(outstream, Arc::inttostr(size));
@@ -356,7 +354,7 @@ namespace ArcDMCGridFTP {
     return false;
   }
 
-  bool ArcDMCGridFTP::DataChunkClient::read(std::istream& instream) {
+  bool DataExternalComm::DataChunkClient::read(std::istream& instream) {
     try {
       if(data_allocated) delete[] data;
       data = NULL; data_allocated = false;
@@ -377,5 +375,5 @@ namespace ArcDMCGridFTP {
   }
 
 
-} // namespace ArcDMCGridFTP
+} // namespace Arc
 

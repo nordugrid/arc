@@ -43,11 +43,13 @@ def configure(configfile, *func):
     os.environ["ARC_CONFIG"] = configfile
 
     import pickle
-    pickle_conf = '/tmp/python_lrms_arc.conf'
+    import hashlib
+    pickle_conf = '/tmp/python_lrms_%s_arc.conf' % hashlib.sha1(configfile.encode()).hexdigest()
     global Config
 
     try:
-        assert(getmtime(pickle_conf) > getmtime(configfile))
+        if not (getmtime(pickle_conf) > getmtime(configfile)):
+            raise Exception
         debug('Loading pickled config from ' + pickle_conf, 'common.config')
         with open(pickle_conf, 'rb') as f:
             Config = pickle.load(f)
