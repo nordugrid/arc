@@ -68,7 +68,7 @@ export ARC_LOCATION
 
 readorigconfigvar() {
     value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$2" -o "$3" 2>/dev/null`
-    if [ "$?" = '0' ] ; then
+    if [ $? -eq 0 ] ; then
         echo "$value"
         exit 0
     else
@@ -90,6 +90,11 @@ if [ "x$PID_FILE" = "x" ]; then
     # Missing default value for pidfile means no service block is present
     log_failure_msg "ARC configuration is missing [datadelivery-service] block"
     exit 1
+fi
+
+if [ "$1" = "--getpidfile" ] ; then
+    echo $PID_FILE
+    exit 0
 fi
 
 LOG_FILE=`readorigconfigvar "$ARC_CONFIG" datadelivery-service logfile`

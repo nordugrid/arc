@@ -7,13 +7,12 @@ initd_SCRIPTS = $(CACHESERVER_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
 CACHESERVER_UNIT = arc-acix-scanner.service
-CACHESERVER_UNIT_WRAPPER = arc-acix-scanner-start
 else
 CACHESERVER_UNIT =
-CACHESERVER_UNIT_WRAPPER =
 endif
 units_DATA = $(CACHESERVER_UNIT)
-pkgdata_SCRIPTS = $(CACHESERVER_UNIT_WRAPPER)
+
+pkgdata_SCRIPTS = arc-acix-scanner-start
 
 SUBDIRS = $(TEST_DIR)
 dist_SUBDIRS = test

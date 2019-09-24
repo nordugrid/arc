@@ -74,7 +74,7 @@ export ARC_LOCATION
 
 readorigconfigvar() {
     value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$1" -b "$3" -o "$2" 2>/dev/null`
-    if [ "$?" = '0' ] ; then
+    if [ $? -eq 0 ] ; then
         echo "$value"
         exit 0
     else
@@ -91,7 +91,7 @@ readconfigvar() {
         shift
     done
     value=`$ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --runconfig "$fname" --load $blocks -o "$optname" 2>/dev/null`
-    if [ "$?" = '0' ] ; then
+    if [ $? -eq 0 ] ; then
         echo "$value"
         exit 0
     else
@@ -152,14 +152,18 @@ else
 fi
 export PYTHONPATH
 
-# PID and lock file
+# PID file
 PID_FILE=`readorigconfigvar "$ARC_CONFIG" pidfile gridftpd`
 if [ "x$PID_FILE" = "x" ]; then
     # Missing default value for pidfile means no service block is present
     log_failure_msg "ARC configuration is missing [gridftpd] block"
     exit 1
 fi
-ARC_RUNTIME_CONFIG=
+
+if [ "$1" = "--getpidfile" ] ; then
+    echo $PID_FILE
+    exit 0
+fi
 
 ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
 ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
@@ -172,7 +176,7 @@ fi
 
 # Pre-process configuration
 $ARC_LOCATION/@pkglibexecsubdir@/arcconfig-parser --config "$ARC_CONFIG" --runconfig "$ARC_RUNTIME_CONFIG" --save 2>/dev/null
-if [ ! "$?" = '0' ] ; then
+if [ $? -ne 0 ] ; then
     log_failure_msg "ARC configuration processing failed"
     exit 1
 fi

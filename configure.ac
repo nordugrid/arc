@@ -96,14 +96,19 @@ AC_ARG_WITH(systemd-units-location,
   [ unitsdir="$withval" ],
   [ unitsdir= ]
 )
-AM_CONDITIONAL([SYSTEMD_UNITS_ENABLED],[test "x$unitsdir" != "x"])
 AC_MSG_RESULT($unitsdir)
 AC_SUBST(unitsdir)
 
+AM_CONDITIONAL([SYSTEMD_UNITS_ENABLED],[test "x$unitsdir" != "x"])
+
 AC_ARG_WITH(sysv-scripts-location,
   AC_HELP_STRING([--with-sysv-scripts-location=<PATH>], [Location of the SYSV init scripts. [[autodetect]]]),
-  [ initddir="$withval" ],
   [
+    initddirauto="no"
+    initddir="$withval"
+  ],
+  [
+    initddirauto="yes"
     initddir=
     case "${host}" in
       *linux* | *kfreebsd* | *gnu* )
@@ -121,9 +126,10 @@ AC_ARG_WITH(sysv-scripts-location,
     esac
   ]
 )
-AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$unitsdir" = "x" && test "x$initddir" != "x"])
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
+
+AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[ ( test "x$initddirauto" == "xno" || test "x$unitsdir" = "x" ) && test "x$initddir" != "x"])
 
 AC_ARG_WITH(cron-scripts-prefix,
   AC_HELP_STRING([--with-cron-scripts-prefix=<PATH>], [Specify the location of the cron directory. [[SYSCONFDIR/cron.d]]]),
