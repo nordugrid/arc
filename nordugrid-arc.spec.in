@@ -114,12 +114,7 @@
 %global use_systemd 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
-# LDAP service requires bdii which is not ported to Python 3
-%global with_ldap_service 0
-%else
 %global with_ldap_service 1
-%endif
 
 #
 # Macros for scripts
