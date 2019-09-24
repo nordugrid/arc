@@ -10,7 +10,10 @@
 #include <stdint.h>
 #endif
 
+#include <stdexcept>
 #include <unistd.h>
+#include <pthread.h>
+#include <signal.h>
 #include <glibmm/init.h>
 
 #ifdef USE_THREAD_POOL
@@ -28,6 +31,28 @@
 namespace Arc {
 
   static Logger threadLogger(Logger::getRootLogger(), "Thread");
+
+  static Glib::Thread* ThreadCreate(const sigc::slot< void >& slot,
+                                    unsigned long stack_size,
+                                    bool joinable,
+                                    bool bound,
+                                    Glib::ThreadPriority priority) {
+    UserSwitch usw(0,0);
+    // Create new thread with all sinals blocked. Each thread should unblock signals it handles.
+    sigset_t newsig; sigfillset(&newsig);
+    sigset_t oldsig; sigemptyset(&oldsig);
+    if(pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) != 0)
+      throw std::runtime_error("Failed to block signals");
+    Glib::Thread* new_thread = NULL;
+    try {
+      new_thread = Glib::Thread::create(slot, stack_size, joinable, bound, priority);
+    } catch(...) {
+      pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
+      throw;
+    };
+    pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
+    return new_thread;
+  } 
 
 #ifdef USE_THREAD_DATA
   class ThreadDataPool;
@@ -207,11 +232,10 @@ namespace Arc {
       ThreadArgument* argument = *(queue.begin());
       argument->acquire();
       try {
-        UserSwitch usw(0,0);
-        Glib::Thread::create(sigc::mem_fun(*argument,
-                                           &ThreadArgument::thread),
-                             thread_stacksize, false, false,
-                             Glib::THREAD_PRIORITY_NORMAL);
+        ThreadCreate(sigc::mem_fun(*argument,
+                     &ThreadArgument::thread),
+                     thread_stacksize, false, false,
+                     Glib::THREAD_PRIORITY_NORMAL);
         queue.erase(queue.begin());
       } catch (Glib::Error& e) {
         threadLogger.msg(ERROR, "%s", e.what());
@@ -336,10 +360,9 @@ namespace Arc {
 #endif
     if(count) count->inc();
     try {
-      UserSwitch usw(0,0);
-      Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                           thread_stacksize, false, false,
-                           Glib::THREAD_PRIORITY_NORMAL);
+      ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
+                                 thread_stacksize, false, false,
+                                 Glib::THREAD_PRIORITY_NORMAL);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       if(count) count->dec();
@@ -371,10 +394,9 @@ namespace Arc {
 #endif
     if(count) count->inc();
     try {
-      UserSwitch usw(0,0);
-      Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                           thread_stacksize, false, false,
-                           Glib::THREAD_PRIORITY_NORMAL);
+      ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
+                                 thread_stacksize, false, false,
+                                 Glib::THREAD_PRIORITY_NORMAL);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       if(count) count->dec();
@@ -392,12 +414,11 @@ namespace Arc {
     ThreadArgument *argument = new ThreadArgument(func, arg);
     Glib::Thread *thread;
     try {
-      UserSwitch usw(0,0);
-      thread = Glib::Thread::create(sigc::mem_fun(*argument, &ThreadArgument::thread),             
-	                  thread_stacksize,
-                                  true,  // thread joinable
-                                 false,
-          Glib::THREAD_PRIORITY_NORMAL);
+      thread = ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),             
+	                    thread_stacksize,
+                            true,  // thread joinable
+                            false,
+                            Glib::THREAD_PRIORITY_NORMAL);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       delete argument;
