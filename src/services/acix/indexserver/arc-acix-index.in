@@ -45,19 +45,8 @@ else
     exit 1
 fi
 
-
 PIDFILE=/var/run/arc-acix-index.pid
-LOGFILE=/var/log/arc/arc-acix-index.log
-LOGD=`dirname $LOGFILE`
-LOGN=`basename $LOGFILE`
-
-if [ ! -d $LOGD ]; then
-    mkdir -p $LOGD
-fi
-
 prog=@TWISTD@
-
-RUN=yes
 
 # sysconfig files
 if [ -r /etc/sysconfig/nordugrid ]; then
@@ -71,6 +60,13 @@ elif [ -r /etc/default/arc-acix-index ]; then
     . /etc/default/arc-acix-index
 fi
 
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if [ -d /var/lock/subsys ]; then
@@ -82,51 +78,13 @@ else
     LOCKFILE=$HOME/arc-acix-index.lock
 fi
 
-APPSTART="
-from acix import indexserver;
-from twisted.python import log;
-from twisted.python.logfile import LogFile;
-application = indexserver.createApplication();
-log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
-"
-
 do_start() {
-
-    if [ "$RUN" != "yes" ] ; then
-        echo "arc-acix-index service is disabled, please adjust the configuration to your"
-        echo "needs and then set RUN to 'yes' in /etc/default/arx-acix-index to enable it."
-        return 0
-    fi
-
-    # ARC_CONFIG
-    if [ "x$ARC_CONFIG" = "x" ] && [ -r /etc/arc.conf ]; then
-        ARC_CONFIG=/etc/arc.conf
-    fi
-    if [ ! -r "$ARC_CONFIG" ]; then
-        log_failure_msg "ARC configuration not found (usually /etc/arc.conf)"
-        exit 1
-    fi
-    
-    # Check if service is defined in configuration
-    libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
-    $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index > /dev/null 2>&1
-    if [ $? -eq 1 ]; then
-        log_failure_msg "Block [acix-index] not defined in configuration"
-        exit 1
-    fi
-
-    # At least one cachescanner must be defined
-    eval "$( $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-index --export bash )"
-    if [ -z "$CONFIG_cachescanner" ]; then
-        log_failure_msg "No cachescanners defined"
-        exit 1
-    fi
 
     echo -n "Starting ARC cache index..."
 
     # Check if we are already running
-    if [ -f $PIDFILE ]; then
-        read pid < $PIDFILE
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
         if [ "x$pid" != "x" ]; then
             ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
             if [ $? -eq 0 ] ; then
@@ -136,14 +94,10 @@ do_start() {
         fi
         rm -f "$PIDFILE" "$LOCKFILE"
     fi
-    
-    TACFILE=`mktemp` || exit 1
-    echo $APPSTART > $TACFILE
 
-    $prog --pidfile $PIDFILE -y $TACFILE -l $LOGFILE
+    ${ARC_LOCATION}/@pkgdatasubdir@/arc-acix-index-start
     RETVAL=$?
-    rm -f $TACFILE
-    
+
     if [ $RETVAL -eq 0 ]; then
         touch $LOCKFILE
         log_success_msg
@@ -189,6 +143,7 @@ do_stop() {
 }
 
 do_status() {
+
     if [ -f "$PIDFILE" ]; then
         read pid < "$PIDFILE"
         if [ "$pid" != "" ]; then

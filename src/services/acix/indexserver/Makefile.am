@@ -7,13 +7,12 @@ initd_SCRIPTS = $(INDEXSERVER_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
 INDEXSERVER_UNIT = arc-acix-index.service
-INDEXSERVER_UNIT_WRAPPER = arc-acix-index-start
 else
 INDEXSERVER_UNIT =
-INDEXSERVER_UNIT_WRAPPER =
 endif
 units_DATA = $(INDEXSERVER_UNIT)
-pkgdata_SCRIPTS = $(INDEXSERVER_UNIT_WRAPPER)
+
+pkgdata_SCRIPTS = arc-acix-index-start
 
 SUBDIRS = $(TEST_DIR)
 dist_SUBDIRS = test

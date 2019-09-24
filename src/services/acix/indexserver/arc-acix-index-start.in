@@ -60,4 +60,3 @@ TACFILE=`mktemp` || exit 1
 echo $APPSTART > $TACFILE
 
 exec $prog --pidfile $PIDFILE -y $TACFILE -l $LOGFILE
-rm -f $TACFILE
