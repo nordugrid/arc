@@ -252,7 +252,7 @@ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811:2811 --publish 9000-9100 --publish 9000-9100/udp --rm  maikenp/arc-deploy-debian9
+    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9100 --publish 9000-9100/udp --rm  maikenp/arc-deploy-debian9
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
