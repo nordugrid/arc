@@ -57,7 +57,8 @@
 %global with_python3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} == 7 || %{?suse_version:1}%{!?suse_version:0}
+# Dependency missing in EPEL 8
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
@@ -93,7 +94,8 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 7
+# Dependency missing in EPEL 8
 %global with_pythonlrms 1
 %else
 %global with_pythonlrms 0
