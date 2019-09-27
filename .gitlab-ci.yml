@@ -23,7 +23,7 @@ deploy_staging_deb9:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
   tags:
-    - docker-socket-runner1
+    - deploy
   allow_failure: true
 
 deploy_staging_el6:
@@ -45,7 +45,7 @@ deploy_staging_el6:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
   tags:
-    - docker-socket-runner-bgo4 
+    - deploy
   allow_failure: true
 
 
@@ -68,7 +68,7 @@ deploy_staging_centos7:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
   tags:
-    - docker-socket-runner1
+    - deploy
   allow_failure: true
 
 
