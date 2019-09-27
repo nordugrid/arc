@@ -6,25 +6,7 @@ stages:
   - deploy_and_test
 
 
-deploy_staging_deb9:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811:2811 --publish 9000-9100 --publish 9000-9100/udp --rm  maikenp/arc-deploy-debian9
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     #- $CI_PROJECT_DIR/arc-tests/
-  tags:
-    - deploy
-  allow_failure: true
+
 
 deploy_staging_el6:
   stage: deploy_and_test
@@ -48,28 +30,6 @@ deploy_staging_el6:
     - deploy
   allow_failure: true
 
-
-deploy_staging_centos7:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - export DOCKER_API_VERSION=1.19
-    - docker pull maikenp/arc-deploy-centos7
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9100 --publish 9000-9100/udp --rm  maikenp/arc-deploy-centos7
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     #- $CI_PROJECT_DIR/arc-tests/
-  tags:
-    - deploy
-  allow_failure: true
 
 
 
