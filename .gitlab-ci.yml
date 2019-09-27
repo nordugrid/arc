@@ -22,8 +22,6 @@ deploy_staging_deb9:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_deb9
   tags:
     - docker-socket-runner1
   allow_failure: true
@@ -46,8 +44,6 @@ deploy_staging_el6:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_el6
   tags:
     - docker-socket-runner-bgo4 
   allow_failure: true
@@ -71,8 +67,6 @@ deploy_staging_centos7:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_el7
   tags:
     - docker-socket-runner1
   allow_failure: true
