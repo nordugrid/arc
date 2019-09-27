@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Mattias Ellert <mattias.ellert@physics.uu.se>
 Uploaders: Anders Waananen <waananen@nbi.dk>
-Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python | python-support, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev (>= 3.6), libinline-python-perl | dash, libldns-dev, python-twisted-core, python-twisted-web, python-openssl
+Build-Depends: debhelper (>= 9), dh-autoreconf, autopoint, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, libltdl-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb++-dev, libxmlsec1-dev (>= 1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, dh-python, openssl, swig, libnss3-dev, pylint, libjson-xs-perl, libxml-simple-perl, libdbi-perl, libsqlite3-dev (>= 3.6), libldns-dev, libinline-python-perl | dpkg (<< 1.18), libinline-python-perl (>= 0.56-2~) | python-dev, libinline-python-perl (>= 0.56-2~) | python-twisted, libinline-python-perl (>= 0.56-2~) | python-openssl, libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18) | python3-dev, libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18) | python3-twisted, libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18) | python3-openssl
 XS-Python-Version: current
 Standards-Version: 4.0.0
 Homepage: http://www.nordugrid.org
@@ -14,7 +14,7 @@ Conflicts: nordugrid-arc-chelonia (<< 2.0.0~), nordugrid-arc-hopi (<< 2.0.0~), n
 Breaks: nordugrid-arc-hed (<< 1.0.1~rc2~), nordugrid-arc-arex (<< 2.0.1~), libarccommon0, libarccommon1, libarccommon2
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, openssl
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, ${python3:Depends}, openssl
 XB-Python-Version: ${python:Versions}
 Description: Advanced Resource Connector Middleware
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -111,7 +111,7 @@ Replaces: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6
 Conflicts: nordugrid-arc-cache-service (<< 6.0.0~), nordugrid-arc-candypond (<< 6.0.0~)
 Breaks: nordugrid-arc-aris (<< 6.0.0~), nordugrid-arc-infosys-ldap (<< 6.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, python-stompy, python-ldap, python-isodate, lsb-base (>= 3.0-6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, ${python3:Depends}, libarccommon3 (= ${binary:Version}), nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), nordugrid-arc-python (= ${binary:Version}), libjson-xs-perl, libxml-simple-perl, ${pydeps:Depends}, lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -130,7 +130,7 @@ Package: nordugrid-arc-arex-python-lrms
 Replaces: nordugrid-arc-arex (<< 6.0.0~)
 Breaks: nordugrid-arc-arex (<< 6.0.0~)
 Architecture: any
-Depends: ${misc:Depends}, ${python:Depends}, libinline-python-perl, nordugrid-arc-arex (= ${binary:Version})
+Depends: ${misc:Depends}, ${python:Depends}, ${python3:Depends}, libinline-python-perl, nordugrid-arc-arex (= ${binary:Version})
 XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service - Python LRMS backends
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -188,7 +188,7 @@ Description: ARC REST plugin
 
 Package: nordugrid-arc-acix-core
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-twisted-core, python-twisted-web, python-openssl
+Depends: ${misc:Depends}, ${python:Depends}, ${python3:Depends}, ${pydeps:Depends}
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - core components
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -202,7 +202,7 @@ Provides: nordugrid-arc-acix-cache
 Replaces: nordugrid-arc-acix-cache (<< 6.0.0~)
 Conflicts: nordugrid-arc-acix-cache (<< 6.0.0~)
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, ${python3:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - scanner server
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -215,7 +215,7 @@ Description: ARC cache index - scanner server
 
 Package: nordugrid-arc-acix-index
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
+Depends: ${misc:Depends}, ${python:Depends}, ${python3:Depends}, libarccommon3 (>= ${source:Version}), nordugrid-arc-acix-core (= ${source:Version}), lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - index server
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -241,7 +241,7 @@ Description: ARC development files
 Package: nordugrid-arc-python
 Architecture: any
 Section: python
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, libarccommon3 (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, ${python3:Depends}, libarccommon3 (= ${binary:Version})
 XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -282,7 +282,7 @@ Description: ARC test tools
 
 Package: nordugrid-arc-archery-manage
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-ldap, python-dns
+Depends: ${misc:Depends}, ${python:Depends}, ${python3:Depends}, ${pydeps:Depends}
 Description: ARCHERY administration tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
