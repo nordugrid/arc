@@ -19,6 +19,8 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
   environment:
     name: staging
   artifacts:
