@@ -19,10 +19,6 @@
 
 namespace ARex {
 
-const char * const sfx_desc        = ".description";
-const char * const sfx_diag        = ".diag";
-const char * const sfx_statistics  = ".statistics";
-
 static void extract_integer(std::string& s,std::string::size_type n = 0) {
   for(;n<s.length();n++) {
     if(isdigit(s[n])) continue;
@@ -56,6 +52,18 @@ static bool string_to_number(std::string& s,unsigned int& n) {
 }
 */
 
+static const std::string::size_type id_split_chunk = 3;
+
+static std::string job_make_path(std::string const& control_dir, std::string const& id, std::string const& sfx) {
+  std::string path(control_dir);
+  path += "/jobs/";
+  for(std::string::size_type pos = 0; pos < id.length(); pos+=id_split_chunk) {
+    path.append(id,pos,id_split_chunk);
+    path += "/";
+  };
+  path += sfx;
+}
+
 // Create multiple files for sending to logger
 // TODO - make it SOAP XML so that they could be sent directly
 bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string &url,std::list<std::string> &report_config) {
@@ -73,7 +81,8 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   }
 
   // Copy job description
-  std::string fname_src(config.ControlDir() + "/job." + job.get_id() + sfx_desc);
+  std::string fname_src = job_control_path(config.ControlDir(),job.get_id(),sfx_desc);
+
   std::string desc;
   if (!Arc::FileRead(fname_src, desc)) return false;
   // Remove line breaks
@@ -174,7 +183,7 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   }
 
   // Analyze diagnostics and store relevant information
-  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
+  fname_src = job_control_path(config.ControlDir(),job.get_id(),sfx_diag);
   std::list<std::string> diag_data;
   if (Arc::FileRead(fname_src, diag_data)) {
     std::string nodenames;
@@ -252,7 +261,7 @@ bool job_log_make_file(const GMJob &job,const GMConfig& config,const std::string
   if(!status.empty()) job_data += "status=" + status + '\n';
 
   // Read and store statistics information
-  fname_src = config.ControlDir() + "/job." + job.get_id() + sfx_statistics;
+  fname_src = job_control_path(config.ControlDir(),job.get_id(),sfx_statistics);
   std::list<std::string> statistics_data;
   if (Arc::FileRead(fname_src, statistics_data)) {
     for (std::list<std::string>::iterator line = statistics_data.begin();

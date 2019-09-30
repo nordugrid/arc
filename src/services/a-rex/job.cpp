@@ -870,7 +870,7 @@ bool ARexJob::make_job_id(void) {
     //    Arc::tostring((unsigned int)time(NULL))+
     //    Arc::tostring(rand(),1);
     Arc::GUID(id_);
-    std::string fname=config_.GmConfig().ControlDir()+"/job."+id_+".description";
+    std::string fname=job_control_path(config_.GmConfig().ControlDir(),id,sfx_desc);
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
     int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
@@ -1054,20 +1054,23 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
 int ARexJob::OpenLogFile(const std::string& name) {
   if(id_.empty()) return -1;
   if(strchr(name.c_str(),'/')) return -1;
-  std::string fname = config_.GmConfig().ControlDir() + "/job." + id_ + "." + name;
+  int h = -1;
+  std::string fname;
   int h = ::open(fname.c_str(),O_RDONLY);
   if(name == "status") {
-    if(h != -1) return h;
-    fname = config_.GmConfig().ControlDir() + "/" + subdir_cur + "/job." + id_ + "." + name;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_cur + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
     if(h != -1) return h;
-    fname = config_.GmConfig().ControlDir() + "/" + subdir_new + "/job." + id_ + "." + name;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_new + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
     if(h != -1) return h;
-    fname = config_.GmConfig().ControlDir() + "/" + subdir_rew + "/job." + id_ + "." + name;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_rew + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
     if(h != -1) return h;
-    fname = config_.GmConfig().ControlDir() + "/" + subdir_old + "/job." + id_ + "." + name;
+    fname = config_.GmConfig().ControlDir() + "/" + subdir_old + "/" + id_ + "." + name;
+    h = ::open(fname.c_str(),O_RDONLY);
+  } else {
+    fname = job_control_path(config_.GmConfig().ControlDir(),id_,name);
     h = ::open(fname.c_str(),O_RDONLY);
   };
   return h;
@@ -1076,16 +1079,15 @@ int ARexJob::OpenLogFile(const std::string& name) {
 std::list<std::string> ARexJob::LogFiles(void) {
   std::list<std::string> logs;
   if(id_.empty()) return logs;
-  std::string dname = config_.GmConfig().ControlDir();
-  std::string prefix = "job." + id_ + ".";
-  // TODO: scanning is performance bottleneck. Use matching instead.
+  std::string dname = job_control_path(config_.GmConfig().ControlDir(),id_,NULL);
   Glib::Dir* dir = new Glib::Dir(dname);
   if(!dir) return logs;
   for(;;) {
     std::string name = dir->read_name();
     if(name.empty()) break;
-    if(strncmp(prefix.c_str(),name.c_str(),prefix.length()) != 0) continue;
-    logs.push_back(name.substr(prefix.length()));
+    if(name == '.') continue;
+    if(name == '..') continue;
+    logs.push_back(name);
   };
   delete dir;
   // Add always present status
@@ -1119,7 +1121,7 @@ bool ARexJob::ReportFilesComplete(void) {
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {
   if(id_.empty()) return "";
-  return config_.GmConfig().ControlDir() + "/job." + id_ + "." + name;
+  return job_control_path(config_.GmConfig().ControlDir(),id_,name);
 }
 
 bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sessiondir) {

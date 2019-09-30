@@ -23,9 +23,26 @@ class GMJob;
    id - job identifier. Used to derive names of files.
 */
 
+extern const char * const sfx_failed;
 extern const char * const sfx_cancel;
 extern const char * const sfx_restart;
 extern const char * const sfx_clean;
+extern const char * const sfx_status;
+extern const char * const sfx_local;
+extern const char * const sfx_errors;
+extern const char * const sfx_desc;
+extern const char * const sfx_diag;
+extern const char * const sfx_lrmsoutput;
+extern const char * const sfx_acl;
+extern const char * const sfx_proxy;
+extern const char * const sfx_xml;
+extern const char * const sfx_input;
+extern const char * const sfx_output;
+extern const char * const sfx_inputstatus;
+extern const char * const sfx_outputstatus;
+extern const char * const sfx_statistics;
+extern const char * const sfx_lrms_done;
+extern const char * const sfx_proxy_tmp;
 
 extern const char * const subdir_new;
 extern const char * const subdir_cur;
@@ -61,6 +78,9 @@ bool fix_file_owner(const std::string &fname,const Arc::User& user);
 bool check_file_owner(const std::string &fname);
 bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid);
 bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t);
+
+// Make path to file in control dir
+std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx);
 
 // Check existence, remove and read content of file used to mark
 // job finish in LRMS. This file is created by external script/executable
