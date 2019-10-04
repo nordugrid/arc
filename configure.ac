@@ -2132,7 +2132,7 @@ AC_SUBST(nodename)
 posix_shell='/bin/sh'
 AC_SUBST(posix_shell)
 
-DATE=`date +%Y-%m-%d`
+DATE=`date +%Y-%m-%d ${SOURCE_DATE_EPOCH:+-u -d @$SOURCE_DATE_EPOCH}`
 AC_SUBST(DATE)
 #DATER=`date -R`
 DATER=`date +'%a, %d %b %Y %H:%M:%S %z'`
