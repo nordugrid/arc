@@ -870,16 +870,20 @@ bool ARexJob::make_job_id(void) {
     //    Arc::tostring((unsigned int)time(NULL))+
     //    Arc::tostring(rand(),1);
     Arc::GUID(id_);
-    std::string fname=job_control_path(config_.GmConfig().ControlDir(),id,sfx_desc);
+    std::string fname=job_control_path(config_.GmConfig().ControlDir(),id_,sfx_desc);
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
+    std::string::size_type sep_pos = fname.rfind('/');
+    if(sep_pos != std::string::npos) {
+      if(!Arc::DirCreate(fname.substr(0,sep_pos),S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH,true)) continue;
+    };
     int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     int err = errno;
     if(h == -1) {
       if(err == EEXIST) continue;
-      logger_.msg(Arc::ERROR, "Failed to create file in %s", config_.GmConfig().ControlDir());
+      logger_.msg(Arc::ERROR, "Failed to create job in %s", config_.GmConfig().ControlDir());
       id_="";
       return false;
     };
@@ -1056,7 +1060,7 @@ int ARexJob::OpenLogFile(const std::string& name) {
   if(strchr(name.c_str(),'/')) return -1;
   int h = -1;
   std::string fname;
-  int h = ::open(fname.c_str(),O_RDONLY);
+  h = ::open(fname.c_str(),O_RDONLY);
   if(name == "status") {
     fname = config_.GmConfig().ControlDir() + "/" + subdir_cur + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
@@ -1070,7 +1074,7 @@ int ARexJob::OpenLogFile(const std::string& name) {
     fname = config_.GmConfig().ControlDir() + "/" + subdir_old + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
   } else {
-    fname = job_control_path(config_.GmConfig().ControlDir(),id_,name);
+    fname = job_control_path(config_.GmConfig().ControlDir(),id_,name.c_str());
     h = ::open(fname.c_str(),O_RDONLY);
   };
   return h;
@@ -1085,8 +1089,8 @@ std::list<std::string> ARexJob::LogFiles(void) {
   for(;;) {
     std::string name = dir->read_name();
     if(name.empty()) break;
-    if(name == '.') continue;
-    if(name == '..') continue;
+    if(name == ".") continue;
+    if(name == "..") continue;
     logs.push_back(name);
   };
   delete dir;
@@ -1121,7 +1125,7 @@ bool ARexJob::ReportFilesComplete(void) {
 
 std::string ARexJob::GetLogFilePath(const std::string& name) {
   if(id_.empty()) return "";
-  return job_control_path(config_.GmConfig().ControlDir(),id_,name);
+  return job_control_path(config_.GmConfig().ControlDir(),id_,name.c_str());
 }
 
 bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sessiondir) {

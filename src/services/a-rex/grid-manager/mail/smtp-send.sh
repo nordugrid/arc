@@ -27,6 +27,12 @@ if [ -z "$local_mail" ] ; then
   exit 1
 fi
 
+control_path () {
+    job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    path="$1/jobs/${job_id}/$3"
+    echo "$path"
+}
+
 #host_name=`hostname -f`
 cur_time=`date -R`
 cluster_name=`hostname --fqdn`
@@ -74,11 +80,12 @@ while true ; do
         grep -i '^cleanuptime' "$control_dir/job.$job_id.local" 2>/dev/null
       fi
     fi
-    if [ -f "$control_dir/job.$job_id.errors" ] ; then
+    errors_file=$(control_path "$control_dir" "$job_id" "errors")
+    if [ -f "$errors_file" ] ; then
       echo
       echo 'Following is the log of job processing:'
       echo '-------------------------------------------------'
-      cat "$control_dir/job.$job_id.errors" 2>/dev/null
+      cat "$errors_file" 2>/dev/null
       echo '-------------------------------------------------'
       echo
     fi

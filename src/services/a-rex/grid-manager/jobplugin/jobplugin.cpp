@@ -448,12 +448,12 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     chosenFilePlugin = makeFilePlugin(fname);
     if(logname) {
       if((*logname) != 0) {
-        if(strncmp(logname,"proxy",5) == 0) {
+        if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) == 0) {
           error_description="Not allowed for this file.";
           chosenFilePlugin = NULL;
           return 1;
         };
-        fname=config.ControlDir()+"/job."+fname+"."+logname;
+        fname=job_control_path(config.ControlDir(),fname,logname);
         logger.msg(Arc::INFO, "Retrieving file %s", fname);
         return chosenFilePlugin->open_direct(fname.c_str(),mode);
       };
@@ -531,7 +531,7 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
       // It is allowed to modify ACL
       if(logname) {
         if(strcmp(logname,"acl") == 0) {
-          std::string fname=config.ControlDir()+"/job."+id+"."+logname;
+          std::string fname=job_control_path(config.ControlDir(),id,logname);
           return chosenFilePlugin->open_direct(fname.c_str(),mode);
         };
       };
@@ -578,7 +578,7 @@ int JobPlugin::close(bool eof) {
   /* *************************************************
    * store RSL (description)                         *
    ************************************************* */
-  std::string rsl_fname=config.ControlDir()+"/job."+job_id+".description";
+  std::string rsl_fname=job_control_path(config.ControlDir(),job_id,sfx_desc);
   /* analyze rsl (checking, substituting, etc)*/
   JobDescriptionHandler job_desc_handler(config);
   JobLocalDescription job_desc;
@@ -701,7 +701,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    rsl_fname=config.ControlDir()+"/job."+job_id+".description";
+    rsl_fname=job_control_path(config.ControlDir(),job_id,sfx_desc);
     {
       int l = -1;
       if(h_old != -1) {
@@ -1053,7 +1053,7 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
     error_description="Job description is too big.";
     return 1;
   };
-  std::string rsl_fname=config.ControlDir()+"/job."+job_id+".description";
+  std::string rsl_fname=job_control_path(config.ControlDir(),job_id,sfx_desc);
   int h=::open(rsl_fname.c_str(),O_WRONLY|O_CREAT,0600);
   if(h == -1) {
     error_description="Failed to open job description file " + rsl_fname;
@@ -1132,24 +1132,24 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     config.SetControlDir(controldir);
     if((*logname) != 0) {
       if(strchr(logname,'/') != NULL) return 1; /* no subdirs */
-      if(strncmp(logname,"proxy",5) == 0) return 1;
-      id=config.ControlDir()+"/job."+id+"."+logname;
+      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) == 0) return 1;
+      id=job_control_path(config.ControlDir(),id,logname);
       struct stat st;
       if(::stat(id.c_str(),&st) != 0) return 1;
       if(!S_ISREG(st.st_mode)) return 1;
       DirEntry dent(true,logname);
-      if(strncmp(logname,"proxy",5) != 0) dent.may_read=true;
+      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) != 0) dent.may_read=true;
       dir_list.push_back(dent);
       return -1;
     };
-    Glib::Dir* d=new Glib::Dir(config.ControlDir());
+    Glib::Dir* d=new Glib::Dir(job_control_path(config.ControlDir(),id,NULL));
     if(d == NULL) { return 1; }; /* maybe return ? */
-    id="job."+id+".";
     std::string file_name;
     while ((file_name = d->read_name()) != "") {
-      if(file_name.substr(0, id.length()) != id) continue;
-      if(file_name.substr(file_name.length() - 5) == "proxy") continue;
-      DirEntry dent(true, file_name.substr(id.length()));
+      if(file_name == ".") continue;
+      if(file_name == "..") continue;
+      if(file_name == sfx_proxy) continue;
+      DirEntry dent(true, file_name);
       dir_list.push_back(dent);
     };
     d->close();
@@ -1220,7 +1220,7 @@ int JobPlugin::checkdir(std::string &dirname) {
       return 1;
     };
     /* check if new proxy is better than old one */
-    std::string old_proxy_fname=config.ControlDir()+"/job."+id+".proxy";
+    std::string old_proxy_fname=job_control_path(config.ControlDir(),id,sfx_proxy);
     Arc::Time new_proxy_expires;
     Arc::Time old_proxy_expires;
     std::string proxy_data;
@@ -1305,11 +1305,11 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
       info.is_file=false; info.name=""; info.may_dirlist=true;
     }
     else {
-      if(strncmp(logname,"proxy",5) == 0) {
+      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) == 0) {
         error_description="There is no such special file.";
         return 1;
       };
-      id=config.ControlDir()+"/job."+id+"."+logname;
+      id=job_control_path(config.ControlDir(),id,logname);
       logger.msg(Arc::INFO, "Checking file %s", id);
       struct stat st;
       if(::stat(id.c_str(),&st) != 0) {
@@ -1365,7 +1365,7 @@ bool JobPlugin::make_job_id(const std::string &id) {
   // So far assume control directory is on local fs.
   // TODO: add locks or links for NFS
   // check the new ID is not used in any control dir
-  std::string fname=control_dir+"/job."+id+".description";
+  std::string fname=job_control_path(control_dir,id,sfx_desc);
   int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
   if(h == -1)
     return false;
@@ -1386,7 +1386,7 @@ bool JobPlugin::make_job_id(void) {
     std::string id;
     Arc::GUID(id);
     // create job.id.description file
-    std::string fname=control_dir+"/job."+id+".description";
+    std::string fname=job_control_path(control_dir,id,sfx_desc);
     int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
@@ -1456,7 +1456,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool* spec_dir,std::string*
     }
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
-      std::string acl_file = config.ControlDir()+"/job."+id+".acl";
+      std::string acl_file = job_control_path(config.ControlDir(),id,sfx_acl);
       struct stat st;
       if(stat(acl_file.c_str(),&st) == 0) {
         if(S_ISREG(st.st_mode)) {
@@ -1514,7 +1514,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool* spec_dir,std::string*
     res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
   } else {
     // Not an owner. Check acl.
-    std::string acl_file = config.ControlDir()+"/job."+id+".acl";
+    std::string acl_file = job_control_path(config.ControlDir(),id,sfx_acl);
     struct stat st;
     if(stat(acl_file.c_str(),&st) == 0) {
       if(S_ISREG(st.st_mode)) {

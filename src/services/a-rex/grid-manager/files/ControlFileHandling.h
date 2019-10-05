@@ -43,6 +43,7 @@ extern const char * const sfx_outputstatus;
 extern const char * const sfx_statistics;
 extern const char * const sfx_lrms_done;
 extern const char * const sfx_proxy_tmp;
+extern const char * const sfx_grami;
 
 extern const char * const subdir_new;
 extern const char * const subdir_cur;

@@ -36,9 +36,15 @@ common_init () {
     init_lrms_env
 }
 
+control_path () {
+    job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    path="$1/jobs/${job_id}/$3"
+    echo "$path"
+}
+
 # defines failures_file
 define_failures_file () {
-    failures_file="$joboption_controldir/job.$joboption_gridid.failed"
+    failures_file=$(control_path "$joboption_controldir" "$joboption_gridid" "failed")
 }
 
 
@@ -415,7 +421,7 @@ RTE_stage0 () {
 
     # joboption_count might have been changed by an RTE. Save it for accounting purposes.
     if [ -n "$joboption_count" ]; then
-        diagfile="${joboption_controldir}/job.${joboption_gridid}.diag"
+        diagfile=$(control_path "${joboption_controldir}" "${joboption_gridid}" "diag")
         echo "Processors=$joboption_count" >> "$diagfile"
         if [ -n "$joboption_numnodes" ]; then
             echo "Nodecount=$joboption_numnodes" >> "$diagfile"
@@ -539,8 +545,9 @@ clean_local_scratch_dir_output () {
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  chmod -R u+w "./"' >> $LRMS_JOB_SCRIPT
   
-  if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
-    cat "$joboption_controldir/job.$joboption_gridid.output" | \
+  output_file=$(control_path "$joboption_controldir" "$joboption_gridid" "output")
+  if [ -f "$output_file" ] ; then
+    cat "$output_file" | \
     # remove leading backslashes, if any
     sed 's/^\/*//' | \
     # backslashes and spaces are escaped with a backslash in job.*.output. The

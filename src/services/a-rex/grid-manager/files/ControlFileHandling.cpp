@@ -39,6 +39,7 @@ const char * const sfx_outputstatus = "output_status";// Output files already st
 const char * const sfx_statistics  = "statistics";    // Statistical information on data staging
 const char * const sfx_lrms_done   = "lrms_done";
 const char * const sfx_proxy_tmp   = "proxy_tmp";
+const char * const sfx_grami       = "grami";
 
 // Sub-directories for different jobs states
 const char * const subdir_new      = "accepting";      // Submitted but not yet picked up by A-REX
@@ -132,7 +133,7 @@ bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t) 
   return true;
 }
 
-static const std::string::size_type id_split_chunk = 3;
+static const std::string::size_type id_split_chunk = 9;
 
 std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
   std::string path(control_dir);
@@ -142,6 +143,7 @@ std::string job_control_path(std::string const& control_dir, std::string const& 
     path += "/";
   };
   if(sfx) path += sfx;
+  return path;
 }
 
 //static std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
@@ -256,7 +258,7 @@ bool job_controldiag_mark_put(const GMJob &job,const GMConfig &config,char const
 }
 
 bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_diag;
+  std::string fname = job.SessionDir() + "." + sfx_diag;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -268,7 +270,7 @@ bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
 bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
   std::string fname = job_control_path(config.ControlDir(), job.get_id(), sfx_diag);
   bool res1 = job_mark_remove(fname);
-  fname = job.SessionDir() + sfx_diag;
+  fname = job.SessionDir() + "." + sfx_diag;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return res1;
@@ -280,9 +282,9 @@ bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
 bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
   std::string fname1;
   if (job.GetLocalDescription() && !job.GetLocalDescription()->sessiondir.empty())
-    fname1 = job.GetLocalDescription()->sessiondir + sfx_diag;
+    fname1 = job.GetLocalDescription()->sessiondir + "." + sfx_diag;
   else
-    fname1 = job.SessionDir() + sfx_diag;
+    fname1 = job.SessionDir() + "." + sfx_diag;
   std::string fname2 = job_control_path(config.ControlDir(), job.get_id(), sfx_diag);
 
   std::string data;
@@ -299,7 +301,7 @@ bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
 }
 
 bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  std::string fname = job.SessionDir() + "." + sfx_lrmsoutput;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -309,7 +311,7 @@ bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
 }
 
 bool job_lrmsoutput_mark_remove(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  std::string fname = job.SessionDir() + "." + sfx_lrmsoutput;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -721,8 +723,8 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::st
   fname = config.ControlDir()+"/"+subdir_new+"/"+id+sfx_clean;  remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_output); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_input); remove(fname.c_str());
-  fname = job_control_path(config.ControlDir(),id,".grami_log"); remove(fname.c_str());
-  fname = session+sfx_lrmsoutput; remove(fname.c_str());
+  fname = job_control_path(config.ControlDir(),id,"grami_log"); remove(fname.c_str());
+  fname = session+"."+sfx_lrmsoutput; remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_outputstatus); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_inputstatus); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_statistics); remove(fname.c_str());
@@ -745,7 +747,7 @@ bool job_clean_final(const GMJob &job,const GMConfig &config) {
   job_clean_deleted(job,config);
   std::string fname;
   fname = job_control_path(config.ControlDir(),id,sfx_local);  remove(fname.c_str());
-  fname = job_control_path(config.ControlDir(),id,".grami"); remove(fname.c_str());
+  fname = job_control_path(config.ControlDir(),id,sfx_grami); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_failed); remove(fname.c_str());
   job_diagnostics_mark_remove(job,config);
   job_lrmsoutput_mark_remove(job,config);

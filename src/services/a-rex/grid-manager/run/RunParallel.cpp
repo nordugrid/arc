@@ -12,6 +12,7 @@
 #include <arc/FileUtils.h>
 
 #include "../conf/GMConfig.h"
+#include "../files/ControlFileHandling.h"
 #include "RunParallel.h"
 
 namespace ARex {
@@ -66,8 +67,8 @@ void JobRefInList::kicker(void* arg) {
 bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
                       const std::string& args,Arc::Run** ere,bool su) {
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
-  std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
-  std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
+  std::string errlog = job_control_path(config.ControlDir(),job.get_id(),sfx_errors);
+  std::string proxy = job_control_path(config.ControlDir(),job.get_id(),sfx_proxy);
   JobRefInList* ref = new JobRefInList(job, list);
   bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
              args, ere, proxy.c_str(), su, NULL, &job_subst, &subs, &JobRefInList::kicker, ref);
@@ -80,8 +81,8 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job,
   RunPlugin* cred = NULL;
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
-  std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
-  std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
+  std::string errlog = job_control_path(config.ControlDir(),job.get_id(),sfx_errors);
+  std::string proxy = job_control_path(config.ControlDir(),job.get_id(),sfx_proxy);
   bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
              args, ere, proxy.c_str(), su, NULL, &job_subst, &subs);
   return result;
