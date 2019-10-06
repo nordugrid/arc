@@ -11,15 +11,16 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 
 #include <arc/DateTime.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
-#include <arc/GUID.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
@@ -43,6 +44,18 @@
 using namespace ARex;
 
 Arc::Logger ARexGMConfig::logger(Arc::Logger::getRootLogger(), "ARexGMConfig");
+
+static std::string rand_uid64(void) {
+  static unsigned int cnt;
+  struct timeval t;
+  gettimeofday(&t,NULL);
+  uint64_t id =
+      (((uint64_t)((cnt++) & 0xffff))   << 48) |
+      (((uint64_t)(t.tv_sec & 0xffff))  << 32) |
+      (((uint64_t)(t.tv_usec & 0xffff)) << 16) |
+      (((uint64_t)(rand() & 0xffff))    << 0);
+  return Arc::inttostr(id,16,16);
+}
 
 static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, std::string& matched) {
   for(std::list<std::string>::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
@@ -869,7 +882,7 @@ bool ARexJob::make_job_id(void) {
     //id_=Arc::tostring((unsigned int)getpid())+
     //    Arc::tostring((unsigned int)time(NULL))+
     //    Arc::tostring(rand(),1);
-    Arc::GUID(id_);
+    id_ = rand_uid64().substr(4);
     std::string fname=job_control_path(config_.GmConfig().ControlDir(),id_,sfx_desc);
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;

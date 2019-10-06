@@ -125,9 +125,11 @@ sub collect_jobids($$) {
     my %pairs;
     my $qname = shift;
     my $controldir = shift;
-    my $cmd = "find $controldir/processing -maxdepth 1 -name 'job.??????????*.status'";
+    my $cmd = "find $controldir/processing -maxdepth 1 -name '?*.status'";
     $cmd   .= ' | xargs grep -l INLRMS ';
-    $cmd   .= ' | sed \'s/processing\/job\.\([^\.]*\)\.status$/job.\1.local/\' ';
+    $cmd   .= ' | sed \'s/^.*\/\([^\.]*\)\.status$/\1/\' ';
+    $cmd   .= ' | sed -e \'s#\(.\{3\}\)#\1/#3\' -e \'s#\(.\{3\}\)#\1/#2\' -e \'s#\(.\{3\}\)#\1/#1\' -e \'s#$#/local#\' ';
+    $cmd   .= " | sed 's\\^\\$controldir/jobs/\\' ";
     $cmd   .= ' | xargs grep -H "^queue=\|^localid="';
     local *LOCAL;
     open(LOCAL, "$cmd |");

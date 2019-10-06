@@ -35,6 +35,17 @@ sub glue2bool {
     return $bool ? "true" : "false";
 }
 
+sub control_path {
+    my ($controldir, $jobid, $suffix) = @_;
+
+    $jobid =~ s/(.{9})/\1\//;
+    $jobid =~ s/(.{6})/\1\//;
+    $jobid =~ s/(.{3})/\1\//;
+    $jobid =~ s/$/\//;
+    my $path = $controldir."/jobs/".$jobid.$suffix;
+    return $path;
+}
+
 sub local_state {
     ## Maps the gm_state added with detailed info of the lrms_state to local-state
     ## Added the local state terminal to gm_state KILLED - this will allow the job to be cleaned when calling arcclean
@@ -331,7 +342,7 @@ sub glueState {
 
 sub getGMStatus {
     my ($controldir, $ID) = @_;
-    foreach my $gmjob_status ("$controldir/accepting/job.$ID.status", "$controldir/processing/job.$ID.status", "$controldir/finished/job.$ID.status") {
+    foreach my $gmjob_status ("$controldir/accepting/$ID.status", "$controldir/processing/$ID.status", "$controldir/finished/$ID.status") {
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
             next;
         } else {
@@ -356,6 +367,7 @@ sub getGMStatus {
 # Returns undef on error, 0 if the XML file was already up to date, 1 if it was written
 sub jobXmlFileWriter {
     my ($config, $jobid, $gmjob, $xmlGenerator) = @_;
+    $log->warning("XML writer for $jobid.");
     # If this is defined, then it's a job managed by local A-REX.
     my $gmuser = $gmjob->{gmuser};
     # Skip for now jobs managed by remote A-REX.
@@ -365,7 +377,9 @@ sub jobXmlFileWriter {
     # for the WS interface.
     return 0 unless defined $gmuser;
     my $controldir = $config->{control}{$gmuser}{controldir};
-    my $xml_file = $controldir . "/job." . $jobid . ".xml";
+    $log->warning("XML writer in $controldir.");
+    my $xml_file = control_path($controldir, $jobid, "xml");
+    $log->warning("XML writer to $xml_file.");
 
     # Here goes simple optimisation - do not write new
     # XML if status has not changed while in "slow" states
@@ -380,7 +394,9 @@ sub jobXmlFileWriter {
     return undef unless defined $xmlstring;
 
     # tempfile croaks on error
-    my ($fh, $tmpnam) = File::Temp::tempfile("job.$jobid.xml.XXXXXXX", DIR => $controldir);
+    my $jobdir = control_path($controldir, $jobid, "");
+    my ($fh, $tmpnam) = File::Temp::tempfile("xml.XXXXXXX", DIR => $jobdir);
+    $log->warning("XML $tmpnam to $xml_file.");
     binmode $fh, ':encoding(utf8)';
     print $fh $xmlstring and close $fh
         or $log->warning("Error writing to temporary file $tmpnam: $!")

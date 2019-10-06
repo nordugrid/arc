@@ -110,6 +110,16 @@ sub collect {
     return $gmjobs;
 }
 
+sub control_path {
+    my ($controldir, $jobid, $suffix) = @_;
+
+    $jobid =~ s/(.{9})/\1\//;
+    $jobid =~ s/(.{6})/\1\//;
+    $jobid =~ s/(.{3})/\1\//;
+    $jobid =~ s/$/\//;
+    my $path = $controldir."/jobs/".$jobid.$suffix;
+    return $path;
+}
 
 sub get_gmjobs {
 
@@ -131,7 +141,7 @@ sub get_gmjobs {
     my @allfiles = grep /\.status/, readdir JOBDIR;
     closedir JOBDIR;
 
-    my @gridmanager_jobs = map {$_=~m/job\.(.+)\.status/; $_=$1;} @allfiles;
+    my @gridmanager_jobs = map {$_=~m/(.+)\.status/; $_=$1;} @allfiles;
 
     # count job IDs to scan
     $jobstoscan = $jobstoscan + @gridmanager_jobs;
@@ -139,14 +149,16 @@ sub get_gmjobs {
 
     foreach my $ID (@gridmanager_jobs) {
 
+        $log->warning("XML scanning job $ID");
+
         my $job = $gmjobs{$ID} = {};
 
-        my $gmjob_local       = $controldir."/job.".$ID.".local";
-        my $gmjob_status      = $controlsubdir."/job.".$ID.".status";
-        my $gmjob_failed      = $controldir."/job.".$ID.".failed";
-        my $gmjob_description = $controldir."/job.".$ID.".description";
-        my $gmjob_grami       = $controldir."/job.".$ID.".grami";
-        my $gmjob_diag        = $controldir."/job.".$ID.".diag";
+        my $gmjob_local       = control_path($controldir, $ID, "local");
+        my $gmjob_status      = $controlsubdir."/".$ID.".status";
+        my $gmjob_failed      = control_path($controldir, $ID, "failed");
+        my $gmjob_description = control_path($controldir, $ID, "description");
+        my $gmjob_grami       = control_path($controldir, $ID, "grami");
+        my $gmjob_diag        = control_path($controldir, $ID, "diag");
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
             $log->debug( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );

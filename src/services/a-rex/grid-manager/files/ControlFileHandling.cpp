@@ -133,12 +133,19 @@ bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t) 
   return true;
 }
 
-static const std::string::size_type id_split_chunk = 9;
+static const std::string::size_type id_split_chunk = 3;
+static const std::string::size_type id_split_num = 4;
 
 std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
   std::string path(control_dir);
   path += "/jobs/";
+  int num = id_split_num;
   for(std::string::size_type pos = 0; pos < id.length(); pos+=id_split_chunk) {
+    if (--num == 0) {
+      path.append(id,pos,std::string::npos);
+      path += "/";
+      break;
+    };
     path.append(id,pos,id_split_chunk);
     path += "/";
   };

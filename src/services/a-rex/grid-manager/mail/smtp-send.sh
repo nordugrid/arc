@@ -28,7 +28,8 @@ if [ -z "$local_mail" ] ; then
 fi
 
 control_path () {
-    job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
     path="$1/jobs/${job_id}/$3"
     echo "$path"
 }
