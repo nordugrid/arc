@@ -1074,7 +1074,7 @@ int ARexJob::OpenLogFile(const std::string& name) {
   int h = -1;
   std::string fname;
   h = ::open(fname.c_str(),O_RDONLY);
-  if(name == "status") {
+  if(name == sfx_status) {
     fname = config_.GmConfig().ControlDir() + "/" + subdir_cur + "/" + id_ + "." + name;
     h = ::open(fname.c_str(),O_RDONLY);
     if(h != -1) return h;

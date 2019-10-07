@@ -1556,7 +1556,7 @@ bool JobsList::RestartJobs(void) {
 
 bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
   if(!FindJob(id.id)) {
-    std::string fname=cdir+'/'+id.id+sfx_status;
+    std::string fname=cdir+'/'+id.id+"."+sfx_status;
     uid_t uid;
     gid_t gid;
     time_t t;
