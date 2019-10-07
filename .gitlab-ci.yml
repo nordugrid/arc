@@ -322,7 +322,7 @@ deploy_staging_centos7:
   dependencies:
     - packages_el7
   tags:
-    - docker-socket-runner1
+    - 158.39.75.5 
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
