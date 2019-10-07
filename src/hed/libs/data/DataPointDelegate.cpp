@@ -91,7 +91,7 @@ namespace Arc {
     if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), result)) {
       return DataStatus(errCode, "Failed to read data status from helper process for "+url.plainstr());
     }
-    if(!run->Wait(1000*usercfg.Timeout())) {
+    if(!run->Wait(usercfg.Timeout())) {
       return DataStatus(errCode, EARCREQUESTTIMEOUT, "Timeout waiting for helper process for "+url.plainstr());
     }
     if(run->Result() != 0) {
