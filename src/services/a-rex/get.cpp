@@ -244,19 +244,21 @@ Arc::MCC_Status ARexService::GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,AR
     outmsg.Attributes()->set("HTTP:content-type","text/html");
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else {
-    int file = job.OpenLogFile(hpath);
-    if(file != -1) {
-      off_t range_start;
-      off_t range_end;
-      ExtractRange(inmsg, range_start, range_end);
-      Arc::MessagePayload* h = newFileRead(file,range_start,range_end);
-      if(h) {
-        outmsg.Payload(h);
-        outmsg.Attributes()->set("HTTP:content-type","text/plain");
-        return Arc::MCC_Status(Arc::STATUS_OK);
-      } else {
-        ::close(file);
-      }
+    if(hpath != "proxy") {
+      int file = job.OpenLogFile(hpath);
+      if(file != -1) {
+        off_t range_start;
+        off_t range_end;
+        ExtractRange(inmsg, range_start, range_end);
+        Arc::MessagePayload* h = newFileRead(file,range_start,range_end);
+        if(h) {
+          outmsg.Payload(h);
+          outmsg.Attributes()->set("HTTP:content-type","text/plain");
+          return Arc::MCC_Status(Arc::STATUS_OK);
+        } else {
+          ::close(file);
+        };
+      };
     };
   };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
