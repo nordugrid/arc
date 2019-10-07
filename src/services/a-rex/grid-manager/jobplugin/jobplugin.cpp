@@ -72,6 +72,18 @@ typedef struct {
 #endif
 
 
+static std::string rand_uid64(void) {
+  static unsigned int cnt;
+  struct timeval t;
+  gettimeofday(&t,NULL);
+  uint64_t id =
+      (((uint64_t)((cnt++) & 0xffff))   << 48) |
+      (((uint64_t)(t.tv_sec & 0xffff))  << 32) |
+      (((uint64_t)(t.tv_usec & 0xffff)) << 16) |
+      (((uint64_t)(rand() & 0xffff))    << 0);
+  return Arc::inttostr(id,16,16);
+}
+
 class DirectUserFilePlugin: public DirectFilePlugin {
  public:
   DirectUserFilePlugin(std::string const& sd, uid_t suid, gid_t sgid, userspec_t const& user):
@@ -452,6 +464,16 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
           error_description="Not allowed for this file.";
           chosenFilePlugin = NULL;
           return 1;
+        };
+        if(strncmp(logname,sfx_status,strlen(sfx_status)) == 0) {
+
+
+
+
+
+
+
+
         };
         fname=job_control_path(config.ControlDir(),fname,logname);
         logger.msg(Arc::INFO, "Retrieving file %s", fname);
@@ -1092,26 +1114,33 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
       dir_list.push_back(dent_new);
       dir_list.push_back(dent_info);
     };
-    std::string cdir=control_dir;
-    Glib::Dir *dir=new Glib::Dir(cdir);
-    if(dir != NULL) {
-      std::string file_name;
-      while ((file_name = dir->read_name()) != "") {
-        std::vector<std::string> tokens;
-        Arc::tokenize(file_name, tokens, "."); // look for job.id.local
-        if (tokens.size() == 3 && tokens[0] == "job" && tokens[2] == "local") {
-          JobLocalDescription job_desc;
-          std::string fname=cdir+'/'+file_name;
-          if(job_local_read_file(fname,job_desc)) {
-            if(job_desc.DN == subject) {
-              JobId id(tokens[1]);
-              dir_list.push_back(DirEntry(false,id));
+    std::list<std::string> cdirs;
+    cdirs.push_back(control_dir+"/"+subdir_rew); // For picking up jobs after service restart
+    cdirs.push_back(control_dir+"/"+subdir_new); // For new jobs
+    cdirs.push_back(control_dir+"/"+subdir_cur); // For active jobs
+    cdirs.push_back(control_dir+"/"+subdir_old); // For done jobs
+    config.SetControlDir(control_dir);
+    for(std::list<std::string>::iterator cdir = cdirs.begin();
+                                         cdir != cdirs.end();++cdir) {
+      Glib::Dir *dir=new Glib::Dir(*cdir);
+      if(dir != NULL) {
+        std::string file_name;
+        while ((file_name = dir->read_name()) != "") {
+          std::vector<std::string> tokens;
+          Arc::tokenize(file_name, tokens, "."); // look for id.status
+          if (tokens.size() == 2 && tokens[1] == sfx_status) {
+            JobLocalDescription job_desc;
+            if(job_local_read_file(tokens[0],config,job_desc)) {
+              if(job_desc.DN == subject) {
+                JobId id(tokens[0]);
+                dir_list.push_back(DirEntry(false,id));
+              };
             };
           };
         };
+        dir->close();
+        delete dir;
       };
-      dir->close();
-      delete dir;
     };
     return 0;
   };
@@ -1132,13 +1161,18 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     config.SetControlDir(controldir);
     if((*logname) != 0) {
       if(strchr(logname,'/') != NULL) return 1; /* no subdirs */
-      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) == 0) return 1;
+      if(strcmp(logname,sfx_proxy) == 0) return 1;
+      if(strcmp(logname,sfx_status) == 0) {
+        if(job_state_read_file(id,config) == JOB_STATE_UNDEFINED) return 1;
+        DirEntry dent(true,logname);
+        dir_list.push_back(dent);
+        return -1;
+      };
       id=job_control_path(config.ControlDir(),id,logname);
       struct stat st;
       if(::stat(id.c_str(),&st) != 0) return 1;
       if(!S_ISREG(st.st_mode)) return 1;
       DirEntry dent(true,logname);
-      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) != 0) dent.may_read=true;
       dir_list.push_back(dent);
       return -1;
     };
@@ -1154,6 +1188,8 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     };
     d->close();
     delete d;
+    DirEntry dent(true, sfx_status); // status resides in another folder
+    dir_list.push_back(dent);
     return 0;
   };
   if(log.length() > 0) {
@@ -1305,9 +1341,22 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
       info.is_file=false; info.name=""; info.may_dirlist=true;
     }
     else {
-      if(strncmp(logname,sfx_proxy,strlen(sfx_proxy)) == 0) {
+      if(strchr(logname,'/') != NULL) { /* no subdirs */
         error_description="There is no such special file.";
         return 1;
+      };
+      if(strcmp(logname,sfx_proxy) == 0) {
+        error_description="There is no such special file.";
+        return 1;
+      };
+      if(strcmp(logname,sfx_status) == 0) {
+        if(job_state_read_file(id,config) == JOB_STATE_UNDEFINED) {
+          error_description="There is no such special file.";
+          return 1;
+        };
+        info.is_file=true; info.name="";
+        info.may_read=true; info.size=0;
+        return 0;
       };
       id=job_control_path(config.ControlDir(),id,logname);
       logger.msg(Arc::INFO, "Checking file %s", id);
@@ -1366,6 +1415,12 @@ bool JobPlugin::make_job_id(const std::string &id) {
   // TODO: add locks or links for NFS
   // check the new ID is not used in any control dir
   std::string fname=job_control_path(control_dir,id,sfx_desc);
+  struct stat st;
+  if(stat(fname.c_str(),&st) == 0) return false;
+  std::string::size_type sep_pos = fname.rfind('/');
+  if(sep_pos != std::string::npos) {
+    if(!Arc::DirCreate(fname.substr(0,sep_pos),S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH,true)) return false;
+  };
   int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
   if(h == -1)
     return false;
@@ -1384,15 +1439,21 @@ bool JobPlugin::make_job_id(void) {
     //               Arc::tostring((unsigned int)time(NULL))+
     //               Arc::tostring(rand(),1);
     std::string id;
-    Arc::GUID(id);
+    id = rand_uid64().substr(4);
     // create job.id.description file
     std::string fname=job_control_path(control_dir,id,sfx_desc);
+    struct stat st;
+    if(stat(fname.c_str(),&st) == 0) continue;
+    std::string::size_type sep_pos = fname.rfind('/');
+    if(sep_pos != std::string::npos) {
+      if(!Arc::DirCreate(fname.substr(0,sep_pos),S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH,true)) continue;
+    };
     int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     if(h == -1) {
       if(errno == EEXIST) continue;
-      logger.msg(Arc::ERROR, "Failed to create file in %s", control_dir);
+      logger.msg(Arc::ERROR, "Failed to create job %s in %s", id, control_dir);
       return false;
     };
     // safe to use this id
