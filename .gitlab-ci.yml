@@ -22,8 +22,6 @@ deploy_staging_deb9:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_deb9
   tags:
     - docker-socket-runner1
   allow_failure: true
