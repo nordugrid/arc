@@ -3,7 +3,60 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
+  - build
   - deploy_and_test
+
+fork_packages_el6:
+  stage: build
+  image: maikenp/arc-build-centos6
+  script:
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - yum update -y
+  tags:
+      - build
+  except:
+    refs:
+      - master
+      - next-major
+      - dev-ARC6
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
+
+
+fork_packages_el7:
+  stage: build
+  image: maikenp/arc-build-centos7
+  script:
+    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - yum update -y
+  allow_failure: false
+  tags:
+      - build
+  except:
+    refs:
+      - master
+      - next
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
+
+
+fork_packages_deb9:
+  stage: build
+  image: maikenp/arc-build-debian9
+  script:
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
+  tags:
+      - build
+  except:
+    refs:
+      - master
+      - next
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  allow_failure: false
 
 
 deploy_staging_deb9:
