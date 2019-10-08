@@ -466,16 +466,29 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
           return 1;
         };
         if(strncmp(logname,sfx_status,strlen(sfx_status)) == 0) {
-
-
-
-
-
-
-
-
+          std::string id(fname);
+          fname.clear();
+          // Status file may reside in various places
+          std::list<std::string> cdirs;
+          cdirs.push_back(controldir+"/"+subdir_rew); // For picking up jobs after service restart
+          cdirs.push_back(controldir+"/"+subdir_new); // For new jobs
+          cdirs.push_back(controldir+"/"+subdir_cur); // For active jobs
+          cdirs.push_back(controldir+"/"+subdir_old); // For done jobs
+          for(std::list<std::string>::iterator cdir = cdirs.begin();
+                                               cdir != cdirs.end();++cdir) {
+            fname = *cdir + "/" + id + "." + sfx_status;
+            struct stat st;
+            if(stat(fname.c_str(),&st) == 0) break;
+            fname.clear();
+          };
+          if(fname.empty()) {
+            error_description="Status file not found for this job.";
+            chosenFilePlugin = NULL;
+            return 1;
+          };
+        } else {
+          fname=job_control_path(config.ControlDir(),fname,logname);
         };
-        fname=job_control_path(config.ControlDir(),fname,logname);
         logger.msg(Arc::INFO, "Retrieving file %s", fname);
         return chosenFilePlugin->open_direct(fname.c_str(),mode);
       };
