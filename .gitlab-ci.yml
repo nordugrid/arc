@@ -14,13 +14,6 @@ fork_packages_el6:
     - yum update -y
   tags:
       - build
-  except:
-    refs:
-      - master
-      - next-major
-      - dev-ARC6
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
   allow_failure: false
 
 
@@ -33,12 +26,6 @@ fork_packages_el7:
   allow_failure: false
   tags:
       - build
-  except:
-    refs:
-      - master
-      - next
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
   allow_failure: false
 
 
@@ -50,12 +37,6 @@ fork_packages_deb9:
     - echo "6.0.0" > VERSION
   tags:
       - build
-  except:
-    refs:
-      - master
-      - next
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
   allow_failure: false
 
 
