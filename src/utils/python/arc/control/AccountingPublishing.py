@@ -249,7 +249,7 @@ class RecordsPublisher(object):
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
         # database query filters
-        self.logger.debug('Assigning filters to APEL publishing database query')
+        self.logger.debug('Assigning filters to APEL usage records database query')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -281,6 +281,19 @@ class RecordsPublisher(object):
                 # enqueue CARs
                 apelssm.enqueue_cars(cars)
             if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
+                # summaries include previous month
+                today_dt = datetime.datetime.today()
+                sef_year = today_dt.year
+                sef_month = today_dt.month - 1
+                if sef_month == 0:
+                    sef_year -= 1
+                    sef_month = 12
+                prev_month_from = datetime.datetime(sef_year, sef_month, 1)
+                # reinitialize filters to APEL summaries publishing ()
+                self.logger.debug('Assigning filters for APEL summaries database query')
+                self.__init_adb_filters(prev_month_from, endtill)
+                # optional WLCG VO filtering
+                self.__add_vo_filter(target_conf)
                 # summary records
                 self.logger.debug('Querying APEL Summary data from accounting database')
                 apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
@@ -359,7 +372,7 @@ class RecordsPublisher(object):
                     continue
             # fetch latest published record timestamp for this target
             endfrom = self.adb.get_last_published_endtime(target)
-            self.logger.info('Publishing latest accounting records to [%s] target (finished since %s).',
+            self.logger.info('Publishing latest accounting data to [%s] target (jobs finished since %s).',
                              target, datetime.datetime.fromtimestamp(endfrom))
             # do publishing
             latest = None
@@ -370,7 +383,8 @@ class RecordsPublisher(object):
             # update latest published record timestamp
             if latest is not None:
                 self.adb.set_last_published_endtime(target, latest)
-                self.logger.info('Accounting records till %s endtime has been successfully published to [%s] target',
+                self.logger.info('Accounting data for jobs finished before %s '
+                                 'has been successfully published to [%s] target',
                                  datetime.datetime.fromtimestamp(latest), target)
 
 
