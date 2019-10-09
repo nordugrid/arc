@@ -413,13 +413,13 @@ class AccountingControl(ComponentControl):
             self.__add_sgas_options(args, targetconf, required=confrequired)
         # run republishing
         if targetconf:
-            if not publisher.republish(targettype, targetconf, args.start_from, args.end_till):
+            if not publisher.republish(targettype, targetconf, args.end_from, args.end_till):
                 self.logger.error('Failed to republish accounting data from {0} till {1} to {2} target {3}'.format(
-                    args.start_from, args.end_till, targettype.upper(), targetid
+                    args.end_from, args.end_till, targettype.upper(), targetid
                 ))
                 sys.exit(1)
         self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
-            args.start_from, args.end_till, targettype.upper(), targetid
+            args.end_from, args.end_till, targettype.upper(), targetid
         ))
 
     def control(self, args):
