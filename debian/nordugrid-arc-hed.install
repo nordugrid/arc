@@ -3,6 +3,7 @@ debian/tmp/usr/lib/arc/libecho.so
 debian/tmp/usr/lib/arc/libecho.apd
 debian/tmp/usr/share/man/man8/arched.8
 debian/tmp/usr/share/man/man5/arc.conf.5
+debian/tmp/usr/share/arc/arched-start
 debian/tmp/usr/share/arc/profiles
 debian/tmp/usr/share/arc/examples/config
 debian/tmp/usr/share/arc/examples/echo

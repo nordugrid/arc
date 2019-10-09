@@ -1,6 +1,6 @@
 [Unit]
 Description=ARC LDAP-based information services - SLAPD
-After=syslog.target network.target
+After=syslog.target network.target network-online.target
 PartOf=arc-infosys-ldap.service
 StopWhenUnneeded=true
 
@@ -12,6 +12,3 @@ ExecStartPre=@prefix@/@pkgdatasubdir@/create-slapd-config
 ExecStart=/bin/sh /var/run/arc/infosys/bdii-slapd.cmd
 ExecStartPost=/bin/sh /var/run/arc/infosys/bdii-slapd-post.cmd
 NotifyAccess=all
-
-[Install]
-WantedBy=multi-user.target

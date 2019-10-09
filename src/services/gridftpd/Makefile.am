@@ -10,13 +10,12 @@ initd_SCRIPTS = $(GRIDFTPD_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
 GRIDFTPD_UNIT = arc-gridftpd.service
-GRIDFTPD_UNIT_WRAPPER = arc-gridftpd-start
 else
 GRIDFTPD_UNIT =
-GRIDFTPD_UNIT_WRAPPER =
 endif
 units_DATA = $(GRIDFTPD_UNIT)
-pkgdata_SCRIPTS = $(GRIDFTPD_UNIT_WRAPPER)
+
+pkgdata_SCRIPTS = arc-gridftpd-start
 
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp
 libgridftpd_la_CXXFLAGS = -I$(top_srcdir)/include \

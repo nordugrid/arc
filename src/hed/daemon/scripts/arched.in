@@ -40,8 +40,6 @@ else
 fi
 
 prog=arched
-RUN=yes
-OPTIONS=""
 
 # sysconfig files
 if [ -r /etc/sysconfig/nordugrid ]; then
@@ -55,18 +53,14 @@ elif [ -r /etc/default/${prog} ]; then
     . /etc/default/${prog}
 fi
 
-if [ "x$ARC_CONFIG" != "x" ]; then
-    OPTIONS="-c $ARC_CONFIG"
-fi
-
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
     log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
-export ARC_LOCATION
 
+# PID and lock file
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if [ -d /var/lock/subsys ]; then
@@ -84,19 +78,12 @@ else
     fi
 fi
 
-RETVAL=0
-
 start() {
-    if [ "$RUN" != "yes" ] ; then
-	echo "$prog disabled in configuration"
-	return 0
-    fi
-
     echo -n "Starting $prog: "
 
     # Check if we are already running
-    if [ -f $PID_FILE ]; then
-	read pid < $PID_FILE
+    if [ -f "$PID_FILE" ]; then
+	read pid < "$PID_FILE"
 	if [ "x$pid" != "x" ]; then
 	    ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
 	    if [ $? -eq 0 ] ; then
@@ -107,13 +94,7 @@ start() {
 	rm -f "$PID_FILE" "$LOCKFILE"
     fi
 
-    CMD="$ARC_LOCATION/sbin/$prog"
-    if [ ! -x "$CMD" ]; then
-	log_failure_msg "Missing executable"
-	exit 1
-    fi
-
-    eval $CMD $OPTIONS
+    ${ARC_LOCATION}/@pkgdatasubdir@/arched-start
     RETVAL=$?
 
     if [ $RETVAL -eq 0 ]; then
@@ -166,7 +147,7 @@ status() {
 	fi
     fi
     if [ -f $LOCKFILE ]; then
-	echo "$1 stopped but lockfile exist"
+	echo "$1 stopped but lockfile exists"
 	return 2
     fi
     echo "$1 is stopped"
@@ -186,7 +167,7 @@ case "$1" in
 	stop
 	;;
     status)
-	status
+	status $prog
 	;;
     restart | force-reload)
 	restart

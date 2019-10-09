@@ -1055,6 +1055,9 @@ using namespace Arc;
       // End of transfer - either success or not retrying transfer of whole body
       break;
     }
+    if (transfer_failure) {
+      point.failure_code = failure_code;
+    }
     point.release_client(client_url,client.Release());
     return !transfer_failure;
   }

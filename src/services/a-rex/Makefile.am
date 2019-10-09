@@ -32,13 +32,12 @@ initd_SCRIPTS = $(AREX_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
 AREX_UNIT = arc-arex.service
-AREX_UNIT_WRAPPER = arc-arex-start
 else
 AREX_UNIT =
-AREX_UNIT_WRAPPER =
 endif
 units_DATA = $(AREX_UNIT)
-pkgdata_SCRIPTS = $(AREX_UNIT_WRAPPER) perferator
+
+pkgdata_SCRIPTS = arc-arex-start perferator
 
 sbin_SCRIPTS = a-rex-backtrace-collect
 

@@ -57,7 +57,8 @@
 %global with_python3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} == 7 || %{?suse_version:1}%{!?suse_version:0}
+# Dependency missing in EPEL 8
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
@@ -93,7 +94,8 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 7
+# Dependency missing in EPEL 8
 %global with_pythonlrms 1
 %else
 %global with_pythonlrms 0
@@ -114,12 +116,7 @@
 %global use_systemd 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
-# LDAP service requires bdii which is not ported to Python 3
-%global with_ldap_service 0
-%else
 %global with_ldap_service 1
-%endif
 
 #
 # Macros for scripts
@@ -1189,13 +1186,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc docdir/hed/*
 %if %{use_systemd}
 %{_unitdir}/arched.service
-%{_datadir}/%{pkgdir}/arched-start
 %else
 %{_initrddir}/arched
 %endif
 %{_sbindir}/arched
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libecho.apd
+%{_datadir}/%{pkgdir}/arched-start
 %{_datadir}/%{pkgdir}/profiles
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
@@ -1204,13 +1201,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %if %{use_systemd}
 %{_unitdir}/arc-gridftpd.service
-%{_datadir}/%{pkgdir}/arc-gridftpd-start
 %else
 %{_initrddir}/arc-gridftpd
 %endif
 %{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobsplugin.*
 %{_libdir}/%{pkgdir}/filedirplugin.*
+%{_datadir}/%{pkgdir}/arc-gridftpd-start
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
@@ -1240,19 +1237,18 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %if %{use_systemd}
 %{_unitdir}/arc-datadelivery-service.service
-%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
 %else
 %{_initrddir}/arc-datadelivery-service
 %endif
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.so
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
+%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
 %files arex
 %defattr(-,root,root,-)
 %if %{use_systemd}
 %{_unitdir}/arc-arex.service
-%{_datadir}/%{pkgdir}/arc-arex-start
 %else
 %{_initrddir}/arc-arex
 %endif
@@ -1314,6 +1310,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/lrms_common.sh
 %{_datadir}/%{pkgdir}/perferator
 %{_datadir}/%{pkgdir}/PerfData.pl
+%{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*
@@ -1386,10 +1383,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %if %{use_systemd}
 %{_unitdir}/arc-acix-scanner.service
-%{_datadir}/%{pkgdir}/arc-acix-scanner-start
 %else
 %{_initrddir}/arc-acix-scanner
 %endif
+%{_datadir}/%{pkgdir}/arc-acix-scanner-start
 
 %files acix-index
 %defattr(-,root,root,-)
@@ -1400,10 +1397,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %if %{use_systemd}
 %{_unitdir}/arc-acix-index.service
-%{_datadir}/%{pkgdir}/arc-acix-index-start
 %else
 %{_initrddir}/arc-acix-index
 %endif
+%{_datadir}/%{pkgdir}/arc-acix-index-start
 %endif
 
 %files devel
