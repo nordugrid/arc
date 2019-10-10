@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-import time
+import calendar
 import datetime
 import sqlite3
 
@@ -244,7 +244,7 @@ class AccountingDB(object):
     def unixtimestamp(t):
         """Return unix timestamp representation of date"""
         if isinstance(t, (datetime.datetime, datetime.date)):
-            return time.mktime(t.timetuple())  # works in Python 2.6
+            return calendar.timegm(t.timetuple())  # works in Python 2.6
         return t
 
     def filter_startfrom(self, stime):
@@ -433,8 +433,8 @@ class AccountingDB(object):
             result[row[0]].append({
                 'url': row[1],
                 'size': row[2],
-                'timestart': datetime.datetime.fromtimestamp(row[3]),
-                'timeend': datetime.datetime.fromtimestamp(row[4]),
+                'timestart': datetime.datetime.utcfromtimestamp(row[3]),
+                'timeend': datetime.datetime.utcfromtimestamp(row[4]),
                 'type':  ttype
             })
         return result
@@ -662,8 +662,8 @@ class AAR(object):
             'StatusID': res[7],
             'Status': None,
             'ExitCode': res[8],
-            'SubmitTime': datetime.datetime.fromtimestamp(res[9]),
-            'EndTime': datetime.datetime.fromtimestamp(res[10]),
+            'SubmitTime': datetime.datetime.utcfromtimestamp(res[9]),
+            'EndTime': datetime.datetime.utcfromtimestamp(res[10]),
             'NodeCount': res[11],
             'CPUCount': res[12],
             'UsedMemory': res[13],

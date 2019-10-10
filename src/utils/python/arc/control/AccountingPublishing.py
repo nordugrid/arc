@@ -8,7 +8,7 @@ import sys
 import logging
 import re
 import datetime
-import time
+import calendar
 
 # SGASSender dependencies
 import socket
@@ -364,7 +364,7 @@ class RecordsPublisher(object):
             self.adb.attach_publishing_db(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:
                 lastreported = self.adb.get_last_report_time(target)
-                unixtime_now = time.mktime(datetime.datetime.today().timetuple())
+                unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())
                 if (unixtime_now - lastreported) < int(targetconf['urdelivery_frequency']):
                     self.logger.debug('Records are reported to [%s] target less than %s seconds ago. '
                                       'Skipping publishing during this run due to "urdelivery_frequency" constraint.',
@@ -373,7 +373,7 @@ class RecordsPublisher(object):
             # fetch latest published record timestamp for this target
             endfrom = self.adb.get_last_published_endtime(target)
             self.logger.info('Publishing latest accounting data to [%s] target (jobs finished since %s).',
-                             target, datetime.datetime.fromtimestamp(endfrom))
+                             target, datetime.datetime.utcfromtimestamp(endfrom))
             # do publishing
             latest = None
             if ttype == 'apel':
@@ -385,7 +385,7 @@ class RecordsPublisher(object):
                 self.adb.set_last_published_endtime(target, latest)
                 self.logger.info('Accounting data for jobs finished before %s '
                                  'has been successfully published to [%s] target',
-                                 datetime.datetime.fromtimestamp(latest), target)
+                                 datetime.datetime.utcfromtimestamp(latest), target)
 
 
 class SGASSender(object):

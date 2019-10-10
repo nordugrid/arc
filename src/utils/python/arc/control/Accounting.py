@@ -129,8 +129,8 @@ class AccountingControl(ComponentControl):
         stats['cpuusertime'] = datetime.timedelta(seconds=stats['cpuusertime'])
         stats['cpukerneltime'] = datetime.timedelta(seconds=stats['cpukerneltime'])
         stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
-        stats['rangestart'] = datetime.datetime.fromtimestamp(stats['rangestart'])
-        stats['rangeend'] = datetime.datetime.fromtimestamp(stats['rangeend'])
+        stats['rangestart'] = datetime.datetime.utcfromtimestamp(stats['rangestart'])
+        stats['rangeend'] = datetime.datetime.utcfromtimestamp(stats['rangeend'])
         stats['stagein'] = get_human_readable_size(stats['stagein'])
         stats['stageout'] = get_human_readable_size(stats['stageout'])
 
