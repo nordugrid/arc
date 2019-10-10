@@ -1023,7 +1023,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
         #   and looks like it is more theoretical rather than for real analyses (especially in view of APEL summaries)
         # ServiceLevel (mandatory) represents benchmarking normalization
         if 'benchmark' not in aar_extra:
-            aar_extra['benchma'] = self.benchmark if self.benchmark is not None else ''
+            aar_extra['benchmark'] = self.benchmark if self.benchmark is not None else ''
         (bechmark_type, bechmark_value) = self.__filter_benchmark(aar_extra['benchmark'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
         return xml
