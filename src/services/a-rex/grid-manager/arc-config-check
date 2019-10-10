@@ -536,6 +536,7 @@ sub confcheck($) {
 
 		$name =~ s/^\s*//;
 		$name =~ s/\s*$//;
+		$name =~ s/^[-+!]//;
 		
 		if (!defined $value and !grep(/^$name$/, @$novalueparams)) {
 		    e("$arcconf: $c: No value specified for $name\n");
