@@ -235,7 +235,7 @@ class RecordsPublisher(object):
         self.logger.debug('Accounting records has been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
-    def publish_apel(self, target_conf, endfrom, endtill=None):
+    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False):
         """Publish to all APEL targets"""
         # Parse targetURL and get necessary parameters for APEL publishing
         urldict = get_url_components(target_conf['targeturl'])
@@ -281,17 +281,20 @@ class RecordsPublisher(object):
                 # enqueue CARs
                 apelssm.enqueue_cars(cars)
             if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
-                # summaries include previous month
-                today_dt = datetime.datetime.today()
-                sef_year = today_dt.year
-                sef_month = today_dt.month - 1
-                if sef_month == 0:
-                    sef_year -= 1
-                    sef_month = 12
-                prev_month_from = datetime.datetime(sef_year, sef_month, 1)
+                # define summaries time interval
+                summary_endfrom = endfrom
+                if regular:
+                    # regularly sent summaries include previous month
+                    today_dt = datetime.datetime.today()
+                    sef_year = today_dt.year
+                    sef_month = today_dt.month - 1
+                    if sef_month == 0:
+                        sef_year -= 1
+                        sef_month = 12
+                    summary_endfrom = datetime.datetime(sef_year, sef_month, 1)
                 # reinitialize filters to APEL summaries publishing ()
                 self.logger.debug('Assigning filters for APEL summaries database query')
-                self.__init_adb_filters(prev_month_from, endtill)
+                self.__init_adb_filters(summary_endfrom, endtill)
                 # optional WLCG VO filtering
                 self.__add_vo_filter(target_conf)
                 # summary records
@@ -303,7 +306,7 @@ class RecordsPublisher(object):
                     return None
                 # enqueue summaries
                 apelssm.enqueue_summaries(apelsummaries)
-        # Sync messages are always sent and contains all timerage data
+        # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
         self.__init_adb_filters()
         # optional WLCG VO filtering
@@ -377,7 +380,7 @@ class RecordsPublisher(object):
             # do publishing
             latest = None
             if ttype == 'apel':
-                latest = self.publish_apel(targetconf, endfrom)
+                latest = self.publish_apel(targetconf, endfrom, regular=True)
             elif ttype == 'sgas':
                 latest = self.publish_sgas(targetconf, endfrom)
             # update latest published record timestamp
