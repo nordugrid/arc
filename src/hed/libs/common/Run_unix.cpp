@@ -487,7 +487,14 @@ namespace Arc {
         };
         envp[n] = NULL;
 
-        pid = ::fork();
+        // Stop acceptin signals temporarily to avoid signal handlers calling unsafe
+        // functions inside child context.
+        sigset_t newsig; sigfillset(&newsig);
+        sigset_t oldsig; sigemptyset(&oldsig);
+        bool oldsig_set = (pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) == 0);
+
+        if (oldsig_set)
+          pid = ::fork();
         if(pid == 0) {
           // child - set std* and do exec
           if(pipe_stdin[0] != -1) {
@@ -530,6 +537,8 @@ namespace Arc {
             stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
           };
         };
+        if(oldsig_set)
+          pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
 
         delete[] argv;
         delete[] envp;

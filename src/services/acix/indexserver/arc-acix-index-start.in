@@ -59,5 +59,4 @@ log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles
 TACFILE=`mktemp` || exit 1
 echo $APPSTART > $TACFILE
 
-exec $prog --pidfile $PIDFILE -y $TACFILE -l $LOGFILE
-rm -f $TACFILE
+exec $prog --pidfile $PIDFILE -y $TACFILE -l $DEFAULT_LOGFILE

@@ -252,11 +252,15 @@ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443:443  --publish 2811:2811 --publish 9000-9100:9000-9100 --publish 9000-9100:9000-9100/udp --rm  maikenp/arc-deploy-debian9
+    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
   environment:
     name: staging
   artifacts:
@@ -279,11 +283,15 @@ deploy_staging_el6:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - docker run -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443:443  --publish 2811:2811 --publish 9000-9100:9000-9100 --publish 9000-9100:9000-9100/udp --rm  maikenp/arc-deploy-centos6
+    - docker run -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
   environment:
     name: staging
   artifacts:
@@ -307,11 +315,15 @@ deploy_staging_centos7:
   script:
     - export DOCKER_API_VERSION=1.19
     - docker pull maikenp/arc-deploy-centos7
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443:443  --publish 2811:2811 --publish 9000-9100:9000-9100 --publish 9000-9100:9000-9100/udp --rm  maikenp/arc-deploy-centos7
+    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
   environment:
     name: staging
   artifacts:
@@ -322,7 +334,7 @@ deploy_staging_centos7:
   dependencies:
     - packages_el7
   tags:
-    - docker-socket-runner1
+    - 158.39.75.5 
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc

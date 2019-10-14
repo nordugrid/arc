@@ -15,6 +15,7 @@ debian/tmp/usr/share/arc/scan-*-job
 debian/tmp/usr/share/arc/submit-*-job
 debian/tmp/usr/share/arc/perferator
 debian/tmp/usr/share/arc/PerfData.pl
+debian/tmp/usr/share/arc/arc-arex-start
 
 debian/tmp/usr/lib/arc/libarex.so
 debian/tmp/usr/lib/arc/libarex.apd
@@ -70,9 +71,7 @@ debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
 debian/tmp/usr/share/man/man8/gm-*.8
 
-debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/__init__.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/crypto.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/ssm/ssm2.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/ssm
 
 debian/tmp/usr/lib/arc/arccandypond
 debian/tmp/usr/share/arc/rte/ENV/LRMS-SCRATCH
