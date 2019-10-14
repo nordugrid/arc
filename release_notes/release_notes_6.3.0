@@ -10,7 +10,12 @@ We are happy to announce the ARC 6.3.0 release, which includes some bugfixes and
 
 Highlights in this release
 ---------------------------
-.....
+A bug sometimes causing arex to stop job processing after logrotate is fixed.
+
+Also fixed is the failure of cleaning the session directory when the session directory is nfs mounted with no_root_squash.
+
+Some systems encountered an increasing amount of left-over hanging arched processes which eventually caused the ARC server to run out of memory. This should now be fixed since now the DMC is run in a separate process. 
+
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
@@ -20,7 +25,6 @@ The following Bugzilla tickets have been resolved
 * 3857  arex sometimes stops job processing after logrotate
 * 3855  cleaning session dir fails when no_root_squash is on
 * 3854  arcctl ignores ARC_CONFIG environment variable
-* 3853  cancel-SLURM-job does not work correctly
 * 3842  gm-jobs reports zero exit code failing to access delegation database
 * 3830  Leftover arched processes
 
@@ -38,15 +42,11 @@ Type of change:  Bugfix
 **        Pickled config                                    
 **        BOINC LRMS: report exit code before diag is tarred up
 **        BOINC submit script updates                       
-** 3853    cancel-SLURM-job does not work correctly         
+
 
 * Component:  Client
 **        Add missing initializer for show_json option.     
-** 3830    Leftover arched processes                        
 
-* Component:  Packaging
-**        Add Replaces+Breaks due to moved file (PerfData.pl)
-**        Dependencies                                      
 
 * Component:  Building
 **        Use SOURCE_DATE_EPOCH for man page dates if defined
@@ -55,13 +55,9 @@ Type of change:  Bugfix
 * Component:  Server
 **        allow -+! at the start of options                 
 ** 3863    acix index fails to start                        
-**        Fixed typo hindering start of data delivery service
 ** 3857    arex sometimes stops job processing after logrotate
-**        fix bugs in MR 826, blocking EMI-ES submission    
-**        uncomment tests, left over from MR !826           
 ** 3855    cleaning session dir fails when no_root_squash is on
 ** 3842    gm-jobs reports zero exit code failing to access delegation database
-
 
 
 Type of change:  Redesign or cleanup
@@ -79,7 +75,6 @@ Type of change:  Enhancement
 * Component:  Arcctl
 **        Support for ARC packages with nordugrid-arc6 base from ELEL6/7 in arcctl service/package management
 ** 3854    arcctl ignores ARC_CONFIG environment variable   
-
 
 
 Type of change:  New feature
