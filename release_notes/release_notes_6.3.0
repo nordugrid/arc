@@ -17,9 +17,15 @@ As no larger new features are added in this release, the main highlights are the
 * Some systems encountered an increasing amount of left-over hanging arched processes which eventually caused the ARC server to run out of memory.
   This should be fixed since now the DMC is run in a separate process. (3830).
 
-We would like to mention a highlight from release 6.2.0 which unfortunately missed the highlights at the time, 
-namely that the job resource usage accounting now has been implemented with cgroups.
+We would like to mention a highlight from release 6.2.0 which unfortunately missed the highlights at the time: 
+Starting from 6.2 it is possible to measure job resource usage on worker nodes using cgroups.
+This option provides precise accounting measurements and is enabled automatically when the arc-job-cgroup tool is installed
+on the worker node (part of the new nordugrid-arc-wn package).
 Please see the documentation for more details: http://nordugrid.pages.coderefinery.org/doc/admins/details/jobaccounting.html
+
+Finally looking ahead to 6.4.0: ARC 6.3.0 will be the last release with the current accounting implementation.
+If you want to know what is awaiting you, please head over to the documentation:
+http://www.nordugrid.org/documents/arc6/tech/accounting/accounting-ng.html#accounting-ng-tech
 
 
 The following Bugzilla tickets have been resolved
