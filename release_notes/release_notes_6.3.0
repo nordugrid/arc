@@ -2,92 +2,37 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.3.0     15.10.2019
--------------------------------------------------------------------------
+Release Notes for NorduGrid ARC  6.3.0     16.10.2019
+------------------------------------------------------
 
-We are happy to announce the ARC 6.3.0 release, which includes some bugfixes and enhancements to 6.2.0. 
+We are happy to announce the ARC 6.3.0 release, which includes some bugfixes and smaller enhancements to 6.2.0. 
 
 
 Highlights in this release
 ---------------------------
-As no new features are added in this release, the main highlight is the fixing of some annoying bugs.
+As no larger new features are added in this release, the main highlights are the fixing of some annoying bugs:
 
-* A bug sometimes causing arex to stop job processing after logrotate is fixed.
-* Also fixed is the failure to clean the session directory when the session directory is nfs mounted with no_root_squash.
+* A bug sometimes causing arex to stop job processing after logrotate is fixed (3857).
+* Also fixed is the failure to clean the session directory when the session directory is nfs mounted with no_root_squash (3855).
 * Some systems encountered an increasing amount of left-over hanging arched processes which eventually caused the ARC server to run out of memory.
-  This should be fixed since now the DMC is run in a separate process. 
+  This should be fixed since now the DMC is run in a separate process. (3830).
 
-We would like to mention a highlight from release 6.2.0 which unfortunately missed the highlights at the time: 
+We would like to mention a highlight from release 6.2.0 which unfortunately missed the highlights at the time, 
 namely that the job resource usage accounting now has been implemented with cgroups.
 Please see the documentation for more details: http://nordugrid.pages.coderefinery.org/doc/admins/details/jobaccounting.html
 
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
-* 3863  acix index fails to start
-* 3862  gridftp transfers hang
+* 3869  Submit and query job to GridFTP resource without LDAP
+* 3868  Add missing initializer for show_json option
+* 3867  Prepend authgroup rule with +/-/! 
 * 3861  HTTP error reason is not correctly propagated
 * 3857  arex sometimes stops job processing after logrotate
 * 3855  cleaning session dir fails when no_root_squash is on
 * 3854  arcctl ignores ARC_CONFIG environment variable
 * 3842  gm-jobs reports zero exit code failing to access delegation database
 * 3830  Leftover arched processes
-
-
-
-Type of change:  Bugfix
-----------------------------------------
-
-* Component:  Core
-** 3862    gridftp transfers hang                           
-** 3861    HTTP error reason is not correctly propagated    
-** 3857    arex sometimes stops job processing after logrotate
-
-* Component:  Backends
-**        Pickled config                                    
-**        BOINC LRMS: report exit code before diag is tarred up
-**        BOINC submit script updates                       
-
-
-* Component:  Client
-**        Add missing initializer for show_json option.     
-
-
-* Component:  Building
-**        Use SOURCE_DATE_EPOCH for man page dates if defined
-**        Pickled config                                    
-
-* Component:  Server
-**        allow -+! at the start of options                 
-** 3863    acix index fails to start                        
-** 3857    arex sometimes stops job processing after logrotate
-** 3855    cleaning session dir fails when no_root_squash is on
-** 3842    gm-jobs reports zero exit code failing to access delegation database
-
-
-Type of change:  Redesign or cleanup
-----------------------------------------
-* Component:  Server
-**        Startup unify                                     
-
-
-Type of change:  Enhancement
-----------------------------------------
-
-* Component:  Client
-**        Making it possible to query and submit to GridFTP job without LDAP
-
-* Component:  Arcctl
-**        Support for ARC packages with nordugrid-arc6 base from ELEL6/7 in arcctl service/package management
-** 3854    arcctl ignores ARC_CONFIG environment variable   
-
-
-Type of change:  New feature
-----------------------------------------
-
-* Component:  Client
-** 3830    Leftover arched processes                        
-
 
 
 Documentation
@@ -104,6 +49,11 @@ Installing ARC 6
 We recommend to install ARC release using the Nordugrid repository.
 * Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
 * Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
 
 We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
