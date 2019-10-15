@@ -10,11 +10,16 @@ We are happy to announce the ARC 6.3.0 release, which includes some bugfixes and
 
 Highlights in this release
 ---------------------------
-A bug sometimes causing arex to stop job processing after logrotate is fixed.
+As no new features are added in this release, the main highlight is the fixing of some annoying bugs.
 
-Also fixed is the failure of cleaning the session directory when the session directory is nfs mounted with no_root_squash.
+* A bug sometimes causing arex to stop job processing after logrotate is fixed.
+* Also fixed is the failure to clean the session directory when the session directory is nfs mounted with no_root_squash.
+* Some systems encountered an increasing amount of left-over hanging arched processes which eventually caused the ARC server to run out of memory.
+  This should be fixed since now the DMC is run in a separate process. 
 
-Some systems encountered an increasing amount of left-over hanging arched processes which eventually caused the ARC server to run out of memory. This should now be fixed since now the DMC is run in a separate process. 
+We would like to mention a highlight from release 6.2.0 which unfortunately missed the highlights at the time: 
+namely that the job resource usage accounting now has been implemented with cgroups.
+Please see the documentation for more details: http://nordugrid.pages.coderefinery.org/doc/admins/details/jobaccounting.html
 
 
 The following Bugzilla tickets have been resolved
