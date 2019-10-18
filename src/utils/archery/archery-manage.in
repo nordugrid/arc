@@ -1228,7 +1228,7 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
 #
 def get_parser():
     """Command line arguments parser"""
-    parser = argparse.ArgumentParser(description='NorduGrid ARCHERY management tool')
+    parser = argparse.ArgumentParser(description='The archery-manage tool used to simplify common operations with ARCHERY, including registry initial bootstrap, integration with topology databases and keeping dynamic information up to date.')
     parser.add_argument('-d', '--debug', action='store', default='INFO',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
     parser.add_argument('-s', '--source', action='store', required=True,
