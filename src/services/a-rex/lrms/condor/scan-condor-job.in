@@ -34,6 +34,12 @@ fi
 ########################## LRMS specific functions ##########################
 #############################################################################
 
+control_file () {
+    job_id=`echo "$1" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
+    path="jobs/${job_id}/$2"
+    echo "$path"
+}
+
 #
 # Should print the id's of all jobs in the LRMS, one per line. If left
 # unimplemented then lrms_job_finished must be implemented. If it's
@@ -244,7 +250,7 @@ job_write_diag() {
 #   * ReqTotalMemory
 read_grami() {
 
-    gramifile="job.$gridid.grami"
+    gramifile=$(control_file "$gridid" "grami")
 
     [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
 
@@ -329,7 +335,7 @@ job_canwait() {
     [ -n "$gridid" ] && [ -n "$maxwait" ] \
     || { log "job_canwait requires the following to be set: gridid, maxwait"; return 1; }
 
-    countfile=job.$gridid.lrms_job
+    countfile=$(control_file "$gridid" "lrms_job")
     if [ ! -f "$countfile" ]; then
         echo "1" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
     else
@@ -416,11 +422,11 @@ job_write_donefile() {
 
     log "${msg:-$LRMS job $lrmsid finished normally}"
 
-    donefile=job.$gridid.lrms_done
+    donefile=$(control_file "$gridid" "lrms_done")
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
-    "${pkglibexecdir}/gm-kick" -j "$gridid" "job.$gridid.local"
+    "${pkglibexecdir}/gm-kick" -j "$gridid" "$PWD"
 }
 
 #
@@ -440,7 +446,7 @@ process_job() {
 
     log "[$(date +%Y-%m-%d\ %T)] $LRMS job $lrmsid has exited"
  
-    localfile=job.$gridid.local
+    localfile=$(control_file "$gridid" "local")
     sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
     [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
  
@@ -508,17 +514,18 @@ scan_main() {
         #   * grid ID, only the digits
         #   * local ID, as in LRMS
         #   * uid of owner of the job.*.local file
+        localfile=$(control_file "$gridid" "local")
         listscript='use English;
                     exit 1 unless opendir(DIR,"processing");
                     while (my $fname = readdir DIR) {
                         my ($gridid, $lrmsid, $status);
-                        ($gridid) = ($fname =~ m/^job\.(\w+)\.status$/);
+                        ($gridid) = ($fname =~ m/^(\w+)\.status$/);
                         next unless defined $gridid;
                         next unless open(STATUS,"< processing/$fname");
                         $status = <STATUS>;
                         close STATUS;
                         next unless $status and $status =~ m/^INLRMS|CANCELING$/;
-                        next unless open(LOCAL,"< job.$gridid.local");
+                        next unless open(LOCAL,"< $localfile");
                         my @stat = stat(LOCAL);
                         { local $/=undef; ($lrmsid) = (<LOCAL> =~ m/^localid=(\d+)/m) };
                         close LOCAL;
@@ -566,10 +573,10 @@ scan_main() {
 
             log () { echo "$progname: $*" 1>&2; }
 
-            donefile=job.$gridid.lrms_done
+            donefile=$(control_file "$gridid" "lrms_done")
             [ -f "$donefile" ] && continue
 
-            errorsfile=job.$gridid.errors
+            errorsfile=$(control_file "$gridid" "errors")
             [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; continue; }
 
             # run in separate process to make sure shell vars of one job
@@ -682,7 +689,7 @@ find_in_file() { file=$1; regex=$2;
 condor_read_log() {
 
     # Find the Condor log.
-    gramifile=job.$gridid.grami
+    gramifile=$(control_file "$gridid" "grami")
     [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
     condor_log=$(sed -n 's/^condor_log=//p' "$gramifile" | tail -n 1)
     [ -n "$condor_log" ] || { log "condor_log not set in grami file: $PWD/$gramifile"; return 1; }
