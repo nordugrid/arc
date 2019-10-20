@@ -143,7 +143,7 @@ for control_dir in "$@" ; do
         errors_file=$(control_path "${control_dir}" "${job}" "errors")
         save_commentfile "$uid" "${joboption_directory}.comment" "${errors_file}"
         echo "$exitcode $fork_comment" > "${lrms_file}"
-        "$GMKICK" -j "${job}" "${local_file}"
+        "$GMKICK" -j "${job}" "${control_dir}"
 
     done
 
