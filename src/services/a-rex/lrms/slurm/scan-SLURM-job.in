@@ -89,10 +89,14 @@ fi
 # List of SLURM jobids for grid-jobs with state INLRMS
 declare -a localids
 # Array with basenames of grid-job files in ctrl_dir, indexed by localid
-# example /some/path/job.XXXXX /some/other/parh/job.YYYYY
+# example /some/path/XX/XX/X /some/other/path/YY/YY/Y
 declare -a basenames
 # Array with states of the jobs in SLURM, indexed by localid
 declare -a jobstates
+# Array with grid id values, indexed by localid
+declare -a gridids
+# Array with control directories, indexed by localid
+declare -a ctrdirs
 # Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
 declare -a kicklist
 # Array with jobid blocks 
@@ -101,17 +105,20 @@ declare -a lidblocks
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
 for ctr_dir in "$@"; do
-for basename in $(find "$ctr_dir/processing" -name 'job.*.status' -print0 \
-    | xargs -0 egrep -l "INLRMS|CANCELING" \
-    | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1/')
+  for id in $(find "$ctr_dir/processing" -name '*.status' -print0 \
+      | xargs -0 egrep -l "INLRMS|CANCELING" \
+      | sed 's/processing\/\([^\.]*\)\.status$/\1/')
   do
-  localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
+    basename=$(control_path "${ctr_dir}" "${id}" "")
+    localid=$(grep ^localid= "${basename}/local" | cut -d= -f2)
 
-  verify_jobid "$localid" || continue
+    verify_jobid "$localid" || continue
 
-  localids[${#localids[@]}]="$localid"
-  basenames[$localid]="$basename"
-done
+    localids[${#localids[@]}]="$localid"
+    basenames[$localid]="$basename"
+    gridids[$localid]="$id"
+    ctrdirs[$localid]="$ctr_dir"
+  done
 done
 
 # No need to continue further if no jobs have status INLRMS
@@ -162,7 +169,7 @@ handle_commentfile () {
     fi
     uid=$(get_owner_uid "$jobfile")
     [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
-    save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}.errors"
+    save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}/errors"
 }
 
 # Call scontrol and find the exitcode of a job. Write this, together with a
@@ -193,7 +200,7 @@ function handle_exitcode {
 	exitcode=0
     fi
 
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+    echo "$exitcode $reason" > "${basenames[$localid]}/lrms_done"
     kicklist=(${kicklist[@]} $localid)
 }
 
@@ -230,7 +237,7 @@ function handle_exitcode_cancelled {
       exitcode=15
       reason="Job was cancelled by SLURM"
     fi
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+    echo "$exitcode $reason" > "${basenames[$localid]}/lrms_done"
     kicklist=(${kicklist[@]} $localid)
 }
 
@@ -305,7 +312,7 @@ for localid in ${localids[@]}; do
 #    state=${jobstates[$localid]}
 #     case $state in
     # Initialize jobfile variable since it's used below
-    jobfile="${basenames[$localid]}.local"
+    jobfile="${basenames[$localid]}/local"
     case "${jobstates[$localid]}" in
  	"")
             # Job is missing (no state) from slurm but INLRMS.
@@ -352,8 +359,8 @@ for localid in ${localids[@]}; do
 		jobstatus="$exitcode Job missing from SLURM"
 	    fi
 
-	    save_commentfile "$uid" "$commentfile" "${basenames[$localid]}.errors"
-	    echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
+	    save_commentfile "$uid" "$commentfile" "${basenames[$localid]}/errors"
+	    echo  "$jobstatus" > "${basenames[$localid]}/lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 
  	    ;;
@@ -364,34 +371,34 @@ for localid in ${localids[@]}; do
   	CANCELLED)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
+	    echo "-1 Job was cancelled" > "${basenames[$localid]}/lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}/diag"
 	    ;;
   	COMPLETED)
             done=$(($done + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "0" ""
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}/diag"
   	    ;;
   	FAILED)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job failed"
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}/diag"
   	    ;;
   	TIMEOUT)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode $localid "-1" "Job timeout"
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}/diag"
   	    ;;
   	NODE_FAIL)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_exitcode_cancelled $localid "-1" "Node fail"
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_diag_file "$localid" "${basenames[$localid]}/diag"
   	    ;;
     esac
 done
@@ -405,8 +412,9 @@ fi
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
     for localid in "${kicklist[@]}";do
-        gridid=`echo "${basenames[$localid]}" | sed 's/.*\.\([^\.]*\)$/\1/'`
-        "${pkglibexecdir}/gm-kick" -j "${gridid}" "${basenames[$localid]}.local"
+        gridid=${gridids[$localid]}
+        ctrdir=${ctrdirs[$localid]}
+        "${pkglibexecdir}/gm-kick" -j "${gridid}" "${ctrdir}"
     done
 fi
 
