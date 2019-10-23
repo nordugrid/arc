@@ -14,6 +14,7 @@ PACKAGE_TARNAME="@PACKAGE_TARNAME@"
 arc_rundir="@localstatedir@/run/arc"
 arc_conf="@sysconfdir@/arc.conf"
 arc_docdir="@docdir@"
+arc_version="@VERSION"
 
 cat <<END
 ARC_LOCATION = '@prefix@'
@@ -23,5 +24,6 @@ ARC_LIB_DIR = '@prefix@/@pkglibsubdir@'
 ARC_RUN_DIR = '${arc_rundir}'
 ARC_DOC_DIR = '${arc_docdir}'
 ARC_CONF = '${arc_conf}'
+ARC_VERSION = '${arc_version}'
 END
 

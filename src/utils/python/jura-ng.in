@@ -1,0 +1,125 @@
+#!@PYTHON@
+
+import argparse
+import os
+import sys
+import logging
+import subprocess
+import datetime
+
+# ARC-prefix path in PYTHONPATH
+arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
+if os.path.isdir(arc_prefix_pythonpath):
+    if arc_prefix_pythonpath not in sys.path:
+        sys.path.insert(1, arc_prefix_pythonpath)
+
+from arc.utils import config
+from arc.control import AccountingPublishing, JuraArchive
+from arc.paths import ARC_LIBEXEC_DIR
+
+# Initialize logging
+logger = logging.getLogger('ARC')
+logger.setLevel(logging.INFO)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
+
+
+def legacy_jura_run(conflocation, config):
+    """Run legacy jura binary"""
+    # ensure jura will have proper x509 setup
+    x509_cert_dir = config.get_value('x509_cert_dir', 'common')
+    x509_host_cert = config.get_value('x509_host_cert', 'common')
+    x509_host_key = config.get_value('x509_host_key', 'common')
+    if x509_cert_dir is not None:
+        os.environ['X509_CERT_DIR'] = x509_cert_dir
+    if x509_host_cert is not None:
+        os.environ['X509_USER_CERT'] = x509_host_cert
+    if x509_host_key is not None:
+        os.environ['X509_USER_KEY'] = x509_host_key
+    # pass the debug level
+    loglevel = logging.getLogger('ARC').getEffectiveLevel()
+    loglevel = {50: 'FATAL', 40: 'ERROR', 30: 'WARNING', 20: 'INFO', 10: 'DEBUG'}[loglevel]
+    # command to run
+    cmd = ARC_LIBEXEC_DIR + '/jura -c {0} -d {1} '.format(conflocation, loglevel)
+    # invoke old jura
+    subprocess.call(cmd.split(' '))
+
+
+def legacy_archive_management(config):
+    """Run legacy jura-archive-manager code"""
+    # Init archive management
+    archive_dir = config.get_value('archivedir', 'arex/jura/archiving')
+    db_dir = config.get_value('dbdir', 'arex/jura/archiving')
+    if db_dir is None:
+        db_dir = archive_dir
+    am = JuraArchive.JuraArchive(archive_dir, db_dir)
+
+    # Process records in Jura archive
+    batch_size = config.get_value('batchsize', 'arex/jura/archiving')
+    if batch_size is None:
+        batch_size = 100
+    am.process_records(batch_size)
+
+    # Do cleanup
+    records_ttl = config.get_value('archivettl', 'arex/jura/archiving')
+    if records_ttl is not None:
+        enddate = datetime.date.today() - datetime.timedelta(days=int(records_ttl))
+        am.remove_records(enddate)
+
+    db_ttl = config.get_value('dbttl', 'arex/jura/archiving')
+    if db_ttl is not None:
+        enddate = datetime.date.today() - datetime.timedelta(days=int(db_ttl))
+        am.remove_db_records(enddate)
+
+
+# Define root parser
+def get_parser():
+    parser = argparse.ArgumentParser(description='NorduGrid ARC Jura Next Generation Publisher')
+    parser.add_argument('-c', '--config', action='store',
+                        help='Config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser.add_argument('-d', '--debug', action='store',
+                        help='Verbosity level (default is %(default)s)', default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    return parser
+
+if __name__ == '__main__':
+    # Command line arguments parsing
+    args_parser = get_parser()
+    cmd_args = args_parser.parse_args()
+    logger.setLevel(getattr(logging, cmd_args.debug, 30))
+    # Config parsing (jura designed to be run by A-REX => runtime config provided)
+    config.load_run_config(cmd_args.config)
+
+    # Set loglevel in accordance to config
+    loglevel = config.get_value('loglevel', 'arex/jura')
+    if loglevel is not None:
+        loglevel = int(loglevel)
+        if loglevel > 5:
+            loglevel = 5
+        loglevel = [logging.CRITICAL,
+                    logging.ERROR,
+                    logging.WARNING,
+                    logging.INFO,
+                    logging.DEBUG,
+                    logging.DEBUG][loglevel]
+        logger.setLevel(loglevel)
+
+    # Run normal regular publishing
+    rp = AccountingPublishing.RecordsPublisher(config)
+    rp.publish_regular()
+
+    # Check whether to run legacy jura
+    legacy = False
+    for b in config.get_subblocks(['arex/jura/sgas', 'arex/jura/apel']):
+        legacy_block = config.get_value('legacy_fallback', b, bool_yesno=True)
+        if legacy_block:
+            logger.info('The [%s] block is marked with legacy_fallback=yes and will be processed by legacy jura.', b)
+            legacy = True
+
+    if legacy:
+        logger.info('Running the legacy jura publisher')
+        legacy_jura_run(cmd_args.config, config)
+        logger.info('Running the legacy jura archive manager code')
+        legacy_archive_management(config)

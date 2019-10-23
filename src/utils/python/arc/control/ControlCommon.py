@@ -1,5 +1,7 @@
 import os
 import logging
+import datetime
+import argparse
 from arc.utils import config
 from arc.paths import *
 
@@ -75,6 +77,34 @@ def get_parsed_arcconf(conf_f):
         logger.error('Failed to open ARC configuration file %s', conf_f)
         arcconfig = None
     return arcconfig
+
+
+def valid_datetime_type(arg_datetime_str):
+    """Argparse datetime-as-an-argument helper"""
+    try:
+        return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d")
+    except ValueError:
+        try:
+            return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M")
+        except ValueError:
+            try:
+                return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                msg = "Timestamp format ({0}) is not valid! " \
+                      "Expected format: YYYY-MM-DD [HH:mm[:ss]]".format(arg_datetime_str)
+                raise argparse.ArgumentTypeError(msg)
+
+
+def get_human_readable_size(sizeinbytes):
+    """generate human-readable size representation like du command"""
+    sizeinbytes = abs(sizeinbytes)
+    output_fmt = '{0}'
+    for unit in ['bytes', 'K', 'M', 'G', 'T', 'P']:
+        if sizeinbytes < 1024.0:
+            return output_fmt.format(sizeinbytes, unit)
+        output_fmt = '{0:.1f}{1}'
+        sizeinbytes /= 1024.0
+    return '{0:.1f}E'.format(sizeinbytes)
 
 
 class ComponentControl(object):

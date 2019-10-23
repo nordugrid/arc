@@ -8,4 +8,6 @@ if [ "x$1" = "x0" ]; then
     # docker image name can be redefined by user as RTE parameter
     [ -n "$2" ] && DOCKER_IMAGE="$2"
     export DOCKER_IMAGE
+    # in case Docker image is used on WN add this to accounting information
+    export ACCOUNTING_WN_INSTANCE="${DOCKER_IMAGE}"
 fi

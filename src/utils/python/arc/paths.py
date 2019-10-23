@@ -18,6 +18,7 @@ except ImportError:
     ARC_RUN_DIR = '/var/run/arc'
     ARC_DOC_DIR = ARC_LOCATION + '/share/doc/nordugrid-arc/'
     ARC_CONF = '/etc/arc.conf'
+    ARC_VERSION = 'devel'
 
 # define ARC_LOCATION to be use by tools like gm-jobs
 os.environ['ARC_LOCATION'] = ARC_LOCATION

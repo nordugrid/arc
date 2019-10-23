@@ -309,10 +309,6 @@ bool GridManager::thread() {
       if (joblog->ReporterEnabled()){
         joblog->RunReporter(config_);
       }
-      // run acconting archive manager if enabled
-      if (joblog->ArchiveManagerEnabled()){
-        joblog->RunArchiveManager(config_);
-      }
     }
     JobsMetrics* metrics = config_.GetJobsMetrics();
     if(metrics) metrics->Sync();

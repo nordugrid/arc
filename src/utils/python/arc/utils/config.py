@@ -371,7 +371,7 @@ def export_json(blocks=None, subsections=False):
     :return: JSON-dumped string
     """
     if blocks is not None:
-        blocks = [ _canonicalize_blockid(b) for b in blocks ]
+        blocks = [_canonicalize_blockid(b) for b in blocks]
         if subsections:
             blocks = get_subblocks(blocks)
     return json.dumps(_config_dict(blocks))
@@ -483,9 +483,11 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
     return subblocks
 
 
-def get_config_dict():
+def get_config_dict(blocks=None):
     """Returns the entire dictionary that holds parsed configuration"""
-    return _config_dict()
+    if blocks is not None:
+        blocks = [_canonicalize_blockid(b) for b in blocks]
+    return _config_dict(blocks)
 
 
 def get_config_blocks():

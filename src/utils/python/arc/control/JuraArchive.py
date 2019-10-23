@@ -8,7 +8,7 @@ import isodate  # extra dependency on python-isodate package
 import xml.etree.ElementTree as ElementTree
 import logging
 import errno
-from .AccountingDBSQLite import AccountingDBSQLite
+from .JuraArchiveSQLite import JuraArchiveSQLite
 
 
 class JuraArchive(object):
@@ -31,7 +31,7 @@ class JuraArchive(object):
             os.makedirs(self.db_dir)
         self.logger = logging.getLogger('ARC.JuraArchive.Manager')
         self.db_file = self.db_dir + 'accounting.db'
-        self.db = None  # type: AccountingDBSQLite
+        self.db = None  # type: JuraArchiveSQLite
 
     def db_exists(self):
         """Check if accounting database was initialized"""
@@ -40,7 +40,7 @@ class JuraArchive(object):
     def db_connection_init(self):
         """Initialize database connection"""
         if self.db is None:
-            self.db = AccountingDBSQLite(self.db_file)
+            self.db = JuraArchiveSQLite(self.db_file)
 
     def __del__(self):
         if self.db is not None:
@@ -242,7 +242,7 @@ class JuraArchive(object):
         self.records2db(records)
 
     def _filterwrap(func):
-        """Decorator to parse and apply database filters and perform infornation query"""
+        """Decorator to parse and apply database filters and perform information query"""
         def wrap(self, filters=None):
             self.db_connection_init()
             if filters:

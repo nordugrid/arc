@@ -130,6 +130,11 @@ RTE_stage1
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
 #####################################################
+# Accounting (WN OS Detection)
+#####################################################
+detect_wn_systemsoftware
+
+#####################################################
 #  Go to working dir and start job
 #####################################################
 # Set the nice value (20 to -20) based on priority (1 to 100)
