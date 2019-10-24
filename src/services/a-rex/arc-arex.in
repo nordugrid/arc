@@ -79,7 +79,8 @@ fi
 # PID and lock file
 PID_FILE=`${ARC_LOCATION}/@pkgdatasubdir@/arc-arex-start --getpidfile`
 if [ $? -ne 0 ]; then
-    log_failure_msg "Can not determine PID file name"
+    # When --getpidfile fails it returns the error on stdout
+    log_failure_msg "$PID_FILE"
     exit 1
 fi
 
