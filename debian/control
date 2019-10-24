@@ -7,6 +7,8 @@ Build-Depends:
  debhelper (>= 9),
  dh-autoreconf,
  autopoint,
+ dh-python | python-support,
+ dh-systemd | debhelper (>= 9.20160709),
  libxml2-dev (>= 2.4.0),
  libssl-dev,
  libglibmm-2.4-dev,
@@ -21,7 +23,6 @@ Build-Depends:
  libglobus-gssapi-gsi-dev,
  libglobus-ftp-client-dev,
  libglobus-ftp-control-dev,
- dh-python | python-support,
  openssl,
  swig,
  libnss3-dev,
@@ -31,6 +32,7 @@ Build-Depends:
  libdbi-perl,
  libsqlite3-dev (>= 3.6),
  libldns-dev,
+ libsystemd-dev [linux-any],
  libinline-python-perl | dpkg (<< 1.18),
  python-dev | libinline-python-perl (>= 0.56-2~),
  python-twisted | libinline-python-perl (>= 0.56-2~),
@@ -39,7 +41,7 @@ Build-Depends:
  python3-twisted | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18),
  python3-openssl | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18)
 XS-Python-Version: current
-Standards-Version: 4.0.0
+Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
 
 Package: libarccommon3

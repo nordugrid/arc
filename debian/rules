@@ -22,8 +22,14 @@ else
 PYVER = 2
 endif
 
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+SYSTEMD = yes
+else
+SYSTEMD = no
+endif
+
 %:
-	dh $@ --with autoreconf --with python$(PYVER) $(N)
+	dh $@ --with autoreconf --with python$(PYVER) --with systemd $(N)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -37,6 +43,9 @@ override_dh_auto_configure:
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
 		    --enable-internal \
+		    --enable-systemd=$(SYSTEMD) \
+		    --with-systemd-units-location=/lib/systemd/system \
+		    --with-sysv-scripts-location=/etc/init.d \
 		    --with-python=python$(PYVER)
 
 override_dh_auto_clean:
@@ -49,6 +58,15 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
 	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
 	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.init
+
+	rm -f debian/nordugrid-arc-arex.arc-arex.service
+	rm -f debian/nordugrid-arc-hed.arched.service
+	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
+	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.service
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
+	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
+	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.service
 
 	if [ -f po/POTFILES.in.save ] ; then \
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
@@ -86,6 +104,23 @@ override_dh_auto_install:
 	mv debian/tmp/etc/init.d/arc-acix-index \
 	   debian/nordugrid-arc-acix-index.arc-acix-index.init
 
+	mv debian/tmp/lib/systemd/system/arc-arex.service \
+	   debian/nordugrid-arc-arex.arc-arex.service
+	mv debian/tmp/lib/systemd/system/arched.service \
+	   debian/nordugrid-arc-hed.arched.service
+	mv debian/tmp/lib/systemd/system/arc-datadelivery-service.service \
+	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
+	mv debian/tmp/lib/systemd/system/arc-gridftpd.service \
+	   debian/nordugrid-arc-gridftpd.arc-gridftpd.service
+	mv debian/tmp/lib/systemd/system/arc-infosys-ldap.service \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
+	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
+	mv debian/tmp/lib/systemd/system/arc-acix-scanner.service \
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
+	mv debian/tmp/lib/systemd/system/arc-acix-index.service \
+	   debian/nordugrid-arc-acix-index.arc-acix-index.service
+
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
 override_dh_install:
@@ -99,6 +134,26 @@ override_dh_installinit:
 	dh_installinit -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_installinit -p nordugrid-arc-acix-scanner --name arc-acix-scanner
 	dh_installinit -p nordugrid-arc-acix-index --name arc-acix-index
+
+override_dh_systemd_enable:
+	dh_systemd_enable -p nordugrid-arc-hed --name arched
+	dh_systemd_enable -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_enable -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_systemd_enable -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+	dh_systemd_enable -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_systemd_enable -p nordugrid-arc-acix-index --name arc-acix-index
+
+override_dh_systemd_start:
+	dh_systemd_start -p nordugrid-arc-hed --name arched
+	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+	dh_systemd_start -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_systemd_start -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
