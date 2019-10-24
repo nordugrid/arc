@@ -444,7 +444,7 @@ Depends:
  ${misc:Depends}
 Recommends:
  cron
-Description: The nordugridmap tool
+Description: ARC's nordugridmap tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
