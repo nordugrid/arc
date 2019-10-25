@@ -5,7 +5,7 @@ debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/gm-*
 debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/jura
-debian/tmp/usr/lib/arc/jura-archive-manager
+debian/tmp/usr/lib/arc/jura-ng
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
 debian/tmp/usr/lib/arc/ssmsend
@@ -61,6 +61,8 @@ debian/tmp/usr/share/arc/configure-*-env.sh
 debian/tmp/usr/share/arc/submit_common.sh
 debian/tmp/usr/share/arc/scan_common.sh
 debian/tmp/usr/share/arc/lrms_common.sh
+
+debian/tmp/usr/share/arc/sql-schema/arex_accounting_db_schema_v1.sql
 
 debian/tmp/usr/share/man/man1/arc-config-check.1
 debian/tmp/usr/share/man/man1/arcctl.1

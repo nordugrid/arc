@@ -38,5 +38,7 @@ if [ "x$1" = "x0" ]; then
 
     if [ "x$IMAGE" != "xNULL" ] ; then
        joboption_args="/usr/bin/singularity exec $SINGULARITY_OPTIONS --home \${RUNTIME_JOB_DIR} $IMAGE $joboption_args"
+       # account singularity image usage
+       export ACCOUNTING_WN_INSTANCE="${IMAGE}"
     fi
 fi

@@ -161,7 +161,12 @@ fi
 if [ -z "\$JOB_ACCOUNTING" ]; then
     echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
 fi
+
 EOSCR
+if [ -n "$ACCOUNTING_WN_INSTANCE" ]; then
+  echo "# Define accounting WN instance tag" >> $LRMS_JOB_SCRIPT
+  echo "ACCOUNTING_WN_INSTANCE='$ACCOUNTING_WN_INSTANCE'" >> $LRMS_JOB_SCRIPT
+fi
 }
 
 accounting_end () {
@@ -211,9 +216,33 @@ if [ "x$JOB_ACCOUNTING" = "xcgroup" ]; then
     arc-job-cgroup -c -d
 fi
 
+# Record CPU benchmarking values for WN user by the job
+[ -n "${ACCOUNTING_BENCHMARK}" ] && echo "benchmark=${ACCOUNTING_BENCHMARK}" >> "$RUNTIME_JOB_DIAG"
+# Record WN instance tag if defined
+[ -n "${ACCOUNTING_WN_INSTANCE}" ] && echo "wninstance=${ACCOUNTING_WN_INSTANCE}" >> "$RUNTIME_JOB_DIAG"
+
 # Add exit code to the accounting information and exit the job script
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
 exit $RESULT
+EOSCR
+}
+
+detect_wn_systemsoftware () {
+cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+# Detecting WN operating system for accounting purposes
+if [ -f "/etc/os-release" ]; then
+  SYSTEM_SOFTWARE="$( eval $( cat /etc/os-release ); echo "${NAME} ${VERSION}" )"
+elif [ -f "/etc/system-release" ]; then
+  SYSTEM_SOFTWARE="$( cat /etc/system-release )"
+elif command -v lsb_release >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE=$(lsb_release -ds)
+elif command -v hostnamectl >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE="$( hostnamectl 2>/dev/null | sed -n '/Operating System/s/^\s*Operating System:\s*//p' )"
+elif command -v uname >/dev/null 2>&1; then
+  SYSTEM_SOFTWARE="Linux $( uname -r)"
+fi
+[ -n "$SYSTEM_SOFTWARE" ] && echo "systemsoftware=${SYSTEM_SOFTWARE}" >> "$RUNTIME_JOB_DIAG"
+
 EOSCR
 }
 
@@ -540,7 +569,11 @@ clean_local_scratch_dir_output () {
   if [ "x$1" = "xmoveup" ]; then
 	  move_files_up=1
   fi
+  # Calculate the scratch size at the end of execution
+  echo '# Measuring used scratch space' >> $LRMS_JOB_SCRIPT
+  echo 'echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"' >> $LRMS_JOB_SCRIPT
   # There is no sense to keep trash till GM runs uploader
+  echo '# Cleaning up extra files in the local scratch' >> $LRMS_JOB_SCRIPT
   echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
   # Delete all files except listed in job.#.output
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
