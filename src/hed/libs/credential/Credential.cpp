@@ -140,17 +140,15 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
    public:
     AutoBIO(BIO* bio):bio_(bio) { };
     ~AutoBIO(void) { if(bio_) { BIO_set_close(bio_,BIO_CLOSE); BIO_free_all(bio_); } };
-    operator bool(void) { return (bio_ != NULL); };
-    operator BIO*(void) { return bio_; };
+    operator bool(void) const { return (bio_ != NULL); };
+    operator BIO*(void) const { return bio_; };
     BIO& operator*(void) const { return *bio_; };
     BIO* operator->(void) const { return bio_; };
   };
 
   //Get the life time of the credential
   static void getLifetime(STACK_OF(X509)* certchain, X509* cert, Time& start, Period &lifetime) {
-    X509* tmp_cert = NULL;
     Time start_time(-1), end_time(-1);
-    int n;
     ASN1_UTCTIME* atime = NULL;
 
     if(cert == NULL) {
@@ -159,8 +157,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       return;
     }
 
-    if(certchain) for (n = 0; n < sk_X509_num(certchain); n++) {
-      tmp_cert = sk_X509_value(certchain, n);
+    if(certchain) for (int n = 0; n < sk_X509_num(certchain); n++) {
+      X509* tmp_cert = sk_X509_value(certchain, n);
 
       atime = X509_getm_notAfter(tmp_cert);
       Time e = asn1_to_utctime(atime);
@@ -217,9 +215,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       unsigned char* bio_str;
       int len;
       len = BIO_get_mem_data(bio, (unsigned char *) &bio_str);
-      char firstbyte;
       if(len>0) {
-        firstbyte = bio_str[0];
+        char firstbyte = bio_str[0];
         if(firstbyte==48)  {
           //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
           //if can not parse it, then it is DER format
@@ -253,9 +250,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     unsigned char* bio_str;
     int len;
     len = BIO_get_mem_data(bio, (unsigned char *) &bio_str);
-    char firstbyte;
     if(len>0) {
-      firstbyte = bio_str[0];
+      char firstbyte = bio_str[0];
       if(firstbyte==48)  {
         //DER-encoded, PKCS12 or DER? firstly parse it as PKCS12 ASN.1,
         //if can not parse it, then it is DER format
@@ -295,14 +291,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   std::string Credential::GetIdentityName(void) const {
     // TODO: it is more correct to go through chain till first non-proxy cert
     X509_NAME *subject = NULL;
-    X509_NAME_ENTRY *ne = NULL;
     if(!cert_) return "";
     subject = X509_NAME_dup(X509_get_subject_name(cert_));
 
     ASN1_STRING* entry;
     std::string entry_str;
     for(;;) {
-      ne = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
+      X509_NAME_ENTRY *ne = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
       if (!OBJ_cmp(X509_NAME_ENTRY_get_object(ne),OBJ_nid2obj(NID_commonName))) {
         entry = X509_NAME_ENTRY_get_data(ne);
         entry_str.assign((const char*)(entry->data), (std::size_t)(entry->length));
@@ -350,16 +345,14 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   std::string Credential::GetCAName(void) const {
-    X509 *cacert = NULL;
-    X509_NAME *caname = NULL;
     if(!cert_chain_) return "";
     int num = sk_X509_num(cert_chain_);
     std::string str;
     if(num > 0) {
       // This works even if last cert on chain is CA
       // itself because CA is self-signed.
-      cacert = sk_X509_value(cert_chain_, num-1);
-      caname = X509_get_issuer_name(cacert);
+      X509 *cacert = sk_X509_value(cert_chain_, num-1);
+      X509_NAME *caname = X509_get_issuer_name(cacert);
       if(caname!=NULL) {
         char* buf = X509_NAME_oneline(caname,NULL,0);
         if(buf) {
@@ -587,9 +580,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
             throw CredentialError("Can not read PKCS12 credential from BIO");
           }
           if (pkcs12_certs && sk_X509_num(pkcs12_certs)){
-            X509* tmp;
             for (n = 0; n < sk_X509_num(pkcs12_certs); n++) {
-              tmp = X509_dup(sk_X509_value(pkcs12_certs, n));
+              X509* tmp = X509_dup(sk_X509_value(pkcs12_certs, n));
               sk_X509_insert(*certchain, tmp, n);
             }
           }
@@ -703,9 +695,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     OBJ_create(oid.c_str(), sn.c_str(), sn.c_str());
   }
 
-  void Credential::InitVerification(void) {
-  }
-
   bool Credential::Verify(void) {
     verification_proxy_policy.clear();
     if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, verification_proxy_policy)) {
@@ -724,8 +713,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     OpenSSLInit();
 
-    InitVerification();
-
     extensions_ = sk_X509_EXTENSION_new_null();
     if(!extensions_) {
       CredentialLogger.msg(ERROR, "Failed to initialize extensions member for Credential");
@@ -740,11 +727,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
-    extensions_(NULL) {
+    extensions_(NULL), verification_valid(false) {
 
     OpenSSLInit();
-
-    InitVerification();
 
     extensions_ = sk_X509_EXTENSION_new_null();
     if(!extensions_) {
@@ -760,11 +745,9 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         std::string policylang, std::string policy, int pathlength) :
         cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
-        signing_alg_(NULL), keybits_(keybits), extensions_(NULL) {
+        signing_alg_(NULL), keybits_(keybits), extensions_(NULL), verification_valid(false) {
 
     OpenSSLInit();
-
-    InitVerification();
 
     extensions_ = sk_X509_EXTENSION_new_null();
     if(!extensions_) {
@@ -996,8 +979,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     OpenSSLInit();
 
-    InitVerification();
-
     extensions_ = sk_X509_EXTENSION_new_null();
     if(!extensions_) {
       CredentialLogger.msg(ERROR, "Failed to initialize extensions member for Credential");
@@ -1060,9 +1041,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     getLifetime(cert_chain_, cert_, start_, lifetime_);
 
     if(cert_) {
-      X509_EXTENSION* ext = NULL;
       for (int i=0; i<X509_get_ext_count(cert_); i++) {
-        ext = X509_EXTENSION_dup(X509_get_ext(cert_, i));
+        X509_EXTENSION* ext = X509_EXTENSION_dup(X509_get_ext(cert_, i));
         if (ext == NULL) {
           CredentialLogger.msg(ERROR,"Failed to duplicate extension");
           LogError(); break; //return;
@@ -1097,14 +1077,10 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
 
   X509_EXTENSION* Credential::CreateExtension(const std::string& name, const std::string& data, bool crit) {
-    X509_EXTENSION*   ext = NULL;
-    ASN1_OBJECT*      ext_obj = NULL;
-    ASN1_OCTET_STRING*  ext_oct = NULL;
-
     bool numberic = true;
-    size_t pos1 = 0, pos2;
+    size_t pos1 = 0;
     do {
-      pos2 = name.find(".", pos1);
+      size_t pos2 = name.find(".", pos1);
       if(pos2 != std::string::npos) { //OID: 1.2.3.4.5
         std::string str = name.substr(pos1, pos2 - pos1);
         long int number = strtol(str.c_str(), NULL, 0);
@@ -1119,6 +1095,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       pos1 = pos2 + 1;
     } while(true);
 
+    ASN1_OBJECT* ext_obj = NULL;
     if(!numberic && !(ext_obj = OBJ_nid2obj(OBJ_txt2nid(name.c_str())))) {
       //string format, the OID should have been registered before calling OBJ_nid2obj
       CredentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
@@ -1127,16 +1104,24 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     else if(numberic && !(ext_obj = OBJ_txt2obj(name.c_str(), 1))) {
       //numerical format, the OID will be registered here if it has not been registered before
       CredentialLogger.msg(ERROR, "Can not convert string into ASN1_OBJECT");
-      LogError(); return NULL;
+      LogError();
+      return NULL;
     }
 
-    ext_oct = ASN1_OCTET_STRING_new();
+    ASN1_OCTET_STRING* ext_oct = ASN1_OCTET_STRING_new();
+    if(!ext_oct) {
+      CredentialLogger.msg(ERROR, "Can not create ASN1_OCTET_STRING");
+      LogError();
+      if(ext_obj) ASN1_OBJECT_free(ext_obj);
+      return NULL;
+    }
 
     //ASN1_OCTET_STRING_set(ext_oct, data.c_str(), data.size());
     ext_oct->data = (unsigned char*) malloc(data.size());
     memcpy(ext_oct->data, data.c_str(), data.size());
     ext_oct->length = data.size();
 
+    X509_EXTENSION* ext = NULL;
     if (!(ext = X509_EXTENSION_create_by_OBJ(NULL, ext_obj, crit, ext_oct))) {
       CredentialLogger.msg(ERROR, "Can not create extension for proxy certificate");
       LogError();
@@ -1627,14 +1612,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   bool Credential::OutputCertificateChain(std::string &content, bool if_der) {
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
-    X509 *cert;
     CredentialLogger.msg(DEBUG, "Certiticate chain number %d",sk_X509_num(cert_chain_));
 
     //Output the cert chain. After the verification the cert_chain_
     //will include the CA certificate. Having CA in proxy does not
     //harm. So we output it too.
     if(cert_chain_) for (int n = 0; n < sk_X509_num(cert_chain_) ; n++) {
-      cert = sk_X509_value(cert_chain_, n);
+      X509 *cert = sk_X509_value(cert_chain_, n);
       if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
       }
@@ -2301,8 +2285,6 @@ err:
        CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();
 
-    InitVerification();
-
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
 
@@ -2331,8 +2313,6 @@ err:
        proxyver_(0), pathlength_(0), extensions_(NULL),
        CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();
-
-    InitVerification();
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
@@ -2710,9 +2690,8 @@ error:
     if(extfile != NULL){ extfile_ = extfile; }
     if(!extsect.empty()){ extsect_ = extsect; }
     cert_ = X509_new(); 
-    X509_NAME *name = NULL;
     if(!dn.empty()) {
-      name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
+      X509_NAME *name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
       X509_set_subject_name(cert_, name);
       X509_NAME_free(name);
     }
@@ -2764,9 +2743,8 @@ error:
     X509_set_pubkey(eec_cert, req_pubkey);
     EVP_PKEY_free(req_pubkey);
 
-    X509_NAME *subject = NULL;
     if(!dn.empty()) {
-      subject = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
+      X509_NAME *subject = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
       X509_set_subject_name(eec_cert, subject);
       X509_NAME_free(subject);
     }
@@ -2845,10 +2823,9 @@ error:
     for(X509_EXTENSION* ext = X509_delete_ext(eec_cert, 0); ext; ext = X509_delete_ext(eec_cert, 0)) {
     	X509_EXTENSION_free(ext);
     }
-    X509_EXTENSION* ext = NULL;
    
     for (int i=0; i<sk_X509_EXTENSION_num(eec->extensions_); i++) {
-      ext = sk_X509_EXTENSION_value(eec->extensions_, i);
+      X509_EXTENSION* ext = sk_X509_EXTENSION_value(eec->extensions_, i);
       if (ext == NULL) {
         CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError();
       }
