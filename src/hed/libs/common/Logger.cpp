@@ -23,6 +23,8 @@ namespace Arc {
 
   static const Arc::LogLevel DefaultLogLevel = Arc::DEBUG;
   static Arc::LogFormat DefaultLogFormat = Arc::LongFormat;
+  static std::list<LogFile*> allfiles;
+  static Glib::Mutex allfilesmutex;
 
   static std::string list_to_domain(const std::list<std::string>& subdomains) {
     std::string domain;
@@ -271,6 +273,20 @@ namespace Arc {
       //logger.msg(Arc::ERROR,"Failed to open log file: %s",path);
       return;
     }
+    Glib::Mutex::Lock lock(allfilesmutex);
+    allfiles.push_back(this);
+  }
+
+  LogFile::~LogFile() {
+    Glib::Mutex::Lock lock(allfilesmutex);
+    allfiles.remove(this);
+  }
+
+  void LogFile::ReopenAll() {
+    Glib::Mutex::Lock lock(allfilesmutex);
+    for(std::list<LogFile*>::const_iterator f = allfiles.cbegin(); f != allfiles.cend(); ++f) {
+      (*f)->Reopen();
+    }
   }
 
   void LogFile::setMaxSize(int newsize) {
@@ -290,6 +306,14 @@ namespace Arc {
       if(!destination.is_open()) {
         destination.open(path.c_str(), std::fstream::out | std::fstream::app);
       }
+    }
+  }
+
+  void LogFile::Reopen() {
+    Glib::Mutex::Lock lock(mutex);
+    if(!reopen && destination.is_open()) {
+      destination.close();
+      destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
   }
 
