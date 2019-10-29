@@ -683,7 +683,7 @@ class UsageRecord(JobAccountingRecord):
         if not wlcgvo:
             return vomsxml
         # VOMS FQAN info
-        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t == 'mainfqan']
+        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t[0] == 'mainfqan']
         fqangroups = []
         fqan_xml = ''
         if vomsfqans:
