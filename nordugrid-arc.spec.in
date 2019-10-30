@@ -1487,8 +1487,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_gfal}
 %files plugins-gfal
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libdmcgfal.so
-%{_libdir}/%{pkgdir}/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/external/libdmcgfal.so
+%{_libdir}/%{pkgdir}/external/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.so
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.apd
 %endif
 
 %if %{with_s3}
