@@ -284,7 +284,7 @@ namespace Arc {
 
   void LogFile::ReopenAll() {
     Glib::Mutex::Lock lock(allfilesmutex);
-    for(std::list<LogFile*>::const_iterator f = allfiles.cbegin(); f != allfiles.cend(); ++f) {
+    for(std::list<LogFile*>::const_iterator f = allfiles.begin(); f != allfiles.end(); ++f) {
       (*f)->Reopen();
     }
   }
