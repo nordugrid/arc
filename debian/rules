@@ -24,13 +24,17 @@ endif
 
 ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
 WSD = --with systemd
+else
+WSD =
+endif
+
+ifeq ($(shell test -r /usr/include/systemd/sd-daemon.h && echo 1),1)
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 SYSTEMD = yes
 else
 SYSTEMD = no
 endif
 else
-WSD =
 SYSTEMD = no
 endif
 
