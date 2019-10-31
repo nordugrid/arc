@@ -549,8 +549,29 @@ Connector (ARC).
 ARC base plugins. This includes the Message Chain Components (MCCs)
 and Data Manager Components (DMCs).
 
-%package plugins-globus
-Summary:	ARC Globus plugins
+%package plugins-globus-compat
+Summary:    ARC Globus plugins (compat)
+Group:      System Environment/Libraries
+Obsoletes:  %{name}-plugins-globus < 6.4.0
+Requires:   %{name} = %{version}-%{release}
+Requires:   %{name}-plugins-globus-dmc = %{version}-%{release}
+Requires:   %{name}-plugins-lcas-lcmaps = %{version}-%{release}
+Requires:   %{name}-plugins-gridftpjob = %{version}-%{release}
+
+%description plugins-globus-compat
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC Globus plugins. This compat metapackage brings all Globus dependent
+plugins at once, including: Data Manager Components (DMCs), Client plugin
+and LCAS/LCMAPS tools.
+
+This package is meant to allow smooth transition and will be removed from
+the upcomming releases.
+
+%package plugins-globus-common
+Summary:	ARC Globus plugins common libraries
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 %if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
@@ -559,13 +580,58 @@ Requires:	globus-gssapi-gsi >= 12.2
 Requires:	globus-gssapi-gsi < 12.2
 %endif
 
-%description plugins-globus
+%description plugins-globus-common
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC Globus plugins. This includes the Globus dependent Data Manager
-Components (DMCs).
+ARC Globus plugins common libraries package includes the bundle of
+necessary Globus libraries needed for all other globus-dependent ARC 
+components.
+
+%package plugins-globus-dmc
+Summary:    ARC Globus dependent DMCs
+Group:      System Environment/Libraries
+Requires:   %{name} = %{version}-%{release}
+Requires:   globus-ftp-client
+Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+
+%description plugins-globus-dmc
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC Globus dependent DMCs. These Data Manager Components allow access
+to data through the gridftp protocol.
+
+%package plugins-lcas-lcmaps
+Summary:    ARC LCAS/LCMAPS plugins
+Group:      System Environment/Libraries
+Requires:   %{name} = %{version}-%{release}
+Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+
+%description plugins-lcas-lcmaps
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC LCAS/LCMAPS tools allow to configure ARC CE to use LCAS/LCMAPS services for
+authorization and mapping. 
+
+%package plugins-gridftpjob
+Summary:    ARC GRIDFTPJOB client plugin
+Group:      System Environment/Libraries
+Requires:   %{name} = %{version}-%{release}
+Requires:   globus-ftp-control
+Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+
+%description plugins-globus-dmc
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC Globus dependent DMCs. These Data Manager Components allow access
+to data through the gridftp protocol.
 
 %if %{with_xrootd}
 %package plugins-xrootd
@@ -958,9 +1024,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun -p /sbin/ldconfig
 
-%post plugins-globus -p /sbin/ldconfig
+%post plugins-globus-common -p /sbin/ldconfig
 
-%postun plugins-globus -p /sbin/ldconfig
+%postun plugins-globus-common -p /sbin/ldconfig
 
 %post hed
 %enable_service arched
@@ -1463,16 +1529,27 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libmcctcp.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
 
-%files plugins-globus
+%files plugins-globus-compat
+
+%files plugins-globus-common
+%defattr(-,root,root,-)
+%{_libdir}/libarcglobusutils.so.*
+
+%files plugins-globus-dmc
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/arc-dmcgridftp
-%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
-%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
-%{_libdir}/libarcglobusutils.so.*
+
+%files plugins-lcas-lcmaps
+%defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
+
+%files plugins-gridftpjob
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
 
 %if %{with_xrootd}
 %files plugins-xrootd
