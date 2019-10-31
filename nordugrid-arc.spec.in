@@ -625,7 +625,7 @@ Requires:   %{name} = %{version}-%{release}
 Requires:   globus-ftp-control
 Requires:   %{name}-plugins-globus-common = %{version}-%{release}
 
-%description plugins-globus-dmc
+%description plugins-gridftpjob
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
