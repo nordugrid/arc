@@ -64,6 +64,8 @@ int UserSwitch::suid_gid_orig = -1;
   // Unix implementation
   User::User(const std::string& name, const std::string& group): valid(false) {
     this->name = name;
+    uid = -1;
+    gid = -1;
     struct passwd pwd;
     char pwdbuf[2048];
     struct passwd *pwd_p;

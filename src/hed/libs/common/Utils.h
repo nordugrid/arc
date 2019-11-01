@@ -95,8 +95,8 @@ namespace Arc {
   private:
     T *object;
     void (*deleter)(T*);
-    void operator=(const AutoPointer<T>&) {}
-    AutoPointer(const AutoPointer&) : object(NULL) {}
+    void operator=(const AutoPointer<T>&);
+    AutoPointer(const AutoPointer&);
     static void DefaultDeleter(T* o) { delete o; }
   public:
     /// NULL pointer constructor

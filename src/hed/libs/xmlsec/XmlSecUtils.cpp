@@ -310,7 +310,7 @@ xmlSecKeysMngrPtr load_key_from_keyfile(xmlSecKeysMngrPtr* keys_manager, const c
     xmlSecKeysMngrDestroy(keys_mngr);
     return NULL;
   }
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 }
 
@@ -338,7 +338,7 @@ xmlSecKeysMngrPtr load_key_from_certfile(xmlSecKeysMngrPtr* keys_manager, const 
     xmlSecKeysMngrDestroy(keys_mngr);
     return NULL;
   }
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 }
 
@@ -363,7 +363,7 @@ xmlSecKeysMngrPtr load_key_from_certstr(xmlSecKeysMngrPtr* keys_manager, const s
     xmlSecKeysMngrDestroy(keys_mngr);
     return NULL;
   }
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 }
 
@@ -387,7 +387,7 @@ xmlSecKeysMngrPtr load_trusted_cert_file(xmlSecKeysMngrPtr* keys_manager, const 
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 }
 
@@ -412,7 +412,7 @@ xmlSecKeysMngrPtr load_trusted_cert_str(xmlSecKeysMngrPtr* keys_manager, const s
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
     }
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 }
 
@@ -452,7 +452,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
       return NULL;
     }
 
-  if(keys_manager != NULL) keys_manager = &keys_mngr;
+  if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
 } 
 

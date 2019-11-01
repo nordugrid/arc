@@ -23,9 +23,7 @@ class JobsMetrics {
   std::string config_filename;
   std::string tool_path;
 
-  time_t time_now;
   time_t time_lastupdate;
-  time_t time_delta;
 
   double fail_ratio;
   unsigned long long int job_counter;

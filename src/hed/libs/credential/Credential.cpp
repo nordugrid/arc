@@ -736,7 +736,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!proxy_init_) InitProxyCertInfo();
   }
 
-  Credential::Credential(const int keybits) : cert_(NULL),
+  Credential::Credential(const int keybits) : verification_valid(false), cert_(NULL),
     pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
@@ -758,7 +758,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion,
         std::string policylang, std::string policy, int pathlength) :
-        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        verification_valid(false), cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
         signing_alg_(NULL), keybits_(keybits), extensions_(NULL) {
 
@@ -1131,9 +1131,21 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
 
     ext_oct = ASN1_OCTET_STRING_new();
+    if(!ext_oct) {
+      CredentialLogger.msg(ERROR, "Can not create ASN1_OCTET_STRING");
+      LogError();
+      if(ext_obj) ASN1_OBJECT_free(ext_obj);
+      return NULL;
+    }
 
     //ASN1_OCTET_STRING_set(ext_oct, data.c_str(), data.size());
     ext_oct->data = (unsigned char*) malloc(data.size());
+    if(!(ext_oct->data)) {
+      CredentialLogger.msg(ERROR, "Can not allocate memory for extension for proxy certificate");
+      if(ext_oct) ASN1_OCTET_STRING_free(ext_oct);
+      if(ext_obj) ASN1_OBJECT_free(ext_obj);
+      return NULL;
+    }
     memcpy(ext_oct->data, data.c_str(), data.size());
     ext_oct->length = data.size();
 

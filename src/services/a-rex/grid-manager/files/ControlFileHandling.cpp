@@ -254,9 +254,9 @@ bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return res1;
-    return (res1 | job_mark_remove(fa,fname));
+    return (res1 || job_mark_remove(fa,fname));
   };
-  return (res1 | job_mark_remove(fname));
+  return (res1 || job_mark_remove(fname));
 }
 
 bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {

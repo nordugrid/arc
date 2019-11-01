@@ -161,7 +161,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger);
   bool ARCProxyUtil::Create_Proxy(bool use_nssdb, const std::string& proxy_policy,
           Arc::Time& proxy_start, Arc::Period& proxy_period,
           const std::string& vomsacseq) {
-    bool res;
+    bool res = false;
     if(!use_nssdb) {
 	  Arc::Credential* signer = create_cred_object(ARCProxyUtilLogger, cert_path, key_path);
 	  if(!signer) return false;

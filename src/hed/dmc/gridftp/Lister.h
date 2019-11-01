@@ -93,6 +93,8 @@ namespace ArcDMCGridFTP {
     DataStatus handle_connect(const URL& url);
     DataStatus transfer_list(void);
     void close_connection();
+    Lister(Lister const&);
+    Lister& operator=(Lister const&);
 
   public:
     Lister();

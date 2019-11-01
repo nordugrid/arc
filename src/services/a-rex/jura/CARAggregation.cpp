@@ -28,7 +28,6 @@ namespace ArcJura
   CARAggregation::CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch, bool _ssl):
     logger(Arc::Logger::rootLogger, "JURA.CARAggregation"),
     use_ssl(false),
-    sequence(0),
     aggr_record_update_need(false),
     synch_message(false),
     aggregationrecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/aggregatedcomputerecord"),

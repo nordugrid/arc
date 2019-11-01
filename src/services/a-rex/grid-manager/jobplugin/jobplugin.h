@@ -46,7 +46,6 @@ class JobPlugin: public FilePlugin {
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
   void* phandle;
   ContinuationPlugins* cont_plugins;
-  RunPlugin* cred_plugin;
   Arc::User user;
   GMConfig config;
   DelegationStore::DbType deleg_db_type;

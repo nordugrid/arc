@@ -1940,9 +1940,9 @@ err:
                                 else
                                         group = attribute.substr(pos1+7,pos2-pos1-7);
                                 return "/"+output[n].voname+"/"+group;
-                                vo_name.insert(vo_name.end(),'/');
-                                vo_name.insert(vo_name.length(),group);
-                                return vo_name;
+                                //vo_name.insert(vo_name.end(),'/');
+                                //vo_name.insert(vo_name.length(),group);
+                                ///return vo_name;
                         }
                 }
         }

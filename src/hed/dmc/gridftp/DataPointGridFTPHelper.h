@@ -110,6 +110,8 @@ namespace ArcDMCGridFTP {
     DataStatus RemoveFile();
     DataStatus RemoveDir();
     DataStatus do_more_stat(FileInfo& f, DataPoint::DataPointInfoType verb);
+    DataPointGridFTPHelper(DataPointGridFTPHelper const&);
+    DataPointGridFTPHelper& operator=(DataPointGridFTPHelper const&);
   public:
     DataPointGridFTPHelper(const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream);
     virtual ~DataPointGridFTPHelper();
