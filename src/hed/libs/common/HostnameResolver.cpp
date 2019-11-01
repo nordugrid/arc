@@ -134,6 +134,7 @@ namespace Arc {
   }
 
   HostnameResolver::SockAddr& HostnameResolver::SockAddr::operator=(SockAddr const& other) {
+    if(this == &other) return *this;
     family = other.family;
     length = other.length;
     ::free(addr);

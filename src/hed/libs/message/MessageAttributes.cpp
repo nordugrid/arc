@@ -62,11 +62,14 @@ namespace Arc {
 
   void MessageAttributes::remove(const std::string& key,
 				 const std::string& value) {
-    AttrIter begin = attributes_.lower_bound(key);
     AttrIter end   = attributes_.upper_bound(key);
-    for (AttrIter i=begin; i!=end; i++)
-      if (i->second==value)
+    for (AttrIter i=attributes_.lower_bound(key); i!=end;)
+      if (i->second==value) {
 	attributes_.erase(i);
+        i = attributes_.lower_bound(key);
+      } else {
+        ++i;
+      }
   }
 
   int MessageAttributes::count(const std::string& key) const {

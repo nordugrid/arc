@@ -17,7 +17,7 @@ static void usage(char *pname) {
 }
 
 // Provide the path to the mountpoint where requested cgroup controller tree is mounted
-int get_cgroup_mount_root(const char *req_controller, char **cgroup_root_ptr) {
+int get_cgroup_mount_root(const char *req_controller, char *cgroup_root_ptr) {
     FILE *proc_mount_fd = NULL;
     proc_mount_fd = fopen("/proc/mounts", "r");
     if (!proc_mount_fd) {
@@ -27,8 +27,8 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root_ptr) {
     // parse /proc/mounts looking for req_contrller in mount options
     char *fs_spec = malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *fs_mount = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char fs_type[4096];
-    char fs_mntopts[4096];
+    char fs_type[4096+1];
+    char fs_mntopts[4096+1];
     int fs_freq, fs_passno;
     char *mntopt;
     char *mntopt_pos;
@@ -43,7 +43,7 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root_ptr) {
                 // mounts use \oct encoding for unwanted characters
                 size_t sz = 0;
                 char *mount = fs_mount;
-                char *cgroup_root = *cgroup_root_ptr;
+                char *cgroup_root = cgroup_root_ptr;
                 while(*mount && sz < FILENAME_MAX) {
                     if (*mount == '\\' && sz + 3 < FILENAME_MAX && 
                         isoctal(mount[1]) && isoctal(mount[2]) && isoctal(mount[3])) {
@@ -73,7 +73,7 @@ int get_cgroup_mount_root(const char *req_controller, char **cgroup_root_ptr) {
 }
 
 // Provide current path to process cgroup for requested controller (relative to the cgroup tree mount point)
-int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgroup_path) {
+int get_cgroup_controller_path(pid_t pid, const char *req_controller, char *cgroup_path) {
     char pid_cgroup_file[64];
     FILE *pid_cgroup_fd = NULL;
     // open the /proc/<PID>/cgroup file
@@ -104,7 +104,7 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char **cgr
                     fprintf(stderr, "WARNING: Found controller path '%s' but it is not started with '/'. Skipping.", controllers_path);
                     continue;
                 }
-                strncpy(*cgroup_path, controllers_path, sizeof(char) * FILENAME_MAX);
+                strncpy(cgroup_path, controllers_path, FILENAME_MAX); cgroup_path[FILENAME_MAX] = '\0';
                 found = 1;
                 break;
             }
@@ -183,8 +183,8 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
 int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root) {
     char *parent_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
     char *current_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
-    strncpy(current_cgroup_path, cgroup_path, FILENAME_MAX);
-    strncpy(parent_cgroup_path, cgroup_path, FILENAME_MAX);
+    strncpy(current_cgroup_path, cgroup_path, FILENAME_MAX); current_cgroup_path[FILENAME_MAX] = '\0';
+    strncpy(parent_cgroup_path, cgroup_path, FILENAME_MAX); parent_cgroup_path[FILENAME_MAX] = '\0';
     // check for top-level cgroup
     if (strlen(parent_cgroup_path) && parent_cgroup_path[strlen(parent_cgroup_path) - 1] == '/') {
         parent_cgroup_path[strlen(parent_cgroup_path) - 1] = '\0';
@@ -291,10 +291,10 @@ int main(int argc, char *argv[]) {
     int retval = 1;
     do {
         // get cgroup root mount
-        if (get_cgroup_mount_root(controller, &cgroup_root) != 0) break;
+        if (get_cgroup_mount_root(controller, cgroup_root) != 0) break;
         // get controller-specific path for the parent process
         pid_t ppid = getppid();
-        if (get_cgroup_controller_path(ppid, controller, &controller_path) != 0) break;
+        if (get_cgroup_controller_path(ppid, controller, controller_path) != 0) break;
         // print info
         fprintf(stderr, "Found %s controller for PID %d: %s%s\n", controller, (int)ppid, cgroup_root, controller_path);
         // check root

@@ -58,6 +58,7 @@ namespace Arc {
   }
 
   IString& IString::operator=(const IString& istr) {
+    if(this == &istr) return *this;
     if (p->Release())
       delete p;
     p = istr.p;

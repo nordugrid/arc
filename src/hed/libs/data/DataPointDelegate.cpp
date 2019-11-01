@@ -535,7 +535,7 @@ namespace Arc {
   std::string::size_type const DataPointDelegate::LogRedirect::buffer_size_max_ = 4096;
 
   void DataPointDelegate::LogRedirect::Append(char const* data, unsigned int size) {
-    while(size >= 0) {
+    while(true) {
       char const* sep = (char const*)memchr(data, '\n', size);
       if (sep == NULL) break;
       if(buffer_.length() < buffer_size_max_) buffer_.append(data,sep-data);
