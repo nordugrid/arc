@@ -770,7 +770,7 @@ Python 3 bindings for ARC.
 %endif
 
 %package nordugridmap
-Summary:	The nordugridmap tool
+Summary:	ARC's nordugridmap tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
 Requires:	perl(SOAP::Lite)
@@ -1477,6 +1477,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_xrootd}
 %files plugins-xrootd
 %defattr(-,root,root,-)
+%dir %{_libdir}/%{pkgdir}/external
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.so
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.apd
 %{_libdir}/%{pkgdir}/libdmcxrootddeleg.so
@@ -1486,8 +1487,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_gfal}
 %files plugins-gfal
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libdmcgfal.so
-%{_libdir}/%{pkgdir}/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/external/libdmcgfal.so
+%{_libdir}/%{pkgdir}/external/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.so
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.apd
 %endif
 
 %if %{with_s3}

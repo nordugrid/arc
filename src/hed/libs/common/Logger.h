@@ -353,6 +353,9 @@ namespace Arc {
      */
     LogFile(const std::string& path);
 
+    /// Ordinary destructor
+    ~LogFile();
+
     /// Set maximal allowed size of file.
     /** Set maximal allowed size of file. This value is not
        obeyed exactly. Specified size may be exceeded by amount
@@ -376,6 +379,12 @@ namespace Arc {
        @param newreopen If file to be reopened for every log record.
      */
     void setReopen(bool newreopen);
+
+    /// Reopen file if currently open.
+    void Reopen();
+
+    /// Reopen all LogFile objects.
+    static void ReopenAll();
 
     /// Returns true if this instance is valid.
     operator bool(void);
