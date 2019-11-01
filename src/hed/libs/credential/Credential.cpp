@@ -723,7 +723,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!proxy_init_) InitProxyCertInfo();
   }
 
-  Credential::Credential(const int keybits) : verification_valid(false), cert_(NULL),
+  Credential::Credential(const int keybits) : cert_(NULL),
     pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
@@ -745,7 +745,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         std::string policylang, std::string policy, int pathlength) :
         verification_valid(false), cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
-        signing_alg_(NULL), keybits_(keybits), extensions_(NULL), verification_valid(false) {
+        signing_alg_(NULL), keybits_(keybits), extensions_(NULL) {
 
     OpenSSLInit();
 
@@ -1108,7 +1108,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       return NULL;
     }
 
-    ext_oct = ASN1_OCTET_STRING_new();
+    ASN1_OCTET_STRING* ext_oct = ASN1_OCTET_STRING_new();
     if(!ext_oct) {
       CredentialLogger.msg(ERROR, "Can not create ASN1_OCTET_STRING");
       LogError();
