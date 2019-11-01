@@ -1627,6 +1627,7 @@
 #targeturl=https://mq.cro-ngi.hr:6162
 
 ## use_ssl = yes/no - Turns on/off ssl for the SSM communication with APEL server.
+## Note that this is LEGACY JURA ONLY parameter
 ## allowedvalues: yes no
 ## default: no
 #use_ssl=yes
@@ -1651,18 +1652,24 @@
 #apel_messages=urs
 ## CHANGE: new parameter for next generation ARC accounting
 
-## benchmark_type = type - Type of benchmark (Si2k, Sf2k, HEPSPEC) to be reported in every UR.
+## benchmark_type = type - Type of benchmark (Si2k, HEPSPEC) to be reported in every UR.
+## Note that this is LEGACY JURA ONLY parameter
 ## default: undefined
 #benchmark_type=HEPSPEC
+## CHANGE: LEGACY OPTION that affects only legacy accounting. The value from [queue] block is used.
 
 ## benchmark_value = number - The value of the of benchmark to be reported in every UR.
+## Note that this is LEGACY JURA ONLY parameter
 ## default: undefined
 #benchmark_value=2.4
+## CHANGE: LEGACY OPTION that affects only legacy accounting. The value from [queue] block is used.
 
 ## benchmark_description = string - Additional description for the benchmark
+## Note that this is LEGACY JURA ONLY parameter
 ## to be reported in every UR.
 ## default: undefined
 #benchmark_description=some description for benchmark
+## CHANGE: LEGACY OPTION that affects only legacy accounting.
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -2501,15 +2508,6 @@
 ## default: undefined
 #nodememory=64000
 
-## benchmark = name value - This optional multivalued attribute can be used to
-## specify benchmark results on the cluster level. Use this cluster attribute
-## if only the NODES are homogeneous with respect to the benchmark performance.
-## Otherwise the similar queue-level attribute should be used. Please try to
-## use standard benchmark names, if possible.
-## multivalued
-## default: undefined
-#benchmark=SPECINT2000 222
-#benchmark=SPECFP2000 333
 
 ## middleware = string - The multivalued attribute shows the installed grid software on
 ## the cluster. Nordugrid-ARC is automatically set, no need to specify
@@ -2648,7 +2646,7 @@
 #totalcpus=32
 
 ## queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
-## and benchmark should be set if they are homogeneous over the nodes assigned
+## should be set if they are homogeneous over the nodes assigned
 ## to the queue AND they are different from the cluster-level value.
 ## Their meanings are described in the [infosys/cluster] block. 
 ## Usage: this queue collects nodes with "nodememory=512" while another queue has nodes 
@@ -2707,11 +2705,19 @@
 ## default: undefined
 #osfamily=linux
 
-## benchmark = name value - see description at [infosys/cluster] block
+## benchmark = name value - Defines resource benchmark results for accounting and
+## information publishing. The nodes in the same queue are assumed to be homogeneous
+## with respect to the benchmark performance.
+## In case of multiple benchmarks are specified:
+##   - Accounting subsystem will use only the FIRST defined benchmark.
+##   - Infosys will publish all defined benchmark values.
+##
+## The values represent per-core CPU performance.
+## Note that APEL accounting services are accept "HEPSPEC" or "Si2k" benchmark types only.
 ## multivalued
-## default: $VAR{[infosys/cluster]benchmark}
-#benchmark=SPECINT2000 222
-#benchmark=SPECFP2000 333
+## default: HEPSPEC 1.0
+#benchmark=HEPSPEC 12.26
+#benchmark=Si2k 3065
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 

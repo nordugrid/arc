@@ -327,6 +327,13 @@
 ## gm_port - this is the same as the "port" from the [gridftpd] block. The
 ## CHANGE151: DELETED. hardcode 2811 in the infoproviders.
 
+## benchmark = name value - This optional multivalued attribute can be used to
+## specify benchmark results on the cluster level. Use this cluster attribute
+## if only the NODES are homogeneous with respect to the benchmark performance.
+## Otherwise the similar queue-level attribute should be used. Please try to
+## use standard benchmark names, if possible.
+## CHANGE: DELETED since ARC 6.4. Queue-level values should be used instead.
+
 ### The [queue:name] blocks #######################################
 
 ## name  string - Sets the name of the grid-enabled queue. It MUST match the name
