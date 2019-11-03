@@ -19,24 +19,35 @@ except ImportError:
     import http.client as httplib
 
 # APELSSMSender dependencies:
-from dirq.QueueSimple import QueueSimple
+try:
+    from dirq.QueueSimple import QueueSimple
+except ImportError:
+    QueueSimple = None
+
 try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
-arc_ssm = False
+
+apel_libs = None
 try:
     # third-party SSM libraries
     from ssm import __version__ as ssm_version
     from ssm.ssm2 import Ssm2, Ssm2Exception
     from ssm.crypto import CryptoException
+    apel_libs = 'apel'
 except ImportError:
     # re-distributed with NorduGrid ARC
-    arc_ssm = True
-    from arc.ssm import __version__ as ssm_version
-    from arc.ssm.ssm2 import Ssm2, Ssm2Exception
-    from arc.ssm.crypto import CryptoException
-
+    try:
+        from arc.ssm import __version__ as ssm_version
+        from arc.ssm.ssm2 import Ssm2, Ssm2Exception
+        from arc.ssm.crypto import CryptoException
+        apel_libs = 'arc'
+    except ImportError:
+        ssm_version = (0, 0, 0)
+        Ssm2 = None
+        Ssm2Exception = None
+        CryptoException = None
 
 # module regexes init
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
@@ -248,6 +259,9 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
+        if not apelssm.init_dirq():
+            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. Please check dirq and stomp python modules are installed on your system.')
+            return None
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query')
         self.__init_adb_filters(endfrom, endtill)
@@ -487,11 +501,10 @@ class APELSSMSender(object):
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.APELSSM')
         self.conf = targetconf
-        dirq_path = self.conf['dirq_dir']
-        self._dirq = QueueSimple(dirq_path)
+        self._dirq = None
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
         # adjust SSM and stomp logging
-        ssmlogroot = 'arc.ssm' if arc_ssm else 'ssm'
+        ssmlogroot = 'arc.ssm' if apel_libs == 'arc' else 'ssm'
         self.__configure_third_party_logging(ssmlogroot)
         self.__configure_third_party_logging('stomp.py')
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
@@ -508,6 +521,15 @@ class APELSSMSender(object):
         log_handler_stderr.setFormatter(
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         tplogger.addHandler(log_handler_stderr)
+
+    def init_dirq(self):
+        if apel_libs is None:
+            return False
+        if QueueSimple is None:
+            return False
+        dirq_path = self.conf['dirq_dir']
+        self._dirq = QueueSimple(dirq_path)
+        return True
 
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
@@ -544,7 +566,7 @@ class APELSSMSender(object):
             del buf
 
     def send(self):
-        ssmsource = 'NorduGrid ARC redistributed' if arc_ssm else 'system-wide installed'
+        ssmsource = 'NorduGrid ARC redistributed' if apel_libs == 'arc' else 'system-wide installed'
         self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
                          self.conf['targeturl'], ssmsource, *ssm_version)
         self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
