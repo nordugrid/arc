@@ -1,6 +1,6 @@
---- a/basic-script.sh	2019-07-22 17:45:52.252953869 +0200
-+++ b/basic-script.sh	2019-07-22 17:45:52.255953801 +0200
-@@ -7,7 +7,7 @@
+--- a/basic-script.sh	2019-11-04 17:19:15.660939819 +0200
++++ b/basic-script.sh	2019-11-04 17:19:15.661939804 +0200
+@@ -8,7 +8,7 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
@@ -9,7 +9,7 @@
  #SBATCH 
  
  # Overide umask of execution node (sometime values are really strange)
-@@ -135,8 +138,35 @@
+@@ -137,8 +140,35 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -45,16 +45,16 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -176,7 +206,7 @@
+@@ -178,7 +208,7 @@
    nodename=`/bin/hostname -f`
    echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
  fi
 -echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
 +echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
+ echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
  executable='/bin/true'
  # Check if executable exists
- if [ ! -f "$executable" ]; 
-@@ -205,6 +235,24 @@
+@@ -208,6 +238,24 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=

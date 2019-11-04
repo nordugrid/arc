@@ -23,19 +23,6 @@ EOF
 cat "${SRCDIR}/count-test-count.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 
 function test_post_check() {
-  # Check diag file
-  diagfilename="controldir/job.count.diag"
-  if test ! -f ${diagfilename}; then
-    echo "Post check failed: Diag file (${diagfilename}) is missing."
-    return 1
-  fi
-  
-  . ${diagfilename}
-  if test "x${Processors}" != "x6"; then
-    echo "Post check failed: In diag file: Processors was expected to be \"6\", but it was \"${Processors}\"."
-    return 1
-  fi
-  
   return 0
 }
 }
