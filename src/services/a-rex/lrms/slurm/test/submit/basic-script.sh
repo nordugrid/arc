@@ -179,6 +179,7 @@ if [ -z "$NODENAME_WRITTEN" ] ; then
   echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
 fi
 echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
+echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
 executable='/bin/true'
 # Check if executable exists
 if [ ! -f "$executable" ]; 
