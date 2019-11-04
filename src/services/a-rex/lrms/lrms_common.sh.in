@@ -26,8 +26,8 @@ parse_arc_conf () {
   arex_options="controldir scratchdir shared_filesystem shared_scratch runtimedir"
   # [lrms] block for most of configuration
   lrms_options="gnu_time nodename defaultmemory $lrms_options"
-  # [queue] section is relevant to fetch per-queue memory limits and tuning
-  queue_options="defaultmemory $queue_options"
+  # [queue] section is relevant to fetch per-queue memory limits, benchmarks and customizations
+  queue_options="defaultmemory benchmark $queue_options"
 
   # define blocks to loop over
   blocks="common arex lrms"

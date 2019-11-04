@@ -179,10 +179,6 @@ job_read_diag() {
                exitcode LRMSStartTime LRMSEndTime LRMSExitcode LRMSMessage; do
         diagstring=$(echo "$diagstring" | grep -v "^$key=")
     done
-
-    # These are set on the font-end. Not to be overwritten
-    diagstring=$(echo "$diagstring" | grep -v "^frontend_")
-    diagstring=$(echo "$diagstring" | grep -v "^Processors=")
 }
 
 #
