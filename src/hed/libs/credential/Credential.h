@@ -144,7 +144,7 @@ class Credential {
     * @param pathlength path length constraint
     */
     Credential(Time start, Period lifetime = Period("PT12H"),
-              int keybits = 1024, std::string proxyversion = "rfc",
+              int keybits = 2048, std::string proxyversion = "rfc",
               std::string policylang = "inheritAll", std::string policy = "",
               int pathlength = -1);
 

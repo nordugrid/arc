@@ -123,7 +123,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger);
 
   static Logger ARCProxyUtilLogger(Logger::getRootLogger(), "ARCProxyUtil");
 
-  ARCProxyUtil::ARCProxyUtil() : keybits(1024), sha(SHA1) {
+  ARCProxyUtil::ARCProxyUtil() : keybits(2048), sha(SHA1) {
 
   }
 
@@ -360,7 +360,7 @@ static Arc::Credential* create_cred_object(Arc::Logger& logger, const std::strin
 }
 
 static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential& signer) {
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time now;
   Arc::Period period = 3600 * 12 + 300;
   std::string req_str;

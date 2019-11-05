@@ -31,7 +31,7 @@
 using namespace ArcCredential;
 
 void create_tmp_proxy(std::string& proxy, Arc::Credential& signer) {
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time now;
   Arc::Period period = 3600 * 12 + 300;
   std::string req_str;

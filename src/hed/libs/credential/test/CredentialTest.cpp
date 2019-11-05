@@ -128,7 +128,7 @@ void CredentialTest::testCAcert() {
 void CredentialTest::testhostcert() {
 
   // Default EEC values
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time t;
 
   // host cert signing
@@ -177,7 +177,7 @@ void CredentialTest::testhostcert() {
 void CredentialTest::testusercert() {
 
   // Default EEC values
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time t;
 
   // User cert signing
@@ -236,7 +236,7 @@ void CredentialTest::testusercert() {
 
 void CredentialTest::testproxy() {
 
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time t;
   
   // Generate certificate request
@@ -294,7 +294,7 @@ void CredentialTest::testproxy() {
 
 void CredentialTest::testproxy2proxy() {
 
-  int keybits = 1024;
+  int keybits = 2048;
   int proxydepth = 10;
 
   Arc::Time t;

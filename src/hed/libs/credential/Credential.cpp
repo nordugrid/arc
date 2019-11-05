@@ -62,7 +62,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
  
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
-  #define DEFAULT_KEYBITS  (1024)
+  #define DEFAULT_KEYBITS  (2048)
 
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
 
@@ -2395,7 +2395,7 @@ error:
     }
 
     if (BIO_read_filename_User(in,serialfile.c_str()) > 0) {
-      if (!a2i_ASN1_INTEGER(in,ai,buf,1024)) {
+      if (!a2i_ASN1_INTEGER(in,ai,buf,sizeof(buf))) {
         CredentialLogger.msg(ERROR,"unable to load number from: %s",serialfile);
         goto err;
       }
