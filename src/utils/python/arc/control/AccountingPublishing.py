@@ -27,7 +27,10 @@ except ImportError:
 try:
     import cStringIO as StringIO
 except ImportError:
-    import StringIO
+    try:
+        import io as StringIO
+    except ImportError:
+        import StringIO
 
 apel_libs = None
 try:

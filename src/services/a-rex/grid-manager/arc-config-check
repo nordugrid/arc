@@ -684,7 +684,7 @@ sub check_completeness() {
     }
 
     # Raise error if accounting benchmark for APEL publishing is in the wrong place (new vs old legacy mode)
-    foreach my $accounting_block (keys $config) {
+    foreach my $accounting_block (keys %$config) {
       if ($accounting_block =~ /^arex\/jura\/apel/ ) {
         if (exists($config->{$accounting_block}{'benchmark_value'})) {
            if ( (! exists($config->{$accounting_block}{'legacy_fallback'})) || (exists($config->{$accounting_block}{'legacy_fallback'}) && $config->{$accounting_block}{'legacy_fallback'} eq 'no' )) {
