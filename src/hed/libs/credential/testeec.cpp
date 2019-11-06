@@ -52,7 +52,7 @@ int main(void) {
   /**Generate certificate request on one side, 
   *and sign the certificate request on the other side.*/
 
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time t;
 
   //Request side

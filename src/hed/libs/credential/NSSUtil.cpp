@@ -1813,7 +1813,7 @@ err:
     SECKEYPrivateKey* privkey = NULL;
     SECKEYPublicKey* pubkey = NULL;
     CERTName* name = NULL;
-    int keybits = 1024;
+    int keybits = 2048;
     PRArenaPool* arena;
     SECItem* encoding;
     SECOidTag signAlgTag;
