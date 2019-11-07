@@ -266,18 +266,18 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  AddOption('c', "cluster",
+  DefineOptionsGroup("legacy-target", "Legacy target selection options");
+
+  GroupAddOption("legacy-target", 'c', "cluster",
             istring("select one or more computing elements: "
                     "name can be an alias for a single CE, a group of CEs or a URL"),
             istring("name"),
             clusters);
   
   if (!cIsJobMan && c != CO_SYNC) {
-    AddOption('I', "infointerface",
+    GroupAddOption("legacy-target", 'I', "infointerface",
               istring("the computing element specified by URL at the command line "
-                      "should be queried using this information interface "
-                      "(possible options: org.nordugrid.ldapng, org.nordugrid.ldapglue2, "
-                      "org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)"),
+                      "should be queried using this information interface "),
               istring("interfacename"),
               infointerface);
   }
@@ -403,7 +403,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (!cIsJobMan) {
-    AddOption('g', "index",
+    GroupAddOption("legacy-target", 'g', "index",
               istring("select one or more registries: "
                       "name can be an alias for a single registry, a group of registries or a URL"),
               istring("name"),
@@ -458,7 +458,7 @@ ClientOptions::ClientOptions(Client_t c,
               istring("filename"),
               jobidoutfile);
     
-    AddOption('S', "submissioninterface",
+    GroupAddOption("legacy-target", 'S', "submissioninterface",
               istring("only use this interface for submitting "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
@@ -490,7 +490,7 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
-    AddOption(0, "direct", istring("submit directly - no resource discovery or matchmaking"),
+    GroupAddOption("legacy-target", 0, "direct", istring("submit directly - no resource discovery or matchmaking"),
               direct_submission);
 
     AddOption('x', "dumpdescription",
@@ -500,7 +500,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
   
   if (c == CO_INFO) {
-    AddOption('S', "submissioninterface",
+    GroupAddOption("legacy-target", 'S', "submissioninterface",
               istring("only get information about executon targets which support this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
