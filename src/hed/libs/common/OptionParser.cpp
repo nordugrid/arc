@@ -182,7 +182,7 @@ namespace Arc {
       description(description) {}
 
   OptionParser::~OptionParser() {
-    for (std::list<std::pair<OptionBase*, std::string>>::iterator it = options.begin();
+    for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
          it != options.end(); it++)
       delete (*it).first;
   }
@@ -311,7 +311,7 @@ namespace Arc {
           grp = new Glib::OptionGroup(g_it->first, grp_name, IString("Show %s help options", g_it->first).str());
       }
 
-      for (std::list<std::pair<OptionBase*, std::string>>::iterator it = options.begin();
+      for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
            it != options.end(); it++) {
         if ( (*it).second == g_it->first ) {
           (*it).first->AddEntry(*grp);
@@ -342,7 +342,7 @@ namespace Arc {
       exit(0);
     }
 
-    for (std::list<std::pair<OptionBase*, std::string>>::iterator it = options.begin();
+    for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
          it != options.end(); it++)
       (*it).first->Result();
 
@@ -375,7 +375,7 @@ namespace Arc {
     struct option *longoptions = new struct option[options.size() + 3];
     int i = 0;
     std::string optstring;
-    for (std::list<std::pair<OptionBase*,std::string>>::iterator it = options.begin();
+    for (std::list<std::pair<OptionBase*,std::string> >::iterator it = options.begin();
          it != options.end(); it++) {
       setopt(longoptions[i], (*it).first->longOpt.c_str(),
              (*it).first->argDesc.empty() ? no_argument : required_argument,
@@ -437,7 +437,7 @@ namespace Arc {
           } else {
             std::cout << IString("%s:", g_it->second) << std::endl;
           }
-          for (std::list<std::pair<OptionBase*,std::string>>::iterator it = options.begin();
+          for (std::list<std::pair<OptionBase*,std::string> >::iterator it = options.begin();
                it != options.end(); it++) {
             if ( (*it).second != g_it->first) continue;
             std::cout << "  ";
@@ -460,7 +460,7 @@ namespace Arc {
         exit(0);
       }
       i = 0;
-      for (std::list<std::pair<OptionBase*,std::string>>::iterator it = options.begin();
+      for (std::list<std::pair<OptionBase*,std::string> >::iterator it = options.begin();
            it != options.end(); it++) {
         int o = (*it).first->shortOpt;
         if(!o) o = longoptions[i].val;
