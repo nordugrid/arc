@@ -624,14 +624,14 @@ Group:      System Environment/Libraries
 Requires:   %{name} = %{version}-%{release}
 Requires:   globus-ftp-control
 Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+Requires:   %{name}-plugins-globus-dmc = %{version}-%{release}
 
 %description plugins-gridftpjob
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC Globus dependent DMCs. These Data Manager Components allow access
-to data through the gridftp protocol.
+ARC GRIDFTPJOB plugin allows to submit jobs via gridftpd interface.
 
 %if %{with_xrootd}
 %package plugins-xrootd
