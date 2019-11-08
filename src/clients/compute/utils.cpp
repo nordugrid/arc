@@ -251,6 +251,7 @@ ClientOptions::ClientOptions(Client_t c,
     printids(false),
     same(false),
     notsame(false),
+    forceclean(false),
     show_stdout(true),
     show_stderr(false),
     show_joblog(false),
@@ -266,8 +267,39 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  DefineOptionsGroup("legacy-target", "Legacy target selection options");
+  DefineOptionsGroup("action", "Alternative actions");
+  DefineOptionsGroup("filtering", "Brokering and filtering options");
+  DefineOptionsGroup("format", "Output format modifiers");
+  DefineOptionsGroup("tuning", "Behaviour tuning options");
+  DefineOptionsGroup("arc6-target", "ARC6 target selection options");
+  DefineOptionsGroup("legacy-target", "Legacy options set for defining targets");
 
+  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
+    GroupAddOption("arc6-target", 'C', "computing-element",
+            istring("specify computing element address or a complete endpoint URL"),
+            istring("ce"),
+            computing_elements);
+
+    GroupAddOption("arc6-target", 'Y', "registry",
+            istring("FQDN of registry service with optional specification of protocol"),
+            istring("registry"),
+            registries);
+
+    GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
+            istring("submit job to the computing element endpoint of defined type: "
+                    "emies, arcrest, gridftpjob, internal"),
+            istring("type"),
+            requested_submission_endpoint_type);
+
+    GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
+            istring("job submission URLs will be queried from information endpoint of defined type: "
+                    "emies, arcrest, ldap.nordugrid, ldap.glue2, internal. "
+                    "Special 'NONE' type will turn off the queries"),
+            istring("type"),
+            requested_submission_endpoint_type);
+  }
+
+  // TODO: find out how this -c is used on stat/get/kill/etc and possibly define diffrerent description
   GroupAddOption("legacy-target", 'c', "cluster",
             istring("select one or more computing elements: "
                     "name can be an alias for a single CE, a group of CEs or a URL"),
@@ -283,7 +315,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
-    AddOption('q', "qluster",
+    GroupAddOption("legacy-target", 'q', "qluster",
               istring("selecting a computing element for the new jobs with a URL or an alias, "
                       "or selecting a group of computing elements with the name of the group"),
               istring("name"),
@@ -291,112 +323,112 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_MIGRATE) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("force migration, ignore kill failure"),
               forcemigration);
   }
 
   if (c == CO_GET || c == CO_KILL || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('k', "keep",
+    GroupAddOption("tuning", 'k', "keep",
               istring("keep the files on the server (do not clean)"),
               keep);
   }
 
   if (c == CO_SYNC) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("do not ask for verification"),
               forcesync);
 
-    AddOption('T', "truncate",
+    GroupAddOption("tuning", 'T', "truncate",
               istring("truncate the joblist before synchronizing"),
               truncate);
 
-    AddOption('C', "convert",
+    GroupAddOption("action", 'C', "convert",
               istring("do not collect information, only convert jobs storage format"),
               convert);
   }
 
   if (c == CO_INFO || c == CO_STAT) {
-    AddOption('l', "long",
+    GroupAddOption("format", 'l', "long",
               istring("long format (more information)"),
               longlist);
   }
 
   if (c == CO_INFO) {
-    AddOption('L', "list-configured-services",
+    GroupAddOption("action", 'L', "list-configured-services",
               istring("print a list of services configured in the client.conf"),
               list_configured_services);
   }
 
   if (c == CO_CAT) {
-    AddOption('o', "stdout",
+    GroupAddOption("action", 'o', "stdout",
               istring("show the stdout of the job (default)"),
               show_stdout);
 
-    AddOption('e', "stderr",
+    GroupAddOption("action", 'e', "stderr",
               istring("show the stderr of the job"),
               show_stderr);
 
-    AddOption('l', "joblog",
+    GroupAddOption("action", 'l', "joblog",
               istring("show the CE's error log of the job"),
               show_joblog);
 
-    AddOption('f', "file",
+    GroupAddOption("action", 'f', "file",
               istring("show the specified file from job's session directory"),
               istring("filepath"),
               show_file);
   }
 
   if (c == CO_GET) {
-    AddOption('D', "dir",
+    GroupAddOption("tuning", 'D', "dir",
               istring("download directory (the job directory will"
                       " be created in this directory)"),
               istring("dirname"),
               downloaddir);
 
-    AddOption('J', "usejobname",
+    GroupAddOption("tuning", 'J', "usejobname",
               istring("use the jobname instead of the short ID as"
                       " the job directory name"),
               usejobname);
 
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("force download (overwrite existing job directory)"),
               forcedownload);
   }
 
   if (c == CO_STAT) {
     // Option 'long' takes precedence over this option (print-jobids).
-    AddOption('p', "print-jobids", istring("instead of the status only the IDs of "
+    GroupAddOption("action", 'p', "print-jobids", istring("instead of the status only the IDs of "
               "the selected jobs will be printed"), printids);
 
-    AddOption('S', "sort",
+    GroupAddOption("tuning", 'S', "sort",
               istring("sort jobs according to jobid, submissiontime or jobname"),
               istring("order"), sort);
-    AddOption('R', "rsort",
+    GroupAddOption("tuning", 'R', "rsort",
               istring("reverse sorting of jobs according to jobid, submissiontime or jobname"),
               istring("order"), rsort);
 
-    AddOption('u', "show-unavailable",
+    GroupAddOption("tuning", 'u', "show-unavailable",
               istring("show jobs where status information is unavailable"),
               show_unavailable);
 
-    AddOption('J', "json",
+    GroupAddOption("format", 'J', "json",
               istring("show status information in JSON format"),
               show_json);
   }
 
   if (c == CO_RESUB) {
-    AddOption('m', "same",
+    GroupAddOption("filtering", 'm', "same",
               istring("resubmit to the same resource"),
               same);
 
-    AddOption('M', "not-same",
+    GroupAddOption("filtering", 'M', "not-same",
               istring("do not resubmit to the same resource"),
               notsame);
   }
 
   if (c == CO_CLEAN) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("remove the job from the local list of jobs "
                       "even if the job is not found in the infosys"),
               forceclean);
@@ -411,37 +443,37 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    AddOption('J', "job",
+    GroupAddOption("action", 'J', "job",
               istring("submit test job given by the number"),
               istring("int"),
               testjobid);
-    AddOption('r', "runtime",
+    GroupAddOption("action", 'r', "runtime",
               istring("test job runtime specified by the number"),
               istring("int"),
               runtime);
   }
 
   if (cIsJobMan || c == CO_RESUB) {
-    AddOption('s', "status",
+    GroupAddOption("filtering", 's', "status",
               istring("only select jobs whose status is statusstr"),
               istring("statusstr"),
               status);
   }
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('a', "all",
+    GroupAddOption("filtering", 'a', "all",
               istring("all jobs"),
               all);
   }
 
   if (c == CO_SUB) {
-    AddOption('e', "jobdescrstring",
+    GroupAddOption("tuning", 'e', "jobdescrstring",
               istring("jobdescription string describing the job to "
                       "be submitted"),
               istring("string"),
               jobdescriptionstrings);
 
-    AddOption('f', "jobdescrfile",
+    GroupAddOption("tuning", 'f', "jobdescrfile",
               istring("jobdescription file describing the job to "
                       "be submitted"),
               istring("string"),
@@ -449,11 +481,11 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST) {
-    AddOption('b', "broker",
+    GroupAddOption("filtering", 'b', "broker",
               istring("select broker method (list available brokers with --listplugins flag)"),
               istring("broker"), broker);
 
-    AddOption('o', "jobids-to-file",
+    GroupAddOption("tuning", 'o', "jobids-to-file",
               istring("the IDs of the submitted jobs will be appended to this file"),
               istring("filename"),
               jobidoutfile);
@@ -467,7 +499,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
   
   if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {
-    AddOption('R', "rejectdiscovery",
+    GroupAddOption("filtering", 'R', "rejectdiscovery",
               istring("skip the service with the given URL during service discovery"),
               istring("URL"),
               rejectdiscovery);
@@ -475,25 +507,25 @@ ClientOptions::ClientOptions(Client_t c,
   
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('i', "jobids-from-file",
+    GroupAddOption("tuning", 'i', "jobids-from-file",
               istring("a file containing a list of jobIDs"),
               istring("filename"),
               jobidinfiles);
 
-    AddOption('r', "rejectmanagement",
+    GroupAddOption("filtering", 'r', "rejectmanagement",
               istring("skip jobs which are on a computing element with a given URL"),
               istring("URL"),
               rejectmanagement);    
   }
 
   if (c == CO_SUB || c == CO_TEST) {
-    AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
+    GroupAddOption("action", 'D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
     GroupAddOption("legacy-target", 0, "direct", istring("submit directly - no resource discovery or matchmaking"),
               direct_submission);
 
-    AddOption('x', "dumpdescription",
+    GroupAddOption("action", 'x', "dumpdescription",
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
               dumpdescription);
@@ -508,11 +540,11 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("action", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
   }
 
   if (c != CO_INFO) {
-    AddOption('j', "joblist",
+    GroupAddOption("tuning", 'j', "joblist",
               Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE()).str(),
               istring("filename"),
               joblist);
@@ -527,7 +559,7 @@ ClientOptions::ClientOptions(Client_t c,
   AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
             istring("seconds"), timeout);
 
-  AddOption('P', "listplugins",
+  GroupAddOption("action", 'P', "listplugins",
             istring("list the available plugins"),
             show_plugins);
 

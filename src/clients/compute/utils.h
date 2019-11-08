@@ -149,17 +149,18 @@ public:
   bool show_stdout;
   bool show_stderr;
   bool show_joblog;
-  std::string show_file;
+  bool show_json;
   bool usejobname;
   bool forcedownload;
   bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
-  bool show_json;
 
   int testjobid;
   int runtime;
   int timeout;
+
+  std::string show_file;
 
   std::string joblist;
   std::string jobidoutfile;
@@ -182,4 +183,11 @@ public:
 
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
+
+  // arc6 consistent, intuitive and streamlined target selection
+  std::list<std::string> computing_elements;
+  std::list<std::string> registries;
+  std::string requested_submission_endpoint_type;
+  std::string requested_info_endpoint_type;
+
 };

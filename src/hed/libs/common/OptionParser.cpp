@@ -311,9 +311,11 @@ namespace Arc {
           grp = new Glib::OptionGroup(g_it->first, grp_name, IString("Show %s help options", g_it->first).str());
       }
 
+      bool options_in_group = false;
       for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
            it != options.end(); it++) {
         if ( (*it).second == g_it->first ) {
+          options_in_group = true;
           (*it).first->AddEntry(*grp);
         }
       }
@@ -321,7 +323,7 @@ namespace Arc {
       if ( g_it->first == ARC_OPTION_DEFAULT_GROUP ) {
         ctx.set_main_group(*grp);
       } else {
-        ctx.add_group(*grp);
+        if ( options_in_group ) ctx.add_group(*grp);
       }
     }
 
@@ -428,18 +430,25 @@ namespace Arc {
                   << std::endl << std::endl;
         for (std::map<std::string, std::string>::iterator g_it = optgroups.begin();
              g_it != optgroups.end(); g_it++) {
+          std::string group_header = "Application Options:";
           if (g_it->second.empty()) {
-            if ( g_it->first == ARC_OPTION_DEFAULT_GROUP ) {
-              std::cout << IString("Application Options:") << std::endl;
-            } else {
-              std::cout << IString("Options Group %s:", g_it->first) << std::endl;
+            if ( g_it->first != ARC_OPTION_DEFAULT_GROUP ) {
+              group_header = IString("Options Group %s:", g_it->first).str();
             }
           } else {
-            std::cout << IString("%s:", g_it->second) << std::endl;
+            group_header = IString("%s:", g_it->second).str();
           }
+          bool print_header = true;
           for (std::list<std::pair<OptionBase*,std::string> >::iterator it = options.begin();
                it != options.end(); it++) {
+            // skip options in other groups
             if ( (*it).second != g_it->first) continue;
+            // print header only if at least one option in this group
+            if (print_header) {
+              print_header = false;
+              std::cout << group_header << std::endl;
+            }
+            // print option description
             std::cout << "  ";
             OptionBase* ob = (*it).first;
             if (ob->shortOpt) {
