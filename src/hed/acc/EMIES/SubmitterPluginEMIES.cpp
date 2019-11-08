@@ -64,7 +64,7 @@ namespace Arc {
     // TODO: this is multi step process. So having retries would be nice.
     // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
 
-    URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443);
+    URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex");
 
     SubmissionStatus retval;
     bool need_delegation = true; // false - Force delegation always for jobs which use during execution

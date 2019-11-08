@@ -134,6 +134,9 @@ public:
   /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
   bool isARC6TargetSelectionOptions(Arc::Logger& logger);
 
+  /// Implement ARC consistent info/submission endpoint types logic
+  bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
+
   bool dryrun;
   bool dumpdescription;
   bool show_credentials;
@@ -188,10 +191,13 @@ public:
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
 
-  // arc6 consistent, intuitive and streamlined target selection
+  // arc6 consistent, intuitive and streamlined target selection:
+  // command line options
   std::list<std::string> computing_elements;
   std::list<std::string> registries;
   std::string requested_submission_endpoint_type;
   std::string requested_info_endpoint_type;
-
+  // post-processed interface types
+  std::list<std::string> submit_types;
+  std::list<std::string> info_types;
 };

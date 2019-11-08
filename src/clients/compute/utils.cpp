@@ -253,6 +253,114 @@ bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger) {
   return arc6_target_options;
 }
 
+bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
+  std::string s(requested_submission_endpoint_type);
+  std::string i(requested_info_endpoint_type);
+  // canonicalize submission endpoint
+  if ( !s.empty() ) {
+    if (s.find(".") == std::string::npos) {
+      s = "org.nordugrid." + s;
+    }
+    if (s == "org.nordugrid.emies") {
+      s = "org.ogf.glue.emies.activitycreation";
+    }
+  }
+  // canonicalize information endpoint
+  if ( !i.empty() && Arc::lower(i) != "none" ) {
+    if (i.find(".") == std::string::npos ) {
+      i = "org.nordugrid." + i;
+    } else if ( i == "ldap.nordugrid" ) {
+      i = "org.nordugrid.ldapng";
+    } else if ( i == "ldap.glue2" ) {
+      i = "org.nordugrid.ldapglue2";
+    }
+    if (i == "org.nordugrid.emies") {
+      i = "org.ogf.glue.emies.resourceinfo";
+    }
+  }
+
+  // nothing specified - any interface can be used
+  if ( s.empty() && i.empty() ) return true;
+
+  // define info based on submission (and verify submission type is supported)
+  if ( !s.empty() ) {
+    const std::string notify_template = "Automatically adding %s information endpoint type based on desired submission interface";
+    if ( s == "org.ogf.glue.emies.activitycreation" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.resourceinfo");
+        info_types.push_back("org.ogf.glue.emies.resourceinfo");
+      }
+    } else if ( s == "org.nordugrid.arcrest" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+        info_types.push_back("org.nordugrid.arcrest");
+      }
+    } else if ( s == "org.nordugrid.internal" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
+        info_types.push_back("org.nordugrid.internal");
+      }
+    } else if ( s == "org.nordugrid.gridftpjob" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapng");
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapglue2");
+        info_types.push_back("org.nordugrid.ldapng");
+        info_types.push_back("org.nordugrid.ldapglue2");
+      }
+    } else {
+      logger.msg(Arc::ERROR, "Unsupported submission endpoint type: %s", s);
+      return false;
+    }
+    submit_types.push_back(s);
+  }
+
+  // define submission type based on info (and verify info type is supported)
+  if ( !i.empty() ) {
+    const std::string notify_template = "Automatically adding %s submission endpoint type based on desired information interface";
+    if ( i == "org.ogf.glue.emies.resourceinfo" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+      }
+    } else if ( i == "org.nordugrid.arcrest" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+        submit_types.push_back("org.nordugrid.arcrest");
+      }
+    } else if ( i == "org.nordugrid.internal" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
+        submit_types.push_back("org.nordugrid.internal");
+      }
+    } else if ( i == "org.nordugrid.ldapng" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+    } else if ( i == "org.nordugrid.ldapglue2" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+    } else if ( Arc::lower(i) == "none" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to %s and %s submission endpoint types", "org.ogf.glue.emies.activitycreation", "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+      return true;
+    } else {
+      logger.msg(Arc::ERROR, "Unsupported information endpoint type: %s", i);
+      return false;
+    }
+    info_types.push_back(i);
+  }
+  
+  return true;
+}
+
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,
                              const std::string& summary,
@@ -318,7 +426,7 @@ ClientOptions::ClientOptions(Client_t c,
                     "emies, arcrest, ldap.nordugrid, ldap.glue2, internal. "
                     "Special 'NONE' type will turn off the queries"),
             istring("type"),
-            requested_submission_endpoint_type);
+            requested_info_endpoint_type);
   }
 
   // TODO: find out how this -c is used on stat/get/kill/etc and possibly define diffrerent description

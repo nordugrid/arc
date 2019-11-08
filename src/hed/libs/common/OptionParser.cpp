@@ -184,7 +184,8 @@ namespace Arc {
   OptionParser::~OptionParser() {
     std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
     while ( it != options.end() ) {
-        delete (*it).first;
+        delete it->first;
+        it->first = NULL;
         it = options.erase(it);
     }
   }
