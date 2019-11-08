@@ -182,9 +182,11 @@ namespace Arc {
       description(description) {}
 
   OptionParser::~OptionParser() {
-    for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
-         it != options.end(); it++)
-      delete (*it).first;
+    std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
+    while ( it != options.end() ) {
+        delete (*it).first;
+        it = options.erase(it);
+    }
   }
 
   void OptionParser::AddOption(const char shortOpt,

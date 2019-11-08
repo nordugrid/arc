@@ -34,6 +34,7 @@ class ConsoleRecovery {
   int X
 #endif
 
+
 /// Returns the URLs of computing elements selected by alias, group name, URL or the default ones
 /**
   This helper method gets a list of string representing computing elements. Each item of the list
@@ -129,6 +130,9 @@ public:
                 const std::string& arguments = "",
                 const std::string& summary = "",
                 const std::string& description = "");
+
+  /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
+  bool isARC6TargetSelectionOptions(Arc::Logger& logger);
 
   bool dryrun;
   bool dumpdescription;

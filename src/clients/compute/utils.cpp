@@ -29,6 +29,7 @@ ConsoleRecovery::~ConsoleRecovery(void) {
   delete ti;
 }
 
+
 std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);
   std::list<std::string> serviceURLs;
@@ -230,6 +231,27 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
   return NULL;
 }
 
+bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger) {
+  bool arc6_target_options = false;
+  do {
+    if ( ! computing_elements.empty() ) { arc6_target_options = true; break; }
+    if ( ! registries.empty() ) { arc6_target_options = true; break; }
+    if ( ! requested_submission_endpoint_type.empty() ) { arc6_target_options = true; break; }
+    if ( ! requested_info_endpoint_type.empty() ) arc6_target_options = true;
+  } while (false);
+  bool legacy_target_options = false;
+  do {
+    if ( ! clusters.empty() ) { legacy_target_options = true; break; }
+    if ( ! indexurls.empty() ) { legacy_target_options = true; break; }
+    if ( ! requestedSubmissionInterfaceName.empty() ) { legacy_target_options = true; break; }
+    if ( ! infointerface.empty() ) { legacy_target_options = true; break; }
+    if ( direct_submission ) legacy_target_options = true;
+  } while (false);
+  if ( legacy_target_options && arc6_target_options ) {
+    logger.msg(Arc::ERROR, "It is impossible to mix ARC6 target selection options with legacy options. All legacy options will be ignored!");
+  }
+  return arc6_target_options;
+}
 
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,

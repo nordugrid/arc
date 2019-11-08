@@ -211,56 +211,62 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
-  std::set<std::string> preferredInterfaceNames;
-  if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+
+  if ( opt.isARC6TargetSelectionOptions(logger) ) {
+    // ARC6 target selection submission logic
+    std::cerr << "TODO:" << std::endl;
   } else {
-    preferredInterfaceNames.insert(usercfg.InfoInterface());
-  }
-
-  Arc::ExecutionTargetSorter ets(broker);
-
-  std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
-  Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
-  csr.addConsumer(ets);
-  for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
-    csr.addEndpoint(*it);
-  }
-  csr.wait();
-
-  if (csr.empty()) {
-    if (!opt.dumpdescription) {
-      std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
+    std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
+    std::set<std::string> preferredInterfaceNames;
+    if (usercfg.InfoInterface().empty()) {
+      preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
     } else {
-      std::cout << Arc::IString("Unable to adapt job description to any resource, no resource information could be obtained.") << std::endl;
-      std::cout << Arc::IString("Original job description is listed below:") << std::endl;
-      std::string descOutput;
-      testJob.UnParse(descOutput, testJob.GetSourceLanguage());
-      std::cout << descOutput << std::endl;
+      preferredInterfaceNames.insert(usercfg.InfoInterface());
     }
-    return 1;
-  }
 
-  if (ets.getMatchingTargets().empty()) {
-    if (!opt.dumpdescription) {
-      std::cout << Arc::IString("ERROR: Test aborted because no suitable resources were found for the test-job") << std::endl;
-    } else {
-      std::cout << Arc::IString("ERROR: Dumping job description aborted because no suitable resources were found for the test-job") << std::endl;
+    Arc::ExecutionTargetSorter ets(broker);
+
+    std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+    Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
+    csr.addConsumer(ets);
+    for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
+      csr.addEndpoint(*it);
     }
-    return 1;
-  }
+    csr.wait();
 
-  if (opt.dumpdescription) {
-     return dumpjobdescription(usercfg, ets, testJob);
-  }
+    if (csr.empty()) {
+      if (!opt.dumpdescription) {
+        std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
+      } else {
+        std::cout << Arc::IString("Unable to adapt job description to any resource, no resource information could be obtained.") << std::endl;
+        std::cout << Arc::IString("Original job description is listed below:") << std::endl;
+        std::string descOutput;
+        testJob.UnParse(descOutput, testJob.GetSourceLanguage());
+        std::cout << descOutput << std::endl;
+      }
+      return 1;
+    }
+
+    if (ets.getMatchingTargets().empty()) {
+      if (!opt.dumpdescription) {
+        std::cout << Arc::IString("ERROR: Test aborted because no suitable resources were found for the test-job") << std::endl;
+      } else {
+        std::cout << Arc::IString("ERROR: Dumping job description aborted because no suitable resources were found for the test-job") << std::endl;
+      }
+      return 1;
+    }
+
+    if (opt.dumpdescription) {
+       return dumpjobdescription(usercfg, ets, testJob);
+    }
   
-  std::cout << Arc::IString("Submitting test-job %d:", opt.testjobid) << std::endl;
-  std::string testJobXRSL;
-  testJob.UnParse(testJobXRSL, "nordugrid:xrsl");
-  std::cout << testJobXRSL << std::endl;
-  std::cout << Arc::IString("Client version: nordugrid-arc-%s", VERSION) << std::endl;
-  return test(usercfg, ets, testJob, opt.jobidoutfile);
+    std::cout << Arc::IString("Submitting test-job %d:", opt.testjobid) << std::endl;
+    std::string testJobXRSL;
+    testJob.UnParse(testJobXRSL, "nordugrid:xrsl");
+    std::cout << testJobXRSL << std::endl;
+    std::cout << Arc::IString("Client version: nordugrid-arc-%s", VERSION) << std::endl;
+    return test(usercfg, ets, testJob, opt.jobidoutfile);
+  }
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {

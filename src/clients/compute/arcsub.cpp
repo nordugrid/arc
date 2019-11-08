@@ -172,19 +172,24 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
+  if ( opt.isARC6TargetSelectionOptions(logger) ) {
+    // ARC6 target selection submission logic
+    std::cerr << "TODO:" << std::endl;
+  } else {
+    // Legacy target selection submission logic
+    std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
-  if (!opt.direct_submission) {
-    usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+    if (!opt.direct_submission) {
+      usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+    }
+
+    if (opt.dumpdescription) {
+      return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
+    }
+
+    return submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission);
   }
-
-  if (opt.dumpdescription) {
-    return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
-  }
-
-  return submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission);
 }
-
 
 class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {
 public:
