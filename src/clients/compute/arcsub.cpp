@@ -6,6 +6,7 @@
 
 #include <list>
 #include <string>
+#include <set>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -285,15 +286,103 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
         }
       }
     }
-    // TODO: process registry
-    /*for (std::list<std::string>::const_iterator it = opt.registries.begin(); 
-         it != opt.registries.end(); ++it) {
-        Arc::Endpoint service(*it);
-        service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::REGISTRY));
-        endpoints.push_back(service);
-    }*/
-    
 
+    // Query the registries for available endpoints
+    if (!opt.registries.empty()) {
+      Arc::EntityContainer<Arc::Endpoint> registry_endpoints;
+
+      // Get all service endpoints regardless of capabilities
+      std::list<std::string> rejectDiscoveryURLs =
+        getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+      std::list<std::string> capabilityFilter;
+    
+      Arc::ServiceEndpointRetriever ser(usercfg, Arc::EndpointQueryOptions<Arc::Endpoint>(
+                                        true, capabilityFilter, rejectDiscoveryURLs));
+      ser.addConsumer(registry_endpoints);
+      for (std::list<std::string>::const_iterator it = opt.registries.begin();
+           it != opt.registries.end(); ++it) {
+        Arc::Endpoint registry(*it);
+        registry.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::REGISTRY));
+        ser.addEndpoint(registry);
+      }
+      ser.wait();
+
+      // Loop over registry services and match against interface types
+      if ( !opt.info_types.empty() ) {
+        for (std::list<std::string>::const_iterator sit = opt.submit_types.begin();
+             sit != opt.submit_types.end(); ++sit) {
+          std::list<Arc::Endpoint> endpoints;
+          for (Arc::EntityContainer<Arc::Endpoint>::iterator eit = registry_endpoints.begin();
+               eit != registry_endpoints.end(); ++eit) {
+            for (std::list<std::string>::const_iterator iit = opt.info_types.begin();
+                 iit != opt.info_types.end(); ++iit) {
+              if ( eit->InterfaceName == *iit ) {
+                Arc::Endpoint service(*eit);
+                logger.msg(Arc::INFO, "Service endpoint %s (type %s) added to the list for resource discovery",
+                           eit->URLString, eit->InterfaceName);
+                service.RequestedSubmissionInterfaceName = *sit;
+                endpoints.push_back(service);
+              }
+            }
+          }
+          if (!endpoints.empty()) {
+            endpoint_batches.push_back(endpoints);
+          } else {
+            logger.msg(Arc::WARNING, "There are no endpoints in registry that match requested info endpoint type");
+          }
+        }
+      // endpoint types was not requested at all
+      } else if ( opt.submit_types.empty() ) {
+        // try all infodiscovery endpoints but prioritize the interfaces in the following order
+        std::list<std::string> info_priority;
+        info_priority.push_back("org.ogf.glue.emies.resourceinfo");
+        info_priority.push_back("org.nordugrid.arcrest");
+        info_priority.push_back("org.nordugrid.ldapglue2");
+        info_priority.push_back("org.nordugrid.ldapng");
+        for (std::list<std::string>::const_iterator iit = info_priority.begin();
+             iit != info_priority.end(); ++iit) {
+          std::list<Arc::Endpoint> endpoints;
+          for (Arc::EntityContainer<Arc::Endpoint>::iterator eit = registry_endpoints.begin();
+               eit != registry_endpoints.end(); ++eit) {
+            if ( eit->InterfaceName == *iit ) {
+              Arc::Endpoint service(*eit);
+              service.RequestedSubmissionInterfaceName = "";
+              endpoints.push_back(service);
+              logger.msg(Arc::INFO, "Service endpoint %s (type %s) added to the list for resource discovery",
+                         eit->URLString, eit->InterfaceName);
+            }
+          }
+          if (!endpoints.empty()) endpoint_batches.push_back(endpoints);
+        }
+      // it was requested to disable infodiscovery for targets
+      } else {
+        info_discovery = false;
+        std::list<Arc::Endpoint> endpoints;
+        for (std::list<std::string>::const_iterator sit = opt.submit_types.begin();
+             sit != opt.submit_types.end(); ++sit) {
+          for (Arc::EntityContainer<Arc::Endpoint>::iterator eit = registry_endpoints.begin();
+               eit != registry_endpoints.end(); ++eit) {
+            if ( eit->InterfaceName == *sit ) {
+              Arc::Endpoint service(*eit);
+              service.Capability.clear();
+              service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT));
+              service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION));
+              service.InterfaceName = *sit;
+              endpoints.push_back(service);
+              logger.msg(Arc::INFO, "Service endpoint %s (type %s) added to the list for direct submision",
+                         eit->URLString, eit->InterfaceName);
+            }
+          }
+        }
+        if (!endpoints.empty()) {
+          endpoint_batches.push_back(endpoints);
+        } else {
+          logger.msg(Arc::WARNING, "There are no endpoints in registry that match requested submission endpoint type");
+        }
+      }
+    }
+
+    // start submission cycle
     HandleSubmittedJobs hsj(opt.jobidoutfile, usercfg);
     Arc::Submitter submitter(usercfg);
     submitter.addConsumer(hsj);
