@@ -1,3 +1,6 @@
+#ifndef __ARC_CLEINT_COMPUTE_UTILS_H_
+#define __ARC_CLEINT_COMPUTE_UTILS_H_
+
 #include <unistd.h>
 #include <string>
 #include <list>
@@ -201,3 +204,5 @@ public:
   std::list<std::string> submit_types;
   std::list<std::string> info_types;
 };
+
+#endif // __ARC_CLEINT_COMPUTE_UTILS_H_
