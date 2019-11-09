@@ -177,8 +177,16 @@ CMD="$CMD -c $ARC_RUNTIME_CONFIG"
 CMD="$CMD -P $PID_FILE"
 
 LOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile gridftpd`
+USERNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" user gridftpd`
 if [ ! -d `dirname "$LOGFILE"` ]; then
     mkdir -p `dirname "$LOGFILE"`
+    if [ ! -z "$USERNAME" ] ; then
+        chown "$USERNAME" `dirname "$LOGFILE"`
+    fi
+fi
+if [ ! -z "$USERNAME" ] ; then
+    chown "$LOGFILE"
+    chown "$USERNAME" "$LOGFILE"
 fi
 
 check_cert
