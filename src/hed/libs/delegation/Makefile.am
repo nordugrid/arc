@@ -12,7 +12,7 @@ libarcdelegation_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarcdelegation_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-	$(top_builddir)/src/hed/libs/ws-addressing/libwsaddressing.la \
+	$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la \
 	$(OPENSSL_LIBS)
 
 #test_SOURCES = test.cpp
@@ -20,4 +20,4 @@ libarcdelegation_la_LIBADD = \
 #	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 #test_LDADD = libarcdelegation.la \
 #	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
-#	$(GLIBMM_LIBS) $(EXTRA_LIBS) $(OPENSSL_LIBS)
+#	$(GLIBMM_LIBS) $(OPENSSL_LIBS)

@@ -4,19 +4,21 @@
 .SH NAME
 
 arc-config-check \- checks the arc.conf for inconsistencies, known problems
-or (in a future development) just general bad taste.
+or bad taste.
 
 .SH SYNOPSIS
 
-arc-config-check --printall
+arc-config-check [--config CONFIG] [--timeserver NTPHOST] [--skip-warnings] [--print-all]
 
 .SH DESCRIPTION
 
-The motivation behind this little script was to have a repository for
-automated tests on issues that came up on the NorduGrid developers
-mailing list. As such this script indicates directories that are not
-present, checks host certificates, CA certificates and CRLs, validates
-the sanity of ARC configuration and tests for clock skew.
+The \fBarc-config-check\fR utility is included into \fBarc-arex\fR
+startup process or can be run separately.
+
+It checks \fBarc.conf (5)\fR complies to \fBarc.conf.reference\fR 
+syntax, indicates directories that are not present, checks host certificates, 
+CA certificates and CRLs, validates the sanity of ARC configuration,
+tests for clock skew, etc.
 
 BECAUSE EVERY INSTALLATION OF ARC IS DIFFERENT THIS UTILITY ONLY SUGGESTS
 WHAT COULD BE WRONG. SOMETIMES IT IS OVERRESTRICTIVE. AND SOMETIMES IT
@@ -25,32 +27,42 @@ ULTIMATE TRUTH.
 
 .SH OPTIONS
 
-.TP
-.B \-\-config <string>
+.TP 24
+.I \-\-config <string>
 Specifies the location of the config file, by default it is /etc/arc.conf
 .TP
-.B \-\-printall
+.I \-\-printall
 Lists all variable names of the config file together with their values.
 .TP
-.B \-\-timeserver <server>
+.I \-\-timeserver <server>
 Allows the specification of a server against which to test the local
 system's time.
 .TP
-.B \-\-skip-warnings
+.I \-\-skip-warnings
 Do not show warnings.
 .TP
-.B \-\-help
+.I \-\-help
 Quick summary of options
 .TP
-.B \-\-man
+.I \-\-man
 Detailed man page.
 
 .SH COPYRIGHT
 
 APACHE LICENSE Version 2.0
 
+.SH FILES
+.I /etc/arc.conf
+
+.SH REPORTING BUGS
+Report bugs to http://bugzilla.nordugrid.org/
+
 .SH AUTHOR
 
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
+
+.SH SEE ALSO
+.BR arcctl (1),
+.BR arc.conf (5)

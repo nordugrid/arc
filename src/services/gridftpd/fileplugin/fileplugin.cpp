@@ -92,7 +92,7 @@ static bool parse_owner_rights(std::string &rest,int &uid,int &gid,int &orbits,i
   return true;
 }
 
-DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
+DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t const &user) {
   data_file=-1;
   uid=user.get_uid();
   gid=user.get_gid();
@@ -170,14 +170,14 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
     }
     else if(command == "mount") {
       rest=subst_user_spec(rest,&user);
-      mount=Arc::ConfigIni::NextArg(rest);
+      mount=rest;
       if((mount.length() == 0) || (!Arc::CanonicalDir(mount,false))) {
         logger.msg(Arc::WARNING, "Bad mount directory specified");
       };
       logger.msg(Arc::INFO, "Mount point %s", mount);
     }
     else if(command == "endpoint") {
-      endpoint=Arc::ConfigIni::NextArg(rest);
+      endpoint=rest;
     }
     else if(command == "end") {
       break; /* end of section */

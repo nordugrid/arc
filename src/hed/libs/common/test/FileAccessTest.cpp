@@ -7,9 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#ifndef WIN32
 #include <pwd.h>
-#endif
 #include <fcntl.h>
 #include <string.h>
 
@@ -22,26 +20,22 @@ class FileAccessTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(FileAccessTest);
-#ifndef WIN32
   CPPUNIT_TEST(TestOpenWriteReadStat);
   CPPUNIT_TEST(TestCopy);
   CPPUNIT_TEST(TestRename);
   CPPUNIT_TEST(TestDir);
   CPPUNIT_TEST(TestSeekAllocate);
-#endif
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void setUp();
   void tearDown();
 
-#ifndef WIN32
   void TestOpenWriteReadStat();
   void TestCopy();
   void TestRename();
   void TestDir();
   void TestSeekAllocate();
-#endif
 
 private:
   uid_t uid;
@@ -53,7 +47,6 @@ private:
 void FileAccessTest::setUp() {
   CPPUNIT_ASSERT(Arc::TmpDirCreate(testroot));
   CPPUNIT_ASSERT(!testroot.empty());
-#ifndef WIN32
   if(getuid() == 0) {
     struct passwd* pwd = getpwnam("nobody");
     CPPUNIT_ASSERT(pwd);
@@ -64,10 +57,6 @@ void FileAccessTest::setUp() {
     uid = getuid();
     gid = getgid();
   }
-#else
-  uid = 0;
-  gid = 0;
-#endif
   Arc::FileAccess::testtune();
 }
 
@@ -75,7 +64,6 @@ void FileAccessTest::tearDown() {
   Arc::DirDelete(testroot);
 }
 
-#ifndef WIN32
 void FileAccessTest::TestOpenWriteReadStat() {
   Arc::FileAccess fa;
   std::string testfile = testroot+"/file1";
@@ -179,6 +167,5 @@ void FileAccessTest::TestSeekAllocate() {
   CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.fa_lseek(0,SEEK_END));
   CPPUNIT_ASSERT(fa.fa_close());
 }
-#endif
 
 CPPUNIT_TEST_SUITE_REGISTRATION(FileAccessTest);

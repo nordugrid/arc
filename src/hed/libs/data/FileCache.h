@@ -24,8 +24,6 @@ namespace Arc {
     std::string cache_link_path;
   };
 
-#ifndef WIN32
-
   /// FileCache provides an interface to all cache operations.
   /**
    * When it is decided a file should be downloaded to the cache, Start()
@@ -67,9 +65,6 @@ namespace Arc {
     /// Vector of caches. Each entry defines a cache and specifies
     /// a cache directory and optional link path.
     std::vector<struct CacheParameters> _caches;
-    /// Vector of remote caches. Each entry defines a cache and specifies
-    /// a cache directory, per-job directory and link/copy information.
-    std::vector<struct CacheParameters> _remote_caches;
     /// Vector of caches to be drained.
     std::vector<struct CacheParameters> _draining_caches;
     /// A list of URLs that have already been unlocked in Link(). URLs in
@@ -103,7 +98,6 @@ namespace Arc {
 
     /// Common code for constructors
     bool _init(const std::vector<std::string>& caches,
-               const std::vector<std::string>& remote_caches,
                const std::vector<std::string>& draining_caches,
                const std::string& id,
                uid_t job_uid,
@@ -165,13 +159,10 @@ namespace Arc {
               uid_t job_uid,
               gid_t job_gid);
 
-    /// Create a new FileCache instance with multiple cache dirs, remote caches and draining cache directories.
+    /// Create a new FileCache instance with multiple cache dirs and draining cache directories.
     /**
      * @param caches a vector of strings describing caches. The format
      * of each string is "cache_dir[ link_path]".
-     * @param remote_caches Same format as caches. These are the
-     * paths to caches which are under the control of other Grid
-     * Managers and are read-only for this process.
      * @param draining_caches Same format as caches. These are the
      * paths to caches which are to be drained.
      * @param id the job id. This is used to create the per-job dir
@@ -181,7 +172,6 @@ namespace Arc {
      * @param job_gid owner group of job
      */
     FileCache(const std::vector<std::string>& caches,
-              const std::vector<std::string>& remote_caches,
               const std::vector<std::string>& draining_caches,
               const std::string& id,
               uid_t job_uid,
@@ -207,9 +197,6 @@ namespace Arc {
      * @param available true on exit if the file is already in cache
      * @param is_locked true on exit if the file is already locked, ie
      * cannot be used by this process
-     * @param use_remote Whether to look to see if the file exists in a
-     * remote cache. Can be set to false if for example a forced download
-     * to cache is desired.
      * @param delete_first If true then any existing cache file is deleted.
      * @return true if file is available or ready to be downloaded, false if
      * the file is already locked or preparing the cache failed.
@@ -217,7 +204,6 @@ namespace Arc {
     bool Start(const std::string& url,
                bool& available,
                bool& is_locked,
-               bool use_remote = true,
                bool delete_first = false);
 
     /// Stop the cache after a file was downloaded.
@@ -358,46 +344,6 @@ namespace Arc {
     bool operator==(const FileCache& a);
 
   };
-
-#else
-
-  class FileCache {
-  public:
-    FileCache(const std::string& cache_path,
-              const std::string& id,
-              int job_uid,
-              int job_gid) {}
-    FileCache(const std::vector<std::string>& caches,
-              const std::string& id,
-              int job_uid,
-              int job_gid) {}
-    FileCache(const std::vector<std::string>& caches,
-              const std::vector<std::string>& remote_caches,
-              const std::vector<std::string>& draining_caches,
-              const std::string& id,
-              int job_uid,
-              int job_gid,
-              int cache_max=100,
-              int cache_min=100) {}
-    FileCache(const FileCache& cache) {}
-    FileCache() {}
-    bool Start(const std::string& url, bool& available, bool& is_locked, bool use_remote=true, bool delete_first=false) { return false; }
-    bool Stop(const std::string& url) { return false; }
-    bool StopAndDelete(const std::string& url) {return false; }
-    std::string File(const std::string& url) { return url; }
-    bool Link(const std::string& link_path, const std::string& url, bool copy, bool executable, bool holding_lock, bool& try_again)  { return false; }
-    bool Release() const { return false;}
-    bool AddDN(const std::string& url, const std::string& DN, const Time& expiry_time) { return false;}
-    bool CheckDN(const std::string& url, const std::string& DN) { return false; }
-    bool CheckCreated(const std::string& url){ return false; }
-    Time GetCreated(const std::string& url) { return Time(); }
-    operator bool() {
-      return false;
-    };
-    bool operator==(const FileCache& a)  { return false; }
-  };
-#endif /*WIN32*/
-
 
 } // namespace Arc
 

@@ -1,0 +1,366 @@
+#!/bin/bash
+#
+# Init file for the NorduGrid/ARC LDAP based local resource information system
+#
+# chkconfig: 2345 76 24
+# description: NorduGrid/ARC local resource information system
+#
+# config: /etc/sysconfig/nordugrid
+# config: /etc/sysconfig/arc-infosys-ldap
+# config: /etc/arc.conf
+#
+######################################################################
+
+### BEGIN INIT INFO
+# Provides:          arc-infosys-ldap
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NorduGrid/ARC local resource information system
+# Description:       NorduGrid/ARC LDAP based local resource information system
+### END INIT INFO
+
+# Helper functions
+if [ -r /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
+elif [ -r /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+else
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
+fi
+
+RETVAL=0
+prog=arc-infosys-ldap
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/$prog ]; then
+    . /etc/sysconfig/$prog
+elif [ -r /etc/default/$prog ]; then
+    . /etc/default/$prog
+fi
+
+if [ "x$RUN" != "xyes" ]; then
+    log_warning_msg "$prog disabled, please adjust the configuration to your"
+    log_warning_msg "needs and then set RUN to 'yes' in /etc/default/$prog to enable it."
+    exit 0
+fi
+
+[ -n "$ARC_LOCATION" ] && export ARC_LOCATION
+[ -n "$ARC_CONFIG" ]   && export ARC_CONFIG
+
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+
+# Define arc.conf location
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+        ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+        ARC_CONFIG=/etc/arc.conf
+    fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+        log_failure_msg "arc.conf is missing at path: $ARC_CONFIG or no ARC_LOCATION is set"
+        log_failure_msg "If this file is in a non-standard place it can be set"
+        log_failure_msg "  with the ARC_CONFIG environment variable"
+        exit 1
+    fi
+fi
+
+# Define runtime config location for infosys LDAP
+prefix=@prefix@
+runtime_config_dir=@localstatedir@/run/arc
+if [ ! -d "$runtime_config_dir" ]; then
+    mkdir -p "$runtime_config_dir"
+fi
+export ARC_RUNCONFIG="$runtime_config_dir/arc-infosys-ldap.conf"
+unset runtime_config_dir
+unset prefix
+
+# Define arcconfig-parser and dump running configuration
+arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
+${arcconfig_parser} -c ${ARC_CONFIG} --save -r ${ARC_RUNCONFIG}
+
+# Check for infosys block
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys; then
+    log_failure_msg "Missing [infosys] configuration block"
+    exit 1
+fi
+
+# Check for infosys/ldap block
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap; then
+    log_failure_msg "Missing [infosys/ldap] configuration block"
+    exit 1
+fi
+
+eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap -b infosys -b common -e bash)
+
+bdii_user=$CONFIG_user
+if [ -z "$bdii_user" ]; then
+    # Get ldap user from passwd
+    bdii_user=`getent passwd ldap openldap | sed 's/:.*//;q'`
+    if [ -z "$bdii_user" ]; then
+	log_warning_msg "Warning, could not find ldap or openldap user"
+	log_warning_msg "resorting to using the root user"
+	bdii_user=root
+    fi
+fi
+
+bdii_location=${CONFIG_bdii_location:-/usr}
+bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
+if [ ! -x $bdii_update_cmd ]; then
+    log_failure_msg "Can not find bdii-update command at: $bdii_update_cmd."
+    log_failure_msg "Please set bdii_update_cmd in arc.conf"
+    exit 1
+fi
+
+bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+slapd_pid_file=${bdii_run_dir}/db/slapd.pid
+update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
+
+if [ `id -u` = 0 ]; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog-slapd}
+	update_lock_file=${update_lock_file:-/var/lock/subsys/$prog-bdii}
+    else
+	slapd_lock_file=${slapd_lock_file:-/var/lock/$prog-slapd}
+	update_lock_file=${update_lock_file:-/var/lock/$prog-bdii}
+    fi
+else
+    slapd_lock_file=$HOME/$prog-slapd
+    update_lock_file=$HOME/$prog-bdii
+fi
+
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+BDII_CONF=${CONFIG_bdii_conf:-${infosys_ldap_run_dir}/bdii.conf}
+
+start () {
+    if [ -r "${slapd_lock_file}" ] || [ -r "${update_lock_file}" ]; then
+	result=$($0 status)
+	if [ $? -gt 0 ]; then
+	    echo ${result} 1>&2
+	    RETVAL=1
+	else
+	    log_success_msg "$prog already started"
+	    RETVAL=0
+	fi
+	return ${RETVAL}
+    fi
+
+    ${ARC_LOCATION}/@pkgdatasubdir@/create-slapd-config
+    if [ ! $? = 0 ]; then
+	log_failure_msg "Failed to create configuration for $prog slapd"
+	exit 1
+    fi
+
+    ${ARC_LOCATION}/@pkgdatasubdir@/create-bdii-config
+    if [ ! $? = 0 ]; then
+	log_failure_msg "Failed to create configuration for $prog bdii"
+	exit 1
+    fi
+
+    # path to generated helper scripts is hardcoded (in both systemd unit and sysV scripts)
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd.cmd
+    touch ${slapd_lock_file}
+
+    /bin/sh ${infosys_ldap_run_dir}/bdii-slapd-post.cmd
+
+    if ! [ -r "${slapd_pid_file}" ]; then
+	log_failure_msg "$prog slapd failed to start"
+	rm -f ${slapd_lock_file}
+	RETVAL=1
+	return ${RETVAL}
+    fi
+
+    /bin/sh ${infosys_ldap_run_dir}/bdii-update.cmd
+    touch ${update_lock_file}
+
+    /bin/sh ${infosys_ldap_run_dir}/bdii-update-post.cmd
+
+    if [ ! -r ${update_pid_file} ]; then
+	log_failure_msg "$prog bdii failed to start"
+	rm -f ${update_lock_file}
+	RETVAL=1
+	return ${RETVAL}
+    fi
+
+    log_success_msg "$prog started"
+}
+
+stop () {
+    if [ ! -r "${slapd_lock_file}" ] && [ ! -r "${update_lock_file}" ]; then
+	log_success_msg "$prog already stopped"
+	RETVAL=0
+	return ${RETVAL}
+    fi
+
+    if [ -r "${update_pid_file}" ]; then
+	update_pid=$(cat ${update_pid_file})
+	ps ${update_pid} >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "$prog bdii pid file exists but the process died"
+	    RETVAL=1
+	    return ${RETVAL}
+	fi
+    fi
+
+    killall -u ${bdii_user} -15 arc-nordugrid-bdii-ldif 2>/dev/null
+
+    if [ -n "${update_pid}" ]; then
+	kill -15 ${update_pid} 2>/dev/null
+	ps ${update_pid} >/dev/null 2>&1
+	if [ $? = 0 ]; then
+	    sleep 2
+	    ps ${update_pid} >/dev/null 2>&1
+	    if [ $? = 0 ]; then
+		kill -9 ${update_pid} 2>/dev/null
+		sleep 2
+		ps ${update_pid} >/dev/null 2>&1
+		if [ $? = 0 ]; then
+		    log_failure_msg "Could not kill $prog bdii with pid ${update_pid}"
+		    RETVAL=1
+		    return ${RETVAL}
+		fi
+	    fi
+	fi
+    fi
+
+    # Clean up
+    rm -f ${infosys_ldap_run_dir}/arc-glue-bdii-ldif
+
+    rm -f ${update_pid_file}
+    rm -f ${update_lock_file}
+    log_success_msg "$prog bdii stopped"
+
+    if [ -r "${slapd_pid_file}" ]; then
+	slapd_pid=$(cat ${slapd_pid_file})
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "$prog slapd pid file exists but the process died"
+	    RETVAL=1
+	    return ${RETVAL}
+	fi
+    fi
+
+    if [ -n "${slapd_pid}" ]; then
+	kill -15 ${slapd_pid} 2>/dev/null
+	ps ${slapd_pid} >/dev/null 2>&1
+	if [ $? = 0 ]; then
+	    sleep 2
+	    ps ${slapd_pid} >/dev/null 2>&1
+	    if [ $? = 0 ]; then
+		kill -9 ${slapd_pid} 2>/dev/null
+		sleep 2
+		ps ${slapd_pid} >/dev/null 2>&1
+		if [ $? = 0 ]; then
+		    log_failure_msg "Could not stop $prog slapd with pid: $slapd_pid"
+		    RETVAL=1
+		    return ${RETVAL}
+		fi
+	    fi
+	fi
+    fi
+
+    rm -f ${slapd_pid_file}
+    rm -f ${slapd_lock_file}
+    log_success_msg "$prog slapd stopped"
+
+    return ${RETVAL}
+}
+
+status ()  {
+    if [ ! -r "${slapd_lock_file}" ] && [ ! -r "${update_lock_file}" ]; then
+	log_success_msg "$prog is stopped"
+	RETVAL=3
+	return ${RETVAL}
+    fi
+
+    if [ -r ${slapd_pid_file} ]; then
+	ps $(cat ${slapd_pid_file}) >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "ARIS slapd pid file exists but the process died"
+	    RETVAL=1
+	fi
+    else
+	log_failure_msg "ARIS slapd process has no pid file"
+	RETVAL=2
+    fi
+
+    if [ -r ${update_pid_file} ]; then
+	ps $(cat ${update_pid_file}) >/dev/null 2>&1
+	if [ ! $? = 0 ]; then
+	    log_failure_msg "ARIS bdii pid file exists but the process died"
+	    RETVAL=1
+	fi
+    else
+	log_failure_msg "ARIS BDII process has no pid file"
+	RETVAL=2
+    fi
+
+    if [ ${RETVAL} = 0 ]; then
+	log_success_msg "$prog is running"
+    fi
+
+    return ${RETVAL}
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart | force-reload)
+	stop
+	# avoid race
+	sleep 3
+	start
+	;;
+    reload)
+	;;
+    status)
+	status
+	;;
+    condrestart | try-restart)
+	if [ -r ${slapd_lock_file} ] || [ -r ${update_lock_file} ]; then
+	    stop
+	    # avoid race
+	    sleep 3
+	    start
+	fi
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|force-reload|reload|condrestart|try-restart|status}"
+	exit 1
+	;;
+esac
+
+exit $RETVAL

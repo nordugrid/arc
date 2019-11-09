@@ -37,6 +37,16 @@ namespace Arc {
     return SubmissionStatus::NOT_IMPLEMENTED | SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
   }
 
+  void SubmitterPlugin::SetUserConfig(const UserConfig& uc) {
+    // Changing user configuration may change identity.
+    // Hence all open connections become invalid.
+    if(!usercfg || !usercfg->IsSameIdentity(uc)) {
+      delete dest_handle;
+      dest_handle = NULL;
+    }
+    usercfg = &uc;
+  }
+
   bool SubmitterPlugin::PutFiles(const JobDescription& job, const URL& url) const {
     FileCache cache;
     DataMover mover;
@@ -87,7 +97,7 @@ namespace Arc {
 
     job.ActivityOldID = jobdesc.Identification.ActivityOldID;
 
-    jobdesc.UnParse(job.JobDescriptionDocument, !jobdesc.GetSourceLanguage().empty() ? jobdesc.GetSourceLanguage() : "nordugrid:jsdl"); // Assuming job description is valid.
+    jobdesc.UnParse(job.JobDescriptionDocument, !jobdesc.GetSourceLanguage().empty() ? jobdesc.GetSourceLanguage() : "nordugrid:xrsl"); // Assuming job description is valid.
 
     job.LocalInputFiles.clear();
     for (std::list<InputFileType>::const_iterator it = jobdesc.DataStaging.InputFiles.begin();
@@ -96,6 +106,9 @@ namespace Arc {
         job.LocalInputFiles[it->Name] = it->Checksum; //CheckSumAny::FileChecksum(it->Sources.front().Path(), CheckSumAny::cksum, true);
       }
     }
+    job.StdIn = jobdesc.Application.Input;
+    job.StdOut = jobdesc.Application.Output;
+    job.StdErr = jobdesc.Application.Error;
   }
 
   bool SubmitterPlugin::Migrate(const std::string& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& et,

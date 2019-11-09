@@ -671,7 +671,7 @@ static int runmain(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY);
+  usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
 
   if (debug.empty() && !usercfg.Verbosity().empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));

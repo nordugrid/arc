@@ -108,6 +108,8 @@ namespace Arc {
     std::string trusted_ca_file_;
     Credential *signer_;
     static Logger logger;
+    ClientX509Delegation(ClientX509Delegation const&);
+    ClientX509Delegation& operator=(ClientX509Delegation const&);
   };
 
 } // namespace Arc

@@ -10,14 +10,6 @@
 
 #include <glibmm.h>
 
-#ifdef WIN32
-#ifndef uid_t
-#define uid_t int
-#endif
-#ifndef gid_t
-#define gid_t int
-#endif
-#endif
 
 namespace Arc {
 

@@ -11,11 +11,10 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 14:14:58.640281603 +0100
 +++ b/basic-script.sh 2014-01-28 14:14:58.636281603 +0100
-@@ -8,7 +8,7 @@
+@@ -8,6 +8,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=100
  
  # Overide umask of execution node (sometime values are really strange)
@@ -26,8 +25,8 @@ echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_l
 
 function test_memory_cluster_nodememory() {
 read -r -d '' arc_test_configuration <<'EOF'
-[cluster]
-nodememory=300
+[lrms]
+defaultmemory=300
 EOF
 
 read -r -d '' job_description_input <<'EOF'
@@ -37,11 +36,10 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 14:13:39.296280413 +0100
 +++ b/basic-script.sh 2014-01-28 14:13:39.288280412 +0100
-@@ -8,7 +8,7 @@
+@@ -8,6 +8,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=300
  
  # Overide umask of execution node (sometime values are really strange)
@@ -52,8 +50,8 @@ echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_l
 
 function test_memory_queue_nodememory() {
 read -r -d '' arc_test_configuration <<'EOF'
-[queue/nordugrid]
-nodememory=200
+[queue:nordugrid]
+defaultmemory=200
 EOF
 
 read -r -d '' job_description_input <<'EOF'
@@ -64,7 +62,7 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 14:10:18.764277404 +0100
 +++ b/basic-script.sh 2014-01-28 14:10:18.756277403 +0100
-@@ -4,12 +4,13 @@
+@@ -4,11 +4,13 @@
  #SBATCH -e /my/session/directory.comment
  #SBATCH -o /my/session/directory.comment
  
@@ -74,7 +72,6 @@ read -r -d '' job_script_patch <<'EOF'
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=200
  
  # Overide umask of execution node (sometime values are really strange)
@@ -85,11 +82,11 @@ echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_l
 
 function test_memory_cluster_and_queue_nodememory_1() {
 read -r -d '' arc_test_configuration <<'EOF'
-[cluster]
-nodememory=200
+[lrms]
+defaultmemory=200
 
-[queue/nordugrid]
-nodememory=700
+[queue:nordugrid]
+defaultmemory=700
 EOF
 
 read -r -d '' job_description_input <<'EOF'
@@ -100,7 +97,7 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 14:08:57.116276178 +0100
 +++ b/basic-script.sh 2014-01-28 14:08:57.116276178 +0100
-@@ -4,12 +4,13 @@
+@@ -4,10 +4,12 @@
  #SBATCH -e /my/session/directory.comment
  #SBATCH -o /my/session/directory.comment
  
@@ -110,7 +107,6 @@ read -r -d '' job_script_patch <<'EOF'
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=700
  
  # Overide umask of execution node (sometime values are really strange)
@@ -120,11 +116,11 @@ echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_l
 
 function test_memory_cluster_and_queue_nodememory_2() {
 read -r -d '' arc_test_configuration <<'EOF'
-[cluster]
-nodememory=200
+[lrms]
+defaultmemory=200
 
-[queue/nordugrid]
-nodememory=700
+[queue:nordugrid]
+defaultmemory=700
 EOF
 
 read -r -d '' job_description_input <<'EOF'
@@ -134,11 +130,10 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 14:06:57.320274381 +0100
 +++ b/basic-script.sh 2014-01-28 14:06:57.308274381 +0100
-@@ -8,7 +8,7 @@
+@@ -8,6 +8,7 @@
  #SBATCH --get-user-env=10L
  #SBATCH -n 1
  #SBATCH 
--#SBATCH --mem-per-cpu=1000
 +#SBATCH --mem-per-cpu=200
  
  # Overide umask of execution node (sometime values are really strange)

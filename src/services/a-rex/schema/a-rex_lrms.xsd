@@ -23,13 +23,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="maui_bin_path" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation xml:lang="en">
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:element name="dedicated_node_string" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">

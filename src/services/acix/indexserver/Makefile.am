@@ -1,21 +1,18 @@
 if SYSV_SCRIPTS_ENABLED
-INDEXSERVER_SCRIPT = acix-index
+INDEXSERVER_SCRIPT = arc-acix-index
 else
 INDEXSERVER_SCRIPT =
 endif
-dist_initd_SCRIPTS = $(INDEXSERVER_SCRIPT)
+initd_SCRIPTS = $(INDEXSERVER_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
-INDEXSERVER_UNIT = acix-index.service
-INDEXSERVER_UNIT_WRAPPER = acix-index-start
+INDEXSERVER_UNIT = arc-acix-index.service
 else
 INDEXSERVER_UNIT =
-INDEXSERVER_UNIT_WRAPPER =
 endif
 units_DATA = $(INDEXSERVER_UNIT)
-pkgdata_SCRIPTS = $(INDEXSERVER_UNIT_WRAPPER)
 
-EXTRA_DIST = acix-index-start
+pkgdata_SCRIPTS = arc-acix-index-start
 
 SUBDIRS = $(TEST_DIR)
 dist_SUBDIRS = test

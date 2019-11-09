@@ -1,3 +1,2 @@
-New data staging implementation. This code provides an advanced mechanism
-for data transfer and scheduling. It replaces most code in the loaders/
-directory and other directories previously used for data transfer handling.
+ARC data staging implementation. This code provides an advanced mechanism
+for data transfer and scheduling.

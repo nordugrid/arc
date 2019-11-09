@@ -469,6 +469,14 @@ TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInfor
 %}
 %include "../src/hed/libs/compute/JobInformationStorageXML.h"
 
+
+// Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobInformationStorageSQLite.h
+%{
+#include <arc/compute/JobInformationStorageSQLite.h>
+%}
+%include "../src/hed/libs/compute/JobInformationStorageSQLite.h"
+
+
 #ifdef DBJSTORE_ENABLED
 // Wrap contents of $(top_srcdir)/src/hed/libs/compute/JobInformationStorageBDB.h
 %{

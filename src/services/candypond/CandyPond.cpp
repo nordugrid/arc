@@ -37,7 +37,7 @@ static Arc::Plugin *get_service(Arc::PluginArgument* arg)
 Arc::Logger CandyPond::logger(Arc::Logger::rootLogger, "CandyPond");
 
 CandyPond::CandyPond(Arc::Config *cfg, Arc::PluginArgument* parg) :
-                                               RegisteredService(cfg,parg),
+                                               Service(cfg,parg),
                                                dtr_generator(NULL) {
   valid = false;
   // read configuration information
@@ -264,7 +264,7 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
   // TODO: use credentials of caller of this service. For now ask the
   // delegation store for the proxy of the job.
 
-  ARex::DelegationStore::DbType deleg_db_type = ARex::DelegationStore::DbBerkeley;
+  ARex::DelegationStore::DbType deleg_db_type = ARex::DelegationStore::DbSQLite;
   switch (config.DelegationDBType()) {
    case ARex::GMConfig::deleg_db_bdb:
     deleg_db_type = ARex::DelegationStore::DbBerkeley;
@@ -334,17 +334,12 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
     std::string filename = (std::string)f_name;
     std::string session_file = session_dir + '/' + filename;
 
-    Arc::XMLNode resultelement = results.NewChild("Result");
-
     logger.msg(Arc::INFO, "Looking up URL %s", fileurl);
-    resultelement.NewChild("FileURL") = fileurl;
-
     Arc::URL u(fileurl);
     Arc::DataHandle d(u, usercfg);
     if (!d) {
       logger.msg(Arc::ERROR, "Can't handle URL %s", fileurl);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::BadURLError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Could not hande input URL";
+      add_result_element(results, fileurl, CandyPond::BadURLError, "Could not handle input URL");
       error_happened = true;
       continue;
     }
@@ -356,13 +351,11 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
     bool available = false;
     bool is_locked = false;
 
-    if (!cache.Start(url, available, is_locked, true)) {
+    if (!cache.Start(url, available, is_locked)) {
       if (is_locked) {
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Locked);
-        resultelement.NewChild("ReturnCodeExplanation") = "File is locked";
+        add_result_element(results, fileurl, CandyPond::Locked, "File is locked");
       } else {
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::CacheError);
-        resultelement.NewChild("ReturnCodeExplanation") = "Error starting cache";
+        add_result_element(results, fileurl, CandyPond::CacheError, "Error starting cache");
       }
       error_happened = true;
       continue;
@@ -378,8 +371,7 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
       Arc::DataStatus res = d->Check(false);
       if (!res.Passed()) {
         logger.msg(Arc::ERROR, "Permission checking failed: %s", url);
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::PermissionError);
-        resultelement.NewChild("ReturnCodeExplanation") = "Permission denied";
+        add_result_element(results, fileurl, CandyPond::PermissionError, "Permission denied");
         error_happened = true;
         continue;
       }
@@ -397,12 +389,12 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
         continue;
       }
       // failed to link - report as if not there
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::LinkError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
+      add_result_element(results, fileurl, CandyPond::LinkError, "Failed to link to session dir");
       error_happened = true;
       continue;
     }
     // Successfully linked to session - move to scratch if necessary
+    // Note: won't work if scratch is not mounted on CE
     if (!config.ScratchDir().empty()) {
       std::string scratch_file(config.ScratchDir()+'/'+jobid+'/'+filename);
       // Access session and scratch under mapped uid
@@ -410,25 +402,20 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
       if (!fa.fa_setuid(mapped_user.get_uid(), mapped_user.get_gid()) ||
           !fa.fa_rename(session_file, scratch_file)) {
         logger.msg(Arc::ERROR, "Failed to move %s to %s: %s", session_file, scratch_file, Arc::StrError(errno));
-        resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::LinkError);
-        resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to move file from session dir to scratch";
+        add_result_element(results, fileurl, CandyPond::LinkError, "Failed to link to move file from session dir to scratch");
         error_happened = true;
         continue;
       }
     }
 
     // everything went ok so report success
-    resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Success);
-    resultelement.NewChild("ReturnCodeExplanation") = "Success";
+    add_result_element(results, fileurl, CandyPond::Success, "Success");
   }
 
   // check for any downloads to perform, only if requested and there were no previous errors
   if (to_download.empty() || error_happened || !dostage) {
     for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
-      Arc::XMLNode resultelement = results.NewChild("Result");
-      resultelement.NewChild("FileURL") = i->first;
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::NotAvailable);
-      resultelement.NewChild("ReturnCodeExplanation") = "File not available";
+      add_result_element(results, i->first, CandyPond::NotAvailable, "File not available");
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
@@ -437,27 +424,22 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
 
   // Loop through files to download and start a DTR for each one
   for (std::map<std::string, std::string>::iterator i = to_download.begin(); i != to_download.end(); ++i) {
-    Arc::XMLNode resultelement = results.NewChild("Result");
-    resultelement.NewChild("FileURL") = i->first;
 
     // if one DTR failed to start then don't start any more
     // TODO cancel others already started
     if (stage_start_error) {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
+      add_result_element(results, i->first, CandyPond::DownloadError, "Failed to start data staging");
       continue;
     }
 
     logger.msg(Arc::VERBOSE, "Starting new DTR for %s", i->first);
     if (!dtr_generator->addNewRequest(mapped_user, i->first, i->second, usercfg, jobid, priority)) {
       logger.msg(Arc::ERROR, "Failed to start new DTR for %s", i->first);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Failed to start data staging";
+      add_result_element(results, i->first, CandyPond::DownloadError, "Failed to start data staging");
       stage_start_error = true;
     }
     else {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Staging);
-      resultelement.NewChild("ReturnCodeExplanation") = "Staging started";
+      add_result_element(results, i->first, CandyPond::Staging, "Staging started");
     }
   }
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -491,30 +473,25 @@ Arc::MCC_Status CandyPond::CacheLinkQuery(Arc::XMLNode in, Arc::XMLNode out) {
   // set up response structure
   Arc::XMLNode resp = out.NewChild("CacheLinkQueryResponse");
   Arc::XMLNode results = resp.NewChild("CacheLinkQueryResult");
-  Arc::XMLNode resultelement = results.NewChild("Result");
 
   std::string error;
   // query Generator for DTR status
   if (dtr_generator->queryRequestsFinished(jobid, error)) {
     if (error.empty()) {
       logger.msg(Arc::INFO, "Job %s: all files downloaded successfully", jobid);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Success);
-      resultelement.NewChild("ReturnCodeExplanation") = "Success";
+      add_result_element(results, "", CandyPond::Success, "Success");
     }
     else if (error == "Job not found") {
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::CacheError);
-      resultelement.NewChild("ReturnCodeExplanation") = "No such job";
+      add_result_element(results, "", CandyPond::CacheError, "No such job");
     }
     else {
       logger.msg(Arc::INFO, "Job %s: Some downloads failed", jobid);
-      resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::DownloadError);
-      resultelement.NewChild("ReturnCodeExplanation") = "Download failed: " + error;
+      add_result_element(results, "", CandyPond::DownloadError, "Download failed: " + error);
     }
   }
   else {
     logger.msg(Arc::VERBOSE, "Job %s: files still downloading", jobid);
-    resultelement.NewChild("ReturnCode") = Arc::tostring(CandyPond::Staging);
-    resultelement.NewChild("ReturnCodeExplanation") = "Still staging";
+    add_result_element(results, "", CandyPond::Staging, "Still staging");
   }
 
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -612,12 +589,11 @@ Arc::MCC_Status CandyPond::process(Arc::Message &inmsg, Arc::Message &outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-bool CandyPond::RegistrationCollector(Arc::XMLNode &doc) {
-  Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
-  Arc::XMLNode regentry(isis_ns, "RegEntry");
-  regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.candypond";
-  regentry.New(doc);
-  return true;
+void CandyPond::add_result_element(Arc::XMLNode& results, const std::string& fileurl, CacheLinkReturnCode returncode, const std::string& reason) {
+  Arc::XMLNode resultelement = results.NewChild("Result");
+  if (!fileurl.empty()) resultelement.NewChild("FileURL") = fileurl;
+  resultelement.NewChild("ReturnCode") = Arc::tostring(returncode);
+  resultelement.NewChild("ReturnCodeExplanation") = reason;
 }
 
 Arc::MCC_Status CandyPond::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {

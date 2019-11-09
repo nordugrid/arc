@@ -1,45 +1,67 @@
 #!/bin/bash
 
+# Define logging functions
+send_systemd_notify() {
+    # return if no systemd-notify found
+    type systemd-notify >/dev/null 2>&1 || return
+    systemd-notify "$@"
+}
+
+log_failure_msg() {
+    send_systemd_notify --status "Error: $@"
+    echo $@
+}
+
 # Create bdii config for the NorduGrid/ARC information system
 
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+        ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+        ARC_CONFIG=/etc/arc.conf
+    fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+        log_failure_msg "arc.conf is missing at path: $ARC_CONFIG or no ARC_LOCATION is set"
+        log_failure_msg "If this file is in a non-standard place it can be set"
+        log_failure_msg "  with the ARC_CONFIG environment variable"
+        exit 1
+    fi
+fi
+
+# Define runtime config location for infosys LDAP
+prefix=@prefix@
+runtime_config_dir=@localstatedir@/run/arc
+if [ ! -d "$runtime_config_dir" ]; then
+    mkdir -p "$runtime_config_dir"
+fi
+export ARC_RUNCONFIG="$runtime_config_dir/arc-infosys-ldap.conf"
+unset runtime_config_dir
+unset prefix
+
+# Define arcconfig-parser and dump running configuration
 arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
-
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-if [ ! -r "$ARC_CONFIG" ]; then
-    echo "ARC configuration file ($ARC_CONFIG) not found"
-    echo "If this file is in a non-standard place it can be set with the"
-    echo "  ARC_CONFIG environment variable"
-    exit 1
-fi
+${arcconfig_parser} -c ${ARC_CONFIG} --save -r ${ARC_RUNCONFIG}
 
 # Check for infosys block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
-    echo "Missing [infosys] configuration block"
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys; then
+    log_failure_msg "Missing [infosys] configuration block"
     exit 1
 fi
 
 # Check for infosys/ldap block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
-    echo "Missing [infosys/ldap] configuration block"
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap; then
+    log_failure_msg "Missing [infosys/ldap] configuration block"
     exit 1
 fi
 
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
-
-# These options need to come from the infosys block, not from common
-unset CONFIG_logfile
-unset CONFIG_user
-unset CONFIG_port
-
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii -e bash)
+eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap -b infosys -b common -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -58,7 +80,7 @@ providerlog=${CONFIG_logfile:-/var/log/arc/infoprovider.log}
 bdii_location=${CONFIG_bdii_location:-/usr}
 bdii_update_cmd=${CONFIG_bdii_update_cmd:-${bdii_location}/sbin/bdii-update}
 if [ ! -x $bdii_update_cmd ]; then
-    echo "Can not find bdii-update command at: $bdii_update_cmd."
+    log_failure_msg "Can not find bdii-update command at: $bdii_update_cmd."
     echo "Please set bdii_update_cmd in arc.conf"
     exit 1
 fi
@@ -67,7 +89,19 @@ infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
-bdii_debug_level=${CONFIG_bdii_debug_level:-ERROR}
+# Put BDII update helper to known directory
+helpers_dir=$infosys_ldap_run_dir
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    helpers_dir="${FORCE_ARC_RUNDIR}/infosys"
+    mkdir -p "${helpers_dir}"
+fi
+
+bdii_update_exechelper_cmd=${helpers_dir}/bdii-update.cmd
+rm -f $bdii_update_exechelper_cmd
+bdii_update_posthelper_cmd=${helpers_dir}/bdii-update-post.cmd
+rm -f $bdii_update_posthelper_cmd
+
+bdii_debug_level=${CONFIG_bdii_debug_level:-WARNING}
 
 bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
@@ -87,13 +121,13 @@ bdii_port=${CONFIG_port:-2135}
 # Using uppercase characters in bdii_bind will break infosys.
 bdii_bind="o=grid"
 
-# $provider_timeout refers to the time bdii waits for the provider output to complete.
-provider_timeout=${CONFIG_provider_timeout:-10800}
+# $bdii_provider_timeout refers to the time bdii waits for the provider output to complete.
+bdii_provider_timeout=${CONFIG_bdii_provider_timeout:-10800}
 # $infoproviders_timelimit is a-rex's infoproviders timeout.
-infoproviders_timelimit=$(${arcconfig_parser} -c ${ARC_CONFIG} -b arex -o infoproviders_timelimit)
+infoproviders_timelimit=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b arex -o infoproviders_timelimit)
 infoproviders_timelimit=${infoproviders_timelimit:-10800}
 # $wakeupperiod is the time a-rex waits before running infoproviders again.
-wakeupperiod=$(${arcconfig_parser} -c ${ARC_CONFIG} -b arex -o wakeupperiod)
+wakeupperiod=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b arex -o wakeupperiod)
 wakeupperiod=${wakeupperiod:-120}
 bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 
@@ -103,12 +137,29 @@ bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
 
 # max_cycle is the time bdii will trust the content of any provider to be fresh enough
-max_cycle=$(( $provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
+max_cycle=$(( $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
 bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
 
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
-update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
+# PIDFile location handling
+update_pid_file=$( readlink -m ${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid} )
+
+# forced pidfile location instead of arc.conf-based (if FORCE_ARC_RUNDIR is set)
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    pid_dir="${FORCE_ARC_RUNDIR}/bdii"
+    mkdir -p "$pid_dir"
+    chown -R ${bdii_user}: "$pid_dir"
+    pid_file="$( readlink -m ${pid_dir}/bdii-update.pid )"
+    if [ "x${update_pid_file}" != "x${pid_file}" ]; then
+        custom_pid_file="${update_pid_file}"
+        rm -f "${custom_pid_file}"
+        update_pid_file="${pid_file}"
+    fi
+    unset pid_dir pid_file
+fi
+
+rm -f "${update_pid_file}"
 
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
@@ -125,11 +176,11 @@ chown ${bdii_user}: ${providerlog}
 mkdir -p $bdii_log_dir
 chown -R ${bdii_user}: ${bdii_log_dir}
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/nordugrid || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1 || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2/ldap; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2/ldap; then
    if [ ! -f "$ARC_LOCATION/@pkgdatasubdir@/InfosysHelper.pm" ]; then
-	  echo "InfosysHelper.pm not found. Is A-REX installed?"
+	  log_failure_msg "InfosysHelper.pm not found. Is A-REX installed?"
 	  echo "For operation without A-REX, disable publishing of cluster information"
 	  echo "([infosys/nordugrid], [infosys/glue1] and [infosys/glue2/ldap])"
 	  exit 1
@@ -146,9 +197,9 @@ processorotherdescription=""
 gluesiteweb=""
 gluesiteuniqueid=""
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
 
-    eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1 -e bash)
+    eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 -e bash)
 
     resource_location=${CONFIG_resource_location}
     resource_latitude=${CONFIG_resource_latitude}
@@ -158,57 +209,57 @@ if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
     gluesiteweb=${CONFIG_glue_site_web}
     gluesiteuniqueid=${CONFIG_glue_site_unique_id}
 
-    if [ -z "$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1/site -s)" ]; then
+    if ${arcconfig_parser}  --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii ; then
 	provide_glue_site_info="true"
     else
 	provide_glue_site_info="false"
     fi
 
     if [ "x$resource_location" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then resource_location must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then resource_location must be set."
 	echo "It should be set to a free-form string describing the location,"
 	echo "for example: 'Kastrup, Denmark'"
 	exit 1
     fi
     if [[ "x$resource_location" =~ "/" ]]; then
-	echo "WARNING: wrong location format. Please do NOT use slashes / ."
+	log_failure_msg "Wrong location format. Please do NOT use slashes / ."
 	echo "It should be set to a free-form string describing the location,"
 	echo "for example: 'Kastrup, Denmark'"
 	exit 1
     fi
     if [ "x$resource_latitude" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then resource_latitude must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then resource_latitude must be set."
 	echo "It should be set to the latitude for the location,"
 	echo "for example: '55.75000'"
 	exit 1
     fi
     if [ "x$resource_longitude" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then resource_longitude must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then resource_longitude must be set."
 	echo "It should be set to the longitude for the location,"
 	echo "for example: '12.41670'"
 	exit 1
     fi
     if [ "x$cpuscalingreferencesi00" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then cpu_scaling_reference_si00 must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then cpu_scaling_reference_si00 must be set."
 	echo "It should be set to the SI00 value,"
 	echo "for example: '2400'"
 	exit 1
     fi
     if [ "x$processorotherdescription" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then processor_other_description must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then processor_other_description must be set."
 	echo "It should be set to a value like in the example,where cores is the average number"
 	echo "of cores in the machine"
 	echo "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
 	exit 1
     fi
     if [ "x$gluesiteweb" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then glue_site_web must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then glue_site_web must be set."
 	echo "It should be set to a url for the website belonging to the institution holding the resource,"
 	echo "for example: 'http://www.ndgf.org'"
 	exit 1
     fi
     if [ "x$gluesiteuniqueid" = "x" ]; then
-	echo "If [infosys/glue1] is enabled, then glue_site_unique_id must be set."
+	log_failure_msg "If [infosys/glue1] is enabled, then glue_site_unique_id must be set."
 	echo "It should be set to a unique id to the resource, this should be entered into the GocDb"
 	echo "for example: 'NDGF-T1'"
 	exit 1
@@ -229,8 +280,8 @@ chown -R ${bdii_user}: ${bdii_var_dir}
 chown -R ${bdii_user}: ${bdii_run_dir}
 chown -R ${bdii_user}: ${bdii_tmp_dir}
 
-# Generate bdii configuration
 
+# Generate bdii configuration
 rm -f ${BDII_CONF}
 cat <<-EOF >> ${BDII_CONF}
 	# This file was automatically generated by $0
@@ -315,12 +366,12 @@ cat <<-EOF >> ${ldif_generator_file}
 	exit 1 unless InfosysHelper::ldifIsReady('$infosys_ldap_run_dir', '$max_cycle');
 	EOF
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/nordugrid || \
-   ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2/ldap; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
+   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2/ldap; then
    echo "system('$ldif_script');" >> ${ldif_generator_file}
 fi
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
 	ldif_generator_file_ng=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
 	ldif_generator_file_glue=${bdii_tmp_dir}/provider/arc-glue-bdii-ldif
 
@@ -351,20 +402,56 @@ chmod +x ${ldif_generator_file}
 
 # Site BDII
 
-for site_bdii in $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue1/site -s); do
-    (
-	eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b ${site_bdii} -e bash)
-	unique_id=${CONFIG_unique_id:-${CONFIG___block_name}}
-	site_config="${bdii_tmp_dir}/${CONFIG___block_name}.conf"
-	site_provider="$bdii_provider_dir/site_${CONFIG___block_name}.sh"
+if [ "x$provide_glue_site_info" == "xtrue" ]; then
+	eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii -e bash)
+	unique_id=${CONFIG_unique_id}
 	url=${CONFIG_url}
+    if [ -z "$unique_id" -o -z "$url" ]; then
+        log_failure_msg "Mandaroty options 'unique_id' and 'url' should be configured for Site-BDII."
+        exit 1
+    fi
+	site_config="${bdii_tmp_dir}/${unique_id}.conf"
+	site_provider="$bdii_provider_dir/site_${unique_id}.sh"
 	echo "$unique_id $url" > "$site_config"
 	# Create script and make glite provider use arc directories
 	cat <<-EOF > $site_provider
 		#!/bin/sh
 		export GLITE_LOCATION_VAR=${bdii_tmp_dir}
-		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$CONFIG___block_name" -c $site_config
+		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$unique_id" -c $site_config
 		EOF
 	chmod +x $site_provider
-    )
+fi
+
+# Helper script to start BDII Update switching to BDII user
+if [ -x /sbin/runuser ]; then
+    RUNUSER=runuser
+else
+    RUNUSER=su
+fi
+USERSHELL=${USERSHELL:-"/bin/sh"}
+if [ ! -x ${USERSHELL} ]; then
+    log_failure_msg "Could not find ${USERSHELL}"
+    exit 1
+fi
+
+cat <<-EOF > ${bdii_update_exechelper_cmd}
+if [ \$( id -u ) = 0 ]; then
+    exec $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
+else
+    exec ${bdii_update_cmd} -c ${BDII_CONF} -d
+fi
+EOF
+
+cat <<-EOF > ${bdii_update_posthelper_cmd}
+iterlimit=30
+while [ \$iterlimit -ge 0 ] && ! [ -r "${update_pid_file}" ]; do
+  sleep 1
+  iterlimit=\$(expr \$iterlimit - 1)
 done
+EOF
+
+# copy forced pidfile to custom arc.conf pidfile (if needed)
+if [ -n "${custom_pid_file}" ]; then
+    echo "mkdir -p \"${custom_pid_file%/*}\"" >> ${bdii_update_posthelper_cmd}
+    echo "cp -a \"${update_pid_file}\" \"${custom_pid_file}\"" >> ${bdii_update_posthelper_cmd}
+fi

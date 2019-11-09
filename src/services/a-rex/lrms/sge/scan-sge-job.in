@@ -7,48 +7,46 @@
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
-
-basedir=`dirname $0`
-basedir=`cd $basedir > /dev/null && pwd` || exit $?
-
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-# Assume that gm-kick and scan_common are installed in the same directory
-GMKICK=${pkglibexecdir}/gm-kick
-. "${pkgdatadir}/scan_common.sh" || exit $?
-
-##############################################################
-# Set SGE specific environment.
-##############################################################
-. "${pkgdatadir}/configure-sge-env.sh" 1>&2 || exit $?
-
-##############################################################
-
-olog () { echo "[`date +%Y-%m-%d\ %T`] scan-sge-job: $*" 1>&2; }
-
-
-umask 022
-
-my_id=`id -u`
-
 if [ -z "$1" ] ; then exit 1 ; fi
-
-TMPDIR=${TMPDIR:-@tmp_dir@}
-
-# Log system performance
-if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
-fi
-
 # first control_dir is used for storing own files
-
 control_dir=$1
 control_dirs=
 while [ $# -gt 0 ] ; do
   control_dirs="${control_dirs} $1"
   shift
 done
+
+joboption_lrms="sge"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
+queue_options="sge_jobopts"
+
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
+
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# Assume that gm-kick and scan_common are installed in the same directory
+GMKICK=${pkglibexecdir}/gm-kick
+
+olog () { echo "[`date +%Y-%m-%d\ %T`] scan-sge-job: $*" 1>&2; }
+
+umask 022
+
+my_id=`id -u`
+
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
 
 # Takes diagfile_acct, SGE qacct command, id and extraargs
 # writes output to diagfile_acct (temporary file for accounting info)
@@ -266,7 +264,7 @@ add_accounting_to_diag () {
     handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
 	
     # wake up GM
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
     rm -f "$countfile"
     rm -f "$diagfile_tmp" "$diagfile_acct"
@@ -307,7 +305,7 @@ handle_missing_accounting () {
       echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
     fi
 
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
     return
   fi
@@ -342,7 +340,7 @@ handle_missing_accounting () {
     rm -f "$countfile"
 
     # wake up GM
-    $GMKICK "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
 
   else
     # test again for job existence, only count if not known

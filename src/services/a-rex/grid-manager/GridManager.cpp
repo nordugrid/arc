@@ -14,6 +14,8 @@
 #include "jobs/CommFIFO.h"
 #include "log/JobLog.h"
 #include "log/JobsMetrics.h"
+#include "log/HeartBeatMetrics.h"
+#include "log/SpaceMetrics.h"
 #include "run/RunRedirected.h"
 #include "run/RunParallel.h"
 #include "files/ControlFileHandling.h"
@@ -179,7 +181,7 @@ void WakeupInterface::thread() {
       // Event arrived
       if(!event.empty()) {
         // job id provided
-logger.msg(Arc::WARNING, "==== External request for attention %s", event);
+        logger.msg(Arc::DEBUG, "External request for attention %s", event);
         jobs_.RequestAttention(event);
       } else {
         // generic kick
@@ -302,7 +304,12 @@ bool GridManager::thread() {
     }
     // TODO: check conditions for following calls
     JobLog* joblog = config_.GetJobLog();
-    if(joblog) joblog->RunReporter(config_);
+    if(joblog) {
+      // run jura reporter if enabled
+      if (joblog->ReporterEnabled()){
+        joblog->RunReporter(config_);
+      }
+    }
     JobsMetrics* metrics = config_.GetJobsMetrics();
     if(metrics) metrics->Sync();
     // Process jobs which need attention ASAP
@@ -348,6 +355,15 @@ bool GridManager::thread() {
       };
 
     };
+
+    //Is this the right place to call ReportHeartBeatChange?
+    HeartBeatMetrics* heartbeat_metrics = config_.GetHeartBeatMetrics();
+    if(heartbeat_metrics) heartbeat_metrics->ReportHeartBeatChange(config_);
+
+    SpaceMetrics* space_metrics = config_.GetSpaceMetrics();
+    if(space_metrics) space_metrics->ReportSpaceChange(config_);
+
+
 
     jobs.WaitAttention();
     logger.msg(Arc::DEBUG,"Waking up");

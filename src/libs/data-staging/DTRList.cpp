@@ -161,9 +161,38 @@ namespace DataStaging {
     return true;
   }
 
+  void DTRList::check_priority_changes(const std::string& filename) {
+
+    // Check for file with requested changes
+    std::list<std::string> prio_info;
+    if (!Arc::FileRead(filename, prio_info)) return;
+    Arc::FileCopy(filename, std::string(filename + ".read"));
+    Arc::FileDelete(filename);
+
+    std::map<std::string, int> new_prio;
+    for (std::list<std::string>::const_iterator i = prio_info.begin(); i != prio_info.end(); ++i) {
+      std::list<std::string> tokens;
+      Arc::tokenize(*i, tokens);
+      unsigned int prio;
+      if (tokens.size() == 2 && Arc::stringto(tokens.back(), prio)) {
+        new_prio[tokens.front()] = prio;
+      }
+    }
+
+    std::list<DTR_ptr>::iterator it;
+
+    Lock.lock();
+    for(it = DTRs.begin();it != DTRs.end(); ++it) {
+      if(new_prio.find((*it)->get_id()) != new_prio.end()) {
+        (*it)->set_priority(new_prio[(*it)->get_id()]);
+      }
+    }
+    Lock.unlock();
+  }
+
   void DTRList::caching_started(DTR_ptr request) {
     CachingLock.lock();
-    CachingSources.insert(request->get_source_str());
+    CachingSources[request->get_source_str()] = request->get_priority();
     CachingLock.unlock();
   }
 
@@ -176,7 +205,22 @@ namespace DataStaging {
   bool DTRList::is_being_cached(DTR_ptr DTRToCheck) {
 
     CachingLock.lock();
-    bool caching = (CachingSources.find(DTRToCheck->get_source_str()) != CachingSources.end());
+    std::map<std::string, int>::iterator i = CachingSources.find(DTRToCheck->get_source_str());
+    bool caching = (i != CachingSources.end());
+    // If already caching, find the DTR and increase its priority if necessary
+    if (caching && i->second < DTRToCheck->get_priority()) {
+      Lock.lock();
+      for(std::list<DTR_ptr>::iterator it = DTRs.begin();it != DTRs.end(); ++it) {
+        if ((*it)->get_source_str() == DTRToCheck->get_source_str() &&
+            ((*it)->get_status() != DTRStatus::CACHE_WAIT && (*it)->get_status() != DTRStatus::CHECK_CACHE)) {
+          (*it)->get_logger()->msg(Arc::INFO, "Boosting priority from %i to %i due to incoming higher priority DTR",
+                                   (*it)->get_priority(), DTRToCheck->get_priority());
+          (*it)->set_priority(DTRToCheck->get_priority());
+          CachingSources[DTRToCheck->get_source_str()] = DTRToCheck->get_priority();
+        }
+      }
+      Lock.unlock();
+    }
     CachingLock.unlock();
     return caching;
   }

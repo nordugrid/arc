@@ -5,35 +5,6 @@
 #include <cstdlib>
 #include <unistd.h>
 
-#ifdef WIN32
-#include <winsock2.h>
-typedef int socklen_t;
-#define ErrNo WSAGetLastError()
-
-#include <stdio.h>
-// There is no inet_ntop on WIN32
-inline const char *inet_ntop(int af, const void *__restrict src, char *__restrict dest, socklen_t size)
-{
-  // IPV6 not supported (yet?)
-  if(AF_INET!=af)
-  {
-    printf("inet_ntop is only implemented for AF_INET address family on win32/msvc8");
-    abort();
-  }
-
-  // Format address
-  char *s=inet_ntoa(*reinterpret_cast<const in_addr*>(src));
-  if(!s)
-    return 0;
-
-  // Copy to given buffer
-  socklen_t len=(socklen_t)strlen(s);
-  if(len>=size)
-    return 0;
-  return strncpy(dest, s, len);
-}
-
-#else // UNIX
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>
 #include <sys/types.h>
@@ -43,7 +14,6 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include <netinet/tcp.h>
 #include <netdb.h>
 #define ErrNo errno
-#endif
 
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadRaw.h>
@@ -98,13 +68,6 @@ using namespace Arc;
 
 
 MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,parg),valid_(false),max_executers_(-1),max_executers_drop_(false) {
-#ifdef WIN32
-    WSADATA wsadata;
-    if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-      logger.msg(ERROR, "Cannot initialize winsock library");
-        return;
-    }
-#endif
     for(int i = 0;;++i) {
         struct addrinfo hint;
         struct addrinfo *info = NULL;
@@ -272,9 +235,6 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
         lock_.unlock(); sleep(1); lock_.lock();
     };
     lock_.unlock();
-#ifdef WIN32
-    WSACleanup();
-#endif
 }
 
 MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t,bool nd):obj(o),handle(h),no_delay(nd),timeout(t) {
@@ -284,11 +244,7 @@ MCC_TCP_Service::mcc_tcp_exec_t::mcc_tcp_exec_t(MCC_TCP_Service* o,int h,int t,b
     if(!CreateThreadFunction(&MCC_TCP_Service::executer,&(*e))) {
         logger.msg(ERROR, "Failed to start thread for communication");
         ::shutdown(handle,2);
-#ifdef WIN32
-        ::closesocket(handle); handle=-1; o->executers_.erase(e);
-#else
         ::close(handle);  handle=-1; o->executers_.erase(e);
-#endif
     };
 }
 
@@ -630,13 +586,6 @@ MCC_Status MCC_TCP_Service::process(Message&,Message&) {
 }
 
 MCC_TCP_Client::MCC_TCP_Client(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,parg),s_(NULL) {
-#ifdef WIN32
-    WSADATA wsadata;
-    if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
-      logger.msg(ERROR, "Cannot initialize winsock library");
-        return;
-    }
-#endif
     XMLNode c = (*cfg)["Connect"][0];
     if(!c) {
         logger.msg(ERROR,"No Connect element specified");
@@ -673,9 +622,6 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,pa
 
 MCC_TCP_Client::~MCC_TCP_Client(void) {
     if(s_) delete(s_);
-#ifdef WIN32
-    WSACleanup();
-#endif
 }
 
 MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {

@@ -56,7 +56,37 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
   return false;
 }
 
+static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched) {
+  for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((l1->second) == (*l2)) {
+        matched = l1->second;
+        return l1->first;
+      };
+    };
+  };
+  return false;
+}
+
 static bool match_groups(std::list<std::string> const & groups, ARexGMConfig& config) {
+  std::string matched_group;
+  if(!groups.empty()) {
+    for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
+      if(*a) {
+        // This security attribute collected information about user's authorization groups
+        Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
+        if(sattr) {
+          if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+            return true;
+          };
+        };
+      };
+    };
+  };
+  return false;
+}
+
+static bool match_groups(std::list<std::pair<bool,std::string> > const & groups, ARexGMConfig& config) {
   std::string matched_group;
   if(!groups.empty()) {
     for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
@@ -243,7 +273,7 @@ bool ARexJob::is_allowed(bool fast) {
   return true;
 }
 
-ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check):id_(id),logger_(logger),config_(config) {
+ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check):id_(id),logger_(logger),config_(config),uid_(0),gid_(0) {
   if(id_.empty()) return;
   if(!config_) { id_.clear(); return; };
   // Reading essential information about job
@@ -251,15 +281,20 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   // Checking if user is allowed to do anything with that job
   if(!is_allowed(fast_auth_check)) { id_.clear(); return; };
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
+  // Checking for presence of session dir and identifying local user id.
+  struct stat st;
+  if(stat(job_.sessiondir.c_str(),&st) != 0) { id_.clear(); return; };
+  uid_ = st.st_uid; 
+  gid_ = st.st_gid; 
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
-    Arc::XMLNode jsdldoc;
-    jsdl.New(jsdldoc);
-    jsdldoc.GetDoc(job_desc_str);
+    Arc::XMLNode doc;
+    xmljobdesc.New(doc);
+    doc.GetDoc(job_desc_str);
   };
   make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
 }
@@ -270,6 +305,8 @@ ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std:
 
 void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
   if(!config_) return;
+  uid_ = config_.User().get_uid();
+  gid_ = config_.User().get_gid();
   if(!config_.GmConfig().AllowNew()) {
     std::list<std::string> const & groups = config_.GmConfig().AllowSubmit();
     if(!match_groups(groups, config_)) {
@@ -303,7 +340,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
     return;
   };
   job_.sessiondir = sessiondir+"/"+id_;
-  GMJob job(id_,Arc::User(config_.User().get_uid()),job_.sessiondir,JOB_STATE_ACCEPTED);
+  GMJob job(id_,Arc::User(uid_),job_.sessiondir,JOB_STATE_ACCEPTED);
   // Store description
   if(!job_description_write_file(job,config_.GmConfig(),job_desc_str)) {
     delete_job_id();
@@ -363,7 +400,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       };
       if(*q == job_.queue) {
         // Before allowing this queue check for allowed authorization group
-        std::list<std::string> const & groups = config_.GmConfig().AllowedGroups(job_.queue.c_str());
+        std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(job_.queue.c_str());
         if(!groups.empty()) {
           if(!match_groups(groups, config_)) {
             failure_="Requested queue "+job_.queue+" is not allowed for this user";
@@ -708,35 +745,32 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   deleg_ids.unique();
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
-logger_.msg(Arc::WARNING, "=== New job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return;
 }
 
-bool ARexJob::GetDescription(Arc::XMLNode& jsdl) {
+bool ARexJob::GetDescription(Arc::XMLNode& xmljobdesc) {
   if(id_.empty()) return false;
   std::string sdesc;
   if(!job_description_read_file(id_,config_.GmConfig(),sdesc)) return false;
   Arc::XMLNode xdesc(sdesc);
   if(!xdesc) return false;
-  jsdl.Replace(xdesc);
+  xmljobdesc.Replace(xdesc);
   return true;
 }
 
 bool ARexJob::Cancel(void) {
   if(id_.empty()) return false;
-  GMJob job(id_,Arc::User(config_.User().get_uid()));
+  GMJob job(id_,Arc::User(uid_));
   if(!job_cancel_mark_put(job,config_.GmConfig())) return false;
-logger_.msg(Arc::WARNING, "=== Cancel job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
 
 bool ARexJob::Clean(void) {
   if(id_.empty()) return false;
-  GMJob job(id_,Arc::User(config_.User().get_uid()));
+  GMJob job(id_,Arc::User(uid_));
   if(!job_clean_mark_put(job,config_.GmConfig())) return false;
-logger_.msg(Arc::WARNING, "=== Clean job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -751,11 +785,10 @@ bool ARexJob::Resume(void) {
     // Job run out of number of allowed retries.
     return false;
   };
-  if(!job_restart_mark_put(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig())) {
+  if(!job_restart_mark_put(GMJob(id_,Arc::User(uid_)),config_.GmConfig())) {
     // Failed to report restart request.
     return false;
   };
-logger_.msg(Arc::WARNING, "=== Resume job request for attention: %s", id_);
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
@@ -797,7 +830,7 @@ Arc::Time ARexJob::Modified(void) {
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
-  GMJob job(id_,Arc::User(config_.User().get_uid()),
+  GMJob job(id_,Arc::User(uid_),
             config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,config_.GmConfig(),job_)) return false;
   return true;
@@ -813,7 +846,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
   Arc::Credential cred(credentials,"","","","",false);
   job_.expiretime = cred.GetEndTime();
-  GMJob job(id_,Arc::User(config_.User().get_uid()),
+  GMJob job(id_,Arc::User(uid_),
             config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
 #if 0
   std::string cred_public;
@@ -862,7 +895,7 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    job_clean_final(GMJob(id_,Arc::User(config_.User().get_uid()),
+    job_clean_final(GMJob(id_,Arc::User(uid_),
                 config_.GmConfig().SessionRoot(id_)+"/"+id_),config_.GmConfig());
     id_="";
   };
@@ -870,15 +903,13 @@ bool ARexJob::delete_job_id(void) {
 }
 
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
-  JobsList jobs(config.GmConfig());
-  return jobs.CountAllJobs();
+  return JobsList::CountAllJobs(config.GmConfig());
 }
 
 // TODO: optimize
 std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
-  JobsList jobs(config.GmConfig());
-  jobs.GetAllJobIds(jlist);
+  JobsList::GetAllJobIds(config.GmConfig(),jlist);
   std::list<std::string>::iterator i = jlist.begin();
   while(i!=jlist.end()) {
     ARexJob job(*i,config,logger,true);
@@ -940,7 +971,7 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
     delete fa;
     return NULL;
   };
-  if(!fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
+  if(!fa->fa_setuid(uid_,gid_)) {
     Arc::FileAccess::Release(fa);
     return NULL;
   };
@@ -981,10 +1012,10 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
   else if(for_write) { flags=O_WRONLY; }
-  //return Arc::FileOpen(fname,flags,config_.User().get_uid(),config_.User().get_gid(),0);
+  //return Arc::FileOpen(fname,flags,uid_,gid_,0);
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
-    if(fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
+    if(fa->fa_setuid(uid_,gid_)) {
       if(fa->fa_open(fname,flags,0)) {
         return fa;
       };
@@ -1008,7 +1039,7 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
   dname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+dname;
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
-    if(fa->fa_setuid(config_.User().get_uid(),config_.User().get_gid())) {
+    if(fa->fa_setuid(uid_,gid_)) {
       if(fa->fa_opendir(dname)) {
         return fa;
       };
@@ -1074,16 +1105,14 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   if(id_.empty()) return false;
   std::string fname = filename;
   if(!normalize_filename(fname)) return false;
-  if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/"+fname)) return false;
-logger_.msg(Arc::WARNING, "=== New file request for attention: %s", id_);
+  if(!job_input_status_add_file(GMJob(id_,Arc::User(uid_)),config_.GmConfig(),"/"+fname)) return false;
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }
 
 bool ARexJob::ReportFilesComplete(void) {
   if(id_.empty()) return false;
-  if(!job_input_status_add_file(GMJob(id_,Arc::User(config_.User().get_uid())),config_.GmConfig(),"/")) return false;
-logger_.msg(Arc::WARNING, "=== New files request for attention: %s", id_);
+  if(!job_input_status_add_file(GMJob(id_,Arc::User(uid_)),config_.GmConfig(),"/")) return false;
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return true;
 }

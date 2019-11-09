@@ -14,11 +14,6 @@
 #include <signal.h>
 #include <sys/stat.h>
 
-#ifdef WIN32
-#define NOGDI
-#include <winsock2.h>
-#endif
-
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
@@ -183,7 +178,6 @@ namespace Arc {
         logger.msg(INFO, "This process already owns the lock on %s", filename);
       }
       else if (lock_pid != -1) {
-#ifndef WIN32
         // check if the pid owning the lock is still running - if not we can claim the lock
         if (kill(lock_pid, 0) != 0 && errno == ESRCH) {
           logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
@@ -195,7 +189,6 @@ namespace Arc {
           lock_removed = true;
           return acquire_(lock_removed);
         }
-#endif
       }
       logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
       return false;

@@ -176,7 +176,7 @@ sub translator(){
 	$glueHostArchitecturePlatformType=$cluster_attributes{'nordugrid-cluster-architecture'};
 	$glueSubClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};
 	$glueSubClusterName=$glue_site_unique_id;
-	if ( $processorOtherDesc =~ m/Cores=(\d+)/ ){
+	if ( $processorOtherDesc =~ m/Cores=([0-9]*\.?[0-9]+)/ ){
 	    $smpSize=$1;
 	    $glueSubClusterPhysicalCPUs=int($cluster_attributes{'nordugrid-cluster-totalcpus'}/$smpSize);
 	}
@@ -186,6 +186,7 @@ sub translator(){
 	}
 	$glueSubClusterLogicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
 	$glueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};
+    $smpSize = int($smpSize);
     
 	WriteSubCluster();
     }
@@ -204,13 +205,14 @@ sub translator(){
     # Service information. This is an hack to mimic Site-BDII service information.
     my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
-    my $glueservicestatusinfo=`/etc/init.d/a-rex status`;
+    # If you have a custom setup you may want to hack the command below with your own startup script path.
+    my $glueservicestatusinfo=`/etc/init.d/arc-arex status 2>/dev/null` || `systemctl status arc-arex 2>/dev/null` || "Cannot determine service status, see $0 line ".__LINE__;
     chomp $glueservicestatusinfo;
     my $glueservicestatus;
     if ($? == 0) {
         $glueservicestatus="OK";
     } else {
-        $glueservicestatus="Warning";
+        $glueservicestatus="Warning: $glueservicestatusinfo";
     }
     my $serviceendpoint = "gsiftp://". $cluster_attributes{'nordugrid-cluster-name'} . ":" . "2811" . "/jobs";
     my $serviceversion = "3.0.0";
@@ -397,7 +399,7 @@ sub write_gluece_entries(){
 		$glueHostArchitecturePlatformType=$queue_attributes{'nordugrid-queue-architecture'}; ##XX
 		$glueSubClusterUniqueID=$queue_attributes{'nordugrid-queue-name'};  ##XX
 		$glueSubClusterName=$queue_attributes{'nordugrid-queue-name'};  ##XX
-		if ( $processorOtherDesc =~ m/Cores=(\d+)/ ){
+		if ( $processorOtherDesc =~ m/Cores=([0-9]*\.?[0-9]+)/ ){
 		    $smpSize=$1;
 		    $glueSubClusterPhysicalCPUs=int($queue_attributes{'nordugrid-queue-totalcpus'}/$smpSize);
 		}
@@ -407,6 +409,7 @@ sub write_gluece_entries(){
 		}
 		$glueSubClusterLogicalCPUs=$queue_attributes{'nordugrid-queue-totalcpus'};  ##XX
 		$glueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};  ##XX
+        $smpSize = int($smpSize);
 
 		WriteSubCluster();
 	    }

@@ -3,23 +3,13 @@
 # must be called with the grami file as argument
 # remember to set $joboption_lrms
 
-if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
-if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
+common_init () {
+   # parse grami file
+   no_grami_extra_processing=1
+   parse_grami_file $GRAMI_FILE
+   # parse configuration
+   parse_arc_conf
+   # read pbs-specific environment
+   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
+}
 
-. ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
-
-arg_file=$1
-##############################################################
-# Source the argument file.
-##############################################################
-if [ -z "$arg_file" ] ; then
-   echo "Arguments file should be specified" 1>&2
-   exit 1
-fi
-if [ ! -f $arg_file ] ; then
-   echo "Missing arguments file expected at '$arg_file'." 1>&2
-   exit 1
-fi
-
-. $arg_file
-:

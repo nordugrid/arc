@@ -20,9 +20,7 @@ namespace ArcJura
     std::string topic;
 
     /** Require to set to true this option by production message broker */
-    std::string use_ssl;
-    /** File name extension */
-    int sequence;
+    bool use_ssl;
     /** location of Aggregation Records */
     std::string aggr_record_location;
     bool aggr_record_update_need;
@@ -32,7 +30,7 @@ namespace ArcJura
     Arc::NS ns;
     Arc::NS ns_query;
 
-    void init(std::string _host, std::string _port, std::string _topic);
+    void init(std::string _host, std::string _port, std::string _topic, bool _ssl);
     /** Send records to the accounting server. */
     Arc::MCC_Status send_records(const std::string &urset);
     /** Update all records sending dates */
@@ -57,7 +55,7 @@ namespace ArcJura
     /**
      *  Constructor for record reporting.
      */
-    CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch);
+    CARAggregation(std::string _host, std::string _port, std::string _topic, bool synch, bool _ssl);
     ~CARAggregation();
 
     /** Generated record from CAR record, collects it into the

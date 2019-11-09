@@ -1,0 +1,40 @@
+--- a/basic-script.sh	2019-07-22 17:45:53.120934284 +0200
++++ b/basic-script.sh	2019-07-22 17:45:53.122934239 +0200
+@@ -135,8 +138,21 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for DUMMY:
++RTE_function_0 () {
++# This is a dummy RTE
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}DUMMY;"
++# Calling DUMMY function: 
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime DUMMY stage 1 execution failed." 1>&2
++    echo "Runtime DUMMY stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -205,6 +221,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}DUMMY;"
++# Calling DUMMY function: 
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime DUMMY stage 2 execution failed." 1>&2
++    echo "Runtime DUMMY stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ # Measuring used scratch space
+ echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"
+ # Cleaning up extra files in the local scratch

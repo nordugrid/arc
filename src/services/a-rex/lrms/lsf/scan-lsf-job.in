@@ -10,36 +10,12 @@
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
-
-basedir=`dirname $0`
-basedir=`cd $basedir > /dev/null && pwd` || exit $?
-
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-# Assume that gm-kick is installed in the same directory
-GMKICK=${pkglibexecdir}/gm-kick
-
-. "${pkgdatadir}/configure-lsf-env.sh" || exit $?
-
-. "${pkgdatadir}/scan_common.sh" || exit $?
-
-umask 022
-
 if [ -z "$1" ] ; then
-    echo "Missing Input Script file as arg1" 1>&2
-    exit 1 ;
+    echo "Missing control directory path" 1>&2
+    exit 1
 fi
-
-# Log system performance
-if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
-fi
-
 # first control_dir is used for storing own files
-
 echo `date`" : control_dir=$1" 1>&2
-
 control_dir=$1
 control_dirs=
 while [ $# -gt 0 ] ; do
@@ -47,20 +23,45 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
-my_id=`id -u`
+joboption_lrms="lsf"
+lrms_options="lsf_architecture lsf_bin_path"
 
-# Get all running jobs
-#
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-if [ -z ${LSF_BIN_PATH} ]; then
-    echo "${LSF_BIN_PATH} not set" 1>&2
-    exit 1
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# Assume that gm-kick is installed in the same directory
+GMKICK=${pkglibexecdir}/gm-kick
+
+umask 022
+
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
+my_id=`id -u`
+
+if [ -z ${LSF_BIN_PATH} ]; then
+    echo "${LSF_BIN_PATH} not set" 1>&2
+    exit 1
+fi
+
+# Get all running jobs
 lsf_stat=`${LSF_BIN_PATH}/bjobs -a -u all 2>/dev/null` # | grep RUN | grep '^ [:digit:]'
 
 if [ ! -z "$perflogdir" ]; then
@@ -185,7 +186,7 @@ for ctr_dir in $control_dir ; do
 		# job finished and exit code is known
                 save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${GMKICK} "$jobfile"
+		${GMKICK} -j "${gridid}" "$jobfile"
 		continue
 	    fi
 	fi
@@ -203,7 +204,7 @@ for ctr_dir in $control_dir ; do
 	    rm -f "$countfile"
             save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${GMKICK} "$jobfile"
+	    ${GMKICK} -j "${gridid}" "$jobfile"
 	else
 	    echo "$counter" > "$countfile"
 	fi

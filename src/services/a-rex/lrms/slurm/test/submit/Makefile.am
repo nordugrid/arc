@@ -3,20 +3,21 @@ TESTS = basic-test memory-test count-test queue-test job-name-test \
 	files-io-test
 
 TESTS_ENVIRONMENT = \
-	PYTHONPATH=$(abs_top_srcdir)/src/utils/configparser/ \
+	PYTHONPATH=$(abs_top_srcdir)/src/utils/python/ \
 	ARC_PLUGIN_PATH=$(abs_top_builddir)/src/hed/acc/JobDescriptionParser/.libs \
 	ARC_LOCATION=$(abs_builddir) \
 	TEST_WRITE_GRAMI_FILE=$(top_builddir)/src/services/a-rex/grid-manager/test_write_grami_file \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_submit_script.sh submit-SLURM-job
 
-SCRIPTSNEEDED = basic-script.sh check_submit_script.sh \
-	submit-SLURM-job configure-SLURM-env.sh \
-	submit_common.sh $(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
+SCRIPTSNEEDED = check_submit_script.sh \
+	submit-SLURM-job $(pkgdatasubdir)/configure-SLURM-env.sh \
+	lrms_common.sh $(pkgdatasubdir)/submit_common.sh \
+	$(pkglibexecsubdir)/arcconfig-parser command-simulator.sh
 
-check_SCRIPTS = $(TESTS) $(SCRIPTSNEEDED)
+check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
 
-EXTRA_DIST = $(check_SCRIPTS)
+EXTRA_DIST = $(TESTS) basic-script.sh $(wildcard $(srcdir)/*.patch)
 
 check_submit_script.sh: $(srcdir)/../../../test/check_submit_script.sh
 	cp $< $@
@@ -25,15 +26,20 @@ submit-SLURM-job: $(builddir)/../../submit-SLURM-job
 	cp $< $@
 	chmod +x $@
 
-configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
+$(pkgdatasubdir)/configure-SLURM-env.sh: $(srcdir)/../../configure-SLURM-env.sh
+	mkdir -p $(pkgdatasubdir)
 	cp $< $@
 
-submit_common.sh: $(builddir)/../../../submit_common.sh
+$(pkgdatasubdir)/submit_common.sh: $(builddir)/../../../submit_common.sh
+	mkdir -p $(pkgdatasubdir)
 	cp $< $@
 
-$(pkglibexecsubdir)/arcconfig-parser: $(top_srcdir)/src/utils/configparser/arcconfig-parser
+lrms_common.sh: $(builddir)/../../../lrms_common.sh
+	cp $< $@
+
+$(pkglibexecsubdir)/arcconfig-parser: $(top_builddir)/src/utils/python/arcconfig-parser
 	mkdir -p $(pkglibexecsubdir)
-	cp $< $(pkglibexecsubdir)/.
+	cp $< $@
 
 command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
 	cp $< $@

@@ -1,0 +1,24 @@
+#!@PYTHON@
+import sys
+
+try:
+    from arc.lrms import pyScanner
+except:
+    sys.stderr.write('Failed to import pyScanner module\n')
+    sys.exit(2)
+
+
+if __name__ == '__main__':
+    usage = 'Usage: %s [--config <arc.conf>] <control directories ... >' % (sys.argv[0])
+
+    if len(sys.argv) != 4 and len(sys.argv) != 2:
+        error(usage, 'scan-SLURMPY-job')
+        sys.exit(1)
+
+    if len(sys.argv) == 4:
+        if sys.argv[1] != "--config":
+            error(usage, 'scan-SLURMPY-job')
+            sys.exit(1)
+        sys.exit(pyScanner.main("slurm", sys.argv[3:], sys.argv[2]))
+
+    sys.exit(pyScanner.main("slurm", sys.argv[3:]))

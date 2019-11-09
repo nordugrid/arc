@@ -1,0 +1,147 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 13.11 update 2              August 14, 2014
+----------------------------------------------
+
+This is a minor release, fixing a number of bugs and introducing several
+new features. 
+
+New features are:
+  * Extending ADL with Rerun option
+  * Adding write/delete capability to xrootd DMC
+  * arcproxy and ARC library can now take password from other sources than console
+
+NorduGrid ARC 13.11 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 4.1.0 to 4.2.0
+  * documents - from 1.4.0 to 1.5.0
+  * Nagios plugins - from 1.8.0 to 1.8.1
+CAnL C++ and metapackages are unchanged.
+
+
+Detailed notes
+--------------
+
+== ARC Core
+
+The following new features were added to the ARC core:
+  * ADL was extended with a Rerun option so that arcresume also works with EMI-ES.
+  * Write and delete capabilities were added to the xrootd DMC.
+  * Credential class along with NSS was extended to accept PasswordSource object as
+    password container, thus allowing passwords to be taken from other sources than
+    consol.
+  * An issue with HTTPS transfers and Rucio URL options was fixed.
+In addition, many bugs were fixed, see the list below.
+
+== ARC Compute Element
+
+An issue were A-Rex occasionally crashed due to logrotate is now fixed.
+
+== Other components
+
+arcproxy got a new argument --password-source to take advantage of the above mentioned
+password feature.
+
+An issue where the Nagios plugin check_arcce_monitor did not work due to a newline in arcstat is now fixed.
+
+
+Fixed bugs
+----------
+
+Since ARC 13.11 update 1, the following bugs were fixed:
+
+  * 3169 ARC Library requesting password from console
+  * 3233 Allow arcproxy to take password from stdin
+  * 3266 Implement RestartActivity operation of EMI-ES in the client
+  * 3314 qstat -F output parsing: should "unset LANG" before calling qstat
+  * 3358 a-rex crashes
+  * 3365 arcproxy with option -F can't contact VOMS server
+  * 3366 Missing pthread.h include in Index.h
+  * 3367 Ubuntu Trusty main repository does not exist
+  * 3373 Bad usage of getent passwd
+  * 3374 Multi-lib conflict
+  * 3376 "Use of uninitialized value" from GMJobsInfo.pm
+  * 3378 Can't use copyurl="srm://... root://..."
+  * 3381 check_arcce_monitor fails on arcstat output
+  * 3398 Building fails for distributions with glib2 >= 2.41.2
+  * 3390 cache links not cleaned up properly
+  * 3391 stage-out improvements with xrsl
+  * 3392 arccp -i fails to stage data from tape
+
+Fixed GGUS tickets:
+
+  * 106105 UMD Verification: nordugrid-arc-compute-element 
+    and nordugrid-arc-information-index cannot be installed on Debian OS
+
+
+API changes
+-----------
+
+API changes from libraries version 4.1.0 to 4.2.0 are documented at
+http://wiki.nordugrid.org/index.php/API_changes 
+ 
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent 
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source.
+  * arcmigrate is currently non-functional
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 13.11u2 consists of the following source packages:
+  * NorduGrid ARC, version 4.2.0 (main components)
+  * NorduGrid ARC Documents version 1.5.0 
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.1
+  * Common authentication library caNl++, version 1.1.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/4.2.0
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.5.0
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.1
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.1.0
+
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0 and 7.0 (i386 and amd64)
+  * Fedora: from 5 to 20 (i386 and x86_64)
+  * RedHat: EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04,
+    13.10 and 14.04 (i386 and amd64) 
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.

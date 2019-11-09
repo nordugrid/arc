@@ -25,8 +25,8 @@ package PerfData;
 use File::Basename;
 use Getopt::Long;
 use Sys::Hostname;
-use Data::Dumper::Concise;
 use Cwd;
+#use Data::Dumper::Concise;
 #use Devel::NYTProf::Data;
 #use Symbol;
 
@@ -216,8 +216,8 @@ my $condormetrics = {
 ## PBS
 
 my $pbsmodsubs = {
-   'PBSmod::queue_info' => 'lrmscalltiming,pbs,queue_info',
-   'PBSmod::jobs_info' => 'lrmscalltiming,pbs,jobs_info'
+   'PBS::queue_info' => 'lrmscalltiming,pbs,queue_info',
+   'PBS::jobs_info' => 'lrmscalltiming,pbs,jobs_info'
 };
 
 
@@ -233,6 +233,17 @@ my $pbsmodmetrics = {
 #        'lines' => {'*'}, # will contain calculated line numbers in source code for the above patterns
 #		 'params' => 'incl'
 #    }
+};
+
+## PBSPRO
+
+my $pbspromodsubs = {
+   'PBSPRO::queue_info' => 'lrmscalltiming,pbs,queue_info',
+   'PBSPRO::jobs_info' => 'lrmscalltiming,pbs,jobs_info'
+};
+
+my $pbspromodmetrics = {
+    'subs' => {	%$pbspromodsubs },
 };
 
 ## SGE
@@ -267,7 +278,8 @@ my $metrics = {
 #    'FORKmod.pm' => { %$forkmodmetrics },
 #    'SLURMmod.pm' => { %$slurmmodmetrics },     
 #    'Condor.pm' => { %$condormetrics },
-#    'PBSmod.pm' => { %$pbsmodmetrics },
+#    'PBS.pm' => { %$pbsmodmetrics },
+#    'PBSPRO.pm' => { %$pbspromodmetrics },
 #    'SGEmod.pm' => { %$sgemodmetrics },
   },
 };
@@ -403,6 +415,7 @@ sub deletefiles {
 sub main {
 
     $log->error('Devel::NYTProf not present. Perfomance files generaton cannot continue. ') unless ($NYTPROF_PRESENT);
+    exit 0;
   
     # Parse command line options
     my $print_help;
@@ -446,15 +459,14 @@ sub main {
     my $lrms = ConfigCentral::getValueOf($configfile,'lrms','lrms');
     if ($lrms eq 'fork') {
 	   	$metrics->{'modules'}{'FORKmod.pm'} = { %$forkmodmetrics };
-	};
-	if  ($lrms =~ /slurm/i) {
-	    $metrics->{'modules'}{'SLURMmod.pm'} = { %$slurmmodmetrics };	
-	};
-	if  ($lrms =~ /pbs/i) {
-	    $metrics->{'modules'}{'PBSmod.pm'} = { %$pbsmodmetrics };	
-	};
-	if  ($lrms =~ /condor/i) {
-	    $metrics->{'modules'}{'Condor.pm'} = { %$condormetrics };	
+	} elsif ($lrms =~ /slurm/i) {
+	    $metrics->{'modules'}{'SLURMmod.pm'} = { %$slurmmodmetrics };
+	} elsif ($lrms =~ /pbspro/i) {
+	    $metrics->{'modules'}{'PBSPRO.pm'} = { %$pbspromodmetrics };
+	} elsif ($lrms =~ /pbs/i) {
+	    $metrics->{'modules'}{'PBS.pm'} = { %$pbsmodmetrics };
+	} elsif ($lrms =~ /condor/i) {
+	    $metrics->{'modules'}{'Condor.pm'} = { %$condormetrics };
 	};
 
     $debuglevel ? LogUtils::level($debuglevel) : LogUtils::level('INFO');
@@ -519,7 +531,6 @@ sub main {
         ## child code
         if( $pid == 0 ){ 
 		  $log->debug("Starting helper process for $dbfilefullpath");
-		  use Devel::NYTProf::Data;
           my $profile = Devel::NYTProf::Data->new( { filename => $dbfilefullpath, quiet => 1 } );
           #$profile->dump_profile_data();
 	

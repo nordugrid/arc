@@ -3,26 +3,33 @@
 # 
 #  Cancel job running in boinc.
 # 
-ProjectDir=/home/boinc/projects/ATLAS
 
 echo "----- starting cancel_boinc_job -----" 1>&2
 trap 'echo "----- exiting cancel_boinc_job -----" 1>&2; echo "" 1>&2' EXIT
 
-joboption_lrms=boinc
+joboption_lrms="boinc"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
 if [ -z "$joboption_controldir" ] ; then
-  joboption_controldir=`dirname "$arg_file"`
+  joboption_controldir=`dirname "$GRAMI_FILE"`
   if [ "$joboption_controldir" = '.' ] ; then
     joboption_controldir="$PWD"
   fi
@@ -30,7 +37,7 @@ fi
 
 job_control_dir="$joboption_controldir"
 if [ -z "$joboption_gridid" ] ; then
-  joboption_gridid=`basename "$arg_file" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+  joboption_gridid=`basename "$GRAMI_FILE" | sed 's/^job\.\(.*\)\.grami$/\1/'`
 fi
 
 echo "Deleting job $joboption_gridid, local id $joboption_jobid" 1>&2

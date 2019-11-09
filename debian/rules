@@ -1,183 +1,189 @@
 #!/usr/bin/make -f
 
--include /usr/share/dpkg/buildflags.mk
-
 # Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
-COMMA = ,
-LDFLAGS := $(filter-out -Wl$(COMMA)-Bsymbolic-functions,$(LDFLAGS))
+export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
 
 ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
 ifeq ($(shell echo __GNUC__ | gcc -E - | tail -1),5)
 # Workaround for too new libsigc++/glibmm, too old gcc combination
-CXXFLAGS += -std=c++11
+export DEB_CXXFLAGS_MAINT_APPEND=-std=c++11
 endif
 endif
 
-CANL_SUPPORT = no
-
-ifeq ($(CANL_SUPPORT),yes)
-CANL_CONFIGURE_OPTION = --enable-canlxx
+ifeq ($(shell perl -mInline::Python < /dev/null 2>/dev/null && echo 1),1)
+N =
 else
-CANL_CONFIGURE_OPTION =
+N = -Nnordugrid-arc-arex-python-lrms
 endif
 
-configure: configure-stamp
+ifeq ($(shell dpkg-query -W -f '$${Depends}' libinline-python-perl 2>/dev/null | grep -q python3 && echo 1),1)
+PYVER = 3
+else
+PYVER = 2
+endif
 
-configure-stamp:
-	dh_testdir
+ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
+WSD = --with systemd
+else
+WSD =
+endif
 
+ifeq ($(shell test -r /usr/include/systemd/sd-daemon.h && echo 1),1)
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+SYSTEMD = yes
+else
+SYSTEMD = no
+endif
+else
+SYSTEMD = no
+endif
+
+%:
+	dh $@ --with autoreconf --with python$(PYVER) $(WSD) $(N)
+
+override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
 	    cp -p po/POTFILES.in po/POTFILES.in.save ; \
 	fi
 
-	dh_autoreconf
-
-	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" \
-	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-z,defs" \
-	./configure --host=$(DEB_HOST_GNU_TYPE) \
-		    --build=$(DEB_BUILD_GNU_TYPE) \
-		    --prefix=/usr \
-		    --libexecdir='$${prefix}/lib' \
-		    --sysconfdir=/etc \
-		    --localstatedir=/var \
-		    --mandir='$${datadir}/man' \
-		    --infodir='$${datadir}/info' \
+	LDFLAGS="$(LDFLAGS) -Wl,-z,defs" \
+	dh_auto_configure -- \
 		    --disable-doc \
-		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
-		    --enable-sqlite \
-		    $(CANL_CONFIGURE_OPTION)
-	touch $@
+		    --libdir=/usr/lib \
+		    --libexecdir=/usr/lib \
+		    --docdir=/usr/share/doc/nordugrid-arc \
+		    --enable-internal \
+		    --enable-systemd=$(SYSTEMD) \
+		    --with-systemd-units-location=/lib/systemd/system \
+		    --with-sysv-scripts-location=/etc/init.d \
+		    --with-python=python$(PYVER)
 
-build: build-arch build-indep
+override_dh_auto_clean:
+	dh_auto_clean
 
-build-arch: build-stamp
-
-build-indep: build-stamp
-
-build-stamp: configure-stamp
-	dh_testdir
-
-	$(MAKE)
-ifeq ($(filter nocheck,$(DEB_BUILD_OPTIONS)),)
-	$(MAKE) check
-endif
-
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-
-	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
-
-	rm -f debian/nordugrid-arc-arex.install
-	rm -f debian/nordugrid-arc-arex.a-rex.init
+	rm -f debian/nordugrid-arc-arex.arc-arex.init
 	rm -f debian/nordugrid-arc-hed.arched.init
-	rm -f debian/nordugrid-arc-candypond.arc-candypond.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	rm -f debian/nordugrid-arc-gridftpd.gridftpd.init
-	rm -f debian/nordugrid-arc-aris.nordugrid-arc-aris.init
-	rm -f debian/nordugrid-arc-inforeg.nordugrid-arc-inforeg.init
-	rm -f debian/nordugrid-arc-acix-cache.acix-cache.init
-	rm -f debian/nordugrid-arc-acix-index.acix-index.init
+	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
+	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
+	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.init
+
+	rm -f debian/nordugrid-arc-arex.arc-arex.service
+	rm -f debian/nordugrid-arc-hed.arched.service
+	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
+	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.service
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
+	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
+	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
+	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.service
 
 	if [ -f po/POTFILES.in.save ] ; then \
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
 	fi
 
 	find python src -name *.pyc -exec rm {} ';'
+	find python src -depth -name __pycache__ -exec rm -rf {} ';'
 	rm -rf src/services/acix/*/test/_trial_temp
+	rm -rf src/services/a-rex/infoproviders/_Inline
+	rm -rf src/services/a-rex/infoproviders/test/_Inline
 
-	dh_autoreconf_clean
+override_dh_auto_install:
+	dh_auto_install
 
-	dh_clean configure-stamp build-stamp
+	find debian/tmp -name \*.la -exec rm -fv '{}' ';'
 
-install: build-stamp
-	dh_testdir
-	dh_testroot
-	dh_prep
+	rm -f debian/tmp/usr/lib/arc/*.a
 
-	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	rm -f debian/tmp/usr/lib/libarcglobusutils.so
 
-	find $(CURDIR)/debian/tmp -name \*.la -exec rm -fv '{}' ';'
+	find debian/tmp -depth -name __pycache__ -exec rm -rf '{}' ';'
 
-	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
-
-	rm -f $(CURDIR)/debian/tmp/usr/lib/libarcglobusutils.so
-
-	mv debian/tmp/etc/init.d/a-rex \
-	   debian/nordugrid-arc-arex.a-rex.init
+	mv debian/tmp/etc/init.d/arc-arex \
+	   debian/nordugrid-arc-arex.arc-arex.init
 	mv debian/tmp/etc/init.d/arched \
 	   debian/nordugrid-arc-hed.arched.init
-	mv debian/tmp/etc/init.d/arc-candypond \
-	   debian/nordugrid-arc-candypond.arc-candypond.init
 	mv debian/tmp/etc/init.d/arc-datadelivery-service \
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	mv debian/tmp/etc/init.d/gridftpd \
-	   debian/nordugrid-arc-gridftpd.gridftpd.init
-	mv debian/tmp/etc/init.d/nordugrid-arc-aris \
-	   debian/nordugrid-arc-aris.nordugrid-arc-aris.init
-	mv debian/tmp/etc/init.d/nordugrid-arc-inforeg \
-	   debian/nordugrid-arc-inforeg.nordugrid-arc-inforeg.init
-	mv debian/tmp/etc/init.d/acix-cache \
-	   debian/nordugrid-arc-acix-cache.acix-cache.init
-	mv debian/tmp/etc/init.d/acix-index \
-	   debian/nordugrid-arc-acix-index.acix-index.init
+	mv debian/tmp/etc/init.d/arc-gridftpd \
+	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
+	mv debian/tmp/etc/init.d/arc-infosys-ldap \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
+	mv debian/tmp/etc/init.d/arc-acix-scanner \
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
+	mv debian/tmp/etc/init.d/arc-acix-index \
+	   debian/nordugrid-arc-acix-index.arc-acix-index.init
 
-binary: binary-arch binary-indep
+	mv debian/tmp/lib/systemd/system/arc-arex.service \
+	   debian/nordugrid-arc-arex.arc-arex.service
+	mv debian/tmp/lib/systemd/system/arched.service \
+	   debian/nordugrid-arc-hed.arched.service
+	mv debian/tmp/lib/systemd/system/arc-datadelivery-service.service \
+	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
+	mv debian/tmp/lib/systemd/system/arc-gridftpd.service \
+	   debian/nordugrid-arc-gridftpd.arc-gridftpd.service
+	mv debian/tmp/lib/systemd/system/arc-infosys-ldap.service \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
+	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
+	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
+	mv debian/tmp/lib/systemd/system/arc-acix-scanner.service \
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
+	mv debian/tmp/lib/systemd/system/arc-acix-index.service \
+	   debian/nordugrid-arc-acix-index.arc-acix-index.service
 
-binary-arch: install
-	dh_testdir
-	dh_testroot
-	dh_installdirs -a
-	dh_installdocs -a
-	dh_installexamples -a
-	dh_installman -a
-	dh_installlogrotate -a
-	dh_install -a --fail-missing
-	dh_installchangelogs -a
+	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
+
+override_dh_install:
+	dh_install --fail-missing
+
+override_dh_installinit:
 	dh_installinit -p nordugrid-arc-hed --name arched
-	dh_installinit -p nordugrid-arc-arex --name a-rex
-	dh_installinit -p nordugrid-arc-candypond --name arc-candypond
+	dh_installinit -p nordugrid-arc-arex --name arc-arex
 	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_installinit -p nordugrid-arc-gridftpd --name gridftpd
-	dh_perl -a
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
-	dh_lintian -a
-	dh_link -a
-	dh_strip -a
-	dh_compress -a -X .pdf
-	dh_fixperms -a
-	dh_makeshlibs -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_installinit -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_installinit -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_installinit -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_installinit -p nordugrid-arc-acix-index --name arc-acix-index
 
-binary-indep: install
-	dh_testdir
-	dh_testroot
-	dh_installdirs -i
-	dh_installdocs -i
-	dh_installexamples -i
-	dh_installman -i
-	dh_installlogrotate -i
-	dh_install -i --fail-missing
-	dh_installchangelogs -i
-	dh_installinit -p nordugrid-arc-aris --name nordugrid-arc-aris
-	dh_installinit -p nordugrid-arc-inforeg --name nordugrid-arc-inforeg
-	dh_installinit -p nordugrid-arc-acix-cache --name acix-cache
-	dh_installinit -p nordugrid-arc-acix-index --name acix-index
-	dh_perl -i
-	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
-	dh_lintian -i
-	dh_link -i
-	dh_compress -i -X .pdf
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
+override_dh_systemd_enable:
+	dh_systemd_enable -p nordugrid-arc-hed --name arched
+	dh_systemd_enable -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_enable -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_systemd_enable -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+	dh_systemd_enable -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_systemd_enable -p nordugrid-arc-acix-index --name arc-acix-index
 
-.PHONY: binary binary-arch binary-indep build build-arch build-indep clean configure install
+override_dh_systemd_start:
+	dh_systemd_start -p nordugrid-arc-hed --name arched
+	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+	dh_systemd_start -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_systemd_start -p nordugrid-arc-acix-index --name arc-acix-index
+
+override_dh_fixperms:
+	dh_fixperms -X /usr/bin/arc-job-cgroup
+
+override_dh_python2:
+	dh_python2
+
+	echo "pydeps:Depends=python-ldap, python-isodate, python-stompy" \
+		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python-twisted, python-openssl" \
+		>> debian/nordugrid-arc-acix-core.substvars
+	echo "pydeps:Depends=python-ldap, python-dns" \
+		>> debian/nordugrid-arc-archery-manage.substvars
+
+override_dh_python3:
+	dh_python3
+
+	echo "pydeps:Depends=python3-ldap, python3-isodate" \
+		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python3-twisted, python3-openssl" \
+		>> debian/nordugrid-arc-acix-core.substvars
+	echo "pydeps:Depends=python3-ldap, python3-dns" \
+		>> debian/nordugrid-arc-archery-manage.substvars

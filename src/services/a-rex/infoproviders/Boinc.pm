@@ -115,16 +115,18 @@ sub get_jobs_status($){
     my $dbh = db_conn($config);
     my $where = "";
     if (defined($$config{boinc_app_id})) { $where = " and appid=$$config{boinc_app_id}"; }
-    my $sth = $dbh->prepare('select server_state,name,opaque from result where server_state in (1,2,4)'.$where);
+    my $sth = $dbh->prepare('SELECT result.server_state, result.name, user.name FROM result LEFT JOIN user ON result.userid=user.id WHERE server_state in (1,2,4)'.$where);
     $sth->execute();
-    my (%jobs_status, @result,$job_status, $job_state, $job_name, $core_count);
-    while(($job_state, $job_name, $core_count) = $sth->fetchrow_array())
+    my (%jobs_status, @result,$job_status, $job_state, $job_name, $user_name);
+    while(($job_state, $job_name, $user_name) = $sth->fetchrow_array())
     {
-	$job_status="Q";
-	my @tmp=split(/_/,$job_name);
-	$job_name=$tmp[0];
-	if($job_state==4){$job_status="R";}
-	$jobs_status{$job_name}=[$job_status, $core_count];
+        $job_status="Q";
+        my @tmp=split(/_/,$job_name);
+        $job_name=$tmp[0];
+        if($job_state==4){$job_status="R";}
+        # Strip out non-ascii
+        $user_name =~ s/[^[:ascii:]]/_/g if $user_name;
+        $jobs_status{$job_name}=[$job_status, $user_name];
     }
     return \%jobs_status;
 }
@@ -225,22 +227,22 @@ sub jobs_info ($$@) {
     my (%lrms_jobs,$jstatus);
     $jstatus=get_jobs_status($config);
     foreach my $id (@$jids){
-        $lrms_jobs{$id}{nodes} = [ hostname ];
+        # Real hostname will be published when job finishes
+        my $host = 'unknown@unknown';
+        if ($$jstatus{$id} and $$jstatus{$id}[1]) {
+            $host = $$jstatus{$id}[1].'@unknown';
+        }
+        $lrms_jobs{$id}{nodes} = [ $host ];
         $lrms_jobs{$id}{mem} = 2000000000;
         $lrms_jobs{$id}{walltime} = "";
         $lrms_jobs{$id}{cputime} = "";
         $lrms_jobs{$id}{comment} = [ "LRMS: Running under boinc" ];
 
         $lrms_jobs{$id}{reqwalltime} = "";
-        $lrms_jobs{$id}{reqcputime} = "";   
+        $lrms_jobs{$id}{reqcputime} = "";
         $lrms_jobs{$id}{rank} = "0";
         # Fix cores to 1 since volunteers download 1 task per core
         $lrms_jobs{$id}{cpus} = "1"; 
-        #if (! exists $$jstatus{$id} || $$jstatus{$id}[1] == 0) {
-        #    $lrms_jobs{$id}{cpus} = "1"; 
-        #} else {
-        #    $lrms_jobs{$id}{cpus} = "$$jstatus{$id}[1]"; 
-        #} 
         if(! exists $$jstatus{$id}) {
             $lrms_jobs{$id}{status} = "O";
         } elsif($$jstatus{$id}[0] eq "R") {

@@ -1,0 +1,126 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 2              June 29, 2015
+----------------------------------------------
+
+This is a bugfix release, addressing a few bugs discovered in ARC 15.03 update 1.
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.0.1 to 5.0.2
+  * documents - from 2.0.1 to 2.0.2
+Nagios plugins, CAnL C++ and metapackages are unchanged.
+
+
+Detailed notes
+--------------
+
+== ARC Server and core components
+
+The following issues were fixed in the ARC core:
+  * An unbalanced quote in the SLURM scan script that caused all jobs to fail was fixed. 
+
+=== Accounting
+
+  * No changes
+
+=== Information system
+
+The following issues were fixed in the ARC Information System:
+
+  * An issue where Condor.pm and ARC0mod.pm errors lead to bdii broken pipe error was fixed.
+  * An issue where not all session dirs were drained was fixed.
+
+== ARC Clients
+
+  * No changes
+
+== Nagios plugins
+
+  * No changes
+
+== Common authentication library CaNL++
+
+  * No changes
+
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 1, the following bugs were fixed:
+
+  * 3047 support for sessiondir=... drain option is missing in new infoproviders
+  * 3424 Continuous unterminated infoprovider due to Condor.pm and ARC0mod.pm errors lead to bdii broken pipe error
+  * 3462 problems with scan-SLURM-job script 
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES interface.
+  * The CPU time is not measured correctly for jobs that kill the parent 
+    process, such as some agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu
+    system, because the python-dirq package is not available for them. The
+    workaround is to build this package from source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used
+    to describe jobs, and the broker type must be set to Null in the client.conf
+    file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * Bug 2905 is solved using workaround. Source of problem is not yet
+    identified
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite loop. The only current workaround is to restart the a-rex service.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u2 consists of the following source packages:
+  * NorduGrid ARC, version 5.0.2 (main components)
+  * NorduGrid ARC Documents version 2.0.2
+  * metapackages for client tools, computing element and information index,
+    version 1.0.7
+  * Nagios probes for ARC CE, version 1.8.2
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.0
+  * Common authentication library caNl++, version 1.0.1
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.0.2
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.2
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.8.2
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/1.0.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 5.0, 6.0, 7.0 and 8.0 (i386 and amd64)
+  * Fedora: from 3 to 22 (i386 and x86_64)
+  * CentOS: EL4, EL5, EL6 and EL7 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04, 12.10, 13.04,
+    13.10, 14.04, 14.10 and 15.04 (i386 and amd64) 
+
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.

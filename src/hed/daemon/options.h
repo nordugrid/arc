@@ -11,9 +11,7 @@ namespace Arc {
         
     /* Command line options values */
     bool foreground;
-#ifndef WIN32
     bool watchdog;
-#endif
     bool version;
     std::string xml_config_file;
     std::string ini_config_file;
@@ -23,10 +21,6 @@ namespace Arc {
     std::string group;
     bool config_dump;
     std::string schema_file;
-#ifdef WIN32
-    bool install;
-    bool uninstall;
-#endif
   };
 
 } // namespace Arc

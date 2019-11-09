@@ -102,20 +102,28 @@ fi
 echo "Creating symlink to python parser..."
 mkdir -p /tmp/libexec/arc/
 SRCABSOLUTEPATH=$(readlink -f ../../../)
-ln -fs $SRCABSOLUTEPATH/utils/configparser/arcconfig-parser /tmp/libexec/arc/arcconfig-parser
-echo "Location: $SRCABSOLUTEPATH/utils/configparser/arcconfig-parser"
+ln -fs $SRCABSOLUTEPATH/utils/python/arcconfig-parser /tmp/libexec/arc/arcconfig-parser
+echo "Location: $SRCABSOLUTEPATH/utils/python/arcconfig-parser"
 
 echo "extending ARC_LOCATION and PYTHONPATH"
 export ARC_LOCATION='/tmp'
-export PYTHONPATH=$SRCABSOLUTEPATH/utils/configparser/:$PYTHONPATH
+export PYTHONPATH=$SRCABSOLUTEPATH/utils/python/:$PYTHONPATH
 echo "Location: $PYTHONPATH"
 echo ""
 
 # missing file in module tree, I hope this is a temporary fix...
-echo "adding __init__.py to $SRCABSOLUTEPATH/utils/configparser/arc/utils/ ..."
-touch $SRCABSOLUTEPATH/utils/configparser/arc/utils/__init__.py
+echo "adding __init__.py to $SRCABSOLUTEPATH/utils/python/arc/utils/ ..."
+touch $SRCABSOLUTEPATH/utils/python/arc/utils/__init__.py
+
+# create defaults file
+echo "Creating defaults file $ARC_LOCATION/parser.defaults"
+$SRCABSOLUTEPATH/utils/python/arcconfig-reference --extract-defaults -r  $SRCABSOLUTEPATH/doc/arc.conf.reference > $ARC_LOCATION/parser.defaults
+
+echo "To generate runtime conf, run:"
+echo "../../../utils/python/arcconfig-parser --save -d /tmp/parser.defaults -c test/test-arc.conf -r /tmp/arc.runtime.conf"
+echo
 
 echo "modify test/test-arc.conf and pass it to CEinfo.pl"
-echo "AREX call: ./CEinfo.pl --splitjobs --config test/test-arc.conf"
-echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config test/test-arc.conf" 
+echo "AREX call: ./CEinfo.pl --splitjobs --config /tmp/arc.runtime.conf"
+echo "Simple execution that includes jobs in XML and LDIF: sudo ./CEinfo.pl --splitjobs --config /tmp/arc.runtime.conf" 
 

@@ -10,44 +10,41 @@
 # at the end of this script. 
 
 echo "----- starting submit_slurm_job -----" 1>&2
-joboption_lrms=SLURM
+joboption_lrms="SLURM"
+lrms_options="slurm_requirements slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+queue_options="slurm_requirements"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-SLURM-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
+# perflog
 perflogfilesub="${perflogdir}/submission.perflog"
-
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
+# define path to wrote failures
+define_failures_file
 
-init $1
-
-read_arc_conf
-
-failures_file="$joboption_controldir/job.$joboption_gridid.failed"
-
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
-    echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-    echo "Submission: Configuration error.">>"$failures_file"
-    exit 1
-  fi
-fi
+# check remote or local scratch is configured
+check_any_scratch
 
 ##############################################################
 # Zero stage of runtime environments
@@ -68,6 +65,9 @@ echo "# SLURM batch job script built by arex" >> $LRMS_JOB_SCRIPT
 
 # rerun is handled by GM, do not let SLURM requeue jobs itself.
 echo "#SBATCH --no-requeue" >> $LRMS_JOB_SCRIPT
+
+# no environment exporting from ARC CE to WN
+echo "#SBATCH --export=NONE" >> $LRMS_JOB_SCRIPT
 
 # write SLURM output to 'comment' file
 echo "#SBATCH -e ${joboption_directory}.comment">> $LRMS_JOB_SCRIPT
@@ -195,12 +195,40 @@ if [ ! -z "$joboption_memory" ] ; then
   echo "#SBATCH --mem-per-cpu=${joboption_memory}" >> $LRMS_JOB_SCRIPT
 fi
 
+##############################################################
+# Additional SLURM requirements
+##############################################################
+
+requirements_string=""
+i=0
+eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
+while [ ! -z "${var_is_set}" ] ; do
+  eval "var_value=\${CONFIG_slurm_requirements_$i}"
+  requirements_string="${requirements_string} ${var_value}"
+  i=$(( $i + 1 ))
+  eval "var_is_set=\${CONFIG_slurm_requirements_$i+yes}"
+done
+
+if [ ! -z "$requirements_string" ]; then
+  echo "#SBATCH $requirements_string" >> $LRMS_JOB_SCRIPT
+fi
+
+if [ ! -z "$CONFIG_slurm_requirements" ]  && [  "x$CONFIG_slurm_requirements" != "x__array__" ] ; then
+  echo "#SBATCH $CONFIG_slurm_requirements" >> $LRMS_JOB_SCRIPT
+fi
+
+
 echo "" >> $LRMS_JOB_SCRIPT
 echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
 echo "umask 077" >> $LRMS_JOB_SCRIPT
 echo " " >> $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -291,6 +319,11 @@ fi
 EOSCR
 
 ##############################################################
+# Accounting (WN OS Detection)
+##############################################################
+detect_wn_systemsoftware
+
+##############################################################
 #  Check intermediate result again
 ##############################################################
 echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
@@ -309,50 +342,12 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 #####################################################
 #  Upload output files
 ####################################################
-# There is no sense to keep trash till GM runs uploader
-echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
-# Delete all files except listed in job.#.output
-echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-
-if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
-  cat "$joboption_controldir/job.$joboption_gridid.output" | \
-  # remove leading backslashes, if any
-  sed 's/^\/*//' | \
-  # backslashes and spaces are escaped with a backslash in job.*.output. The
-  # shell built-in read undoes this escaping.
-  while read name rest; do
-
-    # make it safe for shell by replacing single quotes with '\''
-    name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`
-
-    # protect from deleting output files including those in the dynamic list
-    if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
-
-      dynlist=${name#@}
-      echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
-      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-  chmod -R u-w "./$dynlist" 2>/dev/null
-  cat "./$dynlist" | while read name rest; do
-    chmod -R u-w "./$name" 2>/dev/null
-  done
-EOSCR
-    else
-      printf "%s\n" "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
-    fi
-  done
-fi
-
-echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo 'fi' >> $LRMS_JOB_SCRIPT
-
-echo "" >> $LRMS_JOB_SCRIPT
+clean_local_scratch_dir_output
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
@@ -360,6 +355,11 @@ echo "" >> $LRMS_JOB_SCRIPT
 # !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
 ##############################################################
 move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job
@@ -435,7 +435,7 @@ if [ $SLURM_RESULT -eq '0' ] ; then
 
    job_id=`cat $LRMS_JOB_OUT $LRMS_JOB_ERR |sed -e 's/^\(sbatch: \)\{0,1\}Submitted batch job \([0-9]*\)$/\2/'`
    if expr match "${job_id}" '[0-9][0-9]*' >/dev/null; then
-      echo "joboption_jobid=$job_id" >> $arg_file
+      echo "joboption_jobid=$job_id" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary job script file

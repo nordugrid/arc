@@ -32,8 +32,7 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
   }
 
   Arc::ConfigIni cf(cfile);
-  cf.AddSection("common");
-  cf.AddSection("data-staging");
+  cf.AddSection("arex/data-staging");
   for (;;) {
     std::string rest;
     std::string command;
@@ -41,7 +40,7 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
     if (command.empty()) break;
     if (command == "copyurl") {
       std::string initial = Arc::ConfigIni::NextArg(rest);
-      std::string replacement = Arc::ConfigIni::NextArg(rest);
+      std::string replacement = rest;
       if ((initial.length() == 0) || (replacement.length() == 0)) {
         glogger.msg(Arc::ERROR,"Not enough parameters in copyurl");
         continue;
@@ -55,7 +54,7 @@ UrlMapConfig::UrlMapConfig(const GMConfig& config) {
         glogger.msg(Arc::ERROR,"Not enough parameters in linkurl");
         continue;
       }
-      std::string access = Arc::ConfigIni::NextArg(rest);
+      std::string access = rest;
       if (access.length() == 0) access = replacement;
       add(initial,replacement,access);
     }

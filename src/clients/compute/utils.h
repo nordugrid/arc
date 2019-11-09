@@ -18,6 +18,8 @@ struct termios;
 // password input.
 class ConsoleRecovery {
  private:
+  ConsoleRecovery(ConsoleRecovery const&);
+  ConsoleRecovery& operator=(ConsoleRecovery const&);
   struct termios * ti;
  public:
   ConsoleRecovery(void);
@@ -138,6 +140,7 @@ public:
   bool keep;
   bool forcesync;
   bool truncate;
+  bool convert;
   bool longlist;
   bool printids;
   bool same;
@@ -146,11 +149,13 @@ public:
   bool show_stdout;
   bool show_stderr;
   bool show_joblog;
+  std::string show_file;
   bool usejobname;
   bool forcedownload;
   bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
+  bool show_json;
 
   int testjobid;
   int runtime;

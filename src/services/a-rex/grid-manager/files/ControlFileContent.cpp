@@ -171,9 +171,9 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   std::getline(i,buf);
   Arc::trim(buf," \t\r\n");
   fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
-  fd.pfn = Arc::ConfigIni::NextArg(buf,' ','\0');
-  fd.lfn = Arc::ConfigIni::NextArg(buf,' ','\0');
-  fd.cred = Arc::ConfigIni::NextArg(buf,' ','\0');
+  fd.pfn  = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.lfn  = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.cred = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn,true,true)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
@@ -260,7 +260,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   dryrun = arc_job_desc.Application.DryRun;
 
   projectnames.clear();
-  std::map<std::string, std::string>::const_iterator jr_i = arc_job_desc.OtherAttributes.find("nordugrid:jsdl;Identification/JobProject");
+  std::map<std::string, std::string>::const_iterator jr_i = arc_job_desc.OtherAttributes.find("emies:adl;JobProject");
   if (jr_i != arc_job_desc.OtherAttributes.end()) projectnames.push_back(jr_i->second);
 
   jobname = arc_job_desc.Identification.JobName;
@@ -650,7 +650,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       exec.clear(); exec.successcode = 0;
       while(!buf.empty()) {
         std::string arg;
-        arg = Arc::ConfigIni::NextArg(buf,' ','\0');
+        arg = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
         exec.push_back(arg);
       };
     }
@@ -663,7 +663,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       Exec pe;
       while(!buf.empty()) {
         std::string arg;
-        arg = Arc::ConfigIni::NextArg(buf);
+        arg = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
         pe.push_back(arg);
       };
       preexecs.push_back(pe);
@@ -678,7 +678,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       Exec pe;
       while(!buf.empty()) {
         std::string arg;
-        arg = Arc::ConfigIni::NextArg(buf);
+        arg = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
         pe.push_back(arg);
       };
       postexecs.push_back(pe);

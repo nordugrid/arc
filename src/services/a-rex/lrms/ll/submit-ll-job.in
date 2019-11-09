@@ -9,33 +9,34 @@
 
 echo "----- starting submit_ll_job -----" 1>&2
 
-joboption_lrms=ll
+joboption_lrms="ll"
+lrms_options="ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-ll-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
+# perflog
 perflogfilesub="${perflogdir}/submission.perflog"
 
 if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
-
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-
-init $1
-
-read_arc_conf
 
 # GD enforce this for the moment
 RUNTIME_FRONTEND_SEES_NODE=''
@@ -151,13 +152,16 @@ fi
 # Override umask
 ##############################################################
 #echo "umask 077" >> $LRMS_JOB_SCRIPT
-
 #echo 'exec > /var/tmp/grid-job-output.$$ 2>&1' >> $LRMS_JOB_SCRIPT
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
 ##############################################################
-
 add_user_env
 
 ##############################################################
@@ -256,6 +260,8 @@ include_std_streams
 ##############################################################
 move_files_to_node
 
+
+
 echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
@@ -281,6 +287,11 @@ if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
 fi
 
 ##############################################################
+# Accounting (WN OS Detection)
+##############################################################
+detect_wn_systemsoftware
+
+##############################################################
 #  Execution
 ##############################################################
 cd_and_run
@@ -289,13 +300,18 @@ echo "fi"  >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job
@@ -335,7 +351,7 @@ if [ $LLSUB_RESULT -eq '0' ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the LL jobid for the job!" 1>&2
    else
-      echo "joboption_jobid=$job_id" >> $arg_file
+      echo "joboption_jobid=$job_id" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary job script file      

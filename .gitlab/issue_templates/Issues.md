@@ -4,16 +4,20 @@
 
 [GitLab quick-action keywords that could be useful to fill this merge request](https://source.coderefinery.org/help/user/project/quick_actions)
 
+## Link to Bugzilla ticket
+BUGZ-<ticket-id>
+
 ## Labels
 
-#### ARC component labels 
+#### ARC component labels - when no issue
 Select the right ARC component labels. 
 
-[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
-#### Type of fix labels 
+[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#component-labels)
+
+#### Type of fix labels - when no issue
 Select the right type labels. 
 
-[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#type-labels)
 
 
 ## Description

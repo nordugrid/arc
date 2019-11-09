@@ -143,6 +143,7 @@ namespace Arc {
      *        details).
      **/
     void SaveToStream(std::ostream& out, bool longlist) const;
+    void SaveToStreamJSON(std::ostream& out, bool longlist) const;
 
     /// Set Job attributes from a XMLNode
     /**

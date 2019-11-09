@@ -3,9 +3,8 @@ Description=A-REX datadelivery service
 After=local_fs.target remote_fs.target
 
 [Service]
-Type=forking
-PIDFile=/var/run/arched-datadelivery-service.pid
-ExecStart=@pkgdatadir@/arc-datadelivery-service-start
+ExecStart=@prefix@/@pkgdatasubdir@/arc-datadelivery-service-start -f
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target

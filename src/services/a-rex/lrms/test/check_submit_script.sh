@@ -27,8 +27,35 @@ fi
 
 function goToParentAndRemoveDir() {
   export PATH=${ORIG_PATH}
+
+  # Make the life of developers easy when modifications of unit-tests are needed:
+  #   following code writes a new.diff files in case of unit-test had failed
+  #   developer should check this diff against the changes made to batch backends
+  #   if it is intented behaviour - replace the unit-test patch with a new diff
+  if [ "x$TESTFAILED" = "x1" ]; then
+    tmpdir=$( mktemp -d testdiff.XXXXXX )
+    mkdir $tmpdir/a $tmpdir/b
+    # Write basic LRMS job script with test substitutions
+    sed -e "s#@TEST_JOB_ID@#${test}#g" \
+        -e "s#@TEST_SESSION_DIR@#$(pwd)#g" \
+        -e "s#@TEST_RUNTIME_CONFIG_DIR@#$(pwd)/rtes#" \
+        -e "s#@TEST_ARC_LOCATION@#$(dirname $(pwd))#" \
+        -e "s#@TEST_HOSTNAME@#$(uname -n)#" \
+        "../basic-script.sh" > $tmpdir/a/basic-script.sh
+
+    cp ${lrms_script_name} $tmpdir/b/basic-script.sh
+
+    cd $tmpdir
+    diff -ubBw ${test_ignore_matching_line} a/basic-script.sh b/basic-script.sh > $unit_test_basename-${test#test_}.new.diff
+    cd - > /dev/null
+
+    mv $tmpdir/$unit_test_basename-${test#test_}.new.diff ..
+    rm -rf $tmpdir
+  fi
+
   cd ..
-  rm -rf ${1}
+  # do not remove unit test directory for failed test
+  [ "x$TESTFAILED" = "x1" ] || rm -rf ${1}
   if test "${lrms_script_name}x" != "x"; then
     rm -f ${lrms_script_name} ${lrms_script_name}.out ${lrms_script_name}.err
   fi
@@ -109,16 +136,17 @@ for test in ${TESTS}; do
   
   if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
     sed -i "/^[[]arex][[:space:]]*$/ a\
-sessiondir=\"$(pwd)\"\n\
-controldir=\"$(pwd)/controldir\"" ${test}.arc.conf
+sessiondir=$(pwd)\n\
+controldir=$(pwd)/controldir" ${test}.arc.conf
   else 
-    echo $'\n'"[arex]"$'\n'"sessiondir=\"$(pwd)\""$'\n'"controldir=\"$(pwd)/controldir\"" >> ${test}.arc.conf
+    echo $'\n'"[arex]"$'\n'"sessiondir=$(pwd)"$'\n'"controldir=$(pwd)/controldir" >> ${test}.arc.conf
   fi
 
 
   # If defined, write RTEs to disk
   if test "x${rtes}" != "x"; then
     mkdir rtes
+    mkdir -p "$(pwd)/controldir/rte/enabled"
     # Add runtimedir attribute to arc.conf. If 'arex' section does not exist, add it as well.
     if test $(grep '^[[]arex][[:space:]]*$' ${test}.arc.conf -c) -ge 1; then
       sed -i "/^[[]arex][[:space:]]*$/ a\
@@ -129,6 +157,8 @@ runtimedir=$(pwd)/rtes" ${test}.arc.conf
     for rte in ${rtes}; do
       echo "${!rte}" > rtes/${rte}
       chmod +x rtes/${rte}
+      # 'enable' RTE
+      ln -s "$(pwd)/rtes/${rte}" "$(pwd)/controldir/rte/enabled/${rte}"
     done
   fi
 
@@ -173,8 +203,10 @@ runtimedir=$(pwd)/rtes" ${test}.arc.conf
       "expected_lrms_job_script.tmpl" > ${test}.expected_job_options_in_lrms_script
 
   # Compare (diff) expected LRMS job options with those from job script.
+  TESTFAILED=0
   diffOutput=$(diff -ubBw ${test_ignore_matching_line} ${test}.expected_job_options_in_lrms_script ${lrms_script_name})
   if test $? != 0; then
+    TESTFAILED=1
     echo -n "F"
     exitCode=$((exitCode + 1))
     errorOutput="$errorOutput"$'\n\n'"Test fail in test_${test}:"$'\n'"${diffOutput}"

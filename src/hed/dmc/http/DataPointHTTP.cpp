@@ -1055,6 +1055,9 @@ using namespace Arc;
       // End of transfer - either success or not retrying transfer of whole body
       break;
     }
+    if (transfer_failure) {
+      point.failure_code = failure_code;
+    }
     point.release_client(client_url,client.Release());
     return !transfer_failure;
   }
@@ -1070,7 +1073,7 @@ using namespace Arc;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
-    bool partial_read_allowed = (client_url.Option("httpgetpartial","yes") == "yes");
+    bool partial_read_allowed = (client_url.Option("httpgetpartial") == "yes");
     if(partial_read_allowed) for (;;) {
       if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {

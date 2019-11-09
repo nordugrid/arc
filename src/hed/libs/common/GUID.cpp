@@ -4,41 +4,15 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#define NOGDI
-#include <objbase.h>
-#include <cstdio>
-#else
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <cstdio>
-#endif
 
 #include "GUID.h"
 
-#ifdef WIN32
-void Arc::GUID(std::string& guid) {
-  ::GUID g;
-  HRESULT r;
-  r = CoCreateGuid(&g);
-  if (r != S_OK) {
-    printf("There is an error during GUID generation!\n");
-    return;
-  }
-  char s[32];
-  snprintf(s, 32, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x\n", g.Data1, g.Data2, g.Data3, g.Data4[0], g.Data4[1], g.Data4[2], g.Data4[3], g.Data4[4], g.Data4[5], g.Data4[6], g.Data4[7]);
-  guid = s;
-}
-
-std::string Arc::UUID(void) {
-  std::string ret;
-  GUID(ret);
-  return ret;
-}
-#else
 static bool initialized = false;
 
 static char guid_chars[] = {
@@ -163,4 +137,4 @@ std::string Arc::UUID(void) {
   return uuid_str;
 }
 #endif
-#endif  // non WIN32
+

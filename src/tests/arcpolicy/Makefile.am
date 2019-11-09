@@ -8,4 +8,4 @@ arcpolicy_LDADD = \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

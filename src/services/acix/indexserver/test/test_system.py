@@ -11,7 +11,7 @@ from twisted.internet import reactor, defer
 from twisted.web import resource, server
 
 from acix.core import indexclient
-from acix.cacheserver import cache, cacheresource
+from acix.scanner import cache, cacheresource
 from acix.indexserver import index, indexresource
 
 
@@ -22,7 +22,7 @@ TEST_URLS2 = [ 'lfc://lfc1.ndgf.org//grid/ops.ndgf.org/sam/testfile',
                'srm://srm.ndgf.org/pnfs/ndgf.org/data/ops/sam-test/testfile']
 
 
-class TestScanner:
+class TestScanner(object):
 
     def __init__(self, urls):
         self.urls = urls
@@ -32,7 +32,7 @@ class TestScanner:
 
     def scan(self, filter):
         for url in self.urls:
-            filter(hashlib.sha1(url).hexdigest())
+            filter(hashlib.sha1(url.encode()).hexdigest())
         return defer.succeed(None)
 
 
@@ -61,15 +61,15 @@ class SystemTest(unittest.TestCase):
         idxr = indexresource.IndexResource(self.idx)
 
         c1siteroot = resource.Resource()
-        c1siteroot.putChild('cache', cr1)
+        c1siteroot.putChild(b'cache', cr1)
         c1site = server.Site(c1siteroot)
 
         c2siteroot = resource.Resource()
-        c2siteroot.putChild('cache', cr2)
+        c2siteroot.putChild(b'cache', cr2)
         c2site = server.Site(c2siteroot)
 
         idx_siteroot = resource.Resource()
-        idx_siteroot.putChild('index', idxr)
+        idx_siteroot.putChild(b'index', idxr)
         idx_site = server.Site(idx_siteroot)
 
         yield self.cs1.startService()
@@ -104,15 +104,15 @@ class SystemTest(unittest.TestCase):
         result = yield indexclient.queryIndex(self.index_url, urls1)
         self.failUnlessIn(urls1[0], result)
         locations = result[urls1[0]]
-        self.failUnlessEqual(locations, [u'localhost'])
+        self.failUnlessEqual(locations, ['localhost'])
 
         urls2 = [ TEST_URLS1[0] ]
         result = yield indexclient.queryIndex(self.index_url, urls2)
         self.failUnlessIn(urls2[0], result)
         locations = result[urls2[0]]
         self.failUnlessEqual(len(locations), 2)
-        self.failUnlessIn(u'localhost', locations)
-        self.failUnlessIn(u'http://127.0.0.1/arex/cache', locations)
+        self.failUnlessIn('localhost', locations)
+        self.failUnlessIn('http://127.0.0.1/arex/cache', locations)
 
         urls3 = [ 'srm://host/no_such_file' ]
         result = yield indexclient.queryIndex(self.index_url, urls3)
@@ -123,5 +123,5 @@ class SystemTest(unittest.TestCase):
         result = yield indexclient.queryIndex(self.index_url, urls4)
         self.failUnlessIn(urls4[0], result)
         locations = result[urls4[0]]
-        self.failUnlessEqual(locations, [u'http://127.0.0.1/arex/cache'])
+        self.failUnlessEqual(locations, ['http://127.0.0.1/arex/cache'])
 

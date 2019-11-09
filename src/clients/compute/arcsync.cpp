@@ -168,6 +168,36 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     return 1;
   }
 
+  if (opt.convert) {
+    Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
+    if (jobstore == NULL) {
+      std::cerr << Arc::IString("Warning: Unable to open job list file (%s), unknown format", usercfg.JobListFile()) << std::endl;
+      return 1;
+    }
+    // Read current jobs
+    std::list<Arc::Job> jobs;
+    if (!jobstore->ReadAll(jobs)) {
+      std::cerr << Arc::IString("Warning: Unable to read local list of jobs from file (%s)", usercfg.JobListFile()) << std::endl;
+      return 1;
+    }
+    // Delete existing database so new on is created with specified format
+    if (!jobstore->Clean()) {
+      std::cerr << Arc::IString("Warning: Unable to truncate local list of jobs in file (%s)", usercfg.JobListFile()) << std::endl;
+      return 1;
+    }
+    delete jobstore;
+    jobstore = createJobInformationStorage(usercfg);
+    if (jobstore == NULL) {
+      std::cerr << Arc::IString("Warning: Unable to create job list file (%s), jobs list is destroyed", usercfg.JobListFile()) << std::endl;
+      return 1;
+    }
+    if (!jobstore->Write(jobs)) {
+      std::cerr << Arc::IString("Warning: Failed to write local list of jobs into file (%s), jobs list is destroyed", usercfg.JobListFile()) << std::endl;
+      return 1;
+    }
+    return 0;
+  }
+
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 

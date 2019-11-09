@@ -1,0 +1,29 @@
+#!@posix_shell@
+
+#
+# This helper script uses buildtime autoconf substitutions to
+# create paths_dist file for ARC python utils and control modules
+# that holds pathes to ARC files locations
+#
+# Shell allows to natively substitute variabes like ${prefix} buildtime and aviod runtime replaces
+#
+
+prefix="@prefix@"
+datarootdir="@datarootdir@"
+PACKAGE_TARNAME="@PACKAGE_TARNAME@"
+arc_rundir="@localstatedir@/run/arc"
+arc_conf="@sysconfdir@/arc.conf"
+arc_docdir="@docdir@"
+arc_version="@VERSION@"
+
+cat <<END
+ARC_LOCATION = '@prefix@'
+ARC_LIBEXEC_DIR = '@prefix@/@pkglibexecsubdir@'
+ARC_DATA_DIR = '@prefix@/@pkgdatasubdir@'
+ARC_LIB_DIR = '@prefix@/@pkglibsubdir@'
+ARC_RUN_DIR = '${arc_rundir}'
+ARC_DOC_DIR = '${arc_docdir}'
+ARC_CONF = '${arc_conf}'
+ARC_VERSION = '${arc_version}'
+END
+

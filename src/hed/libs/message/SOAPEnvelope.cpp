@@ -462,6 +462,7 @@ XMLNode SOAPFault::Detail(bool create) {
 }
 
 SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
+  if(this == &soap) return *this;
   if(fault) delete fault;
   fault=NULL;
   envelope=XMLNode();

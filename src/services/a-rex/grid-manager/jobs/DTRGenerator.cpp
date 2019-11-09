@@ -9,7 +9,6 @@
 #include <arc/FileAccess.h>
 #include <arc/data/FileCache.h>
 
-#include "../files/Delete.h"
 #include "../conf/UrlMapConfig.h"
 #include "../files/ControlFileHandling.h"
 #include "../conf/StagingConfig.h"
@@ -32,6 +31,17 @@ void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
   // write state info to job.id.input for example
 }
 
+// We can't just let jobs leave internal queues because their DTR may be still running.
+// So here is the place some precautions may be taken.
+
+bool GMJobQueueDTR::CanSwitch(GMJob const& job, GMJobQueue const& new_queue, bool to_front) {
+  return GMJobQueue::CanSwitch(job, new_queue, to_front);
+}
+
+bool GMJobQueueDTR::CanRemove(GMJob const& job) {
+  return GMJobQueue::CanRemove(job);
+}
+
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
 bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
@@ -40,6 +50,10 @@ bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
   int priority_first = first->GetLocalDescription() ? first->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
   int priority_second = first->GetLocalDescription() ? second->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
   return priority_first > priority_second;
+}
+
+std::string filedata_pfn(FileData const& fd) {
+  return fd.pfn;
 }
 
 void DTRGenerator::main_thread(void* arg) {
@@ -125,14 +139,14 @@ void DTRGenerator::thread() {
 }
 
 DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
+    jobs_received(JobsList::ProcessingQueuePriority+1, "DTR received", *this),
+    jobs_processing(JobsList::ProcessingQueuePriority+2, "DTR processing", *this),
     generator_state(DataStaging::INITIATED),
     config(config),
     central_dtr_log(NULL),
     staging_conf(config),
     info(config),
-    jobs(jobs),
-    jobs_received(JobsList::ProcessingQueuePriority+1),
-    jobs_processing(JobsList::ProcessingQueuePriority+2) {
+    jobs(jobs) {
 
   if (!staging_conf) return;
   // Set log level for DTR in job.id.errors files
@@ -574,8 +588,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         }
       }
-      if (delete_all_files(job->SessionDir(), files, true, job_uid, job_gid) == 2)
+      std::list<std::string> tokeep(files.size());
+      std::transform(files.begin(), files.end(), tokeep.begin(), filedata_pfn);
+      if (!Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
+      }
     }
     // clean up cache joblinks
     CleanCacheJobLinks(config, job);
@@ -585,8 +602,17 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     std::list<FileData> files;
     if (!job_input_read_file(jobid, config, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
-    else if (delete_all_files(job->SessionDir(), files, false, job_uid, job_gid) == 2)
-      logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
+    else {
+      std::list<std::string> todelete(files.size());
+      for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
+        if (f->lfn.find(':') != std::string::npos) {
+          todelete.push_back(f->pfn);
+        }
+      }
+      if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
+        logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
+      }
+    }
   }
   // add to finished jobs (without overwriting existing error) and finally
   // remove from active
@@ -698,7 +724,13 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       }
     }
     // pre-clean session dir before downloading
-    if (delete_all_files(job->SessionDir(), files, false, job_uid, job_gid) == 2) {
+    std::list<std::string> todelete(files.size());
+    for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
+      if (f->lfn.find(':') != std::string::npos) {
+        todelete.push_back(f->pfn);
+      }
+    }
+    if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       dtrs_lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
@@ -776,7 +808,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
           it = files.erase(it);
           continue;
         }
-        // Remove trailing slashes otherwise it will be cleaned in delete_all_files
+        // Remove trailing slashes otherwise it will be cleaned in DirDeleteExcl
         std::string::size_type pos = it->pfn.find_last_not_of('/');
         it->pfn.resize((pos == std::string::npos)?1:(pos+1));
       }
@@ -818,7 +850,9 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         break;
     }
     // pre-clean session dir before uploading
-    if (delete_all_files(job->SessionDir(), files, true, job_uid, job_gid) == 2) {
+    std::list<std::string> tokeep(files.size());
+    std::transform(files.begin(), files.end(), tokeep.begin(), filedata_pfn);
+    if (!Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       dtrs_lock.lock();
       finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
@@ -1268,7 +1302,6 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
   cache_config.substitute(config, job->get_user());
   // there is no uid switch during Release so uid/gid is not so important
   Arc::FileCache cache(cache_config.getCacheDirs(),
-                       std::vector<std::string>(),
                        cache_config.getDrainingCacheDirs(),
                        job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();

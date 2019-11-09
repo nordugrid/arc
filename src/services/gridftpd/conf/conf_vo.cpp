@@ -2,8 +2,6 @@
 #include <config.h>
 #endif
 
-#include "environment.h"
-
 #include "conf_vo.h"
 
 namespace gridftpd {

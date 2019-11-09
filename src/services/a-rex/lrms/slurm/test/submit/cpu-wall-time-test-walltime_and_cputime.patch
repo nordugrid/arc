@@ -1,0 +1,11 @@
+--- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
++++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
+@@ -8,6 +8,8 @@
+ #SBATCH --get-user-env=10L
+ #SBATCH -n 1
+ #SBATCH 
++#SBATCH -t 1:0
++#SBATCH -t 5:0
+ 
+
+ # Overide umask of execution node (sometime values are really strange)

@@ -369,17 +369,14 @@ static int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Ar
           continue;
         }
 
-        std::string jobdesclang = "nordugrid:jsdl";
+        std::string jobdesclang = "emies:adl";
         if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
           jobdesclang = "nordugrid:xrsl";
-        }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.glite.ce.cream") {
-          jobdesclang = "egee:jdl";
         }
         else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
           jobdesclang = "emies:adl";
         }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.local") {
+        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.internal") {
           jobdesclang = "emies:adl";
         }
         std::string jobdesc;

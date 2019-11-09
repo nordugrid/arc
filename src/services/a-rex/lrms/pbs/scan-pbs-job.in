@@ -10,50 +10,42 @@
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 
-if [ -z "$1" ] ; then exit 1 ; fi
-
-basedir=`dirname $0`
-basedir=`cd $basedir > /dev/null && pwd` || exit $?
-
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-. ${pkgdatadir}/configure-pbs-env.sh || exit $?
-
-# Assume that gm-kick and scan_common is installed in the same directory
-GMKICK=${pkglibexecdir}/gm-kick
-
-. "${pkgdatadir}/scan_common.sh" || exit $?
-
-# Log system performance
-if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
-fi
-
-# Where to store temporary files
-TMPDIR=${TMPDIR:-@tmp_dir@}
-
-# directory containing PBS server logs
-pbs_log_dir=${CONFIG_pbs_log_path:-@pbs_log_path@}
-
-RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
-
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
 # first control_dir is used for storing own files
+if [ -z "$1" ] ; then exit 1 ; fi
 control_dir=$1
 control_dirs=
 while [ $# -gt 0 ] ; do
   control_dirs="${control_dirs} \"$1\""
   shift
 done
+
+joboption_lrms="pbs"
+lrms_options="pbs_bin_path pbs_log_path"
+queue_options="pbs_queue_node nodememory"
+
+# define paths and config parser
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
+
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
+
+# Define gm-kick location
+GMKICK=${pkglibexecdir}/gm-kick
+
+# Log system performance
+if [ ! -z "$perflogdir" ]; then
+   perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
+pbs_log_dir="${CONFIG_pbs_log_path:-/var/spool/pbs/server_logs}"
 
 my_id=`id -u`
 
@@ -168,6 +160,7 @@ process_log_file () {
 
     base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
     if [ -z "${base_name}" ] ; then continue ; fi
+    gridid=`echo "$base_name" 2>/dev/null | sed -n 's/.*\.\([^\.]*\)$/\1/'`
 
     # check if job already reported
     if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
@@ -281,7 +274,7 @@ process_log_file () {
       fi
     fi
     # wake up GM
-    ${GMKICK} "${base_name}.local"
+    ${GMKICK} -j "${gridid}" "${base_name}.local"
   done
   IFS=$old_IFS
 }
@@ -414,7 +407,7 @@ for ctr_dir in "$@" ; do
         # job finished and exit code is known
         save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-        ${GMKICK} "$jobfile"
+        ${GMKICK} -j "$gridid" "$jobfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
@@ -431,7 +424,7 @@ for ctr_dir in "$@" ; do
       rm -f "$countfile"
       save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${GMKICK} "$jobfile"
+      ${GMKICK} -j "$gridid" "$jobfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"

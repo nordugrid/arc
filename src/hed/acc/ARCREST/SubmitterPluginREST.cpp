@@ -99,6 +99,7 @@ namespace Arc {
     };
     job["DataStaging"].NewChild("nordugrid-adl:DelegationID") = delegationId;
     job.GetXML(product);
+    return true;
   }
 
   SubmissionStatus SubmitterPluginREST::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
@@ -190,6 +191,7 @@ namespace Arc {
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = info.reason;
       j.DelegationID.push_back(delegationId);
+      j.LogDir = "/*logs";
       
       jc.addEntity(j);
     }
@@ -209,14 +211,13 @@ namespace Arc {
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
   
-      if (!preparedjobdesc.Prepare()) {
+      if (!preparedjobdesc.Prepare(et)) {
         logger.msg(INFO, "Failed to prepare job description");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
 
-      // !! TODO: For regular BES ordinary JSDL is needed - keeping nordugrid:jsdl so far
       std::string product;
       JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
       if (!ures) {
@@ -287,6 +288,7 @@ namespace Arc {
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = info.reason;
       j.DelegationID.push_back(delegationId);
+      j.LogDir = "/*logs";
       
       jc.addEntity(j);
     }
@@ -341,9 +343,9 @@ namespace Arc {
     preparedjobdesc.Identification.ActivityOldID.push_back(jobid);
 
     std::string product;
-    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "nordugrid:jsdl");
+    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
     if (!ures) {
-      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "nordugrid:jsdl", ures.str());
+      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
       clients.release(ac.Release());
       return false;
     }

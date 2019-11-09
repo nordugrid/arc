@@ -21,7 +21,6 @@ StagingConfig::StagingConfig(const GMConfig& config):
   max_inactivity_time(300),
   max_retries(10),
   passive(true),
-  secure(false),
   httpgetpartial(false),
   remote_size_limit(0),
   use_host_cert_for_remote_delivery(false),
@@ -68,7 +67,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       if (cf.SubSection()[0] == '\0') {
         perf_log.SetEnabled(true);
         if (command == "perflogdir") {
-          perf_log.SetOutput(Arc::ConfigIni::NextArg(rest) + "/data.perflog");
+          perf_log.SetOutput(rest + "/data.perflog");
         }
       }
       continue;
@@ -105,9 +104,10 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       }
     }
     else if (command == "speedcontrol") {
-      if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed)) {
+      if (rest.empty()) {
         min_speed = min_speed_time = min_average_speed = max_inactivity_time = 0;
-      } else if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
+      } else if (!Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed) ||
+                 !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_speed_time) ||
                  !Arc::stringto(Arc::ConfigIni::NextArg(rest), min_average_speed) ||
                  !Arc::stringto(Arc::ConfigIni::NextArg(rest), max_inactivity_time)) {
         logger.msg(Arc::ERROR, "Bad number in speedcontrol");
@@ -127,7 +127,7 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       defined_shares[share] = priority;
     }
     else if (command == "deliveryservice") {
-      std::string url = Arc::ConfigIni::NextArg(rest);
+      std::string url = rest;
       Arc::URL u(url);
       if (!u) {
         logger.msg(Arc::ERROR, "Bad URL in deliveryservice: %s", url);
@@ -148,21 +148,20 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "passivetransfer") {
       std::string pasv = Arc::ConfigIni::NextArg(rest);
       if (pasv == "yes") passive = true;
-    }
-    else if (command == "securetransfer") {
-      std::string sec = Arc::ConfigIni::NextArg(rest);
-      if (sec == "yes") secure = true;
+      else passive = false;
     }
     else if (command == "httpgetpartial") {
       std::string partial = Arc::ConfigIni::NextArg(rest);
-      if (partial == "no") httpgetpartial = false;
+      if (partial == "yes") httpgetpartial = true;
+      else httpgetpartial = false;
     }
     else if (command == "preferredpattern") {
-      preferred_pattern = Arc::ConfigIni::NextArg(rest);
+      preferred_pattern = rest;
     }
     else if (command == "usehostcert") {
       std::string use_host_cert = Arc::ConfigIni::NextArg(rest);
       if (use_host_cert == "yes") use_host_cert_for_remote_delivery = true;
+      else use_host_cert_for_remote_delivery = false;
     }
     else if (command == "loglevel") {
       unsigned int level;
@@ -173,14 +172,14 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
       log_level = Arc::old_level_to_level(level);
     }
     else if (command == "statefile") {
-      dtr_log = Arc::ConfigIni::NextArg(rest);
+      dtr_log = rest;
     }
-    else if (command == "central_logfile") {
-      dtr_central_log = Arc::ConfigIni::NextArg(rest);
+    else if (command == "logfile") {
+      dtr_central_log = rest;
     }
     else if (command == "use_remote_acix")  {
-      std::string endpoint(Arc::ConfigIni::NextArg(rest));
-      if (!Arc::URL(endpoint) || endpoint.find("://") == std::string::npos) {
+      std::string endpoint(rest);
+      if (!Arc::URL(endpoint) || (endpoint.find("://") == std::string::npos)) {
         logger.msg(Arc::ERROR, "Bad URL in acix_endpoint");
         return false;
       }

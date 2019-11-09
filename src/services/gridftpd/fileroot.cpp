@@ -75,6 +75,7 @@ bool FileNode::belongs(const char* name) {
 
 FileNode& FileNode::operator= (const FileNode &node) {
   logger.msg(Arc::VERBOSE, "FileNode: operator= (%s <- %s) %lu <- %lu", point, node.point, (unsigned long int)this, (unsigned long int)(&node));
+  if(this == &node) return *this;
   if(plug) if(plug->release() == 0) {
     logger.msg(Arc::VERBOSE, "Copying with dlclose");
     delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL;

@@ -2,29 +2,20 @@ sbin_PROGRAMS = gridftpd
 noinst_LTLIBRARIES = libgridftpd.la
 
 if SYSV_SCRIPTS_ENABLED
-GRIDFTPD_SCRIPT = gridftpd.init
+GRIDFTPD_SCRIPT = arc-gridftpd
 else
 GRIDFTPD_SCRIPT =
 endif
-
-if SYSV_SCRIPTS_ENABLED
-# Not using initd_SCRIPTS due to rename.
-install-data-local:
-	$(MKDIR_P) "$(DESTDIR)$(initddir)"
-	$(INSTALL_SCRIPT) gridftpd.init $(DESTDIR)$(initddir)/gridftpd
-uninstall-local:
-	rm -f $(DESTDIR)$(initddir)/gridftpd
-endif
+initd_SCRIPTS = $(GRIDFTPD_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
-GRIDFTPD_UNIT = gridftpd.service
-GRIDFTPD_UNIT_WRAPPER = gridftpd-start
+GRIDFTPD_UNIT = arc-gridftpd.service
 else
 GRIDFTPD_UNIT =
-GRIDFTPD_UNIT_WRAPPER =
 endif
 units_DATA = $(GRIDFTPD_UNIT)
-pkgdata_SCRIPTS = $(GRIDFTPD_UNIT_WRAPPER)
+
+pkgdata_SCRIPTS = arc-gridftpd-start
 
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp
 libgridftpd_la_CXXFLAGS = -I$(top_srcdir)/include \

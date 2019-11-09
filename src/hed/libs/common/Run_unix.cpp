@@ -469,7 +469,32 @@ namespace Arc {
       if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
-        pid = ::fork();
+
+        uint64_t max_files = RLIM_INFINITY;
+        struct rlimit lim;
+        if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
+        if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
+        char * * argv = new char*[argv_.size()+1];
+        char * * envp = new char*[envp_tmp.size()+1];
+        int n = 0;
+        for(std::list<std::string>::iterator item = argv_.begin(); item != argv_.end(); ++item) {
+          argv[n++] = const_cast<char*>(item->c_str());
+        };
+        argv[n] = NULL;
+        n = 0;
+        for(std::list<std::string>::iterator item = envp_tmp.begin(); item != envp_tmp.end(); ++item) {
+          envp[n++] = const_cast<char*>(item->c_str());
+        };
+        envp[n] = NULL;
+
+        // Stop acceptin signals temporarily to avoid signal handlers calling unsafe
+        // functions inside child context.
+        sigset_t newsig; sigfillset(&newsig);
+        sigset_t oldsig; sigemptyset(&oldsig);
+        bool oldsig_set = (pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) == 0);
+
+        if (oldsig_set)
+          pid = ::fork();
         if(pid == 0) {
           // child - set std* and do exec
           if(pipe_stdin[0] != -1) {
@@ -487,28 +512,12 @@ namespace Arc {
             if(dup2(pipe_stderr[1], 2) != 2) exit_child(-1, "Failed to setup stderr\n");
             close(pipe_stderr[1]);
           };
-          char * * argv = new char*[argv_.size()+1];
-          char * * envp = new char*[envp_tmp.size()+1];
-          int n = 0;
-          for(std::list<std::string>::iterator item = argv_.begin(); item != argv_.end(); ++item) {
-            argv[n++] = const_cast<char*>(item->c_str());
-          };
-          argv[n] = NULL;
-          n = 0;
-          for(std::list<std::string>::iterator item = envp_tmp.begin(); item != envp_tmp.end(); ++item) {
-            envp[n++] = const_cast<char*>(item->c_str());
-          };
-          envp[n] = NULL;
           arg->Run();
           if(::chdir(working_directory.c_str()) != 0) {
             exit_child(-1, "Failed to change working directory\n");
           }
 
           // close all handles inherited from parent
-          uint64_t max_files = RLIM_INFINITY;
-          struct rlimit lim;
-          if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
-          if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
  	  for(int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
 
           (void)::execve(argv[0], argv, envp);
@@ -528,6 +537,11 @@ namespace Arc {
             stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
           };
         };
+        if(oldsig_set)
+          pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
+
+        delete[] argv;
+        delete[] envp;
       };
       if(pid == -1) {
         // child was not spawned
@@ -602,7 +616,7 @@ namespace Arc {
         CloseStdout();
         return false;
       } else {
-        stdout_str_->append(buf, l);
+        stdout_str_->Append(buf, l);
       }
     } else {
       // Event shouldn't happen if not expected
@@ -619,7 +633,7 @@ namespace Arc {
         CloseStderr();
         return false;
       } else {
-        stderr_str_->append(buf, l);
+        stderr_str_->Append(buf, l);
       }
     } else {
       // Event shouldn't happen if not expected
@@ -630,17 +644,16 @@ namespace Arc {
 
   bool Run::stdin_handler(Glib::IOCondition) {
     if (stdin_str_) {
-      if (stdin_str_->length() == 0) {
+      if (stdin_str_->Size() == 0) {
         CloseStdin();
         stdin_str_ = NULL;
       } else {
-        int l = WriteStdin(0, stdin_str_->c_str(), stdin_str_->length());
+        int l = WriteStdin(0, stdin_str_->Get(), stdin_str_->Size());
         if (l == -1) {
           CloseStdin();
           return false;
         } else {
-          // Not very effective
-          *stdin_str_ = stdin_str_->substr(l);
+          stdin_str_->Remove(l);
         }
       }
     } else {
@@ -849,15 +862,42 @@ namespace Arc {
   }
 
   void Run::AssignStdout(std::string& str) {
-    if (!running_) stdout_str_ = &str;
+    if (!running_) {
+      stdout_str_wrap_.Assign(str);
+      stdout_str_ = &stdout_str_wrap_;
+    }
+  }
+
+  void Run::AssignStdout(Data& str) {
+    if (!running_) {
+      stdout_str_ = &str;
+    }
   }
 
   void Run::AssignStderr(std::string& str) {
-    if (!running_) stderr_str_ = &str;
+    if (!running_) {
+      stderr_str_wrap_.Assign(str);
+      stderr_str_ = &stderr_str_wrap_;
+    }
+  }
+
+  void Run::AssignStderr(Data& str) {
+    if (!running_) {
+      stderr_str_ = &str;
+    }
   }
 
   void Run::AssignStdin(std::string& str) {
-    if (!running_) stdin_str_ = &str;
+    if (!running_) {
+      stdin_str_wrap_.Assign(str);
+      stdin_str_ = &stdin_str_wrap_;
+    }
+  }
+
+  void Run::AssignStdin(Data& str) {
+    if (!running_) {
+      stdin_str_ = &str;
+    }
   }
 
   void Run::KeepStdout(bool keep) {
@@ -1070,6 +1110,36 @@ namespace Arc {
     bool error;
     return Listen(-1,error);
   }
+
+
+  Run::StringData::StringData(): content_(NULL) {
+  }
+
+  Run::StringData::~StringData() {
+  }
+
+  void Run::StringData::Assign(std::string& str) {
+    content_ = &str;
+  }
+
+  void Run::StringData::Append(char const* data, unsigned int size) {
+    if(content_) content_->append(data, size);
+  }
+
+  void Run::StringData::Remove(unsigned int size) {
+    if(content_) content_->erase(0, size);
+  }
+
+  char const* Run::StringData::Get() const {
+    if(!content_) return NULL;
+    return content_->c_str();
+  }
+
+  unsigned int Run::StringData::Size() const {
+    if(!content_) return 0;
+    return content_->length();
+  }
+
 
 }
 

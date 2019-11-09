@@ -327,6 +327,19 @@ namespace Arc {
     return registered;
   }
 
+  bool DataPointIndex::SupportsTransfer() const {
+     if (!h || !*h)
+       return false;
+     return (*h)->SupportsTransfer();
+   }
+
+   DataStatus DataPointIndex::Transfer(const URL& otherendpoint, bool source,
+                                       TransferCallback callback) {
+     if (!h || !*h)
+       return DataStatus::NoLocationError;
+     return (*h)->Transfer(otherendpoint, source, callback);
+   }
+
   DataStatus DataPointIndex::StartReading(DataBuffer& buffer) {
     if (!h || !*h)
       return DataStatus::NoLocationError;

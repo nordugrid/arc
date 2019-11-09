@@ -38,11 +38,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   // The profiles.ini could exist under firefox, seamonkey and thunderbird
   std::vector<std::string> profiles_homes;
 
-#ifndef WIN32
   std::string home_path = user.Home();
-#else
-  std::string home_path = Glib::get_home_dir();
-#endif
 
   std::string profiles_home;
 
@@ -55,28 +51,6 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
 
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
-
-#elif defined(WIN32)
-  //Windows Vista and Win7
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
-  //WinXP and Win2000
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);    
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
 #else //Linux
   profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
   profiles_homes.push_back(profiles_home);
@@ -284,7 +258,7 @@ static int runmain(int argc, char *argv[]) {
                                     "    12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file\n"
-                                    "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
+                                    "  keybits=number - length of the key to generate. Default is 2048 bits.\n"
                                     "    Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
                                     "    Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
@@ -362,9 +336,11 @@ static int runmain(int argc, char *argv[]) {
                                          "              all --- put all of this DN's attributes into AC; \n"
                                          "              list ---list all of the DN's attribute, will not create AC extension; \n"
                                          "              /Role=yourRole --- specify the role, if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC; \n"
                                          "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC. \n"
+                                         "              If this option is not specified values from configuration files are used.\n"
+                                         "              To avoid anything to be used specify -S with empty value.\n"
                                          ),
                     istring("string"), vomslist);
 
@@ -503,6 +479,17 @@ static int runmain(int argc, char *argv[]) {
   if(use_nssdb) {
     usercfg.CertificatePath("");;
     usercfg.KeyPath("");;
+  }
+
+  if(vomslist.empty()) {
+    vomslist = usercfg.DefaultVOMSes();
+  }
+  for(std::list<std::string>::iterator voms = vomslist.begin(); voms != vomslist.end();) {
+    if(voms->empty()) {
+      voms = vomslist.erase(voms);
+    } else {
+      ++voms;
+    }
   }
 
   // Check for needed credentials objects
@@ -1252,14 +1239,12 @@ static int runmain(int argc, char *argv[]) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
     }
-#ifndef WIN32
     EVP_PKEY* pkey = signer.GetPrivKey();
     if(!pkey) {
       std::cerr << Arc::IString("Proxy generation failed: No valid private key found.") << std::endl;
       return EXIT_FAILURE;
     }
     if(pkey) EVP_PKEY_free(pkey);
-#endif
     std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;

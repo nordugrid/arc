@@ -14,35 +14,50 @@
 
 namespace ArcJura
 {
+  // Construct APEL destination during republishing using provided URL and topic
   ApelDestination::ApelDestination(std::string url_, std::string topic_):
     logger(Arc::Logger::rootLogger, "JURA.ApelReReporter"),
     rereport(true),
-    use_ssl("true"),
+    use_ssl(false),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
                    "UsageRecords")
 
   {
-    init(url_.substr(5), topic_, "", "", "", "");
+    // define APEL URL stripping 'APEL:' if present
+    std::string apel_url = url_;
+    if (url_.substr(0,5) == "APEL:") {
+        apel_url = url_.substr(5);
+    }
+    // check SSL url
+    if (apel_url.substr(0,5) == "https") {
+        use_ssl = true;
+    }
+    // NOTE that cert/key/cadir path will be read from environment variables or defaults are used
+    init(apel_url, topic_, "", "", "", "");
   }
 
+  // Construct APEL destination during normal publishing cycle from joblog and arc.conf
   ApelDestination::ApelDestination(JobLogFile& joblog, const Config::APEL &_conf):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     conf(_conf),
     rereport(false),
-    use_ssl("false"),
+    use_ssl(false),
     urn(0),
     sequence(0),
     usagerecordset(Arc::NS("","http://eu-emi.eu/namespaces/2012/11/computerecord"),
                    "UsageRecords")
 
   {
-    init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
-
-    //From jobreport_options:
+    //Settings from arc.conf:
     max_ur_set_size=conf.urbatchsize;
     use_ssl=conf.use_ssl;
+
+    // WARNING: 'loggerurl' should contains 'APEL:' prefix.
+    // Jura adds this prefix when original A-REX joblogs are converted to per-destination joblogs in accordance to configuration in arc.conf
+    init(joblog["loggerurl"].substr(5), joblog["topic"], joblog["outputdir"], joblog["certificate_path"], joblog["key_path"], joblog["ca_certificates_dir"]);
+
   }
 
   void ApelDestination::init(std::string serviceurl_,std::string topic_, std::string outputdir_, std::string cert_, std::string key_, std::string ca_)
@@ -85,7 +100,7 @@ namespace ArcJura
         service_url = url;
         if (url.Protocol()!="https")
           {
-            logger.msg(Arc::ERROR, "Protocol is %s, should be https",
+            logger.msg(Arc::ERROR, "Protocol is %s. It is recommended to use secure connection with https.",
                        url.Protocol());
           }
         host=url.Host();
@@ -97,7 +112,7 @@ namespace ArcJura
 
     //read the previous aggregation records
     if (!rereport)
-        aggregationManager = new CARAggregation(host,port,topic, true);
+        aggregationManager = new CARAggregation(host,port,topic,true,use_ssl);
 
     //Get Batch Size:
     //Default value:
@@ -315,50 +330,27 @@ namespace ArcJura
                );
     }
     int retval;
-    //ssmsend <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path> <use_ssl>"
-    std::string command;
-    std::vector<std::string> ssm_pathes;
-    std::string exec_cmd = "ssmsend";
-    //RedHat: /usr/libexec/arc/ssm_master
-    ssm_pathes.push_back("/usr/libexec/arc/"+exec_cmd);
-    ssm_pathes.push_back("/usr/local/libexec/arc/"+exec_cmd);
-    // Ubuntu/Debian: /usr/lib/arc/ssm_master
-    ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
-    ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
+    //ssmsend -H <hostname> -p <port> -t <topic> -k <key path> -c <cert path> -C <cadir path> -m <messages path> [--ssl]"
+    std::string command = INSTPREFIX "/" PKGLIBEXECSUBDIR "/ssmsend";
 
-    // If you don't use non-standard prefix for a compilation you will 
-    // use this extra location.
-    std::ostringstream prefix;
-    prefix << INSTPREFIX << "/" << PKGLIBEXECSUBDIR << "/";
-    ssm_pathes.push_back(prefix.str()+exec_cmd);
-    
-    // Find the location of the ssm_master
-    std::string ssm_command = "./ssm/"+exec_cmd;
-    for (int i=0; i<(int)ssm_pathes.size(); i++) {
-        std::ifstream ssmfile(ssm_pathes[i].c_str());
-        if (ssmfile) {
-            // The file exists,
-            ssm_command = ssm_pathes[i];
-            ssmfile.close();
-            break;
-        }
-    }
-
-    command = ssm_command;
-    command += " " + service_url.Host(); //host
+    command += " -H " + service_url.Host(); //host
     std::stringstream port;
     port << service_url.Port();
-    command += " " + port.str(); //port
-    command += " " + topic;      //topic
-    command += " " + cfg.key;    //certificate key
-    command += " " + cfg.cert;   //certificate
-    command += " " + cfg.cadir;  //cadir
-    command += " " + default_path; //messages path
-    command += " " + use_ssl;    //use_ssl
+    command += " -p " + port.str(); //port
+    command += " -t " + topic;      //topic
+    command += " -k " + cfg.key;    //certificate key
+    command += " -c " + cfg.cert;   //certificate
+    command += " -C " + cfg.cadir;  //cadir
+    command += " -m " + default_path; //messages path
+    command += " -d " + Arc::level_to_string(logger.getThreshold()); // loglevel
+    if (use_ssl) {
+        command += " --ssl";    //use_ssl
+    }
     command += "";
 
+    logger.msg(Arc::INFO, "Running SSM client using: %s", command);
     retval = system(command.c_str());
-    logger.msg(Arc::DEBUG, "system retval: %d", retval);
+    logger.msg(Arc::DEBUG, "SSM client exit code: %d", retval);
     if (retval == 0) {
         return Arc::MCC_Status(Arc::STATUS_OK,
                                "apelclient",

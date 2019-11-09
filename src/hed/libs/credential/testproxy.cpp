@@ -20,7 +20,7 @@ int main(void) {
   std::string cafile("../../../tests/echo/testcacert.pem"); 
   std::string cadir("../../../tests/echo/certificates");
 
-  int keybits = 1024;
+  int keybits = 2048;
   int proxydepth = 10;
 
   Arc::Time t;

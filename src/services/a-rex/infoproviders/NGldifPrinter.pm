@@ -144,12 +144,13 @@ sub jobAttributes {
                                                    reqwalltime ));
 }
 
-sub userAttributes {
-    my ($self, $data) = @_;
-    $self->MdsAttributes();
-    $self->attribute(objectClass => 'nordugrid-authuser');
-    $self->attributes($data, 'nordugrid-authuser-', qw( name sn freecpus diskspace queuelength ));
-}
+#
+#sub userAttributes {
+#    my ($self, $data) = @_;
+#    $self->MdsAttributes();
+#    $self->attribute(objectClass => 'nordugrid-authuser');
+#    $self->attributes($data, 'nordugrid-authuser-', qw( name sn freecpus diskspace queuelength ));
+#}
 
 
 #
@@ -160,9 +161,9 @@ sub jobs {
     LdifPrinter::Entries(@_, 'nordugrid-job-', 'globalid', \&jobAttributes);
 }
 
-sub users {
-    LdifPrinter::Entries(@_, 'nordugrid-authuser-', 'name', \&userAttributes);
-}
+#sub users {
+#    LdifPrinter::Entries(@_, 'nordugrid-authuser-', 'name', \&userAttributes);
+#}
 
 sub queues {
     LdifPrinter::Entries(@_, 'nordugrid-queue-', 'name', \&queueAttributes, sub {
@@ -170,9 +171,9 @@ sub queues {
         $self->beginGroup('jobs');
         $self->jobs($data->{jobs});
         $self->end();
-        $self->beginGroup('users');
-        $self->users($data->{users});
-        $self->end();
+        #$self->beginGroup('users');
+        #$self->users($data->{users});
+        #$self->end();
     });
 }
 

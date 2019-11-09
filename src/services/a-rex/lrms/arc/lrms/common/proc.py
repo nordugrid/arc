@@ -4,9 +4,11 @@ Execute bash commands locally or remotely (SSH).
 :todo: split long list of args so that we don't exceed kernel ARG_MAX
 """
 
-from log import warn, ArcError
-from config import Config
-from ssh import SSHSession
+from __future__ import absolute_import
+
+from .log import warn, ArcError
+from . import config
+from .ssh import SSHSession
 
 
 def sliceargs(args, MAX = 4000):
@@ -17,7 +19,7 @@ def sliceargs(args, MAX = 4000):
         yield subargs
 
 
-def execute_local(args, env = None):
+def execute_local(args, env = None, zerobyte = False):
     """
     Execute a command locally. This method is a wrapper for
     :py:class:`subprocess.Popen` with stdout and stderr piped to
@@ -34,11 +36,15 @@ def execute_local(args, env = None):
     from subprocess import Popen
 
     # Note: PIPE will cause deadlock if output is larger than 65K
-    stdout, stderr = TemporaryFile(), TemporaryFile()
+    stdout, stderr = TemporaryFile("w+"), TemporaryFile("w+")
     handle = type('Handle', (object,), {'stdout' : [], 'stderr' : [], 'returncode' : 0})()
     p = Popen(args, stdout = stdout, stderr = stderr, env = env, shell = True)
     p.wait()
-    handle.stdout = stdout.seek(0) or stdout.readlines()
+    if zerobyte:
+        strstdout = stdout.seek(0) or stdout.read()
+        handle.stdout = strstdout.split('\0')
+    else:
+        handle.stdout = stdout.seek(0) or stdout.readlines()
     handle.stderr = stderr.seek(0) or stderr.readlines()
     handle.returncode = p.returncode
     return handle
@@ -56,7 +62,7 @@ def execute_remote(args, host = None, timeout = 10):
 
     from time import sleep
 
-    timeout = Config.ssh_timeout
+    timeout = config.Config.ssh_timeout
     def is_timeout(test):
         wait_time = 0
         while not test():
@@ -70,7 +76,7 @@ def execute_remote(args, host = None, timeout = 10):
         handle = type('Handle', (object,), {'stdout' : [], 'stderr' : [], 'returncode' : 0})()
         if not SSHSession:
             raise ArcError('There is no active SSH session! Run lrms.common.ssh.ssh_connect', 'common.proc')
-        session = SSHSession[host if host else SSHSession.keys()[-1]].open_session()
+        session = SSHSession[host if host else list(SSHSession.keys())[-1]].open_session()
         session.exec_command(args)
         if is_timeout(session.exit_status_ready):
             warn('Session timed out. Some output might not be received. Guessing exit code from stderr.', 'common.proc')

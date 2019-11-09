@@ -1,0 +1,92 @@
+#!@PYTHON@
+# PYTHON_ARGCOMPLETE_OK
+
+import os
+import sys
+import logging
+import argparse
+import errno
+
+# Initialize logging (ARCCTL namespace)
+logger = logging.getLogger('ARCCTL')
+logger.setLevel(logging.INFO)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
+
+# Use the same setup for ARC namespace
+arclogger = logging.getLogger('ARC')
+arclogger.addHandler(log_handler_stderr)
+
+# ARC-prefix path in PYTHONPATH
+arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
+if os.path.isdir(arc_prefix_pythonpath):
+    if arc_prefix_pythonpath not in sys.path:
+        sys.path.insert(1, arc_prefix_pythonpath)
+
+# Import ARC control and config modules
+from arc.control import ControlCommon
+from arc.control import *
+from arc.utils import config
+
+
+# Define root parser for arcctl
+class ArgumentParserHelpOnError(argparse.ArgumentParser):
+    """Override the default behavior of the ArgumentParser error method to show help message"""
+    def error(self, message):
+        sys.stderr.write('Error: %s\n\n' % message)
+        self.print_help()
+        sys.exit(2)
+
+
+def get_parser():
+    parser = ArgumentParserHelpOnError(description='NorduGrid ARC Computing Element Control Tool')
+    parser.add_argument('-c', '--config', action='store',
+                        help='config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser.add_argument('-d', '--debug', action='store',
+                        help='verbosity level (default is %(default)s)', default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+
+    # Register subparsers for defined arc.control components
+    subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT', help='DESCRIPTION')
+    for c in CTL_COMPONENTS:
+        c.register_parser(subparsers)
+    return parser
+
+
+if __name__ == '__main__':
+    args_parser = get_parser()
+
+    # Try to import and use argcomplete if available
+    try:
+        import argcomplete
+        argcomplete.autocomplete(args_parser)
+    except ImportError:
+        argcomplete = None
+        logger.debug('Cannot import argcomplete module. '
+                     'Consider to install python-argcomplete to take advantage of arcctl tab-completion')
+
+    # Parse command line arguments
+    cmd_args = args_parser.parse_args()
+    # Set log level for both ARCCTL. and ARC. logging namespaces
+    loglevel = getattr(logging, cmd_args.debug, 30)
+    logger.setLevel(loglevel)
+    arclogger.setLevel(loglevel)
+    # Define handler class (if present)
+    if not hasattr(cmd_args, 'handler_class'):
+        args_parser.print_help()
+        sys.exit(1)
+    ctl_class = cmd_args.handler_class
+
+    # Invoke ARC control action
+    try:
+        ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
+    except IOError as e:
+        # handle SIGPIPE termination
+        if e.errno == errno.EPIPE:
+            pass
+        else:
+            # Remove runtime config on any failures
+            ControlCommon.remove_runtime_config()
+            raise

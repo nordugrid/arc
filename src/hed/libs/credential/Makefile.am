@@ -1,13 +1,8 @@
 lib_LTLIBRARIES = libarccredential.la
 #noinst_PROGRAMS = testproxy testcertinfo testproxy2proxy testvoms testeec
 
-#if WIN32
-#VOMS_HEADER =
-#VOMS_SOURCE =
-#else
 VOMS_HEADER = VOMSUtil.h VOMSConfig.h
 VOMS_SOURCE = VOMSUtil.cpp VOMSConfig.cpp
-#endif
 
 if NSS_ENABLED
 NSS_HEADER = NSSUtil.h nssprivkeyinfocodec.h
@@ -38,35 +33,35 @@ testproxy_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 testproxy_LDADD = ./libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 testcertinfo_SOURCES = testcertinfo.cpp
 testcertinfo_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 testcertinfo_LDADD = ./libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 testproxy2proxy_SOURCES = testproxy2proxy.cpp
 testproxy2proxy_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 testproxy2proxy_LDADD = ./libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 testvoms_SOURCES = testvoms.cpp
 testvoms_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 testvoms_LDADD = ./libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 testeec_SOURCES = testeec.cpp
 testeec_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 testeec_LDADD = ./libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)

@@ -1,0 +1,48 @@
+--- a/basic-script.sh	2019-07-22 17:40:16.598535711 +0200
++++ b/basic-script.sh	2019-07-22 17:40:16.600535666 +0200
+@@ -9,6 +9,7 @@
+ #SBATCH --get-user-env=10L
+ #SBATCH -n 1
+ #SBATCH 
++#SBATCH --mem-per-cpu=2000
+ 
+ # Overide umask of execution node (sometime values are really strange)
+ umask 077
+@@ -135,8 +139,21 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for INCREASEMEMORY:
++RTE_function_0 () {
++joboption_memory=2000
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}INCREASEMEMORY;"
++# Calling INCREASEMEMORY function: 
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime INCREASEMEMORY stage 1 execution failed." 1>&2
++    echo "Runtime INCREASEMEMORY stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -205,6 +222,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}INCREASEMEMORY;"
++# Calling INCREASEMEMORY function: 
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime INCREASEMEMORY stage 2 execution failed." 1>&2
++    echo "Runtime INCREASEMEMORY stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ # Measuring used scratch space
+ echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"
+ # Cleaning up extra files in the local scratch

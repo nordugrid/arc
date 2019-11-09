@@ -1,6 +1,0 @@
-Arc Client Component (ACC) plugins for supporting ARC lightweight (LOCAL)
-
-Implements the following specialized classes:
-
-o JobControllerPluginLOCAL
-o SubmitterLOCAL

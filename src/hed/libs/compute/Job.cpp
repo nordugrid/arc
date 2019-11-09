@@ -314,20 +314,10 @@ namespace Arc {
         JobStatusInterfaceName          = "org.nordugrid.ldapng";
         JobManagementInterfaceName      = "org.nordugrid.gridftpjob";
       }
-      else if ((std::string)job["Flavour"] == "BES") {
-        ServiceInformationInterfaceName = "org.ogf.bes";
-        JobStatusInterfaceName          = "org.ogf.bes";
-        JobManagementInterfaceName      = "org.ogf.bes";
-      }
-      else if ((std::string)job["Flavour"] == "ARC1") {
-        ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
-        JobStatusInterfaceName          = "org.nordugrid.xbes";
-        JobManagementInterfaceName      = "org.nordugrid.xbes";
-      }
-      else if ((std::string)job["Flavour"] == "LOCAL") {
-        ServiceInformationInterfaceName = "org.nordugrid.local";
-        JobStatusInterfaceName          = "org.nordugrid.local";
-        JobManagementInterfaceName      = "org.nordugrid.local";
+      else if ((std::string)job["Flavour"] == "INTERNAL") {
+        ServiceInformationInterfaceName = "org.nordugrid.internal";
+        JobStatusInterfaceName          = "org.nordugrid.internal";
+        JobManagementInterfaceName      = "org.nordugrid.internal";
       }
     }
     else {
@@ -679,6 +669,171 @@ namespace Arc {
     }
 
     out << std::endl;
+  } // end Print
+
+  namespace _utils {
+
+    class JSONPair {
+      public:
+        JSONPair(char const * tag, std::string const & value) : tag(tag), value(value) {};
+        char const * tag;
+        std::string const & value;
+    };
+
+    class JSONPairNum {
+      public:
+        JSONPairNum(char const * tag, int64_t value) : tag(tag), value(value) {};
+        char const * tag;
+        int64_t value;
+    };
+
+    class JSONSimpleArray {
+      public:
+        JSONSimpleArray(char const * tag, std::list<std::string> const & values) : tag(tag), values(values) {};
+        char const * tag;
+        std::list<std::string> const & values;
+    };
+
+    class JSONStart {
+      public:
+        JSONStart(int ident = 0):ident(ident),first(true) {};
+        int operator++() { ++ident; first=true; return ident; };
+        int operator--() { --ident; return ident; };
+        int ident;
+        bool first;
+    };
+
+
+    std::ostream& operator<<(std::ostream& out, JSONPair const & pair) {
+      out << "\"" << pair.tag << "\": \"" << pair.value << "\"";
+      return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, JSONPairNum const & pair) {
+      out << "\"" << pair.tag << "\": " << pair.value;
+      return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, JSONSimpleArray const & list) {
+      out << "\"" << list.tag << "\": [";
+      for (std::list<std::string>::const_iterator it = list.values.begin(); it != list.values.end(); it++) {
+        out << (it==list.values.begin()?"":",") << std::endl;
+        out << "\"" << *it << "\"";
+      }
+      out << std::endl;
+      out << "]";
+      return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, JSONStart& st) {
+      if(!st.first) out << "," << std::endl;
+      st.first=false;
+      for(int n=0; n<st.ident; ++n) out << " ";
+      return out;
+    }
+
+  } // namespace _utils
+
+  void Job::SaveToStreamJSON(std::ostream& out, bool longlist) const {
+    using namespace _utils;
+
+    out << "{" << std::endl;
+    JSONStart s(1);
+    out << s << JSONPair("id", JobID);
+    if (!Name.empty())
+      out << s << JSONPair("name", Name);
+    out << s << JSONPair("state", State.GetGeneralState());
+    if (longlist && !State().empty()) {
+      out << s << JSONPair("specificState", State.GetSpecificState());
+    }
+    if (State == JobState::QUEUING && WaitingPosition != -1) {
+      out << s << JSONPairNum("waitingPosition", WaitingPosition);
+    }
+
+    if (ExitCode != -1)
+      out << s << JSONPairNum("exitCode", ExitCode);
+    if (!Error.empty()) {
+      out << s << JSONSimpleArray("jobError", Error);
+    }
+
+    if (longlist) {
+      if (!Owner.empty())
+        out << s << JSONPair("owner", Owner);
+      if (!OtherMessages.empty()) {
+        out << s << JSONSimpleArray("otherMessages", OtherMessages);
+      }
+      if (!Queue.empty())
+        out << s << JSONPair("queue", Queue);
+      if (RequestedSlots != -1)
+        out << s << JSONPairNum("requestedSlots", RequestedSlots);
+      if (WaitingPosition != -1)
+        out << s << JSONPairNum("waitingPosition", WaitingPosition);
+      if (!StdIn.empty())
+        out << s << JSONPair("stdin", StdIn);
+      if (!StdOut.empty())
+        out << s << JSONPair("stdout", StdOut);
+      if (!StdErr.empty())
+        out << s << JSONPair("stderr", StdErr);
+      if (!LogDir.empty())
+        out << s << JSONPair("logDirectory", LogDir);
+      if (SubmissionTime != -1)
+        out << s << JSONPair("submitted", (std::string)SubmissionTime);
+      if (EndTime != -1)
+        out << s << JSONPair("endTime", (std::string)EndTime);
+      if (!SubmissionHost.empty())
+        out << s << JSONPair("submittedFrom", SubmissionHost);
+      if (!SubmissionClientName.empty())
+        out << s << JSONPair("submittingClient", SubmissionClientName);
+      if (RequestedTotalCPUTime != -1)
+        out << s << JSONPair("requestedCPUTime", (std::string)RequestedTotalCPUTime);
+      if (UsedTotalCPUTime != -1) {
+        if (RequestedSlots > 1) {
+          out << s << JSONPair("usedCPUTimeTotal", (std::string)UsedTotalCPUTime);
+          out << s << JSONPair("usedCPUTimePerSlot", (std::string)Arc::Period(UsedTotalCPUTime.GetPeriod() / RequestedSlots));
+        } else {
+          out << s << JSONPair("usedCPUTimeTotal", (std::string)UsedTotalCPUTime);
+        }
+      }
+      if (UsedTotalWallTime != -1) {
+        if (RequestedSlots > 1) {
+          out << s << JSONPair("usedWallTimeTotal", (std::string)UsedTotalWallTime);
+          out << s << JSONPair("usedWallTimePerSlot", (std::string)Arc::Period(UsedTotalWallTime.GetPeriod() / RequestedSlots));
+        } else {
+          out << s << JSONPair("usedWallTimeTotal", (std::string)UsedTotalWallTime);
+        }
+      }
+      if (UsedMainMemory != -1)
+        out << s << JSONPairNum("usedMemory", UsedMainMemory);
+      if (WorkingAreaEraseTime != -1)
+        if (State == JobState::DELETED)
+          out << s << JSONPair("resultsDeleted", (std::string)WorkingAreaEraseTime);
+        else
+          out << s << JSONPair("resultsMustBeRetrieved", (std::string)WorkingAreaEraseTime);
+      if (ProxyExpirationTime != -1)
+        out << s << JSONPair("proxyValidUntil", (std::string)ProxyExpirationTime);
+      if (CreationTime != -1)
+        out << s << JSONPair("validFrom", (std::string)CreationTime);
+      if (Validity != -1)
+        out << s << JSONPair("validFor", (std::string)Validity);
+
+      if (!ActivityOldID.empty()) out << s << JSONSimpleArray("jobOldId", ActivityOldID);
+      
+      // Proposed mandatory attributes for ARC 3.0
+      out << s << JSONPair("serviceId", IDFromEndpoint);
+      out << s << JSONPair("serviceInformationURL", ServiceInformationURL.fullstr());
+      out << s << JSONPair("serviceInformationInterface", ServiceInformationInterfaceName);
+      out << s << JSONPair("jobStatusURL", JobStatusURL.fullstr());
+      out << s << JSONPair("jobStatusInterface", JobStatusInterfaceName);
+      out << s << JSONPair("jobManagementURL", JobManagementURL.fullstr());
+      out << s << JSONPair("jobManagementInterface", JobManagementInterfaceName);
+      if (StageInDir) out << s << JSONPair("stageinURL", StageInDir.fullstr());
+      if (StageOutDir) out << s << JSONPair("stageoutURL", StageOutDir.fullstr());
+      if (SessionDir) out << s << JSONPair("sessionURL", SessionDir.fullstr());
+      if (!DelegationID.empty()) out << s << JSONSimpleArray("delegationId", DelegationID);
+    }
+
+    out << std::endl;
+    out << "}";
   } // end Print
 
   bool Job::PrepareHandler(const UserConfig& uc) {

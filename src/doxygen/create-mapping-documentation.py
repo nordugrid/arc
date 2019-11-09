@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # TODO: Document how to use.
 # TODO: Add list of the plugins which provides the mappings.
 # TODO: Deal with multiple values.
@@ -19,6 +19,7 @@
 # \mapattr <specialisation-attribute> {->|<-} <library-attribute> ["<note>"]
 # \mapnote <note>
 
+from __future__ import print_function
 
 import sys, re
 
@@ -52,14 +53,14 @@ for line in sourcefile:
     elif line[0:12] == "\mapdefattr ":
         regMatch = re.match("([^\s]+)\s+([^\s]+)", line[12:].lstrip())
         if not regMatch:
-            print "ERROR: Wrong format of the \mapdefattr attribute in '%s' file on line %d" % (sourcefilename, i)
+            print("ERROR: Wrong format of the \mapdefattr attribute in '%s' file on line %d" % (sourcefilename, i))
             sys.exit(1)
         mapdef["attributes"].append(regMatch.group(1))
         mapdef["attributeprefixes"].append(regMatch.group(2))
     elif line[0:8] == "\mapdef ":
         regMatch = re.match("(\w+)\s+(.+)", line[8:].lstrip())
         if not regMatch:
-            print "ERROR: Wrong format of the \mapdef attribute in '%s' file on line %d" % (sourcefilename, i)
+            print("ERROR: Wrong format of the \mapdef attribute in '%s' file on line %d" % (sourcefilename, i))
             sys.exit(1)
         mapdef["id"] = regMatch.group(1)
         mapdef["name"] = regMatch.group(2)
@@ -94,7 +95,7 @@ for filename in mapfiles:
         if line[0:9] == "\mapname ":
             regMatch = re.match("(\w+)\s+(.+)", line[9:].lstrip())
             if not regMatch:
-                print "ERROR: Wrong format of the \mapname command in '%s' file on line %d" % (filename, i)
+                print("ERROR: Wrong format of the \mapname command in '%s' file on line %d" % (filename, i))
                 sys.exit(1)
             
             m["id"] = regMatch.group(1)
@@ -108,8 +109,8 @@ for filename in mapfiles:
             #     <specialisation-attr> -> <lib. attr>        ["<note>"]
             regMatch = re.match("(.+)\s+->\s+([^\s]+)(?:\s+\"([^\"]+)\")?", line[9:])
             if regMatch:
-                if not m["attributes"].has_key(regMatch.group(2)):
-                    print "ERROR: The '%s' attribute present in file '%s' on line %d is not defined in file '%s'" % (regMatch.group(2), filename, i, sourcefilename)
+                if regMatch.group(2) not in m["attributes"]:
+                    print("ERROR: The '%s' attribute present in file '%s' on line %d is not defined in file '%s'" % (regMatch.group(2), filename, i, sourcefilename))
                     sys.exit(1)
                 m["attributes"][regMatch.group(2)]["in"].append(regMatch.group(1))
                 if regMatch.group(3):
@@ -118,8 +119,8 @@ for filename in mapfiles:
 
             regMatch = re.match("(.+)\s+<-\s+([^\s]+)(?:\s+\"([^\"]+)\")?", line[9:])
             if regMatch:
-                if not m["attributes"].has_key(regMatch.group(2)):
-                    print "ERROR: The '%s' attribute present in file '%s' on line %d is not defined in file '%s'" % (regMatch.group(2), filename, i, sourcefilename)
+                if regMatch.group(2) not in m["attributes"]:
+                    print("ERROR: The '%s' attribute present in file '%s' on line %d is not defined in file '%s'" % (regMatch.group(2), filename, i, sourcefilename))
                     sys.exit(1)
                 m["attributes"][regMatch.group(2)]["out"].append(regMatch.group(1))
                 if regMatch.group(3):
@@ -193,7 +194,7 @@ for m in mappings:
             outfile.write('<dd>' + note+ '</dd>\n')
         outfile.write('</dl>\n')
     has_input = has_output = False
-    for attr, m_attrs in m["attributes"].iteritems():
+    for attr, m_attrs in m["attributes"].items():
         has_input  = has_input  or bool(m_attrs["in"])
         has_output = has_output or bool(m_attrs["out"])
     table_header  = "| Input "  if has_input  else ""
@@ -203,7 +204,7 @@ for m in mappings:
     outfile.write(re.sub(r'[. \w]', '-', table_header) + "\n")
     
     notes = []
-    for attr, m_attrs in m["attributes"].iteritems():
+    for attr, m_attrs in m["attributes"].items():
         if not m_attrs["in"] and not m_attrs["out"]:
             continue
         line = ""

@@ -1,0 +1,23 @@
+--- a/basic-script.sh	2019-11-04 17:19:08.057050201 +0200
++++ b/basic-script.sh	2019-11-04 17:19:08.058050186 +0200
+@@ -180,7 +183,7 @@
+ fi
+ echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
+ echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
+-executable='/bin/true'
++executable='/bin/echo'
+ # Check if executable exists
+ if [ ! -f "$executable" ]; 
+ then 
+@@ -198,9 +201,9 @@
+   echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
+   exit 1; }
+ if [ "x$JOB_ACCOUNTING" = "xgnutime" ]; then
+-  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
+ else
+-   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
++   "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
+ fi
+ RESULT=$?
+ 

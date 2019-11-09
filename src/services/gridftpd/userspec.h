@@ -8,7 +8,7 @@
 #include "auth/unixmap.h"
 
 class userspec_t {
-  friend std::string subst_user_spec(std::string &in,userspec_t *spec);
+  friend std::string subst_user_spec(std::string &in,userspec_t const *spec);
  public:
   AuthUser user;
  private:
@@ -22,7 +22,6 @@ class userspec_t {
   UnixMap map;
   UnixMap default_map;
  public:
-  bool  gridmap;
   void free(void) const;
   userspec_t(void);
   ~userspec_t(void);
@@ -31,19 +30,20 @@ class userspec_t {
   bool fill(AuthUser& user,const char* cfg = NULL);
   int get_uid(void) const { return uid; };
   int get_gid(void) const { return gid; };
-  const char* get_uname(void);
-  const char* get_gname(void);
-  const std::string& get_config_file(void) { return config_file; }
+  const char* get_uname(void) const;
+  const char* get_gname(void) const;
+  const std::string& get_config_file(void) const { return config_file; }
   short unsigned int get_port(void) const { return port; };
   const int* get_host(void) const { return host; };
   const AuthUser& get_user(void) const { return user; };
-  AuthResult mapname(const char* line);
-  AuthResult mapgroup(const char* line);
-  AuthResult mapvo(const char* line);
+  //AuthResult mapname(const char* line);
+  AuthResult mapgroup(const char* rule, const char* line);
+  bool set_map_policy(const char* rule, const char* line);
+  //AuthResult mapvo(const char* line);
   bool mapped(void) const { return (bool)map; };
 };
 
-std::string subst_user_spec(std::string &in,userspec_t *spec);
+std::string subst_user_spec(std::string &in,userspec_t const *spec);
 bool check_gridmap(const char* dn,char** user,const char* mapfile = NULL);
 
 #endif

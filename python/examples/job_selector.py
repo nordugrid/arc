@@ -1,8 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 '''
 Create a JobSelector class in order to specify a custom selection to be used
 with the JobSupervisor class.
 '''
+
+from __future__ import print_function
 
 import arc, sys
 
@@ -55,8 +57,7 @@ selector = ThreeDaysOldJobSelector()
 js.Select(selector)
 
 for j in js.GetSelectedJobs():
-    print (j.JobID)
+    print(j.JobID)
 
 # Make operation on selected jobs. E.g.:
 #js.Clean()
-

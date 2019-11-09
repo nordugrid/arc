@@ -2,12 +2,14 @@
 Classes and functions to setup job submission.
 """
 
+from __future__ import absolute_import
+
 import os, re
 import arc
-from config import Config
-from proc import execute_local, execute_remote
-from files import write
-from log import *
+from . import config
+from .proc import execute_local, execute_remote
+from .files import write
+from .log import *
 
 
 def validate_attributes(jd):
@@ -25,9 +27,9 @@ def validate_attributes(jd):
 
      if not 'joboption;directory' in jd.OtherAttributes:
           jd.OtherAttributes['joboption;directory'] = \
-              os.path.join(Config.sessiondir, jd.OtherAttributes['joboption;gridid'])
-     if Config.remote_sessiondir:
-          job_sessiondir = os.path.join(Config.remote_sessiondir, jd.OtherAttributes['joboption;gridid'])
+              os.path.join(config.Config.sessiondir, jd.OtherAttributes['joboption;gridid'])
+     if config.Config.remote_sessiondir:
+          job_sessiondir = os.path.join(config.Config.remote_sessiondir, jd.OtherAttributes['joboption;gridid'])
           jd.Application.Input = jd.Application.Input.replace(jd.OtherAttributes['joboption;directory'], job_sessiondir)
           jd.Application.Output = jd.Application.Output.replace(jd.OtherAttributes['joboption;directory'], job_sessiondir)
           jd.Application.Error = jd.Application.Error.replace(jd.OtherAttributes['joboption;directory'], job_sessiondir)
@@ -38,7 +40,7 @@ def validate_attributes(jd):
           raise ArcError('Executable is not specified', 'common.submit')
      if not jd.Resources.RunTimeEnvironment.isResolved():
           raise ArcError('Run-time Environment not satisfied', 'common.submit')
-     if not Config.shared_filesystem and not Config.scratchdir:
+     if not config.Config.shared_filesystem and not config.Config.scratchdir:
           raise ArcError('Need to know at which directory to run job: '
                          'RUNTIME_LOCAL_SCRATCH_DIR must be set if '
                          'RUNTIME_NODE_SEES_FRONTEND is empty', 'common.submit')
@@ -51,7 +53,7 @@ def set_grid_global_jobid(jd):
                has_globalid = True
                break
      if not has_globalid:
-          globalid = 'gsiftp://%s:%s%s/%s' % (Config.hostname, Config.gm_port, Config.gm_mount_point,
+          globalid = 'gsiftp://%s:%s%s/%s' % (config.Config.hostname, config.Config.gm_port, config.Config.gm_mount_point,
                                               jd.OtherAttributes['joboption;gridid'])
           jd.Application.Environment.append(('GRID_GLOBAL_JOBID', globalid))
 
@@ -70,7 +72,7 @@ def write_script_file(jobscript):
      mode = stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP | stat.S_IXOTH | stat.S_IROTH
      path = tempfile.mktemp('.sh', 'job')
 
-     if not write(path, jobscript, mode, False, Config.remote_host):
+     if not write(path, jobscript, mode, False, config.Config.remote_host):
           raise ArcError('Failed to write jobscript', 'common.submit')
 
      return path
@@ -85,57 +87,62 @@ def set_req_mem(jd):
    """
 
    if jd.Resources.IndividualPhysicalMemory.max <= 0:
-       nodememory = 0
-       if Config.defaultmemory <= 0:
-           if (jd.Resources.QueueName in Config.queue
-               and hasattr(Config.queue[jd.Resources.QueueName], 'nodememory')):
-                nodememory = Config.queue[jd.Resources.QueueName].nodememory
-           elif Config.nodememory > 0:
-                nodememory = Config.nodememory
+       defaultmemory = 0
+       if (jd.Resources.QueueName in config.Config.queue
+           and hasattr(config.Config.queue[jd.Resources.QueueName], 'defaultmemory')):
+            defaultmemory = config.Config.queue[jd.Resources.QueueName].defaultmemory
+       if defaultmemory == 0 and config.Config.defaultmemory >= 0:
+            defaultmemory = config.Config.defaultmemory
 
        debug('-'*69, 'common.submit')
        debug('WARNING: The job description contains no explicit memory requirement.', 'common.submit')
-       if Config.defaultmemory > 0:
-           jd.Resources.IndividualPhysicalMemory.max = Config.defaultmemory
+       if defaultmemory > 0:
+           jd.Resources.IndividualPhysicalMemory.max = defaultmemory
            debug('         A default memory limit taken from \'defaultmemory\' in', 'common.submit')
            debug('         arc.conf will apply.', 'common.submit')
-           debug('         Limit is: %s mb.' % (Config.defaultmemory), 'common.submit')
-       elif nodememory > 0:
-           jd.Resources.IndividualPhysicalMemory.max = nodememory
-           debug('         A default memory limit taken from \'nodememory\' in', 'common.submit')
-           debug('         arc.conf will apply.', 'common.submit')
-           debug('         You may want to set \'defaultmemory\' to something', 'common.submit')
-           debug('         else in arc.conf to better handle jobs with no memory', 'common.submit')
-           debug('         specified.', 'common.submit')
-           debug('         Limit is: %s mb.' % (nodememory), 'common.submit')
+           debug('         Limit is: %s mb.' % (defaultmemory), 'common.submit')
        else:
-           jd.Resources.IndividualPhysicalMemory.max = 1000
-           debug('         nodememory is not specified in arc.conf. A default', 'common.submit')
-           debug('         memory limit of 1GB will apply.', 'common.submit')
+           debug('         No \'defaultmemory\' enforcement in in arc.conf.', 'common.submit')
+           debug('         JOB WILL BE PASSED TO BATCH SYSTEM WITHOUT MEMORY LIMIT !!!', 'common.submit')
        debug('-'*69, 'common.submit')
 
 
 def get_rte_path(sw):
     rte_path = None
-    if os.path.exists('%s/%s' % (Config.runtimedir, sw)):
-        rte_path = '%s/%s' % (Config.runtimedir, sw)
-    elif os.path.exists('%s/rte/%s' % (arc.common.ArcLocation_GetDataDir(), sw)):
-        rte_path = '%s/rte/%s' % (arc.common.ArcLocation_GetDataDir(), sw)
+    # os.path.exists return False for broken symlinks (handled automatically)
+    if os.path.exists('%s/rte/enabled/%s' % (config.Config.controldir, sw)):
+        rte_path = '%s/rte/enabled/%s' % (config.Config.controldir, sw)
+    elif os.path.exists('%s/rte/default/%s' % (config.Config.controldir, sw)):
+        rte_path = '%s/rte/default/%s' % (config.Config.controldir, sw)
     else:
-        warn('Requested RunTimeEnvironment %s is missing in the both user-defined and system locations.' % (sw), 'common.submit')
-
+        warn('Requested RunTimeEnvironment %s is missing, broken or not enabled.' % (sw), 'common.submit')
     return rte_path
 
 
+def get_rte_params_path(sw):
+    rte_params_path = None
+    if os.path.exists('%s/rte/params/%s' % (config.Config.controldir, sw)):
+        rte_params_path = '%s/rte/params/%s' % (config.Config.controldir, sw)
+    return rte_params_path
+
+
+# include optional params file to the RTE file content
 def get_rte_content(sw):
     rte_path = get_rte_path(sw)
-    if not rte_path:
-        return ""
+    rte_params_path = get_rte_params_path(sw)
+    rte_content = ''
+    if rte_params_path:
+        try:
+            with open(rte_params_path, 'r') as f:
+                rte_content += f.read()
+        except IOError:
+            pass
     try:
         with open(rte_path, 'r') as f:
-            return f.read()
-    except:
-        return ""
+            rte_content += f.read()
+    except IOError:
+        pass
+    return rte_content
 
 
 # Limitation: In RTE stage 0, scripts MUST use the 'export' command if any
@@ -152,8 +159,8 @@ def RTE_stage0(jobdesc, lrms, **mapping):
    """
 
    if not jobdesc.Resources.RunTimeEnvironment.empty():
-        from parse import RTE0EnvCreator
-        envCreator = RTE0EnvCreator(jobdesc, Config, mapping)
+        from .parse import RTE0EnvCreator
+        envCreator = RTE0EnvCreator(jobdesc, config.Config, mapping)
         stage0_environ = envCreator.getShEnv()
         stage0_environ['joboption_lrms'] = lrms
 
@@ -166,12 +173,14 @@ def RTE_stage0(jobdesc, lrms, **mapping):
             args = 'sourcewithargs () { script=$1; shift; . $script;}; sourcewithargs %s 0' % (rte_path)
             for opt in opts:
                 args += ' "%s"' % (opt.replace('"', '\\"'))
-            args += ' > /dev/null 2>&1 && env'
-            handle = execute_local(args, env = stage0_environ)
+            args += ' > /dev/null 2>&1 && env -0'
+            handle = execute_local(args, env = stage0_environ, zerobyte = True)
             stdout = handle.stdout
             if handle.returncode != 0:
                  raise ArcError('Runtime script %s failed' % sw, 'common.submit')
-            new_env = dict((k,v.rstrip('\n')) for k,v in (l.split('=', 1) for l in stdout if l != '\n'))
+            # construct new env dictionary
+            new_env = dict((k, v.rstrip('\n')) for k, v in (l.split('=', 1) for l in stdout if l and l != '\n'))
+            # update environment
             stage0_environ.update(new_env)
 
         # Source RTE scripts from the software list
@@ -181,17 +190,17 @@ def RTE_stage0(jobdesc, lrms, **mapping):
             source_sw(sw, sw.getOptions())
 
         # Source new RTE scripts set by the previous step (if any)
-        rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
-        rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+_\d+', k))
-        while len(rte_environ.keys()) > len(sw_list):
+        rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+', k))
+        rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+_\d+', k))
+        while len(rte_environ) > len(sw_list):
            for rte, sw in rte_environ.items():
               try:
-                 i = re.match('joboption_runtime_(\d+)', rte).groups()[0]
+                 i = re.match(r'joboption_runtime_(\d+)', rte).groups()[0]
                  if sw not in sw_list:
                     opts = []
                     for rte_, opt in rte_environ_opts.items():
                        try:
-                          j = re.match(rte + '_(\d+)', rte_).groups()[0]
+                          j = re.match(rte + r'_(\d+)', rte_).groups()[0]
                           opts.append(opt)
                        except:
                           pass
@@ -199,8 +208,8 @@ def RTE_stage0(jobdesc, lrms, **mapping):
                     sw_list.append(sw)
               except:
                  pass
-           rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match('joboption_runtime_\d+', k))
-           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items()if re.match('joboption_runtime_\d+_\d+', k))
+           rte_environ = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+', k))
+           rte_environ_opts = dict((k,v) for k,v in stage0_environ.items() if re.match(r'joboption_runtime_\d+_\d+', k))
         # Update jobdesc
         envCreator.setPyEnv(stage0_environ)
         if "RUNTIME_ENABLE_MULTICORE_SCRATCH" in stage0_environ:
@@ -210,7 +219,7 @@ def RTE_stage0(jobdesc, lrms, **mapping):
    # Save it for accouting purposes.
    if jobdesc.Resources.SlotRequirement.NumberOfSlots > 0:
        try:
-           diagfilename = '%s/job.%s.diag' % (Config.controldir, jobdesc.OtherAttributes['joboption;gridid'])
+           diagfilename = '%s/job.%s.diag' % (config.Config.controldir, jobdesc.OtherAttributes['joboption;gridid'])
            with open(diagfilename, 'w+') as diagfile:
                diagfile.write('Processors=%s\n' % jobdesc.Resources.SlotRequirement.NumberOfSlots)
        except IOError:
@@ -306,9 +315,7 @@ class JobscriptAssembler(object):
           """
           return self._stubs.get(stub, '')
 
-
      def __init__(self, jobdesc):
-
           self.jobdesc = jobdesc
           self._stubs = {}
           self._ignore = []
@@ -329,15 +336,15 @@ class JobscriptAssembler(object):
                'ARGS'                 : '"' + '" "'.join(list(jobdesc.Application.Executable.Argument)) + '"' \
                                         if jobdesc.Application.Executable.Argument else "",
                'PROCESSORS'           : jobdesc.Resources.SlotRequirement.NumberOfSlots,
-               'NODENAME'             : Config.nodename,
-               'GNU_TIME'             : Config.gnu_time,
-               'GM_MOUNTPOINT'        : Config.gm_mount_point,
-               'GM_PORT'              : Config.gm_port,
-               'GM_HOST'              : Config.hostname,
-               'LOCAL_SCRATCHDIR'     : Config.scratchdir,
-               'RUNTIMEDIR'           : Config.remote_runtimedir if Config.remote_runtimedir else Config.runtimedir,
-               'SHARED_SCRATCHDIR'    : Config.shared_scratch,
-               'IS_SHARED_FILESYSTEM' : 'yes' if Config.shared_filesystem else '',
+               'NODENAME'             : config.Config.nodename,
+               'GNU_TIME'             : config.Config.gnu_time,
+               'GM_MOUNTPOINT'        : config.Config.gm_mount_point,
+               'GM_PORT'              : config.Config.gm_port,
+               'GM_HOST'              : config.Config.hostname,
+               'LOCAL_SCRATCHDIR'     : config.Config.scratchdir,
+               'RUNTIMEDIR'           : config.Config.remote_runtimedir if config.Config.remote_runtimedir else config.Config.runtimedir,
+               'SHARED_SCRATCHDIR'    : config.Config.shared_scratch,
+               'IS_SHARED_FILESYSTEM' : 'yes' if config.Config.shared_filesystem else '',
                'ARC_LOCATION'         : arc.common.ArcLocation.Get(),
                'ARC_TOOLSDIR'         : arc.common.ArcLocation.GetToolsDir(),
                'GLOBUS_LOCATION'      : os.environ.get('GLOBUS_LOCATION', ''),
@@ -357,17 +364,15 @@ class JobscriptAssembler(object):
                }
 
           self._setup_cleaning()
-          if not Config.shared_filesystem:
+          if not config.Config.shared_filesystem:
                self._setup_runtime_env()
           self._parse()
-
 
      def __getitem__(self, item):
           return self.map.get(item, '')
 
      def __setitem__(self, item, value):
           self.map[item] = value
-
 
      def _parse(self):
 
@@ -478,7 +483,7 @@ class JobscriptAssembler(object):
           Setup trash cleaning. No reason to keep trash until gm-kick runs.
           """
 
-          output = Config.controldir + '/job.' + self['GRIDID'] + '.output'
+          output = config.Config.controldir + '/job.' + self['GRIDID'] + '.output'
           try:
                with open(output, 'r') as outputfile:
                     self['OUTPUT_LISTS'] = []
@@ -497,7 +502,7 @@ class JobscriptAssembler(object):
                                      # a space which is not escaped.  
                                      re.sub(r'([^\\](\\\\)*) .*', '\\1', name.strip()).
                                      # Replace escaped spaces and single quotes
-                                     replace('\ ', ' ').replace("'", "'\\''").
+                                     replace('\\ ', ' ').replace("'", "'\\''").
                                      # Strip leading slashes (/).
                                      lstrip('/'))
                               )

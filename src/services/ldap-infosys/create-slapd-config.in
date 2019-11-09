@@ -1,45 +1,67 @@
 #!/bin/bash
 
+# Define logging functions
+send_systemd_notify() {
+    # return if no systemd-notify found
+    type systemd-notify >/dev/null 2>&1 || return
+    systemd-notify "$@"
+}
+
+log_failure_msg() {
+    send_systemd_notify --status "Error: $@"
+    echo $@
+}
+
 # Create slapd config for the NorduGrid/ARC information system
 
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
     exit 1
 fi
 
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+        ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+        ARC_CONFIG=/etc/arc.conf
+    fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+        log_failure_msg "arc.conf is missing at path: $ARC_CONFIG or no ARC_LOCATION is set"
+        log_failure_msg "If this file is in a non-standard place it can be set"
+        log_failure_msg "  with the ARC_CONFIG environment variable"
+        exit 1
+    fi
+fi
+
+# Define runtime config location for infosys LDAP
+prefix=@prefix@
+runtime_config_dir=@localstatedir@/run/arc
+if [ ! -d "$runtime_config_dir" ]; then
+    mkdir -p "$runtime_config_dir"
+fi
+export ARC_RUNCONFIG="$runtime_config_dir/arc-infosys-ldap.conf"
+unset runtime_config_dir
+unset prefix
+
+# Define arcconfig-parser and dump running configuration
 arcconfig_parser=${ARC_LOCATION}/@pkglibexecsubdir@/arcconfig-parser
-
-ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-if [ ! -r "$ARC_CONFIG" ]; then
-    echo "ARC configuration file ($ARC_CONFIG) not found"
-    echo "If this file is in a non-standard place it can be set with the"
-    echo "  ARC_CONFIG environment variable"
-    exit 1
-fi
+${arcconfig_parser} -c ${ARC_CONFIG} --save -r ${ARC_RUNCONFIG}
 
 # Check for infosys block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys; then
-    echo "Missing [infosys] configuration block"
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys; then
+    log_failure_msg "Missing [infosys] configuration block"
     exit 1
 fi
 
 # Check for infosys/ldap block
-if ! ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap; then
-    echo "Missing [infosys/ldap] configuration block"
+if ! ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap; then
+    log_failure_msg "Missing [infosys/ldap] configuration block"
     exit 1
 fi
 
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b common -e bash)
-
-# These options need to come from the infosys block, not from common
-unset CONFIG_logfile
-unset CONFIG_user
-unset CONFIG_port
-
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap -e bash)
-eval $(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/ldap/bdii -e bash)
+eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/ldap -b infosys -b common -e bash)
 
 bdii_user=$CONFIG_user
 if [ -z "$bdii_user" ]; then
@@ -69,6 +91,25 @@ chown ${bdii_user}: ${infosys_ldap_run_dir}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
 bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
 
+# PIDFile location handling
+slapd_pid_file=$( readlink -m ${bdii_run_dir}/db/slapd.pid )
+
+# forced pidfile location instead of arc.conf-based (if FORCE_ARC_RUNDIR is set)
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    pid_dir="${FORCE_ARC_RUNDIR}/bdii/db"
+    mkdir -p "$pid_dir"
+    chown -R ${bdii_user}: "$pid_dir"
+    pid_file="$( readlink -m ${pid_dir}/slapd.pid )"
+    if [ "x${slapd_pid_file}" != "x${pid_file}" ]; then
+        custom_pid_file="${slapd_pid_file}"
+        rm -f "$custom_pid_file"
+        slapd_pid_file="${pid_file}"
+    fi
+    unset pid_dir pid_file
+fi
+
+rm -f "${slapd_pid_file}"
+
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"hdb"}
 
@@ -76,7 +117,7 @@ bdii_database=${CONFIG_bdii_database:-"hdb"}
 coreschema=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name core.schema \
     -printf "%h/%f\n" 2>/dev/null)
 if [ "x" = "x$coreschema" ]; then
-    echo "Could not find ldap core schema file"
+    log_failure_msg "Could not find ldap core schema file"
     exit 1
 fi
 
@@ -84,7 +125,7 @@ fi
 glueschemadir=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name Glue-CORE.schema \
     -printf "%h\n" 2>/dev/null)
 if [ "x" = "x$glueschemadir" ]; then
-    echo "Error, could not find glue schema directory under /etc"
+    log_failure_msg "Could not find glue schema directory under /etc"
     exit 1
 fi
 
@@ -105,7 +146,7 @@ else
 fi
 
 if [ -z "$slapd_cmd" ] || [ ! -x "$slapd_cmd" ]; then
-    echo "Could not find ldap server binary, usually /usr/sbin/slapd"
+    log_failure_msg "Could not find ldap server binary, usually /usr/sbin/slapd"
     exit 1
 fi
 
@@ -149,7 +190,7 @@ ldapdirs=
 database=${bdii_database}
 find_ldap_database_module
 if [ -z "${database}" ]; then
-    echo "Could not find ldap ${bdii_database} database module"
+    log_failure_msg "Could not find ldap ${bdii_database} database module"
     exit 1
 fi
 moduleload_bdii="${ldapmodule}"
@@ -168,12 +209,12 @@ if [ -z "$overlay" ]; then
 fi
 moduleload_rwm="${ldapmodule}"
 
-if ${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/index; then
+if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/index; then
     database=shell
     find_ldap_database_module
     if [ -z "${database}" ]; then
-	echo "Could not find ldap shell database module"
-	exit 1
+        log_failure_msg "Could not find ldap shell database module"
+        exit 1
     fi
     moduleload_shell="${ldapmodule}"
 else
@@ -197,8 +238,18 @@ done
 
 bdii_slapd_conf=${infosys_ldap_run_dir}/bdii-slapd.conf
 rm -f $bdii_slapd_conf
-bdii_slapd_cmd=${infosys_ldap_run_dir}/bdii-slapd.cmd
+
+# Put SLAPD start helpers to known directory
+helpers_dir=$infosys_ldap_run_dir
+if [ -n "$FORCE_ARC_RUNDIR" ]; then
+    helpers_dir="${FORCE_ARC_RUNDIR}/infosys"
+    mkdir -p "${helpers_dir}"
+fi
+
+bdii_slapd_cmd=${helpers_dir}/bdii-slapd.cmd
 rm -f $bdii_slapd_cmd
+bdii_slapd_post_cmd=${helpers_dir}/bdii-slapd-post.cmd
+rm -f $bdii_slapd_post_cmd
 
 # Ensure the configuration file is not world-readable,
 # as it contains the slapd database password
@@ -232,7 +283,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 	allow bind_v2
 
-	pidfile         $bdii_run_dir/db/slapd.pid
+	pidfile         $slapd_pid_file
 	argsfile        $bdii_run_dir/db/slapd.args
 	loglevel        $slapd_loglevel
 	threads         $threads
@@ -242,7 +293,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	EOF
 
 if [ -n "${moduleload_rwm}" ]; then 
-    admindomain=$(${arcconfig_parser} -c ${ARC_CONFIG} -b infosys/glue2 -o admindomain_name)
+    admindomain=$(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2 -o admindomain_name)
     admindomain="urn:ad:${admindomain:-UNDEFINEDVALUE}"
 
     cat <<-EOF >> $bdii_slapd_conf
@@ -314,15 +365,30 @@ cat <<-EOF >> $bdii_slapd_conf
 chown $bdii_user: $bdii_slapd_conf
 [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
+# Write slapd starting command
 if [ "x$slapd_hostnamebind" = "x*" ]; then
-    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo exec ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 else
-    echo ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
+    echo exec ${slapd_cmd} -f ${bdii_slapd_conf} -h \"ldap://localhost:${slapd_port} ldap://${slapd_hostnamebind}:${slapd_port}\" -u ${bdii_user} > ${bdii_slapd_cmd}
 fi
 chmod +x ${bdii_slapd_cmd}
 
-# Initialize the database directories
+# Write post-exec script to check slapd is up and running
+cat <<-EOF > ${bdii_slapd_post_cmd}
+iterlimit=30
+while [ \$iterlimit -ge 0 ] && ! [ -r "${slapd_pid_file}" ]; do
+  sleep 1
+  iterlimit=\$(expr \$iterlimit - 1)
+done
+EOF
 
+# copy forced pidfile to custom arc.conf pidfile (if forced pid was requested)
+if [ -n "${custom_pid_file}" ]; then
+    echo "mkdir -p \"${custom_pid_file%/*}\"" >> ${bdii_slapd_post_cmd}
+    echo "cp -a \"${slapd_pid_file}\" \"${custom_pid_file}\"" >> ${bdii_slapd_post_cmd}
+fi
+
+# Initialize the database directories
 mkdir -p $bdii_run_dir/db
 mkdir -p $bdii_run_dir/archive
 chown $bdii_user: $bdii_run_dir

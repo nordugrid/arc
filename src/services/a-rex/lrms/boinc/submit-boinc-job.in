@@ -5,32 +5,30 @@
 #  This script creates a temporary job script and runs it
 DEBUG=0
 echo "----- starting submit_boinc_job -----" 1>&2
-joboption_lrms=boinc
+joboption_lrms="boinc"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-init $1
-joboption_directory_orig=$joboption_directory
-joboption_directory='`pwd`'
 joboption_stdout='`pwd`/'`basename $joboption_stdout`
 joboption_stderr='`pwd`/'`basename $joboption_stderr`
-
-read_arc_conf
-
-# make sure session is world-writable
-chmod 777 $joboption_directory_orig
 
 RUNTIME_NODE_SEES_FRONTEND=yes
 
@@ -38,6 +36,12 @@ RUNTIME_NODE_SEES_FRONTEND=yes
 # Zero stage of runtime environments
 ##############################################################
 RTE_stage0
+
+joboption_directory_orig=$joboption_directory
+joboption_directory='`pwd`'
+# make sure session is world-writable
+chmod 777 $joboption_directory_orig
+
 echo "project_root=$PROJECT_ROOT" 1>&2
 cd $PROJECT_ROOT
 
@@ -64,7 +68,7 @@ done
 
 echo '#!/bin/sh' > $LRMS_JOB_SCRIPT
 
-echo "#job script built by arex and input file for BOINC job" >> $LRMS_JOB_SCRIPT
+echo "#job script built by grid-manager and input file for BOINC job" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 set -x 
@@ -89,6 +93,11 @@ sourcewithargs_jobscript
 echo "" >> $LRMS_JOB_SCRIPT
 echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
 echo "umask 077" >> $LRMS_JOB_SCRIPT
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -124,18 +133,25 @@ RTE_stage1
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
 #####################################################
+# Accounting (WN OS Detection)
+#####################################################
+detect_wn_systemsoftware
+
+#####################################################
 #  Go to working dir and start job
 #####################################################
 cd_and_run
 
-## print nodename
+# Add nodename username@hostname and fix core count for accounting
+# Add exit code here since accounting_end does it after the diag file has been tarred up
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 sed -i -e '/nodename=/d' $RUNTIME_JOB_DIAG
 hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
-
+[ -n "$ATHENA_PROC_NUMBER" ] && sed -i -e 's/Processors=1/Processors='"$ATHENA_PROC_NUMBER"'/' $RUNTIME_JOB_DIAG
+echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
 FMARK
 
 echo "" >> $LRMS_JOB_SCRIPT
@@ -143,7 +159,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 
 ##############################################################
@@ -152,7 +168,6 @@ configure_runtime
 ##############################################################
 #move_files_to_frontend
 
-echo 'echo exitcode=$RESULT >> $RUNTIME_JOB_DIAG'  >> $LRMS_JOB_SCRIPT
 #############################################################
 # zip the result files into 1 file zip.tar.gz
 #############################################################
@@ -200,17 +215,22 @@ if [ -f output.list ];then
 ol=$(awk '{print $1}' output.list)
 for i in $ol
 do
- if [ -f $i ];then
+ if [[ -f $i && ! $i =~ HITS.* ]];then
  flist=$flist" "$i
  fi
 done
+sed -i -e 's/HITS.* /HITS.pool.root.1 /' output.list
 fi
 EOF
 
-echo 'tar czvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
+echo 'tar cvf result.tar.gz $flist' >>$LRMS_JOB_SCRIPT
 
 chmod a+r $LRMS_JOB_SCRIPT
 
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 #  Submit the job
@@ -286,7 +306,7 @@ echo "chmod a+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_J
 echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 echo "chmod a+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
-[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
+[ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
 
 ## process the root files as remote files
 cd $PROJECT_ROOT
@@ -298,20 +318,21 @@ i=0
 while [ $i -lt ${#RootFile[@]} ]
 do
   [ -L ${RootFile[$i]} ] && RootFile[$i]=`ls -l ${RootFile[$i]}|awk '{print $11}'`
-  echo "ln  ${RootFile[$i]} "'`bin/dir_hier_path' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
-  echo "chmod a+r "'`bin/dir_hier_path ' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
-  download_dir=`bin/dir_hier_path ${Root_basename[$i]} | awk -F/ '{print $(NF-1)}'`
-  remote_url[$i]="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename[$i]}"
-  fsize[$i]=`stat -c %s ${RootFile[$i]}`
-  md5[$i]=`md5sum ${RootFile[$i]} | awk '{print $1}'`
-  echo "Using remote file ${remote_url[$i]} ${fsize[$i]} ${md5[$i]}" 1>&2
+  echo "ln -s ${RootFile[$i]} "'`bin/dir_hier_path' ${Root_basename[$i]} '`' >> $LRMS_JOB_BOINC
+  if [ -n "$PROJECT_DOWNLOAD_ROOT" ]; then
+    download_dir=`bin/dir_hier_path ${Root_basename[$i]} | awk -F/ '{print $(NF-1)}'`
+    remote_url[$i]="${PROJECT_DOWNLOAD_URL}/${download_dir}/${Root_basename[$i]}"
+    fsize[$i]=`stat -c %s ${RootFile[$i]}`
+    md5[$i]=`md5sum ${RootFile[$i]} | awk '{print $1}'`
+    echo "Using remote file ${remote_url[$i]} ${fsize[$i]} ${md5[$i]}" 1>&2
+  fi
   let i=$i+1
 done
 
-[ -n $PROJECT_DOWNLOAD_ROOT ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
+[ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
 
 ## generate the input template file
-let ifileno=3+${#remote_url[@]}
+let ifileno=3+${#RootFile[@]}
 i=0
 intmp=""
 while [ $i -lt $ifileno ]
@@ -326,7 +347,7 @@ done
 intmp="$intmp
 <workunit>"
 i=0
-while [ $i -lt ${#remote_url[@]} ]
+while [ $i -lt ${#RootFile[@]} ]
 do
   intmp="$intmp
  <file_ref>
@@ -393,6 +414,14 @@ if [ ! -z "$joboption_priority" ]; then
   priority="--priority $joboption_priority"
 fi
 
+batchid=
+if [ -f "${joboption_directory_orig}/pandaJobData.out" ]; then
+  taskid=$(grep -E -m1 -o "taskID=[[:digit:]]+" ${joboption_directory_orig}/pandaJobData.out|cut -d = -f 2 )
+  if [ ! -z "$taskid" ]; then
+    batchid="--batch $taskid"
+  fi
+fi
+
 cmd="bin/create_work \
       --appname $BOINC_APP \
       --wu_name $wu \
@@ -400,12 +429,18 @@ cmd="bin/create_work \
       --result_template $RESULT_TEMPLATE \
       --rsc_memory_bound $memreq \
       --rsc_fpops_est $maxcputime \
+      $batchid \
       $priority"
 j=0
-while [ $j -lt ${#remote_url[@]} ] 
-do
-  cmd="$cmd \
-  --remote_file ${remote_url[$j]} ${fsize[$j]} ${md5[$j]}"
+while [ $j -lt ${#RootFile[@]} ] 
+  do
+  if [ -n "$PROJECT_DOWNLOAD_ROOT" ]; then
+    cmd="$cmd \
+    --remote_file ${remote_url[$j]} ${fsize[$j]} ${md5[$j]}"
+  else
+    cmd="$cmd \
+    ${Root_basename[$j]}"
+  fi
   let j=$j+1
 done
 
@@ -418,15 +453,16 @@ echo 'ret=$?' >>$LRMS_JOB_BOINC
 
 echo 'exit $ret' >>$LRMS_JOB_BOINC
 if [ $DEBUG -eq 2 ];then
-  cat $LRMS_JOB_BOINC
+  cat $LRMS_JOB_BOINC 1>&2
 else
-   sh $LRMS_JOB_BOINC 1>&2 >/tmp/log.boinc
+  sh $LRMS_JOB_BOINC 1>&2
 fi
+
 rc=$?
 
 if [ $rc -eq 0 ];then
   echo "job $wu submitted successfully!" 1>&2
-  echo "joboption_jobid=$wu" >> $arg_file
+  echo "joboption_jobid=$wu" >> $GRAMI_FILE
 fi
 echo "----- removing intermediate files ----" 1>&2
 if [ $DEBUG -ne 1 ];then

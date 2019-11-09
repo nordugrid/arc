@@ -4,14 +4,14 @@ else
 JOBPLUGIN_DIR =
 endif
 
-SUBDIRS = jobs run conf misc log mail files $(JOBPLUGIN_DIR)
+SUBDIRS = accounting jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check arc-blahp-logger gm-delegations-converter
+pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger gm-delegations-converter
 noinst_PROGRAMS = test_write_grami_file
 dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-vomsac-check.8 arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 gm-delegations-converter.8
+man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 gm-delegations-converter.8
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -42,13 +42,6 @@ inputcheck_CXXFLAGS = -I$(top_srcdir)/include \
 inputcheck_LDADD = libgridmanager.la ../delegation/libdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
-
-arc_vomsac_check_SOURCES = arc_vomsac_check.cpp
-arc_vomsac_check_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-arc_vomsac_check_LDADD = $(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS)
 
 arc_blahp_logger_SOURCES = arc_blahp_logger.cpp
 arc_blahp_logger_CXXFLAGS = -I$(top_srcdir)/include \

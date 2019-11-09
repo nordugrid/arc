@@ -11,7 +11,7 @@ debian/tmp/usr/lib/libarcmessage.so.*
 debian/tmp/usr/lib/libarcsecurity.so.*
 debian/tmp/usr/lib/libarcscitokens.so.*
 debian/tmp/usr/lib/libarcinfosys.so.*
-debian/tmp/usr/lib/libarcws.so.*
+debian/tmp/usr/lib/libarcwsaddressing.so.*
 debian/tmp/usr/lib/libarcwssecurity.so.*
 debian/tmp/usr/lib/libarcxmlsec.so.*
 debian/tmp/usr/lib/arc/libmodcrypto.so
@@ -22,10 +22,14 @@ debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
+debian/tmp/usr/lib/arc/arc-dmc
 debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/utils/__init__.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/utils/config.py*
-debian/tmp/usr/share/arc/examples/arc.conf.reference
+debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/paths_dist.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/utils
+debian/tmp/usr/lib/python?.?/site-packages/arc/control
+debian/tmp/usr/share/arc/arc.parser.defaults
+debian/tmp/usr/share/arc/sql-schema/legacy_jura_archivedb_schema.sql
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo
 debian/tmp/usr/share/arc/test-jobs/test-job-*

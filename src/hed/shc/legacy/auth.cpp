@@ -20,12 +20,20 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-AuthResult AuthUser::match_all(const char* /* line */) {
-  default_voms_=voms_t();
-  default_scitokens_=scitokens_t();
-  default_vo_=NULL;
-  default_group_=NULL;
-  return AAA_POSITIVE_MATCH;
+AuthResult AuthUser::match_all(const char* line) {
+  std::string token = Arc::trim(line);
+  if(token == "yes") {
+    default_voms_=voms_t();
+    default_scitokens_=scitokens_t();
+    default_vo_=NULL;
+    default_group_=NULL;
+    return AAA_POSITIVE_MATCH;
+  }
+  if(token == "no") {
+    return AAA_NO_MATCH;
+  }
+  logger.msg(Arc::ERROR,"Unexpected argument for 'all' rule - %s",token);
+  return AAA_FAILURE;
 }
 
 AuthResult AuthUser::match_group(const char* line) {
@@ -33,7 +41,7 @@ AuthResult AuthUser::match_group(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<group_t>::iterator i = groups_.begin();i!=groups_.end();++i) {
       if(s == i->name) {
@@ -53,7 +61,7 @@ AuthResult AuthUser::match_vo(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<std::string>::iterator i = vos_.begin();i!=vos_.end();++i) {
       if(s == *i) {
@@ -102,19 +110,19 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 AuthUser::AuthUser(Arc::Message& message):
     default_voms_(), default_scitokens_(), default_vo_(NULL), default_group_(NULL),
     proxy_file_was_created(false), has_delegation(false), message_(message) {
-  subject_ = message.Attributes()->get("TLS:IDENTITYDN");
-
-  Arc::SecAttr* sattr = NULL;
-
-  // Fetch VOMS attributes
+  // Fetch X.509 and VOMS attributes
   std::list<std::string> voms_attrs;
+  Arc::SecAttr* sattr = NULL;
   sattr = message_.Auth()->get("TLS");
   if(sattr) {
+    subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
   sattr = message_.AuthContext()->get("TLS");
   if(sattr) {
+    if(subject_.empty())
+      subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
@@ -250,6 +258,10 @@ AuthResult AuthUser::evaluate(const char* line) {
         switch(res) {
           case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
           case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+          case AAA_NO_MATCH:
+          case AAA_FAILURE:
+          default:
+            break;
         };
       };
       return res;

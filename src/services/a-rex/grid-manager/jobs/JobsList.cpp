@@ -72,10 +72,10 @@ JobsList::JobsList(const GMConfig& gmconfig) :
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0),
-    jobs_polling(0),
-    jobs_wait_for_running(WaitQueuePriority),
-    jobs_attention(AttentionQueuePriority),
-    jobs_processing(ProcessingQueuePriority),
+    jobs_polling(0, "polling"),
+    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
+    jobs_attention(AttentionQueuePriority, "attention"),
+    jobs_processing(ProcessingQueuePriority, "processing"),
     helpers(config.Helpers(), *this) {
 
   job_slow_polling_last = time(NULL);
@@ -99,12 +99,14 @@ JobsList::~JobsList(void) {
 }
 
 GMJobRef JobsList::FindJob(const JobId &id) {
+  Glib::RecMutex::Lock lock(jobs_lock);
   std::map<JobId,GMJobRef>::iterator ji = jobs.find(id);
   if(ji == jobs.end()) return GMJobRef();
   return ji->second;
 }
 
 bool JobsList::HasJob(const JobId &id) const {
+  Glib::RecMutex::Lock lock(jobs_lock);
   std::map<JobId,GMJobRef>::const_iterator ji = jobs.find(id);
   return (ji != jobs.end());
 }
@@ -130,7 +132,7 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
   if(i) {
     if(i->job_state != new_state) {
       JobsMetrics* metrics = config.GetJobsMetrics();
-      if(metrics) metrics->ReportJobStateChange(i->job_id, new_state, i->job_state);
+      if(metrics) metrics->ReportJobStateChange(config, i, i->job_state, new_state);
       std::string msg = Arc::Time().str(Arc::UTCTime);
       msg += " Job state change ";
       msg += i->get_state_name();
@@ -153,7 +155,6 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
 
 bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
   GMJobRef i(new GMJob(id,Arc::User(uid)));
-  jobs[id] = i;
   i->keep_finished=config.KeepFinished();
   i->keep_deleted=config.KeepDeleted();
   i->job_state = state;
@@ -166,11 +167,15 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
+    Glib::RecMutex::Lock lock(jobs_lock);
+    jobs[id] = i;
     RequestReprocess(i); // To make job being properly thrown from system
     return false;
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
+  Glib::RecMutex::Lock lock(jobs_lock);
+  jobs[id] = i;
   RequestAttention(i);
   return true;
 }
@@ -191,23 +196,8 @@ bool JobsList::RunningJobsLimitReached() const {
   return num >= config.MaxRunning();
 }
 
-/*
-int JobsList::ProcessingJobs() const {
-  return jobs_num[JOB_STATE_PREPARING] +
-         jobs_num[JOB_STATE_FINISHING];
-}
-
-int JobsList::PreparingJobs() const {
-  return jobs_num[JOB_STATE_PREPARING];
-}
-
-int JobsList::FinishingJobs() const {
-  return jobs_num[JOB_STATE_FINISHING];
-}
-*/
-
-
 void JobsList::PrepareToDestroy(void) {
+  Glib::RecMutex::Lock lock(jobs_lock);
   for(std::map<JobId,GMJobRef>::iterator i=jobs.begin();i!=jobs.end();++i) {
     i->second->PrepareToDestroy();
   }
@@ -222,15 +212,24 @@ bool JobsList::RequestAttention(const JobId& id) {
     };
   };
   if(!i) return false;
-  return RequestAttention(i);
+  if(!RequestAttention(i)) {
+    // Request by id most probably means there is somethng external pending.
+    // And because we do not want external cancel request to get lost, check
+    // immediately and inform DTR generator immediately (so it does not hold job).
+    if(job_cancel_mark_check(i->job_id,config)) dtr_generator.cancelJob(i);
+    // Please note job is not canceled here. But cancel mark will be picked up later.
+    return false;
+  };
+  return true;
 }
 
 bool JobsList::RequestAttention(GMJobRef i) {
   if(i) {
     logger.msg(Arc::DEBUG, "%s: job for attention", i->job_id);
-    jobs_attention.Push(i);
-    jobs_attention_cond.signal();
-    return true;
+    if(jobs_attention.Push(i)) {
+      jobs_attention_cond.signal();
+      return true;
+    };
   };
   return false;
 }
@@ -324,6 +323,7 @@ bool JobsList::ActJobsProcessing(void) {
     GMJobRef i = jobs_wait_for_running.Pop();
     if(i) RequestAttention(i);
   };
+  return true;
 }
 
 bool JobsList::ActJobsAttention(void) {
@@ -348,9 +348,12 @@ bool JobsList::ActJobsPolling(void) {
   };
   ActJobsProcessing();
   // debug info on jobs per DN
-  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
-  for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
-    logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
+  {
+    Glib::RecMutex::Lock lock(jobs_lock);
+    logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
+    for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
+      logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
+  };
   return true;
 }
 
@@ -889,17 +892,25 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   }
   if(i->local->dryrun) {
     logger.msg(Arc::INFO,"%s: State: ACCEPTED: dryrun",i->job_id);
-    i->AddFailure("User requested dryrun. Job skipped.");
+    i->AddFailure("Job has dryrun requested. Job skipped.");
     return JobFailed; // go to next job
   }
   // check per-DN limit on processing jobs
   // TODO: do it in ActJobUndefined. Otherwise one DN can block others if total limit is reached.
-  if ((config.MaxPerDN() > 0) &&
-      (jobs_dn[i->local->DN] >= config.MaxPerDN())) {
-    JobPending(i);
-    // Because we have no event for per-DN limit just do polling
-    RequestPolling(i);
-    return JobSuccess;
+
+
+  if (config.MaxPerDN() > 0) {
+    bool limited = false;
+    {
+      Glib::RecMutex::Lock lock(jobs_lock);
+      limited = (jobs_dn[i->local->DN] >= config.MaxPerDN());
+    }
+    if (limited) {
+      JobPending(i);
+      // Because we have no event for per-DN limit just do polling
+      RequestPolling(i);
+      return JobSuccess;
+    }
   }
   // check for user specified time
   if(i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
@@ -1210,7 +1221,7 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
         CleanChildProcess(i);
       }
       // put some explanation
-      i->AddFailure("User requested to cancel the job");
+      i->AddFailure("Job is canceled by external request");
       JobFailStateRemember(i,i->job_state,false);
       // behave like if job failed
       if(!FailedJob(i,true)) {
@@ -1299,7 +1310,10 @@ bool JobsList::DropJob(GMJobRef& i, job_state_t old_state, bool old_pending) {
     // Report about change in conditions
     RequestAttention(); // TODO: Check if really needed
   };
-  jobs.erase(i->job_id);
+  {
+    Glib::RecMutex::Lock lock(jobs_lock);
+    jobs.erase(i->job_id);
+  };
   i.Destroy();
   return true;
 }
@@ -1387,6 +1401,7 @@ bool JobsList::ActJob(GMJobRef& i) {
       // Processing to be done on relatively successful state changes
       JobLog* joblog = config.GetJobLog();
       if(joblog) joblog->WriteJobRecord(*i,config);
+      // TODO: Consider moving following code into ActJob* methods
       if(i->job_state == JOB_STATE_FINISHED) {
         job_clean_finished(i->job_id,config);
         if(joblog) joblog->WriteFinishInfo(*i,config);
@@ -1410,12 +1425,14 @@ bool JobsList::ActJob(GMJobRef& i) {
           if (i->local->DN.empty()) {
              logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
           }
+          Glib::RecMutex::Lock lock(jobs_lock);
           ++(jobs_dn[i->local->DN]);
         };
       };
     } else if(IS_ACTIVE_STATE(old_state)) {
       if(!IS_ACTIVE_STATE(i->job_state)) {
         if(i->GetLocalDescription(config)) {
+          Glib::RecMutex::Lock lock(jobs_lock);
           if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
         };
       };
@@ -1444,7 +1461,6 @@ bool JobsList::ActJob(GMJobRef& i) {
 
   // Job in special state or specifically requested to be removed (TODO: remove check for job state)
   if((job_result == JobDropped) ||
-     (i->job_state == JOB_STATE_FINISHED) ||
      (i->job_state == JOB_STATE_DELETED) ||
      (i->job_state == JOB_STATE_UNDEFINED)) {
     // Such jobs are not kept in memory
@@ -1553,8 +1569,22 @@ bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
 }
 
 bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const {
-  Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
+  class JobFilterSkipExisting: public JobFilter {
+  public:
+    JobFilterSkipExisting(JobsList const& jobs): jobs_(jobs) {};
+    virtual ~JobFilterSkipExisting() {};
+    virtual bool accept(JobId const& id) const { return !jobs_.HasJob(id); };
+  private:
+    JobsList const& jobs_;
+  };
 
+  Arc::JobPerfRecord perfrecord(*config.GetJobPerfLog(), "*");
+  bool result = ScanAllJobs(cdir, ids, JobFilterSkipExisting(*this));
+  perfrecord.End("SCAN-JOBS");
+  return result;
+}
+
+bool JobsList::ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, JobFilter const& filter) {
   try {
     Glib::Dir dir(cdir);
     for(;;) {
@@ -1564,7 +1594,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const 
       // job id contains at least 1 character
       if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
         JobFDesc id(file.substr(4,l-7-4));
-        if(!HasJob(id.id)) {
+        if(filter.accept(id.id)) {
           std::string fname=cdir+'/'+file.c_str();
           uid_t uid;
           gid_t gid;
@@ -1578,11 +1608,10 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const 
       }
     }
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",config.ControlDir(), e.what());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s", cdir, e.what());
     return false;
   }
 
-  perfrecord.End("SCAN-JOBS");
   return true;
 }
 
@@ -1721,7 +1750,14 @@ bool JobsList::ScanNewMarks(void) {
 }
 
 // For simply collecting all jobs. Only used by gm-jobs.
-bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
+bool JobsList::GetAllJobs(const GMConfig& config, std::list<GMJobRef>& alljobs) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1732,12 +1768,12 @@ bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanAllJobs(odir,ids,JobFilterNoSkip())) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       GMJobRef i(new GMJob(id->id,Arc::User(id->uid)));
-      if (GetLocalDescription(i)) {
+      if (i->GetLocalDescription(config)) {
         i->session_dir = i->local->sessiondir;
         if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id->id)+'/'+id->id;
         alljobs.push_back(i);
@@ -1748,7 +1784,14 @@ bool JobsList::GetAllJobs(std::list<GMJobRef>& alljobs) const {
 }
 
 // For simply collecting all job ids.
-bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
+bool JobsList::GetAllJobIds(const GMConfig& config, std::list<JobId>& alljobs) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1759,7 +1802,7 @@ bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanAllJobs(odir,ids,JobFilterNoSkip())) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
@@ -1768,8 +1811,9 @@ bool JobsList::GetAllJobIds(std::list<JobId>& alljobs) const {
   }
   return true;
 }
+
 // Only used by gm-jobs
-GMJobRef JobsList::GetJob(const JobId& id) const {
+GMJobRef JobsList::GetJob(const GMConfig& config, const JobId& id) {
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1785,7 +1829,7 @@ GMJobRef JobsList::GetJob(const JobId& id) const {
     time_t t;
     if(check_file_owner(fname,uid,gid,t)) {
       GMJobRef i(new GMJob(id,Arc::User(uid)));
-      if (GetLocalDescription(i)) {
+      if (i->GetLocalDescription(config)) {
         i->session_dir = i->local->sessiondir;
         if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
         return i;
@@ -1796,8 +1840,15 @@ GMJobRef JobsList::GetJob(const JobId& id) const {
 }
 
 // For simply counting all jobs.
-int JobsList::CountAllJobs() const {
-  int count;
+int JobsList::CountAllJobs(const GMConfig& config) {
+  class JobFilterNoSkip: public JobFilter {
+  public:
+    JobFilterNoSkip() {};
+    virtual ~JobFilterNoSkip() {};
+    virtual bool accept(JobId const& id) const { return true; };
+  };
+
+  int count = 0;
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs
@@ -1808,7 +1859,7 @@ int JobsList::CountAllJobs() const {
     std::string cdir=config.ControlDir();
     std::list<JobFDesc> ids;
     std::string odir=cdir+(*subdir);
-    if(ScanJobs(odir,ids)) {
+    if(ScanAllJobs(odir,ids,JobFilterNoSkip())) {
       count += ids.size();
     };
   };

@@ -15,10 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <glibmm.h>
-#ifndef WIN32
 #include <poll.h>
 #include <sys/mman.h>
-#endif
 
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
@@ -116,7 +114,6 @@ bool FileCopy(int source_handle,int destination_handle) {
   off_t source_size = lseek(source_handle,0,SEEK_END);
   if(source_size == (off_t)(-1)) return false;
   if(source_size == 0) return true;
-#ifndef WIN32
   if(source_size <= FileCopyBigThreshold) {
     void* source_addr = mmap(NULL,source_size,PROT_READ,MAP_SHARED,source_handle,0);
     if(source_addr != MAP_FAILED) {
@@ -125,7 +122,6 @@ bool FileCopy(int source_handle,int destination_handle) {
       return r;
     }
   }
-#endif
   if(lseek(source_handle,0,SEEK_SET) != 0) return false;
   char* buf = new char[FileCopyBufSize];
   if(!buf) return false;
@@ -217,11 +213,7 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     if(!fa.fa_rename(tempfile, filename)) { errno = fa.geterrno(); fa.fa_unlink(tempfile); return false; }
     return true;
   }
-#ifndef WIN32
   if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
-#else
-  if(mode == 0) mode = S_IRUSR|S_IWUSR;
-#endif
   std::string tempfile = filename+".XXXXXX";
   int h = ::mkstemp(const_cast<char*>(tempfile.c_str()));
   if(h == -1) return false;
@@ -298,6 +290,8 @@ std::string FileReadLink(const std::string& path) {
   class charbuf {
    private:
     char* v;
+    charbuf(charbuf const&);
+    charbuf& operator=(charbuf const&);
    public:
     charbuf(int size) {
       v = new char[size];
@@ -458,6 +452,56 @@ bool DirDelete(const std::string& path, bool recursive) {
   }
   if (rmdir(path.c_str()) != 0) return false;
       
+  return true;
+}
+
+bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl) {
+  return DirDeleteExcl(path, files, excl, 0, 0);
+}
+
+bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files, bool excl, uid_t uid, gid_t gid) {
+  // First check special case of "/" in files (keep or delete everything)
+  for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+    if (*f == "/") {
+      if (excl) return true; // delete nothing
+      return DirDelete(path, true, uid, gid); // delete everything
+    }
+  }
+
+  std::list<std::string> dirlisting;
+  if (!DirList(path, dirlisting, false, uid, gid)) return false;
+  for (std::list<std::string>::const_iterator d = dirlisting.begin(); d != dirlisting.end(); ++d) {
+    // Check for file or dir
+    struct stat st;
+    if (!FileStat(*d, &st, uid, gid, false)) return false;
+    if (S_ISDIR(st.st_mode)) {
+      // Check for any files in this dir
+      std::list<std::string> newfiles;
+      for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+        std::string fullpath(path + *f);
+        if (fullpath.substr(0, d->size()) == *d && fullpath.size() > d->size() && fullpath[d->size()] == '/') {
+          newfiles.push_back(f->substr(f->find('/', 1)));
+        }
+      }
+      if (!newfiles.empty()) {
+        if (!DirDeleteExcl(*d, newfiles, excl, uid, gid)) return false;
+        if (excl) continue;
+      }
+    }
+
+    bool del = excl;
+    for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+      std::string fullpath(path + *f);
+      if (fullpath == *d) {
+        del = !del;
+        break;
+      }
+    }
+    if (del) {
+      if (S_ISDIR(st.st_mode)) DirDelete(*d, true);
+      else FileDelete(*d);
+    }
+  }
   return true;
 }
 

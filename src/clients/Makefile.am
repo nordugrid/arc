@@ -4,12 +4,6 @@ else
 DATA_CLIENT =
 endif
 
-if ECHO_CLIENT_ENABLED
-ECHO_CLIENT = echo
-else
-ECHO_CLIENT =
-endif
-
 if CREDENTIALS_CLIENT_ENABLED
 CREDENTIALS_CLIENT = credentials
 else
@@ -22,20 +16,8 @@ else
 COMPUTE_CLIENT =
 endif
 
-if SAML_CLIENT_ENABLED
-SAML_CLIENT = saml
-else
-SAML_CLIENT =
-endif
-
-if WSRF_CLIENT_ENABLED
-WSRF_CLIENT = wsrf
-else
-WSRF_CLIENT =
-endif
-
-SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(SAML_CLIENT) $(WSRF_CLIENT)
-DIST_SUBDIRS = data echo credentials compute saml wsrf
+SUBDIRS = $(DATA_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) 
+DIST_SUBDIRS = data credentials compute
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf

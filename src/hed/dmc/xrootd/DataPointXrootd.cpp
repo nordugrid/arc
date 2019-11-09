@@ -3,6 +3,9 @@
 #endif
 
 #include <fcntl.h>
+#include <XrdCl/XrdClPropertyList.hh>
+#include <XrdCl/XrdClDefaultEnv.hh>
+#include <XrdCl/XrdClLog.hh>
 
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
@@ -17,6 +20,20 @@ namespace ArcDMCXrootd {
   Logger DataPointXrootd::logger(Logger::getRootLogger(), "DataPoint.Xrootd");
   XrdPosixXrootd DataPointXrootd::xrdposix;
 
+  XrootdProgressHandler::XrootdProgressHandler(DataPoint::TransferCallback callback)
+   : cb(callback), cancel(false) {}
+
+  void XrootdProgressHandler::JobProgress(uint16_t jobNum,
+                                          uint64_t bytesProcessed,
+                                          uint64_t bytesTotal) {
+    cb(bytesProcessed);
+  }
+
+  bool XrootdProgressHandler::ShouldCancel(uint64_t jobNum) {
+    return cancel;
+  }
+
+
   DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDirect(url, usercfg, parg),
       fd(-1),
@@ -24,10 +41,6 @@ namespace ArcDMCXrootd {
       writing(false){
     // set xrootd log level
     set_log_level();
-    // xrootd requires 2 slashes at the start of the URL path
-    if (url.Path().find("//") != 0) {
-      this->url.ChangePath(std::string("/"+url.Path()));
-    }
   }
 
   DataPointXrootd::~DataPointXrootd() {
@@ -41,7 +54,76 @@ namespace ArcDMCXrootd {
       return NULL;
     if (((const URL &)(*dmcarg)).Protocol() != "root")
       return NULL;
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Xrootd in non-persistent mode - Xrootd code is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
+
     return new DataPointXrootd(*dmcarg, *dmcarg, dmcarg);
+  }
+
+  DataStatus DataPointXrootd::copy_file(std::string source, std::string dest, TransferCallback callback) {
+    XrdCl::PropertyList props;
+    XrdCl::PropertyList results;
+
+    // Check for special source/dest to handle
+    if (source.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      source = source.substr(5);
+    }
+    if (source == "stdio:/stdin") {
+      source = "-";
+    }
+
+    if (dest.find("file:/") == 0) {
+      // xrootd doesn't like the arc file:/ urls so remove the protocol
+      dest = dest.substr(5);
+    }
+    if (dest == "stdio:/stdout") {
+      dest = "-";
+    }
+    props.Set("source", source);
+    props.Set("target", dest);
+    // If checksum is known then ask xrootd to check it
+    if (CheckCheckSum()) {
+      std::list<std::string> csum;
+      tokenize(GetCheckSum(), csum, ":");
+      if (csum.size() == 2) {
+        props.Set("checkSumMode", "end2end");
+        props.Set("checkSumType", csum.front());
+        props.Set("checkSumPreset", csum.back());
+      } else {
+        logger.msg(WARNING, "Could not handle checksum %s: skip checksum check", GetCheckSum());
+      }
+    }
+    XrdCl::CopyProcess copy;
+    XrdCl::XRootDStatus st = copy.AddJob(props, &results);
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to create xrootd copy job: %s", st.ToStr());
+      return DataStatus(DataStatus::TransferError, EIO, st.ToStr());
+    }
+
+    XrdCl::PropertyList processConfig;
+    processConfig.Set("jobType", "configuration" );
+    processConfig.Set("parallel", 1 );
+    copy.AddJob(processConfig, 0 );
+    copy.Prepare();
+
+    XrdCl::CopyProgressHandler * cph = NULL;
+    if (callback) {
+      cph = new XrootdProgressHandler(callback);
+    }
+    st = copy.Run(cph);
+    if (cph) delete cph;
+    if (!st.IsOK()) {
+      logger.msg(ERROR, "Failed to copy %s: %s", source, st.ToStr());
+      // xrootd defines its own error codes so return generic I/O error
+      return DataStatus(DataStatus::TransferError, EIO, st.ToStr());
+    }
+    return DataStatus::Success;
   }
 
   void DataPointXrootd::read_file_start(void* arg) {
@@ -346,6 +428,22 @@ namespace ArcDMCXrootd {
         logger.msg(VERBOSE, "Could not stat file %s: %s", u.plainstr(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
       }
+      if (verb & INFO_TYPE_CONTENT) {
+        if (u.HTTPOption("xrdcl.unzip") != "") {
+          logger.msg(WARNING, "Not getting checksum of zip constituent");
+        } else {
+          char buf[256];
+          if (XrdPosixXrootd::Getxattr(u.plainstr().c_str(), "xroot.cksum", &buf, sizeof(buf)) == -1) {
+            logger.msg(WARNING, "Could not get checksum of %s: %s", u.plainstr(), StrError(errno));
+          } else {
+            std::string csum(buf);
+            if (csum.find(' ') != std::string::npos) csum.replace(csum.find(' '), 1, ":");
+            logger.msg(VERBOSE, "Checksum %s", csum);
+            file.SetCheckSum(csum);
+            SetCheckSum(csum);
+          }
+        }
+      }
     }
 
     file.SetName(u.Path());
@@ -486,6 +584,18 @@ namespace ArcDMCXrootd {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    if (source) {
+      return copy_file(url.plainstr(), otherendpoint.plainstr(), callback);
+    } else {
+      return copy_file(otherendpoint.plainstr(), url.plainstr(), callback);
+    }
+  }
+
+  bool DataPointXrootd::SupportsTransfer() const {
+    return true;
+  }
+
   bool DataPointXrootd::RequiresCredentialsInFile() const {
     return true;
   }
@@ -494,8 +604,15 @@ namespace ArcDMCXrootd {
     // TODO xrootd lib logs to stderr - need to redirect to log file for DTR
     // Level 1 enables some messages which go to stdout - which messes up
     // communication in DTR so better to use no debugging
-    if (logger.getThreshold() == DEBUG) XrdPosixXrootd::setDebug(1);
-    else XrdPosixXrootd::setDebug(0);
+    XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
+    if (logger.getThreshold() == DEBUG) {
+      XrdPosixXrootd::setDebug(1);
+      log->SetLevel(XrdCl::Log::DumpMsg);
+    }
+    else {
+      XrdPosixXrootd::setDebug(0);
+      log->SetLevel(XrdCl::Log::ErrorMsg);
+    }
   }
 
 } // namespace ArcDMCXrootd

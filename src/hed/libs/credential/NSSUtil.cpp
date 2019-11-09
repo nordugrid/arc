@@ -25,11 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <vector>
-#ifndef WIN32
 #include <unistd.h>
-#else
-#include <conio.h>
-#endif
 
 #include <openssl/pem.h>
 #include <openssl/err.h>
@@ -177,6 +173,9 @@ namespace ArcAuthNSS {
     it.data = inBuf;
     it.len = inBufLen;
     dup = SECITEM_DupItem(&it);
+    if(!dup) {
+        return PR_FALSE;
+    }
     // If converting Unicode to ASCII, swap bytes before conversion as neccessary.
     if (!toUnicode && swapBytes) {
       if (p12u_SwapUnicodeBytes(dup) != SECSuccess) {
@@ -187,8 +186,7 @@ namespace ArcAuthNSS {
     // Perform the conversion.
     ret = PORT_UCS2_UTF8Conversion(toUnicode, dup->data, dup->len,
                                    outBuf, maxOutBufLen, outBufLen);
-    if (dup)
-      SECITEM_ZfreeItem(dup, PR_TRUE);
+    SECITEM_ZfreeItem(dup, PR_TRUE);
     return ret;
   }
 
@@ -1815,7 +1813,7 @@ err:
     SECKEYPrivateKey* privkey = NULL;
     SECKEYPublicKey* pubkey = NULL;
     CERTName* name = NULL;
-    int keybits = 1024;
+    int keybits = 2048;
     PRArenaPool* arena;
     SECItem* encoding;
     SECOidTag signAlgTag;
@@ -2370,7 +2368,7 @@ error:
     return (rv);
   }
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
 // CERT_NameFromDERCert 
 // CERT_IssuerNameFromDERCert 
 // CERT_SerialNumberFromDERCert
@@ -2570,7 +2568,7 @@ loser:
     PORT_FreeArena(arena, PR_FALSE);
     return(SECFailure);
 }
-#endif // #if !defined(WIN32) && !defined(MACOS)
+#endif // #if !defined(MACOS)
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
@@ -2596,7 +2594,7 @@ loser:
       std::string subject_dn;
       SECItem derSubject;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
 #else
       rv = CERT_NameFromDERCert(&cert->derCert, &derSubject);
@@ -2604,23 +2602,27 @@ loser:
 
       if(rv == SECSuccess) {
         char* subjectName = CERT_DerNameToAscii(&derSubject);
-        subject_dn = subjectName;
-        if(subjectName) PORT_Free(subjectName);
+        if(subjectName) {
+          subject_dn = subjectName;
+          PORT_Free(subjectName);
+        }
         cert_info.subject_dn = subject_dn;
       }
 
       std::string issuer_dn;
       SECItem derIssuer;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
 #else
       rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
 #endif
       if(rv == SECSuccess) {
         char* issuerName = CERT_DerNameToAscii(&derIssuer);
-        issuer_dn = issuerName;
-        if(issuerName) PORT_Free(issuerName);
+        if(issuerName) {
+          issuer_dn = issuerName;
+          PORT_Free(issuerName);
+        }
         cert_info.issuer_dn = issuer_dn;
       }
 
@@ -2628,7 +2630,7 @@ loser:
       std::string serial;
       SECItem derSerial;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
 #else
       rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
@@ -2756,28 +2758,35 @@ loser:
     validity = CERT_CreateValidity(start, end);
 
     //Subject
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
 #else
     CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
 #endif
 
+    std::string subname_str;
     char* subjectName = CERT_DerNameToAscii(&derSubject);
-    std::string subname_str = subjectName;
+    if(subjectName) {
+      subname_str = subjectName;
+      PORT_Free(subjectName);
+    }
 
     srand(time(NULL));
     unsigned long random_cn;
     random_cn = rand();
-    char* CN_name = NULL;
-    CN_name = (char*)malloc(sizeof(long)*4 + 1);
+    char* CN_name = (char*)malloc(sizeof(long)*4 + 1);
+    if(!CN_name) {
+      NSSUtilLogger.msg(ERROR, "Can not allocate memory");
+      return false;
+    }
     snprintf(CN_name, sizeof(long)*4 + 1, "%lu", random_cn);
     std::string str = "CN="; str.append(CN_name); str.append(",");
     subname_str.insert(0, str.c_str(), str.length());
+    free(CN_name);
+
     NSSUtilLogger.msg(DEBUG, "Proxy subject: %s", subname_str.c_str());
-    if(CN_name) free(CN_name);
     CERTName* subName = NULL;
     if(!subname_str.empty()) subName = CERT_AsciiToName((char*)(subname_str.c_str()));
-    if(subjectName) PORT_Free(subjectName);
 
     if (validity) {
       if(subName != NULL) {

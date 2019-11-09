@@ -204,7 +204,6 @@ namespace DataStaging {
       mapped_url.ChangeProtocol("file");
     }
     if (mapped_url.Protocol() == "link") {
-#ifndef WIN32
       // If the map is a link then do the link here and set to TRANSFERRED. Local file
       // copies should still have to wait in the queue. For links we should also
       // turn off caching, remembering that we still need to release any cache
@@ -231,9 +230,6 @@ namespace DataStaging {
           return true;
         }
       }
-#else
-      request->get_logger()->msg(Arc::ERROR, "Linking mapped file - can't link on Windows");
-#endif
     }
     else {
       // Ready to copy mapped file
@@ -286,9 +282,8 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "Timed out while waiting for cache lock");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (DtrList.is_being_cached(request)) {
-      // TODO A low priority DTR holding the cache lock can block a high priority DTR
-      // downloading the same file. Here we should cancel the low priority one to let
-      // the high priority one go through
+      // If the source is already being cached the priority of that DTR
+      // will be raised by is_being_cached() if this DTR's priority is higher
       Arc::Period cache_wait_period(10);
       request->get_logger()->msg(Arc::VERBOSE, "File is currently being cached, will wait %is", cache_wait_period.GetPeriod());
       request->set_process_time(cache_wait_period);
@@ -1009,6 +1004,9 @@ namespace DataStaging {
          i != DTRRunningStates[DTRStatus::TRANSFERRING].end(); i++) {
       delivery_hosts[(*i)->get_delivery_endpoint().Host()]++;
     }
+
+    // Check for any requested changes in priority
+    DtrList.check_priority_changes(std::string(dumplocation + ".prio"));
 
     // Get all the DTRs in a staged state
     staged_queue.clear();

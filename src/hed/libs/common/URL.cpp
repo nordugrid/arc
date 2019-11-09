@@ -133,17 +133,6 @@ namespace Arc {
         pos = std::string::npos;
         break;
       }
-#ifdef WIN32
-      // Windows paths look like protocols - additional checks are needed
-      // So for windows it looks like "disk:\"
-      // TODO: probably some additional check is needed for "disk:"-like
-      // paths. If such path can exist at all.
-      if(pos != std::string::npos) {
-        if(url[pos+1] == '\\') {
-          pos = std::string::npos;
-        }
-      }
-#endif
     }
     if (pos == std::string::npos) {
       // URL does not start from protocol - must be simple path
@@ -353,7 +342,8 @@ namespace Arc {
       if (protocol == "s3+https") port = S3_HTTPS_DEFAULT_PORT;
     }
 
-    if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0) {
+    if (protocol != "ldap" && protocol != "arc" && protocol.find("http") != 0 &&
+        (protocol != "root" || path.find('?') == std::string::npos)) {
       pos2 = path.rfind('=');
       if (pos2 != std::string::npos) {
         pos3 = path.rfind(':', pos2);
@@ -389,6 +379,7 @@ namespace Arc {
         protocol == "httpg" ||
         protocol == "arc" ||
         protocol == "srm" ||
+        protocol == "root" ||
         protocol == "rucio" ) {
       pos = path.find("?");
       if (pos != std::string::npos) {

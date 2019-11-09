@@ -10,8 +10,8 @@ output=""
 EOF
 
 read -r -d '' general_arc_test_configuration <<EOF
-[common]
-slurm_bin_path="@PWD@/bin"
+[lrms]
+slurm_bin_path=@PWD@/bin
 EOF
 
 function test_basic() {
@@ -22,19 +22,6 @@ EOF
 cp ${SRCDIR}/basic-script.sh expected_lrms_job_script.tmpl
 
 function test_post_check() {
-  # Check diag file
-  diagfilename="controldir/job.basic.diag"
-  if test ! -f ${diagfilename}; then
-    echo "Post check failed: Diag file (${diagfilename}) is missing."
-    return 1
-  fi
-  
-  . ${diagfilename}
-  if test "x${Processors}" != "x1"; then
-    echo "Post check failed: In diag file: Processors was expected to be \"1\", but it was \"${Processors}\"."
-    return 1
-  fi
-  
   return 0
 }
 }
@@ -46,30 +33,5 @@ read -r -d '' job_description_input <<'EOF'
  (arguments = "Hello World")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
-+++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -124,7 +124,7 @@
- nodename=`/bin/hostname -f`
- echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
- echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
--executable='/bin/true'
-+executable='/bin/echo'
- # Check if executable exists
- if [ ! -f "$executable" ]; 
- then 
-@@ -148,9 +148,9 @@
- fi 
- 
- if [ -z "$GNU_TIME" ] ; then
--   "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
-+   "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
- else
--  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/true" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
-+  $GNU_TIME -o "$RUNTIME_JOB_DIAG" -a -f 'WallTime=%es\nKernelTime=%Ss\nUserTime=%Us\nCPUUsage=%P\nMaxResidentMemory=%MkB\nAverageResidentMemory=%tkB\nAverageTotalMemory=%KkB\nAverageUnsharedMemory=%DkB\nAverageUnsharedStack=%pkB\nAverageSharedMemory=%XkB\nPageSize=%ZB\nMajorPageFaults=%F\nMinorPageFaults=%R\nSwaps=%W\nForcedSwitches=%c\nWaitSwitches=%w\nInputs=%I\nOutputs=%O\nSocketReceived=%r\nSocketSent=%s\nSignals=%k\n'  "/bin/echo" "Hello World" <$RUNTIME_JOB_STDIN 1>$RUNTIME_JOB_STDOUT 2>&1
- 
- fi
- RESULT=$?
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat ${SRCDIR}/basic-test-with_arguments.patch | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }

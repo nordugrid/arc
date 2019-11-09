@@ -18,22 +18,27 @@
 #include "../files/ControlFileContent.h"
 #include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
+#include "../accounting/AAR.h"
+#include "../accounting/AccountingDBSQLite.h"
 #include "JobLog.h"
+
+#define ACCOUNTING_SUBDIR "accounting"
+#define ACCOUNTING_DB_FILE "accounting.db"
 
 namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-JobLog::JobLog(void):filename(""),proc(NULL),last_run(0),period(3600) {
+JobLog::JobLog(void):filename(""),reporter_proc(NULL),reporter_last_run(0),reporter_period(3600) {
 }
 
 void JobLog::SetOutput(const char* fname) {
   filename=fname;
 }
 
-bool JobLog::SetPeriod(int new_period) {
+bool JobLog::SetReporterPeriod(int new_period) {
     if ( new_period < 3600 ) return false;
-    period=new_period;
+    reporter_period=new_period;
     return true;
 }
 
@@ -99,65 +104,99 @@ bool JobLog::WriteFinishInfo(GMJob &job,const GMConfig &config) {
 } 
 
 bool JobLog::RunReporter(const GMConfig &config) {
-  if(proc != NULL) {
-    if(proc->Running()) return true; /* running */
-    delete proc;
-    proc=NULL;
+  if(reporter_proc != NULL) {
+    if(reporter_proc->Running()) return true; /* running */
+    delete reporter_proc;
+    reporter_proc=NULL;
   };
-  if(time(NULL) < (last_run+period)) return true; // default: once per hour
-  last_run=time(NULL);
-  if (logger_name.empty()) {
-    logger.msg(Arc::ERROR,": Logger name is not specified");
+  // Check tool exits
+  if (reporter_tool.empty()) {
+    logger.msg(Arc::ERROR,": Accounting records reporter tool is not specified");
     return false;
   }
-  // Reporter is tun with only argument - configuration file.
+  // Record the start time
+  if(time(NULL) < (reporter_last_run+reporter_period)) return true; // default: once per hour
+  reporter_last_run=time(NULL);
+  // Reporter is run with only argument - configuration file.
   // It is supposed to parse that configuration file to obtain other parameters.
   std::list<std::string> argv;
-  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+logger_name);
+  argv.push_back(Arc::ArcLocation::GetToolsDir()+"/"+reporter_tool);
   argv.push_back("-c");
   argv.push_back(config.ConfigFile());
-  proc = new Arc::Run(argv);
-  if((!proc) || (!(*proc))) {
-    delete proc;
-    proc = NULL;
-    logger.msg(Arc::ERROR,": Failure creating slot for reporter child process");
+  reporter_proc = new Arc::Run(argv);
+  if((!reporter_proc) || (!(*reporter_proc))) {
+    delete reporter_proc;
+    reporter_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure creating slot for accounting reporter child process");
     return false;
   };
   std::string errlog;
   JobLog* joblog = config.GetJobLog();
   if(joblog) {
-    if(!joblog->logfile.empty()) errlog = joblog->logfile;
+    if(!joblog->reporter_logfile.empty()) errlog = joblog->reporter_logfile;
   };
-  proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
+  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
   logger.msg(Arc::DEBUG, "Running command %s", argv.front());
-  if(!proc->Start()) {
-    delete proc;
-    proc = NULL;
-    logger.msg(Arc::ERROR,": Failure starting reporter child process");
+  if(!reporter_proc->Start()) {
+    delete reporter_proc;
+    reporter_proc = NULL;
+    logger.msg(Arc::ERROR,": Failure starting accounting reporter child process");
     return false;
   };
   return true;
 }
 
-bool JobLog::SetLogger(const char* fname) {
-  if(fname) logger_name = (std::string(fname));
+bool JobLog::ReporterEnabled(void) {
+  if (reporter_tool.empty()) return false;
   return true;
 }
 
-bool JobLog::SetLogFile(const char* fname) {
-  if(fname) logfile = (std::string(fname));
+bool JobLog::SetReporter(const char* fname) {
+  if(fname) reporter_tool = (std::string(fname));
+  return true;
+}
+
+bool JobLog::SetReporterLogFile(const char* fname) {
+  if(fname) reporter_logfile = (std::string(fname));
   return true;
 }
 
 bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
-  // Records are written only for first and last states
-  if((job.get_state() != JOB_STATE_ACCEPTED) &&
-     (job.get_state() != JOB_STATE_FINISHED)) return true;
+  // Legacy joblog files generation
+  // Files are allways jenerates (as in ARC6.0 and 6.1) and will be processed by legacy jura
+  // when "legacy_fallback" option is defined at least for one of the accounting target blocks
+  if((job.get_state() == JOB_STATE_ACCEPTED) ||
+     (job.get_state() == JOB_STATE_FINISHED)) {
+        // don't care about legacy method success
+        job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
+  }
 
-  // Only one record per job state change is generated now
-  bool result = job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
+  // Create accounting DB connection
+  std::string accounting_db_path = config.ControlDir() + G_DIR_SEPARATOR_S + ACCOUNTING_SUBDIR + G_DIR_SEPARATOR_S + ACCOUNTING_DB_FILE;
+  AccountingDBSQLite adb(accounting_db_path);
 
-  return result;
+  if (!adb.IsValid()) {
+    logger.msg(Arc::ERROR,": Failure creating accounting database connection");
+    return false;
+  }
+  
+  // create initial AAR record in the accounting database on ACCEPTED
+  if(job.get_state() == JOB_STATE_ACCEPTED) {
+    AAR aar;
+    aar.FetchJobData(job, config);
+    return adb.createAAR(aar);
+  }
+
+  // update all job metrics when job FINISHED
+  if (job.get_state() == JOB_STATE_FINISHED) {
+    AAR aar;
+    aar.FetchJobData(job, config);
+    return adb.updateAAR(aar);
+  }
+
+  // record job state change event in the accounting database
+  aar_jobevent_t jobevent(job.get_state_name(), Arc::Time());
+  return adb.addJobEvent(jobevent, job.get_id());
 }
 
 void JobLog::SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir)
@@ -171,10 +210,10 @@ void JobLog::SetCredentials(std::string const &key_path,std::string const &certi
 }
 
 JobLog::~JobLog(void) {
-  if(proc != NULL) {
-    if(proc->Running()) proc->Kill(0);
-    delete proc;
-    proc=NULL;
+  if(reporter_proc != NULL) {
+    if(reporter_proc->Running()) reporter_proc->Kill(0);
+    delete reporter_proc;
+    reporter_proc=NULL;
   };
 }
 

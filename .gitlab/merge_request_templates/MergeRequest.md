@@ -21,6 +21,12 @@ Or a combination of these, example with several issues:
 ```
 Short description of work (#10, Fixes #1, Fixes #4).
 ```
+
+## Link to Bugzilla ticket
+BUGZ-<ticket-id>
+Closing, Fixing keywords do not work.
+
+
 ## Labels
 If you don't have labels available from the drop-down menu, you can specify the labels using syntax in bottom of the description:
 /label ~foo ~"bar baz"
@@ -28,16 +34,17 @@ If you don't have labels available from the drop-down menu, you can specify the 
 #### Target branch labels
 Select branch-labels instructing the arcbot to create merge request to additional target branch(es).
 
-See [Rule table](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-cheat-sheet-2#rule-table) for reference. 
+See [Rule table](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/cheat-sheet#rule-table) for reference. 
 
 #### ARC component labels - when no issue
 Select the right ARC component labels. 
 
-[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+[About component labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#component-labels)
+
 #### Type of fix labels - when no issue
 Select the right type labels. 
 
-[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/git-workflow-general-revised-model1#labels-for-issues)
+[About type labels](https://source.coderefinery.org/nordugrid/arc/wikis/contributing/overview#type-labels)
 
 
 ## Description

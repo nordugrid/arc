@@ -14,8 +14,6 @@
 
 #include "utils.h"
 
-#ifndef WIN32
-
 #include <unistd.h>
 #include <termios.h>
 
@@ -30,14 +28,6 @@ ConsoleRecovery::~ConsoleRecovery(void) {
   if(ti) tcsetattr(STDIN_FILENO, TCSANOW, ti);
   delete ti;
 }
-
-#else
-
-ConsoleRecovery::ConsoleRecovery(void) { ti=NULL; }
-
-ConsoleRecovery::~ConsoleRecovery(void) { }
-
-#endif
 
 std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);
@@ -256,6 +246,7 @@ ClientOptions::ClientOptions(Client_t c,
     keep(false),
     forcesync(false),
     truncate(false),
+    convert(false),
     longlist(false),
     printids(false),
     same(false),
@@ -263,6 +254,7 @@ ClientOptions::ClientOptions(Client_t c,
     show_stdout(true),
     show_stderr(false),
     show_joblog(false),
+    show_json(false),
     usejobname(false),
     forcedownload(false),
     list_configured_services(false),
@@ -318,6 +310,10 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('T', "truncate",
               istring("truncate the joblist before synchronizing"),
               truncate);
+
+    AddOption('C', "convert",
+              istring("do not collect information, only convert jobs storage format"),
+              convert);
   }
 
   if (c == CO_INFO || c == CO_STAT) {
@@ -344,6 +340,11 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('l', "joblog",
               istring("show the CE's error log of the job"),
               show_joblog);
+
+    AddOption('f', "file",
+              istring("show the specified file from job's session directory"),
+              istring("filepath"),
+              show_file);
   }
 
   if (c == CO_GET) {
@@ -378,6 +379,10 @@ ClientOptions::ClientOptions(Client_t c,
     AddOption('u', "show-unavailable",
               istring("show jobs where status information is unavailable"),
               show_unavailable);
+
+    AddOption('J', "json",
+              istring("show status information in JSON format"),
+              show_json);
   }
 
   if (c == CO_RESUB) {
@@ -455,7 +460,7 @@ ClientOptions::ClientOptions(Client_t c,
     
     AddOption('S', "submissioninterface",
               istring("only use this interface for submitting "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.local)"),
+                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
 
@@ -497,7 +502,7 @@ ClientOptions::ClientOptions(Client_t c,
   if (c == CO_INFO) {
     AddOption('S', "submissioninterface",
               istring("only get information about executon targets which support this job submission interface "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.local)"),
+                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
   }
@@ -508,7 +513,7 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (c != CO_INFO) {
     AddOption('j', "joblist",
-              Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE).str(),
+              Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE()).str(),
               istring("filename"),
               joblist);
   }

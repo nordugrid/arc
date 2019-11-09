@@ -1,0 +1,13 @@
+# description: enables submission to Docker universe in HTCondor backend
+# param:DOCKER_IMAGE:string::Docker image to use for submitted jobs by default
+
+DOCKER_IMAGE=${DOCKER_IMAGE:-}
+
+if [ "x$1" = "x0" ]; then
+    export DOCKER_UNIVERSE=docker
+    # docker image name can be redefined by user as RTE parameter
+    [ -n "$2" ] && DOCKER_IMAGE="$2"
+    export DOCKER_IMAGE
+    # in case Docker image is used on WN add this to accounting information
+    export ACCOUNTING_WN_INSTANCE="${DOCKER_IMAGE}"
+fi

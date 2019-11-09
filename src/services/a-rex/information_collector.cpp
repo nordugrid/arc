@@ -16,11 +16,9 @@
 
 #include <arc/ArcLocation.h>
 #include <arc/Run.h>
-#include <arc/wsrf/WSResourceProperties.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/FileUtils.h>
 
-#include "ldif/LDIFtoXML.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "job.h"
 #include "arex.h"
@@ -44,17 +42,19 @@ void ARexService::InformationCollector(void) {
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
-        if(thread_count_.WaitForExit()) break;
-        continue; // try again
-      };
-      while(!run.Wait()) {
-        logger_.msg(Arc::DEBUG,"Resource information provider failed");
-      }
-      r = run.Result();
-      if (r!=0) {
-        logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);
+        // Failed to fork proces
+        logger_.msg(Arc::DEBUG,"Resource information provider failed to start");
       } else {
-        logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
+        if(!run.Wait()) {
+          logger_.msg(Arc::DEBUG,"Resource information provider failed to run");
+        } else {
+          r = run.Result();
+          if (r!=0) {
+            logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);
+          } else {
+            logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
+          };
+        };
       };
     };
     if (r!=0) {
@@ -259,37 +259,6 @@ int OptimizedInformationContainer::OpenDocument(void) {
   if(handle_ != -1) h = ::dup(handle_);
   olock_.unlock();
   return h;
-}
-
-Arc::MessagePayload* OptimizedInformationContainer::Process(Arc::SOAPEnvelope& in) {
-  Arc::WSRF& wsrp = Arc::CreateWSRP(in);
-  if(!wsrp) { delete &wsrp; return NULL; };
-  try {
-    Arc::WSRPGetResourcePropertyDocumentRequest* req =
-         dynamic_cast<Arc::WSRPGetResourcePropertyDocumentRequest*>(&wsrp);
-    if(!req) throw std::exception();
-    if(!(*req)) throw std::exception();
-    // Request for whole document
-    std::string fake_str("<fake>fake</fake>");
-    Arc::XMLNode xresp(fake_str);
-    Arc::WSRPGetResourcePropertyDocumentResponse resp(xresp);
-    std::string rest_str;
-    resp.SOAP().GetDoc(rest_str);
-    std::string::size_type p = rest_str.find(fake_str);
-    if(p == std::string::npos) throw std::exception();
-    PrefixedFilePayload* outpayload = new PrefixedFilePayload(rest_str.substr(0,p),rest_str.substr(p+fake_str.length()),OpenDocument());
-    delete &wsrp;
-    return outpayload;
-  } catch(std::exception& e) { };
-  delete &wsrp;
-  if(!parse_xml_) return NULL; // No XML document available
-  Arc::NS ns;
-  Arc::SOAPEnvelope* out = InformationContainer::Process(in);
-  if(!out) return NULL;
-  Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns);
-  out->Swap(*outpayload);
-  delete out;
-  return outpayload;
 }
 
 void OptimizedInformationContainer::AssignFile(const std::string& filename) {

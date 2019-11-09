@@ -1,9 +1,0 @@
-#!/bin/sh
-
-sleep 10000d >/dev/null 2>&1 &
-pid=$!
-echo $pid > /var/run/nordugrid-arc-inforeg.pid
-/usr/share/arc/grid-info-soft-register \
-  -log /var/log/arc/inforegistration.log \
-  -f /var/run/arc/infosys/grid-info-resource-register.conf \
-  -p $pid >/dev/null 2>&1 &
