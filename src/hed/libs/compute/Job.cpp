@@ -948,7 +948,7 @@ namespace Arc {
 
     DataHandle handle(dir, uc);
     if (!handle) {
-      logger.msg(INFO, "Unable to list files at %s", dir.str());
+      logger.msg(INFO, "Unable to initialize handler for %s", dir.str());
       return false;
     }
     if(!handle->List(outputfiles, (Arc::DataPoint::DataPointInfoType)
