@@ -381,8 +381,24 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
         }
       }
     }
+   
+    // add rejectdiscovery if defined
+    if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
 
-    // start submission cycle
+    // action: dumpjobdescription
+    if (opt.dumpdescription) {
+        if (!info_discovery) {
+          logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
+          return 1;
+        }
+        // dump description only for priority submission interface, no fallbacks
+        std::list<Arc::Endpoint> services = endpoint_batches.front();
+        std::string req_sub_iface;
+        if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+        return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
+     }
+
+    // default action: start submission cycle
     HandleSubmittedJobs hsj(opt.jobidoutfile, usercfg);
     Arc::Submitter submitter(usercfg);
     submitter.addConsumer(hsj);
