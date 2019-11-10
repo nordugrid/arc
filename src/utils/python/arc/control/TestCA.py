@@ -9,7 +9,7 @@ import sys
 import stat
 import tempfile
 import shutil
-import datetime
+import random
 import tarfile
 import pwd
 import zlib
@@ -166,8 +166,8 @@ class TestCAControl(ComponentControl):
     def signusercert(self, args):
         ca = CertificateKeyPair(self.caKey, self.caCert)
         cg = CertificateGenerator('')
-        timeidx = datetime.datetime.today().strftime('%m%d%H%M')
-        username = 'Test Cert {0}'.format(timeidx) if args.username is None else args.username
+        randidx = random.randint(10000000, 99999999)
+        username = 'Test User {0}'.format(randidx) if args.username is None else args.username
         usercertfiles = cg.generateClientCertificate(username, ca=ca,
                                                      validityperiod=args.validity, messagedigest=args.digest)
         if args.install_user is not None:
@@ -206,10 +206,10 @@ class TestCAControl(ComponentControl):
                   .format(usercertsdir, args.install_user))
         elif args.export_tar:
             workdir = os.getcwd()
-            tarball = 'testcert-{0}.tar.gz'.format(timeidx)
+            tarball = 'usercert-{0}.tar.gz'.format(username.replace(' ', '-'))
             tmpdir = tempfile.mkdtemp()
             os.chdir(tmpdir)
-            export_dir = 'arc-test-certs'
+            export_dir = 'arc-testca-usercert'
             os.mkdir(export_dir)
             # move generated certs
             shutil.move(os.path.join(workdir, usercertfiles.certLocation), export_dir + '/usercert.pem')
