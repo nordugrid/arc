@@ -491,6 +491,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  <Plugins><Name>arcshcscitokens</Name></Plugins>
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -500,6 +501,8 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
+      <!-- Collect SciTokens information -->
+      <SecHandler name=\"scitokens.handler\" event=\"incoming\"/>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
@@ -551,6 +554,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  <Plugins><Name>arcshcscitokens</Name></Plugins>
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -563,6 +567,7 @@ prepare() {
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
+      <ClientAuthn>false</ClientAuthn>
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
@@ -571,6 +576,8 @@ prepare() {
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
       </SecHandler>
+      <!-- Collect SciTokens information -->
+      <SecHandler name=\"scitokens.handler\" event=\"incoming\"/>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
