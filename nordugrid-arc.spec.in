@@ -118,6 +118,12 @@
 
 %global with_ldap_service 1
 
+# bash-completion
+%global _bashcompdir %(pkg-config --variable=completionsdir bash-completion 2>/dev/null)
+%if 0%{_bashcompdir} == 0
+%global _bashcompdir %{_sysconfdir}/bash_completion.d
+%endif
+
 #
 # Macros for scripts
 #
@@ -307,6 +313,7 @@ BuildRequires:	python-argparse
 Requires:	python-argparse
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+Requires:   pkgconfig(bash-completion)
 Requires:	hostname
 %else
 Requires:	net-tools
@@ -916,6 +923,9 @@ install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
+# Install bash-completion
+install -D -p -m 644 src/clients/client.bash_completion $RPM_BUILD_ROOT%{_bashcompdir}/arcclient.bash
+
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
 # The py-compile script in the source tarball is old (RHEL 6)
@@ -1182,6 +1192,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
+%dir %{_bashcompdir}
 
 %files hed
 %defattr(-,root,root,-)

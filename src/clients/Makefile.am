@@ -23,5 +23,5 @@ arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf
 exampledir = $(pkgdatadir)/examples
 example_DATA = client.conf
-EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA)
+EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA) client.bash_completion
 

@@ -1,0 +1,51 @@
+#
+#  Completion for NorduGrid ARC command line tools:
+#
+_arccli()
+{
+    local cur prev opts
+    COMPREPLY=()
+    command="${COMP_WORDS[0]}"
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts=`$command --help| grep -- --| cut -d" " -f 4| sed "s/=.*//"|uniq; \
+          $command --help| grep -- --| cut -d" " -f 3| sed "s/,//"|uniq`
+
+    # debug levels completion
+    if [ "x${prev}" = "x-d" -o "x${prev}" = "x--debug" ]; then
+        COMPREPLY=( $(compgen -W "FATAL ERROR WARNING INFO VERBOSE DEBUG" ${cur}) )
+        return 0
+    fi
+
+    # interface types completion
+    if [ "x$command" = "xarcsub" -o "x$command" = "xarctest" ]; then
+        if [ "x${prev}" = "x-T" -o "x${prev}" = "x--submission-endpoint-type" ]; then
+            COMPREPLY=( $(compgen -W "emies arcrest gridftpjob internal" ${cur}) )
+            return 0
+        elif [ "x${prev}" = "x-Q" -o "x${prev}" = "x--info-endpoint-type" ]; then
+            COMPREPLY=( $(compgen -W "emies arcrest ldap.nordugrid ldap.glue2 internal NONE" ${cur}) )
+            return 0
+        fi
+    fi
+
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+}
+complete -F _arccli arccat
+complete -F _arccli arcclean
+complete -F _arccli arccp
+complete -F _arccli arcget
+complete -F _arccli arcinfo
+complete -F _arccli arckill
+complete -F _arccli arcls
+complete -F _arccli arcmkdir
+complete -F _arccli arcproxy
+complete -F _arccli arcrename
+complete -F _arccli arcrenew
+complete -F _arccli arcresub
+complete -F _arccli arcresume
+complete -F _arccli arcrm
+complete -F _arccli arcstat
+complete -F _arccli arcsub
+complete -F _arccli arcsync
+complete -F _arccli arctest
+
