@@ -1193,6 +1193,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 %dir %{_bashcompdir}
+%{_bashcompdir}/arcclient.bash
 
 %files hed
 %defattr(-,root,root,-)
