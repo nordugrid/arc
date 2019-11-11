@@ -36,3 +36,4 @@ debian/tmp/usr/share/man/man1/arcstat.1
 debian/tmp/usr/share/man/man1/arcsub.1
 debian/tmp/usr/share/man/man1/arcsync.1
 debian/tmp/usr/share/man/man1/arctest.1
+src/clients/client.bash_completion usr/share/bash-completion/completions
