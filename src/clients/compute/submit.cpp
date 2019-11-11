@@ -393,9 +393,9 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   return info_discovery;
 }
 
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, std::string jobidoutfile, const std::list<Arc::JobDescription>& jobdescriptionlist) {
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist) {
 
-    HandleSubmittedJobs hsj(jobidoutfile, usercfg);
+    HandleSubmittedJobs hsj(jobidfile, usercfg);
     Arc::Submitter submitter(usercfg);
     submitter.addConsumer(hsj);
 

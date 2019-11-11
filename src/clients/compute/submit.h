@@ -12,6 +12,7 @@
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
 #include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/Submitter.h>
 
 #include "utils.h"
 
@@ -45,7 +46,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   \param[in] jobdescriptionlist list of job descriptions to submit
   \return a bool indicating the need of target information lookup versus direct submission.
 */
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, std::string jobidoutfile, const std::list<Arc::JobDescription>& jobdescriptionlist);
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist);
 
 /// Class to handle submitted job and present the results to user
 class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {

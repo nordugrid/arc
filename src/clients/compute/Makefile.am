@@ -17,7 +17,7 @@ arcsub_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcsub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
 
-arctest_SOURCES  = arctest.cpp utils.cpp utils.h
+arctest_SOURCES  = arctest.cpp utils.cpp utils.h submit.cpp submit.h
 arctest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arctest_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)

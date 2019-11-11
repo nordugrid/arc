@@ -32,11 +32,13 @@
 #include <arc/compute/Broker.h>
 
 #include "utils.h"
+#include "submit.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
 int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob);
+
+int dumpjobdescription_arctest_legacy(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob);
 
 static bool get_hash_value(const Arc::Credential& c, std::string& hash_str);
 
@@ -204,18 +206,45 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       }
   }
 
-  Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);
-  if (!broker.isValid()) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
-    return 1;
-  }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-
+  // ARC6 target selection submission logic (same as arcsub)
   if ( opt.isARC6TargetSelectionOptions(logger) ) {
-    // ARC6 target selection submission logic
-    std::cerr << "TODO:" << std::endl;
+    // arctest only works with single test job in jobdescription list
+    std::list<Arc::JobDescription> jobdescriptionlist;
+    jobdescriptionlist.push_back(testJob);
+    // canonicalize endpoint types
+    if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+
+    // get endpoint batches according to ARC6 target selection logic
+    std::list<std::list<Arc::Endpoint> > endpoint_batches;
+    bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
+
+    // add rejectdiscovery if defined
+    if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+
+    // action: dumpjobdescription
+    if (opt.dumpdescription) {
+        if (!info_discovery) {
+          logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
+          return 1;
+        }
+        // dump description only for priority submission interface, no fallbacks
+        std::list<Arc::Endpoint> services = endpoint_batches.front();
+        std::string req_sub_iface;
+        if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+        return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
+    }
+
+    // default action: start submission cycle
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist);
+  // legacy code that implements submission logic in arctest
   } else {
+    Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);
+    if (!broker.isValid()) {
+      logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
+      return 1;
+    }
+    logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
+
     std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
     std::set<std::string> preferredInterfaceNames;
     if (usercfg.InfoInterface().empty()) {
@@ -257,7 +286,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     }
 
     if (opt.dumpdescription) {
-       return dumpjobdescription(usercfg, ets, testJob);
+       return dumpjobdescription_arctest_legacy(usercfg, ets, testJob);
     }
   
     std::cout << Arc::IString("Submitting test-job %d:", opt.testjobid) << std::endl;
@@ -314,7 +343,7 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob) {
+int dumpjobdescription_arctest_legacy(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const Arc::JobDescription& testJob) {
   for (ets.reset(); !ets.endOfList(); ets.next()) {
     Arc::JobDescription preparedTestJob(testJob);
     std::string jobdesc;

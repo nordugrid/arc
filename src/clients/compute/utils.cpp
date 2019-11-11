@@ -261,8 +261,12 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
     if (s.find(".") == std::string::npos) {
       s = "org.nordugrid." + s;
     }
+    // replace EMI-ES type
     if (s == "org.nordugrid.emies") {
       s = "org.ogf.glue.emies.activitycreation";
+    // allow to use gridftp as gridftpjob
+    } else if ( s == "org.nordugrid.gridftp" ) {
+      s += "job";
     }
   }
   // canonicalize information endpoint
@@ -274,8 +278,12 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
     } else if ( i == "ldap.glue2" ) {
       i = "org.nordugrid.ldapglue2";
     }
+    // replace EMI-ES type
     if (i == "org.nordugrid.emies") {
       i = "org.ogf.glue.emies.resourceinfo";
+    // allow to use gridftp as gridftpjob
+    } else if ( s == "org.nordugrid.gridftp" ) {
+      s += "job";
     }
   }
 
