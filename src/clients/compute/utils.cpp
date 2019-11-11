@@ -231,7 +231,7 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
   return NULL;
 }
 
-bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger) {
+bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster) {
   bool arc6_target_options = false;
   do {
     if ( ! computing_elements.empty() ) { arc6_target_options = true; break; }
@@ -241,7 +241,7 @@ bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger) {
   } while (false);
   bool legacy_target_options = false;
   do {
-    if ( ! clusters.empty() ) { legacy_target_options = true; break; }
+    if ( ! clusters.empty() && !allow_cluster ) { legacy_target_options = true; break; }
     if ( ! indexurls.empty() ) { legacy_target_options = true; break; }
     if ( ! requestedSubmissionInterfaceName.empty() ) { legacy_target_options = true; break; }
     if ( ! infointerface.empty() ) { legacy_target_options = true; break; }
@@ -437,12 +437,18 @@ ClientOptions::ClientOptions(Client_t c,
             requested_info_endpoint_type);
   }
 
-  // TODO: find out how this -c is used on stat/get/kill/etc and possibly define diffrerent description
-  GroupAddOption("legacy-target", 'c', "cluster",
-            istring("select one or more computing elements: "
-                    "name can be an alias for a single CE, a group of CEs or a URL"),
-            istring("name"),
-            clusters);
+  if (c == CO_SUB || c == CO_TEST) {
+    GroupAddOption("legacy-target", 'c', "cluster",
+              istring("select one or more computing elements: "
+                      "name can be an alias for a single CE, a group of CEs or a URL"),
+              istring("name"),
+              clusters);
+  } else {
+    GroupAddOption("filtering", 'c', "cluster",
+              istring("only select jobs that submitted to this resource"),
+              istring("name"),
+              clusters);
+  }
   
   if (!cIsJobMan && c != CO_SYNC) {
     GroupAddOption("legacy-target", 'I', "infointerface",
