@@ -57,7 +57,7 @@ arcsync_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcsync_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
 
-arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h
+arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h submit.cpp submit.h
 arcresub_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcresub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)

@@ -19,6 +19,7 @@
 #include <arc/compute/JobSupervisor.h>
 
 #include "utils.h"
+#include "submit.h"
 
 int RUNMAIN(arcresub)(int argc, char **argv) {
 
@@ -134,8 +135,26 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     return 1;
   }
 
-  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.qlusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
+
+  // select endpoints to resubmit to
+  std::list<Arc::Endpoint> services;
+  if ( opt.isARC6TargetSelectionOptions(logger, true) ) {
+    // canonicalize endpoint types (allow -c that is used for filtering here)
+    if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+    // get endpoint batches according to ARC6 target selection logic
+    std::list<std::list<Arc::Endpoint> > endpoint_batches;
+    bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
+    // JobSupervisor::Resubmit code only works with brokering
+    if (!info_discovery) {
+        logger.msg(Arc::ERROR,"It is not possible to resubmit jobs without new target information discovery");
+        return 1;
+    }
+    // resubmit only to priority submission interface, no fallbacks
+    services = endpoint_batches.front();
+  } else {
+    services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.qlusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
+  }
 
   std::list<Arc::Job> resubmittedJobs;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
