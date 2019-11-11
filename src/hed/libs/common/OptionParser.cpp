@@ -332,8 +332,12 @@ namespace Arc {
 
     try {
       ctx.parse(argc, argv);
-    } catch (Glib::OptionError& err) {
-      std::cout << err.what() << std::endl;
+    } catch (const Glib::OptionError& err) {
+      try {
+        std::cerr << err.what() << std::endl;
+      } catch (const Glib::Exception& err2) {
+        std::cerr << IString("Failed to parse comamnd line options") << std::endl;
+      }
       exit(1);
     }
     if(h_value) {
