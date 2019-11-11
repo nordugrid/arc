@@ -42,13 +42,13 @@ void HandleSubmittedJobs::write() const {
   Arc::JobInformationStorage* jobStore = createJobInformationStorage(uc);
   if (jobStore == NULL || !jobStore->Write(submittedJobs)) {
     if (jobStore == NULL) {
-      std::cerr << Arc::IString("Warning: Unable to open job list file (%s), unknown format", uc.JobListFile()) << std::endl;
+      logger.msg(Arc::WARNING, "Unable to open job list file (%s), unknown format", uc.JobListFile());
+    } else {
+      logger.msg(Arc::WARNING, "Failed to write job information to database (%s)", uc.JobListFile());
     }
-    else {
-      std::cerr << Arc::IString("Warning: Failed to write job information to file (%s)", uc.JobListFile()) << std::endl;
-    }
-    std::cerr << "         " << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
+    logger.msg(Arc::WARNING, "To recover missing jobs, run arcsync");
   }
+  logger.msg(Arc::DEBUG, "Record about new job successfully added to the database (%s)", uc.JobListFile());
   delete jobStore;
 }
 
@@ -58,21 +58,13 @@ void HandleSubmittedJobs::printsummary(const std::list<Arc::JobDescription>& ori
     std::cout << "-----------------------" << std::endl;
     std::cout << Arc::IString("%d of %d jobs were submitted", submittedJobs.size(), submittedJobs.size()+notsubmitted.size()) << std::endl;
     if (!notsubmitted.empty()) {
-      std::cout << Arc::IString("The following %d were not submitted", notsubmitted.size()) << std::endl;
+      std::cout << std::endl << Arc::IString("The following jobs were not submitted:") << std::endl;
+      int jobnr = 1;
       for (std::list<const Arc::JobDescription*>::const_iterator it = notsubmitted.begin();
            it != notsubmitted.end(); ++it) {
-        int jobnr = 1;
-        for (std::list<Arc::JobDescription>::const_iterator itOrig = originalDescriptions.begin();
-             itOrig != originalDescriptions.end(); ++itOrig, ++jobnr) {
-          if (&(*itOrig) == *it) {
-            std::cout << Arc::IString("Job nr.") << " " << jobnr;
-            if (!(*it)->Identification.JobName.empty()) {
-              std::cout << ": " << (*it)->Identification.JobName;
-            }
-            std::cout << std::endl;
-            break;
-          }
-        }
+        std::cout << " * " << Arc::IString("Job nr.") << " " << jobnr << ":" << std::endl;
+        (*it)->SaveToStream(std::cout, "userlong");
+        jobnr++;
       }
     }
   }
