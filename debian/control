@@ -34,6 +34,7 @@ Build-Depends:
  libldns-dev,
  libsystemd-dev [linux-any] | debhelper (<< 9.20150101) [linux-any],
  libinline-python-perl | dpkg (<< 1.18),
+ bash-completion | dpkg (<< 1.18),
  python-dev | libinline-python-perl (>= 0.56-2~),
  python-twisted | libinline-python-perl (>= 0.56-2~),
  python-openssl | libinline-python-perl (>= 0.56-2~),
