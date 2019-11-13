@@ -914,8 +914,8 @@
 ## A-REX. "time" is time period in seconds. Default is 3 minutes.
 ## Usually no need to change this parameter because important state changes
 ## are also triggering out-of-schedule checks.
-## NOTE: This parameter does not affect responsiveness of backend scripts -
-## especially "scan-<LRMS>-job". That means that upper estimation of time for
+## NOTE that this parameter does not affect responsiveness of backend scripts -
+##   especially "scan-<LRMS>-job". That means that upper estimation of time for
 ## detecting job finished executing is sum of responsiveness of backend
 ## script + wakeupperiod.
 ## default: 180
@@ -1594,19 +1594,21 @@
 ## default: 50
 #urbatchsize=80
 
-## urdelivery_frequency = seconds - Add optional minimal treshold of the interval between 
-## subsequent records publishing to this target.
-## Note that the actual delivery interval is the value divisible by "urdelivery_frequency" 
-## defined in [arex/jura] block that define the entire JURA process invokation frequency.
+## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal treshold
+## of the interval between subsequent records publishing to this target.
+## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
+##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
 ## default: undefined
 #urdelivery_frequency=3600
+## CHANGE: INTRODUCED IN 6.4
 
-## legacy_fallback = yes/no - If set to "yes" this target will be handled with legacy code 
-## that relies on A-REX job log files.
-## Note that this option is temporary introduced for backward compatibility in transition period
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
 ## default: no
 #legacy_fallback=no
-## CHANGE: LEGACY BACKWARD COMPATIBILITY SWITCH
+## CHANGE: INTRODUCED IN 6.4
 ##
 ### end of the [arex/jura/sgas:targetname] blocks ########################
 
@@ -1626,12 +1628,13 @@
 ## default: undefined
 #targeturl=https://mq.cro-ngi.hr:6162
 
-## use_ssl = yes/no - Turns on/off ssl for the SSM communication with APEL server.
-## Note that this is LEGACY JURA ONLY parameter
+## use_ssl = yes/no - (deprecated in 6.4.0) Turns on/off ssl for the SSM
+## communication with APEL server. Use only with ARC version < 6.4.0.
+## In ARC 6.4+ "targeturl" protocol defines the usage of SSL.
 ## allowedvalues: yes no
 ## default: no
 #use_ssl=yes
-## CHANGE: LEGACY OPTION, new framework follows targetURL protocol specification
+## CHANGE: TO BE DEPRECATED
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
@@ -1643,33 +1646,37 @@
 ## default: undefined
 #gocdb_name=GRID_UIO_NO
 
-## apel_messages = type - Define what king of records JURA will send to APEL services during regular
-## publishing process.
-## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") or "both".
+## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
+## will send to APEL services during regular publishing process.
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") 
+## or "both".
 ## APEL Sync messages are always generated.
 ## allowedvalues: urs summaries both
 ## default: summaries
 #apel_messages=urs
-## CHANGE: new parameter for next generation ARC accounting
+## CHANGE: INTRODUCED IN 6.4
 
-## benchmark_type = type - Type of benchmark (Si2k, HEPSPEC) to be reported in every UR.
-## Note that this is LEGACY JURA ONLY parameter
+## benchmark_type = type - (deprecated in 6.4.0) Type of benchmark (Si2k, HEPSPEC) 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_type=HEPSPEC
-## CHANGE: LEGACY OPTION that affects only legacy accounting. The value from [queue] block is used.
+## CHANGE: TO BE DEPRECATED
 
-## benchmark_value = number - The value of the of benchmark to be reported in every UR.
-## Note that this is LEGACY JURA ONLY parameter
+## benchmark_value = number - (deprecated in 6.4.0) The value of the of benchmark 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_value=2.4
-## CHANGE: LEGACY OPTION that affects only legacy accounting. The value from [queue] block is used.
+## CHANGE: TO BE DEPRECATED
 
-## benchmark_description = string - Additional description for the benchmark
-## Note that this is LEGACY JURA ONLY parameter
-## to be reported in every UR.
+## benchmark_description = string - (deprecated in 6.4.0) Additional description 
+## for the benchmark to be reported in every UR.
 ## default: undefined
 #benchmark_description=some description for benchmark
-## CHANGE: LEGACY OPTION that affects only legacy accounting.
+## CHANGE: TO BE DEPRECATED
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -1684,29 +1691,33 @@
 ## default: 1000
 #urbatchsize=1000
 
-## urdelivery_frequency = seconds - Add optional minimal treshold of the interval between
-## subsequent records publishing to this target.
-## Note that the actual delivery interval is the value divisible by "urdelivery_frequency"
-## defined in [arex/jura] block that define the entire JURA process invokation frequency.
+## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
+## treshold of the interval between subsequent records publishing to this target.
+## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
+##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
 ## APEL recommended value is once per day.
 ## default: 86000
 #urdelivery_frequency=14000
+## CHANGE: INTRODUCED IN 6.4
 
-## legacy_fallback = yes/no - If set to "yes" this target will be handled with legacy code
-## that relies on A-REX job log files.
-## Note that this option is temporary introduced for backward compatibility in transition period
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
 ## default: no
 #legacy_fallback=no
-## CHANGE: LEGACY BACKWARD COMPATIBILITY SWITCH
+## CHANGE: INTRODUCED IN 6.4
 ##
 ### end of the [arex/jura/apel:targetname] blocks ############################
 
 
 ### The [arex/jura/archiving] block ##############################
-## This block enables the archiving functionality of legacy jura implementaton
+## This block enables the archiving functionality of pre 6.4 jura implementaton
 ##
-## Note that this block is relevant for LEGACY JURA ONLY and will be removed in the future
-## ARC versions!
+## NOTE that starting from ARC 6.4.0, with the next generation accounting subsystem
+##   introduction, this block only takes action if the "legacy_fallback" option
+##   is set to "yes" for a target. In 6.4 all accounting data is stored in the database
+##   eliminating the need of any additional records archiving.
 ##
 ## When enabled the usage records generated by JURA are stored
 ## in a the specified "archivedir" directory on the disk.
@@ -1717,7 +1728,7 @@
 ##
 ## By default the archiving is turned off.
 #[arex/jura/archiving]
-## CHANGE: LEGACY BLOCK
+## CHANGE: TO BE DEPRECATED
 
 ## archivedir = path - Sets the directory path for the jura archived usage records.
 ## Usage records generated by jura reporter are stored in this directory with 
@@ -2432,8 +2443,8 @@
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
 ## Shares(currently queues). You can also add additional advertisedvos to queues.
 ## The information is also published in the NorduGrid schema.
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
-##    it is just for information publishing!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   access control, it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas
@@ -2708,6 +2719,7 @@
 ## benchmark = name value - Defines resource benchmark results for accounting and
 ## information publishing. The nodes in the same queue are assumed to be homogeneous
 ## with respect to the benchmark performance.
+## NOTE that in ARC < 6.4 this parameter is only used for information publishing.
 ## In case of multiple benchmarks are specified:
 ##   - Accounting subsystem will use only the FIRST defined benchmark.
 ##   - Infosys will publish all defined benchmark values.
@@ -2718,6 +2730,7 @@
 ## default: HEPSPEC 1.0
 #benchmark=HEPSPEC 12.26
 #benchmark=Si2k 3065
+## CHANGE: MODIFIED IN 6.4
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 
@@ -2752,8 +2765,8 @@
 ## NOTE that if you have also configured "advertisedvo" in the [infosys/cluster] block,
 ##   the result advertised VOs per queue is the union set of what is contained in the
 ##   [infosys/cluster] and in this [queue:name] block!
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
-##   it is just for information publishing!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   access control, it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas
