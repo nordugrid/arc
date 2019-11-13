@@ -355,13 +355,6 @@ class AccountingControl(ComponentControl):
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
-        # benchmark is optional
-        if args.benchmark is not None:
-            bsplit = args.benchmark.split(':')
-            if len(bsplit) != 2:
-                self.logger.error('Fallback benchmark value should follow "type:value" format')
-            targetconf['benchmark_type'] = bsplit[0]
-            targetconf['benchmark_value'] = bsplit[1]
         # vofilter is optional
         if args.vofilter is not None:
             targetconf['vofilter'] = args.vofilter
@@ -562,8 +555,6 @@ class AccountingControl(ComponentControl):
                                   help='Define APEL messages (default is summaries)',
                                   choices=['urs', 'summaries', 'both'])
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
-        apel_options.add_argument('--benchmark', required=False,
-                                  help='Define fallback benchmark value ("type:value")')
 
         sgas_options = accounting_republish.add_argument_group(title='SGAS',
                                   description='Options to be used when target is specified using --sgas-url')
