@@ -25,11 +25,13 @@ arcsysconf_DATA = client.conf
 exampledir = $(pkgdatadir)/examples
 example_DATA = client.conf
 
-arc-client-tools: client.bash_completion
+BASH_COMPLETION_SOURCE = client.bash_completion
+
+arc-client-tools: $(BASH_COMPLETION_SOURCE)
 	cp $< $@
 
 bashcompletiondir = $(bashcompdir)
 bashcompletion_DATA = arc-client-tools
 
-EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA)
+EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA) $(BASH_COMPLETION_SOURCE)
 
