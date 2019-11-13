@@ -21,7 +21,15 @@ DIST_SUBDIRS = data credentials compute
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf
+
 exampledir = $(pkgdatadir)/examples
 example_DATA = client.conf
-EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA) client.bash_completion
+
+arc-client-tools: client.bash_completion
+	cp $< $@
+
+bashcompletiondir = $(bashcompdir)
+bashcompletion_DATA = arc-client-tools
+
+EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA)
 

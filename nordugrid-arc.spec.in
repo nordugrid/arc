@@ -923,9 +923,6 @@ install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
-# Install bash-completion
-install -D -p -m 644 src/clients/client.bash_completion $RPM_BUILD_ROOT%{_bashcompdir}/arcclient.bash
-
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
 # The py-compile script in the source tarball is old (RHEL 6)
@@ -1193,7 +1190,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 %dir %{_bashcompdir}
-%{_bashcompdir}/arcclient.bash
+%{_bashcompdir}/arc-client-tools
 
 %files hed
 %defattr(-,root,root,-)
