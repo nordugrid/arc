@@ -99,10 +99,10 @@ override_dh_auto_install:
 
 	find debian/tmp -depth -name __pycache__ -exec rm -rf '{}' ';'
 
-	if [ -d debian/tmp/etc/bash_completion.d ]; then
-	    mkdir -p debian/tmp/usr/share/bash-completion
+	if [ -d debian/tmp/etc/bash_completion.d ]; then \
+	    mkdir -p debian/tmp/usr/share/bash-completion; \
 		mv debian/tmp/etc/bash_completion.d \
-		   debian/tmp/usr/share/bash-completion/completions
+		   debian/tmp/usr/share/bash-completion/completions; \
 	fi
 
 	mv debian/tmp/etc/init.d/arc-arex \
