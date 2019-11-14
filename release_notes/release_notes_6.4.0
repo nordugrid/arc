@@ -2,25 +2,45 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.4.0     18.11.2019
+Release Notes for NorduGrid ARC  6.4.0     14.11.2019
 ------------------------------------------------------
 
 We are happy to announce the ARC 6.4.0 release.
 With this release important changes to the accounting system are included, in addition to a few nice bugfixes.
 
 
-
 Highlights in this release
----------------------------
+--------------------------
+The next generation ARC accounting subsystem is now in place in ARC 6.4.0.
+It is aimed to improve scalability, eliminate bottlenecks of the legacy architecture and provide much more information about the ARC CE jobs on site.
+We have also improved the publishing and republishing of the records to centralized accounting databases.
+In particular APEL has received support for summary and sync messages.
 
-<Important changes related to accounting goes here>
+* Notice that benchmark values should be configured per-queue now instead of in the [arex/jura/apel] block.
+  The configuration validator will prevent A-REX to start if the values are specified in the old way (pre 6.4.0).
+* Jura published records archive no longer exists.
+  All accounting information is now stored in the local SQLite database whether publishing is configured or not.
+* APEL publishing now sends summary records instead of individual records by default.
+* The "arcctl accounting" provides a new set of commands for flexible analysis of local accounting data.
+  Old archived records can be still analyzed or republished using "arcctl accounting legacy" commands.
+
+Notice that Bugzilla ticket 3860 fixes a longstanding bug in the reported RequestedTotalWallTime to the job.jobid.xml file.
+According to Glue2 schema the RequestedTotalWallTime = RequestedWallTime * Number-of-cores, however the number reported was RequestedWallTime.
+
 
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
+* 3883  New accounting subsystem for ARC CE that uses local database
+* 3882  Improve mass issuing of user certs in arcctl Test CA
+* 3881  Client tools failed on CentOS 8 / OpenSSL 1.1.1
+* 3880  logs created as root user when user= defined in [arex] block causes the service not to start
+* 3878  Dependencies problems on CentOS8
 * 3873  Occationally failing tests
 * 3871  Data delivery service host logrotate - writes to old file
 * 3870  Segfault in arched
+* 3860  UsedTotalWallTime and RequestedTotalWallTime
+
 
 Documentation
 ==============
