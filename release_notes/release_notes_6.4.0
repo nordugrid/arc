@@ -31,6 +31,7 @@ The switch to the new accounting is fully transparent except for one change in t
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
+* 3884  Cleanup ARC SDK python bindings dependency for A-REX
 * 3883  New accounting subsystem for ARC CE that uses local database
 * 3882  Improve mass issuing of user certs in arcctl Test CA
 * 3881  Client tools failed on CentOS 8 / OpenSSL 1.1.1
