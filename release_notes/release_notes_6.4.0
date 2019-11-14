@@ -2,12 +2,11 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.4.0     14.11.2019
+Release Notes for NorduGrid ARC  6.4.0     15.11.2019
 ------------------------------------------------------
 
 We are happy to announce the ARC 6.4.0 release.
-With this release important changes to the accounting system are included, in addition to a few nice bugfixes.
-
+With this release important changes to the accounting system are included, we now also support Centos 8, and a few nice bugfixes have been made. 
 
 Highlights in this release
 --------------------------
@@ -16,16 +15,17 @@ It is aimed to improve scalability, eliminate bottlenecks of the legacy architec
 We have also improved the publishing and republishing of the records to centralized accounting databases.
 In particular APEL has received support for summary and sync messages.
 
-* Notice that benchmark values should be configured per-queue now instead of in the [arex/jura/apel] block.
+The switch to the new accounting is fully transparent except for one change in the benchmark values in the ARC configuration, see below.
+
+
+* Note that benchmark values should now be configured per-queue instead of in the [arex/jura/apel] block.
   The configuration validator will prevent A-REX to start if the values are specified in the old way (pre 6.4.0).
 * Jura published records archive no longer exists.
   All accounting information is now stored in the local SQLite database whether publishing is configured or not.
 * APEL publishing now sends summary records instead of individual records by default.
 * The "arcctl accounting" provides a new set of commands for flexible analysis of local accounting data.
   Old archived records can be still analyzed or republished using "arcctl accounting legacy" commands.
-
-Notice that Bugzilla ticket 3860 fixes a longstanding bug in the reported RequestedTotalWallTime to the job.jobid.xml file.
-According to Glue2 schema the RequestedTotalWallTime = RequestedWallTime * Number-of-cores, however the number reported was RequestedWallTime.
+* The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/tech/accounting/accounting-ng.html#accounting-ng-tech
 
 
 
@@ -40,6 +40,10 @@ The following Bugzilla tickets have been resolved
 * 3871  Data delivery service host logrotate - writes to old file
 * 3870  Segfault in arched
 * 3860  UsedTotalWallTime and RequestedTotalWallTime
+
+If you are using the RequestedTotalWallTime in the job.jobid.xml file notice that the value has now changed with the resolution of Bugzilla ticket 3860.
+According to Glue2 schema the RequestedTotalWallTime = RequestedWallTime * Number-of-cores,
+however the number was up until now wrongly reported without multiplication of number of cores. 
 
 
 Documentation
