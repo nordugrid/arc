@@ -405,39 +405,39 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  DefineOptionsGroup("action", "Alternative actions");
-  DefineOptionsGroup("filtering", "Brokering and filtering options");
+  DefineOptionsGroup("xaction", "Other actions");
+  DefineOptionsGroup("filtering", "Brokering and filtering");
   DefineOptionsGroup("format", "Output format modifiers");
-  DefineOptionsGroup("tuning", "Behaviour tuning options");
-  DefineOptionsGroup("arc6-target", "ARC6 target selection options");
+  DefineOptionsGroup("tuning", "Behaviour tuning");
+  DefineOptionsGroup("arc6-target", "ARC6 submission endpoint selection");
   DefineOptionsGroup("legacy-target", "Legacy options set for defining targets");
 
-  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
+  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
     GroupAddOption("arc6-target", 'C', "computing-element",
-            istring("specify computing element address or a complete endpoint URL"),
+            istring("specify computing element hostname or a complete endpoint URL"),
             istring("ce"),
             computing_elements);
 
     GroupAddOption("arc6-target", 'Y', "registry",
-            istring("FQDN of registry service with optional specification of protocol"),
+            istring("registry service URL with optional specification of protocol"),
             istring("registry"),
             registries);
+  }
 
+  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
     GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
-            istring("submit job to the computing element endpoint of defined type: "
-                    "emies, arcrest, gridftpjob, internal"),
+            istring("require the specified endpoint type for job submission"),
             istring("type"),
             requested_submission_endpoint_type);
 
     GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
-            istring("job submission URLs will be queried from information endpoint of defined type: "
-                    "emies, arcrest, ldap.nordugrid, ldap.glue2, internal. "
-                    "Special 'NONE' type will turn off the queries"),
+            istring("require information query using the specified information endpoint type. "
+                    "Special value 'NONE' will disable all resource information queries and the following brokering"),
             istring("type"),
             requested_info_endpoint_type);
   }
 
-  if (c == CO_SUB || c == CO_TEST) {
+  if (c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
     GroupAddOption("legacy-target", 'c', "cluster",
               istring("select one or more computing elements: "
                       "name can be an alias for a single CE, a group of CEs or a URL"),
@@ -487,7 +487,7 @@ ClientOptions::ClientOptions(Client_t c,
               istring("truncate the joblist before synchronizing"),
               truncate);
 
-    GroupAddOption("action", 'C', "convert",
+    GroupAddOption("xaction", 0, "convert",
               istring("do not collect information, only convert jobs storage format"),
               convert);
   }
@@ -499,25 +499,25 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_INFO) {
-    GroupAddOption("action", 'L', "list-configured-services",
+    GroupAddOption("xaction", 'L', "list-configured-services",
               istring("print a list of services configured in the client.conf"),
               list_configured_services);
   }
 
   if (c == CO_CAT) {
-    GroupAddOption("action", 'o', "stdout",
+    GroupAddOption("xaction", 'o', "stdout",
               istring("show the stdout of the job (default)"),
               show_stdout);
 
-    GroupAddOption("action", 'e', "stderr",
+    GroupAddOption("xaction", 'e', "stderr",
               istring("show the stderr of the job"),
               show_stderr);
 
-    GroupAddOption("action", 'l', "joblog",
+    GroupAddOption("xaction", 'l', "joblog",
               istring("show the CE's error log of the job"),
               show_joblog);
 
-    GroupAddOption("action", 'f', "file",
+    GroupAddOption("xaction", 'f', "file",
               istring("show the specified file from job's session directory"),
               istring("filepath"),
               show_file);
@@ -542,7 +542,7 @@ ClientOptions::ClientOptions(Client_t c,
 
   if (c == CO_STAT) {
     // Option 'long' takes precedence over this option (print-jobids).
-    GroupAddOption("action", 'p', "print-jobids", istring("instead of the status only the IDs of "
+    GroupAddOption("xaction", 'p', "print-jobids", istring("instead of the status only the IDs of "
               "the selected jobs will be printed"), printids);
 
     GroupAddOption("tuning", 'S', "sort",
@@ -587,11 +587,11 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    GroupAddOption("action", 'J', "job",
+    GroupAddOption("xaction", 'J', "job",
               istring("submit test job given by the number"),
               istring("int"),
               testjobid);
-    GroupAddOption("action", 'r', "runtime",
+    GroupAddOption("xaction", 'r', "runtime",
               istring("test job runtime specified by the number"),
               istring("int"),
               runtime);
@@ -663,13 +663,13 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_SUB || c == CO_TEST) {
-    GroupAddOption("action", 'D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
+    GroupAddOption("xaction", 'D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
     GroupAddOption("legacy-target", 0, "direct", istring("submit directly - no resource discovery or matchmaking"),
               direct_submission);
 
-    GroupAddOption("action", 'x', "dumpdescription",
+    GroupAddOption("xaction", 'x', "dumpdescription",
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
               dumpdescription);
@@ -684,7 +684,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    GroupAddOption("action", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
   }
 
   if (c != CO_INFO) {
@@ -703,7 +703,7 @@ ClientOptions::ClientOptions(Client_t c,
   AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
             istring("seconds"), timeout);
 
-  GroupAddOption("action", 'P', "listplugins",
+  GroupAddOption("xaction", 'P', "listplugins",
             istring("list the available plugins"),
             show_plugins);
 
