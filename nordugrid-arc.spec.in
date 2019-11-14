@@ -466,10 +466,11 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+# remove older SDK package on update to 6.4
 %if %{py3default}
-Requires:	python3-%{name} = %{version}-%{release}
+Obsoletes:  python3-%{name} < 6.4.0
 %else
-Requires:	python2-%{name} = %{version}-%{release}
+Obsoletes:	python2-%{name} < 6.4.0
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
@@ -525,6 +526,11 @@ publishing.
 Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
+%if %{py3default}
+Requires:	python3-%{name} = %{version}-%{release}
+%else
+Requires:	python2-%{name} = %{version}-%{release}
+%endif
 Requires:	perl(Inline)
 Requires:	perl(Inline::Python)
 
