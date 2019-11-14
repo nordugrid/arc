@@ -70,7 +70,7 @@ This was needed in order to supply both ARC 5 already available for RHEL7 and th
 We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
   * Fedora (i386 and x86_64)
-  * CentOS EL6 (i386 and x86_64) and EL7 (x86_64)
+  * CentOS EL6 (i386 and x86_64) and EL7/EL8 (x86_64)
   * Ubuntu (i386 and amd64, both LTS and interim releases)
 
 In addition we build nightly packages for older platforms. 
