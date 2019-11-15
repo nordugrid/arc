@@ -40,7 +40,6 @@ The following Bugzilla tickets have been resolved
 * 3880  logs created as root user when user= defined in [arex] block causes the service not to start
 * 3878  Dependencies problems on CentOS8
 * 3873  Occationally failing tests
-* 3871  Data delivery service host logrotate - writes to old file
 * 3870  Segfault in arched
 * 3860  UsedTotalWallTime and RequestedTotalWallTime
 
