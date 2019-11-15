@@ -6,26 +6,28 @@ Release Notes for NorduGrid ARC  6.4.0     15.11.2019
 ------------------------------------------------------
 
 We are happy to announce the ARC 6.4.0 release.
-With this release important changes to the accounting system are included, we now also support Centos 8, and a few nice bugfixes have been made. 
+This release includes the reimplementation of the ARC-CE accounting subsystem, we now also support Centos 8, and a few nice bugfixes have been made. 
 
 Highlights in this release
 --------------------------
-The next generation ARC accounting subsystem is now in place in ARC 6.4.0.
-It is aimed to improve scalability, eliminate bottlenecks of the legacy architecture and provide much more information about the ARC CE jobs on site.
-We have also improved the publishing and republishing of the records to centralized accounting databases.
-In particular APEL has received support for summary and sync messages.
+The ARC-CE accounting subsystem has been reimplemented. The central point of the next generation Accounting Subsystem
+is a local SQLite accounting database that stores all the A-Rex Accounting Record (AAR) information. 
+AAR defines all accounting information stored about a single ARC CE job.
+
+The new system improves scalability, eliminate bottlenecks of the legacy architecture and provides much more information 
+about the ARC CE jobs on site. The publishing and republishing of the records also have been improved, in particular APEL has received support for summary and sync messages.
 
 The switch to the new accounting is fully transparent except for one change in the benchmark values in the ARC configuration, see below.
+The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/tech/accounting/accounting-ng.html#accounting-ng-tech
 
-
-* Note that benchmark values should now be configured per-queue instead of in the [arex/jura/apel] block.
+some important accounting details:
+* The benchmark values should now be configured per-queue [queue:name] instead of the [arex/jura/apel] block.
   The configuration validator will prevent A-REX to start if the values are specified in the old way (pre 6.4.0).
-* Jura published records archive no longer exists.
-  All accounting information is now stored in the local SQLite database whether publishing is configured or not.
+* The new system automatically provides archiving of all accounting records in the database, therefore the 
+  old way of record archiving via the JURA [arex/jura/archiving] is DEPRECATED.
 * APEL publishing now sends summary records instead of individual records by default.
 * The "arcctl accounting" provides a new set of commands for flexible analysis of local accounting data.
-  Old archived records can be still analyzed or republished using "arcctl accounting legacy" commands.
-* The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/tech/accounting/accounting-ng.html#accounting-ng-tech
+  Old archived records can also be analyzed or republished using "arcctl accounting legacy" commands.
 
 
 
@@ -52,8 +54,7 @@ Documentation
 The ARC 6 documentation has been rewritten in a modern format and is 
 placed at http://www.nordugrid.org/arc/arc6
 
-Please note that although the most important parts of the ARC 6 documentation are in place, 
-it is still not fully complete. If you have questions, please contact us!
+If you miss something or have questions, please contact us!
 
 
 Installing ARC 6 
