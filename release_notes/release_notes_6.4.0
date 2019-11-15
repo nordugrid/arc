@@ -18,9 +18,9 @@ The new system improves scalability, eliminate bottlenecks of the legacy archite
 about the ARC CE jobs on site. The publishing and republishing of the records also have been improved, in particular APEL has received support for summary and sync messages.
 
 The switch to the new accounting is fully transparent except for one change in the benchmark values in the ARC configuration, see below.
-The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/tech/accounting/accounting-ng.html#accounting-ng-tech
+The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/admins/details/accounting-ng.html
 
-some important accounting details:
+Some important accounting details:
 * The benchmark values should now be configured per-queue [queue:name] instead of the [arex/jura/apel] block.
   The configuration validator will prevent A-REX to start if the values are specified in the old way (pre 6.4.0).
 * The new system automatically provides archiving of all accounting records in the database, therefore the 
