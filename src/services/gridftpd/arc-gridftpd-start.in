@@ -185,8 +185,9 @@ if [ ! -d `dirname "$LOGFILE"` ]; then
     fi
 fi
 if [ ! -z "$USERNAME" ] ; then
-    chown "$LOGFILE"
-    chown "$USERNAME" "$LOGFILE"
+    if [ -f "$LOGFILE" ] ; then
+        chown "$USERNAME" "$LOGFILE"
+    fi
 fi
 
 check_cert
