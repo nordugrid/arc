@@ -23,6 +23,8 @@ namespace ArcDMCXrootd {
     virtual ~DataPointXrootdDelegate();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool RequiresCredentials() const;
+    virtual bool RequiresCredentialsInFile() const;
+    virtual bool SupportsTransfer() const;
   };
 
 } // namespace ArcDMCGridFTP

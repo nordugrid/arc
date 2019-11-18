@@ -29,6 +29,9 @@ namespace Arc {
   char const * DataPointDelegate::StatCommand = "stat";
   char const * DataPointDelegate::ListCommand = "list";
   char const * DataPointDelegate::RenameCommand = "rename";
+  char const * DataPointDelegate::TransferFromCommand = "transferfrom";
+  char const * DataPointDelegate::TransferToCommand = "transferto";
+  char const * DataPointDelegate::Transfer3rdCommand = "transfer3";
 
   Logger DataPointDelegate::logger(Logger::getRootLogger(), "DataPoint.Delegate");
 
@@ -467,8 +470,63 @@ namespace Arc {
     Arc::CountedPointer<Arc::Run> run;
     DataStatus result = StartCommand(run, argv, DataStatus::RenameError);
     if(!result) return result;
-    result = EndCommand(run, DataStatus::ListError);
+    result = EndCommand(run, DataStatus::RenameError);
     if(!result) return result; 
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointDelegate::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    if(!SupportsTransfer())
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
+    if (reading) return DataStatus::IsReadingError;
+    if (writing) return DataStatus::IsWritingError;
+
+    std::list<std::string> argv(additional_args);
+    if (source) {
+      argv.push_back(TransferFromCommand);
+    } else {
+      argv.push_back(TransferToCommand);
+    }
+    argv.push_back(url.fullstr());
+    argv.push_back(otherendpoint.fullstr());
+    Arc::CountedPointer<Arc::Run> run;
+    DataStatus result = StartCommand(run, argv, DataStatus::TransferError);
+    if(!result) return result;
+    // Read callback information till end tag is received
+    char tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    while(tag == DataExternalComm::TransferStatusTag) {
+      DataExternalComm::TransferStatus transfer_status(0);
+      if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), transfer_status)) {
+        return DataStatus(DataStatus::TransferError, "Failed to read data transfer status from helper process for "+url.plainstr());
+      }
+      if(callback) (*callback)(transfer_status.bytes_count); 
+      tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    }
+    result = EndCommand(run, DataStatus::TransferError, tag);
+    if(!result) return result; 
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointDelegate::Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback) {
+    std::list<std::string> argv(additional_args);
+    argv.push_back(Transfer3rdCommand);
+    argv.push_back(source.fullstr());
+    argv.push_back(destination.fullstr());
+    Arc::CountedPointer<Arc::Run> run;
+    DataStatus result = StartCommand(run, argv, DataStatus::TransferError);
+    if(!result) return result;
+    // Read callback information till end tag is received
+    char tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    while(tag == DataExternalComm::TransferStatusTag) {
+      DataExternalComm::TransferStatus transfer_status(0);
+      if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), transfer_status)) {
+        return DataStatus(DataStatus::TransferError, "Failed to read data transfer status from helper process for "+url.plainstr());
+      }
+      if(callback) (*callback)(transfer_status.bytes_count);
+      tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    }
+    result = EndCommand(run, DataStatus::TransferError, tag);
+    if(!result) return result;
     return DataStatus::Success;
   }
 

@@ -41,6 +41,14 @@ namespace ArcDMCXrootd {
     return true;
   }
 
+  bool DataPointXrootdDelegate::RequiresCredentialsInFile() const {
+    return true;
+  }
+
+  bool DataPointXrootdDelegate::SupportsTransfer() const {
+    return true;
+  }
+
 } // namespace ArcDMCGridFTP
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {

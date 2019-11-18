@@ -217,6 +217,26 @@ namespace Arc {
     return plugin->Rename(newurl);
   }
 
+  DataStatus DataExternalHelper::Transfer(const URL& otherendpoint, bool source, DataPoint::TransferCallback callback) {
+    if (!plugin)
+      return DataStatus::NotInitializedError;
+    return plugin->Transfer(otherendpoint, source, callback);
+  }
+
+  DataStatus DataExternalHelper::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback) {
+    if (!plugin)
+      return DataStatus::NotInitializedError;
+
+    class DataPoint3rdParty: public DataPoint {
+     public:
+      DataStatus execute(const URL& source, const URL& destination, DataPoint::TransferCallback callback) {
+        return Transfer3rdParty(source, destination, callback);
+      }
+    }; 
+
+    return static_cast<DataPoint3rdParty*>(plugin)->execute(source, destination, callback);
+  }
+
   DataExternalHelper::DataExternalHelper(char const * path, char const * name, const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream):
       plugin(NULL),
       plugins(NULL),
@@ -258,6 +278,10 @@ namespace Arc {
 
 } // namespace Arc
 
+static void TransferCallback(unsigned long long int bytes_transferred) {
+  Arc::DataExternalComm::TransferStatus transfer_status(bytes_transferred);
+  Arc::DataExternalComm::OutEntry(std::cout<<Arc::DataExternalComm::TransferStatusTag, transfer_status);
+}
 
 int main(int argc, char* argv[]) {
   using namespace Arc;
@@ -320,7 +344,7 @@ int main(int argc, char* argv[]) {
         std::cout << Arc::IString("%s version %s", "arc-dmc", VERSION) << std::endl;
         exit(0);
       }
-      std::cerr << Arc::IString("Expecting Command and URL provided");
+      std::cerr << Arc::IString("Expecting Module, Command and URL provided");
       exit(1);
     }
   } catch(...) {
@@ -396,6 +420,33 @@ int main(int argc, char* argv[]) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
       }
       result = handler->Stat(verb);
+    } else if(command == Arc::DataPointDelegate::TransferFromCommand) {
+      if(params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Expecting other URL among arguments");
+      }
+      std::string other_url_str = params.front(); params.pop_front();
+      if(!params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
+      }
+      result = handler->Transfer(other_url_str,true,&TransferCallback);
+    } else if(command == Arc::DataPointDelegate::TransferToCommand) {
+      if(params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Expecting other URL among arguments");
+      }
+      std::string other_url_str = params.front(); params.pop_front();
+      if(!params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
+      }
+      result = handler->Transfer(other_url_str,false,&TransferCallback);
+    } else if(command == Arc::DataPointDelegate::Transfer3rdCommand) {
+      if(params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Expecting other URL among arguments");
+      }
+      std::string other_url_str = params.front(); params.pop_front();
+      if(!params.empty()) {
+        throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");
+      }
+      result = handler->Transfer3rdParty(url_str,other_url_str,&TransferCallback);
     } else {
       if(!params.empty()) {
         throw Arc::DataStatus(Arc::DataStatus::GenericError, "Unexpected arguments");

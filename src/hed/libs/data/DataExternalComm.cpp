@@ -14,6 +14,7 @@ namespace Arc {
   char const DataExternalComm::DataStatusTag = 'S';
   char const DataExternalComm::FileInfoTag = 'F';
   char const DataExternalComm::DataChunkTag = 'D';
+  char const DataExternalComm::TransferStatusTag = 'T';
 
   static char const entrySep = '\n';
   static char const itemSep = ',';
@@ -231,6 +232,30 @@ namespace Arc {
     outstream<<status.GetStatus()<<itemSep;
     outstream<<status.GetErrno()<<itemSep;
     outstream<<encode(status.GetDesc())<<itemSep;
+    outstream<<entrySep;
+    return !outstream.fail();
+  }
+
+
+  // -------------------------------------------
+  // ---------- TransferStatus -----------------
+  // -------------------------------------------
+
+  // -------------    control    ---------------
+
+  bool DataExternalComm::InEntry(Arc::Run& run, int timeout, Arc::DataExternalComm::TransferStatus& status) {
+    try {
+      status.bytes_count = itemIn<uint64_t>(run,timeout);
+      return (InTag(run,timeout) == entrySep); // Check for proper end of entry
+    } catch(std::exception const&) {
+    }
+    return false;
+  }
+
+  // -------------     child     ---------------
+
+  bool DataExternalComm::OutEntry(std::ostream& outstream, Arc::DataExternalComm::TransferStatus const& status) {
+    outstream<<status.bytes_count<<itemSep;
     outstream<<entrySep;
     return !outstream.fail();
   }
