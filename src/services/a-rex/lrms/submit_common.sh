@@ -449,14 +449,6 @@ RTE_stage0 () {
         eval "is_rte=\${joboption_runtime_${rte_idx}+yes}"
     done
 
-    # joboption_count might have been changed by an RTE. Save it for accounting purposes.
-    if [ -n "$joboption_count" ]; then
-        diagfile=$(control_path "${joboption_controldir}" "${joboption_gridid}" "diag")
-        echo "Processors=$joboption_count" >> "$diagfile"
-        if [ -n "$joboption_numnodes" ]; then
-            echo "Nodecount=$joboption_numnodes" >> "$diagfile"
-        fi
-    fi
     unset rte_idx is_rte rte_name rte_path rte_empty rte0_exitcode
 }
 
@@ -703,8 +695,26 @@ fi
 EOSCR
   fi
 
-  #TODO this should probably be done on headnode instead
-  echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+  # Add accounting information from frontend to RUNTIME_JOB_DIAG
+  # Processors/Nodecount
+  if [ -n "$joboption_count" ]; then
+    echo "echo \"Processors=${joboption_count}\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+    if [ -n "$joboption_numnodes" -a "$joboption_numnodes" != "-1" ]; then
+      echo "echo \"Nodecount=$joboption_numnodes\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+    fi
+  fi
+  # Benchmark values
+  if [ -z "$joboption_benchmark" ]; then
+     joboption_benchmark="HEPSPEC:1.0"
+     if [ -n "$CONFIG_benchmark" ]; then
+        if [ "$CONFIG_benchmark" == "__array__" ]; then
+          joboption_benchmark="${CONFIG_benchmark_0// /:}"
+        else
+          joboption_benchmark="${CONFIG_benchmark// /:}"
+        fi
+     fi
+  fi
+  echo "echo \"Benchmark=$joboption_benchmark\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
   # Define executable and check it exists on the worker node
   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT

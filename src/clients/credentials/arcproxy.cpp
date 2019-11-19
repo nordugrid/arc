@@ -258,7 +258,7 @@ static int runmain(int argc, char *argv[]) {
                                     "    12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file\n"
-                                    "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
+                                    "  keybits=number - length of the key to generate. Default is 2048 bits.\n"
                                     "    Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
                                     "    Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"

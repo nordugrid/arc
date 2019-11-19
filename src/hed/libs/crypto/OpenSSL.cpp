@@ -121,9 +121,9 @@ namespace Arc {
                            OPENSSL_INIT_LOAD_CRYPTO_STRINGS |
                            OPENSSL_INIT_ADD_ALL_CIPHERS |
                            OPENSSL_INIT_ADD_ALL_DIGESTS |
-                           OpenSSL_version_num() < 0x10101000L ?
-                           OPENSSL_INIT_NO_LOAD_CONFIG :
-                           OPENSSL_INIT_LOAD_CONFIG,
+                           ((OpenSSL_version_num() < 0x10101000L) ?
+                             OPENSSL_INIT_NO_LOAD_CONFIG :
+                             OPENSSL_INIT_LOAD_CONFIG),
                            NULL)) {
         logger().msg(ERROR, "Failed to initialize OpenSSL library");
         HandleOpenSSLError();

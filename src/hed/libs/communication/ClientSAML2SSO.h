@@ -45,6 +45,10 @@ namespace Arc {
     static Logger logger;
 
     std::string cookie;
+
+  private:
+    ClientHTTPwithSAML2SSO(ClientHTTPwithSAML2SSO const&);
+    ClientHTTPwithSAML2SSO& operator=(ClientHTTPwithSAML2SSO const&);
   };
 
   class ClientSOAPwithSAML2SSO {
@@ -73,6 +77,9 @@ namespace Arc {
     static Logger logger;
 
     std::string cookie;
+
+    ClientSOAPwithSAML2SSO(ClientSOAPwithSAML2SSO const&);
+    ClientSOAPwithSAML2SSO& operator=(ClientSOAPwithSAML2SSO const&);
   };
 
 } // namespace Arc

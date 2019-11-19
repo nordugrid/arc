@@ -19,24 +19,38 @@ except ImportError:
     import http.client as httplib
 
 # APELSSMSender dependencies:
-from dirq.QueueSimple import QueueSimple
+try:
+    from dirq.QueueSimple import QueueSimple
+except ImportError:
+    QueueSimple = None
+
 try:
     import cStringIO as StringIO
 except ImportError:
-    import StringIO
-arc_ssm = False
+    try:
+        import io as StringIO
+    except ImportError:
+        import StringIO
+
+apel_libs = None
 try:
     # third-party SSM libraries
     from ssm import __version__ as ssm_version
     from ssm.ssm2 import Ssm2, Ssm2Exception
     from ssm.crypto import CryptoException
+    apel_libs = 'apel'
 except ImportError:
     # re-distributed with NorduGrid ARC
-    arc_ssm = True
-    from arc.ssm import __version__ as ssm_version
-    from arc.ssm.ssm2 import Ssm2, Ssm2Exception
-    from arc.ssm.crypto import CryptoException
-
+    try:
+        from arc.ssm import __version__ as ssm_version
+        from arc.ssm.ssm2 import Ssm2, Ssm2Exception
+        from arc.ssm.crypto import CryptoException
+        apel_libs = 'arc'
+    except ImportError:
+        ssm_version = (0, 0, 0)
+        Ssm2 = None
+        Ssm2Exception = None
+        CryptoException = None
 
 # module regexes init
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
@@ -100,6 +114,24 @@ def datetime_to_iso8601(dt):
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def get_apel_benchmark(logger, benchmark):
+    """Use only APEL supported benchmarks (fallback to HEPSPEC 1.0)"""
+    __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
+    if not benchmark:
+        logger.error('Missing benchmark value. "HEPSPEC:1.0" will be used as a fallback.')
+        return 'HEPSPEC', '1.0'
+    bsplit = benchmark.split(':', 2)
+    if len(bsplit) != 2:
+        logger.error('Malformed benchmark definition string "%s". "HEPSPEC:1.0" will be used instead.', benchmark)
+        return 'HEPSPEC', '1.0'
+    (benchmark_type, benchmark_value) = bsplit
+    if benchmark_type not in __allowed_benchmark_types:
+        logger.error('Benchmark type %s in not supported by APEL. "HEPSPEC:1.0" will be used instead.',
+                     benchmark_type)
+        return 'HEPSPEC', '1.0'
+    return benchmark_type, benchmark_value
+
+
 #
 # Records publishing classes
 #
@@ -155,14 +187,6 @@ class RecordsPublisher(object):
                               'Records will not be reported to %s target.', targeturl)
             return False
         return True
-
-    def __config_benchmark_value(self, confdict):
-        """Return fallback benchmark value in accordance to arc.conf"""
-        if 'benchmark_type' in confdict and 'benchmark_value' in confdict:
-            return '{benchmark_type}:{benchmark_value}'.format(**confdict)
-        self.logger.warning('There is no benchmark value defined in the accounting target configuration. '
-                            'All records without associated benchmark value will be reported with "HEPSPEC:1.0"')
-        return 'HEPSPEC:1.0'
 
     def __add_vo_filter(self, target_conf):
         """Add WLCG VO filtering if defined in arc.conf"""
@@ -248,6 +272,9 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
+        if not apelssm.init_dirq():
+            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. Please check dirq and stomp python modules are installed on your system.')
+            return None
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query')
         self.__init_adb_filters(endfrom, endtill)
@@ -258,8 +285,6 @@ class RecordsPublisher(object):
         if latest_endtime is None:
             self.logger.info('There are no new job records to publish. Nothing to do.')
         else:
-            # get fallback benchmark values from config
-            conf_benchmark = self.__config_benchmark_value(target_conf)
             # query and queue messages for sending
             if 'apel_messages' not in target_conf:
                 self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
@@ -273,7 +298,7 @@ class RecordsPublisher(object):
                 self.adb.enrich_aars(aars, authtokens=True, rtes=True, extra=True)
                 # create EMI CAR URs
                 self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
-                cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'], benchmark=conf_benchmark,
+                cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'],
                                vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
                 if not cars:
                     self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
@@ -299,7 +324,7 @@ class RecordsPublisher(object):
                 self.__add_vo_filter(target_conf)
                 # summary records
                 self.logger.debug('Querying APEL Summary data from accounting database')
-                apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'], conf_benchmark)
+                apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'])
                                  for rec in self.adb.get_apel_summaries()]
                 if not apelsummaries:
                     self.logger.error('Failed to build APEL summaries for publishing')
@@ -487,11 +512,10 @@ class APELSSMSender(object):
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.APELSSM')
         self.conf = targetconf
-        dirq_path = self.conf['dirq_dir']
-        self._dirq = QueueSimple(dirq_path)
+        self._dirq = None
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
         # adjust SSM and stomp logging
-        ssmlogroot = 'arc.ssm' if arc_ssm else 'ssm'
+        ssmlogroot = 'arc.ssm' if apel_libs == 'arc' else 'ssm'
         self.__configure_third_party_logging(ssmlogroot)
         self.__configure_third_party_logging('stomp.py')
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
@@ -508,6 +532,15 @@ class APELSSMSender(object):
         log_handler_stderr.setFormatter(
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         tplogger.addHandler(log_handler_stderr)
+
+    def init_dirq(self):
+        if apel_libs is None:
+            return False
+        if QueueSimple is None:
+            return False
+        dirq_path = self.conf['dirq_dir']
+        self._dirq = QueueSimple(dirq_path)
+        return True
 
     def enqueue_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
@@ -544,7 +577,7 @@ class APELSSMSender(object):
             del buf
 
     def send(self):
-        ssmsource = 'NorduGrid ARC redistributed' if arc_ssm else 'system-wide installed'
+        ssmsource = 'NorduGrid ARC redistributed' if apel_libs == 'arc' else 'system-wide installed'
         self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
                          self.conf['targeturl'], ssmsource, *ssm_version)
         self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
@@ -683,7 +716,7 @@ class UsageRecord(JobAccountingRecord):
         if not wlcgvo:
             return vomsxml
         # VOMS FQAN info
-        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t == 'mainfqan']
+        vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t[0] == 'mainfqan']
         fqangroups = []
         fqan_xml = ''
         if vomsfqans:
@@ -850,7 +883,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
                    '{localuser}{localgroup}{groups}</UserIdentity>',
     }
 
-    def __init__(self, aar, vomsless_vo=None, extra_vogroups=None, gocdb_name=None, benchmark=None):
+    def __init__(self, aar, vomsless_vo=None, extra_vogroups=None, gocdb_name=None):
         """Create XML representation of Compute Accounting Record"""
         JobAccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.CAR')
@@ -859,7 +892,6 @@ class ComputeAccountingRecord(JobAccountingRecord):
         if self.extra_vogroups is None:
             self.extra_vogroups = []
         self.gocdb_name = gocdb_name
-        self.benchmark = benchmark
         self.__create_xml()
 
     def __record_identity(self):
@@ -949,20 +981,6 @@ class ComputeAccountingRecord(JobAccountingRecord):
             'groups': self.__user_groups_xml()
         })
 
-    def __filter_benchmark(self, benchmark):
-        """Use only APEL supported benchmarks"""
-        __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
-        bsplit = benchmark.split(':', 2)
-        if len(bsplit) != 2:
-            self.logger.error('Malformed benchmark definition string: "HEPSPEC:1.0" will be used instead.')
-            return 'HEPSPEC', '1.0'
-        (benchmark_type, benchmark_value) = bsplit
-        if benchmark_type not in __allowed_benchmark_types:
-            self.logger.error('Benchmark type %s in not supported by APEL. "HEPSPEC:1.0" will be used instead.',
-                              benchmark_type)
-            return 'HEPSPEC', '1.0'
-        return benchmark_type, benchmark_value
-
     def __job_data(self):
         """Return XML nodes for resource usage and other informational job attributes in AAR"""
         xml = ''
@@ -1026,8 +1044,8 @@ class ComputeAccountingRecord(JobAccountingRecord):
         #   and looks like it is more theoretical rather than for real analyses (especially in view of APEL summaries)
         # ServiceLevel (mandatory) represents benchmarking normalization
         if 'benchmark' not in aar_extra:
-            aar_extra['benchmark'] = self.benchmark if self.benchmark is not None else ''
-        (bechmark_type, bechmark_value) = self.__filter_benchmark(aar_extra['benchmark'])
+            aar_extra['benchmark'] = ''
+        (bechmark_type, bechmark_value) = get_apel_benchmark(self.logger, aar_extra['benchmark'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
         return xml
 
@@ -1076,26 +1094,12 @@ WallDuration: {walltime}
 CpuDuration: {cputime}
 NumberOfJobs: {count}'''
 
-    def __init__(self, recorddata, gocdb_name, conf_benchmark):
+    def __init__(self, recorddata, gocdb_name):
         self.logger = logging.getLogger('ARC.Accounting.APELSummary')
         self.recorddata = recorddata
         self.recorddata['gocdb_name'] = gocdb_name
         self.recorddata['voinfo'] = self.__vo_info()
-        if self.recorddata['benchmark'] is None:
-            self.recorddata['benchmark'] = conf_benchmark
-        self.__benchmark()
-
-    def __benchmark(self):
-        """Use only APEL supported benchmarks of fallback to HEPSPEC:1.0"""
-        __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
-        self.recorddata['benchmark_type'] = 'HEPSPEC'
-        self.recorddata['benchmark_value'] = '1.0'
-        bsplit = self.recorddata['benchmark'].split(':', 2)
-        if len(bsplit) != 2:
-            return
-        (benchmark_type, benchmark_value) = bsplit
-        if benchmark_type not in __allowed_benchmark_types:
-            return
+        (benchmark_type, benchmark_value) = get_apel_benchmark(self.logger, self.recorddata['benchmark'])
         self.recorddata['benchmark_type'] = benchmark_type
         self.recorddata['benchmark_value'] = benchmark_value
 

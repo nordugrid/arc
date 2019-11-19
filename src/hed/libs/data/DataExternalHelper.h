@@ -22,6 +22,9 @@ namespace Arc {
     unsigned long long int range_end;
     bool force_secure;
     bool force_passive;
+    DataExternalHelper();
+    DataExternalHelper(DataExternalHelper const&);
+    DataExternalHelper& operator=(DataExternalHelper const&);
   public:
     DataExternalHelper(char const * modulepath, char const * modulename, const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream);
     virtual ~DataExternalHelper();

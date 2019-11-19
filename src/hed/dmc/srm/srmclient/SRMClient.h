@@ -50,6 +50,11 @@ namespace ArcDMCSRM {
    */
   class SRMClient {
 
+  private:
+
+    SRMClient(SRMClient const&);
+    SRMClient& operator=(SRMClient const&);
+
   protected:
 
     /// URL of the service endpoint, eg httpg://srm.host.org:8443/srm/managerv2

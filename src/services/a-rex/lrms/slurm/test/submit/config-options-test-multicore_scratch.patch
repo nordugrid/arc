@@ -61,15 +61,15 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -176,7 +184,7 @@
+@@ -178,7 +186,7 @@
    nodename=`/bin/hostname -f`
    echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
  fi
 -echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
 +echo "Processors=8" >> "$RUNTIME_JOB_DIAG"
+ echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
  executable='/bin/true'
  # Check if executable exists
- if [ ! -f "$executable" ]; 
 @@ -205,6 +213,15 @@
  fi
  # Running RTE scripts (stage 2)

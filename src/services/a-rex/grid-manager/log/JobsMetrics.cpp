@@ -17,6 +17,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   fail_ratio = 0;
   job_counter = 0;
+  job_fail_counter = 0;
   std::memset(jobs_processed, 0, sizeof(jobs_processed));
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
   std::memset(jobs_processed_changed, 0, sizeof(jobs_processed_changed));

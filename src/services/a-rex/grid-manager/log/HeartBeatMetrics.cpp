@@ -21,10 +21,10 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 HeartBeatMetrics::HeartBeatMetrics():enabled(false),proc(NULL) {
+  free = 0;
+  totalfree = 0;
 
-  time_now = time(NULL);
-  time_delta = time(NULL);
-  time_lastupdate = time(NULL);
+  time_lastupdate = (time_delta = (time_now = time(NULL)));
 
   time_update = false;
 }

@@ -47,18 +47,10 @@ static void do_shutdown(void)
     _exit(exit_code);
 }
 
-static std::list<Arc::LogFile*> sighup_dests;
-
 static void sighup_handler(int) {
     int old_errno = errno;
     if(main_daemon) main_daemon->logreopen();
-    for (std::list<Arc::LogFile*>::iterator dest = sighup_dests.begin();
-         dest != sighup_dests.end(); ++dest) {
-      if(*dest) {
-        (*dest)->setReopen(true);
-        (*dest)->setReopen(false);
-      }
-    }
+    Arc::LogFile::ReopenAll();
     errno = old_errno;
 }
 
@@ -197,7 +189,6 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
       std::string reopen = (std::string)(log["Reopen"]);
       if((reopen == "true") || (reopen == "1")) reopen_b = true;
     }
-    if (!reopen_b) sighup_dests = dests;
 
     Arc::Logger::rootLogger.removeDestinations();
     for (std::list<Arc::LogFile*>::iterator i = dests.begin(); i != dests.end(); ++i) {

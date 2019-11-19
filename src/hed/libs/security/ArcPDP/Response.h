@@ -61,6 +61,7 @@ private:
 protected:
   ResponseList rlist;
 public:
+  Response():request_size(0) {};
   void setRequestSize(int size) { request_size = size; };
   int getRequestSize() { return request_size; };
   virtual ResponseList& getResponseItems () { return rlist; };

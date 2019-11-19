@@ -466,18 +466,21 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+# remove older SDK package on update to 6.4
 %if %{py3default}
-Requires:	python3-%{name} = %{version}-%{release}
+Obsoletes:  python3-%{name} < 6.4.0
 %else
-Requires:	python2-%{name} = %{version}-%{release}
+Obsoletes:	python2-%{name} < 6.4.0
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
 %if %{py3default}
-Requires:	python3-stomppy
 Requires:	python3-ldap
-Requires:	python3-dirq
 Requires:	python3-isodate
+%if %{?rhel}%{!?rhel:0} <= 7
+Requires:	python3-dirq
+Requires:	python3-stomppy
+%endif
 %else
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
@@ -523,6 +526,11 @@ publishing.
 Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
+%if %{py3default}
+Requires:	python3-%{name} = %{version}-%{release}
+%else
+Requires:	python2-%{name} = %{version}-%{release}
+%endif
 Requires:	perl(Inline)
 Requires:	perl(Inline::Python)
 
@@ -770,7 +778,7 @@ Python 3 bindings for ARC.
 %endif
 
 %package nordugridmap
-Summary:	The nordugridmap tool
+Summary:	ARC's nordugridmap tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
 Requires:	perl(SOAP::Lite)
@@ -1477,6 +1485,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_xrootd}
 %files plugins-xrootd
 %defattr(-,root,root,-)
+%dir %{_libdir}/%{pkgdir}/external
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.so
 %{_libdir}/%{pkgdir}/external/libdmcxrootd.apd
 %{_libdir}/%{pkgdir}/libdmcxrootddeleg.so
@@ -1486,8 +1495,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_gfal}
 %files plugins-gfal
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libdmcgfal.so
-%{_libdir}/%{pkgdir}/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/external/libdmcgfal.so
+%{_libdir}/%{pkgdir}/external/libdmcgfal.apd
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.so
+%{_libdir}/%{pkgdir}/libdmcgfaldeleg.apd
 %endif
 
 %if %{with_s3}

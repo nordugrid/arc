@@ -1848,7 +1848,7 @@ int JobsList::CountAllJobs(const GMConfig& config) {
     virtual bool accept(JobId const& id) const { return true; };
   };
 
-  int count;
+  int count = 0;
   std::list<std::string> subdirs;
   subdirs.push_back(std::string("/")+subdir_rew); // For picking up jobs after service restart
   subdirs.push_back(std::string("/")+subdir_new); // For new jobs

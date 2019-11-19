@@ -269,7 +269,7 @@ namespace Arc {
     class iterator {
     private:
       iterator(JobDescriptionParserPluginLoader& jdpl);
-      iterator& operator=(const iterator& it) { return *this; }
+      iterator& operator=(const iterator& it);
     public:
       ~iterator() {}
       //iterator& operator=(const iterator& it) { current = it.current; jdpl = it.jdpl; return *this; }

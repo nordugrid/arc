@@ -84,6 +84,9 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
   XMLNode signature = (*this)["Signature"];
   xmlNodePtr signatureptr = ((XMLSecNode*)(&signature))->node_;
   xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
+  if(dsigCtx == NULL) {
+    std::cerr<<"Can not allocate key"<<std::endl; return false;
+  }
   //load private key, assuming there is no need for passphrase
   dsigCtx->signKey = xmlSecCryptoAppKeyLoad(privkey_file.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
   if(dsigCtx->signKey == NULL) {
@@ -98,7 +101,7 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
     xmlSecDSigCtxDestroy(dsigCtx);
     std::cerr<<"Can not sign node"<<std::endl; return false;
   }
-  if(dsigCtx != NULL)xmlSecDSigCtxDestroy(dsigCtx);
+  xmlSecDSigCtxDestroy(dsigCtx);
   return true;
 }
 

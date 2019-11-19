@@ -350,6 +350,10 @@ class XMLNodeP {
     operator bool(void) { return (obj_ != NULL); };
     bool operator!(void) { return (obj_ == NULL); };
     operator long int(void) { return (long int)obj_; };
+  private:
+    XMLNodeP();
+    XMLNodeP(XMLNodeP const&);
+    XMLNodeP& operator=(XMLNodeP const&);
 };
 
 class SOAPMessageP {
@@ -369,14 +373,21 @@ class SOAPMessageP {
     operator bool(void) { return (obj_ != NULL); };
     bool operator!(void) { return (obj_ == NULL); };
     operator long int(void) { return (long int)obj_; };
+  private:
+    SOAPMessageP();
+    SOAPMessageP(SOAPMessageP const&);
+    SOAPMessageP& operator=(SOAPMessageP const&);
 };
 
 class PyObjectP {
   private:
     PyObject* obj_;
+    PyObjectP();
+    PyObjectP& operator=(PyObjectP const&);
   public:
+    PyObjectP(PyObjectP const& p):obj_(p.obj_) { Py_INCREF(obj_); };
     PyObjectP(PyObject* obj):obj_(obj) { };
-  ~PyObjectP(void) { if(obj_) { Py_DECREF(obj_); } };
+    ~PyObjectP(void) { if(obj_) { Py_DECREF(obj_); } };
     operator bool(void) { return (obj_ != NULL); };
     bool operator!(void) { return (obj_ == NULL); };
     operator PyObject*(void) { return obj_; };
@@ -447,7 +458,7 @@ Arc::MCC_Status Service_PythonWrapper::process(Arc::Message& inmsg, Arc::Message
         if (PyErr_Occurred()) PyErr_Print();
         return make_fault(outmsg);
     }
-    PyObjectP py_outmsg = PyObject_CallObject(arc_msg_klass, arg);
+    PyObjectP py_outmsg(PyObject_CallObject(arc_msg_klass, arg));
     if (!py_outmsg) {
         logger.msg(Arc::ERROR, "Cannot convert outmsg to Python object");
         if (PyErr_Occurred()) PyErr_Print();

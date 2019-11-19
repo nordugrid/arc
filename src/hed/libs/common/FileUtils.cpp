@@ -290,6 +290,8 @@ std::string FileReadLink(const std::string& path) {
   class charbuf {
    private:
     char* v;
+    charbuf(charbuf const&);
+    charbuf& operator=(charbuf const&);
    public:
     charbuf(int size) {
       v = new char[size];

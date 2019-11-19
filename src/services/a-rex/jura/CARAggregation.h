@@ -21,8 +21,6 @@ namespace ArcJura
 
     /** Require to set to true this option by production message broker */
     bool use_ssl;
-    /** File name extension */
-    int sequence;
     /** location of Aggregation Records */
     std::string aggr_record_location;
     bool aggr_record_update_need;

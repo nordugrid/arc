@@ -18,6 +18,8 @@ struct termios;
 // password input.
 class ConsoleRecovery {
  private:
+  ConsoleRecovery(ConsoleRecovery const&);
+  ConsoleRecovery& operator=(ConsoleRecovery const&);
   struct termios * ti;
  public:
   ConsoleRecovery(void);

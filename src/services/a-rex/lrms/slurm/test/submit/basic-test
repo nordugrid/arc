@@ -22,19 +22,6 @@ EOF
 cp ${SRCDIR}/basic-script.sh expected_lrms_job_script.tmpl
 
 function test_post_check() {
-  # Check diag file
-  diagfilename="controldir/job.basic.diag"
-  if test ! -f ${diagfilename}; then
-    echo "Post check failed: Diag file (${diagfilename}) is missing."
-    return 1
-  fi
-  
-  . ${diagfilename}
-  if test "x${Processors}" != "x1"; then
-    echo "Post check failed: In diag file: Processors was expected to be \"1\", but it was \"${Processors}\"."
-    return 1
-  fi
-  
   return 0
 }
 }

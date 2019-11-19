@@ -84,7 +84,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
   std::string voms_proxy_file("voms_proxy.pem");
 
   // Request
-  int keybits = 1024;
+  int keybits = 2048;
   int proxydepth = 10;
   Arc::Time t;
   Arc::Credential proxy_req(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);

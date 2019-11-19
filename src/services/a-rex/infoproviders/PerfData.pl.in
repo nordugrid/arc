@@ -25,8 +25,8 @@ package PerfData;
 use File::Basename;
 use Getopt::Long;
 use Sys::Hostname;
-use Data::Dumper::Concise;
 use Cwd;
+#use Data::Dumper::Concise;
 #use Devel::NYTProf::Data;
 #use Symbol;
 
@@ -415,6 +415,7 @@ sub deletefiles {
 sub main {
 
     $log->error('Devel::NYTProf not present. Perfomance files generaton cannot continue. ') unless ($NYTPROF_PRESENT);
+    exit 0;
   
     # Parse command line options
     my $print_help;
@@ -530,7 +531,6 @@ sub main {
         ## child code
         if( $pid == 0 ){ 
 		  $log->debug("Starting helper process for $dbfilefullpath");
-		  use Devel::NYTProf::Data;
           my $profile = Devel::NYTProf::Data->new( { filename => $dbfilefullpath, quiet => 1 } );
           #$profile->dump_profile_data();
 	

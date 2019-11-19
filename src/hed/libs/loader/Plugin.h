@@ -57,7 +57,7 @@ namespace Arc {
   class Plugin {
     private:
       Plugin(void);
-      Plugin& operator=(const Plugin&) { return *this; };
+      Plugin& operator=(const Plugin&);
     protected:
       PluginsFactory* factory_;
       Glib::Module* module_;

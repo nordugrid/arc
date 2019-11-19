@@ -1,15 +1,15 @@
---- a/basic-script.sh	2019-06-28 09:37:16.206180416 +0200
-+++ b/basic-script.sh	2019-06-28 09:37:16.208180370 +0200
-@@ -163,7 +163,7 @@
-   echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
+--- a/basic-script.sh	2019-11-04 17:19:08.057050201 +0200
++++ b/basic-script.sh	2019-11-04 17:19:08.058050186 +0200
+@@ -180,7 +183,7 @@
  fi
  echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
+ echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
 -executable='/bin/true'
 +executable='/bin/echo'
  # Check if executable exists
  if [ ! -f "$executable" ]; 
  then 
-@@ -181,9 +181,9 @@
+@@ -198,9 +201,9 @@
    echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
    exit 1; }
  if [ "x$JOB_ACCOUNTING" = "xgnutime" ]; then
