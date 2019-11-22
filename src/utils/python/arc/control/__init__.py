@@ -1,21 +1,67 @@
 from __future__ import absolute_import
 
-from .RunTimeEnvironment import RTEControl
-from .Jobs import JobsControl
+#
+# arcctl controllers for all installations
+#
+
+# arcctl deploy
 from .ThirdPartyDeployment import ThirdPartyControl
-from .Services import ServicesControl
-from .Accounting import AccountingControl
-from .Config import ConfigControl
+# arcctl test-ca
 from .TestCA import TestCAControl
-from .Cache import CacheControl
 
 CTL_COMPONENTS = [
-    RTEControl,
-    JobsControl,
-    ServicesControl,
-    ThirdPartyControl,
-    AccountingControl,
-    ConfigControl,
-    TestCAControl,
-    CacheControl
+  ThirdPartyControl,
+  TestCAControl
 ]
+
+#
+# arcctl controllers for A-REX
+#
+
+# arcclt service
+try:
+  from .Services import ServicesControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(ServicesControl)
+
+# arcctl rte
+try:
+  from .RunTimeEnvironment import RTEControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(RTEControl)
+
+# arcctl job
+try:
+  from .Jobs import JobsControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(JobsControl)
+
+# arcctl accounting
+try:
+  from .Accounting import AccountingControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(AccountingControl)
+
+# arcctl config
+try:
+  from .Config import ConfigControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(ConfigControl)
+
+# arcctl cache
+try:
+  from .Cache import CacheControl
+except ImportError:
+  pass
+else:
+  CTL_COMPONENTS.append(CacheControl)

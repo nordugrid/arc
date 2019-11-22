@@ -28,7 +28,12 @@ if os.path.isdir(arc_prefix_pythonpath):
 # Import ARC control and config modules
 from arc.control import ControlCommon
 from arc.control import *
-from arc.utils import config
+
+try:
+    from arc.utils import config
+except ImportError:
+    # if there is no arc.utils - we are working in CE-less mode
+    config = None
 
 
 # Define root parser for arcctl
@@ -41,15 +46,16 @@ class ArgumentParserHelpOnError(argparse.ArgumentParser):
 
 
 def get_parser():
-    parser = ArgumentParserHelpOnError(description='NorduGrid ARC Computing Element Control Tool')
-    parser.add_argument('-c', '--config', action='store',
-                        help='config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser = ArgumentParserHelpOnError(description='NorduGrid ARC Control Tool')
+    if config is not None:
+        parser.add_argument('-c', '--config', action='store',
+                            help='config file location (default is {0})'.format(config.arcconf_defpath()))
     parser.add_argument('-d', '--debug', action='store',
                         help='verbosity level (default is %(default)s)', default='WARNING',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 
     # Register subparsers for defined arc.control components
-    subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT', help='DESCRIPTION')
+    subparsers = parser.add_subparsers(title='ARC Components', metavar='COMPONENT', help='DESCRIPTION')
     for c in CTL_COMPONENTS:
         c.register_parser(subparsers)
     return parser
@@ -81,12 +87,16 @@ if __name__ == '__main__':
 
     # Invoke ARC control action
     try:
-        ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
+        if config is not None:
+            ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
+        else:
+            ctl_class(None).control(cmd_args)
     except IOError as e:
         # handle SIGPIPE termination
         if e.errno == errno.EPIPE:
             pass
         else:
             # Remove runtime config on any failures
-            ControlCommon.remove_runtime_config()
+            if config is not None:
+                ControlCommon.remove_runtime_config()
             raise
