@@ -37,6 +37,10 @@ class TestCAControl(ComponentControl):
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
 
+    def __define_ca_dir(self, dir):
+        """Define alternative CA dir"""
+        self.x509_cert_dir = dir
+
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
         self.x509_cert_dir = '/etc/grid-security/certificates'
@@ -44,7 +48,7 @@ class TestCAControl(ComponentControl):
 
         # Use values from arc.conf if possible
         self.arcconfig = arcconfig
-        if arcconfig is None:
+        if arcconfig is None and ARCCTL_CE_MODE:
             self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
         else:
             x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
@@ -256,6 +260,11 @@ class TestCAControl(ComponentControl):
                 sys.exit(1)
 
     def control(self, args):
+        # define CA dir if provided
+        if args.ca_dir is not None:
+            self.__define_ca_dir(args.ca_dir)
+        # no need to go further if it CA dir is not writable
+        ensure_path_writable(self.x509_cert_dir)
         # define CA ID if provided
         if args.ca_id is not None:
             self.__define_CA_ID(args.ca_id)
@@ -279,6 +288,8 @@ class TestCAControl(ComponentControl):
 
         testca_ctl.add_argument('--ca-id', action='store',
                                 help='Define CA ID to work with (default is to use hostname-based hash)')
+        testca_ctl.add_argument('--ca-dir', action='store',
+                                help='Redefine path to CA files directory')
 
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
