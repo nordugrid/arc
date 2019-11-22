@@ -22,15 +22,14 @@ class ThirdPartyControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.ThirdParty.Deploy')
         self.x509_cert_dir = '/etc/grid-security/certificates'
         self.arcconfig = arcconfig
-        if arcconfig is None:
+        if arcconfig is None and ARCCTL_CE_MODE:
             self.logger.info('Failed to parse arc.conf, using default CA certificates path')
         else:
             x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
             if x509_cert_dir:
                 self.x509_cert_dir = x509_cert_dir
 
-    def __egi_get_voms(self, vo):
-        vomslsc = {}
+    def __egi_get_voms_xml(self, vo):
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
         dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
         # query database
@@ -50,6 +49,11 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
         xml = ET.fromstring(rcontent)
+        return xml
+
+    def __egi_get_vomslsc(self, vo):
+        vomslsc = {}
+        xml = self.__egi_get_voms_xml(vo)
         # parse XML
         for voms in xml.iter('VOMS_Server'):
             host = voms.find('hostname').text
@@ -57,6 +61,19 @@ class ThirdPartyControl(ComponentControl):
             ca = voms.find('X509Cert/CA_DN').text
             vomslsc[host] = {'dn': dn, 'ca': ca}
         return vomslsc
+
+    def __egi_get_vomses(self, vo):
+        vomses = []
+        xml = self.__egi_get_voms_xml(vo)
+        for voms in xml.iter('VOMS_Server'):
+            port = None
+            if 'VomsesPort' in voms.attrib:
+                port = voms.attrib['VomsesPort']
+            host = voms.find('hostname').text
+            dn = voms.find('X509Cert/DN').text
+            if port is not None and host and dn:
+                vomses.append('"{0}" "{1}" "{2}" "{3}" "{0}"'.format(vo, host, port, dn))
+        return vomses
 
     def __get_socket_from_url(self, url):
         port = 443
@@ -71,6 +88,42 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('Failed to parse URL %s', url)
             sys.exit(1)
         return hostname, port
+
+    def __vomsadmin_get_vomses(self, url, vo):
+        (hostname, port) = self.__get_socket_from_url(url)
+        vomsadmin_url = 'https://{0}:{1}/voms/{2}/configuration/configuration.action'.format(hostname, port, vo)
+        req = Request(vomsadmin_url)
+        try:
+            self.logger.debug('Contacting VOMS-Admin at %s', vomsadmin_url)
+            if hasattr(ssl, '_create_unverified_context'):
+                # Python 2.7.9+ has SSL verification turned on and introduce context
+                context = ssl._create_unverified_context()
+                response = urlopen(req, context=context)
+            else:
+                response = urlopen(req)
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                self.logger.error('Failed to reach VOMS-Admin server. Error: %s', e.reason)
+            else:
+                self.logger.error('VOMS-Admin server failed to process the request. Error code: %s', e.code)
+            sys.exit(1)
+        # get response
+        rcontent = response.read().decode('utf-8')
+        # parse vomses from the responce
+        _re_vomses_header = re.compile(r'VOMSES')
+        _re_vomses_content = re.compile(r'class="configurationInfo">(.*)\s*$')
+        content_re = False
+        vomses = None
+        for line in rcontent:
+            if content_re:
+                _content_match = _re_vomses_content.match(line)
+                if _content_match:
+                    vomses = _content_match.group(1).replace('&quot;', '"')
+                pass
+            elif _re_vomses_header.match(line):
+                content_re = True
+                continue
+        return vomses
 
     def __get_ssl_cert_openssl(self, url):
         # parse connection parameters
@@ -152,7 +205,7 @@ class ThirdPartyControl(ComponentControl):
         voms_creds = {}
         # fetch VOMS server DN and CA with some of the methods
         if args.egi_vo:
-            voms_creds.update(self.__egi_get_voms(args.vo))
+            voms_creds.update(self.__egi_get_vomslsc(args.vo))
         elif args.voms:
             if args.pythonssl:
                 for vomsurl in args.voms:
@@ -164,15 +217,37 @@ class ThirdPartyControl(ComponentControl):
             self.logger.error('There are no VOMS server credentials found. Will not create LSC file.')
             sys.exit(1)
         # create vomsdir for LSC
-        vomses_dir = '/etc/grid-security/vomsdir/{0}'.format(args.vo)
-        if not os.path.exists(vomses_dir):
-            self.logger.debug('Making vomses directory %s to hold LSC file(s)', vomses_dir)
-            os.makedirs(vomses_dir, mode=0o755)
+        vomsdir_dir = '/etc/grid-security/vomsdir/{0}'.format(args.vo)
+        if not os.path.exists(vomsdir_dir):
+            self.logger.debug('Making vomsdir directory %s to hold LSC file(s)', vomsdir_dir)
+            os.makedirs(vomsdir_dir, mode=0o755)
         for host, creds in voms_creds.items():
-            lsc_file = '{0}/{1}.lsc'.format(vomses_dir, host)
+            lsc_file = '{0}/{1}.lsc'.format(vomsdir_dir, host)
             with open(lsc_file, 'w') as lsc_f:
                 self.logger.info('Creating LSC file: %s', lsc_file)
                 lsc_f.write('{dn}\n{ca}'.format(**creds))
+
+    def vomses_deploy(self, args):
+        vomses = []
+        # fetch VOMS server DN and CA with some of the methods
+        if args.egi_vo:
+            vomses = self.__egi_get_vomses(args.vo)
+        elif args.voms:
+            for vomsurl in args.voms:
+                vomses.extend(self.__vomsadmin_get_vomses(vomsurl, args.vo))
+        if not vomses:
+            self.logger.error('There are no configuration for client VOMSES fetched.')
+            sys.exit(1)
+        # create vomses directory
+        vomses_dir = '/etc/grid-security/vomses'
+        if not os.path.exists(vomses_dir):
+            self.logger.debug('Making vomses directory %s to hold VOMS configuration for clients', vomses_dir)
+            os.makedirs(vomses_dir, mode=0o755)
+        vomses_file = '{0}/{1}'.format(vomses_dir, args.vo)
+        with open(vomses_file, 'w') as vomses_f:
+            self.logger.info('Creating VOMSES file: %s', vomses_file)
+            for vstring in vomses:
+                vomses_f.write(vstring + '\n')
 
     def install_cacerts_repo(self, pmobj, repo):
         if repo == 'igtf':
@@ -337,6 +412,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
     def control(self, args):
         if args.action == 'voms-lsc':
             self.lsc_deploy(args)
+        elif args.action == 'vomses':
+            self.vomses_deploy(args)
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
         elif args.action == 'iptables-config':
@@ -353,25 +430,36 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_actions = deploy_ctl.add_subparsers(title='Deployment Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
 
-        deploy_voms_lsc = deploy_actions.add_parser('voms-lsc', help='Deploy VOMS list-of-certificates files')
-        deploy_voms_lsc.add_argument('vo', help='VO Name')
-        deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
-        deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fecth information from EGI VOs database',
-                                         action='store_true')
-        deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
-                                     help='Use Python SSL module to establish TLS connection '
-                                          '(default is to call external OpenSSL binary)')
-
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',
                              choices=['classic', 'iota', 'mics', 'slcs'])
         igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
                              choices=['igtf', 'egi-trustanchors', 'nordugrid'])
 
-        iptables = deploy_actions.add_parser('iptables-config',
-                                             help='Generate iptables config to allow ARC CE configured services')
-        iptables.add_argument('--any-state', action='store_true',
-                              help='Do not add \'--state NEW\' to filter configuration')
-        iptables.add_argument('--multiport', action='store_true',
-                              help='Use one-line multiport filter instead of per-service entries')
+        deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
+        deploy_vomses.add_argument('vo', help='VO Name')
+        deploy_vomses_sources = deploy_vomses.add_mutually_exclusive_group(required=True)
+        deploy_vomses_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
+        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
+                                         action='store_true')
+
+        if ARCCTL_CE_MODE:
+            deploy_voms_lsc = deploy_actions.add_parser('voms-lsc', help='Deploy VOMS list-of-certificates files')
+            deploy_voms_lsc.add_argument('vo', help='VO Name')
+            deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
+            deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
+            deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
+                                             action='store_true')
+            deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
+                                         help='Use Python SSL module to establish TLS connection '
+                                              '(default is to call external OpenSSL binary)')
+
+            iptables = deploy_actions.add_parser('iptables-config',
+                                                 help='Generate iptables config to allow ARC CE configured services')
+            iptables.add_argument('--any-state', action='store_true',
+                                  help='Do not add \'--state NEW\' to filter configuration')
+            iptables.add_argument('--multiport', action='store_true',
+                                  help='Use one-line multiport filter instead of per-service entries')
+
+        # if ARCCTL_CLIENT_MODE:
+        #     pass
