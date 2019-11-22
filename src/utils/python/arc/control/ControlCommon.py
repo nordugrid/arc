@@ -1,9 +1,17 @@
 import os
+import sys
 import logging
 import datetime
 import argparse
-from arc.utils import config
 from arc.paths import *
+
+# no arc.utils.config - arcclt is in the CE-less mode
+ARCCTL_CE_MODE = True
+try:
+    from arc.utils import config
+except ImportError:
+    ARCCTL_CE_MODE = False
+    config = None
 
 logger = logging.getLogger('ARCCTL.Common')
 
@@ -105,6 +113,23 @@ def get_human_readable_size(sizeinbytes):
         output_fmt = '{0:.1f}{1}'
         sizeinbytes /= 1024.0
     return '{0:.1f}E'.format(sizeinbytes)
+
+
+def ensure_root():
+    """Prints error and exit if not root"""
+    if os.geteuid() != 0:
+        logger.error("This functionality is accessible to root only")
+        sys.exit(1)
+
+
+def ensure_path_writable(path):
+    """Prints error and exit if there are no write permission to specified path"""
+    mode = os.W_OK
+    if os.path.isdir(path):
+        mode &= os.X_OK
+    if os.access(path, mode):
+        logger.error("The path '%s' is not writable for user running arcctl")
+        sys.exit(1)
 
 
 class ComponentControl(object):
