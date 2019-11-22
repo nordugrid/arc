@@ -13,7 +13,7 @@ fork_packages_el6:
   stage: build
   image: maikenp/arc-build-centos6
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -47,7 +47,7 @@ fork_packages_el7:
   stage: build
   image: maikenp/arc-build-centos7
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -152,7 +152,7 @@ packages_el6:
   stage: packages
   image: maikenp/arc-build-centos6
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
@@ -182,7 +182,7 @@ packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
   script:
-    - echo "$(date +%Y%m%dT%H%M%S)_${CI_COMMIT_SHA:0:8}_master" > VERSION
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - yum update -y
     - ./autogen.sh
     - ./configure
