@@ -1162,6 +1162,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_sbindir}/arcctl
 %if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/__init__.py
 %{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
 %{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
 %{python3_sitearch}/%{pkgdir}/control/OSPackage.py
@@ -1169,6 +1170,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/TestCA.py
 %{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
 %dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
@@ -1177,6 +1179,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
 %else
 %dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
 %{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
