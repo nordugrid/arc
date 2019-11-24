@@ -3,12 +3,17 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 import sys
+import os
 try:
     from urllib.request import Request, urlopen
     from urllib.error import URLError
 except ImportError:
     from urllib2 import Request, urlopen
     from urllib2 import URLError
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
 import socket
 import ssl
 import re
@@ -92,40 +97,90 @@ class ThirdPartyControl(ComponentControl):
             sys.exit(1)
         return hostname, port
 
-    def __vomsadmin_get_vomses(self, url, vo):
+    def __vomsadmin_get_vomses(self, url, vo, secure=False):
         (hostname, port) = self.__get_socket_from_url(url)
         vomsadmin_url = 'https://{0}:{1}/voms/{2}/configuration/configuration.action'.format(hostname, port, vo)
-        req = Request(vomsadmin_url)
-        try:
-            self.logger.debug('Contacting VOMS-Admin at %s', vomsadmin_url)
-            if hasattr(ssl, '_create_unverified_context'):
-                # Python 2.7.9+ has SSL verification turned on and introduce context
-                context = ssl._create_unverified_context()
-                response = urlopen(req, context=context)
+        vomsadmin_path = '/voms/{0}/configuration/configuration.action'.format(vo)
+
+        self.logger.debug('Contacting VOMS-Admin at %s', vomsadmin_url)
+
+        if secure:
+            # try client cert
+            if 'X509_USER_CERT' in os.environ and 'X509_USER_KEY' in os.environ:
+                cert = os.environ['X509_USER_CERT']
+                key = os.environ['X509_USER_KEY']
             else:
-                response = urlopen(req)
-        except URLError as e:
-            if hasattr(e, 'reason'):
-                self.logger.error('Failed to reach VOMS-Admin server. Error: %s', e.reason)
+                cert = os.path.expanduser('~/.globus/usercert.pem')
+                key = os.path.expanduser('~/.globus/userkey.pem')
+                if not os.path.expanduser(key):
+                    # try host cert if no user certs
+                    cert = '/etc/grid-security/hostcert.pem'
+                    key = '/etc/grid-security/hostkey.pem'
+            if not os.path.exists(key):
+                self.logger.error('Cannon find any client certificate/key installed.')
+                sys.exit(1)
+
+            conn = HTTPSClientAuthConnection(hostname, port, key, cert)
+            try:
+                conn.request('GET', vomsadmin_path)
+                response = conn.getresponse()
+            except Exception as err:
+                self.logger.error('Failed to reach VOMS-Admin server. Error: %s', str(err))
+                sys.exit(1)
             else:
-                self.logger.error('VOMS-Admin server failed to process the request. Error code: %s', e.code)
-            sys.exit(1)
-        # get response
-        rcontent = response.read().decode('utf-8')
-        # parse vomses from the responce
+                if response.status != 200:
+                    conn.close()
+                    self.logger.error('VOMS-Admin server failed to process the request. '
+                                      'Error code %s (%s)', str(response.status), str(response.reason))
+                    sys.exit(1)
+                # get response
+                rcontent = response.read().decode('utf-8')
+                conn.close()
+        else:
+            try:
+                req = Request(vomsadmin_url)
+                if hasattr(ssl, '_create_unverified_context'):
+                    # Python 2.7.9+ has SSL verification turned on and introduce context
+                    context = ssl._create_unverified_context()
+                    response = urlopen(req, context=context)
+                else:
+                    response = urlopen(req)
+            except URLError as e:
+                if hasattr(e, 'reason'):
+                    self.logger.error('Failed to reach VOMS-Admin server. Error: %s', e.reason)
+                else:
+                    self.logger.error('VOMS-Admin server failed to process the request. Error code: %s', e.code)
+                self.logger.error('Try to contact VOMS-Admin with client certificate '
+                                  '(using --use-client-cert option)')
+                sys.exit(1)
+            else:
+                # get response
+                rcontent = response.read().decode('utf-8')
+
+        # parse vomses from the response
         _re_vomses_header = re.compile(r'VOMSES')
-        _re_vomses_content = re.compile(r'class="configurationInfo">(.*)\s*$')
+        _re_vomses_content = re.compile(r'class="configurationInfo">(.*)$')
+        _re_vomses_pva = re.compile(r'<p>VOMSES .*<div class="bgodd"><pre>([^<]+)')
         content_re = False
-        vomses = None
-        for line in rcontent:
+        vomses = []
+        for line in rcontent.split('\n'):
             if content_re:
-                _content_match = _re_vomses_content.match(line)
+                _content_match = _re_vomses_content.search(line)
                 if _content_match:
-                    vomses = _content_match.group(1).replace('&quot;', '"')
-                pass
+                    vstr = _content_match.group(1).replace('&quot;', '"')
+                    vomses.append(vstr)
+                    self.logger.debug('Found VOMSES string: %s', vstr)
+                    break
             elif _re_vomses_header.match(line):
                 content_re = True
                 continue
+            else:
+                # PVA support
+                _content_match = _re_vomses_pva.search(line)
+                if _content_match:
+                    self.logger.debug('Found VOMSES string: %s', _content_match.group(1))
+                    vomses.append(_content_match.group(1))
+                    break
         return vomses
 
     def __get_ssl_cert_openssl(self, url):
@@ -239,7 +294,7 @@ class ThirdPartyControl(ComponentControl):
             vomses = self.__egi_get_vomses(args.vo)
         elif args.voms:
             for vomsurl in args.voms:
-                vomses.extend(self.__vomsadmin_get_vomses(vomsurl, args.vo))
+                vomses.extend(self.__vomsadmin_get_vomses(vomsurl, args.vo, args.use_client_cert))
         if not vomses:
             self.logger.error('There are no configuration for client VOMSES fetched.')
             sys.exit(1)
@@ -252,10 +307,13 @@ class ThirdPartyControl(ComponentControl):
             self.logger.debug('Making vomses directory %s to hold VOMS configuration for clients', vomses_dir)
             os.makedirs(vomses_dir, mode=0o755)
         vomses_file = '{0}/{1}'.format(vomses_dir, args.vo)
-        with open(vomses_file, 'w') as vomses_f:
-            self.logger.info('Creating VOMSES file: %s', vomses_file)
-            for vstring in vomses:
-                vomses_f.write(vstring + '\n')
+        try:
+            with open(vomses_file, 'w') as vomses_f:
+                self.logger.info('Creating VOMSES file: %s', vomses_file)
+                for vstring in vomses:
+                    vomses_f.write(vstring + '\n')
+        except IOError as err:
+            self.logger.error('Cannot write to VOMSES file: %s (%s)', vomses_file, err)
 
     def install_cacerts_repo(self, pmobj, repo):
         if repo == 'igtf':
@@ -452,6 +510,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                                          action='store_true')
         deploy_vomses.add_argument('-u', '--user', help='Install to user\'s home instead of /etc',
                                    action='store_true')
+        deploy_vomses.add_argument('-c', '--use-client-cert', help='Use client certificate to contact VOMS-Admin',
+                                   action='store_true')
 
         deploy_voms_lsc = deploy_actions.add_parser('voms-lsc',
                                                     help='Deploy VOMS server-side list-of-certificates files')
@@ -471,3 +531,33 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             iptables.add_argument('--multiport', action='store_true',
                                   help='Use one-line multiport filter instead of per-service entries')
 
+
+class HTTPSClientAuthConnection(httplib.HTTPSConnection):
+    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
+
+    def __init__(self, host, port, key_file, cert_file, ca_file=None, timeout=None):
+        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.ca_file = ca_file
+        self.timeout = timeout
+
+    def connect(self):
+        """ Connect to a host on a given (SSL) port.
+            If ca_file is pointing somewhere, use it to check Server Certificate.
+
+            Redefined/copied and extended from httplib.py:1105 (Python 2.6.x).
+            This is needed to pass cert_reqs=ssl.CERT_REQUIRED as parameter to ssl.wrap_socket(),
+            which forces SSL to check server certificate against our client certificate.
+        """
+        sock = socket.create_connection((self.host, self.port), self.timeout)
+        if self._tunnel_host:
+            self.sock = sock
+            self._tunnel()
+        # If there's no CA File, don't force Server Certificate Check
+        if self.ca_file:
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                        ca_certs=self.ca_file, cert_reqs=ssl.CERT_REQUIRED)
+        else:
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                        cert_reqs=ssl.CERT_NONE)
