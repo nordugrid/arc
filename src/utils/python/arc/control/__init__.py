@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+# define that arcctl should require arc.conf during processing
+ARCCTL_CE_MODE = False
+
 #
 # arcctl controllers for all installations
 #
@@ -10,58 +13,64 @@ from .ThirdPartyDeployment import ThirdPartyControl
 from .TestCA import TestCAControl
 
 CTL_COMPONENTS = [
-  ThirdPartyControl,
-  TestCAControl
+    ThirdPartyControl,
+    TestCAControl
 ]
 
 #
 # arcctl controllers for A-REX
 #
 
+# arcctl config
+try:
+    from .Config import ConfigControl
+except ImportError:
+    pass
+else:
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(ConfigControl)
+
 # arcclt service
 try:
-  from .Services import ServicesControl
+    from .Services import ServicesControl
 except ImportError:
-  pass
+    pass
 else:
-  CTL_COMPONENTS.append(ServicesControl)
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(ServicesControl)
 
 # arcctl rte
 try:
-  from .RunTimeEnvironment import RTEControl
+    from .RunTimeEnvironment import RTEControl
 except ImportError:
-  pass
+    pass
 else:
-  CTL_COMPONENTS.append(RTEControl)
-
-# arcctl job
-try:
-  from .Jobs import JobsControl
-except ImportError:
-  pass
-else:
-  CTL_COMPONENTS.append(JobsControl)
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(RTEControl)
 
 # arcctl accounting
 try:
-  from .Accounting import AccountingControl
+    from .Accounting import AccountingControl
 except ImportError:
-  pass
+    pass
 else:
-  CTL_COMPONENTS.append(AccountingControl)
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(AccountingControl)
 
-# arcctl config
+# arcctl job
 try:
-  from .Config import ConfigControl
+    from .Jobs import JobsControl
 except ImportError:
-  pass
+    pass
 else:
-  CTL_COMPONENTS.append(ConfigControl)
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(JobsControl)
 
 # arcctl cache
 try:
-  from .Cache import CacheControl
+    from .Cache import CacheControl
 except ImportError:
-  pass
+    pass
 else:
-  CTL_COMPONENTS.append(CacheControl)
+    ARCCTL_CE_MODE = True
+    CTL_COMPONENTS.append(CacheControl)

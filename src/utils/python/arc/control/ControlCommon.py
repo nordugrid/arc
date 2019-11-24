@@ -4,14 +4,8 @@ import logging
 import datetime
 import argparse
 from arc.paths import *
-
-# no arc.utils.config - arcclt is in the CE-less mode
-ARCCTL_CE_MODE = True
-try:
-    from arc.utils import config
-except ImportError:
-    ARCCTL_CE_MODE = False
-    config = None
+from arc.utils import config
+from arc.control import ARCCTL_CE_MODE
 
 logger = logging.getLogger('ARCCTL.Common')
 
@@ -53,7 +47,11 @@ def get_parsed_arcconf(conf_f):
                            'Using /etc/arc.conf that exists.', def_conf_f)
             runconf_load = True
         else:
-            logger.error('Cannot find ARC configuration file in the default location.')
+            if ARCCTL_CE_MODE:
+                logger.error('Cannot find ARC configuration file in the default location.')
+            else:
+                logger.debug('There is no server-side ARC configuration file in the default location as well as ARC CE '
+                             'control modules. Assuming stand-alone config-less mode.')
             return None
 
     if runconf_load:

@@ -22,8 +22,11 @@ class ThirdPartyControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.ThirdParty.Deploy')
         self.x509_cert_dir = '/etc/grid-security/certificates'
         self.arcconfig = arcconfig
-        if arcconfig is None and ARCCTL_CE_MODE:
-            self.logger.info('Failed to parse arc.conf, using default CA certificates path')
+        if arcconfig is None:
+            if ARCCTL_CE_MODE:
+                self.logger.debug('Working in config-less mode. Default paths will be used.')
+            else:
+                self.logger.info('Failed to parse arc.conf, using default CA certificates path')
         else:
             x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
             if x509_cert_dir:
@@ -443,17 +446,17 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
                                          action='store_true')
 
+        deploy_voms_lsc = deploy_actions.add_parser('voms-lsc',
+                                                    help='Deploy VOMS server-side list-of-certificates files')
+        deploy_voms_lsc.add_argument('vo', help='VO Name')
+        deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
+        deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
+        deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
+                                         action='store_true')
+        deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
+                                     help='Use Python SSL module to establish TLS connection '
+                                          '(default is to call external OpenSSL binary)')
         if ARCCTL_CE_MODE:
-            deploy_voms_lsc = deploy_actions.add_parser('voms-lsc', help='Deploy VOMS list-of-certificates files')
-            deploy_voms_lsc.add_argument('vo', help='VO Name')
-            deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
-            deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-            deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
-                                             action='store_true')
-            deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
-                                         help='Use Python SSL module to establish TLS connection '
-                                              '(default is to call external OpenSSL binary)')
-
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')
             iptables.add_argument('--any-state', action='store_true',
@@ -461,5 +464,3 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             iptables.add_argument('--multiport', action='store_true',
                                   help='Use one-line multiport filter instead of per-service entries')
 
-        # if ARCCTL_CLIENT_MODE:
-        #     pass

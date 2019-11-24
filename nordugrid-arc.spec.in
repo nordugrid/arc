@@ -1137,6 +1137,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/__init__.py
 %{python3_sitearch}/%{pkgdir}/paths.py
 %{python3_sitearch}/%{pkgdir}/paths_dist.py
@@ -1146,6 +1147,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
 %else
 %dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/__init__.py*
 %{python2_sitearch}/%{pkgdir}/paths.py*
 %{python2_sitearch}/%{pkgdir}/paths_dist.py*
@@ -1382,7 +1384,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
-%{python3_sitearch}/%{pkgdir}/utils
 %dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
@@ -1409,7 +1410,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
-%{python2_sitearch}/%{pkgdir}/utils
 %dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*

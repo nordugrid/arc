@@ -29,11 +29,8 @@ if os.path.isdir(arc_prefix_pythonpath):
 from arc.control import ControlCommon
 from arc.control import *
 
-try:
-    from arc.utils import config
-except ImportError:
-    # if there is no arc.utils - we are working in CE-less mode
-    config = None
+# server side arc.conf parsing
+from arc.utils import config
 
 
 # Define root parser for arcctl
@@ -47,9 +44,8 @@ class ArgumentParserHelpOnError(argparse.ArgumentParser):
 
 def get_parser():
     parser = ArgumentParserHelpOnError(description='NorduGrid ARC Control Tool')
-    if config is not None:
-        parser.add_argument('-c', '--config', action='store',
-                            help='config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser.add_argument('-c', '--config', action='store',
+                        help='config file location (default is {0})'.format(config.arcconf_defpath()))
     parser.add_argument('-d', '--debug', action='store',
                         help='verbosity level (default is %(default)s)', default='WARNING',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
@@ -87,16 +83,11 @@ if __name__ == '__main__':
 
     # Invoke ARC control action
     try:
-        if config is not None:
-            ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
-        else:
-            ctl_class(None).control(cmd_args)
+        ctl_class(ControlCommon.get_parsed_arcconf(cmd_args.config)).control(cmd_args)
     except IOError as e:
         # handle SIGPIPE termination
         if e.errno == errno.EPIPE:
             pass
         else:
             # Remove runtime config on any failures
-            if config is not None:
-                ControlCommon.remove_runtime_config()
-            raise
+            ControlCommon.remove_runtime_config()
