@@ -207,6 +207,23 @@ Description: ARC LDAP monitor web application
  web-based monitor which pulls information from the LDAP information
  system and visualizes it.
 
+Package: nordugrid-arc-arcctl
+Architecture: any
+Depends:
+ ${python:Depends},
+ ${python3:Depends},
+ libarccommon3 (= ${binary:Version}),
+ ${pydeps:Depends},
+ lsb-base (>= 3.0-6)
+XB-Python-Version: ${python:Versions}
+Description: ARC Resource-coupled EXecution service
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC Contol Tool with basic set of control
+ modules suitable for both server and client side.
+
 Package: nordugrid-arc-arex
 Provides:
  nordugrid-arc-cache-service,
@@ -232,6 +249,7 @@ Depends:
  ${python3:Depends},
  libarccommon3 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
+ nordugrid-arc-arcctl (= ${binary:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
