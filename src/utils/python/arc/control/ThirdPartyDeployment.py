@@ -135,6 +135,8 @@ class ThirdPartyControl(ComponentControl):
         try:
             s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            dn = None
+            ca = None
             for line in iter(s_client.stdout.readline, ''):
                 line = line.decode('utf-8')
                 if line.startswith('subject='):
@@ -243,6 +245,9 @@ class ThirdPartyControl(ComponentControl):
             sys.exit(1)
         # create vomses directory
         vomses_dir = '/etc/grid-security/vomses'
+        if args.user:
+            vomses_dir = os.path.expanduser('~/.voms/vomses')
+
         if not os.path.exists(vomses_dir):
             self.logger.debug('Making vomses directory %s to hold VOMS configuration for clients', vomses_dir)
             os.makedirs(vomses_dir, mode=0o755)
@@ -445,6 +450,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_vomses_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
         deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
                                          action='store_true')
+        deploy_vomses.add_argument('-u', '--user', help='Install to user\'s home instead of /etc',
+                                   action='store_true')
 
         deploy_voms_lsc = deploy_actions.add_parser('voms-lsc',
                                                     help='Deploy VOMS server-side list-of-certificates files')

@@ -124,9 +124,9 @@ def ensure_path_writable(path):
     """Prints error and exit if there are no write permission to specified path"""
     mode = os.W_OK
     if os.path.isdir(path):
-        mode &= os.X_OK
-    if os.access(path, mode):
-        logger.error("The path '%s' is not writable for user running arcctl")
+        mode |= os.X_OK
+    if not os.access(path, mode):
+        logger.error("The path '%s' is not writable for user running arcctl", path)
         sys.exit(1)
 
 
