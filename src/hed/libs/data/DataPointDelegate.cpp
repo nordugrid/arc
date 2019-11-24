@@ -233,14 +233,14 @@ namespace Arc {
       if (it->buffer->eof_read()) break;
       if (!it->buffer->for_read(h, l, true)) { // eof or error
         if (it->buffer->error()) { // error -> abort reading
-          logger.msg(VERBOSE, "read_thread: for_read failed - aborting: %s",
-                     it->url.plainstr());
+          logger.msg(VERBOSE, "read_thread: for_read failed - aborting: %s", it->url.plainstr());
         }
         break;
       }
       if(chunkReader.complete()) {
         tag = DataExternalComm::InTag(*run, 1000 * it->usercfg.Timeout());
         if(tag != DataExternalComm::DataChunkTag) {
+          logger.msg(DEBUG, "read_thread: non-data tag '%c' from external process - leaving: %s", tag, it->url.plainstr());
           it->buffer->is_read(h, 0, 0);
           break;
         }
@@ -249,6 +249,7 @@ namespace Arc {
       unsigned long long int offset = 0;
       unsigned long long int size = l;
       if(!chunkReader.read(*run, 1000 * it->usercfg.Timeout(), (*(it->buffer))[h], offset, size)) {
+        logger.msg(VERBOSE, "read_thread: data read error from external process - aborting: %s", it->url.plainstr());
         it->buffer->is_read(h, 0, 0);
         it->buffer->error_read(true);
         break;
