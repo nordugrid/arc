@@ -122,6 +122,9 @@ def ensure_root():
 
 def ensure_path_writable(path):
     """Prints error and exit if there are no write permission to specified path"""
+    if not os.path.exists(path):
+        # if no such path - do not complain (error will be on dir creation)
+        return
     mode = os.W_OK
     if os.path.isdir(path):
         mode |= os.X_OK
