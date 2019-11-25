@@ -1,8 +1,5 @@
 from __future__ import absolute_import
 
-# define that arcctl should require arc.conf during processing
-ARCCTL_CE_MODE = False
-
 #
 # arcctl controllers for all installations
 #
@@ -27,7 +24,6 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(ConfigControl)
 
 # arcclt service
@@ -36,7 +32,6 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(ServicesControl)
 
 # arcctl rte
@@ -45,7 +40,6 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(RTEControl)
 
 # arcctl accounting
@@ -54,7 +48,6 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(AccountingControl)
 
 # arcctl job
@@ -63,7 +56,6 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(JobsControl)
 
 # arcctl cache
@@ -72,5 +64,4 @@ try:
 except ImportError:
     pass
 else:
-    ARCCTL_CE_MODE = True
     CTL_COMPONENTS.append(CacheControl)

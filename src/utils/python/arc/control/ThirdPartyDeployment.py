@@ -28,7 +28,7 @@ class ThirdPartyControl(ComponentControl):
         self.x509_cert_dir = '/etc/grid-security/certificates'
         self.arcconfig = arcconfig
         if arcconfig is None:
-            if ARCCTL_CE_MODE:
+            if arcctl_ce_mode():
                 self.logger.debug('Working in config-less mode. Default paths will be used.')
             else:
                 self.logger.info('Failed to parse arc.conf, using default CA certificates path')
@@ -523,7 +523,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
                                      help='Use Python SSL module to establish TLS connection '
                                           '(default is to call external OpenSSL binary)')
-        if ARCCTL_CE_MODE:
+        if arcctl_ce_mode():
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')
             iptables.add_argument('--any-state', action='store_true',

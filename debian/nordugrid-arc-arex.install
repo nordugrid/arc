@@ -80,6 +80,7 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingPublishing.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Accounting.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Cache.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Config.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/control/CECommon.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Jobs.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/JuraArchive.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/JuraArchiveSQLite.py*
