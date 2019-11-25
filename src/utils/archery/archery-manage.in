@@ -103,6 +103,61 @@ def output_arc_celist(archery_object, cmd_args):
             print(ce)
 
 
+def json_config_object(archery_object):
+    """Translate internal extended JSON to expanded JSON config that can be used as a source"""
+    jconf = {}
+    if 'id' in archery_object:
+        jconf['id'] = archery_object['id']
+
+    elif 'dns-name' in archery_object:
+        jconf['dns-name'] = archery_object['dns-name']
+
+    if 'type' in archery_object:
+        jconf['type'] = archery_object['type']
+
+    if 'object' in archery_object:
+        kind = archery_object['object']
+    else:
+        kind = 'group'
+
+    if 'pointer_rr_data' in archery_object:
+        jconf['external-archery-object'] = archery_object['pointer_rr_data'].split(' ')[0].replace('u=', '')
+        return kind, jconf
+
+    if kind == 'service':
+        jconf['endpoints'] = []
+        if 'endpoints' in archery_object:
+            for e in archery_object['endpoints']:
+                if 's' in e and e['s'] == '0':
+                    jconf['endpoints'].append({
+                        'url': e['u'],
+                        'type': e['t'],
+                        'status': False
+                    })
+                else:
+                    jconf['endpoints'].append({e['u']: e['t']})
+
+    if 'contains' in archery_object:
+        for child in archery_object['contains']:
+            ckind, cobj = json_config_object(child)
+            if ckind == 'service':
+                if 'services' not in jconf:
+                    jconf['services'] = []
+                jconf['services'].append(cobj)
+            elif ckind == 'group':
+                if 'groups' not in jconf:
+                    jconf['groups'] = []
+                jconf['groups'].append(cobj)
+
+    return kind, jconf
+
+
+def output_json_config(archery_object, cmd_args):
+    """Output the entire ARCHERY internal object in JSON to stdout (for debugging purposes)"""
+    _, jconf = json_config_object(archery_object)
+    print(json.dumps(jconf, indent=2))
+
+
 def output_internal_object(archery_object, cmd_args):
     """Output the entire ARCHERY internal object in JSON to stdout (for debugging purposes)"""
     print(json.dumps(archery_object, indent=2))
@@ -158,6 +213,7 @@ _output_formatters = {
     'services': output_services,
     'endpoints': output_endpoints,
     'zonefile': output_zonefile,
+    'json': output_json_config,
     'object-debug': output_internal_object
 }
 
@@ -712,7 +768,6 @@ def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=N
                 s_id = ldap_data['GlueSEUniqueID'][0].decode()
                 s_type = ldap_data['GlueSEImplementationName'][0].decode()
                 services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
-                services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
             elif 'GlueChunkKey' in ldap_data:
                 # SE endpoint objects
                 s_id = ldap_data['GlueChunkKey'][0].decode()
@@ -788,7 +843,6 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
             s_id = ldap_s['GLUE2ServiceID'][0].decode()
             s_type = ldap_s['GLUE2ServiceType'][0].decode()
             services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
-            services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
             logger.debug('Found service %s (type %s)', s_id, s_type)
 
         # Query endpoints info
@@ -857,6 +911,10 @@ def _worker_info_fetch(fetch_queue, lock):
         with lock:
             # add fetched data to the list
             if fetch_data:
+                # generate rr_owner for nested objects
+                if pdata['obj_attr'] == 'contains':
+                    for fobj in fetch_data:
+                        fobj['rr_owner'] = dns_rr_owner_name(fobj, pdata['obj']['rr_owner'])
                 pdata['obj'][pdata['obj_attr']] += fetch_data
             # handle status (mark as inactive if no endpoints are fetched)
             if not pdata['obj'][pdata['obj_attr']]:
@@ -1050,6 +1108,9 @@ def group_object_from_json(jconf, rr_owner):
     if 'id' in jconf:
         archery_object['id'] = jconf['id']
 
+    if 'dns-name' in jconf:
+        archery_object['dns-name'] = jconf['dns-name']
+
     if 'type' in jconf:
         archery_object['type'] = jconf['type']
 
@@ -1057,13 +1118,16 @@ def group_object_from_json(jconf, rr_owner):
         archery_object['contains_fetch'] = jconf['external-source']
 
     if 'groups' in jconf:
-        g_idx = 1
+        g_idx = 0
         for gconf in jconf['groups']:
-            if 'id' in gconf:
+            g_idx += 1
+            if 'dns-name' in gconf:
+                g_rr_owner = gconf['dns-name']
+            elif 'id' in gconf:
                 g_rr_owner = gconf['id'].replace(' ', '-')
             else:
-                g_rr_owner = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
-            g_idx += 1
+                gconf['dns-name'] = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
+                g_rr_owner = gconf['dns-name']
             archery_object['contains'].append(group_object_from_json(gconf, g_rr_owner))
 
     return archery_object
