@@ -57,6 +57,7 @@ class HTTPSInsecureConnection(httplib.HTTPSConnection):
         # Don't force Server Certificate Check
         self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
 
+
 class TimeoutQueue(Queue):
     def join_with_timeout(self, timeout):
         self.all_tasks_done.acquire()
@@ -69,6 +70,7 @@ class TimeoutQueue(Queue):
                 self.all_tasks_done.wait(remaining)
         finally:
             self.all_tasks_done.release()
+
 
 def LDAPStrError(ldape):
     """Get string error from LDAP exception"""
@@ -204,7 +206,7 @@ class EndpointFilterType(EndpointFilter):
 
 class EndpointFilterPortscan(EndpointFilter):
     """Filter endpoints by port connectivity check"""
-    __uri_re = re.compile(r'^(?P<uri>(?:ldap|gsiftp|https)://(?P<host>[^:/]+):(?P<port>[0-9]+))/*.*')
+    __uri_re = re.compile(r'^(?P<uri>(?:[^:]+)://(?P<host>[^:/]+):(?P<port>[0-9]+))/*.*')
 
     def __init__(self, args=None):
         self.__args = args
@@ -403,11 +405,9 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
         # group object without type and id is the default behaviour (no RRSet needed)
         if rr != 'o=group':
             archery_object['rr_data'] = rr
-    # add object record RRSet (if defined)
-    if 'rr_data' in archery_object:
-        rrset.add('{0} {1}'.format(rr_owner, archery_object['rr_data']))
     # add endpoint records
-    if 'endpoints' in archery_object:
+    has_endpoints = False
+    if 'endpoints' in archery_object and archery_object['endpoints']:
         for edata in archery_object['endpoints']:
             # construct TXT rendering for endpoint record (if not already exists)
             if 'rr_data' not in edata:
@@ -417,6 +417,12 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
                 edata['rr_data'] = 'u={0} t={1}{2}'.format(edata['u'], edata['t'].replace(' ', '-'), estatus)
             # add service endpoints RRSet
             rrset.add('{0} {1}'.format(rr_owner, edata['rr_data']))
+            has_endpoints = True
+
+    # add object id-record RRSet (if defined and not dummy service)
+    if 'rr_data' in archery_object:
+        if has_endpoints or archery_object['rr_data'] != 'o=service':
+            rrset.add('{0} {1}'.format(rr_owner, archery_object['rr_data']))
     # add child records
     if 'contains' in archery_object:
         for cdata in archery_object['contains']:
@@ -877,7 +883,15 @@ def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None)
 
     if 'contains' in archery_object:
         if 'contains_fetch' in archery_object:
+            # per-source filters from config
+            source_filters = []
+            if 'filters' in archery_object['contains_fetch']:
+                source_filters.extend(get_configured_fillters(archery_object['contains_fetch']['filters']))
+            if applied_filters is not None:
+                source_filters.extend(applied_filters)
             for fetch_method in archery_object['contains_fetch'].keys():
+                if fetch_method == 'filters':
+                    continue
                 fetch_uri = archery_object['contains_fetch'][fetch_method]
                 logger.debug('Enqueueing group data fetch from %s using %s method.', fetch_uri, fetch_method)
                 fetch_queue.put({
@@ -885,11 +899,34 @@ def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None)
                     'uri': fetch_uri,
                     'obj': archery_object,
                     'obj_attr': 'contains',
-                    'filters': applied_filters
+                    'filters': source_filters
                 })
         # recursively process tree
         for child_object in archery_object['contains']:
             enqueue_object_data_fetch(fetch_queue, child_object, applied_filters)
+
+
+def get_configured_fillters(filters_list=None):
+    """Return list of filtering objects from """
+    applied_filters = []
+    if filters_list is not None:
+        for f in filters_list:
+            if f == 'help':
+                print('Supported filters are:')
+                for _, fclass in _filters.items():
+                    fci = fclass()
+                    fci.help()
+                sys.exit(0)
+            fdef = f.split(':', 1)
+            ftype = fdef[0]
+            fargs = fdef[1] if len(fdef) > 1 else ''
+            if ftype not in list(_filters.keys()):
+                logger.error('Ignoring bad filter definition: %s', f)
+                continue
+            fclass = _filters[ftype]
+            fobj = fclass(fargs)
+            applied_filters.append(fobj)
+    return applied_filters
 
 
 def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
@@ -917,10 +954,11 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
         logger.error(str(e))
         sys.exit(1)
 
+
 #
 # ARCHERY TOPOLOGY PROCESSING
 #
-def get_arcce_topolgy(ce_list, rr_owner='_archery'):
+def get_arcce_topology(ce_list, rr_owner='_archery'):
     """Create ARCHERY data object that represent ARC CE flat CE list topology"""
     archery_object = {
         'object': 'group',
@@ -942,6 +980,108 @@ def get_arcce_topolgy(ce_list, rr_owner='_archery'):
         archery_object['contains'].append(service_object)
 
     return archery_object
+
+
+def service_object_from_json(sconf):
+    """Define service object content based on JSON config"""
+    sobj = {
+        'object': 'service',
+        'endpoints': []
+    }
+
+    if 'external-archery-object' in sconf:
+        sobj['pointer_rr_data'] = 'u={0} t=archery.service'.format(sconf['external-archery-object'])
+        return sobj
+
+    if 'id' in sconf:
+        sobj['id'] = sconf['id']
+    else:
+        logger.error('Service description in config is missing mandatory "id" attribute. Service will be skipped. '
+                     'Provided JSON service description: %s', json.dumps(sconf))
+        return None
+    if 'type' in sconf:
+        sobj['type'] = sconf['type']
+    else:
+        logger.error('Service description in config is missing mandatory "type" attribute. Service will be skipped. '
+                     'Provided JSON service description: %s', json.dumps(sconf))
+        return None
+    if 'endpoints' in sconf:
+        for edict in sconf['endpoints']:
+            erecord = {}
+            for ekey in edict.keys():
+                if ekey == 'url':
+                    erecord['u'] = edict[ekey]
+                elif ekey == 'type':
+                    erecord['t'] = edict[ekey]
+                elif ekey == 'status':
+                    if not edict[ekey]:
+                        erecord['s'] = '0'
+                else:
+                    erecord['u'] = ekey
+                    erecord['t'] = edict[ekey]
+            sobj['endpoints'].append(erecord)
+
+    return sobj
+
+
+def group_object_from_json(jconf, rr_owner):
+    """Define service object content based on JSON config"""
+    archery_object = {
+        'object': 'group',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+
+    if 'external-archery-object' in jconf:
+        archery_object['pointer_rr_data'] = 'u={0} t=archery.group'.format(jconf['external-archery-object'])
+        return archery_object
+
+    if 'arc-services' in jconf:
+        archery_arcces_object = get_arcce_topology(jconf['arc-services'], rr_owner)
+        archery_object['contains'].extend(archery_arcces_object['contains'])
+
+    if 'services' in jconf:
+        for sconf in jconf['services']:
+            sobj = service_object_from_json(sconf)
+            if sobj is not None:
+                sobj['rr_owner'] = dns_rr_owner_name(sobj, rr_owner)
+                archery_object['contains'].append(sobj)
+
+    if 'id' in jconf:
+        archery_object['id'] = jconf['id']
+
+    if 'type' in jconf:
+        archery_object['type'] = jconf['type']
+
+    if 'external-source' in jconf:
+        archery_object['contains_fetch'] = jconf['external-source']
+
+    if 'groups' in jconf:
+        g_idx = 1
+        for gconf in jconf['groups']:
+            if 'id' in gconf:
+                g_rr_owner = gconf['id'].replace(' ', '-')
+            else:
+                g_rr_owner = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
+            g_idx += 1
+            archery_object['contains'].append(group_object_from_json(gconf, g_rr_owner))
+
+    return archery_object
+
+
+def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
+    """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
+    try:
+        with open(json_file, 'r') as jconf_f:
+            jconf = json.load(jconf_f)
+    except IOError as err:
+        logger.error('Failed to open JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+    except ValueError as err:
+        logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+
+    return group_object_from_json(jconf, rr_owner)
 
 
 def get_gocdb_topology(rr_owner='_archery', timeout=_fetch_timeout):
@@ -1307,24 +1447,7 @@ if __name__ == '__main__':
                 sys.exit(1)
 
     # Parse filters for fetching endpoints
-    applied_filters = []
-    if cmd_args.filter is not None:
-        for f in cmd_args.filter:
-            if f == 'help':
-                print('Supported filters are:')
-                for _, fclass in _filters.items():
-                    fci = fclass()
-                    fci.help()
-                sys.exit(0)
-            fdef = f.split(':', 1)
-            ftype = fdef[0]
-            fargs = fdef[1] if len(fdef) > 1 else ''
-            if ftype not in list(_filters.keys()):
-                logger.error('Ignoring bad filter definition: %s', f)
-                continue
-            fclass = _filters[ftype]
-            fobj = fclass(fargs)
-            applied_filters.append(fobj)
+    applied_filters = get_configured_fillters(cmd_args.filter)
 
     # Base domain name to work with
     rr_owner = '_archery'
@@ -1334,18 +1457,21 @@ if __name__ == '__main__':
     # Define services topology
     logger.info('Constructing ARCHERY objects topology according to configuration.')
     source = cmd_args.source
-    if source.startswith('file:'):
+    if source.startswith('json:'):
+        logger.info('Obtaining services topology from JSON configuration file: %s', source[5:])
+        archery_object = get_json_topology(source[5:], rr_owner)
+    elif source.startswith('file:'):
         logger.error('The \'file:\' source type is deprecated. Use \'arcce-list:\' for the same behavior.')
         sys.exit(1)
     elif source.startswith('arcce-list:'):
         logger.info('Obtaining ARC CEs list from file: %s', source[11:])
         ce_list = get_file_celist(source[11:])
-        archery_object = get_arcce_topolgy(ce_list, rr_owner)
+        archery_object = get_arcce_topology(ce_list, rr_owner)
     elif source.startswith('egiis:'):
         logger.info('Obtaining ARC CEs list from EGIIS: %s', source[6:])
         ce_list = get_egiis_celist(source[6:])
         logger.debug('Fetched EGIIS CEs list to work with: %s', ', '.join(ce_list))
-        archery_object = get_arcce_topolgy(ce_list, rr_owner)
+        archery_object = get_arcce_topology(ce_list, rr_owner)
     elif source.startswith('archery:'):
         logger.info('Obtaining services topology from ARCHERY DNS endpoint: %s', source[8:])
         archery_object = fetch_archery_dns_data(source[8:], threads=cmd_args.threads)
@@ -1354,6 +1480,7 @@ if __name__ == '__main__':
         archery_object = get_gocdb_topology(rr_owner)
     elif source == 'help':
         sources_types = {
+            'json': 'Topology defined in JSON configuration file',
             'arcce-list': 'List of ARC CE hostnames stored in file',
             'archery': 'ARCHERY endpoint',
             'egiis': 'Legacy EGIIS LDAP URI',
