@@ -32,10 +32,18 @@ from threading import Thread, Lock
 try:
     from Queue import Queue
 except ImportError:
-    from queue import Queue
+   from queue import Queue
 
 # GLOBAL VARIABLES
 _fetch_timeout = 10
+
+# Initialize logger
+logger = logging.getLogger('ARC.ARCHERY-Manage')
+logger.setLevel(logging.WARNING)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
 
 
 #
@@ -59,6 +67,7 @@ class HTTPSInsecureConnection(httplib.HTTPSConnection):
 
 
 class TimeoutQueue(Queue):
+    """FIFO Queue with defined timeout to wait for Queue Join"""
     def join_with_timeout(self, timeout):
         self.all_tasks_done.acquire()
         try:
@@ -105,6 +114,7 @@ def output_arc_celist(archery_object, cmd_args):
 
 def json_config_object(archery_object):
     """Translate internal extended JSON to expanded JSON config that can be used as a source"""
+    # helper function to use with output_json_config()
     jconf = {}
     if 'id' in archery_object:
         jconf['id'] = archery_object['id']
@@ -120,13 +130,15 @@ def json_config_object(archery_object):
     else:
         kind = 'group'
 
+    external_object = None
     if 'pointer_rr_data' in archery_object:
-        jconf['external-archery-object'] = archery_object['pointer_rr_data'].split(' ')[0].replace('u=', '')
-        return kind, jconf
+        external_object = archery_object['pointer_rr_data'].split(' ')[0].replace('u=', '')
 
     if kind == 'service':
         jconf['endpoints'] = []
         if 'endpoints' in archery_object:
+            if archery_object['endpoints']:
+                external_object = None  # do not mix endpoints and external
             for e in archery_object['endpoints']:
                 if 's' in e and e['s'] == '0':
                     jconf['endpoints'].append({
@@ -138,6 +150,8 @@ def json_config_object(archery_object):
                     jconf['endpoints'].append({e['u']: e['t']})
 
     if 'contains' in archery_object:
+        if archery_object['contains']:
+            external_object = None  # do not mix natively nested objects and external
         for child in archery_object['contains']:
             ckind, cobj = json_config_object(child)
             if ckind == 'service':
@@ -148,6 +162,13 @@ def json_config_object(archery_object):
                 if 'groups' not in jconf:
                     jconf['groups'] = []
                 jconf['groups'].append(cobj)
+
+    if external_object is not None:
+        jconf['external-archery-object'] = external_object
+        # do not put leftovers to external object config
+        for accidental_key in ['id', 'type', 'endpoints', 'contains']:
+            if accidental_key in jconf:
+                del jconf[accidental_key]
 
     return kind, jconf
 
@@ -214,7 +235,7 @@ _output_formatters = {
     'endpoints': output_endpoints,
     'zonefile': output_zonefile,
     'json': output_json_config,
-    'object-debug': output_internal_object
+    '_debug': output_internal_object
 }
 
 
@@ -222,9 +243,18 @@ _output_formatters = {
 # ENDPOINT FILTERING CLASSES
 #
 class EndpointFilter(object):
-    """Abstract interface class for implementing endpoint filters"""
+    """Base interface class for implementing endpoint filters"""
+    def __init__(self):
+        self.filter_on_fetch = False
+
     def filter(self, endpoint_dict):
         raise NotImplementedError('Filter function should be implemented (return True means filtering)')
+
+    def set_on_fetch(self):
+        self.filter_on_fetch = True
+
+    def on_fetch(self):
+        return self.filter_on_fetch
 
     def help(self):
         raise NotImplementedError('Help function should be implemented')
@@ -236,24 +266,31 @@ class EndpointFilterType(EndpointFilter):
         'org.nordugrid.ldapglue2',
         'org.nordugrid.ldapng',
         'org.ogf.glue.emies.resourceinfo'
+        'org.nordugrid.arcrest'
     ]
 
-    def __init__(self, args='resourceinfo'):
+    @staticmethod
+    def type():
+        return 'type'
+
+    def __init__(self, args='arc-resourceinfo'):
+        super(EndpointFilterType, self).__init__()
+
         self._allowed_endpoint_types = args.split(',')
         # handle resourceinfo alias for all nordugrid information endpoint types
-        if 'resourceinfo' in self._allowed_endpoint_types:
+        if 'arc-resourceinfo' in self._allowed_endpoint_types:
             self._allowed_endpoint_types += self._resourseinfo_endpoint_types
-            self._allowed_endpoint_types.remove('resourceinfo')
+            self._allowed_endpoint_types.remove('arc-resourceinfo')
 
         logger.debug('Applying endpoints filtering with the following allowed types: %s',
                      ','.join(self._allowed_endpoint_types))
 
     def filter(self, endpoint_dict):
-        logger.debug('Endpoint type filter: checking %s (type %s) complies filter definition',
-                     endpoint_dict['u'], endpoint_dict['t'])
         if endpoint_dict['t'] not in self._allowed_endpoint_types:
             logger.info('Endpoint %s (type %s) filtered (type filter)', endpoint_dict['u'], endpoint_dict['t'])
             return True
+        logger.debug('Endpoint %s (type %s) is allowed by defined type filter',
+                     endpoint_dict['u'], endpoint_dict['t'])
         return False
 
     def help(self):
@@ -265,8 +302,14 @@ class EndpointFilterPortscan(EndpointFilter):
     __uri_re = re.compile(r'^(?P<uri>(?:[^:]+)://(?P<host>[^:/]+):(?P<port>[0-9]+))/*.*')
 
     def __init__(self, args=None):
+        super(EndpointFilterPortscan, self).__init__()
+
         self.__args = args
         self.timeout = _fetch_timeout
+
+    @staticmethod
+    def type():
+        return 'portscan'
 
     def filter(self, endpoint_dict):
         uri_data = self.__uri_re.match(endpoint_dict['u'])
@@ -276,15 +319,17 @@ class EndpointFilterPortscan(EndpointFilter):
             address = uri_parms['host']
             port = int(uri_parms['port'])
             try:
-                logger.debug('Portscan filter: testing %s:%s connectivity.', address, port)
+                logger.debug('Testing connectivity to %s:%s network endpoint', address, port)
                 s.settimeout(self.timeout)
                 s.connect((address, port))
             except Exception as err:
-                logger.info('Endpoint %s (type %s) filtered (port connectivity filter). Exception is %s',
-                            endpoint_dict['u'], endpoint_dict['t'], err)
+                logger.info('Endpoint %s (type %s) filtered (port connectivity filter) %s',
+                            endpoint_dict['u'], endpoint_dict['t'], str(err))
                 return True
             finally:
                 s.close()
+            logger.debug('Endpoint %s (type %s) is allowed by port connectivity filter',
+                         endpoint_dict['u'], endpoint_dict['t'])
             return False
         else:
             logger.error('Endpoint %s (type %s) filtered (port connectivity filter). Failed to parse URI.',
@@ -301,74 +346,28 @@ class EndpointFilterAllowedVO(EndpointFilter):
     __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
 
     def __init__(self, args=''):
+        super(EndpointFilterAllowedVO, self).__init__()
+        self.filter_on_fetch = True
+
         self._allowed_vos = args.split(',')
         self.timeout = _fetch_timeout
 
+    @staticmethod
+    def type():
+        return 'vo'
+
     def filter(self, endpoint_dict):
-        ldap_uri = endpoint_dict['u']
-        if endpoint_dict['t'] == 'org.nordugrid.ldapglue2':
-            ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(
-                endpoint_dict['id'])
-            ldap_attrs = ['GLUE2PolicyRule']
-        elif endpoint_dict['t'] == 'org.nordugrid.ldapng':
-            ldap_filter = '(objectClass=nordugrid-cluster)'
-            ldap_attrs = ['nordugrid-cluster-acl']
-        elif endpoint_dict['t'] == 'org.nordugrid.gridftpjob':
-            # query LDAP-NG for GridftpJob interface
-            ldap_filter = '(objectClass=nordugrid-cluster)'
-            ldap_attrs = ['nordugrid-cluster-acl']
-            uri_data = self.__uri_re.match(endpoint_dict['u'])
-            if uri_data:
-                uri_parms = uri_data.groupdict()
-                ldap_uri = 'ldap://{0}:2135/o=grid'.format(uri_parms['host'])
-            else:
-                logger.error('Endpoint %s (type %s) filtered (allowed VO filter). Failed to parse URI.',
-                             endpoint_dict['u'], endpoint_dict['t'])
+        if 'vos' not in endpoint_dict:
+            logger.debug('No VO policy defined for endpoint %s (type %s). Filter will not block it.',
+                         endpoint_dict['u'], endpoint_dict['t'])
+            return False
+        for vo in self._allowed_vos:
+            if vo not in endpoint_dict['vos']:
+                logger.info('Endpoint %s (type %s) filtered (allowed VO filter)', endpoint_dict['u'],
+                            endpoint_dict['t'])
                 return True
-        else:
-            # for other non-LDAP endpoints, like EMI-ES, LDAP GLUE2 queried for endpoint info
-            uri_data = self.__uri_re.match(endpoint_dict['u'])
-            if uri_data:
-                uri_parms = uri_data.groupdict()
-                ldap_uri = 'ldap://{0}:2135/o=glue'.format(uri_parms['host'])
-                ldap_filter = '(&(objectClass=GLUE2AccessPolicy)(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(
-                    endpoint_dict['id'])
-                ldap_attrs = ['GLUE2PolicyRule']
-            else:
-                logger.error('Endpoint %s of type %s filtered (allowed VO filter). Failed to parse URI.',
-                             endpoint_dict['u'], endpoint_dict['t'])
-                return True
-
-        parse_ldap_uri = self.__ldap_uri_re.match(ldap_uri)
-        if parse_ldap_uri:
-            aris_params = parse_ldap_uri.groupdict()
-            ldap_uri = aris_params['uri']
-            ldap_basedn = aris_params['basedn']
-            try:
-                logger.debug('Allowed VO Filter: querying ARIS %s for allowed VOs', ldap_uri)
-                ldap_conn = ldap.initialize(ldap_uri)
-                ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, self.timeout)
-                ldap_conn.set_option(ldap.OPT_TIMEOUT, self.timeout)
-                ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
-
-                search_r = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
-                if search_r is None:
-                    # it should not happens but just in case
-                    return True
-                for (_, volist) in search_r:
-                    if ldap_attrs[0] not in volist:
-                        return True
-                    volist = [v.decode().split(':', 1)[1] for v in volist[ldap_attrs[0]]]
-                    for vo in self._allowed_vos:
-                        if vo not in volist:
-                            logger.info('Endpoint %s (type %s) filtered (allowed VO filter)', endpoint_dict['u'],
-                                        endpoint_dict['t'])
-                            return True
-            except ldap.LDAPError as err:
-                logger.error('Endpoint %s (type %s) filtered (allowed VO filter). '
-                             'Failed to query LDAP endpoint %s to apply VO filter. Error: %s',
-                             endpoint_dict['u'], endpoint_dict['t'], ldap_uri, LDAPStrError(err))
-                return True
+        logger.debug('Endpoint %s (type %s) is allowed by defined VO filter',
+                     endpoint_dict['u'], endpoint_dict['t'])
         return False
 
     def help(self):
@@ -380,6 +379,33 @@ _filters = {
     'vo': EndpointFilterAllowedVO,
     'portscan': EndpointFilterPortscan
 }
+
+
+def filter_endpoints(archery_object, filters):
+    """Recursively loop over archery onject and apply filters"""
+    if archery_object['object'] == 'service':
+        if 'endpoints' in archery_object and archery_object['endpoints']:
+            filtered_endpoints = []
+            for e in archery_object['endpoints']:
+                filtered = False
+                for fo in filters:
+                    if not fo.on_fetch():
+                        if fo.filter(e):
+                            filtered = True
+                            break
+                if not filtered:
+                    filtered_endpoints.append(e)
+            archery_object['endpoints'] = filtered_endpoints
+            if not filtered_endpoints:
+                return False
+    else:
+        if 'contains' in archery_object:
+            filtered_contains = []
+            for c in archery_object['contains']:
+                if filter_endpoints(c, filters):
+                    filtered_contains.append(c)
+            archery_object['contains'] = filtered_contains
+    return True
 
 
 #
@@ -565,8 +591,16 @@ def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
 #
 def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_timeout, filters=None):
     """Get ARC CE endpoints by querying LDAP GLUE2 (fallback to LDAP NG query)"""
+    # define filters
+    fetch_vos = False
     if filters is None:
         filters = []
+    else:
+        for f in filters:
+            if f.type() == 'vo':
+                fetch_vos = True
+                break
+
     endpoints = []
 
     ldap_uri = 'ldap://{0}:{1}'.format(hostname, port)
@@ -598,10 +632,23 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
             if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
                 e_entry['s'] = '0'
+                # fetch access policy if VO filtering is requested
+            if fetch_vos:
+                ldap_vo_filter = '(&(objectClass=GLUE2AccessPolicy)' \
+                                 '(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(e_id)
+                logger.debug('Querying AccessPolicy for endpoint %s (type %s)', e_url, e_type)
+                vo_q_res = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_vo_filter, ['GLUE2PolicyRule'])
+                if vo_q_res:
+                    for(_, policy_list) in vo_q_res:
+                        if 'GLUE2PolicyRule' in policy_list:
+                            e_vos = [v.decode().split(':', 1)[1] for v in policy_list['GLUE2PolicyRule']]
+                            if e_vos:
+                                e_entry['vos'] = e_vos
             # apply filters if any
             for fo in filters:
-                if fo.filter(e_entry):
-                    break
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
             else:
                 # add endpoint if not filtered
                 logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
@@ -629,7 +676,7 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
     ldap_basedn = 'Mds-Vo-name=local,o=grid'
 
     ldap_filter = '(objectClass=nordugrid-cluster)'
-    ldap_attrs = ['nordugrid-cluster-contactstring', 'nordugrid-cluster-name']
+    ldap_attrs = ['nordugrid-cluster-contactstring', 'nordugrid-cluster-name', 'nordugrid-cluster-acl']
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
@@ -653,10 +700,16 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
             e_url = ldap_ee['nordugrid-cluster-contactstring'][0].decode()
             e_type = 'org.nordugrid.gridftpjob'
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
+            # get authorized VOs if available
+            if 'nordugrid-cluster-acl' in ldap_ee:
+                e_vos = [v.decode().split(':', 1)[1] for v in ldap_ee['nordugrid-cluster-acl']]
+                if e_vos:
+                    e_entry['vos'] = e_vos
             # apply filters if any
             for fo in filters:
-                if fo.filter(e_entry):
-                    break
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
             else:
                 # add endpoint if not filtered
                 logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
@@ -725,7 +778,7 @@ def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=N
             return []
 
         if filters:
-            logger.warning('No filters support for legacy GLUE1.3')
+            logger.warning('No on-fetch filters support for legacy GLUE1.3')
 
         for ldap_dn, ldap_data in glue1_data:
             if 'GlueServiceEndpoint' in ldap_data:
@@ -800,8 +853,15 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
     if ldap_uri_dict is None:
         return []
 
+    # define filters
+    fetch_vos = False
     if filters is None:
         filters = []
+    else:
+        for f in filters:
+            if f.type() == 'vo':
+                fetch_vos = True
+                break
 
     services = {}
 
@@ -866,10 +926,25 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
             if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
                 e_entry['s'] = '0'
             e_service = ldap_ee['GLUE2EndpointServiceForeignKey'][0].decode()
+            # fetch access policy if VO filtering is requested
+            if fetch_vos:
+                ldap_vo_filter = '(&(objectClass=GLUE2AccessPolicy)' \
+                                 '(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(e_id)
+                logger.debug('Querying AccessPolicy for endpoint %s (type %s)', e_url, e_type)
+                vo_q_res = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_vo_filter, ['GLUE2PolicyRule'])
+                if vo_q_res:
+                    for(_, policy_list) in vo_q_res:
+                        if 'GLUE2PolicyRule' in policy_list:
+                            e_vos = [v.decode().split(':', 1)[1]
+                                     for v in policy_list['GLUE2PolicyRule']
+                                     if v.decode().lower().startswith('vo:')]
+                            if e_vos:
+                                e_entry['vos'] = e_vos
             # apply filters if any
             for fo in filters:
-                if fo.filter(e_entry):
-                    break
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
             else:
                 # add endpoint if not filtered
                 logger.debug('Found endpoint %s (type %s) for %s service', e_url, e_type, e_service)
@@ -914,8 +989,14 @@ def _worker_info_fetch(fetch_queue, lock):
                 # generate rr_owner for nested objects
                 if pdata['obj_attr'] == 'contains':
                     for fobj in fetch_data:
+                        if 'endpoints' in fobj and not fobj['endpoints']:
+                            logger.warning('Service %s (type %s) contains no valid endpoints. Skipping.',
+                                           fobj['id'], fobj['type'])
+                            continue
                         fobj['rr_owner'] = dns_rr_owner_name(fobj, pdata['obj']['rr_owner'])
-                pdata['obj'][pdata['obj_attr']] += fetch_data
+                        pdata['obj']['contains'].append(fobj)
+                else:
+                    pdata['obj'][pdata['obj_attr']] += fetch_data
             # handle status (mark as inactive if no endpoints are fetched)
             if not pdata['obj'][pdata['obj_attr']]:
                 pdata['obj']['status'] = 0
@@ -944,7 +1025,7 @@ def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None)
             # per-source filters from config
             source_filters = []
             if 'filters' in archery_object['contains_fetch']:
-                source_filters.extend(get_configured_fillters(archery_object['contains_fetch']['filters']))
+                source_filters.extend(get_configured_fillters(archery_object['contains_fetch']['filters'], True))
             if applied_filters is not None:
                 source_filters.extend(applied_filters)
             for fetch_method in archery_object['contains_fetch'].keys():
@@ -964,7 +1045,7 @@ def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None)
             enqueue_object_data_fetch(fetch_queue, child_object, applied_filters)
 
 
-def get_configured_fillters(filters_list=None):
+def get_configured_fillters(filters_list=None, force_on_fetch=False):
     """Return list of filtering objects from """
     applied_filters = []
     if filters_list is not None:
@@ -983,6 +1064,8 @@ def get_configured_fillters(filters_list=None):
                 continue
             fclass = _filters[ftype]
             fobj = fclass(fargs)
+            if force_on_fetch:
+                fobj.set_on_fetch()
             applied_filters.append(fobj)
     return applied_filters
 
@@ -1001,7 +1084,7 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
         worker.setDaemon(True)
         worker.start()
     # wait for parallel fetch to complete
-    logger.info('Waiting for fetching data completion...')
+    logger.info('Waiting for endpoint data fetching completion...')
     # make it killable
     while not fetch_queue.empty():
         time.sleep(0.3)
@@ -1460,14 +1543,6 @@ def get_parser():
                         help='Per-source information fetching timeout (default is %(default)s seconds)')
     return parser
 
-# Initialize logger
-logger = logging.getLogger('ARC.ARCHERY-Manage')
-logger.setLevel(logging.WARNING)
-log_handler_stderr = logging.StreamHandler()
-log_handler_stderr.setFormatter(
-    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
-logger.addHandler(log_handler_stderr)
-
 if __name__ == '__main__':
     # Process command line arguments
     parser = get_parser()
@@ -1561,6 +1636,16 @@ if __name__ == '__main__':
     # Fetch topology data from defined infosys services
     logger.info('Fetching endpoints data from information system.')
     fetch_infosys_data(archery_object, applied_filters, threads=cmd_args.threads)
+
+    # Post-fetch endpoint filtering
+    do_filtering = False
+    for f in applied_filters:  # at least on not on-fetch filter should be defined
+        if not f.on_fetch():
+            do_filtering = True
+            break
+    if do_filtering:
+        logger.info('Starting endpoint filtering loop')
+        filter_endpoints(archery_object, applied_filters)
 
     # Invoke DDNS update if requested
     if cmd_args.ddns_update:
