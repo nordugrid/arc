@@ -760,15 +760,29 @@ namespace ArcDMCSRM {
   }
 
   bool DataPointSRM::SupportsTransfer() const {
-    DataStatus r = SetupHandler(DataStatus::GenericError);
-    if (!r) 
-      return false; // use safe choice
-    return (*r_handle)->SupportsTransfer();
+    // Being optimistic. In worst case will return error in Transfer().
+    return true;
   }
 
   DataStatus DataPointSRM::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    // TODO: replace simplified check with proper one
+    if (turls.empty()) {
+      // Not ready for transfers yet.
+      // TODO: Replace default timeout constant with proper value.
+      DataStatus r;
+      unsigned int wait_time(0);
+      if (source) {
+        r = PrepareReading(300, wait_time);
+      } else {
+        r = PrepareWriting(300, wait_time);
+      }
+      if (!r.Passed())
+        return r;
+    }
     DataStatus r = SetupHandler(DataStatus::GenericError);
     if (!r) 
+      return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
+    if (!(*r_handle)->SupportsTransfer())
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     return (*r_handle)->Transfer(otherendpoint, source, callback);
   }
