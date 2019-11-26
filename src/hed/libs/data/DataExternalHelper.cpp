@@ -71,7 +71,7 @@ namespace Arc {
     //}
 
     result = plugin->StartReading(buffer);
-    if (result.Passed()) {
+    if (!result.Passed()) {
       plugin->FinishReading(true);
       return result;
     }
@@ -95,8 +95,9 @@ namespace Arc {
     plugin->StopReading();
     plugin->FinishReading(buffer.error());
 
-    if(buffer.error())
+    if(buffer.error()) {
       return DataStatus::ReadError;
+    }
 
     return DataStatus::Success;
   }
@@ -135,7 +136,7 @@ namespace Arc {
     //}
 
     result = plugin->StartWriting(buffer);
-    if (result.Passed()) {
+    if (!result.Passed()) {
       plugin->FinishReading(true);
       return result;
     }
