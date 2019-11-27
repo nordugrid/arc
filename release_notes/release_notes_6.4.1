@@ -5,14 +5,25 @@ Advanced Resource Connector (ARC)
 Release Notes for NorduGrid ARC  6.4.1     18.11.2019
 ------------------------------------------------------
 
-This is an express release to repair xrootd which was recently discovered as broken since ARC 6.2.0.
+This is an express release to repair two blocker bugs discovered in ARC. 
 
-Highlights in this release
---------------------------
+* An improvement to the handling of xrootd in ARC 6.3.0 (Bugzilla ticket 3870) turned out to break xrootd transfers.
+  This is now solved, with improvement intact. 
+* Accounting: Since ARC 6.4.0 the accounting could not handle cases when a job was submitted by a proxy without a VO name.
+  Protection against zero values are now in place.
+
+
+In addition we have sneaked in a small fix related to PBS, allowing queue names to include a dot.
+
+For information regarding all the changes in the regular 6.4.0 release,
+including the new accounting subsystem, please see the release notes at http://www.nordugrid.org/arc/releases/6.4/release_notes_6.4.html
+
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
-
+* 3890 xrootd transfers don't work
+* 3889 Jobs submitted with proxy without VOMS AC extension can corrupt accounting database 
+* 3888 PBS queue with dots in their names
 
 Documentation
 ==============
