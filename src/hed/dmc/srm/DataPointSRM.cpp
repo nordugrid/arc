@@ -179,6 +179,7 @@ namespace ArcDMCSRM {
                                           unsigned int& wait_time) {
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC, "Already writing");
     if (reading && r_handle) return DataStatus(DataStatus::IsReadingError, EARCLOGIC, "Already reading");
+    if (reading && !turls.empty()) return DataStatus::Success; // Already prepared
 
     reading = true;
     turls.clear();
@@ -372,6 +373,7 @@ namespace ArcDMCSRM {
                                           unsigned int& wait_time) {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC, "Already reading");
     if (writing && r_handle) return DataStatus(DataStatus::IsWritingError, EARCLOGIC, "Already writing");
+    if (writing && !turls.empty()) return DataStatus::Success; // Already prepared
 
     writing = true;
     turls.clear();
@@ -602,6 +604,7 @@ namespace ArcDMCSRM {
       }
       srm_request = NULL;
     }
+    turls.clear();
     return r;
   }
 
@@ -765,6 +768,8 @@ namespace ArcDMCSRM {
   }
 
   DataStatus DataPointSRM::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC, "Already reading");
+    if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC, "Already writing");
     // TODO: replace simplified check with proper one
     if (turls.empty()) {
       // Not ready for transfers yet.
@@ -776,13 +781,17 @@ namespace ArcDMCSRM {
       } else {
         r = PrepareWriting(300, wait_time);
       }
-      if (!r.Passed())
+      // TODO: Handle case when more calls to *Preparing is needed.
+      if (!r)
         return r;
     }
     DataStatus r = SetupHandler(DataStatus::GenericError);
     if (!r) 
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
-    if (!(*r_handle)->SupportsTransfer())
+    bool supportsTransfer = (*r_handle)->SupportsTransfer();
+    // Drop handle but keep results of *Preparing.
+    r_handle = NULL;
+    if (!supportsTransfer)
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     return (*r_handle)->Transfer(otherendpoint, source, callback);
   }
