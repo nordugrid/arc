@@ -354,7 +354,7 @@
 ## did not returned mapped identity (nomap).
 ## sequenced
 ## default: undefined
-#map_to_user=any nobody:nobody
+#map_to_user=authgroupA nobody:nobody
 
 ## map_to_pool = authgroup_name directory - the user that belong to specified
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
@@ -380,7 +380,7 @@
 ## This rule can be used to implement legacy grid-mapfile aproach.
 ## sequenced
 ## default: undefined
-#map_with_file=any /etc/grid-security/grid-mapfile
+#map_with_file=authgroupB /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
 ## external "plugin" executable with specified arguments to find the UNIX account 
@@ -398,7 +398,7 @@
 ## 'Using LCAS/LCMAPS' document.
 ## sequenced
 ## default: undefined
-#map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
+#map_with_plugin=authgroupC 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 
 ## policy_on_nomap = continue/stop - redefines mapping rules sequence processing policy
 ## in case identity of user match "authgroup" specified in the mapping rule and mapping
@@ -1482,23 +1482,27 @@
 
 
 ### The [arex/jura] block ###################################
-## A-REX is responsible for collecting accounting measurements from various ARC subsystems,
-## including batch system backends and DTR data staging and writes all data into accounting
-## database that can be queries with "arcctl accounting" locally.
+## A-REX is responsible for collecting accounting measurements from various ARC 
+## subsystems, including batch system backends and DTR data staging.
+##
+## Staring from 6.4 release A-REX writes all accounting data into the local accounting
+## database that can be queries with "arcctl accounting".
 ##
 ## JURA is the accounting record generating and reporting ARC CE module.
-## A-REX periodically executes JURA to create usage records based on the accounting target
-## configuration and using accounting database data.
+## A-REX periodically executes JURA to create usage records based on the 
+## accounting target configuration and using accounting data.
+##
+## NOTE that in the ARC releases before 6.4 the accounting measurements were 
+##   collected in the job log files that are only used for publishing records.
+##   This functionality is still supported for backward compatibility and will be
+##   deprecated in the subsequent ARC releases (notice deprecated options below).
 ##
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
+## 
 ## Note that a dedicated "accounting target" subblock is needed for every accounting
 ## destination. The target subblocks are either of a type "apel" or "sgas":
 ## "[arex/jura/apel:targetname]" or "[arex/jura/sgas:targetname]".
-##
-## Note that in this release it is still possible to use legacy jura implementation that is
-## based on job log files processing and records archiving for republishing for
-## backward compatibility. Legacy features will be removed in the next release.
 ##
 #[arex/jura]
 
@@ -1546,15 +1550,16 @@
 #x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE: new parameter in this block
 
-## urdelivery_keepfailed = days - Specifies for how many days JURA will try to send a record
-## to the destination accounting service before it gives up. Records not successfully sent
-## by after the number of days expired will be deleted from the controldir/logs directory.
+## urdelivery_keepfailed = days - (deprecated in 6.4.0) Specifies for how many days 
+## JURA will try to send a record to the destination accounting service before it 
+## gives up. Records not successfully sent by after the number of days expired 
+## will be deleted from the controldir/logs directory.
 ## The deleted records are nevertheless archived if archiving was turned on.
-## This parameter can be overwritten with a target specific value.
-## Note that this is LEGACY JURA ONLY parameter
+## Scatring from 6.4 all records are stored in the accounting database without
+## expiration time independently of publishing process.
 ## default: 30
 #urdelivery_keepfailed=30
-## CHANGE: LEGACY OPTION
+## CHANGE: TO BE DEPRECATED
 ##
 ### end of the [arex/jura] block ########################################
 
