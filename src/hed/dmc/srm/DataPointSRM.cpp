@@ -771,11 +771,11 @@ namespace ArcDMCSRM {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC, "Already reading");
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC, "Already writing");
     // TODO: replace simplified check with proper one
+    DataStatus r;
+    unsigned int wait_time(0);
     if (turls.empty()) {
       // Not ready for transfers yet.
       // TODO: Replace default timeout constant with proper value.
-      DataStatus r;
-      unsigned int wait_time(0);
       if (source) {
         r = PrepareReading(300, wait_time);
       } else {
@@ -785,15 +785,22 @@ namespace ArcDMCSRM {
       if (!r)
         return r;
     }
-    DataStatus r = SetupHandler(DataStatus::GenericError);
+    r = SetupHandler(DataStatus::GenericError);
     if (!r) 
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     bool supportsTransfer = (*r_handle)->SupportsTransfer();
-    // Drop handle but keep results of *Preparing.
-    r_handle = NULL;
-    if (!supportsTransfer)
+    if (!supportsTransfer) {
+      // Drop handle but keep results of *Preparing.
+      r_handle = NULL;
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
-    return (*r_handle)->Transfer(otherendpoint, source, callback);
+    }
+    r = (*r_handle)->Transfer(otherendpoint, source, callback);
+    if (source) {
+      FinishReading(!r);
+    } else {
+      FinishWriting(!r);
+    }
+    return r;
   }
 
   void DataPointSRM::CheckProtocols(std::list<std::string>& transport_protocols) {
