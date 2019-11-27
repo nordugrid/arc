@@ -310,7 +310,6 @@ BuildRequires:	ldns-devel >= 1.6.8
 %endif
 %if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
 BuildRequires:	python-argparse
-Requires:	python-argparse
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:   pkgconfig(bash-completion)
@@ -467,12 +466,30 @@ This package contains the PHP web application that is used to set up a
 web-based monitor which pulls information from the LDAP information
 system and visualizes it.
 
+%package arcctl
+Summary:	ARC Control Tool
+Group:      Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+BuildArch:  noarch
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+Requires:	python-argparse
+%endif
+
+%description arcctl
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC Contol Tool with basic set of control
+modules suitable for both server and client side.
+
 %package arex
 Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Requires:	%{name}-arcctl = %{version}-%{release}
 # remove older SDK package on update to 6.4
 %if %{py3default}
 Obsoletes:  python3-%{name} < 6.4.0
@@ -1127,6 +1144,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/__init__.py
 %{python3_sitearch}/%{pkgdir}/paths.py
 %{python3_sitearch}/%{pkgdir}/paths_dist.py
@@ -1134,15 +1152,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
-%{python3_sitearch}/%{pkgdir}/utils
-%{python3_sitearch}/%{pkgdir}/control
 %else
 %dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/__init__.py*
 %{python2_sitearch}/%{pkgdir}/paths.py*
 %{python2_sitearch}/%{pkgdir}/paths_dist.py*
-%{python2_sitearch}/%{pkgdir}/utils
-%{python2_sitearch}/%{pkgdir}/control
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
@@ -1151,6 +1166,37 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
+
+%files arcctl
+%{_sbindir}/arcctl
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/__init__.py
+%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
+%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
+%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
+%{python3_sitearch}/%{pkgdir}/control/OSService.py
+%{python3_sitearch}/%{pkgdir}/control/TestCA.py
+%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
+%else
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
+%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
+%endif
+%doc %{_mandir}/man1/arcctl.1*
 
 %files client
 %defattr(-,root,root,-)
@@ -1329,7 +1375,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
-%doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
@@ -1348,8 +1393,47 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
+%{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
+%{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
+%{python3_sitearch}/%{pkgdir}/control/Accounting.py
+%{python3_sitearch}/%{pkgdir}/control/Cache.py
+%{python3_sitearch}/%{pkgdir}/control/Config.py
+%{python3_sitearch}/%{pkgdir}/control/CECommon.py
+%{python3_sitearch}/%{pkgdir}/control/Jobs.py
+%{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
+%{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
+%{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
+%{python3_sitearch}/%{pkgdir}/control/Services.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CECommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
+%{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*
+%{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
+%{python2_sitearch}/%{pkgdir}/control/Accounting.py*
+%{python2_sitearch}/%{pkgdir}/control/Cache.py*
+%{python2_sitearch}/%{pkgdir}/control/Config.py*
+%{python2_sitearch}/%{pkgdir}/control/CECommon.py*
+%{python2_sitearch}/%{pkgdir}/control/Jobs.py*
+%{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
+%{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
+%{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
+%{python2_sitearch}/%{pkgdir}/control/Services.py*
 %endif
 %{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
@@ -1362,7 +1446,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_datadir}/%{pkgdir}/rte/ENV/CONDOR
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
-%{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
 
 %if %{with_pythonlrms}
