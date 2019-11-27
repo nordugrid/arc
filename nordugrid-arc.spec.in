@@ -554,7 +554,7 @@ Summary:    ARC Globus plugins (compat)
 Group:      System Environment/Libraries
 Obsoletes:  %{name}-plugins-globus < 6.4.0
 Requires:   %{name} = %{version}-%{release}
-Requires:   %{name}-plugins-globus-dmc = %{version}-%{release}
+Requires:   %{name}-plugins-gridftp = %{version}-%{release}
 Requires:   %{name}-plugins-lcas-lcmaps = %{version}-%{release}
 Requires:   %{name}-plugins-gridftpjob = %{version}-%{release}
 
@@ -589,20 +589,20 @@ ARC Globus plugins common libraries package includes the bundle of
 necessary Globus libraries needed for all other globus-dependent ARC 
 components.
 
-%package plugins-globus-dmc
+%package plugins-gridftp
 Summary:    ARC Globus dependent DMCs
 Group:      System Environment/Libraries
 Requires:   %{name} = %{version}-%{release}
 Requires:   globus-ftp-client
 Requires:   %{name}-plugins-globus-common = %{version}-%{release}
 
-%description plugins-globus-dmc
+%description plugins-gridftp
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC Globus dependent DMCs. These Data Manager Components allow access
-to data through the gridftp protocol.
+ARC Globus GridFTP plugins. These allow access to data through 
+the gridftp protocol.
 
 %package plugins-lcas-lcmaps
 Summary:    ARC LCAS/LCMAPS plugins
@@ -615,8 +615,8 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC LCAS/LCMAPS tools allow to configure ARC CE to use LCAS/LCMAPS services for
-authorization and mapping. 
+ARC LCAS/LCMAPS tools allow to configure ARC CE to use LCAS/LCMAPS
+services for authorization and mapping.
 
 %package plugins-gridftpjob
 Summary:    ARC GRIDFTPJOB client plugin
@@ -624,7 +624,7 @@ Group:      System Environment/Libraries
 Requires:   %{name} = %{version}-%{release}
 Requires:   globus-ftp-control
 Requires:   %{name}-plugins-globus-common = %{version}-%{release}
-Requires:   %{name}-plugins-globus-dmc = %{version}-%{release}
+Requires:   %{name}-plugins-gridftp = %{version}-%{release}
 
 %description plugins-gridftpjob
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1535,7 +1535,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/libarcglobusutils.so.*
 
-%files plugins-globus-dmc
+%files plugins-gridftp
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/arc-dmcgridftp
 %{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
