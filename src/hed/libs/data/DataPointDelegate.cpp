@@ -207,7 +207,7 @@ namespace Arc {
 
     // If error in buffer then write thread have already called abort
     if(buffer && !buffer->eof_read() && !buffer->error()) { // otherwise it will exit itself
-      logger.msg(VERBOSE, "StopWriting: aborting connection");
+      logger.msg(VERBOSE, "StopReading: aborting connection");
       buffer->error_read(true);
     }
     helper_run->Kill(1); // kill anyway - it won't get worse
@@ -238,7 +238,8 @@ namespace Arc {
         break;
       }
       if(chunkReader.complete()) {
-        tag = DataExternalComm::InTag(*run, 1000 * it->usercfg.Timeout());
+        // No timeout here. Timeouts are implemented externally in DataMover through call to StopReading().
+        tag = DataExternalComm::InTag(*run, -1);
         if(tag != DataExternalComm::DataChunkTag) {
           logger.msg(DEBUG, "read_thread: non-data tag '%c' from external process - leaving: %s", tag, it->url.plainstr());
           it->buffer->is_read(h, 0, 0);
@@ -302,8 +303,8 @@ namespace Arc {
     if(buffer && !buffer->eof_write() && !buffer->error()) { // otherwise it will exit itself
       logger.msg(VERBOSE, "StopWriting: aborting connection");
       buffer->error_write(true);
-      helper_run->Kill(1);
     }
+    helper_run->Kill(1);
     // Waiting for data transfer thread to finish
     cond.wait();
     helper_run = NULL;
@@ -368,16 +369,16 @@ namespace Arc {
           // no buffers and no errors - must be pure eof
           o = buffer.eof_position();
           DataExternalComm::DataChunkExtBuffer dc;
-          if((!DataExternalComm::OutTag(*run, timeout, DataExternalComm::DataChunkTag)) || (!dc.write(*run, timeout, NULL, o, 0))) {
+          // No timeout here. Timeouts are implemented externally through call to StopWriting().
+          if((!DataExternalComm::OutTag(*run, -1, DataExternalComm::DataChunkTag)) || (!dc.write(*run, -1, NULL, o, 0))) {
             out_failed = true;
             break;
           }
-          buffer.eof_write(true);
           break;
         }
         if(l > 0) {
           DataExternalComm::DataChunkExtBuffer dc;
-          if((!DataExternalComm::OutTag(*run, timeout, DataExternalComm::DataChunkTag)) || (!dc.write(*run, timeout, buffer[h], o, l))) {
+          if((!DataExternalComm::OutTag(*run, -1, DataExternalComm::DataChunkTag)) || (!dc.write(*run, -1, buffer[h], o, l))) {
             logger.msg(VERBOSE, "write_thread: out failed - aborting");
             buffer.is_notwritten(h);
             out_failed = true;
@@ -386,18 +387,21 @@ namespace Arc {
         }
         buffer.is_written(h);
       }
-    }
-    logger.msg(VERBOSE, "write_thread: exiting");
-    if(out_failed) {
-      buffer.error_write(true);
-      // Communication with helper failed but may still read status
-      it->data_status = it->EndCommand(run, DataStatus::WriteError);
-    } else if(buffer.error_write()) {
-      // Report generic error
-      it->data_status = DataStatus::WriteError;
+      logger.msg(VERBOSE, "write_thread: exiting");
+      if(out_failed) {
+        // Communication with helper failed but may still read status
+        it->data_status = it->EndCommand(run, DataStatus::WriteError);
+        buffer.error_write(true);
+      } else if(buffer.error_write()) {
+        // Report generic error
+        it->data_status = DataStatus::WriteError;
+      } else {
+        // So far so good - read status
+        it->data_status = it->EndCommand(run, DataStatus::WriteError);
+        buffer.eof_write(true);
+      }
     } else {
-      // So far so good - read status
-      it->data_status = it->EndCommand(run, DataStatus::WriteError);
+      it->data_status = DataStatus::WriteError;
     }
     it->cond.signal(); // Report to control thread that data transfer thread finished
   }
@@ -497,14 +501,16 @@ namespace Arc {
     DataStatus result = StartCommand(run, argv, DataStatus::TransferError);
     if(!result) return result;
     // Read callback information till end tag is received
-    char tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    // Looks like Transfer() method was designed to not timeout.
+    // Hence waiting for each tag indefinitely.
+    char tag = DataExternalComm::InTag(*run, -1);
     while(tag == DataExternalComm::TransferStatusTag) {
       DataExternalComm::TransferStatus transfer_status(0);
       if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), transfer_status)) {
         return DataStatus(DataStatus::TransferError, "Failed to read data transfer status from helper process for "+url.plainstr());
       }
       if(callback) (*callback)(transfer_status.bytes_count); 
-      tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+      tag = DataExternalComm::InTag(*run, -1);
     }
     result = EndCommand(run, DataStatus::TransferError, tag);
     if(!result) return result; 
@@ -520,14 +526,16 @@ namespace Arc {
     DataStatus result = StartCommand(run, argv, DataStatus::TransferError);
     if(!result) return result;
     // Read callback information till end tag is received
-    char tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+    // Looks like Transfer3rdParty() method was designed to not timeout.
+    // Hence waiting for each tag indefinitely.
+    char tag = DataExternalComm::InTag(*run, -1);
     while(tag == DataExternalComm::TransferStatusTag) {
       DataExternalComm::TransferStatus transfer_status(0);
       if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), transfer_status)) {
         return DataStatus(DataStatus::TransferError, "Failed to read data transfer status from helper process for "+url.plainstr());
       }
       if(callback) (*callback)(transfer_status.bytes_count);
-      tag = DataExternalComm::InTag(*run, 1000*usercfg.Timeout());
+      tag = DataExternalComm::InTag(*run, -1);
     }
     result = EndCommand(run, DataStatus::TransferError, tag);
     if(!result) return result;

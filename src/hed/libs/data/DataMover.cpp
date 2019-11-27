@@ -786,6 +786,7 @@ namespace Arc {
               cache.StopAndDelete(canonic_url);
             // Check if SupportsTransfer was too optimistic
             if (datares != DataStatus::UnimplementedError) return datares;
+              logger.msg(INFO, "Internal transfer method is not supported for %s", source_url.str());
           } else {
             try_another_transfer = false;
           }
@@ -802,6 +803,7 @@ namespace Arc {
             }
             // Check if SupportsTransfer was too optimistic
             if (datares != DataStatus::UnimplementedError) return datares;
+            logger.msg(INFO, "Internal transfer method is not supported for %s", destination.str());
           } else {
             try_another_transfer = false;
           }
