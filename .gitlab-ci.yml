@@ -21,7 +21,7 @@ deploy_staging_deb9:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $name_container
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
@@ -49,7 +49,7 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $name_container
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
@@ -78,7 +78,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $name_container
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
