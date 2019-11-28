@@ -11,7 +11,6 @@ deploy_staging_deb9:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - docker pull maikenp/arc-deploy-deb9
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
     - echo "*************>>  Done - back from inner container"
