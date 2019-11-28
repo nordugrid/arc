@@ -39,7 +39,7 @@ deploy_staging_el6:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - name_container="el6_`date +%Y%m%d-%H%M`
+    - name_container=el6_`date +%Y%m%d-%H%M`
     - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - docker stop $name_container
     - echo "*************>>  Done - back from inner container"
