@@ -5,8 +5,6 @@
 stages:
   - deploy_and_test
 
-
-
 deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
@@ -93,7 +91,6 @@ deploy_staging_centos7:
   tags:
     - 158.39.75.5 
   allow_failure: true
-
 
 
 ## note-to-self: can also download the rpms from latest job with (example for el7):
