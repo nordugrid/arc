@@ -195,6 +195,7 @@ namespace Arc {
       outstream<<"meta:"<<encode(attr->first)<<elemSep<<encode(attr->second)<<itemSep;
     }
     outstream<<entrySep;
+    outstream.flush();
     return !outstream.fail();
   }
 
@@ -233,6 +234,7 @@ namespace Arc {
     outstream<<status.GetErrno()<<itemSep;
     outstream<<encode(status.GetDesc())<<itemSep;
     outstream<<entrySep;
+    outstream.flush();
     return !outstream.fail();
   }
 
@@ -257,6 +259,7 @@ namespace Arc {
   bool DataExternalComm::OutEntry(std::ostream& outstream, Arc::DataExternalComm::TransferStatus const& status) {
     outstream<<status.bytes_count<<itemSep;
     outstream<<entrySep;
+    outstream.flush();
     return !outstream.fail();
   }
 
