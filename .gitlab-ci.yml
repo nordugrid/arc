@@ -13,7 +13,6 @@ deploy_staging_deb9:
   script:
     - name_container=deb9_`date +%Y%m%d-%H%M`
     - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
-    - docker stop $name_container
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -22,6 +21,7 @@ deploy_staging_deb9:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container
   environment:
     name: staging
   artifacts:
@@ -41,7 +41,6 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - name_container=el6_`date +%Y%m%d-%H%M`
     - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
-    - docker stop $name_container
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -50,6 +49,7 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container
   environment:
     name: staging
   artifacts:
@@ -70,7 +70,6 @@ deploy_staging_centos7:
     - docker pull maikenp/arc-deploy-centos7
     - name_container=deb9_`date +%Y%m%d-%H%M`
     - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
-    - docker stop $name_container
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -79,6 +78,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container
   environment:
     name: staging
   artifacts:
