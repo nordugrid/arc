@@ -252,7 +252,11 @@ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
+    - ls -lhrt /arc-testfiles
+    - ls -lhrt /arc-logs
+    - name_container=deb9_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-debian9 || true
+    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -261,6 +265,7 @@ deploy_staging_deb9:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
@@ -283,7 +288,9 @@ deploy_staging_el6:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - docker run -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - name_container=el6_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-centos6 || true
+    - docker run  --name=$name_container --privileged  -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -292,6 +299,7 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
@@ -314,8 +322,9 @@ deploy_staging_centos7:
   image: docker:stable
   script:
     - export DOCKER_API_VERSION=1.19
-    - docker pull maikenp/arc-deploy-centos7
-    - docker run --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - name_container=el7_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-centos7 || true
+    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -324,6 +333,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
