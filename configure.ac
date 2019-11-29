@@ -1851,6 +1851,12 @@ fi
 # Check for clock_gettime
 AC_SEARCH_LIBS([clock_gettime], [rt])
 
+# Define bash-completion dir
+PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
+  [bashcompdir="`pkg-config --variable=completionsdir bash-completion`"],
+  [bashcompdir="${sysconfdir}/bash_completion.d"])
+AC_SUBST([bashcompdir])
+
 # check for fsusage
 if test "$enables_hed" = "yes"; then
 gl_FSUSAGE

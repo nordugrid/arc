@@ -172,9 +172,8 @@ namespace Arc {
         tearDown();
         throw SQLiteException(IString("Failed checking database (%s)", name).str(), err);
       }
+      JobInformationStorageSQLite::logger.msg(DEBUG, "Job database connection established successfully (%s)", name);
     }
-
-    JobInformationStorageSQLite::logger.msg(DEBUG, "Job database created successfully (%s)", name);
   }
 
   void JobInformationStorageSQLite::JobDB::tearDown() {

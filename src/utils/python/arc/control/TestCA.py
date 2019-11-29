@@ -37,6 +37,11 @@ class TestCAControl(ComponentControl):
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
 
+    def __define_ca_dir(self, dir):
+        """Define alternative CA dir"""
+        self.x509_cert_dir = dir
+        self.__define_CA_ID()
+
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
         self.x509_cert_dir = '/etc/grid-security/certificates'
@@ -45,7 +50,10 @@ class TestCAControl(ComponentControl):
         # Use values from arc.conf if possible
         self.arcconfig = arcconfig
         if arcconfig is None:
-            self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
+            if arcctl_ce_mode():
+                self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
+            else:
+                self.logger.debug('Working in config-less mode. Default paths will be used.')
         else:
             x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
             if x509_cert_dir:
@@ -245,17 +253,23 @@ class TestCAControl(ComponentControl):
                         usercertfiles.keyLocation,
                         os.getcwd()))
         # add subject to allowed list
-        if not args.no_auth:
-            try:
-                self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
-                                 usercertfiles.dn, self.__test_authfile)
-                with open(self.__test_authfile, 'a') as a_file:
-                    a_file.write('"{0}"\n'.format(usercertfiles.dn))
-            except IOError as err:
-                self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
-                sys.exit(1)
+        if arcctl_ce_mode():
+            if not args.no_auth:
+                try:
+                    self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
+                                     usercertfiles.dn, self.__test_authfile)
+                    with open(self.__test_authfile, 'a') as a_file:
+                        a_file.write('"{0}"\n'.format(usercertfiles.dn))
+                except IOError as err:
+                    self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
+                    sys.exit(1)
 
     def control(self, args):
+        # define CA dir if provided
+        if args.ca_dir is not None:
+            self.__define_ca_dir(args.ca_dir)
+        # no need to go further if it CA dir is not writable
+        ensure_path_writable(self.x509_cert_dir)
         # define CA ID if provided
         if args.ca_id is not None:
             self.__define_CA_ID(args.ca_id)
@@ -279,6 +293,8 @@ class TestCAControl(ComponentControl):
 
         testca_ctl.add_argument('--ca-id', action='store',
                                 help='Define CA ID to work with (default is to use hostname-based hash)')
+        testca_ctl.add_argument('--ca-dir', action='store',
+                                help='Redefine path to CA files directory')
 
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
@@ -306,4 +322,5 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
-        testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')
+        if arcctl_ce_mode():
+            testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

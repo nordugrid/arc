@@ -12,12 +12,12 @@ CLILIBS = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
-arcsub_SOURCES  = arcsub.cpp utils.cpp utils.h
+arcsub_SOURCES  = arcsub.cpp utils.cpp utils.h submit.cpp submit.h
 arcsub_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcsub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
 
-arctest_SOURCES  = arctest.cpp utils.cpp utils.h
+arctest_SOURCES  = arctest.cpp utils.cpp utils.h submit.cpp submit.h
 arctest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arctest_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
@@ -57,7 +57,7 @@ arcsync_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcsync_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)
 
-arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h
+arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h submit.cpp submit.h
 arcresub_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
 arcresub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(DBCXX_LIBS)

@@ -201,6 +201,7 @@ namespace ARex {
     static int ReadIdNameCallback(void* arg, int colnum, char** texts, char** names) {
         name_id_map_t* name_id_map = static_cast<name_id_map_t*>(arg);
         std::pair <std::string, unsigned int> rec;
+        rec.second = 0;
         for (int n = 0; n < colnum; ++n) {
             if (names[n] && texts[n]) {
                 if (strcmp(names[n], "ID") == 0) {
@@ -212,7 +213,7 @@ namespace ARex {
                 }
             }
         }
-        if(!rec.first.empty()) name_id_map->insert(rec);
+        if(rec.second) name_id_map->insert(rec);
         return 0;
     }
 
@@ -370,10 +371,15 @@ namespace ARex {
         initSQLiteDB();
         // get the corresponding IDs in connected tables
         unsigned int endpointid = getDBEndpointId(aar.endpoint);
+        if (!endpointid) return false;
         unsigned int queueid = getDBQueueId(aar.queue);
+        if (!queueid) return false;
         unsigned int userid = getDBUserId(aar.userdn);
+        if (!userid) return false;
         unsigned int wlcgvoid = getDBWLCGVOId(aar.wlcgvo);
+        if (!wlcgvoid) return false;
         unsigned int statusid = getDBStatusId(aar.status);
+        if (!statusid) return false;
         // construct insert statement
         std::string sql = "INSERT INTO AAR ("
             "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, StatusID, ExitCode, "
