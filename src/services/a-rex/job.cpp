@@ -732,7 +732,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // are handling input in clever way.
   job_input_status_add_file(job,config_.GmConfig());
   // Create status file (do it last so GM picks job up here)
-  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED,false)) {
     delete_job_id();
     failure_="Failed registering job in A-REX";
     failure_type_=ARexJobInternalError;
