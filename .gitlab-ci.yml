@@ -17,9 +17,6 @@ packages_el7:
     - echo "Test" > rpmbuild/RPMS/test.rpm
   tags:
     - build
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
   artifacts:
     when: on_success
     expire_in: 30 days
