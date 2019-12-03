@@ -34,8 +34,9 @@ deploy_staging_centos7:
   script:
     - pwd
     - ls -lhrt
-    - ls -lhrt rpmbuild
-    - ls -lhrt builds
+    - ls -lhrt rpmbuild/*
+    - ls -lhrt rpmbuild/RPMS/*
+    - ls -lhrt rpmbuild/RPMS/x86_64
     - echo $CI_PROJECT_DIR
     - export DOCKER_API_VERSION=1.19
     - docker ps -a
