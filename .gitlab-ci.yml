@@ -254,8 +254,9 @@ deploy_staging_deb9:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - name_container=deb9_`date +%Y%m%dT%H%M`
-    - docker run --name=$name_container -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - deploy_container=deb9_`date +%Y%m%dT%H%M`
+    - docker run --name=$deploy_container -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -288,8 +289,9 @@ deploy_staging_el6:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - name_container=el6_`date +%Y%m%dT%H%M`
-    - docker run  --name=$name_container --privileged  -v "$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - deploy_container=el6_`date +%Y%m%dT%H%M`
+    - docker run  --name=$deploy_container --privileged  -v "$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -325,8 +327,9 @@ deploy_staging_centos7:
     - ls -lhrt rpmbuild
     - echo $CI_PROJECT_DIR
     - export DOCKER_API_VERSION=1.19
-    - name_container=el7_`date +%Y%m%dT%H%M`
-    - docker run  --name=$name_container --privileged  -v "/$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - deploy_container=el7_`date +%Y%m%dT%H%M`
+    - docker run  --name=$deploy_container --privileged --volumes-from $gitlab_container -v "/$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -335,6 +338,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - rm -rf $CI_PROJECT_DIR/rpmbuild
     - docker stop $name_container || true
   environment:
     name: staging
