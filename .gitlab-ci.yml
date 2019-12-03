@@ -3,7 +3,7 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
-  - build
+  - packages
   - deploy_and_test
 
 packages_el7:
