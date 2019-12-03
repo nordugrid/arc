@@ -63,15 +63,24 @@ deploy_staging_el6:
     - docker-socket-runner-bgo4 
   allow_failure: true
 
-
 deploy_staging_centos7:
   stage: deploy_and_test
   image: docker:stable
   script:
+    - pwd
+    - ls -lhrt
+    - ls -lhrt rpmbuild
+    - echo $CI_PROJECT_DIR
     - export DOCKER_API_VERSION=1.19
-    - name_container=el7_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-centos7 || true 
-    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - echo $gitlab_container
+    - deploy_container=el7_`date +%Y%m%dT%H%M`
+    - echo $deploy_container
+    - echo "Test" > $CI_PROJECT_DIR/rpmbuild/test.rpm
+    - cat $CI_PROJECT_DIR/rpmbuild/test.rpm
+    - docker run  --name $deploy_container  --volumes-from $gitlab_container --privileged -v "/$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfile\
+s:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-dep\
+loy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -80,6 +89,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
+    - rm -rf $CI_PROJECT_DIR/rpmbuild
     - docker stop $name_container || true
   environment:
     name: staging
@@ -89,9 +99,5 @@ deploy_staging_centos7:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
   tags:
-    - 158.39.75.5 
+    - 158.39.75.5
   allow_failure: true
-
-
-## note-to-self: can also download the rpms from latest job with (example for el7):
-    ## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
