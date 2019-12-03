@@ -38,7 +38,7 @@ deploy_staging_centos7:
     - echo $CI_PROJECT_DIR
     - export DOCKER_API_VERSION=1.19
     - docker ps -a
-    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - echo $gitlab_container
     - deploy_container=el7_`date +%Y%m%dT%H%M`
     - echo $deploy_container
