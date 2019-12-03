@@ -12,9 +12,13 @@ packages_el7:
   script:
     - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
     - VERSION=`cat VERSION`
-    - echo "Test" > rpmbuild/RPMS/test.rpm
+    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
+    - unzip artifacts.zip
+    - pwd
+    - ls 
+    - mv rpmbuild/RPMS/x86_64 rpmbuild/RPMS/
+    - mv rpmbuild/RPMS/noarch rpmbuild/RPSM/
   tags:
     - build
   artifacts:
