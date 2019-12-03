@@ -3,66 +3,33 @@
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
 stages:
+  - build
   - deploy_and_test
 
-deploy_staging_deb9:
-  stage: deploy_and_test
-  image: docker:stable
+packages_el7:
+  stage: packages
+  image: maikenp/arc-build-centos7
   script:
-    - ls -lhrt /arc-testfiles
-    - ls -lhrt /arc-logs
-    - name_container=deb9_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-debian9 || true 
-    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-    - rm -rf /arc-logs/*
-    - ls -lhrt /arc-logs
-    - rm -f /arc-testlogs/*
-    - ls -lhrt /arc-testlogs
-    - docker stop $name_container || true
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     #- $CI_PROJECT_DIR/arc-tests/
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - echo "Test" > rpmbuild/RPMS/test.rpm
   tags:
-    - docker-socket-runner1
-  allow_failure: true
-
-deploy_staging_el6:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - ls -lhrt /arc-testfiles
-    - ls -lhrt /arc-logs
-    - name_container=el6_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-centos6 || true 
-    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-    - rm -rf /arc-logs/*
-    - ls -lhrt /arc-logs
-    - rm -f /arc-testlogs/*
-    - ls -lhrt /arc-testlogs
-    - docker stop $name_container || true
-  environment:
-    name: staging
+    - build
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   artifacts:
-    when: always
+    when: on_success
+    expire_in: 30 days
     paths:
-     - $CI_PROJECT_DIR/arc-logs/
-     #- $CI_PROJECT_DIR/arc-tests/
-  tags:
-    - docker-socket-runner-bgo4 
-  allow_failure: true
-
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+  
+  
 deploy_staging_centos7:
   stage: deploy_and_test
   image: docker:stable
@@ -96,6 +63,8 @@ deploy_staging_centos7:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
+  dependencies:
+    - packages_el7
   tags:
     - 158.39.75.5
   allow_failure: true
