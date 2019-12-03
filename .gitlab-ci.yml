@@ -44,7 +44,7 @@ deploy_staging_centos7:
     - echo $gitlab_container
     - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
     - ls -lhrt /rpmbuild
-    - docker run  --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - docker run  --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - rm -rf $CI_PROJECT_DIR/rpmbuild
     - ls -lhrt /arc-logs
