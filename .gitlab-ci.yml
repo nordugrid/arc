@@ -254,9 +254,9 @@ deploy_staging_deb9:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - deploy_container=deb9_`date +%Y%m%dT%H%M`
-    - docker run --name=$deploy_container -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - docker run --name=$deploy_container --volumes-from $gitlab_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -265,7 +265,7 @@ deploy_staging_deb9:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $name_container || true
+    - docker stop $deploy_container || true
   environment:
     name: staging
   artifacts:
@@ -289,9 +289,9 @@ deploy_staging_el6:
   script:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
-    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - deploy_container=el6_`date +%Y%m%dT%H%M`
-    - docker run  --name=$deploy_container --privileged  -v "$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - docker run --name=$deploy_container --volumes-from $gitlab_container --privileged  -v "/rpmbuild:/rpmbuild:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -300,7 +300,7 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $name_container || true
+    - docker stop $deploy_container || true
   environment:
     name: staging
   artifacts:
@@ -323,14 +323,17 @@ deploy_staging_centos7:
   image: docker:stable
   script:
     - pwd
-    - ls -lhrt
-    - ls -lhrt rpmbuild
-    - echo $CI_PROJECT_DIR
+     - ls -lhrt
+    - ls -lhrt $CI_PROJECT_DIR/rpmbuild/*
     - export DOCKER_API_VERSION=1.19
-    - gitlab_container=$(docker ps -a | awk 'FNR>1' | awk '{print $NF}')
     - deploy_container=el7_`date +%Y%m%dT%H%M`
-    - docker run  --name=$deploy_container --privileged --volumes-from $gitlab_container -v "/$CI_PROJECT_DIR/rpmbuild:/rpmbuild:rw" -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - docker pull maikenp/arc-deploy-centos7
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
+    - ls -lhrt /rpmbuild
+    - docker run  --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
+    - rm -rf /rpmbuild/*
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
@@ -338,8 +341,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - rm -rf $CI_PROJECT_DIR/rpmbuild
-    - docker stop $name_container || true
+    - docker stop $deploy_container || true
   environment:
     name: staging
   artifacts:
