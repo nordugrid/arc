@@ -42,7 +42,7 @@ deploy_staging_centos7:
     - echo $deploy_container
     - docker pull maikenp/arc-deploy-centos7
     - ls $CI_PROJECT_DIR/rpmbuild/*
-    - docker ps -a
+    - ls /arc-testfiles
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - echo $gitlab_container
     - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
