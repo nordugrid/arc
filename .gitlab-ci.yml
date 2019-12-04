@@ -155,7 +155,4 @@ deploy_staging_el7:
     - packages_el7
   tags:
     - 158.39.75.5 
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
   allow_failure: true
