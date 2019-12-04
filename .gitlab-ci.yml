@@ -127,7 +127,7 @@ deploy_staging_el6:
   allow_failure: true
 
 
-deploy_staging_centos7:
+deploy_staging_el7:
   stage: deploy_and_test
   image: docker:stable
   script:
