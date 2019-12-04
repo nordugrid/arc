@@ -248,6 +248,7 @@ run_static_analysis_el6:
       - $CI_PROJECT_DIR/arc-tests/
   allow_failure: false
 
+
 deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
@@ -255,8 +256,8 @@ deploy_staging_deb9:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
     - name_container=deb9_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-debian9 || true
-    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - docker pull maikenp/arc-deploy-debian9
+    - docker run --name=$name_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -276,7 +277,8 @@ deploy_staging_deb9:
   dependencies:
     - packages_deb9
   tags:
-    - docker-socket-runner1
+    - 158.37.63.83
+    - deploy
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -289,8 +291,8 @@ deploy_staging_el6:
     - ls -lhrt /arc-testfiles
     - ls -lhrt /arc-logs
     - name_container=el6_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-centos6 || true
-    - docker run  --name=$name_container --privileged  -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - docker pull maikenp/arc-deploy-centos6
+    - docker run  --name=$name_container --privileged  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -310,21 +312,21 @@ deploy_staging_el6:
   dependencies:
     - packages_el6
   tags:
-    - docker-socket-runner-bgo4 
+    - 158.39.74.3
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   allow_failure: true
 
 
-deploy_staging_centos7:
+deploy_staging_el7:
   stage: deploy_and_test
   image: docker:stable
   script:
     - export DOCKER_API_VERSION=1.19
     - name_container=el7_`date +%Y%m%dT%H%M`
-    - docker image rm maikenp/arc-deploy-centos7 || true
-    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - docker pull maikenp/arc-deploy-centos7
+    - docker run --name=$name_container --privileged  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -344,7 +346,7 @@ deploy_staging_centos7:
   dependencies:
     - packages_el7
   tags:
-    - 158.39.75.5 
+    - 158.39.75.5
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -353,4 +355,4 @@ deploy_staging_centos7:
 
 
 ## note-to-self: can also download the rpms from latest job with (example for el7):
-    ## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
+## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
