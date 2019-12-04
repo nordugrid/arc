@@ -71,7 +71,8 @@ packages_el7:
   allow_failure: false
   
   
-  deploy_staging_deb9:
+  
+ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
