@@ -92,7 +92,7 @@ deploy_staging_deb9:
   dependencies:
     - packages_deb9
   tags:
-    - docker-socket-runner1
+    - 158.37.63.83
   allow_failure: true
 
 deploy_staging_el6:
@@ -123,7 +123,7 @@ deploy_staging_el6:
   dependencies:
     - packages_el6
   tags:
-    - docker-socket-runner-bgo4 
+    - 158.39.74.3
   allow_failure: true
 
 
