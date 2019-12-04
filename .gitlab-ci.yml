@@ -6,6 +6,49 @@ stages:
   - packages
   - deploy_and_test
 
+
+packages_deb9:
+  stage: packages
+  image: maikenp/arc-build-debian9
+  script:
+    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_deb9' -O artifacts.zip
+    - unzip artifacts.zip
+    - pwd
+    - ls  rpmbuild
+  tags:
+    - build
+
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
+  allow_failure: true
+
+
+packages_el6:
+  stage: packages
+  image: maikenp/arc-build-centos6
+  script:
+    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el6' -O artifacts.zip
+    - unzip artifacts.zip
+    - pwd
+    - ls  rpmbuild
+  tags:
+    - build
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+  
+  
 packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
@@ -27,6 +70,70 @@ packages_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
   
+  
+  deploy_staging_deb9:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - ls -lhrt /arc-testfiles
+    - ls -lhrt /arc-logs
+    - name_container=deb9_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-debian9 || true
+    - docker run --name=$name_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
+  dependencies:
+    - packages_deb9
+  tags:
+    - docker-socket-runner1
+  allow_failure: true
+
+deploy_staging_el6:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - ls -lhrt /arc-testfiles
+    - ls -lhrt /arc-logs
+    - name_container=el6_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-centos6 || true
+    - docker run  --name=$name_container --privileged  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+     #- $CI_PROJECT_DIR/arc-tests/
+  dependencies:
+    - packages_el6
+  tags:
+    - docker-socket-runner-bgo4 
+  allow_failure: true
+
+
   
 deploy_staging_centos7:
   stage: deploy_and_test
