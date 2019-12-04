@@ -98,6 +98,7 @@ packages_el8:
   image: maikenp/arc-build-centos8
   script:
     - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - rm -f /var/lib/rpm/__db*
     - rpm --rebuilddb
     - yum update -y
     - ./autogen.sh
