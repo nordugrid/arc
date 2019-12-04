@@ -1,7 +1,3 @@
-## Please do not change this file.
-## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file.
-## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
-
 stages:
   - packages
   - deploy_and_test
@@ -17,7 +13,6 @@ packages_deb9:
     - ls  rpmbuild
   tags:
     - build
-
   artifacts:
     when: on_success
     expire_in: 30 days
@@ -47,14 +42,12 @@ packages_el6:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
-  
-  
+
+
 packages_el7:
   stage: packages
   image: maikenp/arc-build-centos7
   script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - VERSION=`cat VERSION`
     - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
     - unzip artifacts.zip
     - pwd
@@ -69,10 +62,10 @@ packages_el7:
     - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
     - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
   allow_failure: false
-  
-  
-  
- deploy_staging_deb9:
+
+
+
+deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
@@ -80,7 +73,7 @@ packages_el7:
     - ls -lhrt /arc-logs
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker image rm maikenp/arc-deploy-debian9 || true
-    - docker run --name=$name_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -111,7 +104,7 @@ deploy_staging_el6:
     - ls -lhrt /arc-logs
     - name_container=el6_`date +%Y%m%dT%H%M`
     - docker image rm maikenp/arc-deploy-centos6 || true
-    - docker run  --name=$name_container --privileged  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
+    - docker run  --name=$name_container --privileged  -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -135,24 +128,15 @@ deploy_staging_el6:
   allow_failure: true
 
 
-  
 deploy_staging_centos7:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - pwd
-    - echo $CI_PROJECT_DIR
-    - ls -lhrt
-    - ls -lhrt $CI_PROJECT_DIR/rpmbuild/*
     - export DOCKER_API_VERSION=1.19
-    - deploy_container=el7_`date +%Y%m%dT%H%M`
-    - docker pull maikenp/arc-deploy-centos7
-    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
-    - ls -lhrt /rpmbuild
-    - docker run  --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
+    - name_container=el7_`date +%Y%m%dT%H%M`
+    - docker image rm maikenp/arc-deploy-centos7 || true
+    - docker run --name=$name_container --privileged -v "/arc-testfiles:/arc-testfiles:rw" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos7
     - echo "*************>>  Done - back from inner container"
-    - rm -rf /rpmbuild/*
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
@@ -160,7 +144,7 @@ deploy_staging_centos7:
     - ls -lhrt /arc-logs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
-    - docker stop $deploy_container || true
+    - docker stop $name_container || true
   environment:
     name: staging
   artifacts:
@@ -171,5 +155,8 @@ deploy_staging_centos7:
   dependencies:
     - packages_el7
   tags:
-    - 158.39.75.5
+    - 158.39.75.5 
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   allow_failure: true
