@@ -93,6 +93,7 @@ deploy_staging_deb9:
     - packages_deb9
   tags:
     - 158.37.63.83
+    - deploy 
   allow_failure: true
 
 deploy_staging_el6:
