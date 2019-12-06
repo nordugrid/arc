@@ -881,7 +881,7 @@ sub parseConfig {
     #print Dumper($config);
 
     # C 134
-    LogUtils::level($config->{arex}{loglevel}) if $config->{arex}{loglevel};
+    LogUtils::level($config->{infosys}{loglevel}) if $config->{infosys}{loglevel};
 
     my $checker = InfoChecker->new($config_schema);
     my @messages = $checker->verify($config,1);
