@@ -1851,6 +1851,12 @@ fi
 # Check for clock_gettime
 AC_SEARCH_LIBS([clock_gettime], [rt])
 
+# Define bash-completion dir
+PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
+  [bashcompdir="`pkg-config --variable=completionsdir bash-completion`"],
+  [bashcompdir="${sysconfdir}/bash_completion.d"])
+AC_SUBST([bashcompdir])
+
 # check for fsusage
 if test "$enables_hed" = "yes"; then
 gl_FSUSAGE
@@ -2132,7 +2138,7 @@ AC_SUBST(nodename)
 posix_shell='/bin/sh'
 AC_SUBST(posix_shell)
 
-DATE=`date +%Y-%m-%d`
+DATE=`date +%Y-%m-%d ${SOURCE_DATE_EPOCH:+-u -d @$SOURCE_DATE_EPOCH}`
 AC_SUBST(DATE)
 #DATER=`date -R`
 DATER=`date +'%a, %d %b %Y %H:%M:%S %z'`
@@ -2275,6 +2281,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/gm-delegations-converter.8
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
+                 src/services/a-rex/grid-manager/accounting/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile
                  src/services/a-rex/grid-manager/jobs/Makefile
@@ -2292,8 +2299,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/jura/Makefile
                  src/services/a-rex/jura/jura.1
-                 src/services/a-rex/jura/ssm/Makefile
-                 src/services/a-rex/jura/ssm/ssmsend
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
                  src/services/a-rex/lrms/arc/Makefile
@@ -2439,11 +2444,13 @@ AC_CONFIG_FILES([Makefile
                  src/utils/python/arccandypond
                  src/utils/python/arcctl
                  src/utils/python/arcctl.1
-                 src/utils/python/jura-archive-manager
+                 src/utils/python/jura-ng
                  src/utils/python/arc/Makefile
                  src/utils/python/arc/gen_paths_dist.sh
                  src/utils/python/arc/utils/Makefile
                  src/utils/python/arc/control/Makefile
+                 src/utils/python/arc/ssm/Makefile
+                 src/utils/python/arc/ssm/ssmsend
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile

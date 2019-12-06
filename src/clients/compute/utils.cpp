@@ -29,6 +29,7 @@ ConsoleRecovery::~ConsoleRecovery(void) {
   delete ti;
 }
 
+
 std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> computingelements) {
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, std::list<std::string>(), computingelements);
   std::list<std::string> serviceURLs;
@@ -230,6 +231,143 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
   return NULL;
 }
 
+bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster) {
+  bool arc6_target_options = false;
+  do {
+    if ( ! computing_elements.empty() ) { arc6_target_options = true; break; }
+    if ( ! registries.empty() ) { arc6_target_options = true; break; }
+    if ( ! requested_submission_endpoint_type.empty() ) { arc6_target_options = true; break; }
+    if ( ! requested_info_endpoint_type.empty() ) arc6_target_options = true;
+  } while (false);
+  bool legacy_target_options = false;
+  do {
+    if ( ! clusters.empty() && !allow_cluster ) { legacy_target_options = true; break; }
+    if ( ! indexurls.empty() ) { legacy_target_options = true; break; }
+    if ( ! requestedSubmissionInterfaceName.empty() ) { legacy_target_options = true; break; }
+    if ( ! infointerface.empty() ) { legacy_target_options = true; break; }
+    if ( direct_submission ) legacy_target_options = true;
+  } while (false);
+  if ( legacy_target_options && arc6_target_options ) {
+    logger.msg(Arc::ERROR, "It is impossible to mix ARC6 target selection options with legacy options. All legacy options will be ignored!");
+  }
+  return arc6_target_options;
+}
+
+bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
+  std::string s(requested_submission_endpoint_type);
+  std::string i(requested_info_endpoint_type);
+  // canonicalize submission endpoint
+  if ( !s.empty() ) {
+    if (s.find(".") == std::string::npos) {
+      s = "org.nordugrid." + s;
+    }
+    // replace EMI-ES type
+    if (s == "org.nordugrid.emies") {
+      s = "org.ogf.glue.emies.activitycreation";
+    // allow to use gridftp as gridftpjob
+    } else if ( s == "org.nordugrid.gridftp" ) {
+      s += "job";
+    }
+  }
+  // canonicalize information endpoint
+  if ( !i.empty() && Arc::lower(i) != "none" ) {
+    if (i.find(".") == std::string::npos ) {
+      i = "org.nordugrid." + i;
+    } else if ( i == "ldap.nordugrid" ) {
+      i = "org.nordugrid.ldapng";
+    } else if ( i == "ldap.glue2" ) {
+      i = "org.nordugrid.ldapglue2";
+    }
+    // replace EMI-ES type
+    if (i == "org.nordugrid.emies") {
+      i = "org.ogf.glue.emies.resourceinfo";
+    // allow to use gridftp as gridftpjob
+    } else if ( s == "org.nordugrid.gridftp" ) {
+      s += "job";
+    }
+  }
+
+  // nothing specified - any interface can be used
+  if ( s.empty() && i.empty() ) return true;
+
+  // define info based on submission (and verify submission type is supported)
+  if ( !s.empty() ) {
+    const std::string notify_template = "Automatically adding %s information endpoint type based on desired submission interface";
+    if ( s == "org.ogf.glue.emies.activitycreation" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.resourceinfo");
+        info_types.push_back("org.ogf.glue.emies.resourceinfo");
+      }
+    } else if ( s == "org.nordugrid.arcrest" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+        info_types.push_back("org.nordugrid.arcrest");
+      }
+    } else if ( s == "org.nordugrid.internal" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
+        info_types.push_back("org.nordugrid.internal");
+      }
+    } else if ( s == "org.nordugrid.gridftpjob" ) {
+      if ( i.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapng");
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapglue2");
+        info_types.push_back("org.nordugrid.ldapng");
+        info_types.push_back("org.nordugrid.ldapglue2");
+      }
+    } else {
+      logger.msg(Arc::ERROR, "Unsupported submission endpoint type: %s", s);
+      return false;
+    }
+    submit_types.push_back(s);
+  }
+
+  // define submission type based on info (and verify info type is supported)
+  if ( !i.empty() ) {
+    const std::string notify_template = "Automatically adding %s submission endpoint type based on desired information interface";
+    if ( i == "org.ogf.glue.emies.resourceinfo" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+      }
+    } else if ( i == "org.nordugrid.arcrest" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+        submit_types.push_back("org.nordugrid.arcrest");
+      }
+    } else if ( i == "org.nordugrid.internal" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
+        submit_types.push_back("org.nordugrid.internal");
+      }
+    } else if ( i == "org.nordugrid.ldapng" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+    } else if ( i == "org.nordugrid.ldapglue2" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+    } else if ( Arc::lower(i) == "none" ) {
+      if ( s.empty() ) {
+        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to %s and %s submission endpoint types", "org.ogf.glue.emies.activitycreation", "org.nordugrid.gridftpjob");
+        submit_types.push_back("org.ogf.glue.emies.activitycreation");
+        submit_types.push_back("org.nordugrid.gridftpjob");
+      }
+      return true;
+    } else {
+      logger.msg(Arc::ERROR, "Unsupported information endpoint type: %s", i);
+      return false;
+    }
+    info_types.push_back(i);
+  }
+  
+  return true;
+}
 
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,
@@ -251,9 +389,11 @@ ClientOptions::ClientOptions(Client_t c,
     printids(false),
     same(false),
     notsame(false),
+    forceclean(false),
     show_stdout(true),
     show_stderr(false),
     show_joblog(false),
+    show_json(false),
     usejobname(false),
     forcedownload(false),
     list_configured_services(false),
@@ -265,24 +405,61 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  AddOption('c', "cluster",
-            istring("select one or more computing elements: "
-                    "name can be an alias for a single CE, a group of CEs or a URL"),
-            istring("name"),
-            clusters);
+  DefineOptionsGroup("xaction", "Other actions");
+  DefineOptionsGroup("filtering", "Brokering and filtering");
+  DefineOptionsGroup("format", "Output format modifiers");
+  DefineOptionsGroup("tuning", "Behaviour tuning");
+  DefineOptionsGroup("arc6-target", "ARC6 submission endpoint selection");
+  DefineOptionsGroup("legacy-target", "Legacy options set for defining targets");
+
+  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
+    GroupAddOption("arc6-target", 'C', "computing-element",
+            istring("specify computing element hostname or a complete endpoint URL"),
+            istring("ce"),
+            computing_elements);
+
+    GroupAddOption("arc6-target", 'Y', "registry",
+            istring("registry service URL with optional specification of protocol"),
+            istring("registry"),
+            registries);
+  }
+
+  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
+    GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
+            istring("require the specified endpoint type for job submission"),
+            istring("type"),
+            requested_submission_endpoint_type);
+
+    GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
+            istring("require information query using the specified information endpoint type. "
+                    "Special value 'NONE' will disable all resource information queries and the following brokering"),
+            istring("type"),
+            requested_info_endpoint_type);
+  }
+
+  if (c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
+    GroupAddOption("legacy-target", 'c', "cluster",
+              istring("select one or more computing elements: "
+                      "name can be an alias for a single CE, a group of CEs or a URL"),
+              istring("name"),
+              clusters);
+  } else {
+    GroupAddOption("filtering", 'c', "cluster",
+              istring("only select jobs that submitted to this resource"),
+              istring("name"),
+              clusters);
+  }
   
   if (!cIsJobMan && c != CO_SYNC) {
-    AddOption('I', "infointerface",
+    GroupAddOption("legacy-target", 'I', "infointerface",
               istring("the computing element specified by URL at the command line "
-                      "should be queried using this information interface "
-                      "(possible options: org.nordugrid.ldapng, org.nordugrid.ldapglue2, "
-                      "org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)"),
+                      "should be queried using this information interface "),
               istring("interfacename"),
               infointerface);
   }
 
   if (c == CO_RESUB || c == CO_MIGRATE) {
-    AddOption('q', "qluster",
+    GroupAddOption("legacy-target", 'q', "qluster",
               istring("selecting a computing element for the new jobs with a URL or an alias, "
                       "or selecting a group of computing elements with the name of the group"),
               istring("name"),
@@ -290,119 +467,119 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_MIGRATE) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("force migration, ignore kill failure"),
               forcemigration);
   }
 
   if (c == CO_GET || c == CO_KILL || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('k', "keep",
+    GroupAddOption("tuning", 'k', "keep",
               istring("keep the files on the server (do not clean)"),
               keep);
   }
 
   if (c == CO_SYNC) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("do not ask for verification"),
               forcesync);
 
-    AddOption('T', "truncate",
+    GroupAddOption("tuning", 'T', "truncate",
               istring("truncate the joblist before synchronizing"),
               truncate);
 
-    AddOption('C', "convert",
+    GroupAddOption("xaction", 0, "convert",
               istring("do not collect information, only convert jobs storage format"),
               convert);
   }
 
   if (c == CO_INFO || c == CO_STAT) {
-    AddOption('l', "long",
+    GroupAddOption("format", 'l', "long",
               istring("long format (more information)"),
               longlist);
   }
 
   if (c == CO_INFO) {
-    AddOption('L', "list-configured-services",
+    GroupAddOption("xaction", 'L', "list-configured-services",
               istring("print a list of services configured in the client.conf"),
               list_configured_services);
   }
 
   if (c == CO_CAT) {
-    AddOption('o', "stdout",
+    GroupAddOption("xaction", 'o', "stdout",
               istring("show the stdout of the job (default)"),
               show_stdout);
 
-    AddOption('e', "stderr",
+    GroupAddOption("xaction", 'e', "stderr",
               istring("show the stderr of the job"),
               show_stderr);
 
-    AddOption('l', "joblog",
+    GroupAddOption("xaction", 'l', "joblog",
               istring("show the CE's error log of the job"),
               show_joblog);
 
-    AddOption('f', "file",
+    GroupAddOption("xaction", 'f', "file",
               istring("show the specified file from job's session directory"),
               istring("filepath"),
               show_file);
   }
 
   if (c == CO_GET) {
-    AddOption('D', "dir",
+    GroupAddOption("tuning", 'D', "dir",
               istring("download directory (the job directory will"
                       " be created in this directory)"),
               istring("dirname"),
               downloaddir);
 
-    AddOption('J', "usejobname",
+    GroupAddOption("tuning", 'J', "usejobname",
               istring("use the jobname instead of the short ID as"
                       " the job directory name"),
               usejobname);
 
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("force download (overwrite existing job directory)"),
               forcedownload);
   }
 
   if (c == CO_STAT) {
     // Option 'long' takes precedence over this option (print-jobids).
-    AddOption('p', "print-jobids", istring("instead of the status only the IDs of "
+    GroupAddOption("xaction", 'p', "print-jobids", istring("instead of the status only the IDs of "
               "the selected jobs will be printed"), printids);
 
-    AddOption('S', "sort",
+    GroupAddOption("tuning", 'S', "sort",
               istring("sort jobs according to jobid, submissiontime or jobname"),
               istring("order"), sort);
-    AddOption('R', "rsort",
+    GroupAddOption("tuning", 'R', "rsort",
               istring("reverse sorting of jobs according to jobid, submissiontime or jobname"),
               istring("order"), rsort);
 
-    AddOption('u', "show-unavailable",
+    GroupAddOption("tuning", 'u', "show-unavailable",
               istring("show jobs where status information is unavailable"),
               show_unavailable);
 
-    AddOption('J', "json",
+    GroupAddOption("format", 'J', "json",
               istring("show status information in JSON format"),
               show_json);
   }
 
   if (c == CO_RESUB) {
-    AddOption('m', "same",
+    GroupAddOption("filtering", 'm', "same",
               istring("resubmit to the same resource"),
               same);
 
-    AddOption('M', "not-same",
+    GroupAddOption("filtering", 'M', "not-same",
               istring("do not resubmit to the same resource"),
               notsame);
   }
 
   if (c == CO_CLEAN) {
-    AddOption('f', "force",
+    GroupAddOption("tuning", 'f', "force",
               istring("remove the job from the local list of jobs "
                       "even if the job is not found in the infosys"),
               forceclean);
   }
 
   if (!cIsJobMan) {
-    AddOption('g', "index",
+    GroupAddOption("legacy-target", 'g', "index",
               istring("select one or more registries: "
                       "name can be an alias for a single registry, a group of registries or a URL"),
               istring("name"),
@@ -410,37 +587,37 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    AddOption('J', "job",
+    GroupAddOption("xaction", 'J', "job",
               istring("submit test job given by the number"),
               istring("int"),
               testjobid);
-    AddOption('r', "runtime",
+    GroupAddOption("xaction", 'r', "runtime",
               istring("test job runtime specified by the number"),
               istring("int"),
               runtime);
   }
 
   if (cIsJobMan || c == CO_RESUB) {
-    AddOption('s', "status",
+    GroupAddOption("filtering", 's', "status",
               istring("only select jobs whose status is statusstr"),
               istring("statusstr"),
               status);
   }
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('a', "all",
+    GroupAddOption("filtering", 'a', "all",
               istring("all jobs"),
               all);
   }
 
   if (c == CO_SUB) {
-    AddOption('e', "jobdescrstring",
+    GroupAddOption("tuning", 'e', "jobdescrstring",
               istring("jobdescription string describing the job to "
                       "be submitted"),
               istring("string"),
               jobdescriptionstrings);
 
-    AddOption('f', "jobdescrfile",
+    GroupAddOption("tuning", 'f', "jobdescrfile",
               istring("jobdescription file describing the job to "
                       "be submitted"),
               istring("string"),
@@ -448,16 +625,16 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST) {
-    AddOption('b', "broker",
+    GroupAddOption("filtering", 'b', "broker",
               istring("select broker method (list available brokers with --listplugins flag)"),
               istring("broker"), broker);
 
-    AddOption('o', "jobids-to-file",
+    GroupAddOption("tuning", 'o', "jobids-to-file",
               istring("the IDs of the submitted jobs will be appended to this file"),
               istring("filename"),
               jobidoutfile);
     
-    AddOption('S', "submissioninterface",
+    GroupAddOption("legacy-target", 'S', "submissioninterface",
               istring("only use this interface for submitting "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
@@ -466,7 +643,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
   
   if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {
-    AddOption('R', "rejectdiscovery",
+    GroupAddOption("filtering", 'R', "rejectdiscovery",
               istring("skip the service with the given URL during service discovery"),
               istring("URL"),
               rejectdiscovery);
@@ -474,32 +651,32 @@ ClientOptions::ClientOptions(Client_t c,
   
 
   if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
-    AddOption('i', "jobids-from-file",
+    GroupAddOption("tuning", 'i', "jobids-from-file",
               istring("a file containing a list of jobIDs"),
               istring("filename"),
               jobidinfiles);
 
-    AddOption('r', "rejectmanagement",
+    GroupAddOption("filtering", 'r', "rejectmanagement",
               istring("skip jobs which are on a computing element with a given URL"),
               istring("URL"),
               rejectmanagement);    
   }
 
   if (c == CO_SUB || c == CO_TEST) {
-    AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
+    GroupAddOption("xaction", 'D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
-    AddOption(0, "direct", istring("submit directly - no resource discovery or matchmaking"),
+    GroupAddOption("legacy-target", 0, "direct", istring("submit directly - no resource discovery or matchmaking"),
               direct_submission);
 
-    AddOption('x', "dumpdescription",
+    GroupAddOption("xaction", 'x', "dumpdescription",
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
               dumpdescription);
   }
   
   if (c == CO_INFO) {
-    AddOption('S', "submissioninterface",
+    GroupAddOption("legacy-target", 'S', "submissioninterface",
               istring("only get information about executon targets which support this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
@@ -507,11 +684,11 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_TEST) {
-    AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
   }
 
   if (c != CO_INFO) {
-    AddOption('j', "joblist",
+    GroupAddOption("tuning", 'j', "joblist",
               Arc::IString("the file storing information about active jobs (default %s)", Arc::UserConfig::JOBLISTFILE()).str(),
               istring("filename"),
               joblist);
@@ -526,7 +703,7 @@ ClientOptions::ClientOptions(Client_t c,
   AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
             istring("seconds"), timeout);
 
-  AddOption('P', "listplugins",
+  GroupAddOption("xaction", 'P', "listplugins",
             istring("list the available plugins"),
             show_plugins);
 

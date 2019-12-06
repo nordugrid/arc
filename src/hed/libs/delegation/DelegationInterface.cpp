@@ -442,7 +442,7 @@ bool DelegationConsumer::Restore(const std::string& content) {
 
 bool DelegationConsumer::Generate(void) {
   bool res = false;
-  int num = 1024;
+  int num = 2048;
   //BN_GENCB cb;
   BIGNUM *bn = BN_new();
   RSA *rsa = RSA_new();

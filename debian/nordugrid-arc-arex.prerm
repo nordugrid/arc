@@ -6,5 +6,6 @@ set -e
 
 if [ "$1" = "remove" ] ; then
    arcctl test-ca cleanup
+   rmdir /etc/grid-security/certificates 2>/dev/null || :
+   rmdir /etc/grid-security 2>/dev/null || :
 fi
-

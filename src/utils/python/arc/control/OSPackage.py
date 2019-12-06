@@ -119,7 +119,7 @@ class OSPackageManagement(object):
             sys.exit(1)
 
     def update_cache(self):
-        command = self.command_base
+        command = self.command_base[:]
         if self.pm == 'yum' or self.pm == 'dnf':
             command += [self.pm_cmd, 'makecache']
         elif self.pm == 'apt':

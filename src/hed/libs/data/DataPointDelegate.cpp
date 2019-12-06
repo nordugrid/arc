@@ -91,13 +91,15 @@ namespace Arc {
     if(!DataExternalComm::InEntry(*run, 1000*usercfg.Timeout(), result)) {
       return DataStatus(errCode, "Failed to read data status from helper process for "+url.plainstr());
     }
-    if(!run->Wait(1000*usercfg.Timeout())) {
-      return DataStatus(errCode, EARCREQUESTTIMEOUT, "Timeout waiting for helper process for "+url.plainstr());
-    }
-    if(run->Result() != 0) {
-      return DataStatus(errCode, run->Result(), "Failed helper process for "+url.plainstr());
-    }
     if(!result) failure_code = result;
+    // At this point we have transfer result obtained from external process.
+    // Now whatever error we get from the process itself it is less relevant than transfer result.
+    // Hence wait for proces to exit. But do not do it for too long as process may hang due to internal bugs.
+    if(!run->Wait(10)) {  // 10 seconds should be enough for exiting process to fully exit
+      // We do not want processes hanging around.
+      run->Kill(1);
+    }
+    // It is probably safe to ignore exit code of the external program. run->Result()
     return result;
   }
 
@@ -533,7 +535,7 @@ namespace Arc {
   std::string::size_type const DataPointDelegate::LogRedirect::buffer_size_max_ = 4096;
 
   void DataPointDelegate::LogRedirect::Append(char const* data, unsigned int size) {
-    while(size >= 0) {
+    while(true) {
       char const* sep = (char const*)memchr(data, '\n', size);
       if (sep == NULL) break;
       if(buffer_.length() < buffer_size_max_) buffer_.append(data,sep-data);

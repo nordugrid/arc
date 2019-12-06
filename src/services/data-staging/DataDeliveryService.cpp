@@ -250,7 +250,7 @@ namespace DataStaging {
         bool proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
         if (!proxy_result && errno == ENOENT) {
           Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
-          proxy_result = Arc::FileCreate(proxy_file, credential);
+          proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
         }
         if (!proxy_result) {
           logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));

@@ -23,9 +23,9 @@
 ##  [arex/ws/candypond]
 ##  [arex/ws/argus]
 ##  [arex/jura]
-##  [arex/jura/archiving]
 ##  [arex/jura/sgas:targetname]
 ##  [arex/jura/apel:targetname]
+##  [arex/jura/archiving]
 ##  [arex/ganglia]
 ##  [gridftpd]
 ##  [gridftpd/jobs]
@@ -354,7 +354,7 @@
 ## did not returned mapped identity (nomap).
 ## sequenced
 ## default: undefined
-#map_to_user=any nobody:nobody
+#map_to_user=authgroupA nobody:nobody
 
 ## map_to_pool = authgroup_name directory - the user that belong to specified
 ## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
@@ -380,7 +380,7 @@
 ## This rule can be used to implement legacy grid-mapfile aproach.
 ## sequenced
 ## default: undefined
-#map_with_file=any /etc/grid-security/grid-mapfile
+#map_with_file=authgroupB /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
 ## external "plugin" executable with specified arguments to find the UNIX account 
@@ -398,7 +398,7 @@
 ## 'Using LCAS/LCMAPS' document.
 ## sequenced
 ## default: undefined
-#map_with_plugin=altas 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
+#map_with_plugin=authgroupC 30 /usr/libexec/arc/arc-lcmaps %D %P liblcmaps.so /usr/lib64 /etc/lcmaps/lcmaps.db arc
 
 ## policy_on_nomap = continue/stop - redefines mapping rules sequence processing policy
 ## in case identity of user match "authgroup" specified in the mapping rule and mapping
@@ -914,8 +914,8 @@
 ## A-REX. "time" is time period in seconds. Default is 3 minutes.
 ## Usually no need to change this parameter because important state changes
 ## are also triggering out-of-schedule checks.
-## NOTE: This parameter does not affect responsiveness of backend scripts -
-## especially "scan-<LRMS>-job". That means that upper estimation of time for
+## NOTE that this parameter does not affect responsiveness of backend scripts -
+##   especially "scan-<LRMS>-job". That means that upper estimation of time for
 ## detecting job finished executing is sum of responsiveness of backend
 ## script + wakeupperiod.
 ## default: 180
@@ -1482,57 +1482,55 @@
 
 
 ### The [arex/jura] block ###################################
-## JURA is the accounting  record generating and reporting module of A-REX.
-## A-REX periodically executes JURA to processes the job log files,
-## and based on the accounting target destinations specified in them,
-## JURA creates usage records in the appropriate format and sends
-## the generated records to one or more accounting service destinations.
-## Optionally, the generated accounting records can be archived on the CE.
+## A-REX is responsible for collecting accounting measurements from various ARC 
+## subsystems, including batch system backends and DTR data staging.
+##
+## Staring from 6.4 release A-REX writes all accounting data into the local accounting
+## database that can be queries with "arcctl accounting".
+##
+## JURA is the accounting record generating and reporting ARC CE module.
+## A-REX periodically executes JURA to create usage records based on the 
+## accounting target configuration and using accounting data.
+##
+## NOTE that in the ARC releases before 6.4 the accounting measurements were 
+##   collected in the job log files that are only used for publishing records.
+##   This functionality is still supported for backward compatibility and will be
+##   deprecated in the subsequent ARC releases (notice deprecated options below).
+##
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
+## 
 ## Note that a dedicated "accounting target" subblock is needed for every accounting
-## destination. The target subblocks are either of a type apel or sgas:
-## [arex/jura/apel:targetname] or [arex/jura/sgas:targetname]
+## destination. The target subblocks are either of a type "apel" or "sgas":
+## "[arex/jura/apel:targetname]" or "[arex/jura/sgas:targetname]".
+##
 #[arex/jura]
-## CHANGE: new dedicated block for JURA
-## CHANGE: A-REX should NOT provide the possibility of client-side target selection (in xrsl) any longer!
 
 ## logfile = path - (previously jobreport_logfile) The name of the jura logfile.
 ## default: /var/log/arc/jura.log
 #logfile=/var/log/arc/jura.log
-## CHANGE: renamed.
 
 ## loglevel = number - Log level for the JURA accounting module.
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=3
-## CHANGE: new parameter!  implement it in the code
 
 ## vomsless_vo = voname[#voissuer] - This parameter allows the sysadmin to manually assign
-## VOs to jobs that were submitted with "VOMS-less grid proxies" . 
-## voname is the VO name to be used in the generated records (the same as expected in voms-proxy)
-## optional voissuer (relevant to SGAS only) value is the VOMS server identity (certificate DN). 
+## VOs during pubishing to jobs that were submitted with "VOMS-less grid proxies".
+## "voname" is the VO name to be used in the generated records (the same as expected in voms-proxy)
+## optional "voissuer" (relevant to SGAS only) value is the VOMS server identity (certificate DN).
 ## default: undefined
 #vomsless_vo=atlas
 #vomsless_vo=atlas#/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch
-## CHANGE: new parameter.
 
-## vo_group = group - Adds an additional VO group attribute to the usage records.
+## vo_group = group - Adds an additional VO group attribute(s) to the usage records.
+## multivalued
 ## default: undefined
 #vo_group=/atlas/production
-## CHANGE: new parameter
-
-## urdelivery_keepfailed = days - Specifies for how many days JURA will try to send a record
-## to the destination accounting service before it gives up. Records not successfully sent
-## by after the number of days expired will be deleted from the controldir/logs directory.
-## The deleted records are nevertheless archived if archiving was turned on.
-## This parameter can be overwritten with a target specific value.
-## default: 30
-#urdelivery_keepfailed=30
-## CHANGE: new parameter.
 
 ## urdelivery_frequency = seconds - (previously jobreport_period) Specifies the frequency of
-## message publishing: how often the JURA process is started by A-REX.
+## JURA process regular execution by the A-REX.
+## The actual treshold of records reporting frequency can be defined on per-target basis.
 ## default: 3600
 #urdelivery_frequency=3600
 ## CHANGE: renamed
@@ -1551,58 +1549,30 @@
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE: new parameter in this block
-##
+
+## urdelivery_keepfailed = days - (deprecated in 6.4.0) Specifies for how many days 
+## JURA will try to send a record to the destination accounting service before it 
+## gives up. Records not successfully sent by after the number of days expired 
+## will be deleted from the controldir/logs directory.
+## The deleted records are nevertheless archived if archiving was turned on.
+## Scatring from 6.4 all records are stored in the accounting database without
+## expiration time independently of publishing process.
+## default: 30
+#urdelivery_keepfailed=30
+## CHANGE: TO BE DEPRECATED
 ##
 ### end of the [arex/jura] block ########################################
-
-
-### The [arex/jura/archiving] block ##############################
-## This block enables the archiving functionality to manage local accounting database.
-##
-## When enabled the usage records generated by JURA are stored
-## in a the specified "archivedir" directory on the disk.
-## 
-## Stored records are than processed by accounting archive manager
-## that process the records, store data into SQLite accounting database, 
-## create new archive structure and maintains the accounting database aging.
-##
-## By default the archiving is turned off.
-#[arex/jura/archiving]
-## CHANGE: NEW block
-
-## archivedir = path - Sets the directory path for the jura archived usage records.
-## Usage records generated by jura reporter are stored in this directory with 
-## the following file naming convention used: 
-## "usagerecord<Type>.<jobid>.<random>".
-## Here Type is one of the supported record formats such as OGFUR or CAR.
-## default: /var/spool/arc/jura/archive
-#archivedir=/var/spool/arc/jura/archive
-## CHANGE: NEW
-
-## logfile = path - The name of the accounting database manager logfile.
-## default: /var/log/arc/jura-archive-manager.log
-#logfile=/var/log/arc/jura-archive-manager.log
-## CHANGE: NEW
-
-## archivettl = days - The records time to live (ttl) parameter
-## sets the number of days to keep the usage record files in the accounting database
-## If not specified the files are kept forever.
-## default: undefined
-#archivettl=365
-## CHANGE: new parameter. new feature to implement!
-##
-##
-### end of the [arex/jura/archiving] block ########################
-
 
 ### The [arex/jura/sgas:targetname] blocks ##############################
 ## An SGAS sub-block of [arex/jura] enables and configures an SGAS accounting
 ## server as a target destination to which JURA will send properly formatted usage records.
-## The [arex/jura] config values are applicable for every target sub-block but
-## also can be overwritten.
 ## You need to define a separate block with a unique targetname for every SGAS target server.
+##
+## Note that the block name will be used by JURA to track that latest records sent to
+## this targed. Be aware that ff you rename the block, target will be handled as a new one.
+## However "targeturl" change will not trigger a new target handling.
+#
 #[arex/jura/sgas:neic_sgas]
-## CHANGE: new dedicated sub-blocks for SGAS JURA targets
 
 ## *targeturl = url - The service endpoint URL of SGAS server.
 ## default: undefined
@@ -1626,11 +1596,24 @@
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
-## This option can also be set in the sgas/apel target blocks to overwrite common value.
 ## default: 50
 #urbatchsize=80
-## CHANGE: new parameter.
-##
+
+## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal treshold
+## of the interval between subsequent records publishing to this target.
+## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
+##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+## default: undefined
+#urdelivery_frequency=3600
+## CHANGE: INTRODUCED IN 6.4
+
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
+## default: no
+#legacy_fallback=no
+## CHANGE: INTRODUCED IN 6.4
 ##
 ### end of the [arex/jura/sgas:targetname] blocks ########################
 
@@ -1638,50 +1621,67 @@
 ### The [arex/jura/apel:targetname] blocks ###############################
 ## An APEL sub-block of [arex/jura] enables and configures an APEL accounting
 ## server as a target destination to which JURA will send properly formatted usage records.
-## The [arex/jura] config values are applicable for every target sub-block but
-## also can be overwritten.
 ## You need to define a separate block with a unique targetname for every APEL target server.
+##
+## Note that the block name will be used by JURA to track that latest records sent to
+## this targed. Be aware that ff you rename the block, target will be handled as a new one.
+## However "targeturl" change will not trigger a new target handling.
 #[arex/jura/apel:egi_prod_apel]
-## CHANGE: new dedicated sub-blocks for APEL JURA targets
-        
+
 ## *targeturl = url - The service endpoint URL of the APEL accounting server.
+## Targets can be found using "arcctl accounting apel-brokers --ssl".
 ## default: undefined
 #targeturl=https://mq.cro-ngi.hr:6162
-## CHANGE: new parameter
+
+## use_ssl = yes/no - (deprecated in 6.4.0) Turns on/off ssl for the SSM
+## communication with APEL server. Use only with ARC version < 6.4.0.
+## In ARC 6.4+ "targeturl" protocol defines the usage of SSL.
+## allowedvalues: yes no
+## default: no
+#use_ssl=yes
+## CHANGE: TO BE DEPRECATED
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
 ## default: /queue/global.accounting.cpu.central
 #topic=/queue/global.accounting.test.cpu.central
-## CHANGE: new parameter.
 
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
-## This value would be seen as Site attribute in the generated APEL record.
+## This value would be seen as Site attribute in the generated APEL records.
 ## default: undefined
 #gocdb_name=GRID_UIO_NO
-## CHANGE: new parameter.
 
-## benchmark_type = type - Type of benchmark (Si2k, Sf2k, HEPSPEC) to be reported in every UR.
+## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
+## will send to APEL services during regular publishing process.
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") 
+## or "both".
+## APEL Sync messages are always generated.
+## allowedvalues: urs summaries both
+## default: summaries
+#apel_messages=urs
+## CHANGE: INTRODUCED IN 6.4
+
+## benchmark_type = type - (deprecated in 6.4.0) Type of benchmark (Si2k, HEPSPEC) 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_type=HEPSPEC
-## CHANGE: new parameter
+## CHANGE: TO BE DEPRECATED
 
-## benchmark_value = number - The value of the of benchmark to be reported in every UR.
+## benchmark_value = number - (deprecated in 6.4.0) The value of the of benchmark 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_value=2.4
-## CHANGE: new parameter
+## CHANGE: TO BE DEPRECATED
 
-## benchmark_description = string - Additional description for the benchmark
-## to be reported in every UR.
+## benchmark_description = string - (deprecated in 6.4.0) Additional description 
+## for the benchmark to be reported in every UR.
 ## default: undefined
 #benchmark_description=some description for benchmark
-## CHANGE: new parameter
-
-## use_ssl = yes/no - Turns on/off ssl for the SSM communication with APEL server.
-## allowedvalues: yes no
-## default: no
-#use_ssl=yes
-## CHANGE: new parameter
+## CHANGE: TO BE DEPRECATED
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -1690,26 +1690,79 @@
 ## default: undefined
 #vofilter=atlas
 #vofilter=fgi.csc.fi
-## CHANGE: new parameter
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
-## This option can also be set in the sgas/apel target blocks to overwrite common value.
 ## default: 1000
 #urbatchsize=1000
-## CHANGE: new parameter. new default.
-##
+
+## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
+## treshold of the interval between subsequent records publishing to this target.
+## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
+##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+## APEL recommended value is once per day.
+## default: 86000
+#urdelivery_frequency=14000
+## CHANGE: INTRODUCED IN 6.4
+
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
+## default: no
+#legacy_fallback=no
+## CHANGE: INTRODUCED IN 6.4
 ##
 ### end of the [arex/jura/apel:targetname] blocks ############################
 
 
+### The [arex/jura/archiving] block ##############################
+## This block enables the archiving functionality of pre 6.4 jura implementaton
+##
+## NOTE that starting from ARC 6.4.0, with the next generation accounting subsystem
+##   introduction, this block only takes action if the "legacy_fallback" option
+##   is set to "yes" for a target. In 6.4 all accounting data is stored in the database
+##   eliminating the need of any additional records archiving.
+##
+## When enabled the usage records generated by JURA are stored
+## in a the specified "archivedir" directory on the disk.
+##
+## Stored records are than processed by accounting archive manager
+## that process the records, store data into SQLite accounting archive database,
+## create new archive structure and maintains the accounting database aging.
+##
+## By default the archiving is turned off.
+#[arex/jura/archiving]
+## CHANGE: TO BE DEPRECATED
+
+## archivedir = path - Sets the directory path for the jura archived usage records.
+## Usage records generated by jura reporter are stored in this directory with 
+## the following file naming convention used: 
+## "usagerecord<Type>.<jobid>.<random>".
+## Here Type is one of the supported record formats such as OGFUR or CAR.
+## default: /var/spool/arc/jura/archive
+#archivedir=/var/spool/arc/jura/archive
+
+## logfile = path - The name of the accounting database manager logfile.
+## default: /var/log/arc/jura-archive-manager.log
+#logfile=/var/log/arc/jura-archive-manager.log
+
+## archivettl = days - The records time to live (ttl) parameter
+## sets the number of days to keep the usage record files in the accounting database
+## If not specified the files are kept forever.
+## default: undefined
+#archivettl=365
+##
+### end of the [arex/jura/archiving] block ########################
+
+
 ### The [arex/ganglia] block  - previously [gangliarc] ###############################
 ##
-## This block enables the monitoring of ARC-specific metrics. 
-## Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc, 
-## ganglia is now instead integrated into ARC, and gangliarc is obsolete. 
-## Note that AREX ganglia (as gangliarc did) depends on an existing ganglia installation, 
-## as it sends its metrics to a running gmond process. 
+## This block enables the monitoring of ARC-specific metrics.
+## Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc,
+## ganglia is now instead integrated into ARC, and gangliarc is obsolete.
+## Note that AREX ganglia (as gangliarc did) depends on an existing ganglia installation,
+## as it sends its metrics to a running gmond process.
 #[arex/ganglia]
 ## CHANGE: RENAMED block
 
@@ -1718,7 +1771,7 @@
 #gmetric_bin_path=/usr/local/bin/gmetric
 ## CHANGE: Moved from deleted [gangliarc] block and renamed. Path used in arc-ganglia implementation JobsMetrics.cpp
 
-## metrics = name_of_the_metrics - the metrics to be monitored. 
+## metrics = name_of_the_metrics - the metrics to be monitored.
 ## metrics takes a comma-separated list of one or more of the following metrics:
 ## - staging -- number of tasks in different data staging states - not yet implemented
 ## - cache -- free cache space
@@ -2395,8 +2448,8 @@
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
 ## Shares(currently queues). You can also add additional advertisedvos to queues.
 ## The information is also published in the NorduGrid schema.
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
-##    it is just for information publishing!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   access control, it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas
@@ -2471,15 +2524,6 @@
 ## default: undefined
 #nodememory=64000
 
-## benchmark = name value - This optional multivalued attribute can be used to
-## specify benchmark results on the cluster level. Use this cluster attribute
-## if only the NODES are homogeneous with respect to the benchmark performance.
-## Otherwise the similar queue-level attribute should be used. Please try to
-## use standard benchmark names, if possible.
-## multivalued
-## default: undefined
-#benchmark=SPECINT2000 222
-#benchmark=SPECFP2000 333
 
 ## middleware = string - The multivalued attribute shows the installed grid software on
 ## the cluster. Nordugrid-ARC is automatically set, no need to specify
@@ -2618,7 +2662,7 @@
 #totalcpus=32
 
 ## queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
-## and benchmark should be set if they are homogeneous over the nodes assigned
+## should be set if they are homogeneous over the nodes assigned
 ## to the queue AND they are different from the cluster-level value.
 ## Their meanings are described in the [infosys/cluster] block. 
 ## Usage: this queue collects nodes with "nodememory=512" while another queue has nodes 
@@ -2677,11 +2721,21 @@
 ## default: undefined
 #osfamily=linux
 
-## benchmark = name value - see description at [infosys/cluster] block
+## benchmark = name value - Defines resource benchmark results for accounting and
+## information publishing. The nodes in the same queue are assumed to be homogeneous
+## with respect to the benchmark performance.
+## NOTE that in ARC < 6.4 this parameter is only used for information publishing.
+## In case of multiple benchmarks are specified:
+##   - Accounting subsystem will use only the FIRST defined benchmark.
+##   - Infosys will publish all defined benchmark values.
+##
+## The values represent per-core CPU performance.
+## Note that APEL accounting services are accept "HEPSPEC" or "Si2k" benchmark types only.
 ## multivalued
-## default: $VAR{[infosys/cluster]benchmark}
-#benchmark=SPECINT2000 222
-#benchmark=SPECFP2000 333
+## default: HEPSPEC 1.0
+#benchmark=HEPSPEC 12.26
+#benchmark=Si2k 3065
+## CHANGE: MODIFIED IN 6.4
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 
@@ -2716,8 +2770,8 @@
 ## NOTE that if you have also configured "advertisedvo" in the [infosys/cluster] block,
 ##   the result advertised VOs per queue is the union set of what is contained in the
 ##   [infosys/cluster] and in this [queue:name] block!
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any access control, 
-##   it is just for information publishing!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   access control, it is just for information publishing!
 ## multivalued
 ## default: undefined
 #advertisedvo=atlas

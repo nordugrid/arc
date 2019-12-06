@@ -5,6 +5,7 @@
 
 #include <list>
 #include <string>
+#include <map>
 
 namespace Arc {
 
@@ -42,19 +43,22 @@ namespace Arc {
 
     ~OptionParser();
 
-    /// Add an option which does not take any arguments.
+
+    /// Add an option which does not take any arguments in default group
     /**
      * @param shortOpt Short version of this option
      * @param longOpt Long version of this option
      * @param optDesc Description of option
      * @param val Value filled during Parse()
      */
+
     void AddOption(const char shortOpt,
                    const std::string& longOpt,
                    const std::string& optDesc,
                    bool& val);
 
-    /// Add an option which takes an integer argument.
+
+    /// Add an option which takes an integer argument in default group
     /**
      * @param shortOpt Short version of this option
      * @param longOpt Long version of this option
@@ -68,7 +72,8 @@ namespace Arc {
                    const std::string& argDesc,
                    int& val);
 
-    /// Add an option which takes a string argument.
+
+    /// Add an option which takes a string argument in default group
     /**
      * @param shortOpt Short version of this option
      * @param longOpt Long version of this option
@@ -82,7 +87,7 @@ namespace Arc {
                    const std::string& argDesc,
                    std::string& val);
 
-    /// Add an option which takes a string argument and can be specified multiple times.
+    /// Add an option in default group which takes a string argument and can be specified multiple times
     /**
      * @param shortOpt Short version of this option
      * @param longOpt Long version of this option
@@ -91,6 +96,80 @@ namespace Arc {
      * @param val Value filled during Parse()
      */
     void AddOption(const char shortOpt,
+                   const std::string& longOpt,
+                   const std::string& optDesc,
+                   const std::string& argDesc,
+                   std::list<std::string>& val);
+
+    /// Add an options group 
+    /**
+     * @parem groupID Options group ID
+     * @param groupName Options group Name
+     */
+
+    void DefineOptionsGroup(const std::string groupID, const std::string& groupName);
+
+    /// Add an option which does not take any arguments to group
+    /**
+     * @param groupID Options group ID
+     * @param shortOpt Short version of this option
+     * @param longOpt Long version of this option
+     * @param optDesc Description of option
+     * @param val Value filled during Parse()
+     * @since Added in 6.4.0.
+     */
+    void GroupAddOption(const std::string groupID,
+                   const char shortOpt,
+                   const std::string& longOpt,
+                   const std::string& optDesc,
+                   bool& val);
+
+    /// Add an option which takes an integer argument.
+    /**
+     * @param groupID Options group ID
+     * @param shortOpt Short version of this option
+     * @param longOpt Long version of this option
+     * @param optDesc Description of option
+     * @param argDesc Value of option argument
+     * @param val Value filled during Parse()
+     * @since Added in 6.4.0.
+     */
+    void GroupAddOption(const std::string groupID,
+                   const char shortOpt,
+                   const std::string& longOpt,
+                   const std::string& optDesc,
+                   const std::string& argDesc,
+                   int& val);
+
+    /// Add an option which takes a string argument.
+    /**
+     * @param groupID Options group ID
+     * @param shortOpt Short version of this option
+     * @param longOpt Long version of this option
+     * @param optDesc Description of option
+     * @param argDesc Value of option argument
+     * @param val Value filled during Parse()
+     * @since Added in 6.4.0.
+     */
+    void GroupAddOption(const std::string groupID,
+                   const char shortOpt,
+                   const std::string& longOpt,
+                   const std::string& optDesc,
+                   const std::string& argDesc,
+                   std::string& val);
+
+    /// Add an option which takes a string argument and can be specified multiple times.
+    /**
+     * @param groupID Options group ID
+     * @param shortOpt Short version of this option
+     * @param longOpt Long version of this option
+     * @param optDesc Description of option
+     * @param argDesc Value of option argument
+     * @param val Value filled during Parse()
+     * @since Added in 6.4.0.
+     */
+    void GroupAddOption(const std::string groupID,
+                   const char shortOpt,
                    const std::string& longOpt,
                    const std::string& optDesc,
                    const std::string& argDesc,
@@ -119,7 +198,8 @@ namespace Arc {
     std::string arguments;
     std::string summary;
     std::string description;
-    std::list<OptionBase*> options;
+    std::map<std::string, std::string> optgroups;
+    std::list<std::pair<OptionBase*, std::string> > options;
     std::string origcmdwithargs;
   };
 

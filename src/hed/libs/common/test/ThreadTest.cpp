@@ -53,6 +53,7 @@ TItem::TItem(void) {
 }
 
 TItem::TItem(const TItem& parent):Arc::ThreadDataItem(parent.tid) {
+  tid = parent.tid;
   id=(++titem_created);
 }
 

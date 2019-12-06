@@ -13,5 +13,6 @@ paths_dist.py: gen_paths_dist.sh
 
 CLEANFILES = paths_dist.py
 
-SUBDIRS = utils control
-DIST_SUBDIRS = utils control
+SUBDIRS = utils control ssm
+DIST_SUBDIRS = utils control ssm
+

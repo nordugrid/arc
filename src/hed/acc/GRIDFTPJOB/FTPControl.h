@@ -35,6 +35,8 @@ namespace Arc {
     CBArg* cb;
     bool connected;
     bool SetupPASV(int timeout);
+    FTPControl(FTPControl const&);
+    FTPControl& operator=(FTPControl const&);
   };
 
 } // namespace Arc

@@ -34,6 +34,8 @@ class ConfigIni {
   std::list<std::string>::iterator current_section_p;
   int line_number;
   bool current_section_changed;
+  ConfigIni(ConfigIni const&);
+  ConfigIni& operator=(ConfigIni const&);
  public:
   /// Creates object associated with file located at filename.
   /// File is kept open and is closed in destructor.

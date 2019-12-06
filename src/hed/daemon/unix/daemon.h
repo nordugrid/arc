@@ -8,7 +8,7 @@ namespace Arc {
 
 class Daemon {
   public:
-    Daemon():watchdog_pid(0) {};
+    Daemon():watchdog_pid(0),watchdog_cb(NULL) {};
     /**
      Daemonize application and optionally start watchdog.
      \param pid_file_ path to file to store PID of main process

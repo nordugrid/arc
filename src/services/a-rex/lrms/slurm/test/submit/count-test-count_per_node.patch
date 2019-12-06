@@ -1,6 +1,6 @@
---- a/basic-script.sh	2019-06-27 17:21:17.654715078 +0200
-+++ b/basic-script.sh	2019-06-27 17:21:17.656715032 +0200
-@@ -7,7 +7,8 @@
+--- a/basic-script.sh	2019-11-04 17:19:10.596013344 +0200
++++ b/basic-script.sh	2019-11-04 17:19:10.596013344 +0200
+@@ -8,7 +8,8 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
@@ -10,12 +10,13 @@
  #SBATCH 
  
  # Overide umask of execution node (sometime values are really strange)
-@@ -125,7 +126,7 @@
+@@ -178,7 +182,8 @@
    nodename=`/bin/hostname -f`
    echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
  fi
 -echo "Processors=1" >> "$RUNTIME_JOB_DIAG"
 +echo "Processors=6" >> "$RUNTIME_JOB_DIAG"
++echo "Nodecount=3" >> "$RUNTIME_JOB_DIAG"
+ echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
  executable='/bin/true'
  # Check if executable exists
- if [ ! -f "$executable" ]; 

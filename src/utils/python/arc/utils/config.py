@@ -2,7 +2,6 @@ import logging
 import json
 import re
 import sys
-import os
 import subprocess
 from arc.paths import *
 
@@ -45,6 +44,7 @@ __arcconf_re = {
 
 # block name input
 __blockname_re = re.compile(r'(?P<block_id>[^:]+):\s*(?P<block_name>.*[^\s])\s*$')
+
 
 # arc.conf parsing function
 def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
@@ -252,7 +252,8 @@ def _evaluate_values():
     # e.g. $VAR{[common]globus_tcp_port_range}
     for block in __parsed_blocks:
         idx_shift = 0
-        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options'][:]), __parsed_config[block]['__values'][:]):
+        for (i, opt), val in zip(enumerate(__parsed_config[block]['__options'][:]),
+                                 __parsed_config[block]['__values'][:]):
             # skip if option is defined in the /etc/arc.conf
             if opt in __parsed_config_admin_defined[block]:
                 continue
@@ -282,6 +283,7 @@ def _evaluate_values():
                 if subst:
                     __parsed_config[block]['__values'][i] = subval
 
+
 def _canonicalize_blockid(block):
     # nothing to do with blocks without names
     if ':' not in block:
@@ -292,6 +294,7 @@ def _canonicalize_blockid(block):
         re_dict = re_match.groupdict()
         return '{block_id}:{block_name}'.format(**re_dict)
     return block
+
 
 def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
     """Parse arc.conf-formatted configuration file to specified data structures"""
@@ -371,7 +374,7 @@ def export_json(blocks=None, subsections=False):
     :return: JSON-dumped string
     """
     if blocks is not None:
-        blocks = [ _canonicalize_blockid(b) for b in blocks ]
+        blocks = [_canonicalize_blockid(b) for b in blocks]
         if subsections:
             blocks = get_subblocks(blocks)
     return json.dumps(_config_dict(blocks))
@@ -483,9 +486,11 @@ def get_subblocks(blocks=None, is_reversed=False, is_sorted=False):
     return subblocks
 
 
-def get_config_dict():
+def get_config_dict(blocks=None):
     """Returns the entire dictionary that holds parsed configuration"""
-    return _config_dict()
+    if blocks is not None:
+        blocks = [_canonicalize_blockid(b) for b in blocks]
+    return _config_dict(blocks)
 
 
 def get_config_blocks():

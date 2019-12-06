@@ -215,14 +215,14 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
      sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv11Handshake()) {
-#if defined HAVE_TLSSV1_1_METHOD
+#if defined HAVE_TLSV1_1_METHOD
      sslctx_=SSL_CTX_new(TLSv1_1_client_method());
 #elif defined HAVE_TLS_METHOD
      ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1;
      sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv12Handshake()) {
-#ifdef HAVE_TLSSV1_2_METHOD
+#ifdef HAVE_TLSV1_2_METHOD
      sslctx_=SSL_CTX_new(TLSv1_2_client_method());
 #elif defined HAVE_TLS_METHOD
      ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1;

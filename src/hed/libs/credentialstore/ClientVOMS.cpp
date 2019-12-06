@@ -46,7 +46,7 @@ VOMSCommand& VOMSCommand::GetFQAN(const std::string& fqan) {
 }
 
 // EBCDIC is not supported
-static bool VOMSDecodeChar(unsigned char c) {
+static bool VOMSDecodeChar(unsigned char& c) {
   if((c >= (unsigned char)'a') && (c <= (unsigned char)'z')) {
     return (c - (unsigned char)'a');
   }

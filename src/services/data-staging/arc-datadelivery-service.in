@@ -64,9 +64,10 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 
 # PID and lock file
-PID_FILE=`${ARC_LOCATION}/@pkgdatasubdir@/arc-datadelivey-service-start --getpidfile`
+PID_FILE=`${ARC_LOCATION}/@pkgdatasubdir@/arc-datadelivery-service-start --getpidfile`
 if [ $? -ne 0 ]; then
-    log_failure_msg "Can not determine PID file name"
+    # When --getpidfile fails it returns the error on stdout
+    log_failure_msg "$PID_FILE"
     exit 1
 fi
 
@@ -97,7 +98,7 @@ start() {
         rm -f "$PID_FILE" "$LOCKFILE"
     fi
 
-    ${ARC_LOCATION}/@pkgdatasubdir@/arc-datadelivey-service-start
+    ${ARC_LOCATION}/@pkgdatasubdir@/arc-datadelivery-service-start
     RETVAL=$?
 
     if [ $RETVAL -eq 0 ]; then
