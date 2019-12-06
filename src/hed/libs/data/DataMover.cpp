@@ -776,8 +776,6 @@ namespace Arc {
           URL dest_url(cacheable ? chdest.GetURL() : destination.GetURL());
           DataStatus datares = source_url.Transfer(dest_url, true, show_progress ? transfer_cb : NULL);
           if (!datares.Passed()) {
-            DataHandle d(destination.GetURL(), destination.GetUserConfig());
-            Delete(*d);
             if (source.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next source");
               continue;
