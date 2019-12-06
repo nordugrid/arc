@@ -22,6 +22,7 @@ nobase_python_PYTHON = __init__.py \
                        indexserver/indexsetup.py
 
 SUBDIRS = core scanner indexserver
-DIST_SUBDIRS = core scanner indexserver
 
 endif
+
+DIST_SUBDIRS = core scanner indexserver
