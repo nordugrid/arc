@@ -503,7 +503,8 @@ sub strip_spaces {
            $stripstring =~ s/^\s+|\s+$//g;
            my $newkey="$prefix$stripstring";
            $jsonconf->{$newkey} = $jsonconf->{$key};
-           delete $jsonconf->{$key};
+           # not needed as the reference is copied. But I don't trust it.
+           #delete $jsonconf->{$key};
         }
     }
 }
@@ -1043,6 +1044,8 @@ sub getValueOf ($$$){
       close $parserout;
     }
 
+    # remove blank spaces before and after
+    $value =~ s/^\s+|\s+$//g;
     # strip trailing newline
     chomp $value;
 
