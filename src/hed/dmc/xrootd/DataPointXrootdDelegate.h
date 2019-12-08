@@ -25,6 +25,8 @@ namespace ArcDMCXrootd {
     virtual bool RequiresCredentials() const;
     virtual bool RequiresCredentialsInFile() const;
     virtual bool SupportsTransfer() const;
+    virtual DataStatus List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
+
   };
 
 } // namespace ArcDMCGridFTP
