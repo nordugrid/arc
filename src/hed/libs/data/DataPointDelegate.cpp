@@ -586,21 +586,6 @@ namespace Arc {
     return false;
   }
 
-  bool DataPointDelegate::SetURL(const URL& u) {
-    // implement
-    if ((u.Protocol() != "gsiftp") && (u.Protocol() != "ftp")) {
-      return false;
-    }
-    if (u.Host() != url.Host()) {
-      return false;
-    }
-    // Globus FTP handle allows changing url completely
-    url = u;
-    if(triesleft < 1) triesleft = 1;
-    ResetMeta();
-    return true;
-  }
-
   std::string::size_type const DataPointDelegate::LogRedirect::level_size_max_ = 32;
   std::string::size_type const DataPointDelegate::LogRedirect::buffer_size_max_ = 4096;
 
