@@ -52,17 +52,24 @@ namespace ArcDMCSRM {
     virtual DataStatus Rename(const URL& newurl);
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta() const;
+    virtual bool AcceptsMeta() const;
     virtual bool IsStageable() const;
     virtual std::vector<URL> TransferLocations() const;
     virtual void ClearTransferLocations();
+
+    // Methods below are delegated to underlying TURL handler
+
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source, TransferCallback callback = NULL);
+    virtual bool SupportsTransfer() const;
+
   private:
-    SRMClientRequest *srm_request; /* holds SRM request ID between Prepare* and Finish* */
+    AutoPointer<SRMClientRequest> srm_request; /* holds SRM request ID between Prepare* and Finish* */
     static Logger logger;
     std::vector<URL> turls; /* TURLs returned from prepare methods */
-    URL r_url; /* URL used for redirected operations in Start/Stop Reading/Writing */
-    DataHandle *r_handle;  /* handle used for redirected operations in Start/Stop Reading/Writing */
+    mutable AutoPointer<DataHandle> r_handle;  /* handle used for redirected operations in Start/Stop Reading/Writing */
     bool reading;
     bool writing;
+    DataStatus SetupHandler(DataStatus::DataStatusType base_error) const;
     DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion);
     /** Check protocols given in list can be used, and if not remove them */
     void CheckProtocols(std::list<std::string>& transport_protocols);

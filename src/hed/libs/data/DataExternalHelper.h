@@ -43,6 +43,8 @@ namespace Arc {
     DataStatus CreateDirectory(bool with_parents=false);
     DataStatus Read();
     DataStatus Write();
+    DataStatus Transfer(const URL& otherendpoint, bool source, DataPoint::TransferCallback callback);
+    DataStatus Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback);
 
     static Logger logger;
   };
