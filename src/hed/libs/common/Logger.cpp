@@ -240,11 +240,14 @@ namespace Arc {
   }
 
   void LogDestination::setPrefix(const std::string& pre) {
+    Glib::Mutex::Lock lock(mutex);
     prefix = pre;
   }
 
   std::string LogDestination::getPrefix() const {
-    return prefix;
+    Glib::Mutex::Lock lock(mutex);
+    std::string tmp(prefix);
+    return tmp;
   }
 
   LogStream::LogStream(std::ostream& destination)
