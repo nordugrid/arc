@@ -36,7 +36,10 @@ if [ "x$1" = "x0" ]; then
     temp="${temp#\"}"
     IMAGE=$temp
 
-    if [ "x$IMAGE" != "xNULL" ] ; then
+    # Check if singularity already used/set by another RTE
+    echo $joboption_args |grep -q singularity; sused=$?
+
+    if [ "x$IMAGE" != "xNULL" ] && [ "x$sused" == "x1" ] ; then
        joboption_args="/usr/bin/singularity exec $SINGULARITY_OPTIONS --home \${RUNTIME_JOB_DIR} $IMAGE $joboption_args"
     fi
 fi
