@@ -96,7 +96,6 @@ packages_el8:
     - make dist
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpm --rebuilddb
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   tags:
     - build
