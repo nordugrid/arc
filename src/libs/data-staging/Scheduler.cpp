@@ -114,7 +114,7 @@ namespace DataStaging {
 
   void Scheduler::log_to_root_logger(Arc::LogLevel level, const std::string& message) {
     Arc::Logger::getRootLogger().addDestinations(root_destinations);
-    logger.msg(level, message);
+    logger.msg(level, "%s", message);
     Arc::Logger::getRootLogger().removeDestinations();
   }
 

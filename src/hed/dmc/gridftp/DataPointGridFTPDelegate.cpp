@@ -44,6 +44,21 @@ namespace ArcDMCGridFTP {
     return is_secure;
   }
 
+  bool DataPointGridFTPDelegate::SetURL(const URL& u) {
+    if ((u.Protocol() != "gsiftp") && (u.Protocol() != "ftp")) {
+      return false;
+    }
+    if (u.Host() != url.Host()) {
+      return false;
+    }
+    // Globus FTP handle allows changing url completely
+    url = u;
+    if(triesleft < 1) triesleft = 1;
+    ResetMeta();
+    return true;
+  }
+
+
 } // namespace ArcDMCGridFTP
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
