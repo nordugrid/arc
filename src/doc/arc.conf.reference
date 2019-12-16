@@ -2569,6 +2569,15 @@
 ## default: undefined
 #maxcputime=300000
 
+## mincputime = number - This is the minimum CPU time specified in seconds
+## that the LRMS can allocate for the job. The default if not defined 
+## is that infoproviders get this value automatically from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#mincputime=1200
+
 ## maxwalltime = number - This is the maximum Wall time specified in 
 ## seconds that the LRMS can allocate for the job. The default 
 ## if not defined is that infoproviders get this value automatically 
@@ -2578,6 +2587,16 @@
 ## detection.
 ## default: undefined
 #maxwalltime=600000
+
+## minwalltime = number - This is the minimum Wall time specified in 
+## seconds that the LRMS can allocate for the job. The default 
+## if not defined is that infoproviders get this value automatically 
+## from the LRMS. 
+## The purpose of this option is to tweak and override discovered value,
+## or publish this value in case the LRMS module do not support automatic
+## detection.
+## default: undefined
+#maxwalltime=1800
 ### end of the [infosys/cluster] block #####################
 
 
@@ -2801,10 +2820,20 @@
 ## default: undefined
 #maxcputime=300000
 
+## mincputime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#mincputime=1200
+
 ## maxwalltime = number - This value overrides the one defined in 
 ## the [infosys/cluster] block. See description in that block.
 ## default: undefined
 #maxwalltime=600000
+
+## minwalltime = number - This value overrides the one defined in 
+## the [infosys/cluster] block. See description in that block.
+## default: undefined
+#minwalltime=1800
 ### end of the [queue:name] blocks ########################
 
 
