@@ -72,15 +72,15 @@ void DTRGenerator::thread() {
     // are always added to the end of the list
 
     // take cancelled jobs first so we can ignore other DTRs in those jobs
-    event_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
     std::list<std::string>::iterator it_cancel = jobs_cancelled.begin();
     while (it_cancel != jobs_cancelled.end()) {
       // check if it is still in received queue and remove
       if(!jobs_received.Erase(*it_cancel)) {
         // job must be in scheduler already
-        event_lock.unlock();
+        elock.unlock();
         processCancelledJob(*it_cancel);
-        event_lock.lock();
+        elock.lock();
       }
       it_cancel = jobs_cancelled.erase(it_cancel);
     }
@@ -88,9 +88,9 @@ void DTRGenerator::thread() {
     // next DTRs sent back from the Scheduler
     std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
     while (it_dtrs != dtrs_received.end()) {
-      event_lock.unlock();
+      elock.unlock();
       processReceivedDTR(*it_dtrs);
-      event_lock.lock();
+      elock.lock();
       // delete DTR LogDestinations
       (*it_dtrs)->clean_log_destinations(central_dtr_log);
       it_dtrs = dtrs_received.erase(it_dtrs);
@@ -108,18 +108,19 @@ void DTRGenerator::thread() {
     while (Arc::Time() < limit) {
       GMJobRef job = jobs_received.Front(); // get reference but keep job in queue
       if(!job) break;
-      event_lock.unlock();
+      elock.unlock();
       bool jobAccepted = processReceivedJob(job);
-      event_lock.lock();
+      // on success job is moved to jobs_processing queue
+      elock.lock();
       if(!jobAccepted) {
         logger.msg(Arc::DEBUG, "%s: Re-requesting attention from DTR generator", job->get_id());
         jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
         jobs.RequestAttention(job); // pass job back to states processing
       }
     }
-    event_lock.unlock();
+    elock.unlock();
     event_lock.wait(50000);
-  }
+  } // main processing loop
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler->stop();
   // Handle all the DTRs returned by the scheduler, in case there are completed
@@ -229,10 +230,9 @@ void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
     logger.msg(Arc::VERBOSE, "Received DTR %s during Generator shutdown - may not be processed", dtr->get_id());
     // still a chance to process this DTR so don't return
   }
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   dtrs_received.push_back(dtr);
   event_lock.signal_nonblock();
-  event_lock.unlock();
 }
 
 void DTRGenerator::receiveJob(GMJobRef& job) {
@@ -243,10 +243,9 @@ void DTRGenerator::receiveJob(GMJobRef& job) {
 
   // Add to jobs list even if Generator is stopped, so that A-REX doesn't
   // think that staging has finished.
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   jobs_received.PushSorted(job, compare_job_description);
   event_lock.signal_nonblock();
-  event_lock.unlock();
 }
 
 void DTRGenerator::cancelJob(const GMJobRef& job) {
@@ -256,10 +255,9 @@ void DTRGenerator::cancelJob(const GMJobRef& job) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
   }
 
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   jobs_cancelled.push_back(job->get_id());
   event_lock.signal_nonblock();
-  event_lock.unlock();
 }
 
 bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
@@ -269,17 +267,15 @@ bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
   // not in active_dtrs or jobs_received.
 
   // check if this job is still in the received jobs queue
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   if(jobs_received.Exists(job)) {
-    event_lock.unlock();
     return false;
   }
-  event_lock.unlock();
+  elock.unlock();
 
   // check if any DTRs in this job are still active
-  dtrs_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
   if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
-    dtrs_lock.unlock();
     return false;
   }
   std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
@@ -288,7 +284,6 @@ bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
     job->AddFailure(i->second);
     finished_jobs[job->get_id()] = "";
   }
-  dtrs_lock.unlock();
   return true;
 }
 
@@ -296,27 +291,23 @@ bool DTRGenerator::hasJob(const GMJobRef& job) {
   if(!job) return false;
 
   // check if this job is still in the received jobs queue
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   if(jobs_received.Exists(job)) {
-    event_lock.unlock();
     return true;
   }
-  event_lock.unlock();
+  elock.unlock();
 
   // check if any DTRs in this job are still active
-  dtrs_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
   if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
-    dtrs_lock.unlock();
     return true;
   }
 
   // finally check finished jobs
   std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
   if (i != finished_jobs.end()) {
-    dtrs_lock.unlock();
     return true;
   }
-  dtrs_lock.unlock();
   // not found
   return false;
 }
@@ -325,18 +316,16 @@ void DTRGenerator::removeJob(const GMJobRef& job) {
   if(!job) return;
 
   // check if this job is still in the received jobs queue
-  event_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
   if(jobs_received.Exists(job)) {
-    event_lock.unlock();
     logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job->get_id());
     return;
   }
-  event_lock.unlock();
+  elock.unlock();
 
   // check if any DTRs in this job are still active
-  dtrs_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
   if (active_dtrs.find(job->get_id()) != active_dtrs.end()) {
-    dtrs_lock.unlock();
     logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job->get_id());
     return;
   }
@@ -345,39 +334,43 @@ void DTRGenerator::removeJob(const GMJobRef& job) {
   std::map<std::string, std::string>::iterator i = finished_jobs.find(job->get_id());
   if (i == finished_jobs.end()) {
     // warn if not in finished
-    dtrs_lock.unlock();
     logger.msg(Arc::WARNING, "%s: Trying remove job from data staging which does not exist", job->get_id());
     return;
   }
   finished_jobs.erase(i);
-  dtrs_lock.unlock();
 }
 
 bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 
   std::string jobid(dtr->get_parent_job_id());
+  GMJobRef job = jobs_processing.Find(jobid);
   if (!(*dtr)) {
     logger.msg(Arc::ERROR, "%s: Invalid DTR", jobid);
     if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
       scheduler->cancelDTRs(jobid);
-      dtrs_lock.lock();
-      finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
-      active_dtrs.erase(jobid);
-      dtrs_lock.unlock();
+      {
+        Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+        finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
+        active_dtrs.erase(jobid);
+      }
+      // Because it is not possible to find out if there will be more 
+      // job's DTR coming, if possible return job back to jobs processing queue.
+      if(job) {
+        jobs_processing.Erase(job);
+        jobs.RequestAttention(job);
+      }
     }
     return false;
   }
   logger.msg(Arc::DEBUG, "%s: Received DTR %s to copy file %s in state %s",
                           jobid, dtr->get_id(), dtr->get_source()->str(), dtr->get_status().str());
-  GMJobRef job = jobs_processing.Find(jobid);
   if(!job) {
     // This job is not being processed anymore (somehow)
     logger.msg(Arc::ERROR, "%s: Received DTR belongs to inactive job", jobid);
     scheduler->cancelDTRs(jobid); // Cancel rest of such DTRs
-    dtrs_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     finished_jobs[jobid] = std::string("Job was gone while performing data transfer");
     active_dtrs.erase(jobid);
-    dtrs_lock.unlock();
     return false;
   }
 
@@ -402,7 +395,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     logger.msg(Arc::ERROR, "%s: DTR %s to copy file %s failed",
                jobid, dtr->get_id(), dtr->get_source()->str());
 
-    dtrs_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     if (!dtr->get_source()->Local() && finished_jobs.find(jobid) == finished_jobs.end()) { // download
       // cancel other DTRs and erase from our list unless error was already reported
       logger.msg(Arc::INFO, "%s: Cancelling other DTRs", jobid);
@@ -410,7 +403,6 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     }
     // add error to finished jobs
     finished_jobs[jobid] += std::string("Failed in data staging: " + dtr->get_error_status().GetDesc() + '\n');
-    dtrs_lock.unlock();
   }
   else if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // remove from job.id.input/output files on success
@@ -462,7 +454,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           } else {
             ++i;
           }
-        }
+        } // files
 
         // write back .output file
         if (!job_output_write_file(*job, config, files)) {
@@ -518,13 +510,16 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
 
   // get DTRs for this job id
-  dtrs_lock.lock();
+  Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
   std::pair<std::multimap<std::string, std::string>::iterator,
             std::multimap<std::string, std::string>::iterator> dtr_iterator = active_dtrs.equal_range(jobid);
 
   if (dtr_iterator.first == dtr_iterator.second) {
-    dtrs_lock.unlock();
+    dlock.unlock();
     logger.msg(Arc::WARNING, "No active job id %s", jobid);
+    // No DTRs recorded. But still we have job ref. It is probbaly safer to return it.
+    jobs_processing.Erase(job);
+    jobs.RequestAttention(job);
     return true;
   }
   
@@ -546,7 +541,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 
   // check if any DTRs left from this job, if so return
   if (active_dtrs.find(jobid) != active_dtrs.end()) {
-    dtrs_lock.unlock();
+    // still have some DTRs running
     return true;
   }
 
@@ -559,7 +554,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   bool finished_with_error = ((finished_jobs.find(jobid) != finished_jobs.end() &&
                                !finished_jobs[jobid].empty()) ||
                               dtr->get_status() == DataStaging::DTRStatus::CANCELLED);
-  dtrs_lock.unlock();
+  dlock.unlock();
 
   if (dtr->get_source()->Local()) {
     // list of files to keep in session dir
@@ -616,7 +611,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
   // add to finished jobs (without overwriting existing error) and finally
   // remove from active
-  dtrs_lock.lock();
+  dlock.lock();
   active_dtrs.erase(jobid);
   finished_jobs[jobid] += "";
 
@@ -628,7 +623,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   else
     dtr->get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
                           dtr->get_source()->Local() ? "uploads":"downloads");
-  dtrs_lock.unlock();
+  dlock.unlock();
 
   logger.msg(Arc::DEBUG, "%s: Requesting attention from DTR generator", jobid);
   // Passing job to lower priority queue - hence must use Erase.
@@ -682,9 +677,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
   std::list<FileData> output_files;
   if (!job_output_read_file(jobid, config, output_files)) {
     logger.msg(Arc::ERROR, "%s: Failed to read list of output files", jobid);
-    dtrs_lock.lock();
-    finished_jobs[jobid] = std::string("Failed to read list of output files");
-    dtrs_lock.unlock();
+    {
+      Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+      finished_jobs[jobid] = std::string("Failed to read list of output files");
+    }
     if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     return false;
   }
@@ -692,9 +688,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
   if (job->get_state() == JOB_STATE_PREPARING) {
     if (!job_input_read_file(jobid, config, files)) {
       logger.msg(Arc::ERROR, "%s: Failed to read list of input files", jobid);
-      dtrs_lock.lock();
+      Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
       finished_jobs[jobid] = std::string("Failed to read list of input files");
-      dtrs_lock.unlock();
       return false;
     }
     // check for duplicates (see bug 1285)
@@ -702,9 +697,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       for (std::list<FileData>::iterator j = files.begin(); j != files.end(); j++) {
         if (i != j && j->pfn == i->pfn) {
           logger.msg(Arc::ERROR, "%s: Duplicate file in list of input files: %s", jobid, i->pfn);
-          dtrs_lock.lock();
+          Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
           finished_jobs[jobid] = std::string("Duplicate file in list of input files: " + i->pfn);
-          dtrs_lock.unlock();
           return false;
         }
       }
@@ -732,12 +726,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     }
     if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
-      dtrs_lock.lock();
+      Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
-      dtrs_lock.unlock();
       return false;
     }
-  }
+  } // PREPARING
   else if (job->get_state() == JOB_STATE_FINISHING) {
     files = output_files;
     std::list<FileData>::iterator it;
@@ -755,14 +748,14 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
         if (!job_Xput_read_file(outputfilelist, files_, job_uid, job_gid)) {
           logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
-          dtrs_lock.lock();
+          Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
           // Only write this failure if no previous failure
           if (!job->CheckFailure(config)) {
             finished_jobs[jobid] = std::string("Error reading user generated output file list");
           } else {
             finished_jobs[jobid] = "";
           }
-          dtrs_lock.unlock();
+          dlock.unlock();
           CleanCacheJobLinks(config, job);
           return false;
         }
@@ -782,14 +775,14 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
           std::list<std::string> entries;
           if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
             logger.msg(Arc::ERROR, "%s: Failed to list output directory %s: %s", jobid, dir, Arc::StrError(errno));
-            dtrs_lock.lock();
+            Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
             // Only write this failure if no previous failure
             if (!job->CheckFailure(config)) {
               finished_jobs[jobid] = std::string("Failed to list output directory");
             } else {
               finished_jobs[jobid] = "";
             }
-            dtrs_lock.unlock();
+            dlock.unlock();
             CleanCacheJobLinks(config, job);
             return false;
           }
@@ -822,9 +815,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
           // error if lfns (including locations) are identical
           if (it->lfn == it2->lfn) {
             logger.msg(Arc::ERROR, "%s: Two identical output destinations: %s", jobid, it->lfn);
-            dtrs_lock.lock();
-            finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
-            dtrs_lock.unlock();
+            {
+              Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+              finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
+            }
             CleanCacheJobLinks(config, job);
             return false;
           }
@@ -834,9 +828,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
             // error if pfns are different
             if (it->pfn != it2->pfn) {
               logger.msg(Arc::ERROR, "%s: Cannot upload two different files %s and %s to same LFN: %s", jobid, it->pfn, it2->pfn, it->lfn);
-              dtrs_lock.lock();
-              finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
-              dtrs_lock.unlock();
+              {
+                Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+                finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
+              }
               CleanCacheJobLinks(config, job);
               return false;
             }
@@ -854,19 +849,19 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     std::transform(files.begin(), files.end(), tokeep.begin(), filedata_pfn);
     if (!Arc::DirDeleteExcl(job->SessionDir(), tokeep, true, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
-      dtrs_lock.lock();
-      finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
-      dtrs_lock.unlock();
+      {
+        Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+        finished_jobs[jobid] = std::string("Failed to clean up session dir before uploading outputs");
+      }
       CleanCacheJobLinks(config, job);
       return false;
     }
-  }
+  } // FINISHING
   else {
     // bad state
     logger.msg(Arc::ERROR, "%s: Received job in a bad state: %s", jobid, job->get_state_name());
-    dtrs_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
-    dtrs_lock.unlock();
     return false;
   }
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
@@ -883,9 +878,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // if job is FINISHING then clean up cache joblinks
     if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
     // nothing else to do so wake up GM thread and return
-    dtrs_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     finished_jobs[jobid] = "";
-    dtrs_lock.unlock();
     return false;
   }
 
@@ -920,8 +914,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         source = i->lfn;
       }
       destination = "file:" + job->SessionDir() + i->pfn;
-    }
-    else {
+    } // PREPARING
+    else { // FINISHING
       source = "file:" + job->SessionDir() + i->pfn;
       // Upload to dest ending in '/': append filename to lfn
       // Note: won't work for nested URLs used for index services
@@ -1005,9 +999,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // callbacks for info
     dtr->registerCallback(&info, DataStaging::SCHEDULER);
     dtr->set_credential_info(cred_info);
-    dtrs_lock.lock();
-    active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
-    dtrs_lock.unlock();
+    {
+      Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+      active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
+    }
     // send to Scheduler
     DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
 
@@ -1023,13 +1018,12 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
     }
     delete job_desc;
-  }
+  } // files
   if (!staging) { // nothing needed staged so mark as finished
     // if job is FINISHING then clean up cache joblinks
     if (job->get_state() == JOB_STATE_FINISHING) CleanCacheJobLinks(config, job);
-    dtrs_lock.lock();
+    Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     finished_jobs[jobid] = "";
-    dtrs_lock.unlock();
     return false;
   }
   jobs_processing.Push(job); // take this job (job should be in jobs_received till now)
