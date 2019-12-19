@@ -116,6 +116,32 @@ namespace Arc {
 
   };
 
+  template<typename T> class AutoLock {
+  public:
+    AutoLock(T& olock, bool olocked = true) : lock_(olock), locked_(0) {
+      if(olocked) lock();
+    }
+
+    ~AutoLock() {
+      if(locked_ != 0) lock_.unlock();
+      locked_ = 0;
+    }
+
+    void lock() {
+      if(locked_ == 0) lock_.lock();
+      ++locked_;
+    }
+
+    void unlock() {
+      if(locked_ == 1) lock_.unlock();
+      --locked_;
+    }
+
+  private:
+    T& lock_;
+    int locked_;
+  };
+
   /// Simple triggered condition.
   /** Provides condition and semaphor objects in one element.
       \headerfile Thread.h arc/Thread.h  */

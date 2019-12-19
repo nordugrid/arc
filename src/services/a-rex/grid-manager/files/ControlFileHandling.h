@@ -130,7 +130,7 @@ time_t job_state_time(const JobId &id,const GMConfig &config);
 // Read and write file storing state of the job.
 job_state_t job_state_read_file(const JobId &id,const GMConfig &config);
 job_state_t job_state_read_file(const JobId &id,const GMConfig &config,bool &pending);
-bool job_state_write_file(const GMJob &job,const GMConfig &config,job_state_t state,bool pending = false);
+bool job_state_write_file(const GMJob &job,const GMConfig &config,job_state_t state,bool pending);
 
 // Get modification time of file used to store description of the job.
 time_t job_description_time(const JobId &id,const GMConfig &config);
