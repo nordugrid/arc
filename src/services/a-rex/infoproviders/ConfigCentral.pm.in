@@ -476,6 +476,40 @@ sub read_json_config {
 }
 
 #
+# Removes spaces at beginning and end from all config values
+# and config names (such as queue:\s\squeuename\s*)    
+# 
+sub strip_spaces {
+    my ($jsonconf) = @_;
+    
+    for my $key (keys %{$jsonconf}) {
+        # recur if inner values
+        if (ref($jsonconf->{$key}) eq 'HASH') {
+            strip_spaces($jsonconf->{$key});
+        } elsif (ref($jsonconf->{$key}) eq 'ARRAY') {
+              # strip spaces from array elements
+              for my $item (@{$jsonconf->{$key}}) {
+                  $item =~ s/^\s+|\s+$//g;
+              }
+        } elsif ($jsonconf->{$key} =~ /^\s*(.*)\s*$/) {
+                 my $newvalue = $1;
+                 $newvalue =~ s/^\s+|\s+$//g;
+                 $jsonconf->{$key} = $newvalue;
+        }
+        # change key once back from recursion if it contains spaces
+        if ($key =~ /\s*(queue|authgroup)\s*:\s*(.*)\s*/) {
+           my $prefix = "$1:";
+           my $stripstring = $2;
+           $stripstring =~ s/^\s+|\s+$//g;
+           my $newkey="$prefix$stripstring";
+           $jsonconf->{$newkey} = $jsonconf->{$key};
+           # not needed as the reference is copied. But I don't trust it.
+           #delete $jsonconf->{$key};
+        }
+    }
+}
+
+#
 # Reads the json config file passed as the first argument and produces a config
 # hash conforming to $config_schema. 
 #
@@ -484,7 +518,10 @@ sub build_config_from_json {
     
     my $jsonconf = read_json_config($file);
 
+    strip_spaces($jsonconf);
+    
     set_defaults($jsonconf);
+
     
     # Those values that are the same as in arc.conf will 
     # be copied and checked.
@@ -881,7 +918,7 @@ sub parseConfig {
     #print Dumper($config);
 
     # C 134
-    LogUtils::level($config->{arex}{loglevel}) if $config->{arex}{loglevel};
+    LogUtils::level($config->{infosys}{loglevel}) if $config->{infosys}{loglevel};
 
     my $checker = InfoChecker->new($config_schema);
     my @messages = $checker->verify($config,1);
@@ -1007,6 +1044,8 @@ sub getValueOf ($$$){
       close $parserout;
     }
 
+    # remove blank spaces before and after
+    $value =~ s/^\s+|\s+$//g;
     # strip trailing newline
     chomp $value;
 

@@ -21,10 +21,11 @@ sub mds_date {
 # can have as many parameters as one wants.
 sub prioritizedvalues {
    my @values = @_;
+   my $numelements = scalar @values;
 
    while (@values) {
       my $current = shift @values;
-      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
+      return $current if (((defined $current) and ($current ne '')) or ( $numelements == 1));
   }
 
    # just in case all the above fails, return empty string
