@@ -45,7 +45,7 @@ class GMJobQueueDTR: public GMJobQueue {
  */
 class DTRGenerator: public DataStaging::DTRCallback {
  private:
-  /** Active DTRs. Map of job id to DTR id. */
+  /** Active DTRs. Map of job id to DTR id(s). */
   std::multimap<std::string, std::string> active_dtrs;
   /** Jobs where all DTRs are finished. Map of job id to failure reason (empty if success)
      Finished jobs are stored only by ID because they references are already passed

@@ -134,7 +134,7 @@ sub read_qstat_fQ ($) {
     while (my $line= <QSTATOUTPUT>) {
         chomp($line);
         if ($line =~ /^$/) {next};
-        if ($line =~ /^Queue: ([\w\-]+)$/) {
+        if ($line =~ /^Queue: ([\w\-.]+)$/) {
             $current_queue = $1;
             next;
         }

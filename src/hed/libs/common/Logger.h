@@ -256,6 +256,15 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& os, const LogDestination& dest);
 
   protected:
+    /// A mutex for synchronization.
+    /** This mutex is to be locked before a LogMessage is written and it is
+       not unlocked until the entire message has been written and the
+       stream flushed. This is done in order to prevent LogMessages to
+       appear mixed in the stream and prevent race on modification of 
+       internal members. It is mutable to provide protection while reading members.
+     */
+    mutable Glib::Mutex mutex;
+
     /// Format to use in this LogDestination.
     LogFormat format;
 
@@ -317,14 +326,6 @@ namespace Arc {
        LogStream will be written.
      */
     std::ostream& destination;
-
-    /// A mutex for synchronization.
-    /** This mutex is locked before a LogMessage is written and it is
-       not unlocked until the entire message has been written and the
-       stream flushed. This is done in order to prevent LogMessages to
-       appear mixed in the stream.
-     */
-    Glib::Mutex mutex;
 
   };
 
@@ -410,7 +411,6 @@ namespace Arc {
     int maxsize;
     int backups;
     bool reopen;
-    Glib::Mutex mutex;
   };
 
   class LoggerContextRef;

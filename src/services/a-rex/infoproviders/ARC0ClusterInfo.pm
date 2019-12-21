@@ -21,10 +21,11 @@ sub mds_date {
 # can have as many parameters as one wants.
 sub prioritizedvalues {
    my @values = @_;
+   my $numelements = scalar @values;
 
    while (@values) {
       my $current = shift @values;
-      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
+      return $current if (((defined $current) and ($current ne '')) or ( $numelements == 1));
   }
 
    # just in case all the above fails, return empty string
@@ -351,11 +352,13 @@ sub collect($) {
             $q->{maxuserrun} = $qinfo->{maxuserrun} if defined $qinfo->{maxuserrun};
             $q->{maxcputime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
             $q->{maxcputime} = defined $q->{maxcputime} ? int $q->{maxcputime}/60 : undef;
-            $q->{mincputime} = int $qinfo->{mincputime}/60 if defined $qinfo->{mincputime};
+            $q->{mincputime} = prioritizedvalues($sconfig->{mincputime},$qinfo->{mincputime});
+            $q->{mincputime} = defined $q->{mincputime} ? int $q->{mincputime}/60 : undef;
             $q->{defaultcputime} = int $qinfo->{defaultcput}/60 if defined $qinfo->{defaultcput};
-            $q->{maxwalltime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
+            $q->{maxwalltime} = prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
             $q->{maxwalltime} = defined $q->{maxwalltime} ? int $q->{maxwalltime}/60 : undef;
-            $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
+            $q->{minwalltime} = prioritizedvalues($sconfig->{minwalltime},$qinfo->{minwalltime});
+            $q->{minwalltime} = defined $q->{minwalltime} ? int $q->{minwalltime}/60 : undef;
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
             $q->{gridrunning} = $gridrunning{$share} || 0;   

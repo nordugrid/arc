@@ -31,6 +31,7 @@ namespace ArcDMCGridFTP {
     virtual ~DataPointGridFTPDelegate();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool RequiresCredentials() const;
+    virtual bool SetURL(const Arc::URL&);
 
   private:
     bool is_secure;

@@ -1021,7 +1021,7 @@ int JobPlugin::close(bool eof) {
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
-  if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED,false)) {
     logger.msg(Arc::ERROR, "Failed writing status");
     delete_job_id(); 
     error_description="Failed registering job in A-REX.";

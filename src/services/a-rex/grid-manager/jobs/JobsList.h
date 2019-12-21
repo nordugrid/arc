@@ -101,9 +101,6 @@ class JobsList {
   bool state_canceling(GMJobRef i,bool &state_changed);
   // Same for PREPARING/FINISHING
   bool state_loading(GMJobRef i,bool &state_changed,bool up);
-  // Returns true if job is waiting on some condition or limit before
-  // progressing to the next state
-  bool JobPending(GMJobRef i);
   // Get the state in which the job failed from .local file
   job_state_t JobFailStateGet(GMJobRef i);
   // Write the state in which the job failed to .local file
@@ -130,6 +127,9 @@ class JobsList {
   bool GetLocalDescription(GMJobRef i) const;
   // Modify job state, log that change and optionally log modification reson
   void SetJobState(GMJobRef i, job_state_t new_state, const char* reason = NULL);
+  // Modify job state to set is as waiting on some condition or limit before
+  // progressing to the next state
+  void SetJobPending(GMJobRef i, const char* reason);
   // Update content of job proxy file with one stored in delegations store
   void UpdateJobCredentials(GMJobRef i);
 

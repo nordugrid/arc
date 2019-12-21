@@ -256,7 +256,7 @@ class RecordsPublisher(object):
             self.logger.error('Failed to publish messages to SGAS target')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records has been published to SGAS target %s', target_conf['targethost'])
+        self.logger.debug('Accounting records have been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
     def publish_apel(self, target_conf, endfrom, endtill=None, regular=False):
@@ -345,7 +345,7 @@ class RecordsPublisher(object):
             self.logger.error('Failed to publish messages to APEL broker')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records has been published to APEL broker %s', target_conf['targethost'])
+        self.logger.debug('Accounting records have been published to APEL broker %s', target_conf['targethost'])
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -394,7 +394,7 @@ class RecordsPublisher(object):
                 lastreported = self.adb.get_last_report_time(target)
                 unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())
                 if (unixtime_now - lastreported) < int(targetconf['urdelivery_frequency']):
-                    self.logger.debug('Records are reported to [%s] target less than %s seconds ago. '
+                    self.logger.debug('Records have been reported to [%s] target less than %s seconds ago. '
                                       'Skipping publishing during this run due to "urdelivery_frequency" constraint.',
                                       target, targetconf['urdelivery_frequency'])
                     continue
@@ -412,7 +412,7 @@ class RecordsPublisher(object):
             if latest is not None:
                 self.adb.set_last_published_endtime(target, latest)
                 self.logger.info('Accounting data for jobs finished before %s '
-                                 'has been successfully published to [%s] target',
+                                 'have been successfully published to [%s] target',
                                  datetime.datetime.utcfromtimestamp(latest), target)
 
 
@@ -484,7 +484,7 @@ class SGASSender(object):
                         errstr = line.replace('<p class="error">&lt;class', '').replace('&gt;', '').replace('</p>', '')
                         self.logger.error('SGAS returned the following error description:%s', errstr)
             else:
-                self.logger.info('Records has been sent to SGAS server %s.', self.conf['targethost'])
+                self.logger.info('Records have been sent to SGAS server %s.', self.conf['targethost'])
                 sent = True
         except Exception as e:
             self.logger.error('Error connecting to SGAS server %s. Error: %s', self.conf['targethost'], str(e))

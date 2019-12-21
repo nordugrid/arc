@@ -50,7 +50,7 @@ const char * const subdir_rew      = "restarting";     // Jobs waiting to restar
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
-static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
+static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending);
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname);
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname);
 
