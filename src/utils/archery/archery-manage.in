@@ -116,6 +116,7 @@ def json_config_object(archery_object):
     """Translate internal extended JSON to expanded JSON config that can be used as a source"""
     # helper function to use with output_json_config()
     jconf = {}
+
     if 'id' in archery_object:
         jconf['id'] = archery_object['id']
 
@@ -129,6 +130,9 @@ def json_config_object(archery_object):
         kind = archery_object['object']
     else:
         kind = 'group'
+
+    if 'raw-dns' in archery_object:
+        jconf['raw-dns'] = archery_object['raw-dns']
 
     external_object = None
     if 'pointer_rr_data' in archery_object:
@@ -228,6 +232,11 @@ def output_zonefile(archery_object, cmd_args):
         rr_mod = rr.split(' ', 1)
         print('{0:<64}{1:>6} TXT "{2}"'.format(rr_mod[0], ttl, rr_mod[1]))
 
+    if 'raw-dns' in archery_object:
+        for rdns in archery_object['raw-dns']:
+            if 'ttl' not in rdns:
+                rdns['ttl'] = ttl
+            print('{name:<64}{ttl:>6} {type} {rdata}'.format(**rdns))
 
 _output_formatters = {
     'arc-CEs': output_arc_celist,
@@ -1228,7 +1237,13 @@ def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
         logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
         sys.exit(1)
 
-    return group_object_from_json(jconf, rr_owner)
+    # process groups recursively and return archery-manage internal object
+    archery_object = group_object_from_json(jconf, rr_owner)
+
+    # support raw DNS records only on the top-level
+    if 'raw-dns' in jconf:
+        archery_object['raw-dns'] = jconf['raw-dns']
+    return archery_object
 
 
 def get_gocdb_topology(rr_owner='_archery', timeout=_fetch_timeout):
@@ -1450,6 +1465,30 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
         archery_object['rr_owner'] = rrset_name
 
 
+def _raw_dns_fetch(dnsdata, domain, nameserver=None):
+    resolver = dns.resolver.Resolver()
+    if nameserver is not None:
+        resolver.nameservers = [nameserver]
+
+    for rdns in dnsdata:
+        resolve_name = domain
+        if rdns['name']:
+            resolve_name = rdns['name'] + '.' + resolve_name
+        try:
+            print(resolve_name)
+            print(rdns['type'])
+            rrs = resolver.query(resolve_name, rdns['type'])
+        except dns.resolver.NXDOMAIN as e:
+            logger.debug('NXDOMAIN received for %s DNS query for domain %s.',
+                         rdns['type'], resolve_name)
+            pass
+        except dns.resolver.NoAnswer as e:
+            logger.warning('No answer for %s DNS query for domain %s. Error: %s',
+                           rdns['type'], resolve_name, str(e))
+        else:
+            for rr in rrs:
+                print(rr.to_text())
+
 #
 # HANDLE DDNS UPDATE
 #
@@ -1469,10 +1508,10 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
     keyring = dns.tsigkeyring.from_text(keyring_dict)
     main_rr_owner = '_archery.{0}.'.format(domain.rstrip('.'))
 
-    # new TXT data according to provided data object
+    # new ARCHERY TXT data according to provided data object
     new_dns_rrset = archery_txt_rrset(new_archery_object)
 
-    # old endpoints from querying the ARCHERY
+    # old endpoints from querying the ARCHERY DNS zone
     dns_archery_object = fetch_archery_dns_data('dns://' + main_rr_owner, nameserver=nameserver, threads=fetch_threads)
     old_dns_rrset = archery_txt_rrset(dns_archery_object)
 
@@ -1482,6 +1521,10 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
     remove_rrs = old_dns_rrset - new_dns_rrset
     add_rrs = new_dns_rrset - old_dns_rrset
     logger.info('DNS incremental update includes %s records to add and %s records to remove', len(add_rrs), len(remove_rrs))
+
+    # check raw DNS records are in sync in the zone
+    if 'raw-dns' in archery_object:
+        _raw_dns_fetch(archery_object['raw-dns'], domain, nameserver)
 
     try:
         update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
