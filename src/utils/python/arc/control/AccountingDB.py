@@ -43,49 +43,72 @@ class SQLFilter(object):
 class AccountingDB(object):
     """A-REX Accounting Records database interface for python tools"""
     def __init__(self, db_file):
-        """Init connection in constructor"""
+        """Try to init connection in constructor to ensure database is accessible"""
         self.logger = logging.getLogger('ARC.AccountingDB')
+        self.db_file = db_file
         self.con = None
         # don't try to initialize database if not exists
         if not os.path.exists(db_file):
             self.logger.error('Accounting database file is not exists at %s', db_file)
             sys.exit(1)
         # try to make a connection
-        try:
-            self.con = sqlite3.connect(db_file)
-        except sqlite3.Error as e:
-            self.logger.error('Failed to initialize SQLite connection to %s. Error %s', db_file, str(e))
-            sys.exit(1)
+        self.adb_connect()
+        # ensure Write-Ahead Logging mode
+        jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
+        if jmode != 'wal':
+            self.logger.error('Failed to switch SQLite database to journal mode to Write-Ahead Logging. '
+                              'The %s method is used that can affect job processing during publishing. '
+                              'It is STRONGLY ADVISED to update SQLite to 3.7.0!', jmode)
+        else:
+            self.logger.debug('Using SQLite Write-Ahead Logging that is non-blocking for read-only queries')
+        #
+        # NOTE: to minimize possibility of locking in any journal mode, AccountingDB object uses connection on-demand
+        #       instead of keeping it open
+        #
+        self.adb_close()
 
-        if self.con is not None:
-            self.logger.debug('Connection to accounting database (%s) has been established successfully', db_file)
-
-        # data structures for memory fetching
+        # data structures for in-memory fetching
         self.queues = {}
         self.users = {}
         self.wlcgvos = {}
         self.statuses = {}
         self.endpoints = {}
+
         # select aggregate filtering
         self.sqlfilter = SQLFilter()
-        # publishing db
-        self.attached_publishing_db = False
 
-    def close(self):
+        # publishing db
+        self.pub_con = None
+
+    def adb_connect(self):
+        """Initialize database connection"""
+        try:
+            self.con = sqlite3.connect(self.db_file)
+        except sqlite3.Error as e:
+            self.logger.error('Failed to initialize SQLite connection to %s. Error %s', self.db_file, str(e))
+            sys.exit(1)
+        if self.con is not None:
+            self.logger.debug('Connection to accounting database (%s) has been established successfully', self.db_file)
+
+    def adb_close(self):
         """Terminate database connection"""
         if self.con is not None:
             self.logger.debug('Closing connection to accounting database')
             self.con.close()
-        self.con = None
+            self.con = None
 
     def __del__(self):
-        self.close()
+        self.adb_close()
+        self.publishing_db_close()
 
     # general value fetcher
-    def __get_value(self, sql, params=(), errstr='value'):
+    def __get_value(self, sql, params=(), errstr='value', pubcon=False):
         """General helper to get the one value from database"""
+        db_con = self.con
+        if pubcon:
+            db_con = self.pub_con
         try:
-            for row in self.con.execute(sql, params):
+            for row in db_con.execute(sql, params):
                 return row[0]
         except sqlite3.Error as e:
             if params:
@@ -109,6 +132,7 @@ class AccountingDB(object):
     # helpers to fetch accounting DB normalization databases to internal class structures
     def __fetch_idname_table(self, table):
         """General helper to fetch (id, name) tables content as a dict"""
+        self.adb_connect()
         data = {
             'byid': {},
             'byname': {}
@@ -120,6 +144,7 @@ class AccountingDB(object):
                 data['byname'][row[1]] = row[0]
         except sqlite3.Error as e:
             self.logger.error('Failed to get %s table data from accounting database. Error: %s', table, str(e))
+        self.adb_close()
         return data
 
     def __fetch_queues(self, force=False):
@@ -140,6 +165,7 @@ class AccountingDB(object):
 
     def __fetch_endpoints(self, force=False):
         if not self.endpoints or force:
+            self.adb_connect()
             self.endpoints = {
                 'byid': {},
                 'byname': {},
@@ -155,6 +181,7 @@ class AccountingDB(object):
                     self.endpoints['bytype'][row[1]].append(row[0])
             except sqlite3.Error as e:
                 self.logger.error('Failed to get Endpoints table data from accounting database. Error: %s', str(e))
+            self.adb_close()
 
     # retrieve list of names used for filtering stats
     def get_queues(self):
@@ -185,7 +212,10 @@ class AccountingDB(object):
             sql += ' WHERE JobId LIKE ?'
             params += (prefix + '%', )
             errstr = 'Job IDs starting from {0}'
-        return self.__get_list(sql, params, errstr=errstr)
+        self.adb_connect()
+        joblist = self.__get_list(sql, params, errstr=errstr)
+        self.adb_close()
+        return joblist
 
     # construct stats query filters
     def __filter_nameid(self, names, attrdict, attrname, dbfield):
@@ -308,8 +338,10 @@ class AccountingDB(object):
                 sql += ' WHERE 1=1'  # verified that this does not affect performance
             sql += ' ' + self.sqlfilter.getsql()
         params += self.sqlfilter.getparams()
+        self.adb_connect()
         try:
             res = self.con.execute(sql, params)
+            self.adb_close()
             return res
         except sqlite3.Error as e:
             params += (str(e),)
@@ -317,6 +349,7 @@ class AccountingDB(object):
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
+            self.adb_close()
             return []
 
     #
@@ -568,16 +601,15 @@ class AccountingDB(object):
         return None
 
     # Publishing state recording
-    def attach_publishing_db(self, dbfile):
-        """Attach publishing database to current connection"""
-        # already attached, nothing to do
-        self.logger.debug('Attaching accounting publishing database at %s', dbfile)
-        if self.attached_publishing_db:
-            self.logger.debug('Database is already attached')
+    def publishing_db_connect(self, dbfile):
+        """Establish connection to publishing state database"""
+        self.logger.debug('Establishing connection to accounting publishing state database at %s', dbfile)
+
+        if self.pub_con is not None:
+            self.logger.debug('Publishing state database is already connected')
             return
         # attach database
-        sql = 'ATTACH DATABASE ? AS pub'
-        dbinit_sql = '''CREATE TABLE IF NOT EXISTS pub.AccountingTargets (
+        dbinit_sql = '''CREATE TABLE IF NOT EXISTS AccountingTargets (
               TargetID    TEXT UNIQUE NOT NULL,
               LastEndTime INTEGER NOT NULL,
               LastReport  INTEGER NOT NULL
@@ -585,40 +617,47 @@ class AccountingDB(object):
         if not os.path.exists(dbfile):
             self.logger.info('Cannot find accounting publishing database file, will going to init %s.', dbfile)
         try:
-            self.con.execute(sql, (dbfile, ))
+            self.pub_con = sqlite3.connect(dbfile)
         except sqlite3.Error as e:
-            self.logger.error('Failed to attach accounting publishing database at %s to the current connection. '
+            self.logger.error('Failed to connect to accounting publishing state database at %s. '
                               'Error: %s', dbfile, str(e))
             sys.exit(1)
         # create table if not exist
         try:
-            self.con.execute(dbinit_sql)
+            self.pub_con.execute(dbinit_sql)
         except sqlite3.Error as e:
-            self.logger.error('Failed to initialize accounting publishing database schema. '
+            self.logger.error('Failed to initialize accounting publishing state database schema. '
                               'Error: %s', str(e))
             sys.exit(1)
         else:
-            self.con.commit()
-        self.logger.info('Accounting publishing database has been attached')
-        self.attached_publishing_db = True
+            self.pub_con.commit()
+        self.logger.info('Established connection to accounting publishing state database')
+
+    def publishing_db_close(self):
+        """Terminate publishing database connection"""
+        if self.pub_con is not None:
+            self.logger.debug('Closing connection to accounting database')
+            self.pub_con.close()
+            self.pub_con = None
 
     def set_last_published_endtime(self, target_id, endtimestamp):
         """Set latest records EndTime published to this target"""
-        sql = 'INSERT OR REPLACE INTO pub.AccountingTargets(TargetID, LastEndTime, LastReport) ' \
+        sql = 'INSERT OR REPLACE INTO AccountingTargets(TargetID, LastEndTime, LastReport) ' \
               'VALUES(?, ?, ?)'
         publish_time = self.unixtimestamp(datetime.datetime.today())
         try:
-            self.con.execute(sql, (target_id, endtimestamp, publish_time))
+            self.pub_con.execute(sql, (target_id, endtimestamp, publish_time))
         except sqlite3.Error as e:
             self.logger.error('Failed to update latest published records EndTime for [%s] target. '
                               'Error: %s', target_id, str(e))
         else:
-            self.con.commit()
+            self.pub_con.commit()
 
     def get_last_published_endtime(self, target_id):
         """Get latest records EndTime published to this target"""
-        sql = 'SELECT LastEndTime FROM pub.AccountingTargets WHERE TargetID = ?'
-        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last published endtime for target [{0}]')
+        sql = 'SELECT LastEndTime FROM AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
+                                      errstr='Failed to get last published endtime for target [{0}]')
         # if we publish fist time to this target avoid all eternity of records publishing
         # for previous records pushing use republish functionality
         if not updatetime:
@@ -632,8 +671,9 @@ class AccountingDB(object):
 
     def get_last_report_time(self, target_id):
         """Get time of the latest report to this target"""
-        sql = 'SELECT LastReport FROM pub.AccountingTargets WHERE TargetID = ?'
-        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last report time for target [{0}]')
+        sql = 'SELECT LastReport FROM AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
+                                      errstr='Failed to get last report time for target [{0}]')
         if not updatetime:
             updatetime = 0
         return updatetime
