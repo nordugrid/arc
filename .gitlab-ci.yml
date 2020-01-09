@@ -76,7 +76,8 @@ deploy_staging_deb9:
     - docker pull maikenp/arc-deploy-debian9
     - pwd
     - ls
-    - docker run --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/arc:/arc:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
+    - cp -r $CI_PROJECT_DIR/* /build
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/build:/arc:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
