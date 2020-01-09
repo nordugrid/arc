@@ -36,9 +36,24 @@ packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
-    - wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_deb9' -O artifacts.zip
-    - unzip artifacts.zip
+    - echo "6.0.0" > VERSION
+    - apt-get update -y
+    - ./autogen.sh
+    - ./configure
     - pwd
+    - ls
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
+    - pwd
+    - ls 
   tags:
     - build
   artifacts:
@@ -50,6 +65,7 @@ packages_deb9:
     - $CI_PROJECT_DIR/*.dsc
     - $CI_PROJECT_DIR/*.deb
   allow_failure: true
+  
 
 
 deploy_staging_deb9:
@@ -58,7 +74,9 @@ deploy_staging_deb9:
   script:
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian9
-    - docker run --name=$name_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - pwd
+    - ls
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/arc:/arc:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
