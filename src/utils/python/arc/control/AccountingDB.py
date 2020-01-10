@@ -152,22 +152,27 @@ class AccountingDB(object):
 
     def __fetch_queues(self, force=False):
         if not self.queues or force:
+            self.logger.debug('Fetching queues from accounting database')
             self.queues = self.__fetch_idname_table('Queues')
 
     def __fetch_users(self, force=False):
         if not self.users or force:
+            self.logger.debug('Fetching users from accounting database')
             self.users = self.__fetch_idname_table('Users')
 
     def __fetch_wlcgvos(self, force=False):
         if not self.wlcgvos or force:
+            self.logger.debug('Fetching WLCG VOs from accounting database')
             self.wlcgvos = self.__fetch_idname_table('WLCGVOs')
 
     def __fetch_statuses(self, force=False):
         if not self.statuses or force:
+            self.logger.debug('Fetching available job statuses from accounting database')
             self.statuses = self.__fetch_idname_table('Status')
 
     def __fetch_endpoints(self, force=False):
         if not self.endpoints or force:
+            self.logger.debug('Fetching service endpoints from accounting database')
             self.adb_connect()
             self.endpoints = {
                 'byid': {},
@@ -426,6 +431,7 @@ class AccountingDB(object):
     def __fetch_authtokenattrs(self):
         """Return dict that holds list of auth token attributes tuples for every record id"""
         result = {}
+        self.logger.debug('Fetching auth token attributes for AARs from database')
         sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
@@ -438,6 +444,7 @@ class AccountingDB(object):
     def __fetch_jobevents(self):
         """Return list ordered job event tuples"""
         result = {}
+        self.logger.debug('Fetching job events for AARs from database')
         sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
         for row in self.__filtered_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
@@ -450,6 +457,7 @@ class AccountingDB(object):
     def __fetch_rtes(self):
         """Return list of job RTEs"""
         result = {}
+        self.logger.debug('Fetching used RTEs for AARs from database')
         sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
@@ -462,6 +470,7 @@ class AccountingDB(object):
     def __fetch_datatransfers(self):
         """Return list of dicts representing individual job datatransfers"""
         result = {}
+        self.logger.debug('Fetching jobs datatransfer records for AARs from database')
         sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
@@ -485,6 +494,7 @@ class AccountingDB(object):
 
     def __fetch_extrainfo(self):
         """Return dict of extra job info"""
+        self.logger.debug('Fetching extra job info for AARs from database')
         result = {}
         sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
@@ -497,6 +507,7 @@ class AccountingDB(object):
 
     def get_aars(self, resolve_ids=False):
         """Return list of AARs corresponding to filtered query"""
+        self.logger.debug('Fetching AARs main data from database')
         aars = []
         for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
             aar = AAR()
@@ -570,6 +581,7 @@ class AccountingDB(object):
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
+        self.logger.debug('Invoking query to fetch APEL summaries data from database')
         for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
             (year, month) = res[12].split('-')
             summaries.append({
