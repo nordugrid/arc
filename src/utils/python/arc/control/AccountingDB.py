@@ -82,6 +82,9 @@ class AccountingDB(object):
 
     def adb_connect(self):
         """Initialize database connection"""
+        if self.con is not None:
+            self.logger.debug('Using already established SQLite connection to accounting database %s', self.db_file)
+            return
         try:
             self.con = sqlite3.connect(self.db_file)
         except sqlite3.Error as e:
@@ -327,6 +330,7 @@ class AccountingDB(object):
 
     def __filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
+        # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
         if not self.sqlfilter.isresult():
             return []
         if '<FILTERS>' in sql:
@@ -341,7 +345,6 @@ class AccountingDB(object):
         self.adb_connect()
         try:
             res = self.con.execute(sql, params)
-            self.adb_close()
             return res
         except sqlite3.Error as e:
             params += (str(e),)
@@ -383,6 +386,7 @@ class AccountingDB(object):
                     'rangestart': res[6],
                     'rangeend': res[7]
                 }
+        self.adb_close()
         return stats
 
     def get_job_owners(self):
@@ -391,6 +395,7 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT DISTINCT UserID FROM AAR',
                                          errorstr='Failed to get accounted job owners'):
             userids.append(res[0])
+        self.adb_close()
         if userids:
             self.__fetch_users()
             return [self.users['byid'][u] for u in userids]
@@ -402,6 +407,7 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
                                          errorstr='Failed to get accounted WLCG VOs for jobs'):
             voids.append(res[0])
+        self.adb_close()
         if voids:
             self.__fetch_wlcgvos()
             return [self.wlcgvos['byid'][v] for v in voids]
@@ -413,6 +419,7 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT JobID FROM AAR',
                                          errorstr='Failed to get JobIDs'):
             jobids.append(res[0])
+        self.adb_close()
         return jobids
 
     # Querying AARs and their info
@@ -425,6 +432,7 @@ class AccountingDB(object):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
+        self.adb_close()
         return result
 
     def __fetch_jobevents(self):
@@ -436,6 +444,7 @@ class AccountingDB(object):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
+        self.adb_close()
         return result
 
     def __fetch_rtes(self):
@@ -447,6 +456,7 @@ class AccountingDB(object):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append(row[1])
+        self.adb_close()
         return result
 
     def __fetch_datatransfers(self):
@@ -470,6 +480,7 @@ class AccountingDB(object):
                 'timeend': datetime.datetime.utcfromtimestamp(row[4]),
                 'type':  ttype
             })
+        self.adb_close()
         return result
 
     def __fetch_extrainfo(self):
@@ -481,6 +492,7 @@ class AccountingDB(object):
             if row[0] not in result:
                 result[row[0]] = {}
             result[row[0]][row[1]] = row[2]
+        self.adb_close()
         return result
 
     def get_aars(self, resolve_ids=False):
@@ -504,6 +516,7 @@ class AccountingDB(object):
                 endpoint = self.endpoints['byid'][a.aar['EndpointID']]
                 a.aar['Interface'] = endpoint[0]
                 a.aar['EndpointURL'] = endpoint[1]
+        self.adb_close()
         return aars
 
     def enrich_aars(self, aars, authtokens=False, events=False, rtes=False, dtrs=False, extra=False):
@@ -575,6 +588,7 @@ class AccountingDB(object):
                 'timestart': res[10],
                 'timeend': res[11]
             })
+        self.adb_close()
         return summaries
 
     def get_apel_sync(self):
@@ -591,14 +605,18 @@ class AccountingDB(object):
                 'count': res[1],
                 'endpoint': self.endpoints['byid'][res[2]][1]
             })
+        self.adb_close()
         return syncs
 
     def get_latest_endtime(self):
         """Return latest endtime for records matching defined filters"""
+        endtime = None
         sql = 'SELECT MAX(EndTime) FROM AAR'
         for res in self.__filtered_query(sql, errorstr='Failed to get latest endtime for records from database'):
-            return res[0]
-        return None
+            endtime = res[0]
+            break
+        self.adb_close()
+        return endtime
 
     # Publishing state recording
     def publishing_db_connect(self, dbfile):
