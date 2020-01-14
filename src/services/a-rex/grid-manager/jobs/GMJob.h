@@ -200,6 +200,10 @@ public:
     return job_;
   }
 
+  operator GMJob*() const {
+    return job_;
+  }
+
   void Destroy() {
     if (job_) job_->DestroyReference();
     job_ = NULL;
@@ -226,7 +230,7 @@ class GMJobQueue {
   GMJobQueue(int priority, char const * name);
 
   //! Comparison function type definition.
-  typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);
+  typedef bool (*comparator_t)(GMJob const * first, GMJob const * second);
 
   //! Insert job at end of the queue. Subject to queue priority.
   bool Push(GMJobRef& ref);

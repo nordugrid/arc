@@ -164,7 +164,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * sends them to the Scheduler.
    * @param job Job description object.
    */
-  void receiveJob(GMJobRef& job);
+  bool receiveJob(GMJobRef& job);
 
   /**
    * This method is used by A-REX to cancel on-going DTRs. A cancel request
