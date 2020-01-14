@@ -44,7 +44,7 @@ bool GMJobQueueDTR::CanRemove(GMJob const& job) {
 
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
-bool compare_job_description(GMJobRef const& first, GMJobRef const& second) {
+bool compare_job_description(GMJob const * first, GMJob const * second) {
   if(!first) return false;
   if(!second) return false;
   int priority_first = first->GetLocalDescription() ? first->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
@@ -76,11 +76,17 @@ void DTRGenerator::thread() {
     std::list<std::string>::iterator it_cancel = jobs_cancelled.begin();
     while (it_cancel != jobs_cancelled.end()) {
       // check if it is still in received queue and remove
-      if(!jobs_received.Erase(*it_cancel)) {
+      GMJobRef job = jobs_received.Find(*it_cancel);
+      if(!job) {
         // job must be in scheduler already
+        logger.msg(Arc::DEBUG, "%s: Job cancel request from DTR generator to scheduler", job->get_id());
         elock.unlock();
         processCancelledJob(*it_cancel);
         elock.lock();
+      } else {
+        logger.msg(Arc::DEBUG, "%s: Returning canceled job from DTR generator", job->get_id());
+        jobs_received.Erase(job);
+        jobs.RequestAttention(job); // pass job back to states processing
       }
       it_cancel = jobs_cancelled.erase(it_cancel);
     }
@@ -235,7 +241,7 @@ void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
   event_lock.signal_nonblock();
 }
 
-void DTRGenerator::receiveJob(GMJobRef& job) {
+bool DTRGenerator::receiveJob(GMJobRef& job) {
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
@@ -244,8 +250,14 @@ void DTRGenerator::receiveJob(GMJobRef& job) {
   // Add to jobs list even if Generator is stopped, so that A-REX doesn't
   // think that staging has finished.
   Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
-  jobs_received.PushSorted(job, compare_job_description);
-  event_lock.signal_nonblock();
+  bool result = jobs_received.PushSorted(job, compare_job_description);
+  if(result) {
+    logger.msg(Arc::DEBUG, "%s: Received job in DTR generator", job->get_id());
+    event_lock.signal_nonblock();
+  } else {
+    logger.msg(Arc::ERROR, "%s: Failed to receive job in DTR generator", job->get_id());
+  }
+  return result;
 }
 
 void DTRGenerator::cancelJob(const GMJobRef& job) {

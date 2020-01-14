@@ -673,14 +673,14 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
 
   // first check if job is already in the system
   if (!dtr_generator.hasJob(i)) {
-    dtr_generator.receiveJob(i);
-    return true;
+    return dtr_generator.receiveJob(i);
   }
   // if job has already failed then do not set failed state again if DTR failed
   bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
   if (dtr_generator.queryJobFinished(i)) {
     // DTR part already finished. Do other checks if needed.
+    logger.msg(Arc::VERBOSE, "%s: State: %s: data staging finished", i->job_id, (up ? "FINISHING" : "PREPARING"));
 
     bool done = true;
     bool result = true;
@@ -715,7 +715,7 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
   }
   else {
     // not finished yet - should not happen
-    logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
+    logger.msg(Arc::DEBUG, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
     // Since something is out of sync do polling as backup solution
     RequestPolling(i);
     return true;

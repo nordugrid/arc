@@ -254,13 +254,13 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
   // Most of the cases job lands last in list
   std::list<GMJob*>::reverse_iterator opos = queue_.rbegin();
   while(opos != queue_.rend()) {
-    if(ref == GMJobRef(*opos)) {
+    if(ref == *opos) {
       // Can it be moved ?
       std::list<GMJob*>::reverse_iterator npos = opos;
       std::list<GMJob*>::reverse_iterator rpos = npos;
       ++npos;
       while(npos != queue_.rend()) {
-        if(!compare(ref, *npos)) break;
+        if(!compare((GMJob*)ref, *npos)) break;
         rpos = npos;
         ++npos;
       };
