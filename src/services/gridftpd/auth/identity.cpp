@@ -44,7 +44,6 @@ Identity::Item* Identity::operator[](unsigned int n) {
 }
 
 bool Identity::operator==(Identity& id) {
-  if(&id == NULL) return false;
   for(std::list<Identity::Item*>::iterator i = items_.begin();
                                            i!=items_.end();++i) {
     if(*i == NULL) continue;

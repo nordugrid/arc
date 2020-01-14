@@ -760,8 +760,8 @@ namespace ArcDMCFile {
     buffer->speed.hold(false);
     /* create thread to maintain writing */
     if(!CreateThreadFunction(&DataPointFile::write_file_start,this,&transfers_started)) {
-      if(fd != -1) close(fd); fd = -1;
-      if(fa) fa->fa_close(); delete fa; fa = NULL;
+      if(fd != -1) { close(fd); fd = -1; }
+      if(fa) { fa->fa_close(); delete fa; fa = NULL; }
       buffer->error_write(true);
       buffer->eof_write(true);
       writing = false;

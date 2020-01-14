@@ -124,7 +124,6 @@ bool PayloadHTTPIn::readline(std::string& line) {
 }
 
 bool PayloadHTTPIn::read(char* buf,int64_t& size) {
-char* sbuf = buf;
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);

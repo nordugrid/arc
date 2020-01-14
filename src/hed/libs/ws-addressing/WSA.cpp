@@ -257,8 +257,8 @@ bool WSAHeader::Check(SOAPEnvelope& soap) {
 
 void WSAFaultAssign(SOAPEnvelope& message,WSAFault fid) {
   // TODO: Detail
+  if(message.Fault() == NULL) return;
   SOAPFault& fault = *(message.Fault());
-  if(&fault == NULL) return;
   NS ns;
   ns["wsa"]="http://www.w3.org/2005/08/addressing";
   message.Namespaces(ns);
@@ -314,8 +314,8 @@ void WSAFaultAssign(SOAPEnvelope& message,WSAFault fid) {
 WSAFault WSAFaultExtract(SOAPEnvelope& message) {
   // TODO: extend XML interface to compare QNames
   WSAFault fid = WSAFaultNone;
+  if(message.Fault() == NULL) return fid;
   SOAPFault& fault = *(message.Fault());
-  if(&fault == NULL) return fid;
   //XMLNode::NS ns;
   //ns["wsa"]="http://www.w3.org/2005/08/addressing";
   //message.Namespaces(ns);

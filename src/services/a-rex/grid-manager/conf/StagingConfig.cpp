@@ -55,7 +55,6 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
   Arc::ConfigIni cf(cfile);
   static const int common_perflog_secnum = 0;
   cf.AddSection("common/perflog");
-  static const int data_staging_secnum = 1;
   cf.AddSection("arex/data-staging");
   for(;;) {
     std::string rest;

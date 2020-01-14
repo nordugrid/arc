@@ -567,7 +567,6 @@ namespace Arc {
     jobs.clear();
 
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, NULL, NULL, &rejectEndpoints);
@@ -592,7 +591,6 @@ namespace Arc {
     jobs.clear();
     
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, &jobIdentifiers, &endpoints, &rejectEndpoints);

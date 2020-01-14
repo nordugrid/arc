@@ -487,13 +487,6 @@ namespace ArcAuthNSS {
 
   static p12uContext * p12u_InitFile(PRBool fileImport, char *filename) {
     p12uContext *p12cxt;
-    PRBool fileExist;
-
-    if(fileImport)
-      fileExist = PR_TRUE;
-    else
-      fileExist = PR_FALSE;
-
     p12cxt = (p12uContext *)PORT_ZAlloc(sizeof(p12uContext));
     if(!p12cxt) {
       NSSUtilLogger.msg(ERROR, "Failed to allocate p12 context");
@@ -617,7 +610,6 @@ sec_PKCS12CreateSafeBag(SEC_PKCS12ExportContext *p12ctxt, SECOidTag bagType,
                         void *bagData)
 {
     sec_PKCS12SafeBag *safeBag;
-    PRBool setName = PR_TRUE;
     void *mark = NULL;
     SECStatus rv = SECSuccess;
     SECOidData *oidData = NULL;
@@ -662,7 +654,6 @@ sec_PKCS12CreateSafeBag(SEC_PKCS12ExportContext *p12ctxt, SECOidTag bagType,
         case SEC_OID_PKCS12_V1_SAFE_CONTENTS_BAG_ID:
             safeBag->safeBagContent.safeContents =
                 (sec_PKCS12SafeContents *)bagData;
-            setName = PR_FALSE;
             break;
         default:
             goto loser;
@@ -1591,33 +1582,6 @@ err:
     return deleteKeyAndCert(privkeyname, passphrase, true);
   }
 
-  static SECStatus DeleteCertAndKey(const char* certname, PasswordSource& passphrase) {
-    SECStatus rv;
-    CERTCertificate* cert;
-    PK11SlotInfo* slot;
-
-    slot = PK11_GetInternalKeySlot();
-    if(PK11_NeedLogin(slot)) {
-      SECStatus rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
-      if(rv != SECSuccess) {
-        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
-        return SECFailure;
-      }
-    }
-    cert = PK11_FindCertFromNickname((char*)certname, (void*)&passphrase);
-    if(!cert) {
-      PK11_FreeSlot(slot);
-      return SECFailure;
-    }
-    rv = PK11_DeleteTokenCertAndKey(cert, (void*)&passphrase);
-    if(rv != SECSuccess) {
-      NSSUtilLogger.msg(ERROR, "Failed to delete private key that attaches to certificate: %s", certname);
-    }
-    CERT_DestroyCertificate(cert);
-    PK11_FreeSlot(slot);
-    return rv;
-  }
-
   static bool InputPrivateKey(std::vector<uint8>& output, const std::string& privk_in) {
     EVP_PKEY* pkey=NULL;
 
@@ -2238,10 +2202,8 @@ err:
     PRArenaPool *arena = NULL;
     SECStatus rv = SECSuccess;
     SECOidData* oid = NULL;
-    SECItem policy_item;
     std::string pl_lang;
     SECOidTag tag;
-    void* mark;
 
     pl_lang = policylang;
     if(pl_lang == "Any language") tag = tag_anylang;
@@ -2572,7 +2534,6 @@ loser:
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
-    CERTCertificate* find_cert = NULL;
     CERTCertListNode* node;
 
     list = PK11_ListCerts(PK11CertListAll, NULL);
@@ -2717,7 +2678,6 @@ loser:
     CERTCertificate* cert = NULL;
     PRExplodedTime extime;
     PRTime now, start, end;
-    int serialnum;
     CERTCertificateRequest* req = NULL;
     void* ext_handle; 
     PRArenaPool* arena;
@@ -2941,7 +2901,6 @@ error:
     certhandle = CERT_GetDefaultCertDB();
 
     rv = DeleteCertOnly(name.c_str());
-    //rv = DeleteCertAndKey(name.c_str(), slotpw);
     if(rv == SECFailure) {
       PR_Close(in);
       PK11_FreeSlot(slot);

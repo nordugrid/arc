@@ -34,7 +34,7 @@ void UserTest::OwnUserTest() {
   int gid = pwd_p->pw_gid;
   std::string username = pwd_p->pw_name;
   std::string home = Arc::GetEnv("HOME");
-  if (home.empty()) pwd_p->pw_dir;
+  if (home.empty()) home = pwd_p->pw_dir;
 
   // User using this user's uid
   Arc::User user;

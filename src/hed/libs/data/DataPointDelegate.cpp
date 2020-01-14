@@ -353,7 +353,6 @@ namespace Arc {
     DataBuffer& buffer(*(it->buffer));
     bool out_failed = false;
     if(run) {
-      int timeout = it->usercfg.Timeout()*1000;
       logger.msg(INFO, "write_thread: get and pass buffers");
       for (;;) {
         int h;

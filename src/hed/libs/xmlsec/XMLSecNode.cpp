@@ -219,33 +219,38 @@ bool XMLSecNode::EncryptNode(const std::string& cert_file, const SymEncryptionTy
   // Put encrypted data in the <enc:CipherValue/> node
   if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL){
     std::cerr<<"Failed to add CipherValue node"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
   // Add <dsig:KeyInfo/>
   keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
   if(keyInfoNode == NULL) {
     std::cerr<<"Failed to add key info"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
 
   // Add <enc:EncryptedKey/> to store the encrypted session key
   encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, xmlSecTransformRsaPkcs1Id, NULL, NULL, NULL);
   if(encKeyNode == NULL) {
     std::cerr<<"Failed to add key info"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
 
   // Put encrypted key in the <enc:CipherValue/> node
   if(xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL) {
     std::cerr<<"Error: failed to add CipherValue node"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
 
   // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/>
   keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
   if(keyInfoNode2 == NULL){
     std::cerr<<"Failed to add key info"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
 
   //Create encryption context
@@ -254,7 +259,8 @@ bool XMLSecNode::EncryptNode(const std::string& cert_file, const SymEncryptionTy
   encCtx = xmlSecEncCtxCreate(keys_mngr);
   if(encCtx == NULL) {
     std::cerr<<"Failed to create encryption context"<<std::endl;
-    if(encDataNode != NULL) xmlFreeNode(encDataNode); return false;
+    if(encDataNode != NULL) xmlFreeNode(encDataNode);
+    return false;
   }
   
   //Generate a symmetric key

@@ -103,8 +103,6 @@ namespace Arc {
   }
 
   DataStatus DataExternalHelper::Write() {
-    static char dummy;
-
     if (!plugin)
       return DataStatus::NotInitializedError;
 

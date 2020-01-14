@@ -804,11 +804,12 @@ namespace Arc {
       }
       if (UsedMainMemory != -1)
         out << s << JSONPairNum("usedMemory", UsedMainMemory);
-      if (WorkingAreaEraseTime != -1)
+      if (WorkingAreaEraseTime != -1) {
         if (State == JobState::DELETED)
           out << s << JSONPair("resultsDeleted", (std::string)WorkingAreaEraseTime);
         else
           out << s << JSONPair("resultsMustBeRetrieved", (std::string)WorkingAreaEraseTime);
+      }
       if (ProxyExpirationTime != -1)
         out << s << JSONPair("proxyValidUntil", (std::string)ProxyExpirationTime);
       if (CreationTime != -1)

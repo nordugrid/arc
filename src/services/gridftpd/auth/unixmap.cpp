@@ -25,8 +25,8 @@ UnixMap::source_t UnixMap::sources[] = {
 };
 
 UnixMap::UnixMap(AuthUser& user,const std::string& id):
-  user_(user),map_id_(id),mapped_(false),
-  map_policy_({MAPPING_CONTINUE,MAPPING_STOP,MAPPING_STOP}) {
+  user_(user),map_id_(id),
+  map_policy_({MAPPING_CONTINUE,MAPPING_STOP,MAPPING_STOP}),mapped_(false) {
 }
 
 UnixMap::~UnixMap(void) {

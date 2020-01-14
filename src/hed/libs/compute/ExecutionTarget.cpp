@@ -379,7 +379,9 @@ namespace Arc {
   std::ostream& operator<<(std::ostream& out, const ComputingManagerAttributes& cm) {
     if (!cm.ProductName.empty()) {
                                       out << IString("Resource manager: %s", cm.ProductName);
-      if (!cm.ProductVersion.empty()) out << IString(" (%s)", cm.ProductVersion);
+      if (!cm.ProductVersion.empty()) {
+                                      out << IString(" (%s)", cm.ProductVersion);
+      }
                                       out << std::endl;
     }
     if (cm.TotalPhysicalCPUs > -1)    out << IString("Total physical CPUs: %i", cm.TotalPhysicalCPUs) << std::endl;
