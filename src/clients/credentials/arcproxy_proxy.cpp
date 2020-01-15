@@ -111,7 +111,6 @@ void create_proxy(std::string& proxy,
 }
 
 void write_proxy_file(const std::string& path, const std::string& content) {
-  std::string::size_type off = 0;
   if((!Arc::FileDelete(path)) && (errno != ENOENT)) {
     throw std::runtime_error("Failed to remove proxy file " + path);
   }

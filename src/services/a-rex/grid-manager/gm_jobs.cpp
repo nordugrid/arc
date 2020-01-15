@@ -283,12 +283,12 @@ int main(int argc, char* argv[]) {
       jobs_total++;
       counters[new_state]++;
       if (pending) counters_pending[new_state]++;
-      JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
-      if (&job_desc == NULL) {
+      if (i->GetLocalDescription(config) == NULL) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : No local information.", i->get_id());
         exit_code |= 4;
         continue;
       }
+      JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
       if(match_list(job_desc.DN,cancel_users)) {
         cancel_jobs_list.push_back(&(*i));
       }

@@ -131,7 +131,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   VOMSTrustList::~VOMSTrustList(void) {
     for(std::vector<RegularExpression*>::iterator r = regexs_.begin();
                     r != regexs_.end();++r) {
-      if(*r) delete *r; *r=NULL;
+      if(*r) { delete *r; *r=NULL; }
     }
   }
 

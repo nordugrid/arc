@@ -43,8 +43,6 @@ namespace Arc {
       char const* payloadEnd = pos;
       ++pos;
       content_ = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
-      char const* signatureStart = pos;
-      char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(payloadStart, payloadEnd-payloadStart);
       bool verifyResult = false;
       if(strcmp(algObject->string, "none") == 0) {

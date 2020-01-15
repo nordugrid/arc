@@ -367,13 +367,13 @@ using namespace Arc;
       if (!client) return DataStatus::StatError;
       // Do HEAD to obtain some metadata
       MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if (!r) {
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("HEAD", path, &request, &info, &inbuf);
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         if(!r) return DataStatus(DataStatus::StatError,r.getExplanation());
       }
       release_client(rurl,client.Release());
@@ -494,18 +494,18 @@ using namespace Arc;
       if (!client) return DataStatus::StatError;
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
         if(!r) {
-          if (inbuf) delete inbuf; inbuf = NULL;
+          if (inbuf) { delete inbuf; inbuf = NULL; }
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
@@ -575,18 +575,18 @@ using namespace Arc;
       if (!client) return DataStatus::StatError;
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
         if(!r) {
-          if (inbuf) delete inbuf; inbuf = NULL;
+          if (inbuf) { delete inbuf; inbuf = NULL; }
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
@@ -913,12 +913,12 @@ using namespace Arc;
     HTTPClientInfo info;
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
-    if (inbuf) delete inbuf; inbuf = NULL;
+    if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
       client = acquire_new_client(url);
       if(client) r = client->process("DELETE", url.FullPathURIEncoded(),
                                     &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
     }
     release_client(url,client.Release());
@@ -937,12 +937,12 @@ using namespace Arc;
     attributes.insert(std::pair<std::string, std::string>("Destination", url.ConnectionURL() + destination.FullPathURIEncoded()));
     MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
                                    attributes, &request, &info, &inbuf);
-    if (inbuf) delete inbuf; inbuf = NULL;
+    if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
       client = acquire_new_client(url);
       if(client) r = client->process("MOVE", url.FullPathURIEncoded(),
                                      attributes, &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
     }
     release_client(url,client.Release());
@@ -1271,7 +1271,7 @@ using namespace Arc;
       if (point.CheckSize()) request.Size(point.GetSize());
       MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs),
                                      &request, &transfer_info, &response);
-      if (response) delete response; response = NULL;
+      if (response) { delete response; response = NULL; }
       if (!r) {
         // It is not clear how to retry if early chunks are not available anymore.
         // Let it retry at higher level.

@@ -69,13 +69,13 @@ void JobsList::ExternalHelpers::thread(void) {
 
 JobsList::JobsList(const GMConfig& gmconfig) :
     valid(false),
+    jobs_processing(ProcessingQueuePriority, "processing"),
+    jobs_attention(AttentionQueuePriority, "attention"),
+    jobs_polling(0, "polling"),
+    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0),
-    jobs_polling(0, "polling"),
-    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
-    jobs_attention(AttentionQueuePriority, "attention"),
-    jobs_processing(ProcessingQueuePriority, "processing"),
     helpers(config.Helpers(), *this) {
 
   job_slow_polling_last = time(NULL);

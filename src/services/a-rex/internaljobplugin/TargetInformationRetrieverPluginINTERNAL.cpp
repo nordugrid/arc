@@ -67,7 +67,6 @@ namespace ARexINTERNAL {
       return s;
     }
 
-    int endpointID = 0;
     GLUE2::ParseExecutionTargets(servicesQueryResponse, csList);
 
     if(!csList.empty()){    

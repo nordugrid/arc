@@ -424,8 +424,6 @@ bool check_cert_type(X509* cert, certType& type) {
 
   ASN1_STRING* data;
   X509_EXTENSION* certinfo_ext;
-  PROXY_POLICY* policy = NULL;
-  ASN1_OBJECT* policylang = NULL;
   int policynid;
   PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
 

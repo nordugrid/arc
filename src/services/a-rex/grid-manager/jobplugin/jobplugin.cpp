@@ -1377,7 +1377,6 @@ bool JobPlugin::make_job_id(const std::string &id) {
 }
 
 bool JobPlugin::make_job_id(void) {
-  bool found = false;
   delete_job_id();
   for(int i=0;i<100;i++) {
     //std::string id=Arc::tostring((unsigned int)getpid())+
