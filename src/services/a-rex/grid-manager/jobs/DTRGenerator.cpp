@@ -79,7 +79,7 @@ void DTRGenerator::thread() {
       GMJobRef job = jobs_received.Find(*it_cancel);
       if(!job) {
         // job must be in scheduler already
-        logger.msg(Arc::DEBUG, "%s: Job cancel request from DTR generator to scheduler", job->get_id());
+        logger.msg(Arc::DEBUG, "%s: Job cancel request from DTR generator to scheduler", *it_cancel);
         elock.unlock();
         processCancelledJob(*it_cancel);
         elock.lock();
@@ -242,9 +242,13 @@ void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
 }
 
 bool DTRGenerator::receiveJob(GMJobRef& job) {
-
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
+  }
+
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator was sent null job");
+    return false;
   }
 
   // Add to jobs list even if Generator is stopped, so that A-REX doesn't
@@ -261,7 +265,10 @@ bool DTRGenerator::receiveJob(GMJobRef& job) {
 }
 
 void DTRGenerator::cancelJob(const GMJobRef& job) {
-  if(!job) return;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator got request to cancel null job");
+    return;
+  }
 
   if (generator_state != DataStaging::RUNNING) {
     logger.msg(Arc::WARNING, "DTRGenerator is not running!");
@@ -273,7 +280,10 @@ void DTRGenerator::cancelJob(const GMJobRef& job) {
 }
 
 bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
-  if(!job) return false;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is queried about null job");
+    return false;
+  }
 
   // Data staging is finished if the job is in finished_jobs and
   // not in active_dtrs or jobs_received.
@@ -300,7 +310,10 @@ bool DTRGenerator::queryJobFinished(GMJobRef const& job) {
 }
 
 bool DTRGenerator::hasJob(const GMJobRef& job) {
-  if(!job) return false;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is asked about null job");
+    return false;
+  }
 
   // check if this job is still in the received jobs queue
   Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
@@ -325,7 +338,10 @@ bool DTRGenerator::hasJob(const GMJobRef& job) {
 }
 
 void DTRGenerator::removeJob(const GMJobRef& job) {
-  if(!job) return;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is requested to remove null job");
+    return;
+  }
 
   // check if this job is still in the received jobs queue
   Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
@@ -647,7 +663,10 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 
 
 bool DTRGenerator::processReceivedJob(GMJobRef& job) {
-  if(!job) return false;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is requested to process null job");
+    return false;
+  }
 
   JobId jobid(job->get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
@@ -1051,7 +1070,10 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
 }
 
 DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef& job) {
-  if(!job) return uploadedFilesError;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is asked to check files for null job");
+    return uploadedFilesError;
+  }
 
   JobId jobid(job->get_id());
   uid_t job_uid = config.StrictSession() ? job->get_user().get_uid() : 0;
@@ -1302,7 +1324,10 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
 }
 
 void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& job) const {
-  if(!job) return;
+  if(!job) {
+    logger.msg(Arc::ERROR, "DTRGenerator is requested to clean links for null job");
+    return;
+  }
 
   CacheConfig cache_config(config.CacheParams());
   cache_config.substitute(config, job->get_user());
