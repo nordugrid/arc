@@ -354,7 +354,8 @@ class AccountingDB(object):
             return res
         except sqlite3.Error as e:
             params += (str(e),)
-            self.logger.debug('Failed to execute query: {0}. Error: %s'.format(sql.replace('?', '%s')), *params)
+            self.logger.debug('Failed to execute query: {0}. Error: %s'.format(
+                sql.replace('%', '%%').replace('?', '%s')), *params)
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
