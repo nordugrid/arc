@@ -56,11 +56,12 @@ class AccountingDB(object):
         # ensure Write-Ahead Logging mode
         jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
         if jmode != 'wal':
-            self.logger.error('Failed to switch SQLite database to journal mode to Write-Ahead Logging. '
-                              'The %s method is used that can affect job processing during publishing. '
-                              'It is STRONGLY ADVISED to update SQLite to 3.7.0!', jmode)
+            self.logger.error('Failed to switch SQLite database journal mode to Write-Ahead Logging (WAL). '
+                              'Default "%s" mode continued to be used. '
+                              'This can negatively affect A-REX jobs processing during publishing. '
+                              'It is STRONGLY ADVISED to update SQLite to 3.7.0+!', jmode)
         else:
-            self.logger.debug('Using SQLite Write-Ahead Logging that is non-blocking for read-only queries')
+            self.logger.debug('Using SQLite Write-Ahead Logging mode that is non-blocking for read-only queries')
         #
         # NOTE: to minimize possibility of locking in any journal mode, AccountingDB object uses connection on-demand
         #       instead of keeping it open
