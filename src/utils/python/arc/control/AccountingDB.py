@@ -568,7 +568,7 @@ class AccountingDB(object):
     def get_apel_summaries(self):
         """Return info corresponding to APEL aggregated summary records"""
         sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
-              AuthTokenAttributes.AttrValue, JobExtraInfo.InfoValue as Benchmark,
+              AuthTokenAttributes.AttrValue, JobExtraInfo.InfoValue as RBenchmark,
               COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
               strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
               FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
@@ -578,7 +578,7 @@ class AccountingDB(object):
                                     AND JobExtraInfo.InfoKey = "benchmark"
               LEFT JOIN AuthTokenAttributes ON AuthTokenAttributes.RecordID = a.RecordID
                                            AND AuthTokenAttributes.AttrKey = "mainfqan"
-              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount, Benchmark'''
+              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount, RBenchmark'''
         summaries = []
         self.__fetch_users()
         self.__fetch_wlcgvos()
