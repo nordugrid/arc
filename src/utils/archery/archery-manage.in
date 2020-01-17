@@ -1471,13 +1471,28 @@ def _raw_dns_fetch(dnsdata, domain, nameserver=None):
         resolver.nameservers = [nameserver]
 
     for rdns in dnsdata:
+        # format configured data
+        rdns['config_data'] = set()
+        if rdns['rdata']:
+            if isinstance(rdns['rdata'], list):
+                for rdata in rdns['rdata']:
+                    rdns['config_data'].add(rdata.encode())
+            else:
+                rdns['config_data'].add(rdns['rdata'].encode())
+        # fetch and construct server data
+        rdns['server_data'] = set()
         resolve_name = domain
         if rdns['name']:
             resolve_name = rdns['name'] + '.' + resolve_name
         try:
-            print(resolve_name)
-            print(rdns['type'])
-            rrs = resolver.query(resolve_name, rdns['type'])
+            handle_no_answer = True if rdns['type'] == 'NS' else False
+            logger.debug('Querying raw DNS data (type %s) from %s', rdns['type'], resolve_name)
+            rrs = resolver.query(resolve_name, rdns['type'], raise_on_no_answer=(not handle_no_answer))
+            # handle NS records
+            if not rrs.response.answer:
+                for rr in rrs.response.authority:
+                    for lrr in rr.to_text().split('\n'):
+                        rdns['server_data'].add(lrr.split(' ')[-1].encode())
         except dns.resolver.NXDOMAIN as e:
             logger.debug('NXDOMAIN received for %s DNS query for domain %s.',
                          rdns['type'], resolve_name)
@@ -1487,7 +1502,7 @@ def _raw_dns_fetch(dnsdata, domain, nameserver=None):
                            rdns['type'], resolve_name, str(e))
         else:
             for rr in rrs:
-                print(rr.to_text())
+                rdns['server_data'].add(rr.to_text().encode())
 
 #
 # HANDLE DDNS UPDATE
@@ -1522,10 +1537,6 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
     add_rrs = new_dns_rrset - old_dns_rrset
     logger.info('DNS incremental update includes %s records to add and %s records to remove', len(add_rrs), len(remove_rrs))
 
-    # check raw DNS records are in sync in the zone
-    if 'raw-dns' in archery_object:
-        _raw_dns_fetch(archery_object['raw-dns'], domain, nameserver)
-
     try:
         update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
         for r in remove_rrs:
@@ -1550,8 +1561,34 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
         dns.query.tcp(update, nameserver)
         logger.info('ARCHERY information has been updated for zone %s', domain)
     except DNSException as e:
-        logger.error('Failed in DDNS update. Error: %s', e)
+        logger.error('Failed in ARCHERY data DDNS update. Error: %s', e)
 
+    # check raw DNS records are in sync in the zone
+    if 'raw-dns' in archery_object:
+        logger.info('Raw DNS data is defined in the config. Goind to check defined records consistency.')
+        _raw_dns_fetch(archery_object['raw-dns'], domain, nameserver)
+        try:
+            rawupdate = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+            needs_rawupdate = False
+            for rr in archery_object['raw-dns']:
+                for cr in list(rr['server_data'] - rr['config_data']):
+                    logger.debug('Going to REMOVE raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.delete(rr['name'], rr['type'], cr)
+                for cr in list(rr['config_data'] - rr['server_data']):
+                    logger.debug('Going to ADD raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.add(rr['name'], ttl, rr['type'], cr)
+
+            if needs_rawupdate:
+                dns.query.tcp(rawupdate, nameserver)
+                logger.info('Defined raw DNS data has been updated for zone %s', domain)
+            else:
+                logger.info('Defined raw DNS data is in sync for zone %s', domain)
+        except DNSException as e:
+            logger.error('Failed in raw DNS data DDNS update. Error: %s', e)
 
 #
 # MAIN EXECUTION CYCLE
