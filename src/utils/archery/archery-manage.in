@@ -233,10 +233,20 @@ def output_zonefile(archery_object, cmd_args):
         print('{0:<64}{1:>6} TXT "{2}"'.format(rr_mod[0], ttl, rr_mod[1]))
 
     if 'raw-dns' in archery_object:
+        if archery_object['rr_owner']:
+            print('$ORIGIN {0}'.format(archery_object['rr_owner']))
         for rdns in archery_object['raw-dns']:
+            if not rdns['rdata']:
+                continue
             if 'ttl' not in rdns:
                 rdns['ttl'] = ttl
-            print('{name:<64}{ttl:>6} {type} {rdata}'.format(**rdns))
+            if isinstance(rdns['rdata'], list):
+                for rd in rdns['rdata']:
+                    srdns = rdns.copy()
+                    srdns['rdata'] = rd
+                    print('{name:<64}{ttl:>6} {type} {rdata}'.format(**srdns))
+            else:
+                print('{name:<64}{ttl:>6} {type} {rdata}'.format(**rdns))
 
 _output_formatters = {
     'arc-CEs': output_arc_celist,
