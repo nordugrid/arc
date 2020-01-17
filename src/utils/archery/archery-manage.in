@@ -535,7 +535,13 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
                     cdata['rr_owner'], rr_owner, ctype, estatus
                 )
             # add pointed record RRSet
-            rrset.add('{0} {1}'.format(rr_owner, cdata['pointer_rr_data']))
+            prr_owner = rr_owner
+            if not parent_rr_owner:
+                # predefined entry point
+                prr_owner = '_archery'
+                if rr_owner:
+                    prr_owner += '.' + rr_owner
+            rrset.add('{0} {1}'.format(prr_owner, cdata['pointer_rr_data']))
             # add child object data RRSet
             rrset |= archery_txt_rrset(cdata, rr_owner)
     return rrset
@@ -1108,7 +1114,7 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
 #
 # ARCHERY TOPOLOGY PROCESSING
 #
-def get_arcce_topology(ce_list, rr_owner='_archery'):
+def get_arcce_topology(ce_list, rr_owner=''):
     """Create ARCHERY data object that represent ARC CE flat CE list topology"""
     archery_object = {
         'object': 'group',
@@ -1225,7 +1231,7 @@ def group_object_from_json(jconf, rr_owner):
     return archery_object
 
 
-def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
+def get_json_topology(json_file, rr_owner='', timeout=_fetch_timeout):
     """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
     try:
         with open(json_file, 'r') as jconf_f:
@@ -1246,7 +1252,7 @@ def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
     return archery_object
 
 
-def get_gocdb_topology(rr_owner='_archery', timeout=_fetch_timeout):
+def get_gocdb_topology(rr_owner='', timeout=_fetch_timeout):
     """Create ARCHERY data object that represent GOCDB-defined EGI topology"""
     gocdb_host = 'goc.egi.eu'
     gocdb_path = '/gocdbpi/public/?method=get_site_list'
@@ -1394,13 +1400,19 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
     if dns_name[0:6] == 'dns://':
         dns_name = dns_name[6:].rstrip('.') + '.'
     else:
-        dns_name = '_archery.' + dns_name.rstrip('.') + '.'
+        dns_name = dns_name.rstrip('.') + '.'
+    pdns_name = dns_name
+    qdns_name = dns_name
+    if not parent_name:
+        # default entry point
+        qdns_name = '_archery.' + dns_name
+
     # query TXT RRSet
     logger.debug('Querying ARCHERY data from: %s', dns_name)
     try:
-        archery_rrs = resolver.query(dns_name, 'TXT')
-        # get RRSet owner name (without full DNS suffix including dot)
-        rrset_name = str(archery_rrs.rrset.name)
+        archery_rrs = resolver.query(qdns_name, 'TXT')
+        # get owner name (without full DNS suffix including dot)
+        rrset_name = pdns_name
         if parent_name and rrset_name.endswith(parent_name):
             rrset_name = rrset_name[:-(len(parent_name)+1)]
         archery_object['rr_owner'] = rrset_name
@@ -1440,7 +1452,7 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
                         req_queue.put({
                             'name': rrdata['u'],
                             'obj': child_object,
-                            'parent_name': dns_name,
+                            'parent_name': pdns_name,
                         })
                     else:
                         guess_object_kind = 'service'
@@ -1521,13 +1533,13 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
                         keyalgorithm=dns.tsig.default_algorithm):
     """Incrementally updates ARCHERY data records in DNS"""
     keyring = dns.tsigkeyring.from_text(keyring_dict)
-    main_rr_owner = '_archery.{0}.'.format(domain.rstrip('.'))
+    main_rr_owner = domain.rstrip('.') + '.'
 
     # new ARCHERY TXT data according to provided data object
     new_dns_rrset = archery_txt_rrset(new_archery_object)
 
     # old endpoints from querying the ARCHERY DNS zone
-    dns_archery_object = fetch_archery_dns_data('dns://' + main_rr_owner, nameserver=nameserver, threads=fetch_threads)
+    dns_archery_object = fetch_archery_dns_data(main_rr_owner, nameserver=nameserver, threads=fetch_threads)
     old_dns_rrset = archery_txt_rrset(dns_archery_object)
 
     # print(json.dumps(list(new_dns_rrset), indent=2))
@@ -1669,9 +1681,9 @@ if __name__ == '__main__':
     applied_filters = get_configured_fillters(cmd_args.filter)
 
     # Base domain name to work with
-    rr_owner = '_archery'
+    rr_owner = ''
     if domain is not None:
-        rr_owner += '.{0}.'.format(domain.rstrip('.'))
+        rr_owner += domain.rstrip('.') + '.'
 
     # Define services topology
     logger.info('Constructing ARCHERY objects topology according to configuration.')
