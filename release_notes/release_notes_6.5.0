@@ -11,6 +11,22 @@ We are happy to announce the ARC 6.5.0 release.
 Highlights in this release
 --------------------------
 
+Of enhancements and new features we would like to highlight: 
+
+Arcctl:
+* arcctl can now be installed standalone without A-REX. It comes with the test CA and 3rd party deploy (CA certs, VOMS) on board.
+* As before you get the full arcctl if you install A-REX
+
+Client area enhancements:
+* installation automated with standalone arcctl
+* new consistent and streamlined submission endpoint selection options
+* consistent target-area oriented globus plugins split
+* bash completion for client tools
+* documentation for clients!
+
+ARCHERY management:
+* new JSON configuration for flexible services topology definition
+  
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
