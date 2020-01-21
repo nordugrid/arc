@@ -707,6 +707,8 @@ EOSCR
      fi
   fi
   echo "echo \"Benchmark=$joboption_benchmark\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+  # add queue benchmark to frontend diag (for jobs that failed to reach/start in LRMS)
+  echo "Benchmark=$joboption_benchmark" >> "${joboption_controldir}/job.${joboption_gridid}.diag"
 
   # Define executable and check it exists on the worker node
   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT
