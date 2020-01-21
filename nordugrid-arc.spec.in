@@ -308,8 +308,10 @@ BuildRequires:	ldns-devel >= 1.6.8
 %if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
 BuildRequires:	python-argparse
 %endif
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+BuildRequires:	pkgconfig(bash-completion)
+%endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
-Requires:   pkgconfig(bash-completion)
 Requires:	hostname
 %else
 Requires:	net-tools
@@ -465,9 +467,9 @@ system and visualizes it.
 
 %package arcctl
 Summary:	ARC Control Tool
-Group:      Applications/Internet
+Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
-BuildArch:  noarch
+BuildArch:	noarch
 %if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
 Requires:	python-argparse
 %endif
@@ -489,7 +491,7 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 # remove older SDK package on update to 6.4
 %if %{py3default}
-Obsoletes:  python3-%{name} < 6.4.0
+Obsoletes:	python3-%{name} < 6.4.0
 %else
 Obsoletes:	python2-%{name} < 6.4.0
 %endif
@@ -857,8 +859,8 @@ This package contains the archery-manage utility for administration of
 an ARCHERY DNS-embedded service endpoint registry.
 
 %package wn
-Summary:    ARC optional worker nodes components
-Group:      Applications/Internet
+Summary:	ARC optional worker nodes components
+Group:		Applications/Internet
 
 %description wn
 NorduGrid is a collaboration aiming at development, maintenance and
