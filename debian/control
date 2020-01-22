@@ -100,8 +100,8 @@ Description: ARC command line clients
  Connector (ARC).
  .
  This client package contains all the CLI tools that are needed to
- operate with x509 proxies, submit and manage jobs and handle
- datatransfers.
+ operate with x509 proxies, submit and manage jobs and handle data
+ transfers.
 
 Package: nordugrid-arc-hed
 Replaces:
@@ -130,7 +130,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libarccommon3 (= ${binary:Version}),
- nordugrid-arc-plugins-globus (= ${binary:Version}),
+ nordugrid-arc-plugins-gridftp (= ${binary:Version}),
  lsb-base (>= 3.0-6)
 Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -267,7 +267,7 @@ Description: ARC Resource-coupled EXecution service
  layer to manage computational tasks including interfacing to local
  batch systems, taking care of complex environments such as data
  staging, data caching, software environment provisioning, information
- collection and explosure, accounting information gathering and
+ collection and exposure, accounting information gathering and
  publishing.
 
 Package: nordugrid-arc-arex-python-lrms
@@ -308,22 +308,100 @@ Description: ARC base plugins
  and Data Manager Components (DMCs).
 
 Package: nordugrid-arc-plugins-globus
+Architecture: all
+Section: oldlibs
+Depends:
+ ${misc:Depends},
+ nordugrid-arc-plugins-gridftp (>= ${source:Version}),
+ nordugrid-arc-plugins-gridftpjob (>= ${source:Version}),
+ nordugrid-arc-plugins-lcas-lcmaps (>= ${source:Version})
+Description: ARC Globus plugins (transitional package)
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the  Advanced Resource
+ Connector (ARC).
+ .
+ ARC Globus plugins. This compat metapackage brings all Globus dependent
+ plugins at once, including: Data Manager Components (DMCs), Client plugin
+ and LCAS/LCMAPS tools.
+ .
+ This is a transitional package. It is meant to allow smooth transition
+ and will be removed from the upcoming releases.
+
+Package: libarcglobusutils3
 Replaces:
- nordugrid-arc-plugins-needed (<< 1.0.1-2~)
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
 Breaks:
- nordugrid-arc-plugins-needed (<< 1.0.1-2~)
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
 Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libarccommon3 (= ${binary:Version})
-Description: ARC Globus plugins
+Description: ARC Globus plugins common libraries
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- ARC Globus plugins. This includes the Globus dependent Data Manager
- Components (DMCs).
+ ARC Globus plugins common libraries package includes the bundle of
+ necessary Globus libraries needed for all other globus-dependent ARC
+ components.
+
+Package: nordugrid-arc-plugins-gridftp
+Replaces:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Breaks:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version}),
+ libarcglobusutils3 (= ${binary:Version})
+Description: ARC Globus dependent DMCs
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC Globus GridFTP plugins. These allow access to data through the
+ gridftp protocol.
+
+Package: nordugrid-arc-plugins-lcas-lcmaps
+Replaces:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Breaks:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version}),
+ libarcglobusutils3 (= ${binary:Version})
+Description: ARC LCAS/LCMAPS plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC LCAS/LCMAPS tools allow configuring ARC CE to use LCAS/LCMAPS
+ services for authorization and mapping.
+
+Package: nordugrid-arc-plugins-gridftpjob
+Replaces:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Breaks:
+ nordugrid-arc-plugins-globus (<< 6.5.0~)
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version}),
+ libarcglobusutils3 (= ${binary:Version}),
+ nordugrid-arc-plugins-gridftp (= ${binary:Version})
+Description: ARC GRIDFTPJOB client plugin
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC GRIDFTPJOB plugin allows submitting jobs via the gridftpd interface.
 
 Package: nordugrid-arc-plugins-internal
 Architecture: any
