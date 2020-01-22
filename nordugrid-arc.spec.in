@@ -336,8 +336,8 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This client package contains all the CLI tools that are needed to
-operate with x509 proxies, submit and manage jobs and handle
-datatransfers.
+operate with x509 proxies, submit and manage jobs and handle data
+transfers.
 
 %package hed
 Summary:	ARC Hosting Environment Daemon
@@ -360,7 +360,7 @@ for ARC services.
 Summary:	ARC gridftp server
 Group:		System Environment/Daemons
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-globus = %{version}-%{release}
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -515,7 +515,7 @@ Element of the ARC middleware. AREX offers a full-featured middle
 layer to manage computational tasks including interfacing to local
 batch systems, taking care of complex environments such as data
 staging, data caching, software environment provisioning, information
-collection and explosure, accounting information gathering and
+collection and exposure, accounting information gathering and
 publishing.
 
 %if %{with_pythonlrms}
@@ -549,16 +549,14 @@ Connector (ARC).
 ARC base plugins. This includes the Message Chain Components (MCCs)
 and Data Manager Components (DMCs).
 
-%package plugins-globus-compat
-Summary:    ARC Globus plugins (compat)
-Group:      System Environment/Libraries
-Obsoletes:  %{name}-plugins-globus < 6.4.0
-Requires:   %{name} = %{version}-%{release}
-Requires:   %{name}-plugins-gridftp = %{version}-%{release}
-Requires:   %{name}-plugins-lcas-lcmaps = %{version}-%{release}
-Requires:   %{name}-plugins-gridftpjob = %{version}-%{release}
+%package plugins-globus
+Summary:	ARC Globus plugins (compat)
+Group:		System Environment/Libraries
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
+Requires:	%{name}-plugins-gridftpjob = %{version}-%{release}
+Requires:	%{name}-plugins-lcas-lcmaps = %{version}-%{release}
 
-%description plugins-globus-compat
+%description plugins-globus
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
@@ -568,17 +566,12 @@ plugins at once, including: Data Manager Components (DMCs), Client plugin
 and LCAS/LCMAPS tools.
 
 This package is meant to allow smooth transition and will be removed from
-the upcomming releases.
+the upcoming releases.
 
 %package plugins-globus-common
 Summary:	ARC Globus plugins common libraries
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
-%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
-Requires:	globus-gssapi-gsi >= 12.2
-%else
-Requires:	globus-gssapi-gsi < 12.2
-%endif
 
 %description plugins-globus-common
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -586,52 +579,55 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC Globus plugins common libraries package includes the bundle of
-necessary Globus libraries needed for all other globus-dependent ARC 
+necessary Globus libraries needed for all other globus-dependent ARC
 components.
 
 %package plugins-gridftp
-Summary:    ARC Globus dependent DMCs
-Group:      System Environment/Libraries
-Requires:   %{name} = %{version}-%{release}
-Requires:   globus-ftp-client
-Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+Summary:	ARC Globus dependent DMCs
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
 
 %description plugins-gridftp
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC Globus GridFTP plugins. These allow access to data through 
-the gridftp protocol.
+ARC Globus GridFTP plugins. These allow access to data through the
+gridftp protocol.
 
 %package plugins-lcas-lcmaps
-Summary:    ARC LCAS/LCMAPS plugins
-Group:      System Environment/Libraries
-Requires:   %{name} = %{version}-%{release}
-Requires:   %{name}-plugins-globus-common = %{version}-%{release}
+Summary:	ARC LCAS/LCMAPS plugins
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
+Requires:	globus-gssapi-gsi >= 12.2
+%else
+Requires:	globus-gssapi-gsi < 12.2
+%endif
 
 %description plugins-lcas-lcmaps
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC LCAS/LCMAPS tools allow to configure ARC CE to use LCAS/LCMAPS
+ARC LCAS/LCMAPS tools allow configuring ARC CE to use LCAS/LCMAPS
 services for authorization and mapping.
 
 %package plugins-gridftpjob
-Summary:    ARC GRIDFTPJOB client plugin
-Group:      System Environment/Libraries
-Requires:   %{name} = %{version}-%{release}
-Requires:   globus-ftp-control
-Requires:   %{name}-plugins-globus-common = %{version}-%{release}
-Requires:   %{name}-plugins-gridftp = %{version}-%{release}
+Summary:	ARC GRIDFTPJOB client plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
 
 %description plugins-gridftpjob
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC GRIDFTPJOB plugin allows to submit jobs via gridftpd interface.
+ARC GRIDFTPJOB plugin allows submitting jobs via the gridftpd interface.
 
 %if %{with_xrootd}
 %package plugins-xrootd
@@ -1416,6 +1412,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %if %{with_pythonlrms}
 %files arex-python-lrms
+%defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/arc-sshfs-mount
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/lrms
@@ -1529,7 +1526,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libmcctcp.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
 
-%files plugins-globus-compat
+%files plugins-globus
+%defattr(-,root,root,-)
 
 %files plugins-globus-common
 %defattr(-,root,root,-)
