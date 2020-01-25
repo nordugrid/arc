@@ -184,6 +184,10 @@ public:
     return (job_ == job);
   }
 
+  bool operator==(GMJob* job) const {
+    return (job_ == job);
+  }
+
   operator bool() const {
     return job_ != NULL;
   }
@@ -258,6 +262,9 @@ class GMJobQueue {
 
   //! Returns true if job is in queue
   bool Exists(const GMJobRef& ref) const;
+
+  //! Returns true if there are no jobs in queue
+  bool IsEmpty() const;
 
   //! Sort jobs in queue
   void Sort(comparator_t compare);
