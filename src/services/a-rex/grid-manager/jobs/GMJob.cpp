@@ -311,6 +311,11 @@ bool GMJobQueue::Exists(const GMJobRef& ref) const {
   return (ref->queue == this);
 }
 
+bool GMJobQueue::IsEmpty() const {
+  Glib::RecMutex::Lock lock(lock_);
+  return queue_.empty();
+}
+
 void GMJobQueue::Sort(comparator_t compare) {
   Glib::RecMutex::Lock lock(lock_);
   queue_.sort(compare);

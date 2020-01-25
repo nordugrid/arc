@@ -85,6 +85,12 @@ void DTRGenerator::thread() {
         elock.lock();
       } else {
         logger.msg(Arc::DEBUG, "%s: Returning canceled job from DTR generator", job->get_id());
+        elock.unlock();
+        {
+          Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
+          finished_jobs[job->get_id()] = std::string("Job was canceled while waiting in DTR queue");
+        }
+        elock.lock();
         jobs_received.Erase(job);
         jobs.RequestAttention(job); // pass job back to states processing
       }
@@ -120,12 +126,15 @@ void DTRGenerator::thread() {
       elock.lock();
       if(!jobAccepted) {
         logger.msg(Arc::DEBUG, "%s: Re-requesting attention from DTR generator", job->get_id());
+        // processReceivedJob fills error in finished_jobs - no need to do that here
         jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
         jobs.RequestAttention(job); // pass job back to states processing
       }
     }
+    bool queuesEmpty = jobs_cancelled.empty() && dtrs_received.empty() && jobs_received.IsEmpty();
     elock.unlock();
-    event_lock.wait(50000);
+    // wait till something arrives or go back to processing almost immediately if queues not empty
+    event_lock.wait(queuesEmpty ? 50000 : 100);
   } // main processing loop
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler->stop();
@@ -543,9 +552,10 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
             std::multimap<std::string, std::string>::iterator> dtr_iterator = active_dtrs.equal_range(jobid);
 
   if (dtr_iterator.first == dtr_iterator.second) {
+    finished_jobs[jobid] += std::string(""); // It is not clear either this is error. At least mark it as finished.
     dlock.unlock();
     logger.msg(Arc::WARNING, "No active job id %s", jobid);
-    // No DTRs recorded. But still we have job ref. It is probbaly safer to return it.
+    // No DTRs recorded. But still we have job ref. It is probably safer to return it.
     jobs_processing.Erase(job);
     jobs.RequestAttention(job);
     return true;
