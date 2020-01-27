@@ -104,7 +104,10 @@ class BloomFilter(object):
 
 
     def serialize(self):
-        return self.bits.tostring()
+        try:
+            return self.bits.tobytes()
+        except AttributeError:
+            return self.bits.tostring()
 
 
 
