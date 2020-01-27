@@ -26,7 +26,10 @@ class BitVector(object):
         else:
             assert n_bits == len(bits) * TYPE_SIZE, "Size and given bits does not match"
             self.bits = array.array(ARRAY_TYPE)
-            self.bits.fromstring(bits)
+            try:
+                self.bits.frombytes(bits)
+            except AttributeError:
+                self.bits.fromstring(bits)
 
 
     def __setitem__(self, index, value):
@@ -41,4 +44,7 @@ class BitVector(object):
 
 
     def tostring(self):
-        return self.bits.tostring()
+        try:
+            return self.bits.tobytes()
+        except AttributeError:
+            return self.bits.tostring()
