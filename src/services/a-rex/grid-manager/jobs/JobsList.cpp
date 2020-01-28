@@ -878,6 +878,35 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       // This call is not needed here because at higher level WriteJobRecord()
       // is called for every state change
       //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
+      // Write initial XML job information file. That should ensure combination of quick job
+      // and slow infosys is not going to produce incomplete job information at next states.
+      // Such effect was detected through observing finished job without exit code. 
+      if(!job_xml_check_file(i->job_id,config)) { // in case job is restarted and we already have xml
+        static const char* job_xml_template = 
+  "<ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\" BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">"
+    "<ID></ID>"
+    "<Name></Name>"
+    "<OtherInfo></OtherInfo>"
+    "<Type>single</Type>"
+    "<IDFromEndpoint></IDFromEndpoint>"
+    "<State>nordugrid:ACCEPTED</State>"
+    "<State>emies:accepted</State>"
+    "<State>emiesattr:client-stagein-possible</State>"
+    "<Owner></Owner>"
+  "</ComputingActivity>";
+        time_t created = job_description_time(i->job_id,config);
+        if(created == 0) created = time(NULL);
+        Arc::XMLNode glue_xml(job_xml_template);
+        glue_xml["ID"] = std::string("urn:caid:")+Arc::URL(config.HeadNode()).Host()+":"+i->local->interface+":"+i->job_id;
+        glue_xml["IDFromEndpoint"] = "urn:idfe:"+i->job_id;
+        glue_xml["OtherInfo"] = "SubmittedVia=" + i->local->interface;
+        glue_xml["Owner"] = i->local->DN;
+        glue_xml["Name"] = i->local->jobname;
+        glue_xml.Attribute("CreationTime") = Arc::Time(created).str(Arc::ISOTime);
+        std::string glue_xml_str;
+        glue_xml.GetXML(glue_xml_str,true);
+        job_xml_write_file(i->job_id,config,glue_xml_str);
+      }
       logger.msg(Arc::DEBUG, "%s: new job is accepted", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
