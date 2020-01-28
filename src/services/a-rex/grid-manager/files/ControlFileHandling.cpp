@@ -499,6 +499,11 @@ bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) 
   return job_description_read_file(fname,xml);
 }
 
+bool job_xml_check_file(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
+  return job_mark_check(fname);
+}
+
 bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml) {
   std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
   return Arc::FileCreate(fname, xml);
