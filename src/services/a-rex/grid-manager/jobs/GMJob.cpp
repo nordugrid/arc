@@ -250,6 +250,7 @@ bool GMJobQueue::Push(GMJobRef& ref) {
 bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
   if(!ref) return false;
   Glib::RecMutex::Lock qlock(lock_);
+  GMJobQueue* old_queue = ref->queue;
   if(!ref->SwitchQueue(this)) return false;
   // Most of the cases job lands last in list
   std::list<GMJob*>::reverse_iterator opos = queue_.rbegin();
@@ -268,11 +269,15 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
         queue_.insert(--(rpos.base()),*opos);
         queue_.erase(--(opos.base()));
       };
-      break;
+      return true;
     };
     ++opos;
   };
-  return true;
+  // Job is not found in queue - can only happen in case of bug in the code. 
+  // Try to recover and bail out.
+  logger.msg(Arc::FATAL,"%s: PushSorted failed to find job where expected",ref->job_id);
+  ref->SwitchQueue(old_queue); 
+  return false;
 }
 
 GMJobRef GMJobQueue::Front() {
@@ -314,6 +319,11 @@ bool GMJobQueue::Exists(const GMJobRef& ref) const {
 bool GMJobQueue::IsEmpty() const {
   Glib::RecMutex::Lock lock(lock_);
   return queue_.empty();
+}
+
+int GMJobQueue::Size() const {
+  Glib::RecMutex::Lock lock(lock_);
+  return queue_.size();
 }
 
 void GMJobQueue::Sort(comparator_t compare) {

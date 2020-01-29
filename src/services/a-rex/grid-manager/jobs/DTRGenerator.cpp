@@ -70,6 +70,11 @@ void DTRGenerator::thread() {
     // look at event queue and deal with any events.
     // This method of iteration should be thread-safe because events
     // are always added to the end of the list
+    logger.msg(Arc::DEBUG, "DTR Generator waiting to process: %d jobs to cancel, %d DTRs, %d new jobs",
+                                 jobs_cancelled.size(), dtrs_received.size(), jobs_received.Size());
+    int cancelled_num = 0;
+    int dtrs_num = 0;
+    int jobs_num = 0;
 
     // take cancelled jobs first so we can ignore other DTRs in those jobs
     Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
@@ -95,6 +100,7 @@ void DTRGenerator::thread() {
         jobs.RequestAttention(job); // pass job back to states processing
       }
       it_cancel = jobs_cancelled.erase(it_cancel);
+      ++cancelled_num;
     }
 
     // next DTRs sent back from the Scheduler
@@ -106,6 +112,7 @@ void DTRGenerator::thread() {
       // delete DTR LogDestinations
       (*it_dtrs)->clean_log_destinations(central_dtr_log);
       it_dtrs = dtrs_received.erase(it_dtrs);
+      ++dtrs_num;
     }
 
     // finally new jobs
@@ -130,9 +137,14 @@ void DTRGenerator::thread() {
         jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
         jobs.RequestAttention(job); // pass job back to states processing
       }
+      ++jobs_num;
     }
     bool queuesEmpty = jobs_cancelled.empty() && dtrs_received.empty() && jobs_received.IsEmpty();
     elock.unlock();
+
+    logger.msg(Arc::DEBUG, "DTR Generator processed: %d jobs to cancel, %d DTRs, %d new jobs",
+                                 cancelled_num, dtrs_num, jobs_num);
+
     // wait till something arrives or go back to processing almost immediately if queues not empty
     event_lock.wait(queuesEmpty ? 50000 : 100);
   } // main processing loop
