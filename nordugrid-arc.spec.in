@@ -500,10 +500,8 @@ Requires:	perl(XML::Simple)
 %if %{py3default}
 Requires:	python3-ldap
 Requires:	python3-isodate
-%if %{?rhel}%{!?rhel:0} <= 7
 Requires:	python3-dirq
 Requires:	python3-stomppy
-%endif
 %else
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
