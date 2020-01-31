@@ -7,6 +7,8 @@ import re
 import fnmatch
 from itertools import chain
 
+from .CommunityRTE import CommunityRTEControl
+
 
 def complete_rte_name(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
@@ -42,6 +44,7 @@ class RTEControl(ComponentControl):
         if arcconfig is None:
             self.logger.critical('Controlling RunTime Environments is not possible without arc.conf defined controldir')
             sys.exit(1)
+        self.arcconfig = arcconfig
         # define directories
         self.control_rte_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/rte'
         self.system_rte_dir = ARC_DATA_DIR.rstrip('/') + '/rte'
@@ -516,6 +519,8 @@ class RTEControl(ComponentControl):
             self.params_set(args.rte, args.parameter, args.value)
         elif args.action == 'params-unset':
             self.params_unset(args.rte, args.parameter)
+        elif args.action == 'community':
+            CommunityRTEControl(self.arcconfig).control(args)
         else:
             self.logger.critical('Unsupported RunTimeEnvironment control action %s', args.action)
             sys.exit(1)
@@ -558,6 +563,7 @@ class RTEControl(ComponentControl):
 
         rte_actions = rte_ctl.add_subparsers(title='RunTime Environments Actions', dest='action',
                                              metavar='ACTION', help='DESCRIPTION')
+
         rte_enable = rte_actions.add_parser('enable', help='Enable RTE to be used by A-REX')
         rte_enable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
         rte_enable.add_argument('-f', '--force', help='Force RTE enabling', action='store_true')
@@ -599,3 +605,6 @@ class RTEControl(ComponentControl):
         rte_params_unset = rte_actions.add_parser('params-unset', help='Use default value for RTE parameter')
         rte_params_unset.add_argument('rte', help='RTE name').completer = complete_rte_name
         rte_params_unset.add_argument('parameter', help='RTE parameter to unset').completer = complete_rte_params
+
+        # add community RTE controller
+        CommunityRTEControl.register_parser(rte_actions)
