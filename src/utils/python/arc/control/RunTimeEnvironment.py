@@ -61,7 +61,7 @@ class RTEControl(ComponentControl):
         self.broken_rtes = {}
 
     @staticmethod
-    def __get_dir_rtes(rtedir):
+    def get_dir_rtes(rtedir):
         rtes = {}
         for path, _, files in os.walk(rtedir):
             rtebase = path.lstrip(rtedir + '/')
@@ -86,7 +86,7 @@ class RTEControl(ComponentControl):
                 print('{0}{1}'.format(rte, suffix))
 
     @staticmethod
-    def __get_rte_description(rte_path):
+    def get_rte_description(rte_path):
         if rte_path == '/dev/null':
             return 'Dummy RTE for information publishing'
         with open(rte_path) as rte_f:
@@ -108,14 +108,14 @@ class RTEControl(ComponentControl):
             return
         # available pre-installed RTEs
         self.logger.debug('Indexing ARC defined RTEs from %s', self.system_rte_dir)
-        self.system_rtes = self.__get_dir_rtes(self.system_rte_dir)
+        self.system_rtes = self.get_dir_rtes(self.system_rte_dir)
         if not self.system_rtes:
             self.logger.info('There are no RTEs found in ARC defined location %s', self.system_rte_dir)
 
         # RTEs in user-defined locations
         for urte in self.user_rte_dirs:
             self.logger.debug('Indexing user-defined RTEs from %s', urte)
-            rtes = self.__get_dir_rtes(urte)
+            rtes = self.get_dir_rtes(urte)
             if not rtes:
                 self.logger.info('There are no RTEs found in user-defined location %s', urte)
             self.user_rtes.update(rtes)
@@ -126,7 +126,7 @@ class RTEControl(ComponentControl):
 
         # enabled RTEs (linked to controldir)
         self.logger.debug('Indexing enabled RTEs in %s', self.control_rte_dir + '/enabled')
-        self.enabled_rtes = self.__get_dir_rtes(self.control_rte_dir + '/enabled')
+        self.enabled_rtes = self.get_dir_rtes(self.control_rte_dir + '/enabled')
 
         for rte, rtepath in self.enabled_rtes.items():
             # handle dummy enabled RTEs
@@ -139,7 +139,7 @@ class RTEControl(ComponentControl):
 
         # default RTEs (linked to default)
         self.logger.debug('Indexing default RTEs in %s', self.control_rte_dir + '/default')
-        self.default_rtes = self.__get_dir_rtes(self.control_rte_dir + '/default')
+        self.default_rtes = self.get_dir_rtes(self.control_rte_dir + '/default')
         for rte, rtepath in self.default_rtes.items():
             # detect broken RTEs
             if not os.path.exists(rtepath):
@@ -231,7 +231,7 @@ class RTEControl(ComponentControl):
         else:
             print('System pre-defined RTEs in {0}:'.format(self.system_rte_dir))
             for rte in sorted(self.system_rtes):
-                print('\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.system_rtes[rte])))
+                print('\t{0:32} # {1}'.format(rte, self.get_rte_description(self.system_rtes[rte])))
         # user-defined
         if not self.user_rte_dirs:
             print('User-defined RTEs are not configured in arc.conf')
@@ -240,7 +240,7 @@ class RTEControl(ComponentControl):
         else:
             print('User-defined RTEs in {0}:'.format(', '.join(self.user_rte_dirs)))
             for rte in sorted(self.user_rtes):
-                print('\t{0:32} # {1}'.format(rte, self.__get_rte_description(self.user_rtes[rte])))
+                print('\t{0:32} # {1}'.format(rte, self.get_rte_description(self.user_rtes[rte])))
         # enabled
         if not self.enabled_rtes:
             print('There are no enabled RTEs')
