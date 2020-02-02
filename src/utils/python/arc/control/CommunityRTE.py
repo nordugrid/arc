@@ -467,7 +467,7 @@ class CommunityRTEControl(ComponentControl):
             # TODO: check enabled/default
             print('{0:32} ({1})'.format(rte, ', '.join(kind)))
         for rte in sorted(registry_rtes):
-            if 'listed' in rte:
+            if 'listed' in registry_rtes[rte]:
                 continue
             kind = ['registry']
             print('{0:32} ({1})'.format(rte, ', '.join(kind)))
@@ -542,12 +542,26 @@ class CommunityRTEControl(ComponentControl):
             else:
                 self.logger.info('Forcing redeploying of RTE %s. Cleaning files from previous deployment.', rtename)
                 self.rte_remove(args)
-        # get signed RTE deta (from URL or registry)
+        # get RTE deta (from URL or registry)
+        rte_content = None
         if args.url:
             self.logger.info('Deploying community %s RTE %s from manually specified location %s', c, rtename, args.url)
-            sigrtedata = self.__fetch_data(args.url)
-            if sigrtedata is None:
-                self.logger.error('Failed to fetch signed RTE from %s', args.url)
+            if args.insecure:
+                if not args.accept_risks:
+                    self.logger.error('RTEs without community signature can be subject to various attacks. '
+                                      'You are doing this on your own risk! Add "--accept-risks" option if you really '
+                                      'want to proceed.')
+                    sys.exit(1)
+                else:
+                    self.logger.info('Going to deploy unsigned RTE script from %s', args.url)
+                    rte_content = self.__fetch_data(args.url)
+                    if rte_content is None:
+                        self.logger.error('Failed to fetch unsigned RTE from %s', args.url)
+                    sigrtedata = None
+            else:
+                sigrtedata = self.__fetch_data(args.url)
+                if sigrtedata is None:
+                    self.logger.error('Failed to fetch signed RTE from %s', args.url)
         else:
             self.logger.debug('Checking RTE %s in the community %s software registry', rtename, c)
             registry_rtes = self.__fetch_community_rte_index(cconfig)
@@ -566,48 +580,61 @@ class CommunityRTEControl(ComponentControl):
                 self.logger.error('There is no signed RTE URL or data defined in the registry. Deploy failed.')
                 sys.exit(1)
 
-        # store signed RTE data
-        signed_rtes = os.path.join(cdir, 'signed')
-        if not os.path.exists(signed_rtes):
-            os.makedirs(signed_rtes, mode=0o755)
-        signed_rte_file = os.path.join(signed_rtes, rtename.replace('/', '-') + '.signed')
-        with open(signed_rte_file, 'w') as srte_f:
-            srte_f.write(sigrtedata)
+        if sigrtedata is not None:
+            # store signed RTE data
+            signed_rtes = os.path.join(cdir, 'signed')
+            if not os.path.exists(signed_rtes):
+                os.makedirs(signed_rtes, mode=0o755)
+            signed_rte_file = os.path.join(signed_rtes, rtename.replace('/', '-') + '.signed')
+            with open(signed_rte_file, 'w') as srte_f:
+                srte_f.write(sigrtedata)
 
-        # verify
-        gpgdir = os.path.join(cdir, '.gpg')
-        gpgcmd = ['gpg', '--homedir', gpgdir, '--verify', signed_rte_file]
-        gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        gpgmessages = []
-        for rline in iter(gpgproc.stdout.readline, b''):
-            line = rline.decode('utf-8').rstrip()
-            gpgmessages.append(line)
-        gpgproc.wait()
-        if gpgproc.returncode == 0:
-            self.logger.info('RTE %s signature verified successfully.', rtename)
-        else:
-            self.logger.error('Failed to verify RTE %s signature. GPG returns following output:', rtename)
-            for m in gpgmessages:
-                self.logger.error(m)
-            os.unlink(signed_rte_file)
-            sys.exit(1)
+            # verify
+            gpgdir = os.path.join(cdir, '.gpg')
+            gpgcmd = ['gpg', '--homedir', gpgdir, '--verify', signed_rte_file]
+            gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            gpgmessages = []
+            for rline in iter(gpgproc.stdout.readline, b''):
+                line = rline.decode('utf-8').rstrip()
+                gpgmessages.append(line)
+            gpgproc.wait()
+            if gpgproc.returncode == 0:
+                self.logger.info('RTE %s signature verified successfully.', rtename)
+            else:
+                self.logger.error('Failed to verify RTE %s signature. GPG returns following output:', rtename)
+                for m in gpgmessages:
+                    self.logger.error(m)
+                os.unlink(signed_rte_file)
+                sys.exit(1)
 
         # deploy
         if not os.path.exists(rte_dir_path):
             self.logger.debug('Making RunTimeEnvironment directory structure %s', rte_dir_path)
             os.makedirs(rte_dir_path, mode=0o755)
-        gpgcmd = ['gpg', '--homedir', gpgdir, '--output', rte_path, '--decrypt', signed_rte_file]
-        gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        for rline in iter(gpgproc.stdout.readline, b''):
-            line = rline.decode('utf-8').rstrip()
-            self.logger.info(line.lstrip('gpg: '))
-        gpgproc.wait()
-        if gpgproc.returncode == 0:
-            self.logger.info('RTE script deployed to %s', rte_path)
+
+        if sigrtedata is not None:
+            gpgcmd = ['gpg', '--homedir', gpgdir, '--output', rte_path, '--decrypt', signed_rte_file]
+            gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            for rline in iter(gpgproc.stdout.readline, b''):
+                line = rline.decode('utf-8').rstrip()
+                self.logger.info(line.lstrip('gpg: '))
+            gpgproc.wait()
+            if gpgproc.returncode == 0:
+                self.logger.info('RTE script deployed to %s', rte_path)
+            else:
+                self.logger.error('Failed to deploy RTE %s.', rtename)
+                self.rtefile_remove(args)
+                sys.exit(1)
+        elif rte_content is not None:
+            try:
+                with open(rte_path, 'w') as rte_f:
+                    rte_f.write(rte_content)
+                self.logger.info('RTE script deployed to %s', rte_path)
+            except IOError as e:
+                self.logger.error('Failed to deploy RTE %s. Error: %s', rtename, str(e))
         else:
             self.logger.error('Failed to deploy RTE %s.', rtename)
-            self.rtefile_remove(args)
-            sys.exit(1)
+            self.rte_remove(args)
 
         # download
         downloads = []
@@ -827,6 +854,9 @@ class CommunityRTEControl(ComponentControl):
         cdeploy.add_argument('-u', '--url', help='Explicitly define URL to signed RTE file')
         cdeploy.add_argument('-f', '--force', help='Force RTE files redeployment if already exists',
                           action='store_true')
+        cdeploy.add_argument('--insecure', help='Do not validate community signature when for URL-based deployment',
+                             action='store_true')
+        cdeploy.add_argument('--accept-risks', help=argparse.SUPPRESS, action='store_true')
 
         cremove = crte_actions.add_parser('rte-remove', help='Remove deployed community RTE')
         cremove.add_argument('community', help='Trusted community name').completer = complete_community
