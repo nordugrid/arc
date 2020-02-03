@@ -61,6 +61,36 @@ packages_deb9:
   allow_failure: true
 
 
+packages_deb10:
+  stage: packages
+  image: maikenp/arc-build-debian10
+  script:
+    - echo "6.0.0" > VERSION
+    - apt-get update -y
+    - ./autogen.sh
+    - ./configure
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
+  tags:
+    - build
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
+  allow_failure: true
+
 deploy_staging_el8:
   stage: deploy_and_test
   image: docker:stable
@@ -75,7 +105,7 @@ deploy_staging_el8:
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
     - ls -lhrt /rpmbuild
-    - docker run  --name=$deploy_container  --volumes-from $gitlab_container --privileged -v "/arc:/arc:rw"  -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos8
+    - docker run  --name=$deploy_container  --volumes-from $gitlab_container -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos8
     - echo "*************>>  Done - back from inner container"
     - rm -rf /rpmbuild/*
     - ls -lhrt /arc-logs
@@ -100,7 +130,6 @@ deploy_staging_el8:
   allow_failure: true
   
   
-  
 deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
@@ -108,7 +137,7 @@ deploy_staging_deb9:
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian9
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$name_container --privileged -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - docker run --name=$name_container  --volumes-from $gitlab_container  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -127,6 +156,37 @@ deploy_staging_deb9:
      #- $CI_PROJECT_DIR/arc-tests/
   dependencies:
     - packages_deb9
+  tags:
+    - 158.37.63.83
+    - deploy
+  allow_failure: true
+  
+  
+deploy_staging_deb10:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - name_container=deb10_`date +%Y%m%dT%H%M`
+    - docker pull maikenp/arc-deploy-debian10
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - docker run --name=$name_container  --volumes-from $gitlab_container -v "/arc:/arc" "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $name_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+  dependencies:
+    - packages_deb10
   tags:
     - 158.37.63.83
     - deploy
