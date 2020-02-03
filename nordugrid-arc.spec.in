@@ -1546,6 +1546,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files arex-community-rtes
 %defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/community_rtes.sh
 %if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
