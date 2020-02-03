@@ -101,7 +101,7 @@ deploy_staging_el8:
   
   
   
-  deploy_staging_deb9:
+deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
