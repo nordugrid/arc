@@ -47,7 +47,7 @@ const char * const subdir_rew      = "restarting";     // Jobs waiting to restar
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
-static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
+static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending);
 static bool job_mark_put(Arc::FileAccess& fa, const std::string &fname);
 static bool job_mark_remove(Arc::FileAccess& fa,const std::string &fname);
 
@@ -497,6 +497,11 @@ bool job_acl_write_file(const JobId &id,const GMConfig &config,const std::string
 bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) {
   std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
   return job_description_read_file(fname,xml);
+}
+
+bool job_xml_check_file(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
+  return job_mark_check(fname);
 }
 
 bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml) {

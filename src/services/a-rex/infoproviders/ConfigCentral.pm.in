@@ -112,7 +112,9 @@ my $share_options = {
     defaultmemory => '*',
     AdvertisedVO =>  [ '*' ],
     maxcputime => '*',
-    maxwalltime => '*'
+    maxwalltime => '*',
+    mincputime => '*',
+    minwalltime => '*'
 };
 my $gmuser_options = {
     controldir => '',

@@ -262,7 +262,6 @@ int main(int argc, char* argv[]) {
     };
     logger.msg(INFO,"Resource description validation passed");
 
-    int depth = 1;
     logger.msg(INFO,"Requesting ComputingService elements of resource description at %s",url.str());
     XMLNodeContainer items;
     bool query_passed = false;

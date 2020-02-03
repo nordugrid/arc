@@ -85,7 +85,7 @@ namespace ARex {
             // wlcgwo
             wlcgvo = local.voms.front();
             // remove first slash from FQAN
-            if (wlcgvo.at(0) = '/') wlcgvo.erase(0,1);
+            if (wlcgvo.at(0) == '/') wlcgvo.erase(0,1);
             // crop everything after slash from FQAN
             std::size_t wlcgvo_slash = wlcgvo.find('/');
             if (wlcgvo_slash != std::string::npos) {

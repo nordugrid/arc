@@ -190,8 +190,8 @@ bool JobDescriptionHandler::write_grami(GMJob &job,const char *opt_add) const {
 }
 
 bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc, GMJob& job, const char* opt_add) const {
+  if(job.GetLocalDescription(config) == NULL) return false;
   JobLocalDescription& job_local_desc = *(job.GetLocalDescription(config));
-  if(&job_local_desc == NULL) return false;
   const std::string session_dir = job.SessionDir();
   const std::string control_dir = config.ControlDir();
   const std::string fgrami = control_dir + "/job." + job.get_id() + ".grami";

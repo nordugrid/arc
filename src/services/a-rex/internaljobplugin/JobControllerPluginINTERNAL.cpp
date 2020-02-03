@@ -136,7 +136,6 @@ namespace ARexINTERNAL {
   bool JobControllerPluginINTERNAL::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
 
 
-    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       // 1. Fetch/find delegation ids for each job
 
@@ -155,8 +154,6 @@ namespace ARexINTERNAL {
       // 2. Leave only unique IDs - not needed yet because current code uses
       //    different delegations for each job.
       // 3. Renew credentials for every ID
-      Job& job = **it;
-
       
       std::list<std::string>::const_iterator did = (*it)->DelegationID.begin();
       for(;did != (*it)->DelegationID.end();++did) {

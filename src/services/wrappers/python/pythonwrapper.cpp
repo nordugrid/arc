@@ -571,7 +571,7 @@ bool Service_PythonWrapper::RegistrationCollector(Arc::XMLNode& doc) {
     XMLNode *doc2 = (XMLNode *)extract_swig_wrappered_pointer(py_doc);
     if (doc2 == NULL) return false;
     (*doc2).New(doc);
-    return true;
+    return return_value;
 }
 
 } // namespace Arc

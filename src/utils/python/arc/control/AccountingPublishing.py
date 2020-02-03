@@ -389,7 +389,7 @@ class RecordsPublisher(object):
                         'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
                     continue
             # constrains on reporting frequency
-            self.adb.attach_publishing_db(self.pdb_file)
+            self.adb.publishing_db_connect(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:
                 lastreported = self.adb.get_last_report_time(target)
                 unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())

@@ -925,9 +925,10 @@ namespace Arc {
           // Destination: Get basename, remove example prefix and add .arc directory.
           if (copyFile(EXAMPLECONFIG(), DEFAULTCONFIG()))
             logger.msg(VERBOSE, "Configuration example file created (%s)", DEFAULTCONFIG());
-          else
+          else {
             logger.msg(INFO, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG());
             return false;
+          }
         }
         else {
           logger.msg(INFO, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG());

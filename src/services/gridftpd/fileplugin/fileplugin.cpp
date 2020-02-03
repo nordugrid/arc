@@ -261,7 +261,8 @@ int DirectFilePlugin::makedir(std::string &dname) {
         i->unix_reset();
         uid_t u = i->access.mkdir_uid;
         gid_t g = i->access.mkdir_gid;
-        if(u == ((uid_t)(-1))) u=uid; if(g == ((gid_t)(-1))) g=gid;
+        if(u == ((uid_t)(-1))) u=uid;
+        if(g == ((gid_t)(-1))) g=gid;
         if(chown(fdname.c_str(),u,g) != 0) {}
         continue;
       } else {
@@ -424,7 +425,8 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
           if(data_file == -1) return 1;
           uid_t u = i->access.creat_uid;
           gid_t g = i->access.creat_gid;
-          if(u == ((uid_t)(-1))) u=uid; if(g == ((gid_t)(-1))) g=gid;
+          if(u == ((uid_t)(-1))) u=uid;
+          if(g == ((gid_t)(-1))) g=gid;
           logger.msg(Arc::VERBOSE, "open: changing owner for %s, %i, %i", fname, u, gid);
           if(chown(fname.c_str(),u,g) != 0) {}
           /* adjust permissions because open uses umask */

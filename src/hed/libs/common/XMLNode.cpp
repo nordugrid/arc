@@ -677,7 +677,6 @@ namespace Arc {
   void XMLNode::Name(const char *name) {
     if (!node_) return;
     const char *name_ = strchr(name, ':');
-    xmlNsPtr ns = NULL;
     if (name_ != NULL) {
       std::string ns_(name, name_ - name);
       SetName(node_, name_+1, ns_.c_str());

@@ -172,8 +172,8 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
 }
 
 void JobsMetrics::SyncAsync(void* arg) {
-  JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
-  if(&it) {
+  if(arg) {
+    JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
     Glib::RecMutex::Lock lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.

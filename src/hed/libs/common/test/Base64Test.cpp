@@ -29,7 +29,6 @@ void Base64Test::tearDown() {
 
 void Base64Test::TestBase64() {
   std::string val;
-  bool found = false;
 
   std::string plain_str("base64 to test 1234567890 abcdefghijklmnopqrstuvwxyz");
   std::string encoded_str("YmFzZTY0IHRvIHRlc3QgMTIzNDU2Nzg5MCBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5eg==");

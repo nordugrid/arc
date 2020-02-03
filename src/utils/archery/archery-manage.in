@@ -116,6 +116,7 @@ def json_config_object(archery_object):
     """Translate internal extended JSON to expanded JSON config that can be used as a source"""
     # helper function to use with output_json_config()
     jconf = {}
+
     if 'id' in archery_object:
         jconf['id'] = archery_object['id']
 
@@ -129,6 +130,9 @@ def json_config_object(archery_object):
         kind = archery_object['object']
     else:
         kind = 'group'
+
+    if 'raw-dns' in archery_object:
+        jconf['raw-dns'] = archery_object['raw-dns']
 
     external_object = None
     if 'pointer_rr_data' in archery_object:
@@ -228,6 +232,21 @@ def output_zonefile(archery_object, cmd_args):
         rr_mod = rr.split(' ', 1)
         print('{0:<64}{1:>6} TXT "{2}"'.format(rr_mod[0], ttl, rr_mod[1]))
 
+    if 'raw-dns' in archery_object:
+        if archery_object['rr_owner']:
+            print('$ORIGIN {0}'.format(archery_object['rr_owner']))
+        for rdns in archery_object['raw-dns']:
+            if not rdns['rdata']:
+                continue
+            if 'ttl' not in rdns:
+                rdns['ttl'] = ttl
+            if isinstance(rdns['rdata'], list):
+                for rd in rdns['rdata']:
+                    srdns = rdns.copy()
+                    srdns['rdata'] = rd
+                    print('{name:<64}{ttl:>6} {type} {rdata}'.format(**srdns))
+            else:
+                print('{name:<64}{ttl:>6} {type} {rdata}'.format(**rdns))
 
 _output_formatters = {
     'arc-CEs': output_arc_celist,
@@ -526,7 +545,13 @@ def archery_txt_rrset(archery_object, parent_rr_owner=''):
                     cdata['rr_owner'], rr_owner, ctype, estatus
                 )
             # add pointed record RRSet
-            rrset.add('{0} {1}'.format(rr_owner, cdata['pointer_rr_data']))
+            prr_owner = rr_owner
+            if not parent_rr_owner:
+                # predefined entry point
+                prr_owner = '_archery'
+                if rr_owner:
+                    prr_owner += '.' + rr_owner
+            rrset.add('{0} {1}'.format(prr_owner, cdata['pointer_rr_data']))
             # add child object data RRSet
             rrset |= archery_txt_rrset(cdata, rr_owner)
     return rrset
@@ -1099,7 +1124,7 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
 #
 # ARCHERY TOPOLOGY PROCESSING
 #
-def get_arcce_topology(ce_list, rr_owner='_archery'):
+def get_arcce_topology(ce_list, rr_owner=''):
     """Create ARCHERY data object that represent ARC CE flat CE list topology"""
     archery_object = {
         'object': 'group',
@@ -1216,7 +1241,7 @@ def group_object_from_json(jconf, rr_owner):
     return archery_object
 
 
-def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
+def get_json_topology(json_file, rr_owner='', timeout=_fetch_timeout):
     """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
     try:
         with open(json_file, 'r') as jconf_f:
@@ -1228,10 +1253,16 @@ def get_json_topology(json_file, rr_owner='_archery', timeout=_fetch_timeout):
         logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
         sys.exit(1)
 
-    return group_object_from_json(jconf, rr_owner)
+    # process groups recursively and return archery-manage internal object
+    archery_object = group_object_from_json(jconf, rr_owner)
+
+    # support raw DNS records only on the top-level
+    if 'raw-dns' in jconf:
+        archery_object['raw-dns'] = jconf['raw-dns']
+    return archery_object
 
 
-def get_gocdb_topology(rr_owner='_archery', timeout=_fetch_timeout):
+def get_gocdb_topology(rr_owner='', timeout=_fetch_timeout):
     """Create ARCHERY data object that represent GOCDB-defined EGI topology"""
     gocdb_host = 'goc.egi.eu'
     gocdb_path = '/gocdbpi/public/?method=get_site_list'
@@ -1379,13 +1410,19 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
     if dns_name[0:6] == 'dns://':
         dns_name = dns_name[6:].rstrip('.') + '.'
     else:
-        dns_name = '_archery.' + dns_name.rstrip('.') + '.'
+        dns_name = dns_name.rstrip('.') + '.'
+    pdns_name = dns_name
+    qdns_name = dns_name
+    if not parent_name:
+        # default entry point
+        qdns_name = '_archery.' + dns_name
+
     # query TXT RRSet
     logger.debug('Querying ARCHERY data from: %s', dns_name)
     try:
-        archery_rrs = resolver.query(dns_name, 'TXT')
-        # get RRSet owner name (without full DNS suffix including dot)
-        rrset_name = str(archery_rrs.rrset.name)
+        archery_rrs = resolver.query(qdns_name, 'TXT')
+        # get owner name (without full DNS suffix including dot)
+        rrset_name = pdns_name
         if parent_name and rrset_name.endswith(parent_name):
             rrset_name = rrset_name[:-(len(parent_name)+1)]
         archery_object['rr_owner'] = rrset_name
@@ -1425,7 +1462,7 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
                         req_queue.put({
                             'name': rrdata['u'],
                             'obj': child_object,
-                            'parent_name': dns_name,
+                            'parent_name': pdns_name,
                         })
                     else:
                         guess_object_kind = 'service'
@@ -1450,6 +1487,45 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
         archery_object['rr_owner'] = rrset_name
 
 
+def _raw_dns_fetch(dnsdata, domain, nameserver=None):
+    resolver = dns.resolver.Resolver()
+    if nameserver is not None:
+        resolver.nameservers = [nameserver]
+
+    for rdns in dnsdata:
+        # format configured data
+        rdns['config_data'] = set()
+        if rdns['rdata']:
+            if isinstance(rdns['rdata'], list):
+                for rdata in rdns['rdata']:
+                    rdns['config_data'].add(rdata.encode())
+            else:
+                rdns['config_data'].add(rdns['rdata'].encode())
+        # fetch and construct server data
+        rdns['server_data'] = set()
+        resolve_name = domain
+        if rdns['name']:
+            resolve_name = rdns['name'] + '.' + resolve_name
+        try:
+            handle_no_answer = True if rdns['type'] == 'NS' else False
+            logger.debug('Querying raw DNS data (type %s) from %s', rdns['type'], resolve_name)
+            rrs = resolver.query(resolve_name, rdns['type'], raise_on_no_answer=(not handle_no_answer))
+            # handle NS records
+            if not rrs.response.answer:
+                for rr in rrs.response.authority:
+                    for lrr in rr.to_text().split('\n'):
+                        rdns['server_data'].add(lrr.split(' ')[-1].encode())
+        except dns.resolver.NXDOMAIN as e:
+            logger.debug('NXDOMAIN received for %s DNS query for domain %s.',
+                         rdns['type'], resolve_name)
+            pass
+        except dns.resolver.NoAnswer as e:
+            logger.warning('No answer for %s DNS query for domain %s. Error: %s',
+                           rdns['type'], resolve_name, str(e))
+        else:
+            for rr in rrs:
+                rdns['server_data'].add(rr.to_text().encode())
+
 #
 # HANDLE DDNS UPDATE
 #
@@ -1467,13 +1543,13 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
                         keyalgorithm=dns.tsig.default_algorithm):
     """Incrementally updates ARCHERY data records in DNS"""
     keyring = dns.tsigkeyring.from_text(keyring_dict)
-    main_rr_owner = '_archery.{0}.'.format(domain.rstrip('.'))
+    main_rr_owner = domain.rstrip('.') + '.'
 
-    # new TXT data according to provided data object
+    # new ARCHERY TXT data according to provided data object
     new_dns_rrset = archery_txt_rrset(new_archery_object)
 
-    # old endpoints from querying the ARCHERY
-    dns_archery_object = fetch_archery_dns_data('dns://' + main_rr_owner, nameserver=nameserver, threads=fetch_threads)
+    # old endpoints from querying the ARCHERY DNS zone
+    dns_archery_object = fetch_archery_dns_data(main_rr_owner, nameserver=nameserver, threads=fetch_threads)
     old_dns_rrset = archery_txt_rrset(dns_archery_object)
 
     # print(json.dumps(list(new_dns_rrset), indent=2))
@@ -1507,8 +1583,34 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
         dns.query.tcp(update, nameserver)
         logger.info('ARCHERY information has been updated for zone %s', domain)
     except DNSException as e:
-        logger.error('Failed in DDNS update. Error: %s', e)
+        logger.error('Failed in ARCHERY data DDNS update. Error: %s', e)
 
+    # check raw DNS records are in sync in the zone
+    if 'raw-dns' in archery_object:
+        logger.info('Raw DNS data is defined in the config. Goind to check defined records consistency.')
+        _raw_dns_fetch(archery_object['raw-dns'], domain, nameserver)
+        try:
+            rawupdate = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+            needs_rawupdate = False
+            for rr in archery_object['raw-dns']:
+                for cr in list(rr['server_data'] - rr['config_data']):
+                    logger.debug('Going to REMOVE raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.delete(rr['name'], rr['type'], cr)
+                for cr in list(rr['config_data'] - rr['server_data']):
+                    logger.debug('Going to ADD raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.add(rr['name'], ttl, rr['type'], cr)
+
+            if needs_rawupdate:
+                dns.query.tcp(rawupdate, nameserver)
+                logger.info('Defined raw DNS data has been updated for zone %s', domain)
+            else:
+                logger.info('Defined raw DNS data is in sync for zone %s', domain)
+        except DNSException as e:
+            logger.error('Failed in raw DNS data DDNS update. Error: %s', e)
 
 #
 # MAIN EXECUTION CYCLE
@@ -1589,9 +1691,9 @@ if __name__ == '__main__':
     applied_filters = get_configured_fillters(cmd_args.filter)
 
     # Base domain name to work with
-    rr_owner = '_archery'
+    rr_owner = ''
     if domain is not None:
-        rr_owner += '.{0}.'.format(domain.rstrip('.'))
+        rr_owner += domain.rstrip('.') + '.'
 
     # Define services topology
     logger.info('Constructing ARCHERY objects topology according to configuration.')
