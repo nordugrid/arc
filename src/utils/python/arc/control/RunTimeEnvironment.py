@@ -7,7 +7,10 @@ import re
 import fnmatch
 from itertools import chain
 
-from .CommunityRTE import CommunityRTEControl
+try:
+    from .CommunityRTE import CommunityRTEControl
+except ImportError:
+    CommunityRTEControl = None
 
 
 def complete_rte_name(prefix, parsed_args, **kwargs):
@@ -55,6 +58,7 @@ class RTEControl(ComponentControl):
         self.all_rtes = {}
         self.system_rtes = {}
         self.user_rtes = {}
+        self.community_rtes = {}
         self.enabled_rtes = {}
         self.default_rtes = {}
         self.dummy_rtes = {}
@@ -74,18 +78,6 @@ class RTEControl(ComponentControl):
         return rtes
 
     @staticmethod
-    def __list_rte(rte_dict, long_list, prefix='', suffix='', broken_list=None):
-        if broken_list is None:
-            broken_list = []
-        for rte in sorted(rte_dict):
-            if rte in broken_list:
-                suffix += ' (broken)'
-            if long_list:
-                print('{0}{1:32} -> {2}{3}'.format(prefix, rte, rte_dict[rte], suffix))
-            else:
-                print('{0}{1}'.format(rte, suffix))
-
-    @staticmethod
     def get_rte_description(rte_path):
         if rte_path == '/dev/null':
             return 'Dummy RTE for information publishing'
@@ -100,6 +92,18 @@ class RTEControl(ComponentControl):
                 if not max_lines:
                     break
             return description
+
+    @staticmethod
+    def __list_rte(rte_dict, long_list, prefix='', suffix='', broken_list=None):
+        if broken_list is None:
+            broken_list = []
+        for rte in sorted(rte_dict):
+            if rte in broken_list:
+                suffix += ' (broken)'
+            if long_list:
+                print('{0}{1:32} -> {2}{3}'.format(prefix, rte, rte_dict[rte], suffix))
+            else:
+                print('{0}{1}'.format(rte, suffix))
 
     def __fetch_rtes(self):
         """Look for RTEs on the filesystem and fill the object structures"""
@@ -123,6 +127,11 @@ class RTEControl(ComponentControl):
         # all available RTEs
         self.all_rtes.update(self.system_rtes)
         self.all_rtes.update(self.user_rtes)
+
+        # Community-defined RTEs
+        if CommunityRTEControl is not None:
+            self.community_rtes = CommunityRTEControl(self.arcconfig).get_deployed_rtes()
+            self.all_rtes.update(self.community_rtes)
 
         # enabled RTEs (linked to controldir)
         self.logger.debug('Indexing enabled RTEs in %s', self.control_rte_dir + '/enabled')
@@ -171,7 +180,9 @@ class RTEControl(ComponentControl):
             if r.startswith('/'):
                 # path instead of name (comes from filesystem paths in user and system RTE dirs)
                 rte_found = False
-                for rname, rpath in chain(iter(self.user_rtes.items()), iter(self.system_rtes.items())):
+                for rname, rpath in chain(iter(self.user_rtes.items()),
+                                          iter(self.system_rtes.items()),
+                                          iter(self.community_rtes.items())):
                     if rpath == r:
                         self.logger.debug('RTE path %s match %s RTE name, adding to the list.', rpath, rname)
                         rte_list.append({'name': rname, 'path': rpath})
@@ -201,6 +212,7 @@ class RTEControl(ComponentControl):
     def __list_brief(self):
         for rte_type, rte_dict in [('system', self.system_rtes),
                                    ('user', self.user_rtes),
+                                   ('community', self.community_rtes),
                                    ('dummy', self.dummy_rtes),
                                    ('broken', self.broken_rtes)]:
             for rte in sorted(rte_dict):
@@ -241,6 +253,18 @@ class RTEControl(ComponentControl):
             print('User-defined RTEs in {0}:'.format(', '.join(self.user_rte_dirs)))
             for rte in sorted(self.user_rtes):
                 print('\t{0:32} # {1}'.format(rte, self.get_rte_description(self.user_rtes[rte])))
+        # community
+        if CommunityRTEControl is not None:
+            if not self.system_rtes:
+                print('There are no deployed community-defined RTEs')
+            else:
+                print('Deployed community-defined RTEs:')
+                for rte in sorted(self.community_rtes):
+                    rte_location = self.community_rtes[rte]
+                    rte_base_location = CommunityRTEControl(self.arcconfig).get_rtes_dir()
+                    c = rte_location.replace(rte_base_location, '').replace('/rte/' + rte, '').strip('/')
+                    print('\t{0:32} # {1} ({2} community)'.format(rte, self.get_rte_description(rte_location), c))
+
         # enabled
         if not self.enabled_rtes:
             print('There are no enabled RTEs')
@@ -269,8 +293,11 @@ class RTEControl(ComponentControl):
             self.__list_rte(self.system_rtes, args.long)
         elif args.user:
             self.__list_rte(self.user_rtes, args.long)
+        elif args.community:
+            self.__list_rte(self.community_rtes, args.long)
         elif args.available:
             self.system_rtes.update(self.user_rtes)
+            self.system_rtes.update(self.community_rtes)
             self.__list_rte(self.system_rtes, args.long)
         elif args.dummy:
             self.__list_rte(self.dummy_rtes, args.long)
@@ -305,9 +332,9 @@ class RTEControl(ComponentControl):
                     break
         return params
 
-    def __params_read(self, rte):
+    def __params_read(self, rte, suffix=''):
         self.__fetch_rtes()
-        rte_params_file = self.__get_rte_params_file(rte)
+        rte_params_file = self.__get_rte_params_file(rte + suffix)
         params = {}
         if rte_params_file:
             kv_re = re.compile(r'^([^ =]+)="(.*)"\s*$')
@@ -348,6 +375,15 @@ class RTEControl(ComponentControl):
                       '(allowed values are: {allowed_string})'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))
+        # community software deployment (read-only) params
+        cparams = self.__params_read(rte, '.community')
+        if cparams:
+            print('# Community software deployment parameters (read-only):')
+            for k in sorted(cparams.keys()):
+                fstring = '{0}={1}'
+                if is_long:
+                    fstring = '{0:>16} = {1:10}'
+                print(fstring.format(k, cparams[k]))
 
     def params_unset(self, rte, parameter):
         self.params_set(rte, parameter, None, use_default=True)
@@ -378,12 +414,13 @@ class RTEControl(ComponentControl):
     def cat_rte(self, rte):
         rte_file = self.__get_rte_file(rte)
         self.logger.info('Printing the content of %s RunTimeEnvironment from %s', rte, rte_file)
-        rte_params_file = self.__get_rte_params_file(rte)
-        if rte_params_file:
-            self.logger.info('Including the content of RunTimeEnvironment parameters file from %s', rte_params_file)
-            with open(rte_params_file) as rte_parm_f:
-                for line in rte_parm_f:
-                    sys.stdout.write(line)
+        for prte in [rte, rte + '.community']:
+            rte_params_file = self.__get_rte_params_file(prte)
+            if rte_params_file:
+                self.logger.info('Including the content of RunTimeEnvironment parameters file from %s', rte_params_file)
+                with open(rte_params_file) as rte_parm_f:
+                    for line in rte_parm_f:
+                        sys.stdout.write(line)
         with open(rte_file, 'r') as rte_fd:
             for line in rte_fd:
                 sys.stdout.write(line)
@@ -519,7 +556,7 @@ class RTEControl(ComponentControl):
             self.params_set(args.rte, args.parameter, args.value)
         elif args.action == 'params-unset':
             self.params_unset(args.rte, args.parameter)
-        elif args.action == 'community':
+        elif args.action == 'community' and CommunityRTEControl is not None:
             CommunityRTEControl(self.arcconfig).control(args)
         else:
             self.logger.critical('Unsupported RunTimeEnvironment control action %s', args.action)
@@ -527,11 +564,13 @@ class RTEControl(ComponentControl):
 
     def complete_enable(self):
         self.__fetch_rtes()
-        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys())) - set(self.enabled_rtes.keys()))
+        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys()) + list(self.community_rtes.keys()))
+                    - set(self.enabled_rtes.keys()))
 
     def complete_default(self):
         self.__fetch_rtes()
-        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys())) - set(self.default_rtes.keys()))
+        return list(set(list(self.system_rtes.keys()) + list(self.user_rtes.keys()) + list(self.community_rtes.keys()))
+                    - set(self.default_rtes.keys()))
 
     def complete_disable(self):
         self.__fetch_rtes()
@@ -582,6 +621,8 @@ class RTEControl(ComponentControl):
         rte_list_types.add_argument('-s', '--system', help='List available system RTEs', action='store_true')
         rte_list_types.add_argument('-u', '--user', help='List available user-defined RTEs', action='store_true')
         rte_list_types.add_argument('-n', '--dummy', help='List dummy enabled RTEs', action='store_true')
+        if CommunityRTEControl is not None:
+            rte_list_types.add_argument('-c', '--community', help='List deployed community RTEs', action='store_true')
 
         rte_default = rte_actions.add_parser('default', help='Transparently use RTE for every A-REX job')
         rte_default.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name
@@ -607,4 +648,5 @@ class RTEControl(ComponentControl):
         rte_params_unset.add_argument('parameter', help='RTE parameter to unset').completer = complete_rte_params
 
         # add community RTE controller
-        CommunityRTEControl.register_parser(rte_actions)
+        if CommunityRTEControl is not None:
+            CommunityRTEControl.register_parser(rte_actions)

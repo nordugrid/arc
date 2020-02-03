@@ -57,6 +57,24 @@ class CommunityRTEControl(ComponentControl):
             self.communities = c
             break
 
+    # methods to call from general RTE control
+    def get_deployed_rtes(self):
+        """Get all deployed community RTEs"""
+        # use common RTEControl static methods for consistency
+        from .RunTimeEnvironment import RTEControl
+        deployed_rtes = {}
+        for c in self.communities:
+            self.logger.debug('Indexing deployed RTEs for %s community', c)
+            cdir = os.path.join(self.community_rte_dir, c)
+            deployed_rte_dir = os.path.join(cdir, 'rte')
+            if os.path.isdir(deployed_rte_dir):
+                deployed_rtes.update(RTEControl.get_dir_rtes(deployed_rte_dir))
+        return deployed_rtes
+
+    def get_rtes_dir(self):
+        """Return base location to store community RTEs"""
+        return self.community_rte_dir
+
     def __fetch_data(self, url):
         """Fetch data from file:/// or http(s):// sources"""
         if not url.startswith('file:///'):
@@ -334,7 +352,7 @@ class CommunityRTEControl(ComponentControl):
             line = rline.decode('utf-8').rstrip()
             all_messages.append(line)
             if __import_re.match(line):
-                imported_messages.append(line.lstrip('gpg: '))
+                imported_messages.append(line.replace('gpg: ', ''))
         gpgproc.wait()
         if gpgproc.returncode == 0:
             for m in imported_messages:
@@ -617,7 +635,7 @@ class CommunityRTEControl(ComponentControl):
             gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             for rline in iter(gpgproc.stdout.readline, b''):
                 line = rline.decode('utf-8').rstrip()
-                self.logger.info(line.lstrip('gpg: '))
+                self.logger.info(line.replace('gpg: ', ''))
             gpgproc.wait()
             if gpgproc.returncode == 0:
                 self.logger.info('RTE script deployed to %s', rte_path)
@@ -761,7 +779,7 @@ class CommunityRTEControl(ComponentControl):
                 swfile = os.path.join(swdir, f)
                 self.logger.debug('Removing RTE software file: %s', swfile)
                 os.unlink(swfile)
-            self.rtefile_remove(rtename + '/dummy', swdir.rstrip(rtename))
+            self.rtefile_remove(rtename + '/dummy', swdir.replace(rtename, ''))
         # remove params
         if os.path.exists(rte_params):
             self.logger.debug('Removing RTE community parameters file: %s', rte_params)
@@ -789,7 +807,7 @@ class CommunityRTEControl(ComponentControl):
         elif args.communityaction == 'rte-deploy':
             self.rte_deploy(args)
         elif args.communityaction == 'rte-remove':
-            self.rte_deploy(args)
+            self.rte_remove(args)
         else:
             self.logger.critical('Unsupported RunTimeEnvironment control action %s', args.communityaction)
             sys.exit(1)
