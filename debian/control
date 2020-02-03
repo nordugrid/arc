@@ -293,6 +293,26 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  backend scripts written in Python. Currently only the SLURM LRMS is
  supported. It is released as a technology preview.
 
+Package: nordugrid-arc-arex-community-rtes
+Architecture: any
+Depends:
+ ${python:Depends},
+ ${python3:Depends},
+ libarccommon3 (= ${binary:Version}),
+ nordugrid-arc-arex (= ${binary:Version}),
+ nordugrid-arc-arcctl (= ${binary:Version})
+ ${pydeps:Depends},
+XB-Python-Version: ${python:Versions}
+Description: ARC Resource-coupled EXecution service - Python LRMS backends
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ Community RTEs is the framework that allows to deploy software packages
+ (tarballs, containers, etc) provided by trusted communities to ARC CE
+ using simple arcctl commands.
+ It is released as a technology preview.
+
 Package: nordugrid-arc-plugins-needed
 Architecture: any
 Depends:
