@@ -9,16 +9,24 @@ import re
 import base64
 import json
 import hashlib
-try:
-    from urllib.request import Request, urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import Request, urlopen
-    from urllib2 import URLError
-
 # gpg command is widely available vs python-gnupg dedicated package
 # to eliminate extra dependency we are relying on invoking the command
 import subprocess
+try:
+    from urllib.request import Request, urlopen
+    from urllib.error import URLError
+    from urllib.parse import quote, unquote
+except ImportError:
+    from urllib2 import Request, urlopen
+    from urllib2 import URLError
+    from urllib import quote, unquote
+try:
+    import dns.resolver
+    import dns.query
+    from dns.exception import DNSException
+    dnssupport = True
+except ImportError:
+    dnssupport = False
 
 
 def complete_community(prefix, parsed_args, **kwargs):
@@ -119,28 +127,135 @@ class CommunityRTEControl(ComponentControl):
         return data
 
     def __fetch_community_rte_index(self, config):
+        """Fetch RTEs data from community registry (JSON URL or ARCHERY)"""
         rtes = {}
         if config['type'] == 'manual':
             self.logger.warning('List of available community RTEs is not available without registry.')
             return rtes
         if config['type'] == 'archery':
-            self.logger.error('Not yet implemented')
-            sys.exit(1)
+            cdata = self.__query_archery(config['url'])
         elif config['type'] == 'url':
-            url = config['url']
-            cdata = self.__get_community_json(url)
-            if cdata is None:
-                self.logger.error('Failed to fetch community RTEs index.')
-                return rtes
-            if 'rtes' not in cdata:
-                self.logger.debug('There are no RTEs in the software registry.')
-                return rtes
-            for rdata in cdata['rtes']:
-                if 'name' not in rdata:
-                    self.logger.warning('Skipping malformed RTE record %s in the registry.',
-                                      json.dumps(rdata))
-                rtes[rdata['name']] = rdata
+            cdata = self.__get_community_json(config['url'])
+        else:
+            self.logger.error('Unsupported registry type %s in the community configuration.', config['type'])
             return rtes
+
+        if cdata is None:
+            self.logger.error('Failed to fetch community RTEs index.')
+            return rtes
+        if 'rtes' not in cdata:
+            self.logger.debug('There are no RTEs in the software registry.')
+            return rtes
+        for rdata in cdata['rtes']:
+            if 'name' not in rdata:
+                self.logger.warning('Skipping malformed RTE record %s in the registry.', json.dumps(rdata))
+            rtes[rdata['name']] = rdata
+        return rtes
+
+    def __parse_archery_txt(self, txtstr):
+        """Get data dict from ARCHERY DNS TXT string representation"""
+        rrdata = {}
+        for kv in txtstr.split(' '):
+            # in case of broken records
+            if len(kv) < 3:
+                self.logger.warning('Malformed archery TXT entry "%s" ("%s" too short for k=v)', txtstr, kv)
+                continue
+            # only one letter keys and 'id' is supported now
+            if kv[1] == '=':
+                rrdata[kv[0]] = kv[2:]
+            elif kv.startswith('id='):
+                rrdata['id'] = kv[3:]
+            else:
+                self.logger.warning('Malformed archery TXT entry "%s" (%s does not match k=value)', txtstr, kv)
+        return rrdata
+
+    def __query_archery_txt(self, dns_name):
+        """Fetch TXT data from ARCHERY DNS name"""
+        # define archery entry point DNS name
+        if dns_name[0:6] == 'dns://':
+            dns_name = dns_name[6:]
+        else:
+            dns_name = '_archery.' + dns_name
+        dns_name = dns_name.rstrip('.') + '.'
+        # start query
+        resolver = dns.resolver.Resolver()
+        self.logger.debug('Querying ARCHERY data from: %s', dns_name)
+        txts = []
+        try:
+            archery_rrs = resolver.query(dns_name, 'TXT')
+            for rr in archery_rrs:
+                # merge strings in TXT (>255)
+                txt = ''
+                for rri in rr.strings:
+                    txt += rri.decode()
+                txts.append(txt)
+        except DNSException as e:
+            logger.warning('Failed to query ARCHERY data from %s (Error: %s)', dns_name, str(e))
+        return txts
+
+    def __query_archery_rte(self, dns_name):
+        """Query and parse ARCHERY RTE object"""
+        rtedata = {}
+        for txt in self.__query_archery_txt(dns_name):
+            rrdata = self.__parse_archery_txt(txt)
+            if 'o' in rrdata:
+                if not 'id' in rrdata:
+                    self.logger.error('RTE object %s in ARCHERY does not contain id. Skipping.', dns_name)
+                    return None
+                rtedata['name'] = rrdata['id']
+                if 'd' in rrdata:
+                    rtedata['description'] = unquote(rrdata['d'])
+            elif 'u' in rrdata:
+                if 't' in rrdata:
+                    if rrdata['t'] == 'gpg.signed':
+                        rtedata['url'] = rrdata['u']
+                    elif rrdata['t'] == 'gpg.signed.base64':
+                        data = ''
+                        for rd in self.__query_archery_txt(rrdata['u']):
+                            data += rd
+                        if data:
+                            rtedata['data'] = data
+        return rtedata
+
+    def __query_archery_software(self, dns_name, fetch_rtes):
+        """Query and parse ARCHERY software registry object"""
+        adata = {'pubkey': {}, 'rtes': []}
+        for txt in self.__query_archery_txt(dns_name):
+            rrdata = self.__parse_archery_txt(txt)
+            if 'u' in rrdata:
+                if 't' in rrdata:
+                    if rrdata['t'] == 'archery.rte':
+                        if fetch_rtes:
+                            rtedata = self.__query_archery_rte(rrdata['u'])
+                            if rtedata:
+                                adata['rtes'].append(rtedata)
+                    elif rrdata['t'] == 'gpg.pubkey':
+                        adata['pubkey']['keyurl'] = rrdata['u']
+                    elif rrdata['t'] == 'gpg.pubkey.base64':
+                        adata['pubkey']['keydata'] = ''
+                        for kd in self.__query_archery_txt(rrdata['u']):
+                            adata['pubkey']['keydata'] += kd
+                    elif rrdata['t'] == 'gpg.keyserver':
+                        adata['pubkey']['keyserver'] = rrdata['u']
+        return adata
+
+    def __query_archery(self, dns_name, fetch_rtes=True):
+        """Query software information from community ARCHERY"""
+        for txt in self.__query_archery_txt(dns_name):
+            rrdata = self.__parse_archery_txt(txt)
+            if 'u' in rrdata:
+                if 't' in rrdata:
+                    if rrdata['t'] == 'archery.software':
+                        # found archery software object reference
+                        adata = self.__query_archery_software(rrdata['u'], fetch_rtes)
+                        if adata:
+                            return adata
+                    elif rrdata['t'] in ['archery.group', 'org.nordugrid.archery']:
+                        # follow groupings for archery software objects
+                        adata = self.__query_archery(rrdata['u'], fetch_rtes)
+                        if adata:
+                            return adata
+        return None
 
     def __download_file(self, url, path, chunk_size=524288):
         """Download file in chunks (default is 512k)"""
@@ -226,6 +341,24 @@ class CommunityRTEControl(ComponentControl):
             sys.exit(1)
         return c
 
+    def __deploy_pubkey(self, c, key_data):
+        cdir = os.path.join(self.community_rte_dir, c)
+        if 'keyurl' in key_data['pubkey']:
+            keyfile = self.__get_keyfile(self, cdir, key_data['pubkey']['keyurl'])
+            if keyfile is None:
+                self.__cdir_cleanup(c)
+            key_data['pubkey']['keyfile'] = keyfile
+        if 'keydata' in key_data['pubkey']:
+            try:
+                decoded_keydata = base64.b64decode(key_data['pubkey']['keydata'])
+                keyfile = os.path.join(cdir, 'pubkey.gpg')
+                with open(keyfile, 'w') as key_f:
+                    key_f.write(decoded_keydata)
+                key_data['pubkey']['keyfile'] = keyfile
+            except TypeError as e:
+                self.logger.error('Failed to decode retrieved base64 public key data. Error: %s', str(e))
+                self.__cdir_cleanup(c)
+
     def add(self, args):
         c = args.community
         if c in self.communities:
@@ -266,21 +399,7 @@ class CommunityRTEControl(ComponentControl):
             if 'pubkey' not in key_data:
                 self.logger.error('Community software registry at %s does not include pubic key data.', args.url)
                 self.__cdir_cleanup(c)
-            if 'keyurl' in key_data['pubkey']:
-                keyfile = self.__get_keyfile(self, cdir, key_data['pubkey']['keyurl'])
-                if keyfile is None:
-                    self.__cdir_cleanup(c)
-                key_data['pubkey']['keyfile'] = keyfile
-            if 'keydata' in key_data['pubkey']:
-                try:
-                    decoded_keydata = base64.b64decode(key_data['pubkey']['keydata'])
-                    keyfile = os.path.join(cdir, 'pubkey.gpg')
-                    with open(keyfile, 'w') as key_f:
-                        key_f.write(decoded_keydata)
-                    key_data['pubkey']['keyfile'] = keyfile
-                except TypeError as e:
-                    self.logger.error('Failed to decode retrieved base64 public key data. Error: %s', str(e))
-                    self.__cdir_cleanup(c)
+            self.__deploy_pubkey(c, key_data)
         elif args.keyserver is not None:
             cconfig['type'] = 'manual'
             cconfig['url'] = None
@@ -304,18 +423,24 @@ class CommunityRTEControl(ComponentControl):
                     'keyfile': keyfile
                 }
             }
-        elif args.archery is not None:
-            cconfig['type'] = 'archery'
-            cconfig['url'] = args.archery
-            # TODO: get pubkey from ARCHERY
-            self.logger.error('Not implemented yet')
-            self.__cdir_cleanup(c, 0)
         else:
+            # default is ARCHERY registry
             cconfig['type'] = 'archery'
             cconfig['url'] = c
-            # TODO: same but use community name
-            self.logger.error('Not implemented yet')
-            self.__cdir_cleanup(c, 0)
+            if args.archery is not None:
+                cconfig['url'] = args.archery
+            if not dnssupport:
+                self.logger.error('Failed to find python-dns module. ARCHERY support is disabled.')
+                self.__cdir_cleanup(c)
+            key_data = self.__query_archery(cconfig['url'], fetch_rtes=False)
+            print(key_data)
+            if key_data is None:
+                self.logger.error('Failed to add community %s', c)
+                self.__cdir_cleanup(c)
+            if 'pubkey' not in key_data:
+                self.logger.error('Community ARCHERY at %s does not include pubic key data.', cconfig['url'])
+                self.__cdir_cleanup(c)
+            self.__deploy_pubkey(c, key_data)
 
         # add key data to community config
         cconfig['keydata'] = key_data
