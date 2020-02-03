@@ -17,6 +17,7 @@ packages_el8:
     - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+     - rm -f ../*-dbgsym_*.deb
   tags:
     - build
   artifacts:
