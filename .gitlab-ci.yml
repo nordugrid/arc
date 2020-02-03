@@ -3,8 +3,6 @@ stages:
   - packages
   - deploy_and_test
 
-
-
 packages_el8:
   stage: packages
   image: maikenp/arc-build-centos8
