@@ -137,10 +137,13 @@ deploy_staging_deb9:
     - pwd
     - ls 
     - ls /builds
+    - mkdir /build
+    - echo $CI_PROJECT_DIR
+    - cp  $CI_PROJECT_DIR/*.deb /build
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian9
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$name_container  --volumes-from $gitlab_container  -v "/builds:/builds" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - docker run --name=$name_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -172,10 +175,13 @@ deploy_staging_deb10:
     - pwd
     - ls 
     - ls /builds
+    - mkdir /build
+    - echo $CI_PROJECT_DIR
+    - cp  $CI_PROJECT_DIR/*.deb /build
     - name_container=deb10_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian10
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$name_container  --volumes-from $gitlab_container -v "/builds:/builds" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10
+    - docker run --name=$name_container  --volumes-from $gitlab_container -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
