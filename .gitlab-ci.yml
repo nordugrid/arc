@@ -351,10 +351,16 @@ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - deploy_container=deb9_`date +%Y%m%dT%H%M`
+  - pwd
+    - ls 
+    - ls /builds
+    - mkdir /build
+    - echo $CI_PROJECT_DIR
+    - cp  $CI_PROJECT_DIR/*.deb /build
     - docker pull maikenp/arc-deploy-debian9
+    - deploy_container=deb9_`date +%Y%m%dT%H%M`
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$deploy_container  --volumes-from $gitlab_container -v "/arc:/arc" "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
@@ -386,10 +392,15 @@ deploy_staging_deb10:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - deploy_container=deb10_`date +%Y%m%dT%H%M`
+    - ls 
+    - ls /builds
+    - mkdir /build
+    - echo $CI_PROJECT_DIR
+    - cp  $CI_PROJECT_DIR/*.deb /build
     - docker pull maikenp/arc-deploy-debian10
+    - deploy_container=deb10_`date +%Y%m%dT%H%M`
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$deploy_container  --volumes-from $gitlab_container -v "/arc:/arc" "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10 
     - echo "*************>>  Done - back from inner container"
     - ls -lhrt /arc-logs
     - cp -r /arc-logs $CI_PROJECT_DIR
