@@ -39,12 +39,23 @@ def complete_community_config_option(prefix, parsed_args, **kwargs):
     return CommunityRTEControl(arcconf).complete_community_config_option(parsed_args)
 
 
+def complete_community_rtes(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return CommunityRTEControl(arcconf).complete_community_rtes(parsed_args)
+
+
+def complete_community_deployed_rtes(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return CommunityRTEControl(arcconf).complete_community_rtes(parsed_args, rtype='deployed')
+
+
 class CommunityRTEControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.RunTimeEnvironment.Community')
         if arcconfig is None:
             self.logger.critical('Controlling RunTime Environments is not possible without arc.conf defined controldir')
             sys.exit(1)
+        self.arcconfig = arcconfig
         self.control_rte_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/rte'
         # get first sessiondir that is not draining now
         self.sessiondir = None
@@ -66,12 +77,14 @@ class CommunityRTEControl(ComponentControl):
             break
 
     # methods to call from general RTE control
-    def get_deployed_rtes(self):
+    def get_deployed_rtes(self, community=None):
         """Get all deployed community RTEs"""
         # use common RTEControl static methods for consistency
         from .RunTimeEnvironment import RTEControl
         deployed_rtes = {}
         for c in self.communities:
+            if community is not None and c != community:
+                continue
             self.logger.debug('Indexing deployed RTEs for %s community', c)
             cdir = os.path.join(self.community_rte_dir, c)
             deployed_rte_dir = os.path.join(cdir, 'rte')
@@ -111,6 +124,7 @@ class CommunityRTEControl(ComponentControl):
         return response.read()
 
     def __get_community_json(self, url):
+        """Fetch JSON file with community software definition from URL"""
         # fetch URL data
         urldata = self.__fetch_data(url)
         if urldata is None:
@@ -133,6 +147,9 @@ class CommunityRTEControl(ComponentControl):
             self.logger.warning('List of available community RTEs is not available without registry.')
             return rtes
         if config['type'] == 'archery':
+            if not dnssupport:
+                self.logger.error('Failed to find python-dns module. ARCHERY support is disabled.')
+                return rtes
             cdata = self.__query_archery(config['url'])
         elif config['type'] == 'url':
             cdata = self.__get_community_json(config['url'])
@@ -294,6 +311,7 @@ class CommunityRTEControl(ComponentControl):
         return True
 
     def __get_keyfile(self, cdir, url):
+        """Fetch public key from URL and store it to community directory"""
         keydata = self.__fetch_data(url)
         if keydata is None:
             self.logger.error('Failed to fetch community public key.')
@@ -304,11 +322,13 @@ class CommunityRTEControl(ComponentControl):
         return keyfile
 
     def __cdir_cleanup(self, c, exitcode=1):
+        """Remove community dir and exit"""
         cdir = os.path.join(self.community_rte_dir, c)
         shutil.rmtree(cdir)
         sys.exit(exitcode)
 
     def __ask_yes_no(self, question, default_yes=False):
+        """Interactively ask for confirmation"""
         yes_no = ' (YES/no): ' if default_yes else ' (yes/NO): '
         reply = str(raw_input(question + yes_no)).lower().strip()
         if reply == 'yes':
@@ -342,6 +362,7 @@ class CommunityRTEControl(ComponentControl):
         return c
 
     def __deploy_pubkey(self, c, key_data):
+        """Process public key data and store the key to community directory"""
         cdir = os.path.join(self.community_rte_dir, c)
         if 'keyurl' in key_data['pubkey']:
             keyfile = self.__get_keyfile(self, cdir, key_data['pubkey']['keyurl'])
@@ -359,7 +380,34 @@ class CommunityRTEControl(ComponentControl):
                 self.logger.error('Failed to decode retrieved base64 public key data. Error: %s', str(e))
                 self.__cdir_cleanup(c)
 
+    def __disable_undefault(self, community, rtes=None, action='error'):
+        """Check community RTEs are enabled or default. Stop on error or disable/undefault if not."""
+        from .RunTimeEnvironment import RTEControl
+        rtectl = RTEControl(self.arcconfig)
+        cdir = os.path.join(self.community_rte_dir, community)
+        if rtes is None:
+            # all deployed RTEs if not defined explicitly
+            rtes = rtectl.get_dir_rtes(os.path.join(cdir, 'rte'))
+        status = {}
+        for rte in rtes:
+            for epath, etype in [(rtectl.check_enabled(rte), 'enabled'),
+                                 (rtectl.check_default(rte), 'default')]:
+                if epath is not None and epath.startswith(cdir):
+                    if action == 'disable':
+                        rtectl.disable_rte({'name': rte, 'path': epath}, etype)
+                    elif action == 'status':
+                        if rte not in status:
+                            status[rte] = []
+                        status[rte].append(etype)
+                    else:
+                        needed_action = 'disable' if etype == 'enabled' else 'undefault'
+                        self.logger.error('Community RTE %s is %s. Please %s it first or use "--force" '
+                                          'to disable and undefault automatically', rte, etype, needed_action)
+                        sys.exit(1)
+        return status
+
     def add(self, args):
+        """action: add new trusted community"""
         c = args.community
         if c in self.communities:
             self.logger.error('Cannot add community. Community %s is already trusted.', c)
@@ -533,13 +581,17 @@ class CommunityRTEControl(ComponentControl):
         self.__save_community_config(c, cconfig)
 
     def delete(self, args):
+        """action: delete trusted community"""
         c = self.__community_name(args)
-        # TODO: disable/undefault handling
+        # disable/undefault RTEs from this community
+        action = 'disable' if args.force else 'error'
+        self.__disable_undefault(c, None, action)
         # remove community directory
         cdir = os.path.join(self.community_rte_dir, c)
         shutil.rmtree(cdir)
 
     def list(self, args):
+        """action: list available communities"""
         for c in self.communities:
             if not args.long:
                 print(c)
@@ -548,6 +600,7 @@ class CommunityRTEControl(ComponentControl):
                 print('{0:<32} {1:<8} {2}'.format(c, cconfig['type'], cconfig['url']))
 
     def config_get(self, args):
+        """action: Get configuration parameters for community"""
         c = self.__community_name(args)
         cconfig = self.__load_community_config(c)
         if 'userconf' not in cconfig:
@@ -574,6 +627,7 @@ class CommunityRTEControl(ComponentControl):
             print('{0}={1}'.format(opt, value))
 
     def config_set(self, args):
+        """action: Modify configuration parameter for community"""
         c = self.__community_name(args)
         cconfig = self.__load_community_config(c)
         if 'userconf' not in cconfig:
@@ -601,13 +655,20 @@ class CommunityRTEControl(ComponentControl):
             oconfig['value'] = value
         self.__save_community_config(c, cconfig)
 
-    def _rte_list_brief(self, deployed_rtes, registry_rtes):
+    def _rte_list_brief(self, c, deployed_rtes, registry_rtes):
+        """Show brief list of community-defined RTEs"""
         for rte in sorted(deployed_rtes):
             kind = ['deployed']
+            # check exists in registry
             if rte in registry_rtes:
                 kind.append('registry')
                 registry_rtes[rte]['listed'] = True
-            # TODO: check enabled/default
+            # check enabled/default
+            active_status = self.__disable_undefault(c, None, 'status')
+            if rte in active_status:
+                for s in active_status[rte]:
+                    kind.append(s)
+            # print
             print('{0:32} ({1})'.format(rte, ', '.join(kind)))
         for rte in sorted(registry_rtes):
             if 'listed' in registry_rtes[rte]:
@@ -616,6 +677,7 @@ class CommunityRTEControl(ComponentControl):
             print('{0:32} ({1})'.format(rte, ', '.join(kind)))
 
     def _rte_list_long(self, deployed_rtes, registry_rtes):
+        """Show detailed list of community-defined RTEs"""
         # use common RTEControl static methods for consistency
         from .RunTimeEnvironment import RTEControl
         # deployed RTEs
@@ -643,6 +705,7 @@ class CommunityRTEControl(ComponentControl):
                 print('\t{0:32} # {1}'.format(rte, description))
 
     def rte_list(self, args):
+        """action: show community RTEs"""
         # use common RTEControl static methods for consistency
         from .RunTimeEnvironment import RTEControl
         c = self.__community_name(args)
@@ -665,9 +728,10 @@ class CommunityRTEControl(ComponentControl):
             for rte in sorted(deployed_rtes):
                 print(rte)
         else:
-            self._rte_list_brief(deployed_rtes, registry_rtes)
+            self._rte_list_brief(c, deployed_rtes, registry_rtes)
 
     def rte_deploy(self, args):
+        """Deploy community-defined RTE (from registry of URL)"""
         c = self.__community_name(args)
         cconfig = self.__load_community_config(c)
         # paths
@@ -878,10 +942,14 @@ class CommunityRTEControl(ComponentControl):
             del rte_split[-1]
 
     def rte_remove(self, args):
+        """Remove deployed community RTE"""
         c = self.__community_name(args)
         cdir = os.path.join(self.community_rte_dir, c)
         deployed_rte_dir = os.path.join(cdir, 'rte') + '/'
         rtename = args.rtename
+        # check enabled/default already
+        action = 'disable' if args.force else 'error'
+        self.__disable_undefault(c, [rtename], action)
         # RTE script itself
         rte_path = deployed_rte_dir + rtename
         if os.path.exists(rte_path):
@@ -947,6 +1015,15 @@ class CommunityRTEControl(ComponentControl):
     def complete_community(self):
         return self.communities
 
+    def complete_community_rtes(self, args, rtype='registry'):
+        c = self.__community_name(args)
+        if rtype == 'deployed':
+            deployed_rtes = self.get_deployed_rtes(c)
+            return deployed_rtes.keys()
+        cconfig = self.__load_community_config(c)
+        registry_rtes = self.__fetch_community_rte_index(cconfig)
+        return registry_rtes.keys()
+
     @staticmethod
     def register_parser(root_parser):
         crte_ctl = root_parser.add_parser('community', help='Operating community-defined RunTimeEnvironments')
@@ -993,7 +1070,7 @@ class CommunityRTEControl(ComponentControl):
 
         cdeploy = crte_actions.add_parser('rte-deploy', help='Deploy RTE provided by community')
         cdeploy.add_argument('community', help='Trusted community name').completer = complete_community
-        cdeploy.add_argument('rtename', help='RunTimeEnvironment name')
+        cdeploy.add_argument('rtename', help='RunTimeEnvironment name').completer = complete_community_rtes
         cdeploy.add_argument('-u', '--url', help='Explicitly define URL to signed RTE file')
         cdeploy.add_argument('-f', '--force', help='Force RTE files redeployment if already exists',
                           action='store_true')
@@ -1003,6 +1080,6 @@ class CommunityRTEControl(ComponentControl):
 
         cremove = crte_actions.add_parser('rte-remove', help='Remove deployed community RTE')
         cremove.add_argument('community', help='Trusted community name').completer = complete_community
-        cremove.add_argument('rtename', help='RunTimeEnvironment name')
+        cremove.add_argument('rtename', help='RunTimeEnvironment name').completer = complete_community_deployed_rtes
         cremove.add_argument('-f', '--force', help='Disable and undefault RTE automatically',
                           action='store_true')

@@ -537,6 +537,20 @@ class RTEControl(ComponentControl):
                 os.rmdir(rte_dir)
             del rte_split[-1]
 
+    def check_enabled(self, rte):
+        """Check RTE is enabled. Return path to RTE file or None"""
+        self.__fetch_rtes()
+        if rte in self.enabled_rtes:
+            return self.enabled_rtes[rte]
+        return None
+
+    def check_default(self, rte):
+        """Check RTE is default. Return path to RTE file or None"""
+        self.__fetch_rtes()
+        if rte in self.default_rtes:
+            return self.default_rtes[rte]
+        return None
+
     def control(self, args):
         if args.action == 'list':
             self.list(args)
