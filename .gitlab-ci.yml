@@ -136,6 +136,7 @@ deploy_staging_deb9:
   script:
     - pwd
     - ls 
+    - ls /builds
     - name_container=deb9_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian9
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
@@ -168,6 +169,9 @@ deploy_staging_deb10:
   stage: deploy_and_test
   image: docker:stable
   script:
+    - pwd
+    - ls 
+    - ls /builds
     - name_container=deb10_`date +%Y%m%dT%H%M`
     - docker pull maikenp/arc-deploy-debian10
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
