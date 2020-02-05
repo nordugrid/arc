@@ -1206,6 +1206,7 @@ def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
 #
 # ARCHERY TOPOLOGY PROCESSING
 #
+# FLAT ARC-CE LIST
 def get_arcce_topology(ce_list, rr_owner=''):
     """Create ARCHERY data object that represent ARC CE flat CE list topology"""
     archery_object = {
@@ -1230,6 +1231,29 @@ def get_arcce_topology(ce_list, rr_owner=''):
     return archery_object
 
 
+# JSON CONFIG
+def get_json_topology(json_file, rr_owner='', timeout=_fetch_timeout):
+    """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
+    try:
+        with open(json_file, 'r') as jconf_f:
+            jconf = json.load(jconf_f)
+    except IOError as err:
+        logger.error('Failed to open JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+    except ValueError as err:
+        logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+
+    # process groups recursively and return archery-manage internal object
+    archery_object = group_object_from_json(jconf, rr_owner)
+
+    # support raw DNS records only on the top-level
+    if 'raw-dns' in jconf:
+        archery_object['raw-dns'] = jconf['raw-dns']
+    return archery_object
+
+
+# JSON: helpers for groups/services
 def service_object_from_json(sconf):
     """Define service object content based on JSON config"""
     sobj = {
@@ -1270,6 +1294,92 @@ def service_object_from_json(sconf):
             sobj['endpoints'].append(erecord)
 
     return sobj
+
+
+def group_object_from_json(jconf, rr_owner):
+    """Define service object content based on JSON config"""
+    archery_object = {
+        'object': 'group',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+
+    if 'external-archery-object' in jconf:
+        archery_object['pointer_rr_data'] = 'u={0} t=archery.group'.format(jconf['external-archery-object'])
+        return archery_object
+
+    if 'arc-services' in jconf:
+        archery_arcces_object = get_arcce_topology(jconf['arc-services'], rr_owner)
+        archery_object['contains'].extend(archery_arcces_object['contains'])
+
+    if 'services' in jconf:
+        for sconf in jconf['services']:
+            sobj = service_object_from_json(sconf)
+            if sobj is not None:
+                sobj['rr_owner'] = dns_rr_owner_name(sobj, rr_owner)
+                archery_object['contains'].append(sobj)
+
+    if 'id' in jconf:
+        archery_object['id'] = jconf['id']
+
+    if 'dns-name' in jconf:
+        archery_object['dns-name'] = jconf['dns-name']
+
+    if 'type' in jconf:
+        archery_object['type'] = jconf['type']
+
+    if 'external-source' in jconf:
+        archery_object['contains_fetch'] = jconf['external-source']
+
+    if 'software' in jconf:
+        swobj = software_object_from_json(jconf['software'])
+        if swobj is not None:
+            archery_object['contains'].append(swobj)
+
+    if 'groups' in jconf:
+        g_idx = 0
+        for gconf in jconf['groups']:
+            g_idx += 1
+            if 'dns-name' in gconf:
+                g_rr_owner = gconf['dns-name']
+            elif 'id' in gconf:
+                g_rr_owner = gconf['id'].replace(' ', '-')
+            else:
+                gconf['dns-name'] = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
+                g_rr_owner = gconf['dns-name']
+            archery_object['contains'].append(group_object_from_json(gconf, g_rr_owner))
+
+    return archery_object
+
+
+# JSON: helpers for software objects
+def __get_rte_description(rte_path):
+    """Extract embedded RTE description from RTE file"""
+    with open(rte_path) as rte_f:
+        max_lines = 10
+        description = None
+        for line in rte_f:
+            descr_re = re.match(r'^#+\s*description:\s*(.*)\s*$', line, flags=re.IGNORECASE)
+            if descr_re:
+                description = descr_re.group(1)
+            max_lines -= 1
+            if not max_lines:
+                break
+        return description
+
+
+def __get_dir_rtes(rtedir):
+    """Get all RTEs defined by classic directory structure"""
+    rtes = {}
+    for path, _, files in os.walk(rtedir):
+        rtebase = path.lstrip(rtedir + '/')
+        for f in files:
+            rtename = rtebase + '/' + f if rtebase else f
+            rtepath = path + '/' + f
+            if os.path.islink(rtepath):
+                rtepath = os.readlink(rtepath)
+            rtes[rtename] = rtepath
+    return rtes
 
 
 def software_object_from_json(jconf):
@@ -1329,9 +1439,19 @@ def software_object_from_json(jconf):
         })
 
     # generate RTEs from directory (if defined)
-    if 'rtedir' in jconf:
-        # TODO: loop over dir and creates subsequent RTE objects
-        pass
+    if 'rtes_dir' in jconf:
+        if not os.path.exists(jconf['rtes_dir']):
+            logger.error('Path to RTEs directory (%s) does not exists.', jconf['rtes_dir'])
+        else:
+            dirrtes = __get_dir_rtes(jconf['rtes_dir'])
+            if dirrtes and 'rtes' not in jconf:
+                jconf['rtes'] = []
+            for rte in dirrtes:
+                logger.debug('Adding RTE %s to software registry', rte)
+                jconf['rtes'].append({
+                    'name': rte,
+                    'path': dirrtes[rte]
+                })
     # process RTE objects
     if 'rtes' not in jconf:
         logger.warning('No RTEs defined in the software object. Nothing to do.')
@@ -1376,6 +1496,11 @@ def software_object_from_json(jconf):
             if not os.path.exists(rtepath):
                 logger.error('Malformed RTE %s definition. RTE path %s does not exists.', rtename, rte['path'])
                 continue
+            if 'description' not in rteobj:
+                logger.debug('Trying to fetch description from RTE file at %s', rtepath)
+                filedescr = __get_rte_description(rtepath)
+                if filedescr:
+                    rteobj['description'] = quote(filedescr)
             if not os.path.exists(signed_dir):
                 try:
                     os.mkdir(signed_dir, 0o755)
@@ -1438,83 +1563,7 @@ def software_object_from_json(jconf):
     return sconf
 
 
-def group_object_from_json(jconf, rr_owner):
-    """Define service object content based on JSON config"""
-    archery_object = {
-        'object': 'group',
-        'rr_owner': rr_owner,
-        'contains': [],
-    }
-
-    if 'external-archery-object' in jconf:
-        archery_object['pointer_rr_data'] = 'u={0} t=archery.group'.format(jconf['external-archery-object'])
-        return archery_object
-
-    if 'arc-services' in jconf:
-        archery_arcces_object = get_arcce_topology(jconf['arc-services'], rr_owner)
-        archery_object['contains'].extend(archery_arcces_object['contains'])
-
-    if 'services' in jconf:
-        for sconf in jconf['services']:
-            sobj = service_object_from_json(sconf)
-            if sobj is not None:
-                sobj['rr_owner'] = dns_rr_owner_name(sobj, rr_owner)
-                archery_object['contains'].append(sobj)
-
-    if 'id' in jconf:
-        archery_object['id'] = jconf['id']
-
-    if 'dns-name' in jconf:
-        archery_object['dns-name'] = jconf['dns-name']
-
-    if 'type' in jconf:
-        archery_object['type'] = jconf['type']
-
-    if 'external-source' in jconf:
-        archery_object['contains_fetch'] = jconf['external-source']
-
-    if 'software' in jconf:
-        swobj = software_object_from_json(jconf['software'])
-        if swobj is not None:
-            archery_object['contains'].append(swobj)
-
-    if 'groups' in jconf:
-        g_idx = 0
-        for gconf in jconf['groups']:
-            g_idx += 1
-            if 'dns-name' in gconf:
-                g_rr_owner = gconf['dns-name']
-            elif 'id' in gconf:
-                g_rr_owner = gconf['id'].replace(' ', '-')
-            else:
-                gconf['dns-name'] = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
-                g_rr_owner = gconf['dns-name']
-            archery_object['contains'].append(group_object_from_json(gconf, g_rr_owner))
-
-    return archery_object
-
-
-def get_json_topology(json_file, rr_owner='', timeout=_fetch_timeout):
-    """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
-    try:
-        with open(json_file, 'r') as jconf_f:
-            jconf = json.load(jconf_f)
-    except IOError as err:
-        logger.error('Failed to open JSON config file %s. Error: %s', json_file, str(err))
-        sys.exit(1)
-    except ValueError as err:
-        logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
-        sys.exit(1)
-
-    # process groups recursively and return archery-manage internal object
-    archery_object = group_object_from_json(jconf, rr_owner)
-
-    # support raw DNS records only on the top-level
-    if 'raw-dns' in jconf:
-        archery_object['raw-dns'] = jconf['raw-dns']
-    return archery_object
-
-
+# CONFIG FROM GOCDB
 def get_gocdb_topology(rr_owner='', timeout=_fetch_timeout):
     """Create ARCHERY data object that represent GOCDB-defined EGI topology"""
     gocdb_host = 'goc.egi.eu'
