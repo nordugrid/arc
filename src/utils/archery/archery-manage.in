@@ -16,9 +16,9 @@ import socket
 # DATA fetching
 import ldap
 try:
-    import httplib
-except ImportError:
     import http.client as httplib
+except ImportError:
+    import httplib
 import ssl
 import xml.etree.ElementTree as ElementTree
 # DNS processing
@@ -31,17 +31,18 @@ from dns.exception import DNSException
 # Multithreading
 from threading import Thread, Lock
 try:
-    from Queue import Queue
+    from queue import Queue
 except ImportError:
-   from queue import Queue
+    from Queue import Queue
+
 # Software
 import subprocess  # gpg
 import base64
 import tempfile
 try:
-    from urllib.parse import quote
+    from urllib.parse import quote, unquote
 except ImportError:
-    from urllib import quote
+    from urllib import quote, unquote
 
 
 # GLOBAL VARIABLES
@@ -129,7 +130,6 @@ def json_config_object(archery_object):
 
     if 'id' in archery_object:
         jconf['id'] = archery_object['id']
-
     elif 'dns-name' in archery_object:
         jconf['dns-name'] = archery_object['dns-name']
 
@@ -138,6 +138,8 @@ def json_config_object(archery_object):
 
     if 'object' in archery_object:
         kind = archery_object['object']
+    elif 'reftype' in archery_object:
+        kind = archery_object['reftype']
     else:
         kind = 'group'
 
@@ -163,6 +165,36 @@ def json_config_object(archery_object):
                 else:
                     jconf['endpoints'].append({e['u']: e['t']})
 
+    if kind == 'software':
+        if 'endpoints' in archery_object:
+            external_object = None
+            for e in archery_object['endpoints']:
+                if 't' in e and e['t'] == 'gpg.pubkey':
+                    jconf['pubkey_url'] = e['u']
+
+    if kind == 'rte':
+        jconf['name'] = archery_object['id']
+        del jconf['id']
+        if 'description' in archery_object:
+            jconf['description'] = unquote(archery_object['description'])
+        if 'endpoints' in archery_object:
+            external_object = None
+            for e in archery_object['endpoints']:
+                if 't' in e and e['t'] == 'gpg.signed':
+                    jconf['url'] = e['u']
+
+    if kind == 'gpg.pubkey.base64':
+        if 'endpoints' in archery_object:
+            for e in archery_object['endpoints']:
+                if 'rr_data' in e:
+                    jconf['pubkey'] = e['rr_data']
+
+    if kind == 'gpg.signed.base64':
+        if 'endpoints' in archery_object:
+            for e in archery_object['endpoints']:
+                if 'rr_data' in e:
+                    jconf['data'] = e['rr_data']
+
     if 'contains' in archery_object:
         if archery_object['contains']:
             external_object = None  # do not mix natively nested objects and external
@@ -172,6 +204,18 @@ def json_config_object(archery_object):
                 if 'services' not in jconf:
                     jconf['services'] = []
                 jconf['services'].append(cobj)
+            elif ckind == 'software':
+                jconf['software'] = cobj
+            elif ckind == 'rte':
+                if 'rtes' not in jconf:
+                    jconf['rtes'] = []
+                jconf['rtes'].append(cobj)
+            elif ckind == 'gpg.pubkey.base64':
+                if 'pubkey' in cobj:
+                    jconf['pubkey'] = cobj['pubkey']
+            elif ckind == 'gpg.signed.base64':
+                if 'data' in cobj:
+                    jconf['data'] = cobj['data']
             elif ckind == 'group':
                 if 'groups' not in jconf:
                     jconf['groups'] = []
@@ -1312,6 +1356,21 @@ def software_object_from_json(jconf):
                 'u': rte['url'],
                 't': 'gpg.signed'
             })
+        elif 'data' in rte:
+            try:
+                base64.b64decode(rte['data'])
+            except TypeError:
+                logger.error('Cannon parse RTE %s data as base64 encoded. Skipping.')
+                continue
+            if 'contains' not in rteobj:
+                rteobj['contains'] = []
+            rteobj['contains'].append({
+                'reftype': 'gpg.signed.base64',
+                'rr_owner': '_data',
+                'endpoints': [{
+                    'rr_data': rte['data']
+                }]
+            })
         elif 'path' in rte:
             rtepath = rte['path']
             if not os.path.exists(rtepath):
@@ -1330,11 +1389,13 @@ def software_object_from_json(jconf):
                 rte_mtime = os.path.getmtime(rtepath)
                 srte_mtime = os.path.getmtime(srtepath)
                 if rte_mtime > srte_mtime:
-                    logger.info('Signed RTE file for %s is already exist in %s. '
-                                'But the RTE file updated more recently. Going to recreate signed RTE.')
+                    logger.info('Signed RTE file for %s is already exist (%s). '
+                                'But the RTE file updated more recently. Going to recreate signed RTE.',
+                                rtename, srtename)
                     os.unlink(srtepath)
                 else:
-                    logger.info('Signed RTE file for %s is already exist in %s. Skipping signing.')
+                    logger.info('Signed RTE file for %s is already exist (%s). Skipping signing.',
+                                rtename, srtename)
                     sign_needed = False
             # sign rtes
             if sign_needed:
@@ -1654,6 +1715,9 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
                             'pointer_rr_data': txt,
                             'rr_owner': ''
                         }
+                        # add reftype for raw data referenced objects
+                        if rrdata['t'] in ['gpg.pubkey.base64', 'gpg.signed.base64']:
+                            child_object['reftype'] = rrdata['t']
                         # add status for child object if defined
                         if 's' in rrdata and rrdata['s'] != '1':
                             child_object['status'] = 0
