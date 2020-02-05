@@ -226,19 +226,22 @@ def output_services(archery_object, cmd_args):
             print('{id:<60} : {type}'.format(**s))
 
 
-def txt_255(txt):
+def txt_255(txt, getlist=False):
     """TXT record have 255 bytes limit and should be split to subsequent strings if longer"""
     txtlen = len(txt)
     if txtlen <= 255:
+        if getlist:
+            return [txt]
         return '"' + txt + '"'
     # split by 255
-    ntxt = ''
     clen = 0
+    parts = []
     while clen < txtlen:
-        ntxt += ('"' + txt[clen:clen + 254] + '" ')
+        parts.append(txt[clen:clen + 254])
         clen += 254
-    ntxt.rstrip()
-    return ntxt
+    if getlist:
+        return parts
+    return '"' + '" "'.join(parts) + '"'
 
 
 def output_zonefile(archery_object, cmd_args):
@@ -1615,12 +1618,15 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
         if parent_name and rrset_name.endswith(parent_name):
             rrset_name = rrset_name[:-(len(parent_name)+1)]
         archery_object['rr_owner'] = rrset_name
-        guess_object_kind = 'group'
         for rr in archery_rrs:
             # fetch all records
             txt = ''
             for rri in rr.strings:
                 txt += rri.decode()
+            # special cases for '_pubkey' and '_data' that contains raw data
+            if rrset_name in ['_pubkey', '_data']:
+                archery_object['endpoints'].append({'rr_data': txt})
+                continue
             # parse object data
             rrdata = parse_archery_txt(txt)
             # object description resource record found
@@ -1632,10 +1638,15 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
                     archery_object['type'] = rrdata['t']
                 if 'id' in rrdata:
                     archery_object['id'] = rrdata['id']
+                # description for archery.rte object
+                if 'd' in rrdata:
+                    archery_object['description'] = rrdata['d']
             # other records that contains endpoint/grouping data
             elif 'u' in rrdata:
                 if 't' in rrdata:
-                    if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery']:
+                    if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery',
+                                       'archery.software', 'archery.rte',
+                                       'gpg.pubkey.base64', 'gpg.signed.base64']:
                         # fetch the data from DNS
                         child_object = {
                             'contains': [],
@@ -1654,7 +1665,6 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
                             'parent_name': pdns_name,
                         })
                     else:
-                        guess_object_kind = 'service'
                         rrdata['rr_data'] = txt
                         archery_object['endpoints'].append(rrdata)
                 else:
@@ -1663,10 +1673,6 @@ def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, pare
         # check for objects with no endpoints
         if not archery_object['contains'] and not archery_object['endpoints']:
             logger.warning('ARCHERY service object defined by %s has no endpoints.', dns_name)
-        # object kind checks
-        elif 'object' in archery_object and archery_object['object'] != guess_object_kind:
-            logger.warning('ARCHERY %s object defined by %s name contains information '
-                           'that should not be defined for this object kind.', archery_object['object'], dns_name)
     except DNSException as err:
         logger.warning('Failed to query ARCHERY data from %s (Error: %s)', dns_name, err)
         # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
@@ -1748,12 +1754,16 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
     add_rrs = new_dns_rrset - old_dns_rrset
     logger.info('DNS incremental update includes %s records to add and %s records to remove', len(add_rrs), len(remove_rrs))
 
+    # print(json.dumps(list(add_rrs), indent=2))
+    # print(json.dumps(list(remove_rrs), indent=2))
+
     try:
         update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
         for r in remove_rrs:
             logger.debug('Going to REMOVE record by means of DDNS update: %s', r)
             rr = r.split(' ', 1)
-            update.delete(rr[0], 'txt', rr[1].replace(' ', r'\ '))
+            txts = txt_255(rr[1].replace(' ', r'\ '), getlist=True)
+            update.delete(rr[0], 'txt', ' '.join(txts))
             if len(update.to_wire()) > 65000:
                 logger.info('Size limit reached. Sending partial DDNS update.')
                 dns.query.tcp(update, nameserver)
@@ -1762,7 +1772,8 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
         for a in add_rrs:
             logger.debug('Going to ADD record by means of DDNS update: %s', a)
             ar = a.split(' ', 1)
-            update.add(ar[0], ttl, 'txt', ar[1].replace(' ', r'\ '))
+            txts = txt_255(ar[1].replace(' ', r'\ '), getlist=True)
+            update.add(ar[0], ttl, 'txt', ' '.join(txts))
             if len(update.to_wire()) > 65000:
                 logger.info('Size limit reached. Sending partial DDNS update.')
                 dns.query.tcp(update, nameserver)
