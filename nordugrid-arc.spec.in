@@ -565,6 +565,28 @@ backend scripts written in Python. Currently only the SLURM LRMS is
 supported. It is released as a technology preview.
 %endif
 
+%package community-rtes
+Summary:	Community-defined RTEs support
+Group:		System Environment/Libraries
+Requires:	%{name}-arex = %{version}-%{release}
+Requires:   %{name}-arcctl = %{version}-%{release}
+Requires:   gnupg2
+%if %{py3default}
+Requires:	python3-dns
+%else
+Requires:	python-dns
+%endif
+
+%description community-rtes
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+Community RTEs is the framework that allows to deploy software packages
+(tarballs, containers, etc) provided by trusted communities to ARC CE
+using simple arcctl commands.
+It is released as a technology preview.
+
 %package plugins-needed
 Summary:	ARC base plugins
 Group:		System Environment/Libraries
@@ -1518,6 +1540,19 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
+%endif
+
+%files community-rtes
+%defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/community_rtes.sh
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CommunityRTE.*
+%else
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
 %if %{with_acix}

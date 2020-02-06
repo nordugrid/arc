@@ -1,4 +1,4 @@
-dist_pkgdata_DATA = cancel_common.sh submit_common.sh scan_common.sh
+dist_pkgdata_DATA = cancel_common.sh submit_common.sh scan_common.sh community_rtes.sh
 pkgdata_DATA = lrms_common.sh
 
 if PYTHON_LRMS_ENABLED

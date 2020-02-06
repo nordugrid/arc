@@ -34,6 +34,8 @@ common_init () {
     . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
     # init common LRMS environmental variables
     init_lrms_env
+    # optionally enable support for community RTEs
+    [ -e "${pkgdatadir}/community_rtes.sh" ] && source "${pkgdatadir}/community_rtes.sh"
 }
 
 # defines failures_file
@@ -320,9 +322,6 @@ RTE_include_default () {
 
 RTE_path_set () {
     rte_params_path="${CONFIG_controldir}/rte/params/${rte_name}"
-    if [ ! -e "$rte_params_path" ]; then
-        rte_params_path=""
-    fi
     rte_path="${CONFIG_controldir}/rte/enabled/${rte_name}"
     if [ ! -e "$rte_path" ]; then
         rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
@@ -363,7 +362,11 @@ RTE_to_jobscript () {
             # add RTE script content as a function into the job script
             echo "# RunTimeEnvironment function for ${rte_name}:" >> $LRMS_JOB_SCRIPT
             echo "RTE_function_${rte_idx} () {" >> $LRMS_JOB_SCRIPT
-            [ -n "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
+            # include parameters file (if exists)
+            [ -e "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
+            # include community RTE environment
+            [ -n "${COMMUNITY_RTES}" ] && community_software_environment >> $LRMS_JOB_SCRIPT
+            # include RTE content itself
             cat "${rte_path}" >> $LRMS_JOB_SCRIPT
             echo "}" >> $LRMS_JOB_SCRIPT
         else
@@ -430,7 +433,10 @@ RTE_stage0 () {
             # run RTE stage 0
             # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
             #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
-            [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            [ -e "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            # prepare RUNTIME_JOB_SWDIR for community-defined RTE software
+            [ -n "${COMMUNITY_RTES}" ] && community_software_prepare
+            # execute RTE script stage 0
             sourcewithargs "$rte_path" $args_value 1>&2
             rte0_exitcode=$?
             if [ $rte0_exitcode -ne 0 ] ; then
