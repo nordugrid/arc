@@ -57,8 +57,7 @@
 %global with_python3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} == 7 || %{?suse_version:1}%{!?suse_version:0}
-# Dependency missing in EPEL 8
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
