@@ -481,7 +481,6 @@ class CommunityRTEControl(ComponentControl):
                 self.logger.error('Failed to find python-dns module. ARCHERY support is disabled.')
                 self.__cdir_cleanup(c)
             key_data = self.__query_archery(cconfig['url'], fetch_rtes=False)
-            print(key_data)
             if key_data is None:
                 self.logger.error('Failed to add community %s', c)
                 self.__cdir_cleanup(c)
@@ -730,6 +729,57 @@ class CommunityRTEControl(ComponentControl):
         else:
             self._rte_list_brief(c, deployed_rtes, registry_rtes)
 
+    def __fetch_signed_rte(self, c, rtename):
+        """Fetch signed RTE data from community registry"""
+        cconfig = self.__load_community_config(c)
+        self.logger.debug('Checking RTE %s in the community %s software registry', rtename, c)
+        registry_rtes = self.__fetch_community_rte_index(cconfig)
+        if rtename not in registry_rtes:
+            self.logger.error('RTE %s is not exists in community %s registry', rtename, c)
+            sys.exit(1)
+        rteconf = registry_rtes[rtename]
+        sigrtedata = None
+        # rte in the registry can be defined by URL or base64-encoded data
+        if 'data' in rteconf:
+            sigrtedata = base64.b64decode(rteconf['data'])
+        elif 'url' in rteconf:
+            sigrtedata = self.__fetch_data(rteconf['url'])
+            if sigrtedata is None:
+                self.logger.error('Failed to fetch signed RTE from %s', rteconf['url'])
+        return sigrtedata
+
+    def rte_cat(self, args):
+        """Print the content of RTE"""
+        c = self.__community_name(args)
+        cconfig = self.__load_community_config(c)
+        # paths
+        cdir = os.path.join(self.community_rte_dir, c)
+        deployed_rte_dir = os.path.join(cdir, 'rte') + '/'
+        # RTE
+        rtename = args.rtename
+        # check already deployed (and print if it is)
+        rte_path = deployed_rte_dir + rtename
+        if os.path.exists(rte_path):
+            self.logger.info('RTE %s already deployed, showing the local content.', rtename)
+            with open(rte_path, 'r') as rte_f:
+                print(rte_f.read())
+            return
+        # otherwise fetch from registry
+        sigrtedata = self.__fetch_signed_rte(c, rtename)
+        self.logger.debug('Decrypting downloaded signed RTE %s', rtename)
+        if sigrtedata is not None:
+            # decrypt and show
+            gpgdir = os.path.join(cdir, '.gpg')
+            gpgcmd = ['gpg', '--homedir', gpgdir, '--output', '-', '--decrypt']
+            gpgproc = subprocess.Popen(gpgcmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (gpg_stdout, gpg_stderr) = gpgproc.communicate(input=sigrtedata)
+            if gpgproc.returncode == 0:
+                self.logger.info('Showing the content of RTE %s fetched from the registry.', rtename)
+                print(gpg_stdout)
+            else:
+                self.logger.error('Failed to decrypt signed RTE %s. GPG errors are: %s', rtename, gpg_stderr)
+                sys.exit(1)
+
     def rte_deploy(self, args):
         """Deploy community-defined RTE (from registry of URL)"""
         c = self.__community_name(args)
@@ -754,36 +804,18 @@ class CommunityRTEControl(ComponentControl):
         if args.url:
             self.logger.info('Deploying community %s RTE %s from manually specified location %s', c, rtename, args.url)
             if args.insecure:
-                if not args.accept_risks:
-                    self.logger.error('RTEs without community signature can be subject to various attacks. '
-                                      'You are doing this on your own risk! Add "--accept-risks" option if you really '
-                                      'want to proceed.')
-                    sys.exit(1)
-                else:
-                    self.logger.info('Going to deploy unsigned RTE script from %s', args.url)
-                    rte_content = self.__fetch_data(args.url)
-                    if rte_content is None:
-                        self.logger.error('Failed to fetch unsigned RTE from %s', args.url)
-                    sigrtedata = None
+                self.logger.info('Going to deploy unsigned RTE script from %s', args.url)
+                rte_content = self.__fetch_data(args.url)
+                if rte_content is None:
+                    self.logger.error('Failed to fetch unsigned RTE from %s', args.url)
+                sigrtedata = None
             else:
                 sigrtedata = self.__fetch_data(args.url)
                 if sigrtedata is None:
                     self.logger.error('Failed to fetch signed RTE from %s', args.url)
         else:
-            self.logger.debug('Checking RTE %s in the community %s software registry', rtename, c)
-            registry_rtes = self.__fetch_community_rte_index(cconfig)
-            if rtename not in registry_rtes:
-                self.logger.error('RTE %s is not exists in community %s registry', rtename, c)
-                sys.exit(1)
-            rteconf = registry_rtes[rtename]
-            # rte in the registry can be defined by URL or base64-encoded data
-            if 'data' in rteconf:
-                sigrtedata = base64.b64decode(rteconf['data'])
-            elif 'url' in rteconf:
-                sigrtedata = self.__fetch_data(rteconf['url'])
-                if sigrtedata is None:
-                    self.logger.error('Failed to fetch signed RTE from %s', args.url)
-            else:
+            sigrtedata = self.__fetch_signed_rte(c, rtename)
+            if sigrtedata is None:
                 self.logger.error('There is no signed RTE URL or data defined in the registry. Deploy failed.')
                 sys.exit(1)
 
@@ -999,6 +1031,8 @@ class CommunityRTEControl(ComponentControl):
             self.rte_list(args)
         elif args.communityaction == 'rte-deploy':
             self.rte_deploy(args)
+        elif args.communityaction == 'rte-cat':
+            self.rte_cat(args)
         elif args.communityaction == 'rte-remove':
             self.rte_remove(args)
         else:
@@ -1065,21 +1099,24 @@ class CommunityRTEControl(ComponentControl):
         crtelist.add_argument('community', help='Trusted community name').completer = complete_community
         crtelist_g = crtelist.add_mutually_exclusive_group(required=False)
         crtelist_g.add_argument('-l', '--long', help='Print more information', action='store_true')
-        crtelist_g.add_argument('-a', '--available', help='List RTEs available in the software registry', action='store_true')
+        crtelist_g.add_argument('-a', '--available', help='List RTEs available in the software registry',
+                                action='store_true')
         crtelist_g.add_argument('-d', '--deployed', help='List deployed community RTEs', action='store_true')
+
+        crtecat = crte_actions.add_parser('rte-cat', help='Print the content of RTEs provided by community')
+        crtecat.add_argument('community', help='Trusted community name').completer = complete_community
+        crtecat.add_argument('rtename', help='RunTimeEnvironment name').completer = complete_community_rtes
 
         cdeploy = crte_actions.add_parser('rte-deploy', help='Deploy RTE provided by community')
         cdeploy.add_argument('community', help='Trusted community name').completer = complete_community
         cdeploy.add_argument('rtename', help='RunTimeEnvironment name').completer = complete_community_rtes
         cdeploy.add_argument('-u', '--url', help='Explicitly define URL to signed RTE file')
         cdeploy.add_argument('-f', '--force', help='Force RTE files redeployment if already exists',
-                          action='store_true')
-        cdeploy.add_argument('--insecure', help='Do not validate community signature when for URL-based deployment',
                              action='store_true')
-        cdeploy.add_argument('--accept-risks', help=argparse.SUPPRESS, action='store_true')
+        cdeploy.add_argument('--insecure', help='Do not validate community signature for URL-based deployment',
+                             action='store_true')
 
         cremove = crte_actions.add_parser('rte-remove', help='Remove deployed community RTE')
         cremove.add_argument('community', help='Trusted community name').completer = complete_community
         cremove.add_argument('rtename', help='RunTimeEnvironment name').completer = complete_community_deployed_rtes
-        cremove.add_argument('-f', '--force', help='Disable and undefault RTE automatically',
-                          action='store_true')
+        cremove.add_argument('-f', '--force', help='Disable and undefault RTE automatically', action='store_true')
