@@ -293,7 +293,7 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  backend scripts written in Python. Currently only the SLURM LRMS is
  supported. It is released as a technology preview.
 
-Package: nordugrid-arc-arex-community-rtes
+Package: nordugrid-arc-community-rtes
 Architecture: any
 Depends:
  ${python:Depends},

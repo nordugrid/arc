@@ -567,8 +567,8 @@ backend scripts written in Python. Currently only the SLURM LRMS is
 supported. It is released as a technology preview.
 %endif
 
-%package arex-community-rtes
-Summary:	ARC Resource-coupled EXecution service - Community RTEs support
+%package community-rtes
+Summary:	Community-defined RTEs support
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 Requires:   %{name}-arcctl = %{version}-%{release}
@@ -579,7 +579,7 @@ Requires:	python3-dns
 Requires:	python-dns
 %endif
 
-%description arex-community-rtes
+%description community-rtes
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
@@ -1544,7 +1544,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/job_script.stubs
 %endif
 
-%files arex-community-rtes
+%files community-rtes
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/community_rtes.sh
 %if %{py3default}
