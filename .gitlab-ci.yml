@@ -516,7 +516,7 @@ deploy_staging_el8:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
   dependencies:
-    - packages_el7
+    - packages_el8
   tags:
     - 158.39.75.5 
   only:
