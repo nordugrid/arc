@@ -1,95 +1,7 @@
 #test timestamp
 stages:
-  - packages
   - deploy_and_test
 
-packages_el8:
-  stage: packages
-  image: maikenp/arc-build-centos8
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-    - rm -rf $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/*debuginfo*rpm
-  tags:
-    - build
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-
-
-packages_deb9:
-  stage: packages
-  image: maikenp/arc-build-debian9
-  script:
-    - echo "6.0.0" > VERSION
-    - apt-get update -y
-    - ./autogen.sh
-    - ./configure
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
-    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
-    - cd nordugrid-arc-${VERSION}
-    - dpkg-buildpackage -S -us -uc -d
-    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
-    - dpkg-buildpackage -b -us -uc
-    - echo Delete dbgsym debs to save space
-    - rm -f ../*-dbgsym_*.deb
-  tags:
-    - build
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/*.orig.tar.gz
-    - $CI_PROJECT_DIR/*.debian.tar.*
-    - $CI_PROJECT_DIR/*.dsc
-    - $CI_PROJECT_DIR/*.deb
-  allow_failure: true
-
-
-packages_deb10:
-  stage: packages
-  image: maikenp/arc-build-debian10
-  script:
-    - echo "6.0.0" > VERSION
-    - apt-get update -y
-    - ./autogen.sh
-    - ./configure
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
-    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
-    - cd nordugrid-arc-${VERSION}
-    - dpkg-buildpackage -S -us -uc -d
-    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
-    - dpkg-buildpackage -b -us -uc
-    - echo Delete dbgsym debs to save space
-    - rm -f ../*-dbgsym_*.deb
-  tags:
-    - build
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/*.orig.tar.gz
-    - $CI_PROJECT_DIR/*.debian.tar.*
-    - $CI_PROJECT_DIR/*.dsc
-    - $CI_PROJECT_DIR/*.deb
-  allow_failure: true
 
 deploy_staging_el8:
   stage: deploy_and_test
@@ -123,8 +35,6 @@ deploy_staging_el8:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_el8
   tags:
     - 158.39.75.5 
   allow_failure: true
@@ -160,8 +70,6 @@ deploy_staging_deb9:
     paths:
      - $CI_PROJECT_DIR/arc-logs/
      #- $CI_PROJECT_DIR/arc-tests/
-  dependencies:
-    - packages_deb9
   tags:
     - 158.37.63.83
     - deploy
@@ -197,8 +105,6 @@ deploy_staging_deb10:
     when: always
     paths:
      - $CI_PROJECT_DIR/arc-logs/
-  dependencies:
-    - packages_deb10
   tags:
     - 158.37.63.83
     - deploy
