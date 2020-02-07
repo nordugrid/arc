@@ -1425,8 +1425,8 @@ def software_object_from_json(jconf):
             if gpgproc.returncode != 0 or not os.path.exists(keyout):
                 logger.error('Failed to export public key from GPG database')
                 sys.exit(1)
-            with open(keyout, 'r') as key_f:
-                jconf['pubkey'] = base64.b64encode(key_f.read())
+            with open(keyout, 'rb') as key_f:
+                jconf['pubkey'] = base64.b64encode(key_f.read()).decode()
             os.unlink(keyout)
 
         # add child object with key in the DNS
@@ -1544,14 +1544,14 @@ def software_object_from_json(jconf):
                 })
             else:
                 # or embedd RTE into the DNS
-                with open(srtepath, 'r') as srte_f:
+                with open(srtepath, 'rb') as srte_f:
                     if 'contains' not in rteobj:
                         rteobj['contains'] = []
                     rteobj['contains'].append({
                         'reftype': 'gpg.signed.base64',
                         'rr_owner': '_data',
                         'endpoints': [{
-                            'rr_data': base64.b64encode(srte_f.read())
+                            'rr_data': base64.b64encode(srte_f.read()).decode()
                         }]
                     })
         # add rte object to software object
