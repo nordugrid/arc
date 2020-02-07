@@ -290,13 +290,13 @@ class CommunityRTEControl(ComponentControl):
                 while True:
                     chunk = url_data.read(chunk_size)
                     if not chunk:
-                        self.logger.debug('Downloaded 100%')
+                        self.logger.info('Downloaded 100%')
                         break
                     downloaded += chunk_size
                     if data_len > 0:
                         ratio = (downloaded * 100.0)/data_len
                         if ratio - reported_ratio > 10:
-                            self.logger.debug('Downloaded %.2f%%', ratio)
+                            self.logger.info('Downloaded %.2f%%', ratio)
                             reported_ratio = ratio
                     dest_f.write(chunk)
         except URLError as e:
@@ -889,7 +889,7 @@ class CommunityRTEControl(ComponentControl):
                             ditem['checksum_type'] = dinfo[9:].split(':', 2)[0]
                             ditem['checksum_value'] = dinfo[9:].split(':', 2)[1].strip()
                         elif dinfo.startswith('filename:'):
-                            ditem['filename'] = dinfo[9:]
+                            ditem['filename'] = dinfo[9:].strip()
                     if 'url' not in ditem:
                         self.logger.error('Failed to find URL in the download line: %s. Skipping!', line)
                         continue
