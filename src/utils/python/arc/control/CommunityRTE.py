@@ -290,13 +290,13 @@ class CommunityRTEControl(ComponentControl):
                 while True:
                     chunk = url_data.read(chunk_size)
                     if not chunk:
-                        self.logger.debug('Downloaded 100%')
+                        self.logger.info('Downloaded 100%')
                         break
                     downloaded += chunk_size
                     if data_len > 0:
                         ratio = (downloaded * 100.0)/data_len
                         if ratio - reported_ratio > 10:
-                            self.logger.debug('Downloaded %.2f%%', ratio)
+                            self.logger.info('Downloaded %.2f%%', ratio)
                             reported_ratio = ratio
                     dest_f.write(chunk)
         except URLError as e:
@@ -862,7 +862,7 @@ class CommunityRTEControl(ComponentControl):
                 self.logger.info('RTE script deployed to %s', rte_path)
             else:
                 self.logger.error('Failed to deploy RTE %s.', rtename)
-                self.rtefile_remove(args)
+                self.rte_remove(args)
                 sys.exit(1)
         elif rte_content is not None:
             try:
@@ -889,7 +889,7 @@ class CommunityRTEControl(ComponentControl):
                             ditem['checksum_type'] = dinfo[9:].split(':', 2)[0]
                             ditem['checksum_value'] = dinfo[9:].split(':', 2)[1].strip()
                         elif dinfo.startswith('filename:'):
-                            ditem['filename'] = dinfo[9:]
+                            ditem['filename'] = dinfo[9:].strip()
                     if 'url' not in ditem:
                         self.logger.error('Failed to find URL in the download line: %s. Skipping!', line)
                         continue
@@ -898,7 +898,7 @@ class CommunityRTEControl(ComponentControl):
                     if 'checksum_type' not in ditem:
                         self.logger.warning('No checksum defined for URL %s. Software download will be insecure!')
                         if not self.__ask_yes_no('Are you want to continue?'):
-                            self.rtefile_remove(args)
+                            self.rte_remove(args)
                             sys.exit(1)
                     downloads.append(ditem)
         # download into software dir
@@ -906,7 +906,7 @@ class CommunityRTEControl(ComponentControl):
         if not swdir:
             self.logger.error('No software installation directory defined for community %s. '
                               'Please use "arcctl rte community config-set" first.', c)
-            self.rtefile_remove(args)
+            self.rte_remove(args)
             sys.exit(1)
         rte_swdir = swdir.rstrip('/') + '/' + rtename
         cconfig['userconf']['SOFTWARE_DIR']['value'] = rte_swdir
@@ -918,7 +918,7 @@ class CommunityRTEControl(ComponentControl):
             self.logger.info('Downloading software (file %s) from %s', d['filename'], d['url'])
             if not self.__download_file(d['url'], swfile):
                 self.logger.error('Download from %s failed.', d['url'])
-                self.rtefile_remove(args)
+                self.rte_remove(args)
                 sys.exit(1)
             else:
                 # calculate checksum
@@ -937,12 +937,12 @@ class CommunityRTEControl(ComponentControl):
                         else:
                             self.logger.error('Checksum verification failed for file %s (expected %s, calculated %s)',
                                               d['filename'], d['checksum_value'], h.hexdigest())
-                            self.rtefile_remove(args)
+                            self.rte_remove(args)
                             sys.exit(1)
                     except ValueError as e:
                         self.logger.error('Failed to verify downloaded file (%s) checksum. '
                                           'Error: %s', d['filename'], str(e))
-                        self.rtefile_remove(args)
+                        self.rte_remove(args)
                         sys.exit(1)
 
         # write community params files (community configured locations)
