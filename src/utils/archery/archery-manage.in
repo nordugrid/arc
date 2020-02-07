@@ -1426,7 +1426,7 @@ def software_object_from_json(jconf):
                 logger.error('Failed to export public key from GPG database')
                 sys.exit(1)
             with open(keyout, 'rb') as key_f:
-                jconf['pubkey'] = base64.b64encode(key_f.read())
+                jconf['pubkey'] = base64.b64encode(key_f.read()).decode()
             os.unlink(keyout)
 
         # add child object with key in the DNS
@@ -1551,7 +1551,7 @@ def software_object_from_json(jconf):
                         'reftype': 'gpg.signed.base64',
                         'rr_owner': '_data',
                         'endpoints': [{
-                            'rr_data': base64.b64encode(srte_f.read())
+                            'rr_data': base64.b64encode(srte_f.read()).decode()
                         }]
                     })
         # add rte object to software object
