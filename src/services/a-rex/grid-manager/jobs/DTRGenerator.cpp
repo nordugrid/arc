@@ -738,6 +738,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     return false;
   }
 
+  Arc::Time sessiondir_processing_start;
   if (job->get_state() == JOB_STATE_PREPARING) {
     if (!job_input_read_file(jobid, config, files)) {
       logger.msg(Arc::ERROR, "%s: Failed to read list of input files", jobid);
@@ -916,6 +917,12 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
     return false;
+  }
+  Arc::Time sessiondir_processing_end;
+  Arc::Period sessiondir_processing_time = sessiondir_processing_end - sessiondir_processing_start;
+  if ((sessiondir_processing_time.GetPeriod() >= 1) || (sessiondir_processing_time.GetPeriodNanoseconds() > 100000000)) { // >0.1s
+    logger.msg(Arc::WARNING, "%s: Session directory processing takes too long - %u.%06u seconds",
+                               jobid, sessiondir_processing_time.GetPeriod(), sessiondir_processing_time.GetPeriodNanoseconds()/1000);
   }
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
@@ -1351,6 +1358,7 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
     return;
   }
 
+  Arc::Time processing_start;
   CacheConfig cache_config(config.CacheParams());
   cache_config.substitute(config, job->get_user());
   // there is no uid switch during Release so uid/gid is not so important
@@ -1358,6 +1366,13 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
                        cache_config.getDrainingCacheDirs(),
                        job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();
+  Arc::Time processing_end;
+  Arc::Period processing_time = processing_end - processing_start;
+  if ((processing_time.GetPeriod() >= 1) || (processing_time.GetPeriodNanoseconds() > 100000000)) { // >0.1s
+    logger.msg(Arc::WARNING, "%s: Cache cleaning takes too long - %u.%06u seconds",
+                               job->get_id(), processing_time.GetPeriod(), processing_time.GetPeriodNanoseconds()/1000);
+  }
+
 }
 
 } // namespace ARex
