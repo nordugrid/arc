@@ -1065,6 +1065,7 @@ class CommunityRTEControl(ComponentControl):
 
         crte_actions = crte_ctl.add_subparsers(title='Community RTE Actions', dest='communityaction',
                                                metavar='ACTION', help='DESCRIPTION')
+        crte_actions.required = True
 
         cadd = crte_actions.add_parser('add', help='Add new trusted community to ARC CE')
         cadd.add_argument('-f', '--fingerprint', help='Fingerprint of the community key', action='store')

@@ -501,6 +501,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
 
         deploy_actions = deploy_ctl.add_subparsers(title='Deployment Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        deploy_actions.required = True
 
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',

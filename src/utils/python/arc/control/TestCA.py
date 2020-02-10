@@ -298,6 +298,7 @@ class TestCAControl(ComponentControl):
 
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        testca_actions.required = True
 
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)

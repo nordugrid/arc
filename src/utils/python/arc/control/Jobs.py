@@ -476,6 +476,8 @@ class JobsControl(ComponentControl):
 
         jobs_actions = jobs_ctl.add_subparsers(title='Jobs Control Actions', dest='action',
                                                metavar='ACTION', help='DESCRIPTION')
+        jobs_actions.required = True
+
         jobs_list = jobs_actions.add_parser('list', help='List available A-REX jobs')
         jobs_list.add_argument('-l', '--long', help='Detailed listing of jobs', action='store_true')
         jobs_list.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)

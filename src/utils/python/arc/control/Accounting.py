@@ -461,6 +461,7 @@ class AccountingControl(ComponentControl):
 
         accounting_actions = job_accounting_ctl.add_subparsers(title='Job Accounting Actions', dest='jobaction',
                                                                metavar='ACTION', help='DESCRIPTION')
+        accounting_actions.required = True
 
         accounting_job = accounting_actions.add_parser('info', help='Show job accounting data')
         accounting_job.add_argument('-o', '--output', default='all',
@@ -482,6 +483,7 @@ class AccountingControl(ComponentControl):
 
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
+        accounting_actions.required = True
 
         # add legacy accounting control as a sub-parser
         LegacyAccountingControl.register_parser(accounting_actions)
