@@ -84,13 +84,13 @@ class AccountingControl(ComponentControl):
                     s_ids += s['GLUE2ServiceID']
 
             self.logger.debug('Running LDAP query over %s to find service endpoint URLs', args.top_bdii)
-            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y), s_ids, '')
+            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y.decode()), s_ids, '')
             endpoints = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2EndpointURL'], timeout=30,
                                             filterstr='(&(objectClass=Glue2Endpoint)(|{0}))'.format(s_filter))
             for (_, e) in endpoints:
                 if 'GLUE2EndpointURL' in e:
                     for url in e['GLUE2EndpointURL']:
-                        print(url.replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
+                        print(url.decode().replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
             ldap_conn.unbind()
         except ldap.LDAPError as err:
             self.logger.error('Failed to query Top-BDII %s. Error: %s.', args.top_bdii, err.message['desc'])
