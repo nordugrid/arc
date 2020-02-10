@@ -94,7 +94,8 @@ def get_parsed_arcconf(conf_f):
                            'Using /etc/arc.conf that exists.', def_conf_f)
             runconf_load = True
         else:
-            logger.error('Cannot find ARC configuration file in the default location.')
+            if arcctl_ce_mode():
+                logger.error('Cannot find ARC configuration file in the default location.')
             return None
 
     if runconf_load:
