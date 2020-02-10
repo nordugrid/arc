@@ -2446,7 +2446,7 @@
 ## will cause errors.
 ## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
-## Shares(currently queues). You can also add additional advertisedvos to queues.
+## Shares(currently queues). You can override the advertisedvos per queue.
 ## The information is also published in the NorduGrid schema.
 ## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
 ##   access control, it is just for information publishing!
@@ -2787,12 +2787,11 @@
 ## they will apply for the Shares that corresponds to the queue.
 ## The information is also published in the NorduGrid schema.
 ## NOTE that if you have also configured "advertisedvo" in the [infosys/cluster] block,
-##   the result advertised VOs per queue is the union set of what is contained in the
-##   [infosys/cluster] and in this [queue:name] block!
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   the result advertised VOs per queue will override whatever is defined in [infosys/cluster] block!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any
 ##   access control, it is just for information publishing!
 ## multivalued
-## default: undefined
+## default: $VAR{[infosys/cluster]advertisedvo}
 #advertisedvo=atlas
 #advertisedvo=community.nordugrid.org
 ## CHANGE: renamed it as advertisedvo 
