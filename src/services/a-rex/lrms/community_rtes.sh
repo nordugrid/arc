@@ -24,5 +24,5 @@ community_software_prepare () {
 community_software_environment () {
   # skip if this is not a community-defined RTE
   [ -e "${rte_params_path}.community" ] || return
-  echo "RUNTIME_JOB_SWDIR=\"${joboption_directory}/${COMMUNITY_RTES_SW_SUBDIR}\""
+  echo "RUNTIME_JOB_SWDIR=\"\${RUNTIME_JOB_DIR}/${COMMUNITY_RTES_SW_SUBDIR}\""
 }
