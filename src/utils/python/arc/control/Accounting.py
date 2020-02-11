@@ -84,13 +84,13 @@ class AccountingControl(ComponentControl):
                     s_ids += s['GLUE2ServiceID']
 
             self.logger.debug('Running LDAP query over %s to find service endpoint URLs', args.top_bdii)
-            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y), s_ids, '')
+            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y.decode()), s_ids, '')
             endpoints = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2EndpointURL'], timeout=30,
                                             filterstr='(&(objectClass=Glue2Endpoint)(|{0}))'.format(s_filter))
             for (_, e) in endpoints:
                 if 'GLUE2EndpointURL' in e:
                     for url in e['GLUE2EndpointURL']:
-                        print(url.replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
+                        print(url.decode().replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
             ldap_conn.unbind()
         except ldap.LDAPError as err:
             self.logger.error('Failed to query Top-BDII %s. Error: %s.', args.top_bdii, err.message['desc'])
@@ -355,13 +355,6 @@ class AccountingControl(ComponentControl):
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
-        # benchmark is optional
-        if args.benchmark is not None:
-            bsplit = args.benchmark.split(':')
-            if len(bsplit) != 2:
-                self.logger.error('Fallback benchmark value should follow "type:value" format')
-            targetconf['benchmark_type'] = bsplit[0]
-            targetconf['benchmark_value'] = bsplit[1]
         # vofilter is optional
         if args.vofilter is not None:
             targetconf['vofilter'] = args.vofilter
@@ -468,6 +461,7 @@ class AccountingControl(ComponentControl):
 
         accounting_actions = job_accounting_ctl.add_subparsers(title='Job Accounting Actions', dest='jobaction',
                                                                metavar='ACTION', help='DESCRIPTION')
+        accounting_actions.required = True
 
         accounting_job = accounting_actions.add_parser('info', help='Show job accounting data')
         accounting_job.add_argument('-o', '--output', default='all',
@@ -489,6 +483,7 @@ class AccountingControl(ComponentControl):
 
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
+        accounting_actions.required = True
 
         # add legacy accounting control as a sub-parser
         LegacyAccountingControl.register_parser(accounting_actions)
@@ -562,8 +557,6 @@ class AccountingControl(ComponentControl):
                                   help='Define APEL messages (default is summaries)',
                                   choices=['urs', 'summaries', 'both'])
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
-        apel_options.add_argument('--benchmark', required=False,
-                                  help='Define fallback benchmark value ("type:value")')
 
         sgas_options = accounting_republish.add_argument_group(title='SGAS',
                                   description='Options to be used when target is specified using --sgas-url')

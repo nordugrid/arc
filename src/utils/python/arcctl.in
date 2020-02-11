@@ -28,6 +28,8 @@ if os.path.isdir(arc_prefix_pythonpath):
 # Import ARC control and config modules
 from arc.control import ControlCommon
 from arc.control import *
+
+# server side arc.conf parsing
 from arc.utils import config
 
 
@@ -41,15 +43,17 @@ class ArgumentParserHelpOnError(argparse.ArgumentParser):
 
 
 def get_parser():
-    parser = ArgumentParserHelpOnError(description='NorduGrid ARC Computing Element Control Tool')
-    parser.add_argument('-c', '--config', action='store',
-                        help='config file location (default is {0})'.format(config.arcconf_defpath()))
+    parser = ArgumentParserHelpOnError(description='NorduGrid ARC Control Tool')
+    config_help = 'config file location (default is {0})'.format(config.arcconf_defpath())
+    if not ControlCommon.arcctl_ce_mode():
+        config_help = argparse.SUPPRESS
+    parser.add_argument('-c', '--config', action='store', help=config_help)
     parser.add_argument('-d', '--debug', action='store',
                         help='verbosity level (default is %(default)s)', default='WARNING',
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 
     # Register subparsers for defined arc.control components
-    subparsers = parser.add_subparsers(title='ARC CE Components', metavar='COMPONENT', help='DESCRIPTION')
+    subparsers = parser.add_subparsers(title='ARC Components', metavar='COMPONENT', help='DESCRIPTION')
     for c in CTL_COMPONENTS:
         c.register_parser(subparsers)
     return parser
@@ -89,4 +93,3 @@ if __name__ == '__main__':
         else:
             # Remove runtime config on any failures
             ControlCommon.remove_runtime_config()
-            raise

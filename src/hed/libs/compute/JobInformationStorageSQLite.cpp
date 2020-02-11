@@ -172,9 +172,8 @@ namespace Arc {
         tearDown();
         throw SQLiteException(IString("Failed checking database (%s)", name).str(), err);
       }
+      JobInformationStorageSQLite::logger.msg(DEBUG, "Job database connection established successfully (%s)", name);
     }
-
-    JobInformationStorageSQLite::logger.msg(DEBUG, "Job database created successfully (%s)", name);
   }
 
   void JobInformationStorageSQLite::JobDB::tearDown() {
@@ -568,7 +567,6 @@ namespace Arc {
     jobs.clear();
 
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, NULL, NULL, &rejectEndpoints);
@@ -593,7 +591,6 @@ namespace Arc {
     jobs.clear();
     
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, &jobIdentifiers, &endpoints, &rejectEndpoints);

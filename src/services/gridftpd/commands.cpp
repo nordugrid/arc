@@ -331,7 +331,8 @@ static int parse_args(char* string,char* args[],int margs) {
     if(cp==NULL) break;
     for(;(*cp) == ' ';cp++) { if(n<margs) (*cp)=0; };
     if(((*cp) == '\r') || ((*cp) == '\n') || ((*cp) == 0)) { (*cp)=0; break; };
-    if(n<margs) args[n]=cp; n++;
+    if(n<margs) args[n]=cp;
+    n++;
   };
   return n;
 }

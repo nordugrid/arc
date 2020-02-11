@@ -732,7 +732,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // are handling input in clever way.
   job_input_status_add_file(job,config_.GmConfig());
   // Create status file (do it last so GM picks job up here)
-  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED,false)) {
     delete_job_id();
     failure_="Failed registering job in A-REX";
     failure_type_=ARexJobInternalError;
@@ -779,14 +779,20 @@ bool ARexJob::Resume(void) {
   if(id_.empty()) return false;
   if(job_.failedstate.length() == 0) {
     // Job can't be restarted.
+    failure_="Job has not failed";
+    failure_type_=ARexJobDescriptionLogicalError;
     return false;
   };
   if(job_.reruns <= 0) {
     // Job run out of number of allowed retries.
+    failure_="No more restarts allowed";
+    failure_type_=ARexJobDescriptionLogicalError;
     return false;
   };
   if(!job_restart_mark_put(GMJob(id_,Arc::User(uid_)),config_.GmConfig())) {
     // Failed to report restart request.
+    failure_="Failed to report internal restart request";
+    failure_type_=ARexJobInternalError;
     return false;
   };
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);

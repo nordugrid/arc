@@ -986,7 +986,7 @@ int JobPlugin::close(bool eof) {
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
-  if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED)) {
+  if(!job_state_write_file(job,config,JOB_STATE_ACCEPTED,false)) {
     logger.msg(Arc::ERROR, "Failed writing status");
     delete_job_id(); 
     error_description="Failed registering job in A-REX.";
@@ -1377,7 +1377,6 @@ bool JobPlugin::make_job_id(const std::string &id) {
 }
 
 bool JobPlugin::make_job_id(void) {
-  bool found = false;
   delete_job_id();
   for(int i=0;i<100;i++) {
     //std::string id=Arc::tostring((unsigned int)getpid())+

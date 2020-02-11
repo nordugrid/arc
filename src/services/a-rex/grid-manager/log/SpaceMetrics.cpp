@@ -64,7 +64,6 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
 
   if(!sessiondirs.empty()){
 
-    std::vector<std::string>::iterator it = sessiondirs.begin();
     for(std::vector<std::string>::iterator i = sessiondirs.begin(); i!= sessiondirs.end(); i++){
 
 
@@ -103,7 +102,6 @@ void SpaceMetrics::SetGmetricPath(const char* path) {
   std::vector <std::string> cachedirs = config.CacheParams().getCacheDirs();
   if(!cachedirs.empty()){
 
-    std::vector<std::string>::iterator it = cachedirs.begin();
     for(std::vector<std::string>::iterator i = cachedirs.begin(); i!= cachedirs.end(); i++){
 
 
@@ -216,8 +214,8 @@ bool SpaceMetrics::RunMetrics(const std::string name, const std::string& value, 
 }
 
 void SpaceMetrics::SyncAsync(void* arg) {
-  SpaceMetrics& it = *reinterpret_cast<SpaceMetrics*>(arg);
-  if(&it) {
+  if(arg) {
+    SpaceMetrics& it = *reinterpret_cast<SpaceMetrics*>(arg);
     Glib::RecMutex::Lock lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.

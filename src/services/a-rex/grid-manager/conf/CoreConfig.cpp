@@ -89,7 +89,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   std::string jobreport_publisher;
   bool helper_log_is_set = false;
   bool job_log_log_is_set = false;
-  bool ws_enabled = false;
   Arc::ConfigIni cf(cfile);
   cf.SetSectionIndicator(".");
   static const int common_secnum = 0;
@@ -409,7 +408,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     if (cf.SectionNum() == ws_secnum) { // arex/ws
      
       if (cf.SubSection()[0] == '\0') {
-        ws_enabled = true;
         if(command == "wsurl") {
            config.arex_endpoint = rest;
         };
@@ -419,7 +417,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 
     if (cf.SectionNum() == emies_secnum) { // arex/ws/jobs
       if (cf.SubSection()[0] == '\0') {
-        ws_enabled = true;
         config.enable_emies_interface = true;
         config.enable_arc_interface =  true; // so far
         if (command == "allownew") {

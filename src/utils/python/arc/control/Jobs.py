@@ -2,7 +2,10 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
-from .Accounting import AccountingControl
+try:
+    from .Accounting import AccountingControl
+except ImportError:
+    AccountingControl = None
 import subprocess
 import sys
 import re
@@ -444,7 +447,7 @@ class JobsControl(ComponentControl):
             self.job_getattr(args)
         elif args.action == 'stats':
             self.job_stats(args)
-        elif args.action == 'accounting':
+        elif args.action == 'accounting' and AccountingControl is not None:
             AccountingControl(self.arcconfig).jobcontrol(args)
 
     def complete_owner(self, args):
@@ -473,6 +476,8 @@ class JobsControl(ComponentControl):
 
         jobs_actions = jobs_ctl.add_subparsers(title='Jobs Control Actions', dest='action',
                                                metavar='ACTION', help='DESCRIPTION')
+        jobs_actions.required = True
+
         jobs_list = jobs_actions.add_parser('list', help='List available A-REX jobs')
         jobs_list.add_argument('-l', '--long', help='Detailed listing of jobs', action='store_true')
         jobs_list.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)
@@ -522,6 +527,7 @@ class JobsControl(ComponentControl):
         jobs_stats_type.add_argument('-t', '--total', help='Show server total stats', action='store_true')
         jobs_stats_type.add_argument('-d', '--data-staging', help='Show server datastaging stats', action='store_true')
 
-        # add 'job accounting xxx' functionality as well as 'accounting job xxx'
-        jobs_accounting = jobs_actions.add_parser('accounting', help='Show job accounting data')
-        AccountingControl.register_job_parser(jobs_accounting)
+        if AccountingControl is not None:
+            # add 'job accounting xxx' functionality as well as 'accounting job xxx'
+            jobs_accounting = jobs_actions.add_parser('accounting', help='Show job accounting data')
+            AccountingControl.register_job_parser(jobs_accounting)

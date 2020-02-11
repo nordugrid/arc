@@ -804,11 +804,12 @@ namespace Arc {
       }
       if (UsedMainMemory != -1)
         out << s << JSONPairNum("usedMemory", UsedMainMemory);
-      if (WorkingAreaEraseTime != -1)
+      if (WorkingAreaEraseTime != -1) {
         if (State == JobState::DELETED)
           out << s << JSONPair("resultsDeleted", (std::string)WorkingAreaEraseTime);
         else
           out << s << JSONPair("resultsMustBeRetrieved", (std::string)WorkingAreaEraseTime);
+      }
       if (ProxyExpirationTime != -1)
         out << s << JSONPair("proxyValidUntil", (std::string)ProxyExpirationTime);
       if (CreationTime != -1)
@@ -948,7 +949,7 @@ namespace Arc {
 
     DataHandle handle(dir, uc);
     if (!handle) {
-      logger.msg(INFO, "Unable to list files at %s", dir.str());
+      logger.msg(INFO, "Unable to initialize handler for %s", dir.str());
       return false;
     }
     if(!handle->List(outputfiles, (Arc::DataPoint::DataPointInfoType)

@@ -723,11 +723,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!proxy_init_) InitProxyCertInfo();
   }
 
-  Credential::Credential(const int keybits) : cert_(NULL),
-    pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+  Credential::Credential(const int keybits) : verification_valid(false),
+    cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
-    extensions_(NULL), verification_valid(false) {
+    extensions_(NULL) {
 
     OpenSSLInit();
 
@@ -2064,7 +2064,7 @@ err:
 
     //Use the serial number in the certificate as the serial number in the proxy certificate
     if(ASN1_INTEGER* serial_number = X509_get_serialNumber(issuer)) {
-      if(serial_number = ASN1_INTEGER_dup(X509_get_serialNumber(issuer))) {
+      if((serial_number = ASN1_INTEGER_dup(serial_number))) {
         if(!X509_set_serialNumber(*tosign, serial_number)) {
           CredentialLogger.msg(ERROR, "Can not set serial number for proxy certificate");
           ASN1_INTEGER_free(serial_number);

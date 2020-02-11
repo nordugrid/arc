@@ -45,9 +45,6 @@ void JobPerfRecord::Start(const std::string& id) {
   start_recorded = false;
   if(&perf_log == NULL) return;
   if(!perf_log.GetEnabled()) return;
-
-  struct timespec ts;
-
 #ifdef _MACOSX // OS X does not have clock_gettime, use clock_get_time
   clock_serv_t cclock;
   mach_timespec_t mts;

@@ -57,8 +57,7 @@
 %global with_python3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} == 7 || %{?suse_version:1}%{!?suse_version:0}
-# Dependency missing in EPEL 8
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
@@ -117,6 +116,9 @@
 %endif
 
 %global with_ldap_service 1
+
+# bash-completion
+%global _bashcompdir %(pkg-config --variable=completionsdir bash-completion 2>/dev/null || echo %{_sysconfdir}/bash_completion.d)
 
 #
 # Macros for scripts
@@ -304,7 +306,9 @@ BuildRequires:	ldns-devel >= 1.6.8
 %endif
 %if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
 BuildRequires:	python-argparse
-Requires:	python-argparse
+%endif
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+BuildRequires:	pkgconfig(bash-completion)
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:	hostname
@@ -336,8 +340,8 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This client package contains all the CLI tools that are needed to
-operate with x509 proxies, submit and manage jobs and handle
-datatransfers.
+operate with x509 proxies, submit and manage jobs and handle data
+transfers.
 
 %package hed
 Summary:	ARC Hosting Environment Daemon
@@ -360,7 +364,7 @@ for ARC services.
 Summary:	ARC gridftp server
 Group:		System Environment/Daemons
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-globus = %{version}-%{release}
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -460,26 +464,43 @@ This package contains the PHP web application that is used to set up a
 web-based monitor which pulls information from the LDAP information
 system and visualizes it.
 
+%package arcctl
+Summary:	ARC Control Tool
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+BuildArch:	noarch
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+Requires:	python-argparse
+%endif
+
+%description arcctl
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC Contol Tool with basic set of control
+modules suitable for both server and client side.
+
 %package arex
 Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Requires:	%{name}-arcctl = %{version}-%{release}
+# remove older SDK package on update to 6.4
 %if %{py3default}
-Requires:	python3-%{name} = %{version}-%{release}
+Obsoletes:	python3-%{name} < 6.4.0
 %else
-Requires:	python2-%{name} = %{version}-%{release}
+Obsoletes:	python2-%{name} < 6.4.0
 %endif
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
 %if %{py3default}
 Requires:	python3-ldap
 Requires:	python3-isodate
-%if %{?rhel}%{!?rhel:0} <= 7
 Requires:	python3-dirq
 Requires:	python3-stomppy
-%endif
 %else
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
@@ -517,7 +538,7 @@ Element of the ARC middleware. AREX offers a full-featured middle
 layer to manage computational tasks including interfacing to local
 batch systems, taking care of complex environments such as data
 staging, data caching, software environment provisioning, information
-collection and explosure, accounting information gathering and
+collection and exposure, accounting information gathering and
 publishing.
 
 %if %{with_pythonlrms}
@@ -525,6 +546,11 @@ publishing.
 Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
+%if %{py3default}
+Requires:	python3-%{name} = %{version}-%{release}
+%else
+Requires:	python2-%{name} = %{version}-%{release}
+%endif
 Requires:	perl(Inline)
 Requires:	perl(Inline::Python)
 
@@ -537,6 +563,28 @@ The Python LRMS backends are a new implementation of the AREX LRMS
 backend scripts written in Python. Currently only the SLURM LRMS is
 supported. It is released as a technology preview.
 %endif
+
+%package community-rtes
+Summary:	Community-defined RTEs support
+Group:		System Environment/Libraries
+Requires:	%{name}-arex = %{version}-%{release}
+Requires:   %{name}-arcctl = %{version}-%{release}
+Requires:   gnupg2
+%if %{py3default}
+Requires:	python3-dns
+%else
+Requires:	python-dns
+%endif
+
+%description community-rtes
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+Community RTEs is the framework that allows to deploy software packages
+(tarballs, containers, etc) provided by trusted communities to ARC CE
+using simple arcctl commands.
+It is released as a technology preview.
 
 %package plugins-needed
 Summary:	ARC base plugins
@@ -552,22 +600,84 @@ ARC base plugins. This includes the Message Chain Components (MCCs)
 and Data Manager Components (DMCs).
 
 %package plugins-globus
-Summary:	ARC Globus plugins
+Summary:	ARC Globus plugins (compat)
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
-Requires:	globus-gssapi-gsi >= 12.2
-%else
-Requires:	globus-gssapi-gsi < 12.2
-%endif
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
+Requires:	%{name}-plugins-gridftpjob = %{version}-%{release}
+Requires:	%{name}-plugins-lcas-lcmaps = %{version}-%{release}
 
 %description plugins-globus
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-ARC Globus plugins. This includes the Globus dependent Data Manager
-Components (DMCs).
+ARC Globus plugins. This compat metapackage brings all Globus dependent
+plugins at once, including: Data Manager Components (DMCs), Client plugin
+and LCAS/LCMAPS tools.
+
+This package is meant to allow smooth transition and will be removed from
+the upcoming releases.
+
+%package plugins-globus-common
+Summary:	ARC Globus plugins common libraries
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description plugins-globus-common
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC Globus plugins common libraries package includes the bundle of
+necessary Globus libraries needed for all other globus-dependent ARC
+components.
+
+%package plugins-gridftp
+Summary:	ARC Globus dependent DMCs
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
+
+%description plugins-gridftp
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC Globus GridFTP plugins. These allow access to data through the
+gridftp protocol.
+
+%package plugins-lcas-lcmaps
+Summary:	ARC LCAS/LCMAPS plugins
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 5
+Requires:	globus-gssapi-gsi >= 12.2
+%else
+Requires:	globus-gssapi-gsi < 12.2
+%endif
+
+%description plugins-lcas-lcmaps
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC LCAS/LCMAPS tools allow configuring ARC CE to use LCAS/LCMAPS
+services for authorization and mapping.
+
+%package plugins-gridftpjob
+Summary:	ARC GRIDFTPJOB client plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-globus-common = %{version}-%{release}
+Requires:	%{name}-plugins-gridftp = %{version}-%{release}
+
+%description plugins-gridftpjob
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC GRIDFTPJOB plugin allows submitting jobs via the gridftpd interface.
 
 %if %{with_xrootd}
 %package plugins-xrootd
@@ -830,8 +940,8 @@ This package contains the archery-manage utility for administration of
 an ARCHERY DNS-embedded service endpoint registry.
 
 %package wn
-Summary:    ARC optional worker nodes components
-Group:      Applications/Internet
+Summary:	ARC optional worker nodes components
+Group:		Applications/Internet
 
 %description wn
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -960,9 +1070,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun -p /sbin/ldconfig
 
-%post plugins-globus -p /sbin/ldconfig
+%post plugins-globus-common -p /sbin/ldconfig
 
-%postun plugins-globus -p /sbin/ldconfig
+%postun plugins-globus-common -p /sbin/ldconfig
 
 %post hed
 %enable_service arched
@@ -1114,6 +1224,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
 %if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/__init__.py
 %{python3_sitearch}/%{pkgdir}/paths.py
 %{python3_sitearch}/%{pkgdir}/paths_dist.py
@@ -1121,15 +1232,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
-%{python3_sitearch}/%{pkgdir}/utils
-%{python3_sitearch}/%{pkgdir}/control
 %else
 %dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/%{pkgdir}/utils
 %{python2_sitearch}/%{pkgdir}/__init__.py*
 %{python2_sitearch}/%{pkgdir}/paths.py*
 %{python2_sitearch}/%{pkgdir}/paths_dist.py*
-%{python2_sitearch}/%{pkgdir}/utils
-%{python2_sitearch}/%{pkgdir}/control
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
@@ -1138,6 +1246,37 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
+
+%files arcctl
+%{_sbindir}/arcctl
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/__init__.py
+%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
+%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
+%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
+%{python3_sitearch}/%{pkgdir}/control/OSService.py
+%{python3_sitearch}/%{pkgdir}/control/TestCA.py
+%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
+%else
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
+%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
+%endif
+%doc %{_mandir}/man1/arcctl.1*
 
 %files client
 %defattr(-,root,root,-)
@@ -1182,6 +1321,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcsub.1*
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
+%dir %{_bashcompdir}
+%{_bashcompdir}/arc-client-tools
 
 %files hed
 %defattr(-,root,root,-)
@@ -1314,7 +1455,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
-%doc %{_mandir}/man1/arcctl.1*
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
@@ -1333,8 +1473,47 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
+%{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
+%{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
+%{python3_sitearch}/%{pkgdir}/control/Accounting.py
+%{python3_sitearch}/%{pkgdir}/control/Cache.py
+%{python3_sitearch}/%{pkgdir}/control/Config.py
+%{python3_sitearch}/%{pkgdir}/control/CECommon.py
+%{python3_sitearch}/%{pkgdir}/control/Jobs.py
+%{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
+%{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
+%{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
+%{python3_sitearch}/%{pkgdir}/control/Services.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CECommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
+%{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*
+%{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
+%{python2_sitearch}/%{pkgdir}/control/Accounting.py*
+%{python2_sitearch}/%{pkgdir}/control/Cache.py*
+%{python2_sitearch}/%{pkgdir}/control/Config.py*
+%{python2_sitearch}/%{pkgdir}/control/CECommon.py*
+%{python2_sitearch}/%{pkgdir}/control/Jobs.py*
+%{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
+%{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
+%{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
+%{python2_sitearch}/%{pkgdir}/control/Services.py*
 %endif
 %{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
@@ -1347,11 +1526,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_datadir}/%{pkgdir}/rte/ENV/CONDOR
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
-%{_sbindir}/arcctl
 %config(noreplace) %{_sysconfdir}/arc.conf
 
 %if %{with_pythonlrms}
 %files arex-python-lrms
+%defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/arc-sshfs-mount
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/lrms
@@ -1360,6 +1539,19 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
+%endif
+
+%files community-rtes
+%defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/community_rtes.sh
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CommunityRTE.*
+%else
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
 %if %{with_acix}
@@ -1467,14 +1659,26 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files plugins-globus
 %defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/arc-dmcgridftp
-%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
-%{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
-%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
-%{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
+
+%files plugins-globus-common
+%defattr(-,root,root,-)
 %{_libdir}/libarcglobusutils.so.*
+
+%files plugins-gridftp
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/arc-dmcgridftp
+%{_libdir}/%{pkgdir}/libdmcgridftpdeleg.so
+%{_libdir}/%{pkgdir}/libdmcgridftpdeleg.apd
+
+%files plugins-lcas-lcmaps
+%defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/arc-lcas
 %{_libexecdir}/%{pkgdir}/arc-lcmaps
+
+%files plugins-gridftpjob
+%defattr(-,root,root,-)
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.so
+%{_libdir}/%{pkgdir}/libaccGRIDFTPJOB.apd
 
 %if %{with_xrootd}
 %files plugins-xrootd

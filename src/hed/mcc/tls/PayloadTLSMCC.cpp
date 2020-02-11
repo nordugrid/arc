@@ -318,9 +318,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 
@@ -405,9 +405,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 

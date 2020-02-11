@@ -47,7 +47,7 @@ namespace Arc {
       if (!Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName.empty()) {
         // If this endpoint has a non-preferred job interface, we skip it
         if (itCE->second->InterfaceName != Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName) {
-          logger.msg(INFO,
+          logger.msg(VERBOSE,
             "Skipping ComputingEndpoint '%s', because it has '%s' interface instead of the requested '%s'.",
             itCE->second->URLString, itCE->second->InterfaceName, Attributes->InformationOriginEndpoint.RequestedSubmissionInterfaceName);
           continue;
@@ -129,6 +129,8 @@ namespace Arc {
 
 
       }
+      logger.msg(INFO, "Computing endpoint %s (type %s) added to the list for submission brokering",
+                 itCE->second->URLString, itCE->second->InterfaceName);
     }
   }
 
@@ -377,7 +379,9 @@ namespace Arc {
   std::ostream& operator<<(std::ostream& out, const ComputingManagerAttributes& cm) {
     if (!cm.ProductName.empty()) {
                                       out << IString("Resource manager: %s", cm.ProductName);
-      if (!cm.ProductVersion.empty()) out << IString(" (%s)", cm.ProductVersion);
+      if (!cm.ProductVersion.empty()) {
+                                      out << IString(" (%s)", cm.ProductVersion);
+      }
                                       out << std::endl;
     }
     if (cm.TotalPhysicalCPUs > -1)    out << IString("Total physical CPUs: %i", cm.TotalPhysicalCPUs) << std::endl;

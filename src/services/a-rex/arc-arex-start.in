@@ -144,6 +144,40 @@ ARC_RUNTIME_CONFIG=`echo "$PID_FILE" | sed 's#\([^\./]*\)\.[^\./]*$#\1#'`
 ARC_RUNTIME_CONFIG="${ARC_RUNTIME_CONFIG}.cfg"
 
 
+mkdir_for_user() {
+    dirpath="$1"
+    username="$2"
+    groupname="$3"
+
+    if [ ! -d "$dirpath" ] ; then
+        mkdir -p "$dirpath"
+        if [ ! -z "$username" ] ; then
+            if [ ! -z "$groupname" ] ; then
+                chown "$username:$groupname" "$dirpath"
+            else
+                chown "$username" "$dirpath"
+            fi
+        fi
+    fi
+}
+
+mkfile_for_user() {
+    filepath="$1"
+    username="$2"
+    groupname="$3"
+
+    if [ ! -f "$filepath" ] ; then
+        touch "$filepath"
+    fi
+    if [ ! -z "$username" ] ; then
+        if [ ! -z "$groupname" ] ; then
+            chown "$username:$groupname" "$filepath"
+        else
+            chown "$username" "$filepath"
+        fi
+    fi
+}
+
 prepare() {
 
     CMD="$ARC_LOCATION/sbin/$prog"
@@ -244,9 +278,8 @@ prepare() {
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
         arex_path="/$arex_path"
 
-        if [ ! -d `dirname $WSLOGFILE` ]; then
-            mkdir -p `dirname $WSLOGFILE`
-        fi
+        mkdir_for_user `dirname "$WSLOGFILE"` "$USERNAME" "$GROUPNAME"
+        mkfile_for_user "$WSLOGFILE" "$USERNAME" "$GROUPNAME"
     fi
     if [ "$arex_present" = 'true' ] ; then
         if [ "$ws_present" != 'true' ] ; then
@@ -396,9 +429,9 @@ prepare() {
         *) LOGLEVEL="INFO" ;;
     esac
 
-    if [ ! -d `dirname "$LOGFILE"` ]; then
-        mkdir -p `dirname "$LOGFILE"`
-    fi
+    mkdir_for_user `dirname "$LOGFILE"` "$USERNAME" "$GROUPNAME"
+    mkfile_for_user "$LOGFILE" "$USERNAME" "$GROUPNAME"
+
     if [ "$WATCHDOG" = "yes" ] ; then
         WATCHDOG="true"
     else
@@ -611,13 +644,18 @@ prepare() {
         fi
     fi
 
+    # setup logfile in case it is not there yet
     if [ ! -z "$USERNAME" ] ; then
-        [ -f $AREX_CONFIG ] && chown $USERNAME $AREX_CONFIG
+        if [ ! -z "$GROUPNAME" ] ; then
+            [ -f $AREX_CONFIG ] && chown "$USERNAME:$GROUPNAME" "$AREX_CONFIG"
+        else
+            [ -f $AREX_CONFIG ] && chown "$USERNAME" "$AREX_CONFIG"
+        fi
     fi
 
     # prepare to collect crash information
     COREDIR=`dirname "${LOGFILE}"`/arccore
-    mkdir -p "${COREDIR}"
+    mkdir_for_user "${COREDIR}" "$USERNAME" "$GROUPNAME"
     cd "${COREDIR}"
     ulimit -c unlimited
 }

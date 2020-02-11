@@ -27,7 +27,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths_dist.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils
-debian/tmp/usr/lib/python?.?/site-packages/arc/control
 debian/tmp/usr/share/arc/arc.parser.defaults
 debian/tmp/usr/share/arc/sql-schema/legacy_jura_archivedb_schema.sql
 debian/tmp/usr/share/arc/schema

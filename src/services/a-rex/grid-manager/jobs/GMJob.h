@@ -184,6 +184,10 @@ public:
     return (job_ == job);
   }
 
+  bool operator==(GMJob* job) const {
+    return (job_ == job);
+  }
+
   operator bool() const {
     return job_ != NULL;
   }
@@ -197,6 +201,10 @@ public:
   }
 
   GMJob* operator->() const {
+    return job_;
+  }
+
+  operator GMJob*() const {
     return job_;
   }
 
@@ -226,7 +234,7 @@ class GMJobQueue {
   GMJobQueue(int priority, char const * name);
 
   //! Comparison function type definition.
-  typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);
+  typedef bool (*comparator_t)(GMJob const * first, GMJob const * second);
 
   //! Insert job at end of the queue. Subject to queue priority.
   bool Push(GMJobRef& ref);
@@ -254,6 +262,12 @@ class GMJobQueue {
 
   //! Returns true if job is in queue
   bool Exists(const GMJobRef& ref) const;
+
+  //! Returns true if there are no jobs in queue
+  bool IsEmpty() const;
+
+  //! Returns number of jobs in queue
+  int Size() const;
 
   //! Sort jobs in queue
   void Sort(comparator_t compare);

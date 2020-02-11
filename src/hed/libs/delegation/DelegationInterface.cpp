@@ -810,7 +810,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     proxy_policy.policyLanguage=obj;
   };
   if(X509_add1_ext_i2d(cert,NID_proxyCertInfo,&proxy_info,1,X509V3_ADD_REPLACE) != 1) goto err;
-  if(policy_string) ASN1_OCTET_STRING_free(policy_string); policy_string=NULL;
+  if(policy_string) { ASN1_OCTET_STRING_free(policy_string); policy_string=NULL; }
   ASN1_OBJECT_free(obj); obj=NULL;
   /*
   PROXY_CERT_INFO_EXTENSION *pci = X509_get_ext_d2i(x, NID_proxyCertInfo, NULL, NULL);

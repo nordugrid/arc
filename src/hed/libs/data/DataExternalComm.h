@@ -18,6 +18,7 @@ namespace Arc {
     static char const DataStatusTag;
     static char const FileInfoTag;
     static char const DataChunkTag;
+    static char const TransferStatusTag;
 
     template<typename T> static bool InEntry(std::istream& instream, T& entry) {
       try {
@@ -41,6 +42,14 @@ namespace Arc {
 
     static bool OutEntry(std::ostream& outstream, Arc::FileInfo const& info);
     static bool InEntry(Arc::Run& run, int timeout, Arc::FileInfo& info);
+
+    class TransferStatus {
+     public:
+      TransferStatus(unsigned long long int count) : bytes_count(count) {};
+      unsigned long long int bytes_count;
+    };
+    static bool OutEntry(std::ostream& outstream, TransferStatus const& info);
+    static bool InEntry(Arc::Run& run, int timeout, TransferStatus& info);
 
     static bool OutEntry(std::ostream& outstream, Arc::DataStatus const& status);
     static bool InEntry(Arc::Run& run, int timeout, Arc::DataStatus& status);

@@ -1,0 +1,96 @@
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.4.0     15.11.2019
+------------------------------------------------------
+
+We are happy to announce the ARC 6.4.0 release.
+This release includes the reimplementation of the ARC-CE accounting subsystem, we now also support Centos 8, and a few nice bugfixes have been made. 
+
+Highlights in this release
+--------------------------
+The ARC-CE accounting subsystem has been reimplemented. The central point of the next generation Accounting Subsystem
+is a local SQLite accounting database that stores all the A-Rex Accounting Record (AAR) information. 
+AAR defines all accounting information stored about a single ARC CE job.
+
+The new system improves scalability, eliminate bottlenecks of the legacy architecture and provides much more information 
+about the ARC CE jobs on site. The publishing and republishing of the records also have been improved, in particular APEL has received support for summary and sync messages.
+
+The switch to the new accounting is fully transparent except for one change in the benchmark values in the ARC configuration, see below.
+The documentation for the new accounting can be found here: http://www.nordugrid.org/documents/arc6/admins/details/accounting-ng.html
+
+Some important accounting details:
+* The benchmark values should now be configured per-queue [queue:name] instead of the [arex/jura/apel] block.
+  The configuration validator will prevent A-REX to start if the values are specified in the old way (pre 6.4.0).
+* The new system automatically provides archiving of all accounting records in the database, therefore the 
+  old way of record archiving via the JURA [arex/jura/archiving] is DEPRECATED.
+* APEL publishing now sends summary records instead of individual records by default.
+* The "arcctl accounting" provides a new set of commands for flexible analysis of local accounting data.
+  Old archived records can also be analyzed or republished using "arcctl accounting legacy" commands.
+
+
+
+The following Bugzilla tickets have been resolved
+---------------------------------------------------
+* 3884  Cleanup ARC SDK python bindings dependency for A-REX
+* 3883  New accounting subsystem for ARC CE that uses local database
+* 3882  Improve mass issuing of user certs in arcctl Test CA
+* 3881  Client tools failed on CentOS 8 / OpenSSL 1.1.1
+* 3880  logs created as root user when user= defined in [arex] block causes the service not to start
+* 3878  Dependencies problems on CentOS8
+* 3873  Occationally failing tests
+* 3870  Segfault in arched
+* 3860  UsedTotalWallTime and RequestedTotalWallTime
+
+If you are using the RequestedTotalWallTime in the job.jobid.xml file notice that the value has now changed with the resolution of Bugzilla ticket 3860.
+According to Glue2 schema the RequestedTotalWallTime = RequestedWallTime * Number-of-cores,
+however the number was up until now wrongly reported without multiplication of number of cores. 
+
+
+Documentation
+==============
+The ARC 6 documentation has been rewritten in a modern format and is 
+placed at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (i386 and x86_64)
+  * CentOS EL6 (i386 and x86_64) and EL7/EL8 (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases)
+
+In addition we build nightly packages for older platforms. 
+
+Future support of ARC 5-series
+===============================
+Note that now that ARC 6 is released, we will only provide security updates of ARC 5.
+In particular:
+1) No new feature development is planned or going on for ARC5 and no bug-fixing development 
+   will happen on ARC5 code base in the future except for security issues.
+2) Security fixes for ARC5 will be provided till end of June 2020.
+3) Production Sites already running ARC 5 will be able to get deployment and configuration 
+   troubleshooting help via GGUS till end June 2021. This we call "operational site support".
+4) ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+

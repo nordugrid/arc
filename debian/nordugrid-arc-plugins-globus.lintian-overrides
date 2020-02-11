@@ -1,2 +1,0 @@
-# This library is a utility library for the globus dependent plugins
-nordugrid-arc-plugins-globus: package-name-doesnt-match-sonames libarcglobusutils3

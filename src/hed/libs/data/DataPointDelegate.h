@@ -51,6 +51,9 @@ namespace Arc {
     DataStatus EndCommand(Arc::CountedPointer<Arc::Run>& run, DataStatus::DataStatusType errCode);
     DataStatus EndCommand(Arc::CountedPointer<Arc::Run>& run, DataStatus::DataStatusType errCode, char tag);
 
+  protected:
+    virtual DataStatus Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback = NULL);
+
   public:
     static char const * ReadCommand;
     static char const * WriteCommand;
@@ -61,6 +64,9 @@ namespace Arc {
     static char const * StatCommand;
     static char const * ListCommand;
     static char const * RenameCommand;
+    static char const * TransferFromCommand;
+    static char const * TransferToCommand;
+    static char const * Transfer3rdCommand;
 
     /// Create object which starts special executable which loads specified module
     DataPointDelegate(char const* module_name, const URL& url, const UserConfig& usercfg, PluginArgument* parg);
@@ -71,7 +77,6 @@ namespace Arc {
     virtual ~DataPointDelegate();
 
     static Plugin* Instance(PluginArgument *arg);
-    virtual bool SetURL(const URL& url);
     virtual DataStatus StartReading(DataBuffer& buf);
     virtual DataStatus StartWriting(DataBuffer& buf,
                                     DataCallback *space_cb = NULL);
@@ -83,6 +88,7 @@ namespace Arc {
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Rename(const URL& newurl);
+    virtual DataStatus Transfer(const URL& otherendpoint, bool source, TransferCallback callback = NULL);
     virtual bool WriteOutOfOrder();
     virtual bool ProvidesMeta() const;
     virtual const std::string DefaultCheckSum() const;

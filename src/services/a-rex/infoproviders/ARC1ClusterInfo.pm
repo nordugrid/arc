@@ -658,10 +658,11 @@ sub addprefix {
 # can have as many parameters as one wants.
 sub prioritizedvalues {
    my @values = @_;
-
+   my $numelements = scalar @values;
+   
    while (@values) {
       my $current = shift @values;
-      return $current if (((defined $current) and ($current ne '')) or ((scalar @values) == 1));
+      return $current if (((defined $current) and ($current ne '')) or ( $numelements == 1));
   }
 
    # just in case all the above fails, log and return empty string
@@ -2717,12 +2718,12 @@ sub collect($) {
         $csha->{MaxCPUTime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
         # TODO: implement in backends
         $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
-        $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
+        $csha->{MinCPUTime} = prioritizedvalues($sconfig->{mincputime},$qinfo->{mincputime});
         $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
         $csha->{MaxWallTime} =  prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
         # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
         #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
-        $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
+        $csha->{MinWallTime} =  prioritizedvalues($sconfig->{minwalltime},$qinfo->{minwalltime});
         $csha->{DefaultWallTime} = $qinfo->{defaultwallt} if defined $qinfo->{defaultwallt};
 
         my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
