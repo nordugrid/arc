@@ -616,6 +616,7 @@ class RTEControl(ComponentControl):
 
         rte_actions = rte_ctl.add_subparsers(title='RunTime Environments Actions', dest='action',
                                              metavar='ACTION', help='DESCRIPTION')
+        rte_actions.required = True
 
         rte_enable = rte_actions.add_parser('enable', help='Enable RTE to be used by A-REX')
         rte_enable.add_argument('rte', nargs='+', help='RTE name').completer = complete_rte_name

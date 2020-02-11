@@ -279,7 +279,7 @@ class CommunityRTEControl(ComponentControl):
         self.logger.debug('Fetching data from %s', url)
         req = Request(url)
         try:
-            with open(path, 'w') as dest_f:
+            with open(path, 'wb') as dest_f:
                 url_data = urlopen(req)
                 data_len = 0
                 if 'content-length' in url_data.headers:
@@ -317,7 +317,7 @@ class CommunityRTEControl(ComponentControl):
             self.logger.error('Failed to fetch community public key.')
             return None
         keyfile = os.path.join(cdir, 'pubkey.gpg')
-        with open(keyfile, 'w') as key_f:
+        with open(keyfile, 'wb') as key_f:
             key_f.write(keydata)
         return keyfile
 
@@ -330,7 +330,10 @@ class CommunityRTEControl(ComponentControl):
     def __ask_yes_no(self, question, default_yes=False):
         """Interactively ask for confirmation"""
         yes_no = ' (YES/no): ' if default_yes else ' (yes/NO): '
-        reply = str(raw_input(question + yes_no)).lower().strip()
+        try:
+            reply = str(raw_input(question + yes_no)).lower().strip()
+        except NameError:
+            reply = str(input(question + yes_no)).lower().strip()
         if reply == 'yes':
             return True
         if reply == 'no':
@@ -373,7 +376,7 @@ class CommunityRTEControl(ComponentControl):
             try:
                 decoded_keydata = base64.b64decode(key_data['pubkey']['keydata'])
                 keyfile = os.path.join(cdir, 'pubkey.gpg')
-                with open(keyfile, 'w') as key_f:
+                with open(keyfile, 'wb') as key_f:
                     key_f.write(decoded_keydata)
                 key_data['pubkey']['keyfile'] = keyfile
             except TypeError as e:
@@ -536,18 +539,16 @@ class CommunityRTEControl(ComponentControl):
             self.__cdir_cleanup(c, gpgproc.returncode)
 
         # verify fingerprint
-        gpgcmd = ['gpg', '--homedir', gpgdir, '--fingerprint']
+        gpgcmd = ['gpg', '--with-colons', '--homedir', gpgdir, '--fingerprint']
         gpgproc = subprocess.Popen(gpgcmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        __fingerprint_re = re.compile(r'^\s*Key fingerprint =\s*(.*)\s*$')
         vfp = None
-        all_messages = []
+        keyuid = ''
         for rline in iter(gpgproc.stdout.readline, b''):
             line = rline.decode('utf-8').rstrip()
-            all_messages.append(line)
-            fp_match = __fingerprint_re.match(line)
-            if fp_match:
-                vfp = fp_match.group(1)
-                vfp = vfp.replace(' ', '').upper()
+            if line.startswith('fpr:'):
+                vfp = line.split(':')[-2].upper()
+            elif line.startswith('uid:'):
+                keyuid = line.split(':')[9]
         gpgproc.wait()
         if gpgproc.returncode == 0:
             if vfp is None:
@@ -565,8 +566,8 @@ class CommunityRTEControl(ComponentControl):
             else:
                 # fingerprint should be confirmed interactively
                 print('The imported community public key data is:')
-                for m in all_messages[2:]:
-                    print('  ' + m)
+                print('  ' + keyuid)
+                print('  Fingerprint: ' + ' '.join([vfp[i:i+4] for i in range(0, len(vfp), 4)]))
                 if not self.__ask_yes_no('Is the community key fingerprint correct?'):
                     self.logger.info('Removing community %s from trusted.', c)
                     self.__cdir_cleanup(c)
@@ -775,7 +776,7 @@ class CommunityRTEControl(ComponentControl):
             (gpg_stdout, gpg_stderr) = gpgproc.communicate(input=sigrtedata)
             if gpgproc.returncode == 0:
                 self.logger.info('Showing the content of RTE %s fetched from the registry.', rtename)
-                print(gpg_stdout)
+                print(gpg_stdout.decode())
             else:
                 self.logger.error('Failed to decrypt signed RTE %s. GPG errors are: %s', rtename, gpg_stderr)
                 sys.exit(1)
@@ -825,7 +826,7 @@ class CommunityRTEControl(ComponentControl):
             if not os.path.exists(signed_rtes):
                 os.makedirs(signed_rtes, mode=0o755)
             signed_rte_file = os.path.join(signed_rtes, rtename.replace('/', '-') + '.signed')
-            with open(signed_rte_file, 'w') as srte_f:
+            with open(signed_rte_file, 'wb') as srte_f:
                 srte_f.write(sigrtedata)
 
             # verify
@@ -925,7 +926,7 @@ class CommunityRTEControl(ComponentControl):
                 if 'checksum_type' in d:
                     try:
                         h = hashlib.new(d['checksum_type'])
-                        with open(swfile, 'r') as h_f:
+                        with open(swfile, 'rb') as h_f:
                             while True:
                                 buf = h_f.read(4096)
                                 if not buf:
@@ -1065,6 +1066,7 @@ class CommunityRTEControl(ComponentControl):
 
         crte_actions = crte_ctl.add_subparsers(title='Community RTE Actions', dest='communityaction',
                                                metavar='ACTION', help='DESCRIPTION')
+        crte_actions.required = True
 
         cadd = crte_actions.add_parser('add', help='Add new trusted community to ARC CE')
         cadd.add_argument('-f', '--fingerprint', help='Fingerprint of the community key', action='store')

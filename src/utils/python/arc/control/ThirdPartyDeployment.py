@@ -183,13 +183,15 @@ class ThirdPartyControl(ComponentControl):
                     break
         return vomses
 
-    def __get_ssl_cert_openssl(self, url):
+    def __get_ssl_cert_openssl(self, url, compat=False):
         # parse connection parameters
         (hostname, port) = self.__get_socket_from_url(url)
         # try to connect using openssl
         try:
-            s_client = subprocess.Popen(['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)],
-                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            cmd = ['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)]
+            if compat:
+                cmd += ['-nameopt', 'compat']
+            s_client = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             dn = None
             ca = None
             for line in iter(s_client.stdout.readline, ''):
@@ -200,7 +202,11 @@ class ThirdPartyControl(ComponentControl):
                     ca = line.replace('issuer=', '')
                     break
             if dn and ca:
-                return {hostname: {'dn': dn.rstrip(), 'ca': ca.rstrip()}}
+                if dn.startswith('/'):
+                    return {hostname: {'dn': dn.rstrip(), 'ca': ca.rstrip()}}
+                elif not compat:
+                    self.logger.debug('Seams we are on the newer OpenSSL version, retrying with compat DN output')
+                    return self.__get_ssl_cert_openssl(url, compat=True)
             self.logger.error('Failed to get DN and CA with OpenSSL SSL/TLS bind to %s:%s.', hostname, port)
             sys.exit(1)
         except OSError:
@@ -495,6 +501,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
 
         deploy_actions = deploy_ctl.add_subparsers(title='Deployment Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        deploy_actions.required = True
 
         igtf_ca = deploy_actions.add_parser('igtf-ca', help='Deploy IGTF CA certificates')
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',

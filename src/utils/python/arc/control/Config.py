@@ -137,6 +137,7 @@ class ConfigControl(ComponentControl):
 
         config_actions = config_ctl.add_subparsers(title='Config Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        config_actions.required = True
 
         config_dump = config_actions.add_parser('dump', help='Dump ARC CE running configuration')
 

@@ -247,6 +247,7 @@ class ServicesControl(ComponentControl):
 
         services_actions = services_ctl.add_subparsers(title='Services Actions', dest='action',
                                                        metavar='ACTION', help='DESCRIPTION')
+        services_actions.required = True
 
         services_enable = services_actions.add_parser('enable', help='Enable ARC CE services')
         services_enable.add_argument('--now', help='Start the services just after enable', action='store_true')

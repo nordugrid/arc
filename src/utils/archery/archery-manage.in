@@ -1806,9 +1806,9 @@ def _raw_dns_fetch(dnsdata, domain, nameserver=None):
         if rdns['rdata']:
             if isinstance(rdns['rdata'], list):
                 for rdata in rdns['rdata']:
-                    rdns['config_data'].add(rdata.encode())
+                    rdns['config_data'].add(rdata)
             else:
-                rdns['config_data'].add(rdns['rdata'].encode())
+                rdns['config_data'].add(rdns['rdata'])
         # fetch and construct server data
         rdns['server_data'] = set()
         resolve_name = domain
@@ -1822,17 +1822,19 @@ def _raw_dns_fetch(dnsdata, domain, nameserver=None):
             if not rrs.response.answer:
                 for rr in rrs.response.authority:
                     for lrr in rr.to_text().split('\n'):
-                        rdns['server_data'].add(lrr.split(' ')[-1].encode())
+                        rdns['server_data'].add(lrr.split(' ')[-1])
         except dns.resolver.NXDOMAIN as e:
             logger.debug('NXDOMAIN received for %s DNS query for domain %s.',
                          rdns['type'], resolve_name)
-            pass
         except dns.resolver.NoAnswer as e:
             logger.warning('No answer for %s DNS query for domain %s. Error: %s',
                            rdns['type'], resolve_name, str(e))
+        except dns.resolver.NoNameservers as e:
+            logger.warning('No namservers received for %s DNS query for domain %s. Error: %s',
+                           rdns['type'], resolve_name, str(e))
         else:
             for rr in rrs:
-                rdns['server_data'].add(rr.to_text().encode())
+                rdns['server_data'].add(rr.to_text().strip('"'))
 
 #
 # HANDLE DDNS UPDATE
