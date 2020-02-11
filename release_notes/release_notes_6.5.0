@@ -2,11 +2,14 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.5.0     31.01.2020
+Release Notes for NorduGrid ARC  6.5.0     14.02.2020
 ------------------------------------------------------
 
-We are happy to announce the ARC 6.5.0 release.
+We are happy to announce the ARC 6.5.0 release. This release comes with quite a large set of enhancements and improvements.
+Bug 3841 (jobs piling up in FINISHING state) which one known site suffers with, is proving resilient, and so far points to slow nfs filesystem.
+It is not solved in this release. 
 
+However bug 3890 related to xrootd transfers is now solved. 
 
 Highlights in this release
 --------------------------
@@ -26,20 +29,31 @@ Client area enhancements:
 
 ARCHERY management:
 * new JSON configuration for flexible services topology definition
-  
+
+
+Technology preview:
+This release also includes the technology preview of a new functionality:
+The "Community-defined RTEs" ecosystem that enables automated software environment provisioning on ARC CEs by community software managers.
+The ecosystem consists of two layers: An ARCHERY-based software (RTE) registry and a new set of ARC control tool modules.
+More details can be found in documentation: http://www.nordugrid.org/arc/arc6/admins/details/rtes_community.html
+
+
 
 The following Bugzilla tickets have been resolved
 ---------------------------------------------------
+* 3907  Implement the community-defined RTEs provisioning proposal
+* 3905  More flexible service endpoints and grouping definition for archery-manage
+* 3904  New consistent submission endpoints selection for ARC6 client
+* 3903  Decouple arcctl from the A-REX package to be used independently
 * 3895  Implement minwalltime and mincputime manual configuration in arc.conf
-* 3891  A-REX crashes ==>>Fix title
+* 3891  A-REX crashes stemming from Logger
 * 3890  xrootd transfers don't work
 * 3889  Jobs submitted with proxy without VOMS AC extension can corrupt accounting database
 * 3888  PBS queue with dots in their names
 * 3887  MaxWallTime and MaxCPUTime not propagated to infosys
-* 3885  A-rex crashed ==> Fix title - link with 3891?
 * 3880  logs created as root user when user= defined in [arex] block causes the service not to start
-* 3841  cancelled jobs get stuck in finishing state
 * 3838  Ensure space trimming in block names all over the code
+* 3538  ARC Client libraries should take the batch system queue name from GLUE2 ComputingShare.MappingQueue and NOT from ComputingShare.Name
 
 
 Documentation
