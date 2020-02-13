@@ -66,7 +66,7 @@ class TestCAControl(ComponentControl):
             try:
                 # try to get it from hostname -f
                 hostname_f = subprocess.Popen(['hostname', '-f'], stdout=subprocess.PIPE)
-                self.hostname = hostname_f.stdout.readline().strip()
+                self.hostname = hostname_f.stdout.readline().decode().strip()
                 self.logger.debug('Using hostname from \'hostname -f\': %s', self.hostname)
             except OSError:
                 # fallback
