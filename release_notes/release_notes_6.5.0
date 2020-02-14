@@ -47,10 +47,9 @@ The following Bugzilla tickets have been resolved
 * 3903  Decouple arcctl from the A-REX package to be used independently
 * 3895  Implement minwalltime and mincputime manual configuration in arc.conf
 * 3891  A-REX crashes stemming from Logger
-* 3890  xrootd transfers don't work
-* 3889  Jobs submitted with proxy without VOMS AC extension can corrupt accounting database
-* 3888  PBS queue with dots in their names
+* 3890  xrootd transfers don't work 
 * 3887  MaxWallTime and MaxCPUTime not propagated to infosys
+* 3885  A-rex crashed (Duplicate of 3890)
 * 3880  logs created as root user when user= defined in [arex] block causes the service not to start
 * 3838  Ensure space trimming in block names all over the code
 * 3538  ARC Client libraries should take the batch system queue name from GLUE2 ComputingShare.MappingQueue and NOT from ComputingShare.Name
