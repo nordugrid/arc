@@ -7,8 +7,10 @@ Release Notes for NorduGrid ARC  6.5.0     14.02.2020
 
 We are happy to announce the ARC 6.5.0 release. This release comes with quite a large set of enhancements and improvements.
 
-Bug 3841 (jobs piling up in FINISHING state) which one known site suffers with, is proving resilient, and so far points to slow nfs filesystem.
-It is not solved in this release. 
+Bug 3841 (jobs piling up in FINISHING state) which one known site suffers with, is proving resilient.
+We believe that a busy file system hosting the job's session directory had strong negative impact on the data staging.
+This needs more investigation and future development to optimize the load on session directories.
+
 However bug 3890 related to xrootd transfers, which had to be reverted in release 6.4.1, is now solved. 
 
 Highlights in this release
