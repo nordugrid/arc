@@ -666,8 +666,8 @@ sub prioritizedvalues {
   }
 
    # just in case all the above fails, log and return empty string
-   $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
-   return '';
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning undefined");
+   return undef;
 }
 
 # TODO: add VOs information

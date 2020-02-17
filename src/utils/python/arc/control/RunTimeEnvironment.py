@@ -293,7 +293,7 @@ class RTEControl(ComponentControl):
             self.__list_rte(self.system_rtes, args.long)
         elif args.user:
             self.__list_rte(self.user_rtes, args.long)
-        elif args.community:
+        elif hasattr(args, 'community') and args.community:
             self.__list_rte(self.community_rtes, args.long)
         elif args.available:
             self.system_rtes.update(self.user_rtes)
