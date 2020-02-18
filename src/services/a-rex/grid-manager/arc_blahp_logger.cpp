@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
                     elements.pop_front(); // crop voname=
                     if ( ! elements.empty() ) elements.pop_front(); // crop hostname=
                     if ( ! elements.empty() ) {
-                        logger.msg(Arc::DEBUG, "VOMS AC attribute is the FULL ATTRIBUTE");
+                        logger.msg(Arc::DEBUG, "VOMS AC attribute is a tag");
                         fqan = "";
                         while (! elements.empty () ) {
                             fqan.append("/").append(elements.front());
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
                         continue;
                     }
                 } else {
-                    logger.msg(Arc::DEBUG, "VOMS AC attribute is the IETF ATTRIBUTE");
+                    logger.msg(Arc::DEBUG, "VOMS AC attribute is the FQAN");
                     pos = fqan.find("/Role=");
                     if ( pos == std::string::npos ) fqan = fqan + "/Role=NULL";
                 }
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
             }
         }
     } else {
-        logger.msg(Arc::DEBUG, "No FQAN found. Using NULL as userFQAN value");
+        logger.msg(Arc::DEBUG, "No FQAN found. Using None as userFQAN value");
         fqans_logentry = "\"userFQAN=/None/Role=NULL\" ";
     }
 
