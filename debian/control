@@ -114,8 +114,6 @@ Depends:
  ${misc:Depends},
  libarccommon3 (= ${binary:Version}),
  lsb-base (>= 3.0-6)
-Recommends:
- nordugrid-arc-python (= ${binary:Version})
 Description: ARC Hosting Environment Daemon
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -209,13 +207,18 @@ Description: ARC LDAP monitor web application
  system and visualizes it.
 
 Package: nordugrid-arc-arcctl
-Architecture: any
+Replaces:
+ libarccommon3 (<< 6.5.0~),
+ nordugrid-arc-arex (<< 6.5.0~)
+Breaks:
+ libarccommon3 (<< 6.5.0~),
+ nordugrid-arc-arex (<< 6.5.0~)
+Architecture: all
 Depends:
+ ${misc:Depends},
  ${python:Depends},
  ${python3:Depends},
- libarccommon3 (= ${binary:Version}),
- ${pydeps:Depends},
- lsb-base (>= 3.0-6)
+ libarccommon3 (>= ${source:Version})
 XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -234,13 +237,14 @@ Replaces:
  nordugrid-arc-candypond (<< 6.0.0~),
  nordugrid-arc-aris (<< 6.0.0~),
  nordugrid-arc-infosys-ldap (<< 6.3.0~),
- nordugrid-arc-python (<< 6.4.0~)
+ libarccommon3 (<< 6.5.0~)
 Conflicts:
  nordugrid-arc-cache-service (<< 6.0.0~),
  nordugrid-arc-candypond (<< 6.0.0~)
 Breaks:
  nordugrid-arc-aris (<< 6.0.0~),
- nordugrid-arc-infosys-ldap (<< 6.3.0~)
+ nordugrid-arc-infosys-ldap (<< 6.3.0~),
+ libarccommon3 (<< 6.5.0~)
 Architecture: any
 Depends:
  ${shlibs:Depends},
@@ -250,7 +254,7 @@ Depends:
  ${python3:Depends},
  libarccommon3 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
- nordugrid-arc-arcctl (= ${binary:Version}),
+ nordugrid-arc-arcctl (= ${source:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
@@ -294,14 +298,14 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  supported. It is released as a technology preview.
 
 Package: nordugrid-arc-community-rtes
-Architecture: any
+Architecture: all
 Depends:
+ ${misc:Depends},
  ${python:Depends},
  ${python3:Depends},
- libarccommon3 (= ${binary:Version}),
- nordugrid-arc-arex (= ${binary:Version}),
- nordugrid-arc-arcctl (= ${binary:Version})
- ${pydeps:Depends},
+ nordugrid-arc-arex (>= ${source:Version}),
+ nordugrid-arc-arcctl (= ${source:Version}),
+ ${pydeps:Depends}
 XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service - Python LRMS backends
  NorduGrid is a collaboration aiming at development, maintenance and
