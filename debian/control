@@ -222,7 +222,7 @@ Description: ARC Resource-coupled EXecution service
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC Contol Tool with basic set of control
+ This package contains the ARC Control Tool with basic set of control
  modules suitable for both server and client side.
 
 Package: nordugrid-arc-arex
@@ -308,7 +308,7 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Community RTEs is the framework that allows to deploy software packages
+ Community RTEs is the framework that allows deploying software packages
  (tarballs, containers, etc) provided by trusted communities to ARC CE
  using simple arcctl commands.
  It is released as a technology preview.
