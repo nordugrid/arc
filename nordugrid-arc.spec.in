@@ -1247,37 +1247,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 
-%files arcctl
-%{_sbindir}/arcctl
-%if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
-%{python3_sitearch}/%{pkgdir}/control/__init__.py
-%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
-%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
-%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
-%{python3_sitearch}/%{pkgdir}/control/OSService.py
-%{python3_sitearch}/%{pkgdir}/control/TestCA.py
-%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
-%else
-%dir %{python2_sitearch}/%{pkgdir}/control
-%{python2_sitearch}/%{pkgdir}/control/__init__.py*
-%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
-%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
-%{python2_sitearch}/%{pkgdir}/control/OSService.py*
-%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
-%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
-%endif
-%doc %{_mandir}/man1/arcctl.1*
-
 %files client
 %defattr(-,root,root,-)
 %doc docdir/client.conf
@@ -1354,6 +1323,18 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
+%files datadelivery-service
+%defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/arc-datadelivery-service.service
+%else
+%{_initrddir}/arc-datadelivery-service
+%endif
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.so
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
+%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
+
 %if %{with_ldap_service}
 %files infosys-ldap
 %defattr(-,root,root,-)
@@ -1376,17 +1357,36 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/monitor
 %doc %{_mandir}/man7/monitor.7*
 
-%files datadelivery-service
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-datadelivery-service.service
+%files arcctl
+%{_sbindir}/arcctl
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/__init__.py
+%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
+%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
+%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
+%{python3_sitearch}/%{pkgdir}/control/OSService.py
+%{python3_sitearch}/%{pkgdir}/control/TestCA.py
+%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
 %else
-%{_initrddir}/arc-datadelivery-service
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
+%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %endif
-%{_libdir}/%{pkgdir}/libdatadeliveryservice.so
-%{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
-%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
+%doc %{_mandir}/man1/arcctl.1*
 
 %files arex
 %defattr(-,root,root,-)
@@ -1554,59 +1554,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
-%if %{with_acix}
-%files acix-core
-%defattr(-,root,root,-)
-%if %{py3default}
-%dir %{python3_sitelib}/acix
-%{python3_sitelib}/acix/__init__.py
-%{python3_sitelib}/acix/__pycache__/__init__.*
-%{python3_sitelib}/acix/core
-%else
-%dir %{python2_sitelib}/acix
-%{python2_sitelib}/acix/__init__.py*
-%{python2_sitelib}/acix/core
-%endif
-
-%files acix-scanner
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/scanner
-%else
-%{python2_sitelib}/acix/scanner
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-scanner.service
-%else
-%{_initrddir}/arc-acix-scanner
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-scanner-start
-
-%files acix-index
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/indexserver
-%else
-%{python2_sitelib}/acix/indexserver
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-index.service
-%else
-%{_initrddir}/arc-acix-index
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-index-start
-%endif
-
-%files devel
-%defattr(-,root,root,-)
-%doc docdir/devel/* src/hed/shc/arcpdp/*.xsd
-%{_includedir}/%{pkgdir}
-%{_libdir}/lib*.so
-%{_bindir}/wsdl2hed
-%doc %{_mandir}/man1/wsdl2hed.1*
-%{_bindir}/arcplugin
-%doc %{_mandir}/man1/arcplugin.1*
-
 %files plugins-needed
 %defattr(-,root,root,-)
 %dir %{_libdir}/%{pkgdir}/test
@@ -1715,6 +1662,59 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
+
+%if %{with_acix}
+%files acix-core
+%defattr(-,root,root,-)
+%if %{py3default}
+%dir %{python3_sitelib}/acix
+%{python3_sitelib}/acix/__init__.py
+%{python3_sitelib}/acix/__pycache__/__init__.*
+%{python3_sitelib}/acix/core
+%else
+%dir %{python2_sitelib}/acix
+%{python2_sitelib}/acix/__init__.py*
+%{python2_sitelib}/acix/core
+%endif
+
+%files acix-scanner
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitelib}/acix/scanner
+%else
+%{python2_sitelib}/acix/scanner
+%endif
+%if %{use_systemd}
+%{_unitdir}/arc-acix-scanner.service
+%else
+%{_initrddir}/arc-acix-scanner
+%endif
+%{_datadir}/%{pkgdir}/arc-acix-scanner-start
+
+%files acix-index
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitelib}/acix/indexserver
+%else
+%{python2_sitelib}/acix/indexserver
+%endif
+%if %{use_systemd}
+%{_unitdir}/arc-acix-index.service
+%else
+%{_initrddir}/arc-acix-index
+%endif
+%{_datadir}/%{pkgdir}/arc-acix-index-start
+%endif
+
+%files devel
+%defattr(-,root,root,-)
+%doc docdir/devel/* src/hed/shc/arcpdp/*.xsd
+%{_includedir}/%{pkgdir}
+%{_libdir}/lib*.so
+%{_bindir}/wsdl2hed
+%doc %{_mandir}/man1/wsdl2hed.1*
+%{_bindir}/arcplugin
+%doc %{_mandir}/man1/arcplugin.1*
 
 %if %{with_python2}
 %files -n python2-%{name}
