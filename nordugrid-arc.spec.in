@@ -17,20 +17,11 @@
 %if %{?suse_version:1}%{!?suse_version:0}
 %global glibmm2_devel  glibmm2-devel
 %global openldap_devel openldap2-devel
+%global nss_devel mozilla-nss-devel
 %else
 %global glibmm2_devel  glibmm24-devel
 %global openldap_devel openldap-devel
-%endif
-%if %{?fedora}%{!?fedora:5} > 4 && %{?suse_version:0}%{!?suse_version:1}
 %global nss_devel nss-devel
-%else
-%global nss_devel mozilla-nss-devel
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
-%global libuuid_devel libuuid-devel
-%else
-%global libuuid_devel e2fsprogs-devel
 %endif
 
 #
@@ -107,8 +98,6 @@
 %global with_ldns 0
 %endif
 
-%global pkgdir arc
-
 %if %{?fedora}%{!?fedora:0} >= 25 || %{?rhel}%{!?rhel:0} >= 7
 %global use_systemd 1
 %else
@@ -116,6 +105,8 @@
 %endif
 
 %global with_ldap_service 1
+
+%global pkgdir arc
 
 # bash-completion
 %global _bashcompdir %(pkg-config --variable=completionsdir bash-completion 2>/dev/null || echo %{_sysconfdir}/bash_completion.d)
@@ -304,11 +295,12 @@ BuildRequires:	sqlite-devel >= 3.6
 %if %{with_ldns}
 BuildRequires:	ldns-devel >= 1.6.8
 %endif
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-BuildRequires:	python-argparse
-%endif
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	pkgconfig(bash-completion)
+%endif
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+BuildRequires:	python-argparse
+Requires:	python-argparse
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:	hostname
@@ -468,10 +460,6 @@ system and visualizes it.
 Summary:	ARC Control Tool
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
-BuildArch:	noarch
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-Requires:	python-argparse
-%endif
 
 %description arcctl
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -486,38 +474,32 @@ Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
-# remove older SDK package on update to 6.4
-%if %{py3default}
-Obsoletes:	python3-%{name} < 6.4.0
-%else
-Obsoletes:	python2-%{name} < 6.4.0
-%endif
+Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
 %if %{py3default}
-Requires:	python3-ldap
-Requires:	python3-isodate
 Requires:	python3-dirq
+Requires:	python3-isodate
+Requires:	python3-ldap
 Requires:	python3-stomppy
 %else
+Requires:	python-dirq
+Requires:	python-isodate
+Requires:	python-ldap
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
 %else
 Requires:	stomppy
 %endif
-Requires:	python-ldap
-Requires:	python-dirq
-Requires:	python-isodate
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
 Obsoletes:	%{name}-candypond < 6.0.0
 
-Requires(post):		%{name} = %{version}-%{release}
-Requires(preun):	%{name} = %{version}-%{release}
+Requires(post):		%{name}-arcctl = %{version}-%{release}
+Requires(preun):	%{name}-arcctl = %{version}-%{release}
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires(post):		hostname
 %else
@@ -547,7 +529,7 @@ Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-%{name} = %{version}-%{release}
+Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
 %else
 Requires:	python2-%{name} = %{version}-%{release}
 %endif
@@ -568,8 +550,8 @@ supported. It is released as a technology preview.
 Summary:	Community-defined RTEs support
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
-Requires:   %{name}-arcctl = %{version}-%{release}
-Requires:   gnupg2
+Requires:	%{name}-arcctl = %{version}-%{release}
+Requires:	gnupg2
 %if %{py3default}
 Requires:	python3-dns
 %else
@@ -922,6 +904,9 @@ Summary:	ARCHERY administration tool
 Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
+%endif
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+Requires:	python-argparse
 %endif
 %if %{py3default}
 Requires:	python3-dns
@@ -1640,6 +1625,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_gfal}
 %files plugins-gfal
 %defattr(-,root,root,-)
+%dir %{_libdir}/%{pkgdir}/external
 %{_libdir}/%{pkgdir}/external/libdmcgfal.so
 %{_libdir}/%{pkgdir}/external/libdmcgfal.apd
 %{_libdir}/%{pkgdir}/libdmcgfaldeleg.so
