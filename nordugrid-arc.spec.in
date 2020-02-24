@@ -1480,11 +1480,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
 %{python3_sitearch}/%{pkgdir}/control/Cache.py
 %{python3_sitearch}/%{pkgdir}/control/Config.py
-%{python3_sitearch}/%{pkgdir}/control/CECommon.py
 %{python3_sitearch}/%{pkgdir}/control/Jobs.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
 %{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
+%{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
@@ -1493,11 +1493,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/CECommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
@@ -1508,11 +1508,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/Cache.py*
 %{python2_sitearch}/%{pkgdir}/control/Config.py*
-%{python2_sitearch}/%{pkgdir}/control/CECommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
 %{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
+%{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
 %endif
 %{_libexecdir}/%{pkgdir}/arccandypond
