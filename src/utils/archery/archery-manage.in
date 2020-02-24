@@ -22,6 +22,7 @@ except ImportError:
 import ssl
 import xml.etree.ElementTree as ElementTree
 # DNS processing
+import dns.rdatatype
 import dns.resolver
 import dns.update
 import dns.query
@@ -1912,12 +1913,12 @@ def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, tt
                     logger.debug('Going to REMOVE raw DNS record by means of DDNS update: %s %s %s',
                                  rr['name'], rr['type'], cr)
                     needs_rawupdate = True
-                    rawupdate.delete(rr['name'], rr['type'], cr)
+                    rawupdate.delete(rr['name'], dns.rdatatype.from_text(rr['type']), cr)
                 for cr in list(rr['config_data'] - rr['server_data']):
                     logger.debug('Going to ADD raw DNS record by means of DDNS update: %s %s %s',
                                  rr['name'], rr['type'], cr)
                     needs_rawupdate = True
-                    rawupdate.add(rr['name'], ttl, rr['type'], cr)
+                    rawupdate.add(rr['name'], ttl, dns.rdatatype.from_text(rr['type']), cr)
 
             if needs_rawupdate:
                 dns.query.tcp(rawupdate, nameserver)
