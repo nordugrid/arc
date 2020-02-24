@@ -365,6 +365,7 @@ Summary:	ARC gridftp server
 Group:		System Environment/Daemons
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-gridftp = %{version}-%{release}
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -385,6 +386,7 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
 Requires(preun):	%{service_preun_requires}
@@ -407,6 +409,7 @@ BuildArch:	noarch
 Requires:	openldap-servers
 Requires:	glue-schema >= 2.0.10
 Requires:	bdii
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 Provides:	%{name}-ldap-infosys = %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
 Provides:	%{name}-aris = %{version}-%{release}
@@ -481,6 +484,21 @@ Connector (ARC).
 This package contains the ARC Contol Tool with basic set of control
 modules suitable for both server and client side.
 
+%package arcctl-service
+Summary:	ARC Control Tool - service control modules
+Group:		Applications/Internet
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arcctl = %{version}-%{release}
+BuildArch:	noarch
+
+%description arcctl-service
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the service control modules for ARC Contol Tool
+that allow to work with server-side config and manage ARC services.
+
 %package arex
 Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
@@ -488,6 +506,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 # remove older SDK package on update to 6.4
 %if %{py3default}
 Obsoletes:	python3-%{name} < 6.4.0
@@ -792,6 +811,7 @@ BuildArch:	noarch
 %endif
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 Obsoletes:	%{name}-acix-cache < 6.0.0
 
 Requires(post):		%{service_post_requires}
@@ -814,6 +834,7 @@ Group:		System Environment/Libraries
 BuildArch:	noarch
 %endif
 Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-acix-core = %{version}-%{release}
 
 Requires(post):		%{service_post_requires}
@@ -1255,7 +1276,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
 %{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
 %{python3_sitearch}/%{pkgdir}/control/OSPackage.py
-%{python3_sitearch}/%{pkgdir}/control/OSService.py
 %{python3_sitearch}/%{pkgdir}/control/TestCA.py
 %{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
 %dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
@@ -1263,7 +1283,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
 %else
@@ -1272,11 +1291,30 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
 %{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
-%{python2_sitearch}/%{pkgdir}/control/OSService.py*
 %{python2_sitearch}/%{pkgdir}/control/TestCA.py*
 %{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %endif
 %doc %{_mandir}/man1/arcctl.1*
+
+%files arcctl-service
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/Config.py
+%{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
+%{python3_sitearch}/%{pkgdir}/control/Services.py
+%{python3_sitearch}/%{pkgdir}/control/OSService.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%else
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/Config.py*
+%{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/Services.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%endif
 
 %files client
 %defattr(-,root,root,-)
@@ -1479,26 +1517,20 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
 %{python3_sitearch}/%{pkgdir}/control/Cache.py
-%{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/Jobs.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
 %{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
-%{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
-%{python3_sitearch}/%{pkgdir}/control/Services.py
 %dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %dir %{python2_sitearch}/%{pkgdir}/control
@@ -1507,13 +1539,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/Cache.py*
-%{python2_sitearch}/%{pkgdir}/control/Config.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
 %{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
-%{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/Services.py*
 %endif
 %{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
