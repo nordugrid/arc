@@ -212,15 +212,41 @@ int main(int argc, char *argv[]) {
     std::size_t pos;
     if(voms_attributes.size() > 0) {
         for (std::vector<Arc::VOMSACInfo>::iterator iAC = voms_attributes.begin(); iAC != voms_attributes.end(); iAC++) {
-            for (int acnt = 1; acnt < iAC->attributes.size(); acnt++ ) {
+            for (unsigned int acnt = 0; acnt < iAC->attributes.size(); acnt++ ) {
                 fqan = iAC->attributes[acnt];
-                pos = fqan.find("/Role=");
-                if ( pos == std::string::npos ) fqan = fqan + "/Role=NULL";
+                logger.msg(Arc::DEBUG, "Found VOMS AC attribute: %s", fqan);
+
+                std::list<std::string> elements;
+                Arc::tokenize(fqan, elements, "/");
+                if ( elements.size() == 0 ) {
+                    logger.msg(Arc::DEBUG, "Malformed VOMS AC attribute %s", fqan);
+                    continue;
+                }
+
+                if (elements.front().rfind("voname=", 0) == 0) {
+                    elements.pop_front(); // crop voname=
+                    if ( ! elements.empty() ) elements.pop_front(); // crop hostname=
+                    if ( ! elements.empty() ) {
+                        logger.msg(Arc::DEBUG, "VOMS AC attribute is a tag");
+                        fqan = "";
+                        while (! elements.empty () ) {
+                            fqan.append("/").append(elements.front());
+                            elements.pop_front();
+                        }
+                    } else {
+                        logger.msg(Arc::DEBUG, "Skipping policyAuthority VOMS AC attribute");
+                        continue;
+                    }
+                } else {
+                    logger.msg(Arc::DEBUG, "VOMS AC attribute is the FQAN");
+                    pos = fqan.find("/Role=");
+                    if ( pos == std::string::npos ) fqan = fqan + "/Role=NULL";
+                }
                 fqans_logentry += "\"userFQAN=" + Arc::trim(Arc::escape_chars(fqan, "\"\\", '\\', false)) + "\" ";
             }
         }
     } else {
-        logger.msg(Arc::DEBUG, "No FQAN found. Using NULL as userFQAN value");
+        logger.msg(Arc::DEBUG, "No FQAN found. Using None as userFQAN value");
         fqans_logentry = "\"userFQAN=/None/Role=NULL\" ";
     }
 
