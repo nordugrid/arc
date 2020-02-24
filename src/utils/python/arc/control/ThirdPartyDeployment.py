@@ -63,7 +63,7 @@ class ThirdPartyControl(ComponentControl):
         vomslsc = {}
         xml = self.__egi_get_voms_xml(vo)
         # parse XML
-        for voms in xml.iter('VOMS_Server'):
+        for voms in xml.findall('.//VOMS_Server'):
             host = voms.find('hostname').text
             dn = voms.find('X509Cert/DN').text
             ca = voms.find('X509Cert/CA_DN').text
@@ -73,7 +73,7 @@ class ThirdPartyControl(ComponentControl):
     def __egi_get_vomses(self, vo):
         vomses = []
         xml = self.__egi_get_voms_xml(vo)
-        for voms in xml.iter('VOMS_Server'):
+        for voms in xml.findall('.//VOMS_Server'):
             port = None
             if 'VomsesPort' in voms.attrib:
                 port = voms.attrib['VomsesPort']
