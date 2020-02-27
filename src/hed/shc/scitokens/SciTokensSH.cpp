@@ -40,10 +40,9 @@ class SciTokensSecAttr: public SecAttr {
   virtual operator bool(void) const;
   virtual std::string get(const std::string& id) const;
  protected:
-  std::string subject_;  // sub
-  std::string issuer_;   // iss 
-  std::string audience_; // aud
   bool valid_;
+  Arc::JWSE jwse_;
+  std::string token_;
 };
 
 int strnicmp(char const* left, char const* right, size_t len) {
@@ -60,22 +59,21 @@ int strnicmp(char const* left, char const* right, size_t len) {
 SciTokensSecAttr::SciTokensSecAttr(Arc::Message* msg):valid_(false) {
   static const char tokenid[] = "bearer ";
   if(msg) {
+    logger.msg(DEBUG, "SciTokens: Attr: message");
     MessageAttributes* attrs = msg->Attributes();
     if(attrs) {
-      std::string token = attrs->get("HTTP:authorization");
-      if(strnicmp(token.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
-        token.erase(0, sizeof(tokenid)-1);
-        Arc::JWSE jwse(token);
-        if(jwse) {
-          cJSON const* obj(NULL);
-          obj = jwse.Claim(Arc::JWSE::ClaimNameSubject);
-          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) subject_ = obj->valuestring;
-          obj = jwse.Claim(Arc::JWSE::ClaimNameIssuer);
-          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) issuer_ = obj->valuestring;
-          obj = jwse.Claim(Arc::JWSE::ClaimNameAudience);
-          if(obj && (obj->type == cJSON_String) && (obj->valuestring)) audience_ = obj->valuestring;
-          valid_ = true;
-        };
+      AttributeIterator it = attrs->getAll();
+      while(true) {
+        logger.msg(DEBUG, "SciTokens: Attr: %s = %s", it.key(), *it);
+        ++it;
+        if(!it.hasMore()) break;
+      }
+      token_ = attrs->get("HTTP:authorization");
+      logger.msg(DEBUG, "SciTokens: Attr: token: %s", token_);
+      if(strnicmp(token_.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
+        token_.erase(0, sizeof(tokenid)-1);
+        logger.msg(DEBUG, "SciTokens: Attr: token: bearer: %s", token_);
+        valid_ = jwse_.Input(token_);
       };
     };
   };
@@ -85,10 +83,22 @@ SciTokensSecAttr::~SciTokensSecAttr() {
 }
 
 std::string SciTokensSecAttr::get(const std::string& id) const {
-  if(id == "SUBJECT") return subject_;
-  if(id == "ISSUER") return issuer_;
-  if(id == "AUDIENCE") return audience_;
-  return "";
+  if(id == "") // whole token requested
+    return token_;
+  if(id == "iss+sub") { // special name for combination of issuer and subject
+    std::string issuer = get("iss");
+    std::string subject = get("sub");
+    if(issuer.empty() || subject.empty()) return "";
+    return issuer + "/" + subject;
+  };
+  cJSON const * obj = jwse_.Claim(id.c_str());
+  if(!obj)
+    return "";
+  if(obj->type != cJSON_String)
+    return "";
+  if(!obj->valuestring)
+    return "";
+  return obj->valuestring;
 }
 
 SciTokensSecAttr::operator bool() const {
@@ -103,14 +113,18 @@ SciTokensSH::~SciTokensSH(){
 }
 
 SecHandlerStatus SciTokensSH::Handle(Arc::Message* msg) const {
+  logger.msg(DEBUG, "SciTokens: Handle");
   if(msg) {
+    logger.msg(DEBUG, "SciTokens: Handle: message");
     SciTokensSecAttr* sattr = new SciTokensSecAttr(msg);
     if(!*sattr) {
-      //logger.msg(ERROR, "Failed to SciTokens security attributes");
+      logger.msg(ERROR, "Failed to create SciTokens security attributes");
       delete sattr;
       sattr = NULL;
     } else {
+      logger.msg(DEBUG, "SciTokens: Handle: attributes created: subject = %s", sattr->get("iss+sub"));
       msg->Auth()->set("SCITOKENS",sattr);
+      msg->Attributes()->set("SCITOKENS:IDENTITYDN",sattr->get("iss+sub"));
     };
   };
   return true;

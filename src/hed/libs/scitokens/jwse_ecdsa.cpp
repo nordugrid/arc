@@ -25,7 +25,7 @@ namespace Arc {
     if(!ctx) return false;
     const EVP_MD* md = EVP_get_digestbyname(digestName);
     if(!md) return false;
-    int rc = EVP_DigestVerifyInit(ctx.Ptr(), NULL, md, NULL, key_->PublicKey());
+    int rc = EVP_DigestVerifyInit(ctx.Ptr(), NULL, md, NULL, const_cast<EVP_PKEY*>(key_->PublicKey()));
     if(rc != 1) return false;
     rc = EVP_DigestVerifyUpdate(ctx.Ptr(), message, messageSize);
     if(rc != 1) return false;
@@ -41,7 +41,7 @@ namespace Arc {
     if(!ctx) return false;
     const EVP_MD* md = EVP_get_digestbyname(digestName);
     if(!md) return false;
-    int rc = EVP_DigestSignInit(ctx.Ptr(), NULL, md, NULL, key_->PrivateKey());
+    int rc = EVP_DigestSignInit(ctx.Ptr(), NULL, md, NULL, const_cast<EVP_PKEY*>(key_->PrivateKey()));
     if(rc != 1) return false;
     rc = EVP_DigestSignUpdate(ctx.Ptr(), message, messageSize);
     if(rc != 1) return false;

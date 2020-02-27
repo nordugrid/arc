@@ -43,6 +43,9 @@ class ConfigTLSMCC {
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   std::string cipher_list_;
+  std::string hostname_;
+  std::string protocols_;
+  std::string protocol_;
   std::string failure_;
   ConfigTLSMCC(void);
  public:
@@ -70,6 +73,7 @@ class ConfigTLSMCC {
   bool IfCheckVOMSCritical(void) const { return (voms_processing_ != relaxed_voms); };
   bool IfFailOnVOMSParsing(void) const { return (voms_processing_ == noerrors_voms) || (voms_processing_ == strict_voms); };
   bool IfFailOnVOMSInvalid(void) const { return (voms_processing_ == noerrors_voms); };
+  const std::string& Hostname() const { return hostname_; };
   const std::string& Failure(void) { return failure_; };
   static std::string HandleError(int code = SSL_ERROR_NONE);
   static void ClearError(void);

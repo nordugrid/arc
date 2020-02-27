@@ -1,5 +1,6 @@
 #include <string>
 #include <arc/Utils.h>
+#include <arc/Logger.h>
 
 
 struct cJSON;
@@ -20,9 +21,9 @@ namespace Arc {
     static char const * const ClaimNameActivities;
     static char const * const HeaderNameX509CertChain;
     static char const * const HeaderNameJSONWebKey;
+    static char const * const HeaderNameJSONWebKeyId;
     static char const * const HeaderNameAlgorithm;
     static char const * const HeaderNameEncryption;
-
 
     //! Parse scitoken available as simple string.
     //! Mostly to be used for scitokens embedded into something
@@ -86,6 +87,8 @@ namespace Arc {
  
    private:    
 
+    static Logger logger_;
+
     bool valid_;
 
     mutable AutoPointer<cJSON> header_; 
@@ -108,9 +111,19 @@ namespace Arc {
     bool VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
                                              void const* signature, unsigned int signatureSize);
 
+    bool VerifyRSASSAPKCS1(char const* digestName, void const* message, unsigned int messageSize,
+                                            void const* signature, unsigned int signatureSize);
+
+    bool VerifyRSASSAPSS(char const* digestName, void const* message, unsigned int messageSize,
+                                            void const* signature, unsigned int signatureSize);
+
     bool SignHMAC(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
 
     bool SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
+
+    bool SignRSASSAPKCS1(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
+
+    bool SignRSASSAPSS(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const;
 
   }; // class JWSE
 

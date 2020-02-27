@@ -22,7 +22,7 @@ AuthResult AuthUser::match_scitokens(const char* line) {
   std::string subject("");
   std::string issuer("");
   std::string audience("");
-  //std::string auto_c("");
+  std::string scope("");
   std::string::size_type n = 0;
   n=Arc::get_token(subject,line,n," ","\"","\"");
   if((n == std::string::npos) && (subject.empty())) {
@@ -39,22 +39,31 @@ AuthResult AuthUser::match_scitokens(const char* line) {
     logger.msg(Arc::ERROR, "Missing audience in configuration");
     return AAA_FAILURE;
   };
+  n=Arc::get_token(scope,line,n," ","\"","\"");
+  if((n == std::string::npos) && (scope.empty())) {
+    logger.msg(Arc::ERROR, "Missing scope in configuration");
+    return AAA_FAILURE;
+  };
   logger.msg(Arc::VERBOSE, "Rule: subject: %s", subject);
   logger.msg(Arc::VERBOSE, "Rule: issuer: %s", issuer);
   logger.msg(Arc::VERBOSE, "Rule: audience: %s", audience);
+  logger.msg(Arc::VERBOSE, "Rule: scope: %s", scope);
   // analyse permissions
   for(std::vector<struct scitokens_t>::iterator v = scitokens_data_.begin();v!=scitokens_data_.end();++v) {
     logger.msg(Arc::DEBUG, "Match issuer: %s", v->issuer);
     if((issuer == "*") || (issuer == v->issuer)) {
-      bool matched = false;
-      if(((subject == "*") || (subject == v->subject)) &&
-         ((audience == "*") || (audience == v->audience))) {
-        logger.msg(Arc::VERBOSE, "Matched: %s %s %s",v->subject,v->issuer,v->audience);
-        default_scitokens_ = scitokens_t();
-        default_scitokens_.subject = v->subject;
-        default_scitokens_.issuer = v->issuer;
-        default_scitokens_.audience = v->audience;
-        return AAA_POSITIVE_MATCH;
+      if((subject == "*") || (subject == v->subject)) {
+        if((audience == "*") || (audience == v->audience)) {
+          if((scope == "*") || (std::find(v->scopes.begin(),v->scopes.end(),scope) != v->scopes.end())) {
+            logger.msg(Arc::VERBOSE, "Matched: %s %s %s",v->subject,v->issuer,v->audience,scope);
+            default_scitokens_ = scitokens_t();
+            default_scitokens_.subject = v->subject;
+            default_scitokens_.issuer = v->issuer;
+            default_scitokens_.audience = v->audience;
+            if(scope != "*") default_scitokens_.scopes.push_back(scope);
+            return AAA_POSITIVE_MATCH;
+          };
+        };
       };
     };
   };

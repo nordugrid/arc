@@ -22,6 +22,7 @@ AuthResult AuthUser::match_file(const char* line) {
     logger.msg(Arc::ERROR, "Failed to read file %s", token);
     return AAA_FAILURE;
   };
+  logger.msg(Arc::DEBUG, "match_file: subject = %s", subject_);
   for(;f.good();) {
     std::string buf;
     getline(f,buf);
@@ -36,6 +37,7 @@ AuthResult AuthUser::match_file(const char* line) {
     std::string subj;
     p = Arc::get_token(subj,buf,p," ","\"","\"");
     if(subj.empty()) continue; // can't match empty subject - it is dangerous
+    logger.msg(Arc::DEBUG, "match_file: file = %s", subj);
     if(subject_ != subj) continue;
     f.close();
     return AAA_POSITIVE_MATCH;

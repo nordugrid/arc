@@ -5,6 +5,7 @@
 #include <openssl/evp.h>
 
 #include <arc/Base64.h>
+#include <arc/Logger.h>
 #include <arc/external/cJSON/cJSON.h>
 
 #include "jwse.h"
@@ -12,6 +13,8 @@
 
 
 namespace Arc {
+
+  Logger JWSE::logger_(Logger::getRootLogger(), "JWSE");
 
   char const * const JWSE::ClaimNameSubject = "sub";
   char const * const JWSE::ClaimNameIssuer = "iss";
@@ -44,6 +47,7 @@ namespace Arc {
   bool JWSE::Input(std::string const& jwseCompact) {
     Cleanup();
 
+    logger_.msg(DEBUG, "JWSE::Input: token: %s", jwseCompact);
     char const* pos = jwseCompact.c_str();
     while(std::isspace(*pos) != 0) {
       if(*pos == '\0') return false;
@@ -61,6 +65,11 @@ namespace Arc {
     std::string joseStr = Base64::decodeURLSafe(joseStart, joseEnd-joseStart);
     header_ = cJSON_Parse(joseStr.c_str());
     if(!header_) return false;
+    {
+      char* headerStr = cJSON_Print(header_.Ptr());
+      logger_.msg(DEBUG, "JWSE::Input: header: %s", headerStr);
+      std::free(headerStr);
+    }
     cJSON* algObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameAlgorithm);
     if(algObject == NULL) return false; // Neither JWS nor JWE
     if(algObject->type != cJSON_String) return false;
@@ -82,26 +91,39 @@ namespace Arc {
         content_ = cJSON_CreateObject();
       }
       if(!content_) return false;
+      {
+        char* contentStr = cJSON_Print(content_.Ptr());
+        logger_.msg(DEBUG, "JWSE::Input: JWS content: %s", contentStr);
+        std::free(contentStr);
+      }
 
       // Time
       cJSON* notBefore = cJSON_GetObjectItem(content_.Ptr(), ClaimNameNotBefore);
       if(notBefore) {
         if(notBefore->type != cJSON_Number) return false;
         time_t notBeforeTime = static_cast<time_t>(notBefore->valueint);
-        if(static_cast<int>(time(NULL)-notBeforeTime) < 0) return false;
+        if(static_cast<int>(time(NULL)-notBeforeTime) < 0) {
+          logger_.msg(DEBUG, "JWSE::Input: JWS: token too young");
+          return false;
+        }
       }
       cJSON* notAfter = cJSON_GetObjectItem(content_.Ptr(), ClaimNameNotAfter);
       if(notAfter) {
         if(notAfter->type != cJSON_Number) return false;
         time_t notAfterTime = static_cast<time_t>(notAfter->valueint);
-        if(static_cast<int>(notAfterTime - time(NULL)) < 0) return false;
+        if(static_cast<int>(notAfterTime - time(NULL)) < 0) {
+          logger_.msg(DEBUG, "JWSE::Input: JWS: token too old");
+          return false;
+        }
       }
+
       // Signature
       if(!ExtractPublicKey()) return false;
       char const* signatureStart = pos;
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);
       bool verifyResult = false;
+      logger_.msg(DEBUG, "JWSE::Input: JWS: signature algorthm: %s", algObject->valuestring);
       if(strcmp(algObject->valuestring, "none") == 0) {
         verifyResult = signature.empty(); // expecting empty signature if no protection is requested
       } else if(strcmp(algObject->valuestring, "HS256") == 0) {
@@ -122,6 +144,24 @@ namespace Arc {
       } else if(strcmp(algObject->valuestring, "ES512") == 0) {
         verifyResult = VerifyECDSA("SHA512", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "RS256") == 0) {
+        verifyResult = VerifyRSASSAPKCS1("SHA256", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "RS384") == 0) {
+        verifyResult = VerifyRSASSAPKCS1("SHA384", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "RS512") == 0) {
+        verifyResult = VerifyRSASSAPKCS1("SHA512", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "PS256") == 0) {
+        verifyResult = VerifyRSASSAPSS("SHA256", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "PS384") == 0) {
+        verifyResult = VerifyRSASSAPSS("SHA384", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else if(strcmp(algObject->valuestring, "PS512") == 0) {
+        verifyResult = VerifyRSASSAPSS("SHA512", joseStart, payloadEnd-joseStart,
+                         reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
       }
 /*
    | RS256        | RSASSA-PKCS1-v1_5 using       | Recommended        |
@@ -138,10 +178,14 @@ namespace Arc {
    |              | MGF1 with SHA-512             |                    |
 */
 
-      if(!verifyResult) return false;
+      if(!verifyResult) {
+        logger_.msg(DEBUG, "JWSE::Input: JWS: signature verification failed");
+        return false;
+      }
     } else {
       // JWE - not yet
       header_ = NULL;
+      logger_.msg(DEBUG, "JWSE::Input: JWE: not supported yet");
       return false;
     }      
     valid_ = true;

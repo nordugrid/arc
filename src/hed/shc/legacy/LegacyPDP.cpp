@@ -181,7 +181,7 @@ class LegacyPDPAttr: public Arc::SecAttr {
   virtual bool equal(const SecAttr &b) const;
   std::list<std::string> voms;
   std::list<std::string> vo;
-  std::list<std::string> scitokens;
+  std::list<std::string> scitokens; // 
 };
 
 LegacyPDPAttr::~LegacyPDPAttr(void) {

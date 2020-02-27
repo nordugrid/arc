@@ -329,6 +329,8 @@ namespace Arc {
 
     const MCCConfig cfg;
 
+    std::string scitoken;
+
     int timeout;
 
     std::string lfailure;

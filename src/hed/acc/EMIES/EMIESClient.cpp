@@ -57,29 +57,6 @@ namespace Arc {
 
   Logger EMIESClient::logger(Logger::rootLogger, "EMI ES Client");
 
-#ifdef USE_SCITOKENS
-  static std::string create_scitoken(const MCCConfig& cfg, const URL& url) {
-    bool is_file = cfg.credential.empty();
-    Arc::Credential cert(is_file ? ((!cfg.proxy.empty())?cfg.proxy:cfg.cert): cfg.credential, "", "", "", "", is_file);
-    if(cert.GetIdentityName().empty())
-      return "";
-    Arc::JWSE scitoken;
-    std::string certificateStr;
-    cert.OutputCertificate(certificateStr);
-    cert.OutputPrivatekey(certificateStr);
-    cert.OutputCertificateChain(certificateStr);
-    scitoken.Certificate(certificateStr.c_str());
-    scitoken.HeaderParameter(Arc::JWSE::HeaderNameIssuer, cert.GetCAName().c_str());
-    scitoken.HeaderParameter(Arc::JWSE::HeaderNameSubject, cert.GetIdentityName().c_str());
-    scitoken.HeaderParameter(Arc::JWSE::HeaderNameAudience, url.str().c_str());
-    std::string scitokenStr;
-    if(!scitoken.Output(scitokenStr))
-      return "";
-std::cerr<<"SCITOKEN: "<<scitokenStr<<std::endl;
-    return scitokenStr;
-  }
-#endif
-
   static void set_namespaces(NS& ns) {
     ns[ES_TYPES_NPREFIX]  = ES_TYPES_NAMESPACE;
     ns[ES_CREATE_NPREFIX] = ES_CREATE_NAMESPACE;
@@ -106,17 +83,23 @@ std::cerr<<"SCITOKEN: "<<scitokenStr<<std::endl;
     logger.msg(DEBUG, "Creating an EMI ES client");
 
 #ifdef USE_SCITOKENS
-    // TEST: removing credentials from HTTPS layer
-    MCCConfig temp_cfg(cfg);
-    temp_cfg.proxy.clear();
-    temp_cfg.cert.clear();
-    temp_cfg.key.clear();
-    temp_cfg.credential.clear();
+    scitoken = Arc::GetEnv("SCITOKEN");
+    std::cerr<<"SCITOKEN: "<<scitoken<<std::endl;
+    if(!scitoken.empty()) {
+      // removing credentials from HTTPS layer
+      MCCConfig temp_cfg(cfg);
+      temp_cfg.proxy.clear();
+      temp_cfg.cert.clear();
+      temp_cfg.key.clear();
+      temp_cfg.credential.clear();
+      client = new ClientSOAP(temp_cfg, url, timeout);
+    } else {
+      client = new ClientSOAP(cfg, url, timeout);
+    }
 #else
-    MCCConfig const& temp_cfg(cfg);
+    client = new ClientSOAP(cfg, url, timeout);
 #endif
 
-    client = new ClientSOAP(temp_cfg, url, timeout);
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
     set_namespaces(ns);
@@ -170,13 +153,8 @@ std::cerr<<"SCITOKEN: "<<scitokenStr<<std::endl;
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
-
-#ifdef USE_SCITOKENS
-    // Turn user credentials into scitoken and add it to request
-    std::string scitokenStr = create_scitoken(cfg, rurl);
-    if(!scitokenStr.empty())
-      attrout.set("HTTP:authorization", "bearer "+scitokenStr);
-#endif
+    if(!scitoken.empty())
+      attrout.set("HTTP:authorization", "bearer "+scitoken);
 
     if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
@@ -225,12 +203,8 @@ std::cerr<<"SCITOKEN: "<<scitokenStr<<std::endl;
     PayloadSOAP* resp = NULL;
   
     std::multimap<std::string,std::string> http_attr;
-#ifdef USE_SCITOKENS
-    // Turn user credentials into scitoken and add it to request
-    std::string scitokenStr = create_scitoken(cfg, rurl);
-    if(!scitokenStr.empty())
-      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+scitokenStr));
-#endif
+    if(!scitoken.empty())
+      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+scitoken));
 
     if (!client->process(http_attr, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());

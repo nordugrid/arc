@@ -38,6 +38,7 @@ struct scitokens_t {
   std::string subject;
   std::string issuer;
   std::string audience;
+  std::list<std::string> scopes;
 };
 
 class AuthUser {
@@ -123,7 +124,7 @@ class AuthUser {
   //void set(const char* s,STACK_OF(X509)* cred,const char* hostname = NULL);
   // Evaluate authentication rules
   AuthResult evaluate(const char* line);
-  const char* DN(void) const { return subject_.c_str(); };
+  const char* subject(void) const { return subject_.c_str(); };
   const char* proxy(void) const {
     (const_cast<AuthUser*>(this))->store_credentials();
     return filename.c_str();

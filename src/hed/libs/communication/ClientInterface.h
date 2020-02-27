@@ -114,7 +114,7 @@ namespace Arc {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual MCC_Status Load();
-    void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libname = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -215,7 +215,7 @@ namespace Arc {
     MCC* GetEntry() {
       return http_entry;
     }
-    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libname = "", const std::string& libpath = "");
     virtual MCC_Status Load();
     void RelativeURI(bool val) { relative_uri=val; };
     const URL& GetURL() const { return default_url; };
@@ -260,7 +260,7 @@ namespace Arc {
       return soap_entry;
     }
     /** Adds security handler to configuration of SOAP MCC */
-    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libname = "", const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
     virtual MCC_Status Load();
   protected:

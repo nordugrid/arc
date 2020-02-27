@@ -294,6 +294,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //  if(!s) break;
    //  logger.msg(VERBOSE, "Allowed cipher: %s",s);
    //};
+   if(!cfg.Hostname().empty()) {
+      if(!SSL_set_tlsext_host_name(ssl_, cfg.Hostname().c_str())) {
+         logger.msg(WARNING, "Faile to assign hostname extension");
+      };
+   };
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {

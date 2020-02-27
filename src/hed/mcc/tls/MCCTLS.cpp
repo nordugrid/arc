@@ -553,7 +553,10 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
         //    return MCC_Status();
         };
    };
-   outmsg.Payload(new PayloadTLSMCC(*stream_));
+   PayloadTLSMCC* tlsstream = new PayloadTLSMCC(*stream_);
+   outmsg.Payload(tlsstream);
+   if(tlsstream && !*tlsstream)
+      logger.msg(ERROR, "Failed to establish connection: %s", tlsstream->Failure().operator std::string());
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
    if(!ProcessSecHandlers(outmsg,"incoming")) {
@@ -571,6 +574,8 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
       if(stream_) delete stream_;
       stream_=NULL;
       stream_=new PayloadTLSMCC(next,config_,logger);
+      if(stream_ && !*stream_)
+         logger.msg(ERROR, "Failed to establish connection: %s", stream_->Failure().operator std::string());
    };
    MCC::Next(next,label);
 }

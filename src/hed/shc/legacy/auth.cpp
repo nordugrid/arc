@@ -132,18 +132,24 @@ AuthUser::AuthUser(Arc::Message& message):
   sattr = message_.Auth()->get("SCITOKENS");
   if(sattr) {
     scitokens_t scitokens;
-    scitokens.subject  = sattr->get("SUBJECT");
-    scitokens.issuer   = sattr->get("ISSUER");
-    scitokens.audience = sattr->get("AUDIENCE");
+    scitokens.subject  = sattr->get("sub");
+    scitokens.issuer   = sattr->get("iss");
+    scitokens.audience = sattr->get("aud");
+    Arc::tokenize(sattr->get("scope"), scitokens.scopes);
     scitokens_data_.push_back(scitokens);
+    if(subject_.empty())
+      subject_ = sattr->get("iss+sub");
   };
   sattr = message_.AuthContext()->get("SCITOKENS");
   if(sattr) {
     scitokens_t scitokens;
-    scitokens.subject  = sattr->get("SUBJECT");
-    scitokens.issuer   = sattr->get("ISSUER");
-    scitokens.audience = sattr->get("AUDIENCE");
+    scitokens.subject  = sattr->get("sub");
+    scitokens.issuer   = sattr->get("iss");
+    scitokens.audience = sattr->get("aud");
+    Arc::tokenize(sattr->get("scope"), scitokens.scopes);
     scitokens_data_.push_back(scitokens);
+    if(subject_.empty())
+      subject_ = sattr->get("iss+sub");
   };
 }
 
@@ -288,7 +294,7 @@ void AuthUser::subst(std::string& str) {
       if(i<(l-1)) {
         switch(str[i+1]) {
           case 'D': {
-            const char* s = DN();
+            const char* s = subject();
             int s_l = strlen(s);
             str.replace(i,2,s);
             i+=(s_l-2-1);

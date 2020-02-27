@@ -77,8 +77,8 @@ namespace Arc {
                                      const char *id) {
     XMLNode comp = chain["Component"];
     for (; (bool)comp; ++comp)
-      if ((comp.Attribute("name") == name) &&
-          (comp.Attribute("id") == id))
+      if ((!name || (comp.Attribute("name") == name)) &&
+          (!id || (comp.Attribute("id") == id)))
         return comp;
     return XMLNode();
   }
@@ -397,6 +397,12 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
+    // Pass information about protocol and hostname to TLS level
+    XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
+    if(compTLS) {
+      compTLS.NewChild("Hostname") = url.Host();
+      compTLS.NewChild("Protocol") = "http/1.1"; // educated guess
+    }
   }
 
   ClientHTTP::~ClientHTTP() {}

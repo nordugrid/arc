@@ -6,6 +6,7 @@
 #include <arc/Base64.h>
 #include <arc/StringConv.h>
 #include <arc/external/cJSON/cJSON.h>
+#include <arc/message/MCC.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
@@ -14,6 +15,7 @@
 
 #include "jwse.h"
 #include "jwse_private.h"
+#include "openid_metadata.h"
 
 
 static EVP_PKEY* X509_get_privkey(X509*) {
@@ -72,6 +74,7 @@ namespace Arc {
 
   char const * const JWSE::HeaderNameX509CertChain = "x5c";
   char const * const JWSE::HeaderNameJSONWebKey = "jwk";
+  char const * const JWSE::HeaderNameJSONWebKeyId = "kid";
 
   static void sk_x509_deallocate(STACK_OF(X509)* o) {
     sk_X509_pop_free(o, X509_free);
@@ -94,14 +97,17 @@ namespace Arc {
     std::string exponent = Base64::decodeURLSafe(exponentObject->valuestring);
     AutoPointer<RSA> rsaKey(RSA_new(),&RSA_free);
     if(!rsaKey) return NULL;
-    BIGNUM* n(NULL);
-    BIGNUM* e(NULL);
-    if((n = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), NULL)) == NULL) return NULL;
-    if((e = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), NULL)) == NULL) return NULL;
-    RSA_set0_key(rsaKey.Ptr(), n, e, NULL);
+    AutoPointer<BIGNUM> n(NULL,&BN_free);
+    AutoPointer<BIGNUM> e(NULL,&BN_free);
+    if(!(n = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), NULL))) return NULL;
+    if(!(e = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), NULL))) return NULL;
+    if(!RSA_set0_key(rsaKey.Ptr(), n.Ptr(), e.Ptr(), NULL)) return NULL;
+    n.Release();
+    e.Release();
     AutoPointer<EVP_PKEY> evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
     if(!evpKey) return NULL;
-    if(EVP_PKEY_set1_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return NULL;
+    if(EVP_PKEY_assign_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return NULL;
+    rsaKey.Release();
     return evpKey.Release();
   }
 
@@ -112,6 +118,7 @@ namespace Arc {
     if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) return NULL;
     std::string key = Base64::decodeURLSafe(keyObject->valuestring);
     // It looks like RFC does not define any "alg" values with "JWK" usage.
+    // TODO: finish implementing
     return NULL;
   }
 
@@ -139,14 +146,14 @@ namespace Arc {
   }
 
 
-  static bool jwkRSASerialize(cJSON* jwkObject, EVP_PKEY* key) {
+  static bool jwkRSASerialize(cJSON* jwkObject, EVP_PKEY const * key) {
     if(!key) return false;
-    RSA* rsaKey = EVP_PKEY_get0_RSA(key);
+    RSA const* rsaKey = EVP_PKEY_get0_RSA(const_cast<EVP_PKEY*>(key));
     if(!rsaKey) return false;
     BIGNUM const* n(NULL);
     BIGNUM const* e(NULL);
     BIGNUM const* d(NULL);
-    RSA_get0_key(rsaKey, &n, &e, &d);
+    RSA_get0_key(const_cast<RSA*>(rsaKey), &n, &e, &d);
     if((!n) || (!e)) return false;
 
     std::string modulus;
@@ -163,7 +170,7 @@ namespace Arc {
     return true;
   }
 
-  static cJSON* jwkSerialize(JWSEKeyHolder& keyHolder) {
+  static cJSON* jwkSerialize(JWSEKeyHolder const& keyHolder) {
     AutoPointer<cJSON> jwkObject(cJSON_CreateObject(), &cJSON_Delete);
     if(jwkRSASerialize(jwkObject.Ptr(), keyHolder.PublicKey())) {
       return jwkObject.Release();
@@ -210,8 +217,8 @@ namespace Arc {
     return true;
   }
 
-  static cJSON* x5cSerialize(JWSEKeyHolder& keyHolder) {
-    X509* cert = keyHolder.Certificate();
+  static cJSON* x5cSerialize(JWSEKeyHolder const& keyHolder) {
+    X509 const* cert = keyHolder.Certificate();
     if(!cert) return NULL;
     const STACK_OF(X509)* chain = keyHolder.CertificateChain();
 
@@ -219,7 +226,7 @@ namespace Arc {
     int certN = 0;
     while(true) {
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
-      if(!PEM_write_bio_X509(mem.Ptr(), cert))
+      if(!PEM_write_bio_X509(mem.Ptr(), const_cast<X509*>(cert)))
         return NULL;
       std::string certStr;
       std::string::size_type certStrSize = 0;
@@ -254,24 +261,54 @@ namespace Arc {
 
   bool JWSE::ExtractPublicKey() const {
     key_.Release();
-    AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
 
     // So far we are going to support only embedded keys - jwk and x5c
     cJSON* x5cObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameX509CertChain);
     cJSON* jwkObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameJSONWebKey);
+    cJSON* kidObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameJSONWebKeyId);
     if(x5cObject != NULL) {
+      AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
+      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: x5c key");
       if(x5cParse(x5cObject, *key)) {
-        key_ = key.Release();
+        key_ = key;
         return true;
       }
     } else if(jwkObject != NULL) {
+      AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
+      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: jwk key");
       if(jwkParse(jwkObject, *key)) {
-        key_ = key.Release();
+        key_ = key;
         return true;
       }
+    } else if(kidObject != NULL) {
+      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: external jwk key");
+      if(kidObject->type != cJSON_String)
+        return false;
+      // TODO: authority validation
+      cJSON* issuerObj = cJSON_GetObjectItem(content_.Ptr(), ClaimNameIssuer);
+      if(!issuerObj || (issuerObj->type != cJSON_String))
+        return false;
+      OpenIDMetadata serviceMetadata;
+      OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
+      if(!metadataFetcher.Fetch(serviceMetadata))
+        return false;
+      char const * jwksUri = serviceMetadata.JWKSURI();
+      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jwl key from %s", jwksUri);
+      JWSEKeyFetcher keyFetcher(jwksUri);
+      JWSEKeyHolderList keys;
+      if(!keyFetcher.Fetch(keys))
+        return false;
+      for(JWSEKeyHolderList::iterator keyIt = keys.begin(); keyIt != keys.end(); ++keyIt) {
+        if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
+          key_ = *keyIt;
+          return true;
+        }
+      }
     } else {
+      logger_.msg(ERROR, "JWSE::ExtractPublicKey: no supported key");
       return true; // No key - no processing
     };
+    logger_.msg(ERROR, "JWSE::ExtractPublicKey: key parsing error");
 
     return false;
   }
@@ -334,7 +371,6 @@ namespace Arc {
       }
       if(certN > 0) certificateChain_ = certchain.Release();
     }
-
   }
 
   JWSEKeyHolder::~JWSEKeyHolder() {
@@ -346,7 +382,15 @@ namespace Arc {
     certificateChain_ = NULL;
   }
 
-  EVP_PKEY* JWSEKeyHolder::PublicKey() {
+  char const* JWSEKeyHolder::Id() const {
+    return id_.c_str();
+  }
+
+  void JWSEKeyHolder::Id(char const* id) {
+    id_.assign(id ? id : "");
+  }
+
+  EVP_PKEY const* JWSEKeyHolder::PublicKey() const {
     return publicKey_;
   }
 
@@ -357,7 +401,7 @@ namespace Arc {
     certificate_ = NULL;
   }
 
-  EVP_PKEY* JWSEKeyHolder::PrivateKey() {
+  EVP_PKEY const* JWSEKeyHolder::PrivateKey() const {
     return privateKey_;
   }
 
@@ -368,7 +412,7 @@ namespace Arc {
     certificate_ = NULL;
   }
 
-  X509* JWSEKeyHolder::Certificate() {
+  X509 const* JWSEKeyHolder::Certificate() const {
     return certificate_;
   }
 
@@ -383,13 +427,52 @@ namespace Arc {
     certificate_ = certificate;
   }
 
-  STACK_OF(X509)* JWSEKeyHolder::CertificateChain() {
+  STACK_OF(X509) const* JWSEKeyHolder::CertificateChain() const {
     return certificateChain_;
   }
 
   void JWSEKeyHolder::CertificateChain(STACK_OF(X509)* certificateChain) {
     if(certificateChain_) sk_x509_deallocate(certificateChain_);
     certificateChain_ = certificateChain;
+  }
+
+
+  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url) : url_(endpoint_url), client_(Arc::MCCConfig(), url_) {
+  }
+
+  bool JWSEKeyFetcher::Fetch(JWSEKeyHolderList& keys) {
+    HTTPClientInfo info;
+    PayloadRaw request;
+    PayloadRawInterface* response(NULL);
+    MCC_Status status = client_.process("GET", &request, &info, &response);
+    if(!status)
+      return false;
+    if(!response)
+      return false;
+    if(!(response->Content()))
+      return false;
+    AutoPointer<cJSON> content(cJSON_Parse(response->Content()), &cJSON_Delete);
+    if(!content)
+      return false;
+    cJSON* keysObj = cJSON_GetObjectItem(content.Ptr(), "keys");
+    if(!keysObj || (keysObj->type != cJSON_Array))
+      return false;
+    for(int idx = 0; idx < cJSON_GetArraySize(keysObj); ++idx) {
+      cJSON* keyObj = cJSON_GetArrayItem(keysObj, idx);
+      if(!keyObj || (keyObj->type != cJSON_Object))
+        continue;
+      cJSON* kidObj = cJSON_GetObjectItem(keyObj, "kid");
+      std::string id;
+      if(kidObj && (kidObj->type == cJSON_String))
+        id.assign(kidObj->valuestring);
+      Arc::AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
+      if(!key) continue;
+      if(!jwkParse(keyObj, *key.Ptr()))
+        continue;
+      key->Id(id.c_str());
+      keys.add(key);
+    };
+    return true;
   }
 
 

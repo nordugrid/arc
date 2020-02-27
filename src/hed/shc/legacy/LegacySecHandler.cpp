@@ -160,7 +160,13 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
           vomss.push_back(fqan);
         };
       };
-      if((scitokens != NULL) &&(!scitokens->subject.empty())) scitokenss.push_back(scitokens->subject);
+      // We need something like fqan for tokens. Currently we only need to identify cleint.
+      // For that combination of subject and issuer is enough.
+      if(scitokens) {
+        if(!scitokens->subject.empty() && !scitokens->issuer.empty()) {
+          scitokenss.push_back(scitokens->issuer + "/" + scitokens->subject);
+        };
+      };
       sattr->AddGroup(*grp, vos, vomss, scitokenss);
     };
   };
