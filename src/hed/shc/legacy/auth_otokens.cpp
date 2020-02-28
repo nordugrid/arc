@@ -13,11 +13,11 @@
 
 namespace ArcSHCLegacy {
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserSciTokens");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserOTokens");
 
-AuthResult AuthUser::match_scitokens(const char* line) {
-  // No need to process anything if no SciTokens is present
-  if(scitokens_data_.empty()) return AAA_NO_MATCH;
+AuthResult AuthUser::match_otokens(const char* line) {
+  // No need to process anything if no OTokens is present
+  if(otokens_data_.empty()) return AAA_NO_MATCH;
   // parse line
   std::string subject("");
   std::string issuer("");
@@ -49,18 +49,18 @@ AuthResult AuthUser::match_scitokens(const char* line) {
   logger.msg(Arc::VERBOSE, "Rule: audience: %s", audience);
   logger.msg(Arc::VERBOSE, "Rule: scope: %s", scope);
   // analyse permissions
-  for(std::vector<struct scitokens_t>::iterator v = scitokens_data_.begin();v!=scitokens_data_.end();++v) {
+  for(std::vector<struct otokens_t>::iterator v = otokens_data_.begin();v!=otokens_data_.end();++v) {
     logger.msg(Arc::DEBUG, "Match issuer: %s", v->issuer);
     if((issuer == "*") || (issuer == v->issuer)) {
       if((subject == "*") || (subject == v->subject)) {
         if((audience == "*") || (audience == v->audience)) {
           if((scope == "*") || (std::find(v->scopes.begin(),v->scopes.end(),scope) != v->scopes.end())) {
             logger.msg(Arc::VERBOSE, "Matched: %s %s %s",v->subject,v->issuer,v->audience,scope);
-            default_scitokens_ = scitokens_t();
-            default_scitokens_.subject = v->subject;
-            default_scitokens_.issuer = v->issuer;
-            default_scitokens_.audience = v->audience;
-            if(scope != "*") default_scitokens_.scopes.push_back(scope);
+            default_otokens_ = otokens_t();
+            default_otokens_.subject = v->subject;
+            default_otokens_.issuer = v->issuer;
+            default_otokens_.audience = v->audience;
+            if(scope != "*") default_otokens_.scopes.push_back(scope);
             return AAA_POSITIVE_MATCH;
           };
         };

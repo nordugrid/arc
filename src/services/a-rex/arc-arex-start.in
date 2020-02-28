@@ -524,7 +524,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
-  <Plugins><Name>arcshcscitokens</Name></Plugins>
+  <Plugins><Name>arcshcotokens</Name></Plugins>
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -534,8 +534,8 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
-      <!-- Collect SciTokens information -->
-      <SecHandler name=\"scitokens.handler\" event=\"incoming\"/>
+      <!-- Collect OTokens information -->
+      <SecHandler name=\"otokens.handler\" event=\"incoming\"/>
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
@@ -587,7 +587,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
-  <Plugins><Name>arcshcscitokens</Name></Plugins>
+  <Plugins><Name>arcshcotokens</Name></Plugins>
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -605,8 +605,8 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
-      <!-- Collect SciTokens information -->
-      <SecHandler name=\"scitokens.handler\" event=\"incoming\"/>
+      <!-- Collect OTokens information -->
+      <SecHandler name=\"otokens.handler\" event=\"incoming\"/>
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>

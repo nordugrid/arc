@@ -10,11 +10,11 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/compute/Job.h>
 #include <arc/StringConv.h>
-#include <arc/scitokens/jwse.h>
+#include <arc/otokens/otokens.h>
 #include <arc/credential/Credential.h>
 #include "JobStateEMIES.h"
 
-#define USE_SCITOKENS 1
+#define USE_OTOKENS 1
 
 #include "EMIESClient.h"
 
@@ -82,10 +82,10 @@ namespace Arc {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
 
-#ifdef USE_SCITOKENS
-    scitoken = Arc::GetEnv("SCITOKEN");
-    std::cerr<<"SCITOKEN: "<<scitoken<<std::endl;
-    if(!scitoken.empty()) {
+#ifdef USE_OTOKENS
+    otoken = Arc::GetEnv("OTOKEN");
+    std::cerr<<"OTOKEN: "<<otoken<<std::endl;
+    if(!otoken.empty()) {
       // removing credentials from HTTPS layer
       MCCConfig temp_cfg(cfg);
       temp_cfg.proxy.clear();
@@ -153,8 +153,8 @@ namespace Arc {
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
-    if(!scitoken.empty())
-      attrout.set("HTTP:authorization", "bearer "+scitoken);
+    if(!otoken.empty())
+      attrout.set("HTTP:authorization", "bearer "+otoken);
 
     if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
@@ -203,8 +203,8 @@ namespace Arc {
     PayloadSOAP* resp = NULL;
   
     std::multimap<std::string,std::string> http_attr;
-    if(!scitoken.empty())
-      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+scitoken));
+    if(!otoken.empty())
+      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+otoken));
 
     if (!client->process(http_attr, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());

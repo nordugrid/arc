@@ -6,7 +6,7 @@
 #include <arc/external/cJSON/cJSON.h>
 #include <openssl/evp.h>
 
-#include "jwse.h"
+#include "otokens.h"
 #include "jwse_private.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L

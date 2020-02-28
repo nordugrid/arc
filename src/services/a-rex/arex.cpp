@@ -434,28 +434,8 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   if(grid_name.empty()) {
     // Try tokens if TLS has no information about user identity
-    logger_.msg(Arc::ERROR, "TLS provides no identity, going for SciTokens");
-    grid_name = inmsg.Attributes()->get("SCITOKENS:IDENTITYDN");
-    /*
-    // Check for matched tokens first
-    Arc::SecAttr* sattr = inmsg.Auth()->get("ARCLEGACYPDP");
-    if(sattr) grid_name = sattr->get("SCITOKENS");
-    if(grid_name.empty()) {
-      sattr = inmsg.AuthContext()->get("ARCLEGACYPDP");
-      if(sattr) grid_name = sattr->get("SCITOKENS");
-    };
-    logger_.msg(Arc::ERROR, "SciTokens identity from PDP: %s", grid_name);
-    // If PDP was not involved get information from token directly
-    if(grid_name.empty()) {
-      Arc::SecAttr* sattr = inmsg.Auth()->get("SCITOKENS");
-      if(sattr) grid_name = sattr->get("iss+sub");
-      if(grid_name.empty()) {
-        Arc::SecAttr* sattr = inmsg.AuthContext()->get("SCITOKENS");
-        if(sattr) grid_name = sattr->get("iss+sub");
-      };
-      logger_.msg(Arc::ERROR, "SciTokens identity from token: %s", grid_name);
-    };  
-    */
+    logger_.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
+    grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
   };
   std::string endpoint = endpoint_;
   if(endpoint.empty()) {

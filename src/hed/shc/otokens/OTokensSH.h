@@ -1,5 +1,5 @@
-#ifndef __ARC_SEC_SCITOKENSSH_H__
-#define __ARC_SEC_SCITOKENSSH_H__
+#ifndef __ARC_SEC_OTOKENSSH_H__
+#define __ARC_SEC_OTOKENSSH_H__
 
 #include <stdlib.h>
 
@@ -9,9 +9,9 @@
 
 namespace ArcSec {
 
-/// Adds SciTokens support in HTTP Header
+/// Adds OTokens support in HTTP Header
 
-class SciTokensSH : public SecHandler {
+class OTokensSH : public SecHandler {
  private:
   /*
   enum {
@@ -27,8 +27,8 @@ class SciTokensSH : public SecHandler {
   bool valid_;
 
  public:
-  SciTokensSH(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
-  virtual ~SciTokensSH(void);
+  OTokensSH(Arc::Config *cfg, Arc::ChainContext* ctx, Arc::PluginArgument* parg);
+  virtual ~OTokensSH(void);
   static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
   virtual SecHandlerStatus Handle(Arc::Message* msg) const;
   operator bool(void) { return valid_; };
@@ -37,5 +37,5 @@ class SciTokensSH : public SecHandler {
 
 } // namespace ArcSec
 
-#endif /* __ARC_SEC_SCITOKENSSH_H__ */
+#endif /* __ARC_SEC_OTOKENSSH_H__ */
 

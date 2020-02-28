@@ -9,7 +9,7 @@ debian/tmp/usr/lib/libarcdatastaging.so.*
 debian/tmp/usr/lib/libarcloader.so.*
 debian/tmp/usr/lib/libarcmessage.so.*
 debian/tmp/usr/lib/libarcsecurity.so.*
-debian/tmp/usr/lib/libarcscitokens.so.*
+debian/tmp/usr/lib/libarcotokens.so.*
 debian/tmp/usr/lib/libarcinfosys.so.*
 debian/tmp/usr/lib/libarcwsaddressing.so.*
 debian/tmp/usr/lib/libarcwssecurity.so.*

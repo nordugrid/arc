@@ -9,7 +9,7 @@ endif
 
 libarcshclegacy_la_SOURCES = auth_file.cpp auth_subject.cpp \
                              auth_plugin.cpp \
-                             auth_voms.cpp auth_scitokens.cpp auth.cpp auth.h \
+                             auth_voms.cpp auth_otokens.cpp auth.cpp auth.h \
                              simplemap.cpp simplemap.h \
                              unixmap_lcmaps.cpp unixmap.cpp unixmap.h \
                              ConfigParser.cpp ConfigParser.h \

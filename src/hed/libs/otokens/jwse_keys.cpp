@@ -13,7 +13,7 @@
 #include <openssl/rsa.h>
 #include <openssl/bn.h>
 
-#include "jwse.h"
+#include "otokens.h"
 #include "jwse_private.h"
 #include "openid_metadata.h"
 

@@ -146,11 +146,11 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
     for(std::list<std::string>::const_iterator grp = groups.begin(); grp != groups.end(); ++grp) {
       const char* vo = auth.get_group_vo(*grp);
       const voms_t* voms = auth.get_group_voms(*grp);
-      const scitokens_t* scitokens = auth.get_group_scitokens(*grp);
+      const otokens_t* otokens = auth.get_group_otokens(*grp);
       //std::string glid = auth.get_group_globalid(*grp);
       std::list<std::string> vos;
       std::list<std::string> vomss;
-      std::list<std::string> scitokenss;
+      std::list<std::string> otokenss;
       if((vo != NULL) && (*vo != '\0')) vos.push_back(vo);
       if(voms != NULL) {
         for(std::vector<voms_fqan_t>::const_iterator f = voms->fqans.begin();
@@ -162,12 +162,12 @@ ArcSec::SecHandlerStatus LegacySecHandler::Handle(Arc::Message* msg) const {
       };
       // We need something like fqan for tokens. Currently we only need to identify cleint.
       // For that combination of subject and issuer is enough.
-      if(scitokens) {
-        if(!scitokens->subject.empty() && !scitokens->issuer.empty()) {
-          scitokenss.push_back(scitokens->issuer + "/" + scitokens->subject);
+      if(otokens) {
+        if(!otokens->subject.empty() && !otokens->issuer.empty()) {
+          otokenss.push_back(otokens->issuer + "/" + otokens->subject);
         };
       };
-      sattr->AddGroup(*grp, vos, vomss, scitokenss);
+      sattr->AddGroup(*grp, vos, vomss, otokenss);
     };
   };
 

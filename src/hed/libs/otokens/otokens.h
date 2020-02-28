@@ -10,7 +10,7 @@ namespace Arc {
   class JWSEKeyHolder;
 
   //! Class for parsing, verifying and extracting information
-  //! from SciTokens (JWS or JWE encoded).
+  //! from Tokens (JWS or JWE encoded).
   class JWSE {
    public:
     static char const * const ClaimNameSubject;
@@ -25,22 +25,22 @@ namespace Arc {
     static char const * const HeaderNameAlgorithm;
     static char const * const HeaderNameEncryption;
 
-    //! Parse scitoken available as simple string.
-    //! Mostly to be used for scitokens embedded into something
+    //! Parse token available as simple string.
+    //! Mostly to be used for tokens embedded into something
     //! like HTTP header.
     JWSE(std::string const& jwseCompact);
 
-    //! Default contructor creates valid SciToken
+    //! Default contructor creates valid Token
     //! with empty information.
     JWSE();    
 
     //! Odinary destructor
     ~JWSE();
 
-    //! Returns true if object represents valid SciToken
+    //! Returns true if object represents valid Token
     operator bool() const { return valid_; }
 
-    //! Returns true if object does not represents valid SciToken
+    //! Returns true if object does not represents valid Token
     bool operator!() const { return !valid_; }
 
     //! Returns number of authorized activities
@@ -76,10 +76,10 @@ namespace Arc {
     //! Set specified claim to new value.
     void Claim(char const* name, char const* value);
 
-    //! Parses passed SciToken and stores collected information in this object.
+    //! Parses passed Token and stores collected information in this object.
     bool Input(std::string const& jwseCompact);
 
-    //! Serializes stored SciToken into string container.
+    //! Serializes stored Token into string container.
     bool Output(std::string& jwseCompact) const;
 
     //! Assigns certificate to use for signing

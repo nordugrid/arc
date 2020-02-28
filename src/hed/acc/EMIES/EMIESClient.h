@@ -329,7 +329,7 @@ namespace Arc {
 
     const MCCConfig cfg;
 
-    std::string scitoken;
+    std::string otoken;
 
     int timeout;
 

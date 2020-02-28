@@ -2192,7 +2192,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/delegation/test/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
-                 src/hed/libs/scitokens/Makefile
+                 src/hed/libs/otokens/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
@@ -2262,7 +2262,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/delegationsh/schema/Makefile
                  src/hed/shc/legacy/Makefile
                  src/hed/shc/legacy/schema/Makefile
-                 src/hed/shc/scitokens/Makefile
+                 src/hed/shc/otokens/Makefile
                  src/hed/identitymap/Makefile
                  src/hed/identitymap/schema/Makefile
                  src/libs/Makefile

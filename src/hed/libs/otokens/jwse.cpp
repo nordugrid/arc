@@ -8,7 +8,7 @@
 #include <arc/Logger.h>
 #include <arc/external/cJSON/cJSON.h>
 
-#include "jwse.h"
+#include "otokens.h"
 #include "jwse_private.h"
 
 
