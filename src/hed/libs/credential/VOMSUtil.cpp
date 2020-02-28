@@ -1528,12 +1528,12 @@ err:
       status |= VOMSACInfo::InternalParsingFailed;
       return false;
     }
-  
-    //Check AC's extension
-    if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
- 
+
     //Check AC's attribute    
     if(!checkAttributes(ac->acinfo->attrib, output, status)) res = false; // ??
+ 
+    //Check AC's extension
+    if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
 
     return res;
   }

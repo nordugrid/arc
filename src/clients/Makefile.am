@@ -35,3 +35,4 @@ bashcompletion_DATA = arc-client-tools
 
 EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA) $(BASH_COMPLETION_SOURCE)
 
+CLEANFILES = arc-client-tools

@@ -99,7 +99,9 @@ def get_parsed_arcconf(conf_f):
             return None
 
     if runconf_load:
-        if arcctl_runtime_config is not None:
+        if arcctl_runtime_config is None:
+            runconf_load = False
+        else:
             runconf_load = os.path.exists(arcctl_runtime_config)
     else:
         logger.debug('Custom ARC configuration file location is specified. Ignoring cached runtime configuration usage.')
@@ -125,9 +127,9 @@ def get_parsed_arcconf(conf_f):
         arcconfig.conf_f = conf_f
     except IOError:
         if arcctl_ce_mode():
-            logger.debug('arcctl is working in config-less mode relying on defaults only')
-        else:
             logger.error('Failed to open ARC configuration file %s', conf_f)
+        else:
+            logger.debug('arcctl is working in config-less mode relying on defaults only')
         arcconfig = None
     return arcconfig
 

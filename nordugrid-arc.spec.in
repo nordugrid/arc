@@ -17,20 +17,11 @@
 %if %{?suse_version:1}%{!?suse_version:0}
 %global glibmm2_devel  glibmm2-devel
 %global openldap_devel openldap2-devel
+%global nss_devel mozilla-nss-devel
 %else
 %global glibmm2_devel  glibmm24-devel
 %global openldap_devel openldap-devel
-%endif
-%if %{?fedora}%{!?fedora:5} > 4 && %{?suse_version:0}%{!?suse_version:1}
 %global nss_devel nss-devel
-%else
-%global nss_devel mozilla-nss-devel
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
-%global libuuid_devel libuuid-devel
-%else
-%global libuuid_devel e2fsprogs-devel
 %endif
 
 #
@@ -107,8 +98,6 @@
 %global with_ldns 0
 %endif
 
-%global pkgdir arc
-
 %if %{?fedora}%{!?fedora:0} >= 25 || %{?rhel}%{!?rhel:0} >= 7
 %global use_systemd 1
 %else
@@ -116,6 +105,8 @@
 %endif
 
 %global with_ldap_service 1
+
+%global pkgdir arc
 
 # bash-completion
 %global _bashcompdir %(pkg-config --variable=completionsdir bash-completion 2>/dev/null || echo %{_sysconfdir}/bash_completion.d)
@@ -304,11 +295,12 @@ BuildRequires:	sqlite-devel >= 3.6
 %if %{with_ldns}
 BuildRequires:	ldns-devel >= 1.6.8
 %endif
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-BuildRequires:	python-argparse
-%endif
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	pkgconfig(bash-completion)
+%endif
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+BuildRequires:	python-argparse
+Requires:	python-argparse
 %endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:	hostname
@@ -468,17 +460,13 @@ system and visualizes it.
 Summary:	ARC Control Tool
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
-BuildArch:	noarch
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-Requires:	python-argparse
-%endif
 
 %description arcctl
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the ARC Contol Tool with basic set of control
+This package contains the ARC Control Tool with basic set of control
 modules suitable for both server and client side.
 
 %package arex
@@ -486,38 +474,32 @@ Summary:	ARC Resource-coupled EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
-Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
-# remove older SDK package on update to 6.4
-%if %{py3default}
-Obsoletes:	python3-%{name} < 6.4.0
-%else
-Obsoletes:	python2-%{name} < 6.4.0
-%endif
+Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	perl(JSON::XS)
 Requires:	perl(XML::Simple)
 %if %{py3default}
-Requires:	python3-ldap
-Requires:	python3-isodate
 Requires:	python3-dirq
+Requires:	python3-isodate
+Requires:	python3-ldap
 Requires:	python3-stomppy
 %else
+Requires:	python-dirq
+Requires:	python-isodate
+Requires:	python-ldap
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
 %else
 Requires:	stomppy
 %endif
-Requires:	python-ldap
-Requires:	python-dirq
-Requires:	python-isodate
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
 Obsoletes:	%{name}-candypond < 6.0.0
 
-Requires(post):		%{name} = %{version}-%{release}
-Requires(preun):	%{name} = %{version}-%{release}
+Requires(post):		%{name}-arcctl = %{version}-%{release}
+Requires(preun):	%{name}-arcctl = %{version}-%{release}
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires(post):		hostname
 %else
@@ -547,7 +529,7 @@ Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-%{name} = %{version}-%{release}
+Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
 %else
 Requires:	python2-%{name} = %{version}-%{release}
 %endif
@@ -568,8 +550,8 @@ supported. It is released as a technology preview.
 Summary:	Community-defined RTEs support
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
-Requires:   %{name}-arcctl = %{version}-%{release}
-Requires:   gnupg2
+Requires:	%{name}-arcctl = %{version}-%{release}
+Requires:	gnupg2
 %if %{py3default}
 Requires:	python3-dns
 %else
@@ -581,7 +563,7 @@ NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-Community RTEs is the framework that allows to deploy software packages
+Community RTEs is the framework that allows deploying software packages
 (tarballs, containers, etc) provided by trusted communities to ARC CE
 using simple arcctl commands.
 It is released as a technology preview.
@@ -923,6 +905,9 @@ Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
+Requires:	python-argparse
+%endif
 %if %{py3default}
 Requires:	python3-dns
 Requires:	python3-ldap
@@ -1247,37 +1232,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
 
-%files arcctl
-%{_sbindir}/arcctl
-%if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
-%{python3_sitearch}/%{pkgdir}/control/__init__.py
-%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
-%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
-%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
-%{python3_sitearch}/%{pkgdir}/control/OSService.py
-%{python3_sitearch}/%{pkgdir}/control/TestCA.py
-%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
-%else
-%dir %{python2_sitearch}/%{pkgdir}/control
-%{python2_sitearch}/%{pkgdir}/control/__init__.py*
-%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
-%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
-%{python2_sitearch}/%{pkgdir}/control/OSService.py*
-%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
-%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
-%endif
-%doc %{_mandir}/man1/arcctl.1*
-
 %files client
 %defattr(-,root,root,-)
 %doc docdir/client.conf
@@ -1354,6 +1308,18 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %doc %{_mandir}/man8/gridftpd.8*
 
+%files datadelivery-service
+%defattr(-,root,root,-)
+%if %{use_systemd}
+%{_unitdir}/arc-datadelivery-service.service
+%else
+%{_initrddir}/arc-datadelivery-service
+%endif
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.so
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
+%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
+
 %if %{with_ldap_service}
 %files infosys-ldap
 %defattr(-,root,root,-)
@@ -1376,17 +1342,36 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/monitor
 %doc %{_mandir}/man7/monitor.7*
 
-%files datadelivery-service
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-datadelivery-service.service
+%files arcctl
+%{_sbindir}/arcctl
+%if %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}/control
+%{python3_sitearch}/%{pkgdir}/control/__init__.py
+%{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
+%{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
+%{python3_sitearch}/%{pkgdir}/control/OSPackage.py
+%{python3_sitearch}/%{pkgdir}/control/OSService.py
+%{python3_sitearch}/%{pkgdir}/control/TestCA.py
+%{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
+%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/CertificateGenerator.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
 %else
-%{_initrddir}/arc-datadelivery-service
+%dir %{python2_sitearch}/%{pkgdir}/control
+%{python2_sitearch}/%{pkgdir}/control/__init__.py*
+%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
+%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
+%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
+%{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
+%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
 %endif
-%{_libdir}/%{pkgdir}/libdatadeliveryservice.so
-%{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
-%{_datadir}/%{pkgdir}/arc-datadelivery-service-start
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
+%doc %{_mandir}/man1/arcctl.1*
 
 %files arex
 %defattr(-,root,root,-)
@@ -1554,59 +1539,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
-%if %{with_acix}
-%files acix-core
-%defattr(-,root,root,-)
-%if %{py3default}
-%dir %{python3_sitelib}/acix
-%{python3_sitelib}/acix/__init__.py
-%{python3_sitelib}/acix/__pycache__/__init__.*
-%{python3_sitelib}/acix/core
-%else
-%dir %{python2_sitelib}/acix
-%{python2_sitelib}/acix/__init__.py*
-%{python2_sitelib}/acix/core
-%endif
-
-%files acix-scanner
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/scanner
-%else
-%{python2_sitelib}/acix/scanner
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-scanner.service
-%else
-%{_initrddir}/arc-acix-scanner
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-scanner-start
-
-%files acix-index
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/indexserver
-%else
-%{python2_sitelib}/acix/indexserver
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-index.service
-%else
-%{_initrddir}/arc-acix-index
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-index-start
-%endif
-
-%files devel
-%defattr(-,root,root,-)
-%doc docdir/devel/* src/hed/shc/arcpdp/*.xsd
-%{_includedir}/%{pkgdir}
-%{_libdir}/lib*.so
-%{_bindir}/wsdl2hed
-%doc %{_mandir}/man1/wsdl2hed.1*
-%{_bindir}/arcplugin
-%doc %{_mandir}/man1/arcplugin.1*
-
 %files plugins-needed
 %defattr(-,root,root,-)
 %dir %{_libdir}/%{pkgdir}/test
@@ -1695,6 +1627,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_gfal}
 %files plugins-gfal
 %defattr(-,root,root,-)
+%dir %{_libdir}/%{pkgdir}/external
 %{_libdir}/%{pkgdir}/external/libdmcgfal.so
 %{_libdir}/%{pkgdir}/external/libdmcgfal.apd
 %{_libdir}/%{pkgdir}/libdmcgfaldeleg.so
@@ -1717,6 +1650,59 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
+
+%if %{with_acix}
+%files acix-core
+%defattr(-,root,root,-)
+%if %{py3default}
+%dir %{python3_sitelib}/acix
+%{python3_sitelib}/acix/__init__.py
+%{python3_sitelib}/acix/__pycache__/__init__.*
+%{python3_sitelib}/acix/core
+%else
+%dir %{python2_sitelib}/acix
+%{python2_sitelib}/acix/__init__.py*
+%{python2_sitelib}/acix/core
+%endif
+
+%files acix-scanner
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitelib}/acix/scanner
+%else
+%{python2_sitelib}/acix/scanner
+%endif
+%if %{use_systemd}
+%{_unitdir}/arc-acix-scanner.service
+%else
+%{_initrddir}/arc-acix-scanner
+%endif
+%{_datadir}/%{pkgdir}/arc-acix-scanner-start
+
+%files acix-index
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitelib}/acix/indexserver
+%else
+%{python2_sitelib}/acix/indexserver
+%endif
+%if %{use_systemd}
+%{_unitdir}/arc-acix-index.service
+%else
+%{_initrddir}/arc-acix-index
+%endif
+%{_datadir}/%{pkgdir}/arc-acix-index-start
+%endif
+
+%files devel
+%defattr(-,root,root,-)
+%doc docdir/devel/* src/hed/shc/arcpdp/*.xsd
+%{_includedir}/%{pkgdir}
+%{_libdir}/lib*.so
+%{_bindir}/wsdl2hed
+%doc %{_mandir}/man1/wsdl2hed.1*
+%{_bindir}/arcplugin
+%doc %{_mandir}/man1/arcplugin.1*
 
 %if %{with_python2}
 %files -n python2-%{name}

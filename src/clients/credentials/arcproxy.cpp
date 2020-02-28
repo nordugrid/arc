@@ -672,30 +672,38 @@ static int runmain(int argc, char *argv[]) {
         std::cout << "VO        : "<<voms_attributes[n].voname << std::endl;
         std::cout << "subject   : "<<voms_attributes[n].holder << std::endl;
         std::cout << "issuer    : "<<voms_attributes[n].issuer << std::endl;
-        bool found_uri = false;
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::string attr = voms_attributes[n].attributes[i];
           std::string::size_type pos;
           if((pos = attr.find("hostname=")) != std::string::npos) {
-            if(found_uri) continue;
-            std::string str = attr.substr(pos+9);
-            std::string::size_type pos1 = str.find("/");
-            if(pos1 != std::string::npos) str = str.substr(0, pos1);
-            std::cout << "uri       : " << str <<std::endl;
-            found_uri = true;
+            std::list<std::string> attr_elements;
+            Arc::tokenize(attr, attr_elements, "/");
+            // remove /voname= prefix
+            if ( ! attr_elements.empty() ) attr_elements.pop_front();
+            if ( attr_elements.empty() ) {
+              logger.msg(Arc::WARNING, "Malformed VOMS AC attribute %s", attr);
+              continue;
+            }
+            // policyAuthority (URI) and AC tags
+            if ( attr_elements.size() == 1 ) {
+              std::string uri = attr_elements.front().substr(9);
+              std::cout << "uri       : " << uri <<std::endl;
+            } else {
+              std::string fqan = "";
+              attr_elements.pop_front();
+              // tags rendering is not defined in GFD.182
+              // tags are assigned to members, groups and roles
+              // FQAN-based ARC rendering is used
+              while (! attr_elements.empty () ) {
+                fqan.append("/").append(attr_elements.front());
+                attr_elements.pop_front();
+              }
+              std::cout << "tag       : " << fqan <<std::endl;
+            }
           }
           else {
-            if(attr.find("Role=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Role=NULL/Capability=NULL" <<std::endl;
-            else if(attr.find("Capability=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Capability=NULL" <<std::endl;
-            else
-              std::cout << "attribute : " << attr <<std::endl;
-          }
-
-          if((pos = attr.find("Role=")) != std::string::npos) {
-            std::string str = attr.substr(pos+5);
-            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl;
+            // Short FQANs are GFD.182 compliant, no need to add Role=NULL
+            std::cout << "attribute : " << attr <<std::endl;
           }
 
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
