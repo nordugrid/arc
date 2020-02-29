@@ -7,6 +7,7 @@
 #include <arc/Base64.h>
 #include <arc/Logger.h>
 #include <arc/external/cJSON/cJSON.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include "otokens.h"
 #include "jwse_private.h"
@@ -28,6 +29,8 @@ namespace Arc {
   char const* const JWSE::HeaderNameEncryption = "enc";
 
   JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete) {
+    OpenSSLInit();
+
     header_ = cJSON_CreateObject();
     if(!header_)
       return;
@@ -41,6 +44,8 @@ namespace Arc {
   }
 
   JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL, &cJSON_Delete) {
+    OpenSSLInit();
+
     (void)Input(jwseCompact);
   }
 

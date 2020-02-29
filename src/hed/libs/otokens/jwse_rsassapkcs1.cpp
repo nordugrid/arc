@@ -5,6 +5,10 @@
 #include <arc/Utils.h>
 #include <arc/external/cJSON/cJSON.h>
 #include <openssl/evp.h>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
 
 #include "otokens.h"
 #include "jwse_private.h"

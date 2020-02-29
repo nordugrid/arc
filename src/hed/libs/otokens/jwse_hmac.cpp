@@ -38,7 +38,7 @@ namespace Arc {
       return false;
     }
     rc = 0;
-    for(int n = 0; n < signatureSize; ++n) rc |= (reinterpret_cast<unsigned char const*>(signature))[n] ^ buffer.Ptr()[n];
+    for(unsigned int n = 0; n < signatureSize; ++n) rc |= (reinterpret_cast<unsigned char const*>(signature))[n] ^ buffer.Ptr()[n];
     std::memset(buffer.Ptr(), 0, signatureSize);
     if(rc != 1) return false;
     return true;
