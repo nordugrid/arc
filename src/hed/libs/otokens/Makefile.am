@@ -13,6 +13,9 @@ libarcotokens_la_CXXFLAGS = -I$(top_srcdir)/include $(OPENSSL_CFLAGS) $(LIBXML2_
 libarcotokens_la_LIBADD = \
         $(top_builddir)/src/external/cJSON/libcjson.la \
         $(top_builddir)/src/hed/libs/common/libarccommon.la \
+        $(top_builddir)/src/hed/libs/message/libarcmessage.la \
+        $(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
         $(top_builddir)/src/hed/libs/communication/libarccommunication.la \
         $(OPENSSL_LIBS) $(GLIBMM_LIBS) $(LIBINTL)
 libarcotokens_la_LDFLAGS = -version-info 3:0:0
+
