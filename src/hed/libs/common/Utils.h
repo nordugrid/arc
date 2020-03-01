@@ -97,7 +97,17 @@ namespace Arc {
     void (*deleter)(T*);
     static void DefaultDeleter(T* o) { delete o; }
     void operator=(const AutoPointer<T>&);
+#if __cplusplus >= 201103L
+  private:
     AutoPointer(AutoPointer<T> const&);
+#else
+  // Workaround for older gcc which does not implement construction
+  // of new elements in std::list according to specification.
+  public: 
+    AutoPointer(AutoPointer<T> const& o) {
+      operator=(const_cast<AutoPointer<T>&>(o));
+    }
+#endif
   public:
     /// NULL pointer constructor
     AutoPointer(void (*d)(T*) = &DefaultDeleter)
@@ -265,4 +275,4 @@ namespace Arc {
 
 } // namespace Arc
 
-# endif // __ARC_UTILS_H__
+#endif // __ARC_UTILS_H__
