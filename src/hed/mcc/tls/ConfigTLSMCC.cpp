@@ -213,11 +213,13 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
+#if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
   if(!protocols_.empty()) {
     if(SSL_CTX_set_alpn_protos(sslctx, (unsigned char const *)protocols_.c_str(), (unsigned int)protocols_.length()) != 0) {
       // TODO: add warning message
     };
   };
+#endif
   return true;
 }
 
