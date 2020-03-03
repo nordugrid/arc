@@ -6,7 +6,8 @@
 #include <arc/external/cJSON/cJSON.h>
 #include <openssl/evp.h>
 
-#include "jwse.h"
+#include "otokens.h"
+#include "jwse_private.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define EVP_MD_CTX_new EVP_MD_CTX_create
@@ -37,7 +38,7 @@ namespace Arc {
       return false;
     }
     rc = 0;
-    for(int n = 0; n < signatureSize; ++n) rc |= (reinterpret_cast<unsigned char const*>(signature))[n] ^ buffer.Ptr()[n];
+    for(unsigned int n = 0; n < signatureSize; ++n) rc |= (reinterpret_cast<unsigned char const*>(signature))[n] ^ buffer.Ptr()[n];
     std::memset(buffer.Ptr(), 0, signatureSize);
     if(rc != 1) return false;
     return true;

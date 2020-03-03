@@ -1187,7 +1187,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*
-%{_libdir}/libarcscitokens.so.*
+%{_libdir}/libarcotokens.so.*
 %{_libdir}/libarcinfosys.so.*
 %{_libdir}/libarcwsaddressing.so.*
 %{_libdir}/libarcwssecurity.so.*
@@ -1552,6 +1552,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccLDAP.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
+%{_libdir}/%{pkgdir}/libarcshcotokens.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libdmcldap.so
@@ -1575,6 +1576,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccLDAP.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
+%{_libdir}/%{pkgdir}/libarcshcotokens.apd
 %{_libdir}/%{pkgdir}/libdmcfile.apd
 %{_libdir}/%{pkgdir}/libdmchttp.apd
 %{_libdir}/%{pkgdir}/libdmcldap.apd

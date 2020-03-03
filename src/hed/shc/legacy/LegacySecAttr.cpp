@@ -102,10 +102,21 @@ const std::list<std::string>& LegacySecAttr::GetGroupVOMS(const std::string& gro
   return empty_list;
 }
 
-void LegacySecAttr::AddGroup(const std::string& group, const std::list<std::string>& vo, const std::list<std::string>& voms) {
+const std::list<std::string>& LegacySecAttr::GetGroupOtokens(const std::string& group) const {
+  std::list< std::list<std::string> >::const_iterator otokens = groupsOtokens_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(otokens == groupsOtokens_.end()) break;
+    if(*grp == group) return *otokens;
+    ++otokens;
+  };
+  return empty_list;
+}
+
+void LegacySecAttr::AddGroup(const std::string& group, const std::list<std::string>& vo, const std::list<std::string>& voms, const std::list<std::string>& otokens) {
   groups_.push_back(group);
   groupsVO_.push_back(vo);
   groupsVOMS_.push_back(voms);
+  groupsOtokens_.push_back(otokens);
 }
 
 

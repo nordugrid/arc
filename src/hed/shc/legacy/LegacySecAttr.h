@@ -26,10 +26,12 @@ class LegacySecAttr: public Arc::SecAttr {
   // Specific interface
   void AddGroup(const std::string& group,
                 const std::list<std::string>& vo,
-                const std::list<std::string>& voms);
+                const std::list<std::string>& voms,
+                const std::list<std::string>& otokens);
   const std::list<std::string> GetGroups(void) const { return groups_; };
   const std::list<std::string>& GetGroupVO(const std::string& group) const;
   const std::list<std::string>& GetGroupVOMS(const std::string& group) const;
+  const std::list<std::string>& GetGroupOtokens(const std::string& group) const;
   void AddVO(const std::string& vo) { VOs_.push_back(vo); };
   const std::list<std::string> GetVOs(void) const { return VOs_; };
 
@@ -39,6 +41,7 @@ class LegacySecAttr: public Arc::SecAttr {
   std::list<std::string> VOs_;
   std::list< std::list<std::string> > groupsVO_; // synchronized with groups_
   std::list< std::list<std::string> > groupsVOMS_; // synchronized with groups_
+  std::list< std::list<std::string> > groupsOtokens_; // synchronized with otokens_
   virtual bool equal(const SecAttr &b) const;
 };
 

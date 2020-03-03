@@ -432,6 +432,11 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   };
   logger_.msg(Arc::DEBUG,"Using local account '%s'",uname);
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
+  if(grid_name.empty()) {
+    // Try tokens if TLS has no information about user identity
+    logger_.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
+    grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
+  };
   std::string endpoint = endpoint_;
   if(endpoint.empty()) {
     std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
