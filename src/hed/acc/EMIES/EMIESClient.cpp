@@ -83,7 +83,7 @@ namespace Arc {
     logger.msg(DEBUG, "Creating an EMI ES client");
 
 #ifdef USE_OTOKENS
-    otoken = Arc::GetEnv("OTOKEN");
+    otoken = Arc::GetEnv("ARC_OTOKEN");
     std::cerr<<"OTOKEN: "<<otoken<<std::endl;
     if(!otoken.empty()) {
       // removing credentials from HTTPS layer
