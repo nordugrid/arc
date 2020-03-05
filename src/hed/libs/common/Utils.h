@@ -95,9 +95,19 @@ namespace Arc {
   private:
     T *object;
     void (*deleter)(T*);
-    void operator=(const AutoPointer<T>&);
-    AutoPointer(const AutoPointer&);
     static void DefaultDeleter(T* o) { delete o; }
+    void operator=(const AutoPointer<T>&);
+#if __cplusplus >= 201103L
+  private:
+    AutoPointer(AutoPointer<T> const&);
+#else
+  // Workaround for older gcc which does not implement construction
+  // of new elements in std::list according to specification.
+  public: 
+    AutoPointer(AutoPointer<T> const& o) {
+      operator=(const_cast<AutoPointer<T>&>(o));
+    }
+#endif
   public:
     /// NULL pointer constructor
     AutoPointer(void (*d)(T*) = &DefaultDeleter)
@@ -105,13 +115,24 @@ namespace Arc {
     /// Constructor which wraps pointer and optionally defines deletion function
     AutoPointer(T *o, void (*d)(T*) = &DefaultDeleter)
       : object(o), deleter(d) {}
+    /// Moving constructor
+    AutoPointer(AutoPointer<T>& o)
+      : object(o.Release()), deleter(o.deleter) {}
     /// Destructor destroys wrapped object using assigned deleter
     ~AutoPointer(void) {
       if (object) if(deleter) (*deleter)(object);
+      object = NULL;
     }
-    void operator=(T* o) {
+    AutoPointer<T>& operator=(T* o) {
       if (object) if(deleter) (*deleter)(object);
       object = o; 
+      return *this;
+    }
+    AutoPointer<T>& operator=(AutoPointer<T>& o) {
+      if (object) if(deleter) (*deleter)(object);
+      object = o.object; 
+      o.object = NULL;
+      return *this;
     }
     /// For referring wrapped object
     T& operator*(void) const {
@@ -254,4 +275,4 @@ namespace Arc {
 
 } // namespace Arc
 
-# endif // __ARC_UTILS_H__
+#endif // __ARC_UTILS_H__

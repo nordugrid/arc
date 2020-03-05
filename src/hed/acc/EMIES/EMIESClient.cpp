@@ -10,7 +10,11 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/compute/Job.h>
 #include <arc/StringConv.h>
+#include <arc/otokens/otokens.h>
+#include <arc/credential/Credential.h>
 #include "JobStateEMIES.h"
+
+#define USE_OTOKENS 1
 
 #include "EMIESClient.h"
 
@@ -77,7 +81,25 @@ namespace Arc {
       soapfault(false) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
+
+#ifdef USE_OTOKENS
+    otoken = Arc::GetEnv("ARC_OTOKEN");
+    std::cerr<<"OTOKEN: "<<otoken<<std::endl;
+    if(!otoken.empty()) {
+      // removing credentials from HTTPS layer
+      MCCConfig temp_cfg(cfg);
+      temp_cfg.proxy.clear();
+      temp_cfg.cert.clear();
+      temp_cfg.key.clear();
+      temp_cfg.credential.clear();
+      client = new ClientSOAP(temp_cfg, url, timeout);
+    } else {
+      client = new ClientSOAP(cfg, url, timeout);
+    }
+#else
     client = new ClientSOAP(cfg, url, timeout);
+#endif
+
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
     set_namespaces(ns);
@@ -98,7 +120,7 @@ namespace Arc {
   }
 
   std::string EMIESClient::dodelegation(const std::string& renew_id) {
-    DelegationProviderSOAP* deleg;
+    DelegationProviderSOAP* deleg(NULL);
     if (!cfg.credential.empty()) {
       deleg = new DelegationProviderSOAP(cfg.credential);
     }
@@ -131,6 +153,9 @@ namespace Arc {
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
+    if(!otoken.empty())
+      attrout.set("HTTP:authorization", "bearer "+otoken);
+
     if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
       lfailure = "Failed to initiate delegation credentials";
@@ -176,7 +201,12 @@ namespace Arc {
     std::string action = req.Child(0).Name();
 
     PayloadSOAP* resp = NULL;
-    if (!client->process(&req, &resp)) {
+  
+    std::multimap<std::string,std::string> http_attr;
+    if(!otoken.empty())
+      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+otoken));
+
+    if (!client->process(http_attr, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
       lfailure = "Failed processing request";
       delete client; client = NULL;

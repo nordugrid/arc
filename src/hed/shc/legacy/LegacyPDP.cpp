@@ -161,8 +161,10 @@ LegacyPDP::~LegacyPDP() {
 class LegacyPDPAttr: public Arc::SecAttr {
  public:
   LegacyPDPAttr(bool decision):decision_(decision) { };
-  LegacyPDPAttr(bool decision, const std::list<std::string>& mvoms, const std::list<std::string>& mvo):
-        decision_(decision), voms(mvoms), vo(mvo) { };
+  LegacyPDPAttr(bool decision, const std::list<std::string>& mvoms,
+                               const std::list<std::string>& mvo,
+                               const std::list<std::string>& motokens):
+        decision_(decision), voms(mvoms), vo(mvo), otokens(motokens) { };
   virtual ~LegacyPDPAttr(void);
 
   // Common interface
@@ -179,6 +181,7 @@ class LegacyPDPAttr: public Arc::SecAttr {
   virtual bool equal(const SecAttr &b) const;
   std::list<std::string> voms;
   std::list<std::string> vo;
+  std::list<std::string> otokens; // 
 };
 
 LegacyPDPAttr::~LegacyPDPAttr(void) {
@@ -197,6 +200,8 @@ std::string LegacyPDPAttr::get(const std::string& id) const {
     if(!voms.empty()) return *voms.begin();
   } else if(id == "VO") {
     if(!vo.empty()) return *vo.begin();
+  } else if(id == "OTOKENS") {
+    if(!otokens.empty()) return *otokens.begin();
   }
   return "";
 }
@@ -204,6 +209,7 @@ std::string LegacyPDPAttr::get(const std::string& id) const {
 std::list<std::string> LegacyPDPAttr::getAll(const std::string& id) const {
   if(id == "VOMS") return voms;
   if(id == "VO") return vo;
+  if(id == "OTOKENS") return otokens;
   return std::list<std::string>();
 }
 
@@ -246,13 +252,15 @@ ArcSec::PDPStatus LegacyPDP::isPermitted(Arc::Message *msg) const {
     decision = true;
     const std::list<std::string>& matched_voms = lattr->GetGroupVOMS(match);
     const std::list<std::string>& matched_vo = lattr->GetGroupVO(match);
-    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo));
+    const std::list<std::string>& matched_otokens = lattr->GetGroupOtokens(match);
+    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo, matched_otokens));
   } else if(match_lists(vos_,vos,match,logger)) {
     decision = true;
     const std::list<std::string> matched_voms;
+    const std::list<std::string> matched_otokens;
     std::list<std::string> matched_vo;
     matched_vo.push_back(match);
-    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo));
+    msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision, matched_voms, matched_vo, matched_otokens));
   } else {
     msg->AuthContext()->set(attrname_,new LegacyPDPAttr(decision));
   };

@@ -77,8 +77,8 @@ namespace Arc {
                                      const char *id) {
     XMLNode comp = chain["Component"];
     for (; (bool)comp; ++comp)
-      if ((comp.Attribute("name") == name) &&
-          (comp.Attribute("id") == id))
+      if ((!name || (comp.Attribute("name") == name)) &&
+          (!id || (comp.Attribute("id") == id)))
         return comp;
     return XMLNode();
   }
@@ -397,6 +397,12 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
+    // Pass information about protocol and hostname to TLS level
+    XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
+    if(compTLS) {
+      compTLS.NewChild("Hostname") = url.Host();
+      compTLS.NewChild("Protocol") = "http/1.1"; // educated guess
+    }
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -476,6 +482,16 @@ namespace Arc {
     return r;
   }
 
+
+  static void HTTPAttributesToMessage(std::multimap<std::string, std::string> const& attributes, Message& msg) {
+    std::multimap<std::string, std::string>::const_iterator it;
+    for (it = attributes.begin(); it != attributes.end(); it++) {
+      std::string key("HTTP:");
+      key.append((*it).first);
+      msg.Attributes()->add(key, (*it).second);
+    }
+  }
+
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
                          std::multimap<std::string, std::string>& attributes,
@@ -525,12 +541,8 @@ namespace Arc {
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" +
                                tostring(range_start) + "-");
     }
-    std::map<std::string, std::string>::iterator it;
-    for (it = attributes.begin(); it != attributes.end(); it++) {
-      std::string key("HTTP:");
-      key.append((*it).first);
-      reqmsg.Attributes()->add(key, (*it).second);
-    }
+    HTTPAttributesToMessage(attributes, reqmsg);
+
     r = http_entry->process(reqmsg, repmsg);
     if(!r) {
       if (repmsg.Payload() != NULL) delete repmsg.Payload();
@@ -705,6 +717,12 @@ namespace Arc {
 
   MCC_Status ClientSOAP::process(PayloadSOAP *request,
                                  PayloadSOAP **response) {
+    return process(std::multimap<std::string, std::string>(), request, response);
+  }
+
+  MCC_Status ClientSOAP::process(const std::multimap<std::string, std::string> &http_attr,
+                                 PayloadSOAP *request,
+                                 PayloadSOAP **response) {
     *response = NULL;
     MCC_Status r;
     if(!(r=Load())) return r;
@@ -718,6 +736,7 @@ namespace Arc {
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
+    HTTPAttributesToMessage(http_attr, reqmsg);
     r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
@@ -731,6 +750,13 @@ namespace Arc {
   }
 
   MCC_Status ClientSOAP::process(const std::string& action,
+                                 PayloadSOAP *request,
+                                 PayloadSOAP **response) {
+    return process(std::multimap<std::string, std::string>(), action, request, response);
+  }
+
+  MCC_Status ClientSOAP::process(const std::multimap<std::string, std::string> &http_attr,
+                                 const std::string& action,
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
@@ -747,6 +773,7 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     attributes_req.set("SOAP:ACTION", action);
+    HTTPAttributesToMessage(http_attr, reqmsg);
     r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
