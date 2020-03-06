@@ -128,6 +128,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libarccommon3 (= ${binary:Version}),
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  nordugrid-arc-plugins-gridftp (= ${binary:Version}),
  lsb-base (>= 3.0-6)
 Description: ARC GridFTP server
@@ -146,6 +147,7 @@ Depends:
  ${misc:Depends},
  libarccommon3 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  lsb-base (>= 3.0-6)
 Description: ARC data delivery service
@@ -228,6 +230,24 @@ Description: ARC Resource-coupled EXecution service
  This package contains the ARC Control Tool with basic set of control
  modules suitable for both server and client side.
 
+Package: nordugrid-arc-arcctl-service
+Architecture: any
+Depends:
+ ${python:Depends},
+ ${python3:Depends},
+ libarccommon3 (>= ${source:Version}),
+ nordugrid-arc-arcctl (= ${source:Version}),
+ ${pydeps:Depends},
+ lsb-base (>= 3.0-6)
+XB-Python-Version: ${python:Versions}
+Description: ARC Resource-coupled EXecution service
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the service control modules for ARC Contol Tool
+ that allow to work with server-side config and manage ARC services.
+
 Package: nordugrid-arc-arex
 Provides:
  nordugrid-arc-cache-service,
@@ -255,6 +275,7 @@ Depends:
  libarccommon3 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
  nordugrid-arc-arcctl (= ${source:Version}),
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
@@ -485,6 +506,7 @@ Depends:
  ${python3:Depends},
  libarccommon3 (>= ${source:Version}),
  nordugrid-arc-acix-core (= ${source:Version}),
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - scanner server
@@ -504,6 +526,7 @@ Depends:
  ${python3:Depends},
  libarccommon3 (>= ${source:Version}),
  nordugrid-arc-acix-core (= ${source:Version}),
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
 Description: ARC cache index - index server

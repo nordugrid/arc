@@ -2,7 +2,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/control/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/CertificateGenerator.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ControlCommon.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSPackage.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSService.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/TestCA.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ThirdPartyDeployment.py*
 

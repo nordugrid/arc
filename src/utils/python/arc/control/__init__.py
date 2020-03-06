@@ -15,7 +15,7 @@ CTL_COMPONENTS = [
 ]
 
 #
-# arcctl controllers for A-REX
+# arcctl controllers for ARC services
 #
 
 # arcctl config
@@ -33,6 +33,10 @@ except ImportError:
     pass
 else:
     CTL_COMPONENTS.append(ServicesControl)
+
+#
+# arcctl controllers for A-REX
+#
 
 # arcctl rte
 try:
