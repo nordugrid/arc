@@ -52,7 +52,9 @@ class ThirdPartyControl(ComponentControl):
                 self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
             sys.exit(1)
         # get response
-        rcontent = response.read().decode('utf-8')
+        rcontent = response.read()
+        if not isinstance(rcontent, str):
+            rcontent = rcontent.decode('utf-8', 'ignore')
         if not rcontent.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
@@ -134,7 +136,9 @@ class ThirdPartyControl(ComponentControl):
                                       'Error code %s (%s)', str(response.status), str(response.reason))
                     sys.exit(1)
                 # get response
-                rcontent = response.read().decode('utf-8')
+                rcontent = response.read()
+                if not isinstance(rcontent, str):
+                    rcontent = rcontent.decode('utf-8', 'ignore')
                 conn.close()
         else:
             try:
@@ -155,7 +159,9 @@ class ThirdPartyControl(ComponentControl):
                 sys.exit(1)
             else:
                 # get response
-                rcontent = response.read().decode('utf-8')
+                rcontent = response.read()
+                if not isinstance(rcontent, str):
+                    rcontent = rcontent.decode('utf-8', 'ignore')
 
         # parse vomses from the response
         _re_vomses_header = re.compile(r'VOMSES')
