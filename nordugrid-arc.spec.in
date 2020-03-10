@@ -254,10 +254,15 @@ BuildRequires:	db4-devel
 %endif
 %endif
 %endif
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0}
+BuildRequires:	perl-generators
+%endif
 # Needed for Boinc backend testing during make check
 BuildRequires:	perl(DBI)
 # Needed for infoprovider testing during make check
+BuildRequires:	perl(English)
 BuildRequires:	perl(JSON::XS)
+BuildRequires:	perl(Sys::Hostname)
 BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
 BuildRequires:	perl(Test::Harness)
@@ -495,8 +500,6 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
-Requires:	perl(JSON::XS)
-Requires:	perl(XML::Simple)
 %if %{py3default}
 Requires:	python3-dirq
 Requires:	python3-isodate
@@ -888,7 +891,6 @@ Python 3 bindings for ARC.
 Summary:	ARC's nordugridmap tool
 Group:		Applications/Internet
 Requires:	perl(Crypt::SSLeay)
-Requires:	perl(SOAP::Lite)
 Requires:	perl(Crypt::OpenSSL::X509)
 Requires:	crontabs
 Obsoletes:	%{name}-gridmap-utils < 6.0.0
