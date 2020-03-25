@@ -9,11 +9,11 @@ from arc.utils import config
 logger = logging.getLogger('ARCCTL.Common')
 
 try:
-    from .CECommon import *
+    from .ServiceCommon import *
 except ImportError:
     arcctl_runtime_config = None
 
-    def arcctl_ce_mode():
+    def arcctl_server_mode():
         return False
 
     def remove_runtime_config():
@@ -94,7 +94,7 @@ def get_parsed_arcconf(conf_f):
                            'Using /etc/arc.conf that exists.', def_conf_f)
             runconf_load = True
         else:
-            if arcctl_ce_mode():
+            if arcctl_server_mode():
                 logger.error('Cannot find ARC configuration file in the default location.')
             return None
 
@@ -126,7 +126,7 @@ def get_parsed_arcconf(conf_f):
         arcconfig = config
         arcconfig.conf_f = conf_f
     except IOError:
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             logger.error('Failed to open ARC configuration file %s', conf_f)
         else:
             logger.debug('arcctl is working in config-less mode relying on defaults only')

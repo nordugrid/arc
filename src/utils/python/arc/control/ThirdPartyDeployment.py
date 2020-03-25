@@ -28,7 +28,7 @@ class ThirdPartyControl(ComponentControl):
         self.x509_cert_dir = '/etc/grid-security/certificates'
         self.arcconfig = arcconfig
         if arcconfig is None:
-            if arcctl_ce_mode():
+            if arcctl_server_mode():
                 self.logger.debug('Working in config-less mode. Default paths will be used.')
             else:
                 self.logger.info('Failed to parse arc.conf, using default CA certificates path')
@@ -52,7 +52,9 @@ class ThirdPartyControl(ComponentControl):
                 self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
             sys.exit(1)
         # get response
-        rcontent = response.read().decode('utf-8')
+        rcontent = response.read()
+        if not isinstance(rcontent, str):
+            rcontent = rcontent.decode('utf-8', 'ignore')
         if not rcontent.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
@@ -63,7 +65,7 @@ class ThirdPartyControl(ComponentControl):
         vomslsc = {}
         xml = self.__egi_get_voms_xml(vo)
         # parse XML
-        for voms in xml.iter('VOMS_Server'):
+        for voms in xml.findall('.//VOMS_Server'):
             host = voms.find('hostname').text
             dn = voms.find('X509Cert/DN').text
             ca = voms.find('X509Cert/CA_DN').text
@@ -73,7 +75,7 @@ class ThirdPartyControl(ComponentControl):
     def __egi_get_vomses(self, vo):
         vomses = []
         xml = self.__egi_get_voms_xml(vo)
-        for voms in xml.iter('VOMS_Server'):
+        for voms in xml.findall('.//VOMS_Server'):
             port = None
             if 'VomsesPort' in voms.attrib:
                 port = voms.attrib['VomsesPort']
@@ -134,7 +136,9 @@ class ThirdPartyControl(ComponentControl):
                                       'Error code %s (%s)', str(response.status), str(response.reason))
                     sys.exit(1)
                 # get response
-                rcontent = response.read().decode('utf-8')
+                rcontent = response.read()
+                if not isinstance(rcontent, str):
+                    rcontent = rcontent.decode('utf-8', 'ignore')
                 conn.close()
         else:
             try:
@@ -155,7 +159,9 @@ class ThirdPartyControl(ComponentControl):
                 sys.exit(1)
             else:
                 # get response
-                rcontent = response.read().decode('utf-8')
+                rcontent = response.read()
+                if not isinstance(rcontent, str):
+                    rcontent = rcontent.decode('utf-8', 'ignore')
 
         # parse vomses from the response
         _re_vomses_header = re.compile(r'VOMSES')
@@ -530,7 +536,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
                                      help='Use Python SSL module to establish TLS connection '
                                           '(default is to call external OpenSSL binary)')
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')
             iptables.add_argument('--any-state', action='store_true',

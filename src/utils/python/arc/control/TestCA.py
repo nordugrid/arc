@@ -50,7 +50,7 @@ class TestCAControl(ComponentControl):
         # Use values from arc.conf if possible
         self.arcconfig = arcconfig
         if arcconfig is None:
-            if arcctl_ce_mode():
+            if arcctl_server_mode():
                 self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
             else:
                 self.logger.debug('Working in config-less mode. Default paths will be used.')
@@ -253,7 +253,7 @@ class TestCAControl(ComponentControl):
                         usercertfiles.keyLocation,
                         os.getcwd()))
         # add subject to allowed list
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             if not args.no_auth:
                 try:
                     self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
@@ -323,5 +323,5 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')
