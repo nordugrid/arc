@@ -39,6 +39,7 @@ struct otokens_t {
   std::string issuer;
   std::string audience;
   std::list<std::string> scopes;
+  std::list<std::string> groups;
 };
 
 class AuthUser {

@@ -49,10 +49,10 @@ Configuring authorization on server
 ====================================
 
 User can be authorized on server by adding dedicated command to authgroup block:
-  otokens=subject issuer audience scope
+  otokens=subject issuer audience scope groups
 Specified parameters must match those in provided token. Parameters
 can be '*' to match any value. For example
-  otokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * *
+  otokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
 matches user with subject e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 in token issued by
 https://wlcg.cloud.cnaf.infn.it/ .
 User mapping to local account is implemented using simulated X.509 user subject.
