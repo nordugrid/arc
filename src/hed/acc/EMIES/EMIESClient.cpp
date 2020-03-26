@@ -84,8 +84,8 @@ namespace Arc {
 
 #ifdef USE_OTOKENS
     otoken = Arc::GetEnv("ARC_OTOKEN");
-    std::cerr<<"OTOKEN: "<<otoken<<std::endl;
     if(!otoken.empty()) {
+      logger.msg(VERBOSE, "Using token for authentication: %s", otoken);
       // removing credentials from HTTPS layer
       MCCConfig temp_cfg(cfg);
       temp_cfg.proxy.clear();
