@@ -153,10 +153,12 @@ namespace Arc {
 
     if (SECURITY_IS_SSL(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
-      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      if (sec.cred == UseX509Cred) {
+        if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+        if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+        if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+        if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      };
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) {
         XMLNode cadir = comp.NewChild("CACertificatesDir");
@@ -175,10 +177,12 @@ namespace Arc {
     }
     else if (SECURITY_IS_GSI(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
-      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      if (sec.cred == UseX509Cred) {
+        if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+        if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+        if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+        if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      }
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) {
         XMLNode cadir = comp.NewChild("CACertificatesDir");
@@ -344,7 +348,7 @@ namespace Arc {
     return port;
   }
 
-  static TCPSec http_url_to_sec(const URL& url) {
+  static TCPSec http_url_to_sec(const URL& url, bool have_otoken) {
     TCPSec sec;
     if(url.Protocol() == "https" || url.Protocol() == "davs") {
       if(url.Option("protocol") == "ssl3") {
@@ -374,6 +378,9 @@ namespace Arc {
     } else if(url.Option("encryption") == "off") {
       sec.enc = NoEnc;
     }
+    if(have_otoken) {
+      sec.cred = UseNoCred;
+    }
     return sec;
   }
 
@@ -383,13 +390,13 @@ namespace Arc {
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
                 get_http_proxy_port(url,proxy_host,proxy_port),
-                http_url_to_sec(url),
+                http_url_to_sec(url,!cfg.otoken.empty()),
                 timeout,
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
       relative_uri(url.Option("relativeuri") == "yes"),
-      sec(http_url_to_sec(url)),
+      sec(http_url_to_sec(url,!cfg.otoken.empty())),
       closed(false) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
                      (SECURITY_IS_SSL(sec.sec)) ? "tls" :
@@ -397,6 +404,7 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
+    if (!cfg.otoken.empty()) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
     // Pass information about protocol and hostname to TLS level
     XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
     if(compTLS) {

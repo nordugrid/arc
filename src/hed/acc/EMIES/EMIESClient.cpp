@@ -14,8 +14,6 @@
 #include <arc/credential/Credential.h>
 #include "JobStateEMIES.h"
 
-#define USE_OTOKENS 1
-
 #include "EMIESClient.h"
 
 #ifdef CPPUNITTEST
@@ -82,24 +80,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
 
-#ifdef USE_OTOKENS
-    otoken = Arc::GetEnv("ARC_OTOKEN");
-    if(!otoken.empty()) {
-      logger.msg(VERBOSE, "Using token for authentication: %s", otoken);
-      // removing credentials from HTTPS layer
-      MCCConfig temp_cfg(cfg);
-      temp_cfg.proxy.clear();
-      temp_cfg.cert.clear();
-      temp_cfg.key.clear();
-      temp_cfg.credential.clear();
-      client = new ClientSOAP(temp_cfg, url, timeout);
-    } else {
-      client = new ClientSOAP(cfg, url, timeout);
-    }
-#else
     client = new ClientSOAP(cfg, url, timeout);
-#endif
-
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
     set_namespaces(ns);
