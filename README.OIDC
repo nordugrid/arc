@@ -49,6 +49,8 @@ token. Just store it into ARC_OTOKEN variable before calling arcsub.
 Configuring authorization on server 
 ====================================
 
+Token processing is enabled by presence of [otokens] configuration block.
+
 User can be authorized on server by adding dedicated command to authgroup block:
   otokens=subject issuer audience scope group
 Specified parameters must match those in provided token. Parameters

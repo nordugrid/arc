@@ -14,6 +14,7 @@
 ##  [otokens]
 ##  [lrms]
 ##  [lrms/ssh]
+##  [otokens]
 ##  [arex]
 ##  [arex/cache]
 ##  [arex/cache/cleaner] 
@@ -745,6 +746,15 @@
 ##
 ##
 ### end of [lrms/ssh] block #####################################################
+
+
+### The [otokens] block ##############################################
+## This block enables JWT tokens procesing on server side.
+#[otokens]
+## CHANGE: new block
+##
+##
+### end of [otokens] block #####################################################
 
 
 ### The [arex] block - previously [grid-manager] #####################
