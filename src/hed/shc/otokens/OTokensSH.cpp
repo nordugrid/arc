@@ -39,6 +39,7 @@ class OTokensSecAttr: public SecAttr {
   virtual ~OTokensSecAttr(void);
   virtual operator bool(void) const;
   virtual std::string get(const std::string& id) const;
+  virtual std::list<std::string> getAll(const std::string& id) const;
  protected:
   bool valid_;
   Arc::JWSE jwse_;
@@ -82,23 +83,45 @@ OTokensSecAttr::OTokensSecAttr(Arc::Message* msg):valid_(false) {
 OTokensSecAttr::~OTokensSecAttr() {
 }
 
+
 std::string OTokensSecAttr::get(const std::string& id) const {
-  if(id == "") // whole token requested
-    return token_;
+  std::list<std::string> items = getAll(id);
+  if(items.empty())
+    return std::string();
+  return *(items.begin());
+}
+
+std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
+  std::list<std::string> items;
+  if(id == "") { // whole token requested
+    items.push_back(token_);
+    return items;
+  }
   if(id == "iss+sub") { // special name for combination of issuer and subject
     std::string issuer = get("iss");
     std::string subject = get("sub");
-    if(issuer.empty() || subject.empty()) return "";
-    return issuer + "/" + subject;
+    if(issuer.empty() || subject.empty()) return items;
+    items.push_back(issuer + "/" + subject);
+    return items;
   };
   cJSON const * obj = jwse_.Claim(id.c_str());
-  if(!obj)
-    return "";
-  if(obj->type != cJSON_String)
-    return "";
-  if(!obj->valuestring)
-    return "";
-  return obj->valuestring;
+  if(obj) {
+    if(obj->type == cJSON_String) {
+      if(obj->valuestring)
+        items.push_back(obj->valuestring);
+    }
+    else if(obj->type == cJSON_Array) {
+      obj = obj->child;
+      for( ;obj; obj = obj->next) {
+        if(obj->type == cJSON_String) {
+          if(obj->valuestring) {
+            items.push_back(obj->valuestring);
+          }
+        }
+      }
+    }
+  }
+  return items;
 }
 
 OTokensSecAttr::operator bool() const {

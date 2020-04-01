@@ -484,7 +484,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // 1. If job comes through EMI-ES it has delegations assigned only per file 
   //    through source and target. But ARC has extension to pass global
   //    delegation for whole DataStaging
-  // 2. In ARC BES extension credentils delegated as part of job creation request.
+  // 2. In ARC BES extension credentials delegated as part of job creation request.
   //    Those are provided in credentials variable
   // 3. If neither works and special dynamic output files @list which 
   //    have no targets and no delegations are present then any of 

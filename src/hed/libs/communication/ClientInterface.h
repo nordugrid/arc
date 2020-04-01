@@ -80,13 +80,20 @@ namespace Arc {
     OptionalEnc //< Use data encryption only if needed
   };
 
+  enum CredentialUse {
+    UseNoCred,   //< Do not use user credentilas for TLS/GSI
+    UseX509Cred  //< Use X.509 user credentilas for TLS/GSI
+  };
+
   class TCPSec {
   public:
     SecurityLayer sec;
     EncryptionLevel enc;
-    TCPSec(void):sec(NoSec),enc(NoEnc) { };
-    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc) { };
-    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e) { };
+    CredentialUse cred;
+    TCPSec(void):sec(NoSec),enc(NoEnc),cred(UseNoCred) { };
+    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc),cred(UseX509Cred) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e),cred(UseX509Cred) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e, CredentialUse u):sec(s),enc(e),cred(u) { };
   };
 
   //! Class for setting up a MCC chain for TCP communication

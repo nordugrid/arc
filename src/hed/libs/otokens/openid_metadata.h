@@ -164,6 +164,23 @@ namespace Arc {
     ClientHTTP client_;
   };
 
+  class OpenIDTokenFetcher {
+   public:
+    typedef std::list< std::pair<std::string, std::string> > TokenList;
+    OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret);
+    bool Fetch(std::string const & grant,
+               std::string const & subject,
+               std::list<std::string> const & scope,
+               std::list<std::string> const & audience,
+               TokenList & tokens);
+   private:
+    URL url_;
+    std::string client_id_;
+    std::string client_secret_;
+    ClientHTTP client_;
+  };
+
+
 } // namespace Arc
 
 

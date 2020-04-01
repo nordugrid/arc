@@ -219,6 +219,7 @@ prepare() {
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
+    otokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" otokens`
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
@@ -469,6 +470,17 @@ prepare() {
 </SecHandler>"
     fi
 
+
+  
+    otokens_plugin=""
+    otokens_handler=""
+    if [ "$otokens_present" = 'true' ]; then
+      otokens_plugin="<Plugins><Name>arcshcotokens</Name></Plugins>"
+      otokens_handler="
+<!-- Collect OTokens information -->
+<SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
+    fi
+
     # A-Rex without WS interface
     AREXCFG="\
 <?xml version=\"1.0\"?>
@@ -524,7 +536,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
-  <Plugins><Name>arcshcotokens</Name></Plugins>
+  $otokens_plugin
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -534,8 +546,7 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
-      <!-- Collect OTokens information -->
-      <SecHandler name=\"otokens.handler\" event=\"incoming\"/>
+      $otokens_handler
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
@@ -587,7 +598,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
-  <Plugins><Name>arcshcotokens</Name></Plugins>
+  $otokens_plugin
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -605,8 +616,7 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
-      <!-- Collect OTokens information -->
-      <SecHandler name=\"otokens.handler\" event=\"incoming\"/>
+      $otokens_handler
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>

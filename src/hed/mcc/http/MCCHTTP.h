@@ -65,6 +65,7 @@ class MCC_HTTP_Client: public MCC_HTTP {
     protected:
         std::string method_;
         std::string endpoint_;
+        std::string authorization_;
     public:
         MCC_HTTP_Client(Config *cfg,PluginArgument* parg);
         virtual ~MCC_HTTP_Client(void);

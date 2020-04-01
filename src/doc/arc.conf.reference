@@ -11,8 +11,10 @@
 ##  [common]
 ##  [authgroup:groupname]
 ##  [mapping]
+##  [otokens]
 ##  [lrms]
 ##  [lrms/ssh]
+##  [otokens]
 ##  [arex]
 ##  [arex/cache]
 ##  [arex/cache/cleaner] 
@@ -307,6 +309,12 @@
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
+## otokens = subject issuer audience scope group - Match OIDC token claims.
+## Use "*" to match any value.
+## sequenced
+## default: undefined
+#otokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
+
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
 ## sequenced
@@ -431,6 +439,16 @@
 #policy_on_nogroup=stop
 ##
 ### end of the [mapping] block ##############################################
+
+
+### The [otokens] block ##############################################
+## This block activates processing of OIDC tokens as defined in WLCG profile.
+##
+##
+#[otokens]
+## CHANGE: This is a new block
+##
+### end of the [otokens] block ##############################################
 
 
 ### The [lrms] block ##############################################
@@ -728,6 +746,15 @@
 ##
 ##
 ### end of [lrms/ssh] block #####################################################
+
+
+### The [otokens] block ##############################################
+## This block enables JWT tokens procesing on server side.
+#[otokens]
+## CHANGE: new block
+##
+##
+### end of [otokens] block #####################################################
 
 
 ### The [arex] block - previously [grid-manager] #####################

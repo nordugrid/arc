@@ -9,6 +9,8 @@
 #include <arc/external/cJSON/cJSON.h>
 #include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
+#include <arc/XMLNode.h>
+#include <arc/JSON.h>
 
 #include "openid_metadata.h"
 
@@ -312,8 +314,8 @@ namespace Arc {
     return false;
   }
 
-
-  OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url) : url_(issuer_url), client_(Arc::MCCConfig(), url_) {
+  OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url):
+       url_(issuer_url?URL(issuer_url):URL()), client_(Arc::MCCConfig(), url_) {
   }
 
   bool OpenIDMetadataFetcher::Fetch(OpenIDMetadata& metadata) {
@@ -321,7 +323,7 @@ namespace Arc {
     PayloadRaw request;
     PayloadRawInterface* response(NULL);
     std::string path = url_.Path();
-    if (path.empty() || (path[path.length()-1] == '/')) path += '/';
+    if (path.empty() || (path[path.length()-1] != '/')) path += '/';
     path += ".well-known/openid-configuration";
     MCC_Status status = client_.process("GET", path, &request, &info, &response);
     if(!status)
@@ -331,6 +333,99 @@ namespace Arc {
     if(!(response->Content()))
       return false;
     return metadata.Input(response->Content());
+  }
+
+
+
+  OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret):
+       url_(token_endpoint?URL(token_endpoint):URL()), client_(Arc::MCCConfig(), url_),
+       client_id_(id?id:""), client_secret_(secret?secret:"") {
+  }
+
+
+  bool OpenIDTokenFetcher::Fetch(std::string const & grant,
+                                 std::string const & subject,
+                                 std::list<std::string> const & scope,
+                                 std::list<std::string> const & audience,
+                                 TokenList& tokens) {
+    HTTPClientInfo info;
+    PayloadRawInterface* response(NULL);
+
+    std::multimap<std::string, std::string> attributes;
+ 
+    if((!client_id_.empty()) || (!client_secret_.empty())) {
+      std::string credAttr("Basic ");
+      credAttr.append(Base64::encode(client_id_+":"+client_secret_));
+      attributes.insert(std::make_pair("Authorization", credAttr));
+    }
+
+    PayloadRaw request;
+    std::string tokenReq;
+
+    if(!grant.empty()) {
+      if(!tokenReq.empty()) tokenReq.append("&");
+      tokenReq.append("grant_type=");
+      tokenReq.append(Base64::encodeURLSafe(grant));
+    } else if ((!client_id_.empty()) || (!client_secret_.empty())) {
+      if(!tokenReq.empty()) tokenReq.append("&");
+      tokenReq.append("grant_type=");
+      tokenReq.append(Base64::encodeURLSafe("client_credentials"));
+    }
+
+    if(!subject.empty()) {
+      if(!tokenReq.empty()) tokenReq.append("&");
+      tokenReq.append("subject_token=");
+      tokenReq.append(Base64::encodeURLSafe(subject));
+    }
+
+    if(!audience.empty()) {
+      if(!tokenReq.empty()) tokenReq.append("&");
+      tokenReq.append("audience=");
+      tokenReq.append(Base64::encodeURLSafe(join(audience, " ")));
+    }
+
+    if(!scope.empty()) {
+      if(!tokenReq.empty()) tokenReq.append("&");
+      tokenReq.append("scope=");
+      tokenReq.append(Base64::encodeURLSafe(join(scope, " ")));
+    }
+
+    if(!tokenReq.empty()) {
+      attributes.insert(std::make_pair("Content-Type", "application/x-www-form-urlencoded"));
+      request.Insert(tokenReq.c_str());
+    }
+
+    ClientHTTPAttributes attr("POST", attributes);
+    MCC_Status status = client_.process(attr, &request, &info, &response);
+
+    // Response looks like 
+    //  {
+    //    "access_token":"eyJra...ByTX0",
+    //    "token_type":"Bearer",
+    //    "scope":"wlcg"
+    //  }
+
+    if(!status)
+      return false;
+
+    if(info.code != 200)
+      return false;
+
+    if(response) {
+      char const * responseContent = response->Content();
+      if(responseContent) {
+        XMLNode respXml;
+        if(JSON::Parse(respXml, responseContent)) {
+          for(int n = 0; ;++n) {
+            XMLNode node = respXml.Child(n);
+            if(!node) break;
+            tokens.push_back(std::make_pair(node.Name(), (std::string)node));            
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
 
