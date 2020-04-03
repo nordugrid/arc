@@ -18,8 +18,12 @@ endif
 
 ifeq ($(shell dpkg-query -W -f '$${Depends}' libinline-python-perl 2>/dev/null | grep -q python3 && echo 1),1)
 PYVER = 3
+WITH_ALT_PYTHON =
+P = -Npython-nordugrid-arc
 else
 PYVER = 2
+WITH_ALT_PYTHON = --with-altpython=python3
+P = --with python3
 endif
 
 ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
@@ -39,7 +43,7 @@ SYSTEMD = no
 endif
 
 %:
-	dh $@ --with autoreconf --with python$(PYVER) $(WSD) $(N)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -56,7 +60,8 @@ override_dh_auto_configure:
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
-		    --with-python=python$(PYVER)
+		    --with-python=python$(PYVER) \
+		    $(WITH_ALT_PYTHON)
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -140,7 +145,15 @@ override_dh_auto_install:
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
 override_dh_install:
-	dh_install --fail-missing
+	dh_install -p libarccommon3 \
+	  debian/tmp/usr/lib/python$(PYVER).?/site-packages/arc/__init__.py\*
+	if [ $(PYVER) -eq 2 ] ; then \
+	  dh_install -p python3-nordugrid-arc \
+	    debian/tmp/usr/lib/python3.?/site-packages/arc/__init__.py\* ; fi
+	ls debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py* > \
+	   debian/not-installed
+	dh_install --remaining-packages --fail-missing
+	rm debian/not-installed
 
 override_dh_installinit:
 	dh_installinit -p nordugrid-arc-hed --name arched
@@ -174,6 +187,7 @@ override_dh_systemd_start:
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
 
+ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
 
@@ -185,7 +199,13 @@ override_dh_python2:
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python-ldap, python-dns" \
 		>> debian/nordugrid-arc-archery-manage.substvars
+	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-plugins-python.substvars
+	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-arex-python-lrms.substvars
+endif
 
+ifeq ($(PYVER),3)
 override_dh_python3:
 	dh_python3
 
@@ -197,3 +217,8 @@ override_dh_python3:
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python3-ldap, python3-dns" \
 		>> debian/nordugrid-arc-archery-manage.substvars
+	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-plugins-python.substvars
+	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-arex-python-lrms.substvars
+endif

@@ -23,7 +23,6 @@ debian/tmp/usr/lib/arc/arc-hostname-resolver
 debian/tmp/usr/lib/arc/DataStagingDelivery
 debian/tmp/usr/lib/arc/arcconfig-parser
 debian/tmp/usr/lib/arc/arc-dmc
-debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths_dist.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils

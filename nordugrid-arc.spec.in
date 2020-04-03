@@ -482,7 +482,6 @@ Summary:	ARC Control Tool - service control modules
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
-BuildArch:	noarch
 
 %description arcctl-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -490,7 +489,7 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the service control modules for ARC Contol Tool
-that allow to work with server-side config and manage ARC services.
+that allow working with server-side config and manage ARC services.
 
 %package arex
 Summary:	ARC Resource-coupled EXecution service
@@ -756,6 +755,23 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC plugin for ARC REST interface technology preview.
+
+%package plugins-python
+Summary:	ARC Python dependent plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+%if %{py3default}
+Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
+%else
+Requires:	python2-%{name} = %{version}-%{release}
+%endif
+
+%description plugins-python
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC plugins dependent on Python.
 
 %if %{with_acix}
 %package acix-core
@@ -1061,7 +1077,7 @@ make -C src/libs/data-staging/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= in
 make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/libs/data/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C python/examples			DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
@@ -1682,6 +1698,14 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 
+%files plugins-python
+%defattr(-,root,root,-)
+%doc docdir/python/*
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
+
 %if %{with_acix}
 %files acix-core
 %defattr(-,root,root,-)
@@ -1738,16 +1762,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_python2}
 %files -n python2-%{name}
 %defattr(-,root,root,-)
-%doc docdir/python/*
 %{python2_sitearch}/_arc.*so
-%if %{py3default}
-%{python2_sitearch}/%{pkgdir}
-%else
 %{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
-%{_libdir}/%{pkgdir}/libpythonservice.so
-%{_libdir}/%{pkgdir}/libpythonservice.apd
+%if %{py3default}
+%{python2_sitearch}/%{pkgdir}/__init__.py*
 %endif
 %endif
 
@@ -1755,15 +1773,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
-%if %{py3default}
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
-%{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
-%{_libdir}/%{pkgdir}/libpythonservice.so
-%{_libdir}/%{pkgdir}/libpythonservice.apd
-%else
-%{python3_sitearch}/%{pkgdir}
+%if ! %{py3default}
+%{python3_sitearch}/%{pkgdir}/__init__.py
+%{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %endif
 %endif
 
