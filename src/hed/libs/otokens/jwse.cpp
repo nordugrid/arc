@@ -28,7 +28,7 @@ namespace Arc {
   char const* const JWSE::HeaderNameAlgorithm = "alg";
   char const* const JWSE::HeaderNameEncryption = "enc";
 
-  JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete) {
+  JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
     OpenSSLInit();
 
     header_ = cJSON_CreateObject();
@@ -43,7 +43,7 @@ namespace Arc {
     valid_ = true;
   }
 
-  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL, &cJSON_Delete) {
+  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
     OpenSSLInit();
 
     (void)Input(jwseCompact);
@@ -129,8 +129,11 @@ namespace Arc {
       std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);
       bool verifyResult = false;
       logger_.msg(DEBUG, "JWSE::Input: JWS: signature algorthm: %s", algObject->valuestring);
+      signAlg_ = algObject->valuestring;
       if(strcmp(algObject->valuestring, "none") == 0) {
         verifyResult = signature.empty(); // expecting empty signature if no protection is requested
+        keyOrigin_ = NoKey;
+        signAlg_.clear();
       } else if(strcmp(algObject->valuestring, "HS256") == 0) {
         verifyResult = VerifyHMAC("SHA256", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());

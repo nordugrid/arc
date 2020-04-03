@@ -75,6 +75,11 @@ OTokensSecAttr::OTokensSecAttr(Arc::Message* msg):valid_(false) {
         token_.erase(0, sizeof(tokenid)-1);
         logger.msg(DEBUG, "OTokens: Attr: token: bearer: %s", token_);
         valid_ = jwse_.Input(token_);
+        if(valid_) {
+          // Additionally require signature protected by safely obtained key.
+          // So far only accepting keys fetched from issuer through https.
+          valid_ = (jwse_.InputKeyOrigin() == JWSE::ExternalSafeKey);
+        };
       };
     };
   };
@@ -93,6 +98,8 @@ std::string OTokensSecAttr::get(const std::string& id) const {
 
 std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
   std::list<std::string> items;
+  if(!valid_)
+    return items;
   if(id == "") { // whole token requested
     items.push_back(token_);
     return items;
