@@ -1411,18 +1411,15 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files arcctl-service
 %if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
 %else
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/Config.py*
 %{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
@@ -1514,7 +1511,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
@@ -1524,7 +1520,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
 %{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
@@ -1536,7 +1531,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
@@ -1577,12 +1571,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/community_rtes.sh
 %if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/CommunityRTE.*
 %else
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
@@ -1712,6 +1703,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{py3default}
 %dir %{python3_sitelib}/acix
 %{python3_sitelib}/acix/__init__.py
+%dir %{python3_sitelib}/acix/__pycache__
 %{python3_sitelib}/acix/__pycache__/__init__.*
 %{python3_sitelib}/acix/core
 %else
@@ -1763,21 +1755,32 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files -n python2-%{name}
 %defattr(-,root,root,-)
 %{python2_sitearch}/_arc.*so
-%{python2_sitearch}/%{pkgdir}/[^_p]*.py*
 %if %{py3default}
+%dir %{python2_sitearch}/%{pkgdir}
 %{python2_sitearch}/%{pkgdir}/__init__.py*
 %endif
+%{python2_sitearch}/%{pkgdir}/[^_p]*.py*
 %endif
 
 %if %{with_python3}
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
+%if %{?fedora}%{!?fedora:0} >= 15 || %{?rhel}%{!?rhel:0} >= 7
+# Python >= 3.2 uses __pycache__
+%if ! %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/__init__.py
+%dir %{python3_sitearch}/%{pkgdir}/__pycache__
+%{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
+%endif
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
-%if ! %{py3default}
-%{python3_sitearch}/%{pkgdir}/__init__.py
-%{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
+%else
+# Python 3.1 doesn't use __pycache__
+%dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/__init__.py*
+%{python3_sitearch}/%{pkgdir}/[^_p]*.py*
 %endif
 %endif
 
