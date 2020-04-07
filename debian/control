@@ -231,6 +231,14 @@ Description: ARC Resource-coupled EXecution service
  modules suitable for both server and client side.
 
 Package: nordugrid-arc-arcctl-service
+Replaces:
+ libarccommon3 (<< 6.5.0~),
+ nordugrid-arc-arcctl (<< 6.6.0~),
+ nordugrid-arc-arex (<< 6.6.0~)
+Breaks:
+ libarccommon3 (<< 6.5.0~),
+ nordugrid-arc-arcctl (<< 6.6.0~),
+ nordugrid-arc-arex (<< 6.6.0~)
 Architecture: all
 Depends:
  ${misc:Depends},
