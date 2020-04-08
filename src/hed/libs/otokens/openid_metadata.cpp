@@ -18,6 +18,8 @@
 namespace Arc {
 
   Logger OpenIDMetadata::logger_(Logger::getRootLogger(), "OpenIDMetadata");
+  Logger OpenIDMetadataFetcher::logger_(Logger::getRootLogger(), "OpenIDMetadataFetcher");
+  Logger OpenIDTokenFetcher::logger_(Logger::getRootLogger(), "OpenIDTokenFetcher");
 
   OpenIDMetadata::OpenIDMetadata(): valid_(false), metadata_(NULL, &cJSON_Delete) {
     metadata_ = cJSON_CreateObject();
@@ -365,29 +367,29 @@ namespace Arc {
     if(!grant.empty()) {
       if(!tokenReq.empty()) tokenReq.append("&");
       tokenReq.append("grant_type=");
-      tokenReq.append(Base64::encodeURLSafe(grant));
+      tokenReq.append(uri_encode(grant, true));
     } else if ((!client_id_.empty()) || (!client_secret_.empty())) {
       if(!tokenReq.empty()) tokenReq.append("&");
       tokenReq.append("grant_type=");
-      tokenReq.append(Base64::encodeURLSafe("client_credentials"));
+      tokenReq.append(uri_encode("client_credentials", true));
     }
 
     if(!subject.empty()) {
       if(!tokenReq.empty()) tokenReq.append("&");
       tokenReq.append("subject_token=");
-      tokenReq.append(Base64::encodeURLSafe(subject));
+      tokenReq.append(uri_encode(subject, true));
     }
 
     if(!audience.empty()) {
       if(!tokenReq.empty()) tokenReq.append("&");
       tokenReq.append("audience=");
-      tokenReq.append(Base64::encodeURLSafe(join(audience, " ")));
+      tokenReq.append(uri_encode(join(audience, " "), true));
     }
 
     if(!scope.empty()) {
       if(!tokenReq.empty()) tokenReq.append("&");
       tokenReq.append("scope=");
-      tokenReq.append(Base64::encodeURLSafe(join(scope, " ")));
+      tokenReq.append(uri_encode(join(scope, " "), true));
     }
 
     if(!tokenReq.empty()) {
@@ -408,8 +410,12 @@ namespace Arc {
     if(!status)
       return false;
 
-    if(info.code != 200)
+    if(info.code != 200) {
+      logger_.msg(DEBUG, "Fetch: response code: %u %s", info.code, info.reason);
+      char const * responseContent = response ? response->Content() : NULL;
+      if(responseContent) logger_.msg(DEBUG, "Fetch: response body: %s", responseContent);
       return false;
+    }
 
     if(response) {
       char const * responseContent = response->Content();
