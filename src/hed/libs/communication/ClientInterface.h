@@ -153,21 +153,21 @@ namespace Arc {
   public:
     ClientHTTPAttributes(const std::string& method);
     ClientHTTPAttributes(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes);
+                       std::multimap<std::string, std::string> const& attributes);
     ClientHTTPAttributes(const std::string& method, const std::string& path);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes);
+                       std::multimap<std::string, std::string> const& attributes);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
                        uint64_t range_start, uint64_t range_end);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end);
   protected:
     const std::string default_path_;
     std::multimap<std::string, std::string> default_attributes_;
-    const std::string& method_;
-    const std::string& path_;
-    std::multimap<std::string, std::string>& attributes_;
+    const std::string method_;
+    const std::string path_;
+    std::multimap<std::string, std::string> attributes_;
     uint64_t range_start_;
     uint64_t range_end_;
   };
@@ -186,14 +186,14 @@ namespace Arc {
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
@@ -201,7 +201,7 @@ namespace Arc {
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
@@ -234,7 +234,7 @@ namespace Arc {
     TCPSec sec;
     bool closed;
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end,
                        MessagePayload *request,
                        HTTPClientInfo *info, MessagePayload **response);
@@ -254,12 +254,12 @@ namespace Arc {
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request + additional HTTP header attributes and receive response. */
-    MCC_Status process(const std::multimap<std::string, std::string> &http_attr, PayloadSOAP *request, PayloadSOAP **response);
+    MCC_Status process(std::multimap<std::string, std::string> const& http_attr, PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
                        PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action + additional HTTP header attributes and receive response. */
-    MCC_Status process(const std::multimap<std::string, std::string> &http_attr, const std::string& action, PayloadSOAP *request,
+    MCC_Status process(std::multimap<std::string, std::string> const& http_attr, const std::string& action, PayloadSOAP *request,
                        PayloadSOAP **response);
     /** Returns entry point to SOAP MCC in configured chain.
        To initialize entry point Load() method must be called. */

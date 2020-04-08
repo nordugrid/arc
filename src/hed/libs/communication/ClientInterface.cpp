@@ -434,7 +434,7 @@ namespace Arc {
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
@@ -452,7 +452,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
@@ -471,7 +471,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          uint64_t range_start, uint64_t range_end,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
@@ -502,7 +502,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          uint64_t range_start, uint64_t range_end,
                          MessagePayload *request,
                          HTTPClientInfo *info,
@@ -668,7 +668,7 @@ namespace Arc {
   }
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes):
+                       std::multimap<std::string, std::string> const& attributes):
          method_(method),path_(default_path_),attributes_(attributes),
          range_start_(0),range_end_(UINT64_MAX) {
   }
@@ -681,7 +681,7 @@ namespace Arc {
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
                        const std::string& path,
-                       std::multimap<std::string, std::string>& attributes):
+                       std::multimap<std::string, std::string> const& attributes):
          method_(method),path_(path),attributes_(attributes),
          range_start_(0),range_end_(UINT64_MAX) {
   }
@@ -695,7 +695,7 @@ namespace Arc {
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
                        const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end):
          method_(method),path_(path),attributes_(attributes),
          range_start_(range_start),range_end_(range_end) {
@@ -728,7 +728,7 @@ namespace Arc {
     return process(std::multimap<std::string, std::string>(), request, response);
   }
 
-  MCC_Status ClientSOAP::process(const std::multimap<std::string, std::string> &http_attr,
+  MCC_Status ClientSOAP::process(std::multimap<std::string, std::string> const& http_attr,
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
@@ -763,7 +763,7 @@ namespace Arc {
     return process(std::multimap<std::string, std::string>(), action, request, response);
   }
 
-  MCC_Status ClientSOAP::process(const std::multimap<std::string, std::string> &http_attr,
+  MCC_Status ClientSOAP::process(std::multimap<std::string, std::string> const& http_attr,
                                  const std::string& action,
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
