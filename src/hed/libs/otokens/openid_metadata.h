@@ -1,6 +1,8 @@
 #include <string>
 #include <arc/Utils.h>
+#include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/communication/ClientInterface.h>
 
 
 struct cJSON;
@@ -162,6 +164,7 @@ namespace Arc {
    private:
     URL url_;
     ClientHTTP client_;
+    static Logger logger_;
   };
 
   class OpenIDTokenFetcher {
@@ -178,6 +181,7 @@ namespace Arc {
     std::string client_id_;
     std::string client_secret_;
     ClientHTTP client_;
+    static Logger logger_;
   };
 
 

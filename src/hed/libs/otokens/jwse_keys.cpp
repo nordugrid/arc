@@ -262,7 +262,7 @@ namespace Arc {
   bool JWSE::ExtractPublicKey() const {
     key_.Release();
 
-    // So far we are going to support only embedded keys - jwk and x5c
+    // So far we are going to support only embedded keys jwk and x5c and external kid.
     cJSON* x5cObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameX509CertChain);
     cJSON* jwkObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameJSONWebKey);
     cJSON* kidObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameJSONWebKeyId);
@@ -270,6 +270,7 @@ namespace Arc {
       AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: x5c key");
       if(x5cParse(x5cObject, *key)) {
+        keyOrigin_ = EmbeddedKey;
         key_ = key;
         return true;
       }
@@ -277,6 +278,7 @@ namespace Arc {
       AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: jwk key");
       if(jwkParse(jwkObject, *key)) {
+        keyOrigin_ = EmbeddedKey;
         key_ = key;
         return true;
       }
@@ -288,11 +290,16 @@ namespace Arc {
       cJSON* issuerObj = cJSON_GetObjectItem(content_.Ptr(), ClaimNameIssuer);
       if(!issuerObj || (issuerObj->type != cJSON_String))
         return false;
+      bool keyProtocolSafe = true;
+      if(strncasecmp("https:", issuerObj->valuestring, 6) != 0) keyProtocolSafe = false;
+
       OpenIDMetadata serviceMetadata;
       OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
       if(!metadataFetcher.Fetch(serviceMetadata))
         return false;
       char const * jwksUri = serviceMetadata.JWKSURI();
+      if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
+
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jwl key from %s", jwksUri);
       JWSEKeyFetcher keyFetcher(jwksUri);
       JWSEKeyHolderList keys;
@@ -300,6 +307,7 @@ namespace Arc {
         return false;
       for(JWSEKeyHolderList::iterator keyIt = keys.begin(); keyIt != keys.end(); ++keyIt) {
         if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
+          keyOrigin_ = keyProtocolSafe ? ExternalSafeKey : ExternalUnsafeKey;
           key_ = *keyIt;
           return true;
         }

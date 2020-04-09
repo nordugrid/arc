@@ -22,6 +22,7 @@
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
+#include <arc/otokens/openid_metadata.h>
 #include "job.h"
 #include "grid-manager/log/JobLog.h"
 #include "grid-manager/log/JobsMetrics.h"
@@ -436,6 +437,41 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     // Try tokens if TLS has no information about user identity
     logger_.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
     grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
+    /*
+    Below is an example on how obtained token can be exchanged.
+
+    Arc::SecAttr* sattr = inmsg.Auth()->get("OTOKENS");    
+    if(!sattr) sattr = inmsg.AuthContext()->get("OTOKENS");
+    if(sattr) {
+      std::string token = sattr->get("");
+      if(!token.empty()) {
+        Arc::OpenIDMetadata tokenMetadata;
+        Arc::OpenIDMetadataFetcher metaFetcher(sattr->get("iss").c_str());
+        if(metaFetcher.Fetch(tokenMetadata)) {
+          char const * tokenEndpointUrl = tokenMetadata.TokenEndpoint();
+          if(tokenEndpointUrl) {
+            Arc::OpenIDTokenFetcher tokenFetcher(tokenEndpointUrl,
+                  "c85e84e8-c9ea-4ecc-8123-070df2c10e0e",
+                  "dRnakcoaT-9YA6T1LzeLAqeEu7jLBxeTWFyQMbJ6BWZonjEcE060-dn8EWAfpZmPq3x7oTjUnu6mamYylBaNhw");
+
+            std::list<std::string> scopes;
+            scopes.push_back("storage.read:/");
+            scopes.push_back("storage.create:/");
+            std::list<std::string> audiences;
+            audiences.push_back("se1.example");
+            audiences.push_back("se2.example");
+
+            Arc::OpenIDTokenFetcher::TokenList tokens;
+            if(tokenFetcher.Fetch("urn:ietf:params:oauth:grant-type:token-exchange", token, scopes, audiences, tokens)) {
+              for(auto const & token : tokens) {
+                logger_.msg(Arc::ERROR, "Token response: %s : %s", token.first, token.second);
+              };
+            } else logger_.msg(Arc::ERROR, "Failed to fetch token");
+          } else logger_.msg(Arc::ERROR, "Token metadata contains no token endpoint");;
+        } else logger_.msg(Arc::ERROR, "Failed to fetch token metadata");
+      } else logger_.msg(Arc::ERROR, "There is no token in sec attr");
+    } else logger_.msg(Arc::ERROR, "There is no otoken sec attr");
+    */
   };
   std::string endpoint = endpoint_;
   if(endpoint.empty()) {

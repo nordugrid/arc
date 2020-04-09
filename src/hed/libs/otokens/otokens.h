@@ -25,6 +25,13 @@ namespace Arc {
     static char const * const HeaderNameAlgorithm;
     static char const * const HeaderNameEncryption;
 
+    enum KeyOrigin {
+      NoKey,              //< There was no key used for validation
+      EmbeddedKey,        //< Signature was validated using embedded key
+      ExternalUnsafeKey,  //< Signature was validated using key obtained through HTTP protocol
+      ExternalSafeKey,    //< Signature was validated using key obtained through HTTPS protocol
+    };
+
     //! Parse token available as simple string.
     //! Mostly to be used for tokens embedded into something
     //! like HTTP header.
@@ -79,6 +86,12 @@ namespace Arc {
     //! Parses passed Token and stores collected information in this object.
     bool Input(std::string const& jwseCompact);
 
+    //! Returns information about how key used to validate signature is obtained.
+    KeyOrigin InputKeyOrigin() const { return keyOrigin_; };
+
+    //! Returns algorithm which was used to sign token (empty if no signature).
+    char const * SignatureAlgoritm() const { return signAlg_.c_str(); }
+
     //! Serializes stored Token into string container.
     bool Output(std::string& jwseCompact) const;
 
@@ -94,6 +107,10 @@ namespace Arc {
     mutable AutoPointer<cJSON> header_; 
 
     mutable AutoPointer<JWSEKeyHolder> key_;
+
+    mutable KeyOrigin keyOrigin_;
+
+    mutable std::string signAlg_;
 
     mutable AutoPointer<cJSON> content_;
 
