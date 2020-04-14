@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2020-02-14 18:37+0100\n"
-"PO-Revision-Date: 2020-02-14 18:37+0100\n"
+"POT-Creation-Date: 2020-04-14 23:30+0200\n"
+"PO-Revision-Date: 2020-04-14 23:31+0200\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -1657,7 +1657,7 @@ msgstr "ограничения доверенности"
 msgid "password destination=password source"
 msgstr "назначение пароля=источник пароля"
 
-#: src/clients/credentials/arcproxy.cpp:476 src/clients/credentials/arcproxy.cpp:1148
+#: src/clients/credentials/arcproxy.cpp:476 src/clients/credentials/arcproxy.cpp:1156
 msgid "Failed configuration initialization."
 msgstr "Не удалось загрузить настройки."
 
@@ -1797,25 +1797,31 @@ msgstr "Обнаружена ошибка при разборе сертифик
 msgid "AC is invalid: "
 msgstr "Сертификат атрибута недействителен: "
 
-#: src/clients/credentials/arcproxy.cpp:707
+#: src/clients/credentials/arcproxy.cpp:684
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:222
+#, c-format
+msgid "Malformed VOMS AC attribute %s"
+msgstr "Неверный атрибут VOMS AC %s"
+
+#: src/clients/credentials/arcproxy.cpp:715
 msgid "Time left for AC: AC is not valid yet"
 msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
 
-#: src/clients/credentials/arcproxy.cpp:709
+#: src/clients/credentials/arcproxy.cpp:717
 msgid "Time left for AC: AC has expired"
 msgstr "Сертификат атрибута действителен на: Срок действия сертификата закончился"
 
-#: src/clients/credentials/arcproxy.cpp:711
+#: src/clients/credentials/arcproxy.cpp:719
 #, c-format
 msgid "Time left for AC: %s"
 msgstr "Сертификат атрибута действителен на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:802
+#: src/clients/credentials/arcproxy.cpp:810
 #, c-format
 msgid "Information item '%s' is not known"
 msgstr "Неизвестный тип информации '%s'"
 
-#: src/clients/credentials/arcproxy.cpp:811
+#: src/clients/credentials/arcproxy.cpp:819
 msgid ""
 "Cannot find the user certificate path, please setup environment X509_USER_CERT, or "
 "certificatepath in a configuration file"
@@ -1823,7 +1829,7 @@ msgstr ""
 "Не удалось найти путь к открытому ключу пользователя. Пожалуйста, задайте переменную "
 "среды X509_USER_CERT, или значение certificatepath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:815
+#: src/clients/credentials/arcproxy.cpp:823
 msgid ""
 "Cannot find the user private key path, please setup environment X509_USER_KEY, or "
 "keypath in a configuration file"
@@ -1831,13 +1837,13 @@ msgstr ""
 "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную среды "
 "X509_USER_KEY, или значение keypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:839
+#: src/clients/credentials/arcproxy.cpp:847
 #, c-format
 msgid "Cannot parse password source expression %s it must be of type=source format"
 msgstr ""
 "Не удалось разобрать выражение %s для источника пароля: формат должен быть type=source"
 
-#: src/clients/credentials/arcproxy.cpp:856
+#: src/clients/credentials/arcproxy.cpp:864
 #, c-format
 msgid ""
 "Cannot parse password type %s. Currently supported values are "
@@ -1846,7 +1852,7 @@ msgstr ""
 "Не удалось разобрать тип пароля %s. В настоящий момент поддерживаются значения "
 "'key','myproxy','myproxynew' и 'all'."
 
-#: src/clients/credentials/arcproxy.cpp:871
+#: src/clients/credentials/arcproxy.cpp:879
 #, c-format
 msgid ""
 "Cannot parse password source %s it must be of source_type or source_type:data format. "
@@ -1855,13 +1861,13 @@ msgstr ""
 "Не удалось разобрать источник пароля %s. Формат должен быть source_type или source_type:"
 "data format. Поддерживаются следующие типы источников: int,stdin,stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:885
+#: src/clients/credentials/arcproxy.cpp:893
 msgid "Only standard input is currently supported for password source."
 msgstr ""
 "На настоящий момент единственным поддерживаемым источником пароля является стандартный "
 "вход."
 
-#: src/clients/credentials/arcproxy.cpp:890
+#: src/clients/credentials/arcproxy.cpp:898
 #, c-format
 msgid ""
 "Cannot parse password source type %s. Supported source types are int,stdin,stream,file."
@@ -1869,61 +1875,61 @@ msgstr ""
 "Не удалось разобрать тип источника пароля %s. Поддерживаются следующие типы источников: "
 "int,stdin,stream,file."
 
-#: src/clients/credentials/arcproxy.cpp:929
+#: src/clients/credentials/arcproxy.cpp:937
 msgid "The start, end and period can't be set simultaneously"
 msgstr "Опции start, end и period не могут быть заданы одновременно"
 
-#: src/clients/credentials/arcproxy.cpp:935
+#: src/clients/credentials/arcproxy.cpp:943
 #, c-format
 msgid "The start time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время начала: %s."
 
-#: src/clients/credentials/arcproxy.cpp:942
+#: src/clients/credentials/arcproxy.cpp:950
 #, c-format
 msgid "The period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами интервал: %s."
 
-#: src/clients/credentials/arcproxy.cpp:949
+#: src/clients/credentials/arcproxy.cpp:957
 #, c-format
 msgid "The end time that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданное Вами время окончания: %s."
 
-#: src/clients/credentials/arcproxy.cpp:958
+#: src/clients/credentials/arcproxy.cpp:966
 #, c-format
 msgid "The end time that you set: %s is before start time:%s."
 msgstr "Заданное Вами время окончания: %s предшествует времени начала: %s."
 
-#: src/clients/credentials/arcproxy.cpp:969
+#: src/clients/credentials/arcproxy.cpp:977
 #, c-format
 msgid "WARNING: The start time that you set: %s is before current time: %s"
 msgstr "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время начала: %s предшествует текущему времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:972
+#: src/clients/credentials/arcproxy.cpp:980
 #, c-format
 msgid "WARNING: The end time that you set: %s is before current time: %s"
 msgstr ""
 "ПРЕДУПРЕЖДЕНИЕ: Заданное Вами время окончания: %s предшествует текущему времени: %s"
 
-#: src/clients/credentials/arcproxy.cpp:982
+#: src/clients/credentials/arcproxy.cpp:990
 #, c-format
 msgid "The VOMS AC period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период VOMS AC: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1000
+#: src/clients/credentials/arcproxy.cpp:1008
 #, c-format
 msgid "The MyProxy period that you set: %s can't be recognized."
 msgstr "Невозможно распознать заданный Вами период MyProxy: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1015
+#: src/clients/credentials/arcproxy.cpp:1023
 #, c-format
 msgid "The keybits constraint is wrong: %s."
 msgstr "Недопустимое значение ограничения keybits: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1029 src/hed/libs/credential/ARCProxyUtil.cpp:1271
+#: src/clients/credentials/arcproxy.cpp:1037 src/hed/libs/credential/ARCProxyUtil.cpp:1271
 msgid "The NSS database can not be detected in the Firefox profile"
 msgstr "База данных NSS в профиле Firefox не обнаружена"
 
-#: src/clients/credentials/arcproxy.cpp:1038 src/hed/libs/credential/ARCProxyUtil.cpp:1279
+#: src/clients/credentials/arcproxy.cpp:1046 src/hed/libs/credential/ARCProxyUtil.cpp:1279
 #, c-format
 msgid ""
 "There are %d NSS base directories where the certificate, key, and module databases live"
@@ -1931,78 +1937,78 @@ msgstr ""
 "Обнаружено %d основных директорий NSS, содержащих базы данных сертификатов, ключей и "
 "модулей"
 
-#: src/clients/credentials/arcproxy.cpp:1040 src/hed/libs/credential/ARCProxyUtil.cpp:1283
+#: src/clients/credentials/arcproxy.cpp:1048 src/hed/libs/credential/ARCProxyUtil.cpp:1283
 #, c-format
 msgid "Number %d is: %s"
 msgstr "Номер %d: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1042
+#: src/clients/credentials/arcproxy.cpp:1050
 #, c-format
 msgid "Please choose the NSS database you would like to use (1-%d): "
 msgstr "Пожалуйста, выберите базу данных NSS для использования (1-%d): "
 
-#: src/clients/credentials/arcproxy.cpp:1058 src/hed/libs/credential/ARCProxyUtil.cpp:1297
+#: src/clients/credentials/arcproxy.cpp:1066 src/hed/libs/credential/ARCProxyUtil.cpp:1297
 #, c-format
 msgid "NSS database to be accessed: %s\n"
 msgstr "Будет использоваться база данных NSS %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1129 src/hed/libs/credential/ARCProxyUtil.cpp:1471
+#: src/clients/credentials/arcproxy.cpp:1137 src/hed/libs/credential/ARCProxyUtil.cpp:1471
 #, c-format
 msgid "Certificate to use is: %s"
 msgstr "Используемый сертификат: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1177 src/clients/credentials/arcproxy.cpp:1291
+#: src/clients/credentials/arcproxy.cpp:1185 src/clients/credentials/arcproxy.cpp:1299
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1528
 msgid "Proxy generation succeeded"
 msgstr "Доверенность успешно создана"
 
-#: src/clients/credentials/arcproxy.cpp:1178 src/clients/credentials/arcproxy.cpp:1292
+#: src/clients/credentials/arcproxy.cpp:1186 src/clients/credentials/arcproxy.cpp:1300
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1529
 #, c-format
 msgid "Your proxy is valid until: %s"
 msgstr "Ваша доверенность действительна до: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1197
+#: src/clients/credentials/arcproxy.cpp:1205
 msgid "The old GSI proxies are not supported anymore. Please do not use -O/--old option."
 msgstr ""
 "Старые доверенности GSI более не поддерживаются. Пожалуйста, не используйте опцию -O/--"
 "old."
 
-#: src/clients/credentials/arcproxy.cpp:1216 src/hed/mcc/tls/MCCTLS.cpp:163
+#: src/clients/credentials/arcproxy.cpp:1224 src/hed/mcc/tls/MCCTLS.cpp:163
 #: src/hed/mcc/tls/MCCTLS.cpp:196 src/hed/mcc/tls/MCCTLS.cpp:222
 msgid "VOMS attribute parsing failed"
 msgstr "Сбой обработки атрибутов VOMS"
 
-#: src/clients/credentials/arcproxy.cpp:1218
+#: src/clients/credentials/arcproxy.cpp:1226
 msgid "Myproxy server did not return proxy with VOMS AC included"
 msgstr "Сервер Myproxy не прислал сертификат с расширением VOMS AC"
 
-#: src/clients/credentials/arcproxy.cpp:1239 src/hed/libs/credential/ARCProxyUtil.cpp:337
+#: src/clients/credentials/arcproxy.cpp:1247 src/hed/libs/credential/ARCProxyUtil.cpp:337
 msgid "Proxy generation failed: No valid certificate found."
 msgstr "Сбой создания доверенности: Не обнаружено действительных сертификатов."
 
-#: src/clients/credentials/arcproxy.cpp:1244 src/hed/libs/credential/ARCProxyUtil.cpp:343
+#: src/clients/credentials/arcproxy.cpp:1252 src/hed/libs/credential/ARCProxyUtil.cpp:343
 msgid "Proxy generation failed: No valid private key found."
 msgstr "Сбой создания доверенности: Не обнаружено действительных закрытых ключей."
 
-#: src/clients/credentials/arcproxy.cpp:1248 src/hed/libs/credential/ARCProxyUtil.cpp:169
+#: src/clients/credentials/arcproxy.cpp:1256 src/hed/libs/credential/ARCProxyUtil.cpp:169
 #, c-format
 msgid "Your identity: %s"
 msgstr "Ваши личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1250 src/hed/libs/credential/ARCProxyUtil.cpp:350
+#: src/clients/credentials/arcproxy.cpp:1258 src/hed/libs/credential/ARCProxyUtil.cpp:350
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Сбой создания доверенности: Срок действия сертификата истёк."
 
-#: src/clients/credentials/arcproxy.cpp:1254 src/hed/libs/credential/ARCProxyUtil.cpp:355
+#: src/clients/credentials/arcproxy.cpp:1262 src/hed/libs/credential/ARCProxyUtil.cpp:355
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался."
 
-#: src/clients/credentials/arcproxy.cpp:1265
+#: src/clients/credentials/arcproxy.cpp:1273
 msgid "Proxy generation failed: Failed to create temporary file."
 msgstr "Сбой создания доверенности: Сбой создания временного файла."
 
-#: src/clients/credentials/arcproxy.cpp:1273
+#: src/clients/credentials/arcproxy.cpp:1281
 msgid "Proxy generation failed: Failed to retrieve VOMS information."
 msgstr "Сбой создания доверенности: Сбой получения информации VOMS."
 
@@ -2701,71 +2707,71 @@ msgstr ""
 "Назначение %s отброшено алгоритмом FastestQueueBroker, т.к. не сообщает число свободных "
 "ячеек"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:79
+#: src/hed/acc/EMIES/EMIESClient.cpp:81
 msgid "Creating an EMI ES client"
 msgstr "Создаётся клиент EMI ES"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:82
+#: src/hed/acc/EMIES/EMIESClient.cpp:85
 msgid "Unable to create SOAP client used by EMIESClient."
 msgstr "Не удалось создать клиент SOAP использующийся EMIESClient."
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:130
+#: src/hed/acc/EMIES/EMIESClient.cpp:133
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:505
 msgid "Initiating delegation procedure"
 msgstr "Инициализация процедуры делегирования"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:157
+#: src/hed/acc/EMIES/EMIESClient.cpp:163
 msgid "Re-creating an EMI ES client"
 msgstr "Воссоздаётся клиент EMI ES"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:174
+#: src/hed/acc/EMIES/EMIESClient.cpp:180
 #, c-format
 msgid "Processing a %s request"
 msgstr "Обработка запроса %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:180
+#: src/hed/acc/EMIES/EMIESClient.cpp:191
 #, c-format
 msgid "%s request failed"
 msgstr "Запрос %s не выполнен"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:189
+#: src/hed/acc/EMIES/EMIESClient.cpp:200
 #, c-format
 msgid "No response from %s"
 msgstr "Нет ответа от %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:198
+#: src/hed/acc/EMIES/EMIESClient.cpp:209
 #, c-format
 msgid "%s request to %s failed with response: %s"
 msgstr "Запрос %s к %s не выполнен, получен ответ: %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:213
+#: src/hed/acc/EMIES/EMIESClient.cpp:224
 #, c-format
 msgid "XML response: %s"
 msgstr "Отзыв XML: %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:223
+#: src/hed/acc/EMIES/EMIESClient.cpp:234
 #, c-format
 msgid "%s request to %s failed. Unexpected response: %s."
 msgstr "Запрос %s к %s не выполнен, неожиданный ответ: %s."
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:237 src/hed/acc/EMIES/EMIESClient.cpp:344
+#: src/hed/acc/EMIES/EMIESClient.cpp:248 src/hed/acc/EMIES/EMIESClient.cpp:355
 #, c-format
 msgid "Creating and sending job submit request to %s"
 msgstr "Создание и отправка запроса об исполнении задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:302 src/hed/acc/EMIES/EMIESClient.cpp:405
+#: src/hed/acc/EMIES/EMIESClient.cpp:313 src/hed/acc/EMIES/EMIESClient.cpp:416
 #, c-format
 msgid "Job description to be sent: %s"
 msgstr "Описание засылаемой задачи: %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:415 src/hed/acc/EMIES/EMIESClient.cpp:598
-#: src/hed/acc/EMIES/EMIESClient.cpp:1087
+#: src/hed/acc/EMIES/EMIESClient.cpp:426 src/hed/acc/EMIES/EMIESClient.cpp:609
+#: src/hed/acc/EMIES/EMIESClient.cpp:1098
 #, c-format
 msgid "New limit for vector queries returned by EMI ES service: %d"
 msgstr "Сервис EMI ES установил новые значения пределов для параллельных запросов: %d"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:423 src/hed/acc/EMIES/EMIESClient.cpp:606
-#: src/hed/acc/EMIES/EMIESClient.cpp:1095
+#: src/hed/acc/EMIES/EMIESClient.cpp:434 src/hed/acc/EMIES/EMIESClient.cpp:617
+#: src/hed/acc/EMIES/EMIESClient.cpp:1106
 #, c-format
 msgid ""
 "Error: Service returned a limit higher or equal to current limit (current: %d; "
@@ -2774,53 +2780,53 @@ msgstr ""
 "Ошибка: Сервис требует предел, превышающий или равный текущему (текущий: %d; требуемый: "
 "%d)"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:491 src/hed/acc/EMIES/EMIESClient.cpp:525
-#: src/hed/acc/EMIES/EMIESClient.cpp:581
+#: src/hed/acc/EMIES/EMIESClient.cpp:502 src/hed/acc/EMIES/EMIESClient.cpp:536
+#: src/hed/acc/EMIES/EMIESClient.cpp:592
 #, c-format
 msgid "Creating and sending job information query request to %s"
 msgstr "Создание и отправка запроса о состоянии задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:764
+#: src/hed/acc/EMIES/EMIESClient.cpp:775
 #, c-format
 msgid "Creating and sending service information request to %s"
 msgstr "Создание и отправка запроса информации о службе на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:821
+#: src/hed/acc/EMIES/EMIESClient.cpp:832
 #, c-format
 msgid "Creating and sending service information query request to %s"
 msgstr "Создание и отправка запроса о состоянии службы на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:869 src/hed/acc/EMIES/EMIESClient.cpp:890
+#: src/hed/acc/EMIES/EMIESClient.cpp:880 src/hed/acc/EMIES/EMIESClient.cpp:901
 #, c-format
 msgid "Creating and sending job clean request to %s"
 msgstr "Создание и отправка запроса об удалении результатов работы задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:911
+#: src/hed/acc/EMIES/EMIESClient.cpp:922
 #, c-format
 msgid "Creating and sending job suspend request to %s"
 msgstr "Создание и отправка запроса о приостановке задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:932
+#: src/hed/acc/EMIES/EMIESClient.cpp:943
 #, c-format
 msgid "Creating and sending job resume request to %s"
 msgstr "Создание и отправка запроса о возобновлении задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:953
+#: src/hed/acc/EMIES/EMIESClient.cpp:964
 #, c-format
 msgid "Creating and sending job restart request to %s"
 msgstr "Создание и отправка запроса о перезапуске задачи на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:1010
+#: src/hed/acc/EMIES/EMIESClient.cpp:1021
 #, c-format
 msgid "Creating and sending job notify request to %s"
 msgstr "Создание и отправка запроса об уведомлении о задаче на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:1065
+#: src/hed/acc/EMIES/EMIESClient.cpp:1076
 #, c-format
 msgid "Creating and sending notify request to %s"
 msgstr "Создание и отправка запроса об уведомлении на %s"
 
-#: src/hed/acc/EMIES/EMIESClient.cpp:1155
+#: src/hed/acc/EMIES/EMIESClient.cpp:1166
 #, c-format
 msgid "Creating and sending job list request to %s"
 msgstr "Создание и отправка запроса о просмотре задачи на %s"
@@ -7216,10 +7222,10 @@ msgstr "urllist %s содержит недопустимый URL: %s"
 msgid "URL protocol is not urllist: %s"
 msgstr "Протокол URL не является urllist: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:30 src/hed/libs/common/UserConfig.cpp:654
-#: src/hed/libs/common/UserConfig.cpp:663 src/hed/libs/common/UserConfig.cpp:669
-#: src/hed/libs/common/UserConfig.cpp:695 src/hed/libs/common/UserConfig.cpp:705
-#: src/hed/libs/common/UserConfig.cpp:717 src/hed/libs/common/UserConfig.cpp:737
+#: src/hed/libs/common/UserConfig.cpp:30 src/hed/libs/common/UserConfig.cpp:666
+#: src/hed/libs/common/UserConfig.cpp:675 src/hed/libs/common/UserConfig.cpp:681
+#: src/hed/libs/common/UserConfig.cpp:707 src/hed/libs/common/UserConfig.cpp:717
+#: src/hed/libs/common/UserConfig.cpp:729 src/hed/libs/common/UserConfig.cpp:749
 #, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
 msgstr "Множественные атрибуты %s в файле настроек (%s)"
@@ -7308,13 +7314,13 @@ msgstr "Файл настроек не может быть подгружен."
 msgid "User configuration file (%s) does not exist or cannot be loaded."
 msgstr "Файл настроек пользователя (%s) не существует или не может быть подгружен."
 
-#: src/hed/libs/common/UserConfig.cpp:292
+#: src/hed/libs/common/UserConfig.cpp:296
 #, c-format
 msgid "Unable to parse the specified verbosity (%s) to one of the allowed levels"
 msgstr ""
 "Невозможно сопоставить запрашиваемый уровень отладки (%s) ни с одним из допустимых"
 
-#: src/hed/libs/common/UserConfig.cpp:304
+#: src/hed/libs/common/UserConfig.cpp:308
 #, c-format
 msgid ""
 "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, SQLITE, XML."
@@ -7322,12 +7328,12 @@ msgstr ""
 "Тип списка задач '%s' не поддерживается, будет использоваться 'BDB'. Поддерживаются "
 "следующие типы: BDB, SQLITE, XML."
 
-#: src/hed/libs/common/UserConfig.cpp:481
+#: src/hed/libs/common/UserConfig.cpp:489
 #, c-format
 msgid "Certificate and key ('%s' and '%s') not found in any of the paths: %s"
 msgstr "Сертификат и ключ ('%s' и '%s') не обнаружены ни в одном из расположений: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:483
+#: src/hed/libs/common/UserConfig.cpp:491
 #, c-format
 msgid ""
 "If the proxy or certificate/key does exist, you can manually specify the locations via "
@@ -7338,19 +7344,19 @@ msgstr ""
 "вручную указать их расположение с помощью переменных среды '%s'/'%s' или '%s', или с "
 "помощью атрибутов '%s'/'%s' или '%s' в файле настроек клиента (например, '%s')"
 
-#: src/hed/libs/common/UserConfig.cpp:500
+#: src/hed/libs/common/UserConfig.cpp:508
 #, c-format
 msgid ""
 "Can not access CA certificates directory: %s. The certificates will not be verified."
 msgstr "Не удалось открыть каталог сертификатов CA: %s. Сертификаты не будут проверены."
 
-#: src/hed/libs/common/UserConfig.cpp:510
+#: src/hed/libs/common/UserConfig.cpp:518
 #, c-format
 msgid ""
 "Can not access CA certificate directory: %s. The certificates will not be verified."
 msgstr "Не удалось открыть каталог сертификатов CA: %s. Сертификаты ."
 
-#: src/hed/libs/common/UserConfig.cpp:536
+#: src/hed/libs/common/UserConfig.cpp:544
 #, c-format
 msgid ""
 "Can not find CA certificates directory in default locations:\n"
@@ -7371,37 +7377,41 @@ msgstr ""
 "его расположения  с помощью переменной X509_CERT_DIR, или задайте\n"
 "cacertificatesdirectory в файле настроек клиента client.conf\n"
 
-#: src/hed/libs/common/UserConfig.cpp:557
+#: src/hed/libs/common/UserConfig.cpp:565
 #, c-format
 msgid "Using proxy file: %s"
 msgstr "Используется файл доверенности: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:560
+#: src/hed/libs/common/UserConfig.cpp:568
 #, c-format
 msgid "Using certificate file: %s"
 msgstr "Используется файл сертификата: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:561
+#: src/hed/libs/common/UserConfig.cpp:569
 #, c-format
 msgid "Using key file: %s"
 msgstr "Используется файл личного ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:565
+#: src/hed/libs/common/UserConfig.cpp:573
 #, c-format
 msgid "Using CA certificate directory: %s"
 msgstr "Используется каталог доверенных сертификатов CA: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:578 src/hed/libs/common/UserConfig.cpp:584
+#: src/hed/libs/common/UserConfig.cpp:577
+msgid "Using OToken"
+msgstr "Используется OToken"
+
+#: src/hed/libs/common/UserConfig.cpp:590 src/hed/libs/common/UserConfig.cpp:596
 #, c-format
 msgid "Can not access VOMSES file/directory: %s."
 msgstr "Невозможно открыть каталог или файл VOMSES: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:590
+#: src/hed/libs/common/UserConfig.cpp:602
 #, c-format
 msgid "Can not access VOMS file/directory: %s."
 msgstr "Невозможно открыть каталог или файл VOMS: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:604
+#: src/hed/libs/common/UserConfig.cpp:616
 msgid ""
 "Can not find voms service configuration file (vomses) in default locations: ~/.arc/"
 "vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/"
@@ -7411,105 +7421,105 @@ msgstr ""
 "vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/"
 "vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses"
 
-#: src/hed/libs/common/UserConfig.cpp:617
+#: src/hed/libs/common/UserConfig.cpp:629
 #, c-format
 msgid "Loading configuration (%s)"
 msgstr "Чтение файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:651
+#: src/hed/libs/common/UserConfig.cpp:663
 #, c-format
 msgid ""
 "The value of the timeout attribute in the configuration file (%s) was only partially "
 "parsed"
 msgstr "Значение атрибута timeout (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:676
+#: src/hed/libs/common/UserConfig.cpp:688
 msgid ""
 "The brokerarguments attribute can only be used in conjunction with the brokername "
 "attribute"
 msgstr ""
 "Атрибут brokerarguments может быть использован только в связи с атрибутом brokername"
 
-#: src/hed/libs/common/UserConfig.cpp:692
+#: src/hed/libs/common/UserConfig.cpp:704
 #, c-format
 msgid ""
 "The value of the keysize attribute in the configuration file (%s) was only partially "
 "parsed"
 msgstr "Значение атрибута keysize (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:712
+#: src/hed/libs/common/UserConfig.cpp:724
 #, c-format
 msgid ""
 "Could not convert the slcs attribute value (%s) to an URL instance in configuration "
 "file (%s)"
 msgstr "Не удалось преобразовать значение атрибута slcs (%s) в файле настроек в URL (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:758
+#: src/hed/libs/common/UserConfig.cpp:770
 #, c-format
 msgid "Specified overlay file (%s) does not exist."
 msgstr "Указанный файл с трафаретом (%s) не существует."
 
-#: src/hed/libs/common/UserConfig.cpp:762
+#: src/hed/libs/common/UserConfig.cpp:774
 #, c-format
 msgid "Unknown attribute %s in common section of configuration file (%s), ignoring it"
 msgstr "Игнорируется неизвестный атрибут %s в разделе common файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:803
+#: src/hed/libs/common/UserConfig.cpp:815
 #, c-format
 msgid "Unknown section %s, ignoring it"
 msgstr "Игнорируется неизвестный раздел %s"
 
-#: src/hed/libs/common/UserConfig.cpp:807
+#: src/hed/libs/common/UserConfig.cpp:819
 #, c-format
 msgid "Configuration (%s) loaded"
 msgstr "Настройки (%s) подгружены"
 
-#: src/hed/libs/common/UserConfig.cpp:810
+#: src/hed/libs/common/UserConfig.cpp:822
 #, c-format
 msgid "Could not load configuration (%s)"
 msgstr "Не удалось подгрузить настройки (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:905
+#: src/hed/libs/common/UserConfig.cpp:917
 #, c-format
 msgid "UserConfiguration saved to file (%s)"
 msgstr "UserConfiguration сохранены в файле (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:918
+#: src/hed/libs/common/UserConfig.cpp:930
 #, c-format
 msgid "Unable to create %s directory."
 msgstr "Не удалось создать каталог %s."
 
-#: src/hed/libs/common/UserConfig.cpp:927
+#: src/hed/libs/common/UserConfig.cpp:939
 #, c-format
 msgid "Configuration example file created (%s)"
 msgstr "Создан шаблонный файл настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:929
+#: src/hed/libs/common/UserConfig.cpp:941
 #, c-format
 msgid "Unable to copy example configuration from existing configuration (%s)"
 msgstr "Не удалось скопировать шаблон настроек из существующих настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:934
+#: src/hed/libs/common/UserConfig.cpp:946
 #, c-format
 msgid "Cannot copy example configuration (%s), it is not a regular file"
 msgstr "Не удалось скопировать шаблон настроек (%s), т.к. это нестандартный файл"
 
-#: src/hed/libs/common/UserConfig.cpp:939
+#: src/hed/libs/common/UserConfig.cpp:951
 #, c-format
 msgid "Example configuration (%s) not created."
 msgstr "Шаблон настроек (%s) не создан."
 
-#: src/hed/libs/common/UserConfig.cpp:944
+#: src/hed/libs/common/UserConfig.cpp:956
 #, c-format
 msgid "The default configuration file (%s) is not a regular file."
 msgstr "Файл настроек по умолчанию (%s) не является обычным файлом."
 
-#: src/hed/libs/common/UserConfig.cpp:962
+#: src/hed/libs/common/UserConfig.cpp:974
 #, c-format
 msgid "%s directory created"
 msgstr "создан каталог %s"
 
-#: src/hed/libs/common/UserConfig.cpp:964 src/hed/libs/common/UserConfig.cpp:1003
+#: src/hed/libs/common/UserConfig.cpp:976 src/hed/libs/common/UserConfig.cpp:1015
 #: src/hed/libs/data/DataMover.cpp:679
 #, c-format
 msgid "Failed to create directory %s"
@@ -13096,6 +13106,82 @@ msgstr "Обработка/проверка параметров доступа 
 msgid "Empty registration collector"
 msgstr "Пустой сборщик регистраций"
 
+#: src/hed/libs/otokens/jwse.cpp:55
+#, c-format
+msgid "JWSE::Input: token: %s"
+msgstr "JWSE::Input: токен: %s"
+
+#: src/hed/libs/otokens/jwse.cpp:75
+#, c-format
+msgid "JWSE::Input: header: %s"
+msgstr "JWSE::Input: заголовок: %s"
+
+#: src/hed/libs/otokens/jwse.cpp:101
+#, c-format
+msgid "JWSE::Input: JWS content: %s"
+msgstr "JWSE::Input: содержимое JWS: %s"
+
+#: src/hed/libs/otokens/jwse.cpp:111
+msgid "JWSE::Input: JWS: token too young"
+msgstr "JWSE::Input: JWS: токен слишком свежий"
+
+#: src/hed/libs/otokens/jwse.cpp:120
+msgid "JWSE::Input: JWS: token too old"
+msgstr "JWSE::Input: JWS: токен слишком старый"
+
+#: src/hed/libs/otokens/jwse.cpp:131
+#, c-format
+msgid "JWSE::Input: JWS: signature algorthm: %s"
+msgstr "JWSE::Input: JWS: алгоритм подписи: %s"
+
+#: src/hed/libs/otokens/jwse.cpp:190
+msgid "JWSE::Input: JWS: signature verification failed"
+msgstr "JWSE::Input: JWS: сбой подтверждения подписи"
+
+#: src/hed/libs/otokens/jwse.cpp:196
+msgid "JWSE::Input: JWE: not supported yet"
+msgstr "JWSE::Input: JWE: пока не поддерживается"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:271
+msgid "JWSE::ExtractPublicKey: x5c key"
+msgstr "JWSE::ExtractPublicKey: ключ x5c"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:279
+msgid "JWSE::ExtractPublicKey: jwk key"
+msgstr "JWSE::ExtractPublicKey: ключ jwk"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:286
+msgid "JWSE::ExtractPublicKey: external jwk key"
+msgstr "JWSE::ExtractPublicKey: внешний ключ jwk"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:303
+#, c-format
+msgid "JWSE::ExtractPublicKey: fetching jwl key from %s"
+msgstr "JWSE::ExtractPublicKey: извлечение ключа jwk из: %s"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:316
+msgid "JWSE::ExtractPublicKey: no supported key"
+msgstr "JWSE::ExtractPublicKey: нет поддерживаемого ключа"
+
+#: src/hed/libs/otokens/jwse_keys.cpp:319
+msgid "JWSE::ExtractPublicKey: key parsing error"
+msgstr "JWSE::ExtractPublicKey: ошибка разбора ключа"
+
+#: src/hed/libs/otokens/openid_metadata.cpp:40 src/hed/libs/otokens/openid_metadata.cpp:45
+#, c-format
+msgid "Input: metadata: %s"
+msgstr "Ввод: метаданные: %s"
+
+#: src/hed/libs/otokens/openid_metadata.cpp:414
+#, c-format
+msgid "Fetch: response code: %u %s"
+msgstr "Извлечение: код отклика: %u %s"
+
+#: src/hed/libs/otokens/openid_metadata.cpp:416
+#, c-format
+msgid "Fetch: response body: %s"
+msgstr "Извлечение: тело отклика: %s"
+
 #: src/hed/libs/security/ArcPDP/EvaluatorLoader.cpp:136
 #, c-format
 msgid "Can not load ARC evaluator object: %s"
@@ -13426,7 +13512,7 @@ msgid "Only Raw Buffer payload is supported for output"
 msgstr "Для вывода поддерживается только неформатированный буфер"
 
 #: src/hed/mcc/tcp/MCCTCP.cpp:556 src/hed/mcc/tcp/MCCTCP.cpp:655
-#: src/hed/mcc/tls/MCCTLS.cpp:541
+#: src/hed/mcc/tls/MCCTLS.cpp:542
 msgid "Failed to send content of buffer"
 msgstr "Не удалось отправить содержимое буфера"
 
@@ -13602,39 +13688,40 @@ msgstr "Сбой проверки атрибутов VOMS"
 msgid "VOMS attribute is ignored due to processing/validation error"
 msgstr "Атрибут VOMS игнорируется из-за ошибки обработки или проверки"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:420
+#: src/hed/mcc/tls/MCCTLS.cpp:420 src/hed/mcc/tls/MCCTLS.cpp:559
+#: src/hed/mcc/tls/MCCTLS.cpp:578
 #, c-format
 msgid "Failed to establish connection: %s"
 msgstr "Сбой установления соединения: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:438 src/hed/mcc/tls/MCCTLS.cpp:520
+#: src/hed/mcc/tls/MCCTLS.cpp:439 src/hed/mcc/tls/MCCTLS.cpp:521
 #, c-format
 msgid "Peer name: %s"
 msgstr "Имя контакта: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:440 src/hed/mcc/tls/MCCTLS.cpp:522
+#: src/hed/mcc/tls/MCCTLS.cpp:441 src/hed/mcc/tls/MCCTLS.cpp:523
 #, c-format
 msgid "Identity name: %s"
 msgstr "Выделенное имя: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:442 src/hed/mcc/tls/MCCTLS.cpp:524
+#: src/hed/mcc/tls/MCCTLS.cpp:443 src/hed/mcc/tls/MCCTLS.cpp:525
 #, c-format
 msgid "CA name: %s"
 msgstr "Имя сертификационного агентства: %s"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:448
+#: src/hed/mcc/tls/MCCTLS.cpp:450
 msgid "Failed to process security attributes in TLS MCC for incoming message"
 msgstr "Не удалось обработать атрибуты безопасности в TLS MCC для входящего сообщения"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:457
+#: src/hed/mcc/tls/MCCTLS.cpp:458
 msgid "Security check failed in TLS MCC for incoming message"
 msgstr "Не прошла проверка безопасности в TLS MCC для входящего сообщения"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:530
+#: src/hed/mcc/tls/MCCTLS.cpp:531
 msgid "Security check failed for outgoing TLS message"
 msgstr "Не прошла проверка безопасности для исходящего сообщения TLS"
 
-#: src/hed/mcc/tls/MCCTLS.cpp:559
+#: src/hed/mcc/tls/MCCTLS.cpp:563
 msgid "Security check failed for incoming TLS message"
 msgstr "Не прошла проверка безопасности для входящего сообщения TLS"
 
@@ -13667,32 +13754,36 @@ msgstr "Не удалось записать данные приложения"
 msgid "Failed to retrieve application data from OpenSSL"
 msgstr "Не удалось получить данные о приложении через OpenSSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:257 src/hed/mcc/tls/PayloadTLSMCC.cpp:351
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:257 src/hed/mcc/tls/PayloadTLSMCC.cpp:356
 msgid "Can not create the SSL Context object"
 msgstr "Не удалось создать объект SSL Context"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:270 src/hed/mcc/tls/PayloadTLSMCC.cpp:369
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:270 src/hed/mcc/tls/PayloadTLSMCC.cpp:376
 msgid "Can't set OpenSSL verify flags"
 msgstr "Не удалось выставить метки подтверждения OpenSSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:289 src/hed/mcc/tls/PayloadTLSMCC.cpp:383
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:289 src/hed/mcc/tls/PayloadTLSMCC.cpp:390
 msgid "Can not create the SSL object"
 msgstr "Не удалось создать объект SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:308
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:299
+msgid "Faile to assign hostname extension"
+msgstr "Не удалось присвоить расширение hostname"
+
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:313
 msgid "Failed to establish SSL connection"
 msgstr "Не удалось установить соединение SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:311 src/hed/mcc/tls/PayloadTLSMCC.cpp:398
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:316 src/hed/mcc/tls/PayloadTLSMCC.cpp:405
 #, c-format
 msgid "Using cipher: %s"
 msgstr "Используется алгоритм шифрования %s"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:395
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:402
 msgid "Failed to accept SSL connection"
 msgstr "Не удалось принять соединение SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:448
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:455
 #, c-format
 msgid "Failed to shut down SSL: %s"
 msgstr "Не удалось прервать соединение SSL: %s"
@@ -13916,13 +14007,13 @@ msgstr "Не удалось создать контекст делегирова
 msgid "Delegation handler with delegatee role starts to process"
 msgstr "Запущен обработчик делегирования с ролью делегата"
 
-#: src/hed/shc/delegationsh/DelegationSH.cpp:152 src/services/a-rex/arex.cpp:536
+#: src/hed/shc/delegationsh/DelegationSH.cpp:152 src/services/a-rex/arex.cpp:577
 #: src/services/candypond/CandyPond.cpp:520
 #: src/services/data-staging/DataDeliveryService.cpp:630
 msgid "process: POST"
 msgstr "процесс: POST"
 
-#: src/hed/shc/delegationsh/DelegationSH.cpp:159 src/services/a-rex/arex.cpp:543
+#: src/hed/shc/delegationsh/DelegationSH.cpp:159 src/services/a-rex/arex.cpp:584
 #: src/services/candypond/CandyPond.cpp:529
 #: src/services/data-staging/DataDeliveryService.cpp:639
 #: src/services/wrappers/python/pythonwrapper.cpp:416
@@ -14060,7 +14151,7 @@ msgstr "Не удалось изменить политики обработки
 msgid "LegacyMap: no configurations blocks defined"
 msgstr "LegacyMap: не заданы группы настроек"
 
-#: src/hed/shc/legacy/LegacyMap.cpp:196 src/hed/shc/legacy/LegacyPDP.cpp:233
+#: src/hed/shc/legacy/LegacyMap.cpp:196 src/hed/shc/legacy/LegacyPDP.cpp:239
 #, c-format
 msgid ""
 "LegacyPDP: there is no %s Sec Attribute defined. Probably ARC Legacy Sec Handler is not "
@@ -14069,7 +14160,7 @@ msgstr ""
 "LegacyPDP: атрибут безопасности %s не задан. Возможно, обработчик безопасности ARC "
 "Legacy не настроен, или претерпел сбой."
 
-#: src/hed/shc/legacy/LegacyMap.cpp:201 src/hed/shc/legacy/LegacyPDP.cpp:238
+#: src/hed/shc/legacy/LegacyMap.cpp:201 src/hed/shc/legacy/LegacyPDP.cpp:244
 msgid "LegacyPDP: ARC Legacy Sec Attribute not recognized."
 msgstr "LegacyPDP: атрибут безопасности ARC Legacy не опознан."
 
@@ -14179,22 +14270,22 @@ msgstr "LCMAPS не возвратил никакого UID"
 msgid "Failed to terminate LCMAPS"
 msgstr "Сбой остановки LCMAPS"
 
-#: src/hed/shc/legacy/auth.cpp:34 src/services/gridftpd/auth/auth.cpp:35
+#: src/hed/shc/legacy/auth.cpp:35 src/services/gridftpd/auth/auth.cpp:35
 #, c-format
 msgid "Unexpected argument for 'all' rule - %s"
 msgstr "Непредусмотренный аргумент для правила 'all' - %s"
 
-#: src/hed/shc/legacy/auth.cpp:305
+#: src/hed/shc/legacy/auth.cpp:337
 #, c-format
 msgid "Credentials stored in temporary file %s"
 msgstr "Параметры доступа сохранены во временном файле %s"
 
-#: src/hed/shc/legacy/auth.cpp:314
+#: src/hed/shc/legacy/auth.cpp:346
 #, c-format
 msgid "Assigned to authorization group %s"
 msgstr "Приписан к группе допуска %s"
 
-#: src/hed/shc/legacy/auth.cpp:319
+#: src/hed/shc/legacy/auth.cpp:351
 #, c-format
 msgid "Assigned to userlist %s"
 msgstr "Приписан к списку пользователей %s"
@@ -14203,6 +14294,68 @@ msgstr "Приписан к списку пользователей %s"
 #, c-format
 msgid "Failed to read file %s"
 msgstr "Сбой при чтении файла %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:30
+msgid "Missing subject in configuration"
+msgstr "В настройках отсутствует субъект"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:35
+msgid "Missing issuer in configuration"
+msgstr "В настройках отсутствует издатель"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:40
+msgid "Missing audience in configuration"
+msgstr "В настройках отсутствуют получатели"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:45
+msgid "Missing scope in configuration"
+msgstr "В настройках отсутствует контекст"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:50 src/hed/shc/legacy/auth_voms.cpp:47
+#: src/services/gridftpd/auth/auth_voms.cpp:51
+msgid "Missing group in configuration"
+msgstr "В настройках отсутствует группа"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:53
+#, c-format
+msgid "Rule: subject: %s"
+msgstr "Правило: субъект: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:54
+#, c-format
+msgid "Rule: issuer: %s"
+msgstr "Правило: издатель: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:55
+#, c-format
+msgid "Rule: audience: %s"
+msgstr "Правило: получатели: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:56
+#, c-format
+msgid "Rule: scope: %s"
+msgstr "Правило: контекст: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:57 src/hed/shc/legacy/auth_voms.cpp:66
+#: src/services/gridftpd/auth/auth_voms.cpp:68
+#, c-format
+msgid "Rule: group: %s"
+msgstr "Правило: группа: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:60
+#, c-format
+msgid "Match issuer: %s"
+msgstr "Соответствующий издатель: %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:66
+#, c-format
+msgid "Matched: %s %s %s"
+msgstr "Соответствие: %s %s %s"
+
+#: src/hed/shc/legacy/auth_otokens.cpp:80 src/hed/shc/legacy/auth_voms.cpp:93
+#: src/services/gridftpd/auth/auth_voms.cpp:98
+msgid "Matched nothing"
+msgstr "Совпадений нет"
 
 #: src/hed/shc/legacy/auth_plugin.cpp:45 src/hed/shc/legacy/unixmap.cpp:208
 #: src/services/gridftpd/auth/auth_plugin.cpp:70
@@ -14235,10 +14388,6 @@ msgstr "Ошибка подключаемого модуля %s: %s"
 msgid "Missing VO in configuration"
 msgstr "В настройках отсутствует ВО"
 
-#: src/hed/shc/legacy/auth_voms.cpp:47 src/services/gridftpd/auth/auth_voms.cpp:51
-msgid "Missing group in configuration"
-msgstr "В настройках отсутствует группа"
-
 #: src/hed/shc/legacy/auth_voms.cpp:52 src/services/gridftpd/auth/auth_voms.cpp:57
 msgid "Missing role in configuration"
 msgstr "В настройках отсутствует роль"
@@ -14255,11 +14404,6 @@ msgstr "Слишком много аргументов в настройках"
 #, c-format
 msgid "Rule: vo: %s"
 msgstr "Правило: ВО: %s"
-
-#: src/hed/shc/legacy/auth_voms.cpp:66 src/services/gridftpd/auth/auth_voms.cpp:68
-#, c-format
-msgid "Rule: group: %s"
-msgstr "Правило: группа: %s"
 
 #: src/hed/shc/legacy/auth_voms.cpp:67 src/services/gridftpd/auth/auth_voms.cpp:69
 #, c-format
@@ -14280,10 +14424,6 @@ msgstr "Совпадение ВО: %s"
 #, c-format
 msgid "Matched: %s %s %s %s"
 msgstr "Соответствие: %s %s %s %s"
-
-#: src/hed/shc/legacy/auth_voms.cpp:93 src/services/gridftpd/auth/auth_voms.cpp:98
-msgid "Matched nothing"
-msgstr "Совпадений нет"
 
 #: src/hed/shc/legacy/simplemap.cpp:70 src/services/gridftpd/auth/simplemap.cpp:68
 #, c-format
@@ -14383,6 +14523,42 @@ msgstr "Пул пользователей в %s не смог установит
 #, c-format
 msgid "User name direct mapping is missing user name: %s."
 msgstr "Отсутствует имя пользователя в прямом присвоении имени: %s."
+
+#: src/hed/shc/otokens/OTokensSH.cpp:63
+msgid "OTokens: Attr: message"
+msgstr "OTokens: Attr: сообщение"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:68
+#, c-format
+msgid "OTokens: Attr: %s = %s"
+msgstr "OTokens: Attr: %s = %s"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:73
+#, c-format
+msgid "OTokens: Attr: token: %s"
+msgstr "OTokens: Attr: токен: %s"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:76
+#, c-format
+msgid "OTokens: Attr: token: bearer: %s"
+msgstr "OTokens: Attr: токен: носитель: %s"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:146
+msgid "OTokens: Handle"
+msgstr "OTokens: Handle"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:148
+msgid "OTokens: Handle: message"
+msgstr "OTokens: Handle: сообщение"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:151
+msgid "Failed to create OTokens security attributes"
+msgstr "Не удалось создать атрибуты безопасности OTokens"
+
+#: src/hed/shc/otokens/OTokensSH.cpp:155
+#, c-format
+msgid "OTokens: Handle: attributes created: subject = %s"
+msgstr "OTokens: Handle: созданы атрибуты: субъект = %s"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:48
 msgid "Creating a pdpservice client"
@@ -15649,158 +15825,162 @@ msgstr "Не найдены действительные параметры до
 msgid "Problem creating dtr (source %s, destination %s)"
 msgstr "Проблема при создании DTR (источник %s, назначение %s)"
 
-#: src/services/a-rex/arex.cpp:406
+#: src/services/a-rex/arex.cpp:407
 #, c-format
 msgid "Using cached local account '%s'"
 msgstr "Используется кэшированная местная учётная запись '%s'"
 
-#: src/services/a-rex/arex.cpp:417
+#: src/services/a-rex/arex.cpp:418
 msgid "Will not map to 'root' account by default"
 msgstr "По умолчанию привязки к учётной записи 'root' не будет"
 
-#: src/services/a-rex/arex.cpp:430
+#: src/services/a-rex/arex.cpp:431
 msgid "No local account name specified"
 msgstr "Не указано имя локальной учётной записи"
 
-#: src/services/a-rex/arex.cpp:433
+#: src/services/a-rex/arex.cpp:434
 #, c-format
 msgid "Using local account '%s'"
 msgstr "Используется локальная учётная запись '%s'"
 
-#: src/services/a-rex/arex.cpp:454
+#: src/services/a-rex/arex.cpp:438
+msgid "TLS provides no identity, going for OTokens"
+msgstr "TLS не передал  идентификацию, переход к OTokens"
+
+#: src/services/a-rex/arex.cpp:495
 msgid "Failed to acquire A-REX's configuration"
 msgstr "Не удалось получить настройки A-REX"
 
-#: src/services/a-rex/arex.cpp:479 src/services/candypond/CandyPond.cpp:563
+#: src/services/a-rex/arex.cpp:520 src/services/candypond/CandyPond.cpp:563
 #: src/services/data-staging/DataDeliveryService.cpp:687
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "Операция SOAP не поддерживается: %s"
 
-#: src/services/a-rex/arex.cpp:496
+#: src/services/a-rex/arex.cpp:537
 #, c-format
 msgid "Connection from %s: %s"
 msgstr "Соединение с %s: %s"
 
-#: src/services/a-rex/arex.cpp:499
+#: src/services/a-rex/arex.cpp:540
 #, c-format
 msgid "process: method: %s"
 msgstr "процесс: метод: %s"
 
-#: src/services/a-rex/arex.cpp:500
+#: src/services/a-rex/arex.cpp:541
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "процесс: конечная точка: %s"
 
-#: src/services/a-rex/arex.cpp:522
+#: src/services/a-rex/arex.cpp:563
 #, c-format
 msgid "process: id: %s"
 msgstr "процесс: идентификатор: %s"
 
-#: src/services/a-rex/arex.cpp:523
+#: src/services/a-rex/arex.cpp:564
 #, c-format
 msgid "process: subop: %s"
 msgstr "процесс: подопция: %s"
 
-#: src/services/a-rex/arex.cpp:529
+#: src/services/a-rex/arex.cpp:570
 #, c-format
 msgid "process: subpath: %s"
 msgstr "процесс: подкаталог: %s"
 
-#: src/services/a-rex/arex.cpp:549 src/services/candypond/CandyPond.cpp:537
+#: src/services/a-rex/arex.cpp:590 src/services/candypond/CandyPond.cpp:537
 #: src/services/data-staging/DataDeliveryService.cpp:647 src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr "процесс: запрос=%s"
 
-#: src/services/a-rex/arex.cpp:554 src/services/candypond/CandyPond.cpp:542
+#: src/services/a-rex/arex.cpp:595 src/services/candypond/CandyPond.cpp:542
 #: src/services/data-staging/DataDeliveryService.cpp:652 src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "не задана операция на вводе"
 
-#: src/services/a-rex/arex.cpp:557 src/services/candypond/CandyPond.cpp:545
+#: src/services/a-rex/arex.cpp:598 src/services/candypond/CandyPond.cpp:545
 #: src/services/data-staging/DataDeliveryService.cpp:655 src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr "процесс: операция: %s"
 
-#: src/services/a-rex/arex.cpp:577 src/services/a-rex/arex.cpp:760
-#: src/services/a-rex/arex.cpp:795 src/services/a-rex/arex.cpp:827
-#: src/services/a-rex/arex.cpp:861 src/services/a-rex/arex.cpp:895
+#: src/services/a-rex/arex.cpp:618 src/services/a-rex/arex.cpp:801
+#: src/services/a-rex/arex.cpp:836 src/services/a-rex/arex.cpp:868
+#: src/services/a-rex/arex.cpp:902 src/services/a-rex/arex.cpp:936
 #, c-format
 msgid "Security Handlers processing failed: %s"
 msgstr "Сбой в процессе обработки прав доступа: %s"
 
-#: src/services/a-rex/arex.cpp:588
+#: src/services/a-rex/arex.cpp:629
 msgid "Can't obtain configuration"
 msgstr "Не удалось получить настройки"
 
-#: src/services/a-rex/arex.cpp:607
+#: src/services/a-rex/arex.cpp:648
 msgid "POST request on special path is not supported"
 msgstr "Запрос POST на специфический путь не поддерживается"
 
-#: src/services/a-rex/arex.cpp:612
+#: src/services/a-rex/arex.cpp:653
 msgid "process: factory endpoint"
 msgstr "процесс: конечная точка фабрики"
 
-#: src/services/a-rex/arex.cpp:749 src/services/candypond/CandyPond.cpp:574
+#: src/services/a-rex/arex.cpp:790 src/services/candypond/CandyPond.cpp:574
 #: src/services/data-staging/DataDeliveryService.cpp:698 src/tests/echo/echo.cpp:158
 #, c-format
 msgid "process: response=%s"
 msgstr "процесс: отзыв=%s"
 
-#: src/services/a-rex/arex.cpp:755
+#: src/services/a-rex/arex.cpp:796
 msgid "Per-job POST/SOAP requests are not supported"
 msgstr "Запросы POST/SOAP предваряющие задачу не поддерживаются"
 
-#: src/services/a-rex/arex.cpp:767
+#: src/services/a-rex/arex.cpp:808
 msgid "process: GET"
 msgstr "процесс: GET"
 
-#: src/services/a-rex/arex.cpp:768
+#: src/services/a-rex/arex.cpp:809
 #, c-format
 msgid "GET: id %s path %s"
 msgstr "GET: идентификатор %s путь %s"
 
-#: src/services/a-rex/arex.cpp:834
+#: src/services/a-rex/arex.cpp:875
 msgid "process: PUT"
 msgstr "процес: PUT"
 
-#: src/services/a-rex/arex.cpp:868
+#: src/services/a-rex/arex.cpp:909
 msgid "process: DELETE"
 msgstr "процесс: DELETE"
 
-#: src/services/a-rex/arex.cpp:902
+#: src/services/a-rex/arex.cpp:943
 #, c-format
 msgid "process: method %s is not supported"
 msgstr "процесс: метод %s не поддерживается"
 
-#: src/services/a-rex/arex.cpp:905
+#: src/services/a-rex/arex.cpp:946
 msgid "process: method is not defined"
 msgstr "процесс: неопределённый метод"
 
-#: src/services/a-rex/arex.cpp:1013
+#: src/services/a-rex/arex.cpp:1054
 msgid "Failed to run Grid Manager thread"
 msgstr "Сбой запуска потока Grid Manager"
 
-#: src/services/a-rex/arex.cpp:1072
+#: src/services/a-rex/arex.cpp:1113
 #, c-format
 msgid "Failed to process configuration in %s"
 msgstr "Не удалось обработать настройки в %s"
 
-#: src/services/a-rex/arex.cpp:1077
+#: src/services/a-rex/arex.cpp:1118
 msgid "No control directory set in configuration"
 msgstr "Не найден контрольный каталог в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1081
+#: src/services/a-rex/arex.cpp:1122
 msgid "No session directory set in configuration"
 msgstr "Не найден каталог сессии в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1085
+#: src/services/a-rex/arex.cpp:1126
 msgid "No LRMS set in configuration"
 msgstr "Не найдена СУПО в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1090
+#: src/services/a-rex/arex.cpp:1131
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Ошибка создания контрольного каталога %s"
@@ -16492,21 +16672,38 @@ msgstr ""
 msgid "Parsing VOMS AC to get FQANs information"
 msgstr "Разборка VOMS AC с целью получения информации о FQAN"
 
-#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:223
-msgid "No FQAN found. Using NULL as userFQAN value"
-msgstr "FQAN не обнаружен. В качестве значения userFQAN будет использоваться NULL"
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:217
+#, c-format
+msgid "Found VOMS AC attribute: %s"
+msgstr "Обнаружен атрибут VOMS AC: %s"
+
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:230
+msgid "VOMS AC attribute is a tag"
+msgstr "Атрибут VOMS AC является тегом"
 
 #: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:237
+msgid "Skipping policyAuthority VOMS AC attribute"
+msgstr "Пропускается атрибут VOMS AC policyAuthority"
+
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:241
+msgid "VOMS AC attribute is the FQAN"
+msgstr "Атрибут VOMS AC является FQAN"
+
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:249
+msgid "No FQAN found. Using None as userFQAN value"
+msgstr "FQAN не обнаружен. В качестве значения userFQAN будет использоваться None"
+
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:263
 #, c-format
 msgid "Assembling BLAH parser log entry: %s"
 msgstr "Формирование записи журнала программы разбора BLAH: %s"
 
-#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:242
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:268
 #, c-format
 msgid "Writing the info the the BLAH parser log: %s"
 msgstr "Запись информации в журнал программы разбора BLAH: %s"
 
-#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:250
+#: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:276
 #, c-format
 msgid "Cannot open BLAH log file '%s'"
 msgstr "Не удалось открыть журнальный файл BLAH '%s'"
@@ -22629,9 +22826,6 @@ msgstr "Не удалась активизация SOAP"
 
 #~ msgid "Match group: %s"
 #~ msgstr "Совпадение группы: %s"
-
-#~ msgid "Match role: %s"
-#~ msgstr "Совпадение роли: %s"
 
 #~ msgid "Match capabilities: %s"
 #~ msgstr "Совпадение возможности: %s"
