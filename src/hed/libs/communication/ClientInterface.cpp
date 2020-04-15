@@ -380,6 +380,8 @@ namespace Arc {
     }
     if(have_otoken) {
       sec.cred = UseNoCred;
+    } else {
+      sec.cred = UseX509Cred;
     }
     return sec;
   }
