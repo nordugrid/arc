@@ -44,6 +44,10 @@ static void BN_GENCB_free(BN_GENCB* bn) {
 #define X509_set1_notAfter X509_set_notAfter
 #define X509_set1_notBefore X509_set_notBefore
 
+static const unsigned char* ASN1_STRING_get0_data(const ASN1_STRING* x) {
+    return x->data;
+}
+
 #endif
 
 
@@ -59,7 +63,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 }
 
 #endif
- 
+
+
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
   #define DEFAULT_KEYBITS  (2048)
