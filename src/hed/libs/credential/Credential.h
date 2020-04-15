@@ -400,7 +400,7 @@ class Credential {
     *@param data the data which will be inserted into certificate extension
     *@param crit critical
     */
-    bool AddExtension(const std::string& name, const std::string& data, bool crit = false);
+    bool AddExtension(const std::string& name, const std::string& data, bool crit = false, int type = -1);
 
     /**Add an extension to the extension part of the certificate
     * @param name the name of the extension, there OID related with the name

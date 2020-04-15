@@ -153,7 +153,7 @@ void CredentialTest::testhostcert() {
 
   // Add subjectAltname extension to host cert
   std::string host_ext("DNS:localhost");
-  host_eec.AddExtension("2.5.29.17", host_ext);
+  host_eec.AddExtension("2.5.29.17", host_ext, false, GEN_DNS);
 
   // Load CA credential
   Arc::Credential ca(CAcert, CAkey, CAserial, CAconf, host_cert_ext_sect, CApassphrase);
@@ -203,7 +203,7 @@ void CredentialTest::testusercert() {
 
   // Add subjectAltname extension to host cert
   std::string user_ext("EMAIL:user@localhost");
-  user_req.AddExtension("2.5.29.17", user_ext);
+  user_req.AddExtension("2.5.29.17", user_ext, false, GEN_EMAIL);
 
   // Load CA credential
   Arc::Credential ca(CAcert, CAkey, CAserial, CAconf, user_cert_ext_sect, CApassphrase);
