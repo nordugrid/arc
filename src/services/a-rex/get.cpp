@@ -264,6 +264,10 @@ Arc::MCC_Status ARexService::GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,AR
 
 Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  return GetInfo(inmsg, outmsg);
+}
+
+Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
   int h = infodoc_.OpenDocument();
   if(h == -1) return Arc::MCC_Status();
   Arc::MessagePayload* payload = newFileRead(h);
@@ -321,6 +325,10 @@ Arc::MCC_Status ARexService::HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,A
 
 Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  return HeadInfo(inmsg, outmsg);
+}
+
+Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
   int h = infodoc_.OpenDocument();
   if(h == -1) return Arc::MCC_Status();
   outmsg.Payload(newFileInfo(h));

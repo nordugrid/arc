@@ -626,16 +626,47 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
-    logger_.msg(Arc::ERROR, "Can't obtain configuration");
-    // Service is not operational
-    char const* fault = "User can't be assigned configuration";
-    return (method == "POST") ?
-      make_soap_fault(outmsg, fault) :
-      make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+    // Service is not operational except public information
+    if(((method == "GET") || (method == "HEAD")) &&
+       (sub_op == SubOpInfo) &&
+       subpath.empty()) {
+      logger_.msg(Arc::VERBOSE, "Can't obtain configuration but request is for public endpoint");
+
+      Arc::MCC_Status ret;
+      if(method == "GET") {
+        // HTTP plugin either provides buffer or stream
+        logger_.msg(Arc::VERBOSE, "process: GET: public");
+        logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
+        CountedResourceLock cl_lock(datalimit_);
+        ret = GetInfo(inmsg,outmsg);
+      } else { // HEAD
+        logger_.msg(Arc::VERBOSE, "process: HEAD: public");
+        logger_.msg(Arc::INFO, "HEAD: id %s path %s", id, subpath);
+        CountedResourceLock cl_lock(datalimit_);
+        ret = HeadInfo(inmsg,outmsg);
+      };
+      if(ret) {
+        Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+        if(!sret) {
+          logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
+          delete outmsg.Payload(NULL);
+          return sret;
+        };
+      };
+      return ret;
+
+    } else {
+      logger_.msg(Arc::ERROR, "Can't obtain configuration");
+      char const* fault = "User can't be assigned configuration";
+      return (method == "POST") ?
+        make_soap_fault(outmsg, fault) :
+        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+    };
+  } else {
+    config->ClearAuths();
+    config->AddAuth(inmsg.Auth());
+    config->AddAuth(inmsg.AuthContext());
   };
-  config->ClearAuths();
-  config->AddAuth(inmsg.Auth());
-  config->AddAuth(inmsg.AuthContext());
 
   // Identify which of served endpoints request is for.
   // Using simplified algorithm - POST for SOAP messages,
@@ -840,7 +871,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     };
     return ret;
   } else if(method == "HEAD") {
+    logger_.msg(Arc::VERBOSE, "process: HEAD");
+    logger_.msg(Arc::INFO, "HEAD: id %s path %s", id, subpath);
     Arc::MCC_Status ret;
+    CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
       case SubOpInfo:
         ret = HeadInfo(inmsg,outmsg,*config,subpath);
