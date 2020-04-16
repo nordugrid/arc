@@ -104,6 +104,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status GetInfo(Arc::Message& inmsg,Arc::Message& outmsg);
   Arc::MCC_Status GetNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
   Arc::MCC_Status GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
@@ -111,6 +112,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status HeadJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg);
   Arc::MCC_Status HeadNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
   Arc::MCC_Status HeadDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
