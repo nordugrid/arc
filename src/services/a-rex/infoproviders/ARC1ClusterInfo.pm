@@ -560,14 +560,15 @@ sub xestats {
 
 # Combine info about ExecutionEnvironments from config options and the LRMS plugin
 sub xeinfos {
-    my ($config, $nodes) = @_;
+    my ($config, $nodes, $queues) = @_;
     my $infos = {};
     my %nodemap = ();
     my @xenvs = keys %{$config->{xenvs}};
     for my $xenv (@xenvs) {
         my $xecfg = $config->{xenvs}{$xenv};
         my $info = $infos->{$xenv} = {};
-        my $nscfg = $xecfg->{NodeSelection};
+        my $nodelist = \@{$queues->{$xenv}{nodes}};
+        my $nscfg = $xecfg->{NodeSelection} || { 'Regex' => $nodelist };
         if (ref $nodes eq 'HASH') {
             my $selected;
             if (not $nscfg) {
@@ -772,7 +773,7 @@ sub collect($) {
                             and not $xeconfig->{Homogeneous};
     }
 
-    my $xeinfos = xeinfos($config, $lrms_info->{nodes});
+    my $xeinfos = xeinfos($config, $lrms_info->{nodes}, $lrms_info->{queues});
 
     # Figure out total number of CPUs
     my ($totalpcpus, $totallcpus) = (0,0);

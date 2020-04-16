@@ -268,6 +268,7 @@ sub queue_info ($) {
     ($lrms_queue->{queued}, $lrms_queue->{running}) = slurm_get_jobs($queue);
     $lrms_queue->{totalcpus} = $scont_part{$queue}{TotalCPUs};
     $lrms_queue->{freeslots} = $scont_part{$queue}{IdleCPUs};
+    $lrms_queue->{nodes} = $scont_part{$queue}{NodeNames};
     
 }
 
@@ -412,7 +413,7 @@ sub slurm_parse_number($){
 sub slurm_read_partitions(){
     # get SLURM partitions, store dictionary in scont_part
     my %scont_part;
-    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L\"|");
+    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L NodeNames=%N\"|");
     while(<SCPIPE>){
 	my %part;
 	my $string = $_;
@@ -440,6 +441,8 @@ sub slurm_read_partitions(){
 	$part{TotalCPUs} = slurm_parse_number($part{TotalCPUs});
 
 	$part{TotalNodes} = slurm_parse_number($part{TotalNodes});
+
+        $part{NodeNames} = [ split(",", slurm_expand_nodes( get_variable("NodeNames",$string ) ) ) ];
 
 	$scont_part{$PartitionName} = \%part;
     }
