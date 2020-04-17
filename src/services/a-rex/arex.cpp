@@ -627,41 +627,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
     // Service is not operational except public information
-    if(((method == "GET") || (method == "HEAD")) &&
-       (sub_op == SubOpInfo) &&
-       subpath.empty()) {
-      logger_.msg(Arc::VERBOSE, "Can't obtain configuration but request is for public endpoint");
-
-      Arc::MCC_Status ret;
-      if(method == "GET") {
-        // HTTP plugin either provides buffer or stream
-        logger_.msg(Arc::VERBOSE, "process: GET: public");
-        logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
-        CountedResourceLock cl_lock(datalimit_);
-        ret = GetInfo(inmsg,outmsg);
-      } else { // HEAD
-        logger_.msg(Arc::VERBOSE, "process: HEAD: public");
-        logger_.msg(Arc::INFO, "HEAD: id %s path %s", id, subpath);
-        CountedResourceLock cl_lock(datalimit_);
-        ret = HeadInfo(inmsg,outmsg);
-      };
-      if(ret) {
-        Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-        if(!sret) {
-          logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-          delete outmsg.Payload(NULL);
-          return sret;
-        };
-      };
-      return ret;
-
-    } else {
-      logger_.msg(Arc::ERROR, "Can't obtain configuration");
-      char const* fault = "User can't be assigned configuration";
-      return (method == "POST") ?
-        make_soap_fault(outmsg, fault) :
-        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
-    };
+    logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Only public information is provided.");
   } else {
     config->ClearAuths();
     config->AddAuth(inmsg.Auth());
@@ -679,7 +645,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "POST request on special path is not supported");
       return make_soap_fault(outmsg);
     };
-    if(id.empty()) {
+    if (!id.empty()) {
+      // Listing operations for session directories
+      // TODO: proper failure like interface is not supported
+      logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
+      return make_soap_fault(outmsg,"Operation not supported");
+    };
+    {
+      // TODO: Split this complex code into separate methods. Make handling of anonymous (config == null) 
+      // requests processing cleaner.
+
       // Factory operations
       logger_.msg(Arc::VERBOSE, "process: factory endpoint");
       Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
@@ -688,6 +663,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       outpayload->Namespaces(ns_);
       if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         // Aplying known namespaces
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
           CountedResourceLock cl_lock(beslimit_);
@@ -697,6 +673,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
         // Aplying known namespaces
+        // Resource information is available for anonymous requests - null config is handled properly
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"GetResourceInfo")) {
           CountedResourceLock cl_lock(infolimit_);
@@ -708,6 +685,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"PauseActivity")) {
@@ -738,6 +716,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ListActivities")) {
@@ -753,6 +732,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CacheCheck")) {
@@ -761,6 +741,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(delegation_stores_.MatchNamespace(*inpayload)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
@@ -821,11 +802,6 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         logger_.msg(Arc::VERBOSE, "process: response=%s",str);
       };
       outmsg.Payload(outpayload);
-    } else {
-      // Listing operations for session directories
-      // TODO: proper failure like interface is not supported
-      logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
-      return make_soap_fault(outmsg,"Operation not supported");
     };
     Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
     if(!sret) {
