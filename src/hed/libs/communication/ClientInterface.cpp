@@ -383,6 +383,13 @@ namespace Arc {
     } else {
       sec.cred = UseX509Cred;
     }
+    // URL option overrides decision taken by presence of token
+    std::string credOption = url.Option("tlscred");
+    if(credOption == "none") {
+      sec.cred = UseNoCred;
+    } else if(credOption == "x509") {
+      sec.cred = UseX509Cred;
+    }
     return sec;
   }
 
