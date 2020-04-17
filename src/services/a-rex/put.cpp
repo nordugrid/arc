@@ -37,18 +37,30 @@ static bool write_file(Arc::FileAccess& h,char* buf,size_t size) {
 }
 
 Arc::MCC_Status ARexService::PutInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
 Arc::MCC_Status ARexService::DeleteInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
 Arc::MCC_Status ARexService::PutCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
 Arc::MCC_Status ARexService::DeleteCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
@@ -127,6 +139,9 @@ static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, s
 }
 
 Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   // Nothing can be put into root endpoint
   if(id.empty()) return make_http_fault(outmsg, 500, "No job specified");
   // Check for proper payload
@@ -176,6 +191,9 @@ Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
 } 
 
 Arc::MCC_Status ARexService::DeleteJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   // Nothing can be removed in root endpoint
   if(id.empty()) return make_http_fault(outmsg, 500, "No job specified");
   // Ignoring payload
