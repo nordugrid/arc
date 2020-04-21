@@ -475,8 +475,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
- nordugrid-arc-arex (= ${binary:Version})
+ libarccommon3 (= ${binary:Version})
 Description: ARC REST plugin
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
