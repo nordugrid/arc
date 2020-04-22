@@ -747,7 +747,6 @@ sites, to be used with a local installation of the ARC Control Tower.
 Summary:	ARC REST plugin
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-arex = %{version}-%{release}
 
 %description plugins-arcrest
 NorduGrid is a collaboration aiming at development, maintenance and
