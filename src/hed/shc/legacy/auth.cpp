@@ -82,7 +82,7 @@ AuthUser::source_t AuthUser::sources[] = {
   { "subject", &AuthUser::match_subject },
   { "file", &AuthUser::match_file },
   { "voms", &AuthUser::match_voms },
-  { "otokens", &AuthUser::match_otokens },
+  { "authtokens", &AuthUser::match_otokens },
   { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
