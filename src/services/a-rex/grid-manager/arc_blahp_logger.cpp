@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
     // Write entry to BLAH log with locking to exclude possible simultaneous writes when several jobs are finished
     std::string fname = logprefix + "-" + logsuffix;
     Arc::FileLock lock(fname);
-    logger.msg(Arc::DEBUG,"Writing the info the the BLAH parser log: %s", fname);
+    logger.msg(Arc::DEBUG,"Writing the info to the BLAH parser log: %s", fname);
         for (int i = 10; !lock.acquire() && i >= 0; --i) {
         if (i == 0) return false;
         sleep(1);

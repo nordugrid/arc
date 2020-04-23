@@ -27,7 +27,7 @@ class DelegationSH : public SecHandler {
                             // to which this Sec handler will
                             // create a delegation credential
   std::string peers_endpoint_; //endpoint of the peer service, to which
-                               //the real service invokation will be called.
+                               //the real service invocation will be called.
                                //This variable is only valid for the delegator
                                //role Delegation handler.
   std::string delegation_id_; //The delegation ID which is used to 

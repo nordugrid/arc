@@ -269,7 +269,7 @@ static int runmain(int argc, char *argv[]) {
                                     "  subject - subject name of proxy certificate.\n"
                                     "  identity - identity subject name of proxy certificate.\n"
                                     "  issuer - issuer subject name of proxy certificate.\n"
-                                    "  ca - subject name of CA ehich issued initial certificate\n"
+                                    "  ca - subject name of CA which issued initial certificate.\n"
                                     "  path - file system path to file containing proxy.\n"
                                     "  type - type of proxy certificate.\n"
                                     "  validityStart - timestamp when proxy validity starts.\n"
@@ -309,7 +309,7 @@ static int runmain(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formated"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formatted"),
                     istring("path"), cert_path);
 
   std::string key_path;
@@ -985,7 +985,7 @@ static int runmain(int argc, char *argv[]) {
     } else {
       // otherwise start - optionally - and end are set, period is derived
       if(validityEnd < validityStart) {
-        std::cerr << Arc::IString("The end time that you set: %s is before start time:%s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
+        std::cerr << Arc::IString("The end time that you set: %s is before start time: %s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
         // error
         return EXIT_FAILURE;
       }

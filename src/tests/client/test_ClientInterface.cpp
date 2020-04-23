@@ -81,8 +81,8 @@ int main(void) {
   std::cout<<"request: "<<str<<std::endl;
   Arc::MCC_Status status = client->process(&req,&resp);
   if(!status) {
-    logger.msg(Arc::ERROR, "SOAP invokation failed");
-    throw std::runtime_error("SOAP invokation failed");
+    logger.msg(Arc::ERROR, "SOAP invocation failed");
+    throw std::runtime_error("SOAP invocation failed");
   }
   if(resp == NULL) {
     logger.msg(Arc::ERROR,"There was no SOAP response");

@@ -257,7 +257,7 @@ namespace Arc {
     queue.push_back(arg);
     lock.release();
     if(CheckQueue() > 0)
-      threadLogger.msg(INFO, "Maximum number of threads running - puting new request into queue");
+      threadLogger.msg(INFO, "Maximum number of threads running - putting new request into queue");
   }
 
   static ThreadPool* pool = NULL;

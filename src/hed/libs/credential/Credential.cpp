@@ -1693,7 +1693,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
             }
         } else {
            if((proxy_cert_info_ = PROXY_CERT_INFO_EXTENSION_new()) == NULL) {
-               CredentialLogger.msg(ERROR, "Can not convert create PROXY_CERT_INFO_EXTENSION extension");
+               CredentialLogger.msg(ERROR, "Can not create PROXY_CERT_INFO_EXTENSION extension");
                LogError(); goto err;
            }
         }
@@ -2368,7 +2368,7 @@ err:
       if(cert_) check_cert_type(cert_,cert_type_);
       loadKeyFile(CAkeyfile, pkey_, passphrase4key);
     } catch(std::exception& err){
-      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();
     }
   }
@@ -2406,7 +2406,7 @@ err:
       loadKeyFile(CAkeyfile, pkey_, *pass);
       delete pass;
     } catch(std::exception& err){
-      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();
     }
   }

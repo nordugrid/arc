@@ -370,7 +370,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
             service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBCREATION));
             service.InterfaceName = *sit;
             endpoints.push_back(service);
-            logger.msg(Arc::INFO, "Service endpoint %s (type %s) added to the list for direct submision",
+            logger.msg(Arc::INFO, "Service endpoint %s (type %s) added to the list for direct submission",
                        eit->URLString, eit->InterfaceName);
           }
         }

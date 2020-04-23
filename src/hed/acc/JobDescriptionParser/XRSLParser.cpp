@@ -174,7 +174,7 @@ namespace Arc {
     }
 
     if (j.Application.Output.empty()) {
-      result.AddError(IString("'stdout' attribute must specified when 'join' attribute is specified"));
+      result.AddError(IString("'stdout' attribute must be specified when 'join' attribute is specified"));
     }
     else if (!j.Application.Error.empty()) {
       if (j.Application.Error != j.Application.Output) {
