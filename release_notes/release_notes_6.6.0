@@ -2,26 +2,31 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.6.0     17.04.2020
+Release Notes for NorduGrid ARC  6.6.0     24.04.2020
 ------------------------------------------------------
-
+We are happy to announce the release of ARC 6.6.0 which comes with a couple of new features and a handful of bug fixes. 
 
 Highlights in this release
 --------------------------
+In this release we offer the very first technological preview of the handling of OICD tokens in ARC. With it comes a new configuration option enabling the feature. Please see the documentation http://www.nordugrid.org/documents/arc6/misc/oidc_tokens.html for how to use tokens with ARC.
+
+We have also implemented anonymous access to site information through the EMI-ES interface <some-more-text-here>
 
 
-The following Bugzilla tickets have been resolved
+
+The following Bugzilla tickets have been adressed
 ---------------------------------------------------
+* 3916  Support for OIDC tokens in ARC
 * 3913  python3 packages for ubuntu
 * 3911  Issue with arcctl deploy voms-lsc from EGI database
 * 3910  Wrong type for RR type in archery-manage raw data check
 * 3909  Multiple crashes from DataStagingDevliery by DataPointHTTP.cpp
+* 3856  ExecutionEnvironment for a specific queue/partition is not calculated properly according to queue config in SLURM
 
 
 Documentation
 ==============
-The ARC 6 documentation has been rewritten in a modern format and is 
-placed at http://www.nordugrid.org/arc/arc6
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
 
 If you miss something or have questions, please contact us!
 
