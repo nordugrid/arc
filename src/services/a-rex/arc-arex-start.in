@@ -447,18 +447,19 @@ prepare() {
     fi
 
     # Authorization and user mapping for A-REX/EMIES
-    emies_legacy_shc="
-<!-- Do authorization in same way as jobs plugin of gridftpd does -->
-<!-- Beware of hardcoded block name -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"arclegacy.pdp\">
-    <ConfigBlock>
-      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-      <BlockName>$USERAUTH_BLOCK</BlockName>
-    </ConfigBlock>
-  </PDP>
-</SecHandler>
-"
+    emies_legacy_shc=""
+#    emies_legacy_shc="
+#<!-- Do authorization in same way as jobs plugin of gridftpd does -->
+#<!-- Beware of hardcoded block name -->
+#<SecHandler name=\"arc.authz\" event=\"incoming\">
+#  <PDP name=\"arclegacy.pdp\">
+#    <ConfigBlock>
+#      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
+#      <BlockName>$USERAUTH_BLOCK</BlockName>
+#    </ConfigBlock>
+#  </PDP>
+#</SecHandler>
+#"
     if [ "$mapping_present" = 'true' ]; then
       emies_legacy_shc="$emies_legacy_shc
 <!-- Perform client mapping according to rules of gridftpd -->

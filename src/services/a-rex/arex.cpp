@@ -238,6 +238,43 @@ std::string ARexSecAttr::get(const std::string& id) const {
   return "";
 };
 
+static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched) {
+  for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((l1->second) == (*l2)) {
+        matched = l1->second;
+        return l1->first;
+      };
+    };
+  };
+  return false;
+}
+
+static bool match_groups(std::list<std::pair<bool,std::string> > const & groups, Arc::Message& inmsg) {
+  std::string matched_group;
+  if(!groups.empty()) {
+    Arc::MessageAuth* auth = inmsg.Auth();
+    if(auth) {
+      Arc::SecAttr* sattr = auth->get("ARCLEGACY");
+      if(sattr) {
+        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+          return true;
+        };
+      };
+    };
+    auth = inmsg.AuthContext();
+    if(auth) {
+      Arc::SecAttr* sattr = auth->get("ARCLEGACY");
+      if(sattr) {
+        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+          return true;
+        };
+      };
+    };
+  };
+  return false;
+}
+
 static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(ES_CREATE_NPREFIX + ":" + opname + "Response");
   return response;
@@ -486,6 +523,17 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
     };
     endpoint+=GetPath(http_endpoint);
   };
+
+  // Do authorization according to allowed/denied authgroups
+  std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroups("");
+  if(!groups.empty()) {
+    if(!match_groups(groups, inmsg)) {
+      logger_.msg(Arc::ERROR, "Service access is not allowed for this user");
+      return NULL;
+    };
+  };
+
+  // Create configuration for this user
   config=new ARexConfigContext(config_,uname,grid_name,endpoint);
   if(config) {
     if(*config) {
@@ -626,7 +674,26 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Process grid-manager configuration if not done yet
   ARexConfigContext* config = get_configuration(inmsg);
   if(!config) {
-    // Service is not operational except public information
+    // Service is not operational except public information.
+    // But public information also has own authorization rules
+    if(!config_.PublicInformationEnabled()) {
+      logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disabled.");
+      char const* fault = "User can't be assigned configuration";
+      return (method == "POST") ?
+        make_soap_fault(outmsg, fault) :
+        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+    };
+    // Check additional authorization rules
+    std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroupsPublicInformation();
+    if(!groups.empty()) {
+      if(!match_groups(groups, inmsg)) {
+        logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disallowed for this user.");
+        char const* fault = "User can't be assigned configuration";
+        return (method == "POST") ?
+          make_soap_fault(outmsg, fault) :
+          make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+      };
+    };
     logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Only public information is provided.");
   } else {
     config->ClearAuths();
