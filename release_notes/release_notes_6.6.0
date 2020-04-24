@@ -8,7 +8,7 @@ We are happy to announce the release of ARC 6.6.0 which comes with a couple of n
 
 Highlights in this release
 --------------------------
-In this release we offer the very first technological preview of the handling of OICD tokens in ARC. With it comes a new configuration option enabling the feature. Please see the documentation http://www.nordugrid.org/documents/arc6/misc/oidc_tokens.html for how to use tokens with ARC.
+In this release we offer the very first technological preview of the handling of OIDC tokens in ARC. With it comes a new configuration option enabling the feature. Please see the documentation http://www.nordugrid.org/documents/arc6/misc/oidc_tokens.html for how to use tokens with ARC.
 
 We have also implemented the possibility to obtain generic resource information about the cluster without the need of being authenticated and or authorized. This feature is configurable in arc.conf
 
