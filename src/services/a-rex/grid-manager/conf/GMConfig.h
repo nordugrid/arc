@@ -184,6 +184,8 @@ public:
   bool EMIESInterfaceEnabled() const { return enable_emies_interface; }
   /// GridFTP job interface endpoint
   const std::string & GridFTPEndpoint() const { return gridftp_endpoint; }
+  /// Whether public information interface is enabled
+  bool PublicInformationEnabled() const { return enable_publicinfo; }
   /// A-REX WS-interface job submission endpoint
   const std::string & AREXEndpoint() const { return arex_endpoint; }
 
@@ -245,6 +247,8 @@ public:
   /// Returns list of authorization groups for specified queue.
   /// If queue is not specified value for server is returned.
   const std::list<std::pair<bool,std::string> > & MatchingGroups(const char * queue = "") const;
+  /// Returns list of authorization groups for public information.
+  const std::list<std::pair<bool,std::string> > & MatchingGroupsPublicInformation() const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -341,6 +345,8 @@ private:
   bool enable_arc_interface;
   /// Whether EMI-ES interface is enabled
   bool enable_emies_interface;
+  /// Whether public information interface is enabled
+  bool enable_publicinfo;
   /// GridFTP job endpoint
   std::string gridftp_endpoint;
   /// WS-interface endpoint
@@ -353,6 +359,8 @@ private:
   std::map<std::string, std::list<std::string> > authorized_vos;
   /// groups allowed per queue with allow/deny mark (true/false)
   std::map<std::string, std::list<std::pair<bool, std::string> > > matching_groups;
+  /// groups allowed to access public information with allow/deny mark (true/false)
+  std::list<std::pair<bool, std::string> > matching_groups_publicinfo;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;

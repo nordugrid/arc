@@ -101,6 +101,7 @@ void GMConfig::SetDefaults() {
 
   enable_arc_interface = false;
   enable_emies_interface = false;
+  enable_publicinfo = false;
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");
@@ -292,6 +293,10 @@ const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const
 const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroups(const char * queue) const {
   std::map<std::string, std::list<std::pair<bool,std::string> > >::const_iterator pos = matching_groups.find(queue);
   return (pos == matching_groups.end()) ? empty_group_list : pos->second;
+}
+
+const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroupsPublicInformation() const {
+  return matching_groups_publicinfo;
 }
 
 bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {

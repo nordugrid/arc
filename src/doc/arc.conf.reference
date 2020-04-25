@@ -20,6 +20,7 @@
 ##  [arex/data-staging]
 ##  [arex/ws]
 ##  [arex/ws/jobs]
+##  [arex/ws/publicinfo]
 ##  [arex/ws/cache]
 ##  [arex/ws/candypond]
 ##  [arex/ws/argus]
@@ -1378,6 +1379,27 @@
 ##
 ##
 ### end of the [arex/ws/jobs] block ##############################
+
+
+### The [arex/ws/publicinfo] block ################################
+## AREX allows access to public informaton for non-authorized users.
+## Presence of this block enables such feature.
+#[arex/ws/publicinfo]
+## CHANGE: new block
+
+## allowaccess = authgroup - Defines that the specified authgroup members are authorized to access
+## public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#allowaccess=monitors
+
+## denyaccess = authgroup - Defines that the specified authgroup members are REJECTED, not authorized
+## to access public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#denyaccess=badactors
+
+### end of the [arex/ws/publicinfo] block ####################
 
 
 ### The [arex/ws/cache] block ################################
