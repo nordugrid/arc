@@ -314,7 +314,7 @@
 ## sequenced
 ## default: undefined
 #authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
-## CHANGE: INTRODUCED in 6.7
+## CHANGE: INTRODUCED in 6.6
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
@@ -447,7 +447,7 @@
 ##
 ##
 #[authtokens]
-## CHANGE: INTRODUCED new block in 6.7
+## CHANGE: INTRODUCED new block in 6.6
 ##
 ### end of the [authtokens] block ##############################################
 
