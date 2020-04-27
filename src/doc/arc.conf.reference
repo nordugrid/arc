@@ -314,6 +314,7 @@
 ## sequenced
 ## default: undefined
 #authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
+## CHANGE: INTRODUCED in 6.6
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
@@ -446,7 +447,7 @@
 ##
 ##
 #[authtokens]
-## CHANGE: This is a new block
+## CHANGE: INTRODUCED new block in 6.6
 ##
 ### end of the [authtokens] block ##############################################
 
@@ -1385,19 +1386,21 @@
 ## AREX allows access to public informaton for non-authorized users.
 ## Presence of this block enables such feature.
 #[arex/ws/publicinfo]
-## CHANGE: new block
+## CHANGE: INTRODUCED new block in 6.7
 
 ## allowaccess = authgroup - Defines that the specified authgroup members are authorized to access
 ## public information. For more information see similar configuration option in [arex/ws/jobs] block.
 ## default: undefined
 ## multivalued
 #allowaccess=monitors
+## CHANGE: INTRODUCED in 6.7
 
 ## denyaccess = authgroup - Defines that the specified authgroup members are REJECTED, not authorized
 ## to access public information. For more information see similar configuration option in [arex/ws/jobs] block.
 ## default: undefined
 ## multivalued
 #denyaccess=badactors
+## CHANGE: INTRODUCED in 6.7
 
 ### end of the [arex/ws/publicinfo] block ####################
 
