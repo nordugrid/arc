@@ -2,7 +2,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.6.0     24.04.2020
+Release Notes for NorduGrid ARC  6.6.0     27.04.2020
 ------------------------------------------------------
 We are happy to announce the release of ARC 6.6.0 which comes with a couple of new features and a handful of bug fixes. 
 
@@ -12,14 +12,10 @@ In this release we offer the very first technological preview of the handling of
 With it comes a new configuration option enabling the feature.
 Please see the documentation http://www.nordugrid.org/documents/arc6/misc/oidc_tokens.html for how to use tokens with ARC.
 
-We have also implemented the possibility to obtain generic resource information about the cluster through web-service
-without the need of being authenticated and or authorized. This feature is enabled in arc.conf by adding a [arex/ws/publicinfo] block.
-
 A few bugs were also fixed, see the list of tickets. 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-* 3917  Anonymous access to cluster information through EMI ES interface.
 * 3916  Support for OIDC tokens in ARC
 * 3913  python3 packages for ubuntu (solved)
 * 3911  Issue with arcctl deploy voms-lsc from EGI database (solved)
