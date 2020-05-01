@@ -16,7 +16,6 @@
 namespace ARex {
 
 class ARexGMConfig;
-class ARexConfigContext;
 class CountedResourceLock;
 
 class CountedResource {
@@ -78,7 +77,7 @@ class ARexService: public Arc::Service {
   FileChunksList files_chunks_;
   GMConfig config_;
   GridManager* gm_;
-  ARexConfigContext* get_configuration(Arc::Message& inmsg);
+  ARexGMConfig* get_configuration(Arc::Message& inmsg);
 
   // A-REX operations
   AREXOP(CacheCheck);
