@@ -301,6 +301,7 @@
 
 ## plugin = timeout path [arg1 [arg2 [arg3...]]] - Run external executable or
 ## function from shared library. Rule is matched if plugin returns 0.
+## Any other return code or timeout are treated as rule not matched.
 ## In arguments following substitutions are supported:
 ##   - "%D" - subject of certicate
 ##   - "%P" - path to proxy
@@ -396,6 +397,9 @@
 ## name to which users that belogns to specified authgroup will be mapped to.
 ## A rule matches if the exit code is "0" and there is a UNIX account name 
 ## printed on stdout (optionally followed by a UNIX group name separated by colon).
+## The exit code 1 designates failed mapping. Any other code or timeout means fatal
+## failure and will abort any further mapping processing. That will also cause
+## rejection of corresponding connection.
 ## Plugin execution time is limited to "timeout" seconds.
 ##
 ## In the arguments the following substitutions are applied before the plugin is started:
