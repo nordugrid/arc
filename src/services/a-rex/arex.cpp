@@ -435,16 +435,17 @@ Arc::MCC_Status ARexService::make_empty_response(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
-  ARexConfigContext* config = NULL;
+ARexGMConfig* ARexService::get_configuration(Arc::Message& inmsg) {
   Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
   if(mcontext) {
     try {
-      config = dynamic_cast<ARexConfigContext*>(mcontext);
-      logger_.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
+      ARexConfigContext* config = dynamic_cast<ARexConfigContext*>(mcontext);
+      if(config) {
+        logger_.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
+        return config;
+      }
     } catch(std::exception& e) { };
   };
-  if(config) return config;
   // TODO: do configuration detection
   // TODO: do mapping to local unix name
   std::string uname;
@@ -534,16 +535,16 @@ ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
   };
 
   // Create configuration for this user
-  config=new ARexConfigContext(config_,uname,grid_name,endpoint);
+  ARexConfigContext* config=new ARexConfigContext(config_,uname,grid_name,endpoint);
   if(config) {
     if(*config) {
       inmsg.Context()->Add("arex.gmconfig",config);
-    } else {
-      delete config; config=NULL;
-      logger_.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
+      return config;
     };
+    delete config; config=NULL;
+    logger_.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
   };
-  return config;
+  return NULL;
 }
 
 static std::string GetPath(Arc::Message &inmsg,std::string &base) {
@@ -672,7 +673,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   };
 
   // Process grid-manager configuration if not done yet
-  ARexConfigContext* config = get_configuration(inmsg);
+  ARexGMConfig* config = get_configuration(inmsg);
   if(!config) {
     // Service is not operational except public information.
     // But public information also has own authorization rules
@@ -1031,6 +1032,9 @@ Arc::MCC_Status ARexService::HeadDelegation(Arc::Message& inmsg,Arc::Message& ou
 }
 
 Arc::MCC_Status ARexService::GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   if(!subpath.empty()) {
     return make_http_fault(outmsg,500,"No additional path expected");
   };
