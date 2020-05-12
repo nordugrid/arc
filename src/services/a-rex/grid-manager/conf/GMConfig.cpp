@@ -299,8 +299,10 @@ const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroupsPublicIn
   return matching_groups_publicinfo;
 }
 
-bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
+bool GMConfig::Substitute(std::string& param, bool& userSubs, bool& otherSubs, const Arc::User& user) const {
   std::string::size_type curpos = 0;
+  userSubs = false;
+  otherSubs = false;
   for (;;) {
     if (curpos >= param.length()) break;
     std::string::size_type pos = param.find('%', curpos);
@@ -309,16 +311,16 @@ bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
     if (param[pos] == '%') { curpos=pos+1; continue; };
     std::string to_put;
     switch (param[pos]) {
-      case 'R': to_put = SessionRoot(""); break; // First session dir will be used if there are multiple
-      case 'C': to_put = ControlDir(); break;
-      case 'U': to_put = user.Name(); break;
-      case 'H': to_put = user.Home(); break;
-      case 'Q': to_put = DefaultQueue(); break;
-      case 'L': to_put = DefaultLRMS(); break;
-      case 'u': to_put = Arc::tostring(user.get_uid()); break;
-      case 'g': to_put = Arc::tostring(user.get_gid()); break;
-      case 'W': to_put = Arc::ArcLocation::Get(); break;
-      case 'F': to_put = conffile; break;
+      case 'R': to_put = SessionRoot(""); otherSubs = true; break; // First session dir will be used if there are multiple
+      case 'C': to_put = ControlDir();  otherSubs = true; break;
+      case 'U': to_put = user.Name(); userSubs = true; break;
+      case 'H': to_put = user.Home(); userSubs = true; break;
+      case 'Q': to_put = DefaultQueue();  otherSubs = true; break;
+      case 'L': to_put = DefaultLRMS();  otherSubs = true; break;
+      case 'u': to_put = Arc::tostring(user.get_uid()); userSubs = true; break;
+      case 'g': to_put = Arc::tostring(user.get_gid()); userSubs = true; break;
+      case 'W': to_put = Arc::ArcLocation::Get();  otherSubs = true; break;
+      case 'F': to_put = conffile;  otherSubs = true; break;
       case 'G':
         logger.msg(Arc::ERROR, "Globus location variable substitution is not supported anymore. Please specify path directly.");
         break;

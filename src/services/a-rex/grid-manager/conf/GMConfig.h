@@ -101,7 +101,13 @@ public:
 
   /// Substitute characters in param specified by % with real values. An
   /// optional User can be specified for the user-related substitutions.
-  bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const;
+  bool Substitute(std::string& param, bool& userSubs, bool& otherSubs, const Arc::User& user=Arc::User()) const;
+
+  bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const {
+    bool userSubs;
+    bool otherSubs;
+    return Substitute(param, userSubs, otherSubs, user);
+  }
 
   /// Set control directory
   void SetControlDir(const std::string &dir);
