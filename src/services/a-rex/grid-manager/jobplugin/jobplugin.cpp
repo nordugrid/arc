@@ -111,28 +111,6 @@ class DirectUserFilePlugin: public DirectFilePlugin {
 
 };
 
-
-static void job_subst(std::string& str,void* arg) {
-  job_subst_t* subs = (job_subst_t*)arg;
-  if(subs->job) for(std::string::size_type p = 0;;) {
-    p=str.find('%',p);
-    if(p==std::string::npos) break;
-    if(str[p+1]=='I') {
-      str.replace(p,2,subs->job->c_str());
-      p+=subs->job->length();
-    } else if(str[p+1]=='S') {
-      str.replace(p,2,"UNKNOWN"); // WRONG
-      p+=7;
-    } else if(str[p+1]=='O') {
-      str.replace(p,2,subs->reason);
-      p+=strlen(subs->reason);
-    } else {
-      p+=2;
-    };
-  };
-  if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
-}
-
 JobPlugin::JobPlugin(std::istream &cfile,userspec_t const &user_,FileNode& node):
     cont_plugins(new ContinuationPlugins),
     user_s(user_),

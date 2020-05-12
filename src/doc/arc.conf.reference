@@ -916,7 +916,7 @@
 ##   - "%H" - home directory of mapped UNIX account as specified in "/etc/passwd"
 ##   - "%Q" - default queue (see "lrms" configuration option in [lrms] block)
 ##   - "%L" - LRMS name (see "lrms" configuration option in [lrms] block)
-##   - "%W" – ARC installation path (corresponds to the "ARC_LOCATION" environmental variable)
+##   - "%W" - ARC installation path (corresponds to the "ARC_LOCATION" environmental variable)
 ##   - "%F" - path to configuration file for this instance
 ##   - "%I" - job ID (substituted in runtime)
 ##   - "%S" - job state (substituted in runtime)

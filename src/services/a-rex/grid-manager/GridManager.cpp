@@ -363,8 +363,6 @@ bool GridManager::thread() {
     SpaceMetrics* space_metrics = config_.GetSpaceMetrics();
     if(space_metrics) space_metrics->ReportSpaceChange(config_);
 
-
-
     jobs.WaitAttention();
     logger.msg(Arc::DEBUG,"Waking up");
   };
