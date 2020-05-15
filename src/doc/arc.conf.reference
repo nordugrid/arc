@@ -2111,7 +2111,7 @@
 ## Each value corresponds to the following verbosity levels:
 ## FATAL => 0, ERROR => 1 , WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
-## default: 1
+## default: 3
 #loglevel=3
 ## CHANGE: renamed
 
