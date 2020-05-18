@@ -612,8 +612,11 @@ static int runmain(int argc, char *argv[]) {
                  "Please make sure this file exists.", proxy_path);
       return EXIT_FAILURE;
     }
-
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Issuer: %s", holder.GetIssuerName()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
@@ -731,11 +734,27 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
   if(infoitemlist.size() > 0) {
-    std::vector<Arc::VOMSACInfo> voms_attributes;
+    if (proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
+                 "please setup environment X509_USER_PROXY, "
+                 "or proxypath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the proxy. "
+                 "Please make sure this file exists.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
+    std::vector<Arc::VOMSACInfo> voms_attributes;
     parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    bool unknownInfo = false;
     for(std::list<std::string>::iterator ii = infoitemlist.begin();
                            ii != infoitemlist.end(); ++ii) {
       if(*ii == "subject") {
@@ -808,8 +827,11 @@ static int runmain(int argc, char *argv[]) {
         std::cout << signTypeToString(holder.GetSigningAlgorithm()) << std::endl;
       } else {
         logger.msg(Arc::ERROR, "Information item '%s' is not known",*ii);
+        unknownInfo = true;
       }
     }
+    if (unknownInfo)
+      return EXIT_FAILURE;
     return EXIT_SUCCESS;
   }
 
