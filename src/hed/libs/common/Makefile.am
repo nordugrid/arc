@@ -25,8 +25,6 @@ libarccommon_la_HEADERS = ArcConfig.h ArcLocation.h \
 	Counter.h IntraProcessCounter.h IniConfig.h Profile.h \
 	Run.h Watchdog.h JobPerfLog.h JSON.h $(MYSQL_WRAPPER_HEADER)
 
-PLATFORM_SPECIFIC = Run_unix.cpp
-
 libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	ArcRegex.cpp ArcConfigIni.cpp ArcConfigFile.cpp \
 	Base64.cpp CheckSum.cpp DateTime.cpp \
@@ -34,7 +32,7 @@ libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	Logger.cpp OptionParser.cpp StringConv.cpp Thread.cpp URL.cpp \
 	User.cpp UserConfig.cpp Utils.cpp XMLNode.cpp HostnameResolver.cpp \
 	Counter.cpp IntraProcessCounter.cpp IniConfig.cpp Profile.cpp \
-        JobPerfLog.cpp JSON.cpp $(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP)
+        JobPerfLog.cpp JSON.cpp Run_unix.cpp Watchdog.cpp $(MYSQL_WRAPPER_CPP)
 libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) \
 	$(MYSQL_CFLAGS) $(AM_CXXFLAGS)
