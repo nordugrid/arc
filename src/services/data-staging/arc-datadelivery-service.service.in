@@ -3,8 +3,9 @@ Description=A-REX datadelivery service
 After=local_fs.target remote_fs.target
 
 [Service]
-ExecStart=@prefix@/@pkgdatasubdir@/arc-datadelivery-service-start -f
+ExecStart=@prefix@/@pkgdatasubdir@/arc-datadelivery-service-start
 NotifyAccess=all
+Type=forking
 
 [Install]
 WantedBy=multi-user.target
