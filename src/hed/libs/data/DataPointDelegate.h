@@ -22,6 +22,9 @@ namespace Arc {
       LogRedirect(): level_(FATAL) { };
       virtual ~LogRedirect() { Flush(); };
       virtual void Append(char const* data, unsigned int size);
+      virtual void Remove(unsigned int size);
+      virtual char const* Get() const;
+      virtual unsigned int Size() const;
       void Flush();
      private:
       // for sanity checks

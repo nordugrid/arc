@@ -600,6 +600,17 @@ namespace Arc {
     if (size > 0) buffer_.append(data,size);
   }
 
+  void DataPointDelegate::LogRedirect::Remove(unsigned int) {
+  }
+
+  char const* DataPointDelegate::LogRedirect::Get() const {
+    return NULL;
+  }
+
+  unsigned int DataPointDelegate::LogRedirect::Size() const {
+    return 0;
+  }
+
   void DataPointDelegate::LogRedirect::Flush() {
     if(!buffer_.empty()) {
       // I could not find any better method for recovering message level

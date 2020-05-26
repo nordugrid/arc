@@ -154,6 +154,12 @@ namespace Arc {
     T* Ptr(void) const {
       return object;
     }
+    T& operator[](int pos) {
+      return object[pos];
+    }
+    T const& operator[](int pos) const {
+      return object[pos];
+    }
     /// Release referred object so that it can be passed to other container
     T* Release(void) {
       T* tmp = object;
