@@ -996,12 +996,13 @@
 
 ### The [arex/cache] block #########################################
 ## This subblock enables and configures the cache functionality of A-REX.
-## A-REX can cache input files downloaded as part of stagein proces of grid jobs
+## A-REX can cache input files downloaded as part of the stage-in process of grid jobs
 ## so that subsequent jobs requiring the same file don’t have to download it again.
 ## The cached file will be symlinked (or copied) into the session directory of the job.
 ## To disable to cache functionality simply comment out the [arex/cache] config block.
 ## It is a good idea to have the cache on its own separate file system that is shared with the nodes.
-## For more information about the cache functionality of A-REX consult the sysadmin guide.
+## For more information about the cache functionality of A-REX consult the Data Cache
+## technical description in the online documentation.
 #[arex/cache]
 ## CHANGE: new block
 
@@ -1013,12 +1014,18 @@
 ## If "link_path" is set to "." files are not soft-linked, but copied to session
 ## directory. 
 ## If a cache directory needs to be drained, then "link_path" should specify "drain",
-## in which case no new files will be added to the cache. Restart of arex also needed.
+## in which case no new files will be added to the cache and files in the cache
+## will no longer be used.
+## Setting "link_path" to "readonly" ensures that no new files are written to
+## this cache, but existing files can still be used.
+## Draining and read-only caches are not cleaned by the A-REX cache cleaner.
+## A restart of A-REX is required when changing cache options.
 ## multivalued
 ## default: undefined
 #cachedir=/scratch/cache
 #cachedir=/shared/cache /frontend/jobcache
 #cachedir=/fs1/cache drain
+## CHANGE: Added readonly option in 6.7
 ##
 ##
 ### end of the [arex/cache] #############################################

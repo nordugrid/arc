@@ -183,7 +183,7 @@ namespace CandyPond {
     cache_params.substitute(config, user);
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
-    // we are definitely going to download so remote caches are not useful here
+    // we are definitely going to download so read-only caches are not useful here
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this, DataStaging::GENERATOR);
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);

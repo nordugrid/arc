@@ -51,6 +51,7 @@ namespace DataStaging {
     // Create cache using configuration
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
+                         request->get_cache_parameters().readonly_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());
@@ -693,6 +694,7 @@ namespace DataStaging {
 
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
+                         request->get_cache_parameters().readonly_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());

@@ -25,6 +25,8 @@ class CacheControl(ComponentControl):
         if not self.cache_dirs:
             self.logger.error('Failed to get cache directories from arc.conf.')
             sys.exit(1)
+        # Strip off any options
+        self.cache_dirs = [i.split()[0] for i in self.cache_dirs]
         self.logger.debug('Following cache locations found: %s', ','.join(self.cache_dirs))
 
     def stats(self):

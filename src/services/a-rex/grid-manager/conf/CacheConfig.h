@@ -50,6 +50,10 @@ class CacheConfig {
     **/
    std::vector<std::string> _draining_cache_dirs;
    /**
+    * Cache directories that are read-only
+    **/
+   std::vector<std::string> _readonly_cache_dirs;
+   /**
     * Logfile for cache cleaning messages
     */
    std::string _log_file;
@@ -93,6 +97,7 @@ class CacheConfig {
   CacheConfig(): _cache_max(0), _cache_min(0), _cleaning_enabled(false), _cache_shared(false), _clean_timeout(0) {};
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
+  std::vector<std::string> getReadOnlyCacheDirs() const { return _readonly_cache_dirs; };
   /// Substitute all cache paths, with information given in user if necessary
   void substitute(const GMConfig& config, const Arc::User& user);
   int getCacheMax() const { return _cache_max; };

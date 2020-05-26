@@ -1053,6 +1053,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // Substitute cache paths
     cache_params.substitute(config, job->get_user());
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
+    cache_parameters.readonly_cache_dirs = cache_params.getReadOnlyCacheDirs();
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this,DataStaging::GENERATOR);
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);
@@ -1364,6 +1365,7 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
   // there is no uid switch during Release so uid/gid is not so important
   Arc::FileCache cache(cache_config.getCacheDirs(),
                        cache_config.getDrainingCacheDirs(),
+                       cache_config.getReadOnlyCacheDirs(),
                        job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();
   Arc::Time processing_end;

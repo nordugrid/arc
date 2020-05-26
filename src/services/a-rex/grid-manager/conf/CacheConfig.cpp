@@ -155,27 +155,24 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
           while (cache_dir.length() > 1 && cache_dir.rfind("/") == cache_dir.length()-1) cache_dir = cache_dir.substr(0, cache_dir.length()-1);
           if (cache_dir[0] != '/') throw CacheConfigException("Cache path must start with '/'");
           if (cache_dir.find("..") != std::string::npos) throw CacheConfigException("Cache path cannot contain '..'");
-          if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain") {
+          if (!cache_link_dir.empty() && cache_link_dir != "." && cache_link_dir != "drain" && cache_link_dir != "readonly") {
             while (cache_link_dir.rfind("/") == cache_link_dir.length()-1) cache_link_dir = cache_link_dir.substr(0, cache_link_dir.length()-1);
             if (cache_link_dir[0] != '/') throw CacheConfigException("Cache link path must start with '/'");
             if (cache_link_dir.find("..") != std::string::npos) throw CacheConfigException("Cache link path cannot contain '..'");
           }
-          // add this cache to our list
-          std::string cache = cache_dir;
-          bool isDrainingCache = false;
-          // check if the cache dir needs to be drained
+          // check if the cache dir needs to be drained or is read-only
           if (cache_link_dir == "drain") {
-            cache = cache_dir.substr(0, cache_dir.find(' '));
-            cache_link_dir = "";
-            isDrainingCache = true;
+            _draining_cache_dirs.push_back(cache_dir);
           }
-          if (!cache_link_dir.empty())
-            cache += " "+cache_link_dir;
-
-          if (isDrainingCache)
-            _draining_cache_dirs.push_back(cache);
-          else
-            _cache_dirs.push_back(cache);
+          else if (cache_link_dir == "readonly") {
+            _readonly_cache_dirs.push_back(cache_dir);
+          }
+          else {
+            if (!cache_link_dir.empty()) {
+              cache_dir += " "+cache_link_dir;
+            }
+            _cache_dirs.push_back(cache_dir);
+          }
         }
       }
     } else if (cf.SectionNum() == 2) { // arex/ws/cache
@@ -207,6 +204,9 @@ void CacheConfig::substitute(const GMConfig& config, const Arc::User& user) {
     config.Substitute(*i, user);
   }
   for (std::vector<std::string>::iterator i = _draining_cache_dirs.begin(); i != _draining_cache_dirs.end(); ++i) {
+    config.Substitute(*i, user);
+  }
+  for (std::vector<std::string>::iterator i = _readonly_cache_dirs.begin(); i != _readonly_cache_dirs.end(); ++i) {
     config.Substitute(*i, user);
   }
 }

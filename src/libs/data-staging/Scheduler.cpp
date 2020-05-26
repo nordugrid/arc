@@ -182,7 +182,7 @@ namespace DataStaging {
       if (request->get_destination()->IsIndex()) {
         request->get_logger()->msg(Arc::VERBOSE, "Will clean up pre-registered destination");
         request->set_status(DTRStatus::REGISTER_REPLICA);
-      } else if (!request->get_cache_parameters().cache_dirs.empty() &&
+      } else if (!(request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().readonly_cache_dirs.empty()) &&
                  (request->get_cache_state() == CACHE_ALREADY_PRESENT || request->get_cache_state() == CACHEABLE)) {
         request->get_logger()->msg(Arc::VERBOSE, "Will release cache locks");
         request->set_status(DTRStatus::PROCESS_CACHE);
@@ -250,7 +250,8 @@ namespace DataStaging {
         request->get_transfer_share(), request->get_priority());
 
     // Normal workflow is CHECK_CACHE
-    if (request->get_cache_state() == NON_CACHEABLE || request->get_cache_parameters().cache_dirs.empty()) {
+    if (request->get_cache_state() == NON_CACHEABLE ||
+        (request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().readonly_cache_dirs.empty())) {
       request->get_logger()->msg(Arc::VERBOSE, "File is not cacheable, was requested not to be cached or no cache available, skipping cache check");
       request->set_status(DTRStatus::CACHE_CHECKED);
     } else {
@@ -325,7 +326,8 @@ namespace DataStaging {
     if(request->error()){
       // It's impossible to download anything, since no replica location is resolved
       // if cacheable, move to PROCESS_CACHE, the post-processor will do the cleanup
-      if (request->get_cache_state() == CACHEABLE && !request->get_cache_parameters().cache_dirs.empty()) {
+      if (request->get_cache_state() == CACHEABLE &&
+          !(request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().cache_dirs.empty())) {
         request->get_logger()->msg(Arc::ERROR, "Problem with index service, will release cache lock");
         request->set_status(DTRStatus::PROCESS_CACHE);
       // else go to end state
@@ -530,7 +532,8 @@ namespace DataStaging {
        request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA) {
       request->get_logger()->msg(Arc::ERROR, "Error registering replica, moving to end of data staging");
       request->set_status(DTRStatus::CACHE_PROCESSED);
-    } else if (!request->get_cache_parameters().cache_dirs.empty() &&
+    } else if (!(request->get_cache_parameters().cache_dirs.empty() &&
+                 request->get_cache_parameters().readonly_cache_dirs.empty()) &&
                (request->get_cache_state() == CACHE_ALREADY_PRESENT ||
                 request->get_cache_state() == CACHE_DOWNLOADED ||
                 request->get_cache_state() == CACHEABLE ||

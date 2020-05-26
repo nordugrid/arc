@@ -1220,7 +1220,12 @@ JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
       // add draining caches
       std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
       for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
-        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+        cache_per_job_dirs.push_back(*it+"/joblinks");
+      }
+      // and read-only caches
+      std::vector<std::string> readonly_caches = cache_config.getReadOnlyCacheDirs();
+      for (std::vector<std::string>::iterator it = readonly_caches.begin(); it != readonly_caches.end(); it++) {
+        cache_per_job_dirs.push_back(*it+"/joblinks");
       }
       job_clean_deleted(*i,config,cache_per_job_dirs);
       SetJobState(i, JOB_STATE_DELETED, "Job stayed unattended too long");
