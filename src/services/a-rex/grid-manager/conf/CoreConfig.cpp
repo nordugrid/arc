@@ -292,7 +292,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         else if (command == "controldir") {
           std::string control_dir = rest;
           if (control_dir.empty()) {
-            logger.msg(Arc::ERROR, "Missing directory in control command"); return false;
+            logger.msg(Arc::ERROR, "Missing directory in controldir command"); return false;
           }
           config.control_dir = control_dir;
         }

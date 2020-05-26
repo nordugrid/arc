@@ -717,7 +717,7 @@ static bool contact_voms_servers(const std::list<std::string>& vomslist, const s
         if (!status) {
           //logger.msg(Arc::ERROR, (std::string)status);
           if (response) delete response;
-          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
@@ -785,7 +785,7 @@ static bool contact_voms_servers(const std::list<std::string>& vomslist, const s
     }//end of the scanning of multiple vomses lines with the same name
     if(succeeded == false) {
       if(voms_lines.size() > 1)
-        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not be reached, or can not return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but none of them can be reached, or can return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
     }
   }
 
@@ -1282,7 +1282,7 @@ static std::string get_nssdb_path(Arc::Logger& logger) {
   for(int i=0; i < nssdb_paths.size(); i++) {
     std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
   }
-  std::cout << Arc::IString("Please choose the NSS database you would use (1-%d): ", nssdb_paths.size());
+  std::cout << Arc::IString("Please choose the NSS database you would like to use (1-%d): ", nssdb_paths.size());
   if(nssdb_paths.size() == 1) { nssdb = nssdb_paths[0]; }
   char c;
   while(true && (nssdb_paths.size()>1)) {

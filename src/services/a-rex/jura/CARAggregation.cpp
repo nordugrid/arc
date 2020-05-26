@@ -79,7 +79,7 @@ namespace ArcJura
           }
         else
           {
-            logger.msg(Arc::ERROR, "Some error happens during the Aggregation record (%s) initialization.",
+            logger.msg(Arc::ERROR, "Some error happens during the aggregation record (%s) initialization.",
                        aggr_record_location);
            }
       }
@@ -100,7 +100,7 @@ namespace ArcJura
             logger.msg(Arc::INFO, "Aggregation record (%s) stored successful.",
                        aggr_record_location);
         } else {
-            logger.msg(Arc::ERROR, "Some error happens during the Aggregation record (%s) storing.",
+            logger.msg(Arc::ERROR, "Some error happens during the aggregation record (%s) storing.",
                        aggr_record_location);
             return 1;
         }
@@ -203,7 +203,7 @@ namespace ArcJura
     std::string queue = ur["Queue"];
 
     logger.msg(Arc::DEBUG, "year: %s", year);
-    logger.msg(Arc::DEBUG, "moth: %s", month);
+    logger.msg(Arc::DEBUG, "month: %s", month);
     logger.msg(Arc::DEBUG, "queue: %s", queue);
 
     std::string query("//car:SummaryRecords/car:SummaryRecord[car:Year='");

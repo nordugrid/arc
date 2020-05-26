@@ -56,7 +56,7 @@ namespace Arc {
     LogLevel ll;
     if (string_to_level(str, ll)) return ll;
     else { // should not happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default %s.", level_to_string(DefaultLogLevel));
       return DefaultLogLevel;
     }
   }
@@ -121,7 +121,7 @@ namespace Arc {
     else if (old_level == 0)
       return FATAL;
     else { // cannot happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using default %s.", level_to_string(DefaultLogLevel));
       return DefaultLogLevel;
     }
   }

@@ -1648,7 +1648,7 @@
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal treshold
 ## of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
-##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
 ## default: undefined
 #urdelivery_frequency=3600
 ## CHANGE: INTRODUCED IN 6.4
@@ -1745,7 +1745,7 @@
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
 ## treshold of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
-##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
 ## APEL recommended value is once per day.
 ## default: 86000
 #urdelivery_frequency=14000

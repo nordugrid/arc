@@ -171,14 +171,14 @@ namespace DataStaging {
       // Use next replica
       // Clear the error flag to resume normal workflow
       request->reset_error_status();
-      request->get_logger()->msg(Arc::INFO, "Using next %s replica", source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::INFO, "Using next %s replica", source_error ? istring("source") : istring("destination"));
       // Perhaps not necessary to query replica again if the error was in the destination
       // but the error could have been caused by a source problem during transfer
       request->set_status(DTRStatus::QUERY_REPLICA);
     }
     else {
       // No replicas - move to appropriate state for the post-processor to do cleanup
-      request->get_logger()->msg(Arc::ERROR, "No more %s replicas", source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::ERROR, "No more %s replicas", source_error ? istring("source") : istring("destination"));
       if (request->get_destination()->IsIndex()) {
         request->get_logger()->msg(Arc::VERBOSE, "Will clean up pre-registered destination");
         request->set_status(DTRStatus::REGISTER_REPLICA);
@@ -512,7 +512,7 @@ namespace DataStaging {
     } else if (request->get_destination()->IsIndex()) {
       // Normal workflow is REGISTER_REPLICA
       request->get_logger()->msg(Arc::VERBOSE, "Will %s in destination index service",
-                                 ((request->error() || request->cancel_requested()) ? "unregister":"register"));
+                                 ((request->error() || request->cancel_requested()) ? istring("unregister") : istring("register")));
       request->set_status(DTRStatus::REGISTER_REPLICA);
     } else {
       request->get_logger()->msg(Arc::VERBOSE, "Destination is not index service, skipping replica registration");

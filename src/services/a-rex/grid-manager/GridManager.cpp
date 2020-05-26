@@ -108,7 +108,7 @@ static void cache_func(void* arg) {
       }
     }
 
-    logger.msg(Arc::DEBUG, "Running command %s", cmd);
+    logger.msg(Arc::DEBUG, "Running command: %s", cmd);
     int result = RunRedirected::run(Arc::User(), "cache-clean", -1, h, h, cmd.c_str(), clean_timeout);
     if(h != -1) close(h);
     if (result != 0) {

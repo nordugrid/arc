@@ -70,7 +70,7 @@ namespace Arc {
     run->KeepStdout(false);
     run->KeepStderr(false);
     run->AssignStderr(log_redirect);
-    logger.msg(DEBUG, "Starting hepler process: %s", ListToString(argv));
+    logger.msg(DEBUG, "Starting helper process: %s", ListToString(argv));
     if(!run->Start()) {
       return DataStatus(errCode, "Failed to start helper process for "+url.plainstr());
     }

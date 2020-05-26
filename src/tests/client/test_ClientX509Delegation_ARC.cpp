@@ -52,7 +52,7 @@ int main(void) {
   //Acquire the delegated credential from the delegation service
   std::string arc_delegation_cred;
   if(!arc_deleg_client->acquireDelegation(Arc::DELEG_ARC, arc_delegation_cred, arc_delegation_id)) {
-    logger.msg(Arc::ERROR,"Can not get the delegation credential: %s from delegation service:%s",arc_delegation_id.c_str(),arc_deleg_url_str.c_str());
+    logger.msg(Arc::ERROR,"Can not get the delegation credential: %s from delegation service: %s",arc_delegation_id.c_str(),arc_deleg_url_str.c_str());
     throw std::runtime_error("Can not get the delegation credential from delegation service");
   }
   logger.msg(Arc::INFO, "Delegated credential from delegation service: %s", arc_delegation_cred.c_str());

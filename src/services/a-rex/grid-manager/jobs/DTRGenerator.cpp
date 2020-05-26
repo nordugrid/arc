@@ -668,11 +668,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   // log summary to DTR log and A-REX log
   if (finished_jobs[jobid].empty())
     dtr->get_logger()->msg(Arc::INFO, "%s: All %s %s successfully", jobid,
-                          dtr->get_source()->Local() ? "uploads":"downloads",
-                          (dtr->get_status() == DataStaging::DTRStatus::CANCELLED) ? "cancelled":"finished");
+                           dtr->get_source()->Local() ? istring("uploads") : istring("downloads"),
+                           (dtr->get_status() == DataStaging::DTRStatus::CANCELLED) ? istring("cancelled") : istring("finished"));
   else
     dtr->get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
-                          dtr->get_source()->Local() ? "uploads":"downloads");
+                           dtr->get_source()->Local() ? istring("uploads") : istring("downloads"));
   dlock.unlock();
 
   logger.msg(Arc::DEBUG, "%s: Requesting attention from DTR generator", jobid);
@@ -692,7 +692,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
 
   JobId jobid(job->get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
-             (job->get_state() == JOB_STATE_PREPARING ? "download" : "upload"));
+             (job->get_state() == JOB_STATE_PREPARING ? istring("download") : istring("upload")));
 
   uid_t job_uid = config.StrictSession() ? job->get_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? job->get_user().get_gid() : 0;

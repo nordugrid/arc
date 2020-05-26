@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
       };
     };
     if(cnum1 != cnum2) {
-      logger.msg(ERROR,"Number of ComputingService elements obtained from full document and XPath qury do not match: %d != %d",cnum1,cnum2);
+      logger.msg(ERROR,"Number of ComputingService elements obtained from full document and XPath query do not match: %d != %d",cnum1,cnum2);
       return 1;
     };
     logger.msg(INFO,"Resource description query validation passed");

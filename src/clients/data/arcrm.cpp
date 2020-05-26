@@ -113,7 +113,7 @@ static int runmain(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("url [url ...]"),
-                            istring("The arcrm command deletes files and on "
+                            istring("The arcrm command deletes files on "
                                     "grid storage elements."));
 
   bool force = false;
