@@ -243,6 +243,7 @@ namespace Arc {
               logger.msg(DEBUG, "Child monitoring kick detected");
             }
             if(handles[0].revents & (POLLERR | POLLHUP)) {
+              logger.msg(ERROR, "Child monitoring internal communication error");
             }
 
             for(std::set<Run*>::iterator it = monitored_.begin(); it != monitored_.end(); ++it) {
@@ -254,6 +255,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stdout_);
                   r->stdout_ = -1;
+                  logger.msg(ERROR, "Child monitoring stdout is closed");
                 }
               }
               if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
@@ -263,6 +265,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stderr_);
                   r->stderr_ = -1;
+                  logger.msg(ERROR, "Child monitoring stderr is closed");
                 }
               }
               if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
@@ -272,6 +275,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stdin_);
                   r->stdin_ = -1;
+                  logger.msg(ERROR, "Child monitoring stdin is closed");
                 }
               }
             }
@@ -289,10 +293,11 @@ namespace Arc {
                 } else {
                   if(rpid == r->pid_) {
                     // exited
-                    logger.msg(DEBUG, "Child monitoring detected child exit");
+                    logger.msg(DEBUG, "Child monitoring child %d exited", r->pid_);
                     r->child_handler(status);
                   } else { // it should be -1
                     // error - child lost?
+                    logger.msg(ERROR, "Child monitoring lost child %d (%d)", r->pid_, rpid);
                     r->child_handler(-1);
                   }
                   // Not monitoring exited and failed processes
@@ -313,6 +318,7 @@ namespace Arc {
                   // still running
                 } else {
                   todrop.push_back(r);
+                  logger.msg(DEBUG, "Child monitoring drops abandoned child %d (%d)", r, rpid);
                 }
               }
             }
