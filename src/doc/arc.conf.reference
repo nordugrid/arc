@@ -315,7 +315,7 @@
 ## sequenced
 ## default: undefined
 #authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
-## CHANGE: INTRODUCED in 6.0.0.
+## CHANGE: INTRODUCED in 6.6.0.
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
@@ -475,12 +475,12 @@
 ##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
 ##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
-##   - pbspro  - Altair PBS Professional
+##   - pbspro  - Altair PBS Professional - CHANGE: NEW in 6.1.0
 ##   - lsf     - LSF
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
 ##   - boinc   - Boinc
-##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well)
+##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well) - CHANGE: NEW in 6.0.0
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
 ## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
@@ -492,7 +492,7 @@
 ## mandatory
 #lrms=pbspro gridlong
 #lrms=slurm
-## CHANGE: NEW value added in 6.0.0: lrmstype (slurmpy).
+
 
 ## lrmsconfig = text - An optional free text field to describe the configuration of your
 ## Local Resource Management System (batch system). The value is published in the infosys,
@@ -711,7 +711,7 @@
 ## from the cluster frontend on the CE frontend using sshfs. Job submission and
 ## management will done using ssh (Paramiko).
 #[lrms/ssh]
-## CHANGE: NEW sub-block in 6.0.0.
+## CHANGE: NEW sub-block in 6.0.0 to configure ssh support in slurmpy as a part of tech preview.
 
 ## *remote_host = hostname - Define the remote cluster frontend machine which contains
 ## session, cache and runtime directories and where jobs should be submitted to.
@@ -962,7 +962,7 @@
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
 #mail=grid.support@somewhere.org
-## CHANGE: MODIFIED in 6.0.0, mplement a default! in the format of root@localhost. 
+## CHANGE: MODIFIED in 6.0.0. 
 
 ## gnu_time = path - The gnu time command
 ## CHANGE: MOVED in 6.0.0 to [lrms].
@@ -1300,7 +1300,7 @@
 ## Make sure the chosen port is not blocked by firewall or other security rules.
 ## default: https://$VAR{[common]hostname}:443/arex
 #wsurl=https://piff.hep.lu.se:443/arex
-## CHANGE: RENAMED and MODIFIED in 6.0.0. Modified: set default as https://hostname:443/arex.
+## CHANGE: RENAMED and MODIFIED in 6.0.0. 
 
 ## logfile = path - (previously wslogfile) Specify log file location for WS-interface operations.
 ## default: /var/log/arc/ws-interface.log
@@ -2892,7 +2892,7 @@
 #[datadelivery-service]
 ## CHANGE: NEW block in 6.0.0.
 
-## *transfer_dir = path - The directori(es) on the DDS host in which 
+## *transfer_dir = path - (previously allowed_dir) The directori(es) on the DDS host in which 
 ## the service is allowed to read and write. 
 ## When DDS is used as a remote transfer service assisting A-REX then this is usually
 ## one or more cache and/or session directories shared as a common mount with A-REX. 
@@ -3297,7 +3297,7 @@
 ## allowedvalues: yes no
 ## default: yes
 #allow_empty_unixid=no
-## CHANGE: MODIFIED in 6.0.0: set default to yes.
+## CHANGE: MODIFIED in 6.0.0.
 
 ## voms_method = soap/get - Controls how to get information from VOMS(S) sources.
 ## Valid values are:
