@@ -69,3 +69,12 @@ except ImportError:
     pass
 else:
     CTL_COMPONENTS.append(CacheControl)
+
+
+# arcctl datadelivery
+try:
+    from .DataDelivery import DataDeliveryControl
+except ImportError:
+    pass
+else:
+    CTL_COMPONENTS.append(DataDeliveryControl)
