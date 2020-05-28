@@ -123,16 +123,16 @@ namespace DataStaging {
     public:
     /// List of (cache dir [link dir])
     std::vector<std::string> cache_dirs;
-    /// List of (cache dir [link dir]) for remote caches
-    std::vector<std::string> remote_cache_dirs;
-    /// List of draining caches. Not necessary for data staging but here for completeness.
+    /// List of draining caches
     std::vector<std::string> drain_cache_dirs;
+    /// List of read-only caches
+    std::vector<std::string> readonly_cache_dirs;
     /// Constructor with empty lists initialised
     DTRCacheParameters(void) {};
     /// Constructor with supplied cache lists
     DTRCacheParameters(std::vector<std::string> caches,
-                       std::vector<std::string> remote_caches,
-                       std::vector<std::string> drain_caches);
+                       std::vector<std::string> drain_caches,
+                       std::vector<std::string> readonly_caches);
   };
 
   /// Class for storing credential information

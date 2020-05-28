@@ -529,6 +529,7 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
 
   Arc::FileCache cache(config.GmConfig().CacheParams().getCacheDirs(),
                        config.GmConfig().CacheParams().getDrainingCacheDirs(),
+                       config.GmConfig().CacheParams().getReadOnlyCacheDirs(),
                        "0", // Jobid is not used
                        config.User().get_uid(),
                        config.User().get_gid());

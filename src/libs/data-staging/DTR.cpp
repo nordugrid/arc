@@ -409,11 +409,11 @@ namespace DataStaging {
   }
 
   DTRCacheParameters::DTRCacheParameters(std::vector<std::string> caches,
-                                         std::vector<std::string> remote_caches,
-                                         std::vector<std::string> drain_caches):
+                                         std::vector<std::string> drain_caches,
+                                         std::vector<std::string> readonly_caches):
        cache_dirs(caches),
-       remote_cache_dirs(remote_caches),
-       drain_cache_dirs(drain_caches) {
+       drain_cache_dirs(drain_caches),
+       readonly_cache_dirs(readonly_caches) {
   }
 
   DTRCredentialInfo::DTRCredentialInfo(const std::string& DN,

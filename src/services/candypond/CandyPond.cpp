@@ -61,7 +61,7 @@ CandyPond::CandyPond(Arc::Config *cfg, Arc::PluginArgument* parg) :
     return;
   }
   config.Print();
-  if (config.CacheParams().getCacheDirs().empty()) {
+  if (config.CacheParams().getCacheDirs().empty() && config.CacheParams().getReadOnlyCacheDirs().empty()) {
     logger.msg(Arc::ERROR, "No caches defined in configuration");
     return;
   }
@@ -109,7 +109,10 @@ Arc::MCC_Status CandyPond::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, const A
   // substitute cache paths according to mapped user
   ARex::CacheConfig cache_params(config.CacheParams());
   cache_params.substitute(config, mapped_user);
-  Arc::FileCache cache(cache_params.getCacheDirs(), "0", mapped_user.get_uid(), mapped_user.get_gid());
+  Arc::FileCache cache(cache_params.getCacheDirs(),
+                       cache_params.getDrainingCacheDirs(),
+                       cache_params.getReadOnlyCacheDirs(),
+                       "0", mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error creating cache");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
@@ -307,7 +310,10 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
   // substitute cache paths according to mapped user
   ARex::CacheConfig cache_params(config.CacheParams());
   cache_params.substitute(config, mapped_user);
-  Arc::FileCache cache(cache_params.getCacheDirs(), jobid, mapped_user.get_uid(), mapped_user.get_gid());
+  Arc::FileCache cache(cache_params.getCacheDirs(),
+                       cache_params.getDrainingCacheDirs(),
+                       cache_params.getReadOnlyCacheDirs(),
+                       jobid, mapped_user.get_uid(), mapped_user.get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error with cache configuration");
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheCheck", "Server error with cache");
