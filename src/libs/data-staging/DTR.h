@@ -62,6 +62,7 @@ namespace DataStaging {
   /// The DTR's Logger object can be used outside the DTR object with DTRLogger.
   /** \ingroup datastaging */
   typedef Arc::ThreadedPointer<Arc::Logger> DTRLogger;
+  typedef Arc::ThreadedPointer<Arc::LogDestination> DTRLogDestination;
 
   /// Components of the data staging framework
   /** \ingroup datastaging */
@@ -357,12 +358,12 @@ namespace DataStaging {
     /** This list is kept here so that the Logger can be connected and
      * disconnected in threads which have their own root logger
      * to avoid duplicate messages */
-    std::list<Arc::LogDestination*> log_destinations;
+    std::list<DTRLogDestination> log_destinations;
 
     /// Flag to say whether to delete LogDestinations.
     /** Set to true when a DTR thread is stuck or lost so it doesn't crash when
      * waking up after DTR has finished */
-    bool delete_log_destinations;
+    //bool delete_log_destinations;
 
     /// Performance metric logger
     Arc::JobPerfLog perf_log;
@@ -425,7 +426,8 @@ namespace DataStaging {
         const Arc::UserConfig& usercfg,
         const std::string& jobid,
         const uid_t& uid,
-        DTRLogger log);
+        std::list<DTRLogDestination> const& logs,
+        const char* logname = NULL);
 
     /// Empty destructor
     ~DTR() {};
@@ -630,14 +632,8 @@ namespace DataStaging {
     /// Get Logger object, so that processes can log to this DTR's log
     const DTRLogger& get_logger() const { return logger; };
 
-    /// Connect log destinations to logger. Only needs to be done after disconnect()
-    void connect_logger() { if (logger) logger->setDestinations(log_destinations); };
-    /// Disconnect log destinations from logger.
-    void disconnect_logger() { if (logger) logger->removeDestinations(); };
-    /// Set whether or not to delete log destinations in delete_logger_destinations()
-    void set_delete_log_destinations(bool del) { delete_log_destinations = del; };
-    /// Clean log destinations. Takes care of cleaning internal list and list in logger.
-    void clean_log_destinations(Arc::LogDestination* exclude=NULL);
+    /// Get log destination sassigned to this instance.
+    std::list<Arc::LogDestination*> get_log_destinations() const;
 
     /// Pass the DTR from one process to another. Protected by lock.
     static void push(DTR_ptr dtr, StagingProcesses new_owner);
@@ -679,7 +675,8 @@ namespace DataStaging {
                        const Arc::UserConfig& usercfg,
                        const std::string& jobid,
                        const uid_t& uid,
-                       DTRLogger log);
+                       std::list<DTRLogDestination> const& logs,
+                       const char* logname = NULL);
 
   /// Helper method to create smart pointer, only for swig bindings
   DTRLogger createDTRLogger(Arc::Logger& parent,
