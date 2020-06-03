@@ -140,15 +140,17 @@ class DataDeliveryControl(ComponentControl):
        datastaging_time={}
        err_f = self.control_dir + '/job.'+args.jobid +'.errors'
        datastaging_time=self.__get_time_ds(err_f)
-       print('Datastaging duration for jobid {0:<50}'.format(args.jobid))
-       if datastaging_time['done']:
-          print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
-          print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+       if datastaging_time:
+          print('Datastaging duration for jobid {0:<50}'.format(args.jobid))
+          if datastaging_time['done']:
+             print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
+             print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+          else:
+             print('\tDatastaging still ongoing')
+             print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
+             print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
        else:
-          print('\tDatastaging still ongoing')
-          print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
-          print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
-
+          print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead'.format(args.jobid))
        
     def get_summary_times_datastaging(self,args):
        """ Overview over duration of all datastaging processes in the chosen timewindow """
