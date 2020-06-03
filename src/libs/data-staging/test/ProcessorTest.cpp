@@ -12,6 +12,8 @@
 #include "../DTRStatus.h"
 #include "../Processor.h"
 
+using namespace DataStaging;
+
 class ProcessorTest
   : public CppUnit::TestFixture {
 
@@ -35,13 +37,19 @@ public:
   void tearDown();
 
 private:
-  DataStaging::DTRLogger logger;
+  std::list<DTRLogDestination> logs;
+  char const * log_name;
   Arc::UserConfig cfg;
   std::string tmpdir;
 };
 
 void ProcessorTest::setUp() {
-  logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
+  logs.clear();
+  const std::list<Arc::LogDestination*>& destinations = Arc::Logger::getRootLogger().getDestinations();
+  for(std::list<Arc::LogDestination*>::const_iterator dest = destinations.begin(); dest != destinations.end(); ++dest) {
+    logs.push_back(*dest);
+  }
+  log_name = "DataStagingTest";
 }
 
 void ProcessorTest::tearDown() {
@@ -55,7 +63,7 @@ void ProcessorTest::TestPreClean() {
   std::string source("mock://mocksrc/1");
   std::string destination("mock://mockdest/1");
 
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
@@ -71,7 +79,7 @@ void ProcessorTest::TestPreClean() {
 
   // use a non-existent file
   destination = "fail://badhost/file1";
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
@@ -102,7 +110,7 @@ void ProcessorTest::TestCacheCheck() {
   std::string source("mock://mocksrc;cache=no/1");
   std::string destination(std::string(session+"/file1"));
 
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::NON_CACHEABLE);
@@ -112,7 +120,7 @@ void ProcessorTest::TestCacheCheck() {
   // time and so cache file will appear outdated
   source = "mock://mocksrc;cache=invariant/1";
 
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
@@ -173,7 +181,7 @@ void ProcessorTest::TestCacheCheck() {
   // test files using guids are handled properly
   source = "mock://mocksrc/1:guid=4a2b61aa-1e57-4d32-9f23-873a9c9b9aed";
 
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
@@ -204,7 +212,7 @@ void ProcessorTest::TestResolve() {
   // resolve a good source
   std::string source("mock://mocksrc/1");
   std::string destination("mock://mockdest/1");
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -225,7 +233,7 @@ void ProcessorTest::TestResolve() {
   source = "mock://mocksrc/1";
   destination = "mockindex://mock://mockdest/1@mockindexdest/1";
 
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -249,7 +257,7 @@ void ProcessorTest::TestResolve() {
   // test replication
   source = "mockindex://mockdestindex/ABCDE";
   destination = "mockindex://mock://mockdest/ABCDE@mockindexdest/ABCDE";
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -273,7 +281,7 @@ void ProcessorTest::TestResolve() {
   source = "mock://mocksrc/2";
   destination = "mockindex://mock://mockdest/2@mockindexdest/ABCDE";
 
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -312,7 +320,7 @@ void ProcessorTest::TestQueryReplica() {
   std::string source("mock://mocksrc/1");
   std::string destination("mock://mockdest/1");
 
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -330,7 +338,7 @@ void ProcessorTest::TestQueryReplica() {
 
   // invalid file
   source = "fail://mocksrc/1";
-  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -358,7 +366,7 @@ void ProcessorTest::TestReplicaRegister() {
   std::string source("mock://mocksrc/1");
   std::string destination("mockindex://mock://mockdest/1@mockindexdest/1");
 
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -408,7 +416,7 @@ void ProcessorTest::TestCacheProcess() {
   std::string source("mock://mocksrc/1");
   std::string destination(std::string(session+"/file1"));
 
-  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
