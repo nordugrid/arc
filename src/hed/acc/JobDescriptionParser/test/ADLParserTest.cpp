@@ -208,6 +208,20 @@ void ADLParserTest::ActivityOldIDTest() {
 }
 
 void ADLParserTest::ExecutableTest() {
+  // Try empty executable
+  {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"", OUTJOBS.front().Application.Executable.Path);
+  }
+  OUTJOBS.clear();
+
   {
   const std::string adl = "<?xml version=\"1.0\"?>"
 "<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
