@@ -1019,7 +1019,7 @@ JobsList::ActJobResult JobsList::ActJobPreparing(GMJobRef i) {
         SetJobPending(i, "Waiting for confirmation of stage-in complete from client");
         // The complete stagein will be reported and will cause RequestAttention()
         // RequestPolling(i);
-      } else if(i->local->exec.size() > 0) {
+      } else if(i->local->exec.size() > 0 && !i->local->exec.front().empty()) {
         // Job has executable
         if(!RunningJobsLimitReached()) {
           // And limit of running jobs is not reached
