@@ -124,7 +124,68 @@ class DataDeliveryControl(ComponentControl):
              print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
        else:
           print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead'.format(args.jobid))
-       
+
+    def get_job_files_datastaging(self,args):
+        job_files = {}
+
+        """ Get files already downloaded """
+        stat_file = self.control_dir + '/' + 'job.' + args.jobid + '.statistics'
+
+        with open(stat_file,'r') as f:
+            for line in f:
+
+             words = re.split(',', line)
+             words = [word.strip() for word in words]
+
+             fileN = words[0].split('inputfile:')[-1].split('/')[-1]
+             source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
+             size = int(words[1].split('=')[-1])/(1024*1024.)
+             start = words[2].split('=')[-1]
+             end = words[3].split('=')[-1]
+             cached = words[4].split('=')[-1]
+             job_files[fileN] = {'size':size,'source':source,'start':start,'end':end,'cached':cached}
+
+        """ Get all files to download """
+        grami_file = self.control_dir + '/' + 'job.' + args.jobid + '.grami'
+        all_files = []
+        with open(grami_file,'r') as f:
+            for line in f:
+                if 'joboption_inputfile' in line:
+                    fileN = line.split('=')[-1].strip()
+                    fileN = fileN.replace("'/","")
+                    fileN = fileN.replace("'","")
+                    """ Ignore some default files that are not relevant for data staging """
+                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
+                        continue
+                    if len(fileN)>0:
+                        all_files.append(fileN)
+
+
+        """ Collect remaining files to be downloaded """
+        tobe_downloaded = []
+        for fileN in all_files:
+            if fileN not in job_files.keys():
+                tobe_downloaded.append(fileN)
+                
+
+        """ Print out information about files already downloaded """
+        sorted_dict = sorted(job_files.items(), key = lambda x: x[1]['end'])
+        print('\nFiles downloaded for job {}:'.format(args.jobid))
+        print('\t{0:<40}{1:<60}{2:<15}{3:<25}{4:<25}'.format('FILENAME','SOURCE','SIZE (MB)','START','END'))
+        for item in sorted_dict:
+            print("\t{0:<40}{1:<60}{2:<15.3f}{3:<25}{4:<25}".format(item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end']))
+
+
+        """ Print out information of what files still need to be downloaded """
+        if len(tobe_downloaded):
+            print('\nFiles to be downloaded for job {}:'.format(args.jobid))
+            print('\t{0:3}{1:<40}'.format('#','FILENAME'))
+            for idx,fileN in enumerate(tobe_downloaded):
+                print('\t{0:<3}{1:<40}'.format(idx+1,fileN))
+        
+
+
+
     def get_summary_times_datastaging(self,args):
        """ Overview over duration of all datastaging processes in the chosen timewindow """
        datastaging_times={}
@@ -227,16 +288,16 @@ class DataDeliveryControl(ComponentControl):
 
     def control(self, args):
 
-
-        if args.action == 'inputfiles':
-           self.get_job_inputfiles(args)
-
         if args.action == 'summary_time':
            self.get_summary_times_datastaging(args)
 
 
         if args.jobaction == 'time':
            self.get_job_time_datastaging(args)
+
+
+        if args.jobaction == 'files':
+           self.get_job_files_datastaging(args)
 
 
            
@@ -266,6 +327,9 @@ class DataDeliveryControl(ComponentControl):
        
        dds_job_time = dds_actions.add_parser('time', help='Show time spent in preparation')
        dds_job_time.add_argument('jobid',help='Job ID')
+
+       dds_job_files = dds_actions.add_parser('files', help='Show files downloaded')
+       dds_job_files.add_argument('jobid',help='Job ID')
 
 
 
