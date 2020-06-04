@@ -133,17 +133,19 @@ class DataDeliveryControl(ComponentControl):
 
         with open(stat_file,'r') as f:
             for line in f:
+                line = line.strip()
 
-             words = re.split(',', line)
-             words = [word.strip() for word in words]
+                if line:
+                    words = re.split(',', line)
+                    words = [word.strip() for word in words]
 
-             fileN = words[0].split('inputfile:')[-1].split('/')[-1]
-             source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
-             size = int(words[1].split('=')[-1])/(1024*1024.)
-             start = words[2].split('=')[-1]
-             end = words[3].split('=')[-1]
-             cached = words[4].split('=')[-1]
-             job_files[fileN] = {'size':size,'source':source,'start':start,'end':end,'cached':cached}
+                    fileN = words[0].split('inputfile:')[-1].split('/')[-1]
+                    source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
+                    size = int(words[1].split('=')[-1])/(1024*1024.)
+                    start = words[2].split('=')[-1]
+                    end = words[3].split('=')[-1]
+                    cached = words[4].split('=')[-1]
+                    job_files[fileN] = {'size':size,'source':source,'start':start,'end':end,'cached':cached}
 
         """ Get all files to download """
         grami_file = self.control_dir + '/' + 'job.' + args.jobid + '.grami'
@@ -284,27 +286,32 @@ class DataDeliveryControl(ComponentControl):
            endpoints.append(r)
 
         self.__sort_count_print(endpoints,'Ongoing download endpoints')
-                     
 
-    def control(self, args):
 
-        if args.action == 'summary_time':
+    def summarycontrol(self,args):
+        if args.summaryaction == 'time':
            self.get_summary_times_datastaging(args)
 
-
+        
+    def jobcontrol(self,args):
         if args.jobaction == 'time':
            self.get_job_time_datastaging(args)
-
-
-        if args.jobaction == 'files':
+        elif args.jobaction == 'files':
            self.get_job_files_datastaging(args)
+
+
+    def control(self, args):
+        if args.action == 'job':
+            self.jobcontrol(args)
+        elif args.action == 'summary':
+            self.summarycontrol(args)
+
 
 
            
     @staticmethod
     def register_parser(root_parser):
 
-       __JOB_STATES = ['ACCEPTED', 'PREPARING', 'SUBMIT', 'INLRMS', 'FINISHING', 'FINISHED', 'DELETED', 'CANCELING']
        dds_ctl = root_parser.add_parser('dds',help='DataDelivery info')
        dds_ctl.set_defaults(handler_class=DataDeliveryControl)
 
@@ -314,21 +321,27 @@ class DataDeliveryControl(ComponentControl):
        dds_actions.required = True
         
        
-       dds_summary_time = dds_actions.add_parser('summary_time',help='Overview of datastaging durations (time that jobs in preparing state) within selected timewindow')
+       """ Summary """
+       dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
+       dds_summary_ctl.set_defaults(handler_class=DataDeliveryControl)
+       dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
+
+       dds_summary_time = dds_summary_actions.add_parser('time',help='Overview of datastaging durations (time that jobs in preparing state) within selected timewindow')
        dds_summary_time.add_argument('-d','--days',default=0,type=int,help='Duration in days (default: %(default)s days)')
        dds_summary_time.add_argument('-hr','--hours',default=1,type=int,help='Duration in hours (default: %(default)s hour)')
        dds_summary_time.add_argument('-m','--minutes',default=0,type=int,help='Duration in minutes (default: %(default)s minutes)')
        dds_summary_time.add_argument('-s','--seconds',default=0,type=int,help='Duration in seconds (default: %(default)s seconds)')
 
        
+       """ Job """
        dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for jobs preparing or running.')
        dds_job_ctl.set_defaults(handler_class=DataDeliveryControl)
-       dds_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
+       dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
        
-       dds_job_time = dds_actions.add_parser('time', help='Show time spent in preparation')
+       dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
        dds_job_time.add_argument('jobid',help='Job ID')
 
-       dds_job_files = dds_actions.add_parser('files', help='Show files downloaded')
+       dds_job_files = dds_job_actions.add_parser('files', help='Show files downloaded')
        dds_job_files.add_argument('jobid',help='Job ID')
 
 
