@@ -1,24 +1,8 @@
-from __future__ import print_function
-from __future__ import absolute_import
-
 from .ControlCommon import *
-try:
-   from .Jobs import JobsControl
-except ImportError:
-   JobsControl = None
 import subprocess
 import sys
 import re
 import glob
-import pickle
-import time
-import pwd
-import signal
-
-try:
-   input = raw_input  # Redefine for Python 2
-except NameError:
-   pass
 
 class DataDeliveryControl(ComponentControl):
     def __init__(self, arcconfig):
@@ -27,21 +11,10 @@ class DataDeliveryControl(ComponentControl):
         self.arcconfig = arcconfig
         self.control_dir = None
 
-        # arcctl is inside arex package as well as gm-jobs
-        self.gm_jobs = ARC_LIBEXEC_DIR + '/gm-jobs'
-        if not os.path.exists(self.gm_jobs):
-            self.logger.error('A-REX gm-jobs is not found at %s. It seams you A-REX install is broken.', self.gm_jobs)
-            sys.exit(1)
         # config is mandatory
         if arcconfig is None:
             self.logger.error('Failed to get parsed arc.conf. DataDelivery control is not possible.')
             sys.exit(1)
-
-        self.cache_min_jobs = 1000
-        self.cache_ttl = 30
-        self.jobs = {}
-        self.process_job_log_file = False   # dummy assignment for job_log follow
-
 
         # controldir is mandatory
         self.control_dir = self.arcconfig.get_value('controldir', 'arex').rstrip('/')
@@ -258,11 +231,11 @@ class DataDeliveryControl(ComponentControl):
         if args.action == 'inputfiles':
            self.get_job_inputfiles(args)
 
-        if args.action == 'summary_time_ds':
+        if args.action == 'summary_time':
            self.get_summary_times_datastaging(args)
 
 
-        if args.action == 'job_time_ds':
+        if args.jobaction == 'time':
            self.get_job_time_datastaging(args)
 
 
@@ -273,20 +246,26 @@ class DataDeliveryControl(ComponentControl):
        __JOB_STATES = ['ACCEPTED', 'PREPARING', 'SUBMIT', 'INLRMS', 'FINISHING', 'FINISHED', 'DELETED', 'CANCELING']
        dds_ctl = root_parser.add_parser('dds',help='DataDelivery info')
        dds_ctl.set_defaults(handler_class=DataDeliveryControl)
+
+
        dds_actions = dds_ctl.add_subparsers(title='DataDelivery Control Actions',dest='action',
-                                            metavar='ACTIN', help='DESCRIPTION')
-       dds_actions.requireds = True
+                                            metavar='ACTION', help='DESCRIPTION')
+       dds_actions.required = True
         
        
-       dds_summary_time_ds = dds_actions.add_parser('summary_time_ds',help='Overview of datastaging durations (time that jobs in preparing state) within selected timewindow')
-       dds_summary_time_ds.add_argument('-d','--days',default=0,type=int,help='Duration in days (default: %(default)s days)')
-       dds_summary_time_ds.add_argument('-hr','--hours',default=1,type=int,help='Duration in hours (default: %(default)s hour)')
-       dds_summary_time_ds.add_argument('-m','--minutes',default=0,type=int,help='Duration in minutes (default: %(default)s minutes)')
-       dds_summary_time_ds.add_argument('-s','--seconds',default=0,type=int,help='Duration in seconds (default: %(default)s seconds)')
+       dds_summary_time = dds_actions.add_parser('summary_time',help='Overview of datastaging durations (time that jobs in preparing state) within selected timewindow')
+       dds_summary_time.add_argument('-d','--days',default=0,type=int,help='Duration in days (default: %(default)s days)')
+       dds_summary_time.add_argument('-hr','--hours',default=1,type=int,help='Duration in hours (default: %(default)s hour)')
+       dds_summary_time.add_argument('-m','--minutes',default=0,type=int,help='Duration in minutes (default: %(default)s minutes)')
+       dds_summary_time.add_argument('-s','--seconds',default=0,type=int,help='Duration in seconds (default: %(default)s seconds)')
 
-
-       dds_job_time_ds = dds_actions.add_parser('job_time_ds',help='Datastaging duration for a certain job (time that the job spent in reparing state)')
-       dds_job_time_ds.add_argument('jobid',help='Job ID')
+       
+       dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for jobs preparing or running.')
+       dds_job_ctl.set_defaults(handler_class=DataDeliveryControl)
+       dds_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
+       
+       dds_job_time = dds_actions.add_parser('time', help='Show time spent in preparation')
+       dds_job_time.add_argument('jobid',help='Job ID')
 
 
 
