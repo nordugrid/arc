@@ -109,7 +109,6 @@ void DTRGenerator::thread() {
       elock.unlock();
       processReceivedDTR(*it_dtrs);
       elock.lock();
-      // delete DTR LogDestinations
       it_dtrs = dtrs_received.erase(it_dtrs);
       ++dtrs_num;
     }
@@ -157,7 +156,6 @@ void DTRGenerator::thread() {
   std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
   while (it_dtrs != dtrs_received.end()) {
     processReceivedDTR(*it_dtrs);
-    // delete DTR LogDestinations
     it_dtrs = dtrs_received.erase(it_dtrs);
   }
   run_condition.signal();

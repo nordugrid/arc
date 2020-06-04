@@ -40,7 +40,7 @@ namespace DataStaging {
            const std::string& jobid,
            const uid_t& uid,
            const std::list<DTRLogDestination>& logs,
-           const char* logname)
+           const std::string& logname)
     :  DTR_ID(""),
        source_url(source),
        destination_url(destination),
@@ -74,7 +74,7 @@ namespace DataStaging {
        log_destinations(logs),
        perf_record(perf_log)
   {
-    logger = new Arc::Logger(Arc::Logger::getRootLogger(), logname ? logname : "DTR");
+    logger = new Arc::Logger(Arc::Logger::getRootLogger(), logname.c_str());
     logger->addDestinations(get_log_destinations());
 
     // check that endpoints can be handled
@@ -459,7 +459,7 @@ namespace DataStaging {
                        const std::string& jobid,
                        const uid_t& uid,
                        const std::list<DTRLogDestination>& logs,
-                       const char* logname) {
+                       const std::string& logname) {
     return DTR_ptr(new DTR(source, destination, usercfg, jobid, uid, logs, logname));
   }
 

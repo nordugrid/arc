@@ -418,8 +418,9 @@ namespace DataStaging {
      * @param uid UID to use when accessing local file system if source
      * or destination is a local file. If this is different to the current
      * uid then the current uid must have sufficient privileges to change uid.
-     * @param log ThreadedPointer containing log object. If NULL the root
-     * logger is used.
+     * @param logs List of ThreadedPointers to Logger Destinations to be 
+     * receive DTR processing messages.
+     * @param logname Subdomain name to use for internal DTR logger.
      */
     DTR(const std::string& source,
         const std::string& destination,
@@ -427,7 +428,7 @@ namespace DataStaging {
         const std::string& jobid,
         const uid_t& uid,
         std::list<DTRLogDestination> const& logs,
-        const char* logname = NULL);
+        const std::string& logname = std::string("DTR"));
 
     /// Empty destructor
     ~DTR() {};
@@ -676,7 +677,7 @@ namespace DataStaging {
                        const std::string& jobid,
                        const uid_t& uid,
                        std::list<DTRLogDestination> const& logs,
-                       const char* logname = NULL);
+                       const std::string& logname = std::string("DTR"));
 
   /// Helper method to create smart pointer, only for swig bindings
   DTRLogger createDTRLogger(Arc::Logger& parent,
