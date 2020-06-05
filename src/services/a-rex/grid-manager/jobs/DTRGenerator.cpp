@@ -109,8 +109,6 @@ void DTRGenerator::thread() {
       elock.unlock();
       processReceivedDTR(*it_dtrs);
       elock.lock();
-      // delete DTR LogDestinations
-      (*it_dtrs)->clean_log_destinations(central_dtr_log);
       it_dtrs = dtrs_received.erase(it_dtrs);
       ++dtrs_num;
     }
@@ -158,8 +156,6 @@ void DTRGenerator::thread() {
   std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
   while (it_dtrs != dtrs_received.end()) {
     processReceivedDTR(*it_dtrs);
-    // delete DTR LogDestinations
-    (*it_dtrs)->clean_log_destinations(central_dtr_log);
     it_dtrs = dtrs_received.erase(it_dtrs);
   }
   run_condition.signal();
@@ -1017,18 +1013,16 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       usercfg.ProxyPath(default_cred);
       if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
     }
-    // logger for these DTRs. LogDestinations should be deleted when DTR is received back
-    DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
-    Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, config));
+
+    std::list<DataStaging::DTRLogDestination> logs;
+    Arc::LogFile* dest = new Arc::LogFile(job_errors_filename(jobid, config));
     dest->setReopen(true);
     dest->setFormat(Arc::MediumFormat);
-    dtr_log->addDestination(*dest);
-    if (central_dtr_log) {
-      dtr_log->addDestination(*central_dtr_log);
-    }
+    logs.push_back(dest);
+    if (central_dtr_log) logs.push_back(central_dtr_log);
 
     // create DTR and send to Scheduler
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), dtr_log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), logs, "DataStaging.DTR"));
     // set retry count (tmp errors only)
     dtr->set_tries_left(staging_conf.max_retries);
     // allow the same file to be uploaded to multiple locations with same LFN

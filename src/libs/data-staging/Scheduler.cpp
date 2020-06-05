@@ -1157,12 +1157,6 @@ namespace DataStaging {
           // Stuck in processing thread for more than one hour - assume a hang
           // and try to recover and retry. It is potentially dangerous if a
           // stuck thread wakes up.
-          // Need to re-connect logger as it was disconnected in Processor thread
-          tmp->connect_logger();
-          // Tell DTR not to delete LogDestinations - this creates a memory leak
-          // but avoids crashes when stuck threads wake up. A proper fix could
-          // be using autopointers in Logger
-          tmp->set_delete_log_destinations(false);
           tmp->get_logger()->msg(Arc::WARNING, "Processing thread timed out. Restarting DTR");
           tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                 DTRErrorStatus::NO_ERROR_LOCATION,
