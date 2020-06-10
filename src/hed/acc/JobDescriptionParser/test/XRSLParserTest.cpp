@@ -111,6 +111,12 @@ void XRSLParserTest::tearDown() {
 }
 
 void XRSLParserTest::TestExecutable() {
+  // try empty executable
+  xrsl = "&(name=test)";
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  OUTJOBS.clear();
+
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
