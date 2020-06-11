@@ -4,6 +4,16 @@ import sys
 import re
 import glob
 
+try:
+    from .Jobs import *
+except ImportError:
+    JobsControl = None
+
+def complete_job_id(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return JobsControl(arcconf).complete_job(parsed_args)
+
+
 class DataDeliveryControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.DataDelivery')
@@ -424,7 +434,7 @@ class DataDeliveryControl(ComponentControl):
     @staticmethod
     def register_parser(root_parser):
 
-        dds_ctl = root_parser.add_parser('dds',help='DataDelivery info')
+        dds_ctl = root_parser.add_parser('datadelivery',help='DataDelivery info')
         dds_ctl.set_defaults(handler_class=DataDeliveryControl)
 
 
@@ -451,10 +461,10 @@ class DataDeliveryControl(ComponentControl):
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
         
         dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
-        dds_job_time.add_argument('jobid',help='Job ID')
+        dds_job_time.add_argument('jobid',help='Job ID').completer = complete_job_id
         
         dds_job_files = dds_job_actions.add_parser('files', help='Show files downloaded')
-        dds_job_files.add_argument('jobid',help='Job ID')
+        dds_job_files.add_argument('jobid',help='Job ID').completer = complete_job_id
 
         dds_job_files.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
 
