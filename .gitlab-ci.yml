@@ -8,6 +8,14 @@ stages:
   - deploy_and_test
 
 
+
+#############################################################
+##                  FORK BUILDS                            ## 
+#############################################################
+
+###############
+#    CENTOS 6
+###############
 fork_packages_el6:
   stage: build
   image: maikenp/arc-build-centos6
@@ -42,6 +50,9 @@ fork_packages_el6:
   allow_failure: false
 
 
+###############
+#    CENTOS 7
+###############
 fork_packages_el7:
   stage: build
   image: maikenp/arc-build-centos7
@@ -76,6 +87,9 @@ fork_packages_el7:
   allow_failure: false
 
 
+###############
+#    CENTOS 8
+###############
 fork_packages_el8:
   stage: build
   image: maikenp/arc-build-centos8
@@ -110,6 +124,9 @@ fork_packages_el8:
   allow_failure: false
 
 
+###############
+#    DEBIAN 9
+###############
 fork_packages_deb9:
   stage: build
   image: maikenp/arc-build-debian9
@@ -147,6 +164,194 @@ fork_packages_deb9:
   allow_failure: false
 
 
+###############
+#    DEBIAN 10
+###############
+fork_packages_deb10:
+  stage: build
+  image: maikenp/arc-build-debian10
+  script:
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
+    - ./autogen.sh
+    - ./configure
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
+  tags:
+      - build
+  except:
+    refs:
+      - master
+      - next
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
+  allow_failure: false
+
+
+##################
+#    UBUNTU 18.04
+##################
+fork_packages_ubuntu1804:
+  stage: build
+  image: maikenp/arc-build-ubuntu1804
+  script:
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
+    - ./autogen.sh
+    - ./configure
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
+  tags:
+      - build
+  except:
+    refs:
+      - master
+      - next
+      - branches@nordugrid/arc
+      - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
+  allow_failure: false
+
+
+
+#############################################################
+##             MAIN REPO BUILDS                            ## 
+#############################################################
+
+
+##################
+#    CENTOS 6
+##################
+packages_el6:
+  stage: packages
+  image: maikenp/arc-build-centos6
+  script:
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - yum update -y
+    - ./autogen.sh
+    - ./configure
+    - yum-builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+    - build
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+
+
+##################
+#    CENTOS 7
+##################
+packages_el7:
+  stage: packages
+  image: maikenp/arc-build-centos7
+  script:
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - yum update -y
+    - ./autogen.sh
+    - ./configure
+    - yum-builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+    - build
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+
+
+##################
+#    CENTOS 8
+##################
+packages_el8:
+  stage: packages
+  image: maikenp/arc-build-centos8
+  script:
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - yum update -y
+    - ./autogen.sh
+    - ./configure
+    - yum-builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  tags:
+    - build
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+
+
+##################
+#    DEBIAN 9
+##################
 packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
@@ -180,6 +385,10 @@ packages_deb9:
     - $CI_PROJECT_DIR/*.deb
   allow_failure: true
 
+
+##################
+#    DEBIAN 10
+##################
 packages_deb10:
   stage: packages
   image: maikenp/arc-build-debian10
@@ -214,168 +423,52 @@ packages_deb10:
   allow_failure: true
 
 
-packages_el6:
+##################
+#    UBUNTU 18.04
+##################
+packages_ubuntu1804:
   stage: packages
-  image: maikenp/arc-build-centos6
+  image: maikenp/arc-build-ubuntu1804
   script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
+    - apt-get update -y
+    - echo "6.0.0" > VERSION
     - ./autogen.sh
     - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
     - make dist
     - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
+    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - cd nordugrid-arc-${VERSION}
+    - dpkg-buildpackage -S -us -uc -d
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - dpkg-buildpackage -b -us -uc
+    - echo Delete dbgsym debs to save space
+    - rm -f ../*-dbgsym_*.deb
   tags:
-    - build
+      - build
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
   artifacts:
     when: on_success
-    expire_in: 30 days
+    expire_in: 3 days
     paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-
-
-packages_el7:
-  stage: packages
-  image: maikenp/arc-build-centos7
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  tags:
-    - build
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-
-packages_el8:
-  stage: packages
-  image: maikenp/arc-build-centos8
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  tags:
-    - build
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+    - $CI_PROJECT_DIR/*.orig.tar.gz
+    - $CI_PROJECT_DIR/*.debian.tar.*
+    - $CI_PROJECT_DIR/*.dsc
+    - $CI_PROJECT_DIR/*.deb
   allow_failure: false
 
 
 
-deploy_staging_deb9:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - mkdir /build
-    - cp  $CI_PROJECT_DIR/*.deb /build
-    - docker pull maikenp/arc-deploy-debian9
-    - deploy_container=deb9_`date +%Y%m%dT%H%M`
-    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-    - rm -rf /arc-logs/*
-    - ls -lhrt /arc-logs
-    - rm -f /arc-testlogs/*
-    - ls -lhrt /arc-testlogs
-    - docker stop $deploy_container || true
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-  dependencies:
-    - packages_deb9
-  tags:
-    - 158.37.63.83
-    - deploy
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  allow_failure: true
+#############################################################
+##             MAIN REPO DEPLOY                            ## 
+#############################################################
+
   
-
-deploy_staging_deb10:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - mkdir /build
-    - cp  $CI_PROJECT_DIR/*.deb /build
-    - docker pull maikenp/arc-deploy-debian10
-    - deploy_container=deb10_`date +%Y%m%dT%H%M`
-    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10 
-    - echo "*************>>  Done - back from inner container"
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-    - rm -rf /arc-logs/*
-    - ls -lhrt /arc-logs
-    - rm -f /arc-testlogs/*
-    - ls -lhrt /arc-testlogs
-    - docker stop $deploy_container || true
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-  dependencies:
-    - packages_deb10
-  tags:
-    - 158.37.63.83
-    - deploy
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  allow_failure: true
-  
-
+##################
+#    CENTOS 6
+##################
 deploy_staging_el6:
   stage: deploy_and_test
   image: docker:stable
@@ -413,6 +506,9 @@ deploy_staging_el6:
   allow_failure: true
 
 
+##################
+#    CENTOS 7
+##################
 deploy_staging_el7:
   stage: deploy_and_test
   image: docker:stable
@@ -450,6 +546,9 @@ deploy_staging_el7:
   allow_failure: true
 
 
+##################
+#    CENTOS 8
+##################
 deploy_staging_el8:
   stage: deploy_and_test
   image: docker:stable
@@ -487,6 +586,119 @@ deploy_staging_el8:
   allow_failure: true
 
 
+##################
+#    DEBIAN 9
+##################
+deploy_staging_deb9:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - mkdir /build
+    - cp  $CI_PROJECT_DIR/*.deb /build
+    - docker pull maikenp/arc-deploy-debian9
+    - deploy_container=deb9_`date +%Y%m%dT%H%M`
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian9 
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $deploy_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+  dependencies:
+    - packages_deb9
+  tags:
+    - 158.37.63.83
+    - deploy
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: true
+
+
+##################
+#    DEBIAN 10
+##################
+deploy_staging_deb10:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - mkdir /build
+    - cp  $CI_PROJECT_DIR/*.deb /build
+    - docker pull maikenp/arc-deploy-debian10
+    - deploy_container=deb10_`date +%Y%m%dT%H%M`
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-debian10 
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $deploy_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+  dependencies:
+    - packages_deb10
+  tags:
+    - 158.37.63.83
+    - deploy
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+  allow_failure: true
+
+
+##################
+#    UBUNTU 18.04
+##################
+deploy_staging_ubuntu1804:
+  stage: deploy_and_test
+  image: docker:stable
+  script:
+    - mkdir /build
+    - cp  $CI_PROJECT_DIR/*.deb /build
+    - docker pull maikenp/arc-deploy-ubuntu1804
+    - deploy_container=ubuntu1804_`date +%Y%m%dT%H%M`
+    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - docker run --name=$deploy_container  --volumes-from $gitlab_container  -v "/build:/build" -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-ubuntu1804 
+    - echo "*************>>  Done - back from inner container"
+    - ls -lhrt /arc-logs
+    - cp -r /arc-logs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-logs
+    - rm -rf /arc-logs/*
+    - ls -lhrt /arc-logs
+    - rm -f /arc-testlogs/*
+    - ls -lhrt /arc-testlogs
+    - docker stop $deploy_container || true
+  environment:
+    name: staging
+  artifacts:
+    when: always
+    paths:
+     - $CI_PROJECT_DIR/arc-logs/
+  dependencies:
+    - packages_ubuntu1804
+  tags:
+    - 158.37.63.83
+    - deploy
+  allow_failure: true
+  
 
 ## note-to-self: can also download the rpms from latest job with (example for el7):
 ## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
