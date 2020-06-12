@@ -14,6 +14,7 @@ def complete_job_id(prefix, parsed_args, **kwargs):
     return JobsControl(arcconf).complete_job(parsed_args)
 
 
+
 class DataDeliveryControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.DataDelivery')
@@ -129,6 +130,74 @@ class DataDeliveryControl(ComponentControl):
             return None
 
         return ds_time
+
+
+    def dtrstates(self,args):
+
+        dtrlog = self.arcconfig.get_value('statefile', 'arex/data-staging').rstrip('/')
+        if dtrlog is None:
+            self.logger.critical('Job state file name can not be found in arc.conf.')
+
+        state_counter = {}
+        num_lines = 0
+
+        if os.path.exists(dtrlog):
+            with open(dtrlog,'r') as f:
+
+                for line in f:
+                    l = line.split()
+                    state = l[1]
+                    if state == 'TRANSFERRING':
+                        if len(l) == 6:
+                            host = l[5]
+                            state = state + '_' + host
+                        else:
+                            state = state + '_local'
+                    if state in state_counter:
+                        state_counter[state] = state_counter[state] + 1
+                    else:
+                        state_counter[state] = 1
+                    num_lines = num_lines + 1
+
+                state_counter['ARC_STAGING_TOTAL']=num_lines
+        
+        else:
+            self.logger.error('Failed to open DTR state file: %s',dtrlog)
+
+        """ TO-DO print in nice order """
+        print_order = ['STAGING_PREPARING_WAIT','CACHE_WAIT','STAGE_PREPARE','TRANSFER']
+        if state_counter:
+            print('Number of current datadelivery processes:')
+            print('\t{0:<25}{1:<20}{2:<6}'.format('State','Data-delivery host', 'Number'))
+            
+            """ First print the most important states:"""
+            for state in print_order:
+                try:
+                    print('\t{0:<25}{1:<20}{2:>6}'.format(state,'N/A',state_counter[state]))
+                except KeyError:
+                    pass
+
+            """ Now print the TRANSFERRING states"""
+            for key, val in state_counter.iteritems():
+                if 'TRANSFERRING' in key:
+                    state = 'TRANSFERRING'
+                    host = key.split('_')[-1]
+                    if 'local' in host:
+                        continue
+                    print('\t{0:<25}{1:<20}{2:>6}'.format(state,host,val))
+            try:
+                print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING','local',state_counter['TRANSFERRING_local']))
+            except KeyError:
+                pass
+
+            """ Finally print the sum of all dtrs """
+            print('\t{0:<25}{1:<20}{2:>6}'.format('ARC_STAGING_TOTAL','N/A',state_counter['ARC_STAGING_TOTAL']))
+
+                
+        else:
+            print('No information in %s file: currently no datadelivery processes running',dtrlog)
+                
+        return
 
     def get_job_time(self,args):
 
@@ -304,8 +373,6 @@ class DataDeliveryControl(ComponentControl):
 
     def get_summary_times(self,args):
         
-
-        
         """ Overview over duration of all datastaging processes in the chosen timewindow """
         datastaging_times={}
         
@@ -359,55 +426,6 @@ class DataDeliveryControl(ComponentControl):
 
 
 
-    def __parse_dtrstate(self):
-        dtrstate_path = self.control_dir + '/dtr.state'
-        self.dtrlog_content = open(dtrstate_path,'r').readlines()
-
-    def __parse_errorsfile(self,args):
-        """  
-        1. Open job.args.jobid.erros file
-        2. Parse through lines and filter for DTR 
-        3. Construct a dict with key=DTRid, filename=,state=,started=,ended=,chunks_s=[s1,s2,s1],chunks_b=[b1,b2,b3],chunks_bs=[bs1,bs2,bs3]
-        4. 
-        """
-    def __sort_count_print(self,this_list,name):
-        """ Counts and prints out results """
-
-        count_dict = {}
-        this_key = ''
-        if this_list:
-            print('{0: >20} {1: >5}'.format('Result','count'))
-            for elem in set(this_list):
-                count = this_list.count(elem)
-                if name not in count_dict.keys():
-                    count_dict[name] = {}
-                count_dict[name][elem]=count
-
-                print('{0: >20} {1:>5}'.format(elem,str(count)))
-        else:
-            print('No ' + name + ' found')
-
-
-
-    def get_current_download_endpoints(self,args):
-        self.__parse_dtrstate()
-        
-        endpoints=[]
-        cmd = "lsof -a -itcp  |  grep -v gsiftp | grep arc-dmcgr | awk '{print $9}'"
-
-        try:
-            p = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True)
-            res = p.communicate()[0]
-        except:
-            return
-        
-        for r in res.splitlines():
-            r = r.split('->')[-1]
-            r = r.split(':')[0]
-            endpoints.append(r)
-
-        self.__sort_count_print(endpoints,'Ongoing download endpoints')
-
 
     def summarycontrol(self,args):
         if args.summaryaction == 'time':
@@ -428,7 +446,8 @@ class DataDeliveryControl(ComponentControl):
             self.jobcontrol(args)
         elif args.action == 'summary':
             self.summarycontrol(args)
-
+        elif args.action == 'dtr':
+            self.dtrstates(args)
 
            
     @staticmethod
@@ -467,6 +486,17 @@ class DataDeliveryControl(ComponentControl):
         dds_job_files.add_argument('jobid',help='Job ID').completer = complete_job_id
 
         dds_job_files.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
+
+
+        """ Data delivery processes """
+        dds_dtr_ctl = dds_actions.add_parser('dtr',help='Data-delivery transfer (DTR) information')
+        dds_dtr_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_dtr_actions = dds_dtr_ctl.add_subparsers(title='DTR info menu',dest='dtr',metavar='ACTION',help='DESCRIPTION')
+        
+        dds_dtr_state = dds_dtr_actions.add_parser('state', help='Show summary of DTR state info')
+        dds_dtr_state.add_argument('state',action='store_true')
+
+
 
 
 
