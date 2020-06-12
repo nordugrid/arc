@@ -427,7 +427,7 @@ packages_deb10:
 #    UBUNTU 18.04
 ##################
 packages_ubuntu1804:
-  stage: build
+  stage: packages
   image: maikenp/arc-build-ubuntu1804
   script:
     - apt-get update -y
