@@ -697,6 +697,9 @@ deploy_staging_ubuntu1804:
   tags:
     - 158.37.63.83
     - deploy
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
   allow_failure: true
   
 
