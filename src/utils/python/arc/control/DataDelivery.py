@@ -165,9 +165,9 @@ class DataDeliveryControl(ComponentControl):
             self.logger.error('Failed to open DTR state file: %s',dtrlog)
 
         """ TO-DO print in nice order """
-        print_order = ['STAGING_PREPARING_WAIT','CACHE_WAIT','STAGE_PREPARE','TRANSFER']
+        print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
         if state_counter:
-            print('Number of current datadelivery processes:')
+            print('Number of current datadelivery processes (files):')
             print('\t{0:<25}{1:<20}{2:<6}'.format('State','Data-delivery host', 'Number'))
             
             """ First print the most important states:"""
