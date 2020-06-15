@@ -219,9 +219,9 @@ function handle_exitcode_cancelled {
 
     if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
       exitcode=$tmpexitcode
-    elif [ $exitcode2 -ne 0 ]; then
+    elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
       exitcode=$(( $exitcode2 + 256 ))
-    elif [ $exitcode1 -ne 0 ]; then
+    elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
       exitcode=$exitcode1
     else
       exitcode=0
