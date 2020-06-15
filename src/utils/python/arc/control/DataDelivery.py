@@ -424,9 +424,6 @@ class DataDeliveryControl(ComponentControl):
             for item in sorted_dict:
                 print('\t{0}: {1}'.format(item[0],item[1]['dt']))
 
-
-
-
     def summarycontrol(self,args):
         if args.summaryaction == 'time':
             self.get_summary_times(args)
@@ -448,6 +445,21 @@ class DataDeliveryControl(ComponentControl):
             self.summarycontrol(args)
         elif args.action == 'dtr':
             self.dtrstates(args)
+
+
+    @staticmethod
+    def register_job_parser(dds_job_ctl):
+
+        dds_job_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
+        
+        dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
+        dds_job_time.add_argument('jobid',help='Job ID').completer = complete_job_id
+        
+        dds_job_files = dds_job_actions.add_parser('files', help='Show files downloaded')
+        dds_job_files.add_argument('jobid',help='Job ID').completer = complete_job_id
+
+        dds_job_files.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
 
            
     @staticmethod
@@ -476,16 +488,7 @@ class DataDeliveryControl(ComponentControl):
        
         """ Job """
         dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for jobs preparing or running.')
-        dds_job_ctl.set_defaults(handler_class=DataDeliveryControl)
-        dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
-        
-        dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
-        dds_job_time.add_argument('jobid',help='Job ID').completer = complete_job_id
-        
-        dds_job_files = dds_job_actions.add_parser('files', help='Show files downloaded')
-        dds_job_files.add_argument('jobid',help='Job ID').completer = complete_job_id
-
-        dds_job_files.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
+        DataDeliveryControl.register_job_parser(dds_job_ctl)
 
 
         """ Data delivery processes """
