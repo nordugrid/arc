@@ -14,6 +14,82 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+  JobStateList::JobStateList(int limit):limit(limit){
+    ratio = 0.;
+    failures = 0;
+    counter = 0;
+  }
+  JobStateList::~JobStateList(){}
+
+  JobStateList::JobNode::JobNode(int failed):failed(failed){
+  }
+  JobStateList::JobNode::~JobNode(){}
+
+  int JobStateList::JobNode::getFailure(){
+      int f;
+      if(next==NULL){ f = failed;}
+      else { f = failed + next->getFailure(); }
+      return f;
+    }
+
+  int JobStateList::JobNode::getLength(){
+      int length = 0;
+      if(next==NULL){ length = 1;}
+      else { length = 1 + next->getLength(); }
+      return length;
+    }
+
+
+
+  void JobStateList::setFailure(int failed){
+    int counter;
+    JobStateList::JobNode* node = new JobStateList::JobNode(failed);
+  if(firstNode==NULL){
+    firstNode = node;
+    lastNode = node;
+  } else {
+    node->next = firstNode;
+    firstNode->prev = node;
+    firstNode = node;
+    counter++;
+
+    if(counter>=limit){
+      JobStateList::JobNode* lastnode = lastNode;
+      lastNode = lastnode->prev;
+      lastNode->next = NULL;
+      counter--;
+    }
+  }
+}
+
+  float JobStateList::getRatio(){
+    int length = 0;
+    if(firstNode!=NULL){
+      failures = firstNode->getFailure();
+      length = firstNode->getLength();
+    } else { failures=0;}
+    
+    if(failures==0){ratio = 0;}
+    else{ ratio = (float)failures/(float)length;}
+    return ratio;
+  }
+  
+  int JobStateList::getLength(){
+    int length = 0;
+    if(firstNode!=NULL){length = firstNode->getLength();}
+    return length;
+  }
+  
+  int JobStateList::getFailures(){
+    int totalFailure = 0;
+    if(firstNode!=NULL){totalFailure = firstNode->getFailure();}
+    return totalFailure;
+  }
+
+
+
+
+
 JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   fail_ratio = 0;
   job_counter = 0;
@@ -26,8 +102,6 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   std::memset(jobs_state_old_new_changed, 0, sizeof(jobs_state_old_new_changed));
   std::memset(jobs_rate, 0, sizeof(jobs_rate));
   std::memset(jobs_rate_changed, 0, sizeof(jobs_rate_changed));
-  std::memset(jobs_state_accum, 0, sizeof(jobs_state_accum));
-  std::memset(jobs_state_accum_last, 0, sizeof(jobs_state_accum_last));
 
   fail_ratio_changed = false;
 
@@ -64,14 +138,10 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   */
   
 
-  //accumulative state
-  ++jobs_state_accum[new_state];
-  ++job_counter;
-  if(i->CheckFailure(config)) ++job_fail_counter;
-
-
-  //ratio of failed jobs to all jobs
-  fail_ratio = (double)job_fail_counter/(double)job_counter;
+  /*Only hold 1 for failed or 0 for non-failed job for 100 latest jobs */
+  JobStateList* jobstatelist= new JobStateList(100);
+  jobstatelist->setFailure(i->CheckFailure(config));
+  fail_ratio = (double)jobstatelist->getRatio();
   fail_ratio_changed = true;
 
   //actual states (jobstates)

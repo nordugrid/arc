@@ -16,6 +16,52 @@
 
 namespace ARex {
 
+  class JobStateList {
+    /*Holds sucess or fail of last 100 jobs */
+
+
+    class JobNode {
+    private:
+      int failed;
+
+    public:
+      int getFailure();
+      int getLength();
+
+      JobStateList::JobNode* next;
+      JobStateList::JobNode* prev;
+
+      JobNode(int state);
+      ~JobNode(void);
+
+    };
+
+
+  private:
+    const int limit;
+    float ratio;
+    int failures;
+    int counter;
+
+
+  public:
+    JobStateList::JobNode* firstNode;
+    JobStateList::JobNode* lastNode;
+
+    void setFailure(int st);
+    int getLength();
+    int getFailures();
+
+    float getRatio();
+
+    JobStateList(int length);
+    ~JobStateList(void);
+
+
+  };
+
+
+
 class JobsMetrics {
  private:
   Glib::RecMutex lock;
