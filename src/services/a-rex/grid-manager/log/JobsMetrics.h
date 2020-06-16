@@ -42,6 +42,7 @@ namespace ARex {
     float ratio;
     int failures;
     int counter;
+    
 
 
   public:
@@ -99,6 +100,7 @@ class JobsMetrics {
   static void RunMetricsKicker(void* arg);
   static void SyncAsync(void* arg);
 
+  JobStateList* jobstatelist;
  public:
   JobsMetrics(void);
   ~JobsMetrics(void);

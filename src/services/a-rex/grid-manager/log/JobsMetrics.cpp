@@ -106,6 +106,9 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
   fail_ratio_changed = false;
 
   time_lastupdate = time(NULL);
+
+  jobstatelist= new JobStateList(100);
+
 }
 
 JobsMetrics::~JobsMetrics() {
@@ -139,7 +142,8 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   
 
   /*Only hold 1 for failed or 0 for non-failed job for 100 latest jobs */
-  JobStateList* jobstatelist= new JobStateList(100);
+  /*does not make sense to initialize it here, it will then be reset for each job-state-change call i.e. each time reportjobstatechange is called*/
+
   jobstatelist->setFailure(i->CheckFailure(config));
   fail_ratio = (double)jobstatelist->getRatio();
   fail_ratio_changed = true;
