@@ -249,7 +249,7 @@ namespace ArcAuthNSS {
       NSSUtilLogger.msg(ERROR, "Failed to add Independent OID");
     }
     else {
-      NSSUtilLogger.msg(DEBUG, "Succeeded to add anyLanguage OID, tag %d is returned", tag_independent);
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add Independent OID, tag %d is returned", tag_independent);
     }
 
     tag_vomsacseq = SECOID_AddEntry(&oids[4]);
@@ -461,7 +461,7 @@ namespace ArcAuthNSS {
 
     if(!p12cxt->file) {
       p12cxt->error = PR_TRUE;
-      NSSUtilLogger.msg(ERROR, "Failed to open pk12 file");
+      NSSUtilLogger.msg(ERROR, "Failed to open p12 file");
       return PR_FALSE;
     }
 
@@ -1507,7 +1507,7 @@ err:
     if(PK11_NeedLogin(slot)) {
       rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
       if(rv != SECSuccess) {
-        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
+        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
         return SECFailure;
       }
     }

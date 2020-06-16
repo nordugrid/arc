@@ -130,6 +130,10 @@ namespace Arc {
     cadir = path;
   }
 
+  void BaseConfig::AddOToken(const std::string& token) {
+    otoken = token;
+  }
+
   void BaseConfig::AddOverlay(XMLNode cfg) {
     overlay.Destroy();
     cfg.New(overlay);

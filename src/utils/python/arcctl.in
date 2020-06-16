@@ -45,7 +45,7 @@ class ArgumentParserHelpOnError(argparse.ArgumentParser):
 def get_parser():
     parser = ArgumentParserHelpOnError(description='NorduGrid ARC Control Tool')
     config_help = 'config file location (default is {0})'.format(config.arcconf_defpath())
-    if not ControlCommon.arcctl_ce_mode():
+    if not ControlCommon.arcctl_server_mode():
         config_help = argparse.SUPPRESS
     parser.add_argument('-c', '--config', action='store', help=config_help)
     parser.add_argument('-d', '--debug', action='store',

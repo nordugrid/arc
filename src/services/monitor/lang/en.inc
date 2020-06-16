@@ -629,6 +629,7 @@ $message = array (
 					"BE"  => "Belgium",
 					"BG"  => "Bulgaria",
                                         "CA"  => "Canada",
+                                        "CL"  => "Chile",
                                         "CN"  => "China",
 					"CZ"  => "Czechia",
                                         "DK"  => "Denmark",

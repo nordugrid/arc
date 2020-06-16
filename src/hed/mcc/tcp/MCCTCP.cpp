@@ -114,9 +114,9 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,
             if(s == -1) {
                 std::string e = StrError(errno);
                 if(interface_s.empty()) {
-                  logger.msg(ERROR, "Failed to create socket for for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
+                  logger.msg(ERROR, "Failed to create socket for listening at TCP port %s(%s): %s", port_s, PROTO_NAME(info_),e);
                 } else {
-                  logger.msg(ERROR, "Failed to create socket for for listening at %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
+                  logger.msg(ERROR, "Failed to create socket for listening at %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
                 };
                 continue;
             };
@@ -205,7 +205,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg, PluginArgument* parg):MCC_TCP(cfg,
         max_executers_drop_=true;
       };
       if(max_executers_ > 0) {
-        logger.msg(INFO, "Setting connections limit to %i, connections over limit will be %s",max_executers_,max_executers_drop_?"dropped":"put on hold");
+        logger.msg(INFO, "Setting connections limit to %i, connections over limit will be %s",max_executers_,max_executers_drop_?istring("dropped"):istring("put on hold"));
       };
     };
     if(!CreateThreadFunction(&listener,this)) {

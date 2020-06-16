@@ -70,7 +70,7 @@ namespace Arc {
     run->KeepStdout(false);
     run->KeepStderr(false);
     run->AssignStderr(log_redirect);
-    logger.msg(DEBUG, "Starting hepler process: %s", ListToString(argv));
+    logger.msg(DEBUG, "Starting helper process: %s", ListToString(argv));
     if(!run->Start()) {
       return DataStatus(errCode, "Failed to start helper process for "+url.plainstr());
     }
@@ -598,6 +598,17 @@ namespace Arc {
       data = sep+1;
     }
     if (size > 0) buffer_.append(data,size);
+  }
+
+  void DataPointDelegate::LogRedirect::Remove(unsigned int) {
+  }
+
+  char const* DataPointDelegate::LogRedirect::Get() const {
+    return NULL;
+  }
+
+  unsigned int DataPointDelegate::LogRedirect::Size() const {
+    return 0;
   }
 
   void DataPointDelegate::LogRedirect::Flush() {

@@ -14,6 +14,8 @@
 #include "../DTR.h"
 #include "../DataDelivery.h"
 
+using namespace DataStaging;
+
 class DeliveryTest
   : public CppUnit::TestFixture {
 
@@ -31,7 +33,8 @@ public:
   void tearDown();
 
 private:
-  DataStaging::DTRLogger logger;
+  std::list<DTRLogDestination> logs;
+  char const * log_name;
   Arc::UserConfig cfg;
 };
 
@@ -40,10 +43,16 @@ void DeliveryTest::setUp() {
   // A fake ARC location is used and a symlink is created in the libexec subdir
   // to the DataStagingDelivery in the parent dir. TODO: maybe put a test flag
   // in DTR code which tells it to use this local executable.
-  Arc::DirCreate(std::string("../tmp/")+std::string(PKGLIBEXECSUBDIR), S_IRWXU, true);
+  Arc::DirCreate(std::string("../tmp/")+std::string(PKGLIBSUBDIR), S_IRWXU, true);
   Arc::ArcLocation::Init("../tmp/x/x");
   Arc::FileLink("../../../DataStagingDelivery", std::string("../tmp/")+std::string(PKGLIBSUBDIR)+std::string("/DataStagingDelivery"), true);
-  logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStagingTest");
+  logs.clear();
+  const std::list<Arc::LogDestination*>& destinations = Arc::Logger::getRootLogger().getDestinations();
+  for(std::list<Arc::LogDestination*>::const_iterator dest = destinations.begin(); dest != destinations.end(); ++dest) {
+    logs.push_back(*dest);
+  }
+
+  log_name = "DataStagingTest";
 }
 
 void DeliveryTest::tearDown() {
@@ -55,7 +64,7 @@ void DeliveryTest::TestDeliverySimple() {
   std::string source("mock://mocksrc/1");
   std::string destination("mock://mockdest/1");
   std::string jobid("1234");
-  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logs,log_name));
   CPPUNIT_ASSERT(*dtr);
 
   // Pass DTR to Delivery
@@ -89,7 +98,7 @@ void DeliveryTest::TestDeliveryFailure() {
   std::string source("fail://mocksrc/1");
   std::string destination("fail://mockdest/1");
   std::string jobid("1234");
-  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logs,log_name));
   CPPUNIT_ASSERT(*dtr);
 
   // Pass DTR to Delivery
@@ -123,7 +132,7 @@ void DeliveryTest::TestDeliveryUnsupported() {
   std::string source("proto://host/file");
   std::string destination("mock://mockdest/1");
   std::string jobid("1234");
-  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logs,log_name));
   CPPUNIT_ASSERT(!(*dtr));
 
   // Pass DTR to Delivery

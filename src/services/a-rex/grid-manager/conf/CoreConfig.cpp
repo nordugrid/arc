@@ -91,30 +91,33 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   bool job_log_log_is_set = false;
   Arc::ConfigIni cf(cfile);
   cf.SetSectionIndicator(".");
-  static const int common_secnum = 0;
-  cf.AddSection("common");
-  static const int ganglia_secnum = 1;
-  cf.AddSection("arex/ganglia");
-  static const int emies_secnum = 2;
-  cf.AddSection("arex/ws/jobs");
-  static const int ws_secnum = 3;
-  cf.AddSection("arex/ws");
-    static const int jura_secnum = 4;
-  cf.AddSection("arex/jura");
-  static const int gm_secnum = 5;
-  cf.AddSection("arex");
-  static const int infosys_secnum = 6;
-  cf.AddSection("infosys"); 
-  static const int queue_secnum = 7;
-  cf.AddSection("queue");
-  static const int ssh_secnum = 8;
-  cf.AddSection("lrms/ssh");
-  static const int lrms_secnum = 9;
-  cf.AddSection("lrms");
-  static const int cluster_secnum = 10;
-  cf.AddSection("infosys/cluster");
-  static const int perflog_secnum = 11;
+  static const int perflog_secnum     = 0;
   cf.AddSection("common/perflog");
+  static const int common_secnum      = 1;
+  cf.AddSection("common");
+  static const int ganglia_secnum     = 2;
+  cf.AddSection("arex/ganglia");
+  static const int emies_secnum       = 3;
+  cf.AddSection("arex/ws/jobs");
+  static const int publicinfo_secnum  = 4;
+  cf.AddSection("arex/ws/publicinfo");
+  static const int ws_secnum          = 5;
+  cf.AddSection("arex/ws");
+  static const int jura_secnum        = 6;
+  cf.AddSection("arex/jura");
+  static const int gm_secnum          = 7;
+  cf.AddSection("arex");
+  static const int cluster_secnum     = 8;
+  cf.AddSection("infosys/cluster");
+  static const int infosys_secnum     = 9;
+  cf.AddSection("infosys"); 
+  static const int queue_secnum       = 10;
+  cf.AddSection("queue");
+  static const int ssh_secnum         = 11;
+  cf.AddSection("lrms/ssh");
+  static const int lrms_secnum        = 12;
+  cf.AddSection("lrms");
+
   if (config.job_perf_log) {
     config.job_perf_log->SetEnabled(false);
     config.job_perf_log->SetOutput("/var/log/arc/perfdata/arex.perflog");
@@ -289,7 +292,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
         else if (command == "controldir") {
           std::string control_dir = rest;
           if (control_dir.empty()) {
-            logger.msg(Arc::ERROR, "Missing directory in control command"); return false;
+            logger.msg(Arc::ERROR, "Missing directory in controldir command"); return false;
           }
           config.control_dir = control_dir;
         }
@@ -406,7 +409,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     };
     
     if (cf.SectionNum() == ws_secnum) { // arex/ws
-     
       if (cf.SubSection()[0] == '\0') {
         if(command == "wsurl") {
            config.arex_endpoint = rest;
@@ -449,6 +451,28 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             std::string str = Arc::ConfigIni::NextArg(rest);
             if(!str.empty()) {
               config.matching_groups[""].push_back(std::pair<bool,std::string>(false,str));
+            };
+          };
+        };
+      };
+      continue;
+    };
+
+    if (cf.SectionNum() == publicinfo_secnum) { // arex/ws/publicinfo
+      if (cf.SubSection()[0] == '\0') {
+        config.enable_publicinfo = true;
+        if (command == "allowaccess") {
+          while(!rest.empty()) {
+            std::string str = Arc::ConfigIni::NextArg(rest);
+            if(!str.empty()) {
+              config.matching_groups_publicinfo.push_back(std::pair<bool,std::string>(true,str));
+            };
+          };
+        } else if (command == "denyaccess") {
+          while(!rest.empty()) {
+            std::string str = Arc::ConfigIni::NextArg(rest);
+            if(!str.empty()) {
+              config.matching_groups_publicinfo.push_back(std::pair<bool,std::string>(false,str));
             };
           };
         };

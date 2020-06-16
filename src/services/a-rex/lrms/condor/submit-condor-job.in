@@ -456,7 +456,7 @@ else
 fi
 echo "Output is:" 1>&2
 cat $LRMS_JOB_OUT 1>&2
-echo "Error output is:"
+echo "Error output is:" 1>&2
 cat $LRMS_JOB_ERR 1>&2
 rm -f "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
 echo "----- exiting submit_condor_job -----" 1>&2

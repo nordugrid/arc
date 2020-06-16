@@ -6,3 +6,4 @@ debian/tmp/usr/bin/arcplugin
 debian/tmp/usr/share/man/man1/arcplugin.1
 debian/tmp/usr/share/arc/examples/sdk/*.cpp
 debian/tmp/usr/share/arc/examples/sdk/*.h
+debian/tmp/usr/share/arc/examples/sdk/*.py

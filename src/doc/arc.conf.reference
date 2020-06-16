@@ -11,6 +11,7 @@
 ##  [common]
 ##  [authgroup:groupname]
 ##  [mapping]
+##  [authtokens]
 ##  [lrms]
 ##  [lrms/ssh]
 ##  [arex]
@@ -19,6 +20,7 @@
 ##  [arex/data-staging]
 ##  [arex/ws]
 ##  [arex/ws/jobs]
+##  [arex/ws/publicinfo]
 ##  [arex/ws/cache]
 ##  [arex/ws/candypond]
 ##  [arex/ws/argus]
@@ -159,7 +161,7 @@
 ## hostname = string - The FQDN of the frontend on which the ARC services are deployed.
 ## default: $EXEC{hostname -f}
 #hostname=myhost.org
-## CHANGE: modified semantics, not mandatory any longer
+## CHANGE: MODIFIED semantics in 6.0.0, not mandatory any longer.
 
 ## http_proxy = url - The http proxy server.
 ## This setting affects all client HTTP(s) requests that initiated by ARC core services,
@@ -167,7 +169,7 @@
 ## This variable is similar to setting the ARC_HTTP_PROXY environmental variable.
 ## default: undefined
 #http_proxy=proxy.mydomain.org:3128
-## CHANGE: moved here from the old [grid-manager] block
+## CHANGE: MOVED in 6.0.0 from the old [grid-manager] block. 
 
 ### X509 related parameters
 ## x509_host_key = path - (previously x509_user_key) Server credential location. 
@@ -177,7 +179,7 @@
 ## corresponding block.
 ## default: /etc/grid-security/hostkey.pem
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_host_cert = path - (previously x509_user_cert) Server credential location. Sets the full
 ## path to the host public certificate.
@@ -186,7 +188,7 @@
 ## corresponding block.
 ## default: /etc/grid-security/hostcert.pem
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_cert_dir = path  - Location of trusted CA certificates.
 ## This variable is similar to the GSI enviroment variable "X509_CERT_DIR"
@@ -253,7 +255,7 @@
 ## operator ("!") may be combined with the operator for positive or negative
 ## matching.
 #[authgroup:prodtesters]
-## CHANGE: renamed the block.
+## CHANGE: RENAMED the block in 6.0.0.
 
 ## subject = certificate_subject - Rule to match specific subject of user's
 ## X.509 certificate. No masks, patterns and regular expressions are allowed.
@@ -269,7 +271,7 @@
 ## default: undefined
 #file=/etc/grid-security/local_users
 #file=/etc/grid-security/atlas_users
-## CHANGE: Modified semantics. The external file should only contain DNs, no complex rules. No need to change the code.
+## CHANGE: MODIFIED semantics in 6.0.0. The external file should only contain DNs, no complex rules. No need to change the code.
 
 ## voms = vo group role capabilities - Match VOMS attribute in user's credential.
 ## Use "*" to match any value.
@@ -287,17 +289,18 @@
 ## default: undefined
 #authgroup=local_admins
 #authgroup=local_admins remote_users
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## userlist = ulist_name [ulist_name ...] - (previously vo) Match user belonging to ulist_name defined
 ## in an earlier [userlist:ulist_name] block. Multiple userlist names are allowed for this rule.
 ## sequenced
 ## default: undefined
 #userlist=biousers
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## plugin = timeout path [arg1 [arg2 [arg3...]]] - Run external executable or
 ## function from shared library. Rule is matched if plugin returns 0.
+## Any other return code or timeout are treated as rule not matched.
 ## In arguments following substitutions are supported:
 ##   - "%D" - subject of certicate
 ##   - "%P" - path to proxy
@@ -307,12 +310,19 @@
 ## default: undefined
 #plugin=10 /usr/libexec/arc/arc-lcas %D %P liblcas.so /usr/lib64 /etc/lcas/lcas.db
 
+## authtokens = subject issuer audience scope group - Match OIDC token claims.
+## Use "*" to match any value.
+## sequenced
+## default: undefined
+#authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
+## CHANGE: INTRODUCED in 6.6.0.
+
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
 ## sequenced
 ## default: undefined
 #all=yes
-## CHANGE: MODIFIED options
+## CHANGE: MODIFIED options in 6.0.0.
 ##
 ##
 ### end of the [authgroup:name] blocks ###############################
@@ -345,7 +355,7 @@
 ##
 ##
 #[mapping]
-## CHANGE: This is a new block
+## CHANGE: NEW block in 6.0.0.
 
 ## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
 ## specified authgroup are mapped to "unixname" local UNIX account that may be 
@@ -387,6 +397,9 @@
 ## name to which users that belogns to specified authgroup will be mapped to.
 ## A rule matches if the exit code is "0" and there is a UNIX account name 
 ## printed on stdout (optionally followed by a UNIX group name separated by colon).
+## The exit code 1 designates failed mapping. Any other code or timeout means fatal
+## failure and will abort any further mapping processing. That will also cause
+## rejection of corresponding connection.
 ## Plugin execution time is limited to "timeout" seconds.
 ##
 ## In the arguments the following substitutions are applied before the plugin is started:
@@ -433,6 +446,16 @@
 ### end of the [mapping] block ##############################################
 
 
+### The [authtokens] block ##############################################
+## This block activates processing of OIDC tokens as defined in WLCG profile.
+##
+##
+#[authtokens]
+## CHANGE: NEW block in 6.6.0.
+##
+### end of the [authtokens] block ##############################################
+
+
 ### The [lrms] block ##############################################
 ## This block specifies the characteristics of the Local Resource Manager System (batch system)
 ## underneath the ARC CE. This block contains all the lrms-specific parameters and information.
@@ -441,7 +464,7 @@
 ##
 ## ARC support the most common LRMS flavours.
 #[lrms]
-## CHANGE: This is a new block. Contains parameters previously set in [common], [infosys], [cluster], [queue]
+## CHANGE: NEW block in 6.0.0. Contains parameters previously set in [common], [infosys], [cluster], [queue]
 
 ## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
 ## default queue name.
@@ -452,12 +475,12 @@
 ##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
 ##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
-##   - pbspro  - Altair PBS Professional
+##   - pbspro  - Altair PBS Professional - CHANGE: NEW in 6.1.0
 ##   - lsf     - LSF
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
 ##   - boinc   - Boinc
-##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well)
+##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well) - CHANGE: NEW in 6.0.0
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
 ## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
@@ -469,14 +492,14 @@
 ## mandatory
 #lrms=pbspro gridlong
 #lrms=slurm
-## CHANGE: new lrmstype values added (slurmpy).
+
 
 ## lrmsconfig = text - An optional free text field to describe the configuration of your
 ## Local Resource Management System (batch system). The value is published in the infosys,
 ## and is not used otherwise.
 ## default: undefined
 #lrmsconfig=single job per processor
-## CHANGE: moved here from the [cluster] block
+## CHANGE: MOVED in 6.0.0 from the [cluster] block.
 
 ## defaultmemory = number - The LRMS memory request of job to be set by the LRMS backend
 ## scripts, if a user submits a job without specifying how much memory should be used.
@@ -484,7 +507,7 @@
 ## This is the amount of memory (specified in MB) that a job will request.
 ## default: undefined
 #defaultmemory=512
-## CHANGE: moved here from the [cluster] block
+## CHANGE: MOVED in 6.0.0  from the [cluster] block.
 
 ## nodename = path - Redefine the command to obtain hostname of LRMS worker node.
 ## By default the value is defined on buildtime and depend on the OS. 
@@ -493,13 +516,13 @@
 ##   particular LRMS backend had no native LRMS-defined way.
 ## default: undefined
 #nodename=/bin/hostname -s
-## CHANGE: moved here from the [arex] block
+## CHANGE: MOVED in 6.0.0 from the [arex] block.
 
 ## gnu_time = path - Path to the GNU time command on the LRMS worker nodes.
 ## If time command exists on the node, jobscript will write additional diagnostic information.
 ## default: /usr/bin/time
 #gnu_time=/usr/bin/time
-## CHANGE: moved here from the [arex] block
+## CHANGE: MOVED in 6.0.0 from the [arex] block.
 
 ### PBS options: set these only in case of lrms=pbs
 ## pbs_bin_path = path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
@@ -527,7 +550,7 @@
 ## use of the above described setup.
 ## default: undefined
 #pbs_dedicated_node_string=gridnode
-## CHANGE: renamed. moved here from [cluster]
+## CHANGE: RENAMED and MOVED in 6.0.0 from [cluster].
 
 ### Condor options: set these only in case of lrms=condor
 ## condor_bin_path = path - Path to Condor binaries. Must be set if Condor
@@ -619,7 +642,7 @@
 ## slurm_requirements = string - Use this option to specify extra SLURM-specific parameters.
 ## default: undefined
 #slurm_requirements=memory on node >> 200
-## CHANGE: new parameter proposed in Umea retreat
+## CHANGE: NEW in 6.0.0.
 
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
@@ -635,7 +658,7 @@
 ## Use only if you know what you are doing.
 ## default: undefined
 #lsf_architecture=PowerPC
-## CHANGE: moved here from [queue:name] block
+## CHANGE: MOVED in 6.0.0 from [queue:name] block.
 
 ### LoadLeveler options: set these only in case of lrms=ll
 ## ll_bin_path = path - The PATH to the LoadLeveler bin folder
@@ -688,7 +711,7 @@
 ## from the cluster frontend on the CE frontend using sshfs. Job submission and
 ## management will done using ssh (Paramiko).
 #[lrms/ssh]
-## CHANGE: new sub-block
+## CHANGE: NEW sub-block in 6.0.0 to configure ssh support in slurmpy as a part of tech preview.
 
 ## *remote_host = hostname - Define the remote cluster frontend machine which contains
 ## session, cache and runtime directories and where jobs should be submitted to.
@@ -736,7 +759,7 @@
 ## various middleware tasks on the frontend such as job creation and management,
 ## stagein/stageout, LRMS job submission, data caching, etc...
 #[arex]
-## CHANGE: renamed block
+## CHANGE: RENAMED block in 6.0.0.
 
 ## user = user[:group] - Switch to a non root user/group after startup.
 ## Use with caution because of limited functionality when arex is not run under root.
@@ -754,7 +777,7 @@
 ## Currently supported db_names are bdb and sqlite
 ## default: sqlite
 #delegationdb=sqlite
-## CHANGE: modified. new default.
+## CHANGE: MODIFIED in 6.0.0 with new default.
 
 ## watchdog = yes/no - Specifies if additional watchdog processes is spawned to restart
 ## main process if it is stuck or dies.
@@ -767,13 +790,13 @@
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=3
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## logfile = path - Specify A-REX log file location. If using an external log
 ## rotation tool be careful to make sure it matches the path specified here.
 ## default: /var/log/arc/arex.log
 #logfile=/var/log/arc/arex.log
-## CHANGE: modified default (renamed file)
+## CHANGE: MODIFIED default (renamed file) in 6.0.0.
 
 ## joblog = path - Specifies where to store specialized log about started
 ## and finished jobs. If path is empty log is NOT written.
@@ -869,7 +892,7 @@
 ## A parameter set to -1 means no limit.
 ## default: -1 -1 -1 -1 -1 
 #maxjobs=10000 10 2000 -1 -1
-## CHANGE: Modified. Explicitly indicate "no limit" with -1. "Missing number" should not be allowed.
+## CHANGE: MODIFIED in 6.0.0. Explicitly indicate "no limit" with -1. "Missing number" should not be allowed.
 
 ## maxrerun = number - Specifies how many times job can be rerun if it failed in LRMS.
 ## This is only an upper limit, the actual rerun value is set by the user in his xrsl.
@@ -898,7 +921,7 @@
 ##   - "%H" - home directory of mapped UNIX account as specified in "/etc/passwd"
 ##   - "%Q" - default queue (see "lrms" configuration option in [lrms] block)
 ##   - "%L" - LRMS name (see "lrms" configuration option in [lrms] block)
-##   - "%W" – ARC installation path (corresponds to the "ARC_LOCATION" environmental variable)
+##   - "%W" - ARC installation path (corresponds to the "ARC_LOCATION" environmental variable)
 ##   - "%F" - path to configuration file for this instance
 ##   - "%I" - job ID (substituted in runtime)
 ##   - "%S" - job state (substituted in runtime)
@@ -907,7 +930,7 @@
 ## multivalued
 ## default: undefined
 #statecallout=FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-blahp-logger -I %I -U %u -L %C/job.%I.local -P %C/job.%I.proxy
-## CHANGE: renamed from authplugin
+## CHANGE: RENAMED in 6.0.0 from authplugin.
 
 ## wakeupperiod = time - Specifies how often A-REX checks for new jobs
 ## arrived, job state change requests, etc. That is responsiveness of
@@ -930,7 +953,7 @@
 ## infoproviders need more time to process.
 ## default: 10800
 #infoproviders_timelimit=10800
-## CHANGED: rename, infoproviders_timelimit, move to [arex] block
+## CHANGED: RENAMED and MOVED in 6.0.0 to  [arex] block.
 
 ## pidfile = path - Specify location of file containing PID of daemon process.
 ## default: /var/run/arched-arex.pid
@@ -939,13 +962,13 @@
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
 #mail=grid.support@somewhere.org
-## CHANGE: modified. implement a default! in the format of root@localhost. 
+## CHANGE: MODIFIED in 6.0.0. 
 
 ## gnu_time = path - The gnu time command
-## CHANGE: moved to [lrms] 
+## CHANGE: MOVED in 6.0.0 to [lrms].
 
 ## nodename = path - The command to obtain hostname of computing node.
-## CHANGE: moved to [lrms]
+## CHANGE: MOVED in 6.0.0 to [lrms].
 
 ## helper = user executable arguments - By enabling this parameter A-REX will
 ## run an external "helper" program under the user useraccount. The program will be
@@ -958,7 +981,7 @@
 ## helperlog = path - Configuration option to specify the location of log for helpers.
 ## default: /var/log/arc/job.helper.errors
 #helperlog=/var/log/arc/job.helper.errors
-## CHANGE: new parameter
+## CHANGE: NEW PARAMETER  in 6.0.0.
 
 ## forcedefaultvoms = VOMS_FQAN - specify VOMS FQAN which user will be
 ## assigned if his/her credentials contain no VOMS attributes.
@@ -973,14 +996,15 @@
 
 ### The [arex/cache] block #########################################
 ## This subblock enables and configures the cache functionality of A-REX.
-## A-REX can cache input files downloaded as part of stagein proces of grid jobs
+## A-REX can cache input files downloaded as part of the stage-in process of grid jobs
 ## so that subsequent jobs requiring the same file don’t have to download it again.
 ## The cached file will be symlinked (or copied) into the session directory of the job.
 ## To disable to cache functionality simply comment out the [arex/cache] config block.
 ## It is a good idea to have the cache on its own separate file system that is shared with the nodes.
-## For more information about the cache functionality of A-REX consult the sysadmin guide.
+## For more information about the cache functionality of A-REX consult the Data Cache
+## technical description in the online documentation.
 #[arex/cache]
-## CHANGE: new block
+## CHANGE: NEW block in 6.0.0.
 
 ## *cachedir = cache_path [link_path] - Specifies a directory to store cached
 ## data. Multiple cache directories may be specified. Cached data will be distributed
@@ -990,12 +1014,18 @@
 ## If "link_path" is set to "." files are not soft-linked, but copied to session
 ## directory. 
 ## If a cache directory needs to be drained, then "link_path" should specify "drain",
-## in which case no new files will be added to the cache. Restart of arex also needed.
+## in which case no new files will be added to the cache and files in the cache
+## will no longer be used.
+## Setting "link_path" to "readonly" ensures that no new files are written to
+## this cache, but existing files can still be used.
+## Draining and read-only caches are not cleaned by the A-REX cache cleaner.
+## A restart of A-REX is required when changing cache options.
 ## multivalued
 ## default: undefined
 #cachedir=/scratch/cache
 #cachedir=/shared/cache /frontend/jobcache
 #cachedir=/fs1/cache drain
+## CHANGE: Added readonly option in 6.7
 ##
 ##
 ### end of the [arex/cache] #############################################
@@ -1006,20 +1036,20 @@
 ## then the cache will not be cleaned by A-REX. Either cachesize or cachelifetime should also be
 ## set to enable cleaning.
 #[arex/cache/cleaner]
-## CHANGE: new block
+## CHANGE: NEW block in 6.0.0.
 
 ## logfile = path - (previously cachelogfile) sets the filename where output of the cache-clean
 ## tool should be logged. Defaults to /var/log/arc/cache-clean.log.
 ## default: /var/log/arc/cache-cleaner.log
 #logfile=/tmp/cache-clean.log
-## CHANGE: renamed as logfile
+## CHANGE: RENAMED in 6.0.0.
 
 ## loglevel = level - (previously cacheloglevel) specifies the level of logging by the cache-clean
 ## tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=4
-## CHANGE: renamed as loglevel
+## CHANGE: RENAMED in 6.0.0.
 
 ## cachesize = max min - Specifies high and low watermarks for space used
 ## by cache, as a percentage of the space on the file system on which
@@ -1035,7 +1065,7 @@
 ## allowedvalues: filesystem cachedir
 ## default: filesystem
 #calculatesize=cachedir
-## CHANGE: renamed parameter
+## CHANGE: RENAMED in 6.0.0 .
 
 ## cachelifetime = time - Turns on time-based file cleaning. Files accessed less recently than
 ## the given time period will be deleted. Example values of this option are 1800, 90s, 24h, 30d.
@@ -1067,7 +1097,7 @@
 ## after the job has finished. Automagic data staging of A-REX is a very powerful feature,
 ## disabling this functionality (by commenting out the subblock) is not recommended.
 #[arex/data-staging]
-## CHANGE: RENAMED block
+## CHANGE: RENAMED block in 6.0.0.
 
 ## loglevel = number - (previously debug) Sets the log level for transfer logging in job.id.errors files,
 ## between 0 (FATAL) and 5 (DEBUG). Default is to use value set by loglevel option in
@@ -1075,7 +1105,7 @@
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: $VAR{[arex]loglevel}
 #loglevel=4
-## CHANGE: renamed as loglevel.
+## CHANGE: RENAMED in 6.0.0.
 
 ## logfile = path  - (previously central_logfile) A central file in which all data staging messages 
 ## from every job will be collected and logged in addition to their job.id.errors files. 
@@ -1084,13 +1114,13 @@
 ## /var/log/arc/datastaging.log.
 ## default: undefined
 #logfile=/var/log/arc/datastaging.log
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## statefile = path - (previously dtrlog) A file in which data staging state information
 ## (for monitoring and recovery purposes) is periodically dumped.
 ## default: $VAR{[arex]controldir}/dtr.state
 #statefile=/tmp/dtr.state
-## CHANGE: renamed, modified: new default value
+## CHANGE: RENAMED and MODIFIED in 6.0.0, new default value.
 
 ## usehostcert = yes/no - Whether the A-REX host certificate should be used for
 ## communication with remote hosts instead of the users' proxies.
@@ -1108,7 +1138,7 @@
 ## allowedvalues: yes no
 ## default: yes
 #passivetransfer=yes
-## CHANGE: new default: yes
+## CHANGE: NEW DEFAULT in 6.0.0.
 
 ## globus_tcp_port_range = port_range - In a firewalled environment
 ## the software which uses GSI needs to know what ports are available.
@@ -1117,7 +1147,7 @@
 ## "GLOBUS_TCP_PORT_RANGE" and "GLOBUS_UDP_PORT_RANGE".
 ## default: 9000,9300
 #globus_tcp_port_range=9000,12000
-## CHANGE: moved here
+## CHANGE: MOVED in 6.0.0.
 
 ## globus_udp_port_range = port_range - In a firewalled environment
 ## the software which uses GSI needs to know what ports are available.
@@ -1126,14 +1156,14 @@
 ## "GLOBUS_TCP_PORT_RANGE" and "GLOBUS_UDP_PORT_RANGE".
 ## default: 9000,9300
 #globus_udp_port_range=9000,12000
-## CHANGE: moved here
+## CHANGE: MOVED in 6.0.0.
 
 ## httpgetpartial = yes/no - If yes, HTTP GET transfers may transfer data in
 ## chunks/parts. If no - data is always transfered in one piece.
 ## allowedvalues: yes no
 ## default: no
 #httpgetpartial=no
-## CHANGE: new default: no
+## CHANGE: NEW default in 6.0.0.
 
 ## speedcontrol = min_speed min_time min_average_speed max_inactivity - specifies
 ## how slow data transfer must be to trigger error. Transfer is cancelled if
@@ -1144,7 +1174,7 @@
 ## default: 0 300 0 300
 #speedcontrol=0 300 100 300
 #speedcontrol=""
-## CHANGE: modified: missing parameter "speedcontrol=" should also turn the feature off, not just zero value.
+## CHANGE: MODIFIED in 6.0.0: missing parameter "speedcontrol=" should also turn the feature off, not just zero value.
 
 ## maxdelivery = number - Maximum number of concurrent file transfers, i.e. active
 ## transfers using network bandwidth. This is the total number for the whole
@@ -1186,7 +1216,7 @@
 ## If sharepolicy is not set then the client-defined priority is applied.
 ## default: undefined
 #sharepolicy=voms:role
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## sharepriority = share priority - (previously definedshare) Defines a share with a fixed priority,
 ## different from the default (50). Priority is an integer between 1 (lowest) and 100 (highest).
@@ -1194,7 +1224,7 @@
 ## default: undefined
 #sharepriority=myvo:students 20
 #sharepriority=myvo:production 80
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## copyurl = url_head local_path - Configures that DTR should use copy instead of download
 ## in case of certain stagein files. URLs, starting from 'url_head'
@@ -1226,7 +1256,7 @@
 ## The replicas will be tried in the order specified by preferredpattern variable.
 ## default: undefined
 #use_remote_acix=https://cacheindex.ndgf.org:6443/data/index
-## CHANGE: rename
+## CHANGE: RENAMED in 6.0.0.
 
 ## preferredpattern = pattern - specifies a preferred pattern on which
 ## to sort multiple replicas of an input file. It consists of one or
@@ -1269,7 +1299,7 @@
 ## access cache information, so on. Comment out this block if you don't want to
 ## provide WS-interfaces for various A-REX functionalities.
 #[arex/ws]
-## CHANGE: new block. most of the parameters originates from the old [grid-manager] block
+## CHANGE: NEW block in 6.0.0. Most of the parameters originates from the old [grid-manager] block
 
 ## wsurl = url - (previously arex_mount_point) Specifies the base URL under which
 ## the web service intrefaces will be available. The URL argument must be a
@@ -1277,12 +1307,12 @@
 ## Make sure the chosen port is not blocked by firewall or other security rules.
 ## default: https://$VAR{[common]hostname}:443/arex
 #wsurl=https://piff.hep.lu.se:443/arex
-## CHANGE: renamed. modified: set default as https://hostname:443/arex
+## CHANGE: RENAMED and MODIFIED in 6.0.0. 
 
 ## logfile = path - (previously wslogfile) Specify log file location for WS-interface operations.
 ## default: /var/log/arc/ws-interface.log
 #logfile=/var/log/arc/ws-interface.log
-## CHANGE: renamed.
+## CHANGE: RENAMED in 6.0.0.
 
 ## max_job_control_requests = number - The max number of simultaneously processed job management
 ## requests over WS interface - like job submission, cancel, status check etc.
@@ -1310,14 +1340,14 @@
 ## Consult the http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt for EMIES inteface description 
 ## and read the TO-BE-PROVIDED ARC-REST interface specification.
 #[arex/ws/jobs]
-## CHANGE: new subblock
+## CHANGE: NEW sub-block in 6.0.0.
 
 ## allownew = yes/no - The 'allownew' config parameter sets if the Computing Element accepts
 ## submission of new jobs via the WS-interface. This parameter can be used to close down the CE.
 ## allowedvalues: yes no
 ## default: yes
 #allownew=yes
-## CHANGE: new parameter in this block. Implement support in the code for WS-interface.
+## CHANGE: NEW in 6.0.0. Implement support in the code for WS-interface.
 
 ## allownew_override = [authgroup ...]  - (previously allowsubmit) Defines which authorization
 ## groups are allowed to submit new jobs via the WS-interfaces
@@ -1326,7 +1356,7 @@
 ## default: undefined
 #allownew_override=biousers atlasusers
 #allownew_override=yourauthgroup
-## CHANGE: rename. modify behaviour: possible to specify several groups on a single line!
+## CHANGE: RENAMED and MODIFIED behaviour in 6.0.0. Modified behaviour: possible to specify several groups on a single line!
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to access the ARC-CE via this interface. A related config option the
@@ -1357,10 +1387,33 @@
 ## in bytes. Default value is 5MB. Use 0 to set unlimited size.
 ## default: 5242880
 #maxjobdesc=0
-## CHANGE: new parameter in this block. Implement support in the code for WS-interface.
+## CHANGE: NEW in 6.0.0.
 ##
 ##
 ### end of the [arex/ws/jobs] block ##############################
+
+
+### The [arex/ws/publicinfo] block ################################
+## AREX allows access to public informaton for non-authorized users.
+## Presence of this block enables such feature.
+#[arex/ws/publicinfo]
+## CHANGE: NEW block in 6.7.0.
+
+## allowaccess = authgroup - Defines that the specified authgroup members are authorized to access
+## public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#allowaccess=monitors
+## CHANGE: NEW in 6.7.0.
+
+## denyaccess = authgroup - Defines that the specified authgroup members are REJECTED, not authorized
+## to access public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#denyaccess=badactors
+## CHANGE: NEW in 6.7.0.
+
+### end of the [arex/ws/publicinfo] block ####################
 
 
 ### The [arex/ws/cache] block ################################
@@ -1372,7 +1425,7 @@
 ## https://hostname:443/arex/cache/gsiftp://remotehost/file1
 ## Comment out this block if you don't want to expose the cache content via WS-interface.
 #[arex/ws/cache]
-## CHANGE: new block
+## CHANGE: NEW block in 6.0.0.
 
 ## cacheaccess = rule - This parameter defines the access control rules for the cache wsinterface,
 ## the rules for allowing access to files in the cache remotely through the A-REX web interface.
@@ -1406,7 +1459,7 @@
 ## (e.g. https://hostname:443/arex/candypond)
 ##
 #[arex/ws/candypond]
-## CHANGE: NEW block, renamed service
+## CHANGE: NEW block in 6.0.0, and RENAMED service.
 ##
 ##
 ### end of the [arex/ws/candypond] block ####################
@@ -1423,7 +1476,7 @@
 ## Comment out this block if you don't intend to use any external Argus service with A-REX WS interfaces.
 ## Using Argus with gridftp interface is possible only via LCMAPS callout.
 #[arex/ws/argus]
-## CHANGE: new block for the Argus functionality. Change code so that Argus is turned on/off based on this block
+## CHANGE: NEW  block in 6.0.0.
 
 ## *arguspep_endpoint = url - Specifies URL of Argus PEPD service to use for
 ## authorization and user mapping.
@@ -1442,7 +1495,7 @@
 ## allowedvalues: direct subject emi
 ## default: emi
 #arguspep_profile=emi
-## CHANGE: modified parameter values: remove cream (or at least hide from the arc.conf.reference)
+## CHANGE: MODIFIED parameter values in 6.0.0: removed CREAM.
 
 ## arguspep_usermap = yes/no - Specifies whether response from Argus service may define mapping
 ## of client to local account. Default is 'no'.
@@ -1468,7 +1521,7 @@
 ## allowedvalues: subject emi
 ## default: emi
 #arguspdp_profile=emi
-## CHANGE: modified parameter values: remove cream (or at least hide from the arc.conf.reference)
+## CHANGE: MODIFIED parameter values in 6.0.0: remove CREAM.
 
 ## arguspdp_accpetnotapplicable = yes/no - Specify if the "NotApplicable" decision returned by Argus
 ## PDP service is treated as reason to deny request. Default is 'no', which treats
@@ -1533,22 +1586,22 @@
 ## The actual treshold of records reporting frequency can be defined on per-target basis.
 ## default: 3600
 #urdelivery_frequency=3600
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: new parameter in this block
+## CHANGE: NEW in 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: new parameter in this block
+## CHANGE: NEW in 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: new parameter in this block
+## CHANGE: NEW in 6.0.0.
 
 ## urdelivery_keepfailed = days - (deprecated in 6.4.0) Specifies for how many days 
 ## JURA will try to send a record to the destination accounting service before it 
@@ -1559,7 +1612,7 @@
 ## expiration time independently of publishing process.
 ## default: 30
 #urdelivery_keepfailed=30
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 ##
 ### end of the [arex/jura] block ########################################
 
@@ -1577,13 +1630,13 @@
 ## *targeturl = url - The service endpoint URL of SGAS server.
 ## default: undefined
 #targeturl=https://grid.uio.no:8001/logger
-## CHANGE: new parameter
+## CHANGE: NEW in 6.0.0.
 
 ## localid_prefix = prefix_string - Sets a prefix value for the LocalJobID ur parameter
 ## for the SGAS usage records.
 ## default: undefined
 #localid_prefix=some_text_for_SGAS
-## CHANGE: new parameter
+## CHANGE: NEW in 6.0.0.
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -1592,7 +1645,7 @@
 ## default: undefined
 #vofilter=atlas
 #vofilter=fgi.csc.fi
-## CHANGE: new parameter
+## CHANGE: NEW in 6.0.0.
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
@@ -1602,10 +1655,10 @@
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal treshold
 ## of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
-##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
 ## default: undefined
 #urdelivery_frequency=3600
-## CHANGE: INTRODUCED IN 6.4
+## CHANGE: NEW in 6.4.0.
 
 ## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
 ## publishing to this target will be handled with the previous version of code (6.0-6.3)
@@ -1613,7 +1666,7 @@
 ## with the new Jura.
 ## default: no
 #legacy_fallback=no
-## CHANGE: INTRODUCED IN 6.4
+## CHANGE: NEW in 6.4.0.
 ##
 ### end of the [arex/jura/sgas:targetname] blocks ########################
 
@@ -1639,7 +1692,7 @@
 ## allowedvalues: yes no
 ## default: no
 #use_ssl=yes
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
@@ -1659,7 +1712,7 @@
 ## allowedvalues: urs summaries both
 ## default: summaries
 #apel_messages=urs
-## CHANGE: INTRODUCED IN 6.4
+## CHANGE: NEW in 6.4.0.
 
 ## benchmark_type = type - (deprecated in 6.4.0) Type of benchmark (Si2k, HEPSPEC) 
 ## to be reported in every UR.
@@ -1667,7 +1720,7 @@
 ## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_type=HEPSPEC
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## benchmark_value = number - (deprecated in 6.4.0) The value of the of benchmark 
 ## to be reported in every UR.
@@ -1675,13 +1728,13 @@
 ## taken from the [queue] block "benchmark" option.
 ## default: undefined
 #benchmark_value=2.4
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## benchmark_description = string - (deprecated in 6.4.0) Additional description 
 ## for the benchmark to be reported in every UR.
 ## default: undefined
 #benchmark_description=some description for benchmark
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -1699,11 +1752,11 @@
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
 ## treshold of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
-##   defined in [arex/jura] block that define the entire JURA process invokation frequency.
+##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
 ## APEL recommended value is once per day.
 ## default: 86000
 #urdelivery_frequency=14000
-## CHANGE: INTRODUCED IN 6.4
+## CHANGE: NEW in 6.4.0.
 
 ## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
 ## publishing to this target will be handled with the previous version of code (6.0-6.3)
@@ -1711,7 +1764,7 @@
 ## with the new Jura.
 ## default: no
 #legacy_fallback=no
-## CHANGE: INTRODUCED IN 6.4
+## CHANGE: NEW in 6.4.0.
 ##
 ### end of the [arex/jura/apel:targetname] blocks ############################
 
@@ -1733,7 +1786,7 @@
 ##
 ## By default the archiving is turned off.
 #[arex/jura/archiving]
-## CHANGE: TO BE DEPRECATED
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## archivedir = path - Sets the directory path for the jura archived usage records.
 ## Usage records generated by jura reporter are stored in this directory with 
@@ -1764,12 +1817,12 @@
 ## Note that AREX ganglia (as gangliarc did) depends on an existing ganglia installation,
 ## as it sends its metrics to a running gmond process.
 #[arex/ganglia]
-## CHANGE: RENAMED block
+## CHANGE: RENAMED block in 6.0.0.
 
 ## gmetric_bin_path = path - (previously gmetric_exec) The path to gmetric executable.
 ## default: /usr/bin/gmetric
 #gmetric_bin_path=/usr/local/bin/gmetric
-## CHANGE: Moved from deleted [gangliarc] block and renamed. Path used in arc-ganglia implementation JobsMetrics.cpp
+## CHANGE: MOVED and RENAMED in 6.0.0 from deleted [gangliarc] block.
 
 ## metrics = name_of_the_metrics - the metrics to be monitored.
 ## metrics takes a comma-separated list of one or more of the following metrics:
@@ -1789,7 +1842,7 @@
 ## frequency = seconds - The period between each information gathering cycle, in seconds.
 ## default: 60
 #frequency=300
-## CHANGE: defult increased from 20s to one minute 
+## CHANGE: MODIFIED in 6.0.0.  Default increased from 20s to one minute.
 ##
 ##
 ### end of the [arex/ganglia] block ##############
@@ -1815,7 +1868,7 @@
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
 ## default: 3
 #loglevel=2
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## logfile = path - Set logfile location of the gridftp server.
 ## default: /var/log/arc/gridftpd.log
@@ -1835,7 +1888,7 @@
 ## allowedvalues: yes no
 ## default: no
 #allowencryption=no
-## CHANGE: RENAMED as allowencryption 
+## CHANGE: RENAMED in 6.0.0.
 
 ## allowactivedata = yes/no - if no, only passive data transfer is allowed.
 ## By default both passive and active data transfers are allowed.
@@ -1886,12 +1939,12 @@
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
@@ -1923,7 +1976,7 @@
 ## default: undefined
 #allownew_override=biousers atlasusers
 #allownew_override=yourauthgroup
-## CHANGE: rename. modify behaviour: possible to specify several groups on a single line!
+## CHANGE: RENAMED and MODIFIED in 6.0.0. Possible to specify several groups on a single line.
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to access the ARC-CE via this interface. A related config option the
@@ -2058,16 +2111,16 @@
 ## provider scripts.
 ## default: /var/log/arc/infoprovider.log
 #logfile=/var/log/arc/infoprovider.log
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## loglevel = number - (previously provider_loglevel) The loglevel for the infoprovider scripts (0-5).
 ## The infosys default is 1 (critical errors are logged)
 ## Each value corresponds to the following verbosity levels:
 ## FATAL => 0, ERROR => 1 , WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5
 ## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
-## default: 1
+## default: 3
 #loglevel=3
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## validity_ttl = seconds - The published infosys records advertise their
 ## validity e.g. how long the info should be considered up-to-date by the clients.
@@ -2086,7 +2139,7 @@
 ## publish information about your Computing Element.
 ## Comment out this block if you don't want to run an LDAP-based information system.
 #[infosys/ldap]
-## CHANGE: new block
+## CHANGE: NEW block in 6.0.0.
 
 ## hostname = FQDN - the hostname of the machine running the slapd service
 ## will be the bind for slapd. If not present, will be taken from the [common]
@@ -2112,7 +2165,7 @@
 ## than fall-back to "root" if not found.
 ## default: undefined
 #user=slapd
-## CHANGE: moved here from [infosys]
+## CHANGE: MOVED in 6.0.0 from [infosys].
 
 ## slapd = path - explicitly define the path to slapd command.
 ## By default the startup scripts search for "slapd" binary in the system PATH.
@@ -2173,7 +2226,7 @@
 ## A-REX infosys to produce their output.
 ## default: 10800
 #bdii_provider_timeout=10800
-## CHANGE: renamed
+## CHANGE: RENAMED parameter in 6.0.0.
 
 ## BDII5 uses these variables. These might change depending on BDII version.
 ## ARC sets them by inspecting distributed bdii configuration files.
@@ -2262,7 +2315,7 @@
 ## is populated based on the contents of the schema-neutral [infosys/cluster] 
 ## and [queue:name] blocks.
 #[infosys/nordugrid]
-## CHANGE: new schema block. should be used to turn on/off nordugrid-ldap publication.
+## CHANGE: NEW block in 6.0.0.
 ##
 ##
 ### end of the [infosys/nordugrid] schema block ########################
@@ -2274,7 +2327,7 @@
 ## The information tree is populated based on the contents of the schema-neutral 
 ## [infosys/cluster] and [queue:name] blocks and the GLUE2 specific schema sub-blocks.
 #[infosys/glue2]
-## CHANGE: new schema block. should be used to turn on/off GLUE2 publication (both ldap & xml)
+## CHANGE: NEW block in 6.0.0.
 
 ## AdminDomain entity parameters:
 ## admindomain_name = string - The Name attribute for the admindomain. This will show
@@ -2315,7 +2368,7 @@
 ## allowedvalues: production pre-production testing development
 ## default: production
 #computingservice_qualitylevel=production
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.s
 ##
 ##
 ## end of the [infosys/glue2] schema block ########################
@@ -2326,14 +2379,14 @@
 ## The information tree is populated based on the contents of the schema-neutral
 ## [infosys/cluster] and [queue:name] blocks and the GLUE2 specific schema sub-blocks.
 #[infosys/glue2/ldap]
-## CHANGE: new schema block. should be used to turn on/off GLUE2 LDAP tree publication.
+## CHANGE: NEW block in 6.0.0.
 
 ## showactivities = yes/no - (previously infosys_glue2_ldap_showactivities) Enables GLUE2
 ## ComputingActivities to appear in the LDAP rendering
 ## allowedvalues: yes no
 ## default: no
 #showactivities=no
-## CHANGE: renamed.
+## CHANGE: RENAMED in 6.0.0.
 ##
 ##
 ### end of the [infosys/glue2/ldap] schema sub-block ###########################
@@ -2346,7 +2399,7 @@
 ## This block holds information that is needed by the glue1, in addition to the
 ## schema-neutral blocks.
 #[infosys/glue1]
-## CHANGE: renamed. should be used to turn on/off GLUE1 publication.
+## CHANGE: RENAMED block in 6.0.0.
 
 ## resource_location = string - GLUE1 location attribute.
 ## IMPORTANT: no slashes or backslashes here!
@@ -2386,7 +2439,7 @@
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB.
 #[infosys/glue1/site-bdii]
-## CHANGE: renamed. turn on/off the fake site-bdii based on this block.
+## CHANGE: RENAMED block in 6.0.0. 
 
 ## *unique_id = id - The unique id used to identify this site, eg "NDGF-T1"
 ## default: undefined
@@ -2446,7 +2499,7 @@
 ## will cause errors.
 ## These entries will be shown in all GLUE2 AccessPolicy and MappingPolicy
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
-## Shares(currently queues). You can also add additional advertisedvos to queues.
+## Shares(currently queues). You can override the advertisedvos per queue.
 ## The information is also published in the NorduGrid schema.
 ## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
 ##   access control, it is just for information publishing!
@@ -2454,7 +2507,7 @@
 ## default: undefined
 #advertisedvo=atlas
 #advertisedvo=community.nordugrid.org
-## CHANGE: renamed it as advertisedvo 
+## CHANGE: RENAMED in 6.0.0.
 
 ## clustersupport = email - This is the support email address of the resource.
 ## multivalued
@@ -2642,7 +2695,7 @@
 ## default: undefined
 #pbs_queue_node=gridlong_nodes
 #pbs_queue_node=ppn=4:ib
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## sge_jobopts = string - Per-queue override of additional SGE options to be used when 
 ## submitting jobs to SGE to this queue
@@ -2670,7 +2723,7 @@
 ## slurm_requirements = string - Use this option to specify extra SLURM-specific parameters.
 ## default: undefined
 #slurm_requirements=memory on node >> 200
-## CHANGE: new parameter proposed in Umea retreat
+## CHANGE: NEW in 6.0.0.
 
 ## totalcpus = number - Manually sets the number of cpus assigned to the queue. No need to
 ## specify the parameter in case the queue_node_string method was used to assign
@@ -2706,7 +2759,7 @@
 ## This is the amount of memory (specified in MB) that a job will request.
 ## default: undefined
 #defaultmemory=512
-## CHANGE: new parameter in this block
+## CHANGE: NEW in 6.0.0.
 
 ## architecture = string - see description at [infosys/cluster] block
 ## default: $VAR{[infosys/cluster]architecture}
@@ -2754,7 +2807,7 @@
 ## default: HEPSPEC 1.0
 #benchmark=HEPSPEC 12.26
 #benchmark=Si2k 3065
-## CHANGE: MODIFIED IN 6.4
+## CHANGE: MODIFIED IN 6.4.0.
 
 ## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
 ## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 
@@ -2787,15 +2840,14 @@
 ## they will apply for the Shares that corresponds to the queue.
 ## The information is also published in the NorduGrid schema.
 ## NOTE that if you have also configured "advertisedvo" in the [infosys/cluster] block,
-##   the result advertised VOs per queue is the union set of what is contained in the
-##   [infosys/cluster] and in this [queue:name] block!
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+##   the result advertised VOs per queue will override whatever is defined in [infosys/cluster] block!
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any
 ##   access control, it is just for information publishing!
 ## multivalued
-## default: undefined
+## default: $VAR{[infosys/cluster]advertisedvo}
 #advertisedvo=atlas
 #advertisedvo=community.nordugrid.org
-## CHANGE: renamed it as advertisedvo 
+## CHANGE: RENAMED in 6.0.0.
 
 ## maxslotsperjob = number - This GLUE2 specific parameter configures the MaxSlotsPerJob value
 ## on a particular queue. This value is usually generated by LRMS infocollectors,
@@ -2812,7 +2864,7 @@
 ## assigned if his/her credentials contain no VOMS attributes.
 ## default: $VAR{[arex]forcedefaultvoms}
 #forcedefaultvoms=/vo/group/subgroup
-## CHANGE: documented in [queue] as described in [arex]
+## CHANGE: documented in [queue] as described in [arex].
 ##
 ##
 ## maxcputime = number - This value overrides the one defined in 
@@ -2845,7 +2897,7 @@
 ## an inteligent data manager that could replace A-REX's intelligence.
 ##  
 #[datadelivery-service]
-## CHANGE: NEW block 
+## CHANGE: NEW block in 6.0.0.
 
 ## *transfer_dir = path - (previously allowed_dir) The directori(es) on the DDS host in which 
 ## the service is allowed to read and write. 
@@ -2855,40 +2907,40 @@
 ## default: undefined
 #transfer_dir=/shared/arc/cache
 #transfer_dir=/shared/arc/session
-## CHANGE: NEW, also renamed from allowed_dir to work_dir 
+## CHANGE: NEW in 6.0.0.
 
 ## hostname = FQDN - The hostname of the machine on which DDS service runs.
 ## default: $EXEC{hostname -f}
 #hostname=localhost
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## port = port - Port on which service listens
 ## default: 443
 #port=8443
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## pidfile = path - pid file of the daemon
 ## default: /var/run/arched-datadelivery-service.pid
 #pidfile=/var/run/arched-datadelivery-service.pid
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## logfile = path - log file of the daemon
 ## default: /var/log/arc/datadelivery-service.log
 #logfile=/tmp/delivery.log
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## loglevel = level - set loglevel of the data delivery service between 0
 ## (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 ## allowedvalues: 0 1 2 3 4 5
 ## default: 3
 #loglevel=4
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## user = username - Overwrites the user under which the service runs. The default is the user 
 ## starting the service. DDS is very limited if not run as root. 
 ## default: undefined
 #user=ddsuser
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## secure = yes/no - Set to "no" if the service should run without a host certificate. In this case 
 ## the corresponding deliveryservice option in the [arex/data-staging] A-REX configuration block
@@ -2896,7 +2948,7 @@
 ## allowedvalues: yes no
 ## default: yes
 #secure=no
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## *allowed_ip = ip - IP address authorized to access service. Normally this is the
 ## A-REX host IP. By default the delivery service listens on all available
@@ -2906,30 +2958,30 @@
 ## default: undefined
 #allowed_ip=192.0.2.1
 #allowed_ip=2001:db8:85a3::8a2e:370:7334
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ## allowed_dn = DN - DN authorized to access service. This option restricts access
 ## to specified DNs (of the users who submit jobs to A-REX). It is only effective if secure=yes.
 ## multivalued
 ## default: undefined
 #allowed_dn=/O=Grid/O=Big VO/CN=Main Boss
-## CHANGE: NEW
+## CHANGE: NEW in 6.0.0.
 
 ### X509 related parameters
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block in 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block in 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: new in this block
+## CHANGE: NEW in this block in 6.0.0.
 ##
 ##
 ### end of the [datadelivery-service] block ##############
@@ -2949,7 +3001,7 @@
 ## In the current deployment the ACIX index services are the main consumers of the collected information.
  
 #[acix-scanner]
-## CHANGE: renamed block, renamed component (cache scanner, instead of cacheserver)
+## CHANGE: RENAMED block, RENAMED component in 6.0.0 (cache scanner, instead of cacheserver)
 
 ## cachedir = cache_path  - Specifies the cache directory to be scanned in case not set in 
 ## [arex/cache] block (e.g. the scanner is running on a different machine then A-REX)
@@ -2961,7 +3013,7 @@
 ## logfile = path -  Log file location for the acix-scanner.
 ## default: /var/log/arc/arc-acix-scanner.log
 #logfile=/tmp/arc-acix-scanner.log
-## CHANGE: modified default for the logfile
+## CHANGE: MODIFIED default for the logfile.
 
 ## hostname = string - Hostname on which the acix-scanner listens
 ## default: $EXEC{hostname -f}
@@ -2981,17 +3033,17 @@
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 ##
 ##
 ### end of the [acix-scanner] block ############################
@@ -3017,23 +3069,23 @@
 ## default: undefined
 #cachescanner=https://some.host:5443/data/cache
 #cachescanner=https://another.host:5443/data/cache
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ### X509 related parameters
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: new in this block
+## CHANGE: NEW in this block from 6.0.0.
 ##
 ## 
 ### end of the [acix-index] block ############################
@@ -3052,7 +3104,7 @@
 ## The order of this block in arc.conf may influence authorization decision. This block must
 ## appear before the [arex] block.
 #[userlist:biousers]
-## CHANGE: new blockname that better reflects the purpose of the config block. This block is not defining any VO!
+## CHANGE: RENAMED block in 6.0.0: blockname now better reflects the purpose of the config block. This block is not defining any VO!
 
 ## outfile = path - (previously file) The full path of the GENERATED file that contains the
 ## userlist (with optional mapping info).
@@ -3060,7 +3112,7 @@
 ## then nordugridmap will automatically merge entries following the order of the blocks.
 ## default: /etc/grid-security/grid-mapfile
 #outfile=/etc/grid-security/lists/atlas-users
-## CHANGE: renamed from "file"
+## CHANGE: RENAMED in 6.0.0.
 
 ## *source = url - the URL of the VO database which is used to generate the userlist.
 ## The nordugridmap will use this URL to automatically generate and keep
@@ -3111,7 +3163,7 @@
 #source=file:///etc/grid-security/priviliged_users.dn
 #source=userlist://biousers
 #source=nordugrid
-## CHANGE: MODIFIED options: edg-mkgridmap source option is removed (obsolete technology);  vo source option is renamed as userlist.
+## CHANGE: MODIFIED options in 6.0.0: edg-mkgridmap source option is removed (obsolete technology);  vo source option is renamed as userlist.
 
 ## mapped_unixid = unixid - The local UNIXID which is optionally used in the generated
 ## outfile by the nordugridmap utility.
@@ -3140,7 +3192,7 @@
 ## default: nobody
 #mapped_unixid=
 #mapped_unixid=gridtest
-## CHANGE: Modified. The empty value should work the same way as missing parameter. set the default to "nobody"
+## CHANGE: MODIFIED in 6.0.0. The empty value should work the same way as missing parameter. set the default to "nobody"
 
 ## voms_fqan_map = fqan unixid - The local UNIXID which is used to map voms(s)
 ## sources with specific FQAN given.
@@ -3191,12 +3243,12 @@
 ## x509_host_key = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_key}
 #x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_host_cert = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_host_cert}
 #x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: renamed
+## CHANGE: RENAMED in 6.0.0.
 
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
@@ -3252,7 +3304,7 @@
 ## allowedvalues: yes no
 ## default: yes
 #allow_empty_unixid=no
-## CHANGE: MODIFIED. set default to yes.
+## CHANGE: MODIFIED in 6.0.0.
 
 ## voms_method = soap/get - Controls how to get information from VOMS(S) sources.
 ## Valid values are:
@@ -3276,7 +3328,7 @@
 ## allowedvalues: 0 1 2 3 4 5
 ## default: 2
 #loglevel=4
-## CHANGE: renamed as loglevel
+## CHANGE: RENAMED in 6.0.0.
 
 ## fetch_timeout = seconds - Controls how many time (in seconds) nordugridmap will
 ## wait for external sources retrieval.

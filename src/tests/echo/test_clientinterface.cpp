@@ -75,8 +75,8 @@ int main(void) {
   std::cout<<"request: "<<str<<std::endl;
   Arc::MCC_Status status = client->process(&req,&resp);
   if(!status) {
-    logger.msg(Arc::ERROR, "SOAP invokation failed");
-    throw std::runtime_error("SOAP invokation failed");
+    logger.msg(Arc::ERROR, "SOAP invocation failed");
+    throw std::runtime_error("SOAP invocation failed");
   }
   if(resp == NULL) {
     logger.msg(Arc::ERROR,"There was no SOAP response");
@@ -114,8 +114,8 @@ int main(void) {
   if(client_http) {
     Arc::MCC_Status status = client_http->process("GET", "echo", &req_http,&info,&resp_http, idp_name, username, password);
     if(!status) {
-      logger.msg(Arc::ERROR, "HTTP with SAML2SSO invokation failed");
-      throw std::runtime_error("HTTP with SAML2SSO invokation failed");
+      logger.msg(Arc::ERROR, "HTTP with SAML2SSO invocation failed");
+      throw std::runtime_error("HTTP with SAML2SSO invocation failed");
     }
     if(resp_http == NULL) {
       logger.msg(Arc::ERROR,"There was no HTTP response");
@@ -142,8 +142,8 @@ int main(void) {
   if(client_soap) {
     Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
     if(!status) {
-      logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
-      throw std::runtime_error("SOAP with SAML2SSO invokation failed");
+      logger.msg(Arc::ERROR, "SOAP with SAML2SSO invocation failed");
+      throw std::runtime_error("SOAP with SAML2SSO invocation failed");
     }
     if(resp_soap == NULL) {
       logger.msg(Arc::ERROR,"There was no SOAP response");

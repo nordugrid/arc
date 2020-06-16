@@ -29,7 +29,7 @@ sub prioritizedvalues {
   }
 
    # just in case all the above fails, return empty string
-   $log->debug("No suitable value found in call to prioritizedvalues. Returning empty string");
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning undefined");
    return undef;
 }
 

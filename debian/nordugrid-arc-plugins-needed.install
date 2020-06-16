@@ -5,6 +5,7 @@ debian/tmp/usr/lib/arc/libaccARCHERY.so
 debian/tmp/usr/lib/arc/libaccLDAP.so
 debian/tmp/usr/lib/arc/test/libaccTEST.so
 debian/tmp/usr/lib/arc/libarcshclegacy.so
+debian/tmp/usr/lib/arc/libarcshcotokens.so
 debian/tmp/usr/lib/arc/libarcshc.so
 debian/tmp/usr/lib/arc/libdmcfile.so
 debian/tmp/usr/lib/arc/libdmchttp.so
@@ -26,6 +27,7 @@ debian/tmp/usr/lib/arc/libaccARCHERY.apd
 debian/tmp/usr/lib/arc/libaccLDAP.apd
 debian/tmp/usr/lib/arc/test/libaccTEST.apd
 debian/tmp/usr/lib/arc/libarcshclegacy.apd
+debian/tmp/usr/lib/arc/libarcshcotokens.apd
 debian/tmp/usr/lib/arc/libarcshc.apd
 debian/tmp/usr/lib/arc/libdmcfile.apd
 debian/tmp/usr/lib/arc/libdmchttp.apd

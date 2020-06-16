@@ -1389,7 +1389,7 @@ err:
     dtime = ctime-600;
 
     if ((start->type != V_ASN1_GENERALIZEDTIME) || (end->type != V_ASN1_GENERALIZEDTIME)) {
-      CredentialLogger.msg(ERROR,"VOMS: unsupported time format format in AC - expecting GENERALIZED TIME");
+      CredentialLogger.msg(ERROR,"VOMS: unsupported time format in AC - expecting GENERALIZED TIME");
       status |= VOMSACInfo::ACParsingFailed;
       return false; // ?
     }
@@ -1528,12 +1528,12 @@ err:
       status |= VOMSACInfo::InternalParsingFailed;
       return false;
     }
-  
-    //Check AC's extension
-    if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
- 
+
     //Check AC's attribute    
     if(!checkAttributes(ac->acinfo->attrib, output, status)) res = false; // ??
+ 
+    //Check AC's extension
+    if(!checkExtensions(ac->acinfo->exts, issuer, output, status)) res = false;
 
     return res;
   }

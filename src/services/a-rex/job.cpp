@@ -283,6 +283,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
   // Checking for presence of session dir and identifying local user id.
   struct stat st;
+  if(job_.sessiondir.empty()) { id_.clear(); return; };
   if(stat(job_.sessiondir.c_str(),&st) != 0) { id_.clear(); return; };
   uid_ = st.st_uid; 
   gid_ = st.st_gid; 
@@ -484,7 +485,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // 1. If job comes through EMI-ES it has delegations assigned only per file 
   //    through source and target. But ARC has extension to pass global
   //    delegation for whole DataStaging
-  // 2. In ARC BES extension credentils delegated as part of job creation request.
+  // 2. In ARC BES extension credentials delegated as part of job creation request.
   //    Those are provided in credentials variable
   // 3. If neither works and special dynamic output files @list which 
   //    have no targets and no delegations are present then any of 
@@ -837,7 +838,7 @@ bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
   GMJob job(id_,Arc::User(uid_),
-            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+            job_.sessiondir,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,config_.GmConfig(),job_)) return false;
   return true;
 }
@@ -853,7 +854,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   Arc::Credential cred(credentials,"","","","",false);
   job_.expiretime = cred.GetEndTime();
   GMJob job(id_,Arc::User(uid_),
-            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+            job_.sessiondir,JOB_STATE_ACCEPTED);
 #if 0
   std::string cred_public;
   cred.OutputCertificate(cred_public);
@@ -901,8 +902,9 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    job_clean_final(GMJob(id_,Arc::User(uid_),
-                config_.GmConfig().SessionRoot(id_)+"/"+id_),config_.GmConfig());
+    if(!job_.sessiondir.empty()) // check if session dir was already defined
+      job_clean_final(GMJob(id_,Arc::User(uid_),
+                      job_.sessiondir),config_.GmConfig());
     id_="";
   };
   return true;
@@ -930,7 +932,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
 
 std::string ARexJob::SessionDir(void) {
   if(id_.empty()) return "";
-  return config_.GmConfig().SessionRoot(id_)+"/"+id_;
+  return job_.sessiondir;
 }
 
 std::string ARexJob::LogDir(void) {
@@ -970,7 +972,7 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
     return NULL;
   };
   int lname = fname.length();
-  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = job_.sessiondir+"/"+fname;
   // First try to create/open file
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(!*fa) {
@@ -1013,7 +1015,7 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
     failure_type_=ARexJobInternalError;
     return NULL;
   };
-  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = job_.sessiondir+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
@@ -1042,7 +1044,7 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
     return NULL;
   };
   //if(dname.empty()) return NULL;
-  dname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+dname;
+  dname = job_.sessiondir+"/"+dname;
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
     if(fa->fa_setuid(uid_,gid_)) {
@@ -1103,8 +1105,8 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return "";
-  if(fname.empty()) config_.GmConfig().SessionRoot(id_)+"/"+id_;
-  return config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  if(fname.empty()) return job_.sessiondir;
+  return job_.sessiondir+"/"+fname;
 }
 
 bool ARexJob::ReportFileComplete(const std::string& filename) {

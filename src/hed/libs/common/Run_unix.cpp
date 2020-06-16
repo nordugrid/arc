@@ -17,8 +17,10 @@
 #include <signal.h>
 #include <poll.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <iostream>
+#include <set>
 
 #include <glibmm.h>
 
@@ -28,108 +30,50 @@
 #include <arc/Utils.h>
 
 #include "Run.h"
-#include "Watchdog.h"
 
-#define DUAL_CHECK_LOST_CHILD
 
 namespace Arc {
 
-  // This function is hackish workaround for
-  // problem of child processes disappearing without
-  // trace and even waitpid() can't detect that.
-  static bool check_pid(pid_t p, Time& t) {
-    if(p <= 0) {
-      // Child PID is lost - memory corruption?
-      std::cerr<<"HUGE PROBLEM: lost PID of child process: "<<p<<std::endl;
-      return false;
-    }
-    if(::kill(p, 0) != 0) {
-      // ESRCH - child exited and lost
-      // EPERM - PID reused
-      if((errno == ESRCH) || (errno == EPERM)) {
-        // There is slight possibility of race condition
-        // when child already exited but waitpid for it
-        // was not called yet. Let's give code 1 min
-        // to process lost child to be on safe side.
-        if(t.GetTime() != Time::UNDEFINED) {
-          if((Time()-t) > Period(60)) {
-            std::cerr<<"HUGE PROBLEM: lost child process: "<<p<<std::endl;
-            return false;
-          }
-        } else {
-          t = Time();
-        }
-      }
-    }
-    return true;
-  }
-
-#define SAFE_DISCONNECT(CONNECTOR) { \
-    try { \
-      (CONNECTOR).disconnect(); \
-    } catch (Glib::Exception& e) { \
-    } catch (std::exception& e) { \
-    }; \
-}
-
-  class Watchdog;
+  static Logger logger(Logger::getRootLogger(), "Run");
 
   class RunPump {
     friend class Run;
-    friend class Watchdog;
   private:
     static Glib::StaticMutex instance_lock_;
     static RunPump *instance_;
     static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
-    class Abandoned {
-    friend class RunPump;
-    private:
-      sigc::connection child_conn_;
-      Glib::Pid pid_;
-    public:
-      Abandoned(Glib::Pid pid,sigc::connection child_conn):child_conn_(child_conn),pid_(pid) { };
-    };
-    std::list<Abandoned> abandoned_;
-    //std::list<Run*> runs_;
-    Glib::Mutex abandoned_lock_;
+    // Reference to processes we are not interested in anymore.
+    // It is only kept for calling waitpid() on it.
+    std::set<pid_t> abandoned_;
+    // Processes to monitor
+    std::set<Run*> monitored_;
+    // Lock for containers of monitored handles and pids.
     Glib::Mutex list_lock_;
-    //Glib::Mutex pump_lock_;
-    TimedMutex pump_lock_;
-    Glib::RefPtr<Glib::MainContext> context_;
+    // pipe for kicking main loop.
+    int loop_kick_[2];
+    // Barrier for slowing down main loop.
+    Glib::Mutex loop_lock_;
+    // Thread which performs monitoring.
     Glib::Thread *thread_;
-    int storm_count;
     RunPump(void);
     ~RunPump(void);
     static RunPump& Instance(void);
-    operator bool(void) const {
-      return (bool)context_;
-    }
-    bool operator!(void) const {
-      return !(bool)context_;
-    }
+    operator bool(void) const { return (thread_ != NULL); }
+    bool operator!(void) const { return (thread_ == NULL); }
     void Pump(void);
+    // Add process and associated handles to those monitored by this instance
     void Add(Run *r);
+    // Remove process  and handles from monitored.
+    // If process is still running it's pid is still monitored.
     void Remove(Run *r);
-    void child_handler(Glib::Pid pid, int result);
     static void fork_handler(void);
+    static void sigchld_handler(int);
   };
 
   Glib::StaticMutex RunPump::instance_lock_ = GLIBMM_STATIC_MUTEX_INIT;
   RunPump* RunPump::instance_ = NULL;
   unsigned int RunPump::mark_ = ~RunPumpMagic;
-
-  class Pid {
-  private:
-    Glib::Pid p_;
-  public:
-    Pid(void):p_(0) { }; 
-    Pid(Glib::Pid p):p_(p) { }; 
-    ~Pid(void) { if(p_) Glib::spawn_close_pid(p_); };
-    operator Glib::Pid(void) const { return p_; };
-    Glib::Pid pid(void) const { return p_; };
-    Glib::Pid& operator=(const Glib::Pid& p) { return (p_=p); };
-  };
 
   class RunInitializerArgument {
   private:
@@ -166,7 +110,7 @@ namespace Arc {
     ::umask(0077);
     // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.
-    // Glib takes care of open handles.
+    // Post-fork code takes care of open handles.
 #ifdef SIGRTMIN
     for(int n = SIGHUP; n < SIGRTMIN; ++n) {
 #else
@@ -181,146 +125,250 @@ namespace Arc {
     return;
   }
 
-  RunPump::RunPump(void)
-    : context_(NULL),
-      thread_(NULL),
-      storm_count(0) {
+  RunPump::RunPump()
+    : thread_(NULL)/*, storm_count(0)*/ {
+    loop_kick_[0] = -1;
+    loop_kick_[1] = -1;
     try {
+      if(::pipe(loop_kick_) != 0)
+        return;
+      (void)fcntl(loop_kick_[0], F_SETFL, fcntl(loop_kick_[0], F_GETFL) | O_NONBLOCK);
+      (void)fcntl(loop_kick_[1], F_SETFL, fcntl(loop_kick_[1], F_GETFL) | O_NONBLOCK);
       thread_ = Glib::Thread::create(sigc::mem_fun(*this, &RunPump::Pump), false);
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {}
-    ;
+    } catch (Glib::Exception& e) {} catch (std::exception& e) {};
     if (thread_ == NULL) return;
-    // Wait for context_ to be intialized
-    // TODO: what to do if context never initialized
-    for (;;) {
-      if (context_) break;
-      thread_->yield(); // This is simpler than condition+mutex
-    }
+  }
+
+  RunPump::~RunPump() {
+    // There is only one static instance of this class.
+    // So there is no sense to do any destruction.
   }
 
   void RunPump::fork_handler(void) {
+    // In forked process disable access to instance while keeping initialization mark.
     instance_ = NULL;
     mark_ = RunPumpMagic;
+    (void)signal(SIGCHLD, SIG_DFL);
+  }
+
+  void RunPump::sigchld_handler(int) {
+    if ((instance_ == NULL) || (mark_ != RunPumpMagic)) return;
+    if (instance_->loop_kick_[1] == -1) return;
+    char dummy;
+    (void)write(instance_->loop_kick_[1], &dummy, 1);
   }
 
   RunPump& RunPump::Instance(void) {
-    instance_lock_.lock();
+    Glib::Mutex::Lock lock(instance_lock_);
+    // Check against fork_handler
     if ((instance_ == NULL) || (mark_ != RunPumpMagic)) {
-      //pthread_atfork(NULL,NULL,&fork_handler);
       instance_ = new RunPump();
       mark_ = RunPumpMagic;
+      (void)signal(SIGCHLD, &sigchld_handler);
     }
-    instance_lock_.unlock();
     return *instance_;
   }
 
+  static short find_events(int fd, pollfd* handles, nfds_t handles_num) {
+    for(nfds_t idx = 0; idx < handles_num; ++idx) {
+      if(handles[idx].fd == fd) {
+        return handles[idx].revents;
+      }
+    }
+    return 0;
+  }
+
+  static void pollfd_free(pollfd* arg) { ::free(arg); };
+
   void RunPump::Pump(void) {
-    // TODO: put try/catch everythere for glibmm errors
     try {
-      context_ = Glib::MainContext::create();
-      // In infinite loop monitor state of children processes
-      // and pump information to/from std* channels if requested
-      //context_->acquire();
-      for (;;) {
-        list_lock_.lock();
-        list_lock_.unlock();
-        pump_lock_.lock();
-        bool dispatched = context_->iteration(true);
-        for(std::list<Abandoned>::iterator a = abandoned_.begin();
-                            a != abandoned_.end();) {
-          if(a->pid_ == 0) {
-            SAFE_DISCONNECT(a->child_conn_);
-            a = abandoned_.erase(a);
-          } else {
-            ++a;
-          }
-        }
-        pump_lock_.unlock();
-        thread_->yield();
-        if (!dispatched) {
-          // Under some unclear circumstance storm of iteration()
-          // returning false non-stop was observed. So here we 
-          // are trying to prevent that.
-          if((++storm_count) >= 10) {
+      while(true) {
+        {
+          Glib::Mutex::Lock lock(list_lock_);
+          nfds_t handles_num = monitored_.size()*3 + 1;
+          AutoPointer<pollfd> handles(reinterpret_cast<pollfd*>(malloc(sizeof(pollfd[handles_num]))), &pollfd_free);
+          // wait for events on pipe handles and signals from child exit
+          if(!handles) {
+            // memory exhaustion?
+            lock.release();
             sleep(1);
-            storm_count = 0;
+            continue;
           };
-        } else {
-          storm_count = 0;
-        }
+          size_t idx = 0;
+          handles[idx].fd = loop_kick_[0]; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+          ++idx;
+          for(std::set<Run*>::iterator it = monitored_.begin(); it != monitored_.end(); ++it) {
+            Run* r = *it;
+            if (r->stdout_str_ && !(r->stdout_keep_) && (r->stdout_ != -1)) {
+              handles[idx].fd = r->stdout_; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+              ++idx;
+            }
+            if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
+              handles[idx].fd = r->stderr_; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+              ++idx;
+            }
+            if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
+              handles[idx].fd = r->stdin_; handles[idx].events = POLLOUT; handles[idx].revents = 0; 
+              ++idx;
+            }
+          }
+          handles_num = idx;
+          sigset_t signals;
+          sigemptyset(&signals);
+          sigaddset(&signals, SIGCHLD);
+          int res = ppoll(handles.Ptr(), handles_num, NULL, &signals);
+          if(res > 0) {
+            // handles need attention
+          } else if(res < 0) {
+            if(errno == EINTR) {
+              // Probably child exited
+              logger.msg(DEBUG, "Child monitoring signal detected");
+            } else {
+              int err = errno;
+              // Some error. Only expected error is some handles already closed.
+              lock.release();
+              logger.msg(DEBUG, "Child monitoring error: %i", err);
+              sleep(1);
+              continue;
+            }
+            // In case of error ignore any information about handle.
+            handles.Release();
+          }
+          // Handles processing
+          if(handles) {
+            // check kick pipe first
+            if(handles[0].revents & POLLIN) {
+              char dummy;
+              (void)read(handles[0].fd, &dummy, 1);
+              logger.msg(DEBUG, "Child monitoring kick detected");
+            }
+            if(handles[0].revents & (POLLERR | POLLHUP)) {
+              logger.msg(ERROR, "Child monitoring internal communication error");
+            }
+
+            for(std::set<Run*>::iterator it = monitored_.begin(); it != monitored_.end(); ++it) {
+              Run* r = *it;
+              if (r->stdout_str_ && !(r->stdout_keep_) && (r->stdout_ != -1)) {
+                short revents = find_events(r->stdout_, handles.Ptr(), handles_num);
+                if(revents & POLLIN) r->stdout_handler();
+                if(revents & (POLLERR | POLLHUP)) {
+                  // In case of error just stop monitoring.
+                  close(r->stdout_);
+                  r->stdout_ = -1;
+                  logger.msg(ERROR, "Child monitoring stdout is closed");
+                }
+              }
+              if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
+                short revents = find_events(r->stderr_, handles.Ptr(), handles_num);
+                if(revents & POLLIN) r->stderr_handler();
+                if(revents & (POLLERR | POLLHUP)) {
+                  // In case of error just stop monitoring.
+                  close(r->stderr_);
+                  r->stderr_ = -1;
+                  logger.msg(ERROR, "Child monitoring stderr is closed");
+                }
+              }
+              if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
+                short revents = find_events(r->stdin_, handles.Ptr(), handles_num);
+                if(revents & POLLOUT) r->stdin_handler();
+                if(revents & (POLLERR | POLLHUP)) {
+                  // In case of error just stop monitoring.
+                  close(r->stdin_);
+                  r->stdin_ = -1;
+                  logger.msg(ERROR, "Child monitoring stdin is closed");
+                }
+              }
+            }
+          }
+          // Always do pid processing because there is no reliable information about signal
+          {
+            std::list<Run*> todrop;
+            for(std::set<Run*>::iterator it = monitored_.begin(); it != monitored_.end(); ++it) {
+              Run* r = *it;
+              if(r->running_ && (r->pid_ > 0)) {
+                int status = 0;
+                pid_t rpid = waitpid(r->pid_, &status, WNOHANG);
+                if(rpid == 0) {
+                  // still running
+                } else {
+                  if(rpid == r->pid_) {
+                    // exited
+                    logger.msg(DEBUG, "Child monitoring child %d exited", r->pid_);
+                    r->child_handler(status);
+                  } else { // it should be -1
+                    // error - child lost?
+                    logger.msg(ERROR, "Child monitoring lost child %d (%d)", r->pid_, rpid);
+                    r->child_handler(-1);
+                  }
+                  // Not monitoring exited and failed processes
+                  todrop.push_back(r);
+                }
+              }
+            }
+            for(std::list<Run*>::iterator itd = todrop.begin(); itd != todrop.end(); ++itd) monitored_.erase(*itd);
+          }
+          {
+            std::list<pid_t> todrop;
+            for(std::set<pid_t>::iterator it = abandoned_.begin(); it != abandoned_.end(); ++it) {
+              pid_t r = *it;
+              if(r > 0) {
+                int status = 0;
+                pid_t rpid = waitpid(r, &status, WNOHANG);
+                if(rpid == 0) {
+                  // still running
+                } else {
+                  todrop.push_back(r);
+                  logger.msg(DEBUG, "Child monitoring drops abandoned child %d (%d)", r, rpid);
+                }
+              }
+            }
+            for(std::list<pid_t>::iterator itd = todrop.begin(); itd != todrop.end(); ++itd) abandoned_.erase(*itd);
+          }
+        } // End of main lock
+        // TODO: storm protection
+        // Acquire barrier lock to allow modification of monitored handles
+        Glib::Mutex::Lock llock(loop_lock_);
       }
     } catch (Glib::Exception& e) {} catch (std::exception& e) {};
   }
 
   void RunPump::Add(Run *r) {
+    // Check validity of parameters
     if (!r) return;
     if (!(*r)) return;
     if (!(*this)) return;
-    // Take full control over context
-    list_lock_.lock();
-    while (true) {
-      context_->wakeup();
-      // doing it like that because experience says
-      // wakeup does not always wakes it up
-      if(pump_lock_.lock(100)) break;
-    }
     try {
+      // Take full control over context
+      Glib::Mutex::Lock llock(loop_lock_); // barrier
+      char dummy;
+      (void)write(loop_kick_[1], &dummy, 1);
+      Glib::Mutex::Lock lock(list_lock_);
       // Add sources to context
-      if (r->stdout_str_ && !(r->stdout_keep_)) {
-        r->stdout_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdout_handler), r->stdout_, Glib::IO_IN | Glib::IO_HUP);
-      }
-      if (r->stderr_str_ && !(r->stderr_keep_)) {
-        r->stderr_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stderr_handler), r->stderr_, Glib::IO_IN | Glib::IO_HUP);
-      }
-      if (r->stdin_str_ && !(r->stdin_keep_)) {
-        r->stdin_conn_ = context_->signal_io().connect(sigc::mem_fun(*r, &Run::stdin_handler), r->stdin_, Glib::IO_OUT | Glib::IO_HUP);
-      }
-#ifdef HAVE_GLIBMM_CHILDWATCH
-      r->child_conn_ = context_->signal_child_watch().connect(sigc::mem_fun(*r, &Run::child_handler), r->pid_->pid());
-      //if(r->child_conn_.empty()) std::cerr<<"connect for signal_child_watch failed"<<std::endl;
-#endif
+      monitored_.insert(r);
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
-    pump_lock_.unlock();
-    list_lock_.unlock();
   }
 
   void RunPump::Remove(Run *r) {
+    // Check validity of parameters
     if (!r) return;
     if (!(*r)) return;
     if (!(*this)) return;
-    // Take full control over context
-    list_lock_.lock();
-    while (true) {
-      context_->wakeup();
-      // doing it like that because experience says
-      // wakeup does not always wakes it up
-      if(pump_lock_.lock(100)) break;
-    }
-    // Disconnect sources from context
-    SAFE_DISCONNECT(r->stdout_conn_);
-    SAFE_DISCONNECT(r->stderr_conn_);
-    SAFE_DISCONNECT(r->stdin_conn_);
-    SAFE_DISCONNECT(r->child_conn_);
-    if(r->running_) {
-#ifdef HAVE_GLIBMM_CHILDWATCH
-      abandoned_.push_back(Abandoned(r->pid_->pid(),context_->signal_child_watch().connect(sigc::mem_fun(*this,&RunPump::child_handler), r->pid_->pid())));
-#endif
-      r->running_ = false;
-    }
-    pump_lock_.unlock();
-    list_lock_.unlock();
-  }
-
-  void RunPump::child_handler(Glib::Pid pid, int /* result */) {
-    abandoned_lock_.lock();
-    for(std::list<Abandoned>::iterator a = abandoned_.begin();
-                        a != abandoned_.end();++a) {
-      if(a->pid_ == pid) {
-        a->pid_ = 0;
-        break;
+    try {
+      // Take full control over context
+      Glib::Mutex::Lock llock(loop_lock_); // barrier
+      char dummy;
+      (void)write(loop_kick_[1], &dummy, 1);
+      Glib::Mutex::Lock lock(list_lock_);
+      // Disconnect sources from context
+      if(monitored_.erase(r) > 0) {
+        // it is the process we are monitoring
+        if(r->running_ && (r->pid_ > 0)) {
+          // so keep monitoring it just for waitpid calls
+          abandoned_.insert(r->pid_); 
+        }
+        r->running_ = false; // let Run instance think it finished
       }
-    }
-    abandoned_lock_.unlock();
+    } catch (Glib::Exception& e) {} catch (std::exception& e) {}
   }
 
   Run::Run(const std::string& cmdline)
@@ -334,7 +382,7 @@ namespace Arc {
       stdout_keep_(false),
       stderr_keep_(false),
       stdin_keep_(false),
-      pid_(NULL),
+      pid_(-1),
       argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
       initializer_arg_(NULL),
@@ -348,7 +396,6 @@ namespace Arc {
       group_id_(0),
       run_time_(Time::UNDEFINED),
       exit_time_(Time::UNDEFINED) {
-    pid_ = new Pid;
   }
 
   Run::Run(const std::list<std::string>& argv)
@@ -362,7 +409,7 @@ namespace Arc {
       stdout_keep_(false),
       stderr_keep_(false),
       stdin_keep_(false),
-      pid_(NULL),
+      pid_(-1),
       argv_(argv),
       initializer_func_(NULL),
       initializer_arg_(NULL),
@@ -376,7 +423,6 @@ namespace Arc {
       group_id_(0),
       run_time_(Time::UNDEFINED),
       exit_time_(Time::UNDEFINED) {
-    pid_ = new Pid;
   }
 
   Run::~Run(void) {
@@ -386,7 +432,6 @@ namespace Arc {
       CloseStderr();
       CloseStdin();
       RunPump::Instance().Remove(this);
-      delete pid_;
     };
   }
 
@@ -434,38 +479,22 @@ namespace Arc {
     if (started_) return false;
     if (argv_.size() < 1) return false;
     RunPump& pump = RunPump::Instance();
-    UserSwitch* usw = NULL;
-    RunInitializerArgument *arg = NULL;
+    AutoPointer<UserSwitch> usw;
+    AutoPointer<RunInitializerArgument> arg;
     std::list<std::string> envp_tmp;
     try {
       running_ = true;
-      Glib::Pid pid = 0;
+      pid_t pid = -1;
       // Locking user switching to make sure fork is 
       // is done with proper uid
       usw = new UserSwitch(0,0);
-      arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
-#ifdef USE_GLIB_PROCESS_SPAWN
-      {
-      EnvLockWrapper wrapper; // Protection against gettext using getenv
-      envp_tmp = GetEnv();
-      remove_env(envp_tmp, envx_);
-      add_env(envp_tmp, envp_);
-      spawn_async_with_pipes(working_directory, argv_, envp_tmp,
-                             Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
-                             sigc::mem_fun(*arg, &RunInitializerArgument::Run),
-                             &pid,
-                             stdin_keep_  ? NULL : &stdin_,
-                             stdout_keep_ ? NULL : &stdout_,
-                             stderr_keep_ ? NULL : &stderr_);
-      };
-#else
+      arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw.Ptr(), user_id_, group_id_);
       envp_tmp = GetEnv();
       remove_env(envp_tmp, envx_);
       add_env(envp_tmp, envp_);
       int pipe_stdin[2] = { -1, -1 };
       int pipe_stdout[2] = { -1, -1 };
       int pipe_stderr[2] = { -1, -1 };
-      pid = -1;
       if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
@@ -553,8 +582,7 @@ namespace Arc {
         if(pipe_stderr[1] != -1) close(pipe_stderr[1]);
         throw Glib::SpawnError(Glib::SpawnError::FORK, "Generic error");
       };
-#endif
-      *pid_ = pid;
+      pid_ = pid;
       if (!stdin_keep_) {
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
       };
@@ -567,36 +595,29 @@ namespace Arc {
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
-      if(usw) delete usw;
-      if(arg) delete arg;
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
-      if(usw) delete usw;
-      if(arg) delete arg;
       running_ = false;
       return false;
     };
     pump.Add(this);
-    if(usw) delete usw;
-    if(arg) delete arg;
     return true;
   }
 
   void Run::Kill(int timeout) {
-#ifndef HAVE_GLIBMM_CHILDWATCH
-    Wait(0);
-#endif
     if (!running_) return;
+    pid_t pid = pid_;
+    if(pid != -1) return;
     if (timeout > 0) {
       // Kill softly
-      ::kill(pid_->pid(), SIGTERM);
+      ::kill(pid, SIGTERM);
       Wait(timeout);
     }
     if (!running_) return;
     // Kill with no merci
-    ::kill(pid_->pid(), SIGKILL);
+    ::kill(pid, SIGKILL);
   }
 
   void Run::Abandon(void) {
@@ -608,7 +629,7 @@ namespace Arc {
     }
   }
 
-  bool Run::stdout_handler(Glib::IOCondition) {
+  bool Run::stdout_handler() {
     if (stdout_str_) {
       char buf[256];
       int l = ReadStdout(0, buf, sizeof(buf));
@@ -625,7 +646,7 @@ namespace Arc {
     return true;
   }
 
-  bool Run::stderr_handler(Glib::IOCondition) {
+  bool Run::stderr_handler() {
     if (stderr_str_) {
       char buf[256];
       int l = ReadStderr(0, buf, sizeof(buf));
@@ -642,7 +663,7 @@ namespace Arc {
     return true;
   }
 
-  bool Run::stdin_handler(Glib::IOCondition) {
+  bool Run::stdin_handler() {
     if (stdin_str_) {
       if (stdin_str_->Size() == 0) {
         CloseStdin();
@@ -663,50 +684,41 @@ namespace Arc {
     return true;
   }
 
-  void Run::child_handler(Glib::Pid, int result) {
-    if (stdout_str_) for (;;) if (!stdout_handler(Glib::IO_IN)) break;
-    if (stderr_str_) for (;;) if (!stderr_handler(Glib::IO_IN)) break;
-    //CloseStdout();
-    //CloseStderr();
+  void Run::child_handler(int result) {
+    if (stdout_str_) for (;;) if (!stdout_handler()) break;
+    if (stderr_str_) for (;;) if (!stderr_handler()) break;
     CloseStdin();
-    lock_.lock();
-    cond_.signal();
-    // There is reference in Glib manual that 'result' is same
-    // as returned by waitpid. It is not clear how it works for
-    // windows but atleast for *nix we can use waitpid related
-    // macros.
-#ifdef DUAL_CHECK_LOST_CHILD
-    if(result == -1) { // special value to indicate lost child
-      result_ = -1;
-    } else
-#endif
-    if(WIFEXITED(result)) {
-      result_ = WEXITSTATUS(result);
-    } else {
-      result_ = -1;
+    {
+      Glib::Mutex::Lock lock(lock_);
+      cond_.signal();
+      if(result == -1) { // special value to indicate lost child
+        result_ = -1;
+      } else {
+        if(WIFEXITED(result)) {
+          result_ = WEXITSTATUS(result);
+        } else {
+          result_ = -1;
+        }
+      }
+      running_ = false;
+      exit_time_ = Time();
     }
-    running_ = false;
-    exit_time_ = Time();
-    lock_.unlock();
     if (kicker_func_) (*kicker_func_)(kicker_arg_);
   }
 
   void Run::CloseStdout(void) {
     if (stdout_ != -1) ::close(stdout_);
     stdout_ = -1;
-    SAFE_DISCONNECT(stdout_conn_);
   }
 
   void Run::CloseStderr(void) {
     if (stderr_ != -1) ::close(stderr_);
     stderr_ = -1;
-    SAFE_DISCONNECT(stderr_conn_);
   }
 
   void Run::CloseStdin(void) {
     if (stdin_ != -1) ::close(stdin_);
     stdin_ = -1;
-    SAFE_DISCONNECT(stdin_conn_);
   }
 
   int Run::ReadStdout(int timeout, char *buf, int size) {
@@ -755,21 +767,7 @@ namespace Arc {
   }
 
   bool Run::Running(void) {
-#ifdef DUAL_CHECK_LOST_CHILD
-      if(running_) {
-        if(!check_pid(pid_->pid(),exit_time_)) {
-          lock_.unlock();
-          child_handler(pid_->pid(), -1); // simulate exit
-          lock_.lock();
-        }
-      }
-#endif
-#ifdef HAVE_GLIBMM_CHILDWATCH
     return running_;
-#else
-    Wait(0);
-    return running_;
-#endif
   }
 
   bool Run::Wait(int timeout) {
@@ -783,37 +781,8 @@ namespace Arc {
       Glib::TimeVal t;
       t.assign_current_time();
       t.subtract(till);
-#ifdef HAVE_GLIBMM_CHILDWATCH
       if (!t.negative()) break;
       cond_.timed_wait(lock_, till);
-#else
-      int status;
-      int r = ::waitpid(pid_->pid(), &status, WNOHANG);
-      if (r == 0) {
-        if (!t.negative()) break;
-        lock_.unlock();
-        sleep(1);
-        lock_.lock();
-        continue;
-      }
-      if (r == -1) {
-        // Child lost?
-        status = (-1)<<8;
-      }
-      // Child exited
-      lock_.unlock();
-      child_handler(pid_->pid(), status);
-      lock_.lock();
-#endif
-#ifdef DUAL_CHECK_LOST_CHILD
-      if(running_) {
-        if(!check_pid(pid_->pid(),exit_time_)) {
-          lock_.unlock();
-          child_handler(pid_->pid(), -1); // simulate exit
-          lock_.lock();
-        }
-      }
-#endif
     }
     lock_.unlock();
     return (!running_);
@@ -825,37 +794,9 @@ namespace Arc {
     lock_.lock();
     Glib::TimeVal till;
     while (running_) {
-#ifdef HAVE_GLIBMM_CHILDWATCH
       till.assign_current_time();
       till += 1; // one sec later
       cond_.timed_wait(lock_, till);
-#else
-      int status;
-      int r = ::waitpid(pid_->pid(), &status, WNOHANG);
-      if (r == 0) {
-        lock_.unlock();
-        sleep(1);
-        lock_.lock();
-        continue;
-      }
-      if (r == -1) {
-        // Child lost?
-        status = (-1)<<8;
-      }
-      // Child exited
-      lock_.unlock();
-      child_handler(pid_->pid(), status);
-      lock_.lock();
-#endif
-#ifdef DUAL_CHECK_LOST_CHILD
-      if(running_) {
-        if(!check_pid(pid_->pid(),exit_time_)) {
-          lock_.unlock();
-          child_handler(pid_->pid(), -1); // simulate exit
-          lock_.lock();
-        }
-      }
-#endif
     }
     lock_.unlock();
     return (!running_);
@@ -928,187 +869,6 @@ namespace Arc {
 
   void Run::AfterFork(void) {
     RunPump::fork_handler();
-  }
-
-
-#define WATCHDOG_TEST_INTERVAL (60)
-#define WATCHDOG_KICK_INTERVAL (10)
-
-  class Watchdog {
-  friend class WatchdogListener;
-  friend class WatchdogChannel;
-  private:
-    class Channel {
-    public:
-      int timeout;
-      time_t next;
-      Channel(void):timeout(-1),next(0) {};
-    };
-    int lpipe[2];
-    sigc::connection timer_;
-    static Glib::Mutex instance_lock_;
-    std::vector<Channel> channels_;
-    static Watchdog *instance_;
-    static unsigned int mark_;
-#define WatchdogMagic (0x1E84FC05)
-    static Watchdog& Instance(void);
-    int Open(int timeout);
-    void Kick(int channel);
-    void Close(int channel);
-    int Listen(void);
-    bool Timer(void);
-  public:
-    Watchdog(void);
-    ~Watchdog(void);
-  };
-
-  Glib::Mutex Watchdog::instance_lock_;
-  Watchdog* Watchdog::instance_ = NULL;
-  unsigned int Watchdog::mark_ = ~WatchdogMagic;
-
-  Watchdog& Watchdog::Instance(void) {
-    instance_lock_.lock();
-    if ((instance_ == NULL) || (mark_ != WatchdogMagic)) {
-      instance_ = new Watchdog();
-      mark_ = WatchdogMagic;
-    }
-    instance_lock_.unlock();
-    return *instance_;
-  }
-
-  Watchdog::Watchdog(void) {
-    lpipe[0] = -1; lpipe[1] = -1;
-    ::pipe(lpipe);
-    if(lpipe[1] != -1) fcntl(lpipe[1], F_SETFL, fcntl(lpipe[1], F_GETFL) | O_NONBLOCK);
-  }
-
-  Watchdog::~Watchdog(void) {
-    if(timer_.connected()) timer_.disconnect();
-    if(lpipe[0] != -1) ::close(lpipe[0]);
-    if(lpipe[1] != -1) ::close(lpipe[1]);
-  }
-
-  bool Watchdog::Timer(void) {
-    char c = '\0';
-    time_t now = ::time(NULL);
-    {
-      Glib::Mutex::Lock lock(instance_lock_);
-      for(int n = 0; n < channels_.size(); ++n) {
-        if(channels_[n].timeout < 0) continue;
-        if(((int)(now - channels_[n].next)) > 0) return true; // timeout
-      }
-    }
-    if(lpipe[1] != -1) write(lpipe[1],&c,1);
-    return true;
-  }
-
-  int Watchdog::Open(int timeout) {
-    if(timeout <= 0) return -1;
-    Glib::Mutex::Lock lock(instance_lock_);
-    if(!timer_.connected()) {
-      // start glib loop and attach timer to context
-      Glib::RefPtr<Glib::MainContext> context = RunPump::Instance().context_;
-      timer_ = context->signal_timeout().connect(sigc::mem_fun(*this,&Watchdog::Timer),WATCHDOG_KICK_INTERVAL*1000);
-    }
-    int n = 0;
-    for(; n < channels_.size(); ++n) {
-      if(channels_[n].timeout < 0) {
-        channels_[n].timeout = timeout;
-        channels_[n].next = ::time(NULL) + timeout;
-        return n;
-      }
-    }
-    channels_.resize(n+1);
-    channels_[n].timeout = timeout;
-    channels_[n].next = ::time(NULL) + timeout;
-    return n;
-  }
-
-  void Watchdog::Kick(int channel) {
-    Glib::Mutex::Lock lock(instance_lock_);
-    if((channel < 0) || (channel >= channels_.size())) return;
-    if(channels_[channel].timeout < 0) return;
-    channels_[channel].next = ::time(NULL) + channels_[channel].timeout;
-  }
-
-  void Watchdog::Close(int channel) {
-    Glib::Mutex::Lock lock(instance_lock_);
-    if((channel < 0) || (channel >= channels_.size())) return;
-    channels_[channel].timeout = -1;
-    // resize?
-  }
-
-  int Watchdog::Listen(void) {
-    return lpipe[0];
-  }
-
-  WatchdogChannel::WatchdogChannel(int timeout) {
-    id_ = Watchdog::Instance().Open(timeout);
-  }
-
-  WatchdogChannel::~WatchdogChannel(void) {
-    Watchdog::Instance().Close(id_);
-  }
- 
-  void WatchdogChannel::Kick(void) {
-    Watchdog::Instance().Kick(id_);
-  }
-
-  WatchdogListener::WatchdogListener(void):
-             instance_(Watchdog::Instance()),last((time_t)(-1)) {
-  }
-
-  bool WatchdogListener::Listen(int limit, bool& error) {
-    error = false;
-    int h = instance_.Listen();
-    if(h == -1) return !(error = true);
-    time_t out = (time_t)(-1); // when to leave
-    if(limit >= 0) out = ::time(NULL) + limit;
-    int to = 0; // initailly just check if something already arrived
-    for(;;) {
-      pollfd fd;
-      fd.fd = h; fd.events = POLLIN; fd.revents = 0;
-      int err = ::poll(&fd, 1, to);
-      // process errors
-      if((err < 0) && (errno != EINTR)) break; // unrecoverable error
-      if(err > 0) { // unexpected results
-        if(err != 1) break;
-        if(!(fd.revents & POLLIN)) break;
-      };
-      time_t now = ::time(NULL);
-      time_t next = (time_t)(-1); // when to timeout
-      if(err == 1) {
-        // something arrived
-        char c;
-        ::read(fd.fd,&c,1);
-        last = now; next = now + WATCHDOG_TEST_INTERVAL;
-      } else {
-        // check timeout
-        if(last != (time_t)(-1)) next = last + WATCHDOG_TEST_INTERVAL;
-        if((next != (time_t)(-1)) && (((int)(next-now)) <= 0)) return true;
-      }
-      // check for time limit
-      if((limit >= 0) && (((int)(out-now)) <= 0)) return false;
-      // prepare timeout for poll
-      to = WATCHDOG_TEST_INTERVAL;
-      if(next != (time_t)(-1)) {
-        int tto = next-now;
-        if(tto < to) to = tto;
-      }
-      if(limit >= 0) {
-        int tto = out-now;
-        if(tto < to) to = tto;
-      }
-      if(to < 0) to = 0;
-    }
-    // communication failure
-    error = true;
-    return false;
-  }
-
-  bool WatchdogListener::Listen(void) {
-    bool error;
-    return Listen(-1,error);
   }
 
 

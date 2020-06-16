@@ -269,6 +269,10 @@ namespace Arc {
     }
     ccfg.AddCADir(caCertificatesDirectory);
 
+    if(!otoken.empty()) {
+      ccfg.AddOToken(otoken);
+    }
+
     if(!overlayfile.empty())
       ccfg.GetOverlay(overlayfile);
   }
@@ -339,7 +343,11 @@ namespace Arc {
     const User user;
     std::string home_path = user.Home();
     bool has_proxy = false;
+
     // Look for credentials.
+
+    otoken = GetEnv("ARC_OTOKEN");
+
     std::string proxy_path = GetEnv("X509_USER_PROXY");
     if (!proxy_path.empty()) {
       proxyPath = proxy_path;
@@ -497,7 +505,7 @@ namespace Arc {
         if (test && !dir_test(caCertificatesDirectory)) {
           //std::cerr<<"-- ca_dir test failed"<<std::endl;
           if(require) {
-            logger.msg(WARNING, "Can not access CA certificates directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+            logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
             res = false;
           }
           caCertificatesDirectory.clear();
@@ -563,6 +571,10 @@ namespace Arc {
 
     if (!caCertificatesDirectory.empty()) {
       logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
+    }
+
+    if (!otoken.empty()) {
+      logger.msg(INFO, "Using OToken");
     }
 
     return res;
